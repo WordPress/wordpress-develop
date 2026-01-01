@@ -955,6 +955,73 @@ class WP_List_Table {
 	}
 
 	/**
+	 * Displays a note count bubble.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param int $post_id          The post ID.
+	 */
+	protected function notes_bubble( $post_id ) {
+		$post_object   = get_post( $post_id );
+		$edit_post_cap = $post_object ? 'edit_post' : 'edit_posts';
+
+		if ( ! current_user_can( $edit_post_cap, $post_id )
+			&& ( post_password_required( $post_id )
+				|| ! current_user_can( 'read_post', $post_id ) )
+		) {
+			// The user has no access to the post and thus cannot see the notes.
+			return false;
+		}
+
+		$args = array(
+			'type'    => 'note',
+			'count'   => true,
+			'status'  => 'any',
+			'post_id' => $post_id,
+		);
+		$args = apply_filters( 'post_column_notes_query_args', $args );
+
+		$note_count        = get_comments( $args );
+		$note_count_number = number_format_i18n( $note_count );
+
+		$notes_phrase = sprintf(
+			/* translators: %s: Number of notes. */
+			_n( '%s note', '%s notes', $note_count ),
+			$note_count_number
+		);
+
+		if ( ! $note_count ) {
+			// No notes at all.
+			printf(
+				'<span aria-hidden="true">&#8212;</span>' .
+				'<span class="screen-reader-text">%s</span>',
+				__( 'No notes' )
+			);
+		} elseif ( $note_count && 'trash' === get_post_status( $post_id ) ) {
+			// Don't link the notes bubble for a trashed post.
+			printf(
+				'<span class="post-com-count">' .
+				'<span class="comment-count" aria-hidden="true">%s</span>' .
+				'<span class="screen-reader-text">%s</span>' .
+				'</span>',
+				$note_count_number,
+				$notes_phrase
+			);
+		} else {
+			// Link the note bubble to the edit post screen.
+			printf(
+				'<a href="%s" class="post-com-count">' .
+				'<span class="comment-count" aria-hidden="true">%s</span>' .
+				'<span class="screen-reader-text">%s</span>' .
+				'</a>',
+				get_edit_post_link( $post_id ),
+				$note_count_number,
+				$notes_phrase
+			);
+		}
+	}
+
+	/**
 	 * Gets the current page number.
 	 *
 	 * @since 3.1.0

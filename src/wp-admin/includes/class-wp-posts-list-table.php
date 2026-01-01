@@ -705,12 +705,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 		if ( post_type_supports( $post_type, 'comments' )
 			&& ! in_array( $post_status, array( 'pending', 'draft', 'future' ), true )
 		) {
-			$posts_columns['comments'] = sprintf(
-				'<span class="vers comment-grey-bubble" title="%1$s" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span>',
-				esc_attr__( 'Comments' ),
-				/* translators: Hidden accessibility text. */
-				__( 'Comments' )
-			);
+			$posts_columns['comments'] = __( 'Comments' );
+		}
+
+		if ( post_type_supports( $post_type, 'editor', 'notes' ) ) {
+			$posts_columns['notes'] = __( 'Notes' );
 		}
 
 		$posts_columns['date'] = __( 'Date' );
@@ -762,27 +761,19 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$post_type = $this->screen->post_type;
 
-		if ( 'page' === $post_type ) {
-			if ( isset( $_GET['orderby'] ) ) {
-				$title_orderby_text = __( 'Table ordered by Title.' );
-			} else {
-				$title_orderby_text = __( 'Table ordered by Hierarchical Menu Order and Title.' );
-			}
+		$title_orderby_text = __( 'Table ordered by Title.' );
 
-			$sortables = array(
-				'title'    => array( 'title', false, __( 'Title' ), $title_orderby_text, 'asc' ),
-				'parent'   => array( 'parent', false ),
-				'comments' => array( 'comment_count', false, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
-				'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ) ),
-			);
-		} else {
-			$sortables = array(
-				'title'    => array( 'title', false, __( 'Title' ), __( 'Table ordered by Title.' ) ),
-				'parent'   => array( 'parent', false ),
-				'comments' => array( 'comment_count', false, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
-				'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
-			);
+		if ( 'page' === $post_type && ! isset( $_GET['orderby'] ) ) {
+			$title_orderby_text = __( 'Table ordered by Hierarchical Menu Order and Title.' );
 		}
+
+		$sortables = array(
+			'title'    => array( 'title', false, __( 'Title' ), $title_orderby_text ),
+			'parent'   => array( 'parent', false ),
+			'comments' => array( 'comment_count', false, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
+			'notes'    => array( 'note_count', false, __( 'Notes' ), __( 'Table ordered by Notes.' ) ),
+			'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
+		);
 		// Custom Post Types: there's a filter for that, see get_column_info().
 
 		return $sortables;
@@ -1263,11 +1254,29 @@ class WP_Posts_List_Table extends WP_List_Table {
 	public function column_comments( $post ) {
 		?>
 		<div class="post-com-count-wrapper">
-		<?php
+			<?php
 			$pending_comments = isset( $this->comment_pending_count[ $post->ID ] ) ? $this->comment_pending_count[ $post->ID ] : 0;
 
 			$this->comments_bubble( $post->ID, $pending_comments );
+			?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Handles the notes column output.
+	 *
+	 * @since 7.0
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 */
+	public function column_notes( $post ) {
+		global $_wp_post_type_features;
 		?>
+		<div class="post-com-count-wrapper">
+			<?php
+			$this->notes_bubble( $post->ID );
+			?>
 		</div>
 		<?php
 	}
