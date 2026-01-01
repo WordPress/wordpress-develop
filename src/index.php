@@ -4,6 +4,8 @@
  * Note: this file exists only to remind developers to build the assets.
  * For the real index.php that gets built and boots WordPress,
  * please refer to _index.php.
+ *
+    @package WordPress
  */
 
 /** Define ABSPATH as this file's directory */
@@ -16,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Note: WPINC is not defined yet, it is defined later in wp-settings.php.
  */
 if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
+	// If assets are built,load the real index.php and stop execution here.
 	require_once ABSPATH . '_index.php';
 	return;
 }
@@ -65,3 +68,5 @@ $die .= '<p>' . sprintf(
 ) . '</p>';
 
 wp_die( $die, __( 'WordPress &rsaquo; Error' ) );
+
+
