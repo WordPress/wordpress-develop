@@ -35,7 +35,7 @@ class WP_Query {
 	public $query_vars = array();
 
 	/**
-	 * Taxonomy query, as passed to get_tax_sql().
+	 * Taxonomy query, as passed to `get_tax_sql()`.
 	 *
 	 * @since 3.1.0
 	 * @var WP_Tax_Query|null A taxonomy query instance.
@@ -46,7 +46,7 @@ class WP_Query {
 	 * Metadata query container.
 	 *
 	 * @since 3.2.0
-	 * @var WP_Meta_Query A meta query instance.
+	 * @var WP_Meta_Query|false A meta query instance or false if not set.
 	 */
 	public $meta_query = false;
 
@@ -54,14 +54,14 @@ class WP_Query {
 	 * Date query container.
 	 *
 	 * @since 3.7.0
-	 * @var WP_Date_Query A date query instance.
+	 * @var WP_Date_Query|false A date query instance or false if not set.
 	 */
 	public $date_query = false;
 
 	/**
 	 * Holds the data for a single object that is queried.
 	 *
-	 * Holds the contents of a post, page, category, attachment.
+	 * Holds the contents of a post, page, category, attachment, etc.
 	 *
 	 * @since 1.5.0
 	 * @var WP_Term|WP_Post_Type|WP_Post|WP_User|null
@@ -131,12 +131,12 @@ class WP_Query {
 	 * `ids` or `id=>parent`.
 	 *
 	 * @since 1.5.0
-	 * @var WP_Post|null
+	 * @var WP_Post|WP_Term|null
 	 */
 	public $post;
 
 	/**
-	 * The list of comments for current post.
+	 * The list of comments for the current post.
 	 *
 	 * @since 2.2.0
 	 * @var ?WP_Comment[]
@@ -170,7 +170,7 @@ class WP_Query {
 	/**
 	 * The number of found posts for the current query.
 	 *
-	 * If limit clause was not used, equals $post_count.
+	 * If the LIMIT clause was not used, equals `$post_count`.
 	 *
 	 * @since 2.1.0
 	 * @var int
@@ -322,7 +322,7 @@ class WP_Query {
 	public $is_comment_feed = false;
 
 	/**
-	 * Signifies whether the current query is for trackback endpoint call.
+	 * Signifies whether the current query is for a trackback endpoint call.
 	 *
 	 * @since 1.5.0
 	 * @var bool
@@ -344,6 +344,7 @@ class WP_Query {
 	 * @var bool
 	 */
 	public $is_privacy_policy = false;
+
 
 	/**
 	 * Signifies whether the current query couldn't find anything.
@@ -1874,6 +1875,7 @@ class WP_Query {
 	 *
 	 * @param string $query_var Query variable key.
 	 * @param mixed  $value     Query variable value.
+	 * @return void
 	 */
 	public function set( $query_var, $value ) {
 		$this->query_vars[ $query_var ] = $value;
@@ -5080,7 +5082,8 @@ class WP_Query {
 	 * restores the $post global to the current post in this query.
 	 *
 	 * @since 3.7.0
-	 *
+	 * @return void 
+	 * 
 	 * @global WP_Post $post Global post object.
 	 */
 	public function reset_postdata() {

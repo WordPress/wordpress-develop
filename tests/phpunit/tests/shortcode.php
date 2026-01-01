@@ -46,11 +46,24 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		$this->filter_atts_atts  = null;
 	}
 
-	// [footag foo="bar"]
-	public function shortcode_footag( $atts ) {
-		$foo = isset( $atts['foo'] ) ? $atts['foo'] : '';
-		return "foo = $foo";
-	}
+	/**
+    * Handles the [footag] shortcode.
+    *
+    * Example usage: [footag foo="bar"]
+    *
+    * @since 4.x.x (replace with correct version if known)
+    *
+    * @param array $atts Shortcode attributes. Example: ['foo' => 'bar'].
+    * @return string Output of the shortcode.
+    */
+   public function shortcode_footag( $atts ) {
+	    // Get the 'foo' attribute or default to an empty string.
+	    $foo = $atts['foo'] ?? '';
+
+	    // Return the formatted output.
+	    return "foo = {$foo}";
+}
+ 
 
 	// [bartag foo="bar"]
 	public function shortcode_bartag( $atts ) {
