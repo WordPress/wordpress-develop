@@ -2129,6 +2129,157 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 400, $data['responses'][1]['status'] );
 		$this->assertFalse( get_option( 'test_project' ) );
 	}
+	public function test_batch_v1_get() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'GET',
+				'callback'            => static function ( $request ) {
+					return new WP_REST_Response( array( 'project' => true ) );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'path'   => '/test-ns/v1/test',
+						'method' => 'GET',
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertIsArray( $data, 'Data should be an array' );
+		$this->assertArrayHasKey( 'responses', $data, 'Responses should be present' );
+		$this->assertIsArray( $data['responses'], 'Responses should be an array' );
+		$this->assertCount( 1, $data['responses'], 'There should be one response' );
+		$this->assertArrayHasKey( 'body', $data['responses'][0], 'Response should have a body' );
+		$this->assertArrayHasKey( 'status', $data['responses'][0], 'Response should have a status' );
+		$this->assertSame( 200, $data['responses'][0]['status'], 'Response status should be 200' );
+		$this->assertSame( array( 'project' => true ), $data['responses'][0]['body'], 'Response body should match expected data' );
+	}
+
+	public function test_batch_v1_get_no_logged_in() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'GET',
+				'callback'            => static function ( $request ) {
+					return new WP_REST_Response( array( 'project' => true ) );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'path'   => '/test-ns/v1/test',
+						'method' => 'GET',
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertIsArray( $data, 'Data should be an array' );
+		$this->assertArrayHasKey( 'responses', $data, 'Responses should be present' );
+		$this->assertIsArray( $data['responses'], 'Responses should be an array' );
+		$this->assertCount( 1, $data['responses'], 'There should be one response' );
+		$this->assertArrayHasKey( 'body', $data['responses'][0], 'Response should have a body' );
+		$this->assertArrayHasKey( 'status', $data['responses'][0], 'Response should have a status' );
+		$this->assertSame( 401, $data['responses'][0]['status'], 'Response status should be 200' );
+		$this->assertIsArray( $data['responses'][0]['body'], 'Response body should be an array' );
+		$this->assertArrayHasKey( 'code', $data['responses'][0]['body'], 'Response body should have a code' );
+		$this->assertSame( 'rest_cannot_view', $data['responses'][0]['body']['code'], 'Response body code should be rest_forbidden' );
+		$this->assertArrayHasKey( 'message', $data['responses'][0]['body'], 'Response body should have a message' );
+		$this->assertSame( 'Sorry, you are not allowed to view this endpoint.', $data['responses'][0]['body']['message'], 'Response body message should be Sorry, you are not allowed to view this endpoint.' );
+		$this->assertArrayHasKey( 'data', $data['responses'][0]['body'], 'Response body should have a data' );
+		$this->assertArrayHasKey( 'status', $data['responses'][0]['body']['data'], 'Response body data should have a status' );
+		$this->assertSame( 401, $data['responses'][0]['body']['data']['status'], 'Response body data status should be 401' );
+	}
+
+	public function test_batch_v1_pre_validation_get() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => array( 'GET', 'POST' ),
+				'callback'            => static function ( $request ) {
+					return new WP_REST_Response( array( 'project' => true ) );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'validation' => 'require-all-validate',
+				'requests'   => array(
+					array(
+						'path'   => '/test-ns/v1/test',
+						'method' => 'GET',
+					),
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'buddypress',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertArrayHasKey( 'failed', $data );
+		$this->assertSame( 'validation', $data['failed'] );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertNull( $data['responses'][0] );
+		$this->assertSame( 400, $data['responses'][1]['status'] );
+		$this->assertFalse( get_option( 'test_project' ) );
+	}
 
 	/**
 	 * @ticket 50244

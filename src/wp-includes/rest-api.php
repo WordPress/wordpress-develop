@@ -3487,3 +3487,25 @@ function wp_is_rest_endpoint() {
 	 */
 	return (bool) apply_filters( 'wp_is_rest_endpoint', $is_rest_endpoint );
 }
+
+
+/**
+ * Checks whether the current user can edit posts.
+ *
+ * @since x.x.x
+ *
+ * @return bool True if the current user can edit posts, false otherwise.
+ */
+function rest_user_can_edit_post() {
+	if ( current_user_can( 'edit_posts' ) ) {
+		return true;
+	}
+
+	foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+		if ( current_user_can( $post_type->cap->edit_posts ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}

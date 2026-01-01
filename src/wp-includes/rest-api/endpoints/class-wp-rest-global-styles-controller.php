@@ -518,14 +518,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		 * Verify if the current user has edit_posts capability.
 		 * This capability is required to view global styles.
 		 */
-		if ( current_user_can( 'edit_posts' ) ) {
+		if ( rest_user_can_edit_post() ) {
 			return true;
-		}
-
-		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
-			if ( current_user_can( $post_type->cap->edit_posts ) ) {
-				return true;
-			}
 		}
 
 		/*

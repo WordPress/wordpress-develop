@@ -84,7 +84,8 @@ mockedApiResponse.Schema = {
                                             "POST",
                                             "PUT",
                                             "PATCH",
-                                            "DELETE"
+                                            "DELETE",
+                                            "GET"
                                         ],
                                         "default": "POST"
                                     },
