@@ -491,7 +491,7 @@ class WP {
 				$wp_last_modified_post    = mysql2date( $date_format, get_lastpostmodified( 'GMT' ), false );
 				$wp_last_modified_comment = mysql2date( $date_format, get_lastcommentmodified( 'GMT' ), false );
 
-				if ( strtotime( $wp_last_modified_post ) > strtotime( $wp_last_modified_comment ) ) {
+				if ( ( new DateTimeImmutable( $wp_last_modified_post ) )->getTimestamp() > ( new DateTimeImmutable( $wp_last_modified_comment ) )->getTimestamp() ) {
 					$wp_last_modified = $wp_last_modified_post;
 				} else {
 					$wp_last_modified = $wp_last_modified_comment;
@@ -524,10 +524,10 @@ class WP {
 			}
 
 			// If string is empty, return 0. If not, attempt to parse into a timestamp.
-			$client_modified_timestamp = $client_last_modified ? strtotime( $client_last_modified ) : 0;
+			$client_modified_timestamp = $client_last_modified ? ( new DateTimeImmutable( $client_last_modified ) )->getTimestamp() : 0;
 
 			// Make a timestamp for our most recent modification.
-			$wp_modified_timestamp = strtotime( $wp_last_modified );
+			$wp_modified_timestamp = ( new DateTimeImmutable( $wp_last_modified ) )->getTimestamp();
 
 			if ( ( $client_last_modified && $client_etag )
 				? ( ( $client_modified_timestamp >= $wp_modified_timestamp ) && ( $client_etag === $wp_etag ) )

@@ -1930,7 +1930,7 @@ function wp_post_revision_title( $revision, $link = true ) {
 	/* translators: %s: Revision date. */
 	$currentf = __( '%s [Current Revision]' );
 
-	$date      = date_i18n( $datef, strtotime( $revision->post_modified ) );
+	$date      = date_i18n( $datef, ( new DateTimeImmutable( $revision->post_modified ) )->getTimestamp() );
 	$edit_link = get_edit_post_link( $revision->ID );
 	if ( $link && current_user_can( 'edit_post', $revision->ID ) && $edit_link ) {
 		$date = "<a href='$edit_link'>$date</a>";
@@ -1971,7 +1971,7 @@ function wp_post_revision_title_expanded( $revision, $link = true ) {
 
 	$gravatar = get_avatar( $revision->post_author, 24 );
 
-	$date      = date_i18n( $datef, strtotime( $revision->post_modified ) );
+	$date      = date_i18n( $datef, ( new DateTimeImmutable( $revision->post_modified ) )->getTimestamp() );
 	$edit_link = get_edit_post_link( $revision->ID );
 	if ( $link && current_user_can( 'edit_post', $revision->ID ) && $edit_link ) {
 		$date = "<a href='$edit_link'>$date</a>";
@@ -1982,7 +1982,7 @@ function wp_post_revision_title_expanded( $revision, $link = true ) {
 		__( '%1$s %2$s, %3$s ago (%4$s)' ),
 		$gravatar,
 		$author,
-		human_time_diff( strtotime( $revision->post_modified_gmt ) ),
+		human_time_diff( ( new DateTimeImmutable( $revision->post_modified_gmt ) )->getTimestamp() ),
 		$date
 	);
 

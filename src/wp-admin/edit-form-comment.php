@@ -145,9 +145,9 @@ $submitted = sprintf(
 	/* translators: 1: Comment date, 2: Comment time. */
 	__( '%1$s at %2$s' ),
 	/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
-	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $comment->comment_date ) ),
+	date_i18n( _x( 'M j, Y', 'publish box date format' ), ( new DateTimeImmutable( $post->post_date ) )->getTimestamp() ),
 	/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
-	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $comment->comment_date ) )
+	date_i18n( _x( 'H:i', 'publish box time format' ), ( new DateTimeImmutable( $post->post_date ) )->getTimestamp() )
 );
 ?>
 <span id="timestamp">

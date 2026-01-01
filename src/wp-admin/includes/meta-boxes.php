@@ -244,7 +244,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				$stamp = __( 'Published on: %s' );
 			} elseif ( '0000-00-00 00:00:00' === $post->post_date_gmt ) { // Draft, 1 or more saves, no date specified.
 				$stamp = __( 'Publish <b>immediately</b>' );
-			} elseif ( time() < strtotime( $post->post_date_gmt . ' +0000' ) ) { // Draft, 1 or more saves, future date specified.
+			} elseif ( time() < ( new DateTimeImmutable( $post->post_date_gmt . ' +0000' ) )->getTimestamp() ) { // Draft, 1 or more saves, future date specified.
 				/* translators: Post date information. %s: Date on which the post is to be published. */
 				$stamp = __( 'Schedule for: %s' );
 			} else { // Draft, 1 or more saves, date specified.
@@ -253,15 +253,15 @@ function post_submit_meta_box( $post, $args = array() ) {
 			}
 			$date = sprintf(
 				$date_string,
-				date_i18n( $date_format, strtotime( $post->post_date ) ),
-				date_i18n( $time_format, strtotime( $post->post_date ) )
+				date_i18n( $date_format, ( new DateTimeImmutable( $post->post_date ) )->getTimestamp() ),
+				date_i18n( $time_format, ( new DateTimeImmutable( $post->post_date ) )->getTimestamp() )
 			);
 		} else { // Draft (no saves, and thus no date specified).
 			$stamp = __( 'Publish <b>immediately</b>' );
 			$date  = sprintf(
 				$date_string,
-				date_i18n( $date_format, strtotime( current_time( 'mysql' ) ) ),
-				date_i18n( $time_format, strtotime( current_time( 'mysql' ) ) )
+				date_i18n( $date_format, ( new DateTimeImmutable( current_time( 'mysql' ) ) )->getTimestamp() ),
+				date_i18n( $time_format, ( new DateTimeImmutable( current_time( 'mysql' ) ) )->getTimestamp() )
 			);
 		}
 
@@ -378,7 +378,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 		<?php
 		if ( ! in_array( $post->post_status, array( 'publish', 'future', 'private' ), true ) || 0 === $post_id ) {
 			if ( $can_publish ) :
-				if ( ! empty( $post->post_date_gmt ) && time() < strtotime( $post->post_date_gmt . ' +0000' ) ) :
+				if ( ! empty( $post->post_date_gmt ) && time() < ( new DateTimeImmutable( $post->post_date_gmt . ' +0000' ) )->getTimestamp() ) :
 					?>
 					<input name="original_publish" type="hidden" id="original_publish" value="<?php echo esc_attr_x( 'Schedule', 'post action/button label' ); ?>" />
 					<?php submit_button( _x( 'Schedule', 'post action/button label' ), 'primary large', 'publish', false ); ?>
@@ -437,9 +437,9 @@ function attachment_submit_meta_box( $post ) {
 				/* translators: Publish box date string. 1: Date, 2: Time. */
 				__( '%1$s at %2$s' ),
 				/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
-				date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $post->post_date ) ),
+				date_i18n( _x( 'M j, Y', 'publish box date format' ), ( new DateTimeImmutable( $post->post_date ) )->getTimestamp() ),
 				/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
-				date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $post->post_date ) )
+				date_i18n( _x( 'H:i', 'publish box time format' ), ( new DateTimeImmutable( $post->post_date ) )->getTimestamp() )
 			);
 			/* translators: Attachment information. %s: Date the attachment was uploaded. */
 			printf( __( 'Uploaded on: %s' ), '<b>' . $uploaded_on . '</b>' );

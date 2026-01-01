@@ -264,7 +264,7 @@ class WP_Embed {
 			$cached_post = get_post( $cached_post_id );
 
 			$cache      = $cached_post->post_content;
-			$cache_time = strtotime( $cached_post->post_modified_gmt );
+			$cache_time = ( new DateTimeImmutable( $cached_post->post_modified_gmt ) )->getTimestamp();
 		}
 
 		$cached_recently = ( time() - $cache_time ) < $ttl;

@@ -50,7 +50,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		return false;
 	}
 
-	if ( $compare_from && strtotime( $compare_from->post_date_gmt ) > strtotime( $compare_to->post_date_gmt ) ) {
+	if ( $compare_from && ( new DateTimeImmutable( $compare_from->post_date_gmt ) )->getTimestamp() > ( new DateTimeImmutable( $compare_to->post_date_gmt ) )->getTimestamp() ) {
 		$temp         = $compare_from;
 		$compare_from = $compare_to;
 		$compare_to   = $temp;
@@ -203,8 +203,8 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 	$current_id  = false;
 
 	foreach ( $revisions as $revision ) {
-		$modified     = strtotime( $revision->post_modified );
-		$modified_gmt = strtotime( $revision->post_modified_gmt . ' +0000' );
+		$modified     = ( new DateTimeImmutable( $revision->post_modified ) )->getTimestamp();
+		$modified_gmt = ( new DateTimeImmutable( $revision->post_modified_gmt . ' +0000' ) )->getTimestamp();
 		if ( $can_restore ) {
 			$restore_link = str_replace(
 				'&amp;',
@@ -291,10 +291,10 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 			'id'         => $post->ID,
 			'title'      => get_the_title( $post->ID ),
 			'author'     => $authors[ $revision->post_author ],
-			'date'       => date_i18n( __( 'M j, Y @ H:i' ), strtotime( $post->post_modified ) ),
-			'dateShort'  => date_i18n( _x( 'j M @ H:i', 'revision date short format' ), strtotime( $post->post_modified ) ),
+			'date'       => date_i18n( __( 'M j, Y @ H:i' ), ( new DateTimeImmutable( $post->post_modified ) )->getTimestamp() ),
+			'dateShort'  => date_i18n( _x( 'j M @ H:i', 'revision date short format' ), ( new DateTimeImmutable( $post->post_modified ) )->getTimestamp() ),
 			/* translators: %s: Human-readable time difference. */
-			'timeAgo'    => sprintf( __( '%s ago' ), human_time_diff( strtotime( $post->post_modified_gmt ), $now_gmt ) ),
+			'timeAgo'    => sprintf( __( '%s ago' ), human_time_diff( ( new DateTimeImmutable( $post->post_modified_gmt ) )->getTimestamp(), $now_gmt ) ),
 			'autosave'   => false,
 			'current'    => true,
 			'restoreUrl' => false,

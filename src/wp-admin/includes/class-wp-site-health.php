@@ -3397,7 +3397,7 @@ class WP_Site_Health {
 				return (bool) preg_match( '/max-age=[1-9]/', $header_value );
 			},
 			'expires'                => static function ( $header_value ) {
-				return strtotime( $header_value ) > time();
+				return ( new DateTimeImmutable( $header_value ) )->getTimestamp() > time();
 			},
 			'age'                    => static function ( $header_value ) {
 				return is_numeric( $header_value ) && $header_value > 0;

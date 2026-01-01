@@ -144,7 +144,7 @@ class WP_Http_Cookie {
 				list( $key, $val ) = strpos( $pair, '=' ) ? explode( '=', $pair ) : array( $pair, '' );
 				$key               = strtolower( trim( $key ) );
 				if ( 'expires' === $key ) {
-					$val = strtotime( $val );
+					$val = ( new DateTimeImmutable( $val ) )->getTimestamp();
 				}
 				$this->$key = $val;
 			}
@@ -161,7 +161,7 @@ class WP_Http_Cookie {
 			}
 
 			if ( isset( $data['expires'] ) ) {
-				$this->expires = is_int( $data['expires'] ) ? $data['expires'] : strtotime( $data['expires'] );
+				$this->expires = is_int( $data['expires'] ) ? $data['expires'] : ( new DateTimeImmutable( $data['expires'] ) )->getTimestamp();
 			} else {
 				$this->expires = null;
 			}

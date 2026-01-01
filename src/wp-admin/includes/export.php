@@ -133,11 +133,11 @@ function export_wp( $args = array() ) {
 		}
 
 		if ( $args['start_date'] ) {
-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_date >= %s", gmdate( 'Y-m-d', strtotime( $args['start_date'] ) ) );
+			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_date >= %s", gmdate( 'Y-m-d', ( new DateTimeImmutable( $args['start_date'] ) )->getTimestamp() ) );
 		}
 
 		if ( $args['end_date'] ) {
-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_date < %s", gmdate( 'Y-m-d', strtotime( '+1 month', strtotime( $args['end_date'] ) ) ) );
+			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_date < %s", gmdate( 'Y-m-d', ( new DateTimeImmutable( $args['end_date'] ) )->add( new DateInterval( 'P1M' ) )->getTimestamp() ) );
 		}
 	}
 

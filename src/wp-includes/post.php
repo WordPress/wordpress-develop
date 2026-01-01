@@ -4704,14 +4704,12 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	if ( 'attachment' !== $post_type ) {
-		$now = gmdate( 'Y-m-d H:i:s' );
-
 		if ( 'publish' === $post_status ) {
-			if ( strtotime( $post_date_gmt ) - strtotime( $now ) >= MINUTE_IN_SECONDS ) {
+			if ( ( DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $post_date_gmt ) )->getTimestamp() - ( new DateTimeImmutable() )->getTimestamp() >= MINUTE_IN_SECONDS ) {
 				$post_status = 'future';
 			}
 		} elseif ( 'future' === $post_status ) {
-			if ( strtotime( $post_date_gmt ) - strtotime( $now ) < MINUTE_IN_SECONDS ) {
+			if ( ( DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $post_date_gmt ) )->getTimestamp() - ( new DateTimeImmutable() )->getTimestamp() < MINUTE_IN_SECONDS ) {
 				$post_status = 'publish';
 			}
 		}
@@ -5395,7 +5393,7 @@ function check_and_publish_future_post( $post ) {
 		return;
 	}
 
-	$time = strtotime( $post->post_date_gmt . ' GMT' );
+	$time = ( new DateTimeImmutable( $post->post_date_gmt . ' GMT' ) )->getTimestamp();
 
 	// Uh oh, someone jumped the gun!
 	if ( $time > time() ) {
@@ -7390,8 +7388,8 @@ function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
  * @param WP_Post $post_before The previous post object.
  */
 function wp_check_for_changed_dates( $post_id, $post, $post_before ) {
-	$previous_date = gmdate( 'Y-m-d', strtotime( $post_before->post_date ) );
-	$new_date      = gmdate( 'Y-m-d', strtotime( $post->post_date ) );
+	$previous_date = gmdate( 'Y-m-d', ( new DateTimeImmutable( $post_before->post_date ) )->getTimestamp() );
+	$new_date      = gmdate( 'Y-m-d', ( new DateTimeImmutable( $post->post_date ) )->getTimestamp() );
 
 	// Don't bother if it hasn't changed.
 	if ( $new_date === $previous_date ) {
@@ -7983,7 +7981,7 @@ function _transition_post_status( $new_status, $old_status, $post ) {
  */
 function _future_post_hook( $deprecated, $post ) {
 	wp_clear_scheduled_hook( 'publish_future_post', array( $post->ID ) );
-	wp_schedule_single_event( strtotime( get_gmt_from_date( $post->post_date ) . ' GMT' ), 'publish_future_post', array( $post->ID ) );
+	wp_schedule_single_event( ( new DateTimeImmutable( get_gmt_from_date( $post->post_date ) . ' GMT' ) )->getTimestamp(), 'publish_future_post', array( $post->ID ) );
 }
 
 /**

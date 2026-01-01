@@ -155,9 +155,9 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 			if ( preg_match( '/Date: /i', $line ) ) { // Of the form '20 Mar 2002 20:32:37 +0100'.
 				$ddate = str_replace( 'Date: ', '', trim( $line ) );
-				// Remove parenthesized timezone string if it exists, as this confuses strtotime().
+				// Remove parenthesized timezone string if it exists, as this confuses ( new DateTimeImmutable( ) )->getTimestamp().
 				$ddate           = preg_replace( '!\s*\(.+\)\s*$!', '', $ddate );
-				$ddate_timestamp = strtotime( $ddate );
+				$ddate_timestamp = ( new DateTimeImmutable( $ddate ) )->getTimestamp();
 				$post_date       = gmdate( 'Y-m-d H:i:s', $ddate_timestamp + $time_difference );
 				$post_date_gmt   = gmdate( 'Y-m-d H:i:s', $ddate_timestamp );
 			}

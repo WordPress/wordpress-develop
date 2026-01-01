@@ -132,7 +132,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 			if ( ! empty( $latest_posts->posts ) ) {
 				$posts = wp_list_sort( $latest_posts->posts, 'post_modified_gmt', 'DESC' );
 
-				$sitemap_entry['lastmod'] = wp_date( DATE_W3C, strtotime( $posts[0]->post_modified_gmt ) );
+				$sitemap_entry['lastmod'] = wp_date( DATE_W3C, ( new DateTimeImmutable( $posts[0]->post_modified_gmt ) )->getTimestamp() );
 			}
 
 			/**
@@ -149,7 +149,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		foreach ( $query->posts as $post ) {
 			$sitemap_entry = array(
 				'loc'     => get_permalink( $post ),
-				'lastmod' => wp_date( DATE_W3C, strtotime( $post->post_modified_gmt ) ),
+				'lastmod' => wp_date( DATE_W3C, ( new DateTimeImmutable( $post->post_modified_gmt ) )->getTimestamp() ),
 			);
 
 			/**
