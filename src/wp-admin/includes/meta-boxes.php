@@ -912,9 +912,13 @@ function post_comment_meta_box( $post ) {
 		echo '<p id="no-comments">' . __( 'No comments yet.' ) . '</p>';
 	} else {
 		$hidden = get_hidden_meta_boxes( get_current_screen() );
+		$per_page = (int) get_user_option( 'edit_comments_per_page' );
+		if ( ! $per_page ) {
+			$per_page = 10;
+		}
 		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
 			?>
-			<script type="text/javascript">jQuery(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
+			<script type="text/javascript">jQuery(function(){commentsBox.get(<?php echo $total; ?>, <?php echo $per_page; ?>);});</script>
 			<?php
 		}
 
