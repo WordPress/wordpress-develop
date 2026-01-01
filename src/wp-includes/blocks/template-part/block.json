@@ -18,6 +18,9 @@
 		},
 		"area": {
 			"type": "string"
+		},
+		"role": {
+			"type": "string"
 		}
 	},
 	"supports": {

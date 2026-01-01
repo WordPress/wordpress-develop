@@ -23,6 +23,7 @@ function render_block_core_template_part( $attributes ) {
 	$content          = null;
 	$area             = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
 	$theme            = isset( $attributes['theme'] ) ? $attributes['theme'] : get_stylesheet();
+	$role             = isset( $attributes['role'] ) ? $attributes['role'] : '';
 
 	if ( isset( $attributes['slug'] ) && get_stylesheet() === $theme ) {
 		$template_part_id    = $theme . '//' . $attributes['slug'];
@@ -173,6 +174,10 @@ function render_block_core_template_part( $attributes ) {
 		$html_tag = esc_attr( $attributes['tagName'] );
 	}
 	$wrapper_attributes = get_block_wrapper_attributes();
+
+	if ( ! empty( $role ) ) {
+		$wrapper_attributes .= ' role="' . esc_attr( $role ) . '"';
+	}
 
 	return "<$html_tag $wrapper_attributes>" . str_replace( ']]>', ']]&gt;', $content ) . "</$html_tag>";
 }
