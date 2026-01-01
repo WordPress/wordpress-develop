@@ -1508,8 +1508,14 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 
 	wp_defer_term_counting( false );
 
+	// Backwards compatibility similar to wp-includes/nav-menu.php
+	$menu_data = get_term( $nav_menu_selected_id, '', ARRAY_A );
+	if ( ! empty( $menu_data['name'] ) ) {
+		$menu_data['menu-name'] = $menu_data['name'];
+	}
+
 	/** This action is documented in wp-includes/nav-menu.php */
-	do_action( 'wp_update_nav_menu', $nav_menu_selected_id );
+	do_action( 'wp_update_nav_menu', $nav_menu_selected_id, $menu_data );
 
 	/* translators: %s: Nav menu title. */
 	$message     = sprintf( __( '%s has been updated.' ), '<strong>' . $nav_menu_selected_title . '</strong>' );

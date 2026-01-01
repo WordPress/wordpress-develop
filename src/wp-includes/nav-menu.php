@@ -309,7 +309,7 @@ function wp_delete_nav_menu( $menu ) {
  * @since 3.0.0
  *
  * @param int   $menu_id   The ID of the menu or "0" to create a new menu.
- * @param array $menu_data The array of menu data.
+ * @param array $menu_data The array of menu term metadata.
  * @return int|WP_Error Menu ID on success, WP_Error object on failure.
  */
 function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
@@ -318,15 +318,23 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 
 	$_menu = wp_get_nav_menu_object( $menu_id );
 
+	// Also accept a `menu` key as fallback
+	if ( empty( $menu_data['menu-name'] ) && ! empty( $menu_data['name'] ) ) {
+		$menu_data['menu-name'] = $menu_data['name'];
+	}
+
 	$args = array(
-		'description' => ( isset( $menu_data['description'] ) ? $menu_data['description'] : '' ),
-		'name'        => ( isset( $menu_data['menu-name'] ) ? $menu_data['menu-name'] : '' ),
-		'parent'      => ( isset( $menu_data['parent'] ) ? (int) $menu_data['parent'] : 0 ),
+		'description' => ( ! empty( $menu_data['description'] ) ? $menu_data['description'] : '' ),
+		'name'        => ( ! empty( $menu_data['menu-name'] ) ? $menu_data['menu-name'] : _x( '(unnamed)', 'Missing menu name.' ) ),
+		'parent'      => ( ! empty( $menu_data['parent'] ) ? (int) $menu_data['parent'] : 0 ),
 		'slug'        => null,
 	);
 
+	// backwards compatibility for action hooks
+	$args['menu-name'] = $args['name'];
+
 	// Double-check that we're not going to have one menu take the name of another.
-	$_possible_existing = get_term_by( 'name', $menu_data['menu-name'], 'nav_menu' );
+	$_possible_existing = get_term_by( 'name', $args['name'], 'nav_menu' );
 	if (
 		$_possible_existing &&
 		! is_wp_error( $_possible_existing ) &&
@@ -338,14 +346,14 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 			sprintf(
 				/* translators: %s: Menu name. */
 				__( 'The menu name %s conflicts with another menu name. Please try another.' ),
-				'<strong>' . esc_html( $menu_data['menu-name'] ) . '</strong>'
+				'<strong>' . esc_html( $args['name'] ) . '</strong>'
 			)
 		);
 	}
 
 	// Menu doesn't already exist, so create a new menu.
 	if ( ! $_menu || is_wp_error( $_menu ) ) {
-		$menu_exists = get_term_by( 'name', $menu_data['menu-name'], 'nav_menu' );
+		$menu_exists = get_term_by( 'name', $args['name'], 'nav_menu' );
 
 		if ( $menu_exists ) {
 			return new WP_Error(
@@ -353,12 +361,12 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 				sprintf(
 					/* translators: %s: Menu name. */
 					__( 'The menu name %s conflicts with another menu name. Please try another.' ),
-					'<strong>' . esc_html( $menu_data['menu-name'] ) . '</strong>'
+					'<strong>' . esc_html( $args['name'] ) . '</strong>'
 				)
 			);
 		}
 
-		$_menu = wp_insert_term( $menu_data['menu-name'], 'nav_menu', $args );
+		$_menu = wp_insert_term( $args['name'], 'nav_menu', $args );
 
 		if ( is_wp_error( $_menu ) ) {
 			return $_menu;
@@ -370,9 +378,9 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 		 * @since 3.0.0
 		 *
 		 * @param int   $term_id   ID of the new menu.
-		 * @param array $menu_data An array of menu data.
+		 * @param array $args An array of menu term metadata currently available.
 		 */
-		do_action( 'wp_create_nav_menu', $_menu['term_id'], $menu_data );
+		do_action( 'wp_create_nav_menu', $_menu['term_id'], $args );
 
 		return (int) $_menu['term_id'];
 	}
@@ -397,9 +405,9 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 	 * @since 3.0.0
 	 *
 	 * @param int   $menu_id   ID of the updated menu.
-	 * @param array $menu_data An array of menu data.
+	 * @param array $menu_data An array of menu term metadata currently available.
 	 */
-	do_action( 'wp_update_nav_menu', $menu_id, $menu_data );
+	do_action( 'wp_update_nav_menu', $menu_id, $args );
 	return $menu_id;
 }
 
