@@ -2505,12 +2505,15 @@ class WP_Query {
 			$query_vars['order'] = '';
 		}
 
-		// Order by.
-		// Store metadata for deterministic ordering to be applied after filters.
+		/*
+		 * Order by.
+		 * Store metadata for deterministic ordering to be applied after filters.
+		 */
 		$deterministic_orderby_meta = array(
-			'needed' => false,
-			'has_id' => false,
-			'order'  => $query_vars['order'],
+			'needed'   => false,
+			'has_id'   => false,
+			'order'    => $query_vars['order'],
+			'original' => '', // Store original orderby to detect filter modifications.
 		);
 
 		if ( empty( $query_vars['orderby'] ) ) {
@@ -2632,6 +2635,11 @@ class WP_Query {
 			if ( $search_orderby ) {
 				$orderby = $orderby ? $search_orderby . ', ' . $orderby : $search_orderby;
 			}
+		}
+
+		// Store the original orderby after all core modifications but before filters modify it.
+		if ( $deterministic_orderby_meta['needed'] ) {
+			$deterministic_orderby_meta['original'] = $orderby;
 		}
 
 		if ( is_array( $post_type ) && count( $post_type ) > 1 ) {
@@ -3240,9 +3248,11 @@ class WP_Query {
 		 * https://core.trac.wordpress.org/ticket/44349.
 		 */
 		if ( ! empty( $orderby ) && $deterministic_orderby_meta['needed'] ) {
-			// Check if ID tie-breaker is already present in the orderby string.
-			$id_tie_breaker_pattern = '/\b' . preg_quote( $wpdb->posts, '/' ) . '\.ID\b/i';
-			if ( ! preg_match( $id_tie_breaker_pattern, $orderby ) ) {
+			/*
+			 * Only add ID tie-breaker if no filter modified the orderby.
+			 * If a filter modified it, we assume they know what they're doing and don't interfere.
+			 */
+			if ( ! empty( $deterministic_orderby_meta['original'] ) && $orderby === $deterministic_orderby_meta['original'] ) {
 				// Add ID as tie-breaker at the end.
 				$orderby .= ', ' . "{$wpdb->posts}.ID " . $deterministic_orderby_meta['order'];
 			}
