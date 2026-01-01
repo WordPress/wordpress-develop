@@ -42,7 +42,9 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
-					'args'                => array(),
+					'args'                => array(
+						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+					),
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				),
 				array(
@@ -65,7 +67,20 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return bool True if the request has read access for the item, otherwise false.
 	 */
 	public function get_item_permissions_check( $request ) {
-		return current_user_can( 'manage_options' );
+		$can_manage_options = current_user_can( 'manage_options' );
+		if ( 'edit' === $request['context'] && ! $can_manage_options ) {
+			return false;
+		}
+
+		$options = $this->get_registered_options();
+
+		foreach ( $options as $name => $args ) {
+			if ( true === $args['schema']['public'] ) {
+				return true;
+			}
+		}
+
+		return $can_manage_options;
 	}
 
 	/**
@@ -77,10 +92,15 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error Array on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$options  = $this->get_registered_options();
-		$response = array();
+		$options            = $this->get_registered_options();
+		$response           = array();
+		$can_manage_options = current_user_can( 'manage_options' );
 
 		foreach ( $options as $name => $args ) {
+			if ( ! $can_manage_options && ! $args['schema']['public'] ) {
+				continue;
+			}
+
 			/**
 			 * Filters the value of a setting recognized by the REST API.
 			 *
@@ -240,6 +260,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				'title'       => empty( $args['label'] ) ? '' : $args['label'],
 				'description' => empty( $args['description'] ) ? '' : $args['description'],
 				'default'     => isset( $args['default'] ) ? $args['default'] : null,
+				'public'      => isset( $args['public'] ) ? (bool) $args['public'] : false,
 			);
 
 			$rest_args['schema']      = array_merge( $default_schema, $rest_args['schema'] );

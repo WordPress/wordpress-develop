@@ -83,12 +83,59 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_item_is_not_public_not_authenticated() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 401, $response->get_status() );
+		$data     = $response->get_data();
+		$actual   = array_keys( $data );
+
+		$expected = array(
+			'description',
+			'language',
+			'page_for_posts',
+			'page_on_front',
+			'show_on_front',
+			'title',
+		);
+
+		sort( $expected );
+		sort( $actual );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected, $actual );
 	}
 
 	public function test_get_item_is_not_public_no_permission() {
 		wp_set_current_user( self::$author );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$actual   = array_keys( $data );
+
+		$expected = array(
+			'description',
+			'language',
+			'page_for_posts',
+			'page_on_front',
+			'show_on_front',
+			'title',
+		);
+
+		sort( $expected );
+		sort( $actual );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected, $actual );
+	}
+
+	public function test_get_item_is_not_public_not_authenticated_edit_context() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 401, $response->get_status() );
+	}
+
+	public function test_get_item_is_not_public_no_permission_edit_context() {
+		wp_set_current_user( self::$author );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 403, $response->get_status() );
 	}
@@ -176,6 +223,39 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'validvalue2', $data['mycustomsettinginrest'] );
+	}
+
+	public function test_get_item_with_custom_setting_public() {
+		register_setting(
+			'somegroup',
+			'mycustomsettingpublic',
+			array(
+				'show_in_rest' => array(
+					'name'   => 'mycustomsettingpublicinrest',
+					'schema' => array(
+						'enum'    => array( 'validvalue1', 'validvalue2' ),
+						'default' => 'validvalue1',
+					),
+				),
+				'public'       => true,
+				'type'         => 'string',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'mycustomsettingpublicinrest', $data );
+		$this->assertSame( 'validvalue1', $data['mycustomsettingpublicinrest'] );
+
+		update_option( 'mycustomsettingpublic', 'validvalue2' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'validvalue2', $data['mycustomsettingpublicinrest'] );
 	}
 
 	public function test_get_item_with_custom_array_setting() {

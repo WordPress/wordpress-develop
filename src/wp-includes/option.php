@@ -2749,6 +2749,7 @@ function register_initial_settings() {
 			'show_in_rest' => array(
 				'name' => 'title',
 			),
+			'public'       => true,
 			'type'         => 'string',
 			'label'        => __( 'Title' ),
 			'description'  => __( 'Site title.' ),
@@ -2762,6 +2763,7 @@ function register_initial_settings() {
 			'show_in_rest' => array(
 				'name' => 'description',
 			),
+			'public'       => true,
 			'type'         => 'string',
 			'label'        => __( 'Tagline' ),
 			'description'  => __( 'Site tagline.' ),
@@ -2851,6 +2853,7 @@ function register_initial_settings() {
 			'show_in_rest' => array(
 				'name' => 'language',
 			),
+			'public'       => true,
 			'type'         => 'string',
 			'description'  => __( 'WordPress locale code.' ),
 			'default'      => 'en_US',
@@ -2904,6 +2907,7 @@ function register_initial_settings() {
 		'reading',
 		'show_on_front',
 		array(
+			'public'       => true,
 			'show_in_rest' => true,
 			'type'         => 'string',
 			'label'        => __( 'Show on front' ),
@@ -2915,6 +2919,7 @@ function register_initial_settings() {
 		'reading',
 		'page_on_front',
 		array(
+			'public'       => true,
 			'show_in_rest' => true,
 			'type'         => 'integer',
 			'label'        => __( 'Page on front' ),
@@ -2926,6 +2931,7 @@ function register_initial_settings() {
 		'reading',
 		'page_for_posts',
 		array(
+			'public'       => true,
 			'show_in_rest' => true,
 			'type'         => 'integer',
 			'description'  => __( 'The ID of the page that should display the latest posts' ),
@@ -2992,6 +2998,7 @@ function register_initial_settings() {
  *                                         When registering complex settings, this argument may optionally be an
  *                                         array with a 'schema' key.
  *     @type mixed      $default           Default value when calling `get_option()`.
+ *     @type bool      $public          Whether data associated with this setting should be considered public. Default false.
  * }
  */
 function register_setting( $option_group, $option_name, $args = array() ) {
@@ -3010,6 +3017,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		'description'       => '',
 		'sanitize_callback' => null,
 		'show_in_rest'      => false,
+		'public'            => false,
 	);
 
 	// Back-compat: old sanitize callback is added.
