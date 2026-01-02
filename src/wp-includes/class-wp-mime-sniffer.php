@@ -370,24 +370,32 @@ class WP_Mime_Sniffer {
 			 */
 			if ( '"' === $input[ $position ] ) {
 				// 1. Set parameterValue to the result of collecting an HTTP quoted string from input, given position and true.
-				$value_start  = $position + 1;
-				$value_length = strcspn( $input, '"', $value_start );
-				$value        = substr( $input, $value_start, $value_length );
-				$value        = strtr( $value, array( '\\' => '' ) );
+				$value_start = $position + 1;
+				$value_end   = $value_start;
+				$value       = '';
+				while ( $value_end < $end ) {
+					$stride     = strcspn( $input, '\\"', $value_end );
+					$value     .= substr( $input, $value_end, $stride );
+					$value_end += $stride;
+					if ( $value_end >= $end ) {
+						break;
+					}
 
-				if ( $value_length > 0 && '\\' === $input[ $value_start + $value_length - 1 ] ) {
-					$value .= '\\';
+					$char = $input[ $value_end++ ];
+
+					if ( '\\' === $char ) {
+						if ( $value_end >= $end ) {
+							$value .= '\\';
+							break;
+						}
+
+						$value .= $input[ $value_end++ ];
+					} else {
+						break;
+					}
 				}
 
-				/*
-				 * The quoted string may have ended without a closing double-quote,
-				 * but if it did then the parser needs to advance past it.
-				 */
-				$position = $value_start + $value_length;
-				if ( $position < $end && '"' === $input[ $position ] ) {
-					++$position;
-				}
-
+				$position  = $value_end;
 				$position += strcspn( $input, ';', $position );
 			} else { // 9. Otherwise:
 				// 1. Set parameterValue to the result of collecting a sequence of code points that are not U+003B (;) from input, given position.
@@ -411,7 +419,41 @@ class WP_Mime_Sniffer {
 				strcspn( $value, self::QUOTED_STRING_FORBIDDEN ) === strlen( $value ) &&
 				! isset( $self->parameters[ $parameter_name ] )
 			) {
-				$self->parameters[ $parameter_name ] = $value;
+				// Verify there are no UTF-8 code points above U+00FF.
+				$v_at    = 0;
+				$v_end   = strlen( $value );
+				$allowed = true;
+				while ( $v_at < $v_end ) {
+					$v_at += strspn( $value, self::QUOTED_ASCII, $v_at );
+					if ( $v_at >= $v_end ) {
+						break;
+					}
+
+					/*
+					 * The only allowable multibyte characters are U+0080–U+00FF.
+					 * These are all two-byte sequences whose leading byte is 0xC2 or 0xC3,
+					 * and whose trailing byte is between 0x80–0xBF. Check for these
+					 * patterns and reject any others.
+					 *
+					 * @todo Latin1-based octets in a byte-oriented protocol would match
+					 *       here due to the “isomorphic decoding.” These octets are currently
+					 *       rejected because the presumption is that values will either come
+					 *       as US-ASCII or UTF-8. Is this an appropriate assumption?
+					 */
+					$leader  = ord( $value[ $v_at ] );
+					$trailer = ord( $value[ $v_at + 1 ] ?? 0 );
+
+					$allowed &= (
+						( 0xC2 === $leader || 0xC3 === $leader ) &&
+						$trailer >= 0x80 && $trailer <= 0xBF
+					);
+
+					$v_at += 2;
+				}
+
+				if ( $allowed ) {
+					$self->parameters[ $parameter_name ] = $value;
+				}
 			}
 		}
 
@@ -1022,6 +1064,8 @@ class WP_Mime_Sniffer {
 	 * @since 7.0.0
 	 */
 	const HTTP_WHITESPACE = " \t\r\n";
+
+	const QUOTED_ASCII = "\x09\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2A\x2B\x2C\x2D\x2E\x2F\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3A\x3B\x3C\x3D\x3E\x3F\x40\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4A\x4B\x4C\x4D\x4E\x4F\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5A\x5B\x5C\x5D\x5E\x5F\x60\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6A\x6B\x6C\x6D\x6E\x6F\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7A\x7B\x7C\x7D\x7E";
 
 	/**
 	 * > An HTTP quoted-string token code point is U+0009 TAB, a code point in the range U+0020 SPACE to U+007E (~),
