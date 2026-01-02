@@ -137,6 +137,139 @@ class WP_Mime_Sniffer {
 	}
 
 	/**
+	 * Extracts a MIME type from the combined value of any Content-Type HTTP headers.
+	 *
+	 * Note! In the presence of multiple Content-Type headers, which is malformed,
+	 * the values of the multiple headers must be combined before processing.
+	 *
+	 * @see https://fetch.spec.whatwg.org/#concept-header-list-get
+	 * @see https://fetch.spec.whatwg.org/#concept-header-list-get-decode-split
+	 * @see https://fetch.spec.whatwg.org/#header-value-get-decode-and-split
+	 *
+	 * @param string $combined_header_value
+	 * @return self|null
+	 */
+	public static function from_content_type( string $combined_header_value ): ?self {
+		/*
+		 * The first step here is to get, decode, and split the combined Content-Type header value.
+		 *
+		 * > To get, decode, and split a header value _value_, run these steps. They return a list of strings.
+		 * > 1. Let input be the result of isomorphic decoding value.
+		 * > 2. Let position be a position variable for input, initially pointing at the start of input.
+		 * > 3. Let values be a list of strings, initially « ».
+		 * > 4. Let temporaryValue be the empty string.
+		 */
+		$at       = 0;
+		$end      = strlen( $combined_header_value );
+		$temp_val = '';
+		$values   = array();
+
+		// > 5. While true
+		while ( $at < $end ) {
+			/*
+			 * > 1. Append the result of collecting a sequence of code points that are not U+0022 (")
+			 * >    or U+002C (,) from input, given position, to temporaryValue.
+			 */
+			$basic_length = strcspn( $combined_header_value, ',"', $at );
+			$temp_val    .= substr( $combined_header_value, $at, $basic_length );
+			$at          += $basic_length;
+
+			// > 2. If position is not past the end of input and the code point at position within input is U+0022 ("):
+			if ( $at < $end && '"' === $combined_header_value[ $at ] ) {
+				// > 1. Append the result of collecting an HTTP quoted string from input, given position, to temporaryValue.
+				$quoted_length = 1 + strcspn( $combined_header_value, '"', $at + 1 );
+				if ( $at + $quoted_length < $end && '"' === $combined_header_value[ $at + $quoted_length ] ) {
+					++$quoted_length;
+				}
+				$temp_val .= substr( $combined_header_value, $at, $quoted_length );
+				$at       += $quoted_length;
+
+				// > 2. If position is not past the end of input, then continue.
+				if ( $at < $end ) {
+					continue;
+				}
+			}
+
+			// > 3. Remove all HTTP tab or space from the start and end of temporaryValue.
+			$temp_val = trim( $temp_val, " \t" );
+
+			/*
+			 * > 4. Append temporaryValue to values.
+			 * > 5. Set temporaryValue to the empty string.
+			 * > 6. If position is past the end of input, then return values.
+			 */
+			$values[] = $temp_val;
+			$temp_val = '';
+			++$at;
+		}
+
+		/*
+		 * The second step is to determine how to piece together multiple values.
+		 *
+		 * > 1. Let charset be null.
+		 * > 2. Let essence be null.
+		 * > 3. Let mimeType be null.
+		 * > 4. Let values be the result of getting, decoding, and splitting `Content-Type` from headers. (from above)
+		 * > 5. If values is null, then return failure. (cannot happen, else this function wouldn’t have been called)
+		 */
+		$charset   = null;
+		$essence   = null;
+		$mime_type = null;
+
+		// > 6. For each value of values:
+		foreach ( $values as $value ) {
+			// > 1. Let temporaryMimeType be the result of parsing value.
+			$temp_mime_type = self::from_declaration( $value );
+
+			// > 2. If temporaryMimeType is failure or its essence is "*/*", then continue.
+			if ( ! isset( $temp_mime_type ) || '*/*' === $temp_mime_type->essence() ) {
+				continue;
+			}
+
+			// > 3. Set mimeType to temporaryMimeType.
+			$mime_type = $temp_mime_type;
+
+			/*
+			 * The goal of this next step is to carry along an existing charset definition
+			 * if one existed already, but otherwise adopt the _latest_ mime type declaration.
+			 *
+			 * Example:
+			 *
+			 *     "Content-Type: text/plain;charset=utf8, text/html"
+			 *     The MIME type here would be "text/html;charset=utf8"
+			 *
+			 * > 4. If mimeType’s essence is not essence, then:
+			 */
+			if ( $mime_type->essence() !== $essence ) {
+				// > 1. Set charset to null.
+				$charset = null;
+
+				// > 2. If mimeType’s parameters["charset"] exists, then set charset to mimeType’s parameters["charset"].
+				if ( isset( $mime_type->parameters['charset'] ) ) {
+					$charset = $mime_type->parameters['charset'];
+				}
+
+				// > 3. Set essence to mimeType’s essence.
+				$essence = $temp_mime_type->essence();
+			}
+
+			/*
+			 * > 5. Otherwise, if mimeType’s parameters["charset"] does not exist, and charset is non-null,
+			 * >    set mimeType’s parameters["charset"] to charset.
+			 */
+			if ( ! isset( $mime_type->parameters['charset'] ) && isset( $charset ) ) {
+				$mime_type->parameters['charset'] = $charset;
+			}
+		}
+
+		/*
+		 * > 7. If mimeType is null, then return failure.
+		 * > 8. Return mimeType.
+		 */
+		return $mime_type;
+	}
+
+	/**
 	 * Parses a supplied MIME type declaration, if valid, otherwise returns `null`.
 	 *
 	 * Example:
@@ -240,14 +373,22 @@ class WP_Mime_Sniffer {
 				$value_start  = $position + 1;
 				$value_length = strcspn( $input, '"', $value_start );
 				$value        = substr( $input, $value_start, $value_length );
-				$value        = strtr( $value, array( "\x5C" => '' ) );
+				$value        = strtr( $value, array( '\\' => '' ) );
 
-				if ( $value_length > 0 && "\x5C" === $input[ $value_start + $value_length - 1 ] ) {
-					$value .= "\x5C";
+				if ( $value_length > 0 && '\\' === $input[ $value_start + $value_length - 1 ] ) {
+					$value .= '\\';
 				}
 
-				$position  = $value_start + $value_length;
-				$position .= strcspn( $input, ';', $position );
+				/*
+				 * The quoted string may have ended without a closing double-quote,
+				 * but if it did then the parser needs to advance past it.
+				 */
+				$position = $value_start + $value_length;
+				if ( $position < $end && '"' === $input[ $position ] ) {
+					++$position;
+				}
+
+				$position += strcspn( $input, ';', $position );
 			} else { // 9. Otherwise:
 				// 1. Set parameterValue to the result of collecting a sequence of code points that are not U+003B (;) from input, given position.
 				$value_start  = $position;
@@ -551,6 +692,8 @@ class WP_Mime_Sniffer {
 				return new self( $type, $subtype );
 			}
 		}
+
+		throw new Error( "Not implemented yet?" );
 	}
 
 	public function serialize(): string {
@@ -576,6 +719,33 @@ class WP_Mime_Sniffer {
 		}
 
 		return $serialization;
+	}
+
+	public function minimize(): string {
+		if ( $this->is_javascript() ) {
+			return 'text/javascript';
+		}
+
+		if ( $this->is_json() ) {
+			return 'application/json';
+		}
+
+		$essence = $this->essence();
+		if ( 'image/svg+xml' === $essence ) {
+			return $essence;
+		}
+
+		if ( $this->is_xml() ) {
+			return 'application/xml';
+		}
+
+		/*
+		 * Defining “supported by the user agent” is not clarified in the spec.
+		 *
+		 * > 5. If mimeType is supported by the user agent, then return mimeType’s essence.
+		 * > 6. Return the empty string.
+		 */
+		return in_array( $essence, array_values( wp_get_mime_types() ), true ) ? $essence : '';
 	}
 
 	public function essence(): string {
@@ -851,7 +1021,7 @@ class WP_Mime_Sniffer {
 	 *
 	 * @since 7.0.0
 	 */
-	const HTTP_WHITESPACE = " \t\f\r\n";
+	const HTTP_WHITESPACE = " \t\r\n";
 
 	/**
 	 * > An HTTP quoted-string token code point is U+0009 TAB, a code point in the range U+0020 SPACE to U+007E (~),

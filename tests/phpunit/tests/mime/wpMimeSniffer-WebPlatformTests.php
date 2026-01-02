@@ -67,7 +67,7 @@ class Tests_WpMimeSniffer_WebPlatformTests extends WP_UnitTestCase {
 		if ( isset( $minimized ) ) {
 			$this->assertSame(
 				self::visualize_controls( $minimized ),
-				self::visualize_controls( $mime->essence() ),
+				self::visualize_controls( $mime->minimize() ),
 				'Mismatch in "essence" of MIME type (content type without any parameters).'
 			);
 		}
