@@ -670,12 +670,24 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 6.2.0
 	 * @since 6.4.0 Changed method visibility to protected.
-	 * @since 7.0.0 Allow arbitrary CSS content.
 	 *
 	 * @param string $css CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
 	protected function validate_custom_css( $css ) {
+		if ( false !== stripos( $css, '</style' ) ) {
+			return new WP_Error(
+				'rest_custom_css_illegal_markup',
+				sprintf(
+							/* translators: %s: The disallowed text "</style". */
+					__( 'Custom CSS must not include <code>%s</code>.' ),
+					esc_html( '</style' )
+				),
+				array( 'status' => 400 )
+			);
+
+		}
+
 		return true;
 	}
 }
