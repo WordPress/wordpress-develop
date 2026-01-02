@@ -958,7 +958,7 @@ class WP_Mime_Sniffer {
 	 * @param string $supplied_type
 	 * @return self|null
 	 */
-	public static function sniff_javascript( string $supplied_type ): ?self {
+	public static function declaring_javascript( string $supplied_type ): ?self {
 		$mime_type = self::from_declaration( $supplied_type );
 
 		return isset( $mime_type ) && $mime_type->is_javascript()
@@ -974,7 +974,7 @@ class WP_Mime_Sniffer {
 	 * @param string $supplied_type
 	 * @return self|null
 	 */
-	public static function sniff_json( string $supplied_type ): ?self {
+	public static function declaring_json( string $supplied_type ): ?self {
 		$mime_type = self::from_declaration( $supplied_type );
 
 		return isset( $mime_type ) && $mime_type->is_json()
