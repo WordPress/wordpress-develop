@@ -596,7 +596,7 @@ function wp_http_validate_url( $url ) {
 		if (
 			! $is_ipv4 &&
 			extension_loaded( 'filter' ) &&
-			! filter_var(
+			false === filter_var(
 				$host,
 				FILTER_VALIDATE_DOMAIN,
 				array( 'flags' => FILTER_FLAG_HOSTNAME )
