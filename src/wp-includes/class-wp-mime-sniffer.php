@@ -693,7 +693,7 @@ class WP_Mime_Sniffer {
 			}
 		}
 
-		throw new Error( "Not implemented yet?" );
+		return null;
 	}
 
 	public function serialize(): string {
@@ -752,7 +752,7 @@ class WP_Mime_Sniffer {
 		return "{$this->type}/{$this->subtype}";
 	}
 
-	public function indicated_charset(): ?string {
+	public function get_indicated_charset(): ?string {
 		if ( isset( $this->charset ) ) {
 			return $this->charset || null;
 		}

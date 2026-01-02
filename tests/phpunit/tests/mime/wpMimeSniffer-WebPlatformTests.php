@@ -53,7 +53,7 @@ class Tests_WpMimeSniffer_WebPlatformTests extends WP_UnitTestCase {
 		if ( isset( $encoding ) ) {
 			$this->assertSame(
 				self::visualize_controls( $encoding ),
-				self::visualize_controls( $mime->indicated_charset() ?? '' ),
+				self::visualize_controls( $mime->get_indicated_charset() ?? '' ),
 				'Mismatch in detected character encoding.'
 			);
 		}
