@@ -160,8 +160,8 @@ class Tests_WpMimeSniffer_WebPlatformTests extends WP_UnitTestCase {
 	private static function visualize_controls( string $text ): string {
 		return preg_replace_callback(
 			'~[\x00-\x1F\x7F]~',
-			static function ( $match ) {
-				return mb_chr( ord( $match[0] ) + 0x2400 );
+			static function ( $char_match ) {
+				return mb_chr( ord( $char_match[0] ) + 0x2400 );
 			},
 			$text
 		);
