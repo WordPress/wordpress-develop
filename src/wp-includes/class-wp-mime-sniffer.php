@@ -72,6 +72,9 @@
  * @see https://www.rfc-editor.org/rfc/rfc9110#name-media-type
  * @see https://www.iana.org/assignments/media-types/media-types.xhtml
  *
+ * @todo Supplied type input encoding should be clear. If it’s valid UTF-8 fine, if not,
+ *       use isomorphic decoding? Convert the windows-1252 bytes to UTF-8 code points.
+ *
  * @since 7.0.0
  */
 class WP_Mime_Sniffer {
@@ -990,6 +993,8 @@ class WP_Mime_Sniffer {
 	 *
 	 * @see https://encoding.spec.whatwg.org/#names-and-labels
 	 *
+	 * @todo Split this into a separate class for broader reuse.
+	 *
 	 * @since 7.0.0
 	 *
 	 * @param string $label
@@ -1012,7 +1017,9 @@ class WP_Mime_Sniffer {
 		 * Every label should be surrounded on each side by spaces, as space is not a possible
 		 * character in a label, making string lookup efficient.
 		 *
-		 * @todo Verify this table; it was converted via LLM.
+		 * @todo Add generator script for JSON source.
+		 *
+		 * @see https://encoding.spec.whatwg.org/encodings.json
 		 */
 		$table = array(
 			'UTF-8'          => ' unicode-1-1-utf-8 unicode11utf8 unicode20utf8 utf-8 utf8 x-unicode20utf8 ',
