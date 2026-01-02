@@ -740,7 +740,6 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 	 * Filters the template paths.
 	 *
 	 * @param array $template_paths The template paths.
-	 * @return array The filtered template paths.
 	 */
 	$template_paths = apply_filters( 'locate_template_paths', $template_paths );
 
