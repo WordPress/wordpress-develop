@@ -2070,7 +2070,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 function media_upload_header() {
 	$post_id = isset( $_REQUEST['post_id'] ) ? (int) $_REQUEST['post_id'] : 0;
 
-	echo '<script type="text/javascript">post_id = ' . $post_id . ';</script>';
+	echo '<script>post_id = ' . $post_id . ';</script>';
 
 	if ( empty( $_GET['chromeless'] ) ) {
 		echo '<div id="media-upload-header">';
@@ -2219,7 +2219,7 @@ function media_upload_form( $errors = null ) {
 	$plupload_init = apply_filters( 'plupload_init', $plupload_init );
 
 	?>
-	<script type="text/javascript">
+	<script>
 	<?php
 	// Verify size is an int. If not return default value.
 	$large_size_h = absint( get_option( 'large_size_h' ) );
@@ -2361,7 +2361,7 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
 
 	<?php media_upload_form( $errors ); ?>
 
-	<script type="text/javascript">
+	<script>
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
@@ -2427,7 +2427,7 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 
 	<h3 class="media-title"><?php _e( 'Insert media from another website' ); ?></h3>
 
-	<script type="text/javascript">
+	<script>
 	var addExtImage = {
 
 	width : '',
@@ -2568,7 +2568,7 @@ function media_upload_gallery_form( $errors ) {
 	}
 
 	?>
-	<script type="text/javascript">
+	<script>
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
@@ -2896,7 +2896,7 @@ function media_upload_library_form( $errors ) {
 	<form enctype="multipart/form-data" method="post" action="<?php echo esc_url( $form_action_url ); ?>" class="<?php echo $form_class; ?>" id="library-form">
 	<?php wp_nonce_field( 'media-form' ); ?>
 
-	<script type="text/javascript">
+	<script>
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
