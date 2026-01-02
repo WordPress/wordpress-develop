@@ -178,6 +178,7 @@ class WP_Mime_Sniffer {
 			if ( $at < $end && '"' === $combined_header_value[ $at ] ) {
 				// > 1. Append the result of collecting an HTTP quoted string from input, given position, to temporaryValue.
 				$quoted_length = 1 + strcspn( $combined_header_value, '"', $at + 1 );
+				// @todo This is wrong; needs to accommodate escaped double-quotes like `\"`.
 				if ( $at + $quoted_length < $end && '"' === $combined_header_value[ $at + $quoted_length ] ) {
 					++$quoted_length;
 				}
@@ -1010,6 +1011,8 @@ class WP_Mime_Sniffer {
 		 *
 		 * Every label should be surrounded on each side by spaces, as space is not a possible
 		 * character in a label, making string lookup efficient.
+		 *
+		 * @todo Verify this table; it was converted via LLM.
 		 */
 		$table = array(
 			'UTF-8'          => ' unicode-1-1-utf-8 unicode11utf8 unicode20utf8 utf-8 utf8 x-unicode20utf8 ',
