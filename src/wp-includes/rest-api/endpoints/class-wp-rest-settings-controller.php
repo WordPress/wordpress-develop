@@ -122,7 +122,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return mixed The prepared value.
 	 */
 	protected function prepare_value( $value, $schema ) {
-		/*
+		/**
 		 * If the value is not valid by the schema, set the value to null.
 		 * Null values are specifically non-destructive, so this will not cause
 		 * overwriting the current invalid value to null.
@@ -141,17 +141,17 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return array|WP_Error Array on success, or error object on failure.
-    */
+	*/
 	public function update_item( $request ) {
-        $options = $this->get_registered_options();
-        $params  = $request->get_params();
+		$options = $this->get_registered_options();
+		$params  = $request->get_params();
 
 		/**
-		 * Validate that the request contains only registered settings and internal 
+		 * Validate that the request contains only registered settings and internal
 		 * WordPress parameters.
 		 *
 		 * This ensures the settings endpoint returns a 400 Bad Request when sent
-		 * unknown properties or an empty body, aligning it with other REST 
+		 * unknown properties or an empty body, aligning it with other REST
 		 * API controllers.
 		 *
 		 * @see https://core.trac.wordpress.org/ticket/41604

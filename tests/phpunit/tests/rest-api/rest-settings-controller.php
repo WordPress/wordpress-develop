@@ -796,8 +796,8 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'Site title.', $title['description'] );
 		$this->assertSame( null, $title['default'] );
 	}
-    
-    /**
+
+	/**
 	 * Test that sending an empty body returns 400.
 	 *
 	 * @ticket 41604
