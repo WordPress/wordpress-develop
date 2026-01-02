@@ -59,10 +59,10 @@ if ( is_multisite() ) :
 			$this->assertSame( 1, $this->action_counts['before_populate_network'], 'before_populate_network action should fire once' );
 			$this->assertSame( 1, $this->action_counts['after_populate_network'], 'after_populate_network action should fire once' );
 
-			$this->assertEquals( $network_id, $this->action_args['before_populate_network']['network_id'], 'Network ID should match in before_populate_network hook' );
-			$this->assertEquals( $domain, $this->action_args['before_populate_network']['domain'], 'Domain should match in before_populate_network hook' );
-			$this->assertEquals( $network_id, $this->action_args['after_populate_network']['network_id'], 'Network ID should match in after_populate_network hook' );
-			$this->assertEquals( $domain, $this->action_args['after_populate_network']['domain'], 'Domain should match in after_populate_network hook' );
+			$this->assertSame( $network_id, $this->action_args['before_populate_network']['network_id'], 'Network ID should match in before_populate_network hook' );
+			$this->assertSame( $domain, $this->action_args['before_populate_network']['domain'], 'Domain should match in before_populate_network hook' );
+			$this->assertSame( $network_id, $this->action_args['after_populate_network']['network_id'], 'Network ID should match in after_populate_network hook' );
+			$this->assertSame( $domain, $this->action_args['after_populate_network']['domain'], 'Domain should match in after_populate_network hook' );
 
 			remove_action( 'before_populate_network', array( $this, 'hook_action_counter' ), 10 );
 			remove_action( 'after_populate_network', array( $this, 'hook_action_counter' ), 10 );
