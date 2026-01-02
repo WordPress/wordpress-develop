@@ -1677,6 +1677,9 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, int $inline_size_limit, array $expected_styles ): void {
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
+
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
@@ -1711,6 +1714,8 @@ class Tests_Template extends WP_UnitTestCase {
 			'wp-block-library',
 			wp_should_load_separate_core_block_assets() ? 'css/dist/block-library/common.css' : 'css/dist/block-library/style.css'
 		);
+		$this->ensure_style_asset_file_created( 'wp-block-library-theme', 'css/dist/block-library/theme.css' );
+
 		if ( wp_should_load_separate_core_block_assets() ) {
 			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css' );
 		}
@@ -1827,11 +1832,8 @@ class Tests_Template extends WP_UnitTestCase {
 		}
 		$dependency->src = includes_url( $relative_path );
 		$path            = ABSPATH . WPINC . '/' . $relative_path;
-		if ( ! file_exists( $path ) ) {
-			$dir = dirname( $path );
-			if ( ! file_exists( $dir ) ) {
-				mkdir( $dir, 0777, true );
-			}
+		self::touch( $path );
+		if ( 0 === filesize( $path ) ) {
 			file_put_contents( $path, "/* CSS for $handle */" );
 		}
 		wp_style_add_data( $handle, 'path', $path );
