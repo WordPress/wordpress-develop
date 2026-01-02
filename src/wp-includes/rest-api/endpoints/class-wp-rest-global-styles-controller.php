@@ -253,6 +253,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		if ( isset( $request['styles'] ) || isset( $request['settings'] ) ) {
 			$config = array();
 			if ( isset( $request['styles'] ) ) {
+				if ( isset( $request['styles']['css'] ) ) {
+					$css_validation_result = $this->validate_custom_css( $request['styles']['css'] );
+					if ( is_wp_error( $css_validation_result ) ) {
+						return $css_validation_result;
+					}
+				}
 				$config['styles'] = $request['styles'];
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
@@ -658,17 +664,18 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Validate style.css as valid CSS.
+	 *
+	 * Currently just checks that CSS will not break an HTML STYLE tag.
+	 *
 	 * @since 6.2.0
 	 * @since 6.4.0 Changed method visibility to protected.
-	 * @deprecated 7.0.0 This method is deprecated and always returns true.
-	 *
-	 * @ignore
+	 * @since 7.0.0 Allow arbitrary CSS content.
 	 *
 	 * @param string $css CSS to validate.
-	 * @return true|WP_Error Always returns true.
+	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
 	protected function validate_custom_css( $css ) {
-		_deprecated_function( __METHOD__, '7.0.0' );
 		return true;
 	}
 }
