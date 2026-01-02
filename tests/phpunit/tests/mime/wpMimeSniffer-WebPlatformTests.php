@@ -79,28 +79,78 @@ class Tests_WpMimeSniffer_WebPlatformTests extends WP_UnitTestCase {
 	 * @return Generator
 	 */
 	public static function data_mime_types() {
-		$test_file = file_get_contents( DIR_TESTDATA . '/mime/wpt-tests/mime-types.json' );
+		$test_suites = array(
+			'Basic'     => 'mime-types.json',
+			'Generated' => 'generated-mime-types.json',
+		);
+
+		foreach ( $test_suites as $name => $filename ) {
+			$test_file = file_get_contents( DIR_TESTDATA . '/mime/wpt-tests/' . $filename );
+			$test_data = json_decode( $test_file, true );
+
+			$test_group = $name;
+			$test_count = 0;
+			foreach ( $test_data as $test_case ) {
+				if ( is_string( $test_case ) ) {
+					$test_group = $test_case;
+					$test_count = 0;
+					continue;
+				}
+
+				$label = self::visualize_controls( "{$test_group} {$test_count}: {$test_case['input']}" );
+
+				yield $label => array(
+					$test_case['input'],
+					$test_case['output'],
+					$test_case['minimizedMIMEType'] ?? null,
+					$test_case['encoding'] ?? null,
+				);
+
+				++$test_count;
+			}
+		}
+	}
+
+	/**
+	 * Ensures that MIME types are properly minimized, meaning that they strip
+	 * potentially-privacy-sensitive information from the parsed type.
+	 *
+	 * @dataProvider data_minimized_mime_types
+	 *
+	 * @param string $supplied_type
+	 * @param string $minimized
+	 */
+	public function test_properly_minimizes( string $supplied_type, string $minimized ) {
+		$mime = WP_Mime_Sniffer::from_declaration( $supplied_type );
+
+		$this->assertNotNull(
+			$mime,
+			'Should have been provided a parseable supplied MIME type: check test setup.'
+		);
+
+		$this->assertSame(
+			$minimized,
+			$mime->minimize(),
+			'Failed to properly minimize MIME type.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator
+	 */
+	public static function data_minimized_mime_types() {
+		$test_file = file_get_contents( DIR_TESTDATA . '/mime/wpt-tests/mime-types-minimized.json' );
 		$test_data = json_decode( $test_file, true );
 
-		$test_group = null;
-		$test_count = 0;
-		foreach ( $test_data as $test_case ) {
-			if ( is_string( $test_case ) ) {
-				$test_group = $test_case;
-				$test_count = 0;
-				continue;
-			}
-
-			$label = self::visualize_controls( "{$test_group} {$test_count}: {$test_case['input']}" );
+		foreach ( $test_data as $test_count => $test_case ) {
+			$label = self::visualize_controls( "Minimized {$test_count}: {$test_case['input']}" );
 
 			yield $label => array(
 				$test_case['input'],
 				$test_case['output'],
-				$test_case['minimizedMIMEType'] ?? null,
-				$test_case['encoding'] ?? null,
 			);
-
-			++$test_count;
 		}
 	}
 

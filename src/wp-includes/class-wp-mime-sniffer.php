@@ -763,6 +763,22 @@ class WP_Mime_Sniffer {
 		return $serialization;
 	}
 
+	/**
+	 * Returns a stripped-down version of the MIME type suitable for use in
+	 * privacy-sensitive contexts, such as in resource-timing responses.
+	 *
+	 * This was added “so the least amount of information leaves the network layer”
+	 * in a browser when adding the `Content-Type` of a resource to the reported
+	 * metrics in `PerformanceResourceTiming`.
+	 *
+	 * @see https://github.com/whatwg/fetch/pull/1481
+	 *
+	 * @todo Find a more descriptive name for this, possibly rename the others?
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return string
+	 */
 	public function minimize(): string {
 		if ( $this->is_javascript() ) {
 			return 'text/javascript';
