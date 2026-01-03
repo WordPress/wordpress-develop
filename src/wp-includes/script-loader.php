@@ -2966,8 +2966,8 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
  *
  * @since 5.7.0
  *
- * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array<string, >  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_inline_script_tag( $data, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $data, $attributes );
