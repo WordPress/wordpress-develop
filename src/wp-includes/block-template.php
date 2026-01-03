@@ -339,7 +339,7 @@ function _block_template_skip_link_markup( string $template_html ): string {
 		}
 
 		$skip_link_target_id = $processor->get_attribute( 'id' );
-		if ( ! $skip_link_target_id ) {
+		if ( ! is_string( $skip_link_target_id ) || '' === trim( $skip_link_target_id ) ) {
 			$skip_link_target_id = 'wp--skip-link--target';
 			$processor->set_attribute( 'id', $skip_link_target_id );
 		}
