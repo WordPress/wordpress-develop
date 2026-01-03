@@ -3074,20 +3074,6 @@ function wp_maybe_inline_styles() {
 				continue;
 			}
 			$style['css'] = file_get_contents( $style['path'] );
-			if ( false === $style['css'] ) {
-				_doing_it_wrong(
-					__FUNCTION__,
-					sprintf(
-						/* translators: 1: 'path', 2: filesystem path, 3: style handle */
-						__( 'Unable to read the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
-						'path',
-						esc_html( $style['path'] ),
-						esc_html( $style['handle'] )
-					),
-					'7.0.0'
-				);
-				continue;
-			}
 
 			/*
 			 * Check if the style contains relative URLs that need to be modified.
