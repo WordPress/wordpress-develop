@@ -437,51 +437,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that an existing skip link anchor is not duplicated.
-	 *
-	 * @ticket 64361
-	 *
-	 * @covers ::_block_template_skip_link_markup
-	 */
-	public function test_block_template_skip_link_not_duplicated_when_existing_anchor_present() {
-		global $_wp_current_template_content;
-
-		$previous_template_content = null;
-		if ( isset( $_wp_current_template_content ) ) {
-			$previous_template_content = $_wp_current_template_content;
-		}
-
-		$_wp_current_template_content = 'Template content.';
-
-		$has_existing_hook           = has_action( 'wp_footer', 'the_block_template_skip_link' );
-		$had_block_templates_support = current_theme_supports( 'block-templates' );
-		if ( ! $has_existing_hook ) {
-			add_action( 'wp_footer', 'the_block_template_skip_link' );
-		}
-		if ( ! $had_block_templates_support ) {
-			add_theme_support( 'block-templates' );
-		}
-
-		$template_html = '<a class="skip-link screen-reader-text" id="wp-skip-link" href="#existing-main">Skip to content</a><div class="wp-site-blocks"><main id="existing-main">Content</main></div>';
-		$result        = _block_template_skip_link_markup( $template_html );
-
-		if ( ! $has_existing_hook ) {
-			remove_action( 'wp_footer', 'the_block_template_skip_link' );
-		}
-		if ( ! $had_block_templates_support ) {
-			remove_theme_support( 'block-templates' );
-		}
-
-		if ( null === $previous_template_content ) {
-			unset( $_wp_current_template_content );
-		} else {
-			$_wp_current_template_content = $previous_template_content;
-		}
-
-		$this->assertSame( $template_html, $result, 'Existing skip link anchor should be preserved and not duplicated.' );
-	}
-
-	/**
 	 * Should retrieve the template from the theme files.
 	 */
 	public function test_get_block_template_from_file() {
