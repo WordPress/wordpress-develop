@@ -38,8 +38,8 @@ function wp_register_anchor_support( $block_type ) {
  * @since 7.0.0
  * @access private
  *
- * @param WP_Block_Type $block_type       Block Type.
- * @param array         $block_attributes Block attributes.
+ * @param WP_Block_Type        $block_type       Block Type.
+ * @param array<string, mixed> $block_attributes Block attributes.
  * @return array<string, string> Attributes with block anchor id.
  */
 function wp_apply_anchor_support( WP_Block_Type $block_type, array $block_attributes ) {
