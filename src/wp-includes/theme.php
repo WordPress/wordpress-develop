@@ -733,12 +733,9 @@ function locale_stylesheet() {
 		return;
 	}
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
 	printf(
-		'<link rel="stylesheet" href="%s"%s media="screen" />',
-		$stylesheet,
-		$type_attr
+		'<link rel="stylesheet" href="%s" media="screen" />',
+		$stylesheet
 	);
 }
 
@@ -1953,11 +1950,13 @@ function _custom_background_cb() {
 
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
-	?>
-<style<?php echo $type_attr; ?> id="custom-background-css">
-body.custom-background { <?php echo trim( $style ); ?> }
-</style>
-	<?php
+
+	$processor = new WP_HTML_Tag_Processor( "<style{$type_attr} id=\"custom-background-css\"></style>" );
+	$processor->next_tag();
+
+	$style_tag_content = 'body.custom-background { ' . trim( $style ) . ' }';
+	$processor->set_modifiable_text( "\n{$style_tag_content}\n" );
+	echo "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -1967,17 +1966,18 @@ body.custom-background { <?php echo trim( $style ); ?> }
  */
 function wp_custom_css_cb() {
 	$styles = wp_get_custom_css();
-	if ( $styles || is_customize_preview() ) :
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-		?>
-		<style<?php echo $type_attr; ?> id="wp-custom-css">
-			<?php
-			// Note that esc_html() cannot be used because `div &gt; span` is not interpreted properly.
-			echo strip_tags( $styles );
-			?>
-		</style>
-		<?php
-	endif;
+	if ( ! $styles && ! is_customize_preview() ) {
+		return;
+	}
+
+	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+	$processor->next_tag();
+	if ( ! current_theme_supports( 'html5', 'style' ) ) {
+		$processor->set_attribute( 'type', 'text/css' );
+	}
+	$processor->set_attribute( 'id', 'wp-custom-css' );
+	$processor->set_modifiable_text( "\n{$styles}\n" );
+	echo "{$processor->get_updated_html()}\n";
 }
 
 /**
