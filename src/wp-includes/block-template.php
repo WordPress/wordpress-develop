@@ -320,7 +320,7 @@ function get_the_block_template_html() {
  * @param string $template_html Block template markup.
  * @return string Modified markup with skip link when applicable.
  */
-function _block_template_skip_link_markup( $template_html ) {
+function _block_template_skip_link_markup( string $template_html ): string {
 	global $_wp_current_template_content;
 
 	// Back-compat for plugins that disable functionality by unhooking this action.
