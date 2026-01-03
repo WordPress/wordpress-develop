@@ -972,8 +972,7 @@ class WP_Duotone {
 		 * If the experimental duotone support was set, that value is to be
 		 * treated as a selector and requires scoping.
 		 */
-		$experimental_duotone = $block_type->supports['color']['__experimentalDuotone']
-			?? false;
+		$experimental_duotone = $block_type->supports['color']['__experimentalDuotone'] ?? false;
 		if ( $experimental_duotone ) {
 			$root_selector = wp_get_block_css_selector( $block_type );
 			return is_string( $experimental_duotone )
@@ -1303,8 +1302,7 @@ class WP_Duotone {
 	 * @return array Filtered block type settings.
 	 */
 	public static function migrate_experimental_duotone_support_flag( $settings, $metadata ) {
-		$duotone_support = $metadata['supports']['color']['__experimentalDuotone']
-			?? null;
+		$duotone_support = $metadata['supports']['color']['__experimentalDuotone'] ?? null;
 
 		if ( ! isset( $settings['supports']['filter']['duotone'] ) && null !== $duotone_support ) {
 			_wp_array_set( $settings, array( 'supports', 'filter', 'duotone' ), (bool) $duotone_support );

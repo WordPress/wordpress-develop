@@ -1204,8 +1204,7 @@ class WP_Theme_JSON {
 
 			// Keep backwards compatibility for support.color.__experimentalDuotone.
 			if ( null === $duotone_selector ) {
-				$duotone_support = $block_type->supports['color']['__experimentalDuotone']
-					?? null;
+				$duotone_support = $block_type->supports['color']['__experimentalDuotone'] ?? null;
 
 				if ( $duotone_support ) {
 					$root_selector    = wp_get_block_css_selector( $block_type );
@@ -1524,8 +1523,7 @@ class WP_Theme_JSON {
 		// Add the global styles block CSS.
 		if ( isset( $this->theme_json['styles']['blocks'] ) ) {
 			foreach ( $this->theme_json['styles']['blocks'] as $name => $node ) {
-				$custom_block_css = $this->theme_json['styles']['blocks'][ $name ]['css']
-					?? null;
+				$custom_block_css = $this->theme_json['styles']['blocks'][ $name ]['css'] ?? null;
 				if ( $custom_block_css ) {
 					$selector    = static::$blocks_metadata[ $name ]['selector'];
 					$stylesheet .= $this->process_blocks_custom_css( $custom_block_css, $selector );
@@ -1664,8 +1662,7 @@ class WP_Theme_JSON {
 			if ( ! $has_block_gap_support ) {
 				$block_gap_value = static::ROOT_BLOCK_SELECTOR === $selector ? '0.5em' : null;
 				if ( ! empty( $block_type ) ) {
-					$block_gap_value = $block_type->supports['spacing']['blockGap']['__experimentalDefault']
-						?? null;
+					$block_gap_value = $block_type->supports['spacing']['blockGap']['__experimentalDefault'] ?? null;
 				}
 			} else {
 				$block_gap_value = static::get_property_value( $node, array( 'spacing', 'blockGap' ) );
@@ -4062,8 +4059,7 @@ class WP_Theme_JSON {
 	public function set_spacing_sizes() {
 		_deprecated_function( __METHOD__, '6.6.0' );
 
-		$spacing_scale = $this->theme_json['settings']['spacing']['spacingScale']
-			?? array();
+		$spacing_scale = $this->theme_json['settings']['spacing']['spacingScale'] ?? array();
 
 		if ( ! isset( $spacing_scale['steps'] )
 			|| ! is_numeric( $spacing_scale['steps'] )
@@ -4397,8 +4393,7 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
-		$settings = $this->theme_json['settings']
-			?? array();
+		$settings = $this->theme_json['settings'] ?? array();
 
 		foreach ( $metadata['selectors'] as $feature => $feature_selectors ) {
 			/*

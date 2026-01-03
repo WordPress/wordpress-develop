@@ -211,8 +211,7 @@ function wp_render_elements_support_styles( $parsed_block ) {
 		// Process related elements e.g. h1-h6 for headings.
 		if ( isset( $element_config['elements'] ) ) {
 			foreach ( $element_config['elements'] as $element ) {
-				$element_style_object = $element_block_styles[ $element ]
-					?? null;
+				$element_style_object = $element_block_styles[ $element ] ?? null;
 
 				if ( $element_style_object ) {
 					wp_style_engine_get_styles(

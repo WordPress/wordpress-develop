@@ -719,11 +719,9 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	}
 
 	$global_settings = wp_get_global_settings();
-	$fallback_layout = $block_type->supports['layout']['default']
-		?? array();
+	$fallback_layout = $block_type->supports['layout']['default'] ?? array();
 	if ( empty( $fallback_layout ) ) {
-		$fallback_layout = $block_type->supports['__experimentalLayout']['default']
-			?? array();
+		$fallback_layout = $block_type->supports['__experimentalLayout']['default'] ?? array();
 	}
 	$used_layout = $block['attrs']['layout'] ?? $fallback_layout;
 
@@ -735,8 +733,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$used_layout['type'] = 'constrained';
 	}
 
-	$root_padding_aware_alignments = $global_settings['useRootPaddingAwareAlignments']
-		?? false;
+	$root_padding_aware_alignments = $global_settings['useRootPaddingAwareAlignments'] ?? false;
 
 	if (
 		$root_padding_aware_alignments &&
@@ -766,11 +763,9 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 	// Get classname for layout type.
 	if ( isset( $used_layout['type'] ) ) {
-		$layout_classname = $layout_definitions[ $used_layout['type'] ]['className']
-			?? '';
+		$layout_classname = $layout_definitions[ $used_layout['type'] ]['className'] ?? '';
 	} else {
-		$layout_classname = $layout_definitions['default']['className']
-			?? '';
+		$layout_classname = $layout_definitions['default']['className'] ?? '';
 	}
 
 	if ( $layout_classname && is_string( $layout_classname ) ) {
@@ -783,8 +778,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 */
 	if ( ! current_theme_supports( 'disable-layout-styles' ) ) {
 
-		$gap_value = $block['attrs']['style']['spacing']['blockGap']
-			?? null;
+		$gap_value = $block['attrs']['style']['spacing']['blockGap'] ?? null;
 		/*
 		 * Skip if gap value contains unsupported characters.
 		 * Regex for CSS value borrowed from `safecss_filter_attr`, and used here
@@ -798,10 +792,8 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			$gap_value = $gap_value && preg_match( '%[\\\(&=}]|/\*%', $gap_value ) ? null : $gap_value;
 		}
 
-		$fallback_gap_value = $block_type->supports['spacing']['blockGap']['__experimentalDefault']
-			?? '0.5em';
-		$block_spacing      = $block['attrs']['style']['spacing']
-			?? null;
+		$fallback_gap_value = $block_type->supports['spacing']['blockGap']['__experimentalDefault'] ?? '0.5em';
+		$block_spacing      = $block['attrs']['style']['spacing'] ?? null;
 
 		/*
 		 * If a block's block.json skips serialization for spacing or spacing.blockGap,
@@ -809,8 +801,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		 */
 		$should_skip_gap_serialization = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'blockGap' );
 
-		$block_gap             = $global_settings['spacing']['blockGap']
-			?? null;
+		$block_gap             = $global_settings['spacing']['blockGap'] ?? null;
 		$has_block_gap_support = isset( $block_gap );
 
 		/*

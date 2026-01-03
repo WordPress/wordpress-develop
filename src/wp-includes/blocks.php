@@ -1067,8 +1067,7 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 		}
 	}
 
-	$previously_ignored_hooked_blocks = $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
-		?? array();
+	$previously_ignored_hooked_blocks = $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ?? array();
 
 	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
 		array_merge(
@@ -1402,8 +1401,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
 	$root_block       = parse_blocks( $serialized_block )[0];
 
-	$ignored_hooked_blocks = $root_block['attrs']['metadata']['ignoredHookedBlocks']
-		?? array();
+	$ignored_hooked_blocks = $root_block['attrs']['metadata']['ignoredHookedBlocks'] ?? array();
 
 	if ( ! empty( $ignored_hooked_blocks ) ) {
 		$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );

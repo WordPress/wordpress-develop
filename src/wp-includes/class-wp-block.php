@@ -311,8 +311,7 @@ class WP_Block {
 			 */
 			foreach ( $supported_block_attributes as $attribute_name ) {
 				// Retain any non-pattern override bindings that might be present.
-				$updated_bindings[ $attribute_name ] = $bindings[ $attribute_name ]
-					?? array( 'source' => 'core/pattern-overrides' );
+				$updated_bindings[ $attribute_name ] = $bindings[ $attribute_name ] ?? array( 'source' => 'core/pattern-overrides' );
 			}
 			$bindings = $updated_bindings;
 			/*

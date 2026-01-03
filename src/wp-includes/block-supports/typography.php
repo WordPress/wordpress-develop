@@ -91,8 +91,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		return array();
 	}
 
-	$typography_supports = $block_type->supports['typography']
-		?? false;
+	$typography_supports = $block_type->supports['typography'] ?? false;
 	if ( ! $typography_supports ) {
 		return array();
 	}
@@ -131,8 +130,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		$preset_font_size                    = array_key_exists( 'fontSize', $block_attributes )
 			? "var:preset|font-size|{$block_attributes['fontSize']}"
 			: null;
-		$custom_font_size                    = $block_attributes['style']['typography']['fontSize']
-			?? null;
+		$custom_font_size                    = $block_attributes['style']['typography']['fontSize'] ?? null;
 		$typography_block_styles['fontSize'] = $preset_font_size ? $preset_font_size : wp_get_typography_font_size_value(
 			array(
 				'size' => $custom_font_size,
@@ -173,18 +171,15 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	}
 
 	if ( $has_line_height_support && ! $should_skip_line_height ) {
-		$typography_block_styles['lineHeight'] = $block_attributes['style']['typography']['lineHeight']
-			?? null;
+		$typography_block_styles['lineHeight'] = $block_attributes['style']['typography']['lineHeight'] ?? null;
 	}
 
 	if ( $has_text_align_support && ! $should_skip_text_align ) {
-		$typography_block_styles['textAlign'] = $block_attributes['style']['typography']['textAlign']
-			?? null;
+		$typography_block_styles['textAlign'] = $block_attributes['style']['typography']['textAlign'] ?? null;
 	}
 
 	if ( $has_text_columns_support && ! $should_skip_text_columns && isset( $block_attributes['style']['typography']['textColumns'] ) ) {
-		$typography_block_styles['textColumns'] = $block_attributes['style']['typography']['textColumns']
-			?? null;
+		$typography_block_styles['textColumns'] = $block_attributes['style']['typography']['textColumns'] ?? null;
 	}
 
 	if (
@@ -224,8 +219,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		! $should_skip_writing_mode &&
 		isset( $block_attributes['style']['typography']['writingMode'] )
 	) {
-		$typography_block_styles['writingMode'] = $block_attributes['style']['typography']['writingMode']
-			?? null;
+		$typography_block_styles['writingMode'] = $block_attributes['style']['typography']['writingMode'] ?? null;
 	}
 
 	$attributes = array();
