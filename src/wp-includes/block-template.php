@@ -315,13 +315,11 @@ function get_the_block_template_html() {
  * @access private
  * @since 7.0.0
  *
- * @global string $_wp_current_template_content
  *
  * @param string $template_html Block template markup.
  * @return string Modified markup with skip link when applicable.
  */
-function _block_template_skip_link_markup( string $template_html ): string {
-	global $_wp_current_template_content;
+function _block_template_skip_link_markup( $template_html ) {
 
 	// Back-compat for plugins that disable functionality by unhooking this action.
 	if ( ! has_action( 'wp_footer', 'the_block_template_skip_link' ) ) {
