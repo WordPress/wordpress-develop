@@ -3417,7 +3417,7 @@ function rest_convert_error_to_response( $error ) {
 	$status = array_reduce(
 		$error->get_all_error_data(),
 		static function ( $status, $error_data ) {
-			return is_array( $error_data ) && $error_data['status'] ?? $status;
+			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
 		},
 		500
 	);
