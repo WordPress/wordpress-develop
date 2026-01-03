@@ -3073,7 +3073,7 @@ function wp_maybe_inline_styles() {
 				);
 				continue;
 			}
-			$style['css'] = file_get_contents( $style['path'] );
+			$style['css'] = (string) file_get_contents( $style['path'] );
 
 			/*
 			 * Check if the style contains relative URLs that need to be modified.
