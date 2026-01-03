@@ -28,7 +28,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post               = $factory->post->create_and_get();
-		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
+		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'] ?? array();
 	}
 
 	/**

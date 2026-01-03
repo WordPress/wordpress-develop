@@ -287,7 +287,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 * @ticket 12922
 	 */
 	public function test__wp_preview_post_thumbnail_filter() {
-		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$old_post = $GLOBALS['post'] ?? null;
 
 		$GLOBALS['post']           = self::$post;
 		$_REQUEST['_thumbnail_id'] = self::$attachment_id;
@@ -307,7 +307,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 * @ticket 37697
 	 */
 	public function test__wp_preview_post_thumbnail_filter_secondary_post() {
-		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$old_post = $GLOBALS['post'] ?? null;
 
 		$secondary_post = self::factory()->post->create(
 			array(
