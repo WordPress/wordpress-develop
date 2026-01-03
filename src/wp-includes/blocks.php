@@ -171,9 +171,9 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	$module_uri       = get_block_asset_url( $module_path_norm );
 
 	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
-	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
-	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
+	$module_dependencies = $module_asset['dependencies'] ?? array();
+	$block_version       = $metadata['version'] ?? false;
+	$module_version      = $module_asset['version'] ?? $block_version;
 
 	$supports_interactivity_true = isset( $metadata['supports']['interactivity'] ) && true === $metadata['supports']['interactivity'];
 	$is_interactive              = $supports_interactivity_true || ( isset( $metadata['supports']['interactivity']['interactive'] ) && true === $metadata['supports']['interactivity']['interactive'] );
@@ -248,8 +248,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 
 	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
 	$script_asset  = ! empty( $script_asset_path ) ? require $script_asset_path : array();
-	$script_handle = isset( $script_asset['handle'] ) ?
-		$script_asset['handle'] :
+	$script_handle = $script_asset['handle'] ??
 		generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	if ( wp_script_is( $script_handle, 'registered' ) ) {
 		return $script_handle;
@@ -257,9 +256,9 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 
 	$script_path_norm    = wp_normalize_path( realpath( $path . '/' . $script_path ) );
 	$script_uri          = get_block_asset_url( $script_path_norm );
-	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
-	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$script_version      = isset( $script_asset['version'] ) ? $script_asset['version'] : $block_version;
+	$script_dependencies = $script_asset['dependencies'] ?? array();
+	$block_version       = $metadata['version'] ?? false;
+	$script_version      = $script_asset['version'] ?? $block_version;
 	$script_args         = array();
 	if ( 'viewScript' === $field_name && $script_uri ) {
 		$script_args['strategy'] = 'defer';
@@ -348,7 +347,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$style_uri       = get_block_asset_url( $style_path_norm );
 
-	$block_version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$block_version = ! $is_core_block && $metadata['version'] ?? false;
 	$version       = $style_path_norm && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( $style_path_norm ) : $block_version;
 	$result        = wp_register_style(
 		$style_handle_name,
@@ -1068,9 +1067,8 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 		}
 	}
 
-	$previously_ignored_hooked_blocks = isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
-		? $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
-		: array();
+	$previously_ignored_hooked_blocks = $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
+		?? array();
 
 	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
 		array_merge(
@@ -1404,9 +1402,8 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
 	$root_block       = parse_blocks( $serialized_block )[0];
 
-	$ignored_hooked_blocks = isset( $root_block['attrs']['metadata']['ignoredHookedBlocks'] )
-		? $root_block['attrs']['metadata']['ignoredHookedBlocks']
-		: array();
+	$ignored_hooked_blocks = $root_block['attrs']['metadata']['ignoredHookedBlocks']
+		?? array();
 
 	if ( ! empty( $ignored_hooked_blocks ) ) {
 		$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
@@ -1823,7 +1820,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 			}
 
 			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
-			$block_content .= isset( $post_markup ) ? $post_markup : '';
+			$block_content .= $post_markup ?? '';
 
 			++$block_index;
 		}
@@ -1983,7 +1980,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 		}
 
 		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
-		$result .= isset( $post_markup ) ? $post_markup : '';
+		$result .= $post_markup ?? '';
 	}
 
 	return $result;
@@ -2598,7 +2595,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
 	);
 
 	foreach ( $typography_keys as $typography_key ) {
-		$support_for_key = isset( $metadata['supports'][ $typography_key ] ) ? $metadata['supports'][ $typography_key ] : null;
+		$support_for_key = $metadata['supports'][ $typography_key ] ?? null;
 
 		if ( null !== $support_for_key ) {
 			_doing_it_wrong(

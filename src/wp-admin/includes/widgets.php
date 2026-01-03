@@ -202,12 +202,12 @@ function wp_widget_control( $sidebar_args ) {
 	$width         = $control['width'] ?? '';
 	$height        = $control['height'] ?? '';
 	$multi_number  = $sidebar_args['_multi_num'] ?? '';
-	$add_new       = isset( $sidebar_args['_add'] ) ? $sidebar_args['_add'] : '';
+	$add_new       = $sidebar_args['_add'] ?? '';
 
-	$before_form           = isset( $sidebar_args['before_form'] ) ? $sidebar_args['before_form'] : '<form method="post">';
-	$after_form            = isset( $sidebar_args['after_form'] ) ? $sidebar_args['after_form'] : '</form>';
-	$before_widget_content = isset( $sidebar_args['before_widget_content'] ) ? $sidebar_args['before_widget_content'] : '<div class="widget-content">';
-	$after_widget_content  = isset( $sidebar_args['after_widget_content'] ) ? $sidebar_args['after_widget_content'] : '</div>';
+	$before_form           = $sidebar_args['before_form'] ?? '<form method="post">';
+	$after_form            = $sidebar_args['after_form'] ?? '</form>';
+	$before_widget_content = $sidebar_args['before_widget_content'] ?? '<div class="widget-content">';
+	$after_widget_content  = $sidebar_args['after_widget_content'] ?? '</div>';
 
 	$query_arg = array( 'editwidget' => $widget['id'] );
 	if ( $add_new ) {
