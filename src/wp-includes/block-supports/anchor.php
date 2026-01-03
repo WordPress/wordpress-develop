@@ -52,8 +52,7 @@ function wp_apply_anchor_support( WP_Block_Type $block_type, array $block_attrib
 		return array();
 	}
 
-	$has_anchor = array_key_exists( 'anchor', $block_attributes );
-	if ( ! $has_anchor ) {
+	if ( ! isset( $block_attributes['anchor'] ) || ! is_string( $block_attributes['anchor'] ) ) {
 		return array();
 	}
 
