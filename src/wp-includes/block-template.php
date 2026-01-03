@@ -328,16 +328,6 @@ function _block_template_skip_link_markup( $template_html ) {
 		return $template_html;
 	}
 
-	// Early exit if not a block theme.
-	if ( ! current_theme_supports( 'block-templates' ) ) {
-		return $template_html;
-	}
-
-	// Early exit if not a block template.
-	if ( ! $_wp_current_template_content ) {
-		return $template_html;
-	}
-
 	// Ensure a skip-link target exists and has an ID.
 	$processor           = new WP_HTML_Tag_Processor( $template_html );
 	$skip_link_target_id = null;
