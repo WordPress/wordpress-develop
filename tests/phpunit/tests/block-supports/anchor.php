@@ -6,9 +6,9 @@
  */
 class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	/**
-	 * @var string|null
+	 * @var string
 	 */
-	private $test_block_name;
+	const TEST_BLOCK_NAME = 'test/anchor-block';
 
 	public function set_up() {
 		parent::set_up();
