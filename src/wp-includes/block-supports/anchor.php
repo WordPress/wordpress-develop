@@ -43,7 +43,7 @@ function wp_register_anchor_support( $block_type ) {
  * @return array<string, string> Attributes with block anchor id.
  */
 function wp_apply_anchor_support( WP_Block_Type $block_type, array $block_attributes ) {
-	if ( ! $block_attributes ) {
+	if ( empty( $block_attributes ) ) {
 		return array();
 	}
 
