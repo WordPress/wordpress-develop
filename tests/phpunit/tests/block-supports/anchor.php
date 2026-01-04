@@ -44,7 +44,6 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 */
 	public function test_wp_apply_anchor_support( $support, $value, array $expected ) {
 		$block_type  = self::register_anchor_block_with_support(
-			'test/anchor-block',
 			array( 'anchor' => $support )
 		);
 		$block_attrs = array( 'anchor' => $value );
