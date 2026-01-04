@@ -658,9 +658,11 @@ switch ( $action ) {
 								);
 							} else {
 								?>
-								<textarea name="description" id="description" rows="5" cols="30"><?php
-									echo esc_textarea( $profile_user->description );
-								?></textarea>
+								<textarea name="description" id="description" rows="5" cols="30">
+									<?php
+										echo esc_textarea( $profile_user->description );
+									?>
+								</textarea>
 								<?php
 							}
 							?>
