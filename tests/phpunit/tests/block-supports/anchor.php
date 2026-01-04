@@ -68,7 +68,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_anchor_block_support() {
+	public function data_anchor_block_support(): array {
 		return array(
 			'anchor id attribute is applied'          => array(
 				'support'  => true,
