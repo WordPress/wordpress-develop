@@ -20,11 +20,11 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_register_anchor_support
 	 *
-	 * @param bool|array $support  Anchor block support configuration.
-	 * @param array|null  $value    Attributes array for the block.
-	 * @param array      $expected Expected attributes for the block.
+	 * @param bool                                      $support  Anchor block support configuration.
+	 * @param array<string, array<string, string>>|null $value    Attributes array for the block.
+	 * @param array<string, array<string, string>>      $expected Expected attributes for the block.
 	 */
-	public function test_wp_register_anchor_support( $support, $value, array $expected ) {
+	public function test_wp_register_anchor_support( bool $support, ?array $value, array $expected ) {
 		register_block_type(
 			self::TEST_BLOCK_NAME,
 			array(
@@ -35,8 +35,10 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 		);
 		$registry   = WP_Block_Type_Registry::get_instance();
 		$block_type = $registry->get_registered( self::TEST_BLOCK_NAME );
+		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
 		wp_register_anchor_support( $block_type );
-		$actual   = $block_type->attributes;
+		$actual = $block_type->attributes;
+		$this->assertIsArray( $actual );
 		$expected = array_merge( WP_Block_Type::GLOBAL_ATTRIBUTES, $expected );
 		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
@@ -48,11 +50,11 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_apply_anchor_support
 	 *
-	 * @param bool|array $support  Anchor block support configuration.
-	 * @param mixed      $value    Anchor value for attribute object.
-	 * @param array      $expected Expected anchor block support output.
+	 * @param bool                                 $support  Anchor block support configuration.
+	 * @param mixed                                $value    Anchor value for attribute object.
+	 * @param array<string, array<string, string>> $expected Expected anchor block support output.
 	 */
-	public function test_wp_apply_anchor_support( $support, $value, array $expected ) {
+	public function test_wp_apply_anchor_support( bool $support, $value, array $expected ) {
 		register_block_type(
 			self::TEST_BLOCK_NAME,
 			array(
@@ -60,8 +62,9 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 				'supports'    => array( 'anchor' => $support ),
 			)
 		);
-		$registry    = WP_Block_Type_Registry::get_instance();
-		$block_type  = $registry->get_registered( self::TEST_BLOCK_NAME );
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( self::TEST_BLOCK_NAME );
+		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
 		$block_attrs = array( 'anchor' => $value );
 		$actual      = wp_apply_anchor_support( $block_type, $block_attrs );
 		$this->assertSame( $expected, $actual );
@@ -70,7 +73,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_register_anchor_support().
 	 *
-	 * @return array
+	 * @return array<string, array<string, mixed>>
 	 */
 	public function data_wp_register_anchor_support(): array {
 		return array(
@@ -125,7 +128,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_apply_anchor_support().
 	 *
-	 * @return array
+	 * @return array<string, array<string, mixed>>
 	 */
 	public function data_wp_apply_anchor_support(): array {
 		return array(
