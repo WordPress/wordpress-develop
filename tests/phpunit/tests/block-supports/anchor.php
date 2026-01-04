@@ -36,7 +36,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 		$registry   = WP_Block_Type_Registry::get_instance();
 		$block_type = $registry->get_registered( self::TEST_BLOCK_NAME );
 		wp_register_anchor_support( $block_type );
-		$actual = $block_type->attributes;
+		$actual   = $block_type->attributes;
 		$expected = array_merge( WP_Block_Type::GLOBAL_ATTRIBUTES, $expected );
 		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
@@ -60,8 +60,8 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 				'supports'    => array( 'anchor' => $support ),
 			)
 		);
-		$registry   = WP_Block_Type_Registry::get_instance();
-		$block_type = $registry->get_registered( self::TEST_BLOCK_NAME );
+		$registry    = WP_Block_Type_Registry::get_instance();
+		$block_type  = $registry->get_registered( self::TEST_BLOCK_NAME );
 		$block_attrs = array( 'anchor' => $value );
 		$actual      = wp_apply_anchor_support( $block_type, $block_attrs );
 		$this->assertSame( $expected, $actual );
@@ -84,20 +84,20 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 				),
 			),
 			'anchor attribute is not registered when block does not support anchor' => array(
-				'support' => false,
-				'value'   => null,
+				'support'  => false,
+				'value'    => null,
 				'expected' => array(),
 			),
 			'anchor attribute is added to existing attributes' => array(
-				'support' => true,
-				'value'   => array(
+				'support'  => true,
+				'value'    => array(
 					'foo' => array(
 						'type' => 'string',
 					),
 				),
 				'expected' => array_merge(
 					array(
-						'foo' => array(
+						'foo'    => array(
 							'type' => 'string',
 						),
 						'anchor' => array(
@@ -107,8 +107,8 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 				),
 			),
 			'existing anchor attribute is not overwritten' => array(
-				'support' => true,
-				'value'  => array(
+				'support'  => true,
+				'value'    => array(
 					'anchor' => array(
 						'type'    => 'string',
 						'default' => 'default-anchor',
