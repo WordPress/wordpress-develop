@@ -100,6 +100,15 @@ final class WP_Term {
 	public $filter = 'raw';
 
 	/**
+	 * Deprecated data property.
+	 *
+	 * @since 4.4.0
+	 * @deprecated 6.5.0 Use WP_Term::to_array() or wp_update_term() instead.
+	 * @var stdClass
+	 */
+	public $data;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
@@ -198,6 +207,15 @@ final class WP_Term {
 		foreach ( get_object_vars( $term ) as $key => $value ) {
 			$this->$key = $value;
 		}
+
+		// Populating the data property here is for backward compatibility.
+		$data    = new stdClass();
+		$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
+		foreach ( $columns as $column ) {
+			$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
+		}
+
+		$this->data = sanitize_term( $data, $data->taxonomy, 'raw' );
 	}
 
 	/**
@@ -219,27 +237,11 @@ final class WP_Term {
 	 * @return array Object as array.
 	 */
 	public function to_array() {
-		return get_object_vars( $this );
-	}
+		$term = get_object_vars( $this );
 
-	/**
-	 * Getter.
-	 *
-	 * @since 4.4.0
-	 *
-	 * @param string $key Property to get.
-	 * @return mixed Property value.
-	 */
-	public function __get( $key ) {
-		switch ( $key ) {
-			case 'data':
-				$data    = new stdClass();
-				$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
-				foreach ( $columns as $column ) {
-					$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
-				}
+		// Remove the deprecated data property.
+		unset( $term['data'] );
 
-				return sanitize_term( $data, $data->taxonomy, 'raw' );
-		}
+		return $term;
 	}
 }
