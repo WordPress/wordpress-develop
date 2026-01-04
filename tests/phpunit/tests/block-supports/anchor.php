@@ -1,8 +1,6 @@
 <?php
 /**
  * @group block-supports
- *
- * @covers ::wp_apply_anchor_support
  */
 class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	/**
@@ -16,48 +14,122 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers a new block for testing anchor support.
-	 * @param array<string, string|bool> $supports Array defining block support configuration.
-	 * @return WP_Block_Type The block type for the newly registered test block.
+	 * Tests that anchor block support attribute registration works as expected.
+	 *
+	 * @covers ::wp_register_anchor_support
+	 *
+	 * @dataProvider data_wp_register_anchor_support
+	 *
+	 * @param bool|array $support  Anchor block support configuration.
+	 * @param array|null  $value    Attributes array for the block.
+	 * @param array      $expected Expected attributes for the block.
 	 */
-	private function register_anchor_block_with_support( array $supports = array() ): WP_Block_Type {
+	public function test_wp_register_anchor_support( $support, $value, array $expected ) {
 		register_block_type(
 			self::TEST_BLOCK_NAME,
 			array(
 				'api_version' => 3,
-				'supports'    => $supports,
+				'supports'    => array( 'anchor' => $support ),
+				'attributes'  => $value,
 			)
 		);
-		$registry = WP_Block_Type_Registry::get_instance();
-
-		return $registry->get_registered( self::TEST_BLOCK_NAME );
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( self::TEST_BLOCK_NAME );
+		wp_register_anchor_support( $block_type );
+		$actual = $block_type->attributes;
+		$expected = array_merge( WP_Block_Type::GLOBAL_ATTRIBUTES, $expected );
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
 	/**
-	 * Tests that anchor block support works as expected.
+	 * Tests that anchor block support is applied as expected.
 	 *
-	 * @dataProvider data_anchor_block_support
+	 * @covers ::wp_apply_anchor_support
+	 *
+	 * @dataProvider data_wp_apply_anchor_support
 	 *
 	 * @param bool|array $support  Anchor block support configuration.
 	 * @param mixed      $value    Anchor value for attribute object.
 	 * @param array      $expected Expected anchor block support output.
 	 */
 	public function test_wp_apply_anchor_support( $support, $value, array $expected ) {
-		$block_type  = self::register_anchor_block_with_support(
-			array( 'anchor' => $support )
+		register_block_type(
+			self::TEST_BLOCK_NAME,
+			array(
+				'api_version' => 3,
+				'supports'    => array( 'anchor' => $support ),
+			)
 		);
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( self::TEST_BLOCK_NAME );
 		$block_attrs = array( 'anchor' => $value );
 		$actual      = wp_apply_anchor_support( $block_type, $block_attrs );
-
 		$this->assertSame( $expected, $actual );
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for test_wp_register_anchor_support().
 	 *
 	 * @return array
 	 */
-	public function data_anchor_block_support(): array {
+	public function data_wp_register_anchor_support(): array {
+		return array(
+			'anchor attribute is registered when block supports anchor' => array(
+				'support'  => true,
+				'value'    => null,
+				'expected' => array(
+					'anchor' => array(
+						'type' => 'string',
+					),
+				),
+			),
+			'anchor attribute is not registered when block does not support anchor' => array(
+				'support' => false,
+				'value'   => null,
+				'expected' => array(),
+			),
+			'anchor attribute is added to existing attributes' => array(
+				'support' => true,
+				'value'   => array(
+					'foo' => array(
+						'type' => 'string',
+					),
+				),
+				'expected' => array_merge(
+					array(
+						'foo' => array(
+							'type' => 'string',
+						),
+						'anchor' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			),
+			'existing anchor attribute is not overwritten' => array(
+				'support' => true,
+				'value'  => array(
+					'anchor' => array(
+						'type'    => 'string',
+						'default' => 'default-anchor',
+					),
+				),
+				'expected' => array(
+					'anchor' => array(
+						'type'    => 'string',
+						'default' => 'default-anchor',
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_apply_anchor_support().
+	 *
+	 * @return array
+	 */
+	public function data_wp_apply_anchor_support(): array {
 		return array(
 			'anchor id attribute is applied'          => array(
 				'support'  => true,
