@@ -95,14 +95,12 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 						'type' => 'string',
 					),
 				),
-				'expected' => array_merge(
-					array(
-						'foo'    => array(
-							'type' => 'string',
-						),
-						'anchor' => array(
-							'type' => 'string',
-						),
+				'expected' => array(
+					'foo'    => array(
+						'type' => 'string',
+					),
+					'anchor' => array(
+						'type' => 'string',
 					),
 				),
 			),
