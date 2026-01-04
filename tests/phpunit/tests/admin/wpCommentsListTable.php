@@ -218,8 +218,13 @@ OPTIONS;
 	 * Verify that the comments table never shows the note comment_type.
 	 *
 	 * @ticket 64198
+	 * @ticket 64474
+	 *
+	 * @dataProvider data_comment_type
+	 *
+	 * @param string[] $comment_type   The comment_type parameter value to test.
 	 */
-	public function test_comments_list_table_does_not_show_note_comment_type() {
+	public function test_comments_list_table_does_not_show_note_comment_type( $comment_type ) {
 		$post_id    = self::factory()->post->create();
 		$note_id    = self::factory()->comment->create(
 			array(
@@ -237,11 +242,22 @@ OPTIONS;
 				'comment_approved' => '1',
 			)
 		);
-		// Request the note comment type.
-		$_REQUEST['comment_type'] = 'note';
+		$_REQUEST['comment_type'] = $comment_type;
 		$this->table->prepare_items();
 		$items = $this->table->items;
 		$this->assertCount( 1, $items );
 		$this->assertEquals( $comment_id, $items[0]->comment_ID );
+	}
+
+	/**
+	 * Data provider for test_comments_list_table_does_not_show_note_comment_type().
+	 *
+	 * @return string[]
+	 */
+	public function data_comment_type() {
+		return array(
+			'note type explicitly requested' => array( 'note' ),
+			'all type requested'             => array( 'all' ),
+		);
 	}
 }
