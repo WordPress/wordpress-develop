@@ -10,11 +10,6 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 */
 	const TEST_BLOCK_NAME = 'test/anchor-block';
 
-	public function set_up() {
-		parent::set_up();
-		$this->test_block_name = null;
-	}
-
 	public function tear_down() {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
