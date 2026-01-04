@@ -52,7 +52,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 * @param string        $value    Anchor value for attribute object.
 	 * @param array         $expected Expected anchor block support output.
 	 */
-	public function test_wp_apply_anchor_support( $support, $value, $expected ) {
+	public function test_wp_apply_anchor_support( $support, $value, array $expected ) {
 		$block_type  = self::register_anchor_block_with_support(
 			'test/anchor-block',
 			array( 'anchor' => $support )
