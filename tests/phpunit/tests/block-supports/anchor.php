@@ -17,15 +17,12 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 
 	/**
 	 * Registers a new block for testing anchor support.
-	 *
-	 * @param string $block_name Name for the test block.
-	 * @param array  $supports   Array defining block support configuration.
+	 * @param array<string, string|bool> $supports Array defining block support configuration.
 	 * @return WP_Block_Type The block type for the newly registered test block.
 	 */
-	private function register_anchor_block_with_support( $block_name, $supports = array() ) {
-		$this->test_block_name = $block_name;
+	private function register_anchor_block_with_support( array $supports = array() ): WP_Block_Type {
 		register_block_type(
-			$this->test_block_name,
+			self::TEST_BLOCK_NAME,
 			array(
 				'api_version' => 3,
 				'supports'    => $supports,
@@ -33,7 +30,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 		);
 		$registry = WP_Block_Type_Registry::get_instance();
 
-		return $registry->get_registered( $this->test_block_name );
+		return $registry->get_registered( self::TEST_BLOCK_NAME );
 	}
 
 	/**
