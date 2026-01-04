@@ -15,9 +15,7 @@
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_anchor_support( WP_Block_Type $block_type ) {
-	$has_anchor_support = block_has_support( $block_type, array( 'anchor' ), false );
-
-	if ( ! $has_anchor_support ) {
+	if ( ! block_has_support( $block_type, array( 'anchor' ) ) ) {
 		return;
 	}
 
