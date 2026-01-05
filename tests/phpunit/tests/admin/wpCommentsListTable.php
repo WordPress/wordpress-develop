@@ -254,7 +254,7 @@ OPTIONS;
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_comment_type() {
+	public function data_comment_type(): array {
 		return array(
 			'note type explicitly requested' => array( 'note' ),
 			'all type requested'             => array( 'all' ),
