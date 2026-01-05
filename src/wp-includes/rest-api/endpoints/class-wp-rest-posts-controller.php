@@ -2065,7 +2065,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'meta', $fields ) ) {
-			$data['meta'] = $this->meta->get_value( $post->ID, $request );
+			$meta_value = $this->meta->get_value( $post->ID, $request );
+
+			// Ensure empty meta value is returned as an object {} if the schema expects an object
+			// and the context is 'view'. For 'edit' context, it should remain an empty array
+			// to ensure PUT requests expecting an array function correctly.
+			if ( 'view' === $request['context'] && empty( $meta_value ) && is_array( $meta_value ) ) {
+				$schema = $this->get_item_schema();
+				if ( isset( $schema['properties']['meta']['type'] ) && 'object' === $schema['properties']['meta']['type'] ) {
+					$meta_value = (object) array();
+				}
+			}
+			$data['meta'] = $meta_value;
 		}
 
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
