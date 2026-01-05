@@ -716,4 +716,40 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['1'] );
 	}
+
+	/**
+	 * @ticket 64457
+	 *
+	 * Ensure hostname validation does not regress valid edge cases
+	 * while rejecting clearly invalid hosts.
+	 */
+	public function test_wp_http_validate_url_hostname_edge_cases() {
+		$this->assertFalse(
+			wp_http_validate_url( 'h_ttp://example.org' ),
+			'Underscore in scheme should be invalid.'
+		);
+
+		$this->assertFalse(
+			wp_http_validate_url( 'https://hey_ho_lets_go._example.org' ),
+			'Underscore in a standalone label should be invalid.'
+		);
+
+		$this->assertFalse(
+			wp_http_validate_url( 'https://omg.c_om' ),
+			'Underscore in TLD should be invalid.'
+		);
+
+		$old_home = get_option( 'home' );
+
+		try {
+			update_option( 'home', 'https://peter_is_amazing.example.org' );
+
+			$this->assertNotFalse(
+				wp_http_validate_url( 'https://peter_is_amazing.example.org' ),
+				'Underscores in subdomain should remain valid.'
+			);
+		} finally {
+			update_option( 'home', $old_home );
+		}
+	}
 }
