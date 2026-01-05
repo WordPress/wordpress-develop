@@ -252,7 +252,7 @@ OPTIONS;
 	/**
 	 * Data provider for test_comments_list_table_does_not_show_note_comment_type().
 	 *
-	 * @return string[]
+	 * @return array<string, string[]>
 	 */
 	public function data_comment_type() {
 		return array(
