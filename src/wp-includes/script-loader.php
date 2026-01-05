@@ -88,21 +88,21 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react',
-		'react-dom'         => array( 'react' ),
-		'react-jsx-runtime' => array( 'react' ),
-		'regenerator-runtime',
-		'moment',
-		'lodash',
-		'wp-polyfill-fetch',
-		'wp-polyfill-formdata',
-		'wp-polyfill-node-contains',
-		'wp-polyfill-url',
-		'wp-polyfill-dom-rect',
-		'wp-polyfill-element-closest',
-		'wp-polyfill-object-fit',
-		'wp-polyfill-inert',
-		'wp-polyfill',
+		'react'                       => array(),
+		'react-dom'                   => array( 'react' ),
+		'react-jsx-runtime'           => array( 'react' ),
+		'regenerator-runtime'         => array(),
+		'moment'                      => array(),
+		'lodash'                      => array(),
+		'wp-polyfill-fetch'           => array(),
+		'wp-polyfill-formdata'        => array(),
+		'wp-polyfill-node-contains'   => array(),
+		'wp-polyfill-url'             => array(),
+		'wp-polyfill-dom-rect'        => array(),
+		'wp-polyfill-element-closest' => array(),
+		'wp-polyfill-object-fit'      => array(),
+		'wp-polyfill-inert'           => array(),
+		'wp-polyfill'                 => array(),
 	);
 
 	$vendor_scripts_versions = array(
@@ -124,15 +124,13 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
-		if ( is_string( $dependencies ) ) {
-			$handle       = $dependencies;
-			$dependencies = array();
-		}
-
-		$path    = "/wp-includes/js/dist/vendor/$handle$suffix.js";
-		$version = $vendor_scripts_versions[ $handle ];
-
-		$scripts->add( $handle, $path, $dependencies, $version, 1 );
+		$scripts->add(
+			$handle,
+			"/wp-includes/js/dist/vendor/$handle$suffix.js",
+			$dependencies,
+			$vendor_scripts_versions[ $handle ],
+			1
+		);
 	}
 
 	did_action( 'init' ) && $scripts->add_inline_script( 'lodash', 'window.lodash = _.noConflict();' );
@@ -218,46 +216,6 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 	}
 
 	return $polyfill;
-}
-
-/**
- * Registers development scripts that integrate with `@wordpress/scripts`.
- *
- * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
- *
- * @since 6.0.0
- *
- * @param WP_Scripts $scripts WP_Scripts object.
- */
-function wp_register_development_scripts( $scripts ) {
-	if (
-		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
-		|| empty( $scripts->registered['react'] )
-		|| defined( 'WP_RUN_CORE_TESTS' )
-	) {
-		return;
-	}
-
-	$development_scripts = array(
-		'react-refresh-entry',
-		'react-refresh-runtime',
-	);
-
-	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
-		if ( ! is_array( $assets ) ) {
-			return;
-		}
-		$scripts->add(
-			'wp-' . $script_name,
-			'/wp-includes/js/dist/development/' . $script_name . '.js',
-			$assets['dependencies'],
-			$assets['version']
-		);
-	}
-
-	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
-	$scripts->registered['react']->deps[] = 'wp-react-refresh-entry';
 }
 
 /**
@@ -660,7 +618,6 @@ function wp_tinymce_inline_scripts() {
  */
 function wp_default_packages( $scripts ) {
 	wp_default_packages_vendor( $scripts );
-	wp_register_development_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
 
@@ -2349,7 +2306,7 @@ function print_admin_styles() {
  * @global WP_Styles $wp_styles
  * @global bool      $concatenate_scripts
  *
- * @return array|void
+ * @return string[]|void
  */
 function print_late_styles() {
 	global $wp_styles, $concatenate_scripts;
@@ -2506,8 +2463,8 @@ function wp_common_block_scripts_and_styles() {
  *
  * @since 6.1.0
  *
- * @param array $nodes The nodes to filter.
- * @return array A filtered array of style nodes.
+ * @param array<array<string, mixed>> $nodes The nodes to filter.
+ * @return array<array<string, mixed>> A filtered array of style nodes.
  */
 function wp_filter_out_block_nodes( $nodes ) {
 	return array_filter(
@@ -2867,7 +2824,7 @@ function wp_enqueue_editor_format_library_assets() {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String made of sanitized `<script>` tag attributes.
  */
 function wp_sanitize_script_attributes( $attributes ) {
@@ -2898,7 +2855,7 @@ function wp_sanitize_script_attributes( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String containing `<script>` opening and closing tags.
  */
 function wp_get_script_tag( $attributes ) {
@@ -2924,7 +2881,7 @@ function wp_get_script_tag( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_script_tag( $attributes ) {
 	echo wp_get_script_tag( $attributes );
@@ -2938,8 +2895,8 @@ function wp_print_script_tag( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
@@ -2950,10 +2907,10 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param array  $attributes Key-value pairs representing `<script>` tag attributes.
-	 *                           Only the attribute name is added to the `<script>` tag for
-	 *                           entries with a boolean value, and that are true.
-	 * @param string $data       Inline data.
+	 * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                                               Only the attribute name is added to the `<script>` tag for
+	 *                                               entries with a boolean value, and that are true.
+	 * @param string                     $data       Inline data.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
@@ -2968,8 +2925,8 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
  *
  * @since 5.7.0
  *
- * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_inline_script_tag( $data, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $data, $attributes );
@@ -3190,7 +3147,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *
  * @since 6.1.0
  *
- * @param array $options {
+ * @param array<string, bool> $options {
  *     Optional. An array of options to pass to wp_style_engine_get_stylesheet_from_context().
  *     Default empty array.
  *
@@ -3262,8 +3219,8 @@ function wp_enqueue_stored_styles( $options = array() ) {
  *
  * @since 5.9.0
  *
- * @param string $block_name The block-name, including namespace.
- * @param array  $args       {
+ * @param string                                   $block_name The block-name, including namespace.
+ * @param array<string, string|string[]|bool|null> $args       {
  *     An array of arguments. See wp_register_style() for full information about each argument.
  *
  *     @type string           $handle The handle for the stylesheet.
