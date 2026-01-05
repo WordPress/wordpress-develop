@@ -1823,7 +1823,7 @@ HTML;
 		$actual_preloads = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) ) );
 		$this->assertEqualHTML(
 			'
-				<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
+				<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/index.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
 			',
 			$actual_preloads,
 			'<body>',
@@ -1897,7 +1897,7 @@ HTML;
 
 		$expected = '
 			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/index.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
 			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
 			<script type="module" src="/super-important-module.js" id="super-important-js-module" fetchpriority="high"></script>
 		';
