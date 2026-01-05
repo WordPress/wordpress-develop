@@ -357,23 +357,13 @@ function _block_template_skip_link_markup( string $template_html ): string {
 	// so that text can be inserted before the current token.
 	$inserter = new class( $template_html ) extends WP_HTML_Tag_Processor {
 		/**
-		 * Gets the span for the current token.
-		 *
-		 * @return WP_HTML_Span Current token span.
-		 */
-		private function get_span(): WP_HTML_Span {
-			// Note: This call will never fail according to the usage of this class, given it is always called after ::next_tag() is true.
-			$this->set_bookmark( 'here' );
-			return $this->bookmarks['here'];
-		}
-
-		/**
 		 * Inserts text before the current token.
 		 *
 		 * @param string $text Text to insert.
 		 */
 		public function insert_before( string $text ) {
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $this->get_span()->start, 0, $text );
+			$this->set_bookmark( 'here' );
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $this->bookmarks['here']->start, 0, $text );
 		}
 	};
 
