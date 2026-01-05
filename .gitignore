@@ -42,7 +42,6 @@ wp-tests-config.php
 /src/wp-includes/class-wp-block-parser-block.php
 /src/wp-includes/class-wp-block-parser-frame.php
 /src/wp-includes/theme.json
-/src/wp-includes/theme-i18n.json
 /packagehash.txt
 /artifacts
 /setup.log
