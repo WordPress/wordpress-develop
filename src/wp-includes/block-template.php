@@ -330,23 +330,16 @@ function _block_template_skip_link_markup( string $template_html ): string {
 	$skip_link_target_id = null;
 
 	// Get the first <main> element.
-	while ( $processor->next_tag() ) {
-		if ( 'MAIN' !== $processor->get_tag() ) {
-			continue;
-		}
-
+	if ( $processor->next_tag( 'MAIN' ) ) {
 		$skip_link_target_id = $processor->get_attribute( 'id' );
 		if ( ! is_string( $skip_link_target_id ) || '' === trim( $skip_link_target_id ) ) {
 			$skip_link_target_id = 'wp--skip-link--target';
 			$processor->set_attribute( 'id', $skip_link_target_id );
 		}
-
-		// Only consider the first <main> element.
-		break;
 	}
 
 	// Early exit if a skip-link target can't be located.
-	if ( ! $skip_link_target_id ) {
+	if ( null === $skip_link_target_id ) {
 		return $template_html;
 	}
 
