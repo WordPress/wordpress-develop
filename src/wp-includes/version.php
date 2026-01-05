@@ -61,5 +61,6 @@ return compact(
 	'wp_db_version',
 	'tinymce_version',
 	'required_php_version',
-	'required_php_extensions'
+	'required_php_extensions',
+	'required_mysql_version'
 );
