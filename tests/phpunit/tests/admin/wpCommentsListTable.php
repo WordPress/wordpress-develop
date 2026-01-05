@@ -224,7 +224,7 @@ OPTIONS;
 	 *
 	 * @param string[] $comment_type The comment_type parameter value to test.
 	 */
-	public function test_comments_list_table_does_not_show_note_comment_type( $comment_type ) {
+	public function test_comments_list_table_does_not_show_note_comment_type( string $comment_type ) {
 		$post_id                  = self::factory()->post->create();
 		$note_id                  = self::factory()->comment->create(
 			array(
