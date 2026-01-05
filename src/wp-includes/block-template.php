@@ -353,8 +353,7 @@ function _block_template_skip_link_markup( string $template_html ): string {
 	// Apply any updates from setting the main ID.
 	$template_html = $processor->get_updated_html();
 
-	// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans
-	// so that text can be inserted before the current token.
+	// Anonymous subclass of WP_HTML_Tag_Processor to access protected bookmark spans.
 	$inserter = new class( $template_html ) extends WP_HTML_Tag_Processor {
 		/**
 		 * Inserts text before the current token.
