@@ -30,9 +30,10 @@ class _WP_Dependency {
 	 * The handle source.
 	 *
 	 * If source is set to false, the item is an alias of other items it depends on.
+	 * If source is set to true, the item is a provisional alias since filters may provide an actual URL.
 	 *
 	 * @since 2.6.0
-	 * @var string|false
+	 * @var string|bool
 	 */
 	public $src;
 

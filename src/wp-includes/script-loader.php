@@ -1602,8 +1602,14 @@ function wp_default_styles( $styles ) {
 		$open_sans_font_url = "https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,300,400,600&subset=$subsets&display=fallback";
 	}
 
-	// Register a stylesheet for the selected admin color scheme.
-	$styles->add( 'colors', false, array( 'wp-admin', 'buttons' ) );
+	/*
+	 * Register a stylesheet for the selected admin color scheme.
+	 * The src here is uniquely `true` to ensure that the dependency is not treated as an alias and so that the
+	 * `wp_style_loader_src` filters will apply. This results in the wp_style_loader_src() function applying on the
+	 * value so that it can dynamically apply the user-selected color. If no user-defined color is supplied, then
+	 * the function returns `false` so that it ultimately does behave as an alias.
+	 */
+	$styles->add( 'colors', true, array( 'wp-admin', 'buttons' ) );
 
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 
@@ -2070,15 +2076,15 @@ function wp_localize_community_events() {
  *
  * @global array $_wp_admin_css_colors
  *
- * @param string $src    Source URL.
- * @param string $handle Either 'colors' or 'colors-rtl'.
- * @return string|false URL path to CSS stylesheet for Administration Screens.
+ * @param string|bool $src    Source URL.
+ * @param string      $handle Either 'colors' or 'colors-rtl'.
+ * @return string|bool URL path to CSS stylesheet for Administration Screens.
  */
 function wp_style_loader_src( $src, $handle ) {
 	global $_wp_admin_css_colors;
 
 	if ( wp_installing() ) {
-		return (string) preg_replace( '#^wp-admin/#', './', $src );
+		return (string) preg_replace( '#^wp-admin/#', './', $src ); // TODO: Parameter #3 $subject of function preg_replace expects array<float|int|string>|string, bool|string given.
 	}
 
 	if ( 'colors' === $handle ) {
@@ -2095,7 +2101,7 @@ function wp_style_loader_src( $src, $handle ) {
 			return false;
 		}
 
-		$parsed = parse_url( $src );
+		$parsed = parse_url( $src ); // TODO: Parameter #1 $url of function parse_url expects string, bool|string given.
 		if ( isset( $parsed['query'] ) && $parsed['query'] ) {
 			wp_parse_str( $parsed['query'], $qv );
 			$url = add_query_arg( $qv, $url );
