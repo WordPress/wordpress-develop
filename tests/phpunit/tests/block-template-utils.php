@@ -338,13 +338,31 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that no skip link is added when there is no main element.
+	 * Tests that no skip link is added when the old action was removed.
 	 *
 	 * @ticket 64361
 	 *
 	 * @covers ::_block_template_skip_link_markup
 	 */
 	public function test_block_template_skip_link_not_inserted_when_main_missing() {
+		$template_html = '<div class="wp-site-blocks"><main>Content</main></div>';
+		remove_action( 'wp_footer', 'the_block_template_skip_link' );
+		$this->assertEqualHTML(
+			$template_html,
+			_block_template_skip_link_markup( $template_html ),
+			'<body>',
+			'Skip link markup should not be added when the_block_template_skip_link is removed from the wp_footer action.'
+		);
+	}
+
+	/**
+	 * Tests that no skip link is added when there is no main element.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_skip_link_markup
+	 */
+	public function test_block_template_skip_link_when_action_removed() {
 		$template_html = '<div class="wp-site-blocks"><div>Content</div></div>';
 		$this->assertEqualHTML(
 			$template_html,
