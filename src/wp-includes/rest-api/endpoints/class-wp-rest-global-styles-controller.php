@@ -680,32 +680,34 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		for (
 			$at = strcspn( $css, '<' );
 			$at < $length;
-			$at += strcspn( $css, '<', $at )
+			$at += strcspn( $css, '<', ++$at )
 		) {
-			/*
-			 * Proceed past "<".
-			 * Validation fails if the string ends with "<".
-			 */
-			if ( ++$at >= $length ) {
-				return new WP_Error(
-					'rest_invalid_css',
-					__( 'The provided CSS is invalid.' ),
-					array( 'status' => 400 )
-				);
-			}
-
 			$remaining_strlen         = $length - $at;
-			$possible_style_close_tag = 0 === substr_compare( $css, '/style', $at, min( 6, $remaining_strlen ), true );
+			$possible_style_close_tag = 0 === substr_compare( $css, '</style', $at, min( 7, $remaining_strlen ), true );
+			if ( $possible_style_close_tag ) {
+				if ( $remaining_strlen < 8 ) {
+					return new WP_Error(
+						'rest_custom_css_illegal_markup',
+						sprintf(
+									/* translators: %s is the CSS that was provided. */
+							__( 'The CSS must not end with "%s".' ),
+									esc_html( substr( $css, $at ) )
+						),
+						array( 'status' => 400 )
+					);
+				}
 
-			if (
-				$possible_style_close_tag &&
-				( $remaining_strlen < 7 || 1 === strspn( $css, " \t\f\r\n/>", $at + 6, 1 ) )
-			) {
-				return new WP_Error(
-					'rest_invalid_css',
-					__( 'The provided CSS is invalid.' ),
-					array( 'status' => 400 )
-				);
+				if ( 1 === strspn( $css, " \t\f\r\n/>", $at + 7, 1 ) ) {
+					return new WP_Error(
+						'rest_custom_css_illegal_markup',
+						sprintf(
+									/* translators: %s is the CSS that was provided. */
+							__( 'The CSS must not contain "%s".' ),
+									esc_html( substr( $css, $at, $at + 7 ) )
+						),
+						array( 'status' => 400 )
+					);
+				}
 			}
 		}
 

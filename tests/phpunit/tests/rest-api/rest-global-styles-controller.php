@@ -878,6 +878,8 @@ CSS;
 	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
 	 * @ticket 64418
 	 *
+	 * @todo add error message checking.
+	 *
 	 * @dataProvider data_custom_css_disallowed
 	 */
 	public function test_validate_custom_css( string $custom_css ) {
@@ -889,7 +891,9 @@ CSS;
 			$controller,
 			$controller::class
 		);
-		$this->assertWPError( $validate( $custom_css ) );
+
+		$result = $validate( $custom_css );
+		$this->assertWPError( $result );
 	}
 
 	public static function data_custom_css_disallowed() {
