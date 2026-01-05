@@ -226,7 +226,7 @@ OPTIONS;
 	 */
 	public function test_comments_list_table_does_not_show_note_comment_type( string $comment_type ) {
 		$post_id                  = self::factory()->post->create();
-		$note_id                  = self::factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_content'  => 'This is a note.',
