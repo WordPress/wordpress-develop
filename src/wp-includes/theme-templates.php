@@ -126,8 +126,7 @@ function wp_enqueue_block_template_skip_link() {
 		return;
 	}
 
-	$handle = 'wp-block-template-skip-link';
-	wp_enqueue_style( $handle );
+	wp_enqueue_style( 'wp-block-template-skip-link' );
 }
 
 /**
