@@ -298,77 +298,56 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the skip link is added and a missing main ID is created.
+	 * Tests adding the skip link (or not).
 	 *
 	 * @ticket 64361
 	 *
 	 * @covers ::_block_template_skip_link_markup
+	 *
+	 * @dataProvider data_provider_to_test_block_template_skip_link_markup
 	 */
-	public function test_block_template_skip_link_inserts_link_and_adds_main_id_when_missing() {
-		$template_html = '<div class="wp-site-blocks"><main>Content</main></div>';
-		$this->assertEqualHTML(
-			'
-				<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
-				<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
-			',
-			_block_template_skip_link_markup( $template_html ),
-			'<body>',
-			'Expected skip link to be added with reusing the ID on <main>.'
-		);
+	public function test_block_template_skip_link_markup( ?Closure $set_up, string $template_html, string $expected ) {
+		if ( $set_up instanceof Closure ) {
+			$set_up();
+		}
+		$this->assertEqualHTML( $expected, _block_template_skip_link_markup( $template_html ) );
 	}
 
 	/**
-	 * Tests that an existing main ID is preserved and used by the skip link.
+	 * Data provider for test_block_template_skip_link_markup.
 	 *
-	 * @ticket 64361
-	 *
-	 * @covers ::_block_template_skip_link_markup
+	 * @return array<string, array<string, mixed>>
 	 */
-	public function test_block_template_skip_link_uses_existing_main_id() {
-		$template_html = '<div class="wp-site-blocks"><main id="custom-id">Content</main></div>';
-		$this->assertEqualHTML(
-			'
-				<a class="skip-link screen-reader-text" id="wp-skip-link" href="#custom-id">Skip to content</a>
-				<div class="wp-site-blocks"><main id="custom-id">Content</main></div>
-			',
-			_block_template_skip_link_markup( $template_html ),
-			'<body>',
-			'Expected original ID on <main> to be re-used.'
-		);
-	}
-
-	/**
-	 * Tests that no skip link is added when the old action was removed.
-	 *
-	 * @ticket 64361
-	 *
-	 * @covers ::_block_template_skip_link_markup
-	 */
-	public function test_block_template_skip_link_when_action_removed() {
-		$template_html = '<div class="wp-site-blocks"><main>Content</main></div>';
-		remove_action( 'wp_footer', 'the_block_template_skip_link' );
-		$this->assertEqualHTML(
-			$template_html,
-			_block_template_skip_link_markup( $template_html ),
-			'<body>',
-			'Skip link markup should not be added when the_block_template_skip_link is removed from the wp_footer action.'
-		);
-	}
-
-	/**
-	 * Tests that no skip link is added when there is no main element.
-	 *
-	 * @ticket 64361
-	 *
-	 * @covers ::_block_template_skip_link_markup
-	 */
-	public function test_block_template_skip_link_not_inserted_when_main_missing() {
-		$template_html = '<div class="wp-site-blocks"><div>Content</div></div>';
-		$this->assertEqualHTML(
-			$template_html,
-			_block_template_skip_link_markup( $template_html ),
-			'<body>',
-			'Skip link markup should not be added when there is no main element.'
+	public function data_provider_to_test_block_template_skip_link_markup(): array {
+		return array(
+			'inserts_link_and_adds_main_id_when_missing' => array(
+				'set_up'        => null,
+				'template_html' => '<div class="wp-site-blocks"><main>Content</main></div>',
+				'expected'      => '
+					<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
+					<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
+				',
+			),
+			'uses_existing_main_id'                      => array(
+				'set_up'        => null,
+				'template_html' => '<div class="wp-site-blocks"><main id="custom-id">Content</main></div>',
+				'expected'      => '
+					<a class="skip-link screen-reader-text" id="wp-skip-link" href="#custom-id">Skip to content</a>
+					<div class="wp-site-blocks"><main id="custom-id">Content</main></div>
+				',
+			),
+			'action_removed'                             => array(
+				'set_up'        => static function () {
+					remove_action( 'wp_footer', 'the_block_template_skip_link' );
+				},
+				'template_html' => '<div class="wp-site-blocks"><main>Content</main></div>',
+				'expected'      => '<div class="wp-site-blocks"><main>Content</main></div>',
+			),
+			'main_missing'                               => array(
+				'set_up'        => null,
+				'template_html' => '<div class="wp-site-blocks"><div>Content</div></div>',
+				'expected'      => '<div class="wp-site-blocks"><div>Content</div></div>',
+			),
 		);
 	}
 
