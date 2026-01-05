@@ -19,7 +19,7 @@ function wp_register_anchor_support( WP_Block_Type $block_type ) {
 		return;
 	}
 
-	if ( ! $block_type->attributes ) {
+	if ( ! isset( $block_type->attributes ) ) {
 		$block_type->attributes = array();
 	}
 
