@@ -907,7 +907,7 @@ CSS;
 				return $this->validate_custom_css( $css );
 			},
 			$controller,
-			$controller::class
+			$controller
 		);
 
 		$result = $validate( $custom_css );
