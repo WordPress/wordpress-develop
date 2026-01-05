@@ -306,11 +306,15 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_block_template_skip_link_inserts_link_and_adds_main_id_when_missing() {
 		$template_html = '<div class="wp-site-blocks"><main>Content</main></div>';
-		$result        = _block_template_skip_link_markup( $template_html );
-
-		$this->assertNotSame( $template_html, $result, 'Skip link markup was not added.' );
-		$this->assertStringContainsString( 'id="wp--skip-link--target"', $result, 'Main element ID was not added.' );
-		$this->assertStringContainsString( 'href="#wp--skip-link--target"', $result, 'Skip link does not point to the expected target.' );
+		$this->assertEqualHTML(
+			'
+				<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
+				<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
+			',
+			_block_template_skip_link_markup( $template_html ),
+			'<body>',
+			'Expected skip link to be added with reusing the ID on <main>.'
+		);
 	}
 
 	/**
@@ -322,11 +326,15 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_block_template_skip_link_uses_existing_main_id() {
 		$template_html = '<div class="wp-site-blocks"><main id="custom-id">Content</main></div>';
-		$result        = _block_template_skip_link_markup( $template_html );
-
-		$this->assertStringContainsString( 'id="custom-id"', $result, 'Existing main element ID was not preserved.' );
-		$this->assertStringContainsString( 'href="#custom-id"', $result, 'Skip link does not point to the existing main element ID.' );
-		$this->assertStringNotContainsString( 'wp--skip-link--target', $result, 'Unexpected default skip link target ID was added.' );
+		$this->assertEqualHTML(
+			'
+				<a class="skip-link screen-reader-text" id="wp-skip-link" href="#custom-id">Skip to content</a>
+				<div class="wp-site-blocks"><main id="custom-id">Content</main></div>
+			',
+			_block_template_skip_link_markup( $template_html ),
+			'<body>',
+			'Expected original ID on <main> to be re-used.'
+		);
 	}
 
 	/**
@@ -338,9 +346,12 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_block_template_skip_link_not_inserted_when_main_missing() {
 		$template_html = '<div class="wp-site-blocks"><div>Content</div></div>';
-		$result        = _block_template_skip_link_markup( $template_html );
-
-		$this->assertSame( $template_html, $result, 'Skip link markup should not be added when there is no main element.' );
+		$this->assertEqualHTML(
+			$template_html,
+			_block_template_skip_link_markup( $template_html ),
+			'<body>',
+			'Skip link markup should not be added when there is no main element.'
+		);
 	}
 
 	/**
