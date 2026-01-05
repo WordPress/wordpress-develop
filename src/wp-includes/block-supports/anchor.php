@@ -49,11 +49,7 @@ function wp_apply_anchor_support( WP_Block_Type $block_type, array $block_attrib
 		return array();
 	}
 
-	if ( ! isset( $block_attributes['anchor'] ) || ! is_string( $block_attributes['anchor'] ) ) {
-		return array();
-	}
-
-	if ( '' === $block_attributes['anchor'] ) {
+	if ( ! isset( $block_attributes['anchor'] ) || ! is_string( $block_attributes['anchor'] ) || '' === $block_attributes['anchor'] ) {
 		return array();
 	}
 
