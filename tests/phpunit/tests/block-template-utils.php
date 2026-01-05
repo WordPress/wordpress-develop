@@ -336,6 +336,22 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 					<div class="wp-site-blocks"><main id="custom-id">Content</main></div>
 				',
 			),
+			'main_has_boolean_id'                        => array(
+				'set_up'        => null,
+				'template_html' => '<div class="wp-site-blocks"><main id>Content</main></div>',
+				'expected'      => '
+					<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
+					<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
+				',
+			),
+			'main_has_whitespace_id'                     => array(
+				'set_up'        => null,
+				'template_html' => '<div class="wp-site-blocks"><main id="   ">Content</main></div>',
+				'expected'      => '
+					<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
+					<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
+				',
+			),
 			'action_removed'                             => array(
 				'set_up'        => static function () {
 					remove_action( 'wp_footer', 'the_block_template_skip_link' );
