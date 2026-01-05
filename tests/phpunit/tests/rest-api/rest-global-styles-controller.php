@@ -863,13 +863,14 @@ CSS;
 
 	public static function data_custom_css_allowed() {
 		return array(
-			'@property declaration' => array(
+			'@property declaration'   => array(
 				'@property --prop { syntax: "<custom-ident>"; inherits: true; initial-value: false; }',
 			),
-			'Different close tag'   => array( '</stylesheet>' ),
-			'Not a style close tag' => array( '/*</style*/' ),
-			'Empty'                 => array( '' ),
-			'Short content'         => array( '/**/' ),
+			'Different close tag'     => array( '</stylesheet>' ),
+			'Not a style close tag'   => array( '/*</style*/' ),
+			'Not a style close tag 2' => array( '/*</style_' ),
+			'Empty'                   => array( '' ),
+			'Short content'           => array( '/**/' ),
 		);
 	}
 
