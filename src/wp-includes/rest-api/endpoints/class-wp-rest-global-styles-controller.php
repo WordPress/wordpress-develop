@@ -670,22 +670,43 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 6.2.0
 	 * @since 6.4.0 Changed method visibility to protected.
+	 * @since 7.0.0 Allow more CSS content.
 	 *
 	 * @param string $css CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
 	protected function validate_custom_css( $css ) {
-		if ( false !== stripos( $css, '</style' ) ) {
-			return new WP_Error(
-				'rest_custom_css_illegal_markup',
-				sprintf(
-							/* translators: %s: The disallowed text "</style". */
-					__( 'Custom CSS must not include <code>%s</code>.' ),
-					esc_html( '</style' )
-				),
-				array( 'status' => 400 )
-			);
+		$length = strlen( $css );
+		for (
+			$at = strcspn( $css, '<' );
+			$at < $length;
+			$at += strcspn( $css, '<', $at )
+		) {
+			/*
+			 * Proceed past "<".
+			 * Validation fails if the string ends with "<".
+			 */
+			if ( ++$at >= $length ) {
+				return new WP_Error(
+					'rest_invalid_css',
+					__( 'The provided CSS is invalid.' ),
+					array( 'status' => 400 )
+				);
+			}
 
+			$remaining_strlen         = $length - $at;
+			$possible_style_close_tag = 0 === substr_compare( $css, '/style', $at, min( 6, $remaining_strlen ), true );
+
+			if (
+				$possible_style_close_tag &&
+				( $remaining_strlen < 7 || 1 === strspn( $css, " \t\f\r\n/>", $at + 6, 1 ) )
+			) {
+				return new WP_Error(
+					'rest_invalid_css',
+					__( 'The provided CSS is invalid.' ),
+					array( 'status' => 400 )
+				);
+			}
 		}
 
 		return true;

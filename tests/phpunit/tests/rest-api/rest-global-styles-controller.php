@@ -841,4 +841,75 @@ CSS;
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( $css, $response->get_data()['styles']['css'] );
 	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
+	 * @ticket 64418
+	 *
+	 * @dataProvider data_custom_css_allowed
+	 */
+	public function test_validate_custom_css_allowed( string $custom_css ) {
+		$controller = new WP_REST_Global_Styles_Controller();
+		$validate   = Closure::bind(
+			function ( $css ) {
+				return $this->validate_custom_css( $css );
+			},
+			$controller,
+			$controller::class
+		);
+
+		$this->assertTrue( $validate( $custom_css ) );
+	}
+
+	public static function data_custom_css_allowed() {
+		return array(
+			'@property declaration' => array(
+				'@property --prop { syntax: "<custom-ident>"; inherits: true; initial-value: false; }',
+			),
+			'Different close tag'   => array( '</stylesheet>' ),
+			'Not a style close tag' => array( '/*</style*/' ),
+			'Empty' => array( '' ),
+			'Short content' => array( '/**/' ),
+		);
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
+	 * @ticket 64418
+	 *
+	 * @dataProvider data_custom_css_disallowed
+	 */
+	public function test_validate_custom_css( string $custom_css ) {
+		$controller = new WP_REST_Global_Styles_Controller();
+		$validate   = Closure::bind(
+			function ( $css ) {
+				return $this->validate_custom_css( $css );
+			},
+			$controller,
+			$controller::class
+		);
+		$this->assertWPError( $validate( $custom_css ) );
+	}
+
+	public static function data_custom_css_disallowed() {
+		return array(
+			'style close tag'            => array( '</style>'),
+			'style close tag upper case' => array( '</STYLE>'),
+			'style close tag mixed case' => array( '</sTyLe>'),
+			'style close tag in comment' => array( '/*</style>*/'),
+			'style close tag (/)'        => array( '</style/'),
+			'style close tag (\t)'       => array( "</style\t"),
+			'style close tag (\f)'       => array( "</style\f"),
+			'style close tag (\r)'       => array( "</style\r"),
+			'style close tag (\n)'       => array( "</style\n"),
+			'style close tag (" ")'      => array( '</style '),
+			'truncated "<"'              => array( '<'),
+			'truncated "</"'             => array( '</'),
+			'truncated "</s"'            => array( '</s'),
+			'truncated "</ST"'           => array( '</ST'),
+			'truncated "</sty"'          => array( '</sty'),
+			'truncated "</STYL"'         => array( '</STYL'),
+			'truncated "</stYle"'        => array( '</stYle'),
+		);
+	}
 }
