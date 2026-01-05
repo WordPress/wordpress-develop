@@ -570,7 +570,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['color']['gradients'] ) ) {
 		$gradients_by_origin          = $editor_settings['__experimentalFeatures']['color']['gradients'];
-		$editor_settings['gradients'] = $gradients_by_origin['custom'] ?? $gradients_by_origin['theme'] ?? $gradients_by_origin['default']);
+		$editor_settings['gradients'] = $gradients_by_origin['custom'] ?? $gradients_by_origin['theme'] ?? $gradients_by_origin['default'];
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['typography']['fontSizes'] ) ) {
 		$font_sizes_by_origin         = $editor_settings['__experimentalFeatures']['typography']['fontSizes'];
