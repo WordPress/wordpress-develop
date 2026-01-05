@@ -868,8 +868,8 @@ CSS;
 			),
 			'Different close tag'   => array( '</stylesheet>' ),
 			'Not a style close tag' => array( '/*</style*/' ),
-			'Empty' => array( '' ),
-			'Short content' => array( '/**/' ),
+			'Empty'                 => array( '' ),
+			'Short content'         => array( '/**/' ),
 		);
 	}
 
@@ -893,23 +893,23 @@ CSS;
 
 	public static function data_custom_css_disallowed() {
 		return array(
-			'style close tag'            => array( '</style>'),
-			'style close tag upper case' => array( '</STYLE>'),
-			'style close tag mixed case' => array( '</sTyLe>'),
-			'style close tag in comment' => array( '/*</style>*/'),
-			'style close tag (/)'        => array( '</style/'),
-			'style close tag (\t)'       => array( "</style\t"),
-			'style close tag (\f)'       => array( "</style\f"),
-			'style close tag (\r)'       => array( "</style\r"),
-			'style close tag (\n)'       => array( "</style\n"),
-			'style close tag (" ")'      => array( '</style '),
-			'truncated "<"'              => array( '<'),
-			'truncated "</"'             => array( '</'),
-			'truncated "</s"'            => array( '</s'),
-			'truncated "</ST"'           => array( '</ST'),
-			'truncated "</sty"'          => array( '</sty'),
-			'truncated "</STYL"'         => array( '</STYL'),
-			'truncated "</stYle"'        => array( '</stYle'),
+			'style close tag'            => array( '</style>' ),
+			'style close tag upper case' => array( '</STYLE>' ),
+			'style close tag mixed case' => array( '</sTyLe>' ),
+			'style close tag in comment' => array( '/*</style>*/' ),
+			'style close tag (/)'        => array( '</style/' ),
+			'style close tag (\t)'       => array( "</style\t" ),
+			'style close tag (\f)'       => array( "</style\f" ),
+			'style close tag (\r)'       => array( "</style\r" ),
+			'style close tag (\n)'       => array( "</style\n" ),
+			'style close tag (" ")'      => array( '</style ' ),
+			'truncated "<"'              => array( '<' ),
+			'truncated "</"'             => array( '</' ),
+			'truncated "</s"'            => array( '</s' ),
+			'truncated "</ST"'           => array( '</ST' ),
+			'truncated "</sty"'          => array( '</sty' ),
+			'truncated "</STYL"'         => array( '</STYL' ),
+			'truncated "</stYle"'        => array( '</stYle' ),
 		);
 	}
 }
