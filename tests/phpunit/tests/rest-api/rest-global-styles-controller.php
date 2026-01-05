@@ -898,11 +898,9 @@ CSS;
 	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
 	 * @ticket 64418
 	 *
-	 * @todo add error message checking.
-	 *
 	 * @dataProvider data_custom_css_disallowed
 	 */
-	public function test_validate_custom_css( string $custom_css ) {
+	public function test_validate_custom_css( string $custom_css, string $expected_error_message ) {
 		$controller = new WP_REST_Global_Styles_Controller();
 		$validate   = Closure::bind(
 			function ( $css ) {
@@ -914,27 +912,28 @@ CSS;
 
 		$result = $validate( $custom_css );
 		$this->assertWPError( $result );
+		$this->assertSame( $expected_error_message, $result->get_error_message() );
 	}
 
 	public static function data_custom_css_disallowed() {
 		return array(
-			'style close tag'            => array( '</style>' ),
-			'style close tag upper case' => array( '</STYLE>' ),
-			'style close tag mixed case' => array( '</sTyLe>' ),
-			'style close tag in comment' => array( '/*</style>*/' ),
-			'style close tag (/)'        => array( '</style/' ),
-			'style close tag (\t)'       => array( "</style\t" ),
-			'style close tag (\f)'       => array( "</style\f" ),
-			'style close tag (\r)'       => array( "</style\r" ),
-			'style close tag (\n)'       => array( "</style\n" ),
-			'style close tag (" ")'      => array( '</style ' ),
-			'truncated "<"'              => array( '<' ),
-			'truncated "</"'             => array( '</' ),
-			'truncated "</s"'            => array( '</s' ),
-			'truncated "</ST"'           => array( '</ST' ),
-			'truncated "</sty"'          => array( '</sty' ),
-			'truncated "</STYL"'         => array( '</STYL' ),
-			'truncated "</stYle"'        => array( '</stYle' ),
+			'style close tag'            => array( 'css…</style>…css', 'The CSS must not contain "&lt;/style&gt;".' ),
+			'style close tag upper case' => array( '</STYLE>', 'The CSS must not contain "&lt;/STYLE&gt;".' ),
+			'style close tag mixed case' => array( '</sTyLe>', 'The CSS must not contain "&lt;/sTyLe&gt;".' ),
+			'style close tag in comment' => array( '/*</style>*/', 'The CSS must not contain "&lt;/style&gt;".' ),
+			'style close tag (/)'        => array( '</style/', 'The CSS must not contain "&lt;/style/".' ),
+			'style close tag (\t)'       => array( "</style\t", "The CSS must not contain \"&lt;/style\t\"." ),
+			'style close tag (\f)'       => array( "</style\f", "The CSS must not contain \"&lt;/style\f\"." ),
+			'style close tag (\r)'       => array( "</style\r", "The CSS must not contain \"&lt;/style\r\"." ),
+			'style close tag (\n)'       => array( "</style\n", "The CSS must not contain \"&lt;/style\n\"." ),
+			'style close tag (" ")'      => array( '</style ', 'The CSS must not contain "&lt;/style ".' ),
+			'truncated "<"'              => array( '<', 'The CSS must not end in "&lt;".' ),
+			'truncated "</"'             => array( '</', 'The CSS must not end in "&lt;/".' ),
+			'truncated "</s"'            => array( '</s', 'The CSS must not end in "&lt;/s".' ),
+			'truncated "</ST"'           => array( '</ST', 'The CSS must not end in "&lt;/ST".' ),
+			'truncated "</sty"'          => array( '</sty', 'The CSS must not end in "&lt;/sty".' ),
+			'truncated "</STYL"'         => array( '</STYL', 'The CSS must not end in "&lt;/STYL".' ),
+			'truncated "</stYle"'        => array( '</stYle', 'The CSS must not end in "&lt;/stYle".' ),
 		);
 	}
 }
