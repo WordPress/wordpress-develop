@@ -103,6 +103,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id
  *
  * @access private
  * @since 6.4.0
+ * @since 7.0.0 A script is no longer printed in favor of being added via {@see _block_template_skip_link_markup()}.
  *
  * @global string $_wp_current_template_content
  */
