@@ -344,7 +344,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @covers ::_block_template_skip_link_markup
 	 */
-	public function test_block_template_skip_link_not_inserted_when_main_missing() {
+	public function test_block_template_skip_link_when_action_removed() {
 		$template_html = '<div class="wp-site-blocks"><main>Content</main></div>';
 		remove_action( 'wp_footer', 'the_block_template_skip_link' );
 		$this->assertEqualHTML(
@@ -362,7 +362,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @covers ::_block_template_skip_link_markup
 	 */
-	public function test_block_template_skip_link_when_action_removed() {
+	public function test_block_template_skip_link_not_inserted_when_main_missing() {
 		$template_html = '<div class="wp-site-blocks"><div>Content</div></div>';
 		$this->assertEqualHTML(
 			$template_html,
