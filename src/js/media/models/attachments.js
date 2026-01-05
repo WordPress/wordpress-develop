@@ -44,7 +44,17 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		this.props.on( 'change:orderby', this._changeOrderby, this );
 		this.props.on( 'change:query',   this._changeQuery,   this );
 
-		this.props.set( _.defaults( options.props || {} ) );
+		options.props = _.defaults( options.props || {} );
+
+		// Normalize the order if it exists.
+		if ( 'string' === typeof options.props.order ) {
+			options.props.order = options.props.order.toUpperCase();
+			if ( 'ASC' !== options.props.order && 'DESC' !== options.props.order ) {
+				options.props.order = 'DESC';
+			}
+		}
+
+		this.props.set( options.props );
 
 		if ( options.observe ) {
 			this.observe( options.observe );
