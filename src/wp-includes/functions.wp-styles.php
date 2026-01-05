@@ -116,7 +116,7 @@ function wp_add_inline_style( $handle, $data ) {
  * @param string           $handle Name of the stylesheet. Should be unique.
  * @param string|bool      $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
  *                                 If source is set to false, stylesheet is an alias of other stylesheets it depends on.
- *                                 If source is set to true, it is a provisional alias where {@see 'wp_style_loader_src'} filters
+ *                                 If source is set to true, it is a provisional alias where {@see 'style_loader_src'} filters
  *                                 may also provide an actual URL.
  * @param string[]         $deps   Optional. An array of registered stylesheet handles this stylesheet depends on. Default empty array.
  * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
