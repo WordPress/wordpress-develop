@@ -1996,9 +1996,9 @@ module.exports = function(grunt) {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
 				'build:js',
-				'build:css',
 				'gutenberg-integrate',
 				'copy-vendor-scripts',
+				'build:css',
 				'build:certificates'
 			] );
 		} else {
@@ -2006,9 +2006,9 @@ module.exports = function(grunt) {
 				'build:certificates',
 				'build:files',
 				'build:js',
-				'build:css',
 				'gutenberg-integrate',
 				'copy-vendor-scripts',
+				'build:css',
 				'replace:source-maps',
 				'verify:build'
 			] );
