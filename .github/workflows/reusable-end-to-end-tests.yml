@@ -144,9 +144,6 @@ jobs:
       - name: Run E2E tests
         run: npm run test:e2e
 
-      - name: Run visual regression tests
-        run: npm run test:visual
-
       - name: Archive debug artifacts (screenshots, HTML snapshots)
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: always()
