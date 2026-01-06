@@ -1409,14 +1409,11 @@ class WP_Site_Health {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-				// Resolve the actual log path.
-				$log_path      = WP_DEBUG_LOG === true ? WP_CONTENT_DIR . '/debug.log' : WP_DEBUG_LOG;
-				$log_path      = realpath( $log_path );
-				$absolute_path = realpath( ABSPATH );
+				$debug_log_path = WP_DEBUG_LOG === true ? WP_CONTENT_DIR . '/debug.log' : WP_DEBUG_LOG;
+				$debug_log_path = realpath( $debug_log_path );
+				$absolute_path  = realpath( ABSPATH );
 
-				// Only show warning if log is inside ABSPATH (publicly accessible).
-				// If paths cannot be resolved or log is outside ABSPATH, skip the warning.
-				if ( $log_path && $absolute_path && str_starts_with( $log_path, $absolute_path ) ) {
+				if ( $debug_log_path && $absolute_path && str_starts_with( $debug_log_path, $absolute_path ) ) {
 					$result['label'] = __( 'Your site is set to log errors to a potentially public file' );
 
 					$result['status'] = 'critical';
@@ -1429,7 +1426,7 @@ class WP_Site_Health {
 							'<code>WP_DEBUG_LOG</code>'
 						)
 					);
-				} elseif ( $log_path && $absolute_path && ! str_starts_with( $log_path, $absolute_path ) ) {
+				} else {
 					$result['label'] = __( 'Your site is set to log errors to a file outside the public directory' );
 
 					$result['status'] = 'good';
