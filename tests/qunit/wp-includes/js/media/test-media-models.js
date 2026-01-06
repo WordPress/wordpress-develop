@@ -1,4 +1,4 @@
-/* globals wp, Backbone */
+/* globals wp */
 /* jshint qunit: true */
 /* eslint-env qunit */
 /* eslint-disable no-magic-numbers */
