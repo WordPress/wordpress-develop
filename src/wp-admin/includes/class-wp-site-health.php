@@ -1409,18 +1409,40 @@ class WP_Site_Health {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-				$result['label'] = __( 'Your site is set to log errors to a potentially public file' );
+				// Resolve the actual log path.
+				$log_path      = WP_DEBUG_LOG === true ? WP_CONTENT_DIR . '/debug.log' : WP_DEBUG_LOG;
+				$log_path      = realpath( $log_path );
+				$absolute_path = realpath( ABSPATH );
 
-				$result['status'] = str_starts_with( ini_get( 'error_log' ), ABSPATH ) ? 'critical' : 'recommended';
+				// Only show warning if log is inside ABSPATH (publicly accessible).
+				// If paths cannot be resolved or log is outside ABSPATH, skip the warning.
+				if ( $log_path && $absolute_path && str_starts_with( $log_path, $absolute_path ) ) {
+					$result['label'] = __( 'Your site is set to log errors to a potentially public file' );
 
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: WP_DEBUG_LOG */
-						__( 'The value, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is potentially available to all users.' ),
-						'<code>WP_DEBUG_LOG</code>'
-					)
-				);
+					$result['status'] = 'critical';
+
+					$result['description'] .= sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: %s: WP_DEBUG_LOG */
+							__( 'The value, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is potentially available to all users.' ),
+							'<code>WP_DEBUG_LOG</code>'
+						)
+					);
+				} elseif ( $log_path && $absolute_path && ! str_starts_with( $log_path, $absolute_path ) ) {
+					$result['label'] = __( 'Your site is set to log errors to a file outside the public directory' );
+
+					$result['status'] = 'good';
+
+					$result['description'] .= sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: %s: WP_DEBUG_LOG */
+							__( 'The value, %s, has been configured to write errors to a file outside the WordPress directory. This is a good practice as the log file is not publicly accessible.' ),
+							'<code>WP_DEBUG_LOG</code>'
+						)
+					);
+				}
 			}
 
 			if ( defined( 'WP_DEBUG_DISPLAY' ) && WP_DEBUG_DISPLAY ) {
