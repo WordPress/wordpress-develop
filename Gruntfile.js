@@ -1788,6 +1788,8 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:build', [
 		'verify:old-files',
 		'verify:source-maps',
+		'verify:compressed-css',
+		'verify:compressed-js',
 	] );
 
 	/**
@@ -1843,6 +1845,106 @@ module.exports = function(grunt) {
 				`${ search } should not be present in the $_old_files array.`
 			);
 		});
+	} );
+
+	grunt.registerTask( 'verify:compressed-css', function() {
+		// Get all CSS files that do not end in *.min.css.
+		const files = glob.sync( `${ BUILD_DIR }/wp-*/css/**/*.css`, {
+			ignore: [ '**/*.min.css' ],
+		} );
+
+		var errorLog = '';
+
+		// For each of the files, verify that a minified version also exists.
+		files.forEach( function( file ) {
+			const minifiedFile = file.replace( /\.css$/, '.min.css' );
+
+			if ( ! fs.existsSync( minifiedFile ) ) {
+				errorLog += `The minified CSS file ${ minifiedFile } does not exist.\n`;
+			}
+		} );
+
+		// Now get all the css files ending in *.min.css
+		const minifiedFiles = glob.sync( `${ BUILD_DIR }/wp-*/css/**/*.min.css` );
+
+		// For each of the minified files, verify that an unminified version also exists.
+		minifiedFiles.forEach( function( file ) {
+			const unminifiedFile = file.replace( /\.min\.css$/, '.css' );
+
+			if ( ! fs.existsSync( unminifiedFile ) ) {
+				errorLog += `The unminified CSS file ${ unminifiedFile } does not exist.\n`;
+			}
+		} );
+
+		assert(
+			errorLog.length === 0,
+			errorLog
+		);
+	} );
+
+	grunt.registerTask( 'verify:compressed-js', function() {
+		// Get all JavaScript files that do not end in *.min.js.
+		const files = glob.sync( `${ BUILD_DIR }/wp-*/js/**/*.js`, {
+			ignore: [
+				'**/*.min.js',
+				'**/wp-admin/js/custom-header.js',
+				'**/wp-admin/js/farbtastic.js',
+				'**/wp-includes/js/codemirror/*.js',
+				'**/wp-includes/js/crop/**',
+				'**/wp-includes/js/jquery/jquery.query.js',
+				'**/wp-includes/js/jquery/jquery.schedule.js',
+				'**/wp-includes/js/jquery/jquery.serialize-object.js',
+				'**/wp-includes/js/jquery/jquery.ui.touch-punch.js',
+				'**/wp-includes/js/swfupload/swfupload.js',
+				'**/wp-includes/js/thickbox/thickbox.js',
+				'**/wp-includes/js/tinymce/*.js',
+				'**/wp-includes/js/tinymce/langs/**',
+				'**/wp-includes/js/tinymce/utils/**',
+			],
+		} );
+
+		var errorLog = '';
+
+		// For each of the files, verify that a minified version also exists.
+		files.forEach( function( file ) {
+			const minifiedFile = file.replace( /\.js$/, '.min.js' );
+
+			if ( ! fs.existsSync( minifiedFile ) ) {
+				errorLog += `The minified JS file ${ minifiedFile } does not exist.\n`;
+			}
+		} );
+
+		// Now get all the js files ending in *.min.js
+		const minifiedFiles = glob.sync( `${ BUILD_DIR }/wp-*/js/**/*.min.js`, {
+			ignore: [
+				'**/wp-admin/js/iris.min.js',
+				'**/wp-includes/js/codemirror/codemirror.min.js',
+				'**/wp-includes/js/dist/react-refresh-entry.min.js',
+				'**/wp-includes/js/dist/react-refresh-runtime.min.js',
+				'**/wp-includes/js/hoverintent-js.min.js',
+				'**/wp-includes/js/imagesloaded.min.js',
+				'**/wp-includes/js/jcrop/jquery.Jcrop.min.js',
+				'**/wp-includes/js/jquery/jquery.color.min.js',
+				'**/wp-includes/js/jquery/jquery.masonry.min.js',
+				'**/wp-includes/js/masonry.min.js',
+				'**/wp-includes/js/tinymce/tinymce.min.js',
+				'**/wp-includes/js/wp-emoji-release.min.js',
+				'**/wp-includes/js/zxcvbn.min.js',
+			],
+		} );
+
+		// For each of the minified files, verify that an unminified version also exists.
+		minifiedFiles.forEach( function( file ) {
+			const unminifiedFile = file.replace( /\.min\.js$/, '.js' );
+			if ( ! fs.existsSync( unminifiedFile ) ) {
+				errorLog += `The unminified JS file ${ unminifiedFile } does not exist.\n`;
+			}
+		} );
+
+		assert(
+			errorLog.length === 0,
+			errorLog
+		);
 	} );
 
 	/**
