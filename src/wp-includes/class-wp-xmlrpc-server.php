@@ -271,6 +271,11 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return int Sum of the two given numbers.
 	 */
 	public function addTwoNumbers( $args ) {
+		if ( ! is_int( $args[0] ) || ! is_int( $args[1] ) ) {
+			$this->error = new IXR_Error( 400, __( 'Invalid arguments passed to this XML-RPC method.  Requires two integers.' ) );
+			return $this->error;
+		}
+
 		$number1 = $args[0];
 		$number2 = $args[1];
 		return $number1 + $number2;
