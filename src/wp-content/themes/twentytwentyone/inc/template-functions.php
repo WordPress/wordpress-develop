@@ -397,15 +397,10 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 
 		// Loop top-level blocks, releasing them from memory as soon as possible.
 		while ( $instance_count < $instances && null !== ( $block = array_shift( $blocks ) ) ) {
-			// Skip inter-block whitespace and other freeform non-block HTML.
-			if ( ! isset( $block['blockName'] ) ) {
-				continue;
-			}
-
 			if (
 				$match_fully
 					? $block_name === $block['blockName']
-					: str_starts_with( $block['blockName'], $prefix )
+					: str_starts_with( $block['blockName'] ?? '', $prefix )
 			) {
 				$blocks_content .= render_block( $block );
 				++$instance_count;
