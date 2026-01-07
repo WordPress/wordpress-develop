@@ -87,4 +87,3 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 		);
 	}
 }
-
