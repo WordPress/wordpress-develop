@@ -349,6 +349,11 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
 	);
 }
 
+/**
+ * Remove the legacy fallback once the theme’s minimum required version is 6.9.0 or greater.
+ *
+ * @see ../style.css “Requires at least: VERSION_NUMBER”
+ */
 if ( class_exists( 'WP_Block_Processor' ) ) :
 	/**
 	 * Prints the first instance of a block in the content, and then break away.
@@ -371,20 +376,23 @@ if ( class_exists( 'WP_Block_Processor' ) ) :
 		$processor      = new WP_Block_Processor( $content );
 		$instance_count = 0;
 
-		if ( str_ends_with( $block_name, '*' ) ) {
-			// Scan for blocks whose block type matches the prefix.
-			$prefix = rtrim( $block_name, '*' );
+		// Scan for blocks whose block type matches the prefix.
+		$prefix      = rtrim( $block_name, '*' );
+		$match_fully = $prefix === $block_name;
 
-			while ( $instance_count < $instances && $processor->next_block() ) {
-				$matched_block_type = $processor->get_printable_block_type();
-				if ( str_starts_with( $matched_block_type, $prefix ) ) {
-					$blocks_content .= render_block( $processor->extract_full_block_and_advance() );
-					++$instance_count;
-				}
-			}
-		} else {
-			// Scan for blocks of the exact block type.
-			while ( $instance_count < $instances && $processor->next_block( $block_name ) ) {
+		// Loop over top-level blocks.
+		while ( $processor->next_block() && $instance_count < $instances ) {
+			if (
+				1 === $processor->get_depth() &&
+				/*
+				 * Prefix matches with a wildcard require printing the block name,
+				 * while full block-type matching can be delegated to the processor.
+				 * In each case, the condition only holds when the match is successful.
+				 */
+				$match_fully
+					? $processor->is_block_type( $block_name )
+					: str_starts_with( $processor->get_printable_block_type(), $prefix )
+			) {
 				$blocks_content .= render_block( $processor->extract_full_block_and_advance() );
 				++$instance_count;
 			}
@@ -401,6 +409,9 @@ if ( class_exists( 'WP_Block_Processor' ) ) :
 else :
 	/**
 	 * Fallback with legacy function for installations running WordPress <6.9.0.
+	 *
+	 * @todo Remove once this theme’s minimum support version is 6.9.0 or greater.
+	 * @see ../style.css “Requires at least: VERSION_NUMBER”
 	 *
 	 * @ignore
 	 * @private
