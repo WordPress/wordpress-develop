@@ -350,38 +350,32 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
 }
 
 /**
- * Remove the legacy fallback once the theme’s minimum required version is 6.9.0 or greater.
+ * Prints the first instance of a block in the content, and then break away.
  *
- * @see ../style.css “Requires at least: VERSION_NUMBER”
+ * @since Twenty Twenty-One 1.0
+ *
+ * @param string      $block_name The full block type name, or a partial match.
+ *                                Example: `core/image`, `core-embed/*`.
+ * @param string|null $content    The content to search in. Use null for get_the_content().
+ * @param int         $instances  How many instances of the block will be printed (max). Default  1.
+ * @return bool Returns true if a block was located & printed, otherwise false.
  */
-if ( class_exists( 'WP_Block_Processor' ) ) :
-	/**
-	 * Prints the first instance of a block in the content, and then break away.
-	 *
-	 * @since Twenty Twenty-One 1.0
-	 *
-	 * @param string      $block_name The full block type name, or a partial match.
-	 *                                Example: `core/image`, `core-embed/*`.
-	 * @param string|null $content    The content to search in. Use null for get_the_content().
-	 * @param int         $instances  How many instances of the block will be printed (max). Default  1.
-	 * @return bool Returns true if a block was located & printed, otherwise false.
-	 */
-	function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
-		$blocks_content  = '';
+function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
+	// Scan for blocks whose block type matches the prefix, if provided a wildcard.
+	$prefix         = rtrim( $block_name, '*' );
+	$match_fully    = $prefix === $block_name;
+	$blocks_content = '';
+	$instance_count = 0;
 
-		if ( ! $content ) {
-			$content = get_the_content();
-		}
+	if ( ! $content ) {
+		$content = get_the_content();
+	}
 
-		$processor      = new WP_Block_Processor( $content );
-		$instance_count = 0;
+	// Loop over top-level blocks.
+	if ( class_exists( '\WP_Block_Processor' ) ) {
+		$processor = new WP_Block_Processor( $content );
 
-		// Scan for blocks whose block type matches the prefix.
-		$prefix      = rtrim( $block_name, '*' );
-		$match_fully = $prefix === $block_name;
-
-		// Loop over top-level blocks.
-		while ( $processor->next_block() && $instance_count < $instances ) {
+		while ( $instance_count < $instances && $processor->next_block() ) {
 			if (
 				1 === $processor->get_depth() &&
 				/*
@@ -397,77 +391,36 @@ if ( class_exists( 'WP_Block_Processor' ) ) :
 				++$instance_count;
 			}
 		}
-
-		if ( $blocks_content ) {
-			/** This filter is documented in wp-includes/post-template.php */
-			echo apply_filters( 'the_content', $blocks_content ); // phpcs:ignore WordPress.Security.EscapeOutput
-			return true;
-		}
-
-		return false;
-	}
-else :
-	/**
-	 * Fallback with legacy function for installations running WordPress <6.9.0.
-	 *
-	 * @todo Remove once this theme’s minimum support version is 6.9.0 or greater.
-	 * @see ../style.css “Requires at least: VERSION_NUMBER”
-	 *
-	 * @ignore
-	 * @private
-	 */
-	function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
-		$instances_count = 0;
-		$blocks_content  = '';
-
-		if ( ! $content ) {
-			$content = get_the_content();
-		}
-
+	} else {
 		// Parse blocks in the content.
 		$blocks = parse_blocks( $content );
 
 		// Loop top-level blocks, releasing them from memory as soon as possible.
-		while ( null !== ( $block = array_shift( $blocks ) ) ) {
-
+		while ( $instance_count < $instances && null !== ( $block = array_shift( $blocks ) ) ) {
 			// Skip inter-block whitespace and other freeform non-block HTML.
 			if ( ! isset( $block['blockName'] ) ) {
 				continue;
 			}
 
-			// Check if this the block matches the $block_name.
-			$is_matching_block = false;
-
-			// If the block ends with *, try to match the first portion.
-			if ( '*' === $block_name[-1] ) {
-				$is_matching_block = 0 === strpos( $block['blockName'], rtrim( $block_name, '*' ) );
-			} else {
-				$is_matching_block = $block_name === $block['blockName'];
-			}
-
-			if ( $is_matching_block ) {
-				// Increment count.
-				++$instances_count;
-
-				// Add the block HTML.
+			if (
+				$match_fully
+					? $block_name === $block['blockName']
+					: str_starts_with( $block['blockName'], $prefix )
+			) {
 				$blocks_content .= render_block( $block );
-
-				// Break the loop if the $instances count was reached.
-				if ( $instances_count >= $instances ) {
-					break;
-				}
+				++$instance_count;
 			}
 		}
-
-		if ( $blocks_content ) {
-			/** This filter is documented in wp-includes/post-template.php */
-			echo apply_filters( 'the_content', $blocks_content ); // phpcs:ignore WordPress.Security.EscapeOutput
-			return true;
-		}
-
-		return false;
 	}
-endif;
+
+	if ( $blocks_content ) {
+		/** This filter is documented in wp-includes/post-template.php */
+		echo apply_filters( 'the_content', $blocks_content ); // phpcs:ignore WordPress.Security.EscapeOutput
+		return true;
+	}
+
+	return false;
+}
 
 /**
  * Retrieves protected post password form content.
