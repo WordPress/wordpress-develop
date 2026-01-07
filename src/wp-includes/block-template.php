@@ -362,8 +362,8 @@ function _block_template_skip_link_markup( string $template_html ): string {
 	while ( $inserter->next_tag() ) {
 		if ( 'DIV' === $inserter->get_tag() && $inserter->has_class( 'wp-site-blocks' ) ) {
 			$skip_link = sprintf(
-				'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#%s">%s</a>',
-				esc_attr( $skip_link_target_id ),
+				'<a class="skip-link screen-reader-text" id="wp-skip-link" href="%s">%s</a>',
+				esc_url( '#' . $skip_link_target_id ),
 				/* translators: Hidden accessibility text. */
 				esc_html__( 'Skip to content' )
 			);
