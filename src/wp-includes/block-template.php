@@ -303,14 +303,38 @@ function get_the_block_template_html() {
 	// (e.g. `.wp-site-blocks > *`).
 	$template_html = '<div class="wp-site-blocks">' . $content . '</div>';
 
-	return _block_template_skip_link_markup( $template_html );
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	if ( ! has_action( 'wp_footer', 'the_block_template_skip_link' ) ) {
+		return $template_html;
+	}
+
+	return _block_template_add_skip_link( $template_html );
 }
 
 /**
- * Inserts the block template skip link into the template HTML.
+ * Inserts the block template skip-link into the template HTML.
  *
- * Uses the HTML API to ensure that the main content element has an ID and to
- * inject the skip-link anchor before the block template wrapper.
+ * When a `MAIN` element exists in the template, this function ensures the
+ * element has an `id` attribute and inserts a link to that element at the
+ * top of the first `DIV.wp-site-blocks` match.
+ *
+ * Example:
+ *
+ *     // Input.
+ *     <main>
+ *         <nav>...</nav>
+ *         <div class="wp-site-blocks">
+ *             <h2>...
+ *
+ *     // Output.
+ *     <main id="wp--skip-link--target">
+ *         <nav>...</nav>
+ *         <div class="wp-site-blocks">
+ *             <a href="#wp--skip-link--target" id="wp-skip-link" class="skip-link screen-reader-text">
+ *             <h2>...
+ *
+ * When the `MAIN` element already contains a non-empty `id` value it will be
+ * used instead of the default skip-link ID.
  *
  * @access private
  * @since 7.0.0
@@ -318,29 +342,19 @@ function get_the_block_template_html() {
  * @param string $template_html Block template markup.
  * @return string Modified markup with skip link when applicable.
  */
-function _block_template_skip_link_markup( string $template_html ): string {
-
-	// Back-compat for plugins that disable functionality by unhooking this action.
-	if ( ! has_action( 'wp_footer', 'the_block_template_skip_link' ) ) {
-		return $template_html;
-	}
-
+function _block_template_add_skip_link( string $template_html ): string {
 	// Ensure a skip-link target exists and has an ID.
-	$processor           = new WP_HTML_Tag_Processor( $template_html );
-	$skip_link_target_id = null;
+	$processor = new WP_HTML_Tag_Processor( $template_html );
 
-	// Get the first <main> element.
-	if ( $processor->next_tag( 'MAIN' ) ) {
-		$skip_link_target_id = $processor->get_attribute( 'id' );
-		if ( ! is_string( $skip_link_target_id ) || '' === trim( $skip_link_target_id ) ) {
-			$skip_link_target_id = 'wp--skip-link--target';
-			$processor->set_attribute( 'id', $skip_link_target_id );
-		}
+	// Only add skip-links to templates with a MAIN element.
+	if ( ! $processor->next_tag( 'MAIN' ) ) {
+		return $template_html;
 	}
 
-	// Early exit if a skip-link target can't be located.
-	if ( null === $skip_link_target_id ) {
-		return $template_html;
+	$skip_link_target_id = $processor->get_attribute( 'id' );
+	if ( ! is_string( $skip_link_target_id ) || '' === $skip_link_target_id ) {
+		$skip_link_target_id = 'wp--skip-link--target';
+		$processor->set_attribute( 'id', $skip_link_target_id );
 	}
 
 	// Apply any updates from setting the main ID.
