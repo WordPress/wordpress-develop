@@ -63,7 +63,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	public function test_block_visibility_support_hides_block_when_visibility_false() {
 		$block_type = $this->register_visibility_block_with_support(
 			'test/visibility-block',
-			array( 'blockVisibility' => true )
+			array( 'visibility' => true )
 		);
 
 		$block_content = '<p>This is a test block.</p>';
@@ -90,7 +90,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	public function test_block_visibility_support_shows_block_when_support_not_opted_in() {
 		$block_type = $this->register_visibility_block_with_support(
 			'test/visibility-block',
-			array( 'blockVisibility' => false )
+			array( 'visibility' => false )
 		);
 
 		$block_content = '<p>This is a test block.</p>';

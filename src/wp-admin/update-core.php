@@ -210,7 +210,7 @@ function dismissed_updates() {
 		$show_text = esc_js( __( 'Show hidden updates' ) );
 		$hide_text = esc_js( __( 'Hide hidden updates' ) );
 		?>
-		<script type="text/javascript">
+		<script>
 			jQuery( function( $ ) {
 				$( '#show-dismissed' ).on( 'click', function() {
 					var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
@@ -526,19 +526,19 @@ function list_plugin_updates() {
 		// Get plugin compat for running version of WordPress.
 		if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $cur_wp_version, '>=' ) ) {
 			/* translators: %s: WordPress version. */
-			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $cur_wp_version );
+			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Yes (according to its author)' ), $cur_wp_version );
 		} else {
 			/* translators: %s: WordPress version. */
-			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $cur_wp_version );
+			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Not tested' ), $cur_wp_version );
 		}
 		// Get plugin compat for updated version of WordPress.
 		if ( $core_update_version ) {
 			if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $core_update_version, '>=' ) ) {
 				/* translators: %s: WordPress version. */
-				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $core_update_version );
+				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Yes (according to its author)' ), $core_update_version );
 			} else {
 				/* translators: %s: WordPress version. */
-				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $core_update_version );
+				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Not tested' ), $core_update_version );
 			}
 		}
 
@@ -935,7 +935,7 @@ function do_core_upgrade( $reinstall = false ) {
 	);
 	?>
 	</div>
-	<script type="text/javascript">
+	<script>
 	window.location = '<?php echo esc_url( self_admin_url( 'about.php?updated' ) ); ?>';
 	</script>
 	<?php
@@ -987,7 +987,7 @@ if ( ( 'do-theme-upgrade' === $action || ( 'do-plugin-upgrade' === $action && ! 
 $title       = __( 'WordPress Updates' );
 $parent_file = 'index.php';
 
-$updates_overview  = '<p>' . __( 'On this screen, you can update to the latest version of WordPress, as well as update your themes, plugins, and translations from the WordPress.org repositories.' ) . '</p>';
+$updates_overview  = '<p>' . __( 'On this screen, you can update to the latest version of WordPress, as well as update your themes, plugins, and translations.' ) . '</p>';
 $updates_overview .= '<p>' . __( 'If an update is available, you&#8127;ll see a notification appear in the Toolbar and navigation menu.' ) . ' ' . __( 'Keeping your site updated is important for security. It also makes the internet a safer place for you and your readers.' ) . '</p>';
 
 get_current_screen()->add_help_tab(

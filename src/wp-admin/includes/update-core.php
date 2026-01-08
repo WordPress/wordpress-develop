@@ -837,10 +837,15 @@ $_old_files = array(
 	'wp-includes/blocks/post-template/editor.min.css',
 	'wp-includes/blocks/post-template/editor-rtl.css',
 	'wp-includes/blocks/post-template/editor-rtl.min.css',
-	'wp-includes/js/dist/undo-manager.js',
-	'wp-includes/js/dist/undo-manager.min.js',
 	'wp-includes/js/dist/fields.min.js',
 	'wp-includes/js/dist/fields.js',
+	// 6.9
+	'wp-includes/blocks/post-author/editor.css',
+	'wp-includes/blocks/post-author/editor.min.css',
+	'wp-includes/blocks/post-author/editor-rtl.css',
+	'wp-includes/blocks/post-author/editor-rtl.min.css',
+	'wp-includes/SimplePie/src/Decode',
+	'wp-includes/SimplePie/src/Core.php',
 );
 
 /**
@@ -1715,7 +1720,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	);
 	echo '</div>';
 	?>
-<script type="text/javascript">
+<script>
 window.location = 'about.php?updated';
 </script>
 	<?php

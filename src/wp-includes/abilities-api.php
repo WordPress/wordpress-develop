@@ -254,9 +254,16 @@ declare( strict_types = 1 );
  *     @type array<string, mixed> $meta                {
  *         Optional. Additional metadata for the ability.
  *
- *         @type array<string, bool|null> $annotations  Optional. Annotation metadata for the ability. Provides
- *                                                      additional semantic information about the ability's
- *                                                      characteristics and behavior.
+ *         @type array<string, bool|null> $annotations  {
+ *             Optional. Semantic annotations describing the ability's behavioral characteristics.
+ *             These annotations are hints for tooling and documentation.
+ *
+ *             @type bool|null $readonly    Optional. If true, the ability does not modify its environment.
+ *             @type bool|null $destructive Optional. If true, the ability may perform destructive updates to its environment.
+ *                                          If false, the ability performs only additive updates.
+ *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
+ *                                          will have no additional effect on its environment.
+ *         }
  *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
  *                                                      When true, the ability can be invoked via HTTP requests.
  *                                                      Default false.
@@ -269,7 +276,7 @@ declare( strict_types = 1 );
  * @return WP_Ability|null The registered ability instance on success, `null` on failure.
  */
 function wp_register_ability( string $name, array $args ): ?WP_Ability {
-	if ( ! did_action( 'wp_abilities_api_init' ) ) {
+	if ( ! doing_action( 'wp_abilities_api_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -458,7 +465,7 @@ function wp_get_abilities(): array {
  * @return WP_Ability_Category|null The registered ability category instance on success, `null` on failure.
  */
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
-	if ( ! did_action( 'wp_abilities_api_categories_init' ) ) {
+	if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(

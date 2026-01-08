@@ -22,7 +22,7 @@ class WP_Query {
 	 * Query vars set by the user.
 	 *
 	 * @since 1.5.0
-	 * @var array
+	 * @var ?array
 	 */
 	public $query;
 
@@ -72,7 +72,7 @@ class WP_Query {
 	 * The ID of the queried object.
 	 *
 	 * @since 1.5.0
-	 * @var int
+	 * @var ?int
 	 */
 	public $queried_object_id;
 
@@ -80,7 +80,7 @@ class WP_Query {
 	 * SQL for the database query.
 	 *
 	 * @since 2.0.1
-	 * @var string
+	 * @var ?string
 	 */
 	public $request;
 
@@ -88,7 +88,7 @@ class WP_Query {
 	 * Array of post objects or post IDs.
 	 *
 	 * @since 1.5.0
-	 * @var WP_Post[]|int[]
+	 * @var WP_Post[]|int[]|null
 	 */
 	public $posts;
 
@@ -139,7 +139,7 @@ class WP_Query {
 	 * The list of comments for current post.
 	 *
 	 * @since 2.2.0
-	 * @var WP_Comment[]
+	 * @var ?WP_Comment[]
 	 */
 	public $comments;
 
@@ -163,7 +163,7 @@ class WP_Query {
 	 * Current comment object.
 	 *
 	 * @since 2.2.0
-	 * @var WP_Comment
+	 * @var ?WP_Comment
 	 */
 	public $comment;
 
@@ -466,7 +466,7 @@ class WP_Query {
 	 * Cached list of search stopwords.
 	 *
 	 * @since 3.7.0
-	 * @var array
+	 * @var ?array
 	 */
 	private $stopwords;
 
@@ -796,7 +796,7 @@ class WP_Query {
 	 *                                                   disable cache priming for term meta, so that each
 	 *                                                   get_term_meta() call will hit the database.
 	 *                                                   Defaults to the value of `$update_post_term_cache`.
-	 *     @type int             $w                      The week number of the year. Default empty. Accepts numbers 0-53.
+	 *     @type int             $w                      The week number of the year. Default empty. Accepts numbers 1-53.
 	 *     @type int             $year                   The four-digit year. Default empty. Accepts any four-digit year.
 	 * }
 	 */
@@ -1900,8 +1900,8 @@ class WP_Query {
 		 * Fires after the query variable object is created, but before the actual query is run.
 		 *
 		 * Note: If using conditional tags, use the method versions within the passed instance
-		 * (e.g. $this->is_main_query() instead of is_main_query()). This is because the functions
-		 * like is_main_query() test against the global $wp_query instance, not the passed one.
+		 * (e.g. `$query->is_main_query()` instead of `is_main_query()`). This is because the functions
+		 * like `is_main_query()` test against the global `$wp_query` instance, not the passed one.
 		 *
 		 * @since 2.0.0
 		 *
@@ -3019,13 +3019,13 @@ class WP_Query {
 			 */
 			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), &$this ) );
 
-			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
-			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
-			$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
-			$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-			$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
-			$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+			$where    = $clauses['where'] ?? '';
+			$groupby  = $clauses['groupby'] ?? '';
+			$join     = $clauses['join'] ?? '';
+			$orderby  = $clauses['orderby'] ?? '';
+			$distinct = $clauses['distinct'] ?? '';
+			$fields   = $clauses['fields'] ?? '';
+			$limits   = $clauses['limits'] ?? '';
 		}
 
 		/**
@@ -3153,13 +3153,13 @@ class WP_Query {
 			 */
 			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
 
-			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
-			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
-			$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
-			$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-			$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
-			$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+			$where    = $clauses['where'] ?? '';
+			$groupby  = $clauses['groupby'] ?? '';
+			$join     = $clauses['join'] ?? '';
+			$orderby  = $clauses['orderby'] ?? '';
+			$distinct = $clauses['distinct'] ?? '';
+			$fields   = $clauses['fields'] ?? '';
+			$limits   = $clauses['limits'] ?? '';
 		}
 
 		if ( ! empty( $groupby ) ) {

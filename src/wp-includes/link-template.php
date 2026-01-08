@@ -1082,13 +1082,13 @@ function edit_tag_link( $link = '', $before = '', $after = '', $tag = null ) {
 function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
 	$term = get_term( $term, $taxonomy );
 	if ( ! $term || is_wp_error( $term ) ) {
-		return;
+		return null;
 	}
 
 	$tax     = get_taxonomy( $term->taxonomy );
 	$term_id = $term->term_id;
 	if ( ! $tax || ! current_user_can( 'edit_term', $term_id ) ) {
-		return;
+		return null;
 	}
 
 	$args = array(
@@ -1410,7 +1410,7 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	$post_type_object = get_post_type_object( $post->post_type );
@@ -1454,7 +1454,7 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	if ( 'revision' === $post->post_type ) {
@@ -1468,11 +1468,11 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 	$post_type_object = get_post_type_object( $post->post_type );
 
 	if ( ! $post_type_object ) {
-		return;
+		return null;
 	}
 
 	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
-		return;
+		return null;
 	}
 
 	$link = '';
@@ -1625,7 +1625,7 @@ function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 	 * Filters the comment edit link.
 	 *
 	 * @since 2.3.0
-	 * @since 6.7.0 The $comment_id and $context parameters are now being passed to the filter.
+	 * @since 6.7.0 The `$comment_id` and `$context` parameters are now being passed to the filter.
 	 *
 	 * @param string $location   The edit link.
 	 * @param int    $comment_id Unique ID of the comment to generate an edit link.

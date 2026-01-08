@@ -82,7 +82,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 */
 	public function assertPatternMatchesSchema( $pattern ) {
 		$schema     = static::$controller->get_item_schema();
-		$pattern_id = isset( $pattern->id ) ? $pattern->id : '{pattern ID is missing}';
+		$pattern_id = $pattern->id ?? '{pattern ID is missing}';
 
 		$this->assertTrue(
 			rest_validate_value_from_schema( $pattern, $schema ),
