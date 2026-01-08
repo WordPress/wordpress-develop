@@ -268,7 +268,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int $0 A number to add.
 	 *     @type int $1 A second number to add.
 	 * }
-	 * @return int Sum of the two given numbers.
+	 * @return int|IXR_Error Sum of the two given numbers.
 	 */
 	public function addTwoNumbers( $args ) {
 		if ( ! is_array( $args ) || count( $args ) !== 2 || ! is_int( $args[0] ) || ! is_int( $args[1] ) ) {
