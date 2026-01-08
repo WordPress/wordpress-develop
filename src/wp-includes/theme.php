@@ -1893,11 +1893,9 @@ function _custom_background_cb() {
 		$color = false;
 	}
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
 	if ( ! $background && ! $color ) {
 		if ( is_customize_preview() ) {
-			printf( '<style%s id="custom-background-css"></style>', $type_attr );
+			echo '<style id="custom-background-css"></style>';
 		}
 		return;
 	}
@@ -1950,11 +1948,13 @@ function _custom_background_cb() {
 
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
-	?>
-<style<?php echo $type_attr; ?> id="custom-background-css">
-body.custom-background { <?php echo trim( $style ); ?> }
-</style>
-	<?php
+
+	$processor = new WP_HTML_Tag_Processor( '<style id="custom-background-css"></style>' );
+	$processor->next_tag();
+
+	$style_tag_content = 'body.custom-background { ' . trim( $style ) . ' }';
+	$processor->set_modifiable_text( "\n{$style_tag_content}\n" );
+	echo "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -1964,17 +1964,15 @@ body.custom-background { <?php echo trim( $style ); ?> }
  */
 function wp_custom_css_cb() {
 	$styles = wp_get_custom_css();
-	if ( $styles || is_customize_preview() ) :
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-		?>
-		<style<?php echo $type_attr; ?> id="wp-custom-css">
-			<?php
-			// Note that esc_html() cannot be used because `div &gt; span` is not interpreted properly.
-			echo strip_tags( $styles );
-			?>
-		</style>
-		<?php
-	endif;
+	if ( ! $styles && ! is_customize_preview() ) {
+		return;
+	}
+
+	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+	$processor->next_tag();
+	$processor->set_attribute( 'id', 'wp-custom-css' );
+	$processor->set_modifiable_text( "\n{$styles}\n" );
+	echo "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -3003,11 +3001,9 @@ function _custom_logo_header_styles() {
 		$classes = (array) get_theme_support( 'custom-logo', 'header-text' );
 		$classes = array_map( 'sanitize_html_class', $classes );
 		$classes = '.' . implode( ', .', $classes );
-
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 		?>
 		<!-- Custom Logo: hide header text -->
-		<style id="custom-logo-css"<?php echo $type_attr; ?>>
+		<style id="custom-logo-css">
 			<?php echo $classes; ?> {
 				position: absolute;
 				clip-path: inset(50%);
