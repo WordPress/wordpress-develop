@@ -54,7 +54,7 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	public function test_add_two_numbers_with_invalid_arguments( $a, $b, $message ) {
 		$result = $this->myxmlrpcserver->addTwoNumbers( array( $a, $b ) );
 
-		$this->assertIXRError( $result, $message );
+		$this->assertIsNotInt( $result );
 		$this->assertSame( 400, $result->code, $message );
 		$this->assertSame(
 			'Invalid arguments passed to this XML-RPC method. Requires two integers.',
@@ -95,7 +95,7 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	public function test_add_two_numbers_with_no_arguments() {
 		$result = $this->myxmlrpcserver->addTwoNumbers( array() );
 
-		$this->assertIXRError( $result );
+		$this->assertIsNotInt( $result );
 		$this->assertSame( 400, $result->code );
 		$this->assertSame(
 			'Invalid arguments passed to this XML-RPC method. Requires two integers.',
@@ -115,7 +115,7 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 		// IXR_Server passes single param directly, not as array.
 		$result = $this->myxmlrpcserver->addTwoNumbers( 5 );
 
-		$this->assertIXRError( $result );
+		$this->assertIsNotInt( $result );
 		$this->assertSame( 400, $result->code );
 		$this->assertSame(
 			'Invalid arguments passed to this XML-RPC method. Requires two integers.',
