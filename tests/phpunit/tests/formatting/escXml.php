@@ -222,4 +222,14 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 		$actual   = esc_xml( $source );
 		$this->assertSame( $expected, $actual );
 	}
+
+	/**
+	 * Test that the function works correctly when charset is not UTF-8.
+	 */
+	public function test_non_utf8_charset_skips_invalid_character_stripping() {
+		update_option( 'blog_charset', 'ISO-8859-1' );
+		$source = "Test\x0Btext";
+		$actual = esc_xml( $source );
+		$this->assertIsString( $actual );
+	}
 }
