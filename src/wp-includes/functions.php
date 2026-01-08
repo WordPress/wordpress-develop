@@ -7958,14 +7958,14 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 function wp_generate_uuid4() {
 	return sprintf(
 		'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0x0fff ) | 0x4000,
-		mt_rand( 0, 0x3fff ) | 0x8000,
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff )
+		wp_rand( 0, 0xffff ),
+		wp_rand( 0, 0xffff ),
+		wp_rand( 0, 0xffff ),
+		wp_rand( 0, 0x0fff ) | 0x4000,
+		wp_rand( 0, 0x3fff ) | 0x8000,
+		wp_rand( 0, 0xffff ),
+		wp_rand( 0, 0xffff ),
+		wp_rand( 0, 0xffff )
 	);
 }
 
