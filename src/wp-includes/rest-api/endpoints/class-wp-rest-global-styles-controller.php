@@ -277,7 +277,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			$config['version']                     = WP_Theme_JSON::LATEST_SCHEMA;
 			/**
 			 * JSON encode the data stored in post content.
-			 * Escape characters that are likely be mangled by HTML filters: "<>&".
+			 * Escape characters that are likely to be mangled by HTML filters: "<>&".
 			 *
 			 * This data is later re-encoded by {@see wp_filter_global_styles_post}.
 			 * The escaping is also applied here as a precaution.

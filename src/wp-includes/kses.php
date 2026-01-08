@@ -2476,7 +2476,7 @@ function wp_filter_global_styles_post( $data ) {
 		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
 		/**
 		 * JSON encode the data stored in post content.
-		 * Escape characters that are likely be mangled by HTML filters: "<>&".
+		 * Escape characters that are likely to be mangled by HTML filters: "<>&".
 		 *
 		 * This matches the escaping in {@see WP_REST_Global_Styles_Controller::prepare_item_for_database}.
 		 */
