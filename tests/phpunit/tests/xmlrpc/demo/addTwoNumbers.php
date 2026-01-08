@@ -134,7 +134,7 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	public function test_add_two_numbers_with_too_many_arguments( $args, $message ) {
 		$result = $this->myxmlrpcserver->addTwoNumbers( $args );
 
-		$this->assertIXRError( $result, $message );
+		$this->assertIsNotInt( $result );
 		$this->assertSame( 400, $result->code, $message );
 		$this->assertSame(
 			'Invalid arguments passed to this XML-RPC method. Requires two integers.',
@@ -146,9 +146,9 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * Data provider for test_add_two_numbers_with_too_many_arguments.
 	 *
-	 * @return array[]
+	 * @return array<string, array<mixed>>
 	 */
-	public function data_too_many_arguments() {
+	public function data_too_many_arguments(): array {
 		return array(
 			'three arguments' => array( array( 3, 5, 100 ), 'Should fail with three arguments.' ),
 			'four arguments'  => array( array( 10, 20, 30, 40 ), 'Should fail with four arguments.' ),
