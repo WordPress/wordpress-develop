@@ -1696,6 +1696,9 @@ function wp_default_styles( $styles ) {
 		$wp_edit_blocks_dependencies
 	);
 
+	$styles->add( 'wp-view-transitions-admin', false );
+	$styles->add_inline_style( 'wp-view-transitions-admin', wp_get_view_transitions_admin_css() );
+
 	$package_styles = array(
 		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
