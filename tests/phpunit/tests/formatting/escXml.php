@@ -211,4 +211,15 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Test that invalid XML characters within CDATA sections are also stripped.
+	 */
+	public function test_strips_invalid_xml_characters_outside_cdata() {
+		update_option( 'blog_charset', 'UTF-8' );
+		$source   = "Text\x0Bwith<![CDATA[valid <content>]]>and\x1Cmore\x00invalid";
+		$expected = 'Textwith<![CDATA[valid <content>]]>andmoreinvalid';
+		$actual   = esc_xml( $source );
+		$this->assertSame( $expected, $actual );
+	}
 }
