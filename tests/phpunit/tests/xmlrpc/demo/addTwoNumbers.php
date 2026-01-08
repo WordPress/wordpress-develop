@@ -57,7 +57,7 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result, $message );
 		$this->assertSame( 400, $result->code, $message );
 		$this->assertSame(
-			'Invalid arguments passed to this XML-RPC method.  Requires two integers.',
+			'Invalid arguments passed to this XML-RPC method. Requires two integers.',
 			$result->message,
 			$message
 		);
