@@ -28,9 +28,9 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * Data provider for test_add_two_numbers_with_valid_integers.
 	 *
-	 * @return array[]
+	 * @return array<string, int[]>
 	 */
-	public function data_valid_integers() {
+	public function data_valid_integers(): array {
 		return array(
 			'two positive integers'         => array( 3, 5, 8 ),
 			'positive and negative integer' => array( 10, -3, 7 ),
@@ -66,9 +66,9 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * Data provider for test_add_two_numbers_with_invalid_arguments.
 	 *
-	 * @return array[]
+	 * @return array<string, array<mixed>>
 	 */
-	public function data_invalid_arguments() {
+	public function data_invalid_arguments(): array {
 		return array(
 			'first argument is string'          => array( 'abc', 5, 'Should fail when first argument is a string.' ),
 			'second argument is string'         => array( 3, 'abc', 'Should fail when second argument is a string.' ),
