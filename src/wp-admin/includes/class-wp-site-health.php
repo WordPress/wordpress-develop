@@ -1411,7 +1411,7 @@ class WP_Site_Health {
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 				$debug_log_path = WP_DEBUG_LOG === true ? WP_CONTENT_DIR . '/debug.log' : WP_DEBUG_LOG;
 				$debug_log_path = realpath( $debug_log_path );
-				$absolute_path  = realpath( ABSPATH );
+				$absolute_path  = realpath( ABSPATH ) . DIRECTORY_SEPARATOR;
 
 				if ( $debug_log_path && $absolute_path && str_starts_with( $debug_log_path, $absolute_path ) ) {
 					$result['label'] = __( 'Your site is set to log errors to a potentially public file' );
