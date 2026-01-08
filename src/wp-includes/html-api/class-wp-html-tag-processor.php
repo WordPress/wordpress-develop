@@ -4134,7 +4134,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( 1 !== strspn( $sourcecode, " \t\f\r\n/>", $tag_name_at + 6, 1 ) ) {
-				$at = $tag_name_at + 5;
+				$at = $tag_name_at + 6;
 				continue;
 			}
 
