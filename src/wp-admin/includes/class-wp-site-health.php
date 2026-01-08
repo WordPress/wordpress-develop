@@ -1422,12 +1422,12 @@ class WP_Site_Health {
 						'<p>%s</p>',
 						sprintf(
 							/* translators: %s: WP_DEBUG_LOG */
-							__( 'The value, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is potentially available to all users.' ),
+							__( 'The constant, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.' ),
 							'<code>WP_DEBUG_LOG</code>'
 						)
 					);
 				} else {
-					$result['label'] = __( 'Your site is set to log errors to a file outside the public directory' );
+					$result['label'] = __( 'Your site is set to log errors to a file outside the document root' );
 
 					$result['status'] = 'good';
 
@@ -1435,7 +1435,7 @@ class WP_Site_Health {
 						'<p>%s</p>',
 						sprintf(
 							/* translators: %s: WP_DEBUG_LOG */
-							__( 'The value, %s, has been configured to write errors to a file outside the WordPress directory. This is a good practice as the log file is not publicly accessible.' ),
+							__( 'The configuration constant, %s, has been set to write errors to a file outside the WordPress directory. This is a good practice as the log file should not be publicly accessible' ),
 							'<code>WP_DEBUG_LOG</code>'
 						)
 					);
