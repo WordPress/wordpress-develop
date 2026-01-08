@@ -3811,31 +3811,35 @@ class WP_HTML_Tag_Processor {
 
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
-				$escaped_content     = $plaintext_content;
 				$script_content_type = $this->get_script_content_type();
 
 				switch ( $script_content_type ) {
 					case 'javascript':
 					case 'json':
-						$escaped_content = self::escape_javascript_script_contents( $plaintext_content );
-						break;
-
-					default:
-						// There is no safe escaping for unrecognized script content types.
-						if (
-							false !== stripos( $plaintext_content, '<script' ) ||
-							false !== stripos( $plaintext_content, '</script' )
-						) {
-							return false;
-						}
+						$escaped_content                          = self::escape_javascript_script_contents( $plaintext_content );
+						$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
+							$this->text_starts_at,
+							$this->text_length,
+							$escaped_content
+						);
+						return true;
 				}
 
+				/*
+				 * Unrecognized script content types cannot be escaped.
+				 * Reject contents that are potentially dangerous.
+				 */
+				if (
+					false !== stripos( $plaintext_content, '<script' ) ||
+					false !== stripos( $plaintext_content, '</script' )
+				) {
+					return false;
+				}
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
-					$escaped_content
+					$plaintext_content
 				);
-
 				return true;
 
 			case 'STYLE':
