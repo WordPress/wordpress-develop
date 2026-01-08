@@ -4017,10 +4017,11 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Escape JavaScript script tag contents.
+	 * Escape JavaScript and JSON script tag contents.
 	 *
-	 * Prevent JavaScript text from modifying the HTML structure of a document and
-	 * ensure that it's contained within its enclosing SCRIPT tag as intended.
+	 * Ensure that script tag contents cannot modifying the HTML structure and
+	 * is contained withing the intended SCRIPT tag. This comment describes
+	 * JavaScript, but the same behavior is suitable for escaping JSON.
 	 *
 	 * JavaScript can be safely escaped with a few exceptions. This is achieved by
 	 * replacing dangerous sequences like "<script" and "</script" with a form
@@ -4097,8 +4098,6 @@ class WP_HTML_Tag_Processor {
 	 *               ╚══════════════╝              └───────────┘
 	 *
 	 *        † = Case insensitive 'script' followed by one of ' \t\f\r\n/>'
-	 *
-	 * The original source of this graph is included at the bottom of this file.
 	 *
 	 * @see https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
 	 * @see wp_html_api_script_element_escaping_diagram_source()
