@@ -2778,7 +2778,7 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		 * - `PASSWORD_DEFAULT`
 		 *
 		 * @since 6.8.0
-		 * @since 6.9.0 The `$algorithm` parameter is now always a string.
+		 * @since 7.0.0 The `$algorithm` parameter is now always a string.
 		 *
 		 * @param string $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
 		 */
@@ -2791,7 +2791,7 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		 * filter. You must ensure that the options are appropriate for the algorithm in use.
 		 *
 		 * @since 6.8.0
-		 * @since 6.9.0 The `$algorithm` parameter is now always a string.
+		 * @since 7.0.0 The `$algorithm` parameter is now always a string.
 		 *
 		 * @param array  $options   Array of options to pass to the password hashing functions.
 		 *                          By default this is an empty array which means the default
