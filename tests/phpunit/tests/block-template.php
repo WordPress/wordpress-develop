@@ -312,6 +312,57 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `get_the_block_template_html()` adds a skip link when a MAIN element is present.
+	 *
+	 * @ticket 64361
+	 * @covers ::get_the_block_template_html
+	 */
+	public function test_get_the_block_template_html_adds_skip_link_when_main_present() {
+		global $_wp_current_template_id, $_wp_current_template_content;
+
+		$_wp_current_template_id      = get_stylesheet() . '//index';
+		$_wp_current_template_content = '<main>Content</main>';
+
+		$output = get_the_block_template_html();
+
+		$this->assertStringContainsString(
+			'<a class="skip-link screen-reader-text" id="wp-skip-link"',
+			$output,
+			'Expected skip link was not added to the block template HTML.'
+		);
+	}
+
+	/**
+	 * Tests that `get_the_block_template_html()` does not add a skip link when the skip-link action is unhooked.
+	 *
+	 * @ticket 64361
+	 * @covers ::get_the_block_template_html
+	 */
+	public function test_get_the_block_template_html_does_not_add_skip_link_when_action_unhooked() {
+		global $_wp_current_template_id, $_wp_current_template_content;
+
+		$_wp_current_template_id      = get_stylesheet() . '//index';
+		$_wp_current_template_content = '<main>Content</main>';
+
+		$was_hooked = (bool) has_action( 'wp_footer', 'the_block_template_skip_link' );
+		remove_action( 'wp_footer', 'the_block_template_skip_link' );
+
+		try {
+			$output = get_the_block_template_html();
+		} finally {
+			if ( $was_hooked ) {
+				add_action( 'wp_footer', 'the_block_template_skip_link' );
+			}
+		}
+
+		$this->assertStringNotContainsString(
+			'<a class="skip-link screen-reader-text" id="wp-skip-link"',
+			$output,
+			'Unexpected skip link was added to the block template HTML when the action was unhooked.'
+		);
+	}
+
+	/**
 	 * @ticket 58319
 	 *
 	 * @covers ::get_block_theme_folders
