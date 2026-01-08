@@ -15,12 +15,12 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_script_content_type()
 	 *
-	 * @dataProvider data_is_javascript_script_tag
+	 * @dataProvider data_get_script_content_type
 	 *
 	 * @param string      $html         HTML containing a script tag.
 	 * @param string|null $content_type Inferred content type of SCRIPT element.
 	 */
-	public function test_is_javascript_script_tag( string $html, ?string $content_type ) {
+	public function test_get_script_content_type( string $html, ?string $content_type ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag();
 
@@ -47,11 +47,11 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_is_javascript_script_tag.
+	 * Data provider for test_get_script_content_type.
 	 *
 	 * @return array[]
 	 */
-	public static function data_is_javascript_script_tag(): array {
+	public static function data_get_script_content_type(): array {
 		return array(
 			// Script tags without type or language attributes - should be JavaScript.
 			'Script tag without attributes'              => array( '<script></script>', 'javascript' ),
@@ -60,9 +60,6 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 			// Script tags with empty type attribute - should be JavaScript.
 			'Script tag with empty type attribute'       => array( '<script type=""></script>', 'javascript' ),
 			'Script tag with boolean type attribute'     => array( '<script type></script>', 'javascript' ),
-
-			// Script tags with falsy but non-empty type attribute.
-			'Script tag with type="0"'                   => array( '<script type="0"></script>', null ),
 
 			// Script tags without type but with language attribute - should be JavaScript.
 			'Script tag with empty language attribute'   => array( '<script language=""></script>', 'javascript' ),
@@ -117,102 +114,6 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 			// Whitespace is not trimmed in the language attribute.
 			'Script tag with language=" javascript"'     => array( '<script language=" javascript"></script>', null ),
 
-			// Non-JavaScript script tags - should NOT be JavaScript.
-			'Script tag with importmap type'             => array( '<script type="importmap"></script>', 'json' ),
-			'Script tag with speculationrules type'      => array( '<script type="speculationrules"></script>', 'json' ),
-			'Script tag with application/json type'      => array( '<script type="application/json"></script>', 'json' ),
-			'Script tag with text/json type'             => array( '<script type="text/json"></script>', 'json' ),
-			'Script tag with unknown MIME type'          => array( '<script type="text/plain"></script>', null ),
-			'Script tag with application/xml type'       => array( '<script type="application/xml"></script>', null ),
-			'Script tag with random type'                => array( '<script type="random/type"></script>', null ),
-
-			// Non-script tags - should NOT be JavaScript.
-			'DIV tag'                                    => array( '<div></div>', null ),
-			'SPAN tag'                                   => array( '<span></span>', null ),
-			'P tag'                                      => array( '<p></p>', null ),
-		);
-	}
-
-	/**
-	 * @ticket 64419
-	 *
-	 * @covers ::get_script_content_type()
-	 */
-	public function test_is_javascript_script_tag_returns_false_before_finding_tags() {
-		$processor = new WP_HTML_Tag_Processor( 'Just some text' );
-		$processor->next_token();
-
-		$this->assertNull(
-			$this->get_script_content_type_with( $processor ),
-			'Should fail to infer a content type when not matched on a SCRIPT element.'
-		);
-	}
-
-	/**
-	 * @ticket 64419
-	 *
-	 * @covers ::get_script_content_type()
-	 */
-	public function test_is_javascript_script_tag_returns_false_for_non_html_namespace() {
-		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
-		$processor->change_parsing_namespace( 'svg' );
-		$processor->next_tag();
-
-		$this->assertSame(
-			'SCRIPT',
-			$processor->get_tag(),
-			'Expected to find a SCRIPT tag in the SVG namespace: check test setup.'
-		);
-
-		$this->assertNull(
-			$this->get_script_content_type_with( $processor ),
-			'Should fail to infer content type for SCRIPT elements in non-HTML namespace'
-		);
-	}
-
-	/**
-	 * @ticket 64419
-	 *
-	 * @covers ::get_script_content_type()
-	 *
-	 * @dataProvider data_is_json_script_tag
-	 *
-	 * @param string      $html          HTML containing a script tag.
-	 * @param string|null $content_type  Inferred content type of SCRIPT element.
-	 */
-	public function test_is_json_script_tag( string $html, ?string $content_type ) {
-		$processor = new WP_HTML_Tag_Processor( $html );
-		$processor->next_tag();
-
-		$detected = $this->get_script_content_type_with( $processor );
-
-		if ( isset( $content_type, $detected ) ) {
-			$this->assertSame(
-				$content_type,
-				$detected,
-				'Misidentified the type of contents within the SCRIPT element.'
-			);
-		} elseif ( isset( $content_type ) ) {
-			$this->assertSame(
-				$content_type,
-				$detected,
-				'Should have identified the type of contents within the SCRIPT element but failed to recognize any type.'
-			);
-		} else {
-			$this->assertNull(
-				$detected,
-				'Should have failed to identify the type of contents within the SCRIPT element.'
-			);
-		}
-	}
-
-	/**
-	 * Data provider for test_is_json_script_tag.
-	 *
-	 * @return array[]
-	 */
-	public static function data_is_json_script_tag(): array {
-		return array(
 			// JSON MIME types - should be JSON.
 			'Script tag with application/json type'      => array( '<script type="application/json"></script>', 'json' ),
 			'Script tag with text/json type'             => array( '<script type="text/json"></script>', 'json' ),
@@ -229,28 +130,15 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 			'Script tag with SPECULATIONRULES uppercase' => array( '<script type="SPECULATIONRULES"></script>', 'json' ),
 			'Script tag with SpeculationRules mixed'     => array( '<script type="SpeculationRules"></script>', 'json' ),
 
-			// Whitespace handling - should strip whitespace.
-			'Script tag with leading whitespace'         => array( '<script type=" application/json"></script>', 'json' ),
-			'Script tag with trailing whitespace'        => array( '<script type="application/json "></script>', 'json' ),
-			'Script tag with surrounding whitespace'     => array( '<script type=" application/json "></script>', 'json' ),
-			'Script tag with tab whitespace'             => array( "<script type=\"\tapplication/json\t\"></script>", 'json' ),
-			'Script tag with newline whitespace'         => array( "<script type=\"\napplication/json\n\"></script>", 'json' ),
-			'Script tag with mixed whitespace'           => array( "<script type=\" \t\napplication/json \t\n\"></script>", 'json' ),
-
-			// Non-JSON script tags - should NOT be JSON.
-			'Script tag without type attribute'          => array( '<script></script>', 'javascript' ),
-			'Script tag with empty type attribute'       => array( '<script type=""></script>', 'javascript' ),
-			'Script tag with boolean type attribute'     => array( '<script type></script>', 'javascript' ),
-
 			// Script tags with falsy but non-empty type attribute.
 			'Script tag with type="0"'                   => array( '<script type="0"></script>', null ),
 
-			'Script tag with text/javascript type'       => array( '<script type="text/javascript"></script>', 'javascript' ),
-			'Script tag with module type'                => array( '<script type="module"></script>', 'javascript' ),
+			// Unknown types should return null.
 			'Script tag with unknown MIME type'          => array( '<script type="text/plain"></script>', null ),
 			'Script tag with application/xml type'       => array( '<script type="application/xml"></script>', null ),
+			'Script tag with random type'                => array( '<script type="random/type"></script>', null ),
 
-			// Non-script tags - should NOT be JSON.
+			// Non-script tags - unknown content type.
 			'DIV tag'                                    => array( '<div></div>', null ),
 			'SPAN tag'                                   => array( '<span></span>', null ),
 			'P tag'                                      => array( '<p></p>', null ),
@@ -262,7 +150,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_script_content_type()
 	 */
-	public function test_is_json_script_tag_returns_false_before_finding_tags() {
+	public function test_get_script_content_type_returns_null_before_finding_tags() {
 		$processor = new WP_HTML_Tag_Processor( 'Just some text' );
 		$processor->next_token();
 
@@ -277,7 +165,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_script_content_type()
 	 */
-	public function test_is_json_script_tag_returns_false_for_non_html_namespace() {
+	public function test_get_script_content_type_returns_null_for_non_html_namespace() {
 		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 		$processor->change_parsing_namespace( 'svg' );
 		$processor->next_tag();
