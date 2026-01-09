@@ -229,18 +229,14 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	 * @param $gallery
 	 */
 	public function tests_returns_requested_max_number_of_galleries( $gallery ) {
-		// @todo Why is this necessary?
-
-		// add_shortcode( 'gallery', 'gallery_shortcode' );
-
 		$post_id = self::factory()->post->create(
-			array( 'post_content' => str_repeat( "{$gallery}\n", 5 ) )
+			array( 'post_content' => str_repeat( "{$gallery}\n", 15 ) )
 		);
 
 		// Test negative counts, the zero count, and a max count above the total contained galleries.
-		foreach ( range( -5, 10 ) as $max_count ) {
+		foreach ( range( -5, 25 ) as $max_count ) {
 			$this->assertCount(
-				max( 0, min( 5, $max_count ) ),
+				max( 0, min( 15, $max_count ) ),
 				get_post_galleries( $post_id, false, $max_count ),
 				'Failed to fetch up to the max requested number of galleries.'
 			);
