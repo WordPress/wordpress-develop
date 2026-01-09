@@ -1454,7 +1454,7 @@ function link_advanced_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"><label for="link_notes"><?php _e( 'Notes' ); ?></label></th>
-		<td><textarea name="link_notes" id="link_notes" rows="10"><?php echo ( $link->link_notes ?? '' ); // textarea_escaped ?></textarea></td>
+		<td><textarea name="link_notes" id="link_notes" rows="10"><?php echo $link->link_notes ?? ''; // textarea_escaped ?></textarea></td>
 	</tr>
 	<tr>
 		<th scope="row"><label for="link_rating"><?php _e( 'Rating' ); ?></label></th>
