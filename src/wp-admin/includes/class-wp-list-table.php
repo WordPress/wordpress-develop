@@ -345,11 +345,7 @@ class WP_List_Table {
 			return $this->get_pagenum();
 		}
 
-		if ( isset( $this->_pagination_args[ $key ] ) ) {
-			return $this->_pagination_args[ $key ];
-		}
-
-		return 0;
+		return $this->_pagination_args[ $key ] ?? 0;
 	}
 
 	/**
