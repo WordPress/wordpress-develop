@@ -1183,19 +1183,19 @@ function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
 			}
 
 			$args = array(
-				'menu-item-db-id'       => ( $_item_object_data['menu-item-db-id'] ?? '' ),
-				'menu-item-object-id'   => ( $_item_object_data['menu-item-object-id'] ?? '' ),
-				'menu-item-object'      => ( $_item_object_data['menu-item-object'] ?? '' ),
-				'menu-item-parent-id'   => ( $_item_object_data['menu-item-parent-id'] ?? '' ),
-				'menu-item-position'    => ( $_item_object_data['menu-item-position'] ?? '' ),
-				'menu-item-type'        => ( $_item_object_data['menu-item-type'] ?? '' ),
-				'menu-item-title'       => ( $_item_object_data['menu-item-title'] ?? '' ),
-				'menu-item-url'         => ( $_item_object_data['menu-item-url'] ?? '' ),
-				'menu-item-description' => ( $_item_object_data['menu-item-description'] ?? '' ),
-				'menu-item-attr-title'  => ( $_item_object_data['menu-item-attr-title'] ?? '' ),
-				'menu-item-target'      => ( $_item_object_data['menu-item-target'] ?? '' ),
-				'menu-item-classes'     => ( $_item_object_data['menu-item-classes'] ?? '' ),
-				'menu-item-xfn'         => ( $_item_object_data['menu-item-xfn'] ?? '' ),
+				'menu-item-db-id'       => $_item_object_data['menu-item-db-id'] ?? '',
+				'menu-item-object-id'   => $_item_object_data['menu-item-object-id'] ?? '',
+				'menu-item-object'      => $_item_object_data['menu-item-object'] ?? '',
+				'menu-item-parent-id'   => $_item_object_data['menu-item-parent-id'] ?? '',
+				'menu-item-position'    => $_item_object_data['menu-item-position'] ?? '',
+				'menu-item-type'        => $_item_object_data['menu-item-type'] ?? '',
+				'menu-item-title'       => $_item_object_data['menu-item-title'] ?? '',
+				'menu-item-url'         => $_item_object_data['menu-item-url'] ?? '',
+				'menu-item-description' => $_item_object_data['menu-item-description'] ?? '',
+				'menu-item-attr-title'  => $_item_object_data['menu-item-attr-title'] ?? '',
+				'menu-item-target'      => $_item_object_data['menu-item-target'] ?? '',
+				'menu-item-classes'     => $_item_object_data['menu-item-classes'] ?? '',
+				'menu-item-xfn'         => $_item_object_data['menu-item-xfn'] ?? '',
 			);
 
 			$items_saved[] = wp_update_nav_menu_item( $menu_id, $_actual_db_id, $args );
