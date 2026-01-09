@@ -173,7 +173,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 		);
 
 		// Character Reference Handling.
-		yield 'named entities' => array(
+		yield 'named character references' => array(
 			'title="&lt;Hello&gt; &amp; &quot;World&quot;"',
 			array(
 				'title' => array(
@@ -185,7 +185,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		yield 'numeric decimal entities' => array(
+		yield 'numeric decimal character references' => array(
 			'title="&#60;test&#62;"',
 			array(
 				'title' => array(
@@ -197,7 +197,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		yield 'numeric hex entities lowercase' => array(
+		yield 'numeric hex character references lowercase' => array(
 			'title="&#x3C;hex&#x3E;"',
 			array(
 				'title' => array(
@@ -209,7 +209,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		yield 'numeric hex entities uppercase' => array(
+		yield 'numeric hex character references uppercase' => array(
 			'title="&#X3C;HEX&#X3E;"',
 			array(
 				'title' => array(
