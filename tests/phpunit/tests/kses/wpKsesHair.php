@@ -57,7 +57,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'title' => array(
 					'name'  => 'title',
 					'value' => 'My Title',
-					'whole' => "title='My Title'",
+					'whole' => 'title="My Title"',
 					'vless' => 'n',
 				),
 			),
@@ -188,8 +188,8 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			array(
 				'title' => array(
 					'name'  => 'title',
-					'value' => '&#60;test&#62;',
-					'whole' => 'title="&#60;test&#62;"',
+					'value' => '&lt;test&gt;',
+					'whole' => 'title="&lt;test&gt;"',
 					'vless' => 'n',
 				),
 			),
@@ -200,8 +200,8 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			array(
 				'title' => array(
 					'name'  => 'title',
-					'value' => '&#x3C;hex&#x3E;',
-					'whole' => 'title="&#x3C;hex&#x3E;"',
+					'value' => '&lt;hex&gt;',
+					'whole' => 'title="&lt;hex&gt;"',
 					'vless' => 'n',
 				),
 			),
@@ -212,8 +212,8 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			array(
 				'title' => array(
 					'name'  => 'title',
-					'value' => '&#X3C;HEX&#X3E;',
-					'whole' => 'title="&#X3C;HEX&#X3E;"',
+					'value' => '&lt;HEX&gt;',
+					'whole' => 'title="&lt;HEX&gt;"',
 					'vless' => 'n',
 				),
 			),
@@ -224,8 +224,8 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			array(
 				'title' => array(
 					'name'  => 'title',
-					'value' => '&invalid; &#; &#x;',
-					'whole' => 'title="&invalid; &#; &#x;"',
+					'value' => '&amp;invalid; &amp;#; &amp;#x;',
+					'whole' => 'title="&amp;invalid; &amp;#; &amp;#x;"',
 					'vless' => 'n',
 				),
 			),
@@ -249,7 +249,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'data-text' => array(
 					'name'  => 'data-text',
 					'value' => 'Single quoted value',
-					'whole' => "data-text='Single quoted value'",
+					'whole' => 'data-text="Single quoted value"',
 					'vless' => 'n',
 				),
 			),
@@ -267,7 +267,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'alt'   => array(
 					'name'  => 'alt',
 					'value' => 'single',
-					'whole' => "alt='single'",
+					'whole' => 'alt="single"',
 					'vless' => 'n',
 				),
 				'id'    => array(
@@ -284,8 +284,8 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			array(
 				'title' => array(
 					'name'  => 'title',
-					'value' => "It's working",
-					'whole' => 'title="It\'s working"',
+					'value' => 'It&apos;s working',
+					'whole' => 'title="It&apos;s working"',
 					'vless' => 'n',
 				),
 			),
@@ -296,8 +296,8 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			array(
 				'title' => array(
 					'name'  => 'title',
-					'value' => 'He said "hello"',
-					'whole' => 'title=\'He said "hello"\'',
+					'value' => 'He said &quot;hello&quot;',
+					'whole' => 'title="He said &quot;hello&quot;"',
 					'vless' => 'n',
 				),
 			),
@@ -327,12 +327,32 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 
 		yield 'invalid attribute name starting with number' => array(
 			'1invalid="value"',
-			array(),
+			array(
+				'1invalid' => array(
+					'name'  => '1invalid',
+					'value' => 'value',
+					'whole' => '1invalid="value"',
+					'vless' => 'n',
+				),
+			),
 		);
 
 		yield 'invalid attribute name special chars' => array(
 			'@invalid="value" $bad="value"',
-			array(),
+			array(
+				'@invalid' => array(
+					'name'  => '@invalid',
+					'value' => 'value',
+					'whole' => '@invalid="value"',
+					'vless' => 'n',
+				),
+				'$bad'     => array(
+					'name'  => '$bad',
+					'value' => 'value',
+					'whole' => '$bad="value"',
+					'vless' => 'n',
+				),
+			),
 		);
 
 		yield 'duplicate attributes first wins' => array(
@@ -355,7 +375,20 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 
 		yield 'malformed unclosed double quote' => array(
 			'title="unclosed class="test"',
-			array(),
+			array(
+				'title' => array(
+					'name'  => 'title',
+					'value' => 'unclosed class=',
+					'whole' => 'title="unclosed class="',
+					'vless' => 'n',
+				),
+				'test"' => array(
+					'name'  => 'test"',
+					'value' => '',
+					'whole' => 'test"',
+					'vless' => 'y',
+				),
+			),
 		);
 
 		yield 'very long attribute value' => array(
@@ -610,7 +643,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'alt'   => array(
 					'name'  => 'alt',
 					'value' => '',
-					'whole' => "alt=''",
+					'whole' => 'alt=""',
 					'vless' => 'n',
 				),
 				'class' => array(
@@ -625,7 +658,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 		yield 'forward slashes between attributes' => array(
 			'att / att2=2 /// att3="3"',
 			array(
-				'att'   => array(
+				'att'  => array(
 					'name'  => 'att',
 					'value' => '',
 					'whole' => 'att',
@@ -652,13 +685,13 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'att'  => array(
 					'name'  => 'att',
 					'value' => 'val',
-					'whole' => "att='val'",
+					'whole' => 'att="val"',
 					'vless' => 'n',
 				),
 				'att2' => array(
 					'name'  => 'att2',
 					'value' => 'val2',
-					'whole' => "att2='val2'",
+					'whole' => 'att2="val2"',
 					'vless' => 'n',
 				),
 			),
@@ -670,13 +703,13 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'att'  => array(
 					'name'  => 'att',
 					'value' => 'val',
-					'whole' => "att='val'",
+					'whole' => 'att="val"',
 					'vless' => 'n',
 				),
 				'att2' => array(
 					'name'  => 'att2',
 					'value' => 'val2',
-					'whole' => "att2='val2'",
+					'whole' => 'att2="val2"',
 					'vless' => 'n',
 				),
 			),
@@ -688,13 +721,13 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'att'  => array(
 					'name'  => 'att',
 					'value' => 'val',
-					'whole' => "att='val'",
+					'whole' => 'att="val"',
 					'vless' => 'n',
 				),
 				'att2' => array(
 					'name'  => 'att2',
 					'value' => 'val2',
-					'whole' => "att2='val2'",
+					'whole' => 'att2="val2"',
 					'vless' => 'n',
 				),
 			),
@@ -706,13 +739,13 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'att'  => array(
 					'name'  => 'att',
 					'value' => 'val',
-					'whole' => "att='val'",
+					'whole' => 'att="val"',
 					'vless' => 'n',
 				),
 				'att2' => array(
 					'name'  => 'att2',
 					'value' => 'val2',
-					'whole' => "att2='val2'",
+					'whole' => 'att2="val2"',
 					'vless' => 'n',
 				),
 			),
@@ -739,27 +772,54 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 		// Malformed Equals Patterns.
 		yield 'multiple equals signs' => array(
 			'att=="val"',
-			array(),
+			array(
+				'att' => array(
+					'name'  => 'att',
+					'value' => '=&quot;val&quot;',
+					'whole' => 'att="=&quot;val&quot;"',
+					'vless' => 'n',
+				),
+			),
 		);
 
 		yield 'equals with strange spacing' => array(
 			'att= ="val"',
-			array(),
+			array(
+				'att' => array(
+					'name'  => 'att',
+					'value' => '=&quot;val&quot;',
+					'whole' => 'att="=&quot;val&quot;"',
+					'vless' => 'n',
+				),
+			),
 		);
 
 		yield 'triple equals signs' => array(
 			'att==="val"',
-			array(),
+			array(
+				'att' => array(
+					'name'  => 'att',
+					'value' => '==&quot;val&quot;',
+					'whole' => 'att="==&quot;val&quot;"',
+					'vless' => 'n',
+				),
+			),
 		);
 
 		yield 'equals echo pattern' => array(
 			"att==echo 'something'",
 			array(
-				'att' => array(
+				'att'         => array(
 					'name'  => 'att',
 					'value' => '=echo',
 					'whole' => 'att="=echo"',
 					'vless' => 'n',
+				),
+				"'something'" => array(
+					'name'  => "'something'",
+					'value' => '',
+					'whole' => "'something'",
+					'vless' => 'y',
 				),
 			),
 		);
@@ -767,6 +827,12 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 		yield 'attribute starting with equals' => array(
 			'= bool k=v',
 			array(
+				'='    => array(
+					'name'  => '=',
+					'value' => '',
+					'whole' => '=',
+					'vless' => 'y',
+				),
 				'bool' => array(
 					'name'  => 'bool',
 					'value' => '',
@@ -785,10 +851,22 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 		yield 'mixed quotes and equals chaos' => array(
 			'k=v ="' . "' j=w",
 			array(
-				'k' => array(
+				'k'        => array(
 					'name'  => 'k',
 					'value' => 'v',
 					'whole' => 'k="v"',
+					'vless' => 'n',
+				),
+				'="' . "'" => array(
+					'name'  => '="' . "'",
+					'value' => '',
+					'whole' => '="' . "'",
+					'vless' => 'y',
+				),
+				'j'        => array(
+					'name'  => 'j',
+					'value' => 'w',
+					'whole' => 'j="w"',
 					'vless' => 'n',
 				),
 			),
@@ -796,7 +874,20 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 
 		yield 'triple equals quoted whitespace' => array(
 			'==="  "',
-			array(),
+			array(
+				'=' => array(
+					'name'  => '=',
+					'value' => '=&quot;',
+					'whole' => '=="=&quot;"',
+					'vless' => 'n',
+				),
+				'"' => array(
+					'name'  => '"',
+					'value' => '',
+					'whole' => '"',
+					'vless' => 'y',
+				),
+			),
 		);
 
 		yield 'boolean with contradictory value' => array(
@@ -820,7 +911,13 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 		yield 'empty attribute name with value' => array(
 			'="value" class="test"',
 			array(
-				'class' => array(
+				'="value"' => array(
+					'name'  => '="value"',
+					'value' => '',
+					'whole' => '="value"',
+					'vless' => 'y',
+				),
+				'class'    => array(
 					'name'  => 'class',
 					'value' => 'test',
 					'whole' => 'class="test"',
@@ -890,7 +987,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				'href' => array(
 					'name'  => 'href',
 					'value' => 'alert(1)',
-					'whole' => "href='alert(1)'",
+					'whole' => 'href="alert(1)"',
 					'vless' => 'n',
 				),
 			),
@@ -925,8 +1022,8 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			array(
 				'src' => array(
 					'name'  => 'src',
-					'value' => 'text/html,<script>alert(1)</script>',
-					'whole' => 'src="text/html,<script>alert(1)</script>"',
+					'value' => 'text/html,&lt;script&gt;alert(1)&lt;/script&gt;',
+					'whole' => 'src="text/html,&lt;script&gt;alert(1)&lt;/script&gt;"',
 					'vless' => 'n',
 				),
 			),
