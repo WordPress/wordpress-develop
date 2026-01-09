@@ -148,6 +148,15 @@ final class WP_Post_Type {
 	public $show_in_menu = null;
 
 	/**
+	 * Makes this post type visible in the At a Glance dashboard widget.
+	 *
+	 * Default is the value of $show_in_menu.
+	 *
+	 * @var bool $at_a_glance
+	 */
+	public $at_a_glance = null;
+
+	/**
 	 * Makes this post type available for selection in navigation menus.
 	 *
 	 * Default is the value $public.
@@ -190,7 +199,7 @@ final class WP_Post_Type {
 	 * @since 4.6.0
 	 * @var string $menu_icon
 	 */
-	public $menu_icon = null;
+	public $menu_icon;
 
 	/**
 	 * The string to use to build the read, edit, and delete capabilities.
@@ -538,6 +547,7 @@ final class WP_Post_Type {
 			'show_in_admin_bar'               => null,
 			'menu_position'                   => null,
 			'menu_icon'                       => null,
+			'at_a_glance'                     => null,
 			'capability_type'                 => 'post',
 			'capabilities'                    => array(),
 			'map_meta_cap'                    => null,
@@ -589,6 +599,16 @@ final class WP_Post_Type {
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
 			$args['show_in_menu'] = $args['show_ui'];
+		}
+
+		// If not set, default to the setting for show_in_menu.
+		if ( null === $args['at_a_glance'] ) {
+			$args['at_a_glance'] = (bool) $args['show_in_menu'];
+		}
+
+		// If not set, default to the post icon.
+		if ( null === $args['menu_icon'] ) {
+			$args['menu_icon'] = 'dashicons-admin-post';
 		}
 
 		// If not set, default to the setting for 'show_in_menu'.
