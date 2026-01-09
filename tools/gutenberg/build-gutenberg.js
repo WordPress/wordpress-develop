@@ -148,7 +148,7 @@ async function main() {
 				? '--base-url="includes_url( \'build\' )"'
 				: "--base-url=includes_url( 'build' )";
 
-		await exec( 'npm', [ 'run', 'build', '--', baseUrlArg ], {
+		await exec( 'npm', [ 'run', 'build', '--', '--fast', baseUrlArg ], {
 			cwd: gutenbergDir,
 		} );
 
