@@ -14,14 +14,6 @@
  */
 class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
-	 * Cleans up stores after each test.
-	 */
-	public function tear_down() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-		parent::tear_down();
-	}
-
-	/**
 	 * Tests generating block styles and classnames based on various manifestations of the $block_styles argument.
 	 *
 	 * @ticket 56467

@@ -952,7 +952,7 @@ function do_enclose( $content, $post ) {
 			$headers = wp_get_http_headers( $url );
 			if ( $headers ) {
 				$len           = isset( $headers['Content-Length'] ) ? (int) $headers['Content-Length'] : 0;
-				$type          = isset( $headers['Content-Type'] ) ? $headers['Content-Type'] : '';
+				$type          = $headers['Content-Type'] ?? '';
 				$allowed_types = array( 'video', 'audio' );
 
 				// Check to see if we can figure out the mime type from the extension.
@@ -3300,7 +3300,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	 * Filters the "real" file type of the given file.
 	 *
 	 * @since 3.0.0
-	 * @since 5.1.0 The $real_mime parameter was added.
+	 * @since 5.1.0 The `$real_mime` parameter was added.
 	 *
 	 * @param array         $wp_check_filetype_and_ext {
 	 *     Values for the extension, mime type, and corrected filename.
@@ -3610,7 +3610,7 @@ function wp_get_ext_types() {
  */
 function wp_filesize( $path ) {
 	/**
-	 * Filters the result of wp_filesize before the PHP function is run.
+	 * Filters the result of wp_filesize() before the file_exists() PHP function is run.
 	 *
 	 * @since 6.0.0
 	 *
@@ -3690,7 +3690,7 @@ function wp_nonce_ays( $action ) {
 			get_bloginfo( 'name' )
 		);
 
-		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+		$redirect_to = $_REQUEST['redirect_to'] ?? '';
 
 		$html  = $title;
 		$html .= '</p><p>';
@@ -3921,7 +3921,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 		?>
 	<title><?php echo $title; ?></title>
-	<style type="text/css">
+	<style>
 		html {
 			background: #f1f1f1;
 		}
@@ -6023,7 +6023,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 	 * Filters whether to trigger an error for _doing_it_wrong() calls.
 	 *
 	 * @since 3.1.0
-	 * @since 5.1.0 Added the $function_name, $message and $version parameters.
+	 * @since 5.1.0 Added the `$function_name`, `$message`, and `$version` parameters.
 	 *
 	 * @param bool   $trigger       Whether to trigger the error for _doing_it_wrong() calls. Default true.
 	 * @param string $function_name The function that was called.
@@ -6139,8 +6139,8 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
  * @return bool Whether the server is running lighttpd < 1.5.0.
  */
 function is_lighttpd_before_150() {
-	$server_parts    = explode( '/', isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : '' );
-	$server_parts[1] = isset( $server_parts[1] ) ? $server_parts[1] : '';
+	$server_parts    = explode( '/', $_SERVER['SERVER_SOFTWARE'] ?? '' );
+	$server_parts[1] = $server_parts[1] ?? '';
 
 	return ( 'lighttpd' === $server_parts[0] && -1 === version_compare( $server_parts[1], '1.5.0' ) );
 }
@@ -6568,7 +6568,7 @@ function wp_timezone_override_offset() {
  *
  * @param array $a
  * @param array $b
- * @return int
+ * @return int Comparison result.
  */
 function _wp_timezone_choice_usort_callback( $a, $b ) {
 	// Don't use translated versions of Etc.
@@ -6625,7 +6625,7 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
  *
  * @param string $selected_zone Selected timezone.
  * @param string $locale        Optional. Locale to load the timezones in. Default current site locale.
- * @return string
+ * @return string HTML select element for timezones.
  */
 function wp_timezone_choice( $selected_zone, $locale = null ) {
 	static $mo_loaded = false, $locale_loaded = null;
@@ -6827,7 +6827,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
  * @see https://core.trac.wordpress.org/ticket/8497
  *
  * @param string $str Header comment to clean up.
- * @return string
+ * @return string Cleaned header comment.
  */
 function _cleanup_header_comment( $str ) {
 	return trim( preg_replace( '/\s*(?:\*\/|\?>).*/', '', $str ) );
@@ -7121,9 +7121,9 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
 	while (
 		$tortoise
 	&&
-		( $evanescent_hare = isset( $override[ $hare ] ) ? $override[ $hare ] : call_user_func_array( $callback, array_merge( array( $hare ), $callback_args ) ) )
+		( $evanescent_hare = $override[ $hare ] ?? call_user_func_array( $callback, array_merge( array( $hare ), $callback_args ) ) )
 	&&
-		( $hare = isset( $override[ $evanescent_hare ] ) ? $override[ $evanescent_hare ] : call_user_func_array( $callback, array_merge( array( $evanescent_hare ), $callback_args ) ) )
+		( $hare = $override[ $evanescent_hare ] ?? call_user_func_array( $callback, array_merge( array( $evanescent_hare ), $callback_args ) ) )
 	) {
 		if ( $_return_loop ) {
 			$return[ $tortoise ]        = true;
@@ -7137,7 +7137,7 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
 		}
 
 		// Increment tortoise by one step.
-		$tortoise = isset( $override[ $tortoise ] ) ? $override[ $tortoise ] : call_user_func_array( $callback, array_merge( array( $tortoise ), $callback_args ) );
+		$tortoise = $override[ $tortoise ] ?? call_user_func_array( $callback, array_merge( array( $tortoise ), $callback_args ) );
 	}
 
 	return false;
@@ -7173,7 +7173,7 @@ function wp_admin_headers() {
 	 * @since 4.9.0
 	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
 	 *
-	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy
 	 *
 	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
 	 */
@@ -7266,7 +7266,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 			if ( in_array( $call['function'], array( 'do_action', 'apply_filters', 'do_action_ref_array', 'apply_filters_ref_array' ), true ) ) {
 				$caller[] = "{$call['function']}('{$call['args'][0]}')";
 			} elseif ( in_array( $call['function'], array( 'include', 'include_once', 'require', 'require_once' ), true ) ) {
-				$filename = isset( $call['args'][0] ) ? $call['args'][0] : '';
+				$filename = $call['args'][0] ?? '';
 				$caller[] = $call['function'] . "('" . str_replace( $truncate_paths, '', wp_normalize_path( $filename ) ) . "')";
 			} else {
 				$caller[] = $call['function'];
@@ -7397,6 +7397,11 @@ function wp_is_stream( $path ) {
  * @return bool True if valid date, false if not valid date.
  */
 function wp_checkdate( $month, $day, $year, $source_date ) {
+	$checkdate = false;
+	if ( is_numeric( $month ) && is_numeric( $day ) && is_numeric( $year ) ) {
+		$checkdate = checkdate( (int) $month, (int) $day, (int) $year );
+	}
+
 	/**
 	 * Filters whether the given date is valid for the Gregorian calendar.
 	 *
@@ -7405,7 +7410,7 @@ function wp_checkdate( $month, $day, $year, $source_date ) {
 	 * @param bool   $checkdate   Whether the given date is valid.
 	 * @param string $source_date Date to check.
 	 */
-	return apply_filters( 'wp_checkdate', checkdate( $month, $day, $year ), $source_date );
+	return apply_filters( 'wp_checkdate', $checkdate, $source_date );
 }
 
 /**
@@ -7797,6 +7802,7 @@ function wp_post_preview_js() {
 			window.addEventListener( 'pagehide', function() { window.name = ''; } );
 		}
 	}());
+	//# sourceURL=<?php echo rawurlencode( __FUNCTION__ ); ?>
 	</script>
 	<?php
 	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );

@@ -49,6 +49,9 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
+
+		add_filter( 'oembed_discovery_links', '__return_empty_string' );
+		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ), 'Expected filtering oembed_discovery_links to empty string to result in no wp_oembed_add_discovery_links() output.' );
 	}
 
 	public function test_add_oembed_discovery_links_to_page() {
@@ -99,5 +102,40 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		);
 
 		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
+	}
+
+	/**
+	 * @ticket 64178
+	 * @covers ::wp_oembed_add_discovery_links
+	 */
+	public function test_wp_oembed_add_discovery_links_back_compat() {
+		$action       = 'wp_head';
+		$old_priority = 10;
+		$new_priority = 4;
+		$callback     = 'wp_oembed_add_discovery_links';
+
+		$this->assertTrue( has_action( $action, $callback, $old_priority ), 'Expected wp_oembed_add_discovery_links() to be hooked at wp_head with old priority.' );
+		$this->assertTrue( has_action( $action, $callback, $new_priority ), 'Expected wp_oembed_add_discovery_links() to be hooked at wp_head with new priority.' );
+
+		// Remove all wp_head actions and re-add just the one being tested.
+		remove_all_actions( $action );
+		add_action( $action, $callback, $old_priority );
+		add_action( $action, $callback, $new_priority );
+
+		$post_id = self::factory()->post->create();
+		$this->go_to( get_permalink( $post_id ) );
+		$this->assertQueryTrue( 'is_single', 'is_singular' );
+
+		$mock_action = new MockAction();
+		add_filter( 'oembed_discovery_links', array( $mock_action, 'filter' ) );
+
+		$wp_head_output = get_echo( 'wp_head' );
+		$this->assertSame( 1, $mock_action->get_call_count() );
+
+		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+
+		$this->assertSame( $expected, $wp_head_output, 'Expected wp_head output to be the same as the wp_oembed_add_discovery_links() output.' );
+		$this->assertSame( $expected, get_echo( $callback ), 'Expected wp_oembed_add_discovery_links() output to be the same as the wp_head output when called outside of wp_head.' );
 	}
 }

@@ -536,6 +536,7 @@ class WP_Comment_Query {
 	 * Used internally to get a list of comment IDs matching the query vars.
 	 *
 	 * @since 4.4.0
+	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -770,6 +771,15 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
+		// Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
+		if (
+			! in_array( 'all', $raw_types['IN'], true ) &&
+			! in_array( 'note', $raw_types['IN'], true ) &&
+			! in_array( 'note', $raw_types['NOT IN'], true )
+		) {
+			$raw_types['NOT IN'][] = 'note';
+		}
+
 		$comment_types = array();
 		foreach ( $raw_types as $operator => $_raw_types ) {
 			$_raw_types = array_unique( $_raw_types );
@@ -939,12 +949,12 @@ class WP_Comment_Query {
 		 */
 		$clauses = apply_filters_ref_array( 'comments_clauses', array( compact( $pieces ), &$this ) );
 
-		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
-		$where   = isset( $clauses['where'] ) ? $clauses['where'] : '';
-		$orderby = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-		$limits  = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
-		$groupby = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
+		$fields  = $clauses['fields'] ?? '';
+		$join    = $clauses['join'] ?? '';
+		$where   = $clauses['where'] ?? '';
+		$orderby = $clauses['orderby'] ?? '';
+		$limits  = $clauses['limits'] ?? '';
+		$groupby = $clauses['groupby'] ?? '';
 
 		$this->filtered_where_clause = $where;
 
