@@ -314,9 +314,9 @@ function get_the_block_template_html() {
 /**
  * Inserts the block template skip-link into the template HTML.
  *
- * When a `MAIN` element exists in the template, this function ensures the
- * element has an `id` attribute and inserts a link to that element at the
- * top of the first `DIV.wp-site-blocks` match.
+ * When a `MAIN` element exists in the template, this function will ensure
+ * that the element contains a `id` attribute and will insert a link to
+ * that main element at the top of the first `DIV.wp-site-blocks` match.
  *
  * Example:
  *
@@ -330,11 +330,11 @@ function get_the_block_template_html() {
  *     <main id="wp--skip-link--target">
  *         <nav>...</nav>
  *         <div class="wp-site-blocks">
- *             <a href="#wp--skip-link--target" id="wp-skip-link" class="skip-link screen-reader-text">
+ *             <a href="#wp--skip-link--target" id="wp-skip-link" class="...">
  *             <h2>...
  *
  * When the `MAIN` element already contains a non-empty `id` value it will be
- * used instead of the default skip-link ID.
+ * used instead of the default skip-link id.
  *
  * @access private
  * @since 7.0.0
@@ -343,25 +343,8 @@ function get_the_block_template_html() {
  * @return string Modified markup with skip link when applicable.
  */
 function _block_template_add_skip_link( string $template_html ): string {
-	// Ensure a skip-link target exists and has an ID.
-	$processor = new WP_HTML_Tag_Processor( $template_html );
-
-	// Only add skip-links to templates with a MAIN element.
-	if ( ! $processor->next_tag( 'MAIN' ) ) {
-		return $template_html;
-	}
-
-	$skip_link_target_id = $processor->get_attribute( 'id' );
-	if ( ! is_string( $skip_link_target_id ) || '' === $skip_link_target_id ) {
-		$skip_link_target_id = 'wp--skip-link--target';
-		$processor->set_attribute( 'id', $skip_link_target_id );
-	}
-
-	// Apply any updates from setting the main ID.
-	$template_html = $processor->get_updated_html();
-
 	// Anonymous subclass of WP_HTML_Tag_Processor to access protected bookmark spans.
-	$inserter = new class( $template_html ) extends WP_HTML_Tag_Processor {
+	$processor = new class( $template_html ) extends WP_HTML_Tag_Processor {
 		/**
 		 * Inserts text before the current token.
 		 *
@@ -373,20 +356,42 @@ function _block_template_add_skip_link( string $template_html ): string {
 		}
 	};
 
-	while ( $inserter->next_tag() ) {
-		if ( 'DIV' === $inserter->get_tag() && $inserter->has_class( 'wp-site-blocks' ) ) {
-			$skip_link = sprintf(
-				'<a class="skip-link screen-reader-text" id="wp-skip-link" href="%s">%s</a>',
-				esc_url( '#' . $skip_link_target_id ),
-				/* translators: Hidden accessibility text. */
-				esc_html__( 'Skip to content' )
-			);
-			$inserter->insert_before( $skip_link );
-			break;
-		}
+	// Find and bookmark the first DIV.wp-site-blocks.
+	if (
+		! $processor->next_tag(
+			array(
+				'tag_name'   => 'DIV',
+				'class_name' => 'wp-site-blocks',
+			)
+		)
+	) {
+		return $template_html;
+	}
+	$processor->set_bookmark( 'skip_link_insertion_point' );
+
+	// Ensure the MAIN element has an ID.
+	if ( ! $processor->next_tag( 'MAIN' ) ) {
+		return $template_html;
 	}
 
-	return $inserter->get_updated_html();
+	$skip_link_target_id = $processor->get_attribute( 'id' );
+	if ( ! is_string( $skip_link_target_id ) || '' === $skip_link_target_id ) {
+		$skip_link_target_id = 'wp--skip-link--target';
+		$processor->set_attribute( 'id', $skip_link_target_id );
+	}
+
+	// Seek back to the bookmarked insertion point.
+	$processor->seek( 'skip_link_insertion_point' );
+
+	$skip_link = sprintf(
+		'<a class="skip-link screen-reader-text" id="wp-skip-link" href="%s">%s</a>',
+		esc_url( '#' . $skip_link_target_id ),
+		/* translators: Hidden accessibility text. */
+		esc_html__( 'Skip to content' )
+	);
+	$processor->insert_before( $skip_link );
+
+	return $processor->get_updated_html();
 }
 
 /**
