@@ -4023,53 +4023,116 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Escape JavaScript and JSON script tag contents.
 	 *
-	 * Ensure that script tag contents cannot modifying the HTML structure and
-	 * is contained withing the intended SCRIPT tag. This comment describes
-	 * JavaScript, but the same behavior is suitable for escaping JSON.
+	 * Ensure that the script contents cannot modify the HTML structure or break out
+	 * of its containing SCRIPT element. JavaScript and JSON may both be escaped with
+	 * the same rules, even though there are additional escaping measures available
+	 * to JavaScript source code which aren’t applicable to serialized JSON data.
 	 *
-	 * JavaScript can be safely escaped with a few exceptions. This is achieved by
-	 * replacing dangerous sequences like "<script" and "</script" with a form
-	 * using a Unicode escape sequence "<\u0073cript>" and "</\u0073cript>".
+	 * A simple method safely escapes all content except for a few extremely rare and
+	 * unlikely exceptions: prevent the appearance of `<script` and `</script` within
+	 * the contents by replacing the first letter of the tag name with a Unicode escape.
 	 *
-	 * This text may appear in the JavaScript in limited ways, all of which support
-	 * the use of Unicode escape sequences on the "s" character. The escaping is safe
-	 * to perform in all JavaScript and the modified JavaScript maintains identical
-	 * behavior with a few exceptions:
+	 * Example:
+	 *
+	 *     $plaintext = '<script>document.write( "A </script> closes a script." );</script>';
+	 *     $escaped   = '<script>document.write( "A </\u0073cript> closes a script." );</script>';
+	 *
+	 * This works because of how parsing changes after encountering an opening SCRIPT
+	 * tag. The actual parsing comprises a complicated state machine, the result of
+	 * legacy behaviors and diverse browser support. However, without these two strings
+	 * in the script contents, the machine collapses to a single state. A JavaScript engine
+	 * or JSON decoder will then decode the Unicode escape (`\u0073`) back into its original
+	 * plaintext value, but only after having been safely extracted from the HTML.
+	 *
+	 * While it may seem tempting to replace the `<` characters instead, doing so would
+	 * only work within certain parts of JavaScript: identifiers, strings, etc… This
+	 * would accidentally turn comparison operators into syntax errors!
+	 *
+	 * ### Exceptions
+	 *
+	 * This _should_ work everywhere, but there are some extreme exceptions.
 	 *
 	 *  - Comments.
-	 *  - Tagged templates like `String.raw()` that access “raw” strings.
+	 *  - Tagged templates, such as `String.raw()`, which provide access to “raw” strings.
 	 *  - The `source` property of a RegExp object.
 	 *
-	 * For example, this input JavaScript:
+	 * Each of these exceptions appear at the source code level, not at the semantic or
+	 * evaluation level. Normal JavaScript will remain semantically equivalent after escaping,
+	 * but any JavaScript which analyzes the raw source code will see potentially-different
+	 * values.
+	 *
+	 * #### Comments
+	 *
+	 * Comments are never unescaped because they aren’t parsed by the JavaScript engine.
+	 * When viewing the source in a browser’s developer tools, the comments will retain
+	 * their escaped text.
+	 *
+	 * Example:
 	 *
 	 *     // A comment: "</script>"
-	 *
-	 *     console.log( String.raw`</script>` );
-	 *
-	 *     const regex = /<script>/;
-	 *     console.log( regex.source );
-	 *
-	 * Is transformed to:
-	 *
+	 *         …becomes…
 	 *     // A comment: "</\u0073cript>"
 	 *
-	 *     console.log( String.raw`</\u0073cript>` );
+	 * #### Tagged templates.
 	 *
-	 *     const regex = /<\u0073cript>/;
-	 *     console.log( regex.source );
+	 * Tagged templates “enable the embedding of arbitrary string content, where escape
+	 * sequences may follow a different syntax.” For example, they can aid representing
+	 * a RegExp pattern or LaTex snippet within a JavaScript string, where the string
+	 * escape characters might get noisy and distracting.
 	 *
-	 * Note that the RegExp's matching behavior is equivalent, meaning that
-	 * `regex.test( '<script>' ) === true` in both the unescaped and
-	 * escaped versions.
+	 * Example:
 	 *
-	 * JavaScript that relies on behavior affected by this escaping must provide
-	 * safe script contents in order to avoid this escaping. For example, a raw string
-	 * may be split up to make its contents safe or avoided altogether:
+	 *     console.log( 'A \notin B' );           // Prints a newline because of the "\n".
+	 *     console.log( 'A \\notin B' );          // Prints "A \notin B".
+	 *     console.log( String.raw`A \notin B` ); // Prints "A \notin B".
+	 *
+	 * This means that if `<script` transforms into `<\u0073cript` _inside_ a raw string
+	 * or tagged template literal which relies on its `.raw` property, the output of the
+	 * code will be different after escaping.
+	 *
+	 * Example:
+	 *
+	 *     console.log( String.raw`</script>` );      // Prematurely closes the SCRIPT element.
+	 *     console.log( String.raw`</\u0073cript>` ); // Prints "</\u0073cript".
+	 *
+	 * #### RegExp sources.
+	 *
+	 * The RegExp object exposes its raw source in a similar way to how tagged templates and raw
+	 * strings do. Thankfully, because escape sequences are decoded when compiling the pattern,
+	 * escaped RegExp patterns will match the same way as the plaintext sequences would.
+	 *
+	 * Example:
+	 *
+	 *     true === /<script>/.test( '<script>' );
+	 *     true === /<\u0073cript>/.test( '<script>' );
+	 *
+	 * However, as with raw strings, any code which reads the source will see the escaped value
+	 * instead of the decoded one.
+	 *
+	 * Example:
+	 *
+	 *     console.log( /<script>/.source );      // Prints "<script>".
+	 *     console.log( /<\u0073cript>/.source ); // Prints "<\u0073cript>".
+	 *
+	 * #### Unsupported escaping.
+	 *
+	 * It is not possible to properly represent every possible JavaScript source file
+	 * inside a SCRIPT element. As with CSS stylesheets, SVG images, and MathML, the
+	 * only 100% reliable way to represent all possible inputs is to link to external
+	 * files of the given content-type.
+	 *
+	 * In some cases it’s possible to manually prevent escaping issues. These are not
+	 * automatically handled by this function because doing so would require a full
+	 * JavaScript tokenizer. Consider the following example listing various ways to
+	 * manually escape a closing script tag.
+	 *
+	 * Example:
 	 *
 	 *     console.log( String.raw`</script>` );                // !!UNSAFE!! Will be escaped.
 	 *     console.log( String.raw`</\u0073cript>` );           // "</\u0073cript>"
 	 *     console.log( String.raw`</scr` + String.raw`ipt>` ); // "</script>"
 	 *     console.log( String.raw`</${"script"}>` );           // "</script>"
+	 *     console.log( '</scr' + 'ipt>' );                     // "</script>"
 	 *     console.log( "\x3C/script>" );                       // "</script>"
 	 *     console.log( "<\/script>" );                         // "</script>"
 	 *
@@ -4077,33 +4140,35 @@ class WP_HTML_Tag_Processor {
 	 * of a SCRIPT tag and identifies the closing tag. It is useful to understand what text
 	 * is dangerous inside of a SCRIPT tag and why different approaches to escaping work.
 	 *
-	 *                              Open script
-	 *                                  │
-	 *                                  │
-	 *                                  ▼
-	 *               ╔═════════════════════════════════════════╗   <!--(…)>
-	 *               ║                                         ║   (all dashes)
-	 *               ║                 script                  ║ ───────────────┐
-	 *               ║                  data                   ║                │
-	 *   ┌────────── ║                                         ║ ◀──────────────┘
-	 *   │           ╚═════════════════════════════════════════╝
-	 *   │             │               ▲                    ▲
-	 *   │             │ <!--          │ -->                └─────┐
-	 *   │             ▼               │                          │
-	 *   │           ┌─────────────────────────────────────────┐  │
-	 *   │ </script† │                 escaped                 │  │
-	 *   │           └─────────────────────────────────────────┘  │
-	 *   │             │               ▲             │            │ -->
-	 *   │             │ </script†     │ </script†   │ <script†   │
-	 *   │             ▼               │             ▼            │
-	 *   │           ╔══════════════╗  │           ┌───────────┐  │
-	 *   │           ║ Close script ║  │           │  double   │  │
-	 *   └─────────▶ ║              ║  └────────── │  escaped  │ ─┘
-	 *               ╚══════════════╝              └───────────┘
+	 *                                 Open script
+	 *                                     │
+	 *                                     ▼
+	 *                  ╔═════════════════════════════════════════╗   <!--(…)>
+	 *                  ║                                         ║   (all dashes)
+	 *                  ║                 script                  ╟────────────────╮
+	 *                  ║                  data                   ║                │
+	 *      ╭───────────╢                                         ║ ◀──────────────╯
+	 *      │           ╚═════════════════════════════════════════╝
+	 *      │             │               ▲                    ▲
+	 *      │             │ <!--          │ -->                ╰─────┐
+	 *      │             ▼               │                          │
+	 *      │           ┌─────────────────────────────────────────┐  │
+	 *      │ </script¹ │                 escaped                 │  │
+	 *      │           └─┬─────────────────────────────┬─────────┘  │
+	 *      │             │               ▲             │            │ -->
+	 *      │             │ </script¹     │ </script¹   │ <script¹   │
+	 *      │             ▼               │             ▼            │
+	 *      │           ╔══════════════╗  │           ┌───────────┐  │
+	 *      │           ║ Close script ║  │           │  double   │  │
+	 *      ╰──────────▶║              ║  ╰───────────┤  escaped  ├──╯
+	 *                  ╚══════════════╝              └───────────┘
 	 *
-	 *        † = Case insensitive 'script' followed by one of ' \t\f\r\n/>'
+	 *           ¹ = Case insensitive 'script' followed by one of ' \t\f\r\n/>', known
+	 *               as “tag-name-terminating characters.” This sequence forms the start
+	 *               of what could be a SCRIPT opening or closing tag.
 	 *
 	 * @see https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
+	 * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#specifications
 	 * @see wp_html_api_script_element_escaping_diagram_source()
 	 *
 	 * @since 7.0.0
