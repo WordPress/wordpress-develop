@@ -70,7 +70,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 * @param array $instance An array of settings for this widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		$format = isset( $instance['format'] ) ? $instance['format'] : '';
+		$format = $instance['format'] ?? '';
 
 		if ( ! $format || ! in_array( $format, $this->formats, true ) ) {
 			$format = 'aside';
@@ -289,7 +289,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	public function form( $instance ) {
 		$title  = ! empty( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
 		$number = ! empty( $instance['number'] ) ? absint( $instance['number'] ) : 2;
-		$format = isset( $instance['format'] ) ? $instance['format'] : '';
+		$format = $instance['format'] ?? '';
 
 		if ( ! $format || ! in_array( $format, $this->formats, true ) ) {
 			$format = 'aside';
