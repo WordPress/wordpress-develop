@@ -4040,13 +4040,17 @@ class WP_HTML_Tag_Processor {
 	 * This works because of how parsing changes after encountering an opening SCRIPT
 	 * tag. The actual parsing comprises a complicated state machine, the result of
 	 * legacy behaviors and diverse browser support. However, without these two strings
-	 * in the script contents, the machine collapses to a single state. A JavaScript engine
-	 * or JSON decoder will then decode the Unicode escape (`\u0073`) back into its original
-	 * plaintext value, but only after having been safely extracted from the HTML.
+	 * in the script contents, two key things are ensured: `</script>` cannot appear to
+	 * prematurely close the tag, and the problematic double-escaped state becomes
+	 * unreachable. A JavaScript engine or JSON decoder will then decode the Unicode
+	 * escape (`\u0073`) back into its original plaintext value, but only after having
+	 * been safely extracted from the HTML.
 	 *
-	 * While it may seem tempting to replace the `<` characters instead, doing so would
-	 * only work within certain parts of JavaScript: identifiers, strings, etc… This
-	 * would accidentally turn comparison operators into syntax errors!
+	 * While it may seem tempting to replace the `<` character instead, but doing so
+	 * would break JavaScript syntax. The `<` character is used in comparison operators
+	 * and other JavaScript syntax, so replacing it would break valid JavaScript.j
+	 * By replacing only the `s` in `<script` and `</script`, we avoid modifying
+	 * any JavaScript syntax.
 	 *
 	 * ### Exceptions
 	 *
