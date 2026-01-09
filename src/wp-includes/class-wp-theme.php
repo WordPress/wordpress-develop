@@ -297,9 +297,13 @@ final class WP_Theme implements ArrayAccess {
 				$theme_root_template = $cache['theme_root_template'];
 			}
 		} elseif ( ! file_exists( $this->theme_root . '/' . $theme_file ) ) {
-			$this->headers['Name'] = $this->stylesheet;
+			$this->headers['Name']        = $this->stylesheet;
+			$this->template               = $this->stylesheet;
+			$this->block_theme            = false;
+			$this->block_template_folders = $this->default_template_folders;
+
 			if ( ! file_exists( $this->theme_root . '/' . $this->stylesheet ) ) {
-				$this->errors = new WP_Error(
+				$this->set_error(
 					'theme_not_found',
 					sprintf(
 						/* translators: %s: Theme directory name. */
@@ -308,60 +312,36 @@ final class WP_Theme implements ArrayAccess {
 					)
 				);
 			} else {
-				$this->errors = new WP_Error( 'theme_no_stylesheet', __( 'Stylesheet is missing.' ) );
+				$this->set_error( 'theme_no_stylesheet', __( 'Stylesheet is missing.' ) );
 			}
-			$this->template               = $this->stylesheet;
-			$this->block_theme            = false;
-			$this->block_template_folders = $this->default_template_folders;
-			$this->cache_add(
-				'theme',
-				array(
-					'block_template_folders' => $this->block_template_folders,
-					'block_theme'            => $this->block_theme,
-					'headers'                => $this->headers,
-					'errors'                 => $this->errors,
-					'stylesheet'             => $this->stylesheet,
-					'template'               => $this->template,
-				)
-			);
+
 			if ( ! file_exists( $this->theme_root ) ) { // Don't cache this one.
 				$this->errors->add( 'theme_root_missing', __( '<strong>Error:</strong> The themes directory is either empty or does not exist. Please check your installation.' ) );
 			}
 			return;
 		} elseif ( ! is_readable( $this->theme_root . '/' . $theme_file ) ) {
 			$this->headers['Name']        = $this->stylesheet;
-			$this->errors                 = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
 			$this->template               = $this->stylesheet;
 			$this->block_theme            = false;
 			$this->block_template_folders = $this->default_template_folders;
-			$this->cache_add(
-				'theme',
-				array(
-					'block_template_folders' => $this->block_template_folders,
-					'block_theme'            => $this->block_theme,
-					'headers'                => $this->headers,
-					'errors'                 => $this->errors,
-					'stylesheet'             => $this->stylesheet,
-					'template'               => $this->template,
-				)
-			);
+			$this->set_error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
 			return;
 		} else {
 			$this->headers = get_file_data( $this->theme_root . '/' . $theme_file, self::$file_headers, 'theme' );
+
 			/*
 			 * Default themes always trump their pretenders.
 			 * Properly identify default themes that are inside a directory within wp-content/themes.
 			 */
 			$default_theme_slug = array_search( $this->headers['Name'], self::$default_themes, true );
-			if ( $default_theme_slug ) {
-				if ( basename( $this->stylesheet ) !== $default_theme_slug ) {
-					$this->headers['Name'] .= '/' . $this->stylesheet;
-				}
+			if ( $default_theme_slug && basename( $this->stylesheet ) !== $default_theme_slug ) {
+				$this->headers['Name'] .= '/' . $this->stylesheet;
 			}
 		}
 
+		// Check for circular reference.
 		if ( ! $this->template && $this->stylesheet === $this->headers['Template'] ) {
-			$this->errors = new WP_Error(
+			$this->set_error(
 				'theme_child_invalid',
 				sprintf(
 					/* translators: %s: Template. */
@@ -369,25 +349,15 @@ final class WP_Theme implements ArrayAccess {
 					'<code>Template</code>'
 				)
 			);
-			$this->cache_add(
-				'theme',
-				array(
-					'block_template_folders' => $this->get_block_template_folders(),
-					'block_theme'            => $this->is_block_theme(),
-					'headers'                => $this->headers,
-					'errors'                 => $this->errors,
-					'stylesheet'             => $this->stylesheet,
-				)
-			);
-
 			return;
 		}
 
-		// (If template is set from cache [and there are no errors], we know it's good.)
+		// If template is set from cache [and there are no errors], we know it's good.
 		if ( ! $this->template ) {
 			$this->template = $this->headers['Template'];
 		}
 
+		// Handle missing template.
 		if ( ! $this->template ) {
 			$this->template = $this->stylesheet;
 			$theme_path     = $this->theme_root . '/' . $this->stylesheet;
@@ -402,18 +372,7 @@ final class WP_Theme implements ArrayAccess {
 					'<code>Template</code>',
 					'<code>style.css</code>'
 				);
-				$this->errors = new WP_Error( 'theme_no_index', $error_message );
-				$this->cache_add(
-					'theme',
-					array(
-						'block_template_folders' => $this->get_block_template_folders(),
-						'block_theme'            => $this->block_theme,
-						'headers'                => $this->headers,
-						'errors'                 => $this->errors,
-						'stylesheet'             => $this->stylesheet,
-						'template'               => $this->template,
-					)
-				);
+				$this->set_error( 'theme_no_index', $error_message );
 				return;
 			}
 		}
@@ -422,13 +381,15 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! is_array( $cache )
 			&& $this->template !== $this->stylesheet
 			&& ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' )
+			&& ! $this->is_block_theme()
 		) {
 			/*
 			 * If we're in a directory of themes inside /themes, look for the parent nearby.
 			 * wp-content/themes/directory-of-themes/*
 			 */
-			$parent_dir  = dirname( $this->stylesheet );
-			$directories = search_theme_directories();
+			$parent_dir          = dirname( $this->stylesheet );
+			$directories         = search_theme_directories();
+			$theme_root_template = null;
 
 			if ( '.' !== $parent_dir
 				&& file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' )
@@ -442,23 +403,12 @@ final class WP_Theme implements ArrayAccess {
 				$theme_root_template = $directories[ $this->template ]['theme_root'];
 			} else {
 				// Parent theme is missing.
-				$this->errors = new WP_Error(
+				$this->set_error(
 					'theme_no_parent',
 					sprintf(
 						/* translators: %s: Theme directory name. */
 						__( 'The parent theme is missing. Please install the "%s" parent theme.' ),
 						esc_html( $this->template )
-					)
-				);
-				$this->cache_add(
-					'theme',
-					array(
-						'block_template_folders' => $this->get_block_template_folders(),
-						'block_theme'            => $this->is_block_theme(),
-						'headers'                => $this->headers,
-						'errors'                 => $this->errors,
-						'stylesheet'             => $this->stylesheet,
-						'template'               => $this->template,
 					)
 				);
 				$this->parent = new WP_Theme( $this->template, $this->theme_root, $this );
@@ -471,7 +421,7 @@ final class WP_Theme implements ArrayAccess {
 			// If we are a parent, then there is a problem. Only two generations allowed! Cancel things out.
 			if ( $_child instanceof WP_Theme && $_child->template === $this->stylesheet ) {
 				$_child->parent = null;
-				$_child->errors = new WP_Error(
+				$_child->set_error(
 					'theme_parent_invalid',
 					sprintf(
 						/* translators: %s: Theme directory name. */
@@ -479,20 +429,11 @@ final class WP_Theme implements ArrayAccess {
 						esc_html( $_child->template )
 					)
 				);
-				$_child->cache_add(
-					'theme',
-					array(
-						'block_template_folders' => $_child->get_block_template_folders(),
-						'block_theme'            => $_child->is_block_theme(),
-						'headers'                => $_child->headers,
-						'errors'                 => $_child->errors,
-						'stylesheet'             => $_child->stylesheet,
-						'template'               => $_child->template,
-					)
-				);
+
+				// Check for circular reference
 				// The two themes actually reference each other with the Template header.
 				if ( $_child->stylesheet === $this->template ) {
-					$this->errors = new WP_Error(
+					$this->set_error(
 						'theme_parent_invalid',
 						sprintf(
 							/* translators: %s: Theme directory name. */
@@ -500,31 +441,23 @@ final class WP_Theme implements ArrayAccess {
 							esc_html( $this->template )
 						)
 					);
-					$this->cache_add(
-						'theme',
-						array(
-							'block_template_folders' => $this->get_block_template_folders(),
-							'block_theme'            => $this->is_block_theme(),
-							'headers'                => $this->headers,
-							'errors'                 => $this->errors,
-							'stylesheet'             => $this->stylesheet,
-							'template'               => $this->template,
-						)
-					);
 				}
 				return;
 			}
+
 			// Set the parent. Pass the current instance so we can do the checks above and assess errors.
-			$this->parent = new WP_Theme( $this->template, isset( $theme_root_template ) ? $theme_root_template : $this->theme_root, $this );
+			$parent_theme_root = isset( $theme_root_template ) ? $theme_root_template : $this->theme_root;
+			$this->parent      = new WP_Theme( $this->template, $parent_theme_root, $this );
 		}
 
+		// Check if theme is paused.
 		if ( wp_paused_themes()->get( $this->stylesheet ) && ( ! is_wp_error( $this->errors ) || ! isset( $this->errors->errors['theme_paused'] ) ) ) {
 			$this->errors = new WP_Error( 'theme_paused', __( 'This theme failed to load properly and was paused within the admin backend.' ) );
 		}
 
 		// We're good. If we didn't retrieve from cache, set it.
 		if ( ! is_array( $cache ) ) {
-			$cache = array(
+			$cache_data = array(
 				'block_theme'            => $this->is_block_theme(),
 				'block_template_folders' => $this->get_block_template_folders(),
 				'headers'                => $this->headers,
@@ -534,10 +467,50 @@ final class WP_Theme implements ArrayAccess {
 			);
 			// If the parent theme is in another root, we'll want to cache this. Avoids an entire branch of filesystem calls above.
 			if ( isset( $theme_root_template ) ) {
-				$cache['theme_root_template'] = $theme_root_template;
+				$cache_data['theme_root_template'] = $theme_root_template;
 			}
-			$this->cache_add( 'theme', $cache );
+
+			$this->cache_add( 'theme', $cache_data );
 		}
+	}
+
+	/**
+	 * Cache the theme data.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $additional_data Additional data to cache.
+	 * @return void
+	 */
+	private function cache_theme_data( $additional_data = array() ) {
+		$cache_data = array(
+			'block_template_folders' => $this->get_block_template_folders(),
+			'block_theme'            => $this->is_block_theme(),
+			'headers'                => $this->headers,
+			'errors'                 => $this->errors,
+			'stylesheet'             => $this->stylesheet,
+			'template'               => $this->template,
+		);
+
+		if ( ! empty( $additional_data ) ) {
+			$cache_data = array_merge( $cache_data, $additional_data );
+		}
+
+		$this->cache_add( 'theme', $cache_data );
+	}
+
+	/**
+	 * Set an error for the theme.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $code The error code.
+	 * @param string $message The error message.
+	 * @return void
+	 */
+	private function set_error( $code, $message ) {
+		$this->errors = new WP_Error( $code, $message );
+		$this->cache_theme_data();
 	}
 
 	/**
