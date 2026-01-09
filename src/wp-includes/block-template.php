@@ -315,7 +315,7 @@ function get_the_block_template_html() {
  * Inserts the block template skip-link into the template HTML.
  *
  * When a `MAIN` element exists in the template, this function will ensure
- * that the element contains a `id` attribute, and it will insert a link to
+ * that the element contains an `id` attribute, and it will insert a link to
  * that `MAIN` element before the first `DIV.wp-site-blocks` element, which
  * is the wrapper for all blocks in a block template as constructed by
  * {@see get_the_block_template_html()}.
