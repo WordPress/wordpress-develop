@@ -2297,6 +2297,10 @@ function _post_states( $post, $display = true ) {
 function get_post_states( $post ) {
 	$post_states = array();
 
+	if ( ! $post instanceof WP_Post ) {
+		return $post_states;
+	}
+
 	if ( isset( $_REQUEST['post_status'] ) ) {
 		$post_status = $_REQUEST['post_status'];
 	} else {
