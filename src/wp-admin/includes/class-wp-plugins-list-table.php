@@ -1568,14 +1568,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		$requires = null;
-		
 		if ( ! empty( $dependency_names ) ) {
 
 			$links = array();
 
 			foreach ( $dependency_names as $slug => $name ) {
 				$link = $this->get_dependency_view_details_link( $name, $slug );
-		
 				$dependency_file = WP_Plugin_Dependencies::get_dependency_filepath( $slug );
 
 				$is_installed = false;
