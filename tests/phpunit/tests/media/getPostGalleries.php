@@ -222,6 +222,46 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the function only returns up to the requested count of galleries.
+	 *
+	 * @dataProvider data_unique_gallery_type_content
+	 *
+	 * @param $gallery
+	 */
+	public function tests_returns_requested_max_number_of_galleries( $gallery ) {
+		// @todo Why is this necessary?
+
+		// add_shortcode( 'gallery', 'gallery_shortcode' );
+
+		$post_id = self::factory()->post->create(
+			array( 'post_content' => str_repeat( "{$gallery}\n", 5 ) )
+		);
+
+		// Test negative counts, the zero count, and a max count above the total contained galleries.
+		foreach ( range( -5, 10 ) as $max_count ) {
+			$this->assertCount(
+				max( 0, min( 5, $max_count ) ),
+				get_post_galleries( $post_id, false, $max_count ),
+				'Failed to fetch up to the max requested number of galleries.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_unique_gallery_type_content() {
+		return array(
+			'Shortcode with ids'      => array( '[gallery ids="11,12,13"]' ),
+			'Shortcode without ids'   => array( '[gallery]<figure><img src="image-15.jpg" data-id="15"></figure>[/gallery]' ),
+			'Block with ids'          => array( '<!-- wp:gallery {"ids":[14, 15, 16]} /-->' ),
+			'Block with inner blocks' => array( '<!-- wp:gallery --><!-- wp:image {"id":11} --><img src="image-11.jpg" data-id="11"><!-- /wp:image --><!-- /wp:gallery -->' ),
+		);
+	}
+
+	/**
 	 * Tests that no srcs are returned for a gallery block v2
 	 * in a post with no attached images.
 	 *

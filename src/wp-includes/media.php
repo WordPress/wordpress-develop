@@ -5268,6 +5268,10 @@ function get_post_galleries( $post, $html = true, $max_galleries = PHP_INT_MAX )
 	$galleries = array();
 	if ( preg_match_all( '/' . get_shortcode_regex() . '/s', $post->post_content, $matches, PREG_SET_ORDER ) ) {
 		foreach ( $matches as $shortcode ) {
+			if ( count( $galleries ) >= $max_galleries ) {
+				return $galleries;
+			}
+
 			if ( 'gallery' === $shortcode[2] ) {
 				$sources = array();
 
@@ -5298,6 +5302,10 @@ function get_post_galleries( $post, $html = true, $max_galleries = PHP_INT_MAX )
 				}
 			}
 		}
+	}
+
+	if ( count( $galleries ) > $max_galleries ) {
+		return array_slice( $galleries, 0, $max_galleries );
 	}
 
 	$processor = new WP_Block_Processor( $post->post_content );
