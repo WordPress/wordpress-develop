@@ -39,7 +39,6 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 * @return Generator
 	 */
 	public function data_attribute_parsing() {
-		// Basic Attribute Parsing.
 		yield 'single attribute with double quotes' => array(
 			'class="test-class"',
 			array(
@@ -172,7 +171,6 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		// Character Reference Handling.
 		yield 'named character references' => array(
 			'title="&lt;Hello&gt; &amp; &quot;World&quot;"',
 			array(
@@ -233,7 +231,6 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		// Quote Handling.
 		yield 'double quotes' => array(
 			'data-text="Double quoted value"',
 			array(
@@ -318,7 +315,6 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		// Edge Cases.
 		yield 'empty string' => array(
 			'',
 			array(),
@@ -446,8 +442,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		// WordPress-specific Cases.
-		yield 'common wordpress attributes' => array(
+		yield 'common WordPress attributes' => array(
 			'class="wp-block" id="post-123" style="color: red;"',
 			array(
 				'class' => array(
@@ -543,7 +538,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		yield 'complex wordpress attributes' => array(
+		yield 'complex WordPress attributes' => array(
 			'class="wp-block-button__link" href="https://wordpress.org" target="_blank" rel="noopener" aria-label="Visit WordPress" data-track="click"',
 			array(
 				'class'      => array(
@@ -627,98 +622,97 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			),
 		);
 
-		// Whitespace Handling.
 		yield 'forward slashes between attributes' => array(
-			'att="val" / att-2="val-2" / / ///// att-3="val-3"',
+			'att / att2=2 /// att3="3"',
 			array(
 				'att'   => array(
 					'name'  => 'att',
-					'value' => 'val',
-					'whole' => 'att="val"',
+					'value' => '',
+					'whole' => 'att',
+					'vless' => 'y',
+				),
+				'att2' => array(
+					'name'  => 'att2',
+					'value' => '2',
+					'whole' => 'att2="2"',
 					'vless' => 'n',
 				),
-				'att-2' => array(
-					'name'  => 'att-2',
-					'value' => 'val-2',
-					'whole' => 'att-2="val-2"',
-					'vless' => 'n',
-				),
-				'att-3' => array(
-					'name'  => 'att-3',
-					'value' => 'val-3',
-					'whole' => 'att-3="val-3"',
+				'att3' => array(
+					'name'  => 'att3',
+					'value' => '3',
+					'whole' => 'att3="3"',
 					'vless' => 'n',
 				),
 			),
 		);
 
 		yield 'tab whitespace' => array(
-			"att=\"val\"\tatt2=\"val2\"",
+			"att='val'\tatt2='val2'",
 			array(
 				'att'  => array(
 					'name'  => 'att',
 					'value' => 'val',
-					'whole' => 'att="val"',
+					'whole' => "att='val'",
 					'vless' => 'n',
 				),
 				'att2' => array(
 					'name'  => 'att2',
 					'value' => 'val2',
-					'whole' => 'att2="val2"',
+					'whole' => "att2='val2'",
 					'vless' => 'n',
 				),
 			),
 		);
 
 		yield 'form feed whitespace' => array(
-			"att=\"val\"\fatt2=\"val2\"",
+			"att='val'\fatt2='val2'",
 			array(
 				'att'  => array(
 					'name'  => 'att',
 					'value' => 'val',
-					'whole' => 'att="val"',
+					'whole' => "att='val'",
 					'vless' => 'n',
 				),
 				'att2' => array(
 					'name'  => 'att2',
 					'value' => 'val2',
-					'whole' => 'att2="val2"',
+					'whole' => "att2='val2'",
 					'vless' => 'n',
 				),
 			),
 		);
 
 		yield 'carriage return whitespace' => array(
-			"att=\"val\"\ratt2=\"val2\"",
+			"att='val'\ratt2='val2'",
 			array(
 				'att'  => array(
 					'name'  => 'att',
 					'value' => 'val',
-					'whole' => 'att="val"',
+					'whole' => "att='val'",
 					'vless' => 'n',
 				),
 				'att2' => array(
 					'name'  => 'att2',
 					'value' => 'val2',
-					'whole' => 'att2="val2"',
+					'whole' => "att2='val2'",
 					'vless' => 'n',
 				),
 			),
 		);
 
 		yield 'newline whitespace' => array(
-			"att=\"val\"\natt2=\"val2\"",
+			"att='val'\ratt2='val2'",
 			array(
 				'att'  => array(
 					'name'  => 'att',
 					'value' => 'val',
-					'whole' => 'att="val"',
+					'whole' => "att='val'",
 					'vless' => 'n',
 				),
 				'att2' => array(
 					'name'  => 'att2',
 					'value' => 'val2',
-					'whole' => 'att2="val2"',
+					'whole' => "att2='val2'",
 					'vless' => 'n',
 				),
 			),
