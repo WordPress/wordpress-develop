@@ -689,7 +689,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 					return new WP_Error(
 						'rest_custom_css_illegal_markup',
 						sprintf(
-									/* translators: %s is the CSS that was provided. */
+							/* translators: %s is the CSS that was provided. */
 							__( 'The CSS must not end in "%s".' ),
 							esc_html( substr( $css, $at ) )
 						),
@@ -701,7 +701,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 					return new WP_Error(
 						'rest_custom_css_illegal_markup',
 						sprintf(
-									/* translators: %s is the CSS that was provided. */
+							/* translators: %s is the CSS that was provided. */
 							__( 'The CSS must not contain "%s".' ),
 							esc_html( substr( $css, $at, 8 ) )
 						),
