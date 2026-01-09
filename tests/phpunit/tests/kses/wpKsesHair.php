@@ -3,7 +3,6 @@
  * Test wp_kses_hair() function.
  *
  * @group kses
- * @covers wp_kses_hair
  */
 class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 
@@ -27,7 +26,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 *
 	 * @ticket 63724
 	 * @dataProvider data_attribute_parsing
-	 * @covers ::wp_kses_hair
+	 * @covers wp_kses_hair
 	 */
 	public function test_attribute_parsing( $input, $expected ) {
 		$result = wp_kses_hair( $input, $this->allowed_protocols );
@@ -842,7 +841,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 *
 	 * @ticket 63724
 	 * @dataProvider data_protocol_filtering
-	 * @covers ::wp_kses_hair
+	 * @covers wp_kses_hair
 	 */
 	public function test_protocol_filtering( $input, $expected ) {
 		$result = wp_kses_hair( $input, $this->allowed_protocols );
@@ -980,7 +979,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 * Test wp_kses_hair() with custom allowed protocols.
 	 *
 	 * @ticket 63724
-	 * @covers ::wp_kses_hair
+	 * @covers wp_kses_hair
 	 */
 	public function test_custom_allowed_protocols() {
 		$custom_protocols = array( 'http', 'https', 'ftp' );
