@@ -28,7 +28,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 * @dataProvider data_attribute_parsing
 	 * @covers wp_kses_hair
 	 */
-	public function test_attribute_parsing( $input, $expected ) {
+	public function test_attribute_parsing( string $input, array $expected ) {
 		$result = wp_kses_hair( $input, $this->allowed_protocols );
 		$this->assertSame( $expected, $result );
 	}
@@ -843,7 +843,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 * @dataProvider data_protocol_filtering
 	 * @covers wp_kses_hair
 	 */
-	public function test_protocol_filtering( $input, $expected ) {
+	public function test_protocol_filtering( string $input, array $expected ) {
 		$result = wp_kses_hair( $input, $this->allowed_protocols );
 		$this->assertSame( $expected, $result );
 	}
