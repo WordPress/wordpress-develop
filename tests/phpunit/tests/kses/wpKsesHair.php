@@ -982,15 +982,15 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 * @covers wp_kses_hair
 	 */
 	public function test_custom_allowed_protocols() {
-		$custom_protocols = array( 'http', 'https', 'ftp' );
-		$attr             = 'href="ftp://ftp.example.com"';
+		$custom_protocols = array( 'gopher' );
+		$attr             = 'href="gopher://gopher.example.org"';
 		$result           = wp_kses_hair( $attr, $custom_protocols );
 
 		$expected = array(
 			'href' => array(
 				'name'  => 'href',
-				'value' => 'ftp://ftp.example.com',
-				'whole' => 'href="ftp://ftp.example.com"',
+				'value' => 'gopher://gopher.example.org',
+				'whole' => 'href="gopher://gopher.example.org"',
 				'vless' => 'n',
 			),
 		);
