@@ -350,7 +350,6 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function get_dependency_data( $slug ) {
 		$dependency_api_data = self::get_dependency_api_data();
-
 		return $dependency_api_data[ $slug ] ?? false;
 	}
 

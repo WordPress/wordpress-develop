@@ -4062,7 +4062,6 @@ class WP_Query {
 	 */
 	public function get_queried_object_id() {
 		$this->get_queried_object();
-
 		return $this->queried_object_id ?? 0;
 	}
 

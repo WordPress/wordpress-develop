@@ -344,7 +344,6 @@ class WP_List_Table {
 		if ( 'page' === $key ) {
 			return $this->get_pagenum();
 		}
-
 		return $this->_pagination_args[ $key ] ?? 0;
 	}
 
