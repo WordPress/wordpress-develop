@@ -1412,4 +1412,45 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'primary', $new_sidebars );
 		$this->assertSame( array(), $new_sidebars['primary'], 'Primary sidebar should be an empty array after normalization.' );
 	}
+
+	/**
+	 * Tests that is_active_widget() does not generate a PHP warning when
+	 * a widget ID exists in sidebars_widgets but is not in $wp_registered_widgets,
+	 * and the function is called with id_base and widget_id parameters.
+	 *
+	 * This can happen when a widget is saved to a sidebar but the widget class
+	 * has not yet been registered (e.g., during early plugin/theme loading).
+	 *
+	 * @ticket 57518
+	 * @covers ::is_active_widget
+	 */
+	public function test_is_active_widget_with_unregistered_widget_and_id_base_match() {
+		global $wp_registered_widgets;
+
+		// Set up a sidebar with a widget that is NOT registered in $wp_registered_widgets.
+		update_option(
+			'sidebars_widgets',
+			array(
+				'wp_inactive_widgets' => array(),
+				'sidebar-1'           => array( 'search-2' ),
+				'array_version'       => 3,
+			)
+		);
+
+		// Ensure the widget is NOT in $wp_registered_widgets.
+		unset( $wp_registered_widgets['search-2'] );
+
+		/*
+		 * Call is_active_widget() with id_base and widget_id parameters.
+		 * This should NOT generate a PHP warning about accessing array offset on null.
+		 *
+		 * The bug occurs because when matching by id_base, the code checks
+		 * _get_widget_id_base( $widget ) === $id_base without verifying
+		 * $wp_registered_widgets[ $widget ] exists, then tries to access
+		 * $wp_registered_widgets[ $widget ]['id'] on the next line.
+		 */
+		$result = is_active_widget( false, 'search-2', 'search', true );
+
+		$this->assertFalse( $result, 'The widget is not registered, so the function should return false.' );
+	}
 }
