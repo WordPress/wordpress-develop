@@ -468,7 +468,7 @@ class Featured_Content {
 		$options = array_intersect_key( $options, $defaults );
 
 		if ( 'all' !== $key ) {
-			return $options[ $key ] ?? false;
+			return isset( $options[ $key ] ) ? $options[ $key ] : false;
 		}
 
 		return $options;
