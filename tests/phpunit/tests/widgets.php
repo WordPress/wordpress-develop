@@ -1451,7 +1451,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		 */
 		$result = is_active_widget( false, 'search-2', 'search', true );
 
-		// The widget is not registered, so the function should return false.
-		$this->assertFalse( $result );
+		$this->assertFalse( $result, 'The widget is not registered, so the function should return false.' );
 	}
 }
