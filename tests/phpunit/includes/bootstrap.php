@@ -394,3 +394,6 @@ class WP_PHPUnit_Util_Getopt {
 	}
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );
+
+// Added test isolation for block editor changes
+add_filter( 'block_editor_test_isolation', '__return_true' );
