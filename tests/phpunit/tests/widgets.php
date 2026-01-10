@@ -1421,7 +1421,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * This can happen when a widget is saved to a sidebar but the widget class
 	 * has not yet been registered (e.g., during early plugin/theme loading).
 	 *
-	 * @ticket 58932
+	 * @ticket 57518
 	 * @covers ::is_active_widget
 	 */
 	public function test_is_active_widget_with_unregistered_widget_and_id_base_match() {
