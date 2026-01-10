@@ -508,7 +508,6 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	 */
 	public function test_get_post_states_with_null_returns_empty_array() {
 		$result = get_post_states( null );
-		$this->assertIsArray( $result, 'get_post_states() should return an array when passed null.' );
-		$this->assertEmpty( $result, 'get_post_states() should return an empty array when passed null.' );
+		$this->assertSame( array(), $result, 'get_post_states() should return an empty array when WP_Post is not supplied.' );
 	}
 }
