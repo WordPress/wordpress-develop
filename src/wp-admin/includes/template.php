@@ -2296,12 +2296,11 @@ function _post_states( $post, $display = true ) {
  */
 function get_post_states( $post ) {
 	$post_states = array();
-
-	if ( isset( $_REQUEST['post_status'] ) ) {
-		$post_status = $_REQUEST['post_status'];
-	} else {
-		$post_status = '';
+	if ( ! $post instanceof WP_Post ) {
+		return $post_states;
 	}
+
+	$post_status = $_REQUEST['post_status'] ?? '';
 
 	if ( ! empty( $post->post_password ) ) {
 		$post_states['protected'] = _x( 'Password protected', 'post status' );
