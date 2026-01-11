@@ -157,11 +157,8 @@ if ( ! empty( $_GET['action'] ) && in_array( $_GET['action'], $core_actions_get,
 	add_action( 'wp_ajax_' . $_GET['action'], 'wp_ajax_' . str_replace( '-', '_', $_GET['action'] ), 1 );
 }
 
-// SECURITY FIX: Weston Ruter approved isset() validation
-$action = isset( $_POST['action'] ) ? $_POST['action'] : '';
-
-if ( ! empty( $action ) && in_array( $action, $core_actions_post, true ) ) {
-	add_action( 'wp_ajax_' . $action, 'wp_ajax_' . str_replace( '-', '_', $action ), 1 );
+if ( ! empty( $_POST['action'] ) && in_array( $_POST['action'], $core_actions_post, true ) ) {
+	add_action( 'wp_ajax_' . $_POST['action'], 'wp_ajax_' . str_replace( '-', '_', $_POST['action'] ), 1 );
 }
 
 add_action( 'wp_ajax_nopriv_generate-password', 'wp_ajax_nopriv_generate_password' );
@@ -170,6 +167,13 @@ add_action( 'wp_ajax_nopriv_heartbeat', 'wp_ajax_nopriv_heartbeat', 1 );
 
 // Register Plugin Dependencies Ajax calls.
 add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies', 'check_plugin_dependencies_during_ajax' ) );
+
+/**
+ * The requested AJAX action name.
+ *
+ * @since 6.6.0
+ */
+$action = isset( $_REQUEST['action'] ) ? wp_unslash( $_REQUEST['action'] ) : '';
 
 if ( is_user_logged_in() ) {
 	// If no action is registered, return a Bad Request response.
