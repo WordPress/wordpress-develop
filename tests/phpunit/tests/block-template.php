@@ -323,13 +323,18 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$_wp_current_template_id      = get_stylesheet() . '//index';
 		$_wp_current_template_content = '<main>Content</main>';
 
-		$output = get_the_block_template_html();
-
-		$this->assertStringContainsString(
-			'<a class="skip-link screen-reader-text" id="wp-skip-link"',
-			$output,
+		$processor = new WP_HTML_Tag_Processor( get_the_block_template_html() );
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'   => 'A',
+					'class_name' => 'skip-link',
+				)
+			),
 			'Expected skip link was not added to the block template HTML.'
 		);
+		$this->assertSame( 'wp-skip-link', $processor->get_attribute( 'id' ), 'Unexpected ID on skip link.' );
+		$this->assertTrue( $processor->has_class( 'screen-reader-text' ), 'Expected "screen-reader-text" class on skip link.' );
 	}
 
 	/**
@@ -346,11 +351,14 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 		remove_action( 'wp_footer', 'the_block_template_skip_link' );
 
-		$output = get_the_block_template_html();
-
-		$this->assertStringNotContainsString(
-			'<a class="skip-link screen-reader-text" id="wp-skip-link"',
-			$output,
+		$processor = new WP_HTML_Tag_Processor( get_the_block_template_html() );
+		$this->assertFalse(
+			$processor->next_tag(
+				array(
+					'tag_name'   => 'A',
+					'class_name' => 'skip-link',
+				)
+			),
 			'Unexpected skip link was added to the block template HTML when the action was unhooked.'
 		);
 	}
