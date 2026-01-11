@@ -344,16 +344,9 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$_wp_current_template_id      = get_stylesheet() . '//index';
 		$_wp_current_template_content = '<main>Content</main>';
 
-		$was_hooked = (bool) has_action( 'wp_footer', 'the_block_template_skip_link' );
 		remove_action( 'wp_footer', 'the_block_template_skip_link' );
 
-		try {
-			$output = get_the_block_template_html();
-		} finally {
-			if ( $was_hooked ) {
-				add_action( 'wp_footer', 'the_block_template_skip_link' );
-			}
-		}
+		$output = get_the_block_template_html();
 
 		$this->assertStringNotContainsString(
 			'<a class="skip-link screen-reader-text" id="wp-skip-link"',
