@@ -600,7 +600,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
-	 * @since 6.8.0 Added support for ':focus-visible'.
+	 * @since 7.0.0 Added support for ':focus-visible'.
 	 * @since 6.9.0 Added `textInput` and `select` elements.
 	 * @var array
 	 */
@@ -1091,7 +1091,7 @@ class WP_Theme_JSON {
 	 * @return string The new selector.
 	 */
 	protected static function append_to_selector( $selector, $to_append ) {
-		if ( ! str_contains( $selector, ',' ) ) {
+		if ( false === strpos( $selector, ',' ) ) {
 			return $selector . $to_append;
 		}
 		$new_selectors = array();
@@ -1116,7 +1116,7 @@ class WP_Theme_JSON {
 	 * @return string The new selector.
 	 */
 	protected static function prepend_to_selector( $selector, $to_prepend ) {
-		if ( ! str_contains( $selector, ',' ) ) {
+		if ( false === strpos( $selector, ',' ) ) {
 			return $to_prepend . $selector;
 		}
 		$new_selectors = array();
@@ -1472,7 +1472,7 @@ class WP_Theme_JSON {
 			if ( empty( $part ) ) {
 				continue;
 			}
-			$is_root_css = ( ! str_contains( $part, '{' ) );
+			$is_root_css = ( ! false !== strpos( $part, '{' ) );
 			if ( $is_root_css ) {
 				// If the part doesn't contain braces, it applies to the root level.
 				$processed_css .= ':root :where(' . trim( $selector ) . '){' . trim( $part ) . '}';
@@ -1496,7 +1496,7 @@ class WP_Theme_JSON {
 				$nested_selector    = $has_pseudo_element ? str_replace( $pseudo_part, '', $nested_selector ) : $nested_selector;
 
 				// Finalize selector and re-append pseudo element if required.
-				$part_selector  = str_starts_with( $nested_selector, ' ' )
+				$part_selector  = 0 === strpos( $nested_selector, ' ' )
 					? static::scope_selector( $selector, $nested_selector )
 					: static::append_to_selector( $selector, $nested_selector );
 				$final_selector = ":root :where($part_selector)$pseudo_part";
@@ -1791,7 +1791,7 @@ class WP_Theme_JSON {
 								// Skip rules that reference content size or wide size if they are not defined in the theme.json.
 								if (
 									is_string( $css_value ) &&
-									( str_contains( $css_value, '--global--content-size' ) || str_contains( $css_value, '--global--wide-size' ) ) &&
+									( false !== strpos( $css_value, '--global--content-size' ) || false !== strpos( $css_value, '--global--wide-size' ) ) &&
 									! isset( $this->theme_json['settings']['layout']['contentSize'] ) &&
 									! isset( $this->theme_json['settings']['layout']['wideSize'] )
 								) {
@@ -1912,7 +1912,7 @@ class WP_Theme_JSON {
 	 * Given a selector and a declaration list,
 	 * creates the corresponding ruleset.
 	 *
-	 * @since 5.8.0
+	 * @since 7.0.0 Added sanitization to prevent CSS injection attacks.
 	 *
 	 * @param string $selector     CSS selector.
 	 * @param array  $declarations List of declarations.
@@ -1923,16 +1923,253 @@ class WP_Theme_JSON {
 			return '';
 		}
 
+		/*
+		 * Sanitize the CSS selector to prevent injection attacks.
+		 * Even though selectors typically come from controlled sources,
+		 * defense in depth requires treating all inputs as potentially malicious.
+		 */
+		$selector = static::sanitize_css_selector( $selector );
+		if ( empty( $selector ) ) {
+			return '';
+		}
+
+		/*
+		 * Build the declaration block with sanitized properties.
+		 * Each declaration's name and value are sanitized to prevent
+		 * CSS injection via malformed property names or values.
+		 */
 		$declaration_block = array_reduce(
 			$declarations,
 			static function ( $carry, $element ) {
-				return $carry .= $element['name'] . ': ' . $element['value'] . ';'; },
+				// Skip invalid declarations.
+				if ( ! isset( $element['name'] ) || ! isset( $element['value'] ) ) {
+					return $carry;
+				}
+
+				// Sanitize property name and value.
+				$property_name  = static::sanitize_css_property_name( $element['name'] );
+				$property_value = static::sanitize_css_property_value( $element['value'] );
+
+				// Only add valid properties to the declaration block.
+				if ( ! empty( $property_name ) && ! empty( $property_value ) ) {
+					$carry .= $property_name . ': ' . $property_value . ';';
+				}
+
+				return $carry;
+			},
 			''
 		);
+
+		// If all declarations were invalid, return empty string.
+		if ( empty( $declaration_block ) ) {
+			return '';
+		}
 
 		return $selector . '{' . $declaration_block . '}';
 	}
 
+	/**
+	 * Sanitizes a CSS selector to prevent injection attacks.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $selector CSS selector to sanitize.
+	 * @return string Sanitized CSS selector, or empty string if invalid.
+	 */
+	protected static function sanitize_css_selector( $selector ) {
+		if ( ! is_string( $selector ) ) {
+			return '';
+		}
+
+		// Remove null bytes.
+		$selector = str_replace( "\0", '', $selector );
+
+		// Remove control characters.
+		$selector = preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $selector );
+
+		/*
+		 * Block characters that could break out of the selector context.
+		 * These characters can be used to inject new CSS rules.
+		 */
+		$dangerous_chars = array(
+			'{',  // Opens declaration block.
+			'}',  // Closes declaration block.
+			';',  // Ends declaration (shouldn't be in selector).
+		);
+
+		foreach ( $dangerous_chars as $char ) {
+			if ( false !== strpos( $selector, $char ) ) {
+				return '';
+			}
+		}
+
+		// Block CSS comments.
+		if ( false !== strpos( $selector, '/*' ) || false !== strpos( $selector, '*/' ) ) {
+			return '';
+		}
+
+		// Block @-rules in selectors.
+		if ( preg_match( '/@(import|charset|namespace|media|supports|keyframes|font-face)/i', $selector ) ) {
+			return '';
+		}
+
+		// Normalize whitespace.
+		$selector = preg_replace( '/\s+/', ' ', $selector );
+		$selector = trim( $selector );
+
+		// Enforce reasonable length limit.
+		if ( strlen( $selector ) > 1000 ) {
+			return '';
+		}
+
+		return $selector;
+	}
+
+	/**
+	 * Sanitizes a CSS property name to prevent injection attacks.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $property_name CSS property name to sanitize.
+	 * @return string Sanitized CSS property name, or empty string if invalid.
+	 */
+	protected static function sanitize_css_property_name( $property_name ) {
+		if ( ! is_string( $property_name ) ) {
+			return '';
+		}
+
+		// Remove null bytes.
+		$property_name = str_replace( "\0", '', $property_name );
+
+		/*
+		 * CSS property names should only contain:
+		 * - Letters (a-z, A-Z)
+		 * - Hyphens (including leading -- for custom properties)
+		 * - Numbers (0-9)
+		 */
+		$property_name = strtolower( $property_name );
+		$property_name = str_replace( '_', '-', $property_name );
+
+		// Remove invalid characters.
+		$property_name = preg_replace( '/[^a-z0-9-]/', '', $property_name );
+
+		// Validate length.
+		if ( empty( $property_name ) || strlen( $property_name ) > 200 ) {
+			return '';
+		}
+
+		return $property_name;
+	}
+
+	/**
+	 * Sanitizes a CSS property value to prevent injection attacks.
+	 *
+	 * Uses the same sanitization logic as compute_theme_vars() to ensure
+	 * consistent security across all CSS generation methods.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $property_value CSS property value to sanitize.
+	 * @return string Sanitized CSS property value, or empty string if invalid.
+	 */
+	protected static function sanitize_css_property_value( $property_value ) {
+		if ( ! is_scalar( $property_value ) ) {
+			return '';
+		}
+
+		// Convert to string.
+		$value = (string) $property_value;
+
+		// Remove null bytes and control characters.
+		$value = str_replace( "\0", '', $value );
+		$value = preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $value );
+		$value = trim( $value );
+
+		if ( '' === $value ) {
+			return '';
+		}
+
+		// Enforce maximum length to prevent DoS.
+		if ( strlen( $value ) > 2000 ) {
+			return '';
+		}
+
+		/*
+		 * Quote-aware character filtering.
+		 * Removes CSS structure-breaking characters outside of quoted strings.
+		 * This preserves legitimate CSS like calc(), var(), and quoted font names
+		 * while blocking injection attempts.
+		 */
+		$sanitized_value = '';
+		$in_single_quote = false;
+		$in_double_quote = false;
+		$escaped         = false;
+		$length          = strlen( $value );
+
+		for ( $i = 0; $i < $length; $i++ ) {
+			$char = $value[ $i ];
+
+			if ( $escaped ) {
+				$sanitized_value .= $char;
+				$escaped          = false;
+				continue;
+			}
+
+			if ( '\\' === $char ) {
+				$sanitized_value .= $char;
+				$escaped          = $in_single_quote || $in_double_quote;
+				continue;
+			}
+
+			if ( '"' === $char && ! $in_single_quote ) {
+				$in_double_quote  = ! $in_double_quote;
+				$sanitized_value .= $char;
+				continue;
+			}
+
+			if ( "'" === $char && ! $in_double_quote ) {
+				$in_single_quote  = ! $in_single_quote;
+				$sanitized_value .= $char;
+				continue;
+			}
+
+			/*
+			 * Remove CSS structure characters outside quotes.
+			 * Prevents breaking out of the declaration to inject new rules.
+			 */
+			if ( ! $in_single_quote && ! $in_double_quote && ( '{' === $char || '}' === $char || ';' === $char ) ) {
+				continue;
+			}
+
+			$sanitized_value .= $char;
+		}
+
+		$sanitized_value = trim( $sanitized_value );
+
+		// Normalize whitespace to prevent word injection.
+		$sanitized_value = preg_replace( '/\s+/', ' ', $sanitized_value );
+
+		if ( '' === $sanitized_value ) {
+			return '';
+		}
+
+		// Block dangerous URL protocols.
+		if ( preg_match( '/url\s*\(\s*["\']?\s*(javascript|data|vbscript):/i', $sanitized_value ) ) {
+			return '';
+		}
+
+		// Block CSS at-rules.
+		if ( preg_match( '/@(import|charset|namespace)/i', $sanitized_value ) ) {
+			return '';
+		}
+
+		// Block legacy browser attack vectors.
+		if ( preg_match( '/(expression|behavior|-moz-binding)\s*\(/i', $sanitized_value ) ) {
+			return '';
+		}
+
+		return $sanitized_value;
+	}
 	/**
 	 * Given a settings array, returns the generated rulesets
 	 * for the preset classes.
@@ -2222,6 +2459,7 @@ class WP_Theme_JSON {
 	 *     )
 	 *
 	 * @since 5.8.0
+	 * @since 7.0.0 Added comprehensive sanitization to prevent CSS injection attacks.
 	 *
 	 * @param array $settings Settings to process.
 	 * @return array The modified $declarations.
@@ -2230,10 +2468,128 @@ class WP_Theme_JSON {
 		$declarations  = array();
 		$custom_values = $settings['custom'] ?? array();
 		$css_vars      = static::flatten_tree( $custom_values );
+
 		foreach ( $css_vars as $key => $value ) {
+			/*
+			 * Sanitize the CSS variable name.
+			 * Ensures only lowercase alphanumeric characters and hyphens are allowed.
+			 * Prevents CSS injection via malformed variable names.
+			 */
+			$key = sanitize_key( $key );
+			$key = str_replace( '_', '-', $key );
+			$key = preg_replace( '/[^a-z0-9-]/', '', $key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			// Only process scalar values.
+			if ( ! is_scalar( $value ) ) {
+				continue;
+			}
+
+			/*
+			 * Initial value sanitization.
+			 * Remove HTML tags, angle brackets, and control characters.
+			 */
+			$value = wp_strip_all_tags( (string) $value, true );
+			$value = str_replace( array( '<', '>' ), '', $value );
+			$value = preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $value );
+			$value = trim( $value );
+
+			if ( '' === $value ) {
+				continue;
+			}
+
+			/*
+			 * Enforce maximum length to prevent denial of service attacks.
+			 * Limits CSS custom property values to 2000 characters.
+			 */
+			if ( strlen( $value ) > 2000 ) {
+				continue;
+			}
+
+			/*
+			 * Quote-aware character filtering.
+			 * Removes CSS structure-breaking characters (semicolons, braces) when outside quotes.
+			 * Preserves legitimate CSS syntax within quoted strings.
+			 */
+			$sanitized_value = '';
+			$in_single_quote = false;
+			$in_double_quote = false;
+			$escaped         = false;
+			$length          = strlen( $value );
+
+			for ( $i = 0; $i < $length; $i++ ) {
+				$char = $value[ $i ];
+
+				if ( $escaped ) {
+					$sanitized_value .= $char;
+					$escaped          = false;
+					continue;
+				}
+
+				if ( '\\' === $char ) {
+					$sanitized_value .= $char;
+					$escaped          = $in_single_quote || $in_double_quote;
+					continue;
+				}
+
+				if ( '"' === $char && ! $in_single_quote ) {
+					$in_double_quote  = ! $in_double_quote;
+					$sanitized_value .= $char;
+					continue;
+				}
+
+				if ( "'" === $char && ! $in_double_quote ) {
+					$in_single_quote  = ! $in_single_quote;
+					$sanitized_value .= $char;
+					continue;
+				}
+
+				/*
+				 * Strip CSS structure characters outside of quotes.
+				 * Prevents breaking out of CSS declarations to inject malicious rules.
+				 */
+				if ( ! $in_single_quote && ! $in_double_quote && ( ';' === $char || '{' === $char || '}' === $char ) ) {
+					continue;
+				}
+
+				$sanitized_value .= $char;
+			}
+
+			$sanitized_value = trim( $sanitized_value );
+
+			if ( '' === $sanitized_value ) {
+				continue;
+			}
+
+			/*
+			 * Block dangerous URL protocols.
+			 * Prevents XSS attacks via javascript:, data:, and vbscript: URLs.
+			 */
+			if ( preg_match( '/url\s*\(\s*["\']?\s*(javascript|data|vbscript):/i', $sanitized_value ) ) {
+				continue;
+			}
+
+			/*
+			 * Block CSS at-rules.
+			 * Prevents injection of @import, @charset, and @namespace rules.
+			 */
+			if ( preg_match( '/@(import|charset|namespace)/i', $sanitized_value ) ) {
+				continue;
+			}
+
+			/*
+			 * Block legacy browser attack vectors.
+			 * Prevents exploitation via IE expressions, behaviors, and Firefox XBL bindings.
+			 */
+			if ( preg_match( '/(expression|behavior|-moz-binding)\s*\(/i', $sanitized_value ) ) {
+				continue;
+			}
+
 			$declarations[] = array(
 				'name'  => '--wp--custom--' . $key,
-				'value' => $value,
+				'value' => $sanitized_value,
 			);
 		}
 
@@ -2340,7 +2696,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$is_root_style = str_starts_with( $css_property, '--wp--style--root--' );
+			$is_root_style = 0 === strpos( $css_property, '--wp--style--root--' );
 			if ( $is_root_style && ( static::ROOT_BLOCK_SELECTOR !== $selector || ! $use_root_padding ) ) {
 				continue;
 			}
@@ -2486,8 +2842,8 @@ class WP_Theme_JSON {
 			}
 
 			if ( is_array( $ref_value ) && isset( $ref_value['ref'] ) ) {
-				$path_string      = json_encode( $path );
-				$ref_value_string = json_encode( $ref_value );
+				$path_string      = wp_json_encode( $path );
+				$ref_value_string = wp_json_encode( $ref_value );
 				_doing_it_wrong(
 					'get_property_value',
 					sprintf(
@@ -3617,7 +3973,7 @@ class WP_Theme_JSON {
 	/**
 	 * Remove insecure element styles within a variation or block.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param array $elements The elements to process.
 	 * @return array The sanitized elements styles.
@@ -3648,7 +4004,7 @@ class WP_Theme_JSON {
 	/**
 	 * Remove insecure styles from inner blocks and their elements.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param array $blocks The block styles to process.
 	 * @return array Sanitized block type styles.
@@ -4283,7 +4639,7 @@ class WP_Theme_JSON {
 		$prefix_len = strlen( $prefix );
 		$token_in   = '|';
 		$token_out  = '--';
-		if ( str_starts_with( $value, $prefix ) ) {
+		if ( 0 === strpos( $value, $prefix ) ) {
 			$unwrapped_name = str_replace(
 				$token_in,
 				$token_out,
@@ -4308,7 +4664,7 @@ class WP_Theme_JSON {
 		$prefix = 'var:';
 
 		foreach ( $tree as $key => $data ) {
-			if ( is_string( $data ) && str_starts_with( $data, $prefix ) ) {
+			if ( is_string( $data ) && 0 === strpos( $data, $prefix ) ) {
 				$tree[ $key ] = self::convert_custom_properties( $data );
 			} elseif ( is_array( $data ) ) {
 				$tree[ $key ] = self::resolve_custom_css_format( $data );
@@ -4601,7 +4957,7 @@ class WP_Theme_JSON {
 	 * Collects valid block style variations keyed by block type.
 	 *
 	 * @since 6.6.0
-	 * @since 6.8.0 Added the `$blocks_metadata` parameter.
+	 * @since 7.0.0 Added the `$blocks_metadata` parameter.
 	 *
 	 * @param array $blocks_metadata Optional. List of metadata per block. Default is the metadata for all blocks.
 	 * @return array Valid block style variations by block type.
