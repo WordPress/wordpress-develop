@@ -342,14 +342,16 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 64361
 	 * @covers ::get_the_block_template_html
+	 *
+	 * @dataProvider data_provider_skip_link_actions
 	 */
-	public function test_get_the_block_template_html_does_not_add_skip_link_when_action_unhooked() {
+	public function test_get_the_block_template_html_does_not_add_skip_link_when_action_unhooked( string $action, string $callback ) {
 		global $_wp_current_template_id, $_wp_current_template_content;
 
 		$_wp_current_template_id      = get_stylesheet() . '//index';
 		$_wp_current_template_content = '<main>Content</main>';
 
-		remove_action( 'wp_footer', 'the_block_template_skip_link' );
+		remove_action( $action, $callback );
 
 		$processor = new WP_HTML_Tag_Processor( get_the_block_template_html() );
 		$this->assertFalse(
@@ -360,6 +362,24 @@ class Tests_Block_Template extends WP_UnitTestCase {
 				)
 			),
 			'Unexpected skip link was added to the block template HTML when the action was unhooked.'
+		);
+	}
+
+	/**
+	 * Data provider for test_get_the_block_template_html_does_not_add_skip_link_when_action_unhooked.
+	 *
+	 * @return array<string, array<string, string>>
+	 */
+	public function data_provider_skip_link_actions(): array {
+		return array(
+			'the_block_template_skip_link'        => array(
+				'action'   => 'wp_footer',
+				'callback' => 'the_block_template_skip_link',
+			),
+			'wp_enqueue_block_template_skip_link' => array(
+				'action'   => 'wp_enqueue_scripts',
+				'callback' => 'wp_enqueue_block_template_skip_link',
+			),
 		);
 	}
 

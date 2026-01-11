@@ -304,7 +304,10 @@ function get_the_block_template_html() {
 	$template_html = '<div class="wp-site-blocks">' . $content . '</div>';
 
 	// Back-compat for plugins that disable functionality by unhooking this action.
-	if ( ! has_action( 'wp_footer', 'the_block_template_skip_link' ) ) {
+	if (
+		! has_action( 'wp_footer', 'the_block_template_skip_link' ) ||
+		! has_action( 'wp_enqueue_scripts', 'wp_enqueue_block_template_skip_link' )
+	) {
 		return $template_html;
 	}
 
