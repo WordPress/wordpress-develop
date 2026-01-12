@@ -101,7 +101,6 @@ jobs:
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        # WordPress 4.9 is the oldest version that supports PHP 7.2.
         wp: [ '6.8', '6.9' ]
         multisite: [ false, true ]
     with:
