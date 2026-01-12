@@ -1422,10 +1422,10 @@ class WP_Site_Health {
 
 				$is_wp_debug_log = defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG;
 
-				if ( $log_path_status === 'public' ) {
+				if ( 'public' === $log_path_status ) {
 					$result['label']  = __( 'Your site is set to log errors to a potentially public file' );
 					$result['status'] = 'critical';
-				} elseif ( $log_path_status === 'private' ) {
+				} elseif ( 'private' === $log_path_status ) {
 					$result['label']  = __( 'Your site is set to log errors to a file outside the document root' );
 					$result['status'] = 'good';
 				} else {
@@ -1438,9 +1438,9 @@ class WP_Site_Health {
 						'<p>%s</p>',
 						sprintf(
 							/* translators: %s: WP_DEBUG_LOG */
-							$log_path_status === 'public'
+							'public' === $log_path_status
 								? __( 'The constant, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.' )
-								: ( $log_path_status === 'private'
+								: ( 'private' === $log_path_status
 									? __( 'The configuration constant, %s, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.' )
 									: __( 'The configuration constant, %s, is enabled, but the log file location could not be determined.' )
 								),
@@ -1450,9 +1450,9 @@ class WP_Site_Health {
 				} else {
 					$result['description'] .= sprintf(
 						'<p>%s</p>',
-						$log_path_status === 'public'
+						'public' === $log_path_status
 							? __( 'The error log path has been configured to a file within your WordPress directory. This means any errors on the site will be written to a file which is likely publicly accessible.' )
-							: ( $log_path_status === 'private'
+							: ( 'private' === $log_path_status
 								? __( 'The error log path has been configured to a file outside your WordPress directory. This is a good practice as the log file should not be publicly accessible.' )
 								: __( 'The error log path could not be determined. Please check your PHP configuration.' )
 							)
