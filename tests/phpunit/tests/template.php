@@ -1561,7 +1561,6 @@ class Tests_Template extends WP_UnitTestCase {
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
-						'wp-custom-css',
 					),
 					'BODY' => array(
 						'late-css',
@@ -1623,7 +1622,6 @@ class Tests_Template extends WP_UnitTestCase {
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
-						'wp-custom-css',
 					),
 					'BODY' => array(
 						'late-css',
@@ -1797,6 +1795,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$ignored_styles = array(
 			'core-block-supports-duotone-inline-css',
 			'wp-block-library-theme-css',
+			'wp-block-template-skip-link-css',
 			'wp-block-template-skip-link-inline-css',
 		);
 
