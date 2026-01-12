@@ -3657,7 +3657,7 @@ function wp_hoist_late_printed_styles() {
 		}
 
 		/*
-		 * First print all styles related to blocks which should inserted right after the wp-block-library stylesheet
+		 * First print all styles related to blocks which should be inserted right after the wp-block-library stylesheet
 		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
 		 */
 		$enqueued_core_block_styles = array_values( array_intersect( $all_core_block_style_handles, wp_styles()->queue ) );
