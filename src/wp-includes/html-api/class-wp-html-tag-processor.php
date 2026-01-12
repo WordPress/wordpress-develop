@@ -3898,12 +3898,17 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Returns the content type of the currently-matched SCRIPT tag, if matched and
+	 * Returns the content type of the currently-matched HTML SCRIPT tag, if matched and
 	 * recognized, otherwise returns `null` to indicate an unrecognized content type.
+	 *
+	 * An HTML SCRIPT tag is a normal SCRIPT tag, but there can be SCRIPT elements inside
+	 * SVG and MathML elements as well, and these have different parsing rules than those
+	 * in general HTML. For this reason, no content-type inference is performed on those.
 	 *
 	 * Note! This concept is related but distinct from the MIME type of the script.
 	 * Parsing MUST match the specific algorithm in the HTML specification, which
-	 * relies on exact string comparison in some cases.
+	 * relies on exact string comparison in some cases. MIME type decoding may be
+	 * performed on SVG or MathML SCRIPT tags.
 	 *
 	 * Only 'javascript' and 'json' content types are currently recognized.
 	 *
