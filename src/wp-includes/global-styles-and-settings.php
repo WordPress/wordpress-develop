@@ -135,7 +135,10 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * Returns the stylesheet resulting of merging core, theme, and user data.
  *
  * @since 5.9.0
+ * @since 6.1.0 Added 'base-layout-styles' support.
  * @since 6.6.0 Resolves relative paths in theme.json styles to theme absolute paths.
+ * @since 7.0.0 Deprecated 'base-layout-styles' type; classic themes now receive full styles
+ *              with layout-specific alignment rules skipped via `base_layout_styles` option.
  *
  * @param array $types Optional. Types of styles to load.
  *                     See {@see 'WP_Theme_JSON::get_stylesheet'} for all valid types.

@@ -1326,11 +1326,13 @@ class WP_Theme_JSON {
 	 * @since 6.3.0 Add fallback layout styles for Post Template when block gap support isn't available.
 	 * @since 6.6.0 Added boolean `skip_root_layout_styles` and `include_block_style_variations` options
 	 *              to control styles output as desired.
+	 * @since 7.0.0 Deprecated 'base-layout-styles' type; added `base_layout_styles` option for classic themes.
 	 *
 	 * @param string[] $types   Types of styles to load. Will load all by default. It accepts:
 	 *                          - `variables`: only the CSS Custom Properties for presets & custom ones.
 	 *                          - `styles`: only the styles section in theme.json.
 	 *                          - `presets`: only the classes for the presets.
+	 *                          - `base-layout-styles`: only the base layout styles. Deprecated in 7.0.0.
 	 *                          - `custom-css`: only the custom CSS.
 	 * @param string[] $origins A list of origins to include. By default it includes VALID_ORIGINS.
 	 * @param array    $options {
@@ -1586,7 +1588,9 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 * @since 6.3.0 Reduced specificity for layout margin rules.
 	 * @since 6.5.1 Only output rules referencing content and wide sizes when values exist.
+	 * @since 6.5.3 Add types parameter to check if only base layout styles are needed.
 	 * @since 6.6.0 Updated layout style specificity to be compatible with overall 0-1-0 specificity in global styles.
+	 * @since 7.0.0 Replaced `$types` parameter with `$options` array; base layout styles controlled via `base_layout_styles` option.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
 	 * @param array $options        Optional. An array of options for now used for internal purposes only.
@@ -3019,6 +3023,7 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 * @since 6.6.0 Use `ROOT_CSS_PROPERTIES_SELECTOR` for CSS custom properties and improved consistency of root padding rules.
 	 *              Updated specificity of body margin reset and first/last child selectors.
+	 * @since 7.0.0 Added `$options` parameter to control alignment styles output for classic themes.
 	 *
 	 * @param string $selector The root node selector.
 	 * @param array  $block_metadata The metadata for the root block.
