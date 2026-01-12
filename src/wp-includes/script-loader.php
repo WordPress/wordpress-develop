@@ -3616,7 +3616,7 @@ function wp_hoist_late_printed_styles() {
 	);
 
 	/*
-	 * Add a placeholder comment into the inline styles for wp-block-library, after which where the late block styles
+	 * Add a placeholder comment into the inline styles for wp-block-library, after which the late block styles
 	 * can be hoisted from the footer to be printed in the header by means of a filter below on the template enhancement
 	 * output buffer. The `wp_print_styles` action is used to ensure that if the inline style gets replaced at
 	 * `enqueue_block_assets` or `wp_enqueue_scripts` that the placeholder will be sure to be present.
