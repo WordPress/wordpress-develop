@@ -219,46 +219,6 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 }
 
 /**
- * Registers development scripts that integrate with `@wordpress/scripts`.
- *
- * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
- *
- * @since 6.0.0
- *
- * @param WP_Scripts $scripts WP_Scripts object.
- */
-function wp_register_development_scripts( $scripts ) {
-	if (
-		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
-		|| empty( $scripts->registered['react'] )
-		|| defined( 'WP_RUN_CORE_TESTS' )
-	) {
-		return;
-	}
-
-	$development_scripts = array(
-		'react-refresh-entry',
-		'react-refresh-runtime',
-	);
-
-	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
-		if ( ! is_array( $assets ) ) {
-			return;
-		}
-		$scripts->add(
-			'wp-' . $script_name,
-			'/wp-includes/js/dist/development/' . $script_name . '.js',
-			$assets['dependencies'],
-			$assets['version']
-		);
-	}
-
-	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
-	$scripts->registered['react']->deps[] = 'wp-react-refresh-entry';
-}
-
-/**
  * Registers all the WordPress packages scripts that are in the standardized
  * `js/dist/` location.
  *
@@ -658,7 +618,6 @@ function wp_tinymce_inline_scripts() {
  */
 function wp_default_packages( $scripts ) {
 	wp_default_packages_vendor( $scripts );
-	wp_register_development_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
 
@@ -1646,6 +1605,9 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'wp-pointer', "/wp-includes/css/wp-pointer$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'customize-preview', "/wp-includes/css/customize-preview$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'wp-empty-template-alert', "/wp-includes/css/wp-empty-template-alert$suffix.css" );
+	$skip_link_style_path = WPINC . "/css/wp-block-template-skip-link$suffix.css";
+	$styles->add( 'wp-block-template-skip-link', "/$skip_link_style_path" );
+	$styles->add_data( 'wp-block-template-skip-link', 'path', ABSPATH . $skip_link_style_path );
 
 	// External libraries and friends.
 	$styles->add( 'imgareaselect', '/wp-includes/js/imgareaselect/imgareaselect.css', array(), '0.9.8' );
@@ -1841,6 +1803,7 @@ function wp_default_styles( $styles ) {
 		'media-views',
 		'wp-pointer',
 		'wp-jquery-ui-dialog',
+		'wp-block-template-skip-link',
 		// Package styles.
 		'wp-reset-editor-styles',
 		'wp-editor-classic-layout-styles',
@@ -2025,7 +1988,7 @@ function wp_localize_community_events() {
 
 	$user_id            = get_current_user_id();
 	$saved_location     = get_user_option( 'community-events-location', $user_id );
-	$saved_ip_address   = isset( $saved_location['ip'] ) ? $saved_location['ip'] : false;
+	$saved_ip_address   = $saved_location['ip'] ?? false;
 	$current_ip_address = WP_Community_Events::get_unsafe_client_ip();
 
 	/*
@@ -2551,38 +2514,36 @@ function wp_enqueue_global_styles() {
 
 	$stylesheet = wp_get_global_stylesheet();
 
-	if ( $is_block_theme ) {
-		/*
-		 * Dequeue the Customizer's custom CSS
-		 * and add it before the global styles custom CSS.
-		 */
-		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+	/*
+	 * Dequeue the Customizer's custom CSS
+	 * and add it before the global styles custom CSS.
+	 */
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
 
-		/*
-		 * Get the custom CSS from the Customizer and add it to the global stylesheet.
-		 * Always do this in Customizer preview for the sake of live preview since it be empty.
-		 */
-		$custom_css = trim( wp_get_custom_css() );
-		if ( $custom_css || is_customize_preview() ) {
-			if ( is_customize_preview() ) {
-				/*
-				 * When in the Customizer preview, wrap the Custom CSS in milestone comments to allow customize-preview.js
-				 * to locate the CSS to replace for live previewing. Make sure that the milestone comments are omitted from
-				 * the stored Custom CSS if by chance someone tried to add them, which would be highly unlikely, but it
-				 * would break live previewing.
-				 */
-				$before_milestone = '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/';
-				$after_milestone  = '/*END_CUSTOMIZER_CUSTOM_CSS*/';
-				$custom_css       = str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
-				$custom_css       = $before_milestone . "\n" . $custom_css . "\n" . $after_milestone;
-			}
-			$custom_css = "\n" . $custom_css;
+	/*
+	 * Get the custom CSS from the Customizer and add it to the global stylesheet.
+	 * Always do this in Customizer preview for the sake of live preview since it be empty.
+	 */
+	$custom_css = trim( wp_get_custom_css() );
+	if ( $custom_css || is_customize_preview() ) {
+		if ( is_customize_preview() ) {
+			/*
+			 * When in the Customizer preview, wrap the Custom CSS in milestone comments to allow customize-preview.js
+			 * to locate the CSS to replace for live previewing. Make sure that the milestone comments are omitted from
+			 * the stored Custom CSS if by chance someone tried to add them, which would be highly unlikely, but it
+			 * would break live previewing.
+			 */
+			$before_milestone = '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/';
+			$after_milestone  = '/*END_CUSTOMIZER_CUSTOM_CSS*/';
+			$custom_css       = str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
+			$custom_css       = $before_milestone . "\n" . $custom_css . "\n" . $after_milestone;
 		}
-		$stylesheet .= $custom_css;
-
-		// Add the global styles custom CSS at the end.
-		$stylesheet .= wp_get_global_stylesheet( array( 'custom-css' ) );
+		$custom_css = "\n" . $custom_css;
 	}
+	$stylesheet .= $custom_css;
+
+	// Add the global styles custom CSS at the end.
+	$stylesheet .= wp_get_global_stylesheet( array( 'custom-css' ) );
 
 	if ( empty( $stylesheet ) ) {
 		return;
@@ -3038,7 +2999,7 @@ function wp_maybe_inline_styles() {
 		usort(
 			$styles,
 			static function ( $a, $b ) {
-				return ( $a['size'] <= $b['size'] ) ? -1 : 1;
+				return $a['size'] <=> $b['size'];
 			}
 		);
 
@@ -3529,7 +3490,7 @@ function wp_enqueue_command_palette_assets() {
  *     'sayHello();' === wp_remove_surrounding_empty_script_tags( $js );
  *
  *     // Otherwise if anything is different it warns in the JS console.
- *     $js = '<script type="text/javascript">console.log( "hi" );</script>';
+ *     $js = '<script type="module">console.log( "hi" );</script>';
  *     'console.error( ... )' === wp_remove_surrounding_empty_script_tags( $js );
  *
  * @since 6.4.0
