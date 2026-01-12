@@ -4059,11 +4059,10 @@ class WP_HTML_Tag_Processor {
 	 * escape (`\u0073`) back into its original plaintext value, but only after having
 	 * been safely extracted from the HTML.
 	 *
-	 * While it may seem tempting to replace the `<` character instead, but doing so
-	 * would break JavaScript syntax. The `<` character is used in comparison operators
-	 * and other JavaScript syntax, so replacing it would break valid JavaScript.j
-	 * By replacing only the `s` in `<script` and `</script`, we avoid modifying
-	 * any JavaScript syntax.
+	 * While it may seem tempting to replace the `<` character instead, doing so would
+	 * break JavaScript syntax. The `<` character is used in comparison operators and
+	 * other JavaScript syntax; replacing it would break valid JavaScript. Replacing
+	 * only the `s` in `<script` and `</script` avoids modifying JavaScript syntax.
 	 *
 	 * ### Exceptions
 	 *
