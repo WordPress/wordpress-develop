@@ -1769,6 +1769,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
 	 *
 	 * @ticket 64099
+	 * @ticket 64354
 	 * @covers ::wp_load_classic_theme_block_styles_on_demand
 	 * @covers ::wp_hoist_late_printed_styles
 	 *
