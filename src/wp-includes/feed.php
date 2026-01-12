@@ -832,20 +832,6 @@ function fetch_feed( $url ) {
 
 	$feed->get_registry()->register( SimplePie\File::class, 'WP_SimplePie_File', true );
 
-	if ( is_array( $url ) && count( $url ) <= 1 ) {
-		$url = array_shift( $url );
-	} elseif ( is_array( $url ) ) {
-		$feeds = array();
-		foreach ( (array) $url as $feed_url ) {
-			$feeds[] = fetch_feed( $feed_url );
-		}
-		$items = SimplePie\SimplePie::merge_items( $feeds );
-		$feed->init();
-		$feed->data['items'] = $items;
-		return $feed;
-	}
-
-	$feed->set_feed_url( $url );
 	/** This filter is documented in wp-includes/class-wp-feed-cache-transient.php */
 	$feed->set_cache_duration( apply_filters( 'wp_feed_cache_transient_lifetime', 12 * HOUR_IN_SECONDS, $url ) );
 
@@ -859,6 +845,29 @@ function fetch_feed( $url ) {
 	 */
 	do_action_ref_array( 'wp_feed_options', array( &$feed, $url ) );
 
+	if ( is_array( $url ) && count( $url ) <= 1 ) {
+		$url = array_shift( $url );
+	} elseif ( is_array( $url ) ) {
+		$feeds              = array();
+		$simplepie_instance = clone $feed;
+		foreach ( (array) $url as $feed_url ) {
+			$simplepie_instance->set_feed_url( $feed_url );
+			$simplepie_instance->init();
+			$simplepie_instance->set_output_encoding( get_bloginfo( 'charset' ) );
+
+			if ( $simplepie_instance->error() ) {
+				return new WP_Error( 'simplepie-error', $simplepie_instance->error() );
+			}
+
+			$feeds[] = $simplepie_instance;
+		}
+		$items = SimplePie\SimplePie::merge_items( $feeds );
+		$feed->init();
+		$feed->data['items'] = $items;
+		return $feed;
+	}
+
+	$feed->set_feed_url( $url );
 	$feed->init();
 	$feed->set_output_encoding( get_bloginfo( 'charset' ) );
 
