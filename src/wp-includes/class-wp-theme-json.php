@@ -600,7 +600,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
-	 * @since 7.0.0 Added support for ':focus-visible'.
+	 * @since 6.8.0 Added support for ':focus-visible'.
 	 * @since 6.9.0 Added `textInput` and `select` elements.
 	 * @var array
 	 */
@@ -1091,7 +1091,7 @@ class WP_Theme_JSON {
 	 * @return string The new selector.
 	 */
 	protected static function append_to_selector( $selector, $to_append ) {
-		if ( false === strpos( $selector, ',' ) ) {
+		if ( ! str_contains( $selector, ',' ) ) {
 			return $selector . $to_append;
 		}
 		$new_selectors = array();
@@ -1116,7 +1116,7 @@ class WP_Theme_JSON {
 	 * @return string The new selector.
 	 */
 	protected static function prepend_to_selector( $selector, $to_prepend ) {
-		if ( false === strpos( $selector, ',' ) ) {
+		if ( ! str_contains( $selector, ',' ) ) {
 			return $to_prepend . $selector;
 		}
 		$new_selectors = array();
@@ -1472,7 +1472,7 @@ class WP_Theme_JSON {
 			if ( empty( $part ) ) {
 				continue;
 			}
-			$is_root_css = ( ! false !== strpos( $part, '{' ) );
+			$is_root_css = ! str_contains( $part, '{' );
 			if ( $is_root_css ) {
 				// If the part doesn't contain braces, it applies to the root level.
 				$processed_css .= ':root :where(' . trim( $selector ) . '){' . trim( $part ) . '}';
@@ -1791,7 +1791,7 @@ class WP_Theme_JSON {
 								// Skip rules that reference content size or wide size if they are not defined in the theme.json.
 								if (
 									is_string( $css_value ) &&
-									( false !== strpos( $css_value, '--global--content-size' ) || false !== strpos( $css_value, '--global--wide-size' ) ) &&
+									( str_contains( $css_value, '--global--content-size' ) || str_contains( $css_value, '--global--wide-size' ) ) &&
 									! isset( $this->theme_json['settings']['layout']['contentSize'] ) &&
 									! isset( $this->theme_json['settings']['layout']['wideSize'] )
 								) {
@@ -1912,6 +1912,7 @@ class WP_Theme_JSON {
 	 * Given a selector and a declaration list,
 	 * creates the corresponding ruleset.
 	 *
+	 * @since 5.8.0
 	 * @since 7.0.0 Added sanitization to prevent CSS injection attacks.
 	 *
 	 * @param string $selector     CSS selector.
@@ -1998,13 +1999,13 @@ class WP_Theme_JSON {
 		);
 
 		foreach ( $dangerous_chars as $char ) {
-			if ( false !== strpos( $selector, $char ) ) {
+			if ( str_contains( $selector, $char ) ) {
 				return '';
 			}
 		}
 
 		// Block CSS comments.
-		if ( false !== strpos( $selector, '/*' ) || false !== strpos( $selector, '*/' ) ) {
+		if ( str_contains( $selector, '/*' ) || str_contains( $selector, '*/' ) ) {
 			return '';
 		}
 
@@ -4861,7 +4862,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			if ( 0 <= strpos( $style, 'var(' ) ) {
+			if ( str_contains( $style, 'var(' ) ) {
 				// find all the variables in the string in the form of var(--variable-name, fallback), with fallback in the second capture group.
 
 				$has_matches = preg_match_all( '/var\(([^),]+)?,?\s?(\S+)?\)/', $style, $var_parts );
