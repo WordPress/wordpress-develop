@@ -156,7 +156,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
-			'@media (max-width: 480px){.wp-block-hidden-mobile{display:none !important;}}',
+			'@media (width <= 480px){.wp-block-hidden-mobile{display:none !important;}}',
 			$actual_stylesheet,
 			'CSS should contain mobile visibility rule'
 		);
@@ -190,7 +190,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
-			'@media (min-width: calc(480px + 1px)) and (max-width: 782px){.wp-block-hidden-tablet{display:none !important;}}',
+			'@media (480px < width <= 782px){.wp-block-hidden-tablet{display:none !important;}}',
 			$actual_stylesheet,
 			'CSS should contain tablet visibility rule'
 		);
@@ -224,7 +224,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
-			'@media (min-width: calc(782px + 1px)){.wp-block-hidden-desktop{display:none !important;}}',
+			'@media (width > 782px){.wp-block-hidden-desktop{display:none !important;}}',
 			$actual_stylesheet,
 			'CSS should contain desktop visibility rule'
 		);
@@ -263,9 +263,9 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
-			'@media (min-width: calc(782px + 1px)){.wp-block-hidden-desktop{display:none !important;}}@media (max-width: 480px){.wp-block-hidden-mobile{display:none !important;}}',
+			'@media (width > 782px){.wp-block-hidden-desktop{display:none !important;}}@media (width <= 480px){.wp-block-hidden-mobile{display:none !important;}}',
 			$actual_stylesheet,
-			'CSS should contain both visibility rules'
+			'CSS should contain desktop and mobile visibility rules'
 		);
 	}
 
