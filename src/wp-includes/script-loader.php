@@ -3598,7 +3598,7 @@ function wp_hoist_late_printed_styles() {
 		return;
 	}
 
-	// Capture the styles enqueued at the enqueue_block_assets action, so that non-core block styles and global styles can be inserted after at hoisting.
+	// Capture the styles enqueued at the enqueue_block_assets action, so that non-core block styles and global styles can be inserted afterwards during hoisting.
 	$style_handles_at_enqueue_block_assets = array();
 	add_action(
 		'enqueue_block_assets',
