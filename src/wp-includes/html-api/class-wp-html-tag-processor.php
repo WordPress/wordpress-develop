@@ -3721,10 +3721,12 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * Not all modifiable text may be set by this method, and not all content
 	 * may be set as modifiable text. In the case that this fails it will return
-	 * `false` indicating as much. For instance, it will not allow inserting the
-	 * string `</script` into a SCRIPT element, because the rules for escaping
-	 * that safely are complicated. Similarly, it will not allow setting content
-	 * into a comment which would prematurely terminate the comment.
+	 * `false` indicating as much. For instance, if the contents of a SCRIPT
+	 * element are neither JavaScript nor JSON, it’s not possible to guarantee
+	 * that escaping strings like `</script>` won’t break the script; in these
+	 * cases, updates will be rejected and it’s up to calling code to perform
+	 * language-specific escaping or workarounds. Similarly, it will not allow
+	 * setting content into a comment which would prematurely terminate the comment.
 	 *
 	 * Example:
 	 *
