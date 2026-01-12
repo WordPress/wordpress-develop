@@ -1434,7 +1434,7 @@ class WP_Site_Health {
 						'<p>%s</p>',
 						sprintf(
 							/* translators: %s: WP_DEBUG_LOG */
-							__( 'The configuration constant, %s, has been set to write errors to a file outside the WordPress directory. This is a good practice as the log file should not be publicly accessible' ),
+							__( 'The configuration constant, %s, has been set to write errors to a file outside the WordPress directory. This is a good practice as the log file should not be publicly accessible.' ),
 							'<code>WP_DEBUG_LOG</code>'
 						)
 					);
