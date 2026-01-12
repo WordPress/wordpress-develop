@@ -266,7 +266,7 @@ class WP_Locale {
 	 * @return string Full translated weekday.
 	 */
 	public function get_weekday( $weekday_number ) {
-		return $this->weekday[ $weekday_number ];
+		return isset( $this->weekday[ $weekday_number ] ) ? $this->weekday[ $weekday_number ] : '';
 	}
 
 	/**
