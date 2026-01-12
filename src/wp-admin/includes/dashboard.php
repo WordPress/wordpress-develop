@@ -1012,7 +1012,8 @@ function wp_dashboard_recent_posts( $args ) {
 		while ( $posts->have_posts() ) {
 			$posts->the_post();
 
-			$time = get_the_time( 'U' );
+			$time = (int) get_the_time( 'U' );
+
 
 			if ( gmdate( 'Y-m-d', $time ) === $today ) {
 				$relative = __( 'Today' );
