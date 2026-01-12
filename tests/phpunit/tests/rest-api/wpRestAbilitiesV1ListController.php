@@ -37,8 +37,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 			)
 		);
 
-		// Fire the init hook to allow test ability categories registration.
-		do_action( 'wp_abilities_api_categories_init' );
 		self::register_test_categories();
 	}
 
@@ -67,8 +65,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		do_action( 'rest_api_init' );
 
-		// Initialize Abilities API.
-		do_action( 'wp_abilities_api_init' );
 		$this->register_test_abilities();
 
 		// Set default user for tests
@@ -99,6 +95,10 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 * Register test categories for testing.
 	 */
 	public static function register_test_categories(): void {
+		// Simulates the init hook to allow test ability categories registration.
+		global $wp_current_filter;
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+
 		wp_register_ability_category(
 			'math',
 			array(
@@ -122,6 +122,24 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				'description' => 'General purpose abilities.',
 			)
 		);
+
+		array_pop( $wp_current_filter );
+	}
+
+	/**
+	 * Helper to register a test ability.
+	 *
+	 * @param string $name Ability name.
+	 * @param array  $args Ability arguments.
+	 */
+	private function register_test_ability( string $name, array $args ): void {
+		// Simulates the init hook to allow test abilities registration.
+		global $wp_current_filter;
+		$wp_current_filter[] = 'wp_abilities_api_init';
+
+		wp_register_ability( $name, $args );
+
+		array_pop( $wp_current_filter );
 	}
 
 	/**
@@ -129,7 +147,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 */
 	private function register_test_abilities(): void {
 		// Register a regular ability.
-		wp_register_ability(
+		$this->register_test_ability(
 			'test/calculator',
 			array(
 				'label'               => 'Calculator',
@@ -173,7 +191,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		);
 
 		// Register a read-only ability.
-		wp_register_ability(
+		$this->register_test_ability(
 			'test/system-info',
 			array(
 				'label'               => 'System Info',
@@ -220,7 +238,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		);
 
 		// Ability that does not show in REST.
-		wp_register_ability(
+		$this->register_test_ability(
 			'test/not-show-in-rest',
 			array(
 				'label'               => 'Hidden from REST',
@@ -235,7 +253,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		// Register multiple abilities for pagination testing
 		for ( $i = 1; $i <= 60; $i++ ) {
-			wp_register_ability(
+			$this->register_test_ability(
 				"test/ability-{$i}",
 				array(
 					'label'               => "Test Ability {$i}",
@@ -289,10 +307,10 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 		$this->assertCount( 7, $data, 'Response should contain all fields.' );
-		$this->assertEquals( 'test/calculator', $data['name'] );
-		$this->assertEquals( 'Calculator', $data['label'] );
-		$this->assertEquals( 'Performs basic calculations', $data['description'] );
-		$this->assertEquals( 'math', $data['category'] );
+		$this->assertSame( 'test/calculator', $data['name'] );
+		$this->assertSame( 'Calculator', $data['label'] );
+		$this->assertSame( 'Performs basic calculations', $data['description'] );
+		$this->assertSame( 'math', $data['category'] );
 		$this->assertArrayHasKey( 'input_schema', $data );
 		$this->assertArrayHasKey( 'output_schema', $data );
 		$this->assertArrayHasKey( 'meta', $data );
@@ -316,8 +334,8 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 		$this->assertCount( 2, $data, 'Response should only contain the requested fields.' );
-		$this->assertEquals( 'test/calculator', $data['name'] );
-		$this->assertEquals( 'Calculator', $data['label'] );
+		$this->assertSame( 'test/calculator', $data['name'] );
+		$this->assertSame( 'Calculator', $data['label'] );
 	}
 
 	/**
@@ -337,9 +355,9 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 		$this->assertCount( 3, $data, 'Response should only contain the fields for embed context.' );
-		$this->assertEquals( 'test/calculator', $data['name'] );
-		$this->assertEquals( 'Calculator', $data['label'] );
-		$this->assertEquals( 'math', $data['category'] );
+		$this->assertSame( 'test/calculator', $data['name'] );
+		$this->assertSame( 'Calculator', $data['label'] );
+		$this->assertSame( 'math', $data['category'] );
 	}
 
 	/**
@@ -356,7 +374,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertEquals( 404, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 	}
 
 	/**
@@ -371,7 +389,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertEquals( 404, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 	}
 
 	/**
@@ -563,8 +581,8 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'schema', $data );
 		$schema = $data['schema'];
 
-		$this->assertEquals( 'ability', $schema['title'] );
-		$this->assertEquals( 'object', $schema['type'] );
+		$this->assertSame( 'ability', $schema['title'] );
+		$this->assertSame( 'object', $schema['type'] );
 		$this->assertArrayHasKey( 'properties', $schema );
 
 		$properties = $schema['properties'];
@@ -589,7 +607,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 */
 	public function test_ability_name_with_valid_special_characters(): void {
 		// Register ability with hyphen (valid).
-		wp_register_ability(
+		$this->register_test_ability(
 			'test-hyphen/ability',
 			array(
 				'label'               => 'Test Hyphen Ability',
@@ -727,7 +745,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		// Should only have math category abilities
 		foreach ( $data as $ability ) {
-			$this->assertEquals( 'math', $ability['category'], 'All abilities should be in math category' );
+			$this->assertSame( 'math', $ability['category'], 'All abilities should be in math category' );
 		}
 
 		// Should at least contain the calculator

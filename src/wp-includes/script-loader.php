@@ -88,21 +88,21 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react',
-		'react-dom'         => array( 'react' ),
-		'react-jsx-runtime' => array( 'react' ),
-		'regenerator-runtime',
-		'moment',
-		'lodash',
-		'wp-polyfill-fetch',
-		'wp-polyfill-formdata',
-		'wp-polyfill-node-contains',
-		'wp-polyfill-url',
-		'wp-polyfill-dom-rect',
-		'wp-polyfill-element-closest',
-		'wp-polyfill-object-fit',
-		'wp-polyfill-inert',
-		'wp-polyfill',
+		'react'                       => array(),
+		'react-dom'                   => array( 'react' ),
+		'react-jsx-runtime'           => array( 'react' ),
+		'regenerator-runtime'         => array(),
+		'moment'                      => array(),
+		'lodash'                      => array(),
+		'wp-polyfill-fetch'           => array(),
+		'wp-polyfill-formdata'        => array(),
+		'wp-polyfill-node-contains'   => array(),
+		'wp-polyfill-url'             => array(),
+		'wp-polyfill-dom-rect'        => array(),
+		'wp-polyfill-element-closest' => array(),
+		'wp-polyfill-object-fit'      => array(),
+		'wp-polyfill-inert'           => array(),
+		'wp-polyfill'                 => array(),
 	);
 
 	$vendor_scripts_versions = array(
@@ -124,15 +124,13 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
-		if ( is_string( $dependencies ) ) {
-			$handle       = $dependencies;
-			$dependencies = array();
-		}
-
-		$path    = "/wp-includes/js/dist/vendor/$handle$suffix.js";
-		$version = $vendor_scripts_versions[ $handle ];
-
-		$scripts->add( $handle, $path, $dependencies, $version, 1 );
+		$scripts->add(
+			$handle,
+			"/wp-includes/js/dist/vendor/$handle$suffix.js",
+			$dependencies,
+			$vendor_scripts_versions[ $handle ],
+			1
+		);
 	}
 
 	did_action( 'init' ) && $scripts->add_inline_script( 'lodash', 'window.lodash = _.noConflict();' );
@@ -218,46 +216,6 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 	}
 
 	return $polyfill;
-}
-
-/**
- * Registers development scripts that integrate with `@wordpress/scripts`.
- *
- * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
- *
- * @since 6.0.0
- *
- * @param WP_Scripts $scripts WP_Scripts object.
- */
-function wp_register_development_scripts( $scripts ) {
-	if (
-		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
-		|| empty( $scripts->registered['react'] )
-		|| defined( 'WP_RUN_CORE_TESTS' )
-	) {
-		return;
-	}
-
-	$development_scripts = array(
-		'react-refresh-entry',
-		'react-refresh-runtime',
-	);
-
-	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
-		if ( ! is_array( $assets ) ) {
-			return;
-		}
-		$scripts->add(
-			'wp-' . $script_name,
-			'/wp-includes/js/dist/development/' . $script_name . '.js',
-			$assets['dependencies'],
-			$assets['version']
-		);
-	}
-
-	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
-	$scripts->registered['react']->deps[] = 'wp-react-refresh-entry';
 }
 
 /**
@@ -660,7 +618,6 @@ function wp_tinymce_inline_scripts() {
  */
 function wp_default_packages( $scripts ) {
 	wp_default_packages_vendor( $scripts );
-	wp_register_development_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
 
@@ -1648,6 +1605,9 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'wp-pointer', "/wp-includes/css/wp-pointer$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'customize-preview', "/wp-includes/css/customize-preview$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'wp-empty-template-alert', "/wp-includes/css/wp-empty-template-alert$suffix.css" );
+	$skip_link_style_path = WPINC . "/css/wp-block-template-skip-link$suffix.css";
+	$styles->add( 'wp-block-template-skip-link', "/$skip_link_style_path" );
+	$styles->add_data( 'wp-block-template-skip-link', 'path', ABSPATH . $skip_link_style_path );
 
 	// External libraries and friends.
 	$styles->add( 'imgareaselect', '/wp-includes/js/imgareaselect/imgareaselect.css', array(), '0.9.8' );
@@ -1843,6 +1803,7 @@ function wp_default_styles( $styles ) {
 		'media-views',
 		'wp-pointer',
 		'wp-jquery-ui-dialog',
+		'wp-block-template-skip-link',
 		// Package styles.
 		'wp-reset-editor-styles',
 		'wp-editor-classic-layout-styles',
@@ -2027,7 +1988,7 @@ function wp_localize_community_events() {
 
 	$user_id            = get_current_user_id();
 	$saved_location     = get_user_option( 'community-events-location', $user_id );
-	$saved_ip_address   = isset( $saved_location['ip'] ) ? $saved_location['ip'] : false;
+	$saved_ip_address   = $saved_location['ip'] ?? false;
 	$current_ip_address = WP_Community_Events::get_unsafe_client_ip();
 
 	/*
@@ -2090,8 +2051,8 @@ function wp_style_loader_src( $src, $handle ) {
 			$color = 'fresh';
 		}
 
-		$color = $_wp_admin_css_colors[ $color ];
-		$url   = $color->url;
+		$color = $_wp_admin_css_colors[ $color ] ?? null;
+		$url   = $color->url ?? '';
 
 		if ( ! $url ) {
 			return false;
@@ -2205,16 +2166,13 @@ function _print_scripts() {
 		$zip = 'gzip';
 	}
 
-	$concat    = trim( $wp_scripts->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
+	$concat = trim( $wp_scripts->concat, ', ' );
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
-			echo "\n<script{$type_attr}>\n";
-			echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
+			echo "\n<script>\n";
 			echo $wp_scripts->print_code;
 			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
-			echo "/* ]]> */\n";
 			echo "</script>\n";
 		}
 
@@ -2226,7 +2184,7 @@ function _print_scripts() {
 		}
 
 		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		echo "<script{$type_attr} src='" . esc_attr( $src ) . "'></script>\n";
+		echo "<script src='" . esc_attr( $src ) . "'></script>\n";
 	}
 
 	if ( ! empty( $wp_scripts->print_html ) ) {
@@ -2264,10 +2222,14 @@ function wp_print_head_scripts() {
 /**
  * Private, for use in *_footer_scripts hooks
  *
- * In classic themes, when block styles are loaded on demand via {@see wp_load_classic_theme_block_styles_on_demand()},
- * this function is replaced by a closure in {@see wp_hoist_late_printed_styles()} which will capture the output of
- * {@see print_late_styles()} before printing footer scripts as usual. The captured late-printed styles are then hoisted
- * to the HEAD by means of the template enhancement output buffer.
+ * In classic themes, when block styles are loaded on demand via wp_load_classic_theme_block_styles_on_demand(),
+ * this function is replaced by a closure in wp_hoist_late_printed_styles() which will capture the printing of
+ * two sets of "late" styles to be hoisted to the HEAD by means of the template enhancement output buffer:
+ *
+ * 1. Styles related to blocks are inserted right after the wp-block-library stylesheet.
+ * 2. All other styles are appended to the end of the HEAD.
+ *
+ * The closure calls print_footer_scripts() to print scripts in the footer as usual.
  *
  * @since 3.3.0
  */
@@ -2348,7 +2310,7 @@ function print_admin_styles() {
  * @global WP_Styles $wp_styles
  * @global bool      $concatenate_scripts
  *
- * @return array|void
+ * @return string[]|void
  */
 function print_late_styles() {
 	global $wp_styles, $concatenate_scripts;
@@ -2394,8 +2356,7 @@ function _print_styles() {
 		$zip = 'gzip';
 	}
 
-	$concat    = trim( $wp_styles->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	$concat = trim( $wp_styles->concat, ', ' );
 
 	if ( $concat ) {
 		$dir = $wp_styles->text_direction;
@@ -2410,13 +2371,15 @@ function _print_styles() {
 		}
 
 		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}" . $concatenated . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "'{$type_attr} media='all' />\n";
+		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
 
 		if ( ! empty( $wp_styles->print_code ) ) {
-			echo "<style{$type_attr}>\n";
-			echo $wp_styles->print_code;
-			echo sprintf( "\n/*# sourceURL=%s */", rawurlencode( $concat_source_url ) );
-			echo "\n</style>\n";
+			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+			$processor->next_tag();
+			$style_tag_contents = "\n{$wp_styles->print_code}\n"
+				. sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) );
+			$processor->set_modifiable_text( $style_tag_contents );
+			echo "{$processor->get_updated_html()}\n";
 		}
 	}
 
@@ -2504,8 +2467,8 @@ function wp_common_block_scripts_and_styles() {
  *
  * @since 6.1.0
  *
- * @param array $nodes The nodes to filter.
- * @return array A filtered array of style nodes.
+ * @param array<array<string, mixed>> $nodes The nodes to filter.
+ * @return array<array<string, mixed>> A filtered array of style nodes.
  */
 function wp_filter_out_block_nodes( $nodes ) {
 	return array_filter(
@@ -2865,12 +2828,11 @@ function wp_enqueue_editor_format_library_assets() {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String made of sanitized `<script>` tag attributes.
  */
 function wp_sanitize_script_attributes( $attributes ) {
-	$html5_script_support = is_admin() || current_theme_supports( 'html5', 'script' );
-	$attributes_string    = '';
+	$attributes_string = '';
 
 	/*
 	 * If HTML5 script tag is supported, only the attribute name is added
@@ -2879,7 +2841,7 @@ function wp_sanitize_script_attributes( $attributes ) {
 	foreach ( $attributes as $attribute_name => $attribute_value ) {
 		if ( is_bool( $attribute_value ) ) {
 			if ( $attribute_value ) {
-				$attributes_string .= $html5_script_support ? ' ' . esc_attr( $attribute_name ) : sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_name ) );
+				$attributes_string .= ' ' . esc_attr( $attribute_name );
 			}
 		} else {
 			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
@@ -2897,17 +2859,10 @@ function wp_sanitize_script_attributes( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String containing `<script>` opening and closing tags.
  */
 function wp_get_script_tag( $attributes ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
-		$attributes = array_merge(
-			array( 'type' => 'text/javascript' ),
-			$attributes
-		);
-	}
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
@@ -2930,7 +2885,7 @@ function wp_get_script_tag( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_script_tag( $attributes ) {
 	echo wp_get_script_tag( $attributes );
@@ -2944,70 +2899,11 @@ function wp_print_script_tag( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
-	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
-	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
-		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
-		$attributes = array_merge(
-			array( 'type' => 'text/javascript' ),
-			$attributes
-		);
-	}
-
-	/*
-	 * XHTML extracts the contents of the SCRIPT element and then the XML parser
-	 * decodes character references and other syntax elements. This can lead to
-	 * misinterpretation of the script contents or invalid XHTML documents.
-	 *
-	 * Wrapping the contents in a CDATA section instructs the XML parser not to
-	 * transform the contents of the SCRIPT element before passing them to the
-	 * JavaScript engine.
-	 *
-	 * Example:
-	 *
-	 *     <script>console.log('&hellip;');</script>
-	 *
-	 *     In an HTML document this would print "&hellip;" to the console,
-	 *     but in an XHTML document it would print "…" to the console.
-	 *
-	 *     <script>console.log('An image is <img> in HTML');</script>
-	 *
-	 *     In an HTML document this would print "An image is <img> in HTML",
-	 *     but it's an invalid XHTML document because it interprets the `<img>`
-	 *     as an empty tag missing its closing `/`.
-	 *
-	 * @see https://www.w3.org/TR/xhtml1/#h-4.8
-	 */
-	if (
-		! $is_html5 &&
-		(
-			! isset( $attributes['type'] ) ||
-			'module' === $attributes['type'] ||
-			str_contains( $attributes['type'], 'javascript' ) ||
-			str_contains( $attributes['type'], 'ecmascript' ) ||
-			str_contains( $attributes['type'], 'jscript' ) ||
-			str_contains( $attributes['type'], 'livescript' )
-		)
-	) {
-		/*
-		 * If the string `]]>` exists within the JavaScript it would break
-		 * out of any wrapping CDATA section added here, so to start, it's
-		 * necessary to escape that sequence which requires splitting the
-		 * content into two CDATA sections wherever it's found.
-		 *
-		 * Note: it's only necessary to escape the closing `]]>` because
-		 * an additional `<![CDATA[` leaves the contents unchanged.
-		 */
-		$data = str_replace( ']]>', ']]]]><![CDATA[>', $data );
-
-		// Wrap the entire escaped script inside a CDATA section.
-		$data = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $data );
-	}
-
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
 
 	/**
@@ -3015,10 +2911,10 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param array  $attributes Key-value pairs representing `<script>` tag attributes.
-	 *                           Only the attribute name is added to the `<script>` tag for
-	 *                           entries with a boolean value, and that are true.
-	 * @param string $data       Inline data.
+	 * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                                               Only the attribute name is added to the `<script>` tag for
+	 *                                               entries with a boolean value, and that are true.
+	 * @param string                     $data       Inline data.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
@@ -3033,8 +2929,8 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
  *
  * @since 5.7.0
  *
- * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_inline_script_tag( $data, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $data, $attributes );
@@ -3055,14 +2951,14 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
 function wp_maybe_inline_styles() {
 	global $wp_styles;
 
-	$total_inline_limit = 50000;
+	$total_inline_limit = 40000;
 	/**
 	 * The maximum size of inlined styles in bytes.
 	 *
 	 * @since 5.8.0
-	 * @since 6.9.0 The default limit increased from 20K to 50K.
+	 * @since 6.9.0 The default limit increased from 20K to 40K.
 	 *
-	 * @param int $total_inline_limit The file-size threshold, in bytes. Default 50000.
+	 * @param int $total_inline_limit The file-size threshold, in bytes. Default 40000.
 	 */
 	$total_inline_limit = apply_filters( 'styles_inline_size_limit', $total_inline_limit );
 
@@ -3077,7 +2973,18 @@ function wp_maybe_inline_styles() {
 		$path = $wp_styles->get_data( $handle, 'path' );
 		if ( $path && $src ) {
 			$size = wp_filesize( $path );
-			if ( ! $size ) {
+			if ( 0 === $size && ! file_exists( $path ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: 'path', 2: filesystem path, 3: style handle */
+						__( 'Unable to read the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
+						'path',
+						esc_html( $path ),
+						esc_html( $handle )
+					),
+					'7.0.0'
+				);
 				continue;
 			}
 			$styles[] = array(
@@ -3115,6 +3022,20 @@ function wp_maybe_inline_styles() {
 			}
 
 			// Get the styles if we don't already have them.
+			if ( ! is_readable( $style['path'] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: 'path', 2: filesystem path, 3: style handle */
+						__( 'Unable to read the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
+						'path',
+						esc_html( $style['path'] ),
+						esc_html( $style['handle'] )
+					),
+					'7.0.0'
+				);
+				continue;
+			}
 			$style['css'] = file_get_contents( $style['path'] );
 
 			/*
@@ -3213,7 +3134,10 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
 	add_action(
 		$action_hook_name,
 		static function () use ( $style ) {
-			echo "<style>$style</style>\n";
+			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+			$processor->next_tag();
+			$processor->set_modifiable_text( $style );
+			echo "{$processor->get_updated_html()}\n";
 		},
 		$priority
 	);
@@ -3227,7 +3151,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *
  * @since 6.1.0
  *
- * @param array $options {
+ * @param array<string, bool> $options {
  *     Optional. An array of options to pass to wp_style_engine_get_stylesheet_from_context().
  *     Default empty array.
  *
@@ -3299,8 +3223,8 @@ function wp_enqueue_stored_styles( $options = array() ) {
  *
  * @since 5.9.0
  *
- * @param string $block_name The block-name, including namespace.
- * @param array  $args       {
+ * @param string                                   $block_name The block-name, including namespace.
+ * @param array<string, string|string[]|bool|null> $args       {
  *     An array of arguments. See wp_register_style() for full information about each argument.
  *
  *     @type string           $handle The handle for the stylesheet.
@@ -3405,7 +3329,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
 }
 
 /**
- * Loads classic theme styles on classic themes in the frontend.
+ * Loads classic theme styles when the current theme lacks a theme.json file.
  *
  * This is used for backwards compatibility for Button and File blocks specifically.
  *
@@ -3430,28 +3354,71 @@ function wp_enqueue_classic_theme_styles() {
 function wp_enqueue_command_palette_assets() {
 	global $menu, $submenu;
 
-	$command_palette_settings = array();
+	$command_palette_settings = array(
+		'is_network_admin' => is_network_admin(),
+	);
+
+	/**
+	 * Extracts root-level text nodes from HTML string.
+	 *
+	 * @ignore
+	 * @param string $label HTML string to extract text from.
+	 * @return string Extracted text content, trimmed.
+	 */
+	$extract_root_text = static function ( string $label ): string {
+		if ( '' === $label ) {
+			return '';
+		}
+
+		$processor  = new WP_HTML_Tag_Processor( $label );
+		$text_parts = array();
+		$depth      = 0;
+
+		while ( $processor->next_token() ) {
+			$token_type = $processor->get_token_type();
+
+			if ( '#text' === $token_type ) {
+				if ( 0 === $depth ) {
+					$text_parts[] = $processor->get_modifiable_text();
+				}
+				continue;
+			}
+
+			if ( '#tag' !== $token_type ) {
+				continue;
+			}
+
+			if ( $processor->is_tag_closer() ) {
+				if ( $depth > 0 ) {
+					--$depth;
+				}
+				continue;
+			}
+
+			$token_name = $processor->get_tag();
+			if ( $token_name && ! WP_HTML_Processor::is_void( $token_name ) ) {
+				++$depth;
+			}
+		}
+
+		return trim( implode( '', $text_parts ) );
+	};
 
 	if ( $menu ) {
 		$menu_commands = array();
 		foreach ( $menu as $menu_item ) {
-			if ( empty( $menu_item[0] ) || ! empty( $menu_item[1] ) && ! current_user_can( $menu_item[1] ) ) {
+			if ( empty( $menu_item[0] ) || ! is_string( $menu_item[0] ) || ! empty( $menu_item[1] ) && ! current_user_can( $menu_item[1] ) ) {
 				continue;
 			}
 
-			// Remove all HTML tags and their contents.
-			$menu_label = $menu_item[0];
-			while ( preg_match( '/<[^>]*>/', $menu_label ) ) {
-				$menu_label = preg_replace( '/<[^>]*>.*?<\/[^>]*>|<[^>]*\/>|<[^>]*>/s', '', $menu_label );
-			}
-			$menu_label = trim( $menu_label );
+			$menu_label = $extract_root_text( $menu_item[0] );
 			$menu_url   = '';
 			$menu_slug  = $menu_item[2];
 
 			if ( preg_match( '/\.php($|\?)/', $menu_slug ) || wp_http_validate_url( $menu_slug ) ) {
 				$menu_url = $menu_slug;
 			} elseif ( ! empty( menu_page_url( $menu_slug, false ) ) ) {
-				$menu_url = menu_page_url( $menu_slug, false );
+				$menu_url = WP_HTML_Decoder::decode_attribute( menu_page_url( $menu_slug, false ) );
 			}
 
 			if ( $menu_url ) {
@@ -3468,21 +3435,15 @@ function wp_enqueue_command_palette_assets() {
 						continue;
 					}
 
-					// Remove all HTML tags and their contents.
-					$submenu_label = $submenu_item[0];
-					while ( preg_match( '/<[^>]*>/', $submenu_label ) ) {
-						$submenu_label = preg_replace( '/<[^>]*>.*?<\/[^>]*>|<[^>]*\/>|<[^>]*>/s', '', $submenu_label );
-					}
-					$submenu_label = trim( $submenu_label );
+					$submenu_label = $extract_root_text( $submenu_item[0] );
 					$submenu_url   = '';
 					$submenu_slug  = $submenu_item[2];
 
 					if ( preg_match( '/\.php($|\?)/', $submenu_slug ) || wp_http_validate_url( $submenu_slug ) ) {
 						$submenu_url = $submenu_slug;
 					} elseif ( ! empty( menu_page_url( $submenu_slug, false ) ) ) {
-						$submenu_url = menu_page_url( $submenu_slug, false );
+						$submenu_url = WP_HTML_Decoder::decode_attribute( menu_page_url( $submenu_slug, false ) );
 					}
-
 					if ( $submenu_url ) {
 						$menu_commands[] = array(
 							'label' => sprintf(
@@ -3531,7 +3492,7 @@ function wp_enqueue_command_palette_assets() {
  *     'sayHello();' === wp_remove_surrounding_empty_script_tags( $js );
  *
  *     // Otherwise if anything is different it warns in the JS console.
- *     $js = '<script type="text/javascript">console.log( "hi" );</script>';
+ *     $js = '<script type="module">console.log( "hi" );</script>';
  *     'console.error( ... )' === wp_remove_surrounding_empty_script_tags( $js );
  *
  * @since 6.4.0
@@ -3575,8 +3536,11 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
  * Adds hooks to load block styles on demand in classic themes.
  *
  * @since 6.9.0
+ *
+ * @see _add_default_theme_supports()
  */
 function wp_load_classic_theme_block_styles_on_demand() {
+	// This is not relevant to block themes, as they are opted in to loading separate styles on demand via _add_default_theme_supports().
 	if ( wp_is_block_theme() ) {
 		return;
 	}
@@ -3588,18 +3552,33 @@ function wp_load_classic_theme_block_styles_on_demand() {
 	 */
 	add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
 
+	// If a site has opted out of the template enhancement output buffer, then bail.
 	if ( ! wp_should_output_buffer_template_for_enhancement() ) {
 		return;
 	}
 
+	// The following two filters are added by default for block themes in _add_default_theme_supports().
+
 	/*
-	 * Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally,
-	 * and so that block-specific styles will only be enqueued when they are used on the page.
+	 * Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally, and so
+	 * that block-specific styles will only be enqueued when they are used on the page. A priority of zero allows for
+	 * this to be easily overridden by themes which wish to opt out. If a site has explicitly opted out of loading
+	 * separate block styles, then abort.
 	 */
 	add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
+	if ( ! wp_should_load_separate_core_block_assets() ) {
+		return;
+	}
 
-	// Also ensure that block assets are loaded on demand (although the default value is from should_load_separate_core_block_assets).
+	/*
+	 * Also ensure that block assets are loaded on demand (although the default value is from should_load_separate_core_block_assets).
+	 * As above, a priority of zero allows for this to be easily overridden by themes which wish to opt out. If a site
+	 * has explicitly opted out of loading block styles on demand, then abort.
+	 */
 	add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
+	if ( ! wp_should_load_block_assets_on_demand() ) {
+		return;
+	}
 
 	// Add hooks which require the presence of the output buffer. Ideally the above two filters could be added here, but they run too early.
 	add_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
@@ -3620,37 +3599,73 @@ function wp_hoist_late_printed_styles() {
 	}
 
 	/*
-	 * While normally late styles are printed, there is a filter to disable prevent this, so this makes sure they are
-	 * printed. Note that this filter was intended to control whether to print the styles queued too late for the HTML
-	 * head. This filter was introduced in <https://core.trac.wordpress.org/ticket/9346>. However, with the template
-	 * enhancement output buffer, essentially no style can be enqueued too late, because an output buffer filter can
-	 * always hoist it to the HEAD.
+	 * Add a placeholder comment into the inline styles for wp-block-library, after which where the late block styles
+	 * can be hoisted from the footer to be printed in the header by means of a filter below on the template enhancement
+	 * output buffer. The `wp_print_styles` action is used to ensure that if the inline style gets replaced at
+	 * `enqueue_block_assets` or `wp_enqueue_scripts` that the placeholder will be sure to be present.
 	 */
-	add_filter( 'print_late_styles', '__return_true', PHP_INT_MAX );
+	$placeholder = sprintf( '/*%s*/', uniqid( 'wp_block_styles_on_demand_placeholder:' ) );
+	add_action(
+		'wp_print_styles',
+		static function () use ( $placeholder ) {
+			wp_add_inline_style( 'wp-block-library', $placeholder );
+		}
+	);
 
 	/*
-	 * Print a placeholder comment where the late styles can be hoisted from the footer to be printed in the header
-	 * by means of a filter below on the template enhancement output buffer.
+	 * Create a substitute for `print_late_styles()` which is aware of block styles. This substitute does not print
+	 * the styles, but it captures what would be printed for block styles and non-block styles so that they can be
+	 * later hoisted to the HEAD in the template enhancement output buffer. This will run at `wp_print_footer_scripts`
+	 * before `print_footer_scripts()` is called.
 	 */
-	$placeholder = sprintf( '/*%s*/', uniqid( 'wp_late_styles_placeholder:' ) );
+	$printed_block_styles = '';
+	$printed_late_styles  = '';
+	$capture_late_styles  = static function () use ( &$printed_block_styles, &$printed_late_styles ) {
+		// Gather the styles related to on-demand block enqueues.
+		$all_block_style_handles = array();
+		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_type ) {
+			foreach ( $block_type->style_handles as $style_handle ) {
+				$all_block_style_handles[] = $style_handle;
+			}
+		}
+		$all_block_style_handles = array_merge(
+			$all_block_style_handles,
+			array(
+				'global-styles',
+				'block-style-variation-styles',
+				'core-block-supports',
+				'core-block-supports-duotone',
+			)
+		);
 
-	wp_add_inline_style( 'wp-block-library', $placeholder );
+		/*
+		 * First print all styles related to blocks which should inserted right after the wp-block-library stylesheet
+		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
+		 */
+		$enqueued_block_styles = array_values( array_intersect( $all_block_style_handles, wp_styles()->queue ) );
+		if ( count( $enqueued_block_styles ) > 0 ) {
+			ob_start();
+			wp_styles()->do_items( $enqueued_block_styles );
+			$printed_block_styles = ob_get_clean();
+		}
 
-	// Wrap print_late_styles() with a closure that captures the late-printed styles.
-	$printed_late_styles = '';
-	$capture_late_styles = static function () use ( &$printed_late_styles ) {
+		/*
+		 * Print all remaining styles not related to blocks. This contains a subset of the logic from
+		 * `print_late_styles()`, without admin-specific logic and the `print_late_styles` filter to control whether
+		 * late styles are printed (since they are being hoisted anyway).
+		 */
 		ob_start();
-		print_late_styles();
+		wp_styles()->do_footer_items();
 		$printed_late_styles = ob_get_clean();
 	};
 
 	/*
-	 * If _wp_footer_scripts() was unhooked from the wp_print_footer_scripts action, or if wp_print_footer_scripts()
-	 * was unhooked from running at the wp_footer action, then only add a callback to wp_footer which will capture the
+	 * If `_wp_footer_scripts()` was unhooked from the `wp_print_footer_scripts` action, or if `wp_print_footer_scripts()`
+	 * was unhooked from running at the `wp_footer` action, then only add a callback to `wp_footer` which will capture the
 	 * late-printed styles.
 	 *
-	 * Otherwise, in the normal case where _wp_footer_scripts() will run at the wp_print_footer_scripts action, then
-	 * swap out _wp_footer_scripts() with an alternative which captures the printed styles (for hoisting to HEAD) before
+	 * Otherwise, in the normal case where `_wp_footer_scripts()` will run at the `wp_print_footer_scripts` action, then
+	 * swap out `_wp_footer_scripts()` with an alternative which captures the printed styles (for hoisting to HEAD) before
 	 * proceeding with printing the footer scripts.
 	 */
 	$wp_print_footer_scripts_priority = has_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
@@ -3672,48 +3687,99 @@ function wp_hoist_late_printed_styles() {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		function ( $buffer ) use ( $placeholder, &$printed_late_styles ) {
+		static function ( $buffer ) use ( $placeholder, &$printed_block_styles, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
-				public function get_span(): WP_HTML_Span {
-					$instance = $this; // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewClosure.ThisFoundOutsideClass -- It is inside an anonymous class.
-					$instance->set_bookmark( 'here' );
-					return $instance->bookmarks['here'];
+				/**
+				 * Gets the span for the current token.
+				 *
+				 * @return WP_HTML_Span Current token span.
+				 */
+				private function get_span(): WP_HTML_Span {
+					// Note: This call will never fail according to the usage of this class, given it is always called after ::next_tag() is true.
+					$this->set_bookmark( 'here' );
+					return $this->bookmarks['here'];
+				}
+
+				/**
+				 * Inserts text before the current token.
+				 *
+				 * @param string $text Text to insert.
+				 */
+				public function insert_before( string $text ) {
+					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $this->get_span()->start, 0, $text );
+				}
+
+				/**
+				 * Inserts text after the current token.
+				 *
+				 * @param string $text Text to insert.
+				 */
+				public function insert_after( string $text ) {
+					$span = $this->get_span();
+
+					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start + $span->length, 0, $text );
+				}
+
+				/**
+				 * Removes the current token.
+				 */
+				public function remove() {
+					$span = $this->get_span();
+
+					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
 				}
 			};
 
-			// Loop over STYLE tags.
-			while ( $processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
-				// Skip to the next if this is not the inline style for the wp-block-library stylesheet (which contains the placeholder).
-				if ( 'wp-block-library-inline-css' !== $processor->get_attribute( 'id' ) ) {
-					continue;
-				}
+			/*
+			 * Insert block styles right after wp-block-library (if it is present), and then insert any remaining styles
+			 * at </head> (or else print everything there). The placeholder CSS comment will always be added to the
+			 * wp-block-library inline style since it gets printed at `wp_head` before the blocks are rendered.
+			 * This means that there may not actually be any block styles to hoist from the footer to insert after this
+			 * inline style. The placeholder CSS comment needs to be added so that the inline style gets printed, but
+			 * if the resulting inline style is empty after the placeholder is removed, then the inline style is
+			 * removed.
+			 */
+			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+				if (
+					'STYLE' === $processor->get_tag() &&
+					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
+				) {
+					$css_text = $processor->get_modifiable_text();
 
-				// If the inline style lacks the placeholder comment, then something went wrong and we need to abort.
-				$css_text = $processor->get_modifiable_text();
-				if ( ! str_contains( $css_text, $placeholder ) ) {
+					/*
+					 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
+					 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
+					 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
+					 * comment, then remove the STYLE entirely.)
+					 */
+					$css_text = str_replace( $placeholder, '', $css_text );
+					if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
+						$processor->remove();
+					} else {
+						$processor->set_modifiable_text( $css_text );
+					}
+
+					// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
+					if ( '' !== $printed_block_styles ) {
+						$processor->insert_after( $printed_block_styles );
+
+						// Prevent printing them again at </head>.
+						$printed_block_styles = '';
+					}
+
+					// If there aren't any late styles, there's no need to continue to finding </head>.
+					if ( '' === $printed_late_styles ) {
+						break;
+					}
+				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
+					$processor->insert_before( $printed_block_styles . $printed_late_styles );
 					break;
 				}
-
-				// Remove the placeholder now that we've located the inline style.
-				$processor->set_modifiable_text( str_replace( $placeholder, '', $css_text ) );
-				$buffer = $processor->get_updated_html();
-
-				// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
-				$span   = $processor->get_span();
-				$buffer = implode(
-					'',
-					array(
-						substr( $buffer, 0, $span->start + $span->length ),
-						$printed_late_styles,
-						substr( $buffer, $span->start + $span->length ),
-					)
-				);
-				break;
 			}
 
-			return $buffer;
+			return $processor->get_updated_html();
 		}
 	);
 }

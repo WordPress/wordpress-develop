@@ -170,6 +170,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function set_up() {
 		parent::set_up();
 		$this->endpoint = new WP_REST_Comments_Controller();
+		wp_create_initial_comment_meta();
+
 		if ( is_multisite() ) {
 			update_site_option( 'site_admins', array( 'superadmin' ) );
 		}
@@ -866,8 +868,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request  = new WP_REST_Request( $method, '/wp/v2/comments' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
-		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_comments, $headers['X-WP-Total'] );
+		$this->assertSame( (string) $total_pages, $headers['X-WP-TotalPages'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
@@ -889,8 +891,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
-		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_comments, $headers['X-WP-Total'] );
+		$this->assertSame( (string) $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => 2,
@@ -911,8 +913,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'page', $total_pages );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
-		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_comments, $headers['X-WP-Total'] );
+		$this->assertSame( (string) $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages - 1,
@@ -927,8 +929,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'page', 100 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_comments, $headers['X-WP-Total'] );
+		$this->assertEquals( (string) $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages,
@@ -3888,6 +3890,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertArrayHasKey( '_wp_note_status', $data['meta'] );
+		$this->assertSame( $status, $data['meta']['_wp_note_status'] );
 	}
 
 	/**
@@ -4067,6 +4074,177 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		return array(
 			'resolved' => array( 'resolved' ),
 			'reopen'   => array( 'reopen' ),
+		);
+	}
+
+	/**
+	 * Test children link for note comment type. Based on test_get_comment_with_children_link.
+	 *
+	 * @ticket 64152
+	 */
+	public function test_get_note_with_children_link() {
+		$parent_comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => 1,
+				'comment_post_ID'  => self::$post_id,
+				'user_id'          => self::$admin_id,
+				'comment_type'     => 'note',
+				'comment_content'  => 'Parent note comment',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => 1,
+				'comment_parent'   => $parent_comment_id,
+				'comment_post_ID'  => self::$post_id,
+				'user_id'          => self::$admin_id,
+				'comment_type'     => 'note',
+				'comment_content'  => 'First child note comment',
+			)
+		);
+
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $parent_comment_id ) );
+		$request->set_param( 'type', 'note' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertArrayHasKey( 'children', $response->get_links() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', self::$post_id );
+		$request->set_param( 'type', 'note' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'parent', 0 );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayHasKey( '_links', $data[0] );
+		$this->assertArrayHasKey( 'children', $data[0]['_links'] );
+
+		$children = $data[0]['_links']['children'];
+
+		// Verify the href attribute contains the expected status and type parameters.
+		$this->assertStringContainsString( 'status=all', $children[0]['href'] );
+		$this->assertStringContainsString( 'type=note', $children[0]['href'] );
+	}
+
+	/**
+	 * Test retrieving comments by type as authenticated user.
+	 *
+	 * @dataProvider data_comment_type_provider
+	 * @ticket 44157
+	 *
+	 * @param string $comment_type The comment type to test.
+	 * @param int    $count        The number of comments to create.
+	 */
+	public function test_get_items_type_arg_authenticated( $comment_type, $count ) {
+		wp_set_current_user( self::$admin_id );
+
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => self::$post_id,
+			'user_id'          => self::$author_id,
+			'comment_type'     => $comment_type,
+		);
+
+		// Create comments of the specified type.
+		for ( $i = 0; $i < $count; $i++ ) {
+			self::factory()->comment->create( $args );
+		}
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'type', $comment_type );
+		$request->set_param( 'per_page', self::$per_page );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Comments endpoint is expected to return a 200 status' );
+
+		$comments       = $response->get_data();
+		$expected_count = 'comment' === $comment_type ? $count + self::$total_comments : $count;
+		$this->assertCount( $expected_count, $comments, "comment type '{$comment_type}' is expect to have {$expected_count} comments" );
+
+		// Next, test getting the individual comments.
+		foreach ( $comments as $comment ) {
+			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment['id'] ) );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertSame( 200, $response->get_status(), 'Individual comment endpoint is expected to return a 200 status' );
+			$data = $response->get_data();
+			$this->assertSame( $comment_type, $data['type'], "Individual comment is expected to have type '{$comment_type}'" );
+		}
+	}
+
+	/**
+	 * Test retrieving comments by type as unauthenticated user.
+	 *
+	 * @dataProvider data_comment_type_provider
+	 * @ticket 44157
+	 *
+	 * @param string $comment_type The comment type to test.
+	 * @param int    $count        The number of comments to create.
+	 */
+	public function test_get_items_type_arg_unauthenticated( $comment_type, $count ) {
+		// First, create comments as admin.
+		wp_set_current_user( self::$admin_id );
+
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => self::$post_id,
+			'user_id'          => self::$author_id,
+			'comment_type'     => $comment_type,
+		);
+
+		$comments = array();
+
+		for ( $i = 0; $i < $count; $i++ ) {
+			$comments[] = self::factory()->comment->create( $args );
+		}
+
+		// Log out and test as unauthenticated user.
+		wp_logout();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'type', $comment_type );
+		$request->set_param( 'per_page', self::$per_page );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		// Only comments can be retrieved from the /comments (multiple) endpoint when unauthenticated.
+		$expected_status = 'comment' === $comment_type ? 200 : 401;
+		$this->assertSame( $expected_status, $response->get_status(), 'Comments endpoint did not return the expected status' );
+		if ( 'comment' !== $comment_type ) {
+			$this->assertErrorResponse( 'rest_forbidden_param', $response, 401, 'Comments endpoint did not return the expected error response for forbidden parameters' );
+		}
+
+		// Individual comments.
+		foreach ( $comments as $comment ) {
+			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment ) );
+			$response = rest_get_server()->dispatch( $request );
+
+			// Individual comments using the /comments/<id> endpoint can be retrieved by
+			// unauthenticated users - except for the 'note' type which is restricted.
+			// See https://core.trac.wordpress.org/ticket/44157.
+			$this->assertSame( 'note' === $comment_type ? 401 : 200, $response->get_status(), 'Individual comment endpoint did not return the expected status' );
+		}
+	}
+
+	/**
+	 * Data provider for comment type tests.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_comment_type_provider() {
+		return array(
+			'comment type'    => array( 'comment', 5 ),
+			'annotation type' => array( 'annotation', 5 ),
+			'discussion type' => array( 'discussion', 9 ),
+			'note type'       => array( 'note', 3 ),
 		);
 	}
 }

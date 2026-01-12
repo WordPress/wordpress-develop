@@ -2158,6 +2158,37 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `WP_User::$roles` property is a sequential array.
+	 *
+	 * @ticket 63427
+	 *
+	 * @covers WP_User::get_role_caps
+	 */
+	public function test_wp_user_roles_property_is_sequential_array() {
+		$user = new WP_User( self::$author_id );
+		$this->assertTrue( $this->is_sequential( $user->roles ), 'Initial roles array should be sequential.' );
+
+		$user->remove_role( 'author' );
+		$this->assertIsArray( $user->roles, 'After removing all roles, $user->roles should still be an array.' );
+		$this->assertSame( array(), $user->roles, 'After removing all roles, $user->roles should be an empty array.' );
+
+		$user->add_role( 'author' );
+		$user->add_role( 'subscriber' );
+		$this->assertSame( array( 'author', 'subscriber' ), $user->roles, 'After adding multiple roles, $user->roles should contain added roles.' );
+		$this->assertTrue( $this->is_sequential( $user->roles ), 'After adding multiple roles, $user->roles should still be sequential.' );
+	}
+
+	/**
+	 * Determines whether an array has sequential numeric keys.
+	 *
+	 * @param array $arr The array to check.
+	 * @return bool True if the array has sequential numeric keys, false otherwise.
+	 */
+	private function is_sequential( array $arr ) {
+		return array_keys( $arr ) === range( 0, count( $arr ) - 1 );
+	}
+
+	/**
 	 * @ticket 42564
 	 */
 	public function test_edit_user_role_update() {

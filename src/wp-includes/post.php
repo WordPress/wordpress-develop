@@ -368,7 +368,7 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_template',
 		array(
-			'labels'                  => array(
+			'labels'                          => array(
 				'name'                  => _x( 'Templates', 'post type general name' ),
 				'singular_name'         => _x( 'Template', 'post type singular name' ),
 				'add_new'               => __( 'Add Template' ),
@@ -389,20 +389,22 @@ function create_initial_post_types() {
 				'items_list'            => __( 'Templates list' ),
 				'item_updated'          => __( 'Template updated.' ),
 			),
-			'description'             => __( 'Templates to include in your theme.' ),
-			'public'                  => false,
-			'_builtin'                => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'              => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
-			'has_archive'             => false,
-			'show_ui'                 => false,
-			'show_in_menu'            => false,
-			'show_in_rest'            => true,
-			'rewrite'                 => false,
-			'rest_base'               => 'wp_template',
-			'rest_controller_class'   => 'WP_REST_Posts_Controller',
-			'late_route_registration' => true,
-			'capability_type'         => array( 'template', 'templates' ),
-			'capabilities'            => array(
+			'description'                     => __( 'Templates to include in your theme.' ),
+			'public'                          => false,
+			'_builtin'                        => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'                      => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'                     => false,
+			'show_ui'                         => false,
+			'show_in_menu'                    => false,
+			'show_in_rest'                    => true,
+			'rewrite'                         => false,
+			'rest_base'                       => 'templates',
+			'rest_controller_class'           => 'WP_REST_Templates_Controller',
+			'autosave_rest_controller_class'  => 'WP_REST_Template_Autosaves_Controller',
+			'revisions_rest_controller_class' => 'WP_REST_Template_Revisions_Controller',
+			'late_route_registration'         => true,
+			'capability_type'                 => array( 'template', 'templates' ),
+			'capabilities'                    => array(
 				'create_posts'           => 'edit_theme_options',
 				'delete_posts'           => 'edit_theme_options',
 				'delete_others_posts'    => 'edit_theme_options',
@@ -416,15 +418,14 @@ function create_initial_post_types() {
 				'read'                   => 'edit_theme_options',
 				'read_private_posts'     => 'edit_theme_options',
 			),
-			'map_meta_cap'            => true,
-			'supports'                => array(
+			'map_meta_cap'                    => true,
+			'supports'                        => array(
 				'title',
 				'slug',
 				'excerpt',
 				'editor',
 				'revisions',
 				'author',
-				'custom-fields',
 			),
 		)
 	);
@@ -1512,7 +1513,7 @@ function register_post_status( $post_status, $args = array() ) {
 function get_post_status_object( $post_status ) {
 	global $wp_post_statuses;
 
-	if ( empty( $wp_post_statuses[ $post_status ] ) ) {
+	if ( ! is_string( $post_status ) || empty( $wp_post_statuses[ $post_status ] ) ) {
 		return null;
 	}
 
@@ -1840,7 +1841,7 @@ function register_post_type( $post_type, $args = array() ) {
 	 * Fires after a post type is registered.
 	 *
 	 * @since 3.3.0
-	 * @since 4.6.0 Converted the `$post_type` parameter to accept a `WP_Post_Type` object.
+	 * @since 4.6.0 Converted the `$post_type` parameter to accept a WP_Post_Type object.
 	 *
 	 * @param string       $post_type        Post type.
 	 * @param WP_Post_Type $post_type_object Arguments used to register the post type.
@@ -2200,10 +2201,7 @@ function _get_custom_object_labels( $data_object, $nohier_vs_hier_defaults ) {
 	}
 
 	if ( ! isset( $data_object->labels['name_admin_bar'] ) ) {
-		$data_object->labels['name_admin_bar'] =
-			isset( $data_object->labels['singular_name'] )
-			? $data_object->labels['singular_name']
-			: $data_object->name;
+		$data_object->labels['name_admin_bar'] = $data_object->labels['singular_name'] ?? $data_object->name;
 	}
 
 	if ( ! isset( $data_object->labels['menu_name'] ) && isset( $data_object->labels['name'] ) ) {
@@ -2324,12 +2322,7 @@ function remove_post_type_support( $post_type, $feature ) {
  */
 function get_all_post_type_supports( $post_type ) {
 	global $_wp_post_type_features;
-
-	if ( isset( $_wp_post_type_features[ $post_type ] ) ) {
-		return $_wp_post_type_features[ $post_type ];
-	}
-
-	return array();
+	return $_wp_post_type_features[ $post_type ] ?? array();
 }
 
 /**
@@ -2455,6 +2448,10 @@ function is_post_type_viewable( $post_type ) {
  */
 function is_post_status_viewable( $post_status ) {
 	if ( is_scalar( $post_status ) ) {
+		if ( ! is_string( $post_status ) ) {
+			return false;
+		}
+
 		$post_status = get_post_status_object( $post_status );
 
 		if ( ! $post_status ) {
@@ -2851,7 +2848,7 @@ function get_post_custom_values( $key = '', $post_id = 0 ) {
 
 	$custom = get_post_custom( $post_id );
 
-	return isset( $custom[ $key ] ) ? $custom[ $key ] : null;
+	return $custom[ $key ] ?? null;
 }
 
 /**
@@ -4430,9 +4427,10 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 }
 
 /**
- * Inserts or update a post.
+ * Inserts or updates a post in the database.
  *
- * If the $postarr parameter has 'ID' set to a value, then post will be updated.
+ * If the `$postarr` parameter contains an 'ID', the corresponding post will be updated.
+ * If not, a new post will be created using the values provided.
  *
  * You can set the post date manually, by setting the values for 'post_date'
  * and 'post_date_gmt' keys. You can close the comments or open the comments by
@@ -4724,11 +4722,11 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 	// These variables are needed by compact() later.
 	$post_content_filtered = $postarr['post_content_filtered'];
-	$post_author           = isset( $postarr['post_author'] ) ? $postarr['post_author'] : $user_id;
+	$post_author           = $postarr['post_author'] ?? $user_id;
 	$ping_status           = empty( $postarr['ping_status'] ) ? get_default_comment_status( $post_type, 'pingback' ) : $postarr['ping_status'];
 	$to_ping               = isset( $postarr['to_ping'] ) ? sanitize_trackback_urls( $postarr['to_ping'] ) : '';
-	$pinged                = isset( $postarr['pinged'] ) ? $postarr['pinged'] : '';
-	$import_id             = isset( $postarr['import_id'] ) ? $postarr['import_id'] : 0;
+	$pinged                = $postarr['pinged'] ?? '';
+	$import_id             = $postarr['import_id'] ?? 0;
 
 	/*
 	 * The 'wp_insert_post_parent' filter expects all variables to be present.
@@ -4740,7 +4738,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$menu_order = 0;
 	}
 
-	$post_password = isset( $postarr['post_password'] ) ? $postarr['post_password'] : '';
+	$post_password = $postarr['post_password'] ?? '';
 	if ( 'private' === $post_status ) {
 		$post_password = '';
 	}
@@ -4786,7 +4784,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	// If a trashed post has the desired slug, change it and let this post have it.
 	if ( 'trash' !== $post_status && $post_name ) {
 		/**
-		 * Filters whether or not to add a `__trashed` suffix to trashed posts that match the name of the updated post.
+		 * Filters whether or not to add a `__trashed` suffix to the name of trashed posts that match the name of the updated post.
 		 *
 		 * @since 5.4.0
 		 *
@@ -4809,7 +4807,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	$post_name = wp_unique_post_slug( $post_name, $post_id, $post_status, $post_type, $post_parent );
 
 	// Don't unslash.
-	$post_mime_type = isset( $postarr['post_mime_type'] ) ? $postarr['post_mime_type'] : '';
+	$post_mime_type = $postarr['post_mime_type'] ?? '';
 
 	// Expected_slashed (everything!).
 	$data = compact(
@@ -4842,7 +4840,8 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		if ( isset( $data[ $emoji_field ] ) ) {
 			$charset = $wpdb->get_col_charset( $wpdb->posts, $emoji_field );
 
-			if ( 'utf8' === $charset ) {
+			// The 'utf8' character set is a deprecated alias of 'utf8mb3'. See <https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html>.
+			if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
 				$data[ $emoji_field ] = wp_encode_emoji( $data[ $emoji_field ] );
 			}
 		}
@@ -5426,11 +5425,13 @@ function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
 	}
 
 	// Validate the date.
-	$month = (int) substr( $post_date, 5, 2 );
-	$day   = (int) substr( $post_date, 8, 2 );
-	$year  = (int) substr( $post_date, 0, 4 );
+	preg_match( '/^(\d{4})-(\d{1,2})-(\d{1,2})/', $post_date, $matches );
 
-	$valid_date = wp_checkdate( $month, $day, $year, $post_date );
+	if ( empty( $matches ) || ! is_array( $matches ) || count( $matches ) < 4 ) {
+		return false;
+	}
+
+	$valid_date = wp_checkdate( $matches[2], $matches[3], $matches[1], $post_date );
 
 	if ( ! $valid_date ) {
 		return false;
@@ -6536,7 +6537,7 @@ function get_pages( $args = array() ) {
 	}
 
 	/**
-	 * Filters query arguments passed to WP_Query in get_pages.
+	 * Filters query arguments passed to WP_Query in get_pages().
 	 *
 	 * @since 6.3.0
 	 *
@@ -8626,18 +8627,6 @@ function wp_create_initial_post_meta() {
 					'enum' => array( 'partial', 'unsynced' ),
 				),
 			),
-		)
-	);
-
-	// Allow setting the is_wp_suggestion meta field, which partly determines if
-	// a template is a custom template.
-	register_post_meta(
-		'wp_template',
-		'is_wp_suggestion',
-		array(
-			'type'         => 'boolean',
-			'show_in_rest' => true,
-			'single'       => true,
 		)
 	);
 }
