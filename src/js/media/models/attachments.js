@@ -48,10 +48,10 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 
 		// Normalize the order if it exists.
 		if ( 'string' === typeof options.props.order ) {
-			options.props.order = options.props.order.toUpperCase();
-			if ( 'ASC' !== options.props.order && 'DESC' !== options.props.order ) {
-				options.props.order = 'DESC';
-			}
+			const normalizedOrder = options.props.order.toUpperCase();
+			options.props.order   = ( 'ASC' === normalizedOrder || 'DESC' === normalizedOrder )
+				? normalizedOrder
+				: 'DESC';
 		}
 
 		this.props.set( options.props );
