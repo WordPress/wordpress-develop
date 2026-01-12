@@ -114,10 +114,6 @@ async function main() {
 		gutenbergPackageJson.config.IS_GUTENBERG_PLUGIN = false;
 		gutenbergPackageJson.config.IS_WORDPRESS_CORE = true;
 
-		// Set wpPlugin.name for Core naming convention
-		gutenbergPackageJson.wpPlugin = gutenbergPackageJson.wpPlugin || {};
-		gutenbergPackageJson.wpPlugin.name = 'wp';
-
 		fs.writeFileSync(
 			gutenbergPackageJsonPath,
 			JSON.stringify( gutenbergPackageJson, null, '\t' ) + '\n'
@@ -125,7 +121,6 @@ async function main() {
 
 		console.log( '   ✅ IS_GUTENBERG_PLUGIN = false' );
 		console.log( '   ✅ IS_WORDPRESS_CORE = true' );
-		console.log( '   ✅ wpPlugin.name = wp' );
 	} catch ( error ) {
 		console.error(
 			'❌ Error modifying Gutenberg package.json:',
