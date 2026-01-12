@@ -3830,12 +3830,16 @@ function wp_hoist_late_printed_styles() {
 
 				// If the classic-theme-styles is absent, then the third-party block styles cannot be inserted after it, so they get inserted here.
 				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
-					$inserted_after            .= "\n" . $printed_other_block_styles;
+					if ( '' !== $printed_other_block_styles ) {
+						$inserted_after .= "\n" . $printed_other_block_styles;
+					}
 					$printed_other_block_styles = '';
 
 					// If there aren't any other styles printed at enqueue_block_assets either, then the global styles need to also be printed here.
 					if ( ! $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
-						$inserted_after       .= "\n" . $printed_global_styles;
+						if ( '' !== $printed_global_styles ) {
+							$inserted_after .= "\n" . $printed_global_styles;
+						}
 						$printed_global_styles = '';
 					}
 				}
