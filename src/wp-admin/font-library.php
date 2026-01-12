@@ -22,7 +22,7 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 if ( ! function_exists( 'font_library_wp_admin_render_page' ) ) {
 	wp_die(
 		'<h1>' . __( 'Font Library is not available.' ) . '</h1>' .
-		'<p>' . __( 'The Font Library requires Gutenberg integration. Please run <code>npm run gutenberg:integrate</code> to build the necessary files.' ) . '</p>',
+		'<p>' . __( 'The Font Library requires Gutenberg build files. Please run <code>npm install</code> to build the necessary files.' ) . '</p>',
 		503
 	);
 }

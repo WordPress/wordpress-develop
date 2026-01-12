@@ -156,7 +156,27 @@ async function main() {
 		console.log( `✅ Build completed in ${ duration }s` );
 	} catch ( error ) {
 		console.error( '❌ Build failed:', error.message );
+		// Restore package.json even on failure
+		await restorePackageJson();
 		process.exit( 1 );
+	}
+
+	// Restore Gutenberg's package.json after successful build
+	await restorePackageJson();
+}
+
+/**
+ * Restore Gutenberg's package.json to its original state.
+ */
+async function restorePackageJson() {
+	console.log( '\n🔄 Restoring Gutenberg package.json...' );
+	try {
+		await exec( 'git', [ 'checkout', 'package.json' ], {
+			cwd: gutenbergDir,
+		} );
+		console.log( '✅ package.json restored' );
+	} catch ( error ) {
+		console.warn( '⚠️  Could not restore package.json:', error.message );
 	}
 }
 
