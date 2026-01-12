@@ -458,7 +458,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$a = $plugin_a->$orderby;
 		$b = $plugin_b->$orderby;
 
-		return ( 'DESC' === $this->order ) ? ( $b <=> $a ) : ( $a <=> $b );
+		return 'DESC' === $this->order ?
+			$b <=> $a :
+			$a <=> $b;
 	}
 
 	/**
