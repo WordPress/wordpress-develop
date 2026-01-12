@@ -3816,7 +3816,7 @@ function wp_hoist_late_printed_styles() {
 				 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
 				 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
 				 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
-				 * comment, then remove the STYLE entirely.)
+				 * comment), then remove the STYLE entirely.
 				 */
 				$css_text = str_replace( $placeholder, '', $css_text );
 				if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
