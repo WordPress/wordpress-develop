@@ -3833,7 +3833,7 @@ function wp_hoist_late_printed_styles() {
 					$inserted_after            .= "\n" . $printed_other_block_styles;
 					$printed_other_block_styles = '';
 
-					// If there aren't any other styles printed at enqueue_block_assets either, then the global styles needs to also be printed here.
+					// If there aren't any other styles printed at enqueue_block_assets either, then the global styles need to also be printed here.
 					if ( ! $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
 						$inserted_after       .= "\n" . $printed_global_styles;
 						$printed_global_styles = '';
