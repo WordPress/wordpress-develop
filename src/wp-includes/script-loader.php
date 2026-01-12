@@ -3675,7 +3675,7 @@ function wp_hoist_late_printed_styles() {
 			$printed_other_block_styles = ob_get_clean();
 		}
 
-		// Capture the global-styles so that it can be printed separately after classic-theme-styles and other styles enqueued at enqueue_block_assets,
+		// Capture the global-styles so that it can be printed separately after classic-theme-styles and other styles enqueued at enqueue_block_assets.
 		if ( wp_style_is( 'global-styles' ) ) {
 			ob_start();
 			wp_styles()->do_items( array( 'global-styles' ) );
