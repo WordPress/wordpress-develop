@@ -1806,7 +1806,7 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		/*
-		 * This is very old guidance about how to add enqueue styles for blocks. Certain themes still enqueue block
+		 * This is very old guidance about how to enqueue styles for blocks. Certain themes still enqueue block
 		 * styles using this action.
 		 */
 		add_action(
