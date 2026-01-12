@@ -2872,14 +2872,14 @@ function wp_get_script_tag( $attributes ) {
 	 */
 	$attributes = apply_filters( 'wp_script_attributes', $attributes );
 
-	$processor = new WP_HTML_Tag_Processor( "<script></script>\n" );
+	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 	$processor->next_tag();
 	foreach ( $attributes as $name => $value ) {
 		if ( is_string( $value ) || true === $value ) {
 			$processor->set_attribute( $name, $value );
 		}
 	}
-	return $processor->get_updated_html();
+	return "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -2923,7 +2923,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
-	$processor = new WP_HTML_Tag_Processor( "<script></script>\n" );
+	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 	$processor->next_tag();
 	foreach ( $attributes as $name => $value ) {
 		if ( is_string( $value ) || true === $value ) {
@@ -2931,7 +2931,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 		}
 	}
 	$processor->set_modifiable_text( $data );
-	return $processor->get_updated_html();
+	return "{$processor->get_updated_html()}\n";
 }
 
 /**
