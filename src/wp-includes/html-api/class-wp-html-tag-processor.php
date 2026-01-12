@@ -3818,11 +3818,10 @@ class WP_HTML_Tag_Processor {
 				switch ( $script_content_type ) {
 					case 'javascript':
 					case 'json':
-						$escaped_content                          = self::escape_javascript_script_contents( $plaintext_content );
 						$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 							$this->text_starts_at,
 							$this->text_length,
-							$escaped_content
+							self::escape_javascript_script_contents( $plaintext_content )
 						);
 						return true;
 				}
