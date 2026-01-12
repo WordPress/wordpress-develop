@@ -142,10 +142,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Sets the bcrypt cost option for password hashing during tests.
 	 *
-	 * @param array      $options   The options for password hashing.
-	 * @param string|int $algorithm The algorithm to use for hashing. This is a string in PHP 7.4+ and an integer in PHP 7.3 and earlier.
+	 * @param array  $options   The options for password hashing.
+	 * @param string $algorithm The algorithm to use for hashing.
 	 */
-	public function wp_hash_password_options( array $options, $algorithm ): array {
+	public function wp_hash_password_options( array $options, string $algorithm ): array {
 		if ( PASSWORD_BCRYPT === $algorithm ) {
 			$options['cost'] = 5;
 		}
@@ -1593,14 +1593,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				$matched_dirs[] = array( $dir . '/' . $path );
 				$matched_dirs[] = $this->scandir( $dir . '/' . $path );
 			}
-		}
-
-		/*
-		 * Compatibility check for PHP < 7.4, where array_merge() expects at least one array.
-		 * See: https://3v4l.org/BIQMA
-		 */
-		if ( array() === $matched_dirs ) {
-			return array();
 		}
 
 		return array_merge( ...$matched_dirs );

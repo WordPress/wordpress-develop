@@ -262,15 +262,20 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param array $args {
+	 * @param int[] $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
 	 *
 	 *     @type int $0 A number to add.
 	 *     @type int $1 A second number to add.
 	 * }
-	 * @return int Sum of the two given numbers.
+	 * @return int|IXR_Error Sum of the two given numbers.
 	 */
 	public function addTwoNumbers( $args ) {
+		if ( ! is_array( $args ) || count( $args ) !== 2 || ! is_int( $args[0] ) || ! is_int( $args[1] ) ) {
+			$this->error = new IXR_Error( 400, __( 'Invalid arguments passed to this XML-RPC method. Requires two integers.' ) );
+			return $this->error;
+		}
+
 		$number1 = $args[0];
 		$number2 = $args[1];
 		return $number1 + $number2;
@@ -3668,11 +3673,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'wp.getComments', $args, $this );
 
-		if ( isset( $struct['status'] ) ) {
-			$status = $struct['status'];
-		} else {
-			$status = '';
-		}
+		$status = $struct['status'] ?? '';
 
 		if ( ! current_user_can( 'moderate_comments' ) && 'approve' !== $status ) {
 			return new IXR_Error( 401, __( 'Invalid comment status.' ) );
@@ -4448,7 +4449,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		do_action( 'xmlrpc_call', 'wp.getMediaLibrary', $args, $this );
 
 		$parent_id = ( isset( $struct['parent_id'] ) ) ? absint( $struct['parent_id'] ) : '';
-		$mime_type = ( isset( $struct['mime_type'] ) ) ? $struct['mime_type'] : '';
+		$mime_type = $struct['mime_type'] ?? '';
 		$offset    = ( isset( $struct['offset'] ) ) ? absint( $struct['offset'] ) : 0;
 		$number    = ( isset( $struct['number'] ) ) ? absint( $struct['number'] ) : -1;
 

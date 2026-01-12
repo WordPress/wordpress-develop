@@ -148,10 +148,7 @@ function register_nav_menu( $location, $description ) {
  */
 function get_registered_nav_menus() {
 	global $_wp_registered_nav_menus;
-	if ( isset( $_wp_registered_nav_menus ) ) {
-		return $_wp_registered_nav_menus;
-	}
-	return array();
+	return $_wp_registered_nav_menus ?? array();
 }
 
 /**
@@ -875,10 +872,12 @@ function wp_setup_nav_menu_item( $menu_item ) {
 					$menu_item->type_label = $object->labels->singular_name;
 					// Denote post states for special pages (only in the admin).
 					if ( function_exists( 'get_post_states' ) ) {
-						$menu_post   = get_post( $menu_item->object_id );
-						$post_states = get_post_states( $menu_post );
-						if ( $post_states ) {
-							$menu_item->type_label = wp_strip_all_tags( implode( ', ', $post_states ) );
+						$menu_post = get_post( $menu_item->object_id );
+						if ( $menu_post instanceof WP_Post ) {
+							$post_states = get_post_states( $menu_post );
+							if ( $post_states ) {
+								$menu_item->type_label = wp_strip_all_tags( implode( ', ', $post_states ) );
+							}
 						}
 					}
 				} else {
