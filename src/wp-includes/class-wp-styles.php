@@ -158,11 +158,11 @@ class WP_Styles extends WP_Dependencies {
 		$inline_style = $this->print_inline_style( $handle, false );
 
 		if ( $inline_style ) {
-			$inline_style_tag = sprintf(
-				"<style id='%s-inline-css'>\n%s\n</style>\n",
-				esc_attr( $handle ),
-				$inline_style
-			);
+			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+			$processor->next_tag();
+			$processor->set_attribute( 'id', "{$handle}-inline-css" );
+			$processor->set_modifiable_text( "\n{$inline_style}\n" );
+			$inline_style_tag = "{$processor->get_updated_html()}\n";
 		} else {
 			$inline_style_tag = '';
 		}
@@ -178,11 +178,7 @@ class WP_Styles extends WP_Dependencies {
 			}
 		}
 
-		if ( isset( $obj->args ) ) {
-			$media = $obj->args;
-		} else {
-			$media = 'all';
-		}
+		$media = $obj->args ?? 'all';
 
 		// A single item may alias a set of items, by having dependencies, but no source.
 		if ( ! $src ) {
@@ -203,7 +199,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		$rel   = isset( $obj->extra['alt'] ) && $obj->extra['alt'] ? 'alternate stylesheet' : 'stylesheet';
-		$title = isset( $obj->extra['title'] ) ? $obj->extra['title'] : '';
+		$title = $obj->extra['title'] ?? '';
 
 		$tag = sprintf(
 			"<link rel='%s' id='%s-css'%s href='%s' media='%s' />\n",
@@ -230,7 +226,7 @@ class WP_Styles extends WP_Dependencies {
 
 		if ( 'rtl' === $this->text_direction && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
 			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
-				$suffix   = isset( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
+				$suffix   = $obj->extra['suffix'] ?? '';
 				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $src, $ver, "$handle-rtl" ) );
 			} else {
 				$rtl_href = $this->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
@@ -336,11 +332,11 @@ class WP_Styles extends WP_Dependencies {
 			return $output;
 		}
 
-		printf(
-			"<style id='%s-inline-css'>\n%s\n</style>\n",
-			esc_attr( $handle ),
-			$output
-		);
+		$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', "{$handle}-inline-css" );
+		$processor->set_modifiable_text( "\n{$output}\n" );
+		echo "{$processor->get_updated_html()}\n";
 
 		return true;
 	}
