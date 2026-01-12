@@ -3856,7 +3856,7 @@ function wp_hoist_late_printed_styles() {
 				$processor->insert_after( "\n" . $printed_global_styles );
 				$printed_global_styles = '';
 
-				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
+				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) && '' !== $printed_other_block_styles ) {
 					$processor->insert_after( "\n" . $printed_other_block_styles );
 					$printed_other_block_styles = '';
 				}
