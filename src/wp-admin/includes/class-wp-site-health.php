@@ -1437,11 +1437,13 @@ class WP_Site_Health {
 					$result['description'] .= sprintf(
 						'<p>%s</p>',
 						sprintf(
-							/* translators: %s: WP_DEBUG_LOG */
 							'public' === $log_path_status
+								/* translators: %s: WP_DEBUG_LOG */
 								? __( 'The constant, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.' )
 								: ( 'private' === $log_path_status
+									/* translators: %s: WP_DEBUG_LOG */
 									? __( 'The configuration constant, %s, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.' )
+									/* translators: %s: WP_DEBUG_LOG */
 									: __( 'The configuration constant, %s, is enabled, but the log file location could not be determined.' )
 								),
 							'<code>WP_DEBUG_LOG</code>'
