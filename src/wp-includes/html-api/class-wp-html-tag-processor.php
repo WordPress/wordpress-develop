@@ -3827,8 +3827,15 @@ class WP_HTML_Tag_Processor {
 				}
 
 				/*
-				 * Unrecognized script content types cannot be escaped.
-				 * Reject contents that are potentially dangerous.
+				 * If the script isn’t recognized and understandable then it’s not possible
+				 * to guarantee that escaping these strings won’t cause runtime breakage for
+				 * them. For instance, if the script content type were PHP code then escaping
+				 * with `\u0073` would not be met by unescaping; rather, it could result in
+				 * corrupted data or even syntax errors.
+				 *
+				 * Because of this, strings here which could potentially prematurely exit their
+				 * containing SCRIPT element are rejected and it’s the responsibility of calling
+				 * code to take whichever semantic-escaping is necessary to avoid these strings.
 				 */
 				if (
 					false !== stripos( $plaintext_content, '<script' ) ||
