@@ -242,8 +242,6 @@ require ABSPATH . WPINC . '/kses.php';
 require ABSPATH . WPINC . '/cron.php';
 require ABSPATH . WPINC . '/deprecated.php';
 require ABSPATH . WPINC . '/script-loader.php';
-require ABSPATH . WPINC . '/build/routes.php';
-require ABSPATH . WPINC . '/build/pages.php';
 require ABSPATH . WPINC . '/taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-term.php';

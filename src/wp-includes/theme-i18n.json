@@ -43,11 +43,6 @@
 				{
 					"name": "Aspect ratio name"
 				}
-			],
-			"dimensionSizes": [
-				{
-					"name": "Dimension size name"
-				}
 			]
 		},
 		"shadow": {
@@ -99,11 +94,6 @@
 					"aspectRatios": [
 						{
 							"name": "Aspect ratio name"
-						}
-					],
-					"dimensionSizes": [
-						{
-							"name": "Dimension size name"
 						}
 					]
 				},
