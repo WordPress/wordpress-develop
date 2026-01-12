@@ -1383,7 +1383,7 @@ class WP_Site_Health {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array The test results.
+	 * @return array<string, string|array<string, string>> The test results.
 	 */
 	public function get_test_is_in_debug_mode() {
 		$result = array(
