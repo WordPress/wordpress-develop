@@ -1505,7 +1505,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$common_expected_head_styles = array_merge(
 			$early_common_styles,
 			array(
-				// Core block styles enqueued by wp_common_block_scripts_and_styles() at which runs at wp_enqueue_scripts priority 10, added first.
+				// Core block styles enqueued by wp_common_block_scripts_and_styles(), which runs at wp_enqueue_scripts priority 10, added first.
 				'wp-block-library-css', // Inline printed.
 				'wp-block-separator-css', // Hoisted.
 
