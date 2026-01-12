@@ -1410,14 +1410,14 @@ class WP_Site_Health {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( ! empty( ini_get( 'error_log' ) ) ) {
-				$debug_log_path  = realpath( dirname( ini_get( 'error_log' ) ) );
-				$absolute_path   = realpath( ABSPATH ) . DIRECTORY_SEPARATOR;
-				$log_path_status = 'private';
-
+				$debug_log_path = realpath( dirname( ini_get( 'error_log' ) ) );
+				$absolute_path  = realpath( ABSPATH ) . DIRECTORY_SEPARATOR;
 				if ( false === $debug_log_path ) {
 					$log_path_status = 'error';
 				} elseif ( str_starts_with( $debug_log_path . DIRECTORY_SEPARATOR, $absolute_path ) ) {
 					$log_path_status = 'public';
+				} else {
+					$log_path_status = 'private';
 				}
 
 				$is_wp_debug_log = defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG;
