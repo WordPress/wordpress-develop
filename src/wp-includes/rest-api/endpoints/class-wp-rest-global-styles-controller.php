@@ -683,7 +683,22 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			$at += strcspn( $css, '<', ++$at )
 		) {
 			$remaining_strlen         = $length - $at;
-			$possible_style_close_tag = 0 === substr_compare( $css, '</style', $at, min( 7, $remaining_strlen ), true );
+			/*
+			 * Custom CSS text is expected to render inside an HTML STYLE element.
+			 * A STYLE closing tag must not appear within the CSS text because it
+			 * would close the element prematurely.
+			 *
+			 * The text must also *not* end with a partial closing tag (e.g., `<`,
+			 * `</`, … `</style`) because subsequent text could complete it, forming
+			 * a valid `</style>` tag.
+			 */
+			$possible_style_close_tag = 0 === substr_compare(
+				$css,
+				'</style',
+				$at,
+				min( 7, $remaining_strlen ),
+				true
+			);
 			if ( $possible_style_close_tag ) {
 				if ( $remaining_strlen < 8 ) {
 					return new WP_Error(
