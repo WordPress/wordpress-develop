@@ -6486,7 +6486,7 @@ function wp_print_auto_sizes_contain_css_fix() {
  * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
  *
  * @since 6.0.0
- * @deprecated 7.0.0
+ * @deprecated 7.0.0 Obsolete due to a change in how Gutenberg is included in Core. See #64393.
  *
  * @param WP_Scripts $scripts WP_Scripts object.
  */
