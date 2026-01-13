@@ -1496,7 +1496,7 @@ class WP_Theme_JSON {
 				$nested_selector    = $has_pseudo_element ? str_replace( $pseudo_part, '', $nested_selector ) : $nested_selector;
 
 				// Finalize selector and re-append pseudo element if required.
-				$part_selector  = 0 === strpos( $nested_selector, ' ' )
+				$part_selector  = str_starts_with( $nested_selector, ' ' )
 					? static::scope_selector( $selector, $nested_selector )
 					: static::append_to_selector( $selector, $nested_selector );
 				$final_selector = ":root :where($part_selector)$pseudo_part";
@@ -2697,7 +2697,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$is_root_style = 0 === strpos( $css_property, '--wp--style--root--' );
+			$is_root_style = str_starts_with( $css_property, '--wp--style--root--' );
 			if ( $is_root_style && ( static::ROOT_BLOCK_SELECTOR !== $selector || ! $use_root_padding ) ) {
 				continue;
 			}
@@ -3974,7 +3974,7 @@ class WP_Theme_JSON {
 	/**
 	 * Remove insecure element styles within a variation or block.
 	 *
-	 * @since 7.0.0
+	 * @since 6.8.0
 	 *
 	 * @param array $elements The elements to process.
 	 * @return array The sanitized elements styles.
@@ -4005,7 +4005,7 @@ class WP_Theme_JSON {
 	/**
 	 * Remove insecure styles from inner blocks and their elements.
 	 *
-	 * @since 7.0.0
+	 * @since 6.8.0
 	 *
 	 * @param array $blocks The block styles to process.
 	 * @return array Sanitized block type styles.
@@ -4640,7 +4640,7 @@ class WP_Theme_JSON {
 		$prefix_len = strlen( $prefix );
 		$token_in   = '|';
 		$token_out  = '--';
-		if ( 0 === strpos( $value, $prefix ) ) {
+		if ( str_starts_with( $value, $prefix ) ) {
 			$unwrapped_name = str_replace(
 				$token_in,
 				$token_out,
@@ -4665,7 +4665,7 @@ class WP_Theme_JSON {
 		$prefix = 'var:';
 
 		foreach ( $tree as $key => $data ) {
-			if ( is_string( $data ) && 0 === strpos( $data, $prefix ) ) {
+			if ( is_string( $data ) && str_starts_with( $data, $prefix ) ) {
 				$tree[ $key ] = self::convert_custom_properties( $data );
 			} elseif ( is_array( $data ) ) {
 				$tree[ $key ] = self::resolve_custom_css_format( $data );
@@ -4958,7 +4958,7 @@ class WP_Theme_JSON {
 	 * Collects valid block style variations keyed by block type.
 	 *
 	 * @since 6.6.0
-	 * @since 7.0.0 Added the `$blocks_metadata` parameter.
+	 * @since 6.8.0 Added the `$blocks_metadata` parameter.
 	 *
 	 * @param array $blocks_metadata Optional. List of metadata per block. Default is the metadata for all blocks.
 	 * @return array Valid block style variations by block type.
