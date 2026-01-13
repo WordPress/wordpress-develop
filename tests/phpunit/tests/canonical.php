@@ -499,30 +499,30 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->go_to( $url_with_percent );
 		$redirect_from_percent = redirect_canonical( $url_with_percent, false );
 
-		// Both should return false (no redirect).
-		$this->assertFalse( $redirect_from_plus, 'URL with + should not redirect' );
-		$this->assertFalse( $redirect_from_percent, 'URL with %20 should not redirect' );
+		// Both should return null (no redirect).
+		$this->assertNull( $redirect_from_plus, 'URL with + should not redirect' );
+		$this->assertNull( $redirect_from_percent, 'URL with %20 should not redirect' );
 
 		// Test 2: Encoded @ symbol in email parameters.
 		$url_encoded_at = home_url( '/?email=user%40example.com' );
 
 		$this->go_to( $url_encoded_at );
 		$redirect = redirect_canonical( $url_encoded_at, false );
-		$this->assertFalse( $redirect, 'URL with encoded @ should not redirect' );
+		$this->assertNull( $redirect, 'URL with encoded @ should not redirect' );
 
 		// Test 3: Encoded forward slashes in redirect parameters.
 		$url_encoded_slash = home_url( '/?redirect=%2Fpath%2Fto%2Fpage' );
 
 		$this->go_to( $url_encoded_slash );
 		$redirect = redirect_canonical( $url_encoded_slash, false );
-		$this->assertFalse( $redirect, 'URL with encoded slashes should not redirect' );
+		$this->assertNull( $redirect, 'URL with encoded slashes should not redirect' );
 
 		// Test 4: Multiple query parameters with mixed encoding.
 		$url_mixed = home_url( '/?name=John+Doe&city=New+York&zip=12345' );
 
 		$this->go_to( $url_mixed );
 		$redirect = redirect_canonical( $url_mixed, false );
-		$this->assertFalse( $redirect, 'URL with multiple plus-encoded parameters should not redirect' );
+		$this->assertNull( $redirect, 'URL with multiple plus-encoded parameters should not redirect' );
 
 		// Clean up.
 		delete_option( 'page_on_front' );
