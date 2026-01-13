@@ -1440,13 +1440,11 @@ class WP_Site_Health {
 					$log_path_status = 'private';
 				}
 
-				$is_wp_debug_log = $this->wp_debug_log;
-
 				if ( 'public' === $log_path_status ) {
 					$result['label']  = __( 'Your site is set to log errors to a potentially public file' );
 					$result['status'] = 'critical';
 
-					if ( $is_wp_debug_log ) {
+					if ( $this->wp_debug_log ) {
 						$result['description'] .= sprintf(
 							'<p>%s</p>',
 							sprintf(
@@ -1465,7 +1463,7 @@ class WP_Site_Health {
 					$result['label']  = __( 'Your site is set to log errors to a file outside the document root' );
 					$result['status'] = 'good';
 
-					if ( $is_wp_debug_log ) {
+					if ( $this->wp_debug_log ) {
 						$result['description'] .= sprintf(
 							'<p>%s</p>',
 							sprintf(
@@ -1484,7 +1482,7 @@ class WP_Site_Health {
 					$result['label']  = __( 'Unable to determine error log file location' );
 					$result['status'] = 'critical';
 
-					if ( $is_wp_debug_log ) {
+					if ( $this->wp_debug_log ) {
 						$result['description'] .= sprintf(
 							'<p>%s</p>',
 							sprintf(
