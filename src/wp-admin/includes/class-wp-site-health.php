@@ -1410,11 +1410,12 @@ class WP_Site_Health {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( ! empty( ini_get( 'error_log' ) ) ) {
-				$debug_log_path = realpath( dirname( ini_get( 'error_log' ) ) );
-				$absolute_path  = realpath( ABSPATH ) . DIRECTORY_SEPARATOR;
-				if ( false === $debug_log_path ) {
+				$debug_log_dir = realpath( dirname( ini_get( 'error_log' ) ) );
+				$absolute_path = realpath( ABSPATH ) . DIRECTORY_SEPARATOR;
+
+				if ( false === $debug_log_dir ) {
 					$log_path_status = 'error';
-				} elseif ( str_starts_with( $debug_log_path . DIRECTORY_SEPARATOR, $absolute_path ) ) {
+				} elseif ( str_starts_with( $debug_log_dir . DIRECTORY_SEPARATOR, $absolute_path ) ) {
 					$log_path_status = 'public';
 				} else {
 					$log_path_status = 'private';
@@ -1425,40 +1426,60 @@ class WP_Site_Health {
 				if ( 'public' === $log_path_status ) {
 					$result['label']  = __( 'Your site is set to log errors to a potentially public file' );
 					$result['status'] = 'critical';
+
+					if ( $is_wp_debug_log ) {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							sprintf(
+								/* translators: %s: WP_DEBUG_LOG */
+								__( 'The constant, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.' ),
+								'<code>WP_DEBUG_LOG</code>'
+							)
+						);
+					} else {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							__( 'The error log path has been configured to a file within the WordPress directory. This means any errors on the site will be written to a file which is likely publicly accessible.' )
+						);
+					}
 				} elseif ( 'private' === $log_path_status ) {
 					$result['label']  = __( 'Your site is set to log errors to a file outside the document root' );
 					$result['status'] = 'good';
+
+					if ( $is_wp_debug_log ) {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							sprintf(
+								/* translators: %s: WP_DEBUG_LOG */
+								__( 'The configuration constant, %s, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.' ),
+								'<code>WP_DEBUG_LOG</code>'
+							)
+						);
+					} else {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							__( 'The error log path has been configured to a file outside the WordPress directory. This is a good practice as the log file should not be publicly accessible.' )
+						);
+					}
 				} else {
 					$result['label']  = __( 'Unable to determine error log file location' );
 					$result['status'] = 'critical';
-				}
 
-				if ( $is_wp_debug_log ) {
-					$result['description'] .= sprintf(
-						'<p>%s</p>',
-						sprintf(
-							'public' === $log_path_status
+					if ( $is_wp_debug_log ) {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							sprintf(
 								/* translators: %s: WP_DEBUG_LOG */
-								? __( 'The constant, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.' )
-								: ( 'private' === $log_path_status
-									/* translators: %s: WP_DEBUG_LOG */
-									? __( 'The configuration constant, %s, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.' )
-									/* translators: %s: WP_DEBUG_LOG */
-									: __( 'The configuration constant, %s, is enabled, but the log file location could not be determined.' )
-								),
-							'<code>WP_DEBUG_LOG</code>'
-						)
-					);
-				} else {
-					$result['description'] .= sprintf(
-						'<p>%s</p>',
-						'public' === $log_path_status
-							? __( 'The error log path has been configured to a file within your WordPress directory. This means any errors on the site will be written to a file which is likely publicly accessible.' )
-							: ( 'private' === $log_path_status
-								? __( 'The error log path has been configured to a file outside your WordPress directory. This is a good practice as the log file should not be publicly accessible.' )
-								: __( 'The error log path could not be determined. Please check your PHP configuration.' )
+								__( 'The configuration constant, %s, is enabled, but the log file location could not be determined.' ),
+								'<code>WP_DEBUG_LOG</code>'
 							)
-					);
+						);
+					} else {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							__( 'The error log path could not be determined. Please check your PHP configuration.' )
+						);
+					}
 				}
 			}
 
