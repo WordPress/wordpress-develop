@@ -363,6 +363,7 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
 function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
 	// Scan for blocks whose block type matches the prefix, if provided a wildcard.
 	$prefix         = rtrim( $block_name, '*' );
+	$prefix_length  = strlen( $prefix );
 	$match_fully    = $prefix === $block_name;
 	$blocks_content = '';
 	$instance_count = 0;
@@ -376,8 +377,11 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 		$processor = new WP_Block_Processor( $content );
 
 		while ( $instance_count < $instances && $processor->next_block() ) {
+			if ( 1 !== $processor->get_depth() ) {
+				continue;
+			}
+
 			if (
-				1 === $processor->get_depth() &&
 				/*
 				 * Prefix matches with a wildcard require printing the block name,
 				 * while full block-type matching can be delegated to the processor.
@@ -385,7 +389,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 				 */
 				$match_fully
 					? $processor->is_block_type( $block_name )
-					: str_starts_with( $processor->get_printable_block_type(), $prefix )
+					: 0 === substr_compare( $processor->get_printable_block_type(), $prefix, 0, $prefix_length )
 			) {
 				$blocks_content .= render_block( $processor->extract_full_block_and_advance() );
 				++$instance_count;
