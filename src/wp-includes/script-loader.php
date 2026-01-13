@@ -3014,7 +3014,7 @@ function wp_maybe_inline_styles() {
 		usort(
 			$styles,
 			static function ( $a, $b ) {
-				return ( $a['size'] <= $b['size'] ) ? -1 : 1;
+				return $a['size'] <=> $b['size'];
 			}
 		);
 

@@ -1,5 +1,7 @@
+// https://html.spec.whatwg.org/multipage/parsing.html#script-data-state
 digraph {
 	rankdir=TB;
+	node [width=1, height=1, fixedsize=true];
 
 	// Entry point
 	entry [shape=plaintext label="Open script"];
@@ -14,17 +16,18 @@ digraph {
 	// Group related nodes on same ranks where possible
 	{rank=same; script_data script_data_escaped script_data_double_escaped}
 
-	script_data -> script_data [label="<!--(…)>\n(all dashes)"];
-	script_data -> script_data_escaped [label="<!--"];
-	script_data -> data [label="</script†"];
+	script_data -> script_data [headport=sw, tailport=sw, label=<<font face="Courier">&lt;!--<i>*</i>&gt;</font><br/>(all dashes)>];
+	script_data -> script_data_escaped [label=<<font face="Courier">&lt;!--</font>>];
+	script_data -> data [label=<<font face="Courier">&lt;/script¹</font>>];
 
-	script_data_escaped -> script_data [label="-->"];
-	script_data_escaped -> script_data_double_escaped [label="<script†"];
-	script_data_escaped -> data [label="</script†"];
+	script_data_escaped -> script_data [label=<<font face="Courier">--&gt;</font>>];
+	script_data_escaped -> script_data_double_escaped [label=<<font face="Courier">&lt;script</font>¹>];
+	script_data_escaped -> data [label=<<font face="Courier">&lt;/script</font>¹>];
 
-	script_data_double_escaped -> script_data [label="-->"];
-	script_data_double_escaped -> script_data_escaped [label="</script†"];
+	// The newline before the label prevents the edge from drawing over it.
+	script_data_double_escaped -> script_data [label=<<br/><font face="Courier">--&gt;</font>>];
+	script_data_double_escaped -> script_data_escaped [label=<<font face="Courier">&lt;/script¹</font>>];
 
-	label="† = Case insensitive 'script' followed by one of ' \\t\\f\\r\\n/>'";
+	label=<¹ = Case insensitive “<font face="Courier">script</font>” followed by one of &nbsp;“<font face="Courier"> \\t\\f\\r\\n/&gt;</font>”>;
 	labelloc=b;
 }

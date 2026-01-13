@@ -3721,10 +3721,12 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * Not all modifiable text may be set by this method, and not all content
 	 * may be set as modifiable text. In the case that this fails it will return
-	 * `false` indicating as much. For instance, it will not allow inserting the
-	 * string `</script` into a SCRIPT element, because the rules for escaping
-	 * that safely are complicated. Similarly, it will not allow setting content
-	 * into a comment which would prematurely terminate the comment.
+	 * `false` indicating as much. For instance, if the contents of a SCRIPT
+	 * element are neither JavaScript nor JSON, it’s not possible to guarantee
+	 * that escaping strings like `</script>` won’t break the script; in these
+	 * cases, updates will be rejected and it’s up to calling code to perform
+	 * language-specific escaping or workarounds. Similarly, it will not allow
+	 * setting content into a comment which would prematurely terminate the comment.
 	 *
 	 * Example:
 	 *
@@ -3816,18 +3818,24 @@ class WP_HTML_Tag_Processor {
 				switch ( $script_content_type ) {
 					case 'javascript':
 					case 'json':
-						$escaped_content                          = self::escape_javascript_script_contents( $plaintext_content );
 						$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 							$this->text_starts_at,
 							$this->text_length,
-							$escaped_content
+							self::escape_javascript_script_contents( $plaintext_content )
 						);
 						return true;
 				}
 
 				/*
-				 * Unrecognized script content types cannot be escaped.
-				 * Reject contents that are potentially dangerous.
+				 * If the script’s content type isn’t recognized and understandable then it’s
+				 * impossible to guarantee that escaping the content won’t cause runtime breakage.
+				 * For instance, if the script content type were PHP code then escaping with
+				 * `\u0073` would not be met by unescaping; rather, it could result in corrupted
+				 * data or even syntax errors.
+				 *
+				 * Because of this, content which could potentially modify the SCRIPT tag’s
+				 * HTML structure is rejected here. It’s the responsibility of calling code to
+				 * perform whatever semantic escaping is necessary to avoid problematic strings.
 				 */
 				if (
 					false !== stripos( $plaintext_content, '<script' ) ||
@@ -3890,12 +3898,17 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Returns the content type of the currently-matched SCRIPT tag, if matched and
+	 * Returns the content type of the currently-matched HTML SCRIPT tag, if matched and
 	 * recognized, otherwise returns `null` to indicate an unrecognized content type.
+	 *
+	 * An HTML SCRIPT tag is a normal SCRIPT tag, but there can be SCRIPT elements inside
+	 * SVG and MathML elements as well, and these have different parsing rules than those
+	 * in general HTML. For this reason, no content-type inference is performed on those.
 	 *
 	 * Note! This concept is related but distinct from the MIME type of the script.
 	 * Parsing MUST match the specific algorithm in the HTML specification, which
-	 * relies on exact string comparison in some cases.
+	 * relies on exact string comparison in some cases. MIME type decoding may be
+	 * performed on SVG or MathML SCRIPT tags.
 	 *
 	 * Only 'javascript' and 'json' content types are currently recognized.
 	 *
@@ -4046,11 +4059,10 @@ class WP_HTML_Tag_Processor {
 	 * escape (`\u0073`) back into its original plaintext value, but only after having
 	 * been safely extracted from the HTML.
 	 *
-	 * While it may seem tempting to replace the `<` character instead, but doing so
-	 * would break JavaScript syntax. The `<` character is used in comparison operators
-	 * and other JavaScript syntax, so replacing it would break valid JavaScript.j
-	 * By replacing only the `s` in `<script` and `</script`, we avoid modifying
-	 * any JavaScript syntax.
+	 * While it may seem tempting to replace the `<` character instead, doing so would
+	 * break JavaScript syntax. The `<` character is used in comparison operators and
+	 * other JavaScript syntax; replacing it would break valid JavaScript. Replacing
+	 * only the `s` in `<script` and `</script` avoids modifying JavaScript syntax.
 	 *
 	 * ### Exceptions
 	 *
@@ -4180,7 +4192,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $sourcecode Raw contents intended to be serialized into an HTML SCRIPT element.
 	 * @return string Escaped form of input contents which will not lead to premature closing of the containing SCRIPT element.
 	 */
-	public static function escape_javascript_script_contents( string $sourcecode ): string {
+	private static function escape_javascript_script_contents( string $sourcecode ): string {
 		$at      = 0;
 		$was_at  = 0;
 		$end     = strlen( $sourcecode );
