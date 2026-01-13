@@ -672,11 +672,6 @@
 	content: "\f147" / '';
 }
 
-#available-menu-items .menu-item-handle.item-added:hover .item-add:before,
-#available-menu-items .menu-item-handle.item-added .item-add:focus:before {
-	content: "\f543" / '';
-}
-
 #available-menu-items .accordion-section-title.loading .spinner,
 #available-menu-items-search.loading .accordion-section-title .spinner {
 	visibility: visible;
