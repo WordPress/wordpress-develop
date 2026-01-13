@@ -361,7 +361,7 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
  * @return bool Returns true if a block was located & printed, otherwise false.
  */
 function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
-	$instance_count = 0;
+	$instances_count = 0;
 	$blocks_content = '';
 
 	if ( ! $content ) {
@@ -375,7 +375,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 		$match_fully   = $prefix === $block_name;
 		$processor     = new WP_Block_Processor( $content );
 
-		while ( $instance_count < $instances && $processor->next_block() ) {
+		while ( $instances_count < $instances && $processor->next_block() ) {
 			if ( 1 !== $processor->get_depth() ) {
 				continue;
 			}
@@ -391,7 +391,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 					: str_starts_with( $processor->get_printable_block_type(), $prefix )
 			) {
 				$blocks_content .= render_block( $processor->extract_full_block_and_advance() );
-				++$instance_count;
+				++$instances_count;
 			}
 		}
 	} else {
@@ -418,13 +418,13 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 
 			if ( $is_matching_block ) {
 				// Increment count.
-				++$instance_count;
+				++$instances_count;
 
 				// Add the block HTML.
 				$blocks_content .= render_block( $block );
 
 				// Break the loop if the $instances count was reached.
-				if ( $instance_count >= $instances ) {
+				if ( $instances_count >= $instances ) {
 					break;
 				}
 			}
