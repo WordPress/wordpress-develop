@@ -197,6 +197,9 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 		// Add support for responsive embeds.
 		add_theme_support( 'responsive-embeds' );
 
+		// Add support for view transitions.
+		add_theme_support( 'view-transitions' );
+
 		// Add support for custom color scheme.
 		add_theme_support(
 			'editor-color-palette',

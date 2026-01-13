@@ -1,0 +1,37 @@
+@property --wp-view-transition-animation-swipe-horizontal-offset {
+	syntax: "<number>";
+	initial-value: 1;
+	inherits: false;
+}
+
+@property --wp-view-transition-animation-swipe-vertical-offset {
+	syntax: "<number>";
+	initial-value: 0;
+	inherits: false;
+}
+
+@keyframes wp-view-transition-animation-swipe-old {
+	to {
+		opacity: 0;
+		translate: calc(100vw * var(--wp-view-transition-animation-swipe-horizontal-offset) * -1) calc(100vw * var(--wp-view-transition-animation-swipe-vertical-offset) * -1);
+	}
+}
+
+@keyframes wp-view-transition-animation-swipe-new {
+	from {
+		opacity: 0;
+		translate: calc(100vw * var(--wp-view-transition-animation-swipe-horizontal-offset)) calc(100vw * var(--wp-view-transition-animation-swipe-vertical-offset));
+	}
+}
+
+::view-transition-group(*) {
+	animation-duration: 1s;
+}
+
+::view-transition-old(*) {
+	animation-name: wp-view-transition-animation-swipe-old;
+}
+
+::view-transition-new(*) {
+	animation-name: wp-view-transition-animation-swipe-new;
+}

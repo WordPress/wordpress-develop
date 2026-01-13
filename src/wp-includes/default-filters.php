@@ -635,6 +635,9 @@ add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
 add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
 
+// View transitions.
+add_action( 'wp_enqueue_scripts', 'wp_load_view_transitions' );
+
 add_action( 'wp_default_styles', 'wp_default_styles' );
 add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
 

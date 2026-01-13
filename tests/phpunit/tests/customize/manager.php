@@ -900,6 +900,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_init() {
 
+		// `wp_load_view_transitions()` assumes `wp-includes/js/wp-view-transitions.js` is present:
+		$suffix = wp_scripts_get_suffix();
+		self::touch( ABSPATH . WPINC . "/js/wp-view-transitions{$suffix}.js" );
+
 		// Test authorized admin user.
 		wp_set_current_user( self::$admin_user_id );
 		$did_action_customize_preview_init = did_action( 'customize_preview_init' );

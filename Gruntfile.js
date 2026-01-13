@@ -449,6 +449,7 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-includes/js/wp-pointer.js' ]: [ './src/js/_enqueues/lib/pointer.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-sanitize.js' ]: [ './src/js/_enqueues/wp/sanitize.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-util.js' ]: [ './src/js/_enqueues/wp/util.js' ],
+					[ WORKING_DIR + 'wp-includes/js/wp-view-transitions.js' ]: [ './src/js/_enqueues/wp/view-transitions.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wpdialog.js' ]: [ './src/js/_enqueues/lib/dialog.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wplink.js' ]: [ './src/js/_enqueues/lib/link.js' ],
 					[ WORKING_DIR + 'wp-includes/js/zxcvbn-async.js' ]: [ './src/js/_enqueues/lib/zxcvbn-async.js' ]
@@ -1049,6 +1050,7 @@ module.exports = function(grunt) {
 					'src/wp-includes/js/wp-pointer.js': 'src/js/_enqueues/lib/pointer.js',
 					'src/wp-includes/js/wp-sanitize.js': 'src/js/_enqueues/wp/sanitize.js',
 					'src/wp-includes/js/wp-util.js': 'src/js/_enqueues/wp/util.js',
+					'src/wp-includes/js/wp-view-transitions.js': 'src/js/_enqueues/wp/view-transitions.js',
 					'src/wp-includes/js/wpdialog.js': 'src/js/_enqueues/lib/dialog.js',
 					'src/wp-includes/js/wplink.js': 'src/js/_enqueues/lib/link.js',
 					'src/wp-includes/js/zxcvbn-async.js': 'src/js/_enqueues/lib/zxcvbn-async.js',

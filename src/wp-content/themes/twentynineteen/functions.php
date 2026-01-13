@@ -169,6 +169,9 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 		// Add support for responsive embedded content.
 		add_theme_support( 'responsive-embeds' );
 
+		// Add support for view transitions.
+		add_theme_support( 'view-transitions' );
+
 		// Add support for custom line height.
 		add_theme_support( 'custom-line-height' );
 	}

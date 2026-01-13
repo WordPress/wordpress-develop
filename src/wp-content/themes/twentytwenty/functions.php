@@ -117,6 +117,9 @@ function twentytwenty_theme_support() {
 	// Add support for responsive embeds.
 	add_theme_support( 'responsive-embeds' );
 
+	// Add support for view transitions.
+	add_theme_support( 'view-transitions' );
+
 	/*
 	 * Adds starter content to highlight the theme on fresh sites.
 	 * This is done conditionally to avoid loading the starter content on every

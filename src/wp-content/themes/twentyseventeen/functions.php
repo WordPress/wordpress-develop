@@ -133,6 +133,9 @@ function twentyseventeen_setup() {
 	// Add support for responsive embeds.
 	add_theme_support( 'responsive-embeds' );
 
+	// Add support for view transitions.
+	add_theme_support( 'view-transitions' );
+
 	// Define and register starter content to showcase the theme on new sites.
 	$starter_content = array(
 		'widgets'     => array(
