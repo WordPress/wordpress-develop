@@ -41,11 +41,15 @@ class Tests_View_Transitions_wpEnqueueViewTransitionsAdminCss extends WP_UnitTes
 	 * Tests that the admin view transitions style handle includes the inline CSS.
 	 *
 	 * @ticket 64470
+	 *
+	 * @covers ::wp_get_view_transitions_admin_css
 	 */
 	public function test_inline_css_included() {
-		$inline_css = wp_styles()->get_data( 'wp-view-transitions-admin', 'after' );
-		$this->assertIsArray( $inline_css );
-		$this->assertContains( wp_get_view_transitions_admin_css(), $inline_css );
+		$after_data = wp_styles()->get_data( 'wp-view-transitions-admin', 'after' );
+		$this->assertIsArray( $after_data, 'Expected `after` data to be an array.' );
+		$css = wp_get_view_transitions_admin_css();
+		$this->assertStringContainsString( '@view-transition', $css );
+		$this->assertContains( $css, $after_data );
 	}
 
 	/**
