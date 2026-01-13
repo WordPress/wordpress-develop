@@ -643,7 +643,7 @@ function wpautop( $text, $br = true ) {
  *     array( '&#60;3' ) === wp_split_html( '<3' );
  *
  * @since 4.2.4
- * @since 6.9.0 Reliably parses HTML via the HTML API.
+ * @since 7.0.0 Reliably parses HTML via the HTML API.
  *
  * @param string $input HTML document to split, one item for every token.
  *                      These can be text nodes, tags, comments, or doctype declarations.
@@ -668,7 +668,14 @@ function wp_html_split( $input ) {
 		$next_at  += strlen( $raw_token );
 		$is_text   = '#text' === $token_reporter->get_token_name();
 
+		// This is a tag, comment, DOCTYPE declaration, malformed comment, etc…
 		if ( ! $is_text ) {
+			/*
+			 * Code relies on the fact that this function always returns text
+			 * in even indices and non-text tokens in odd indices. If there
+			 * isn’t preceding text then an artificial and empty span needs
+			 * to be added.
+			 */
 			if ( ! $was_text ) {
 				$tokens[] = '';
 			}
@@ -681,14 +688,29 @@ function wp_html_split( $input ) {
 		/*
 		 * WordPress looks for shortcodes and escaped shortcodes within the HTML
 		 * where they look like tags but HTML wouldn’t consider them tags, such
-		 * as in "<[header level=2]>". Look for these and artificially split the
-		 * text nodes where it looks like shortcodes reside inside.
+		 * as in "<[header level=2]>".
+		 *
+		 * This means that something WordPress wants to consider a tag might
+		 * appear in the middle of a larger text span. To preserve that behavior
+		 * it’s essential to look inside text nodes for these shortcode instances,
+		 * and if found, split the string around them.
+		 *
+		 * Example:
+		 *
+		 *     // HTML sees a single text span here.
+		 *     "This is <[tag-name]>important!"
+		 *
+		 *     // It needs to break into three segments.
+		 *     "This is ", "<[tag-name]>", "important!"
+		 *
+		 * As with the rest of this function, text nodes must appear between these,
+		 * implying the creation of empty nodes where they don’t already exist.
 		 */
 		$shortcode_pattern = get_shortcode_regex();
 		$text_chunks       = preg_split( "~(<{$shortcode_pattern}>)~", $raw_token, -1, PREG_SPLIT_DELIM_CAPTURE );
 		foreach ( $text_chunks as $i => $token ) {
 			// The preg_split() always puts captured delimiters in the odd indices.
-			$is_shortcode_tag = 0x01 === $i & 0x01;
+			$is_shortcode_tag = 1 === $i % 2;
 
 			if ( $is_shortcode_tag && ! $was_text ) {
 				$tokens[] = '';
@@ -698,8 +720,13 @@ function wp_html_split( $input ) {
 			 * Some legacy code assumes that text nodes will never start with a
 			 * less-than sign (<) but this isn’t the case, as some text nodes do
 			 * if the less-than sign doesn’t introduce a syntax token. To avoid
-			 * further corruption a leading less-than sign is replaced by its
-			 * encoded equivalent numeric character reference.
+			 * further corruption, a leading less-than sign is replaced by its
+			 * equivalent numeric character reference.
+			 *
+			 * Example:
+			 *
+			 *      input:     "<3 the shortcodes like <[emoji-tag name=heart]>"
+			 *     output: "&#60;3 the shortcodes like <[emoji-tag name=heart]>"
 			 */
 			if ( ! $is_shortcode_tag && '<' === ( $token[0] ?? '' ) ) {
 				$token = '&#60;' . substr( $token, 1 );
@@ -719,11 +746,17 @@ function wp_html_split( $input ) {
 	 * segment needs to appear.
 	 */
 	if ( $token_reporter->paused_at_incomplete_token() ) {
-		if ( ! $was_text ) {
-			$tokens[] = '';
+		$token       = substr( $input, $next_at );
+		$syntax_like = '<' === ( $token[0] ?? '' );
+		$token       = $syntax_like ? ( '&#60;' . substr( $token, 1 ) ) : $token;
+
+		if ( $was_text ) {
+			$tokens[ count( $tokens ) - 1 ] .= $token;
+		} else {
+			$tokens[] = $token;
 		}
+
 		$was_text = false;
-		$tokens[] = substr( $input, $next_at );
 	}
 
 	if ( ! $was_text ) {
