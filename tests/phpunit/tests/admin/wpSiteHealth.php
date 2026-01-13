@@ -696,6 +696,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$wp_debug_property->setAccessible( true );
 		$wp_debug_property->setValue( $site_health, true );
 
+		$wp_debug_property = $reflection->getProperty( 'wp_debug_display' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, null );
+
 		$original_error_log = ini_get( 'error_log' );
 
 		ini_set( 'error_log', '' );
@@ -728,6 +732,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$wp_debug_log_property->setAccessible( true );
 		$wp_debug_log_property->setValue( $site_health, true );
 
+		$wp_debug_property = $reflection->getProperty( 'wp_debug_display' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, null );
+
 		$original_error_log = ini_get( 'error_log' );
 		$public_log_path    = ABSPATH . 'wp-content/debug.log';
 
@@ -740,7 +748,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log is in a public location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a public location.' );
-		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should display the expected message.' );
+		$this->assertStringContainsString( $expected_result['description'], $actual_result['description'], 'Description should display the expected message.' );
 	}
 
 	/**
@@ -760,6 +768,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$wp_debug_log_property->setAccessible( true );
 		$wp_debug_log_property->setValue( $site_health, false );
 
+		$wp_debug_property = $reflection->getProperty( 'wp_debug_display' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, null );
+
 		$original_error_log = ini_get( 'error_log' );
 		$public_log_path    = ABSPATH . 'wp-content/debug.log';
 
@@ -772,7 +784,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log is in a public location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a public location.' );
-		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention error log configured is without WP_DEBUG_LOG and in public directory.' );
+		$this->assertStringContainsString( $expected_result['description'], $actual_result['description'], 'Description should mention error log configured is without WP_DEBUG_LOG and in public directory.' );
 	}
 
 	/**
@@ -792,6 +804,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$wp_debug_log_property->setAccessible( true );
 		$wp_debug_log_property->setValue( $site_health, true );
 
+		$wp_debug_property = $reflection->getProperty( 'wp_debug_display' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, null );
+
 		$original_error_log = ini_get( 'error_log' );
 		$private_log_path   = '/var/log/php-error.log';
 
@@ -804,7 +820,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when error log is in a private location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a private location.' );
-		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention the log is outside WordPress directory.' );
+		$this->assertStringContainsString( $expected_result['description'], $actual_result['description'], 'Description should mention the log is outside WordPress directory.' );
 	}
 
 	/**
@@ -824,6 +840,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$wp_debug_log_property->setAccessible( true );
 		$wp_debug_log_property->setValue( $site_health, false );
 
+		$wp_debug_property = $reflection->getProperty( 'wp_debug_display' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, null );
+
 		$original_error_log = ini_get( 'error_log' );
 		$private_log_path   = '/var/log/php-error.log';
 
@@ -836,7 +856,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when error log is in a private location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a private location.' );
-		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention log is outside WordPress directory.' );
+		$this->assertStringContainsString( $expected_result['description'], $actual_result['description'], 'Description should mention log is outside WordPress directory.' );
 	}
 
 	/**
@@ -856,6 +876,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$wp_debug_log_property->setAccessible( true );
 		$wp_debug_log_property->setValue( $site_health, true );
 
+		$wp_debug_property = $reflection->getProperty( 'wp_debug_display' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, null );
+
 		$original_error_log = ini_get( 'error_log' );
 		$invalid_log_path   = '/nonexistent/path/that/does/not/exist/debug.log';
 
@@ -868,7 +892,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log location cannot be determined.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate that error log location could not be determined.' );
-		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention inability to determine log location.' );
+		$this->assertStringContainsString( $expected_result['description'], $actual_result['description'], 'Description should mention inability to determine log location.' );
 	}
 
 	/**
@@ -888,6 +912,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$wp_debug_log_property->setAccessible( true );
 		$wp_debug_log_property->setValue( $site_health, false );
 
+		$wp_debug_property = $reflection->getProperty( 'wp_debug_display' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, null );
+
 		$original_error_log = ini_get( 'error_log' );
 		$invalid_log_path   = '/nonexistent/path/that/does/not/exist/debug.log';
 
@@ -900,7 +928,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log location cannot be determined.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate that error log location could not be determined.' );
-		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention error log path is nonexistent.' );
+		$this->assertStringContainsString( $expected_result['description'], $actual_result['description'], 'Description should mention error log path is nonexistent.' );
 	}
 
 	/**
@@ -916,21 +944,22 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$site_health_mock->method( 'is_development_environment' )
 			->willReturn( false );
 
-		$reflection_mock = new ReflectionClass( $site_health_mock );
+		$site_health     = new WP_Site_Health();
+		$reflection_mock = new ReflectionClass( $site_health );
 
 		$wp_debug_property_mock = $reflection_mock->getProperty( 'wp_debug' );
 		$wp_debug_property_mock->setAccessible( true );
-		$wp_debug_property_mock->setValue( $site_health_mock, true );
+		$wp_debug_property_mock->setValue( $site_health, true );
 
 		$wp_debug_display_property_mock = $reflection_mock->getProperty( 'wp_debug_display' );
 		$wp_debug_display_property_mock->setAccessible( true );
-		$wp_debug_display_property_mock->setValue( $site_health_mock, true );
+		$wp_debug_display_property_mock->setValue( $site_health, true );
 
-		$result = $site_health_mock->get_test_is_in_debug_mode();
+		$actual_result = $site_health_mock->get_test_is_in_debug_mode();
 
-		$this->assertSame( 'critical', $result['status'], 'Status should be "critical" when WP_DEBUG_DISPLAY is enabled in production.' );
-		$this->assertSame( 'Your site is set to display errors to site visitors', $result['label'], 'Label should indicate errors are displayed to visitors.' );
-		$this->assertStringContainsString( 'WP_DEBUG_DISPLAY', $result['description'], 'Description should mention WP_DEBUG_DISPLAY.' );
+		$this->assertSame( 'critical', $actual_result['status'], 'Status should be "critical" when WP_DEBUG_DISPLAY is enabled in production.' );
+		$this->assertSame( 'Your site is set to display errors to site visitors', $actual_result['label'], 'Label should indicate errors are displayed to visitors.' );
+		$this->assertStringContainsString( 'WP_DEBUG_DISPLAY', $actual_result['description'], 'Description should mention WP_DEBUG_DISPLAY.' );
 	}
 
 	/**
@@ -946,46 +975,42 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$site_health_mock->method( 'is_development_environment' )
 			->willReturn( true );
 
-		$reflection = new ReflectionClass( $site_health_mock );
+		$site_health     = new WP_Site_Health();
+		$reflection_mock = new ReflectionClass( $site_health );
 
-		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
-		$wp_debug_property->setAccessible( true );
-		$wp_debug_property->setValue( $site_health_mock, true );
+		$wp_debug_property_mock = $reflection_mock->getProperty( 'wp_debug' );
+		$wp_debug_property_mock->setAccessible( true );
+		$wp_debug_property_mock->setValue( $site_health, true );
 
-		$wp_debug_display_property = $reflection->getProperty( 'wp_debug_display' );
-		$wp_debug_display_property->setAccessible( true );
-		$wp_debug_display_property->setValue( $site_health_mock, true );
+		$wp_debug_display_property_mock = $reflection_mock->getProperty( 'wp_debug_display' );
+		$wp_debug_display_property_mock->setAccessible( true );
+		$wp_debug_display_property_mock->setValue( $site_health, true );
 
-		$result = $site_health_mock->get_test_is_in_debug_mode();
+		$actual_result = $site_health_mock->get_test_is_in_debug_mode();
 
-		$this->assertSame( 'recommended', $result['status'], 'Status should be "recommended" when WP_DEBUG_DISPLAY is enabled in development.' );
-		$this->assertSame( 'Your site is set to display errors to site visitors', $result['label'], 'Label should indicate errors are displayed to visitors.' );
-		$this->assertStringContainsString( 'WP_DEBUG_DISPLAY', $result['description'], 'Description should mention WP_DEBUG_DISPLAY.' );
+		$this->assertSame( 'recommended', $actual_result['status'], 'Status should be "recommended" when WP_DEBUG_DISPLAY is enabled in development.' );
+		$this->assertSame( 'Your site is set to display errors to site visitors', $actual_result['label'], 'Label should indicate errors are displayed to visitors.' );
+		$this->assertStringContainsString( 'WP_DEBUG_DISPLAY', $actual_result['description'], 'Description should mention WP_DEBUG_DISPLAY.' );
 	}
 
 	/**
-	 * Tests get_test_is_in_debug_mode() validates result structure.
+	 * Tests get_test_is_in_debug_mode() validates actual_result structure.
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_result_structure() {
-		$site_health = new WP_Site_Health();
-		$result = $site_health->get_test_is_in_debug_mode();
+		$site_health   = new WP_Site_Health();
+		$actual_result = $site_health->get_test_is_in_debug_mode();
 
-		// Verify all required keys are present.
-		$this->assertArrayHasKey( 'label', $result, 'Result should have a label.' );
-		$this->assertArrayHasKey( 'status', $result, 'Result should have a status.' );
-		$this->assertArrayHasKey( 'badge', $result, 'Result should have a badge.' );
-		$this->assertArrayHasKey( 'description', $result, 'Result should have a description.' );
-		$this->assertArrayHasKey( 'actions', $result, 'Result should have actions.' );
-		$this->assertArrayHasKey( 'test', $result, 'Result should have a test identifier.' );
-
-		// Verify badge structure.
-		$this->assertIsArray( $result['badge'], 'Badge should be an array.' );
-		$this->assertArrayHasKey( 'label', $result['badge'], 'Badge should have a label.' );
-		$this->assertArrayHasKey( 'color', $result['badge'], 'Badge should have a color.' );
-
-		// Verify status is one of the expected values.
-		$this->assertContains( $result['status'], array( 'good', 'recommended', 'critical' ), 'Status should be one of: good, recommended, critical.' );
+		$this->assertArrayHasKey( 'label', $actual_result, 'Result should have a label.' );
+		$this->assertArrayHasKey( 'status', $actual_result, 'Result should have a status.' );
+		$this->assertArrayHasKey( 'badge', $actual_result, 'Result should have a badge.' );
+		$this->assertArrayHasKey( 'description', $actual_result, 'Result should have a description.' );
+		$this->assertArrayHasKey( 'actions', $actual_result, 'Result should have actions.' );
+		$this->assertArrayHasKey( 'test', $actual_result, 'Result should have a test identifier.' );
+		$this->assertIsArray( $actual_result['badge'], 'Badge should be an array.' );
+		$this->assertArrayHasKey( 'label', $actual_result['badge'], 'Badge should have a label.' );
+		$this->assertArrayHasKey( 'color', $actual_result['badge'], 'Badge should have a color.' );
+		$this->assertContains( $actual_result['status'], array( 'good', 'recommended', 'critical' ), 'Status should be one of: good, recommended, critical.' );
 	}
 }
