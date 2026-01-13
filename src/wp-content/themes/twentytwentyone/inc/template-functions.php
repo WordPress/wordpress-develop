@@ -371,9 +371,9 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 	// Loop over top-level blocks.
 	if ( class_exists( '\WP_Block_Processor' ) && function_exists( '\str_starts_with' ) ) {
 		// Scan for blocks whose block type matches the prefix, if provided a wildcard.
-		$prefix        = rtrim( $block_name, '*' );
-		$match_fully   = $prefix === $block_name;
-		$processor     = new WP_Block_Processor( $content );
+		$prefix      = rtrim( $block_name, '*' );
+		$match_fully = $prefix === $block_name;
+		$processor   = new WP_Block_Processor( $content );
 
 		while ( $instances_count < $instances && $processor->next_block() ) {
 			if ( 1 !== $processor->get_depth() ) {
