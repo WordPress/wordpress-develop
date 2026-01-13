@@ -24,7 +24,7 @@ function wp_enqueue_view_transitions_admin_css(): void {
  * @return string The CSS.
  */
 function wp_get_view_transitions_admin_css(): string {
-	$affix = ''; // TODO: Restore to `$affix = SCRIPT_DEBUG ? '' : '.min';`.
+	$affix = SCRIPT_DEBUG ? '' : '.min';
 	$path  = ABSPATH . "wp-admin/css/view-transitions{$affix}.css";
 	return file_get_contents( $path );
 }
