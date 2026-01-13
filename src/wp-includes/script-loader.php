@@ -2875,6 +2875,21 @@ function wp_get_script_tag( $attributes ) {
 	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 	$processor->next_tag();
 	foreach ( $attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the
+		 * same attribute in HTML, therefore it’s possible that the
+		 * input array might contain duplicate attributes even though
+		 * it’s keyed on their name. Calling code should rewrite an
+		 * attribute’s value rather than sending a duplicate attribute.
+		 *
+		 * Example:
+		 *
+		 *     array( 'id' => 'main', 'ID' => 'nav' )
+		 *
+		 * In this example, there are two keys both describing the `id`
+		 * attribute. PHP array iteration is in key-insertion order so
+		 * the 'id' value will be set in the SCRIPT tag.
+		 */
 		if ( null !== $processor->get_attribute( $name ) ) {
 			continue;
 		}
@@ -2928,6 +2943,21 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 	$processor->next_tag();
 	foreach ( $attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the
+		 * same attribute in HTML, therefore it’s possible that the
+		 * input array might contain duplicate attributes even though
+		 * it’s keyed on their name. Calling code should rewrite an
+		 * attribute’s value rather than sending a duplicate attribute.
+		 *
+		 * Example:
+		 *
+		 *     array( 'id' => 'main', 'ID' => 'nav' )
+		 *
+		 * In this example, there are two keys both describing the `id`
+		 * attribute. PHP array iteration is in key-insertion order so
+		 * the 'id' value will be set in the SCRIPT tag.
+		 */
 		if ( null !== $processor->get_attribute( $name ) ) {
 			continue;
 		}
