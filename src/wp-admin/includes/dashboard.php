@@ -1014,16 +1014,13 @@ function wp_dashboard_recent_posts( $args ) {
 
 			$time = get_the_time( 'U' );
 
-			if ( ! is_int( $time ) ) {
+			if ( ! is_int( $time ) || gmdate( 'Y', $time ) !== $year ) {
 				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
 				$relative = date_i18n( __( 'M jS Y' ), $time );
 			} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
 				$relative = __( 'Today' );
 			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
 				$relative = __( 'Tomorrow' );
-			} elseif ( gmdate( 'Y', $time ) !== $year ) {
-				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS Y' ), $time );
 			} else {
 				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
 				$relative = date_i18n( __( 'M jS' ), $time );
