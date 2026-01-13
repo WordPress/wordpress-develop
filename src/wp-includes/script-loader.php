@@ -1700,7 +1700,7 @@ function wp_default_styles( $styles ) {
 	);
 
 	$styles->add( 'wp-view-transitions-admin', false );
-	$styles->add_inline_style( 'wp-view-transitions-admin', wp_get_view_transitions_admin_css() );
+	did_action( 'init' ) && $styles->add_inline_style( 'wp-view-transitions-admin', wp_get_view_transitions_admin_css() );
 
 	$package_styles = array(
 		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
