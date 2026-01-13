@@ -2879,11 +2879,7 @@ function wp_get_script_tag( $attributes ) {
 			continue;
 		}
 
-		if ( null === $value ) {
-			$value = true;
-		}
-
-		$processor->set_attribute( $name, $value );
+		$processor->set_attribute( $name, $value ?? true );
 	}
 	return "{$processor->get_updated_html()}\n";
 }
@@ -2936,11 +2932,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 			continue;
 		}
 
-		if ( null === $value ) {
-			$value = true;
-		}
-
-		$processor->set_attribute( $name, $value );
+		$processor->set_attribute( $name, $value ?? true );
 	}
 	$processor->set_modifiable_text( $data );
 	return "{$processor->get_updated_html()}\n";
