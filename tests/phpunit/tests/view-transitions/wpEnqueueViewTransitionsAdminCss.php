@@ -12,7 +12,7 @@
  */
 class Tests_View_Transitions_wpEnqueueViewTransitionsAdminCss extends WP_UnitTestCase {
 
-	private $original_wp_styles = null;
+	private ?WP_Styles $original_wp_styles = null;
 
 	public function set_up() {
 		global $wp_styles;
