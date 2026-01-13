@@ -3834,7 +3834,7 @@ class WP_HTML_Tag_Processor {
 				 * data or even syntax errors.
 				 *
 				 * Because of this, content which could potentially modify the SCRIPT tag’s
-				 * HTML structure are rejected here. It’s the responsibility of calling code to
+				 * HTML structure is rejected here. It’s the responsibility of calling code to
 				 * perform whatever semantic escaping is necessary to avoid problematic strings.
 				 */
 				if (
