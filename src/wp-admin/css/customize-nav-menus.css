@@ -665,14 +665,15 @@
 #available-menu-items .menu-item-handle.item-added .item-title,
 #available-menu-items .menu-item-handle.item-added:hover .item-add,
 #available-menu-items .menu-item-handle.item-added .item-add:focus {
-	color: #1d2327;
+	color: #646970;
 }
 
 #available-menu-items .menu-item-handle.item-added .item-add:before {
 	content: "\f147" / '';
 }
 
-#available-menu-items .menu-item-handle.item-added:hover .item-add:before {
+#available-menu-items .menu-item-handle.item-added:hover .item-add:before,
+#available-menu-items .menu-item-handle.item-added .item-add:focus:before {
 	content: "\f543" / '';
 }
 
