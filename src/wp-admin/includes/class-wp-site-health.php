@@ -30,6 +30,21 @@ class WP_Site_Health {
 	private $timeout_late_cron   = null;
 
 	/**
+	 * @var bool
+	 */
+	private $wp_debug;
+
+	/**
+	 * @var bool|string
+	 */
+	private $wp_debug_log;
+
+	/**
+	 * @var bool|null
+	 */
+	private $wp_debug_display;
+
+	/**
 	 * WP_Site_Health constructor.
 	 *
 	 * @since 5.2.0
@@ -54,6 +69,10 @@ class WP_Site_Health {
 		add_action( 'wp_site_health_scheduled_check', array( $this, 'wp_cron_scheduled_check' ) );
 
 		add_action( 'site_health_tab_content', array( $this, 'show_site_health_tab' ) );
+
+		$this->wp_debug         = defined( 'WP_DEBUG' ) && WP_DEBUG;
+		$this->wp_debug_log     = defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG;
+		$this->wp_debug_display = defined( 'WP_DEBUG_DISPLAY' ) ? WP_DEBUG_DISPLAY : null;
 	}
 
 	/**
@@ -1408,7 +1427,7 @@ class WP_Site_Health {
 			'test'        => 'is_in_debug_mode',
 		);
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		if ( $this->wp_debug ) {
 			if ( ! empty( ini_get( 'error_log' ) ) ) {
 				$debug_log_dir = realpath( dirname( ini_get( 'error_log' ) ) );
 				$absolute_path = realpath( ABSPATH ) . DIRECTORY_SEPARATOR;
@@ -1421,7 +1440,7 @@ class WP_Site_Health {
 					$log_path_status = 'private';
 				}
 
-				$is_wp_debug_log = defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG;
+				$is_wp_debug_log = $this->wp_debug_log;
 
 				if ( 'public' === $log_path_status ) {
 					$result['label']  = __( 'Your site is set to log errors to a potentially public file' );
@@ -1483,7 +1502,7 @@ class WP_Site_Health {
 				}
 			}
 
-			if ( defined( 'WP_DEBUG_DISPLAY' ) && WP_DEBUG_DISPLAY ) {
+			if ( $this->wp_debug_display ) {
 				$result['label'] = __( 'Your site is set to display errors to site visitors' );
 
 				$result['status'] = 'critical';
