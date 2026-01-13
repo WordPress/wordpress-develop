@@ -2840,10 +2840,6 @@ function wp_enqueue_editor_format_library_assets() {
 function wp_sanitize_script_attributes( $attributes ) {
 	$attributes_string = '';
 
-	/*
-	 * If HTML5 script tag is supported, only the attribute name is added
-	 * to $attributes_string for entries with a boolean value, and that are true.
-	 */
 	foreach ( $attributes as $attribute_name => $attribute_value ) {
 		if ( is_bool( $attribute_value ) ) {
 			if ( $attribute_value ) {
