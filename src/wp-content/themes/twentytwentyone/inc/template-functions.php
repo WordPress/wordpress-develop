@@ -371,8 +371,8 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 	// Loop over top-level blocks.
 	if ( class_exists( '\WP_Block_Processor' ) && function_exists( '\str_starts_with' ) ) {
 		// Scan for blocks whose block type matches the prefix, if provided a wildcard.
-		$prefix      = rtrim( $block_name, '*' );
-		$match_fully = $prefix === $block_name;
+		$match_text  = rtrim( $block_name, '*' );
+		$match_fully = $match_text === $block_name;
 		$processor   = new WP_Block_Processor( $content );
 
 		while ( $instances_count < $instances && $processor->next_block() ) {
@@ -387,8 +387,8 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 				 * In each case, the condition only holds when the match is successful.
 				 */
 				$match_fully
-					? $processor->is_block_type( $block_name )
-					: str_starts_with( $processor->get_printable_block_type(), $prefix )
+					? $processor->is_block_type( $match_text )
+					: str_starts_with( $processor->get_printable_block_type(), $match_text )
 			) {
 				$blocks_content .= render_block( $processor->extract_full_block_and_advance() );
 				++$instances_count;
