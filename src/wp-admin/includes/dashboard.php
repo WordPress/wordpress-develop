@@ -1013,8 +1013,8 @@ function wp_dashboard_recent_posts( $args ) {
 			$posts->the_post();
 
 			$time = intval( get_the_time( 'U' ) );
-
-            if ( gmdate( 'Y-m-d', $time ) === $today ) {
+			
+			if ( gmdate( 'Y-m-d', $time ) === $today ) {
 				$relative = __( 'Today' );
 			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
 				$relative = __( 'Tomorrow' );
