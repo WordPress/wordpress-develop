@@ -361,8 +361,8 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
  * @return bool Returns true if a block was located & printed, otherwise false.
  */
 function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
-	$blocks_content = '';
 	$instance_count = 0;
+	$blocks_content = '';
 
 	if ( ! $content ) {
 		$content = get_the_content();
