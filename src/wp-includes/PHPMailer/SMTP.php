@@ -34,8 +34,9 @@ class SMTP
      * The PHPMailer SMTP version number.
      *
      * @var string
+     * @deprecated This constant will be removed in PHPMailer 8.0. Use `PHPMailer::VERSION` instead.
      */
-    const VERSION = '6.9.2';
+    const VERSION = '7.0.2';
 
     /**
      * SMTP line break constant.
@@ -62,7 +63,7 @@ class SMTP
      * The maximum line length allowed by RFC 5321 section 4.5.3.1.6,
      * *excluding* a trailing CRLF break.
      *
-     * @see https://tools.ietf.org/html/rfc5321#section-4.5.3.1.6
+     * @see https://www.rfc-editor.org/rfc/rfc5321#section-4.5.3.1.6
      *
      * @var int
      */
@@ -72,7 +73,7 @@ class SMTP
      * The maximum line length allowed for replies in RFC 5321 section 4.5.3.1.5,
      * *including* a trailing CRLF line break.
      *
-     * @see https://tools.ietf.org/html/rfc5321#section-4.5.3.1.5
+     * @see https://www.rfc-editor.org/rfc/rfc5321#section-4.5.3.1.5
      *
      * @var int
      */
@@ -160,6 +161,15 @@ class SMTP
     public $do_verp = false;
 
     /**
+     * Whether to use SMTPUTF8.
+     *
+     * @see https://www.rfc-editor.org/rfc/rfc6531
+     *
+     * @var bool
+     */
+    public $do_smtputf8 = false;
+
+    /**
      * The timeout value for connection, in seconds.
      * Default of 5 minutes (300sec) is from RFC2821 section 4.5.3.2.
      * This needs to be quite high to function correctly with hosts using greetdelay as an anti-spam measure.
@@ -196,6 +206,7 @@ class SMTP
         'Haraka' => '/[\d]{3} Message Queued \((.*)\)/',
         'ZoneMTA' => '/[\d]{3} Message queued as (.*)/',
         'Mailjet' => '/[\d]{3} OK queued as (.*)/',
+        'Gsmtp' => '/[\d]{3} 2\.0\.0 OK (.*) - gsmtp/',
     ];
 
     /**
@@ -373,7 +384,7 @@ class SMTP
         }
         //Anything other than a 220 response means something went wrong
         //RFC 5321 says the server will wait for us to send a QUIT in response to a 554 error
-        //https://tools.ietf.org/html/rfc5321#section-3.1
+        //https://www.rfc-editor.org/rfc/rfc5321#section-3.1
         if ($responseCode === 554) {
             $this->quit();
         }
@@ -484,7 +495,9 @@ class SMTP
         //PHP 5.6.7 dropped inclusion of TLS 1.1 and 1.2 in STREAM_CRYPTO_METHOD_TLS_CLIENT
         //so add them back in manually if we can
         if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT')) {
+            // phpcs:ignore PHPCompatibility.Constants.NewConstants.stream_crypto_method_tlsv1_2_clientFound
             $crypto_method |= STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
+            // phpcs:ignore PHPCompatibility.Constants.NewConstants.stream_crypto_method_tlsv1_1_clientFound
             $crypto_method |= STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT;
         }
 
@@ -582,7 +595,7 @@ class SMTP
                 }
                 //Send encoded username and password
                 if (
-                    //Format from https://tools.ietf.org/html/rfc4616#section-2
+                    //Format from https://www.rfc-editor.org/rfc/rfc4616#section-2
                     //We skip the first field (it's forgery), so the string starts with a null byte
                     !$this->sendCommand(
                         'User & Password',
@@ -623,11 +636,48 @@ class SMTP
                 if (null === $OAuth) {
                     return false;
                 }
-                $oauth = $OAuth->getOauth64();
-
-                //Start authentication
-                if (!$this->sendCommand('AUTH', 'AUTH XOAUTH2 ' . $oauth, 235)) {
-                    return false;
+                try {
+                    $oauth = $OAuth->getOauth64();
+                } catch (\Exception $e) {
+                    // We catch all exceptions and convert them to PHPMailer exceptions to be able to
+                    // handle them correctly later
+                    throw new Exception("SMTP authentication error", 0, $e);
+                }
+                /*
+                 * An SMTP command line can have a maximum length of 512 bytes, including the command name,
+                 * so the base64-encoded OAUTH token has a maximum length of:
+                 * 512 - 13 (AUTH XOAUTH2) - 2 (CRLF) = 497 bytes
+                 * If the token is longer than that, the command and the token must be sent separately as described in
+                 * https://www.rfc-editor.org/rfc/rfc4954#section-4
+                 */
+                if ($oauth === '') {
+                    //Sending an empty auth token is legitimate, but it must be encoded as '='
+                    //to indicate it's not a 2-part command
+                    if (!$this->sendCommand('AUTH', 'AUTH XOAUTH2 =', 235)) {
+                        return false;
+                    }
+                } elseif (strlen($oauth) <= 497) {
+                    //Authenticate using a token in the initial-response part
+                    if (!$this->sendCommand('AUTH', 'AUTH XOAUTH2 ' . $oauth, 235)) {
+                        return false;
+                    }
+                } else {
+                    //The token is too long, so we need to send it in two parts.
+                    //Send the auth command without a token and expect a 334
+                    if (!$this->sendCommand('AUTH', 'AUTH XOAUTH2', 334)) {
+                        return false;
+                    }
+                    //Send the token
+                    if (!$this->sendCommand('OAuth TOKEN', $oauth, [235, 334])) {
+                        return false;
+                    }
+                    //If the server answers with 334, send an empty line and wait for a 235
+                    if (
+                        substr($this->last_reply, 0, 3) === '334'
+                        && $this->sendCommand('AUTH End', '', 235)
+                    ) {
+                        return false;
+                    }
                 }
                 break;
             default:
@@ -720,6 +770,25 @@ class SMTP
         }
     }
 
+    private function iterateLines($s)
+    {
+        $start = 0;
+        $length = strlen($s);
+
+        for ($i = 0; $i < $length; $i++) {
+            $c = $s[$i];
+            if ($c === "\n" || $c === "\r") {
+                yield substr($s, $start, $i - $start);
+                if ($c === "\r" && $i + 1 < $length && $s[$i + 1] === "\n") {
+                    $i++;
+                }
+                $start = $i + 1;
+            }
+        }
+
+        yield substr($s, $start);
+    }
+
     /**
      * Send an SMTP DATA command.
      * Issues a data command and sends the msg_data to the server,
@@ -748,15 +817,16 @@ class SMTP
          * NOTE: this does not count towards line-length limit.
          */
 
-        //Normalize line breaks before exploding
-        $lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $msg_data));
+        //Iterate over lines with normalized line breaks
+        $lines = $this->iterateLines($msg_data);
 
         /* To distinguish between a complete RFC822 message and a plain message body, we check if the first field
          * of the first line (':' separated) does not contain a space then it _should_ be a header, and we will
          * process all lines before a blank line as headers.
          */
 
-        $field = substr($lines[0], 0, strpos($lines[0], ':'));
+        $first_line = $lines->current();
+        $field = substr($first_line, 0, strpos($first_line, ':'));
         $in_headers = false;
         if (!empty($field) && strpos($field, ' ') === false) {
             $in_headers = true;
@@ -795,7 +865,7 @@ class SMTP
             //Send the lines to the server
             foreach ($lines_out as $line_out) {
                 //Dot-stuffing as per RFC5321 section 4.5.2
-                //https://tools.ietf.org/html/rfc5321#section-4.5.2
+                //https://www.rfc-editor.org/rfc/rfc5321#section-4.5.2
                 if (!empty($line_out) && $line_out[0] === '.') {
                     $line_out = '.' . $line_out;
                 }
@@ -913,7 +983,15 @@ class SMTP
      * $from. Returns true if successful or false otherwise. If True
      * the mail transaction is started and then one or more recipient
      * commands may be called followed by a data command.
-     * Implements RFC 821: MAIL <SP> FROM:<reverse-path> <CRLF>.
+     * Implements RFC 821: MAIL <SP> FROM:<reverse-path> <CRLF> and
+     * two extensions, namely XVERP and SMTPUTF8.
+     *
+     * The server's EHLO response is not checked. If use of either
+     * extensions is enabled even though the server does not support
+     * that, mail submission will fail.
+     *
+     * XVERP is documented at https://www.postfix.org/VERP_README.html
+     * and SMTPUTF8 is specified in RFC 6531.
      *
      * @param string $from Source address of this message
      *
@@ -922,10 +1000,11 @@ class SMTP
     public function mail($from)
     {
         $useVerp = ($this->do_verp ? ' XVERP' : '');
+        $useSmtputf8 = ($this->do_smtputf8 ? ' SMTPUTF8' : '');
 
         return $this->sendCommand(
             'MAIL FROM',
-            'MAIL FROM:<' . $from . '>' . $useVerp,
+            'MAIL FROM:<' . $from . '>' . $useSmtputf8 . $useVerp,
             250
         );
     }
@@ -1291,7 +1370,16 @@ class SMTP
 
                 //stream_select returns false when the `select` system call is interrupted
                 //by an incoming signal, try the select again
-                if (stripos($message, 'interrupted system call') !== false) {
+                if (
+                    stripos($message, 'interrupted system call') !== false ||
+                    (
+                        // on applications with a different locale than english, the message above is not found because
+                        // it's translated. So we also check for the SOCKET_EINTR constant which is defined under
+                        // Windows and UNIX-like platforms (if available on the platform).
+                        defined('SOCKET_EINTR') &&
+                        stripos($message, 'stream_select(): Unable to select [' . SOCKET_EINTR . ']') !== false
+                    )
+                ) {
                     $this->edebug(
                         'SMTP -> get_lines(): retrying stream_select',
                         self::DEBUG_LOWLEVEL
@@ -1362,6 +1450,26 @@ class SMTP
     public function getVerp()
     {
         return $this->do_verp;
+    }
+
+    /**
+     * Enable or disable use of SMTPUTF8.
+     *
+     * @param bool $enabled
+     */
+    public function setSMTPUTF8($enabled = false)
+    {
+        $this->do_smtputf8 = $enabled;
+    }
+
+    /**
+     * Get SMTPUTF8 use.
+     *
+     * @return bool
+     */
+    public function getSMTPUTF8()
+    {
+        return $this->do_smtputf8;
     }
 
     /**

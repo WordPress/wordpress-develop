@@ -18,6 +18,32 @@ function _add_template_loader_filters() {
 }
 
 /**
+ * Renders a warning screen for empty block templates.
+ *
+ * @since 6.8.0
+ *
+ * @param WP_Block_Template $block_template The block template object.
+ * @return string The warning screen HTML.
+ */
+function wp_render_empty_block_template_warning( $block_template ) {
+	wp_enqueue_style( 'wp-empty-template-alert' );
+	return sprintf(
+		/* translators: %1$s: Block template title. %2$s: Empty template warning message. %3$s: Edit template link. %4$s: Edit template button label. */
+		'<div id="wp-empty-template-alert">
+			<h2>%1$s</h2>
+			<p>%2$s</p>
+			<a href="%3$s" class="wp-element-button">
+				%4$s
+			</a>
+		</div>',
+		esc_html( $block_template->title ),
+		__( 'This page is blank because the template is empty. You can reset or customize it in the Site Editor.' ),
+		get_edit_post_link( $block_template->wp_id, 'site-editor' ),
+		__( 'Edit template' )
+	);
+}
+
+/**
  * Finds a block template with equal or higher specificity than a given PHP template file.
  *
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
@@ -68,13 +94,18 @@ function locate_block_template( $template, $type, array $templates ) {
 	if ( $block_template ) {
 		$_wp_current_template_id = $block_template->id;
 
-		if ( empty( $block_template->content ) && is_user_logged_in() ) {
-			$_wp_current_template_content =
-			sprintf(
-				/* translators: %s: Template title */
-				__( 'Empty template: %s' ),
-				$block_template->title
-			);
+		if ( empty( $block_template->content ) ) {
+			if ( is_user_logged_in() ) {
+				$_wp_current_template_content = wp_render_empty_block_template_warning( $block_template );
+			} else {
+				if ( $block_template->has_theme_file ) {
+					// Show contents from theme template if user is not logged in.
+					$theme_template               = _get_block_template_file( 'wp_template', $block_template->slug );
+					$_wp_current_template_content = file_get_contents( $theme_template['path'] );
+				} else {
+					$_wp_current_template_content = $block_template->content;
+				}
+			}
 		} elseif ( ! empty( $block_template->content ) ) {
 			$_wp_current_template_content = $block_template->content;
 		}
@@ -222,7 +253,7 @@ function get_the_block_template_html() {
 		if ( is_user_logged_in() ) {
 			return '<h1>' . esc_html__( 'No matching template found' ) . '</h1>';
 		}
-		return;
+		return '';
 	}
 
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
@@ -270,7 +301,102 @@ function get_the_block_template_html() {
 
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
 	// (e.g. `.wp-site-blocks > *`).
-	return '<div class="wp-site-blocks">' . $content . '</div>';
+	$template_html = '<div class="wp-site-blocks">' . $content . '</div>';
+
+	// Back-compat for plugins that disable functionality by unhooking one of these actions.
+	if (
+		! has_action( 'wp_footer', 'the_block_template_skip_link' ) ||
+		! has_action( 'wp_enqueue_scripts', 'wp_enqueue_block_template_skip_link' )
+	) {
+		return $template_html;
+	}
+
+	return _block_template_add_skip_link( $template_html );
+}
+
+/**
+ * Inserts the block template skip-link into the template HTML.
+ *
+ * When a `MAIN` element exists in the template, this function will ensure
+ * that the element contains an `id` attribute, and it will insert a link to
+ * that `MAIN` element before the first `DIV.wp-site-blocks` element, which
+ * is the wrapper for all blocks in a block template as constructed by
+ * {@see get_the_block_template_html()}.
+ *
+ * Example:
+ *
+ *     // Input.
+ *     <div class="wp-site-blocks">
+ *         <nav>...</nav>
+ *         <main>
+ *             <h2>...
+ *
+ *     // Output.
+ *     <a href="#wp--skip-link--target" id="wp-skip-link" class="...">
+ *     <div class="wp-site-blocks">
+ *         <nav>...</nav>
+ *         <main id="wp--skip-link--target">
+ *             <h2>...
+ *
+ * When the `MAIN` element already contains a non-empty `id` value it will be
+ * used instead of the default skip-link id.
+ *
+ * @access private
+ * @since 7.0.0
+ *
+ * @param string $template_html Block template markup.
+ * @return string Modified markup with skip link when applicable.
+ */
+function _block_template_add_skip_link( string $template_html ): string {
+	// Anonymous subclass of WP_HTML_Tag_Processor to access protected bookmark spans.
+	$processor = new class( $template_html ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Inserts text before the current token.
+		 *
+		 * @param string $text Text to insert.
+		 */
+		public function insert_before( string $text ) {
+			$this->set_bookmark( 'here' );
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $this->bookmarks['here']->start, 0, $text );
+		}
+	};
+
+	// Find and bookmark the first DIV.wp-site-blocks.
+	if (
+		! $processor->next_tag(
+			array(
+				'tag_name'   => 'DIV',
+				'class_name' => 'wp-site-blocks',
+			)
+		)
+	) {
+		return $template_html;
+	}
+	$processor->set_bookmark( 'skip_link_insertion_point' );
+
+	// Ensure the MAIN element has an ID.
+	if ( ! $processor->next_tag( 'MAIN' ) ) {
+		return $template_html;
+	}
+
+	$skip_link_target_id = $processor->get_attribute( 'id' );
+	if ( ! is_string( $skip_link_target_id ) || '' === $skip_link_target_id ) {
+		$skip_link_target_id = 'wp--skip-link--target';
+		$processor->set_attribute( 'id', $skip_link_target_id );
+	}
+
+	// Seek back to the bookmarked insertion point.
+	$processor->seek( 'skip_link_insertion_point' );
+
+	$skip_link = sprintf(
+		'<a class="skip-link screen-reader-text" id="wp-skip-link" href="%s">%s</a>',
+		esc_url( '#' . $skip_link_target_id ),
+		/* translators: Hidden accessibility text. */
+		esc_html__( 'Skip to content' )
+	);
+	$processor->insert_before( $skip_link );
+
+	return $processor->get_updated_html();
 }
 
 /**
@@ -342,10 +468,10 @@ function _resolve_template_for_new_post( $wp_query ) {
 	remove_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
 
 	// Pages.
-	$page_id = isset( $wp_query->query['page_id'] ) ? $wp_query->query['page_id'] : null;
+	$page_id = $wp_query->query['page_id'] ?? null;
 
 	// Posts, including custom post types.
-	$p = isset( $wp_query->query['p'] ) ? $wp_query->query['p'] : null;
+	$p = $wp_query->query['p'] ?? null;
 
 	$post_id = $page_id ? $page_id : $p;
 	$post    = get_post( $post_id );

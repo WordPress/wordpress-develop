@@ -834,12 +834,8 @@ function get_comment_link( $comment = null, $args = array() ) {
 
 	if ( $cpage && get_option( 'page_comments' ) ) {
 		if ( $wp_rewrite->using_permalinks() ) {
-			if ( $cpage ) {
-				$comment_link = trailingslashit( $comment_link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
-			}
-
-			$comment_link = user_trailingslashit( $comment_link, 'comment' );
-		} elseif ( $cpage ) {
+			$comment_link = trailingslashit( $comment_link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
+		} else {
 			$comment_link = add_query_arg( 'cpage', $cpage, $comment_link );
 		}
 	}
@@ -954,14 +950,14 @@ function comments_number( $zero = false, $one = false, $more = false, $post = 0 
  * @since 4.0.0
  * @since 5.4.0 Added the `$post` parameter to allow using the function outside of the loop.
  *
- * @param string      $zero Optional. Text for no comments. Default false.
- * @param string      $one  Optional. Text for one comment. Default false.
- * @param string      $more Optional. Text for more than one comment. Default false.
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is the global `$post`.
+ * @param string|false $zero Optional. Text for no comments. Default false.
+ * @param string|false $one  Optional. Text for one comment. Default false.
+ * @param string|false $more Optional. Text for more than one comment. Default false.
+ * @param int|WP_Post  $post Optional. Post ID or WP_Post object. Default is the global `$post`.
  * @return string Language string for the number of comments a post has.
  */
 function get_comments_number_text( $zero = false, $one = false, $more = false, $post = 0 ) {
-	$comments_number = get_comments_number( $post );
+	$comments_number = (int) get_comments_number( $post );
 
 	if ( $comments_number > 1 ) {
 		if ( false === $more ) {
@@ -996,7 +992,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 
 			$comments_number_text = str_replace( '%', number_format_i18n( $comments_number ), $more );
 		}
-	} elseif ( 0 == $comments_number ) {
+	} elseif ( 0 === $comments_number ) {
 		$comments_number_text = ( false === $zero ) ? __( 'No Comments' ) : $zero;
 	} else { // Must be one.
 		$comments_number_text = ( false === $one ) ? __( '1 Comment' ) : $one;
@@ -1184,30 +1180,30 @@ function get_comment_type( $comment_id = 0 ) {
  *
  * @since 0.71
  *
- * @param string|false $commenttxt   Optional. String to display for comment type. Default false.
- * @param string|false $trackbacktxt Optional. String to display for trackback type. Default false.
- * @param string|false $pingbacktxt  Optional. String to display for pingback type. Default false.
+ * @param string|false $comment_text   Optional. String to display for comment type. Default false.
+ * @param string|false $trackback_text Optional. String to display for trackback type. Default false.
+ * @param string|false $pingback_text  Optional. String to display for pingback type. Default false.
  */
-function comment_type( $commenttxt = false, $trackbacktxt = false, $pingbacktxt = false ) {
-	if ( false === $commenttxt ) {
-		$commenttxt = _x( 'Comment', 'noun' );
+function comment_type( $comment_text = false, $trackback_text = false, $pingback_text = false ) {
+	if ( false === $comment_text ) {
+		$comment_text = _x( 'Comment', 'noun' );
 	}
-	if ( false === $trackbacktxt ) {
-		$trackbacktxt = __( 'Trackback' );
+	if ( false === $trackback_text ) {
+		$trackback_text = __( 'Trackback' );
 	}
-	if ( false === $pingbacktxt ) {
-		$pingbacktxt = __( 'Pingback' );
+	if ( false === $pingback_text ) {
+		$pingback_text = __( 'Pingback' );
 	}
 	$type = get_comment_type();
 	switch ( $type ) {
 		case 'trackback':
-			echo $trackbacktxt;
+			echo $trackback_text;
 			break;
 		case 'pingback':
-			echo $pingbacktxt;
+			echo $pingback_text;
 			break;
 		default:
-			echo $commenttxt;
+			echo $comment_text;
 	}
 }
 
@@ -1378,7 +1374,7 @@ function wp_comment_form_unfiltered_html_nonce() {
 
 	if ( current_user_can( 'unfiltered_html' ) ) {
 		wp_nonce_field( 'unfiltered-html-comment_' . $post_id, '_wp_unfiltered_html_comment_disabled', false );
-		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();" );
+		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 	}
 }
 
@@ -1648,7 +1644,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 function comments_popup_link( $zero = false, $one = false, $more = false, $css_class = '', $none = false ) {
 	$post_id         = get_the_ID();
 	$post_title      = get_the_title();
-	$comments_number = get_comments_number( $post_id );
+	$comments_number = (int) get_comments_number( $post_id );
 
 	if ( false === $zero ) {
 		/* translators: %s: Post title. */
@@ -1675,7 +1671,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 		$none = sprintf( __( 'Comments Off<span class="screen-reader-text"> on %s</span>' ), $post_title );
 	}
 
-	if ( 0 == $comments_number && ! comments_open() && ! pings_open() ) {
+	if ( 0 === $comments_number && ! comments_open() && ! pings_open() ) {
 		printf(
 			'<span%1$s>%2$s</span>',
 			! empty( $css_class ) ? ' class="' . esc_attr( $css_class ) . '"' : '',
@@ -1689,7 +1685,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 		return;
 	}
 
-	if ( 0 == $comments_number ) {
+	if ( 0 === $comments_number ) {
 		$respond_link = get_permalink() . '#respond';
 		/**
 		 * Filters the respond link when a post has no comments.
@@ -1754,7 +1750,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  * @param int|WP_Comment $comment Optional. Comment being replied to. Default current comment.
  * @param int|WP_Post    $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
  *                                Default current post.
- * @return string|false|null Link to show comment form, if successful. False, if comments are closed.
+ * @return string|false|null Link to show comment form on success. False if comments are closed. Null on failure.
  */
 function get_comment_reply_link( $args = array(), $comment = null, $post = null ) {
 	$defaults = array(
@@ -1773,14 +1769,17 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 
 	$args = wp_parse_args( $args, $defaults );
 
-	if ( 0 == $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
-		return;
+	$args['max_depth'] = (int) $args['max_depth'];
+	$args['depth']     = (int) $args['depth'];
+
+	if ( 0 === $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
+		return null;
 	}
 
 	$comment = get_comment( $comment );
 
 	if ( empty( $comment ) ) {
-		return;
+		return null;
 	}
 
 	if ( empty( $post ) ) {
@@ -1908,9 +1907,9 @@ function comment_reply_link( $args = array(), $comment = null, $post = null ) {
  *     @type string $before     Text or HTML to add before the reply link. Default empty.
  *     @type string $after      Text or HTML to add after the reply link. Default empty.
  * }
- * @param int|WP_Post $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
- *                             Default current post.
- * @return string|false|null Link to show comment form, if successful. False, if comments are closed.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object the comment is going to be displayed on.
+ *                          Default current post.
+ * @return string|false Link to show comment form on success. False if comments are closed.
  */
 function get_post_reply_link( $args = array(), $post = null ) {
 	$defaults = array(
@@ -2092,8 +2091,8 @@ function comment_id_fields( $post = null ) {
  *
  * Only affects users with JavaScript disabled.
  *
- * @internal The $comment global must be present to allow template tags access to the current
- *           comment. See https://core.trac.wordpress.org/changeset/36512.
+ * {@internal The $comment global must be present to allow template tags access to the current
+ * comment. See https://core.trac.wordpress.org/changeset/36512.}
  *
  * @since 2.7.0
  * @since 6.2.0 Added the `$post` parameter.
@@ -2443,6 +2442,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
  * @since 4.6.0 Introduced the 'action' argument.
  * @since 4.9.6 Introduced the 'cookies' default comment field.
  * @since 5.5.0 Introduced the 'class_container' argument.
+ * @since 6.8.2 Introduced the 'novalidate' argument.
  *
  * @param array       $args {
  *     Optional. Default arguments and form fields to override.
@@ -2464,6 +2464,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
  *                                        Default 'Your email address will not be published.'.
  *     @type string $comment_notes_after  HTML element for a message displayed after the textarea field.
  *     @type string $action               The comment form element action attribute. Default '/wp-comments-post.php'.
+ *     @type bool   $novalidate           Whether the novalidate attribute is added to the comment form. Default false.
  *     @type string $id_form              The comment form element id attribute. Default 'commentform'.
  *     @type string $id_submit            The comment submit element id attribute. Default 'submit'.
  *     @type string $class_container      The comment form container class attribute. Default 'comment-respond'.
@@ -2592,6 +2593,8 @@ function comment_form( $args = array(), $post = null ) {
 		}
 	}
 
+	$original_fields = $fields;
+
 	/**
 	 * Filters the default comment form fields.
 	 *
@@ -2643,6 +2646,7 @@ function comment_form( $args = array(), $post = null ) {
 		),
 		'comment_notes_after'  => '',
 		'action'               => site_url( '/wp-comments-post.php' ),
+		'novalidate'           => false,
 		'id_form'              => 'commentform',
 		'id_submit'            => 'submit',
 		'class_container'      => 'comment-respond',
@@ -2726,7 +2730,7 @@ function comment_form( $args = array(), $post = null ) {
 				esc_url( $args['action'] ),
 				esc_attr( $args['id_form'] ),
 				esc_attr( $args['class_form'] ),
-				( $html5 ? ' novalidate' : '' )
+				( $args['novalidate'] ? ' novalidate' : '' )
 			);
 
 			/**
@@ -2804,7 +2808,7 @@ function comment_form( $args = array(), $post = null ) {
 
 					echo $args['comment_notes_after'];
 
-				} elseif ( ! is_user_logged_in() ) {
+				} elseif ( ! is_user_logged_in() || ! isset( $original_fields[ $name ] ) ) {
 
 					if ( $first_field === $name ) {
 						/**

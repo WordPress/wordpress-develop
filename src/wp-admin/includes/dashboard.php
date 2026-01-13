@@ -1074,8 +1074,11 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		$comments_query['status'] = 'approve';
 	}
 
-	while ( count( $comments ) < $total_items && $possible = get_comments( $comments_query ) ) {
-		if ( ! is_array( $possible ) ) {
+	$comments_count = 0;
+	do {
+		$possible = get_comments( $comments_query );
+
+		if ( empty( $possible ) || ! is_array( $possible ) ) {
 			break;
 		}
 
@@ -1088,16 +1091,17 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 				continue;
 			}
 
-			$comments[] = $comment;
+			$comments[]     = $comment;
+			$comments_count = count( $comments );
 
-			if ( count( $comments ) === $total_items ) {
+			if ( $comments_count === $total_items ) {
 				break 2;
 			}
 		}
 
 		$comments_query['offset'] += $comments_query['number'];
 		$comments_query['number']  = $total_items * 10;
-	}
+	} while ( $comments_count < $total_items );
 
 	if ( $comments ) {
 		echo '<div id="latest-comments" class="activity-block table-view-list">';
@@ -1457,7 +1461,7 @@ function wp_print_community_events_templates() {
 							);
 						#>
 							{{ 'wordcamp' === event.type ? 'WordCamp' : titleCaseEventType }}
-							<span class="ce-separator"></span>
+							<span class="ce-separator" aria-hidden="true"></span>
 						<# } #>
 						<span class="event-city">{{ event.location.location }}</span>
 					</div>

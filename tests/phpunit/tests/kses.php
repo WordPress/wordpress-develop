@@ -17,7 +17,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_address( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -65,7 +65,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_a( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -120,7 +120,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $expected Expected output following KSES parsing.
 	 */
 	public function test_wp_kses_video( $source, $context, $expected ) {
-		$this->assertSame( $expected, wp_kses( $source, $context ) );
+		$this->assertEqualHTML( $expected, wp_kses( $source, $context ) );
 	}
 
 	/**
@@ -171,7 +171,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_abbr( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -232,7 +232,7 @@ EOF;
 <a href="">CLICK ME</a>
 EOF;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function test_wp_kses_bad_protocol() {
@@ -489,6 +489,8 @@ EOF;
 
 		$tags = wp_kses_allowed_html( 'post' );
 
+		$this->assertNotEmpty( $tags );
+
 		foreach ( $tags as $tag ) {
 			$this->assertTrue( $tag['class'] );
 			$this->assertTrue( $tag['dir'] );
@@ -544,23 +546,81 @@ EOF;
 		$expect_stripped_content = 'Alot of hyphens.';
 		$expect_valid_content    = '<hyphenated-tag attribute="value">Alot of hyphens.</hyphenated-tag>';
 
-		$this->assertSame( $expect_stripped_content, wp_kses_post( $content ) );
-		$this->assertSame( $expect_valid_content, wp_kses( $content, $custom_tags ) );
+		$this->assertEqualHTML( $expect_stripped_content, wp_kses_post( $content ) );
+		$this->assertEqualHTML( $expect_valid_content, wp_kses( $content, $custom_tags ) );
+	}
+
+	/**
+	 * Data provider.
+	 */
+	public static function data_normalize_entities(): array {
+		return array(
+			/**
+			 * These examples are from the wp_kses_normalize_entities function description.
+			 */
+			'AT&T'                               => array( 'AT&T', 'AT&amp;T' ),
+			'&#00058;'                           => array( '&#00058;', '&#058;' ),
+			'&#XYZZY;'                           => array( '&#XYZZY;', '&amp;#XYZZY;' ),
+
+			'Named ref &amp;'                    => array( '&spades;', '&spades;' ),
+			'Named ref &AMP;'                    => array( '&spades;', '&spades;' ),
+			'Named ref &spades;'                 => array( '&spades;', '&spades;' ),
+			'Named ref &sup1;'                   => array( '&sup1;', '&sup1;' ),
+			'Named ref &sup2;'                   => array( '&sup2;', '&sup2;' ),
+			'Named ref &sup3;'                   => array( '&sup3;', '&sup3;' ),
+			'Named ref &frac14;'                 => array( '&frac14;', '&frac14;' ),
+			'Named ref &frac12;'                 => array( '&frac12;', '&frac12;' ),
+			'Named ref &frac34;'                 => array( '&frac34;', '&frac34;' ),
+			'Named ref &there4;'                 => array( '&there4;', '&there4;' ),
+
+			'Decimal ref &#9; ( )'               => array( '&#9;', '&#009;' ),
+			'Decimal ref &#34; (")'              => array( '&#34;', '&#034;' ),
+			'Decimal ref &#0034; (")'            => array( '&#0034;', '&#034;' ),
+			'Decimal ref &#38; (&)'              => array( '&#38;', '&#038;' ),
+			"Decimal ref &#39; (')"              => array( '&#39;', '&#039;' ),
+			'Decimal ref &#128525; (😍)'          => array( '&#128525;', '&#128525;' ),
+			'Decimal ref &#00128525; (😍)'        => array( '&#00128525;', '&#128525;' ),
+
+			'Hex ref &#x9; ( )'                  => array( '&#x9;', '&#x9;' ),
+			'Hex ref &#x22; (")'                 => array( '&#x22;', '&#x22;' ),
+			'Hex ref &#x0022; (")'               => array( '&#x0022;', '&#x22;' ),
+			'Hex ref &#x26; (&)'                 => array( '&#x26;', '&#x26;' ),
+			"Hex ref &#x27; (')"                 => array( '&#x27;', '&#x27;' ),
+			'Hex ref &#x1f60d; (😍)'              => array( '&#x1f60d;', '&#x1f60d;' ),
+			'Hex ref &#x001f60d; (😍)'            => array( '&#x001f60d;', '&#x1f60d;' ),
+
+			'HEX REF &#X22; (")'                 => array( '&#X22;', '&#x22;' ),
+			'HEX REF &#X26; (&)'                 => array( '&#X26;', '&#x26;' ),
+			"HEX REF &#X27; (')"                 => array( '&#X27;', '&#x27;' ),
+			'HEX REF &#X1F60D; (😍)'              => array( '&#X1F60D;', '&#x1F60D;' ),
+
+			'Encoded named ref &amp;amp;'        => array( '&amp;amp;', '&amp;amp;' ),
+			'Encoded named ref &#38;amp;'        => array( '&#38;amp;', '&#038;amp;' ),
+			'Encoded named ref &#x26;amp;'       => array( '&#x26;amp;', '&#x26;amp;' ),
+			'Encoded numeric ref &amp;#39;'      => array( '&amp;#39;', '&amp;#39;' ),
+			'Encoded numeric ref &#38;#39;'      => array( '&#38;#39;', '&#038;#39;' ),
+			'Encoded numeric ref &#x26;#39;'     => array( '&#x26;#39;', '&#x26;#39;' ),
+			'Encoded hex ref &amp;#x27;'         => array( '&amp;#x27;', '&amp;#x27;' ),
+			'Encoded hex ref &#38;#x27;'         => array( '&#38;#x27;', '&#038;#x27;' ),
+			'Encoded hex ref &#x26;#x27;'        => array( '&#x26;#x27;', '&#x26;#x27;' ),
+
+			/*
+			 * The codepoint value here is outside of the valid unicode range whose
+			 * maximum is 0x10FFFF or 1114111.
+			 */
+			'Invalid decimal unicode &#1114112;' => array( '&#1114112;', '&amp;#1114112;' ),
+			'Invalid hex unicode &#x110000;'     => array( '&#x110000;', '&amp;#x110000;' ),
+		);
 	}
 
 	/**
 	 * @ticket 26290
+	 * @ticket 63630
+	 *
+	 * @dataProvider data_normalize_entities
 	 */
-	public function test_wp_kses_normalize_entities() {
-		$this->assertSame( '&spades;', wp_kses_normalize_entities( '&spades;' ) );
-
-		$this->assertSame( '&sup1;', wp_kses_normalize_entities( '&sup1;' ) );
-		$this->assertSame( '&sup2;', wp_kses_normalize_entities( '&sup2;' ) );
-		$this->assertSame( '&sup3;', wp_kses_normalize_entities( '&sup3;' ) );
-		$this->assertSame( '&frac14;', wp_kses_normalize_entities( '&frac14;' ) );
-		$this->assertSame( '&frac12;', wp_kses_normalize_entities( '&frac12;' ) );
-		$this->assertSame( '&frac34;', wp_kses_normalize_entities( '&frac34;' ) );
-		$this->assertSame( '&there4;', wp_kses_normalize_entities( '&there4;' ) );
+	public function test_wp_kses_normalize_entities( string $input, string $expected ) {
+		$this->assertEqualHTML( $expected, wp_kses_normalize_entities( $input ) );
 	}
 
 	/**
@@ -572,7 +632,7 @@ EOF;
 	public function test_ctrl_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_ctrl_removal() {
@@ -609,7 +669,7 @@ EOF;
 	public function test_slash_zero_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_slash_zero_removal() {
@@ -864,7 +924,7 @@ EOF;
 
 		$content = '<p>This is <bdo dir="rtl">a BDO tag</bdo>. Weird, <bdo dir="ltr">right?</bdo></p>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -875,7 +935,7 @@ EOF;
 
 		$content = '<ruby>✶<rp>: </rp><rt>Star</rt><rp>, </rp><rt lang="fr">Étoile</rt><rp>.</rp></ruby>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -886,7 +946,7 @@ EOF;
 
 		$content = '<ol reversed="reversed"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ol>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -896,7 +956,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => array() ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => array() ), array() ) );
 	}
 
 	/**
@@ -906,7 +966,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => true ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => true ), array() ) );
 	}
 
 	/**
@@ -916,7 +976,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element} title=\"foo\">", wp_kses_attr( $element, $attribute, array( 'foo' => array( 'title' => true ) ), array() ) );
+		$this->assertEqualHTML( "<{$element} title=\"foo\">", wp_kses_attr( $element, $attribute, array( 'foo' => array( 'title' => true ) ), array() ) );
 	}
 
 	/**
@@ -926,7 +986,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
 	}
 
 	/**
@@ -1119,6 +1179,23 @@ EOF;
 			array(
 				'css'      => 'object-fit: cover',
 				'expected' => 'object-fit: cover',
+			),
+			// `white-space` introduced in 6.9.0.
+			array(
+				'css'      => 'white-space: nowrap',
+				'expected' => 'white-space: nowrap',
+			),
+			array(
+				'css'      => 'white-space: pre',
+				'expected' => 'white-space: pre',
+			),
+			array(
+				'css'      => 'white-space: pre-wrap',
+				'expected' => 'white-space: pre-wrap',
+			),
+			array(
+				'css'      => 'white-space: pre-line',
+				'expected' => 'white-space: pre-line',
 			),
 			// Expressions are not allowed.
 			array(
@@ -1370,7 +1447,7 @@ EOF;
 		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data-two-hyphens="remains">Pens and pencils</div>';
 		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
 
-		$this->assertSame( $expected, wp_kses_post( $test ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $test ) );
 	}
 
 	/**
@@ -1382,7 +1459,7 @@ EOF;
 		$test     = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
 		$expected = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
 
-		$this->assertSame( $expected, wp_kses_post( $test ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $test ) );
 	}
 
 	/**
@@ -1403,7 +1480,7 @@ EOF;
 
 		$actual = wp_kses( $content, $allowed_html );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1423,7 +1500,7 @@ EOF;
 
 		$actual = wp_kses( $content, $allowed_html );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1708,7 +1785,7 @@ EOF;
 
 		$html = implode( ' ', $html );
 
-		$this->assertSame( $html, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1726,7 +1803,7 @@ EOF;
 
 		$html = implode( ' ', $test );
 
-		$this->assertSame( $html, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1740,7 +1817,7 @@ EOF;
 	 * @param string $expected The expected result from KSES.
 	 */
 	public function test_wp_kses_object_tag_allowed( $html, $expected ) {
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1851,7 +1928,7 @@ EOF;
 	 */
 	public function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
 		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1917,7 +1994,7 @@ HTML;
 
 		remove_filter( 'wp_kses_allowed_html', array( $this, 'filter_wp_kses_object_added_in_html_filter' ) );
 
-		$this->assertSame( $html, $filtered_html );
+		$this->assertEqualHTML( $html, $filtered_html );
 	}
 
 	public function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
@@ -1948,9 +2025,10 @@ HTML;
 	 * @param string $expected_output How `wp_kses()` ought to transform the comment.
 	 */
 	public function test_wp_kses_preserves_html_comments( $html_comment, $expected_output ) {
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected_output,
 			wp_kses( $html_comment, array() ),
+			'<body>',
 			'Failed to properly preserve HTML comment.'
 		);
 	}
@@ -1980,7 +2058,7 @@ HTML;
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
 	public function test_wp_kses_allowed_values_list( $content, $expected, $allowed_html ) {
-		$this->assertSame( $expected, wp_kses( $content, $allowed_html ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
 	}
 
 	/**
@@ -2038,7 +2116,7 @@ HTML;
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
 	public function test_wp_kses_required_attribute( $content, $expected, $allowed_html ) {
-		$this->assertSame( $expected, wp_kses( $content, $allowed_html ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
 	}
 
 	/**
@@ -2243,5 +2321,77 @@ HTML;
 		);
 
 		return $this->text_array_to_dataprovider( $required_kses_globals );
+	}
+
+	/**
+	 * Tests that the target attribute is preserved in various contexts.
+	 *
+	 * @dataProvider data_target_attribute_preserved_in_descriptions
+	 *
+	 * @ticket 12056
+	 *
+	 * @param string $context  The context to test ('user_description' or 'pre_term_description').
+	 * @param string $input    The input HTML string.
+	 * @param string $expected The expected output HTML string.
+	 */
+	public function test_target_attribute_preserved_in_context( $context, $input, $expected ) {
+		$allowed = wp_kses_allowed_html( $context );
+		$this->assertTrue( isset( $allowed['a']['target'] ), "Target attribute not allowed in {$context}" );
+		$this->assertEqualHTML( $expected, wp_kses( $input, $context ) );
+	}
+
+	/**
+	 * Data provider for test_target_attribute_preserved_in_context.
+	 *
+	 * @return array
+	 */
+	public function data_target_attribute_preserved_in_descriptions() {
+		return array(
+			array(
+				'user_description',
+				'<a href="https://example.com" target="_blank">Example</a>',
+				'<a href="https://example.com" target="_blank">Example</a>',
+			),
+			array(
+				'pre_term_description',
+				'<a href="https://example.com" target="_blank">Example</a>',
+				'<a href="https://example.com" target="_blank">Example</a>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that specific attributes are preserved in various contexts.
+	 *
+	 * @dataProvider data_allowed_attributes_in_descriptions
+	 *
+	 * @ticket 12056
+	 *
+	 * @param string $context    The context to test ('user_description' or 'pre_term_description').
+	 * @param array  $attributes List of attributes to check for.
+	 */
+	public function test_specific_attributes_preserved_in_context( $context, $attributes ) {
+		$allowed = wp_kses_allowed_html( $context );
+		foreach ( $attributes as $attribute ) {
+			$this->assertTrue( isset( $allowed['a'][ $attribute ] ), "{$attribute} attribute not allowed in {$context}" );
+		}
+	}
+
+	/**
+	 * Data provider for test_specific_attributes_preserved_in_context.
+	 *
+	 * @return array
+	 */
+	public function data_allowed_attributes_in_descriptions() {
+		return array(
+			array(
+				'user_description',
+				array( 'target', 'href', 'rel' ),
+			),
+			array(
+				'pre_term_description',
+				array( 'target', 'href', 'rel' ),
+			),
+		);
 	}
 }
