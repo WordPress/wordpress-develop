@@ -572,4 +572,420 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
 		add_option( 'test_set_autoloaded_option', $heavy_option_string, '', true );
 	}
+
+	/**
+	 * Returns the expected result array when debug mode is disabled.
+	 *
+	 * @return array
+	 */
+	private function get_debug_mode_disabled_result() {
+		return array(
+			'status' => 'good',
+			'label'  => 'Your site is not set to output debug information',
+			'test'   => 'is_in_debug_mode',
+			'badge'  => array(
+				'label' => 'Security',
+				'color' => 'blue',
+			),
+		);
+	}
+
+	/**
+	 * Returns the expected result array when debug log is in a public location.
+	 *
+	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
+	 *
+	 * @return array
+	 */
+	private function get_debug_error_log_public_result( bool $wp_debug_log_defined = true ) {
+
+		$result = array(
+			'status'      => 'critical',
+			'label'       => 'Your site is set to log errors to a potentially public file',
+			'description' => 'The constant, <code>WP_DEBUG_LOG</code>, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.',
+			'test'        => 'is_in_debug_mode',
+		);
+
+		if ( ! $wp_debug_log_defined ) {
+			$result['description'] = 'The error log path has been configured to a file within the WordPress directory. This means any errors on the site will be written to a file which is likely publicly accessible.';
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Returns the expected result array when debug log is in a private location.
+	 *
+	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
+	 *
+	 * @return array
+	 */
+	private function get_debug_error_log_private_result( bool $wp_debug_log_defined = true ) {
+
+		$result = array(
+			'status'      => 'good',
+			'label'       => 'Your site is set to log errors to a file outside the document root',
+			'description' => 'The configuration constant, <code>WP_DEBUG_LOG</code>, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.',
+			'test'        => 'is_in_debug_mode',
+		);
+
+		if ( ! $wp_debug_log_defined ) {
+			$result['description'] = 'The error log path has been configured to a file outside the WordPress directory. This is a good practice as the log file should not be publicly accessible.';
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Returns the expected result array when debug log path does not exist.
+	 *
+	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
+	 *
+	 * @return array
+	 */
+	private function get_debug_log_non_existent_path_result( bool $wp_debug_log_defined = true ) {
+
+		$result = array(
+			'status'      => 'critical',
+			'label'       => 'Unable to determine error log file location',
+			'description' => 'The configuration constant, <code>WP_DEBUG_LOG</code>, is enabled, but the log file location could not be determined.',
+			'test'        => 'is_in_debug_mode',
+		);
+
+		if ( ! $wp_debug_log_defined ) {
+			$result['description'] = 'The error log path could not be determined. Please check your PHP configuration.';
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when debug mode is disabled.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_disabled() {
+		$site_health = new WP_Site_Health();
+		$reflection  = new ReflectionClass( $site_health );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, false );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_mode_disabled_result();
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when debug mode is disabled.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate debug mode is disabled.' );
+		$this->assertSame( $expected_result['test'], $actual_result['test'], 'Test identifier should be "is_in_debug_mode".' );
+		$this->assertArrayHasKey( 'badge', $actual_result, 'Result should have a badge.' );
+		$this->assertSame( $expected_result['badge']['label'], $actual_result['badge']['label'], 'Badge label should be "Security".' );
+		$this->assertSame( $expected_result['badge']['color'], $actual_result['badge']['color'], 'Badge color should be "blue".' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when WP_DEBUG is enabled without error logging.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_enabled_no_error_log() {
+		$site_health = new WP_Site_Health();
+		$reflection  = new ReflectionClass( $site_health );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, true );
+
+		$original_error_log = ini_get( 'error_log' );
+
+		ini_set( 'error_log', '' );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_mode_disabled_result();
+
+		ini_set( 'error_log', $original_error_log );
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when no error log is configured.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate no error log is configured.' );
+		$this->assertSame( $expected_result['test'], $actual_result['test'], 'Test identifier should be "is_in_debug_mode".' );
+		$this->assertArrayHasKey( 'badge', $actual_result, 'Result should have a badge.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when error log is in a public location.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_error_log_public() {
+		$site_health = new WP_Site_Health();
+		$reflection  = new ReflectionClass( $site_health );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, true );
+
+		$wp_debug_log_property = $reflection->getProperty( 'wp_debug_log' );
+		$wp_debug_log_property->setAccessible( true );
+		$wp_debug_log_property->setValue( $site_health, true );
+
+		$original_error_log = ini_get( 'error_log' );
+		$public_log_path    = ABSPATH . 'wp-content/debug.log';
+
+		ini_set( 'error_log', $public_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_error_log_public_result( true );
+
+		ini_set( 'error_log', $original_error_log );
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log is in a public location.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a public location.' );
+		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should display the expected message.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when error log is public without WP_DEBUG_LOG.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_error_log_public_without_wp_debug_log() {
+		$site_health = new WP_Site_Health();
+		$reflection  = new ReflectionClass( $site_health );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, true );
+
+		$wp_debug_log_property = $reflection->getProperty( 'wp_debug_log' );
+		$wp_debug_log_property->setAccessible( true );
+		$wp_debug_log_property->setValue( $site_health, false );
+
+		$original_error_log = ini_get( 'error_log' );
+		$public_log_path    = ABSPATH . 'wp-content/debug.log';
+
+		ini_set( 'error_log', $public_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_error_log_public_result( false );
+
+		ini_set( 'error_log', $original_error_log );
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log is in a public location.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a public location.' );
+		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention error log configured is without WP_DEBUG_LOG and in public directory.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when error log is in a private location.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_error_log_private() {
+		$site_health = new WP_Site_Health();
+		$reflection  = new ReflectionClass( $site_health );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, true );
+
+		$wp_debug_log_property = $reflection->getProperty( 'wp_debug_log' );
+		$wp_debug_log_property->setAccessible( true );
+		$wp_debug_log_property->setValue( $site_health, true );
+
+		$original_error_log = ini_get( 'error_log' );
+		$private_log_path   = '/var/log/php-error.log';
+
+		ini_set( 'error_log', $private_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_error_log_private_result( true );
+
+		ini_set( 'error_log', $original_error_log );
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when error log is in a private location.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a private location.' );
+		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention the log is outside WordPress directory.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when error log is private without WP_DEBUG_LOG.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_error_log_private_without_wp_debug_log() {
+		$site_health = new WP_Site_Health();
+		$reflection  = new ReflectionClass( $site_health );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, true );
+
+		$wp_debug_log_property = $reflection->getProperty( 'wp_debug_log' );
+		$wp_debug_log_property->setAccessible( true );
+		$wp_debug_log_property->setValue( $site_health, false );
+
+		$original_error_log = ini_get( 'error_log' );
+		$private_log_path   = '/var/log/php-error.log';
+
+		ini_set( 'error_log', $private_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_error_log_private_result( false );
+
+		ini_set( 'error_log', $original_error_log );
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when error log is in a private location.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a private location.' );
+		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention log is outside WordPress directory.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when error log path cannot be determined.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_error_log_non_existent() {
+		$site_health = new WP_Site_Health();
+		$reflection  = new ReflectionClass( $site_health );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, true );
+
+		$wp_debug_log_property = $reflection->getProperty( 'wp_debug_log' );
+		$wp_debug_log_property->setAccessible( true );
+		$wp_debug_log_property->setValue( $site_health, true );
+
+		$original_error_log = ini_get( 'error_log' );
+		$invalid_log_path   = '/nonexistent/path/that/does/not/exist/debug.log';
+
+		ini_set( 'error_log', $invalid_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_log_non_existent_path_result( true );
+
+		ini_set( 'error_log', $original_error_log );
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log location cannot be determined.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate that error log location could not be determined.' );
+		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention inability to determine log location.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when error log path cannot be determined and WP_DEBUG_LOG is not defined.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_error_log_non_existent_without_wp_debug_log() {
+		$site_health = new WP_Site_Health();
+		$reflection  = new ReflectionClass( $site_health );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health, true );
+
+		$wp_debug_log_property = $reflection->getProperty( 'wp_debug_log' );
+		$wp_debug_log_property->setAccessible( true );
+		$wp_debug_log_property->setValue( $site_health, false );
+
+		$original_error_log = ini_get( 'error_log' );
+		$invalid_log_path   = '/nonexistent/path/that/does/not/exist/debug.log';
+
+		ini_set( 'error_log', $invalid_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_log_non_existent_path_result( false );
+
+		ini_set( 'error_log', $original_error_log );
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log location cannot be determined.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate that error log location could not be determined.' );
+		$this->assertSame( $expected_result['description'], $actual_result['description'], 'Description should mention error log path is nonexistent.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when WP_DEBUG_DISPLAY is enabled in production.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_display_enabled_production() {
+		$site_health_mock = $this->getMockBuilder( 'WP_Site_Health' )
+			->onlyMethods( array( 'is_development_environment' ) )
+			->getMock();
+
+		$site_health_mock->method( 'is_development_environment' )
+			->willReturn( false );
+
+		$reflection_mock = new ReflectionClass( $site_health_mock );
+
+		$wp_debug_property_mock = $reflection_mock->getProperty( 'wp_debug' );
+		$wp_debug_property_mock->setAccessible( true );
+		$wp_debug_property_mock->setValue( $site_health_mock, true );
+
+		$wp_debug_display_property_mock = $reflection_mock->getProperty( 'wp_debug_display' );
+		$wp_debug_display_property_mock->setAccessible( true );
+		$wp_debug_display_property_mock->setValue( $site_health_mock, true );
+
+		$result = $site_health_mock->get_test_is_in_debug_mode();
+
+		$this->assertSame( 'critical', $result['status'], 'Status should be "critical" when WP_DEBUG_DISPLAY is enabled in production.' );
+		$this->assertSame( 'Your site is set to display errors to site visitors', $result['label'], 'Label should indicate errors are displayed to visitors.' );
+		$this->assertStringContainsString( 'WP_DEBUG_DISPLAY', $result['description'], 'Description should mention WP_DEBUG_DISPLAY.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() when WP_DEBUG_DISPLAY is enabled in development.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_display_enabled_development() {
+		$site_health_mock = $this->getMockBuilder( 'WP_Site_Health' )
+			->onlyMethods( array( 'is_development_environment' ) )
+			->getMock();
+
+		$site_health_mock->method( 'is_development_environment' )
+			->willReturn( true );
+
+		$reflection = new ReflectionClass( $site_health_mock );
+
+		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
+		$wp_debug_property->setAccessible( true );
+		$wp_debug_property->setValue( $site_health_mock, true );
+
+		$wp_debug_display_property = $reflection->getProperty( 'wp_debug_display' );
+		$wp_debug_display_property->setAccessible( true );
+		$wp_debug_display_property->setValue( $site_health_mock, true );
+
+		$result = $site_health_mock->get_test_is_in_debug_mode();
+
+		$this->assertSame( 'recommended', $result['status'], 'Status should be "recommended" when WP_DEBUG_DISPLAY is enabled in development.' );
+		$this->assertSame( 'Your site is set to display errors to site visitors', $result['label'], 'Label should indicate errors are displayed to visitors.' );
+		$this->assertStringContainsString( 'WP_DEBUG_DISPLAY', $result['description'], 'Description should mention WP_DEBUG_DISPLAY.' );
+	}
+
+	/**
+	 * Tests get_test_is_in_debug_mode() validates result structure.
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_result_structure() {
+		$site_health = new WP_Site_Health();
+		$result = $site_health->get_test_is_in_debug_mode();
+
+		// Verify all required keys are present.
+		$this->assertArrayHasKey( 'label', $result, 'Result should have a label.' );
+		$this->assertArrayHasKey( 'status', $result, 'Result should have a status.' );
+		$this->assertArrayHasKey( 'badge', $result, 'Result should have a badge.' );
+		$this->assertArrayHasKey( 'description', $result, 'Result should have a description.' );
+		$this->assertArrayHasKey( 'actions', $result, 'Result should have actions.' );
+		$this->assertArrayHasKey( 'test', $result, 'Result should have a test identifier.' );
+
+		// Verify badge structure.
+		$this->assertIsArray( $result['badge'], 'Badge should be an array.' );
+		$this->assertArrayHasKey( 'label', $result['badge'], 'Badge should have a label.' );
+		$this->assertArrayHasKey( 'color', $result['badge'], 'Badge should have a color.' );
+
+		// Verify status is one of the expected values.
+		$this->assertContains( $result['status'], array( 'good', 'recommended', 'critical' ), 'Status should be one of: good, recommended, critical.' );
+	}
 }
