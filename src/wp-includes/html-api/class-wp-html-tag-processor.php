@@ -4192,7 +4192,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $sourcecode Raw contents intended to be serialized into an HTML SCRIPT element.
 	 * @return string Escaped form of input contents which will not lead to premature closing of the containing SCRIPT element.
 	 */
-	public static function escape_javascript_script_contents( string $sourcecode ): string {
+	private static function escape_javascript_script_contents( string $sourcecode ): string {
 		$at      = 0;
 		$was_at  = 0;
 		$end     = strlen( $sourcecode );
