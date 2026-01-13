@@ -774,6 +774,25 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
+	/*
+	 * Avoid redirects when URLs differ only in query string encoding.
+	 * Per RFC 3986, certain characters can be represented in multiple equivalent ways:
+	 * - Spaces: '+' vs '%20' (e.g., ?name=John+Doe vs ?name=John%20Doe)
+	 * - Unreserved chars unnecessarily encoded: '~' vs '%7E', '-' vs '%2D', '_' vs '%5F', '.' vs '%2E'
+	 * - Reserved chars in values: '/' vs '%2F', ':' vs '%3A', '@' vs '%40'
+	 *
+	 * Example problematic scenarios:
+	 * - UTM params: ?utm_content=Hello+World vs ?utm_content=Hello%20World
+	 * - Encoded paths: ?redirect=/path/to/page vs ?redirect=%2Fpath%2Fto%2Fpage
+	 * - Email params: ?email=user@example.com vs ?email=user%40example.com
+	 *
+	 * Redirecting between these variants provides no SEO or functional benefit
+	 * while potentially causing caching issues and breaking analytics.
+	 */
+	if ( $redirect_url && urldecode( $redirect_url ) === urldecode( $requested_url ) ) {
+		return;
+	}
+
 	// Hex-encoded octets are case-insensitive.
 	if ( str_contains( $requested_url, '%' ) ) {
 		if ( ! function_exists( 'lowercase_octets' ) ) {

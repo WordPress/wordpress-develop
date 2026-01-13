@@ -263,6 +263,12 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2008%20', '/2008' ),
 			array( '//2008////', '/2008/' ),
 
+			// Query string encoding variants should not redirect (Ticket #64376).
+			array( '/?test=one+two', '/?test=one+two' ), // Plus sign should not redirect to %20.
+			array( '/?test=one%20two', '/?test=one%20two' ), // %20 should not redirect to plus.
+			array( '/?email=user%40example.com', '/?email=user%40example.com' ), // Encoded @ should not redirect.
+			array( '/?redirect=%2Fpath%2Fto%2Fpage', '/?redirect=%2Fpath%2Fto%2Fpage' ), // Encoded slashes should not redirect.
+
 			// @todo Endpoints (feeds, trackbacks, etc). More fuzzed mixed query variables, comment paging, Home page (static).
 		);
 	}
@@ -463,6 +469,64 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$GLOBALS['wp_query'] = $global_query;
 
 		$this->assertNull( $redirect );
+	}
+
+	/**
+	 * Test that query string encoding variants do not trigger redirects.
+	 *
+	 * Ensures that URLs differing only in encoding (e.g., '+' vs '%20' for spaces)
+	 * do not cause unnecessary 301 redirects.
+	 *
+	 * @ticket 64376
+	 */
+	public function test_query_string_encoding_variants_no_redirect() {
+		// Create a static front page to match the original bug report scenario.
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_id );
+
+		// Test 1: Plus signs in UTM parameters should not redirect to %20.
+		$url_with_plus    = home_url( '/?utm_content=Hello+World' );
+		$url_with_percent = home_url( '/?utm_content=Hello%20World' );
+
+		$this->go_to( $url_with_plus );
+		$redirect_from_plus = redirect_canonical( $url_with_plus, false );
+
+		$this->go_to( $url_with_percent );
+		$redirect_from_percent = redirect_canonical( $url_with_percent, false );
+
+		// Both should return false (no redirect).
+		$this->assertFalse( $redirect_from_plus, 'URL with + should not redirect' );
+		$this->assertFalse( $redirect_from_percent, 'URL with %20 should not redirect' );
+
+		// Test 2: Encoded @ symbol in email parameters.
+		$url_encoded_at = home_url( '/?email=user%40example.com' );
+
+		$this->go_to( $url_encoded_at );
+		$redirect = redirect_canonical( $url_encoded_at, false );
+		$this->assertFalse( $redirect, 'URL with encoded @ should not redirect' );
+
+		// Test 3: Encoded forward slashes in redirect parameters.
+		$url_encoded_slash = home_url( '/?redirect=%2Fpath%2Fto%2Fpage' );
+
+		$this->go_to( $url_encoded_slash );
+		$redirect = redirect_canonical( $url_encoded_slash, false );
+		$this->assertFalse( $redirect, 'URL with encoded slashes should not redirect' );
+
+		// Test 4: Multiple query parameters with mixed encoding.
+		$url_mixed = home_url( '/?name=John+Doe&city=New+York&zip=12345' );
+
+		$this->go_to( $url_mixed );
+		$redirect = redirect_canonical( $url_mixed, false );
+		$this->assertFalse( $redirect, 'URL with multiple plus-encoded parameters should not redirect' );
+
+		// Clean up.
+		delete_option( 'page_on_front' );
+		delete_option( 'show_on_front' );
 	}
 
 	/**
