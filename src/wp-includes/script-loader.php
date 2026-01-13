@@ -2875,9 +2875,15 @@ function wp_get_script_tag( $attributes ) {
 	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 	$processor->next_tag();
 	foreach ( $attributes as $name => $value ) {
-		if ( is_string( $value ) || true === $value ) {
-			$processor->set_attribute( $name, $value );
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
 		}
+
+		if ( null === $value ) {
+			$value = true;
+		}
+
+		$processor->set_attribute( $name, $value );
 	}
 	return "{$processor->get_updated_html()}\n";
 }
@@ -2926,9 +2932,15 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 	$processor->next_tag();
 	foreach ( $attributes as $name => $value ) {
-		if ( is_string( $value ) || true === $value ) {
-			$processor->set_attribute( $name, $value );
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
 		}
+
+		if ( null === $value ) {
+			$value = true;
+		}
+
+		$processor->set_attribute( $name, $value );
 	}
 	$processor->set_modifiable_text( $data );
 	return "{$processor->get_updated_html()}\n";
