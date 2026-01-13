@@ -361,10 +361,6 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
  * @return bool Returns true if a block was located & printed, otherwise false.
  */
 function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
-	// Scan for blocks whose block type matches the prefix, if provided a wildcard.
-	$prefix         = rtrim( $block_name, '*' );
-	$prefix_length  = strlen( $prefix );
-	$match_fully    = $prefix === $block_name;
 	$blocks_content = '';
 	$instance_count = 0;
 
@@ -373,8 +369,11 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 	}
 
 	// Loop over top-level blocks.
-	if ( class_exists( '\WP_Block_Processor' ) ) {
-		$processor = new WP_Block_Processor( $content );
+	if ( class_exists( '\WP_Block_Processor' ) && function_exists( '\str_starts_with' ) ) {
+		// Scan for blocks whose block type matches the prefix, if provided a wildcard.
+		$prefix        = rtrim( $block_name, '*' );
+		$match_fully   = $prefix === $block_name;
+		$processor     = new WP_Block_Processor( $content );
 
 		while ( $instance_count < $instances && $processor->next_block() ) {
 			if ( 1 !== $processor->get_depth() ) {
@@ -389,7 +388,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 				 */
 				$match_fully
 					? $processor->is_block_type( $block_name )
-					: 0 === substr_compare( $processor->get_printable_block_type(), $prefix, 0, $prefix_length )
+					: str_starts_with( $processor->get_printable_block_type(), $prefix )
 			) {
 				$blocks_content .= render_block( $processor->extract_full_block_and_advance() );
 				++$instance_count;
@@ -399,15 +398,35 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 		// Parse blocks in the content.
 		$blocks = parse_blocks( $content );
 
-		// Loop top-level blocks, releasing them from memory as soon as possible.
-		while ( $instance_count < $instances && null !== ( $block = array_shift( $blocks ) ) ) {
-			if (
-				$match_fully
-					? $block_name === $block['blockName']
-					: str_starts_with( $block['blockName'] ?? '', $prefix )
-			) {
-				$blocks_content .= render_block( $block );
+		// Loop blocks.
+		foreach ( $blocks as $block ) {
+
+			// Confidence check.
+			if ( ! isset( $block['blockName'] ) ) {
+				continue;
+			}
+
+			// Check if this the block matches the $block_name.
+			$is_matching_block = false;
+
+			// If the block ends with *, try to match the first portion.
+			if ( '*' === $block_name[-1] ) {
+				$is_matching_block = 0 === strpos( $block['blockName'], rtrim( $block_name, '*' ) );
+			} else {
+				$is_matching_block = $block_name === $block['blockName'];
+			}
+
+			if ( $is_matching_block ) {
+				// Increment count.
 				++$instance_count;
+
+				// Add the block HTML.
+				$blocks_content .= render_block( $block );
+
+				// Break the loop if the $instances count was reached.
+				if ( $instance_count >= $instances ) {
+					break;
+				}
 			}
 		}
 	}
