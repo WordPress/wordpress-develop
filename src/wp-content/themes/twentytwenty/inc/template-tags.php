@@ -811,7 +811,7 @@ function twentytwenty_get_the_archive_title( $title ) {
 	return preg_replace( $regex['pattern'], $regex['replacement'], $title );
 }
 
-add_filter( 'get_the_archive_title', 'twentytwenty_get_the_archive_title' );
+add_filter( 'get_the_archive_title', 'twentytwenty_get_the_archive_title', 1 );
 
 /**
  * Miscellaneous
