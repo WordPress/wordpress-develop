@@ -2925,13 +2925,26 @@ function wp_print_script_tag( $attributes ) {
  * Constructs an inline script tag.
  *
  * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
- * Automatically injects type attribute if needed.
+ *
+ * If the `$data` is unsafe to embed in a `<script>` tag, an empty script tag with the provided
+ * attributes will be returned. JavaScript and JSON contents can be escaped, so this is only likely
+ * to be problem with unusual content types.
+ *
+ * Example:
+ *
+ *     // The dangerous JavaScript in this example will be safely escaped.
+ *     // A string with the script tag and the desired contents will be returned.
+ *     wp_get_inline_script_tag( 'console.log( "</script>" );' );
+ *
+ *     // A `text/plain` type script tag cannot be escaped.
+ *     // This will produce `<script type="text/plain"></script>`:
+ *     wp_get_inline_script_tag( '</script>', array( 'type' => 'text/plain' ) );
  *
  * @since 5.7.0
  *
  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
- * @return string String containing inline JavaScript code wrapped around `<script>` tag.
+ * @return string HTML `<script>` tag containing the provided $data.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
