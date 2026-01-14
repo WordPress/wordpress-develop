@@ -2936,15 +2936,16 @@ function wp_print_script_tag( $attributes ) {
  *     // A string with the script tag and the desired contents will be returned.
  *     wp_get_inline_script_tag( 'console.log( "</script>" );' );
  *
- *     // A `text/plain` type script tag cannot be escaped.
- *     // This will produce `<script type="text/plain"></script>`:
+ *     // This data is unsafe and `text/plain` cannot be escaped.
+ *     // The following will return `""` to indicate failure:
  *     wp_get_inline_script_tag( '</script>', array( 'type' => 'text/plain' ) );
  *
  * @since 5.7.0
+ * @since 7.0.0 Returns "" if the data cannot be safely embedded in a script tag.
  *
  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
- * @return string HTML `<script>` tag containing the provided $data.
+ * @return string HTML script tag containing the provided $data or the empty string `""` if the data cannot be safely printed in a script tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
@@ -2992,6 +2993,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 			__( 'Unable to set inline script data.' ),
 			'7.0.0'
 		);
+		return '';
 	}
 
 	return "{$processor->get_updated_html()}\n";

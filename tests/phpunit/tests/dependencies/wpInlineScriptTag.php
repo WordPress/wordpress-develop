@@ -179,14 +179,8 @@ HTML;
 		 */
 		$result = wp_get_inline_script_tag(
 			'</script>',
-			array(
-				'id'   => 'dangerous-script',
-				'type' => 'example/example',
-			)
+			array( 'type' => 'example/example' )
 		);
-		$this->assertEqualHTML(
-			'<script id="dangerous-script" type="example/example"></script>',
-			$result
-		);
+		$this->assertSame( '', $result );
 	}
 }
