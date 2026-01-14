@@ -2928,7 +2928,7 @@ function wp_print_script_tag( $attributes ) {
  *
  * If the `$data` is unsafe to embed in a `<script>` tag, an empty script tag with the provided
  * attributes will be returned. JavaScript and JSON contents can be escaped, so this is only likely
- * to be problem with unusual content types.
+ * to be a problem with unusual content types.
  *
  * Example:
  *
@@ -2941,7 +2941,7 @@ function wp_print_script_tag( $attributes ) {
  *     wp_get_inline_script_tag( '</script>', array( 'type' => 'text/plain' ) );
  *
  * @since 5.7.0
- * @since 7.0.0 Returns "" if the data cannot be safely embedded in a script tag.
+ * @since 7.0.0 Returns an empty string if the data cannot be safely embedded in a script tag.
  *
  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
