@@ -2642,8 +2642,8 @@ function force_balance_tags( $text ) {
 		$tag_name          = $regex[2];
 		$tag               = strtolower( $tag_name );
 		$is_single_tag     = in_array( $tag, $single_tags, true );
-		$pre_attribute_ws  = isset( $regex[4] ) ? $regex[4] : '';
-		$attributes        = trim( isset( $regex[5] ) ? $regex[5] : $regex[3] );
+		$pre_attribute_ws  = $regex[4] ?? '';
+		$attributes        = trim( $regex[5] ?? $regex[3] );
 		$has_self_closer   = str_ends_with( $attributes, '/' );
 
 		$newtext .= $tagqueue;
@@ -4594,6 +4594,8 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
  *
  * @since 2.8.0
  * @since 6.1.0 Turned into an alias for sanitize_url().
+ * @since 6.9.0 Prepends `https://` to the URL if it does not already contain a scheme
+ *              and the first item in `$protocols` is 'https'.
  *
  * @see sanitize_url()
  *
@@ -4612,6 +4614,8 @@ function esc_url_raw( $url, $protocols = null ) {
  * @since 2.3.1
  * @since 2.8.0 Deprecated in favor of esc_url_raw().
  * @since 5.9.0 Restored (un-deprecated).
+ * @since 6.9.0 Prepends `https://` to the URL if it does not already contain a scheme
+ *              and the first item in `$protocols` is 'https'.
  *
  * @see esc_url()
  *
@@ -5279,10 +5283,10 @@ function wp_sprintf( $pattern, ...$args ) {
 			// Find numbered arguments or take the next one in order.
 			if ( preg_match( '/^%(\d+)\$/', $fragment, $matches ) ) {
 				$index    = $matches[1] - 1; // 0-based array vs 1-based sprintf() arguments.
-				$arg      = isset( $args[ $index ] ) ? $args[ $index ] : '';
+				$arg      = $args[ $index ] ?? '';
 				$fragment = str_replace( "%{$matches[1]}$", '%', $fragment );
 			} else {
-				$arg = isset( $args[ $arg_index ] ) ? $args[ $arg_index ] : '';
+				$arg = $args[ $arg_index ] ?? '';
 				++$arg_index;
 			}
 

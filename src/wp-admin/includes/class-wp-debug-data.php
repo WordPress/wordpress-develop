@@ -373,8 +373,8 @@ class WP_Debug_Data {
 		);
 		$fields['httpd_software']      = array(
 			'label' => __( 'Web server' ),
-			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
-			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
+			'value' => $_SERVER['SERVER_SOFTWARE'] ?? __( 'Unable to determine what web server software is used' ),
+			'debug' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
 		);
 		$fields['php_version']         = array(
 			'label' => __( 'PHP version' ),
@@ -1591,6 +1591,11 @@ class WP_Debug_Data {
 				'label' => 'DB_COLLATE',
 				'value' => $db_collate,
 				'debug' => $db_collate_debug,
+			),
+			'EMPTY_TRASH_DAYS'    => array(
+				'label' => 'EMPTY_TRASH_DAYS',
+				'value' => EMPTY_TRASH_DAYS ? EMPTY_TRASH_DAYS : __( 'Empty value' ),
+				'debug' => EMPTY_TRASH_DAYS,
 			),
 		);
 
