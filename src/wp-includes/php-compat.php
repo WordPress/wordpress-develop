@@ -1,7 +1,5 @@
 <?php
 
-defined( 'IS_32_BIT_SYSTEM' ) || define( 'IS_32_BIT_SYSTEM', 2147483647 === PHP_INT_MAX );
-
 /**
  * Returns the numeric byte size value for numeric php.ini directives.
  *
@@ -111,54 +109,24 @@ function wp_ini_quantity_cmp( $a, $b ) {
 }
 
 /**
- * Returns quantity represented by a php.ini directive's "byte size shorthand."
+ * Fallback function to get interpreted size from ini shorthand syntax for
+ * systems running versions of PHP up to, but not including, 8.2.0.
  *
- * php.ini directives may use a string representation of a number of bytes
- * or a "shorthand" byte size to reference larger values. Multiple numeric
- * php.ini directive use these shorthands even when they don't refer to bytes.
- *
- * Example:
- *
- *     ini_parse_quantity( "1m" ) == 1048576
- *     ini_parse_quantity( "2K" ) == 2048 // 2 * 1024
- *     ini_parse_quantity( "0.5g" ) == 0
- *     ini_parse_quantity( "14.6e-13g" ) == 15032385536 // 14 * 1024^3
- *     ini_parse_quantity( "-813k" ) == -832512; // -813 * 1024
- *     ini_parse_quantity( "boat" ) == 0;
- *
- *     // This gives an answer, but it's _wrong_ because
- *     // the underlying mechanism in PHP overflowed and
- *     // the real return value depends on whether PHP
- *     // was built with 64-bit support.
- *     ini_parse_quantity( "9223372036854775807g" ) == ??
- *
- * Notes:
- *  - Suffixes are specifically _the last character_ and case-insensitive.
- *  - Suffixes k/m/g intentionally report powers of 1024 to agree with PHP.
- *  - This function does not fail on invalid input; it returns `0` in such cses.
- *  - As noted in the PHP documentation, overflow behavior is unspecified and
- *    platform-dependant. Values that trigger overflow are likely wrong
- *  - In PHP 8.2+ this function may return an invalid count for shorthand values
- *    parsed with the new unsigned parser. Currently only affects "memory_limit"
- *    and only when the value overflows an unsigned integer on the platform.
+ * @see https://www.php.net/manual/en/function.ini-parse-quantity.php
+ * @see https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
  *
  * @since 7.0.0
  *
- * @link https://www.php.net/manual/en/function.ini-get.php
- * @link https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
-
- * @param string $value Numeric string value possibly in "shorthand notation."
- * @return int          Parsed numeric value represented by given string.
+ * @param string $shorthand Ini shorthand to parse, must be a number followed by an optional
+ *                          multiplier. The following multipliers are supported: k/K (1024),
+ *                          m/M (1048576), g/G (1073741824). The number can be a decimal,
+ *                          hex (prefixed with 0x or 0X), octal (prefixed with 0o, 0O or 0)
+ *                          or binary (prefixed with 0b or 0B).
+ * @return int              the interpreted size in bytes as an int.
  */
-function ini_parse_quantity_fallback( $value ) {
-	/**
-	 * Number of bytes in input string; because we're only assessing 7-bit
-	 * ASCII/Unicode characters we can safely count bytes vs. needing to
-	 * worry about code units, code points, or grapheme clusters.
-	 */
-	$end = strlen( $value );
-
-	/** @var int|float $scalar Numeric quantity represented by value string. */
+function ini_parse_quantity_fallback( $shorthand ) {
+	$end    = strlen( $shorthand );
+	$at     = 0;
 	$scalar = 0;
 
 	/** Sign of numeric quantity, either positive (1) or negative (-1). */
@@ -170,17 +138,14 @@ function ini_parse_quantity_fallback( $value ) {
 	 */
 	$base = 10;
 
-	/** Byte index into input being processed. */
-	$at = 0;
-
 	// Trim leading whitespace from the value.
-	$at += strspn( $value, " \t\r\v\f", $at );
+	$at += strspn( $shorthand, " \t\n\r\v\f", $at );
 	if ( $at >= $end ) {
 		return $scalar;
 	}
 
 	// Handle optional sign indicator.
-	switch ( $value[ $at ] ) {
+	switch ( $shorthand[ $at ] ) {
 		case '+':
 			$at++;
 			break;
@@ -192,19 +157,19 @@ function ini_parse_quantity_fallback( $value ) {
 	}
 
 	// Determine base for digit conversion, if not decimal.
-	$base_a = $value[ $at ] ?? '';
-	$base_b = $value[ $at + 1 ] ?? '';
+	$base_a = $shorthand[ $at ] ?? '';
+	$base_b = $shorthand[ $at + 1 ] ?? '';
 
 	if ( '0' === $base_a && ( 'x' === $base_b || 'X' === $base_b ) ) {
 		$base = 16;
-		$at += 2;
+		$at  += 2;
 	} else if ( '0' === $base_a && '0' <= $base_b && $base_b <= '9' ) {
 		$base = 8;
-		$at += 1;
+		$at  += 1;
 	}
 
 	// Trim leading zeros from the amount.
-	$at += strspn( $value, '0', $at );
+	$at += strspn( $shorthand, '0', $at );
 
 	/**
 	 * Numeric values for scanned digits.
@@ -249,7 +214,7 @@ function ini_parse_quantity_fallback( $value ) {
 	 * digits, inasmuch as is possible from user-space PHP code.
 	 */
 	for ( ; $at < $end; $at++ ) {
-		$c = $value[ $at ];
+		$c = $shorthand[ $at ];
 
 		/*
 		 * Only digits recognized in this base system can be used.
@@ -293,24 +258,18 @@ function ini_parse_quantity_fallback( $value ) {
 		$scalar = -$scalar;
 	}
 
-	// @todo Any values above these, when multiplied, will overflow.
-	$max_int_g = floor( PHP_INT_MAX / 1073741824 );
-	$max_int_m = floor( PHP_INT_MAX / 1048576 );
-	$max_int_k = floor( PHP_INT_MAX / 1024 );
-
 	/*
 	 * Do not use WP constants here (GB_IN_BYTES, MB_IN_BYTES, KB_IN_BYTES)
 	 * since they are re-definable; PHP shorthand values are hard-coded
-	 * in PHP itself and stay the same regardless of these constants.
+	 * in PHP itself and stay the same regardless of these constants. Also,
+	 * this file loads before these constants are defined.
 	 *
 	 * Note that it’s possible to overflow here, as happens in PHP itself.
 	 * Overflow results will likely not match PHP’s value, but will likely
 	 * break in most cases anyway and so leaving this loose is the best
 	 * that can be done without PHP reporting the internal values.
-	 *
-	 * @todo Is is possible to detect overflow here?
 	 */
-	switch ( $value[ $end - 1 ] ) {
+	switch ( $shorthand[ $end - 1 ] ) {
 		case 'g':
 		case 'G':
 			$scalar *= 1073741824; // 1024^3
