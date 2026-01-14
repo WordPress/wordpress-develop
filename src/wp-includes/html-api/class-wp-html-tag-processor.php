@@ -3854,7 +3854,7 @@ class WP_HTML_Tag_Processor {
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
-					$this->escape_style_contents( $plaintext_content )
+					self::escape_style_contents( $plaintext_content )
 				);
 				return true;
 
@@ -4242,7 +4242,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $text Raw contents intended to be serialized into an HTML STYLE element.
 	 * @return string Escaped form of input contents which will not lead to premature closing of the containing STYLE element.
 	 */
-	private function escape_style_contents( string $text ): string {
+	private static function escape_style_contents( string $text ): string {
 		$at      = 0;
 		$was_at  = 0;
 		$end     = strlen( $text );
