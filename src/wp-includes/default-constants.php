@@ -57,6 +57,8 @@ function wp_initial_constants() {
 			define( 'WP_MAX_MEMORY_LIMIT', $current_limit );
 		} elseif ( wp_ini_quantity_cmp( $current_limit, '256M' ) > 0 ) {
 			define( 'WP_MAX_MEMORY_LIMIT', $current_limit );
+		} elseif ( wp_ini_quantity_cmp( WP_MEMORY_LIMIT, '256M' ) > 0 ) {
+			define( 'WP_MAX_MEMORY_LIMIT', WP_MEMORY_LIMIT );
 		} else {
 			define( 'WP_MAX_MEMORY_LIMIT', '256M' );
 		}
