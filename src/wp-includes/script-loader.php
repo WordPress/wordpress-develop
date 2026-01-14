@@ -2945,7 +2945,7 @@ function wp_print_script_tag( $attributes ) {
  *
  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
- * @return string HTML script tag containing the provided $data or the empty string `""` if the data cannot be safely printed in a script tag.
+ * @return string HTML script tag containing the provided $data or the empty string `""` if the data cannot be safely embedded in a script tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
