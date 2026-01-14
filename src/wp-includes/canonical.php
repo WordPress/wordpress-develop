@@ -920,12 +920,9 @@ function strip_fragment_from_url( $url ) {
  *
  * @since 2.3.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @return string|false The correct URL if one is found. False on failure.
  */
 function redirect_guess_404_permalink() {
-	global $wpdb;
 
 	/**
 	 * Filters whether to attempt to guess a redirect URL for a 404 request.
@@ -981,28 +978,15 @@ function redirect_guess_404_permalink() {
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'fields'                 => 'ids',
+			'orderby'                => 'none',
 		);
 
-		// Handle strict vs. loose post_name matching.
 		if ( $strict_guess ) {
 			$query_args['name'] = get_query_var( 'name' );
 		} else {
-			// For loose matching (LIKE), we'll use a posts_where filter.
-			$post_name_for_filter = get_query_var( 'name' );
-
-			// Store the filter callback so we can remove it later.
-			$post_name_where_filter = static function ( $where, $query ) use ( $post_name_for_filter, $wpdb ) {
-				// Only apply to our specific query.
-				if ( isset( $query->query_vars['redirect_guess_404'] ) ) {
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_name LIKE %s", $wpdb->esc_like( $post_name_for_filter ) . '%' );
-				}
-				return $where;
-			};
-
-			add_filter( 'posts_where', $post_name_where_filter, 10, 2 );
-
-			// Mark this query so our filter knows to apply the LIKE clause.
-			$query_args['redirect_guess_404'] = true;
+			$query_args['s']              = get_query_var( 'name' );
+			$query_args['search_columns'] = array( 'post_name' );
+			$query_args['starts_with']    = true;
 		}
 
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
@@ -1039,11 +1023,6 @@ function redirect_guess_404_permalink() {
 		}
 
 		$query = new WP_Query( $query_args );
-
-		// Clean up the filter if we added it (remove only our specific callback).
-		if ( ! $strict_guess && isset( $post_name_where_filter ) ) {
-			remove_filter( 'posts_where', $post_name_where_filter, 10 );
-		}
 
 		if ( empty( $query->posts ) ) {
 			return false;
