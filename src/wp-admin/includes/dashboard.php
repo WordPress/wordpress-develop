@@ -1015,7 +1015,7 @@ function wp_dashboard_recent_posts( $args ) {
 			$time = get_the_time( 'U' );
 
 			if ( ! is_int( $time ) ) {
-				$relative = null;
+				$relative = get_the_date();
 			} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
 				$relative = __( 'Today' );
 			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
@@ -1035,7 +1035,7 @@ function wp_dashboard_recent_posts( $args ) {
 			printf(
 				'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
 				/* translators: 1: Relative date, 2: Time. */
-				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $relative ?? get_the_date(), get_the_time() ),
+				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $relative, get_the_time() ),
 				$recent_post_link,
 				/* translators: %s: Post title. */
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
