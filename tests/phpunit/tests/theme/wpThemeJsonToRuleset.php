@@ -180,7 +180,14 @@ class Tests_Theme_WpThemeJsonToRuleset extends WP_UnitTestCase {
 
 		$result = $this->to_ruleset( $selector, $declarations );
 
-		// The property should still be present but sanitized.
+		// Target only the value part so we don't fail on structural CSS braces
+		if ( preg_match( '/color:\s*([^;]+);/', $result, $matches ) ) {
+			$property_value = $matches[1];
+			$this->assertStringNotContainsString( '{', $property_value, 'Value should not contain opening braces.' );
+			$this->assertStringNotContainsString( '}', $property_value, 'Value should not contain closing braces.' );
+		} else {
+			$this->fail( 'Sanitized property value not found in output.' );
+		}
 		$this->assertStringContainsString( 'color:', $result );
 	}
 

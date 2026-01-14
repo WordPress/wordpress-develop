@@ -1344,7 +1344,7 @@ class WP_Theme_JSON {
 	 * }
 	 * @return string The resulting stylesheet.
 	 */
-	public function get_stylesheet( $types = array( 'variables', 'styles', 'presets' ), $origins = null, $options = array() ) {
+	public function get_stylesheet( $types = array( 'variables', 'styles', 'presets' ), ?array $origins = null, $options = array() ) {
 		if ( null === $origins ) {
 			$origins = static::VALID_ORIGINS;
 		}
@@ -2380,7 +2380,7 @@ class WP_Theme_JSON {
 	 * @param string[] $origins         List of origins to process.
 	 * @return array Array of presets where the key and value are both the slug.
 	 */
-	protected static function get_settings_slugs( $settings, $preset_metadata, $origins = null ) {
+	protected static function get_settings_slugs( $settings, $preset_metadata, ?array $origins = null ) {
 		if ( null === $origins ) {
 			$origins = static::VALID_ORIGINS;
 		}
@@ -2681,7 +2681,7 @@ class WP_Theme_JSON {
 	 * @param boolean $use_root_padding Whether to add custom properties at root level.
 	 * @return array Returns the modified $declarations.
 	 */
-	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, $theme_json = null, $selector = null, $use_root_padding = null ) {
+	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, ?array $theme_json = null, ?string $selector = null, ?bool $use_root_padding = null ) {
 		if ( empty( $styles ) ) {
 			return array();
 		}
@@ -2818,7 +2818,7 @@ class WP_Theme_JSON {
 	 * @param array $theme_json Theme JSON array.
 	 * @return string|array Style property value.
 	 */
-	protected static function get_property_value( $styles, $path, $theme_json = null ) {
+	protected static function get_property_value( $styles, $path, ?array $theme_json = null ) {
 		$value = _wp_array_get( $styles, $path, '' );
 
 		if ( '' === $value || null === $value ) {
