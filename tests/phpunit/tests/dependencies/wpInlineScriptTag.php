@@ -94,4 +94,74 @@ JS;
 			)
 		);
 	}
+
+	/**
+	 * Test the behavior of generated script tag attributes passed different values and types of values.
+	 *
+	 * @ticket 64500
+	 */
+	public function test_script_tag_attribute_value_types() {
+		$expected = <<<'HTML'
+<script
+	true
+	null
+	empty-string=""
+	0-string="0"
+	1-string="1"
+	0-numeric="0"
+	1-numeric="1"
+>
+"script data";
+</script>
+
+HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_inline_script_tag(
+				'"script data";',
+				array(
+					'true'         => true,
+					'false'        => false,
+					'null'         => null,
+					'empty-string' => '',
+					'0-string'     => '0',
+					'1-string'     => '1',
+					'0-numeric'    => 0,
+					'1-numeric'    => 1,
+				)
+			),
+		);
+	}
+
+	/**
+	 * Test the behavior of generated script tag repeated attributes.
+	 *
+	 * HTML will ignore case-insensitive repeated attributes. Ensure that the handling of input
+	 * attributes aligns with expectations.
+	 *
+	 * @ticket 64500
+	 */
+	public function test_script_tag_repeat_attributes() {
+		$expected = <<<'HTML'
+<script test="test-a">
+"script data";
+</script>
+
+HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_inline_script_tag(
+				'"script data";',
+				array(
+					'test' => 'test-a',
+					'tesT' => 'tesT-b',
+					'teST' => 'teST-c',
+					'tEST' => 'tEST-d',
+					'TEST' => 'TEST-e',
+				)
+			),
+		);
+	}
 }
