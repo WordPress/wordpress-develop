@@ -587,15 +587,21 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$reflection  = new ReflectionClass( $site_health );
 
 		$wp_debug_property = $reflection->getProperty( 'wp_debug' );
-		$wp_debug_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$wp_debug_property->setAccessible( true );
+		}
 		$wp_debug_property->setValue( $site_health, $wp_debug );
 
 		$wp_debug_log_property = $reflection->getProperty( 'wp_debug_log' );
-		$wp_debug_log_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$wp_debug_log_property->setAccessible( true );
+		}
 		$wp_debug_log_property->setValue( $site_health, $wp_debug_log );
 
 		$wp_debug_display_property = $reflection->getProperty( 'wp_debug_display' );
-		$wp_debug_display_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$wp_debug_display_property->setAccessible( true );
+		}
 		$wp_debug_display_property->setValue( $site_health, $wp_debug_display );
 
 		return $site_health;
@@ -877,11 +883,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$reflection_mock = new ReflectionClass( $site_health );
 
 		$wp_debug_property_mock = $reflection_mock->getProperty( 'wp_debug' );
-		$wp_debug_property_mock->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$wp_debug_property_mock->setAccessible( true );
+		}
 		$wp_debug_property_mock->setValue( $site_health_mock, true );
 
 		$wp_debug_display_property_mock = $reflection_mock->getProperty( 'wp_debug_display' );
-		$wp_debug_display_property_mock->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$wp_debug_display_property_mock->setAccessible( true );
+		}
 		$wp_debug_display_property_mock->setValue( $site_health_mock, true );
 
 		$actual_result = $site_health_mock->get_test_is_in_debug_mode();
@@ -908,11 +918,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$reflection_mock = new ReflectionClass( $site_health );
 
 		$wp_debug_property_mock = $reflection_mock->getProperty( 'wp_debug' );
-		$wp_debug_property_mock->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$wp_debug_property_mock->setAccessible( true );
+		}
 		$wp_debug_property_mock->setValue( $site_health_mock, true );
 
 		$wp_debug_display_property_mock = $reflection_mock->getProperty( 'wp_debug_display' );
-		$wp_debug_display_property_mock->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$wp_debug_display_property_mock->setAccessible( true );
+		}
 		$wp_debug_display_property_mock->setValue( $site_health_mock, true );
 
 		$actual_result = $site_health_mock->get_test_is_in_debug_mode();
