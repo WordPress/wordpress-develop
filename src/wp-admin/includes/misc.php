@@ -1080,7 +1080,7 @@ function wp_color_scheme_settings() {
 		);
 	}
 
-	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
+	echo '<script>var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
 }
 
 /**
@@ -1621,8 +1621,8 @@ function wp_check_php_version() {
 
 	$response['is_lower_than_future_minimum'] = false;
 
-	// The minimum supported PHP version will be updated to 7.4 in the future. Check if the current version is lower.
-	if ( version_compare( $version, '7.4', '<' ) ) {
+	// The minimum supported PHP version will be updated to at least 8.0 in the future. Check if the current version is lower.
+	if ( version_compare( $version, '8.0', '<' ) ) {
 		$response['is_lower_than_future_minimum'] = true;
 
 		// Force showing of warnings.
