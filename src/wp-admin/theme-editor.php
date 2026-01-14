@@ -77,6 +77,81 @@ if ( $theme->errors() && 'theme_no_stylesheet' === $theme->errors()->get_error_c
 	wp_die( __( 'The requested theme does not exist.' ) . ' ' . $theme->errors()->get_error_message() );
 }
 
+// Handle theme download action: create a zip of the theme and send it to the browser.
+if ( 'download_theme' === $action ) {
+	if ( ! current_user_can( 'edit_themes' ) ) {
+		wp_die( '<p>' . __( 'Sorry, you are not allowed to download themes for this site.' ) . '</p>' );
+	}
+
+	// Verify nonce (accept either _wpnonce or nonce parameter for compatibility).
+	$nonce_name = isset( $_REQUEST['_wpnonce'] ) ? '_wpnonce' : 'nonce';
+	if ( ! check_admin_referer( 'download-theme_' . $stylesheet, $nonce_name, false ) ) {
+		wp_die( '<p>' . __( 'Security check failed.' ) . '</p>' );
+	}
+
+	$theme_dir = $theme->get_stylesheet_directory();
+
+	if ( ! is_dir( $theme_dir ) ) {
+		wp_die( '<p>' . __( 'Theme directory not found.' ) . '</p>' );
+	}
+
+	$zipname = sanitize_file_name( $theme->get( 'Name' ) );
+	if ( ! $zipname ) {
+		$zipname = $stylesheet;
+	}
+	$tmpfile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $zipname . '-' . time() . '.zip';
+
+	// Try native ZipArchive first, fall back to PclZip if needed.
+	if ( class_exists( 'ZipArchive' ) ) {
+		$zip = new ZipArchive();
+		if ( true !== $zip->open( $tmpfile, ZipArchive::CREATE ) ) {
+			wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
+		}
+
+		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $theme_dir ) );
+		foreach ( $files as $file ) {
+			if ( $file->isDir() ) {
+				continue;
+			}
+			$filePath = $file->getRealPath();
+			$relativePath = substr( $filePath, strlen( $theme_dir ) + 1 );
+			$zip->addFile( $filePath, $relativePath );
+		}
+
+		$zip->close();
+	} else {
+		// Use PclZip fallback bundled with WordPress admin.
+		require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
+
+		$filelist = array();
+		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $theme_dir ) );
+		foreach ( $files as $file ) {
+			if ( $file->isDir() ) {
+				continue;
+			}
+			$filelist[] = $file->getRealPath();
+		}
+
+		$archive = new PclZip( $tmpfile );
+		$result = $archive->create( $filelist, PCLZIP_OPT_REMOVE_PATH, $theme_dir );
+		if ( 0 === $result ) {
+			wp_die( '<p>' . __( 'Could not create zip archive.' ) . ' ' . esc_html( $archive->errorInfo( true ) ) . '</p>' );
+		}
+	}
+
+	if ( ! file_exists( $tmpfile ) ) {
+		wp_die( '<p>' . __( 'Failed to create theme archive.' ) . '</p>' );
+	}
+
+	// Send the file to the browser.
+	header( 'Content-Type: application/zip' );
+	header( 'Content-Disposition: attachment; filename="' . $zipname . '.zip"' );
+	header( 'Content-Length: ' . filesize( $tmpfile ) );
+	readfile( $tmpfile );
+	@unlink( $tmpfile );
+	exit;
+}
+
 $allowed_files = array();
 $style_files   = array();
 
@@ -304,6 +379,8 @@ printf(
 		</select>
 		<?php submit_button( __( 'Select' ), '', 'Submit', false ); ?>
 	</form>
+
+	<!-- Download Theme button moved below the editor to avoid cluttering the theme selector. -->
 </div>
 <br class="clear" />
 </div>
@@ -414,6 +491,14 @@ else :
 		</div>
 
 		<?php wp_print_file_editor_templates(); ?>
+	</form>
+
+	<!-- Download Theme form placed below the Update File button -->
+	<form action="theme-editor.php" method="post" style="margin-top:8px;">
+		<?php wp_nonce_field( 'download-theme_' . $stylesheet, '_wpnonce' ); ?>
+		<input type="hidden" name="action" value="download_theme" />
+		<input type="hidden" name="theme" value="<?php echo esc_attr( $stylesheet ); ?>" />
+		<?php submit_button( __( 'Download Theme' ), 'secondary', '', false ); ?>
 	</form>
 	<?php
 endif; // End if $error.
