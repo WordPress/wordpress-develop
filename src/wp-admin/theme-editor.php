@@ -95,10 +95,12 @@ if ( 'download_theme' === $action ) {
 		wp_die( '<p>' . __( 'Theme directory not found.' ) . '</p>' );
 	}
 
-	$zipname = sanitize_file_name( $theme->get( 'Name' ) );
-	if ( ! $zipname ) {
-		$zipname = $stylesheet;
+	$zipname = $stylesheet;
+	$version = $theme->get( 'Version' );
+	if ( $version ) {
+		$zipname .= '.' . $version;
 	}
+
 	$tmpfile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $zipname . '-' . time() . '.zip';
 
 	// Try native ZipArchive first, fall back to PclZip if needed.
