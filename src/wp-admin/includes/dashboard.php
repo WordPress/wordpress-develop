@@ -1015,7 +1015,8 @@ function wp_dashboard_recent_posts( $args ) {
 			$time = get_the_time( 'U' );
 
 			if ( ! is_int( $time ) ) {
-				$date = get_the_date();
+				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+				$date = get_the_date( __( 'M jS Y' ) );
 			} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
 				$date = __( 'Today' );
 			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
