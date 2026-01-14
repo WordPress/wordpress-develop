@@ -97,7 +97,7 @@ function twentynineteen_get_the_archive_title() {
 	}
 	return $title;
 }
-add_filter( 'get_the_archive_title', 'twentynineteen_get_the_archive_title' );
+add_filter( 'get_the_archive_title', 'twentynineteen_get_the_archive_title', 1 );
 
 /**
  * Adds custom 'sizes' attribute to responsive image functionality for post thumbnails.
