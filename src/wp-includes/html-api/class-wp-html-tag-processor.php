@@ -3851,16 +3851,11 @@ class WP_HTML_Tag_Processor {
 				return true;
 
 			case 'STYLE':
-				if ( false !== stripos( $plaintext_content, '</style' ) ) {
-					$plaintext_content = $this->escape_style_contents( $plaintext_content );
-				}
-
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
-					$plaintext_content
+					$this->escape_style_contents( $plaintext_content )
 				);
-
 				return true;
 
 			case 'TEXTAREA':
