@@ -117,7 +117,7 @@ if ( 'download_theme' === $action ) {
 			}
 			$filePath = $file->getRealPath();
 			$relativePath = substr( $filePath, strlen( $theme_dir ) + 1 );
-			$zip->addFile( $filePath, $relativePath );
+			$zip->addFile( $filePath, $stylesheet . '/' . $relativePath );
 		}
 
 		$zip->close();
@@ -135,7 +135,7 @@ if ( 'download_theme' === $action ) {
 		}
 
 		$archive = new PclZip( $tmpfile );
-		$result = $archive->create( $filelist, PCLZIP_OPT_REMOVE_PATH, $theme_dir );
+		$result = $archive->create( $filelist, PCLZIP_OPT_REMOVE_PATH, $theme_dir, PCLZIP_OPT_ADD_PATH, $stylesheet );
 		if ( 0 === $result ) {
 			wp_die( '<p>' . __( 'Could not create zip archive.' ) . ' ' . esc_html( $archive->errorInfo( true ) ) . '</p>' );
 		}
