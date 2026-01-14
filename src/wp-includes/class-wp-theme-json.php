@@ -1952,7 +1952,8 @@ class WP_Theme_JSON {
 				$property_value = static::sanitize_css_property_value( $element['value'] );
 
 				// Only add valid properties to the declaration block.
-				if ( ! empty( $property_name ) && ! empty( $property_value ) ) {
+				// Allow "0" values (which are valid CSS) but skip null, false, and empty string.
+				if ( ! empty( $property_name ) && ( null !== $property_value && false !== $property_value && '' !== $property_value ) ) {
 					$carry .= $property_name . ': ' . $property_value . ';';
 				}
 
@@ -4132,7 +4133,9 @@ class WP_Theme_JSON {
 	protected static function is_safe_css_declaration( $property_name, $property_value ) {
 		$style_to_validate = $property_name . ': ' . $property_value;
 		$filtered          = esc_html( safecss_filter_attr( $style_to_validate ) );
-		return ! empty( trim( $filtered ) );
+		$trimmed           = trim( $filtered );
+		// Allow "0" values (which are valid CSS) but skip empty strings.
+		return '' !== $trimmed;
 	}
 
 	/**
