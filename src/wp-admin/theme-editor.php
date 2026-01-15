@@ -109,11 +109,13 @@ if ( 'download_theme' === $action ) {
 			wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
 		}
 
-		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $theme_dir ) );
+		$files = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $theme_dir, FilesystemIterator::SKIP_DOTS ),
+			RecursiveIteratorIterator::LEAVES_ONLY
+		);
+
 		foreach ( $files as $file ) {
-			if ( $file->isDir() ) {
-				continue;
-			}
+			// With SKIP_DOTS and LEAVES_ONLY, we don't need to check isDir().
 			$file_path     = $file->getRealPath();
 			$relative_path = substr( $file_path, strlen( $theme_dir ) + 1 );
 			$zip->addFile( $file_path, $stylesheet . '/' . $relative_path );
@@ -125,16 +127,17 @@ if ( 'download_theme' === $action ) {
 		require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
 
 		$filelist = array();
-		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $theme_dir ) );
+		$files    = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $theme_dir, FilesystemIterator::SKIP_DOTS ),
+			RecursiveIteratorIterator::LEAVES_ONLY
+		);
+
 		foreach ( $files as $file ) {
-			if ( $file->isDir() ) {
-				continue;
-			}
 			$filelist[] = $file->getRealPath();
 		}
 
 		$archive = new PclZip( $tmpfile );
-		$result = $archive->create( $filelist, PCLZIP_OPT_REMOVE_PATH, $theme_dir, PCLZIP_OPT_ADD_PATH, $stylesheet );
+		$result  = $archive->create( $filelist, PCLZIP_OPT_REMOVE_PATH, $theme_dir, PCLZIP_OPT_ADD_PATH, $stylesheet );
 		if ( 0 === $result ) {
 			wp_die( '<p>' . __( 'Could not create zip archive.' ) . ' ' . esc_html( $archive->errorInfo( true ) ) . '</p>' );
 		}
@@ -146,7 +149,7 @@ if ( 'download_theme' === $action ) {
 
 	// Send the file to the browser.
 	header( 'Content-Type: application/zip' );
-	header( 'Content-Disposition: attachment; filename="' . $zipname . '.zip"' );
+	header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $zipname ) . '.zip"' );
 	header( 'Content-Length: ' . filesize( $tmpfile ) );
 	readfile( $tmpfile );
 	// Best-effort cleanup of the temporary archive; failure to delete is non-critical.
