@@ -100,7 +100,7 @@ if ( 'download_theme' === $action ) {
 		$zipname .= '.' . $version;
 	}
 
-	$tmpfile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $zipname . '-' . time() . '.zip';
+	$tmpfile = get_temp_dir() . DIRECTORY_SEPARATOR . $zipname . '-' . time() . '.zip';
 
 	// Try native ZipArchive first, fall back to PclZip if needed.
 	if ( class_exists( 'ZipArchive' ) ) {
