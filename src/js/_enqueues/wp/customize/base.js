@@ -20,7 +20,7 @@ window.wp = window.wp || {};
 	 * @param {object} parent      Parent class constructor to inherit from.
 	 * @param {object} protoProps  Properties to apply to the prototype for use as class instance properties.
 	 * @param {object} staticProps Properties to apply directly to the class constructor.
-	 * @return child The subclassed constructor.
+	 * @return {function} The subclassed constructor.
 	 */
 	inherits = function( parent, protoProps, staticProps ) {
 		var child;
@@ -109,8 +109,8 @@ window.wp = window.wp || {};
 	 * Creates a subclass of the class.
 	 *
 	 * @param {object} protoProps Properties to apply to the prototype.
-	 * @param {object} classProp Properties to apply directly to the class.
-	 * @return child The subclass.
+	 * @param {object} staticProps Properties to apply directly to the class.
+	 * @return {function} The subclass.
 	 */
 	api.Class.extend = function( protoProps, staticProps ) {
 		var child = inherits( this, protoProps, staticProps );
@@ -372,7 +372,7 @@ window.wp = window.wp || {};
 		 * Get the instance of an item.
 		 *
 		 * @param {string} id The ID of the item.
-		 * @return {[type]} [description]
+		 * @return {mixed} The item instance.
 		 */
 		value: function( id ) {
 			return this._value[ id ];
@@ -494,7 +494,7 @@ window.wp = window.wp || {};
 		 * For example:
 		 *     when( id1, id2, id3, function( value1, value2, value3 ) {} );
 		 *
-		 * @return $.Deferred.promise();
+		 * @return {jQuery.Promise} Promise.
 		 */
 		when: function() {
 			var self = this,
@@ -555,7 +555,7 @@ window.wp = window.wp || {};
 
 
 	/**
-	 * Cast a string to a jQuery collection if it isn't already.
+	 * Cast a string to a jQuery object if it isn't already.
 	 *
 	 * @param {string|jQuery} element
 	 */
@@ -683,11 +683,11 @@ window.wp = window.wp || {};
 		/**
 		 * Initialize Messenger.
 		 *
-		 * @param {Object} params  - Parameters to configure the messenger.
-		 *        {string} params.url          - The URL to communicate with.
-		 *        {window} params.targetWindow - The window instance to communicate with. Default window.parent.
-		 *        {string} params.channel      - If provided, will send the channel with each message and only accept messages a matching channel.
-		 * @param {Object} options - Extend any instance parameter or method with this object.
+		 * @param {Object} params               - Parameters to configure the messenger.
+		 * @param {string} params.url           - The URL to communicate with.
+		 * @param {window} params.targetWindow  - The window instance to communicate with. Default window.parent.
+		 * @param {string} [params.channel]     - If provided, will send the channel with each message and only accept messages a matching channel.
+		 * @param {Object} options              - Extend any instance parameter or method with this object.
 		 */
 		initialize: function( params, options ) {
 			// Target the parent frame by default, but only if a parent frame exists.

@@ -1124,7 +1124,7 @@
 		 **********************************************************************/
 
 		/**
-		 * @return {wp.customize.controlConstructor.sidebar_widgets[]}
+		 * @return {wp.customize.Control}
 		 */
 		getSidebarWidgetsControl: function() {
 			var settingId, sidebarWidgetsControl;
@@ -2048,7 +2048,7 @@
 		 * Get the widget_form Customize controls associated with the current sidebar.
 		 *
 		 * @since 3.9.0
-		 * @return {wp.customize.controlConstructor.widget_form[]}
+		 * @return {wp.customize.Control[]}
 		 */
 		getWidgetFormControls: function() {
 			var formControls = [];
@@ -2065,8 +2065,10 @@
 		},
 
 		/**
-		 * @param {string} widgetId or an id_base for adding a previously non-existing widget.
-		 * @return {Object|false} widget_form control instance, or false on error.
+		 * Add a widget.
+		 *
+		 * @param {string} widgetId Widget ID or an id_base for adding a previously non-existing widget.
+		 * @return {wp.customize.Control|false} The widget_form control instance, or false on error.
 		 */
 		addWidget: function( widgetId ) {
 			var self = this, controlHtml, $widget, controlType = 'widget_form', controlContainer, controlConstructor,

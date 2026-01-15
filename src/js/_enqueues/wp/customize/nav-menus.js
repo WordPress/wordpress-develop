@@ -2103,7 +2103,7 @@
 		 **********************************************************************/
 
 		/**
-		 * @return {wp.customize.controlConstructor.nav_menu|null}
+		 * @return {wp.customize.Control|null}
 		 */
 		getMenuControl: function() {
 			var control = this, settingValue = control.setting();
@@ -3019,7 +3019,7 @@
 		},
 
 		/**
-		 * @return {wp.customize.controlConstructor.nav_menu_item[]}
+		 * @return {wp.customize.Control[]}
 		 */
 		getMenuItemControls: function() {
 			var menuControl = this,
@@ -3124,7 +3124,7 @@
 		 * Add a new item to this menu.
 		 *
 		 * @param {Object} item - Value for the nav_menu_item setting to be created.
-		 * @return {wp.customize.Menus.controlConstructor.nav_menu_item} The newly-created nav_menu_item control instance.
+		 * @return {wp.customize.Control} The newly-created nav_menu_item control instance.
 		 */
 		addItemToMenu: function( item ) {
 			var menuControl = this, customizeId, settingArgs, setting, menuItemControl, placeholderId, position = 0, priority = 10,
@@ -3189,7 +3189,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {wp.customize.controlConstructor.nav_menu_item[]} optionalMenuItemControls
+		 * @param {wp.customize.Control[]} optionalMenuItemControls
 		 */
 		updateInvitationVisibility: function ( optionalMenuItemControls ) {
 			var menuItemControls = optionalMenuItemControls || this.getMenuItemControls();
@@ -3509,8 +3509,8 @@
 	 *
 	 * @alias wp.customize.Menus.getMenuControl
 	 *
-	 * @param menuId
-	 * @return {wp.customize.controlConstructor.menus[]}
+	 * @param {string|number} menuId The menu ID.
+	 * @return {wp.customize.Control} The menu control.
 	 */
 	api.Menus.getMenuControl = function( menuId ) {
 		return api.control( 'nav_menu[' + menuId + ']' );
