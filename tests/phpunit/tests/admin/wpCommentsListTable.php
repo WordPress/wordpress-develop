@@ -234,7 +234,7 @@ OPTIONS;
 				'comment_approved' => '1',
 			)
 		);
-		$comment_id               = self::factory()->comment->create(
+		$regular_comment_id       = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_content'  => 'This is a regular comment.',
@@ -242,11 +242,20 @@ OPTIONS;
 				'comment_approved' => '1',
 			)
 		);
+		$pingback_comment_id      = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_content'  => 'This is a pingback comment.',
+				'comment_type'     => '',
+				'comment_approved' => '1',
+			)
+		);
 		$_REQUEST['comment_type'] = $comment_type;
 		$this->table->prepare_items();
 		$items = $this->table->items;
-		$this->assertCount( 1, $items );
-		$this->assertEquals( $comment_id, $items[0]->comment_ID );
+		$this->assertCount( 2, $items );
+		$this->assertEquals( $pingback_comment_id, $items[0]->comment_ID );
+		$this->assertEquals( $regular_comment_id, $items[1]->comment_ID );
 	}
 
 	/**
