@@ -263,7 +263,10 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		/**
 		 * Request full refresh if there are nav menu instances that lack partials which also match the supplied args.
 		 *
-		 * @param {Object} navMenuInstanceArgs
+		 * @since 4.5.0
+		 *
+		 * @param {Object} navMenuInstanceArgs Nav menu instance args.
+		 * @return {boolean} Whether full refresh was requested.
 		 */
 		self.handleUnplacedNavMenuInstances = function( navMenuInstanceArgs ) {
 			var unplacedNavMenuInstances;
@@ -331,6 +334,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		 * @since 4.5.0
 		 *
 		 * @param {wp.customize.Value} setting
+		 * @return {void}
 		 */
 		self.unbindSettingListener = function( setting ) {
 			setting.unbind( this.onChangeNavMenuSetting );
@@ -344,6 +348,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		 * @since 4.5.0
 		 *
 		 * @this {wp.customize.Value}
+		 * @return {void}
 		 */
 		self.onChangeNavMenuSetting = function() {
 			var setting = this;
@@ -373,6 +378,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		 * @param {Object} newItem New value for nav_menu_item[] setting.
 		 * @param {Object} oldItem Old value for nav_menu_item[] setting.
 		 * @this {wp.customize.Value}
+		 * @return {void}
 		 */
 		self.onChangeNavMenuItemSetting = function( newItem, oldItem ) {
 			var item = newItem || oldItem, navMenuSetting;
@@ -388,6 +394,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		 * @since 4.5.0
 		 *
 		 * @this {wp.customize.Value}
+		 * @return {void}
 		 */
 		self.onChangeNavMenuLocationsSetting = function() {
 			var setting = this, hasNavMenuInstance;
@@ -412,6 +419,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 	 * Also this applies even if a nav menu is not partial-refreshable.
 	 *
 	 * @since 4.5.0
+	 * @return {void}
 	 */
 	self.highlightControls = function() {
 		var selector = '.menu-item';

@@ -75,6 +75,11 @@
 	 * Returns a debounced version of the function.
 	 *
 	 * @todo Require Underscore.js for this file and retire this.
+	 *
+	 * @param {Function} fn      Function to debounce.
+	 * @param {number}   delay   Delay in milliseconds.
+	 * @param {Object}   context Context to invoke the function with. Optional.
+	 * @return {Function} Debounced function.
 	 */
 	debounce = function( fn, delay, context ) {
 		var timeout;
@@ -143,6 +148,7 @@
 		 * @access public
 		 *
 		 * @param {jQuery.Event} event Event.
+		 * @return {void}
 		 */
 		handleLinkClick: function( event ) {
 			var preview = this, link, isInternalJumpLink;
@@ -189,6 +195,7 @@
 		 * @access public
 		 *
 		 * @param {jQuery.Event} event Event.
+		 * @return {void}
 		 */
 		handleFormSubmit: function( event ) {
 			var preview = this, urlParser, form;

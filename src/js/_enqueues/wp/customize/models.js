@@ -25,6 +25,11 @@
 	 * @augments Backbone.Model
 	 */
 	api.HeaderTool.ImageModel = Backbone.Model.extend(/** @lends wp.customize.HeaderTool.ImageModel.prototype */{
+		/**
+		 * Default attributes.
+		 *
+		 * @return {Object} Default attributes.
+		 */
 		defaults: function() {
 			return {
 				header: {
@@ -39,16 +44,25 @@
 			};
 		},
 
+		/**
+		 * Initialize.
+		 */
 		initialize: function() {
 			this.on('hide', this.hide, this);
 		},
 
+		/**
+		 * Hide.
+		 */
 		hide: function() {
 			this.set('choice', '');
 			api('header_image').set('remove-header');
 			api('header_image_data').set('remove-header');
 		},
 
+		/**
+		 * Destroy.
+		 */
 		destroy: function() {
 			var data = this.get('header'),
 				curr = api.HeaderTool.currentHeader.get('header').attachment_id;
@@ -69,6 +83,9 @@
 			this.trigger('destroy', this, this.collection);
 		},
 
+		/**
+		 * Save.
+		 */
 		save: function() {
 			if (this.get('random')) {
 				api('header_image').set(this.get('header').random);
@@ -86,6 +103,9 @@
 			api.HeaderTool.combinedList.trigger('control:setImage', this);
 		},
 
+		/**
+		 * Import image.
+		 */
 		importImage: function() {
 			var data = this.get('header');
 			if (data.attachment_id === undefined) {
@@ -100,6 +120,11 @@
 			} );
 		},
 
+		/**
+		 * Should be cropped.
+		 *
+		 * @return {boolean} Whether the image should be cropped.
+		 */
 		shouldBeCropped: function() {
 			if (this.get('themeFlexWidth') === true &&
 						this.get('themeFlexHeight') === true) {
@@ -142,11 +167,19 @@
 	api.HeaderTool.ChoiceList = Backbone.Collection.extend({
 		model: api.HeaderTool.ImageModel,
 
-		// Ordered from most recently used to least.
+		/**
+		 * Comparator.
+		 *
+		 * @param {Backbone.Model} model Model.
+		 * @return {number} Order.
+		 */
 		comparator: function(model) {
 			return -model.get('header').timestamp;
 		},
 
+		/**
+		 * Initialize.
+		 */
 		initialize: function() {
 			var current = api.HeaderTool.currentHeader.get('choice').replace(/^https?:\/\//, ''),
 				isRandom = this.isRandomChoice(api.get().header_image);
@@ -192,6 +225,11 @@
 			}
 		},
 
+		/**
+		 * Maybe remove old crop.
+		 *
+		 * @param {Backbone.Model} model Model.
+		 */
 		maybeRemoveOldCrop: function( model ) {
 			var newID = model.get( 'header' ).attachment_id || false,
 			 	oldCrop;
@@ -211,12 +249,20 @@
 			}
 		},
 
+		/**
+		 * Maybe add random choice.
+		 */
 		maybeAddRandomChoice: function() {
 			if (this.size() === 1) {
 				this.addRandomChoice();
 			}
 		},
 
+		/**
+		 * Add random choice.
+		 *
+		 * @param {string} initialChoice Initial choice.
+		 */
 		addRandomChoice: function(initialChoice) {
 			var isRandomSameType = RegExp(this.type).test(initialChoice),
 				randomChoice = 'random-' + this.type + '-image';
@@ -234,14 +280,30 @@
 			});
 		},
 
+		/**
+		 * Is random choice?
+		 *
+		 * @param {string} choice Choice.
+		 * @return {boolean} Whether the choice is random.
+		 */
 		isRandomChoice: function(choice) {
 			return (/^random-(uploaded|default)-image$/).test(choice);
 		},
 
+		/**
+		 * Should hide title?
+		 *
+		 * @return {boolean} Whether the title should be hidden.
+		 */
 		shouldHideTitle: function() {
 			return this.size() < 2;
 		},
 
+		/**
+		 * Set image.
+		 *
+		 * @param {Backbone.Model} model Model.
+		 */
 		setImage: function(model) {
 			this.each(function(m) {
 				m.set('selected', false);
@@ -252,6 +314,9 @@
 			}
 		},
 
+		/**
+		 * Remove image.
+		 */
 		removeImage: function() {
 			this.each(function(m) {
 				m.set('selected', false);
@@ -271,6 +336,9 @@
 	 * @augments Backbone.Collection
 	 */
 	api.HeaderTool.DefaultsList = api.HeaderTool.ChoiceList.extend({
+		/**
+		 * Initialize.
+		 */
 		initialize: function() {
 			this.type = 'default';
 			this.data = _wpCustomizeHeader.defaults;

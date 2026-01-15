@@ -76,6 +76,9 @@ window.wp = window.wp || {};
 			}
 		},
 
+		/**
+		 * Handle popstate event.
+		 */
 		popstate: function( e ) {
 			var state = e.originalEvent.state;
 			if ( state && state.customize ) {
@@ -85,6 +88,9 @@ window.wp = window.wp || {};
 			}
 		},
 
+		/**
+		 * Handle hashchange event.
+		 */
 		hashchange: function() {
 			var hash = window.location.toString().split('#')[1];
 
@@ -97,6 +103,11 @@ window.wp = window.wp || {};
 			}
 		},
 
+		/**
+		 * Handle beforeunload event.
+		 *
+		 * @return {string|void} Confirmation message if there are unsaved changes.
+		 */
 		beforeunload: function () {
 			if ( ! Loader.saved() ) {
 				return Loader.settings.l10n.saveAlert;
@@ -189,6 +200,11 @@ window.wp = window.wp || {};
 			this.trigger( 'open' );
 		},
 
+		/**
+		 * Push the state of the Customizer onto the history stack.
+		 *
+		 * @param {string} src URL to push.
+		 */
 		pushState: function ( src ) {
 			var hash = src.split( '?' )[1];
 
@@ -270,10 +286,16 @@ window.wp = window.wp || {};
 		 * Overlay hide/show utility methods.
 		 */
 		overlay: {
+			/**
+			 * Show the overlay.
+			 */
 			show: function() {
 				this.element.fadeIn( 200, Loader.opened );
 			},
 
+			/**
+			 * Hide the overlay.
+			 */
 			hide: function() {
 				this.element.fadeOut( 200, Loader.closed );
 			}

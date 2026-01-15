@@ -24,17 +24,28 @@
 	api.HeaderTool.CurrentView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.CurrentView.prototype */{
 		template: wp.template('header-current'),
 
+		/**
+		 * Initialize.
+		 */
 		initialize: function() {
 			this.listenTo(this.model, 'change', this.render);
 			this.render();
 		},
 
+		/**
+		 * Render.
+		 *
+		 * @return {wp.customize.HeaderTool.CurrentView} Current view.
+		 */
 		render: function() {
 			this.$el.html(this.template(this.model.toJSON()));
 			this.setButtons();
 			return this;
 		},
 
+		/**
+		 * Set buttons.
+		 */
 		setButtons: function() {
 			var elements = $('#customize-control-header_image .actions .remove');
 			var addButton = $('#customize-control-header_image .actions .new');
@@ -77,6 +88,9 @@
 			'click .close': 'removeImage'
 		},
 
+		/**
+		 * Initialize.
+		 */
 		initialize: function() {
 			var properties = [
 				this.model.get('header').url,
@@ -90,6 +104,11 @@
 			}
 		},
 
+		/**
+		 * Render.
+		 *
+		 * @return {wp.customize.HeaderTool.ChoiceView} Choice view.
+		 */
 		render: function() {
 			this.$el.html(this.template(this.extendedModel()));
 
@@ -97,10 +116,18 @@
 			return this;
 		},
 
+		/**
+		 * Toggle selected.
+		 */
 		toggleSelected: function() {
 			this.$el.toggleClass('selected', this.model.get('selected'));
 		},
 
+		/**
+		 * Extended model.
+		 *
+		 * @return {Object} Extended model.
+		 */
 		extendedModel: function() {
 			var c = this.model.get('collection');
 			return _.extend(this.model.toJSON(), {
@@ -108,12 +135,18 @@
 			});
 		},
 
+		/**
+		 * Select.
+		 */
 		select: function() {
 			this.preventJump();
 			this.model.save();
 			api.HeaderTool.currentHeader.set(this.extendedModel());
 		},
 
+		/**
+		 * Prevent jump.
+		 */
 		preventJump: function() {
 			var container = $('.wp-full-overlay-sidebar-content'),
 				scroll = container.scrollTop();
@@ -123,6 +156,11 @@
 			});
 		},
 
+		/**
+		 * Remove image.
+		 *
+		 * @param {Event} e Event.
+		 */
 		removeImage: function(e) {
 			e.stopPropagation();
 			this.model.destroy();
@@ -146,6 +184,9 @@
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.ChoiceListView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.ChoiceListView.prototype */{
+		/**
+		 * Initialize.
+		 */
 		initialize: function() {
 			this.listenTo(this.collection, 'add', this.addOne);
 			this.listenTo(this.collection, 'remove', this.render);
@@ -154,12 +195,23 @@
 			this.render();
 		},
 
+		/**
+		 * Render.
+		 *
+		 * @return {wp.customize.HeaderTool.ChoiceListView} Choice list view.
+		 */
 		render: function() {
 			this.$el.empty();
 			this.collection.each(this.addOne, this);
 			this.toggleList();
+			return this;
 		},
 
+		/**
+		 * Add one.
+		 *
+		 * @param {Backbone.Model} choice Choice.
+		 */
 		addOne: function(choice) {
 			var view;
 			choice.set({ collection: this.collection });
@@ -167,6 +219,9 @@
 			this.$el.append(view.render().el);
 		},
 
+		/**
+		 * Toggle list.
+		 */
 		toggleList: function() {
 			var title = this.$el.parents().prev('.customize-control-title'),
 				randomButton = this.$el.find('.random').parent();
@@ -192,10 +247,22 @@
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.CombinedList = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.CombinedList.prototype */{
+		/**
+		 * Initialize.
+		 *
+		 * @param {Array} collections Collections.
+		 */
 		initialize: function(collections) {
 			this.collections = collections;
 			this.on('all', this.propagate, this);
 		},
+
+		/**
+		 * Propagate event.
+		 *
+		 * @param {string} event Event.
+		 * @param {mixed}  arg   Argument.
+		 */
 		propagate: function(event, arg) {
 			_.each(this.collections, function(collection) {
 				collection.trigger(event, arg);
