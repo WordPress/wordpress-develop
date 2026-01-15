@@ -2878,7 +2878,7 @@ function wp_enqueue_editor_format_library_assets() {
  * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
  *
  * @since 5.7.0
- * @deprecated 7.0.0 Use wp_get_script_tag() or wp_get_inline_script_tag()
+ * @deprecated 7.0.0 Use wp_get_script_tag() or wp_get_inline_script_tag().
  * @see wp_get_script_tag()
  * @see wp_get_inline_script_tag()
  *
