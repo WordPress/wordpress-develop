@@ -10,7 +10,7 @@ class Tests_Dependencies_wpScriptTag extends WP_UnitTestCase {
 
 	public function get_script_tag_type_set() {
 		$this->assertEqualHTML(
-			"<script src='https://localhost/PATH/FILE.js' type='application/javascript' nomodule></script>\n",
+			'<script src="https://localhost/PATH/FILE.js" type="application/javascript" nomodule></script>' . "\n",
 			wp_get_script_tag(
 				array(
 					'type'     => 'application/javascript',
