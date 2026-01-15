@@ -919,8 +919,7 @@ async function main() {
 						for ( const file of vendorFiles ) {
 							if (
 								file.startsWith( 'react-jsx-runtime' ) &&
-								file.endsWith( '.js' ) &&
-								! file.endsWith( '.js.map' )
+								file.endsWith( '.js' )
 							) {
 								const srcFile = path.join( src, file );
 								const destFile = path.join( dest, file );
@@ -983,8 +982,7 @@ async function main() {
 				}
 			} else if (
 				entry.isFile() &&
-				entry.name.endsWith( '.js' ) &&
-				! entry.name.endsWith( '.js.map' )
+				entry.name.endsWith( '.js' )
 			) {
 				// Copy root-level JS files
 				const dest = path.join( scriptsDest, entry.name );
