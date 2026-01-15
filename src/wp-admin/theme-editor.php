@@ -149,6 +149,7 @@ if ( 'download_theme' === $action ) {
 	header( 'Content-Disposition: attachment; filename="' . $zipname . '.zip"' );
 	header( 'Content-Length: ' . filesize( $tmpfile ) );
 	readfile( $tmpfile );
+	// Best-effort cleanup of the temporary archive; failure to delete is non-critical.
 	@unlink( $tmpfile );
 	exit;
 }
