@@ -6,7 +6,7 @@
  * please refer to wp-admin/_index.php.
  */
 
-if ( file_exists( __DIR__ . '/../wp-includes/js/jquery/jquery.js' ) && file_exists( __DIR__ . '/../wp-includes/build' ) ) {
+if ( file_exists( __DIR__ . '/../wp-includes/js/jquery/jquery.js' ) && is_dir( __DIR__ . '/../wp-includes/build' ) ) {
 	require_once __DIR__ . '/_index.php';
 	return;
 }
