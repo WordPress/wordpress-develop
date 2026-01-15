@@ -381,8 +381,6 @@ printf(
 		</select>
 		<?php submit_button( __( 'Select' ), '', 'Submit', false ); ?>
 	</form>
-
-	<!-- Download Theme button moved below the editor to avoid cluttering the theme selector. -->
 </div>
 <br class="clear" />
 </div>
