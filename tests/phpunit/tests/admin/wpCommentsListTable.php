@@ -232,6 +232,8 @@ OPTIONS;
 				'comment_content'  => 'This is a note.',
 				'comment_type'     => 'note',
 				'comment_approved' => '1',
+				'comment_date'     => '2024-01-01 10:00:00',
+				'comment_date_gmt' => '2024-01-01 10:00:00',
 			)
 		);
 		$regular_comment_id       = self::factory()->comment->create(
@@ -240,6 +242,8 @@ OPTIONS;
 				'comment_content'  => 'This is a regular comment.',
 				'comment_type'     => '',
 				'comment_approved' => '1',
+				'comment_date'     => '2024-01-01 11:00:00',
+				'comment_date_gmt' => '2024-01-01 11:00:00',
 			)
 		);
 		$pingback_comment_id      = self::factory()->comment->create(
@@ -248,6 +252,8 @@ OPTIONS;
 				'comment_content'  => 'This is a pingback comment.',
 				'comment_type'     => '',
 				'comment_approved' => '1',
+				'comment_date'     => '2024-01-01 12:00:00',
+				'comment_date_gmt' => '2024-01-01 12:00:00',
 			)
 		);
 		$_REQUEST['comment_type'] = $comment_type;
