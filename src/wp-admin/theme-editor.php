@@ -84,8 +84,7 @@ if ( 'download_theme' === $action ) {
 	}
 
 	// Verify nonce (accept either _wpnonce or nonce parameter for compatibility).
-	$nonce_name = isset( $_REQUEST['_wpnonce'] ) ? '_wpnonce' : 'nonce';
-	if ( ! check_admin_referer( 'download-theme_' . $stylesheet, $nonce_name, false ) ) {
+	if ( ! check_admin_referer( 'download-theme_' . $stylesheet ) ) {
 		wp_die( '<p>' . __( 'Security check failed.' ) . '</p>' );
 	}
 
