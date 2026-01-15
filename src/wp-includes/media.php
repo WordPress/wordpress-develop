@@ -1229,7 +1229,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
  */
 function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail', $icon = false ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
-	return isset( $image[0] ) ? $image[0] : false;
+	return $image[0] ?? false;
 }
 
 /**
@@ -1410,7 +1410,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 		 * be compared against the image URL using the same port.
 		 */
 		$parsed = parse_url( $image_baseurl );
-		$domain = isset( $parsed['host'] ) ? $parsed['host'] : '';
+		$domain = $parsed['host'] ?? '';
 
 		if ( isset( $parsed['port'] ) ) {
 			$domain .= ':' . $parsed['port'];
@@ -2171,7 +2171,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 */
 		$filtered_decoding_attr = apply_filters(
 			'wp_img_tag_add_decoding_attr',
-			isset( $optimization_attrs['decoding'] ) ? $optimization_attrs['decoding'] : false,
+			$optimization_attrs['decoding'] ?? false,
 			$image,
 			$context
 		);
@@ -2213,7 +2213,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 */
 		$filtered_loading_attr = apply_filters(
 			'wp_img_tag_add_loading_attr',
-			isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false,
+			$optimization_attrs['loading'] ?? false,
 			$image,
 			$context
 		);
@@ -2232,7 +2232,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			 * is only intended for the specific scenario where the above filtered caused the problem.
 			 */
 			if ( isset( $optimization_attrs['fetchpriority'] ) && 'high' === $optimization_attrs['fetchpriority'] &&
-				( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) !== $filtered_loading_attr &&
+				( $optimization_attrs['loading'] ?? false ) !== $filtered_loading_attr &&
 				'lazy' === $filtered_loading_attr
 			) {
 				_doing_it_wrong(
@@ -2380,7 +2380,7 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 		return $iframe;
 	}
 
-	$value = isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false;
+	$value = $optimization_attrs['loading'] ?? false;
 
 	/**
 	 * Filters the `loading` attribute value to add to an iframe. Default 'lazy'.
@@ -2871,10 +2871,8 @@ function gallery_shortcode( $attr ) {
 	 *                    Otherwise, defaults to true.
 	 */
 	if ( apply_filters( 'use_default_gallery_style', ! $html5 ) ) {
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
 		$gallery_style = "
-		<style{$type_attr}>
+		<style>
 			#{$selector} {
 				margin: auto;
 			}
@@ -6038,11 +6036,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * conflicting `decoding` attribute already present.
 	 */
 	if ( 'img' === $tag_name ) {
-		if ( isset( $attr['decoding'] ) ) {
-			$loading_attrs['decoding'] = $attr['decoding'];
-		} else {
-			$loading_attrs['decoding'] = 'async';
-		}
+		$loading_attrs['decoding'] = $attr['decoding'] ?? 'async';
 	}
 
 	// For any resources, width and height must be provided, to avoid layout shifts.

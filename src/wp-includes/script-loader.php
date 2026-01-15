@@ -88,21 +88,21 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react',
-		'react-dom'         => array( 'react' ),
-		'react-jsx-runtime' => array( 'react' ),
-		'regenerator-runtime',
-		'moment',
-		'lodash',
-		'wp-polyfill-fetch',
-		'wp-polyfill-formdata',
-		'wp-polyfill-node-contains',
-		'wp-polyfill-url',
-		'wp-polyfill-dom-rect',
-		'wp-polyfill-element-closest',
-		'wp-polyfill-object-fit',
-		'wp-polyfill-inert',
-		'wp-polyfill',
+		'react'                       => array(),
+		'react-dom'                   => array( 'react' ),
+		'react-jsx-runtime'           => array( 'react' ),
+		'regenerator-runtime'         => array(),
+		'moment'                      => array(),
+		'lodash'                      => array(),
+		'wp-polyfill-fetch'           => array(),
+		'wp-polyfill-formdata'        => array(),
+		'wp-polyfill-node-contains'   => array(),
+		'wp-polyfill-url'             => array(),
+		'wp-polyfill-dom-rect'        => array(),
+		'wp-polyfill-element-closest' => array(),
+		'wp-polyfill-object-fit'      => array(),
+		'wp-polyfill-inert'           => array(),
+		'wp-polyfill'                 => array(),
 	);
 
 	$vendor_scripts_versions = array(
@@ -124,15 +124,13 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
-		if ( is_string( $dependencies ) ) {
-			$handle       = $dependencies;
-			$dependencies = array();
-		}
-
-		$path    = "/wp-includes/js/dist/vendor/$handle$suffix.js";
-		$version = $vendor_scripts_versions[ $handle ];
-
-		$scripts->add( $handle, $path, $dependencies, $version, 1 );
+		$scripts->add(
+			$handle,
+			"/wp-includes/js/dist/vendor/$handle$suffix.js",
+			$dependencies,
+			$vendor_scripts_versions[ $handle ],
+			1
+		);
 	}
 
 	did_action( 'init' ) && $scripts->add_inline_script( 'lodash', 'window.lodash = _.noConflict();' );
@@ -218,46 +216,6 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 	}
 
 	return $polyfill;
-}
-
-/**
- * Registers development scripts that integrate with `@wordpress/scripts`.
- *
- * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
- *
- * @since 6.0.0
- *
- * @param WP_Scripts $scripts WP_Scripts object.
- */
-function wp_register_development_scripts( $scripts ) {
-	if (
-		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
-		|| empty( $scripts->registered['react'] )
-		|| defined( 'WP_RUN_CORE_TESTS' )
-	) {
-		return;
-	}
-
-	$development_scripts = array(
-		'react-refresh-entry',
-		'react-refresh-runtime',
-	);
-
-	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
-		if ( ! is_array( $assets ) ) {
-			return;
-		}
-		$scripts->add(
-			'wp-' . $script_name,
-			'/wp-includes/js/dist/development/' . $script_name . '.js',
-			$assets['dependencies'],
-			$assets['version']
-		);
-	}
-
-	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
-	$scripts->registered['react']->deps[] = 'wp-react-refresh-entry';
 }
 
 /**
@@ -660,7 +618,6 @@ function wp_tinymce_inline_scripts() {
  */
 function wp_default_packages( $scripts ) {
 	wp_default_packages_vendor( $scripts );
-	wp_register_development_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
 
@@ -1648,6 +1605,9 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'wp-pointer', "/wp-includes/css/wp-pointer$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'customize-preview', "/wp-includes/css/customize-preview$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'wp-empty-template-alert', "/wp-includes/css/wp-empty-template-alert$suffix.css" );
+	$skip_link_style_path = WPINC . "/css/wp-block-template-skip-link$suffix.css";
+	$styles->add( 'wp-block-template-skip-link', "/$skip_link_style_path" );
+	$styles->add_data( 'wp-block-template-skip-link', 'path', ABSPATH . $skip_link_style_path );
 
 	// External libraries and friends.
 	$styles->add( 'imgareaselect', '/wp-includes/js/imgareaselect/imgareaselect.css', array(), '0.9.8' );
@@ -1843,6 +1803,7 @@ function wp_default_styles( $styles ) {
 		'media-views',
 		'wp-pointer',
 		'wp-jquery-ui-dialog',
+		'wp-block-template-skip-link',
 		// Package styles.
 		'wp-reset-editor-styles',
 		'wp-editor-classic-layout-styles',
@@ -2027,7 +1988,7 @@ function wp_localize_community_events() {
 
 	$user_id            = get_current_user_id();
 	$saved_location     = get_user_option( 'community-events-location', $user_id );
-	$saved_ip_address   = isset( $saved_location['ip'] ) ? $saved_location['ip'] : false;
+	$saved_ip_address   = $saved_location['ip'] ?? false;
 	$current_ip_address = WP_Community_Events::get_unsafe_client_ip();
 
 	/*
@@ -2205,16 +2166,13 @@ function _print_scripts() {
 		$zip = 'gzip';
 	}
 
-	$concat    = trim( $wp_scripts->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
+	$concat = trim( $wp_scripts->concat, ', ' );
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
-			echo "\n<script{$type_attr}>\n";
-			echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
+			echo "\n<script>\n";
 			echo $wp_scripts->print_code;
 			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
-			echo "/* ]]> */\n";
 			echo "</script>\n";
 		}
 
@@ -2226,7 +2184,7 @@ function _print_scripts() {
 		}
 
 		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		echo "<script{$type_attr} src='" . esc_attr( $src ) . "'></script>\n";
+		echo "<script src='" . esc_attr( $src ) . "'></script>\n";
 	}
 
 	if ( ! empty( $wp_scripts->print_html ) ) {
@@ -2352,7 +2310,7 @@ function print_admin_styles() {
  * @global WP_Styles $wp_styles
  * @global bool      $concatenate_scripts
  *
- * @return array|void
+ * @return string[]|void
  */
 function print_late_styles() {
 	global $wp_styles, $concatenate_scripts;
@@ -2398,8 +2356,7 @@ function _print_styles() {
 		$zip = 'gzip';
 	}
 
-	$concat    = trim( $wp_styles->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	$concat = trim( $wp_styles->concat, ', ' );
 
 	if ( $concat ) {
 		$dir = $wp_styles->text_direction;
@@ -2414,13 +2371,15 @@ function _print_styles() {
 		}
 
 		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}" . $concatenated . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "'{$type_attr} media='all' />\n";
+		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
 
 		if ( ! empty( $wp_styles->print_code ) ) {
-			echo "<style{$type_attr}>\n";
-			echo $wp_styles->print_code;
-			echo sprintf( "\n/*# sourceURL=%s */", rawurlencode( $concat_source_url ) );
-			echo "\n</style>\n";
+			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+			$processor->next_tag();
+			$style_tag_contents = "\n{$wp_styles->print_code}\n"
+				. sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) );
+			$processor->set_modifiable_text( $style_tag_contents );
+			echo "{$processor->get_updated_html()}\n";
 		}
 	}
 
@@ -2508,8 +2467,8 @@ function wp_common_block_scripts_and_styles() {
  *
  * @since 6.1.0
  *
- * @param array $nodes The nodes to filter.
- * @return array A filtered array of style nodes.
+ * @param array<array<string, mixed>> $nodes The nodes to filter.
+ * @return array<array<string, mixed>> A filtered array of style nodes.
  */
 function wp_filter_out_block_nodes( $nodes ) {
 	return array_filter(
@@ -2555,6 +2514,12 @@ function wp_enqueue_global_styles() {
 
 	$stylesheet = wp_get_global_stylesheet();
 
+	/*
+	 * For block themes, merge Customizer's custom CSS into the global styles stylesheet
+	 * before the global styles custom CSS, ensuring proper cascade order.
+	 * For classic themes, let the Customizer CSS print separately via wp_custom_css_cb()
+	 * at priority 101 in wp_head, preserving its position at the end of the <head>.
+	 */
 	if ( $is_block_theme ) {
 		/*
 		 * Dequeue the Customizer's custom CSS
@@ -2869,12 +2834,11 @@ function wp_enqueue_editor_format_library_assets() {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String made of sanitized `<script>` tag attributes.
  */
 function wp_sanitize_script_attributes( $attributes ) {
-	$html5_script_support = is_admin() || current_theme_supports( 'html5', 'script' );
-	$attributes_string    = '';
+	$attributes_string = '';
 
 	/*
 	 * If HTML5 script tag is supported, only the attribute name is added
@@ -2883,7 +2847,7 @@ function wp_sanitize_script_attributes( $attributes ) {
 	foreach ( $attributes as $attribute_name => $attribute_value ) {
 		if ( is_bool( $attribute_value ) ) {
 			if ( $attribute_value ) {
-				$attributes_string .= $html5_script_support ? ' ' . esc_attr( $attribute_name ) : sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_name ) );
+				$attributes_string .= ' ' . esc_attr( $attribute_name );
 			}
 		} else {
 			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
@@ -2901,17 +2865,10 @@ function wp_sanitize_script_attributes( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String containing `<script>` opening and closing tags.
  */
 function wp_get_script_tag( $attributes ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
-		$attributes = array_merge(
-			array( 'type' => 'text/javascript' ),
-			$attributes
-		);
-	}
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
@@ -2934,7 +2891,7 @@ function wp_get_script_tag( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_script_tag( $attributes ) {
 	echo wp_get_script_tag( $attributes );
@@ -2948,70 +2905,11 @@ function wp_print_script_tag( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
-	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
-	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
-		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
-		$attributes = array_merge(
-			array( 'type' => 'text/javascript' ),
-			$attributes
-		);
-	}
-
-	/*
-	 * XHTML extracts the contents of the SCRIPT element and then the XML parser
-	 * decodes character references and other syntax elements. This can lead to
-	 * misinterpretation of the script contents or invalid XHTML documents.
-	 *
-	 * Wrapping the contents in a CDATA section instructs the XML parser not to
-	 * transform the contents of the SCRIPT element before passing them to the
-	 * JavaScript engine.
-	 *
-	 * Example:
-	 *
-	 *     <script>console.log('&hellip;');</script>
-	 *
-	 *     In an HTML document this would print "&hellip;" to the console,
-	 *     but in an XHTML document it would print "…" to the console.
-	 *
-	 *     <script>console.log('An image is <img> in HTML');</script>
-	 *
-	 *     In an HTML document this would print "An image is <img> in HTML",
-	 *     but it's an invalid XHTML document because it interprets the `<img>`
-	 *     as an empty tag missing its closing `/`.
-	 *
-	 * @see https://www.w3.org/TR/xhtml1/#h-4.8
-	 */
-	if (
-		! $is_html5 &&
-		(
-			! isset( $attributes['type'] ) ||
-			'module' === $attributes['type'] ||
-			str_contains( $attributes['type'], 'javascript' ) ||
-			str_contains( $attributes['type'], 'ecmascript' ) ||
-			str_contains( $attributes['type'], 'jscript' ) ||
-			str_contains( $attributes['type'], 'livescript' )
-		)
-	) {
-		/*
-		 * If the string `]]>` exists within the JavaScript it would break
-		 * out of any wrapping CDATA section added here, so to start, it's
-		 * necessary to escape that sequence which requires splitting the
-		 * content into two CDATA sections wherever it's found.
-		 *
-		 * Note: it's only necessary to escape the closing `]]>` because
-		 * an additional `<![CDATA[` leaves the contents unchanged.
-		 */
-		$data = str_replace( ']]>', ']]]]><![CDATA[>', $data );
-
-		// Wrap the entire escaped script inside a CDATA section.
-		$data = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $data );
-	}
-
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
 
 	/**
@@ -3019,10 +2917,10 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param array  $attributes Key-value pairs representing `<script>` tag attributes.
-	 *                           Only the attribute name is added to the `<script>` tag for
-	 *                           entries with a boolean value, and that are true.
-	 * @param string $data       Inline data.
+	 * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                                               Only the attribute name is added to the `<script>` tag for
+	 *                                               entries with a boolean value, and that are true.
+	 * @param string                     $data       Inline data.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
@@ -3037,8 +2935,8 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
  *
  * @since 5.7.0
  *
- * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_inline_script_tag( $data, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $data, $attributes );
@@ -3081,7 +2979,18 @@ function wp_maybe_inline_styles() {
 		$path = $wp_styles->get_data( $handle, 'path' );
 		if ( $path && $src ) {
 			$size = wp_filesize( $path );
-			if ( ! $size ) {
+			if ( 0 === $size && ! file_exists( $path ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: 'path', 2: filesystem path, 3: style handle */
+						__( 'Unable to read the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
+						'path',
+						esc_html( $path ),
+						esc_html( $handle )
+					),
+					'7.0.0'
+				);
 				continue;
 			}
 			$styles[] = array(
@@ -3098,7 +3007,7 @@ function wp_maybe_inline_styles() {
 		usort(
 			$styles,
 			static function ( $a, $b ) {
-				return ( $a['size'] <= $b['size'] ) ? -1 : 1;
+				return $a['size'] <=> $b['size'];
 			}
 		);
 
@@ -3119,6 +3028,20 @@ function wp_maybe_inline_styles() {
 			}
 
 			// Get the styles if we don't already have them.
+			if ( ! is_readable( $style['path'] ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: 'path', 2: filesystem path, 3: style handle */
+						__( 'Unable to read the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
+						'path',
+						esc_html( $style['path'] ),
+						esc_html( $style['handle'] )
+					),
+					'7.0.0'
+				);
+				continue;
+			}
 			$style['css'] = file_get_contents( $style['path'] );
 
 			/*
@@ -3217,7 +3140,10 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
 	add_action(
 		$action_hook_name,
 		static function () use ( $style ) {
-			echo "<style>$style</style>\n";
+			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+			$processor->next_tag();
+			$processor->set_modifiable_text( $style );
+			echo "{$processor->get_updated_html()}\n";
 		},
 		$priority
 	);
@@ -3231,7 +3157,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *
  * @since 6.1.0
  *
- * @param array $options {
+ * @param array<string, bool> $options {
  *     Optional. An array of options to pass to wp_style_engine_get_stylesheet_from_context().
  *     Default empty array.
  *
@@ -3303,8 +3229,8 @@ function wp_enqueue_stored_styles( $options = array() ) {
  *
  * @since 5.9.0
  *
- * @param string $block_name The block-name, including namespace.
- * @param array  $args       {
+ * @param string                                   $block_name The block-name, including namespace.
+ * @param array<string, string|string[]|bool|null> $args       {
  *     An array of arguments. See wp_register_style() for full information about each argument.
  *
  *     @type string           $handle The handle for the stylesheet.
@@ -3572,7 +3498,7 @@ function wp_enqueue_command_palette_assets() {
  *     'sayHello();' === wp_remove_surrounding_empty_script_tags( $js );
  *
  *     // Otherwise if anything is different it warns in the JS console.
- *     $js = '<script type="text/javascript">console.log( "hi" );</script>';
+ *     $js = '<script type="module">console.log( "hi" );</script>';
  *     'console.error( ... )' === wp_remove_surrounding_empty_script_tags( $js );
  *
  * @since 6.4.0
