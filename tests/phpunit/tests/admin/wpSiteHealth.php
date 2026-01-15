@@ -576,13 +576,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Helper method to set up WP_Site_Health instance with debug properties.
 	 *
-	 * @param bool      $wp_debug         Value for wp_debug property.
-	 * @param bool      $wp_debug_log     Value for wp_debug_log property.
-	 * @param bool|null $wp_debug_display Value for wp_debug_display property.
+	 * @ticket 64071
+	 *
+	 * @param bool        $wp_debug         Value for wp_debug property.
+	 * @param bool|string $wp_debug_log     Value for wp_debug_log property.
+	 * @param bool|null   $wp_debug_display Value for wp_debug_display property.
 	 *
 	 * @return WP_Site_Health
 	 */
-	private function setup_site_health_with_debug_properties( bool $wp_debug = false, bool $wp_debug_log = false, ?bool $wp_debug_display = null ) {
+	private function setup_site_health_with_debug_properties( bool $wp_debug = false, $wp_debug_log = false, ?bool $wp_debug_display = null ) {
 		$site_health = new WP_Site_Health();
 		$reflection  = new ReflectionClass( $site_health );
 
@@ -610,6 +612,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Helper method to set error_log ini setting and restore it later.
 	 *
+	 * @ticket 64071
+	 *
 	 * @param string $log_path Path to set for error_log.
 	 *
 	 * @return string|false Original error_log value.
@@ -623,6 +627,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Helper method to restore error_log ini setting.
 	 *
+	 * @ticket 64071
+	 *
 	 * @param string|false $original_value Original error_log value.
 	 */
 	private function restore_error_log_path( $original_value ) {
@@ -631,6 +637,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Returns the expected result array when debug mode is disabled.
+	 *
+	 * @ticket 64071
 	 *
 	 * @return array
 	 */
@@ -648,6 +656,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Returns the expected result array when debug log is in a public location.
+	 *
+	 * @ticket 64071
 	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
 	 *
@@ -672,6 +682,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Returns the expected result array when debug log is in a private location.
 	 *
+	 * @ticket 64071
+	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
 	 *
 	 * @return array
@@ -694,6 +706,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Returns the expected result array when debug log path does not exist.
+	 *
+	 * @ticket 64071
 	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
 	 *
@@ -718,6 +732,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tests get_test_is_in_debug_mode() when debug mode is disabled.
 	 *
+	 * @ticket 64071
+	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_disabled() {
@@ -735,6 +751,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Tests get_test_is_in_debug_mode() when WP_DEBUG is enabled without error logging.
+	 *
+	 * @ticket 64071
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
@@ -755,6 +773,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tests get_test_is_in_debug_mode() when error log is in a public location.
 	 *
+	 * @ticket 64071
+	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_public() {
@@ -773,6 +793,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Tests get_test_is_in_debug_mode() when error log is public without WP_DEBUG_LOG.
+	 *
+	 * @ticket 64071
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
@@ -793,6 +815,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tests get_test_is_in_debug_mode() when error log is in a private location.
 	 *
+	 * @ticket 64071
+	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_private() {
@@ -811,6 +835,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Tests get_test_is_in_debug_mode() when error log is private without WP_DEBUG_LOG.
+	 *
+	 * @ticket 64071
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
@@ -831,6 +857,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tests get_test_is_in_debug_mode() when error log path cannot be determined.
 	 *
+	 * @ticket 64071
+	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_non_existent() {
@@ -850,6 +878,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tests get_test_is_in_debug_mode() when error log path cannot be determined and WP_DEBUG_LOG is not defined.
 	 *
+	 * @ticket 64071
+	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_non_existent_without_wp_debug_log() {
@@ -868,6 +898,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Tests get_test_is_in_debug_mode() when WP_DEBUG_DISPLAY is enabled in production.
+	 *
+	 * @ticket 64071
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
@@ -904,6 +936,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tests get_test_is_in_debug_mode() when WP_DEBUG_DISPLAY is enabled in development.
 	 *
+	 * @ticket 64071
+	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_display_enabled_development() {
@@ -938,6 +972,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Tests get_test_is_in_debug_mode() validates actual_result structure.
+	 *
+	 * @ticket 64071
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
