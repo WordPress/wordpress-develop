@@ -377,6 +377,7 @@ class WP_Block {
 			return $block_content;
 		}
 		$attribute = $block_type->attributes[ $attribute_name ];
+		$attribute = apply_filters( 'block_bindings_attribute_replaced_in_markup', $attribute, $attribute_name, $this->name );
 
 		if ( ! isset( $attribute['source'] ) ) {
 			return $block_content;
