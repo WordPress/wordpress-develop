@@ -625,7 +625,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @param string|false $original_value Original error_log value.
 	 */
-	private function restore_error_log_path( string|false $original_value = '' ) {
+	private function restore_error_log_path( $original_value ) {
 		ini_set( 'error_log', $original_value );
 	}
 

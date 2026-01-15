@@ -72,7 +72,7 @@ class WP_Site_Health {
 
 		$this->wp_debug         = defined( 'WP_DEBUG' ) && WP_DEBUG;
 		$this->wp_debug_log     = defined( 'WP_DEBUG_LOG' ) ? WP_DEBUG_LOG : false;
-		$this->wp_debug_display = defined( 'WP_DEBUG_DISPLAY' ) && WP_DEBUG_DISPLAY ? WP_DEBUG_DISPLAY : null;
+		$this->wp_debug_display = defined( 'WP_DEBUG_DISPLAY' ) ? WP_DEBUG_DISPLAY : null;
 	}
 
 	/**
