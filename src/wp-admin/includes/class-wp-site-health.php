@@ -71,7 +71,7 @@ class WP_Site_Health {
 		add_action( 'site_health_tab_content', array( $this, 'show_site_health_tab' ) );
 
 		$this->wp_debug         = defined( 'WP_DEBUG' ) && WP_DEBUG;
-		$this->wp_debug_log     = defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG;
+		$this->wp_debug_log     = defined( 'WP_DEBUG_LOG' ) ? WP_DEBUG_LOG : false;
 		$this->wp_debug_display = defined( 'WP_DEBUG_DISPLAY' ) && WP_DEBUG_DISPLAY ? WP_DEBUG_DISPLAY : null;
 	}
 
@@ -1402,7 +1402,17 @@ class WP_Site_Health {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array<string, string|array<string, string>> The test results.
+	 * @return array{
+	 *     label: string,
+	 *     status: string,
+	 *     badge: array{
+	 *         label: string,
+	 *         color: string
+	 *     },
+	 *     description: string,
+	 *     actions: string,
+	 *     test: string
+	 * } The test results.
 	 */
 	public function get_test_is_in_debug_mode() {
 		$result = array(

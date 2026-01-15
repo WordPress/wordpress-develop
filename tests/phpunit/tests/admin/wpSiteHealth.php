@@ -612,7 +612,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @param string $log_path Path to set for error_log.
 	 *
-	 * @return string Original error_log value.
+	 * @return string|false Original error_log value.
 	 */
 	private function set_error_log_path( string $log_path = '' ) {
 		$original_error_log = ini_get( 'error_log' );
@@ -623,9 +623,9 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Helper method to restore error_log ini setting.
 	 *
-	 * @param string $original_value Original error_log value.
+	 * @param string|false $original_value Original error_log value.
 	 */
-	private function restore_error_log_path( string $original_value = '' ) {
+	private function restore_error_log_path( string|false $original_value = '' ) {
 		ini_set( 'error_log', $original_value );
 	}
 
