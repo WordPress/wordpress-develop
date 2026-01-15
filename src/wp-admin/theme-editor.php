@@ -493,7 +493,6 @@ else :
 		<?php wp_print_file_editor_templates(); ?>
 	</form>
 
-	<!-- Download Theme form placed below the Update File button -->
 	<form action="theme-editor.php" method="post" style="margin-top:8px;">
 		<?php wp_nonce_field( 'download-theme_' . $stylesheet, '_wpnonce' ); ?>
 		<input type="hidden" name="action" value="download_theme" />
