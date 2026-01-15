@@ -916,6 +916,7 @@ async function main() {
 						// Only copy react-jsx-runtime files, skip react and react-dom
 						const vendorFiles = fs.readdirSync( src );
 						let copiedCount = 0;
+						fs.mkdirSync( dest, { recursive: true } );
 						for ( const file of vendorFiles ) {
 							if (
 								file.startsWith( 'react-jsx-runtime' ) &&
@@ -923,7 +924,6 @@ async function main() {
 							) {
 								const srcFile = path.join( src, file );
 								const destFile = path.join( dest, file );
-								fs.mkdirSync( dest, { recursive: true } );
 
 								let content = fs.readFileSync(
 									srcFile,
