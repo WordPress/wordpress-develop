@@ -1,4 +1,5 @@
 const mediaConfig = require( './tools/webpack/media' );
+const developmentConfig = require( './tools/webpack/development' );
 
 module.exports = function (
 	env = { environment: 'production', watch: false, buildTarget: false }
@@ -11,10 +12,13 @@ module.exports = function (
 		env.buildTarget = env.mode === 'production' ? 'build/' : 'src/';
 	}
 
-	// Only building Core-specific media files.
+	// Only building Core-specific media files and development scripts.
 	// Blocks, packages, script modules, and vendors are now sourced from
 	// the Gutenberg build (see tools/gutenberg/copy-gutenberg-build.js).
-	const config = [ mediaConfig( env ) ];
+	const config = [
+		mediaConfig( env ),
+		developmentConfig( env ),
+	];
 
 	return config;
 };
