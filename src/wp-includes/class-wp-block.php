@@ -377,6 +377,30 @@ class WP_Block {
 			return $block_content;
 		}
 		$attribute = $block_type->attributes[ $attribute_name ];
+		/**
+		 * Modify an attribute's properties (for the purposes of being replaced in the block markup).
+		 *
+		 * By default, Block Bindings will replace sourced attributes in the markup with
+		 * the value from the source. However, some blocks persist attribute values explicitly
+		 * and still duplicate them in the markup. In those cases, this filter allows marking
+		 * them as "pseudo-sourced", so that they will also be replaced with the bound value.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @example function( $attribute, $attribute_name, $block_name ) {
+		 *   if ( 'core/cover' === $block_name && 'url' === $attribute_name ) {
+		 * 	   $attribute['source']    = 'attribute';
+		 * 	   $attribute['selector']  = 'img';
+		 * 	   $attribute['attribute'] = 'src';
+		 *   }
+		 *   return $attribute;
+		 * }
+		 *
+		 * @param array  $attribute      The attribute properties.
+		 * @param string $attribute_name The attribute name.
+		 * @param string $block_name     The block name.
+		 * @return array The modified attribute properties.
+		 */
 		$attribute = apply_filters( 'block_bindings_attribute_replaced_in_markup', $attribute, $attribute_name, $this->name );
 
 		if ( ! isset( $attribute['source'] ) ) {
