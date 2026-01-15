@@ -377,6 +377,7 @@ class WP_Block {
 			return $block_content;
 		}
 		$attribute = $block_type->attributes[ $attribute_name ];
+
 		/**
 		 * Modify an attribute's properties (for the purposes of being replaced in the block markup).
 		 *
