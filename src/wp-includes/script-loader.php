@@ -2874,8 +2874,6 @@ function wp_enqueue_editor_format_library_assets() {
 /**
  * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
  *
- * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
- *
  * @since 5.7.0
  *
  * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
