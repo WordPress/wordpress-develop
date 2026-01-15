@@ -83,7 +83,7 @@ if ( 'download_theme' === $action ) {
 		wp_die( '<p>' . __( 'Sorry, you are not allowed to download themes for this site.' ) . '</p>' );
 	}
 
-	// Verify nonce (accept either _wpnonce or nonce parameter for compatibility).
+	// Verify nonce.
 	if ( ! check_admin_referer( 'download-theme_' . $stylesheet ) ) {
 		wp_die( '<p>' . __( 'Security check failed.' ) . '</p>' );
 	}
