@@ -114,9 +114,9 @@ if ( 'download_theme' === $action ) {
 			if ( $file->isDir() ) {
 				continue;
 			}
-			$filePath = $file->getRealPath();
-			$relativePath = substr( $filePath, strlen( $theme_dir ) + 1 );
-			$zip->addFile( $filePath, $stylesheet . '/' . $relativePath );
+			$file_path     = $file->getRealPath();
+			$relative_path = substr( $file_path, strlen( $theme_dir ) + 1 );
+			$zip->addFile( $file_path, $stylesheet . '/' . $relative_path );
 		}
 
 		$zip->close();
