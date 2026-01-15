@@ -492,7 +492,7 @@ else :
 		<?php wp_print_file_editor_templates(); ?>
 	</form>
 
-	<form action="theme-editor.php" method="post" style="margin-top:8px;">
+	<form action="theme-editor.php" method="post" class="download-theme-form">
 		<?php wp_nonce_field( 'download-theme_' . $stylesheet ); ?>
 		<input type="hidden" name="action" value="download_theme" />
 		<input type="hidden" name="theme" value="<?php echo esc_attr( $stylesheet ); ?>" />
