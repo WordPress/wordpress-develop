@@ -372,19 +372,25 @@ class WP_Block {
 	 */
 	private function replace_html( string $block_content, string $attribute_name, $source_value ) {
 		$block_type = $this->block_type;
-		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
+
+		if ( ! isset( $block_type->attributes[ $attribute_name ] ) ) {
+			return $block_content;
+		}
+		$attribute = $block_type->attributes[ $attribute_name ];
+
+		if ( ! isset( $attribute['source'] ) ) {
 			return $block_content;
 		}
 
 		// Depending on the attribute source, the processing will be different.
-		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
+		switch ( $attribute['source'] ) {
 			case 'html':
 			case 'rich-text':
 				$block_reader = self::get_block_bindings_processor( $block_content );
 
 				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
 				// In the meantime, support comma-separated selectors by exploding them into an array.
-				$selectors = explode( ',', $block_type->attributes[ $attribute_name ]['selector'] );
+				$selectors = explode( ',', $attribute['selector'] );
 				// Add a bookmark to the first tag to be able to iterate over the selectors.
 				$block_reader->next_tag();
 				$block_reader->set_bookmark( 'iterate-selectors' );
@@ -412,12 +418,12 @@ class WP_Block {
 				if ( ! $amended_content->next_tag(
 					array(
 						// TODO: build the query from CSS selector.
-						'tag_name' => $block_type->attributes[ $attribute_name ]['selector'],
+						'tag_name' => $attribute['selector'],
 					)
 				) ) {
 					return $block_content;
 				}
-				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
+				$amended_content->set_attribute( $attribute['attribute'], $source_value );
 				return $amended_content->get_updated_html();
 
 			default:
