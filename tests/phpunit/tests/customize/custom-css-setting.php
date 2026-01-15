@@ -282,7 +282,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		);
 		$output   = get_echo( 'wp_custom_css_cb' );
 		$expected = <<<'HTML'
-<style id="wp-custom-css" type="text/css">
+<style id="wp-custom-css">
 *::before { content: "\3c\2fstyle><script>alert(1)</script>"; }
 </style>
 HTML;
