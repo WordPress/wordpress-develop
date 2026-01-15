@@ -27,7 +27,7 @@ class Tests_Dependencies_wpScriptTag extends WP_UnitTestCase {
 	 */
 	public function test_get_script_tag_type_not_set() {
 		$this->assertEqualHTML(
-			"<script src='https://localhost/PATH/FILE.js' nomodule></script>\n",
+			'<script src="https://localhost/PATH/FILE.js" nomodule></script>' . "\n",
 			wp_get_script_tag(
 				array(
 					'src'      => 'https://localhost/PATH/FILE.js',
