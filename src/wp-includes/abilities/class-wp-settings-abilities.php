@@ -32,6 +32,14 @@ class WP_Settings_Abilities {
 	private static $available_groups;
 
 	/**
+	 * Dynamic output schema built from registered settings.
+	 *
+	 * @since 6.9.0
+	 * @var array
+	 */
+	private static $output_schema;
+
+	/**
 	 * Registers all settings abilities.
 	 *
 	 * @since 6.9.0
@@ -52,6 +60,7 @@ class WP_Settings_Abilities {
 	 */
 	private static function init(): void {
 		self::$available_groups = self::get_available_groups();
+		self::$output_schema    = self::build_output_schema();
 	}
 
 	/**
@@ -81,6 +90,85 @@ class WP_Settings_Abilities {
 	}
 
 	/**
+	 * Builds a rich output schema from registered settings metadata.
+	 *
+	 * Creates a JSON Schema that documents each setting group and its settings
+	 * with their types, titles, descriptions, defaults, and any additional
+	 * schema properties from show_in_rest.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return array JSON Schema for the output.
+	 */
+	private static function build_output_schema(): array {
+		$group_properties = array();
+
+		foreach ( get_registered_settings() as $option_name => $args ) {
+			if ( empty( $args['show_in_rest'] ) ) {
+				continue;
+			}
+
+			$group = $args['group'] ?? 'general';
+
+			// Determine the REST name (may be aliased via show_in_rest.name).
+			$rest_name = $option_name;
+			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ) {
+				$rest_name = $args['show_in_rest']['name'];
+			}
+
+			// Build setting schema from registered metadata.
+			$setting_schema = array(
+				'type' => $args['type'] ?? 'string',
+			);
+
+			// Add title from label if available.
+			if ( ! empty( $args['label'] ) ) {
+				$setting_schema['title'] = $args['label'];
+			}
+
+			// Use description if set, otherwise fall back to label.
+			if ( ! empty( $args['description'] ) ) {
+				$setting_schema['description'] = $args['description'];
+			} elseif ( ! empty( $args['label'] ) ) {
+				$setting_schema['description'] = $args['label'];
+			}
+
+			// Include default if set.
+			if ( isset( $args['default'] ) ) {
+				$setting_schema['default'] = $args['default'];
+			}
+
+			// Merge any schema from show_in_rest (enum, format, etc.).
+			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['schema'] ) ) {
+				$setting_schema = array_merge( $setting_schema, $args['show_in_rest']['schema'] );
+			}
+
+			// Initialize group if needed.
+			if ( ! isset( $group_properties[ $group ] ) ) {
+				$group_properties[ $group ] = array(
+					'type'        => 'object',
+					'description' => sprintf(
+						/* translators: %s: Settings group name. */
+						__( '%s settings.' ),
+						ucfirst( $group )
+					),
+					'properties'  => array(),
+				);
+			}
+
+			$group_properties[ $group ]['properties'][ $rest_name ] = $setting_schema;
+		}
+
+		ksort( $group_properties );
+
+		return array(
+			'type'        => 'object',
+			'description' => __( 'Settings grouped by registration group. Each group contains settings with their current values.' ),
+			'properties'  => $group_properties,
+		);
+	}
+
+	/**
 	 * Registers the core/get-settings ability.
 	 *
 	 * @since 6.9.0
@@ -106,15 +194,7 @@ class WP_Settings_Abilities {
 					'additionalProperties' => false,
 					'default'              => array(),
 				),
-				'output_schema'       => array(
-					'type'                 => 'object',
-					'description'          => __( 'Settings grouped by registration group. Each group contains key-value pairs where the key is the setting name (or REST alias) and the value is the current setting value.' ),
-					'additionalProperties' => array(
-						'type'                 => 'object',
-						'description'          => __( 'A settings group containing setting name to value mappings.' ),
-						'additionalProperties' => true,
-					),
-				),
+				'output_schema'       => self::$output_schema,
 				'execute_callback'    => array( __CLASS__, 'execute_get_settings' ),
 				'permission_callback' => array( __CLASS__, 'check_manage_options' ),
 				'meta'                => array(
