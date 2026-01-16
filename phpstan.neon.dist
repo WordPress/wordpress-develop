@@ -5,8 +5,9 @@
 # https://phpstan.org/config-reference
 
 includes:
-	# The WordPress Core configuration file includes the base configuration for the WordPress codebase.
+	# The base configuration file for using PHPStan with the WordPress core codebase.
 	- tests/phpstan/base.neon
+
 	# The baseline file includes preexisting errors in the codebase that should be ignored.
 	# https://phpstan.org/user-guide/baseline
 	- tests/phpstan/baseline.php
@@ -14,7 +15,7 @@ includes:
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
 	level: 0
-	reportUnmatchedIgnoredErrors: false
+	reportUnmatchedIgnoredErrors: true
 
 	ignoreErrors:
 		# Level 0:

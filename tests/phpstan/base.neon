@@ -9,7 +9,9 @@ parameters:
 	tmpDir: ../../.cache
 
 	# The Minimum PHP Version
-	phpVersion: 70224
+	phpVersion:
+		min: 70400
+		max: 80500
 
 	# If it's not enforced by PHP we can't assume users are passing valid values.
 	treatPhpDocTypesAsCertain: false
