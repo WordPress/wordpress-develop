@@ -789,7 +789,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	 * Redirecting between these variants provides no SEO or functional benefit
 	 * while potentially causing caching issues and breaking analytics.
 	 */
-	if ( $redirect_url && urldecode( $redirect_url ) === urldecode( $requested_url ) ) {
+	if ( urldecode( $redirect_url ) === urldecode( $requested_url ) ) {
 		return;
 	}
 
