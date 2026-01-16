@@ -21,7 +21,7 @@ class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
 		if ( function_exists( '\ini_parse_quantity' ) ) {
 			$this->assertSame(
 				ini_parse_quantity( $ini_value ),
-				wp_ini_parse_quantity( $ini_value),
+				wp_ini_parse_quantity( $ini_value ),
 				'Failed to match PHP’s internal reporting.'
 			);
 		} else {
@@ -52,7 +52,7 @@ class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
 			// Invalid data types.
 			array( true, 0 ),
 			array( array( 1, 2, 3 ), 0 ),
-			array( new stdClass, 0 ),
+			array( new stdClass(), 0 ),
 
 			// Non-suffixes clamp.
 			array( 8 === PHP_INT_SIZE ? '9223372036854775808' : '2147483648', PHP_INT_MAX ),
