@@ -173,7 +173,7 @@ class WP_Settings_Abilities {
 			'core/get-settings',
 			array(
 				'label'               => __( 'Get Settings' ),
-				'description'         => __( 'Returns registered WordPress settings exposed to the REST API, grouped by their registration group. Returns key-value pairs similar to the REST API settings endpoint.' ),
+				'description'         => __( 'Returns registered WordPress settings grouped by their registration group. Returns key-value pairs per setting.' ),
 				'category'            => 'site',
 				'input_schema'        => array(
 					'type'                 => 'object',
