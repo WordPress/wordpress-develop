@@ -239,14 +239,14 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_multiple_viewport_sizes() {
+	public function test_block_visibility_support_generated_css_with_two_viewport_sizes() {
 		$this->register_visibility_block_with_support(
-			'test/viewport-multiple',
+			'test/viewport-two',
 			array( 'visibility' => true )
 		);
 
 		$block = array(
-			'blockName' => 'test/viewport-multiple',
+			'blockName' => 'test/viewport-two',
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
@@ -334,7 +334,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div>Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertSame( '', $result, 'Block content should be empty when all breakpoints are hidden.' );
+		$this->assertSame( '<div class="wp-block-hidden-desktop wp-block-hidden-mobile wp-block-hidden-tablet">Test content</div>', $result, 'Block content should have the visibility classes for all viewport sizes in the class attribute.' );
 	}
 
 	/*

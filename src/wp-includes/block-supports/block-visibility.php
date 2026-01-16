@@ -60,6 +60,11 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 			array(
 				'name' => 'Desktop',
 				'slug' => 'desktop',
+				/*
+				 * Note: the last item in the $viewport_sizes array does not technically require a size,
+				 * as the last item's media query is calculated using `width > previous size`.
+				 * It's included for consistency and as a record of the "official" breakpoint size.
+				 */
 				'size' => '960px',
 			),
 		);
@@ -101,16 +106,6 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 		// If no viewport sizes have visibility set to false, return unchanged.
 		if ( empty( $hidden_on ) ) {
 			return $block_content;
-		}
-
-		/*
-		 * If the block is hidden on all viewport sizes,
-		 * do not render the block. If these values ever become user-defined,
-		 * we might need to output the CSS regardless of the viewport size count.
-		 * For example, if there is one viewport size defined and it's hidden.
-		 */
-		if ( count( $hidden_on ) === count( $viewport_media_queries ) ) {
-			return '';
 		}
 
 		// Maintain consistent order of viewport sizes for class name generation.
