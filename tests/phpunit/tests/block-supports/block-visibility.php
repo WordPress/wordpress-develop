@@ -131,7 +131,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_mobile_breakpoint() {
+	public function test_block_visibility_support_generated_css_with_mobile_viewport_size() {
 		$this->register_visibility_block_with_support(
 			'test/viewport-mobile',
 			array( 'visibility' => true )
@@ -142,7 +142,9 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
-						'mobile' => false,
+						'viewport' => array(
+							'mobile' => false,
+						),
 					),
 				),
 			),
@@ -165,7 +167,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_tablet_breakpoint() {
+	public function test_block_visibility_support_generated_css_with_tablet_viewport_size() {
 		$this->register_visibility_block_with_support(
 			'test/viewport-tablet',
 			array( 'visibility' => true )
@@ -176,7 +178,9 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
-						'tablet' => false,
+						'viewport' => array(
+							'tablet' => false,
+						),
 					),
 				),
 			),
@@ -233,7 +237,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_multiple_breakpoints() {
+	public function test_block_visibility_support_generated_css_with_multiple_viewport_sizes() {
 		$this->register_visibility_block_with_support(
 			'test/viewport-multiple',
 			array( 'visibility' => true )
@@ -244,8 +248,10 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
-						'mobile'  => false,
-						'desktop' => false,
+						'viewport' => array(
+							'mobile'  => false,
+							'desktop' => false,
+						),
 					),
 				),
 			),
@@ -272,7 +278,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_all_breakpoints_visible() {
+	public function test_block_visibility_support_generated_css_with_all_viewport_sizes_visible() {
 		$this->register_visibility_block_with_support(
 			'test/viewport-all-visible',
 			array( 'visibility' => true )
@@ -283,9 +289,11 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
-						'mobile'  => true,
-						'tablet'  => true,
-						'desktop' => true,
+						'viewport' => array(
+							'mobile'  => true,
+							'tablet'  => true,
+							'desktop' => true,
+						),
 					),
 				),
 			),
@@ -300,7 +308,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_all_breakpoints_hidden() {
+	public function test_block_visibility_support_generated_css_with_all_viewport_sizes_hidden() {
 		$this->register_visibility_block_with_support(
 			'test/viewport-all-hidden',
 			array( 'visibility' => true )
@@ -311,9 +319,11 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
-						'mobile'  => false,
-						'tablet'  => false,
-						'desktop' => false,
+						'viewport' => array(
+							'mobile'  => false,
+							'tablet'  => false,
+							'desktop' => false,
+						),
 					),
 				),
 			),
@@ -352,20 +362,22 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_unknown_breakpoints_ignored() {
+	public function test_block_visibility_support_generated_css_with_unknown_viewport_sizes_ignored() {
 		$this->register_visibility_block_with_support(
-			'test/viewport-unknown-breakpoints',
+			'test/viewport-unknown-viewport-sizes',
 			array( 'visibility' => true )
 		);
 
 		$block = array(
-			'blockName' => 'test/viewport-unknown-breakpoints',
+			'blockName' => 'test/viewport-unknown-viewport-sizes',
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
-						'mobile'       => false,
-						'unknownBreak' => false,
-						'largeScreen'  => false,
+						'viewport' => array(
+							'mobile'       => false,
+							'unknownBreak' => false,
+							'largeScreen'  => false,
+						),
 					),
 				),
 			),
@@ -395,7 +407,9 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
-						'mobile' => false,
+						'viewport' => array(
+							'mobile' => false,
+						),
 					),
 				),
 			),

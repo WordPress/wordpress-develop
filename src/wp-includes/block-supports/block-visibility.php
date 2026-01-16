@@ -31,6 +31,11 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 	}
 
 	if ( is_array( $block_visibility ) && ! empty( $block_visibility ) ) {
+		$viewport_config = $block_visibility['viewport'] ?? null;
+
+		if ( ! is_array( $viewport_config ) || empty( $viewport_config ) ) {
+			return $block_content;
+		}
 		/*
 		 * Breakpoints definitions are in several places in WordPress packages.
 		 * The following are taken from: https://github.com/WordPress/gutenberg/blob/trunk/packages/base-styles/_breakpoints.scss
@@ -86,29 +91,29 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 
 		$hidden_on = array();
 
-		// Collect which breakpoints the block is hidden on (only known breakpoints).
-		foreach ( $block_visibility as $breakpoint => $is_visible ) {
+		// Collect which viewport the block is hidden on (only known viewport sizes).
+		foreach ( $viewport_config as $breakpoint => $is_visible ) {
 			if ( false === $is_visible && isset( $breakpoint_queries[ $breakpoint ] ) ) {
 				$hidden_on[] = $breakpoint;
 			}
 		}
 
-		// If no breakpoints have visibility set to false, return unchanged.
+		// If no viewport sizes have visibility set to false, return unchanged.
 		if ( empty( $hidden_on ) ) {
 			return $block_content;
 		}
 
 		/*
-		 * If the block is hidden on all breakpoints,
+		 * If the block is hidden on all viewport sizes,
 		 * do not render the block. If these values ever become user-defined,
-		 * we might need to output the CSS regardless of the breakpoint count.
-		 * For example, if there is one breakpoint defined and it's hidden.
+		 * we might need to output the CSS regardless of the viewport size count.
+		 * For example, if there is one viewport size defined and it's hidden.
 		 */
 		if ( count( $hidden_on ) === count( $breakpoint_queries ) ) {
 			return '';
 		}
 
-		// Maintain consistent order of breakpoints for class name generation.
+		// Maintain consistent order of viewport sizes for class name generation.
 		sort( $hidden_on );
 
 		$css_rules   = array();
