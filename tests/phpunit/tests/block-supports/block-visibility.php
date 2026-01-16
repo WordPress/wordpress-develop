@@ -214,7 +214,9 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
-						'desktop' => false,
+						'viewport' => array(
+							'desktop' => false,
+						),
 					),
 				),
 			),
