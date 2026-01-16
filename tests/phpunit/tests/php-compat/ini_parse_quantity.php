@@ -3,7 +3,7 @@
 /**
  * Tests for PHP compatability functions.
  *
- * @group php-compat.php
+ * @group compat-php
  * @covers ::wp_ini_parse_quantity
  */
 class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {

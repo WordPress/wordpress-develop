@@ -5,8 +5,6 @@
  * @package WordPress
  */
 
-require_once __DIR__ . '/php-compat.php';
-
 /**
  * Returns the HTTP protocol sent by the server.
  *
