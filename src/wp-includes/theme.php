@@ -2136,9 +2136,9 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 	$post = wp_get_custom_css_post( $args['stylesheet'] );
 
 	// Remove KSES HTML filters to prevent CSS mangling.
-	$priority = has_filter( 'content_save_pre', 'wp_filter_post_kses' );
-	if ( false !== $priority ) {
-		remove_filter( 'content_save_pre', 'wp_filter_post_kses', $priority );
+	$kses_filter_priority = has_filter( 'content_save_pre', 'wp_filter_post_kses' );
+	if ( false !== $kses_filter_priority ) {
+		remove_filter( 'content_save_pre', 'wp_filter_post_kses', $kses_filter_priority );
 	}
 
 	if ( $post ) {
@@ -2160,8 +2160,8 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 		}
 	}
 
-	if ( false !== $priority ) {
-		add_filter( 'content_save_pre', 'wp_filter_post_kses', $priority );
+	if ( false !== $kses_filter_priority ) {
+		add_filter( 'content_save_pre', 'wp_filter_post_kses', $kses_filter_priority );
 	}
 
 	if ( is_wp_error( $r ) ) {
