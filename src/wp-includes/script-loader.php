@@ -166,6 +166,50 @@ function wp_default_packages_vendor( $scripts ) {
 }
 
 /**
+ * Registers development scripts that integrate with `@wordpress/scripts`.
+ *
+ * These scripts enable hot module replacement (HMR) for block development
+ * when using `wp-scripts start --hot`.
+ *
+ * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
+ *
+ * @since 6.0.0
+ *
+ * @param WP_Scripts $scripts WP_Scripts object.
+ */
+function wp_register_development_scripts( $scripts ) {
+	if (
+		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
+		|| empty( $scripts->registered['react'] )
+		|| defined( 'WP_RUN_CORE_TESTS' )
+	) {
+		return;
+	}
+
+	// React Refresh runtime - exposes ReactRefreshRuntime global.
+	// No dependencies.
+	$scripts->add(
+		'wp-react-refresh-runtime',
+		'/wp-includes/js/dist/development/react-refresh-runtime.js',
+		array(),
+		'0.14.0'
+	);
+
+	// React Refresh entry - injects runtime into global hook.
+	// Must load before React to set up hooks.
+	$scripts->add(
+		'wp-react-refresh-entry',
+		'/wp-includes/js/dist/development/react-refresh-entry.js',
+		array( 'wp-react-refresh-runtime' ),
+		'0.14.0'
+	);
+
+	// Add entry as a dependency of React so it loads first.
+	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
+	$scripts->registered['react']->deps[] = 'wp-react-refresh-entry';
+}
+
+/**
  * Returns contents of an inline script used in appending polyfill scripts for
  * browsers which fail the provided tests. The provided array is a mapping from
  * a condition to verify feature support to its polyfill script handle.
@@ -618,6 +662,7 @@ function wp_tinymce_inline_scripts() {
  */
 function wp_default_packages( $scripts ) {
 	wp_default_packages_vendor( $scripts );
+	wp_register_development_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
 
@@ -2518,35 +2563,43 @@ function wp_enqueue_global_styles() {
 	$stylesheet = wp_get_global_stylesheet();
 
 	/*
-	 * Dequeue the Customizer's custom CSS
-	 * and add it before the global styles custom CSS.
+	 * For block themes, merge Customizer's custom CSS into the global styles stylesheet
+	 * before the global styles custom CSS, ensuring proper cascade order.
+	 * For classic themes, let the Customizer CSS print separately via wp_custom_css_cb()
+	 * at priority 101 in wp_head, preserving its position at the end of the <head>.
 	 */
-	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+	if ( $is_block_theme ) {
+		/*
+		 * Dequeue the Customizer's custom CSS
+		 * and add it before the global styles custom CSS.
+		 */
+		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
 
-	/*
-	 * Get the custom CSS from the Customizer and add it to the global stylesheet.
-	 * Always do this in Customizer preview for the sake of live preview since it be empty.
-	 */
-	$custom_css = trim( wp_get_custom_css() );
-	if ( $custom_css || is_customize_preview() ) {
-		if ( is_customize_preview() ) {
-			/*
-			 * When in the Customizer preview, wrap the Custom CSS in milestone comments to allow customize-preview.js
-			 * to locate the CSS to replace for live previewing. Make sure that the milestone comments are omitted from
-			 * the stored Custom CSS if by chance someone tried to add them, which would be highly unlikely, but it
-			 * would break live previewing.
-			 */
-			$before_milestone = '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/';
-			$after_milestone  = '/*END_CUSTOMIZER_CUSTOM_CSS*/';
-			$custom_css       = str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
-			$custom_css       = $before_milestone . "\n" . $custom_css . "\n" . $after_milestone;
+		/*
+		 * Get the custom CSS from the Customizer and add it to the global stylesheet.
+		 * Always do this in Customizer preview for the sake of live preview since it be empty.
+		 */
+		$custom_css = trim( wp_get_custom_css() );
+		if ( $custom_css || is_customize_preview() ) {
+			if ( is_customize_preview() ) {
+				/*
+				 * When in the Customizer preview, wrap the Custom CSS in milestone comments to allow customize-preview.js
+				 * to locate the CSS to replace for live previewing. Make sure that the milestone comments are omitted from
+				 * the stored Custom CSS if by chance someone tried to add them, which would be highly unlikely, but it
+				 * would break live previewing.
+				 */
+				$before_milestone = '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/';
+				$after_milestone  = '/*END_CUSTOMIZER_CUSTOM_CSS*/';
+				$custom_css       = str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
+				$custom_css       = $before_milestone . "\n" . $custom_css . "\n" . $after_milestone;
+			}
+			$custom_css = "\n" . $custom_css;
 		}
-		$custom_css = "\n" . $custom_css;
-	}
-	$stylesheet .= $custom_css;
+		$stylesheet .= $custom_css;
 
-	// Add the global styles custom CSS at the end.
-	$stylesheet .= wp_get_global_stylesheet( array( 'custom-css' ) );
+		// Add the global styles custom CSS at the end.
+		$stylesheet .= wp_get_global_stylesheet( array( 'custom-css' ) );
+	}
 
 	if ( empty( $stylesheet ) ) {
 		return;
@@ -2875,7 +2928,31 @@ function wp_get_script_tag( $attributes ) {
 	 */
 	$attributes = apply_filters( 'wp_script_attributes', $attributes );
 
-	return sprintf( "<script%s></script>\n", wp_sanitize_script_attributes( $attributes ) );
+	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
+	$processor->next_tag();
+	foreach ( $attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the
+		 * same attribute in HTML, therefore it’s possible that the
+		 * input array might contain duplicate attributes even though
+		 * it’s keyed on their name. Calling code should rewrite an
+		 * attribute’s value rather than sending a duplicate attribute.
+		 *
+		 * Example:
+		 *
+		 *     array( 'id' => 'main', 'ID' => 'nav' )
+		 *
+		 * In this example, there are two keys both describing the `id`
+		 * attribute. PHP array iteration is in key-insertion order so
+		 * the 'id' value will be set in the SCRIPT tag.
+		 */
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
+		}
+
+		$processor->set_attribute( $name, $value ?? true );
+	}
+	return "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -2896,13 +2973,27 @@ function wp_print_script_tag( $attributes ) {
  * Constructs an inline script tag.
  *
  * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
- * Automatically injects type attribute if needed.
+ *
+ * If the `$data` is unsafe to embed in a `<script>` tag, an empty script tag with the provided
+ * attributes will be returned. JavaScript and JSON contents can be escaped, so this is only likely
+ * to be a problem with unusual content types.
+ *
+ * Example:
+ *
+ *     // The dangerous JavaScript in this example will be safely escaped.
+ *     // A string with the script tag and the desired contents will be returned.
+ *     wp_get_inline_script_tag( 'console.log( "</script>" );' );
+ *
+ *     // This data is unsafe and `text/plain` cannot be escaped.
+ *     // The following will return `""` to indicate failure:
+ *     wp_get_inline_script_tag( '</script>', array( 'type' => 'text/plain' ) );
  *
  * @since 5.7.0
+ * @since 7.0.0 Returns an empty string if the data cannot be safely embedded in a script tag.
  *
  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
- * @return string String containing inline JavaScript code wrapped around `<script>` tag.
+ * @return string HTML script tag containing the provided $data or the empty string `""` if the data cannot be safely embedded in a script tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
@@ -2919,7 +3010,41 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
-	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $data );
+	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
+	$processor->next_tag();
+	foreach ( $attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the
+		 * same attribute in HTML, therefore it’s possible that the
+		 * input array might contain duplicate attributes even though
+		 * it’s keyed on their name. Calling code should rewrite an
+		 * attribute’s value rather than sending a duplicate attribute.
+		 *
+		 * Example:
+		 *
+		 *     array( 'id' => 'main', 'ID' => 'nav' )
+		 *
+		 * In this example, there are two keys both describing the `id`
+		 * attribute. PHP array iteration is in key-insertion order so
+		 * the 'id' value will be set in the SCRIPT tag.
+		 */
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
+		}
+
+		$processor->set_attribute( $name, $value ?? true );
+	}
+
+	if ( ! $processor->set_modifiable_text( $data ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Unable to set inline script data.' ),
+			'7.0.0'
+		);
+		return '';
+	}
+
+	return "{$processor->get_updated_html()}\n";
 }
 
 /**
