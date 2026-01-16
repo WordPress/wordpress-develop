@@ -19,7 +19,7 @@ parameters:
 
 	ignoreErrors:
 		# Level 0:
-		- # Inner functions arent supported by PHPstan.
+		- # Inner functions aren't supported by PHPStan.
 			message: '#Function wxr_[a-z_]+ not found#'
 			path: src/wp-admin/includes/export.php
 		-

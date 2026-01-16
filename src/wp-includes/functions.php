@@ -3765,6 +3765,10 @@ function wp_nonce_ays( $action ) {
  *                                  is a WP_Error.
  *     @type bool   $exit           Whether to exit the process after completion. Default true.
  * }
+ *
+ * @return never|void Returns false if `$args['exit']` is false, otherwise exists.
+ *
+ * @phpstan-return ($args['exit'] is false ? void : never)
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
 	global $wp_query;
