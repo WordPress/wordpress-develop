@@ -24,6 +24,14 @@ declare( strict_types=1 );
 class WP_Settings_Abilities {
 
 	/**
+	 * Available setting groups with show_in_rest enabled.
+	 *
+	 * @since 6.9.0
+	 * @var array
+	 */
+	private static $available_groups;
+
+	/**
 	 * Registers all settings abilities.
 	 *
 	 * @since 6.9.0
@@ -31,7 +39,45 @@ class WP_Settings_Abilities {
 	 * @return void
 	 */
 	public static function register(): void {
+		self::init();
 		self::register_get_settings();
+	}
+
+	/**
+	 * Initializes shared data for settings abilities.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return void
+	 */
+	private static function init(): void {
+		self::$available_groups = self::get_available_groups();
+	}
+
+	/**
+	 * Gets unique setting groups that have show_in_rest enabled.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return array List of unique group names.
+	 */
+	private static function get_available_groups(): array {
+		$groups = array();
+
+		foreach ( get_registered_settings() as $args ) {
+			if ( empty( $args['show_in_rest'] ) ) {
+				continue;
+			}
+
+			$group = $args['group'] ?? 'general';
+			if ( ! in_array( $group, $groups, true ) ) {
+				$groups[] = $group;
+			}
+		}
+
+		sort( $groups );
+
+		return $groups;
 	}
 
 	/**
@@ -53,7 +99,8 @@ class WP_Settings_Abilities {
 					'properties'           => array(
 						'group' => array(
 							'type'        => 'string',
-							'description' => __( 'Optional: Filter settings by group name (e.g., general, reading, writing, discussion).' ),
+							'description' => __( 'Filter settings by group name. If omitted, returns all groups.' ),
+							'enum'        => self::$available_groups,
 						),
 					),
 					'additionalProperties' => false,
