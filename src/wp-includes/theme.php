@@ -2135,7 +2135,10 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 	// Update post if it already exists, otherwise create a new one.
 	$post = wp_get_custom_css_post( $args['stylesheet'] );
 
-	// Remove KSES HTML filters to prevent CSS mangling.
+	/**
+	 * Temporarily remove the {@see wp_filter_post_kses()} `content_save_pre` filter. CSS text is
+	 * stored in post_content, but the filter would process it as HTML and may mangle valid CSS.
+	 */
 	$kses_filter_priority = has_filter( 'content_save_pre', 'wp_filter_post_kses' );
 	if ( false !== $kses_filter_priority ) {
 		remove_filter( 'content_save_pre', 'wp_filter_post_kses', $kses_filter_priority );
