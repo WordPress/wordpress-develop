@@ -7,15 +7,15 @@
  * This version integrates with the standard WordPress admin interface,
  * keeping the wp-admin sidebar and scripts/styles intact.
  *
- * @package gutenberg
+ * @package wp
  */
 
 // Global storage for site-editor routes and menu items
-global $gutenberg_site_editor_wp_admin_routes, $gutenberg_site_editor_wp_admin_menu_items;
-$gutenberg_site_editor_wp_admin_routes = array();
-$gutenberg_site_editor_wp_admin_menu_items = array();
+global $wp_site_editor_wp_admin_routes, $wp_site_editor_wp_admin_menu_items;
+$wp_site_editor_wp_admin_routes     = array();
+$wp_site_editor_wp_admin_menu_items = array();
 
-if ( ! function_exists( 'register_site_editor_wp_admin_route' ) ) {
+if ( ! function_exists( 'wp_register_site_editor_wp_admin_route' ) ) {
 	/**
 	 * Register a route for the site-editor-wp-admin page.
 	 *
@@ -23,8 +23,8 @@ if ( ! function_exists( 'register_site_editor_wp_admin_route' ) ) {
 	 * @param string|null $content_module Script module ID for content (stage/inspector).
 	 * @param string|null $route_module   Script module ID for route lifecycle hooks.
 	 */
-	function register_site_editor_wp_admin_route( $path, $content_module = null, $route_module = null ) {
-		global $gutenberg_site_editor_wp_admin_routes;
+	function wp_register_site_editor_wp_admin_route( $path, $content_module = null, $route_module = null ) {
+		global $wp_site_editor_wp_admin_routes;
 
 		$route = array( 'path' => $path );
 		if ( ! empty( $content_module ) ) {
@@ -34,11 +34,11 @@ if ( ! function_exists( 'register_site_editor_wp_admin_route' ) ) {
 			$route['route_module'] = $route_module;
 		}
 
-		$gutenberg_site_editor_wp_admin_routes[] = $route;
+		$wp_site_editor_wp_admin_routes[] = $route;
 	}
 }
 
-if ( ! function_exists( 'register_site_editor_wp_admin_menu_item' ) ) {
+if ( ! function_exists( 'wp_register_site_editor_wp_admin_menu_item' ) ) {
 	/**
 	 * Register a menu item for the site-editor-wp-admin page.
 	 * Note: Menu items are registered but not displayed in single-page mode.
@@ -48,8 +48,8 @@ if ( ! function_exists( 'register_site_editor_wp_admin_menu_item' ) ) {
 	 * @param string $to        Route path to navigate to.
 	 * @param string $parent_id Optional. Parent menu item ID.
 	 */
-	function register_site_editor_wp_admin_menu_item( $id, $label, $to, $parent_id = '' ) {
-		global $gutenberg_site_editor_wp_admin_menu_items;
+	function wp_register_site_editor_wp_admin_menu_item( $id, $label, $to, $parent_id = '' ) {
+		global $wp_site_editor_wp_admin_menu_items;
 
 		$menu_item = array(
 			'id'    => $id,
@@ -61,40 +61,40 @@ if ( ! function_exists( 'register_site_editor_wp_admin_menu_item' ) ) {
 			$menu_item['parent'] = $parent_id;
 		}
 
-		$gutenberg_site_editor_wp_admin_menu_items[] = $menu_item;
+		$wp_site_editor_wp_admin_menu_items[] = $menu_item;
 	}
 }
 
-if ( ! function_exists( 'get_site_editor_wp_admin_routes' ) ) {
+if ( ! function_exists( 'wp_get_site_editor_wp_admin_routes' ) ) {
 	/**
 	 * Get all registered routes for the site-editor-wp-admin page.
 	 *
 	 * @return array Array of route objects.
 	 */
-	function get_site_editor_wp_admin_routes() {
-		global $gutenberg_site_editor_wp_admin_routes;
-		return $gutenberg_site_editor_wp_admin_routes ?? array();
+	function wp_get_site_editor_wp_admin_routes() {
+		global $wp_site_editor_wp_admin_routes;
+		return $wp_site_editor_wp_admin_routes ?? array();
 	}
 }
 
-if ( ! function_exists( 'get_site_editor_wp_admin_menu_items' ) ) {
+if ( ! function_exists( 'wp_get_site_editor_wp_admin_menu_items' ) ) {
 	/**
 	 * Get all registered menu items for the site-editor-wp-admin page.
 	 *
 	 * @return array Array of menu item objects.
 	 */
-	function get_site_editor_wp_admin_menu_items() {
-		global $gutenberg_site_editor_wp_admin_menu_items;
-		return $gutenberg_site_editor_wp_admin_menu_items ?? array();
+	function wp_get_site_editor_wp_admin_menu_items() {
+		global $wp_site_editor_wp_admin_menu_items;
+		return $wp_site_editor_wp_admin_menu_items ?? array();
 	}
 }
 
-if ( ! function_exists( 'site_editor_wp_admin_preload_data' ) ) {
+if ( ! function_exists( 'wp_site_editor_wp_admin_preload_data' ) ) {
 	/**
 	 * Preload REST API data for the site-editor-wp-admin page.
 	 * Automatically called during page rendering.
 	 */
-	function site_editor_wp_admin_preload_data() {
+	function wp_site_editor_wp_admin_preload_data() {
 		// Define paths to preload - same for all pages
 		$preload_paths = array(
 			'/?_fields=description,gmt_offset,home,name,site_icon,site_icon_url,site_logo,timezone_string,url,page_for_posts,page_on_front,show_on_front',
@@ -120,14 +120,14 @@ if ( ! function_exists( 'site_editor_wp_admin_preload_data' ) ) {
 	}
 }
 
-if ( ! function_exists( 'site_editor_wp_admin_enqueue_scripts' ) ) {
+if ( ! function_exists( 'wp_site_editor_wp_admin_enqueue_scripts' ) ) {
 	/**
 	 * Enqueue scripts and styles for the site-editor-wp-admin page.
 	 * Hooked to admin_enqueue_scripts.
 	 *
 	 * @param string $hook_suffix The current admin page.
 	 */
-	function site_editor_wp_admin_enqueue_scripts( $hook_suffix ) {
+	function wp_site_editor_wp_admin_enqueue_scripts( $hook_suffix ) {
 		// Check all possible ways this page can be accessed:
 		// 1. Menu page via admin.php?page=site-editor-wp-admin (plugin)
 		// 2. Direct file via site-editor.php (Core) - screen ID will be 'site-editor'
@@ -145,10 +145,10 @@ if ( ! function_exists( 'site_editor_wp_admin_enqueue_scripts' ) ) {
 		do_action( 'site-editor-wp-admin_init' );
 
 		// Preload REST API data
-		site_editor_wp_admin_preload_data();
+		wp_site_editor_wp_admin_preload_data();
 
 		// Get all registered routes
-		$routes = get_site_editor_wp_admin_routes();
+		$routes = wp_get_site_editor_wp_admin_routes();
 
 		// Get boot module asset file for dependencies
 		$asset_file = ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php';
@@ -218,13 +218,13 @@ if ( ! function_exists( 'site_editor_wp_admin_enqueue_scripts' ) ) {
 	}
 }
 
-if ( ! function_exists( 'site_editor_wp_admin_render_page' ) ) {
+if ( ! function_exists( 'wp_site_editor_wp_admin_render_page' ) ) {
 	/**
 	 * Render the site-editor-wp-admin page.
 	 * Call this function from add_menu_page or add_submenu_page.
 	 * This renders within the normal WordPress admin interface.
 	 */
-	function site_editor_wp_admin_render_page() {
+	function wp_site_editor_wp_admin_render_page() {
 		?>
 		<style>
 			/* Critical styles to prevent layout shifts - inlined for immediate application */
@@ -285,5 +285,5 @@ if ( ! function_exists( 'site_editor_wp_admin_render_page' ) ) {
 }
 
 // Hook the enqueue function to admin_enqueue_scripts
-add_action( 'admin_enqueue_scripts', 'site_editor_wp_admin_enqueue_scripts' );
+add_action( 'admin_enqueue_scripts', 'wp_site_editor_wp_admin_enqueue_scripts' );
 
