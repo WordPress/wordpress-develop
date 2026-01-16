@@ -7,97 +7,74 @@
  * @covers ::wp_ini_parse_quantity
  */
 class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
-	public function test_unset_limit_is_no_limit() {
-		$this->assertEquals( 0, wp_ini_parse_quantity( false ) );
-	}
-
-	public function test_absent_limit_is_no_limit() {
-		$this->assertEquals( 0, wp_ini_parse_quantity( '' ) );
-	}
-
-	public function test_unlimited_is_unlimited() {
-		$this->assertEquals( -1, wp_ini_parse_quantity( '-1' ) );
-	}
-
-	public function test_unlimited_is_same_as_missing_limit() {
-		$this->assertEqual( '', wp_ini_greater_quantity( '', '-1' ) );
-		$this->assertEqual( '-1', wp_ini_greater_quantity( '-1', '' ) );
-		$this->assertEqual( '', wp_ini_lesser_quantity( '', '-1' ) );
-		$this->assertEqual( '-1', wp_ini_lesser_quantity( '-1', '' ) );
-	}
-
-	public function test_unlimited_is_greater_than_hard_limit() {
-		$this->assertEqual( 1, wp_ini_quantity_cmp( -1, 1348 ) );
-		$this->assertEqual( 1, wp_ini_quantity_cmp( -1, '1348g' ) );
-		$this->assertEqual( 1, wp_ini_quantity_cmp( '', 1348 ) );
-		$this->assertEqual( 1, wp_ini_quantity_cmp( '', '1348g' ) );
-		$this->assertEqual( 1, wp_ini_quantity_cmp( 0, 1348 ) );
-		$this->assertEqual( 1, wp_ini_quantity_cmp( 0, '1348g' ) );
-		$this->assertEqual( 1, wp_ini_quantity_cmp( false, 1348 ) );
-		$this->assertEqual( 1, wp_ini_quantity_cmp( false, '1348g' ) );
-	}
-
-	public function test_invalid_data_is_no_limit() {
-		$this->assertEquals( 0, wp_ini_parse_quantity( true ) );
-		$this->assertEquals( 0, wp_ini_parse_quantity( false ) );
-		$this->assertEquals( 0, wp_ini_parse_quantity( array( 1, 2, 3 ) ) );
-		$this->assertEquals( 0, wp_ini_parse_quantity( new stdClass ) );
-	}
-
-	public function test_returns_already_parsed_values() {
-		$this->assertEquals( 15, wp_ini_parse_quantity( 15 ) );
-		$this->assertEquals( -1543, wp_ini_parse_quantity( -1543 ) );
-	}
-
-	public function test_clamped_to_max_int_before_suffix() {
-		if ( IS_32_BIT_SYSTEM ) {
-			$this->assertEquals( PHP_INT_MAX, wp_ini_parse_quantity( '2147483648' ) );
-			$this->assertEquals( PHP_INT_MIN, wp_ini_parse_quantity( '-2147483649' ) );
+	/**
+	 * Ensures that the shorthand INI syntax is properly parsed.
+	 *
+	 * @ticket 55635
+	 *
+	 * @dataProvider data_ini_shorthand_values
+	 *
+	 * @param mixed $ini_value Shorthand value from {@see \ini_get()} or of a bad data type.
+	 * @param int   $expected  Expected parsed value from input.
+	 */
+	public function test_fallback_parses_expected_value( $ini_value, $expected ) {
+		if ( function_exists( '\ini_parse_quantity' ) ) {
+			$this->assertSame(
+				ini_parse_quantity( $ini_value ),
+				wp_ini_parse_quantity( $ini_value),
+				'Failed to match PHP’s internal reporting.'
+			);
 		} else {
-			$this->assertEquals( PHP_INT_MAX, wp_ini_parse_quantity( '9223372036854775808' ) );
-			$this->assertEquals( PHP_INT_MIN, wp_ini_parse_quantity( '-9223372036854775809' ) );
-		}
-	}
-
-	public function test_suffix_math_may_overflow() {
-		if ( IS_32_BIT_SYSTEM ) {
-			$this->assertNotEquals( PHP_INT_MAX, wp_ini_parse_quantity( '2147483648g' ) );
-			$this->assertNotEquals( PHP_INT_MIN, wp_ini_parse_quantity( '-2147483648g' ) );
-		} else {
-			$this->assertNotEquals( PHP_INT_MAX, wp_ini_parse_quantity( '9223372036854775807g' ) );
-			$this->assertNotEquals( PHP_INT_MIN, wp_ini_parse_quantity( '-9223372036854775807g' ) );
+			$this->assertSame(
+				$expected,
+				wp_ini_parse_quantity( $ini_value ),
+				'Failed to match expected quantity.'
+			);
 		}
 	}
 
 	/**
-	 * Tests converting numeric php.ini directive strings into their scalar equivalents.
+	 * Data provider.
 	 *
-	 * @ticket 55635
-	 *
-	 * @dataProvider data_php_numeric_strings
-	 *
-	 * @param $value
-	 * @param $expected
+	 * @return array[]
 	 */
-	public function test_parse_matches_php_internal_value( $value, $expected ) {
-		$this->assertEquals( $expected, wp_ini_parse_quantity( $value ) );
-	}
-
-	public function data_php_numeric_strings() {
+	public static function data_ini_shorthand_values() {
 		return array(
+			// Empty, unset, and unlimited values.
+			array( false, 0 ),
+			array( '', 0 ),
+			array( '-1', -1 ),
+
+			// Already-parsed values.
+			array( 15, 15 ),
+			array( -1543, -1543 ),
+
+			// Invalid data types.
+			array( true, 0 ),
+			array( array( 1, 2, 3 ), 0 ),
+			array( new stdClass, 0 ),
+
+			// Non-suffixes clamp.
+			array( 8 === PHP_INT_SIZE ? '9223372036854775808' : '2147483648', PHP_INT_MAX ),
+			array( 8 === PHP_INT_SIZE ? '-9223372036854775809' : '-2147483649', -1 ),
+
+			// Suffixes might overflow.
+			array( 8 === PHP_INT_SIZE ? '9223372036854775808g' : '2147483648g', PHP_INT_MAX ),
+			array( 8 === PHP_INT_SIZE ? '-9223372036854775809g' : '-2147483649g', -1 ),
+
 			// Decimal integer input.
 			array( '0', 0 ),
 			array( '100', 100 ),
-			array( '-14', -14 ),
+			array( '-14', -1 ),
 
 			// Octal integer input.
 			array( '0100', 64 ),
-			array( '-0654', -428 ),
+			array( '-0654', -1 ),
 
 			// Hex input.
 			array( '0x14', 20 ),
 			array( '0X14', 20 ),
-			array( '-0xAA', -170 ),
+			array( '-0xAA', -1 ),
 
 			// Size suffixes.
 			array( '1g', 1073741824 ),
@@ -116,7 +93,7 @@ class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
 			// Leading characters.
 			array( '    68', 68 ),
 			array( '+1', 1 ),
-			array( '    -0xdeadbeef', -3735928559 ),
+			array( '    -0xdeadbeef', -1 ),
 			array( ' 00000077', 63 ),
 
 			// Things that don't look valid but are still possible.
@@ -124,10 +101,111 @@ class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
 			array( '3km', 3145728 ),
 			array( '1mg', 1073741824 ),
 			array( 'boat', 0 ),
-			array( '-14chairsk', -14336 ),
+			array( '-14chairsk', -1 ),
 			array( '0xt', 0 ),
 			array( '++3', 0 ),
 			array( '0x5ome 🅰🅱🅲 attack', 5120 ),
+		);
+	}
+
+	/**
+	 * Ensures that INI quantity values compare properly.
+	 *
+	 * @ticket 55635
+	 *
+	 * @dataProvider data_compared_ini_values
+	 *
+	 * @param string      $a   First INI shorthand value to compare.
+	 * @param '<'|'='|'>' $cmp Relationship of first to second value.
+	 * @param string      $b   Second INI shorthand value to compare.
+	 */
+	public function test_compares_properly( string $a, string $cmp, string $b ) {
+		switch ( $cmp ) {
+			case '<':
+				$this->assertSame(
+					-1,
+					wp_ini_quantity_cmp( $a, $b ),
+					'Should have determined that the first value is smaller.'
+				);
+
+				$this->assertSame(
+					$a,
+					wp_ini_lesser_quantity( $a, $b ),
+					'Should have returned the first value as the smaller of the two.'
+				);
+
+				$this->assertSame(
+					$b,
+					wp_ini_greater_quantity( $a, $b ),
+					'Should have returned the second value as the greater of the two.'
+				);
+
+				break;
+
+			case '=':
+				$this->assertSame(
+					0,
+					wp_ini_quantity_cmp( $a, $b ),
+					'Should have determined that the values are equal.'
+				);
+
+				$this->assertSame(
+					$a,
+					wp_ini_lesser_quantity( $a, $b ),
+					'Should have returned the first value when they are equal.'
+				);
+
+				$this->assertSame(
+					$a,
+					wp_ini_greater_quantity( $a, $b ),
+					'Should have returned the first value when they are equal.'
+				);
+
+				break;
+
+			case '>':
+				$this->assertSame(
+					1,
+					wp_ini_quantity_cmp( $a, $b ),
+					'Should have determined that the second value is greater.'
+				);
+
+				$this->assertSame(
+					$b,
+					wp_ini_lesser_quantity( $a, $b ),
+					'Should have returned the second value as the smaller of the two.'
+				);
+
+				$this->assertSame(
+					$a,
+					wp_ini_greater_quantity( $a, $b ),
+					'Should have returned the first value as the greater of the two.'
+				);
+
+				break;
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_compared_ini_values() {
+		return array(
+			// No limit vs. unlimited.
+			array( '', '=', '-1' ),
+			array( '-1', '=', '' ),
+
+			// Unlimited vs. hard limit.
+			array( -1, '>', 1348 ),
+			array( -1, '>', '1348g' ),
+			array( '', '>', 1348 ),
+			array( '', '>', '1348g' ),
+			array( 0, '>', 1348 ),
+			array( 0, '>', '1348g' ),
+			array( false, '>', 1348 ),
+			array( false, '>', '1348g' ),
 		);
 	}
 }

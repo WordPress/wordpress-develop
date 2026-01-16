@@ -50,6 +50,8 @@ function wp_ini_parse_quantity( $value ) {
  *     wp_ini_greater_quantity( '64K', '64') === '64K'
  *     wp_ini_greater_quantity( 1000, 2000 ) === 2000
  *
+ * @since 7.0.0
+ *
  * @param int|string|false $a Quantity value.
  * @param int|string|false $b Quantity value.
  * @return int|string|false   Larger quantity value.
@@ -65,6 +67,8 @@ function wp_ini_greater_quantity( $a, $b ) {
  *     wp_ini_lesser_quantity( '256m', -1 ) === '256m'
  *     wp_ini_lesser_quantity( '64K', '64') === '64'
  *     wp_ini_lesser_quantity( 1000, 2000 ) === 1000
+ *
+ * @since 7.0.0
  *
  * @param int|string|false $a Quantity value.
  * @param int|string|false $b Quantity value.
@@ -83,29 +87,14 @@ function wp_ini_lesser_quantity( $a, $b ) {
  *     $a === $b =>  0
  *     $a  >  $b =>  1
  *
+ * @since 7.0.0
+ *
  * @param int|string|false $a Quantity being compared.
  * @param int|string|false $b Quantity against which $a is compared.
- * @return int
+ * @return -1|0|1
  */
-function wp_ini_quantity_cmp( $a, $b ) {
-	$a_scalar = wp_ini_parse_quantity( $a );
-	$b_scalar = wp_ini_parse_quantity( $b );
-
-	if ( $a_scalar === $b_scalar ) {
-		return 0;
-	}
-
-	// No limit on $a means it's at least as large as any $b value.
-	if ( $a_scalar <= 0 ) {
-		return 1;
-	}
-
-	// No limit on $b means it's at least as large as any $a value.
-	if ( $b_scalar <= 0 ) {
-		return -1;
-	}
-
-	return $a_scalar > $b_scalar ? 1 : -1;
+function wp_ini_quantity_cmp( $a, $b ): int {
+	return wp_ini_parse_quantity( $a ) <=> wp_ini_parse_quantity( $b );
 }
 
 /**
@@ -171,91 +160,19 @@ function ini_parse_quantity_fallback( $shorthand ) {
 	// Trim leading zeros from the amount.
 	$at += strspn( $shorthand, '0', $at );
 
-	/**
-	 * Numeric values for scanned digits.
-	 *
-	 * These are used to determine the decimal value the digit
-	 * represents and whether it's an allowed character in
-	 * the given base. It's allowed if its value is less
-	 * than the base: e.g. '7' is allowed in octal (base 8)
-	 * but '8' and '9' aren't because they are greater than 8.
-	 *
-	 * @var array<string, int> $digits
-	 */
-	$digits = array(
-		'0' => 0,
-		'1' => 1,
-		'2' => 2,
-		'3' => 3,
-		'4' => 4,
-		'5' => 5,
-		'6' => 6,
-		'7' => 7,
-		'8' => 8,
-		'9' => 9,
-		'A' => 10,
-		'a' => 10,
-		'B' => 11,
-		'b' => 11,
-		'C' => 12,
-		'c' => 12,
-		'D' => 13,
-		'd' => 13,
-		'E' => 14,
-		'e' => 14,
-		'F' => 15,
-		'f' => 15,
-	);
+	// Trap explicitly only the numeric digits for parsing to avoid PHP parsing strings like “1e5.”
+	$digits       = 8 === $base ? '01234567' : ( 10 === $base ? '0123456789' : '0123456789abcdefABCDEF' );
+	$digit_length = strspn( $shorthand, $digits, $at );
+	$scalar       = intval( substr( $shorthand, $at, $digit_length ), $base );
 
 	/*
-	 * Build the scalar value by consuming the next sequence of contiguous digits.
-	 * It looks like this could be replaced with native functions to parse digits,
-	 * but the behavior mimics peculiarities internal to PHP when parsing overflowed
-	 * digits, inasmuch as is possible from user-space PHP code.
+	 * The internal call to `strtoll()` clamps its return value when the
+	 * parsed value would lead to overflow, so recreate that here.
 	 */
-	for ( ; $at < $end; $at++ ) {
-		$c = $shorthand[ $at ];
-
-		/*
-		 * Only digits recognized in this base system can be used.
-		 * Once any unrecognized digits are found, abort and move
-		 * on to the next step in parsing the size suffix.
-		 */
-		if ( ! isset( $digits[ $c ] ) || $digits[ $c ] >= $base ) {
-			break;
-		}
-
-		/*
-		 * This is the step that computes the integer as new digits arrive.
-		 *
-		 * Example:
-		 *      4   = (0 * 10) + 4
-		 *      45  = ((0 * 10 + 4) * 10) + 5
-		 *      458 = ((0 * 10 + 4) * 10 + 5) * 10 + 8
-		 */
-		$scalar = $scalar * $base + $digits[ $c ];
-
-		/*
-		 * There’s nothing to do one having reached the maximum
-		 * storable size, so bail. This comparison works because
-		 * the int value is cast into a float once having crossed
-		 * beyond the maximum integer.
-		 */
-		if (
-			( $sign > 0 && $scalar > PHP_INT_MAX ) ||
-			( $sign < 0 && $scalar > -PHP_INT_MIN )
-		) {
-			break;
-		}
-	}
-
-	// Clamp the parsed digits to an integer value as PHP does internally.
 	if ( $sign > 0 && $scalar >= PHP_INT_MAX ) {
 		$scalar = PHP_INT_MAX;
-	} else if ( $sign < 0 && $scalar >= -PHP_INT_MIN ) {
+	} else if ( $sign < 0 && $scalar <= PHP_INT_MIN ) {
 		$scalar = PHP_INT_MIN;
-	} else if ( $sign < 0 ) {
-		$scalar = -$scalar;
 	}
 
 	/*
@@ -286,5 +203,16 @@ function ini_parse_quantity_fallback( $shorthand ) {
 			break;
 	}
 
-	return (int) $scalar;
+	/**
+	 * Since the overflow behavior is not reproduced here, any negative
+	 * value will report as `-1`, which normalizes negative values for
+	 * more consistent handling inside of plugin code, while large values
+	 * are capped at the max integer value.
+	 *
+	 * These values would be wrong, they are also undefined behavior in
+	 * PHP, so they are also not wrong in any specific way. This function
+	 * only needs to be reliable enough, given that PHP 8.2.0 introduces
+	 * the {@see \ini_parse_quantity()} function natively.
+	 */
+	return (int) max( -1, min( $scalar, PHP_INT_MAX ) );
 }
