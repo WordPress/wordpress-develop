@@ -122,11 +122,7 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		$post_data['post_status'] = 'pending';
 	}
 
-	if ( isset( $post_data['ID'] ) ) {
-		$post_id = $post_data['ID'];
-	} else {
-		$post_id = false;
-	}
+	$post_id         = $post_data['ID'] ?? false;
 	$previous_status = $post_id ? get_post_field( 'post_status', $post_id ) : false;
 
 	if ( isset( $post_data['post_status'] ) && 'private' === $post_data['post_status'] && ! current_user_can( $ptype->cap->publish_posts ) ) {
@@ -429,7 +425,7 @@ function edit_post( $post_data = null ) {
 			}
 		}
 
-		$attachment_data = isset( $post_data['attachments'][ $post_id ] ) ? $post_data['attachments'][ $post_id ] : array();
+		$attachment_data = $post_data['attachments'][ $post_id ] ?? array();
 
 		/** This filter is documented in wp-admin/includes/media.php */
 		$translated = apply_filters( 'attachment_fields_to_save', $translated, $attachment_data );
@@ -764,7 +760,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 	if ( $create_in_db ) {
 		$post_id = wp_insert_post(
 			array(
-				'post_title'  => __( 'Auto Draft' ),
+				'post_title'  => post_type_supports( $post_type, 'title' ) ? __( 'Auto Draft' ) : '',
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
 			),
@@ -1014,7 +1010,7 @@ function add_meta( $post_id ) {
 
 	$metakeyselect = isset( $_POST['metakeyselect'] ) ? wp_unslash( trim( $_POST['metakeyselect'] ) ) : '';
 	$metakeyinput  = isset( $_POST['metakeyinput'] ) ? wp_unslash( trim( $_POST['metakeyinput'] ) ) : '';
-	$metavalue     = isset( $_POST['metavalue'] ) ? $_POST['metavalue'] : '';
+	$metavalue     = $_POST['metavalue'] ?? '';
 	if ( is_string( $metavalue ) ) {
 		$metavalue = trim( $metavalue );
 	}
@@ -1894,7 +1890,7 @@ function _admin_notice_post_locked() {
 		 * Fires inside the post locked dialog before the buttons are displayed.
 		 *
 		 * @since 3.6.0
-		 * @since 5.4.0 The $user parameter was added.
+		 * @since 5.4.0 The `$user` parameter was added.
 		 *
 		 * @param WP_Post $post Post object.
 		 * @param WP_User $user The user with the lock for the post.
@@ -2043,7 +2039,7 @@ function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 	 * Ignoring sanitization to avoid altering meta. Ignoring the nonce check because
 	 * this is hooked on inner core hooks where a valid nonce was already checked.
 	 */
-	$posted_data = isset( $_POST['data']['wp_autosave'] ) ? $_POST['data']['wp_autosave'] : $_POST;
+	$posted_data = $_POST['data']['wp_autosave'] ?? $_POST;
 
 	$post_type = get_post_type( $new_autosave['post_parent'] );
 
@@ -2460,7 +2456,7 @@ function the_block_editor_meta_boxes() {
 	 * will not be printed again after this point.
 	 */
 	if ( wp_script_is( 'wp-edit-post', 'done' ) ) {
-		printf( "<script type='text/javascript'>\n%s\n</script>\n", trim( $script ) );
+		printf( "<script>\n%s\n</script>\n", trim( $script ) );
 	}
 
 	/*
