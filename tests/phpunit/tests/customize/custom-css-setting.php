@@ -269,29 +269,6 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that dangerous STYLE tag contents do not break HTML output.
-	 *
-	 * @ticket 64418
-	 * @covers ::wp_update_custom_css_post
-	 * @covers ::wp_custom_css_cb
-	 */
-	public function test_wp_custom_css_cb_escapes_dangerous_html() {
-		wp_update_custom_css_post(
-			'*::before { content: "</style><script>alert(1)</script>"; }',
-			array(
-				'stylesheet' => $this->setting->stylesheet,
-			)
-		);
-		$output   = get_echo( 'wp_custom_css_cb' );
-		$expected = <<<'HTML'
-<style id="wp-custom-css">
-*::before { content: "\3c\2fstyle><script>alert(1)</script>"; }
-</style>
-HTML;
-		$this->assertEqualHTML( $expected, $output );
-	}
-
-	/**
 	 * Test that wp_update_custom_css_post() updates the 'custom_css_post_id' theme mod.
 	 *
 	 * @ticket 39259
@@ -395,5 +372,28 @@ HTML;
 		$data['preprocessed'] = '/* filtered post_content_filtered */';
 		$data['post_title']   = 'Ignored';
 		return $data;
+	}
+
+	/**
+	 * Ensure that dangerous STYLE tag contents do not break HTML output.
+	 *
+	 * @ticket 64418
+	 * @covers ::wp_update_custom_css_post
+	 * @covers ::wp_custom_css_cb
+	 */
+	public function test_wp_custom_css_cb_escapes_dangerous_html() {
+		wp_update_custom_css_post(
+			'*::before { content: "</style><script>alert(1)</script>"; }',
+			array(
+				'stylesheet' => $this->setting->stylesheet,
+			)
+		);
+		$output   = get_echo( 'wp_custom_css_cb' );
+		$expected = <<<'HTML'
+<style id="wp-custom-css">
+*::before { content: "\3c\2fstyle><script>alert(1)</script>"; }
+</style>
+HTML;
+		$this->assertEqualHTML( $expected, $output );
 	}
 }
