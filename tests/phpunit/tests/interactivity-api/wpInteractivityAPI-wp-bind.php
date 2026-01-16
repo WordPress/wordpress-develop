@@ -135,6 +135,20 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `data-wp-bind` ignores directives with no suffix but still
+	 * processes valid bind directives on the same element.
+	 *
+	 * @ticket XXXX
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_ignores_empty_suffix_but_processes_valid_binds() {
+		$html    = '<div data-wp-bind="myPlugin::state.id" data-wp-bind--id="myPlugin::state.id">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
+	}
+
+	/**
 	 * Tests that `data-wp-bind` does nothing when referencing non-existent
 	 * references.
 	 *
