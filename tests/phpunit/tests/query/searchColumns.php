@@ -363,7 +363,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringNotContainsString( 'post_slug', $q->request, "SQL request shouldn't contain post_name string." );
+		$this->assertStringNotContainsString( 'post_slug', $q->request, "SQL request shouldn't contain post_slug string." );
 		$this->assertSameSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
