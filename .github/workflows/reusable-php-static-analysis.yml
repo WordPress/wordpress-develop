@@ -45,6 +45,12 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      - name: Set up Node.js
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
       - name: Set up PHP
         uses: shivammathur/setup-php@20529878ed81ef8e78ddf08b480401e6101a850f # v2.35.3
         with:
@@ -52,15 +58,17 @@ jobs:
           coverage: none
           tools: cs2pr
 
-      - name: Log debug information
-        run: |
-          composer --version
-
       # This date is used to ensure that the Composer cache is cleared at least once every week.
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: "Get last Monday's date"
         id: get-date
         run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          composer --version
 
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
@@ -71,6 +79,12 @@ jobs:
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build:dev
 
       - name: Cache PHP Static Analysis scan cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
