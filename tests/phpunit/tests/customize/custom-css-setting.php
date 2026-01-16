@@ -272,6 +272,8 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 * Ensure that dangerous STYLE tag contents do not break HTML output.
 	 *
 	 * @ticket 64418
+	 * @covers ::wp_update_custom_css_post
+	 * @covers ::wp_custom_css_cb
 	 */
 	public function test_wp_custom_css_cb_escapes_dangerous_html() {
 		wp_update_custom_css_post(
