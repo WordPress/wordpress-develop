@@ -138,7 +138,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that `data-wp-bind` ignores directives with no suffix but still
 	 * processes valid bind directives on the same element.
 	 *
-	 * @ticket XXXX
+	 * @ticket 64518
 	 *
 	 * @covers ::process_directives
 	 */
@@ -435,7 +435,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that `data-wp-bind` ignores directives with unique IDs but still
 	 * processes valid bind directives on the same element.
 	 *
-	 * @ticket XXXX
+	 * @ticket 64518
 	 *
 	 * @covers ::process_directives
 	 */
