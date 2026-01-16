@@ -695,7 +695,9 @@ class WP_Query {
 	 *                                                   See WP_Date_Query::__construct().
 	 *     @type int             $day                    Day of the month. Default empty. Accepts numbers 1-31.
 	 *     @type bool            $exact                  Whether to search by exact keyword. Default false.
+	 *                                                   Cannot be used together with `$starts_with`.
 	 *     @type bool            $starts_with            Whether to search starts with keyword. Default false.
+	 *                                                   Cannot be used together with `$exact`.
 	 *     @type string          $fields                 Post fields to query for. Accepts:
 	 *                                                   - '' Returns an array of complete post objects (`WP_Post[]`).
 	 *                                                   - 'ids' Returns an array of post IDs (`int[]`).
@@ -822,6 +824,15 @@ class WP_Query {
 		$this->query_vars         = $this->fill_query_vars( $this->query_vars );
 		$query_vars               = &$this->query_vars;
 		$this->query_vars_changed = true;
+
+		if ( ! empty( $query_vars['exact'] ) && ! empty( $query_vars['starts_with'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The `exact` and `starts_with` query parameters are mutually exclusive and cannot be used together.' ),
+				'7.0.0'
+			);
+			$query_vars['starts_with'] = false;
+		}
 
 		if ( ! empty( $query_vars['robots'] ) ) {
 			$this->is_robots = true;
