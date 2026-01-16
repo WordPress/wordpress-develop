@@ -110,40 +110,33 @@ class WP_Settings_Abilities {
 
 			$group = $args['group'] ?? 'general';
 
-			// Determine the REST name (may be aliased via show_in_rest.name).
 			$rest_name = $option_name;
 			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ) {
 				$rest_name = $args['show_in_rest']['name'];
 			}
 
-			// Build setting schema from registered metadata.
 			$setting_schema = array(
 				'type' => $args['type'] ?? 'string',
 			);
 
-			// Add title from label if available.
 			if ( ! empty( $args['label'] ) ) {
 				$setting_schema['title'] = $args['label'];
 			}
 
-			// Use description if set, otherwise fall back to label.
 			if ( ! empty( $args['description'] ) ) {
 				$setting_schema['description'] = $args['description'];
 			} elseif ( ! empty( $args['label'] ) ) {
 				$setting_schema['description'] = $args['label'];
 			}
 
-			// Include default if set.
 			if ( isset( $args['default'] ) ) {
 				$setting_schema['default'] = $args['default'];
 			}
 
-			// Merge any schema from show_in_rest (enum, format, etc.).
 			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['schema'] ) ) {
 				$setting_schema = array_merge( $setting_schema, $args['show_in_rest']['schema'] );
 			}
 
-			// Initialize group if needed.
 			if ( ! isset( $group_properties[ $group ] ) ) {
 				$group_properties[ $group ] = array(
 					'type'        => 'object',
@@ -243,37 +236,29 @@ class WP_Settings_Abilities {
 		$settings_by_group   = array();
 
 		foreach ( $registered_settings as $option_name => $args ) {
-			// Only include settings exposed to REST API.
 			if ( empty( $args['show_in_rest'] ) ) {
 				continue;
 			}
 
 			$group = $args['group'] ?? 'general';
 
-			// Skip if filtering by group and doesn't match.
 			if ( $filter_group && $group !== $filter_group ) {
 				continue;
 			}
 
-			// Determine the REST name (may be aliased via show_in_rest.name).
 			$rest_name = $option_name;
 			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ) {
 				$rest_name = $args['show_in_rest']['name'];
 			}
 
-			// Get default value.
 			$default = $args['default'] ?? null;
 			if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema']['default'] ) ) {
 				$default = $args['show_in_rest']['schema']['default'];
 			}
 
-			// Get current value.
 			$value = get_option( $option_name, $default );
-
-			// Cast value to proper type.
 			$value = self::cast_value( $value, $args['type'] ?? 'string' );
 
-			// Initialize group if needed.
 			if ( ! isset( $settings_by_group[ $group ] ) ) {
 				$settings_by_group[ $group ] = array();
 			}
