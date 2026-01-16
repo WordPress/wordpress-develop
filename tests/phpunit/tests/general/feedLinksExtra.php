@@ -2,8 +2,6 @@
 /**
  * Test feed_links_extra().
  *
- * @ticket 54713
- *
  * @group general
  * @group template
  *
@@ -164,12 +162,13 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra
 	 * @ticket 54713
 	 *
-	 * @param string $title     The expected title.
-	 * @param string $type      The name of the test class property containing the object ID.
-	 * @param array  $args {
+	 * @dataProvider data_feed_links_extra
+	 *
+	 * @param string $title The expected title.
+	 * @param string $type  The name of the test class property containing the object ID.
+	 * @param array  $args  {
 	 *        Optional arguments. Default empty.
 	 *
 	 *        @type string $separator     The separator between site name and feed type.
@@ -210,7 +209,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_feed_links_extra() {
+	public static function data_feed_links_extra() {
 		return array(
 			'a post with a comment'                        => array(
 				'title' => 'Test Blog &raquo; Post with a comment Comments Feed',
@@ -400,8 +399,6 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	/**
 	 * Helper function to get the permalink based on type.
 	 *
-	 * @ticket 54713
-	 *
 	 * @param string $type The name of the test class property containing the object ID.
 	 * @return string The permalink.
 	 */
@@ -522,9 +519,9 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy
-	 *
 	 * @ticket 54703
+	 *
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy
 	 *
 	 * @param string $callback The callback to use for the 'post_comments_feed_link' filter.
 	 */
@@ -581,9 +578,9 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra_should_output_nothing_when_filters_return_false
-	 *
 	 * @ticket 55904
+	 *
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_filters_return_false
 	 *
 	 * @param string $type   The name of the test class property containing the object ID.
 	 * @param string $filter The name of the filter to set to false.
@@ -602,7 +599,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_feed_links_extra_should_output_nothing_when_filters_return_false() {
+	public static function data_feed_links_extra_should_output_nothing_when_filters_return_false() {
 		return array(
 			'a post with a comment' => array(
 				'type'   => 'post_with_comment',
