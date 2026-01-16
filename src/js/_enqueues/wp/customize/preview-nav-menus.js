@@ -419,6 +419,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 	 * Also this applies even if a nav menu is not partial-refreshable.
 	 *
 	 * @since 4.5.0
+	 *
 	 * @return {void}
 	 */
 	self.highlightControls = function() {
