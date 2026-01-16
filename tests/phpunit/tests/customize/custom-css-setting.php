@@ -396,4 +396,38 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 HTML;
 		$this->assertEqualHTML( $expected, $output );
 	}
+
+	/**
+	 * @ticket 64418
+	 * @covers WP_Customize_Custom_CSS_Setting::validate
+	 */
+	public function test_validate_accepts_css_property_at_rule() {
+		$css = <<<'CSS'
+@property --animate {
+	syntax: "<custom-ident>";
+	inherits: true;
+	initial-value: false;
+}
+CSS;
+		$this->assertTrue( $this->setting->validate( $css ) );
+	}
+
+	/**
+	 * @ticket 64418
+	 * @covers ::wp_update_custom_css_post
+	 * @covers ::wp_custom_css_cb
+	 */
+	public function test_save_and_print_property_at_rule() {
+		$css = <<<'CSS'
+@property --animate {
+	syntax: "<custom-ident>";
+	inherits: true;
+	initial-value: false;
+}
+CSS;
+		wp_update_custom_css_post( $css, array( 'stylesheet' => $this->setting->stylesheet ) );
+		$output   = get_echo( 'wp_custom_css_cb' );
+		$expected = "<style id='wp-custom-css'>\n{$css}\n</style>\n";
+		$this->assertEqualHTML( $expected, $output );
+	}
 }
