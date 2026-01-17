@@ -2348,7 +2348,12 @@ class wpdb {
 		}
 
 		if ( ! empty( $this->dbh ) ) {
-			$this->result = mysqli_query( $this->dbh, $query );
+		    try {
+		        $this->result = mysqli_query( $this->dbh, $query );
+		    } catch ( Exception $e ) {
+		        $this->result = false;
+		        $this->last_error = $e->getMessage();
+		    }
 		}
 
 		++$this->num_queries;
