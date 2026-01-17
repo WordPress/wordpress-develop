@@ -1702,6 +1702,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'password' => 'testjsonpassword',
 			'email'    => 'testjson@example.com',
 		);
+
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
