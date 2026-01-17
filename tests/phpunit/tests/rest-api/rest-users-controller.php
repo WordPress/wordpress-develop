@@ -1708,6 +1708,17 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
 
+		// Make request again, expecting existing_user_login response
+		$params = array(
+			'username' => 'testjsonuser',
+			'password' => 'testjsonpassword',
+			'email'    => 'testjson1@example.com',
+		);
+
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_existing_user_login', $response, 409 );
+
 		// Make request again, expecting existing_user_email response
 		$params = array(
 			'username' => 'testjsonuser1',
@@ -1718,17 +1729,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_existing_user_email', $response, 409 );
 
-		// Make request again, expecting existing_user_login response
-		$params = array(
-			'username' => 'testjsonuser',
-			'password' => 'testjsonpassword',
-			'email'    => 'testjson1@example.com',
-		);
-
-		$request->set_body( wp_json_encode( $params ) );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_existing_user_login', $response, 409 );
 	}
 
 	public function test_update_item() {

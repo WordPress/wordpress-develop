@@ -639,18 +639,18 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( is_wp_error( $user_id ) ) {
-			if ( in_array( $user_id->get_error_code(), array( 'existing_user_email') ) ) {
+			if ( in_array( $user_id->get_error_code(), array( 'existing_user_login') ) ) {
 				return new WP_Error(
-					'rest_user_existing_user_email',
-					__( 'A user already exists with this email address.' ),
+					'rest_existing_user_login',
+					__( 'Sorry, that username already exists!' ),
 					array( 'status' => 409 )
 				);
 			}
 
-			if ( in_array( $user_id->get_error_code(), array( 'existing_user_login') ) ) {
+			if ( in_array( $user_id->get_error_code(), array( 'existing_user_email') ) ) {
 				return new WP_Error(
-					'rest_existing_user_login',
-					__( 'A user already exists with this username.' ),
+					'rest_user_existing_user_email',
+					__( 'Sorry, that email address is already used!",' ),
 					array( 'status' => 409 )
 				);
 			}
