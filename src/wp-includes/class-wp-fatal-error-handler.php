@@ -201,7 +201,7 @@ class WP_Fatal_Error_Handler {
 		}
 
 		$message = sprintf(
-			'<p>%s</p><p><a href="%s">%s</a></p>',
+			'<p>%s</p><p> <a href="%s">%s</a></p>',
 			$message,
 			/* translators: Documentation about troubleshooting. */
 			__( 'https://wordpress.org/documentation/article/faq-troubleshooting/' ),
