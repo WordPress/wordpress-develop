@@ -48,7 +48,7 @@ const COPY_CONFIG = {
 		source: 'scripts',
 		destination: 'js/dist',
 		copyDirectories: true, // Copy subdirectories
-		patterns: [ '*.js', '*.js.map' ],
+		patterns: [ '*.js' ],
 		// Rename vendors/ to vendor/ when copying
 		directoryRenames: {
 			vendors: 'vendor',
@@ -916,25 +916,21 @@ async function main() {
 						// Only copy react-jsx-runtime files, skip react and react-dom
 						const vendorFiles = fs.readdirSync( src );
 						let copiedCount = 0;
+						fs.mkdirSync( dest, { recursive: true } );
 						for ( const file of vendorFiles ) {
-							if ( file.startsWith( 'react-jsx-runtime' ) ) {
+							if (
+								file.startsWith( 'react-jsx-runtime' ) &&
+								file.endsWith( '.js' )
+							) {
 								const srcFile = path.join( src, file );
 								const destFile = path.join( dest, file );
-								fs.mkdirSync( dest, { recursive: true } );
 
-								if (
-									file.endsWith( '.js' ) &&
-									! file.endsWith( '.js.map' )
-								) {
-									let content = fs.readFileSync(
-										srcFile,
-										'utf8'
-									);
-									content = removeSourceMaps( content );
-									fs.writeFileSync( destFile, content );
-								} else {
-									fs.copyFileSync( srcFile, destFile );
-								}
+								let content = fs.readFileSync(
+									srcFile,
+									'utf8'
+								);
+								content = removeSourceMaps( content );
+								fs.writeFileSync( destFile, content );
 								copiedCount++;
 							}
 						}
@@ -955,9 +951,7 @@ async function main() {
 
 					for ( const file of packageFiles ) {
 						if (
-							/^index\.(js|js\.map|min\.js|min\.js\.map|min\.asset\.php)$/.test(
-								file
-							)
+							/^index\.(js|min\.js|min\.asset\.php)$/.test( file )
 						) {
 							const srcFile = path.join( src, file );
 							// Replace 'index.' with 'package-name.'
@@ -972,10 +966,7 @@ async function main() {
 							} );
 
 							// Apply source map removal for .js files
-							if (
-								file.endsWith( '.js' ) &&
-								! file.endsWith( '.js.map' )
-							) {
+							if ( file.endsWith( '.js' ) ) {
 								let content = fs.readFileSync(
 									srcFile,
 									'utf8'
@@ -983,7 +974,7 @@ async function main() {
 								content = removeSourceMaps( content );
 								fs.writeFileSync( destPath, content );
 							} else {
-								// Copy other files as-is
+								// Copy other files as-is (.min.asset.php)
 								fs.copyFileSync( srcFile, destPath );
 							}
 						}
@@ -991,22 +982,15 @@ async function main() {
 				}
 			} else if (
 				entry.isFile() &&
-				/\.(js|js\.map)$/.test( entry.name )
+				entry.name.endsWith( '.js' )
 			) {
 				// Copy root-level JS files
 				const dest = path.join( scriptsDest, entry.name );
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
 
-				if (
-					entry.name.endsWith( '.js' ) &&
-					! entry.name.endsWith( '.js.map' )
-				) {
-					let content = fs.readFileSync( src, 'utf8' );
-					content = removeSourceMaps( content );
-					fs.writeFileSync( dest, content );
-				} else {
-					fs.copyFileSync( src, dest );
-				}
+				let content = fs.readFileSync( src, 'utf8' );
+				content = removeSourceMaps( content );
+				fs.writeFileSync( dest, content );
 			}
 		}
 
