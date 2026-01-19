@@ -674,6 +674,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *              either through a STYLE end tag or a prefix of one which might become a
 	 *              full end tag when combined with the contents of other styles.
 	 *
+	 * @see WP_Customize_Custom_CSS_Setting::validate()
+	 *
 	 * @param string $css CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
