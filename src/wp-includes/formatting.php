@@ -2642,8 +2642,8 @@ function force_balance_tags( $text ) {
 		$tag_name          = $regex[2];
 		$tag               = strtolower( $tag_name );
 		$is_single_tag     = in_array( $tag, $single_tags, true );
-		$pre_attribute_ws  = isset( $regex[4] ) ? $regex[4] : '';
-		$attributes        = trim( isset( $regex[5] ) ? $regex[5] : $regex[3] );
+		$pre_attribute_ws  = $regex[4] ?? '';
+		$attributes        = trim( $regex[5] ?? $regex[3] );
 		$has_self_closer   = str_ends_with( $attributes, '/' );
 
 		$newtext .= $tagqueue;
@@ -5227,6 +5227,11 @@ function wp_pre_kses_less_than_callback( $matches ) {
  * @return string Filtered text to run through KSES.
  */
 function wp_pre_kses_block_attributes( $content, $allowed_html, $allowed_protocols ) {
+	// If the block parser isn't available, skip block attribute filtering.
+	if ( ! class_exists( 'WP_Block_Parser' ) ) {
+		return $content;
+	}
+
 	/*
 	 * `filter_block_content` is expected to call `wp_kses`. Temporarily remove
 	 * the filter to avoid recursion.
@@ -5283,10 +5288,10 @@ function wp_sprintf( $pattern, ...$args ) {
 			// Find numbered arguments or take the next one in order.
 			if ( preg_match( '/^%(\d+)\$/', $fragment, $matches ) ) {
 				$index    = $matches[1] - 1; // 0-based array vs 1-based sprintf() arguments.
-				$arg      = isset( $args[ $index ] ) ? $args[ $index ] : '';
+				$arg      = $args[ $index ] ?? '';
 				$fragment = str_replace( "%{$matches[1]}$", '%', $fragment );
 			} else {
-				$arg = isset( $args[ $arg_index ] ) ? $args[ $arg_index ] : '';
+				$arg = $args[ $arg_index ] ?? '';
 				++$arg_index;
 			}
 

@@ -490,7 +490,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			array( 'comments_count', 0 ),
 			array( 'posts_count', 0 ),
 			array( 'terms_count', 1 ),
-			array( 'options_count', 100 ),
+			array( 'options_count', 1 ),
 			array( 'users_count', 0 ),
 			array( 'alloptions_count', 100 ),
 			array( 'alloptions_bytes', 1000 ),
