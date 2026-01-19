@@ -1007,7 +1007,7 @@ function redirect_guess_404_permalink() {
 			$query_args['post_type'] = $publicly_viewable_post_types;
 		}
 
-		// Handle date queries.
+		// Build date_query array from individual year, month, and day query vars for WP_Query compatibility.
 		$date_query = array();
 		if ( get_query_var( 'year' ) ) {
 			$date_query['year'] = get_query_var( 'year' );
