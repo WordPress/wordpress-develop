@@ -7,7 +7,7 @@
  *
  * @package WordPress
  * @subpackage Abilities_API
- * @since 6.9.0
+ * @since 7.0.0
  *
  * @internal This class is not part of the public API.
  * @access private
