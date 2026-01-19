@@ -1029,6 +1029,9 @@ function redirect_guess_404_permalink() {
 		}
 
 		$post_id = array_first( $query->posts );
+		if ( ! is_int( $post_id ) ) {
+			return false;
+		}
 
 		if ( get_query_var( 'feed' ) ) {
 			return get_post_comments_feed_link( $post_id, get_query_var( 'feed' ) );
