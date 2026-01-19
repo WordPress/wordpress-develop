@@ -441,7 +441,6 @@ CSS;
 		$result = $this->setting->validate( $css );
 		$this->assertWPError( $result );
 		$this->assertSame( $expected_error_message, $result->get_error_message() );
-
 	}
 
 	/**
