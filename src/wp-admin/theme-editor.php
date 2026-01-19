@@ -110,6 +110,7 @@ if ( 'download_theme' === $action ) {
 	if ( class_exists( 'ZipArchive' ) ) {
 		$zip = new ZipArchive();
 		if ( true !== $zip->open( $tmpfile, ZipArchive::CREATE ) ) {
+			@unlink( $tmpfile );
 			wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
 		}
 
@@ -121,11 +122,18 @@ if ( 'download_theme' === $action ) {
 
 		foreach ( $files as $file ) {
 			// With SKIP_DOTS and LEAVES_ONLY, we don't need to check isDir().
-			$file_path     = $file->getRealPath();
+			$file_path = $file->getRealPath();
+
+			// Ensure path is valid and within theme directory.
+			if ( ! $file_path || ! str_starts_with( $file_path, $theme_dir ) ) {
+				continue;
+			}
+
 			$relative_path = substr( $file_path, strlen( $theme_dir ) + 1 );
 
 			if ( ! $zip->addFile( $file_path, $stylesheet . '/' . $relative_path ) ) {
 				$zip->close();
+				@unlink( $tmpfile );
 				wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
 			}
 
@@ -134,7 +142,8 @@ if ( 'download_theme' === $action ) {
 
 		if ( 0 === $files_added ) {
 			$zip->close();
-			wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
+			@unlink( $tmpfile );
+			wp_die( '<p>' . __( 'No files found to compress.' ) . '</p>' );
 		}
 		$zip->close();
 	} else {
@@ -148,17 +157,31 @@ if ( 'download_theme' === $action ) {
 		);
 
 		foreach ( $files as $file ) {
-			$filelist[] = $file->getRealPath();
+			$file_path = $file->getRealPath();
+
+			// Ensure path is valid and within theme directory.
+			if ( ! $file_path || ! str_starts_with( $file_path, $theme_dir ) ) {
+				continue;
+			}
+
+			$filelist[] = $file_path;
+		}
+
+		if ( empty( $filelist ) ) {
+			@unlink( $tmpfile );
+			wp_die( '<p>' . __( 'No files found to compress.' ) . '</p>' );
 		}
 
 		$archive = new PclZip( $tmpfile );
 		$result  = $archive->create( $filelist, PCLZIP_OPT_REMOVE_PATH, $theme_dir, PCLZIP_OPT_ADD_PATH, $stylesheet );
 		if ( 0 === $result ) {
+			@unlink( $tmpfile );
 			wp_die( '<p>' . __( 'Could not create zip archive.' ) . ' ' . esc_html( $archive->errorInfo( true ) ) . '</p>' );
 		}
 	}
 
 	if ( ! file_exists( $tmpfile ) ) {
+		@unlink( $tmpfile );
 		wp_die( '<p>' . __( 'Failed to create theme archive.' ) . '</p>' );
 	}
 
