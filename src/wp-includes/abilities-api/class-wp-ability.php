@@ -442,7 +442,7 @@ class WP_Ability {
 	 * @return mixed The same input, or the default from schema, or `null` if default not set.
 	 */
 	public function normalize_input( $input = null ) {
-		if ( null !== $input ) {
+		if ( null !== $input && ! empty( $input ) ) {
 			return $input;
 		}
 
