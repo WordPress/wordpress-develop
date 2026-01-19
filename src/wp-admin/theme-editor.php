@@ -102,6 +102,10 @@ if ( 'download_theme' === $action ) {
 
 	$tmpfile = get_temp_dir() . DIRECTORY_SEPARATOR . $zipname . '-' . time() . '.zip';
 
+	// Attempt to extend execution time to allow large theme archives to be created.
+	if ( function_exists( 'set_time_limit' ) ) {
+		@set_time_limit( 300 );
+	}
 	// Try native ZipArchive first, fall back to PclZip if needed.
 	if ( class_exists( 'ZipArchive' ) ) {
 		$zip = new ZipArchive();
