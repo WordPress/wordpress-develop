@@ -1873,11 +1873,7 @@ function get_the_post_type_description() {
 	$post_type_obj = get_post_type_object( $post_type );
 
 	// Check if a description is set.
-	if ( isset( $post_type_obj->description ) ) {
-		$description = $post_type_obj->description;
-	} else {
-		$description = '';
-	}
+	$description = $post_type_obj->description ?? '';
 
 	/**
 	 * Filters the description for a post type archive.
@@ -4019,7 +4015,7 @@ function wp_enqueue_editor() {
  * @since 4.9.0
  *
  * @see wp_enqueue_editor()
- * @see wp_get_code_editor_settings();
+ * @see wp_get_code_editor_settings()
  * @see _WP_Editors::parse_settings()
  *
  * @param array $args {
@@ -4658,7 +4654,7 @@ function paginate_links( $args = '' ) {
 	$url_parts    = explode( '?', $pagenum_link );
 
 	// Get max pages and current page out of the current query, if available.
-	$total   = isset( $wp_query->max_num_pages ) ? $wp_query->max_num_pages : 1;
+	$total   = $wp_query->max_num_pages ?? 1;
 	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 
 	// Append the format placeholder to the base URL.
@@ -4697,7 +4693,7 @@ function paginate_links( $args = '' ) {
 	if ( isset( $url_parts[1] ) ) {
 		// Find the format argument.
 		$format       = explode( '?', str_replace( '%_%', $args['format'], $args['base'] ) );
-		$format_query = isset( $format[1] ) ? $format[1] : '';
+		$format_query = $format[1] ?? '';
 		wp_parse_str( $format_query, $format_args );
 
 		// Find the query args of the requested URL.
@@ -5061,7 +5057,7 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 	}
 
 	$stylesheet_link = sprintf(
-		"<link rel='stylesheet' href='%s' type='text/css' />\n",
+		"<link rel='stylesheet' href='%s' />\n",
 		esc_url( wp_admin_css_uri( $file ) )
 	);
 
@@ -5080,7 +5076,7 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 
 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
 		$rtl_stylesheet_link = sprintf(
-			"<link rel='stylesheet' href='%s' type='text/css' />\n",
+			"<link rel='stylesheet' href='%s' />\n",
 			esc_url( wp_admin_css_uri( "$file-rtl" ) )
 		);
 

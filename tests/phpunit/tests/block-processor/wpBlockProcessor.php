@@ -748,6 +748,46 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that innerHTML only matches as a block type when checking with the wildcard '*'.
+	 *
+	 * @ticket 64485
+	 *
+	 * @covers ::is_block_type()
+	 */
+	public function test_inner_html_is_only_a_block_type_match_with_the_wildcard() {
+		$processor = new WP_Block_Processor( '0<!-- wp:b1 -->1<!-- wp:b2 -->' );
+
+		$processor->next_token();
+		$this->assertTrue(
+			$processor->is_block_type( 'freeform' ),
+			'Failed to detect top-level freeform HTML as freeform block: check test setup.'
+		);
+
+		$processor->next_token();
+		$this->assertTrue(
+			$processor->is_block_type( 'b1' ),
+			'Failed to detect opening delimiter as b1 block type: check test setup.'
+		);
+
+		$processor->next_token();
+		$this->assertFalse(
+			(
+				$processor->is_block_type( 'freeform' ) ||
+				$processor->is_block_type( 'b1' ) ||
+				$processor->is_block_type( 'core/freeform' ) ||
+				$processor->is_block_type( 'core/b1' ) ||
+				$processor->is_block_type( '' )
+			),
+			'Failed to reject innerHTML as a matched block type.'
+		);
+
+		$this->assertTrue(
+			$processor->is_block_type( '*' ),
+			'Failed to accept innerHTML as a wildcard block-type match.'
+		);
+	}
+
+	/**
 	 * Verifies that the processor indicates if the currently-matched delimiter
 	 * opens a block of a given block type. This is true for openers and void delimiters.
 	 *
@@ -1208,6 +1248,65 @@ HTML
 			'Only freeform'   => array( 'Have a lovely day.', array( 0, 18 ) ),
 			'Only void'       => array( '<!-- wp:into/abyss /-->', array( 0, 23 ) ),
 			'Mixed'           => array( '<!-- wp:pw --><><!-- /wp:pw -->', array( 0, 14 ), array( 14, 2 ), array( 16, 15 ) ),
+		);
+	}
+
+	/**
+	 * Verifies that next_block( $block_type ) scans directly to the appropriate tokens.
+	 *
+	 * @ticket 64485
+	 *
+	 * @dataProvider data_markup_with_block_of_given_type
+	 *
+	 * @param string $html       Contains block markup, including the tested block type.
+	 * @param string $block_type Jump to this block type.
+	 */
+	public function test_scans_directly_to_requested_block_type( string $html, string $block_type ) {
+		$processor = new WP_Block_Processor( $html );
+
+		$this->assertTrue(
+			$processor->next_block( $block_type ),
+			'Failed to find block of requested type.'
+		);
+
+		$full_block_type = WP_Block_Processor::normalize_block_type( $block_type );
+
+		if ( 'core/freeform' === $full_block_type ) {
+			$this->assertTrue(
+				$processor->is_html(),
+				'Failed to match on HTML token when looking for freeform content.'
+			);
+
+			$this->assertSame(
+				0,
+				$processor->get_depth(),
+				'Failed to scan to top-level freeform content when searching for freeform.'
+			);
+		} else {
+			$this->assertFalse(
+				$processor->is_html(),
+				'Matched on HTML token when looking for block delimiter.'
+			);
+		}
+
+		$this->assertSame(
+			$full_block_type,
+			$processor->get_printable_block_type(),
+			'Scanned to token of wrong block type.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_markup_with_block_of_given_type() {
+		return array(
+			'At start of HTML'    => array( '<!-- wp:target -->', 'target' ),
+			'After freeform text' => array( 'prefix<!-- wp:target -->', 'target' ),
+			'After outer block'   => array( 'prefix<!-- wp:group --><!-- wp:target -->', 'target' ),
+			'After innerHTML'     => array( 'prefix<!-- wp:group -->inner<!-- wp:target -->', 'target' ),
 		);
 	}
 
