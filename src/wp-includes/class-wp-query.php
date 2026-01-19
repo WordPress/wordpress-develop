@@ -1511,7 +1511,6 @@ class WP_Query {
 			$search_columns = $default_search_columns;
 		}
 
-
 		/**
 		 * Filters the prefix that indicates that a search term should be excluded from results.
 		 *
