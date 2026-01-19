@@ -52,6 +52,7 @@ const result = spawnSync(
 		...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
 		'run',
 		'-T',
+		'--rm',
 		'php',
 		'composer',
 		'update',
@@ -61,7 +62,7 @@ const result = spawnSync(
 );
 
 if ( result.status !== 0 ) {
-	console.error( '\nThere was a failure running composer update.' );
+	console.error( '\nThere was an error while running PHP composer update.' );
 	console.error(
 		'This is often caused by network issues or Packagist.org downtime.'
 	);
