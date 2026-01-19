@@ -344,12 +344,7 @@ class WP_List_Table {
 		if ( 'page' === $key ) {
 			return $this->get_pagenum();
 		}
-
-		if ( isset( $this->_pagination_args[ $key ] ) ) {
-			return $this->_pagination_args[ $key ];
-		}
-
-		return 0;
+		return $this->_pagination_args[ $key ] ?? 0;
 	}
 
 	/**
@@ -1021,7 +1016,7 @@ class WP_List_Table {
 	 * @param string $which The location of the pagination: Either 'top' or 'bottom'.
 	 */
 	protected function pagination( $which ) {
-		if ( empty( $this->_pagination_args ) ) {
+		if ( empty( $this->_pagination_args['total_items'] ) ) {
 			return;
 		}
 
@@ -1451,11 +1446,11 @@ class WP_List_Table {
 			}
 
 			if ( isset( $sortable[ $column_key ] ) ) {
-				$orderby       = isset( $sortable[ $column_key ][0] ) ? $sortable[ $column_key ][0] : '';
-				$desc_first    = isset( $sortable[ $column_key ][1] ) ? $sortable[ $column_key ][1] : false;
-				$abbr          = isset( $sortable[ $column_key ][2] ) ? $sortable[ $column_key ][2] : '';
-				$orderby_text  = isset( $sortable[ $column_key ][3] ) ? $sortable[ $column_key ][3] : '';
-				$initial_order = isset( $sortable[ $column_key ][4] ) ? $sortable[ $column_key ][4] : '';
+				$orderby       = $sortable[ $column_key ][0] ?? '';
+				$desc_first    = $sortable[ $column_key ][1] ?? false;
+				$abbr          = $sortable[ $column_key ][2] ?? '';
+				$orderby_text  = $sortable[ $column_key ][3] ?? '';
+				$initial_order = $sortable[ $column_key ][4] ?? '';
 
 				/*
 				 * We're in the initial view and there's no $_GET['orderby'] then check if the
@@ -1567,11 +1562,11 @@ class WP_List_Table {
 		foreach ( array_keys( $columns ) as $column_key ) {
 
 			if ( isset( $sortable[ $column_key ] ) ) {
-				$orderby       = isset( $sortable[ $column_key ][0] ) ? $sortable[ $column_key ][0] : '';
-				$desc_first    = isset( $sortable[ $column_key ][1] ) ? $sortable[ $column_key ][1] : false;
-				$abbr          = isset( $sortable[ $column_key ][2] ) ? $sortable[ $column_key ][2] : '';
-				$orderby_text  = isset( $sortable[ $column_key ][3] ) ? $sortable[ $column_key ][3] : '';
-				$initial_order = isset( $sortable[ $column_key ][4] ) ? $sortable[ $column_key ][4] : '';
+				$orderby       = $sortable[ $column_key ][0] ?? '';
+				$desc_first    = $sortable[ $column_key ][1] ?? false;
+				$abbr          = $sortable[ $column_key ][2] ?? '';
+				$orderby_text  = $sortable[ $column_key ][3] ?? '';
+				$initial_order = $sortable[ $column_key ][4] ?? '';
 
 				if ( ! is_string( $orderby_text ) || '' === $orderby_text ) {
 					return;
@@ -1668,6 +1663,9 @@ class WP_List_Table {
 	 * @param string $which The location of the navigation: Either 'top' or 'bottom'.
 	 */
 	protected function display_tablenav( $which ) {
+		if ( 'bottom' === $which && ! $this->has_items() ) {
+			return;
+		}
 		if ( 'top' === $which ) {
 			wp_nonce_field( 'bulk-' . $this->_args['plural'] );
 		}
@@ -1868,6 +1866,6 @@ class WP_List_Table {
 			),
 		);
 
-		printf( "<script type='text/javascript'>list_args = %s;</script>\n", wp_json_encode( $args ) );
+		printf( "<script>list_args = %s;</script>\n", wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
 	}
 }

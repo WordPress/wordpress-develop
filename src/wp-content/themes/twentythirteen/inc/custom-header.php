@@ -74,7 +74,7 @@ function twentythirteen_custom_header_fonts() {
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), null );
 
 	// Add Genericons font.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 }
 add_action( 'admin_print_styles-appearance_page_custom-header', 'twentythirteen_custom_header_fonts' );
 
@@ -96,7 +96,7 @@ function twentythirteen_header_style() {
 
 	// If we get this far, we have custom styles.
 	?>
-	<style type="text/css" id="twentythirteen-header-css">
+	<style id="twentythirteen-header-css">
 	<?php
 	if ( ! empty( $header_image ) ) :
 		?>
@@ -154,7 +154,7 @@ function twentythirteen_header_style() {
 function twentythirteen_admin_header_style() {
 	$header_image = get_header_image();
 	?>
-	<style type="text/css" id="twentythirteen-admin-header-css">
+	<style id="twentythirteen-admin-header-css">
 	.appearance_page_custom-header #headimg {
 		border: none;
 		-webkit-box-sizing: border-box;

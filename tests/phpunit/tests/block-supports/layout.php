@@ -74,7 +74,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"/></figure>';
 		$expected      = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"/></figure>';
 
-		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+		$this->assertEqualHTML( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}
 
 	/**
@@ -90,7 +90,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		$block_content = '<figure class="wp-block-image alignright size-full"><img src="/my-image.jpg"/></figure>';
 		$expected      = '<div class="wp-block-image"><figure class="alignright size-full"><img src="/my-image.jpg"/></figure></div>';
 
-		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+		$this->assertEqualHTML( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}
 
 	/**
@@ -111,7 +111,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertSame( $expected, wp_restore_image_outer_container( $block_image_html, $block ) );
+		$this->assertEqualHTML( $expected, wp_restore_image_outer_container( $block_image_html, $block ) );
 	}
 
 	/**
@@ -165,7 +165,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		$block_content = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
 		$expected      = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
 
-		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+		$this->assertEqualHTML( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}
 
 	/**
@@ -184,7 +184,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	public function test_layout_support_flag_renders_classnames_on_wrapper( $args, $expected_output ) {
 		switch_theme( 'default' );
 		$actual_output = wp_render_layout_support_flag( $args['block_content'], $args['block'] );
-		$this->assertSame( $expected_output, $actual_output );
+		$this->assertEqualHTML( $expected_output, $actual_output );
 	}
 
 	/**
@@ -634,6 +634,86 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 					),
 				),
 				'expected_class'   => 'wp-container-core-group-is-layout-d3b710ac',
+			),
+		);
+	}
+
+	/**
+	 * Tests that custom blocks include namespace in layout classnames.
+	 *
+	 * When layout support is enabled for custom blocks, the generated
+	 * layout classname should include the full block namespace to ensure
+	 * that CSS selectors match correctly.
+	 *
+	 * @ticket 63839
+	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @dataProvider data_layout_classname_with_custom_blocks
+	 */
+	public function test_layout_classname_includes_namespace_for_custom_blocks( $block_name, $layout_type, $expected_class, $should_not_contain ) {
+		switch_theme( 'default' );
+
+		register_block_type(
+			$block_name,
+			array(
+				'supports' => array(
+					'layout' => true,
+				),
+			)
+		);
+
+		$block_content = '<div class="wp-block-test"><p>Content</p></div>';
+		$block         = array(
+			'blockName' => $block_name,
+			'attrs'     => array(
+				'layout' => array(
+					'type' => $layout_type,
+				),
+			),
+		);
+
+		$output = wp_render_layout_support_flag( $block_content, $block );
+
+		// Assert that the expected class is present.
+		$this->assertStringContainsString( $expected_class, $output );
+
+		// Assert that the old buggy class is not present.
+		$this->assertStringNotContainsString( $should_not_contain, $output );
+
+		// Clean up the registered block type.
+		unregister_block_type( $block_name );
+	}
+
+	/**
+	 * Data provider for test_layout_classname_includes_namespace_for_custom_blocks.
+	 *
+	 * @return array
+	 */
+	public function data_layout_classname_with_custom_blocks() {
+		return array(
+			'custom block with constrained layout' => array(
+				'block_name'         => 'foo/bar',
+				'layout_type'        => 'constrained',
+				'expected_class'     => 'wp-block-foo-bar-is-layout-constrained',
+				'should_not_contain' => 'wp-block-bar-is-layout-constrained',
+			),
+			'custom block with default layout'     => array(
+				'block_name'         => 'foo/bar',
+				'layout_type'        => 'default',
+				'expected_class'     => 'wp-block-foo-bar-is-layout-flow',
+				'should_not_contain' => 'wp-block-bar-is-layout-flow',
+			),
+			'custom block with flex layout'        => array(
+				'block_name'         => 'foo/bar',
+				'layout_type'        => 'flex',
+				'expected_class'     => 'wp-block-foo-bar-is-layout-flex',
+				'should_not_contain' => 'wp-block-bar-is-layout-flex',
+			),
+			'custom block with grid layout'        => array(
+				'block_name'         => 'foo/bar',
+				'layout_type'        => 'grid',
+				'expected_class'     => 'wp-block-foo-bar-is-layout-grid',
+				'should_not_contain' => 'wp-block-bar-is-layout-grid',
 			),
 		);
 	}

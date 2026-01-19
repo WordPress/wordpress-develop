@@ -51,10 +51,35 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $filter, 'filter' ) );
 
 		fetch_feed( 'https://wordpress.org/news/feed/' );
-		$this->assertEquals( 1, $filter->get_call_count(), 'The feed should be fetched on the first call.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The feed should be fetched on the first call.' );
 
 		fetch_feed( 'https://wordpress.org/news/feed/' );
-		$this->assertEquals( 1, $filter->get_call_count(), 'The feed should be cached on the second call. For SP 1.8.x upgrades, backport simplepie/simplepie#830 to resolve.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The feed should be cached on the second call. For SP 1.8.x upgrades, backport simplepie/simplepie#830 to resolve.' );
+	}
+
+	/**
+	 * Ensure that fetch_feed uses the global cache on Multisite.
+	 *
+	 * @ticket 63719
+	 *
+	 * @group feed
+	 * @group ms-required
+	 *
+	 * @covers ::fetch_feed
+	 * @covers WP_Feed_Cache_Transient
+	 */
+	public function test_fetch_feed_uses_global_cache() {
+		$second_blog_id = self::factory()->blog->create();
+
+		$filter = new MockAction();
+		add_filter( 'pre_http_request', array( $filter, 'filter' ) );
+
+		fetch_feed( 'https://wordpress.org/news/feed/' );
+
+		switch_to_blog( $second_blog_id );
+
+		fetch_feed( 'https://wordpress.org/news/feed/' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The feed cache should be global.' );
 	}
 
 	/**

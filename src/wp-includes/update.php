@@ -101,11 +101,12 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'php'                => $php_version,
 		'locale'             => $locale,
 		'mysql'              => $mysql_version,
-		'local_package'      => isset( $wp_local_package ) ? $wp_local_package : '',
+		'local_package'      => $wp_local_package ?? '',
 		'blogs'              => $num_blogs,
 		'users'              => get_user_count(),
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
+		'myisam_tables'      => array(),
 		'extensions'         => array_combine( $extensions, array_map( 'phpversion', $extensions ) ),
 		'platform_flags'     => array(
 			'os'   => PHP_OS,
@@ -113,6 +114,39 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		),
 		'image_support'      => array(),
 	);
+
+	// Check for default tables using the MyISAM engine.
+	$table_names   = implode( "','", $wpdb->tables() );
+	$myisam_tables = $wpdb->get_results(
+		$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
+			"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') AND ENGINE = %s;",
+			DB_NAME,
+			'MyISAM'
+		),
+		OBJECT_K
+	);
+
+	if ( ! empty( $myisam_tables ) ) {
+		$all_unprefixed_tables = $wpdb->tables( 'all', false );
+
+		// Including the table prefix is not necessary.
+		$unprefixed_myisam_tables = array_reduce(
+			array_keys( $myisam_tables ),
+			function ( $carry, $prefixed_myisam_table ) use ( $all_unprefixed_tables ) {
+				foreach ( $all_unprefixed_tables as $unprefixed ) {
+					if ( str_ends_with( $prefixed_myisam_table, $unprefixed ) ) {
+						$carry[] = $unprefixed;
+						break;
+					}
+				}
+				return $carry;
+			},
+			array()
+		);
+
+		$query['myisam_tables'] = $unprefixed_myisam_tables;
+	}
 
 	if ( function_exists( 'gd_info' ) ) {
 		$gd_info = gd_info();
@@ -545,7 +579,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 			foreach ( $update->translations as $translation ) {
 				if ( isset( $translation['language'], $translation['package'] ) ) {
 					$translation['type'] = 'plugin';
-					$translation['slug'] = isset( $update->slug ) ? $update->slug : $update->id;
+					$translation['slug'] = $update->slug ?? $update->id;
 
 					$updates->translations[] = $translation;
 				}
@@ -822,7 +856,7 @@ function wp_update_themes( $extra_stats = array() ) {
 			foreach ( $update->translations as $translation ) {
 				if ( isset( $translation['language'], $translation['package'] ) ) {
 					$translation['type'] = 'theme';
-					$translation['slug'] = isset( $update->theme ) ? $update->theme : $update->id;
+					$translation['slug'] = $update->theme ?? $update->id;
 
 					$new_update->translations[] = $translation;
 				}
