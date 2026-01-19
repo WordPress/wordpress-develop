@@ -177,7 +177,7 @@ To login to the site, navigate to http://localhost:8889/wp-admin.
 
 To generate a new password (recommended):
 
-1. Go to the Dashboard
-2. Click the Users menu on the left
-3. Click the Edit link below the admin user
-4. Scroll down and click 'Generate password'. Either use this password (recommended) or change it, then click 'Update User'. If you use the generated password be sure to save it somewhere (password manager, etc).
+ 1. Go to the Dashboard
+ 2. Click the Users menu on the left
+ 3. Click the Edit link below the admin user
+ 4. Scroll down and click 'Generate password'. Either use this password (recommended) or change it, then click 'Update User'. If you use the generated password be sure to save it somewhere (password manager, etc).
