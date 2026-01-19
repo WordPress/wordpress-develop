@@ -330,7 +330,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'padding'  => true,
 					),
 					'typography' => array(
-						'lineHeight' => false,
+						'lineHeight'  => false,
 						'textColumns' => true,
 					),
 				),
