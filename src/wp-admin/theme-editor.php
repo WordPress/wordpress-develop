@@ -113,18 +113,29 @@ if ( 'download_theme' === $action ) {
 			wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
 		}
 
-		$files = new RecursiveIteratorIterator(
+		$files       = new RecursiveIteratorIterator(
 			new RecursiveDirectoryIterator( $theme_dir, FilesystemIterator::SKIP_DOTS ),
 			RecursiveIteratorIterator::LEAVES_ONLY
 		);
+		$files_added = 0;
 
 		foreach ( $files as $file ) {
 			// With SKIP_DOTS and LEAVES_ONLY, we don't need to check isDir().
 			$file_path     = $file->getRealPath();
 			$relative_path = substr( $file_path, strlen( $theme_dir ) + 1 );
-			$zip->addFile( $file_path, $stylesheet . '/' . $relative_path );
+
+			if ( ! $zip->addFile( $file_path, $stylesheet . '/' . $relative_path ) ) {
+				$zip->close();
+				wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
+			}
+
+			$files_added++;
 		}
 
+		if ( 0 === $files_added ) {
+			$zip->close();
+			wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
+		}
 		$zip->close();
 	} else {
 		// Use PclZip fallback bundled with WordPress admin.
