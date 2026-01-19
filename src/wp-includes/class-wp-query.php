@@ -1483,8 +1483,10 @@ class WP_Query {
 		$searchand                          = '';
 		$query_vars['search_orderby_title'] = array();
 
-		$default_search_columns = array( 'post_title', 'post_excerpt', 'post_content', 'post_name' );
-		$search_columns         = ! empty( $query_vars['search_columns'] ) ? $query_vars['search_columns'] : $default_search_columns;
+		$default_search_columns   = array( 'post_title', 'post_excerpt', 'post_content' );
+		$allowed_search_columns   = $default_search_columns;
+		$allowed_search_columns[] = 'post_name';
+		$search_columns           = ! empty( $query_vars['search_columns'] ) ? $query_vars['search_columns'] : $default_search_columns;
 		if ( ! is_array( $search_columns ) ) {
 			$search_columns = array( $search_columns );
 		}
@@ -1492,7 +1494,7 @@ class WP_Query {
 		/**
 		 * Filters the columns to search in a WP_Query search.
 		 *
-		 * The supported columns are `post_title`, `post_excerpt`, `post_content` and `post_name`.
+		 * The supported columns are `post_title`, `post_excerpt` and `post_content`.
 		 * They are all included by default.
 		 *
 		 * @since 6.2.0
@@ -1504,10 +1506,11 @@ class WP_Query {
 		$search_columns = (array) apply_filters( 'post_search_columns', $search_columns, $query_vars['s'], $this );
 
 		// Use only supported search columns.
-		$search_columns = array_intersect( $search_columns, $default_search_columns );
+		$search_columns = array_intersect( $search_columns, $allowed_search_columns );
 		if ( empty( $search_columns ) ) {
 			$search_columns = $default_search_columns;
 		}
+
 
 		/**
 		 * Filters the prefix that indicates that a search term should be excluded from results.
