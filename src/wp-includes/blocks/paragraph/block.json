@@ -65,7 +65,6 @@
 			"__experimentalTextTransform": true,
 			"__experimentalWritingMode": true,
 			"fitText": true,
-			"textColumns": true,
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
