@@ -327,6 +327,42 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'post_name' ) );
 	}
 
+	/**
+	 * @ticket 47988
+	 */
+	public function test_singular_name_query_prefers_published_post_over_draft_with_same_slug() {
+		$slug = 'shared-slug-47988';
+
+		$published_id = self::factory()->post->create(
+			array(
+				'post_name'     => $slug,
+				'post_status'   => 'publish',
+				'post_date'     => '2023-01-01 00:00:00',
+				'post_date_gmt' => '2023-01-01 00:00:00',
+			)
+		);
+
+		// Make the draft newer so post_date DESC would normally pick it first.
+		$draft_id = self::factory()->post->create(
+			array(
+				'post_name'     => $slug,
+				'post_status'   => 'draft',
+				'post_date'     => '2023-01-02 00:00:00',
+				'post_date_gmt' => '2023-01-02 00:00:00',
+			)
+		);
+
+		$query = new WP_Query(
+			array(
+				'name'      => $slug,
+				'post_type' => 'post',
+			)
+		);
+
+		$this->assertNotEmpty( $query->posts );
+		$this->assertSame( array( $published_id, $draft_id ), wp_list_pluck( $query->posts, 'ID' ) );
+	}
+
 	public function test_post_status() {
 		$statuses1 = get_post_stati();
 		$this->assertContains( 'auto-draft', $statuses1 );
