@@ -43,6 +43,7 @@ wp-tests-config.php
 /src/wp-includes/class-wp-block-parser-frame.php
 /src/wp-includes/theme.json
 /packagehash.txt
+/.gutenberg-hash
 /artifacts
 /setup.log
 /coverage
