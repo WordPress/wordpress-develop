@@ -141,4 +141,41 @@ TREE;
 
 		$this->assertNotSame( $tree_expected, $tree_actual );
 	}
+
+	/**
+	 * @ticket 64531
+	 *
+	 * @covers ::build_visual_html_tree
+	 */
+	public function test_spacing() {
+		$html = <<<'HTML'
+<p> space-surrounded&#x20;</p>
+<p>&nbsp;nbsp-surrounded&#xA0;</p>
+<p>
+newline-surrounded&#xA;</p>
+<p>&#x9;tab-surrounded	</p>
+<p>ok</p>
+HTML;
+
+		$expected = <<<TREE
+<p>
+  " space-surrounded "
+"\n"
+<p>
+  "\u{00A0}nbsp-surrounded\u{00A0}"
+"\n"
+<p>
+  "\nnewline-surrounded\n"
+"\n"
+<p>
+  "\ttab-surrounded\t"
+"\n"
+<p>
+  "ok"
+
+TREE;
+
+		$tree_result = build_visual_html_tree( $html, '<body>' );
+		$this->assertSame( $expected, $tree_result );
+	}
 }
