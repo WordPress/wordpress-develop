@@ -682,7 +682,7 @@ HTML;
 			$expected_rendered_block,
 			$rendered_block,
 			'<body>',
-			"Rendered block does not contain expected HTML:\n$rendered_block"
+			'Rendered block does not contain expected HTML.'
 		);
 	}
 
