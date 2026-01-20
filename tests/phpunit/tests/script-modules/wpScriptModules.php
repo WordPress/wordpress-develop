@@ -572,12 +572,14 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			10,
 			2
 		);
-		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$actual   = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$expected = <<<'HTML'
+<script type="module" src="/src.js" id="with-src-js-module"></script>
+<script type="module" src="/was-empty-but-added-via-filter.js" id="without-src-but-filtered-js-module"></script>
+
+HTML;
 		$this->assertEqualHTML(
-			'
-				<script type="module" src="/src.js" id="with-src-js-module"></script>
-				<script type="module" src="/was-empty-but-added-via-filter.js" id="without-src-but-filtered-js-module"></script>
-			',
+			$expected,
 			$actual,
 			'<body>',
 			"Expected only one SCRIPT tag to be printed. Snapshot:\n$actual"
@@ -1476,23 +1478,29 @@ HTML;
 		$actual_head   = get_echo( array( wp_script_modules(), 'print_head_enqueued_script_modules' ) );
 		$actual_footer = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
+		$expected = <<<'HTML'
+<script type="module" src="/default.js" id="default-js-module"></script>
+<script type="module" src="/not-in-footer-via-enqueue.js" id="not-in-footer-via-enqueue-js-module"></script>
+<script type="module" src="/not-in-footer-via-override.js" id="not-in-footer-via-override-js-module"></script>
+
+HTML;
+
 		$this->assertEqualHTML(
 			$actual_head,
-			'
-				<script type="module" src="/default.js" id="default-js-module"></script>
-				<script type="module" src="/not-in-footer-via-enqueue.js" id="not-in-footer-via-enqueue-js-module"></script>
-				<script type="module" src="/not-in-footer-via-override.js" id="not-in-footer-via-override-js-module"></script>
-			',
+			$expected,
 			'<body>',
 			"Expected equal script modules in the HEAD. Snapshot:\n$actual_head"
 		);
+
+		$expected = <<<'HTML'
+<script type="module" src="/in-footer-via-register.js" id="in-footer-via-register-js-module"></script>
+<script type="module" src="/in-footer-via-enqueue.js" id="in-footer-via-enqueue-js-module"></script>
+<script type="module" src="/in-footer-via-override.js" id="in-footer-via-override-js-module"></script>
+
+HTML;
 		$this->assertEqualHTML(
 			$actual_footer,
-			'
-				<script type="module" src="/in-footer-via-register.js" id="in-footer-via-register-js-module"></script>
-				<script type="module" src="/in-footer-via-enqueue.js" id="in-footer-via-enqueue-js-module"></script>
-				<script type="module" src="/in-footer-via-override.js" id="in-footer-via-override-js-module"></script>
-			',
+			$expected,
 			'<body>',
 			"Expected equal script modules in the footer. Snapshot:\n$actual_footer"
 		);
@@ -1746,16 +1754,17 @@ HTML;
 
 		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
-		$expected = '
-			<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high">
-			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="high">
-			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="low">
-			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="low">
-			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload" fetchpriority="low">
-			<link rel="modulepreload" href="/y.js" id="y-js-modulepreload" fetchpriority="high">
-			<script type="module" src="/a.js" id="a-js-module" fetchpriority="low"></script>
-			<script type="module" src="/x.js" id="x-js-module" fetchpriority="high"></script>
-		';
+		$expected = <<<'HTML'
+<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high">
+<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="high">
+<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="low">
+<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="low">
+<link rel="modulepreload" href="/b.js" id="b-js-modulepreload" fetchpriority="low">
+<link rel="modulepreload" href="/y.js" id="y-js-modulepreload" fetchpriority="high">
+<script type="module" src="/a.js" id="a-js-module" fetchpriority="low"></script>
+<script type="module" src="/x.js" id="x-js-module" fetchpriority="high"></script>
+
+HTML;
 		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
 	}
 
@@ -1791,17 +1800,18 @@ HTML;
 
 		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
-		$expected = '
-			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="low">
-			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
-			<link rel="modulepreload" href="/a.js" id="a-js-modulepreload" fetchpriority="low" data-wp-fetchpriority="high">
-			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload">
-			<link rel="modulepreload" href="/f.js" id="f-js-modulepreload" fetchpriority="high">
-			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="high">
-			<script type="module" src="/x.js" id="x-js-module" fetchpriority="low"></script>
-			<script type="module" src="/y.js" id="y-js-module"></script>
-			<script type="module" src="/z.js" id="z-js-module" fetchpriority="high"></script>
-		';
+		$expected = <<<'HTML'
+<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="low">
+<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+<link rel="modulepreload" href="/a.js" id="a-js-modulepreload" fetchpriority="low" data-wp-fetchpriority="high">
+<link rel="modulepreload" href="/b.js" id="b-js-modulepreload">
+<link rel="modulepreload" href="/f.js" id="f-js-modulepreload" fetchpriority="high">
+<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="high">
+<script type="module" src="/x.js" id="x-js-module" fetchpriority="low"></script>
+<script type="module" src="/y.js" id="y-js-module"></script>
+<script type="module" src="/z.js" id="z-js-module" fetchpriority="high"></script>
+
+HTML;
 		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
 	}
 
@@ -1822,9 +1832,7 @@ HTML;
 
 		$actual_preloads = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) ) );
 		$this->assertEqualHTML(
-			'
-				<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/index.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
-			',
+			"<link rel='modulepreload' href='/wp-includes/js/dist/script-modules/interactivity/index.min.js' id='@wordpress/interactivity-js-modulepreload' fetchpriority='low'>\n",
 			$actual_preloads,
 			'<body>',
 			"Snapshot:\n$actual_preloads"
@@ -1839,11 +1847,13 @@ HTML;
 		);
 
 		$actual_footer_script_modules = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) ) );
+		$expected = <<<'HTML'
+<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
+<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low" data-wp-router-options="{&quot;loadOnClientNavigation&quot;:true}"></script>
+
+HTML;
 		$this->assertEqualHTML(
-			'
-				<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
-				<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low" data-wp-router-options="{&quot;loadOnClientNavigation&quot;:true}"></script>
-			',
+			$expected,
 			$actual_footer_script_modules,
 			'<body>',
 			"Snapshot:\n$actual_footer_script_modules"
@@ -1866,7 +1876,7 @@ HTML;
 
 		$actual = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) ) );
 		$this->assertEqualHTML(
-			'<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>',
+			"<script type='module' src='/wp-includes/js/dist/script-modules/a11y/index.min.js' id='@wordpress/a11y-js-module' fetchpriority='low'></script>\n",
 			$actual,
 			'<body>',
 			"Snapshot:\n$actual"
@@ -1895,12 +1905,13 @@ HTML;
 
 		$actual = $this->normalize_markup_for_snapshot( $actual );
 
-		$expected = '
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/index.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
-			<script type="module" src="/super-important-module.js" id="super-important-js-module" fetchpriority="high"></script>
-		';
+		$expected = <<<'HTML'
+<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/index.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+<script type="module" src="/super-important-module.js" id="super-important-js-module" fetchpriority="high"></script>
+
+HTML;
 		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
 	}
 
@@ -2340,17 +2351,13 @@ HTML;
 			"Expected import map to match snapshot:\n" . var_export( $import_map, true )
 		);
 		$this->assertEqualHTML(
-			'
-				<link rel="modulepreload" href="/static1.js" id="static1-js-modulepreload">
-			',
+			"<link rel='modulepreload' href='/static1.js' id='static1-js-modulepreload'>\n",
 			$preload_links,
 			'<body>',
 			"Expected preload links to match snapshot:\n$preload_links"
 		);
 		$this->assertEqualHTML(
-			'
-				<script type="module" src="/enqueued.js" id="enqueued-js-module"></script>
-			',
+			"<script type='module' src='/enqueued.js' id='enqueued-js-module'></script>\n",
 			$script_modules,
 			'<body>',
 			"Expected script modules to match snapshot:\n$script_modules"
