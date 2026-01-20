@@ -2787,7 +2787,7 @@ class WP_Site_Health {
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			),
-			'test'        => 'opcache',
+			'test'        => 'opcache_cache',
 		);
 
 		if ( ! $opcode_cache_enabled ) {
