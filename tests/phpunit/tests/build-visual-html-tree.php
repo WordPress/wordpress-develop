@@ -9,13 +9,13 @@
  */
 class Tests_Build_Equivalent_HTML_Semantic_Tree extends WP_UnitTestCase {
 	public function data_build_equivalent_html_semantic_tree() {
-		$block_markup = <<<END
-			<!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
-			  <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
-			<!-- /wp:separator -->
-END;
+		$block_markup = <<<'HTML'
+<!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
+  <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
+<!-- /wp:separator -->
+HTML;
 
-		$tree_structure = <<<END
+		$tree_structure = <<<'TREE'
 BLOCK["core/separator"]
   {
     "backgroundColor": "accent-1",
@@ -33,7 +33,7 @@ BLOCK["core/separator"]
     class="has-custom-classname is-style-default wp-block-separator"
     style="margin-top:50px;margin-bottom:50px;"
 
-END;
+TREE;
 
 		return array(
 			'Block delimiter' => array( $block_markup, $tree_structure ),
