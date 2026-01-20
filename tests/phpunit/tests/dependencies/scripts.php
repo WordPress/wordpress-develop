@@ -3520,9 +3520,6 @@ HTML;
 		wp_scripts()->do_footer_items();
 		$footer = ob_get_clean();
 
-		// $expected_footer = trim( $expected_footer, "\n\t" );
-		// $expected_header = trim( $expected_header, "\n\t" );
-
 		$this->assertEqualHTML( $expected_header, $header, '<body>', 'Expected header script markup to match.' );
 		$this->assertEqualHTML( $expected_footer, $footer, '<body>', 'Expected footer script markup to match.' );
 		$this->assertEqualSets( $expected_in_footer, wp_scripts()->in_footer, 'Expected to have the same handles for in_footer.' );
