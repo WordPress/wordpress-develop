@@ -718,16 +718,6 @@ HTML
 		$this->assertSameSets( $expected_scripts, wp_scripts()->queue, 'Enqueued scripts do not meet expectations' );
 		$this->assertSameSets( $expected_script_modules, wp_script_modules()->get_queue(), 'Enqueued script modules do not meet expectations' );
 
-		//echo "\n===\n";
-		//var_export( $rendered_block );
-		echo "\n===\n";
-		var_export( self::replaceInvisible( $rendered_block ) );
-		//echo "\n===\n";
-		//var_export( $expected_rendered_block );
-		echo "\n===\n";
-		var_export( self::replaceInvisible( $expected_rendered_block ) );
-		echo "\n===\n";
-
 		$this->assertEqualHTML(
 			$expected_rendered_block,
 			$rendered_block,
@@ -1490,27 +1480,5 @@ HTML
 		$this->assertSame( 2, $pre_render_callback->get_call_count() );
 		$this->assertSame( 2, $render_block_data_callback->get_call_count() );
 		$this->assertSame( 2, $render_block_context_callback->get_call_count() );
-	}
-
-	private static function replaceInvisible( string $s ): string {
-		return preg_replace_callback(
-			'/[\\x00-\\x1F\\x7F]/u',
-			static function ( array $matches ): string {
-				$codePoint = /** @type {number} */ ord($matches[0]);
-				switch ( $codePoint ) {
-					// U+007F DELETE -> U+2421 SYMBOL FOR DELETE
-					case 0x7f:
-						return "\u{2421}";
-
-					// Include a newline with newline replacement
-					case 0x0a:
-						return "\u{240A}\n";
-				}
-
-				// There's a nice Control Pictures Block at 0x2400 offset for the matched range
-				return mb_chr( $codePoint + 0x2400 );
-			},
-			$s
-		);
 	}
 }
