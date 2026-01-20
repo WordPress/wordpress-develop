@@ -371,13 +371,13 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$block_markup = <<<'HTML'
 <!-- wp:static -->
 <div class="static">
-	<!-- wp:static-child -->
-	<div class="static-child">First child</div>
-	<!-- /wp:static-child -->
-	<!-- wp:dynamic /-->
-	<!-- wp:static-child -->
-	<div class="static-child">Last child</div>
-	<!-- /wp:static-child -->
+<!-- wp:static-child -->
+<div class="static-child">First child</div>
+<!-- /wp:static-child -->
+<!-- wp:dynamic /-->
+<!-- wp:static-child -->
+<div class="static-child">Last child</div>
+<!-- /wp:static-child -->
 </div>
 <!-- /wp:static -->
 HTML;
@@ -390,13 +390,13 @@ HTML;
 				'expected_rendered_block' => <<<'HTML'
 
 <div class="static">
-&#x9;
-	<div class="static-child">First child</div>
-&#x9;
-	<p class="dynamic">Hello World!</p>
-&#x9;
-	<div class="static-child">Last child</div>
-&#x9;
+
+<div class="static-child">First child</div>
+
+<p class="dynamic">Hello World!</p>
+
+<div class="static-child">Last child</div>
+
 </div>
 
 HTML
@@ -424,13 +424,13 @@ HTML
 				'expected_rendered_block' => <<<'HTML'
 
 <div class="static">
-&#x9;
-	<div class="static-child">First child</div>
-&#x9;
-	<p class="dynamic filtered">Hello World!</p>
-&#x9;
-	<div class="static-child">Last child</div>
-&#x9;
+
+<div class="static-child">First child</div>
+
+<p class="dynamic filtered">Hello World!</p>
+
+<div class="static-child">Last child</div>
+
 </div>
 
 HTML
@@ -447,13 +447,13 @@ HTML
 				'expected_rendered_block' => <<<'HTML'
 
 <div class="static">
-&#x9;
-	<div class="static-child">First child</div>
-&#x9;
-&#x9;
-&#x9;
-	<div class="static-child">Last child</div>
-&#x9;
+
+<div class="static-child">First child</div>
+
+
+
+<div class="static-child">Last child</div>
+
 </div>
 
 HTML
@@ -481,13 +481,13 @@ HTML
 				'expected_rendered_block' => <<<'HTML'
 
 <div class="static">
-&#x9;
-	<div class="static-child">First child</div>
-&#x9;
-&#x9;
-&#x9;
-	<div class="static-child">Last child</div>
-&#x9;
+
+<div class="static-child">First child</div>
+
+
+
+<div class="static-child">Last child</div>
+
 </div>
 
 HTML
@@ -521,9 +521,9 @@ HTML
 				'expected_rendered_block' => <<<'HTML'
 
 <div class="static">
-&#x9;
-	<p class="dynamic">Hello World!</p>
-&#x9;
+
+<p class="dynamic">Hello World!</p>
+
 </div>
 
 HTML
@@ -550,11 +550,11 @@ HTML
 				'expected_rendered_block' => <<<'HTML'
 
 <div class="static">
-&#x9;
-	<div class="static-child">First child</div>
-&#x9;
-	<p class="dynamic">Hello World!</p>
-&#x9;
+
+<div class="static-child">First child</div>
+
+<p class="dynamic">Hello World!</p>
+
 </div>
 
 HTML
