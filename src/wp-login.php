@@ -176,7 +176,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 		$classes[] = 'interim-login';
 
 		?>
-		<style type="text/css">html{background-color: transparent;}</style>
+		<style>html{background-color: transparent;}</style>
 		<?php
 
 		if ( 'success' === $interim_login ) {
@@ -397,13 +397,13 @@ function login_footer( $input_id = '' ) {
 					);
 
 					/**
-					 * Filters default arguments for the Languages select input on the login screen.
+					 * Filters default arguments for the Language select input on the login screen.
 					 *
 					 * The arguments get passed to the wp_dropdown_languages() function.
 					 *
 					 * @since 5.9.0
 					 *
-					 * @param array $args Arguments for the Languages select input on the login screen.
+					 * @param array $args Arguments for the Language select input on the login screen.
 					 */
 					wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
 					?>
@@ -479,7 +479,7 @@ function wp_login_viewport_meta() {
  * Check the request and redirect or display a form based on the current action.
  */
 
-$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
+$action = isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
 $errors = new WP_Error();
 
 if ( isset( $_GET['key'] ) ) {
@@ -764,8 +764,10 @@ switch ( $action ) {
 		break;
 
 	case 'postpass':
+		$redirect_to = $_POST['redirect_to'] ?? wp_get_referer();
+
 		if ( ! isset( $_POST['post_password'] ) || ! is_string( $_POST['post_password'] ) ) {
-			wp_safe_redirect( wp_get_referer() );
+			wp_safe_redirect( $redirect_to );
 			exit;
 		}
 
@@ -782,18 +784,17 @@ switch ( $action ) {
 		 *
 		 * @param int $expires The expiry time, as passed to setcookie().
 		 */
-		$expire  = apply_filters( 'post_password_expires', time() + 10 * DAY_IN_SECONDS );
-		$referer = wp_get_referer();
+		$expire = apply_filters( 'post_password_expires', time() + 10 * DAY_IN_SECONDS );
 
-		if ( $referer ) {
-			$secure = ( 'https' === parse_url( $referer, PHP_URL_SCHEME ) );
+		if ( $redirect_to ) {
+			$secure = ( 'https' === parse_url( $redirect_to, PHP_URL_SCHEME ) );
 		} else {
 			$secure = false;
 		}
 
 		setcookie( 'wp-postpass_' . COOKIEHASH, $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) ), $expire, COOKIEPATH, COOKIE_DOMAIN, $secure );
 
-		wp_safe_redirect( wp_get_referer() );
+		wp_safe_redirect( $redirect_to );
 		exit;
 
 	case 'logout':
@@ -1317,7 +1318,7 @@ switch ( $action ) {
 			$redirect_to = admin_url();
 		}
 
-		$reauth = empty( $_REQUEST['reauth'] ) ? false : true;
+		$reauth = ! empty( $_REQUEST['reauth'] );
 
 		$user = wp_signon( array(), $secure_cookie );
 
@@ -1461,10 +1462,10 @@ switch ( $action ) {
 
 				if ( ! empty( $query['app_name'] ) ) {
 					/* translators: 1: Website name, 2: Application name. */
-					$message = sprintf( 'Please log in to %1$s to authorize %2$s to connect to your account.', get_bloginfo( 'name', 'display' ), '<strong>' . esc_html( $query['app_name'] ) . '</strong>' );
+					$message = sprintf( __( 'Please log in to %1$s to authorize %2$s to connect to your account.' ), get_bloginfo( 'name', 'display' ), '<strong>' . esc_html( $query['app_name'] ) . '</strong>' );
 				} else {
 					/* translators: %s: Website name. */
-					$message = sprintf( 'Please log in to %s to proceed with authorization.', get_bloginfo( 'name', 'display' ) );
+					$message = sprintf( __( 'Please log in to %s to proceed with authorization.' ), get_bloginfo( 'name', 'display' ) );
 				}
 
 				$errors->add( 'authorize_application', $message, 'message' );

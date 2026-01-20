@@ -54,7 +54,7 @@ wp_localize_script(
 			'adminUrl'   => parse_url( self_admin_url(), PHP_URL_PATH ),
 		),
 		'l10n'            => array(
-			'addNew'              => __( 'Add New Theme' ),
+			'addNew'              => __( 'Add Theme' ),
 			'search'              => __( 'Search Themes' ),
 			'upload'              => __( 'Upload Theme' ),
 			'back'                => __( 'Back' ),
@@ -599,7 +599,7 @@ if ( $tab ) {
 			</div>
 			<div class="wp-full-overlay-footer">
 				<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
-					<span class="collapse-sidebar-arrow"></span>
+					<span class="collapse-sidebar-arrow" aria-hidden="true"></span>
 					<span class="collapse-sidebar-label"><?php _e( 'Collapse' ); ?></span>
 				</button>
 			</div>

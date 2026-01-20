@@ -49,7 +49,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				'plural'   => 'comments',
 				'singular' => 'comment',
 				'ajax'     => true,
-				'screen'   => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen'   => $args['screen'] ?? null,
 			)
 		);
 	}
@@ -93,22 +93,26 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$mode = get_user_setting( 'posts_list_mode', 'list' );
 		}
 
-		$comment_status = isset( $_REQUEST['comment_status'] ) ? $_REQUEST['comment_status'] : 'all';
+		$comment_status = $_REQUEST['comment_status'] ?? 'all';
 
 		if ( ! in_array( $comment_status, array( 'all', 'mine', 'moderated', 'approved', 'spam', 'trash' ), true ) ) {
 			$comment_status = 'all';
 		}
 
-		$comment_type = ! empty( $_REQUEST['comment_type'] ) ? $_REQUEST['comment_type'] : '';
+		$comment_type = '';
 
-		$search = ( isset( $_REQUEST['s'] ) ) ? $_REQUEST['s'] : '';
+		if ( ! empty( $_REQUEST['comment_type'] ) && 'note' !== $_REQUEST['comment_type'] ) {
+			$comment_type = $_REQUEST['comment_type'];
+		}
+
+		$search = $_REQUEST['s'] ?? '';
 
 		$post_type = ( isset( $_REQUEST['post_type'] ) ) ? sanitize_key( $_REQUEST['post_type'] ) : '';
 
-		$user_id = ( isset( $_REQUEST['user_id'] ) ) ? $_REQUEST['user_id'] : '';
+		$user_id = $_REQUEST['user_id'] ?? '';
 
-		$orderby = ( isset( $_REQUEST['orderby'] ) ) ? $_REQUEST['orderby'] : '';
-		$order   = ( isset( $_REQUEST['order'] ) ) ? $_REQUEST['order'] : '';
+		$orderby = $_REQUEST['orderby'] ?? '';
+		$order   = $_REQUEST['order'] ?? '';
 
 		$comments_per_page = $this->get_per_page( $comment_status );
 
@@ -140,7 +144,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		);
 
 		$args = array(
-			'status'                    => isset( $status_map[ $comment_status ] ) ? $status_map[ $comment_status ] : $comment_status,
+			'status'                    => $status_map[ $comment_status ] ?? $comment_status,
 			'search'                    => $search,
 			'user_id'                   => $user_id,
 			'offset'                    => $start,
@@ -356,6 +360,10 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 */
 	protected function get_bulk_actions() {
 		global $comment_status;
+
+		if ( ! current_user_can( 'moderate_comments' ) ) {
+			return array(); // Return an empty array if the user doesn't have permission
+		}
 
 		$actions = array();
 
