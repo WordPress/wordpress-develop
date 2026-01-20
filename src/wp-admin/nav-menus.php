@@ -52,7 +52,7 @@ $menu_locations = get_nav_menu_locations();
 $num_locations  = count( array_keys( $locations ) );
 
 // Allowed actions: add, update, delete.
-$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'edit';
+$action = $_REQUEST['action'] ?? 'edit';
 
 /*
  * If a JSON blob of navigation menu data is found, expand it and inject it
@@ -672,9 +672,9 @@ if ( is_nav_menu( $nav_menu_selected_id ) ) {
 }
 
 /**
- * @global int $_wp_nav_menu_max_depth
- *
  * @since 3.0.0
+ *
+ * @global int $_wp_nav_menu_max_depth
  *
  * @param string $classes
  * @return string

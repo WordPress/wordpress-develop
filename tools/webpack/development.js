@@ -1,61 +1,72 @@
 /**
  * External dependencies
  */
-const { join } = require( 'path' );
+const TerserPlugin = require( 'terser-webpack-plugin' );
 
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-const DependencyExtractionWebpackPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
+const { baseDir } = require( './shared' );
 
-const baseDir = join( __dirname, '../../' );
+/**
+ * Webpack configuration for development scripts (React Refresh).
+ *
+ * These scripts enable hot module replacement for plugins
+ * using `@wordpress/scripts` with the `--hot` flag.
+ *
+ * @param {Object} env             Environment options.
+ * @param {string} env.buildTarget Build target directory.
+ * @param {boolean} env.watch      Whether to watch for changes.
+ * @return {Object} Webpack configuration object.
+ */
+module.exports = function( env = { buildTarget: 'src/', watch: false } ) {
+	const buildTarget = env.buildTarget || 'src/';
 
-module.exports = function( env = { environment: 'production', buildTarget: false } ) {
-	const mode = env.environment;
-	const suffix = mode === 'production' ? '.min' : '';
-	let buildTarget = env.buildTarget ? env.buildTarget : ( mode === 'production' ? 'build' : 'src' );
-	buildTarget = buildTarget  + '/wp-includes';
-
-	const sharedConfig = {
-		mode: 'development',
-		target: 'browserslist',
-		output: {
-			filename: `[name]${ suffix }.js`,
-			path: join( baseDir, `${ buildTarget }/js/dist/development` ),
+	const entry = {
+		// React Refresh runtime - exposes ReactRefreshRuntime global.
+		[ buildTarget + 'wp-includes/js/dist/development/react-refresh-runtime.js' ]: {
+			import: 'react-refresh/runtime',
+			library: {
+				name: 'ReactRefreshRuntime',
+				type: 'window',
+			},
 		},
+		[ buildTarget + 'wp-includes/js/dist/development/react-refresh-runtime.min.js' ]: {
+			import: 'react-refresh/runtime',
+			library: {
+				name: 'ReactRefreshRuntime',
+				type: 'window',
+			},
+		},
+		// React Refresh entry - injects runtime into global hook before React loads.
+		[ buildTarget + 'wp-includes/js/dist/development/react-refresh-entry.js' ]:
+			'@pmmmwh/react-refresh-webpack-plugin/client/ReactRefreshEntry.js',
+		[ buildTarget + 'wp-includes/js/dist/development/react-refresh-entry.min.js' ]:
+			'@pmmmwh/react-refresh-webpack-plugin/client/ReactRefreshEntry.js',
 	};
 
-	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
-	return [
-		{
-			...sharedConfig,
-			name: 'react-refresh-entry',
-			entry: {
-				'react-refresh-entry':
-				'@pmmmwh/react-refresh-webpack-plugin/client/ReactRefreshEntry.js',
-			},
-			plugins: [ new DependencyExtractionWebpackPlugin( {
-				outputFilename: `../../../assets/script-loader-[name]${ suffix }.php`,
-			} ) ],
+	return {
+		target: 'browserslist',
+		// Must use development mode to preserve process.env.NODE_ENV checks
+		// in the source files. These scripts are only used during development.
+		mode: 'development',
+		devtool: false,
+		cache: true,
+		entry,
+		output: {
+			path: baseDir,
+			filename: '[name]',
 		},
-		{
-			...sharedConfig,
-			name: 'react-refresh-runtime',
-			entry: {
-				'react-refresh-runtime': {
-					import: 'react-refresh/runtime',
-					library: {
-						name: 'ReactRefreshRuntime',
-						type: 'window',
-					},
-				},
-			},
-			plugins: [
-				new DependencyExtractionWebpackPlugin( {
-					useDefaults: false,
-					outputFilename: `../../../assets/script-loader-[name]${ suffix }.php`
+		optimization: {
+			minimize: true,
+			moduleIds: 'deterministic',
+			minimizer: [
+				new TerserPlugin( {
+					include: /\.min\.js$/,
+					extractComments: false,
 				} ),
 			],
 		},
-	];
+		watch: env.watch,
+	};
 };
