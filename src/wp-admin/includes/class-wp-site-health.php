@@ -2765,8 +2765,12 @@ class WP_Site_Health {
 	public function get_test_opcode_cache() {
 		$opcode_cache_enabled = false;
 		if ( function_exists( 'opcache_get_status' ) ) {
-			$status               = opcache_get_status( false );
-			$opcode_cache_enabled = $status['opcache_enabled'];
+			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discourage -- Warning emitted in failure case.
+			if ( $status ) {
+				if( true === $status['opcache_enabled'] ) {
+					$opcode_cache_enabled = true;
+				}
+			}
 		}
 
 		$result = array(
@@ -3463,14 +3467,14 @@ class WP_Site_Health {
 			'x-srcache-fetch-status' => $cache_hit_callback,
 
 			// Generic caching proxies (Nginx, Varnish, etc.)
-			'x-cache'           => $cache_hit_callback,
-			'x-cache-status'    => $cache_hit_callback,
-			'x-litespeed-cache' => $cache_hit_callback,
-			'x-proxy-cache'     => $cache_hit_callback,
-			'via'               => '',
+			'x-cache'                => $cache_hit_callback,
+			'x-cache-status'         => $cache_hit_callback,
+			'x-litespeed-cache'      => $cache_hit_callback,
+			'x-proxy-cache'          => $cache_hit_callback,
+			'via'                    => '',
 
 			// Cloudflare
-			'cf-cache-status' => $cache_hit_callback,
+			'cf-cache-status'        => $cache_hit_callback,
 		);
 
 		/**
