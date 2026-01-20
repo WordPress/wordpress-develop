@@ -387,13 +387,20 @@ HTML;
 			'all_printed'                             => array(
 				'set_up'                  => null,
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<p class="dynamic">Hello World!</p>
-						<div class="static-child">Last child</div>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+&#x9;
+	<div class="static-child">First child</div>
+&#x9;
+	<p class="dynamic">Hello World!</p>
+&#x9;
+	<div class="static-child">Last child</div>
+&#x9;
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
@@ -414,13 +421,20 @@ HTML;
 					);
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<p class="dynamic filtered">Hello World!</p>
-						<div class="static-child">Last child</div>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+&#x9;
+	<div class="static-child">First child</div>
+&#x9;
+	<p class="dynamic filtered">Hello World!</p>
+&#x9;
+	<div class="static-child">Last child</div>
+&#x9;
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'dynamic-extra', 'static-child-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
@@ -430,12 +444,20 @@ HTML;
 					add_filter( 'render_block_core/dynamic', '__return_empty_string' );
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<div class="static-child">Last child</div>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+&#x9;
+	<div class="static-child">First child</div>
+&#x9;
+&#x9;
+&#x9;
+	<div class="static-child">Last child</div>
+&#x9;
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'static-child-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module' ),
@@ -456,12 +478,20 @@ HTML;
 					);
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<div class="static-child">Last child</div>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+&#x9;
+	<div class="static-child">First child</div>
+&#x9;
+&#x9;
+&#x9;
+	<div class="static-child">Last child</div>
+&#x9;
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
@@ -488,11 +518,16 @@ HTML;
 					add_filter( 'render_block_core/static-child', '__return_empty_string' );
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<p class="dynamic">Hello World!</p>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+&#x9;
+	<p class="dynamic">Hello World!</p>
+&#x9;
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
@@ -512,12 +547,18 @@ HTML;
 					);
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<p class="dynamic">Hello World!</p>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+&#x9;
+	<div class="static-child">First child</div>
+&#x9;
+	<p class="dynamic">Hello World!</p>
+&#x9;
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
