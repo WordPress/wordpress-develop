@@ -39,9 +39,40 @@ BLOCK["core/separator"]
 
 TREE;
 
-		return array(
-			'Block delimiter' => array( $block_markup, $tree_structure ),
-		);
+		yield 'Block delimiter' => array( $block_markup, $tree_structure );
+
+		$block_markup = <<<'HTML'
+<!-- wp:example/block -->
+	One
+	<!-- wp:example/nested-void /-->
+	Two
+	<!-- wp:example/nested -->
+		Three
+	<!-- /wp:example/nested -->
+	Four
+<!-- /wp:example/block -->
+HTML;
+
+		$tree_structure = <<<'TREE'
+BLOCK["example/block"]
+  "
+	One
+	"
+  BLOCK["example/nested-void"]
+  "
+	Two
+	"
+  BLOCK["example/nested"]
+    "
+		Three
+	"
+  "
+	Four
+"
+
+TREE;
+
+		yield 'Text nodes in blocks' => array( $block_markup, $tree_structure );
 	}
 
 	/**
