@@ -29,9 +29,13 @@ BLOCK["core/separator"]
       }
     }
   }
+  "
+  "
   <hr>
     class="has-custom-classname is-style-default wp-block-separator"
     style="margin-top:50px;margin-bottom:50px;"
+  "
+"
 
 TREE;
 
