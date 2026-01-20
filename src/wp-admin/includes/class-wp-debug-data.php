@@ -473,7 +473,7 @@ class WP_Debug_Data {
 
 		// Opcode Cache.
 		if ( function_exists( 'opcache_get_status' ) ) {
-			$opcache_status = @opcache_get_status( false );
+			$opcache_status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discourage -- Warning emitted in failure case.
 
 			if ( false === $opcache_status ) {
 				$fields['opcode_cache'] = array(

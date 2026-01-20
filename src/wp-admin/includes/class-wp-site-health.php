@@ -2758,7 +2758,7 @@ class WP_Site_Health {
 	/**
 	 * Tests if opcode cache is enabled and available.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return array The test result.
 	 */
