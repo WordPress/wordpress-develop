@@ -3970,6 +3970,10 @@ function wp_hoist_late_printed_styles() {
 						$printed_global_styles = '';
 					}
 				}
+
+				if ( '' !== $inserted_after ) {
+					$processor->insert_after( "\n" . $inserted_after );
+				}
 			}
 
 			// Insert global-styles after the styles enqueued at enqueue_block_assets.
