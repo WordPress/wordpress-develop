@@ -59,7 +59,7 @@ window.addComment = ( function( window ) {
 	 * @since 5.1.1
 	 */
 	function ready() {
-		// Initialise the events.
+		// Initialize the events.
 		init();
 
 		// Set up a MutationObserver to check for comments loaded late.
@@ -98,7 +98,7 @@ window.addComment = ( function( window ) {
 
 		// Submit the comment form when the user types [Ctrl] or [Cmd] + [Enter].
 		var submitFormHandler = function( e ) {
-			if ( ( e.metaKey || e.ctrlKey ) && e.keyCode === 13 ) {
+			if ( ( e.metaKey || e.ctrlKey ) && e.keyCode === 13 && document.activeElement.tagName.toLowerCase() !== 'a' ) {
 				commentFormElement.removeEventListener( 'keydown', submitFormHandler );
 				e.preventDefault();
 				// The submit button ID is 'submit' so we can't call commentFormElement.submit(). Click it instead.
@@ -178,8 +178,13 @@ window.addComment = ( function( window ) {
 
 		var replyHeadingElement  = getElementById( config.commentReplyTitleId );
 		var replyHeadingTextNode = replyHeadingElement && replyHeadingElement.firstChild;
+		var replyLinkToParent    = replyHeadingTextNode && replyHeadingTextNode.nextSibling;
 
 		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === Node.TEXT_NODE && headingText ) {
+			if ( replyLinkToParent && 'A' === replyLinkToParent.nodeName && replyLinkToParent.id !== config.cancelReplyId ) {
+				replyLinkToParent.style.display = '';
+			}
+
 			replyHeadingTextNode.textContent = headingText;
 		}
 
@@ -197,7 +202,7 @@ window.addComment = ( function( window ) {
 		var replyNode = getElementById( config.commentReplyTitleId );
 		var defaultReplyHeading = replyNode && replyNode.firstChild.textContent;
 		var replyLink = this,
-			commId    = getDataAttribute( replyLink, 'belowelement'),
+			commId    = getDataAttribute( replyLink, 'belowelement' ),
 			parentId  = getDataAttribute( replyLink, 'commentid' ),
 			respondId = getDataAttribute( replyLink, 'respondelement' ),
 			postId    = getDataAttribute( replyLink, 'postid' ),
@@ -319,6 +324,7 @@ window.addComment = ( function( window ) {
 
 		var replyHeading         = getElementById( config.commentReplyTitleId );
 		var replyHeadingTextNode = replyHeading && replyHeading.firstChild;
+		var replyLinkToParent    = replyHeadingTextNode && replyHeadingTextNode.nextSibling;
 
 		if ( ! addBelowElement || ! respondElement || ! parentIdField ) {
 			// Missing key elements, fail.
@@ -342,6 +348,10 @@ window.addComment = ( function( window ) {
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
 
 		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === Node.TEXT_NODE ) {
+			if ( replyLinkToParent && 'A' === replyLinkToParent.nodeName && replyLinkToParent.id !== config.cancelReplyId ) {
+				replyLinkToParent.style.display = 'none';
+			}
+
 			replyHeadingTextNode.textContent = replyTo;
 		}
 

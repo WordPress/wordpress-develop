@@ -7,7 +7,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 30522
 	 */
-	function data_assertSameSets() {
+	public function data_assertSameSets() {
 		return array(
 			array(
 				array( 1, 2, 3 ), // Test expected.
@@ -51,7 +51,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	 * @dataProvider data_assertSameSets
 	 * @ticket 30522
 	 */
-	function test_assertSameSets( $expected, $actual, $exception ) {
+	public function test_assertSameSets( $expected, $actual, $exception ) {
 		if ( $exception ) {
 			try {
 				$this->assertSameSets( $expected, $actual );
@@ -68,7 +68,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 30522
 	 */
-	function data_assertSameSetsWithIndex() {
+	public function data_assertSameSetsWithIndex() {
 		return array(
 			array(
 				array( 1, 2, 3 ), // Test expected.
@@ -207,7 +207,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	 * @dataProvider data_assertSameSetsWithIndex
 	 * @ticket 30522
 	 */
-	function test_assertSameSetsWithIndex( $expected, $actual, $exception ) {
+	public function test_assertSameSetsWithIndex( $expected, $actual, $exception ) {
 		if ( $exception ) {
 			try {
 				$this->assertSameSetsWithIndex( $expected, $actual );
@@ -225,9 +225,9 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		register_post_status( 'foo' );
 		_unregister_post_status( 'foo' );
 
-		$stati = get_post_stati();
+		$statuses = get_post_stati();
 
-		$this->assertFalse( isset( $stati['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $statuses );
 	}
 
 	/**
@@ -268,17 +268,18 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36166
-	 * @expectedException WPDieException
 	 */
 	public function test_die_handler_should_handle_wp_error() {
+		$this->expectException( 'WPDieException' );
+
 		wp_die( new WP_Error( 'test', 'test' ) );
 	}
 
 	/**
 	 * @ticket 46813
-	 * @expectedException WPDieException
 	 */
 	public function test_die_handler_should_not_cause_doing_it_wrong_notice_without_wp_query_set() {
+		$this->expectException( 'WPDieException' );
 		unset( $GLOBALS['wp_query'] );
 
 		wp_die();

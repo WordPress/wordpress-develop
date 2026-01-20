@@ -10,11 +10,12 @@
 /**
  * oEmbed API endpoint controller.
  *
- * Registers the API route and delivers the response data.
+ * Registers the REST API route and delivers the response data.
  * The output format (XML or JSON) is handled by the REST API.
  *
  * @since 4.4.0
  */
+#[AllowDynamicProperties]
 final class WP_oEmbed_Controller {
 	/**
 	 * Register the oEmbed REST API route.
@@ -159,10 +160,15 @@ final class WP_oEmbed_Controller {
 	 * @since 4.8.0
 	 *
 	 * @see WP_oEmbed::get_html()
+	 * @global WP_Embed   $wp_embed   WordPress Embed object.
+	 * @global WP_Scripts $wp_scripts
+	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return object|WP_Error oEmbed response data or WP_Error on failure.
 	 */
 	public function get_proxy_item( $request ) {
+		global $wp_embed, $wp_scripts;
+
 		$args = $request->get_params();
 
 		// Serve oEmbed data from cache if set.
@@ -195,13 +201,10 @@ final class WP_oEmbed_Controller {
 
 		if ( false === $data ) {
 			// Try using a classic embed, instead.
-			global $wp_embed;
-
 			/* @var WP_Embed $wp_embed */
 			$html = $wp_embed->get_embed_handler_html( $args, $url );
 
 			if ( $html ) {
-				global $wp_scripts;
 				// Check if any scripts were enqueued by the shortcode, and include them in the response.
 				$enqueued_scripts = array();
 

@@ -26,6 +26,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 			'classname'                   => 'widget_recent_comments',
 			'description'                 => __( 'Your site&#8217;s most recent comments.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		parent::__construct( 'recent-comments', __( 'Recent Comments' ), $widget_ops );
 		$this->alt_option_name = 'widget_recent_comments';
@@ -54,12 +55,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 			return;
 		}
 
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
-		printf(
-			'<style%s>.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>',
-			$type_attr
-		);
+		echo '<style>.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>';
 	}
 
 	/**
@@ -133,7 +129,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
 			$title      = trim( strip_tags( $title ) );
 			$aria_label = $title ? $title : $default_title;
-			$output    .= '<nav role="navigation" aria-label="' . esc_attr( $aria_label ) . '">';
+			$output    .= '<nav aria-label="' . esc_attr( $aria_label ) . '">';
 		}
 
 		$output .= '<ul id="' . esc_attr( $recent_comments_id ) . '">';
@@ -189,7 +185,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	 * @param array $instance Current settings.
 	 */
 	public function form( $instance ) {
-		$title  = isset( $instance['title'] ) ? $instance['title'] : '';
+		$title  = $instance['title'] ?? '';
 		$number = isset( $instance['number'] ) ? absint( $instance['number'] ) : 5;
 		?>
 		<p>

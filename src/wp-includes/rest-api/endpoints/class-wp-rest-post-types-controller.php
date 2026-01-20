@@ -27,7 +27,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for post types.
 	 *
 	 * @since 4.7.0
 	 *
@@ -109,6 +109,11 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
+
 		$data  = array();
 		$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 
@@ -168,58 +173,96 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * Prepares a post type object for serialization.
 	 *
 	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$post_type` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post_Type    $post_type Post type object.
-	 * @param WP_REST_Request $request   Full details about the request.
+	 * @param WP_Post_Type    $item    Post type object.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post_type, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$post_type = $item;
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-post-types-controller.php */
+			return apply_filters( 'rest_prepare_post_type', new WP_REST_Response( array() ), $post_type, $request );
+		}
+
 		$taxonomies = wp_list_filter( get_object_taxonomies( $post_type->name, 'objects' ), array( 'show_in_rest' => true ) );
 		$taxonomies = wp_list_pluck( $taxonomies, 'name' );
 		$base       = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
+		$namespace  = ! empty( $post_type->rest_namespace ) ? $post_type->rest_namespace : 'wp/v2';
 		$supports   = get_all_post_type_supports( $post_type->name );
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
 
-		if ( in_array( 'capabilities', $fields, true ) ) {
+		if ( rest_is_field_included( 'capabilities', $fields ) ) {
 			$data['capabilities'] = $post_type->cap;
 		}
 
-		if ( in_array( 'description', $fields, true ) ) {
+		if ( rest_is_field_included( 'description', $fields ) ) {
 			$data['description'] = $post_type->description;
 		}
 
-		if ( in_array( 'hierarchical', $fields, true ) ) {
+		if ( rest_is_field_included( 'hierarchical', $fields ) ) {
 			$data['hierarchical'] = $post_type->hierarchical;
 		}
 
-		if ( in_array( 'viewable', $fields, true ) ) {
+		if ( rest_is_field_included( 'has_archive', $fields ) ) {
+			$data['has_archive'] = $post_type->has_archive;
+		}
+
+		if ( rest_is_field_included( 'visibility', $fields ) ) {
+			$data['visibility'] = array(
+				'show_in_nav_menus' => (bool) $post_type->show_in_nav_menus,
+				'show_ui'           => (bool) $post_type->show_ui,
+			);
+		}
+
+		if ( rest_is_field_included( 'viewable', $fields ) ) {
 			$data['viewable'] = is_post_type_viewable( $post_type );
 		}
 
-		if ( in_array( 'labels', $fields, true ) ) {
+		if ( rest_is_field_included( 'labels', $fields ) ) {
 			$data['labels'] = $post_type->labels;
 		}
 
-		if ( in_array( 'name', $fields, true ) ) {
+		if ( rest_is_field_included( 'name', $fields ) ) {
 			$data['name'] = $post_type->label;
 		}
 
-		if ( in_array( 'slug', $fields, true ) ) {
+		if ( rest_is_field_included( 'slug', $fields ) ) {
 			$data['slug'] = $post_type->name;
 		}
 
-		if ( in_array( 'supports', $fields, true ) ) {
+		if ( rest_is_field_included( 'icon', $fields ) ) {
+			$data['icon'] = $post_type->menu_icon;
+		}
+
+		if ( rest_is_field_included( 'supports', $fields ) ) {
 			$data['supports'] = $supports;
 		}
 
-		if ( in_array( 'taxonomies', $fields, true ) ) {
+		if ( rest_is_field_included( 'taxonomies', $fields ) ) {
 			$data['taxonomies'] = array_values( $taxonomies );
 		}
 
-		if ( in_array( 'rest_base', $fields, true ) ) {
+		if ( rest_is_field_included( 'rest_base', $fields ) ) {
 			$data['rest_base'] = $base;
+		}
+
+		if ( rest_is_field_included( 'rest_namespace', $fields ) ) {
+			$data['rest_namespace'] = $namespace;
+		}
+
+		if ( rest_is_field_included( 'template', $fields ) ) {
+			$data['template'] = $post_type->template ?? array();
+		}
+
+		if ( rest_is_field_included( 'template_lock', $fields ) ) {
+			$data['template_lock'] = ! empty( $post_type->template_lock ) ? $post_type->template_lock : false;
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -229,19 +272,12 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links(
-			array(
-				'collection'              => array(
-					'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
-				),
-				'https://api.w.org/items' => array(
-					'href' => rest_url( sprintf( 'wp/v2/%s', $base ) ),
-				),
-			)
-		);
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $post_type ) );
+		}
 
 		/**
-		 * Filters a post type returned from the API.
+		 * Filters a post type returned from the REST API.
 		 *
 		 * Allows modification of the post type data right before it is returned.
 		 *
@@ -255,9 +291,31 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_Post_Type $post_type The post type.
+	 * @return array Links for the given post type.
+	 */
+	protected function prepare_links( $post_type ) {
+		return array(
+			'collection'              => array(
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+			),
+			'https://api.w.org/items' => array(
+				'href' => rest_url( rest_get_route_for_post_type_items( $post_type->name ) ),
+			),
+		);
+	}
+
+	/**
 	 * Retrieves the post type's schema, conforming to JSON Schema.
 	 *
 	 * @since 4.7.0
+	 * @since 4.8.0 The `supports` property was added.
+	 * @since 5.9.0 The `visibility` and `rest_namespace` properties were added.
+	 * @since 6.1.0 The `icon` property was added.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -271,55 +329,61 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'title'      => 'type',
 			'type'       => 'object',
 			'properties' => array(
-				'capabilities' => array(
+				'capabilities'   => array(
 					'description' => __( 'All capabilities used by the post type.' ),
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
-				'description'  => array(
+				'description'    => array(
 					'description' => __( 'A human-readable description of the post type.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'hierarchical' => array(
+				'hierarchical'   => array(
 					'description' => __( 'Whether or not the post type should have children.' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'viewable'     => array(
+				'viewable'       => array(
 					'description' => __( 'Whether or not the post type can be viewed.' ),
 					'type'        => 'boolean',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
-				'labels'       => array(
+				'labels'         => array(
 					'description' => __( 'Human-readable labels for the post type for various contexts.' ),
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
-				'name'         => array(
+				'name'           => array(
 					'description' => __( 'The title for the post type.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
-				'slug'         => array(
+				'slug'           => array(
 					'description' => __( 'An alphanumeric identifier for the post type.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
-				'supports'     => array(
+				'supports'       => array(
 					'description' => __( 'All features, supported by the post type.' ),
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
-				'taxonomies'   => array(
+				'has_archive'    => array(
+					'description' => __( 'If the value is a string, the value will be used as the archive slug. If the value is false the post type has no archive.' ),
+					'type'        => array( 'string', 'boolean' ),
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'taxonomies'     => array(
 					'description' => __( 'Taxonomies associated with post type.' ),
 					'type'        => 'array',
 					'items'       => array(
@@ -328,11 +392,52 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'rest_base'    => array(
+				'rest_base'      => array(
 					'description' => __( 'REST base route for the post type.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
+				),
+				'rest_namespace' => array(
+					'description' => __( 'REST route\'s namespace for the post type.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+				),
+				'visibility'     => array(
+					'description' => __( 'The visibility settings for the post type.' ),
+					'type'        => 'object',
+					'context'     => array( 'edit' ),
+					'readonly'    => true,
+					'properties'  => array(
+						'show_ui'           => array(
+							'description' => __( 'Whether to generate a default UI for managing this post type.' ),
+							'type'        => 'boolean',
+						),
+						'show_in_nav_menus' => array(
+							'description' => __( 'Whether to make the post type available for selection in navigation menus.' ),
+							'type'        => 'boolean',
+						),
+					),
+				),
+				'icon'           => array(
+					'description' => __( 'The icon for the post type.' ),
+					'type'        => array( 'string', 'null' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+				),
+				'template'       => array(
+					'type'        => array( 'array' ),
+					'description' => __( 'The block template associated with the post type.' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'template_lock'  => array(
+					'type'        => array( 'string', 'boolean' ),
+					'enum'        => array( 'all', 'insert', 'contentOnly', false ),
+					'description' => __( 'The template_lock associated with the post type, or false if none.' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
@@ -354,5 +459,4 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
 	}
-
 }

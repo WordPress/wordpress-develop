@@ -3,7 +3,7 @@
 /**
  * @group user
  */
-class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
+class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22993
@@ -42,7 +42,6 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 			),
 			$users
 		);
-
 	}
 
 	/**
@@ -83,7 +82,7 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 		$users = wp_get_users_with_no_role();
 		$this->assertSame(
 			array(
-				"{$nobody}",
+				(string) $nobody,
 			),
 			$users
 		);
@@ -99,7 +98,7 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 		$users = wp_get_users_with_no_role( $blog_1 );
 		$this->assertSame(
 			array(
-				"{$admin}",
+				(string) $admin,
 			),
 			$users
 		);
@@ -112,10 +111,10 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 	 */
 	public function test_get_users_with_no_role_matches_on_role_name() {
 		// Create a role with a display name which would not match the role name
-		// in a case-insentive SQL query.
+		// in a case-insensitive SQL query.
 		wp_roles()->add_role( 'somerole', 'Some role display name' );
 
-		$someuser = self::factory()->user->create(
+		self::factory()->user->create(
 			array(
 				'role' => 'somerole',
 			)
@@ -149,5 +148,4 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 
 		$this->assertEmpty( $users );
 	}
-
 }

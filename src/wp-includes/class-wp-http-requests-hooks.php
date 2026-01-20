@@ -12,9 +12,10 @@
  *
  * @since 4.7.0
  *
- * @see Requests_Hooks
+ * @see WpOrg\Requests\Hooks
  */
-class WP_HTTP_Requests_Hooks extends Requests_Hooks {
+#[AllowDynamicProperties]
+class WP_HTTP_Requests_Hooks extends WpOrg\Requests\Hooks {
 	/**
 	 * Requested URL.
 	 *
@@ -45,7 +46,7 @@ class WP_HTTP_Requests_Hooks extends Requests_Hooks {
 	 *
 	 * @param string $hook       Hook name.
 	 * @param array  $parameters Parameters to pass to callbacks.
-	 * @return boolean True if hooks were run, false if nothing was hooked.
+	 * @return bool True if hooks were run, false if nothing was hooked.
 	 */
 	public function dispatch( $hook, $parameters = array() ) {
 		$result = parent::dispatch( $hook, $parameters );
@@ -59,11 +60,13 @@ class WP_HTTP_Requests_Hooks extends Requests_Hooks {
 		}
 
 		/**
-		 * Transforms a native Request hook to a WordPress actions.
+		 * Transforms a native Request hook to a WordPress action.
 		 *
 		 * This action maps Requests internal hook to a native WordPress action.
 		 *
-		 * @see https://github.com/rmccue/Requests/blob/master/docs/hooks.md
+		 * @see https://github.com/WordPress/Requests/blob/master/docs/hooks.md
+		 *
+		 * @since 4.7.0
 		 *
 		 * @param array $parameters Parameters from Requests internal hook.
 		 * @param array $request Request data in WP_Http format.

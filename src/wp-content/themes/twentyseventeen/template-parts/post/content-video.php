@@ -28,8 +28,8 @@
 				echo twentyseventeen_time_link();
 				twentyseventeen_edit_link();
 			}
-				echo '</div><!-- .entry-meta -->';
-		};
+			echo '</div><!-- .entry-meta -->';
+		}
 
 		if ( is_single() ) {
 			the_title( '<h1 class="entry-title">', '</h1>' );
@@ -42,6 +42,7 @@
 	</header><!-- .entry-header -->
 
 	<?php
+		/** This filter is documented in wp-includes/post-template.php */
 		$content = apply_filters( 'the_content', get_the_content() );
 		$video   = false;
 
@@ -71,15 +72,14 @@
 						echo $video_html;
 					echo '</div>';
 				}
-			};
-
-		};
+			}
+		}
 
 		if ( is_single() || empty( $video ) ) {
 
 			the_content(
 				sprintf(
-					/* translators: %s: Post title. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 					get_the_title()
 				)
@@ -93,7 +93,7 @@
 					'link_after'  => '</span>',
 				)
 			);
-		};
+		}
 		?>
 
 	</div><!-- .entry-content -->

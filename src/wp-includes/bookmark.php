@@ -7,11 +7,12 @@
  */
 
 /**
- * Retrieve Bookmark data
+ * Retrieves bookmark data.
  *
  * @since 2.1.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global object $link Current link object.
+ * @global wpdb   $wpdb WordPress database abstraction object.
  *
  * @param int|stdClass $bookmark
  * @param string       $output   Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
@@ -33,7 +34,7 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 		wp_cache_add( $bookmark->link_id, $bookmark, 'bookmark' );
 		$_bookmark = $bookmark;
 	} else {
-		if ( isset( $GLOBALS['link'] ) && ( $GLOBALS['link']->link_id == $bookmark ) ) {
+		if ( isset( $GLOBALS['link'] ) && ( $GLOBALS['link']->link_id === $bookmark ) ) {
 			$_bookmark = & $GLOBALS['link'];
 		} else {
 			$_bookmark = wp_cache_get( $bookmark, 'bookmark' );
@@ -53,11 +54,11 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 
 	$_bookmark = sanitize_bookmark( $_bookmark, $filter );
 
-	if ( OBJECT == $output ) {
+	if ( OBJECT === $output ) {
 		return $_bookmark;
-	} elseif ( ARRAY_A == $output ) {
+	} elseif ( ARRAY_A === $output ) {
 		return get_object_vars( $_bookmark );
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		return array_values( get_object_vars( $_bookmark ) );
 	} else {
 		return $_bookmark;
@@ -65,13 +66,13 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 }
 
 /**
- * Retrieve single bookmark data item or field.
+ * Retrieves single bookmark data item or field.
  *
  * @since 2.3.0
  *
  * @param string $field    The name of the data field to return.
  * @param int    $bookmark The bookmark ID to get field.
- * @param string $context  Optional. The context of how the field will be used.
+ * @param string $context  Optional. The context of how the field will be used. Default 'display'.
  * @return string|WP_Error
  */
 function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
@@ -94,7 +95,7 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
 }
 
 /**
- * Retrieves the list of bookmarks
+ * Retrieves the list of bookmarks.
  *
  * Attempts to retrieve from the cache first based on MD5 hash of arguments. If
  * that fails, then the query will be built from the arguments and executed. The
@@ -306,8 +307,8 @@ function get_bookmarks( $args = '' ) {
 	$query  = "SELECT * $length $recently_updated_test $get_updated FROM $wpdb->links $join WHERE 1=1 $visible $category_query";
 	$query .= " $exclusions $inclusions $search";
 	$query .= " ORDER BY $orderby $order";
-	if ( -1 != $parsed_args['limit'] ) {
-		$query .= ' LIMIT ' . $parsed_args['limit'];
+	if ( -1 !== $parsed_args['limit'] ) {
+		$query .= ' LIMIT ' . absint( $parsed_args['limit'] );
 	}
 
 	$results = $wpdb->get_results( $query );
@@ -391,20 +392,23 @@ function sanitize_bookmark( $bookmark, $context = 'display' ) {
  * @param string $field       The bookmark field.
  * @param mixed  $value       The bookmark field value.
  * @param int    $bookmark_id Bookmark ID.
- * @param string $context     How to filter the field value. Accepts 'raw', 'edit', 'attribute',
- *                            'js', 'db', or 'display'
+ * @param string $context     How to filter the field value. Accepts 'raw', 'edit', 'db',
+ *                            'display', 'attribute', or 'js'. Default 'display'.
  * @return mixed The filtered value.
  */
 function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
+	$int_fields = array( 'link_id', 'link_rating' );
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
+	}
+
 	switch ( $field ) {
-		case 'link_id': // ints
-		case 'link_rating':
-			$value = (int) $value;
-			break;
 		case 'link_category': // array( ints )
 			$value = array_map( 'absint', (array) $value );
-			// We return here so that the categories aren't filtered.
-			// The 'link_category' filter is for the name of a link category, not an array of a link's link categories.
+			/*
+			 * We return here so that the categories aren't filtered.
+			 * The 'link_category' filter is for the name of a link category, not an array of a link's link categories.
+			 */
 			return $value;
 
 		case 'link_visible': // bool stored as Y|N
@@ -443,6 +447,11 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
 		} elseif ( 'js' === $context ) {
 			$value = esc_js( $value );
 		}
+	}
+
+	// Restore the type for integer fields after esc_attr().
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
 	}
 
 	return $value;

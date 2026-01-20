@@ -14,6 +14,7 @@
  *
  * @since 5.5.0
  */
+#[AllowDynamicProperties]
 class WP_Sitemaps_Stylesheet {
 	/**
 	 * Renders the XSL stylesheet depending on whether it's the sitemap index or not.
@@ -21,15 +22,15 @@ class WP_Sitemaps_Stylesheet {
 	 * @param string $type Stylesheet type. Either 'sitemap' or 'index'.
 	 */
 	public function render_stylesheet( $type ) {
-		header( 'Content-type: application/xml; charset=UTF-8' );
+		header( 'Content-Type: application/xml; charset=UTF-8' );
 
 		if ( 'sitemap' === $type ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- All content escaped below.
+			// All content is escaped below.
 			echo $this->get_sitemap_stylesheet();
 		}
 
 		if ( 'index' === $type ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- All content escaped below.
+			// All content is escaped below.
 			echo $this->get_sitemap_index_stylesheet();
 		}
 
@@ -72,7 +73,7 @@ class WP_Sitemaps_Stylesheet {
 		exclude-result-prefixes="sitemap"
 		>
 
-	<xsl:output method="html" encoding="UTF-8" indent="yes"/>
+	<xsl:output method="html" encoding="UTF-8" indent="yes" />
 
 	<!--
 	  Set variables for whether lastmod, changefreq or priority occur for any url in the sitemap.
@@ -265,7 +266,13 @@ XSL;
 						color: #444;
 					}
 
+					#sitemap {
+						max-width: 980px;
+						margin: 0 auto;
+					}
+
 					#sitemap__table {
+						width: 100%;
 						border: solid 1px #ccc;
 						border-collapse: collapse;
 					}

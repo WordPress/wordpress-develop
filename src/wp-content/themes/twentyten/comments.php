@@ -34,7 +34,7 @@
 <?php if ( have_comments() ) : ?>
 			<h3 id="comments-title">
 			<?php
-			if ( 1 === get_comments_number() ) {
+			if ( '1' === get_comments_number() ) {
 				printf(
 					/* translators: %s: The post title. */
 					__( 'One Response to %s', 'twentyten' ),
@@ -42,7 +42,7 @@
 				);
 			} else {
 				printf(
-					/* translators: %1$s: The number of comments. %2$s: The post title. */
+					/* translators: 1: The number of comments, 2: The post title. */
 					_n( '%1$s Response to %2$s', '%1$s Responses to %2$s', get_comments_number(), 'twentyten' ),
 					number_format_i18n( get_comments_number() ),
 					'<em>' . get_the_title() . '</em>'

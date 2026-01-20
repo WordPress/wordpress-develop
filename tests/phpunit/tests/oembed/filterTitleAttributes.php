@@ -11,7 +11,7 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 				array(
 					'type' => 'rich',
 				),
-				'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+				'https://www.youtube.com/watch?v=72xdCU__XCk',
 				'<p>Foo</p><iframe src=""></iframe><b>Bar</b>',
 			),
 			array(
@@ -19,7 +19,7 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 				array(
 					'type' => 'rich',
 				),
-				'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+				'https://www.youtube.com/watch?v=72xdCU__XCk',
 				'<p>Foo</p><iframe title="Hello World" src=""></iframe><b>Bar</b>',
 			),
 			array(
@@ -28,7 +28,7 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 					'type'  => 'rich',
 					'title' => 'Hello World',
 				),
-				'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+				'https://www.youtube.com/watch?v=72xdCU__XCk',
 				'<p>Foo</p>',
 			),
 			array(
@@ -37,7 +37,7 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 					'type'  => 'rich',
 					'title' => 'Hello World',
 				),
-				'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+				'https://www.youtube.com/watch?v=72xdCU__XCk',
 				'<p title="Foo">Bar</p>',
 			),
 			array(
@@ -46,7 +46,7 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 					'type'  => 'rich',
 					'title' => 'Hello World',
 				),
-				'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+				'https://www.youtube.com/watch?v=72xdCU__XCk',
 				'<p>Foo</p><iframe title="Hello World" src=""></iframe><b>Bar</b>',
 			),
 			array(
@@ -55,7 +55,7 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 					'type'  => 'rich',
 					'title' => 'Bar',
 				),
-				'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+				'https://www.youtube.com/watch?v=72xdCU__XCk',
 				'<iframe title="Foo" src=""></iframe>',
 			),
 		);
@@ -67,7 +67,7 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 	public function test_oembed_iframe_title_attribute( $html, $oembed_data, $url, $expected ) {
 		$actual = wp_filter_oembed_iframe_title_attribute( $html, (object) $oembed_data, $url );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function test_filter_oembed_iframe_title_attribute() {
@@ -79,12 +79,12 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 				'type'  => 'rich',
 				'title' => 'Bar',
 			),
-			'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+			'https://www.youtube.com/watch?v=72xdCU__XCk'
 		);
 
 		remove_filter( 'oembed_iframe_title_attribute', array( $this, '_filter_oembed_iframe_title_attribute' ) );
 
-		$this->assertSame( '<iframe title="Baz" src=""></iframe>', $actual );
+		$this->assertEqualHTML( '<iframe title="Baz" src=""></iframe>', $actual );
 	}
 
 	public function test_filter_oembed_iframe_title_attribute_does_not_modify_other_tags() {
@@ -96,12 +96,12 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 				'type'  => 'rich',
 				'title' => 'Bar',
 			),
-			'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+			'https://www.youtube.com/watch?v=72xdCU__XCk'
 		);
 
 		remove_filter( 'oembed_iframe_title_attribute', array( $this, '_filter_oembed_iframe_title_attribute' ) );
 
-		$this->assertSame( '<p title="Bar">Baz</p><iframe title="Baz" src=""></iframe>', $actual );
+		$this->assertEqualHTML( '<p title="Bar">Baz</p><iframe title="Baz" src=""></iframe>', $actual );
 	}
 
 	public function _filter_oembed_iframe_title_attribute() {

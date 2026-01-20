@@ -54,14 +54,14 @@
 			inputs.queryNoticeTextHint = inputs.queryNotice.find( '.query-notice-hint' );
 
 			// Bind event handlers.
-			inputs.dialog.keydown( wpLink.keydown );
-			inputs.dialog.keyup( wpLink.keyup );
-			inputs.submit.click( function( event ) {
+			inputs.dialog.on( 'keydown', wpLink.keydown );
+			inputs.dialog.on( 'keyup', wpLink.keyup );
+			inputs.submit.on( 'click', function( event ) {
 				event.preventDefault();
 				wpLink.update();
 			});
 
-			inputs.close.add( inputs.backdrop ).add( '#wp-link-cancel button' ).click( function( event ) {
+			inputs.close.add( inputs.backdrop ).add( '#wp-link-cancel button' ).on( 'click', function( event ) {
 				event.preventDefault();
 				wpLink.close();
 			});
@@ -93,7 +93,7 @@
 
 		// If URL wasn't corrected last time and doesn't start with http:, https:, ? # or /, prepend http://.
 		correctURL: function () {
-			var url = $.trim( inputs.url.val() );
+			var url = inputs.url.val().trim();
 
 			if ( url && correctedURL !== url && ! /^(?:[a-z]+:|#|\?|\.|\/)/.test( url ) ) {
 				inputs.url.val( 'http://' + url );
@@ -105,6 +105,7 @@
 			var ed,
 				$body = $( document.body );
 
+			$( '#wpwrap' ).attr( 'aria-hidden', 'true' );
 			$body.addClass( 'modal-open' );
 			wpLink.modalOpen = true;
 
@@ -161,7 +162,7 @@
 			if ( wpLink.isMCE() ) {
 				wpLink.mceRefresh( url, text );
 			} else {
-				// For the Text editor the "Link text" field is always shown.
+				// For the Code editor the "Link text" field is always shown.
 				if ( ! inputs.wrap.hasClass( 'has-text-field' ) ) {
 					inputs.wrap.addClass( 'has-text-field' );
 				}
@@ -181,7 +182,7 @@
 
 			if ( isTouch ) {
 				// Close the onscreen keyboard.
-				inputs.url.focus().blur();
+				inputs.url.trigger( 'focus' ).trigger( 'blur' );
 			} else {
 				/*
 				 * Focus the URL field and highlight its contents.
@@ -190,7 +191,7 @@
 				 */
 				window.setTimeout( function() {
 					inputs.url[0].select();
-					inputs.url.focus();
+					inputs.url.trigger( 'focus' );
 				} );
 			}
 
@@ -238,7 +239,7 @@
 				linkText = linkNode.text();
 				href = linkNode.attr( 'href' );
 
-				if ( ! $.trim( linkText ) ) {
+				if ( ! linkText.trim() ) {
 					linkText = text || '';
 				}
 
@@ -281,6 +282,7 @@
 
 		close: function( reset ) {
 			$( document.body ).removeClass( 'modal-open' );
+			$( '#wpwrap' ).removeAttr( 'aria-hidden' );
 			wpLink.modalOpen = false;
 
 			if ( reset !== 'noReset' ) {
@@ -312,7 +314,7 @@
 			wpLink.correctURL();
 
 			return {
-				href: $.trim( inputs.url.val() ),
+				href: inputs.url.val().trim(),
 				target: inputs.openInNewTab.prop( 'checked' ) ? '_blank' : null
 			};
 		},
@@ -321,7 +323,7 @@
 			var html = '<a href="' + attrs.href + '"';
 
 			if ( attrs.target ) {
-				html += ' rel="noopener" target="' + attrs.target + '"';
+				html += ' target="' + attrs.target + '"';
 			}
 
 			return html + '>';
@@ -425,7 +427,7 @@
 				if ( ! $link.length ) {
 					editor.execCommand( 'mceInsertLink', false, { href: '_wp_link_placeholder', 'data-wp-temp-link': 1 } );
 					$link = editor.$( 'a[data-wp-temp-link="1"]' ).removeAttr( 'data-wp-temp-link' );
-					hasText = $.trim( $link.text() );
+					hasText = $link.text().trim();
 				}
 
 				if ( ! $link.length ) {
@@ -483,7 +485,8 @@
 				}
 			}
 
-			selection = $.trim( selection );
+			selection = selection || '';
+			selection = selection.trim();
 
 			if ( selection && emailRegexp.test( selection ) ) {
 				// Selection is email address.
@@ -557,10 +560,10 @@
 				// wp-link-submit must always be the last focusable element in the dialog.
 				// Following focusable elements will be skipped on keyboard navigation.
 				if ( id === 'wp-link-submit' && ! event.shiftKey ) {
-					inputs.close.focus();
+					inputs.close.trigger( 'focus' );
 					event.preventDefault();
 				} else if ( id === 'wp-link-close' && event.shiftKey ) {
-					inputs.submit.focus();
+					inputs.submit.trigger( 'focus' );
 					event.preventDefault();
 				}
 			}
@@ -625,7 +628,7 @@
 		this.change( search );
 		this.refresh();
 
-		$( '#wp-link .query-results, #wp-link #link-selector' ).scroll( function() {
+		$( '#wp-link .query-results, #wp-link #link-selector' ).on( 'scroll', function() {
 			self.maybeLoad();
 		});
 		element.on( 'click', 'li', function( event ) {
@@ -797,5 +800,5 @@
 		}
 	});
 
-	$( document ).ready( wpLink.init );
+	$( wpLink.init );
 })( jQuery, window.wpLinkL10n, window.wp );

@@ -1,37 +1,57 @@
 # gitignore file for WordPress Core
 
 # Configuration files with possibly sensitive information
+.env
 wp-config.php
 wp-tests-config.php
 .htaccess
 
 # Files and folders related to build/test tools
+.phpunit.result.cache
 /phpunit.xml
 /.phpcs.xml
 /phpcs.xml
+.cache/*
 /tests/phpunit/data/plugins/wordpress-importer
 /tests/phpunit/data/.trac-ticket-cache*
 /tests/qunit/compiled.html
+/tests/performance/**/*.test.results.json
 /src/.wp-tests-version
 /node_modules
 /npm-debug.log
 /build
+/gutenberg
 /tests/phpunit/build
 /wp-cli.local.yml
 /jsdoc
+/composer.lock
 /vendor
 /src/wp-admin/css/*.min.css
 /src/wp-admin/css/*-rtl.css
 /src/wp-admin/css/colors/*/*.css
 /src/wp-admin/js
+/src/wp-includes/assets/*
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
 /src/wp-includes/css/*-rtl.css
+/src/wp-includes/blocks/*
+!/src/wp-includes/blocks/index.php
+/src/wp-includes/build
+/src/wp-includes/class-wp-block-parser.php
+/src/wp-includes/class-wp-block-parser-block.php
+/src/wp-includes/class-wp-block-parser-frame.php
+/src/wp-includes/theme.json
 /packagehash.txt
+/.gutenberg-hash
+/artifacts
+/setup.log
+/coverage
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
+/src/wp-content/database
+/src/wp-content/fonts
 /src/wp-content/languages
 /src/wp-content/mu-plugins
 /src/wp-content/plugins
@@ -45,6 +65,12 @@ wp-tests-config.php
 !/src/wp-content/themes/twentysixteen
 !/src/wp-content/themes/twentyseventeen
 !/src/wp-content/themes/twentynineteen
+!/src/wp-content/themes/twentytwenty
+!/src/wp-content/themes/twentytwentyone
+!/src/wp-content/themes/twentytwentytwo
+!/src/wp-content/themes/twentytwentythree
+!/src/wp-content/themes/twentytwentyfour
+!/src/wp-content/themes/twentytwentyfive
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
@@ -60,6 +86,17 @@ wp-tests-config.php
 /src/wp-content/object-cache.php
 /src/wp-content/php-error.php
 /src/wp-content/sunrise.php
+
+# Files and folders relating to wp-content build tools.
+/src/wp-content/themes/twentynineteen/node_modules
+/src/wp-content/themes/twentytwentyone/node_modules
+/src/wp-content/themes/twentytwenty/node_modules
+/src/wp-content/themes/twentytwentytwo/node_modules
+/src/wp-content/themes/twentytwentyfive/node_modules
+
+# Minified files in bundled themes
+/src/wp-content/themes/twentytwentytwo/*.min.css
+/src/wp-content/themes/twentytwentyfive/*.min.css
 
 # Operating system specific files
 .DS_Store
@@ -77,3 +114,6 @@ wp-tests-config.php
 
 # Files for local environment config
 /docker-compose.override.yml
+
+# Visual regression test diffs
+tests/visual-regression/specs/__snapshots__

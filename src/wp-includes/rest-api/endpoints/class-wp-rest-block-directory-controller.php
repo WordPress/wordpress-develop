@@ -49,8 +49,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_Error|bool True if the request has permission, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has permission, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
 		if ( ! current_user_can( 'install_plugins' ) || ! current_user_can( 'activate_plugins' ) ) {
@@ -70,8 +69,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
@@ -108,16 +106,21 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Parse block metadata for a block, and prepare it for an API repsonse.
+	 * Parse block metadata for a block, and prepare it for an API response.
 	 *
 	 * @since 5.5.0
+	 * @since 5.9.0 Renamed `$plugin` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param array           $plugin  The plugin metadata.
+	 * @param array           $item    The plugin metadata.
 	 * @param WP_REST_Request $request Request object.
-	 *
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
-	public function prepare_item_for_response( $plugin, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$plugin = $item;
+
+		$fields = $this->get_fields_for_response( $request );
+
 		// There might be multiple blocks in a plugin. Only the first block is mapped.
 		$block_data = reset( $plugin['blocks'] );
 
@@ -125,15 +128,15 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 		$block = array(
 			'name'                => $block_data['name'],
 			'title'               => ( $block_data['title'] ? $block_data['title'] : $plugin['name'] ),
-			'description'         => wp_trim_words( $plugin['description'], 30, '...' ),
+			'description'         => wp_trim_words( $plugin['short_description'], 30, '...' ),
 			'id'                  => $plugin['slug'],
 			'rating'              => $plugin['rating'] / 20,
-			'rating_count'        => intval( $plugin['num_ratings'] ),
-			'active_installs'     => intval( $plugin['active_installs'] ),
+			'rating_count'        => (int) $plugin['num_ratings'],
+			'active_installs'     => (int) $plugin['active_installs'],
 			'author_block_rating' => $plugin['author_block_rating'] / 20,
-			'author_block_count'  => intval( $plugin['author_block_count'] ),
+			'author_block_count'  => (int) $plugin['author_block_count'],
 			'author'              => wp_strip_all_tags( $plugin['author'] ),
-			'icon'                => ( isset( $plugin['icons']['1x'] ) ? $plugin['icons']['1x'] : 'block-default' ),
+			'icon'                => $plugin['icons']['1x'] ?? 'block-default',
 			'last_updated'        => gmdate( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
 			'humanized_updated'   => sprintf(
 				/* translators: %s: Human-readable time difference. */
@@ -145,7 +148,10 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 		$this->add_additional_fields_to_object( $block, $request );
 
 		$response = new WP_REST_Response( $block );
-		$response->add_links( $this->prepare_links( $plugin ) );
+
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $plugin ) );
+		}
 
 		return $response;
 	}
@@ -156,7 +162,6 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param array $plugin The plugin data from WordPress.org.
-	 *
 	 * @return array
 	 */
 	protected function prepare_links( $plugin ) {
@@ -184,7 +189,6 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param string $slug The WordPress.org directory slug for a plugin.
-	 *
 	 * @return string The plugin file found matching it.
 	 */
 	protected function find_plugin_for_slug( $slug ) {
@@ -240,7 +244,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 				),
 				'rating'              => array(
 					'description' => __( 'The star rating of the block.' ),
-					'type'        => 'integer',
+					'type'        => 'number',
 					'context'     => array( 'view' ),
 				),
 				'rating_count'        => array(
@@ -250,12 +254,12 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 				),
 				'active_installs'     => array(
 					'description' => __( 'The number sites that have activated this block.' ),
-					'type'        => 'string',
+					'type'        => 'integer',
 					'context'     => array( 'view' ),
 				),
 				'author_block_rating' => array(
 					'description' => __( 'The average rating of blocks published by the same author.' ),
-					'type'        => 'integer',
+					'type'        => 'number',
 					'context'     => array( 'view' ),
 				),
 				'author_block_count'  => array(
@@ -275,13 +279,13 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 					'context'     => array( 'view' ),
 				),
 				'last_updated'        => array(
-					'description' => __( 'The date when the block was last updated, in fuzzy human readable format.' ),
+					'description' => __( 'The date when the block was last updated.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view' ),
 				),
 				'humanized_updated'   => array(
-					'description' => __( 'The date when the block was last updated, in fuzzy human readable format.' ),
+					'description' => __( 'The date when the block was last updated, in human readable format.' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 				),
@@ -313,7 +317,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 		unset( $query_params['search'] );
 
 		/**
-		 * Filters collection parameters for the block directory controller.
+		 * Filters REST API collection parameters for the block directory controller.
 		 *
 		 * @since 5.5.0
 		 *

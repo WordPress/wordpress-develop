@@ -11,6 +11,7 @@
  * @package WordPress
  * @abstract
  */
+#[AllowDynamicProperties]
 class Walker {
 	/**
 	 * What the class handles.
@@ -24,12 +25,12 @@ class Walker {
 	 * DB fields to use.
 	 *
 	 * @since 2.1.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $db_fields;
 
 	/**
-	 * Max number of pages walked by the paged walker
+	 * Max number of pages walked by the paged walker.
 	 *
 	 * @since 2.7.0
 	 * @var int
@@ -77,21 +78,22 @@ class Walker {
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {}
 
 	/**
-	 * Start the element output.
+	 * Starts the element output.
 	 *
 	 * The $args parameter holds additional values that may be used with the child
-	 * class methods. Includes the element output also.
+	 * class methods. Also includes the element output.
 	 *
 	 * @since 2.1.0
+	 * @since 5.9.0 Renamed `$object` (a PHP reserved keyword) to `$data_object` for PHP 8 named parameter support.
 	 * @abstract
 	 *
 	 * @param string $output            Used to append additional content (passed by reference).
-	 * @param object $object            The data object.
+	 * @param object $data_object       The data object.
 	 * @param int    $depth             Depth of the item.
 	 * @param array  $args              An array of additional arguments.
-	 * @param int    $current_object_id ID of the current item.
+	 * @param int    $current_object_id Optional. ID of the current item. Default 0.
 	 */
-	public function start_el( &$output, $object, $depth = 0, $args = array(), $current_object_id = 0 ) {}
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {}
 
 	/**
 	 * Ends the element output, if needed.
@@ -99,17 +101,18 @@ class Walker {
 	 * The $args parameter holds additional values that may be used with the child class methods.
 	 *
 	 * @since 2.1.0
+	 * @since 5.9.0 Renamed `$object` (a PHP reserved keyword) to `$data_object` for PHP 8 named parameter support.
 	 * @abstract
 	 *
-	 * @param string $output Used to append additional content (passed by reference).
-	 * @param object $object The data object.
-	 * @param int    $depth  Depth of the item.
-	 * @param array  $args   An array of additional arguments.
+	 * @param string $output      Used to append additional content (passed by reference).
+	 * @param object $data_object The data object.
+	 * @param int    $depth       Depth of the item.
+	 * @param array  $args        An array of additional arguments.
 	 */
-	public function end_el( &$output, $object, $depth = 0, $args = array() ) {}
+	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {}
 
 	/**
-	 * Traverse elements to create list from elements.
+	 * Traverses elements to create list from elements.
 	 *
 	 * Display one element if the element doesn't have any children otherwise,
 	 * display the element and its children. Will only traverse up to the max
@@ -132,6 +135,9 @@ class Walker {
 			return;
 		}
 
+		$max_depth = (int) $max_depth;
+		$depth     = (int) $depth;
+
 		$id_field = $this->db_fields['id'];
 		$id       = $element->$id_field;
 
@@ -143,8 +149,8 @@ class Walker {
 
 		$this->start_el( $output, $element, $depth, ...array_values( $args ) );
 
-		// Descend only when the depth is right and there are childrens for this element.
-		if ( ( 0 == $max_depth || $max_depth > $depth + 1 ) && isset( $children_elements[ $id ] ) ) {
+		// Descend only when the depth is right and there are children for this element.
+		if ( ( 0 === $max_depth || $max_depth > $depth + 1 ) && isset( $children_elements[ $id ] ) ) {
 
 			foreach ( $children_elements[ $id ] as $child ) {
 
@@ -168,7 +174,7 @@ class Walker {
 	}
 
 	/**
-	 * Display array of elements hierarchically.
+	 * Displays array of elements hierarchically.
 	 *
 	 * Does not assume any existing order of elements.
 	 *
@@ -188,6 +194,8 @@ class Walker {
 	public function walk( $elements, $max_depth, ...$args ) {
 		$output = '';
 
+		$max_depth = (int) $max_depth;
+
 		// Invalid parameter or nothing to walk.
 		if ( $max_depth < -1 || empty( $elements ) ) {
 			return $output;
@@ -196,7 +204,7 @@ class Walker {
 		$parent_field = $this->db_fields['parent'];
 
 		// Flat display.
-		if ( -1 == $max_depth ) {
+		if ( -1 === $max_depth ) {
 			$empty_array = array();
 			foreach ( $elements as $e ) {
 				$this->display_element( $e, $empty_array, 1, 0, $args, $output );
@@ -207,7 +215,7 @@ class Walker {
 		/*
 		 * Need to display in hierarchical order.
 		 * Separate elements into two buckets: top level and children elements.
-		 * Children_elements is two dimensional array, eg.
+		 * Children_elements is two dimensional array. Example:
 		 * Children_elements[10][] contains all sub-elements whose parent is 10.
 		 */
 		$top_level_elements = array();
@@ -232,7 +240,7 @@ class Walker {
 			$top_level_elements = array();
 			$children_elements  = array();
 			foreach ( $elements as $e ) {
-				if ( $root->$parent_field == $e->$parent_field ) {
+				if ( $root->$parent_field === $e->$parent_field ) {
 					$top_level_elements[] = $e;
 				} else {
 					$children_elements[ $e->$parent_field ][] = $e;
@@ -248,7 +256,7 @@ class Walker {
 		 * If we are displaying all levels, and remaining children_elements is not empty,
 		 * then we got orphans, which should be displayed regardless.
 		 */
-		if ( ( 0 == $max_depth ) && count( $children_elements ) > 0 ) {
+		if ( ( 0 === $max_depth ) && count( $children_elements ) > 0 ) {
 			$empty_array = array();
 			foreach ( $children_elements as $orphans ) {
 				foreach ( $orphans as $op ) {
@@ -261,7 +269,7 @@ class Walker {
 	}
 
 	/**
-	 * paged_walk() - produce a page of nested elements
+	 * Produces a page of nested elements.
 	 *
 	 * Given an array of hierarchical elements, the maximum depth, a specific page number,
 	 * and number of elements per page, this function first determines all top level root elements
@@ -274,31 +282,33 @@ class Walker {
 	 * @since 5.3.0 Formalized the existing `...$args` parameter by adding it
 	 *              to the function signature.
 	 *
-	 * @param array $elements
+	 * @param array $elements  An array of elements.
 	 * @param int   $max_depth The maximum hierarchical depth.
 	 * @param int   $page_num  The specific page number, beginning with 1.
-	 * @param int   $per_page
+	 * @param int   $per_page  Number of elements per page.
 	 * @param mixed ...$args   Optional additional arguments.
-	 * @return string XHTML of the specified page of elements
+	 * @return string XHTML of the specified page of elements.
 	 */
 	public function paged_walk( $elements, $max_depth, $page_num, $per_page, ...$args ) {
-		if ( empty( $elements ) || $max_depth < -1 ) {
-			return '';
-		}
-
 		$output = '';
+
+		$max_depth = (int) $max_depth;
+
+		if ( empty( $elements ) || $max_depth < -1 ) {
+			return $output;
+		}
 
 		$parent_field = $this->db_fields['parent'];
 
 		$count = -1;
-		if ( -1 == $max_depth ) {
+		if ( -1 === $max_depth ) {
 			$total_top = count( $elements );
 		}
 		if ( $page_num < 1 || $per_page < 0 ) {
 			// No paging.
 			$paging = false;
 			$start  = 0;
-			if ( -1 == $max_depth ) {
+			if ( -1 === $max_depth ) {
 				$end = $total_top;
 			}
 			$this->max_pages = 1;
@@ -306,13 +316,13 @@ class Walker {
 			$paging = true;
 			$start  = ( (int) $page_num - 1 ) * (int) $per_page;
 			$end    = $start + $per_page;
-			if ( -1 == $max_depth ) {
-				$this->max_pages = ceil( $total_top / $per_page );
+			if ( -1 === $max_depth ) {
+				$this->max_pages = (int) ceil( $total_top / $per_page );
 			}
 		}
 
 		// Flat display.
-		if ( -1 == $max_depth ) {
+		if ( -1 === $max_depth ) {
 			if ( ! empty( $args[0]['reverse_top_level'] ) ) {
 				$elements = array_reverse( $elements );
 				$oldstart = $start;
@@ -322,7 +332,7 @@ class Walker {
 
 			$empty_array = array();
 			foreach ( $elements as $e ) {
-				$count++;
+				++$count;
 				if ( $count < $start ) {
 					continue;
 				}
@@ -342,7 +352,7 @@ class Walker {
 		$top_level_elements = array();
 		$children_elements  = array();
 		foreach ( $elements as $e ) {
-			if ( 0 == $e->$parent_field ) {
+			if ( empty( $e->$parent_field ) ) {
 				$top_level_elements[] = $e;
 			} else {
 				$children_elements[ $e->$parent_field ][] = $e;
@@ -351,7 +361,7 @@ class Walker {
 
 		$total_top = count( $top_level_elements );
 		if ( $paging ) {
-			$this->max_pages = ceil( $total_top / $per_page );
+			$this->max_pages = (int) ceil( $total_top / $per_page );
 		} else {
 			$end = $total_top;
 		}
@@ -369,7 +379,7 @@ class Walker {
 		}
 
 		foreach ( $top_level_elements as $e ) {
-			$count++;
+			++$count;
 
 			// For the last page, need to unset earlier children in order to keep track of orphans.
 			if ( $end >= $total_top && $count < $start ) {
@@ -412,28 +422,28 @@ class Walker {
 		$parent_field = $this->db_fields['parent'];
 
 		foreach ( $elements as $e ) {
-			if ( 0 == $e->$parent_field ) {
-				$num++;
+			if ( empty( $e->$parent_field ) ) {
+				++$num;
 			}
 		}
 		return $num;
 	}
 
 	/**
-	 * Unset all the children for a given top level element.
+	 * Unsets all the children for a given top level element.
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param object $e
-	 * @param array  $children_elements
+	 * @param object $element           The top level element.
+	 * @param array  $children_elements The children elements.
 	 */
-	public function unset_children( $e, &$children_elements ) {
-		if ( ! $e || ! $children_elements ) {
+	public function unset_children( $element, &$children_elements ) {
+		if ( ! $element || ! $children_elements ) {
 			return;
 		}
 
 		$id_field = $this->db_fields['id'];
-		$id       = $e->$id_field;
+		$id       = $element->$id_field;
 
 		if ( ! empty( $children_elements[ $id ] ) && is_array( $children_elements[ $id ] ) ) {
 			foreach ( (array) $children_elements[ $id ] as $child ) {
@@ -443,5 +453,4 @@ class Walker {
 
 		unset( $children_elements[ $id ] );
 	}
-
 }

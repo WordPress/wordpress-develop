@@ -1,29 +1,28 @@
 <?php
 
 /**
- * @group image
+ * Base class for testing image manipulation functionality.
  */
 abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 
 	/**
+	 * The image editing library class to use in tests.
+	 *
+	 * @var string
+	 */
+	public $editor_engine;
+
+	/**
 	 * Set the image editor engine according to the unit test's specification
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( ! call_user_func( array( $this->editor_engine, 'test' ) ) ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system', $this->editor_engine ) );
+			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', $this->editor_engine ) );
 		}
 
 		add_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10, 2 );
-	}
-
-	/**
-	 * Undo the image editor override
-	 */
-	public function tearDown() {
-		remove_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10, 2 );
-		parent::tearDown();
 	}
 
 	/**

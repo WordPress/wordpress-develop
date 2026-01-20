@@ -45,6 +45,11 @@
 
 			this.attachMenuEditListeners();
 
+			this.attachBulkSelectButtonListeners();
+			this.attachMenuCheckBoxListeners();
+			this.attachMenuItemDeleteButton();
+			this.attachPendingMenuItemsListForDeletion();
+
 			this.attachQuickSearchListeners();
 			this.attachThemeLocationsListeners();
 			this.attachMenuSaveSubmitListeners();
@@ -211,6 +216,8 @@
 							checkboxes.prop( 'checked', false );
 							t.find( '.button-controls .select-all' ).prop( 'checked', false );
 							t.find( '.button-controls .spinner' ).removeClass( 'is-active' );
+							t.updateParentDropdown();
+							t.updateOrderDropdown();
 						});
 					});
 				},
@@ -283,6 +290,121 @@
 						});
 					});
 					return this;
+				},
+				updateParentDropdown : function() {
+					return this.each(function(){
+						var menuItems = $( '#menu-to-edit li' ),
+							parentDropdowns = $( '.edit-menu-item-parent' );
+
+						$.each( parentDropdowns, function() {
+							var parentDropdown = $( this ),
+								currentItemID = parseInt( parentDropdown.closest( 'li.menu-item' ).find( '.menu-item-data-db-id' ).val() ),
+								currentParentID = parseInt( parentDropdown.closest( 'li.menu-item' ).find( '.menu-item-data-parent-id' ).val() ),
+								currentItem = parentDropdown.closest( 'li.menu-item' ),
+								currentMenuItemChild = currentItem.childMenuItems(),
+								excludeMenuItem =  /** @type {number[]} */ [ currentItemID ];
+
+							parentDropdown.empty();
+
+							if ( currentMenuItemChild.length > 0 ) {
+								$.each( currentMenuItemChild, function(){
+									var childItem = $(this),
+										childID = parseInt( childItem.find( '.menu-item-data-db-id' ).val() );
+
+									excludeMenuItem.push( childID );
+								});
+							}
+
+							parentDropdown.append(
+								$( '<option>', {
+									value: '0',
+									selected: currentParentID === 0,
+									text: wp.i18n._x( 'No Parent', 'menu item without a parent in navigation menu' ),
+								} )
+							);
+
+							$.each( menuItems, function() {
+								var menuItem = $(this),
+								menuID = parseInt( menuItem.find( '.menu-item-data-db-id' ).val() ),
+								menuTitle = menuItem.find( '.edit-menu-item-title' ).val();
+
+								if ( ! excludeMenuItem.includes( menuID ) ) {
+									parentDropdown.append(
+										$( '<option>', {
+											value: menuID.toString(),
+											selected: currentParentID === menuID,
+											text: menuTitle,
+										} )
+									);
+								}
+							});
+						});
+						
+					});
+				},
+				updateOrderDropdown : function() {
+					return this.each( function() {
+						var itemPosition,
+							orderDropdowns = $( '.edit-menu-item-order' );
+
+						$.each( orderDropdowns, function() {
+							var orderDropdown = $( this ),
+								menuItem = orderDropdown.closest( 'li.menu-item' ).first(),
+								depth = menuItem.menuItemDepth(),
+								isPrimaryMenuItem = ( 0 === depth );
+
+							orderDropdown.empty();
+
+							if ( isPrimaryMenuItem ) {
+								var primaryItems = $( '.menu-item-depth-0' ),
+									totalMenuItems = primaryItems.length;
+
+								itemPosition = primaryItems.index( menuItem ) + 1;
+
+								for ( let i = 1; i < totalMenuItems + 1; i++ ) {
+									var itemString = wp.i18n.sprintf(
+										/* translators: 1: The current menu item number, 2: The total number of menu items. */
+										wp.i18n._x( '%1$s of %2$s', 'part of a total number of menu items' ),
+										i,
+										totalMenuItems
+									);
+									orderDropdown.append(
+										$( '<option>', {
+											selected: i === itemPosition,
+											value: i.toString(),
+											text: itemString,
+										} )
+									);
+								}
+
+							} else {
+								var parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
+									parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
+									subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+									totalSubMenuItems = subItems.length;
+
+								itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
+
+								for ( let i = 1; i < totalSubMenuItems + 1; i++ ) {
+									var submenuString = wp.i18n.sprintf(
+										/* translators: 1: The current submenu item number, 2: The total number of submenu items. */
+										wp.i18n._x( '%1$s of %2$s', 'part of a total number of menu items' ),
+										i,
+										totalSubMenuItems
+									);
+									orderDropdown.append(
+										$( '<option>', {
+											selected: i === itemPosition,
+											value: i.toString(),
+											text: submenuString,
+										} )
+									);
+								}
+
+							}
+						});
+						
+					});
 				}
 			});
 		},
@@ -292,7 +414,6 @@
 		},
 
 		moveMenuItem : function( $this, dir ) {
-
 			var items, newItemPosition, newDepth,
 				menuItems = $( '#menu-to-edit li' ),
 				menuItemsCount = menuItems.length,
@@ -306,7 +427,8 @@
 				nextItemDepth = parseInt( nextItem.menuItemDepth(), 10 ) + 1,
 				prevItem = thisItem.prev(),
 				prevItemDepth = parseInt( prevItem.menuItemDepth(), 10 ),
-				prevItemId = prevItem.getItemData()['menu-item-db-id'];
+				prevItemId = prevItem.getItemData()['menu-item-db-id'],
+				a11ySpeech = menus[ 'moved' + dir.charAt(0).toUpperCase() + dir.slice(1) ];
 
 			switch ( dir ) {
 			case 'up':
@@ -390,10 +512,16 @@
 				thisItem.shiftHorizontally( 1 );
 				break;
 			}
-			$this.focus();
+			$this.trigger( 'focus' );
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			thisItem.updateParentDropdown();
+			thisItem.updateOrderDropdown();
+
+			if ( a11ySpeech ) {
+				wp.a11y.speak( a11ySpeech );
+			}
 		},
 
 		initAccessibility : function() {
@@ -421,6 +549,123 @@
 					api.moveMenuItem( $( this ).parents( 'li.menu-item' ).find( 'a.item-edit' ), dir );
 				}
 			});
+
+			// Set menu parents data for all menu items.
+			menu.updateParentDropdown();
+
+			// Set menu order data for all menu items.
+			menu.updateOrderDropdown();
+
+			// Update menu item parent when value is changed.
+			menu.on( 'change', '.edit-menu-item-parent', function() {
+				api.changeMenuParent( $( this ) );
+			});
+			
+			// Update menu item order when value is changed.
+			menu.on( 'change', '.edit-menu-item-order', function() {
+				api.changeMenuOrder( $( this ) );
+			});
+		},
+
+		/**
+		 * changeMenuParent( [parentDropdown] )
+		 * 
+		 * @since 6.7.0
+		 *
+		 * @param {object} parentDropdown select field
+		 */
+		changeMenuParent : function( parentDropdown ) {
+			var menuItemNewPosition,
+				menuItems = $( '#menu-to-edit li' ),
+				$this = $( parentDropdown ),
+				newParentID = $this.val(),
+				menuItem = $this.closest( 'li.menu-item' ).first(),
+				menuItemOldDepth = menuItem.menuItemDepth(),
+				menuItemChildren = menuItem.childMenuItems(),
+				menuItemNoChildren = parseInt( menuItem.childMenuItems().length, 10 ),
+				parentItem = $( '#menu-item-' + newParentID ),
+				parentItemDepth = parentItem.menuItemDepth(),
+				menuItemNewDepth = parseInt( parentItemDepth ) + 1;
+
+			if ( newParentID == 0 ) {
+				menuItemNewDepth = 0;
+			}
+
+			menuItem.find( '.menu-item-data-parent-id' ).val( newParentID );
+			menuItem.moveHorizontally( menuItemNewDepth, menuItemOldDepth );
+
+			if ( menuItemNoChildren > 0 ) {
+				menuItem = menuItem.add( menuItemChildren );
+			}
+			menuItem.detach();
+
+			menuItems = $( '#menu-to-edit li' );
+
+			var	parentItemPosition = parseInt( parentItem.index(), 10 ),
+				parentItemNoChild = parseInt( parentItem.childMenuItems().length, 10 );
+
+			if ( parentItemNoChild > 0 ){
+				menuItemNewPosition = parentItemPosition + parentItemNoChild;
+			} else {
+				menuItemNewPosition = parentItemPosition;
+			}
+
+			if ( newParentID == 0 ) {
+				menuItemNewPosition = menuItems.length - 1;
+			}
+
+			menuItem.insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
+
+			api.registerChange();
+			api.refreshKeyboardAccessibility();
+			api.refreshAdvancedAccessibility();
+			$this.trigger( 'focus' );
+			wp.a11y.speak( menus.parentUpdated, 'polite' );
+		},
+
+		/**
+		 * changeMenuOrder( [OrderDropdown] )
+		 * 
+		 * @since 6.7.0
+		 *
+		 * @param {object} orderDropdown select field
+		 */
+		changeMenuOrder : function( orderDropdown ) {
+			var menuItems = $( '#menu-to-edit li' ),
+				$this = $( orderDropdown ),
+				newOrderID = parseInt( $this.val(), 10),
+				menuItem = $this.closest( 'li.menu-item' ).first(),
+				menuItemChildren = menuItem.childMenuItems(),
+				menuItemNoChildren = menuItemChildren.length,
+				menuItemCurrentPosition = parseInt( menuItem.index(), 10 ),
+				parentItemID = menuItem.find( '.menu-item-data-parent-id' ).val(),
+				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemID + '"]' ),
+				currentItemAtPosition = $(subItems[newOrderID - 1]).closest( 'li.menu-item' );
+
+			if ( menuItemNoChildren > 0 ) {
+				menuItem = menuItem.add( menuItemChildren );
+			}
+
+			var currentItemNoChildren = currentItemAtPosition.childMenuItems().length,
+				currentItemPosition = parseInt( currentItemAtPosition.index(), 10 );
+
+			menuItems = $( '#menu-to-edit li' );
+
+			var	menuItemNewPosition = currentItemPosition;
+
+			if(menuItemCurrentPosition > menuItemNewPosition){
+				menuItemNewPosition = currentItemPosition;
+				menuItem.detach().insertBefore( menuItems.eq( menuItemNewPosition ) ).updateOrderDropdown();
+			} else {
+				menuItemNewPosition = menuItemNewPosition + currentItemNoChildren;
+				menuItem.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateOrderDropdown();
+			}
+
+			api.registerChange();
+			api.refreshKeyboardAccessibility();
+			api.refreshAdvancedAccessibility();
+			$this.trigger( 'focus' );
+			wp.a11y.speak( menus.orderUpdated, 'polite' );
 		},
 
 		/**
@@ -439,12 +684,13 @@
 			}
 
 			var thisLink, thisLinkText, primaryItems, itemPosition, title,
-				parentItem, parentItemId, parentItemName, subItems,
+				parentItem, parentItemId, parentItemName, subItems, totalSubItems,
 				$this = $( itemToRefresh ),
 				menuItem = $this.closest( 'li.menu-item' ).first(),
 				depth = menuItem.menuItemDepth(),
 				isPrimaryMenuItem = ( 0 === depth ),
 				itemName = $this.closest( '.menu-item-handle' ).find( '.menu-item-title' ).text(),
+				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-controls' ).find( '.item-type' ).text(),
 				position = parseInt( menuItem.index(), 10 ),
 				prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),
 				prevItemNameLeft = menuItem.prevAll('.menu-item-depth-' + prevItemDepth).first().find( '.menu-item-title' ).text(),
@@ -493,18 +739,22 @@
 				primaryItems = $( '.menu-item-depth-0' ),
 				itemPosition = primaryItems.index( menuItem ) + 1,
 				totalMenuItems = primaryItems.length,
-
 				// String together help text for primary menu items.
-				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$d', totalMenuItems );
+				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems );
 			} else {
 				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
 				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
 				parentItemName = parentItem.find( '.menu-item-title' ).text(),
 				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+				totalSubItems = subItems.length,
 				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
 				// String together help text for sub menu items.
-				title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$s', parentItemName );
+				if ( depth < 2 ) {
+					title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName );
+				} else {
+					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName ).replace( '%6$d', depth );
+				}
 			}
 
 			$this.attr( 'aria-label', title );
@@ -572,7 +822,7 @@
 						break;
 					}
 					// Put focus back on same menu item.
-					$( '#edit-' + thisItemData['menu-item-db-id'] ).focus();
+					$( '#edit-' + thisItemData['menu-item-db-id'] ).trigger( 'focus' );
 					return false;
 				});
 			});
@@ -608,7 +858,7 @@
 			// Hide fields.
 			api.menuList.hideAdvancedMenuItemFields();
 
-			$('.hide-postbox-tog').click(function () {
+			$('.hide-postbox-tog').on( 'click', function () {
 				var hidden = $( '.accordion-container li.accordion-section' ).filter(':hidden').map(function() { return this.id; }).get().join(',');
 				$.post(ajaxurl, {
 					action: 'closed-postboxes',
@@ -722,6 +972,9 @@
 
 					api.refreshKeyboardAccessibility();
 					api.refreshAdvancedAccessibility();
+					ui.item.updateParentDropdown();
+					ui.item.updateOrderDropdown();
+					api.refreshAdvancedAccessibilityOfItem( ui.item.find( 'a.item-edit' ) );
 				},
 				change: function(e, ui) {
 					// Make sure the placeholder is inside the menu.
@@ -809,7 +1062,7 @@
 		},
 
 		initManageLocations : function () {
-			$('#menu-locations-wrap form').submit(function(){
+			$('#menu-locations-wrap form').on( 'submit', function(){
 				window.onbeforeunload = null;
 			});
 			$('.menu-location-menus select').on('change', function () {
@@ -823,7 +1076,7 @@
 
 		attachMenuEditListeners : function() {
 			var that = this;
-			$('#update-nav-menu').bind('click', function(e) {
+			$('#update-nav-menu').on('click', function(e) {
 				if ( e.target && e.target.className ) {
 					if ( -1 != e.target.className.indexOf('item-edit') ) {
 						return that.eventOnClickEditLink(e.target);
@@ -852,14 +1105,251 @@
 				}
 			}, 500 ) );
 
-			$('#add-custom-links input[type="text"]').keypress(function(e){
-				$('#customlinkdiv').removeClass('form-invalid');
+			$('#add-custom-links input[type="text"]').on( 'keypress', function(e){
+				$( '#customlinkdiv' ).removeClass( 'form-invalid' );
+				$( '#custom-menu-item-url' ).removeAttr( 'aria-invalid' ).removeAttr( 'aria-describedby' );
+				$( '#custom-url-error' ).hide();
 
 				if ( e.keyCode === 13 ) {
 					e.preventDefault();
-					$( '#submit-customlinkdiv' ).click();
+					$( '#submit-customlinkdiv' ).trigger( 'click' );
 				}
 			});
+
+			$( '#submit-customlinkdiv' ).on( 'click', function (e) {
+				var urlInput = $( '#custom-menu-item-url' ),
+					url = urlInput.val().trim(),
+					errorMessage = $( '#custom-url-error' ),
+					urlWrap = $( '#menu-item-url-wrap' ),
+					urlRegex;
+
+				// Hide the error message initially
+				errorMessage.hide();
+				urlWrap.removeClass( 'has-error' );
+
+				/*
+				 * Allow URLs including:
+				 * - http://example.com/
+				 * - //example.com
+				 * - /directory/
+				 * - ?query-param
+				 * - #target
+				 * - mailto:foo@example.com
+				 *
+				 * Any further validation will be handled on the server when the setting is attempted to be saved,
+				 * so this pattern does not need to be complete.
+				 */
+				urlRegex = /^((\w+:)?\/\/\w.*|\w+:(?!\/\/$)|\/|\?|#)/;
+				if ( ! urlRegex.test( url ) ) {
+					e.preventDefault();
+					urlInput.addClass( 'form-invalid' )
+						.attr( 'aria-invalid', 'true' )
+						.attr( 'aria-describedby', 'custom-url-error' );
+
+					errorMessage.show();
+					var errorText = errorMessage.text();
+					urlWrap.addClass( 'has-error' );
+					// Announce error message via screen reader
+					wp.a11y.speak( errorText, 'assertive' );
+				}
+			});
+		},
+
+		/**
+		 * Handle toggling bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachBulkSelectButtonListeners : function() {
+			var that = this;
+
+			$( '.bulk-select-switcher' ).on( 'change', function() {
+				if ( this.checked ) {
+					$( '.bulk-select-switcher' ).prop( 'checked', true );
+					that.enableBulkSelection();
+				} else {
+					$( '.bulk-select-switcher' ).prop( 'checked', false );
+					that.disableBulkSelection();
+				}
+			});
+		},
+
+		/**
+		 * Enable bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		enableBulkSelection : function() {
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$( '#menu-to-edit' ).addClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-top' ).addClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-bottom' ).addClass( 'bulk-selection' );
+
+			$.each( checkbox, function() {
+				$(this).prop( 'disabled', false );
+			});
+		},
+
+		/**
+		 * Disable bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		disableBulkSelection : function() {
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$( '#menu-to-edit' ).removeClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-top' ).removeClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-bottom' ).removeClass( 'bulk-selection' );
+
+			if ( $( '.menu-items-delete' ).is( '[aria-describedby="pending-menu-items-to-delete"]' ) ) {
+				$( '.menu-items-delete' ).removeAttr( 'aria-describedby' );
+			}
+
+			$.each( checkbox, function() {
+				$(this).prop( 'disabled', true ).prop( 'checked', false );
+			});
+
+			$( '.menu-items-delete' ).addClass( 'disabled' );
+			$( '#pending-menu-items-to-delete ul' ).empty();
+		},
+
+		/**
+		 * Listen for state changes on bulk action checkboxes.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachMenuCheckBoxListeners : function() {
+			var that = this;
+
+			$( '#menu-to-edit' ).on( 'change', '.menu-item-checkbox', function() {
+				that.setRemoveSelectedButtonStatus();
+			});
+		},
+
+		/**
+		 * Create delete button to remove menu items from collection.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachMenuItemDeleteButton : function() {
+			var that = this;
+
+			$( document ).on( 'click', '.menu-items-delete', function( e ) {
+				var itemsPendingDeletion, itemsPendingDeletionList, deletionSpeech;
+
+				e.preventDefault();
+
+				if ( ! $(this).hasClass( 'disabled' ) ) {
+					$.each( $( '.menu-item-checkbox:checked' ), function( index, element ) {
+						$( element ).parents( 'li' ).find( 'a.item-delete' ).trigger( 'click' );
+					});
+
+					$( '.menu-items-delete' ).addClass( 'disabled' );
+					$( '.bulk-select-switcher' ).prop( 'checked', false );
+
+					itemsPendingDeletion     = '';
+					itemsPendingDeletionList = $( '#pending-menu-items-to-delete ul li' );
+
+					$.each( itemsPendingDeletionList, function( index, element ) {
+						var itemName = $( element ).find( '.pending-menu-item-name' ).text();
+						var itemSpeech = menus.menuItemDeletion.replace( '%s', itemName );
+
+						itemsPendingDeletion += itemSpeech;
+						if ( ( index + 1 ) < itemsPendingDeletionList.length ) {
+							itemsPendingDeletion += ', ';
+						}
+					});
+
+					deletionSpeech = menus.itemsDeleted.replace( '%s', itemsPendingDeletion );
+					wp.a11y.speak( deletionSpeech, 'polite' );
+					that.disableBulkSelection();
+					$( '#menu-to-edit' ).updateParentDropdown();
+					$( '#menu-to-edit' ).updateOrderDropdown();
+				}
+			});
+		},
+
+		/**
+		 * List menu items awaiting deletion.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachPendingMenuItemsListForDeletion : function() {
+			$( '#post-body-content' ).on( 'change', '.menu-item-checkbox', function() {
+				var menuItemName, menuItemType, menuItemID, listedMenuItem;
+
+				if ( ! $( '.menu-items-delete' ).is( '[aria-describedby="pending-menu-items-to-delete"]' ) ) {
+					$( '.menu-items-delete' ).attr( 'aria-describedby', 'pending-menu-items-to-delete' );
+				}
+
+				menuItemName = $(this).next().text();
+				menuItemType = $(this).parent().next( '.item-controls' ).find( '.item-type' ).text();
+				menuItemID   = $(this).attr( 'data-menu-item-id' );
+
+				listedMenuItem = $( '#pending-menu-items-to-delete ul' ).find( '[data-menu-item-id=' + menuItemID + ']' );
+				if ( listedMenuItem.length > 0 ) {
+					listedMenuItem.remove();
+				}
+
+				if ( this.checked === true ) {
+					const $li = $( '<li>', { 'data-menu-item-id': menuItemID } );
+					$li.append( $( '<span>', {
+						'class': 'pending-menu-item-name',
+						text: menuItemName
+					} ) );
+					$li.append( ' ' );
+					$li.append( $( '<span>', {
+						'class': 'pending-menu-item-type',
+						text: '(' + menuItemType + ')',
+					} ) );
+					$li.append( $( '<span>', { 'class': 'separator' } ) );
+					$( '#pending-menu-items-to-delete ul' ).append( $li );
+				}
+
+				$( '#pending-menu-items-to-delete li .separator' ).html( ', ' );
+				$( '#pending-menu-items-to-delete li .separator' ).last().html( '.' );
+			});
+		},
+
+		/**
+		 * Set status of bulk delete checkbox.
+		 *
+		 * @since 5.8.0
+		 */ 
+		setBulkDeleteCheckboxStatus : function() {
+			var that = this;
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$.each( checkbox, function() {
+				if ( $(this).prop( 'disabled' ) ) {
+					$(this).prop( 'disabled', false );
+				} else {
+					$(this).prop( 'disabled', true );
+				}
+
+				if ( $(this).is( ':checked' ) ) {
+					$(this).prop( 'checked', false );
+				}
+			});
+
+			that.setRemoveSelectedButtonStatus();
+		},
+
+		/**
+		 * Set status of menu items removal button.
+		 *
+		 * @since 5.8.0
+		 */ 
+		setRemoveSelectedButtonStatus : function() {
+			var button = $( '.menu-items-delete' );
+
+			if ( $( '.menu-item-checkbox:checked' ).length > 0 ) {
+				button.removeClass( 'disabled' );
+			} else {
+				button.addClass( 'disabled' );
+			}
 		},
 
 		attachMenuSaveSubmitListeners : function() {
@@ -867,7 +1357,7 @@
 			 * When a navigation menu is saved, store a JSON representation of all form data
 			 * in a single input to avoid PHP `max_input_vars` limitations. See #14134.
 			 */
-			$( '#update-nav-menu' ).submit( function() {
+			$( '#update-nav-menu' ).on( 'submit', function() {
 				var navMenuData = $( '#update-nav-menu' ).serializeArray();
 				$( '[name="nav-menu-data"]' ).val( JSON.stringify( navMenuData ) );
 			});
@@ -877,7 +1367,7 @@
 			var loc = $('#nav-menu-theme-locations'), params = {};
 			params.action = 'menu-locations-save';
 			params['menu-settings-column-nonce'] = $('#menu-settings-column-nonce').val();
-			loc.find('input[type="submit"]').click(function() {
+			loc.find('input[type="submit"]').on( 'click', function() {
 				loc.find('select').each(function() {
 					params[this.name] = $(this).val();
 				});
@@ -908,7 +1398,7 @@
 
 				searchTimer = setTimeout( function() {
 					api.updateQuickSearchResults( $this );
- 				}, 500 );
+				}, 500 );
 			}).on( 'blur', '.quick-search', function() {
 				api.lastSearch = '';
 			});
@@ -916,14 +1406,25 @@
 
 		updateQuickSearchResults : function(input) {
 			var panel, params,
-				minSearchLength = 2,
-				q = input.val();
+				minSearchLength = 1,
+				q = input.val(),
+				pageSearchChecklist = $( '#page-search-checklist' );
 
 			/*
-			 * Minimum characters for a search. Also avoid a new Ajax search when
-			 * the pressed key (e.g. arrows) doesn't change the searched term.
+			 * Avoid a new Ajax search when the pressed key (e.g. arrows)
+			 * doesn't change the searched term.
 			 */
-			if ( q.length < minSearchLength || api.lastSearch == q ) {
+			if ( api.lastSearch == q ) {
+				return;
+			}
+
+			/*
+			 * Reset results when search is less than or equal to 
+			 * minimum characters for searched term.
+			 */
+			if ( q.length <= minSearchLength ) {
+				pageSearchChecklist.empty();
+				wp.a11y.speak( wp.i18n.__( 'Search results cleared' ) );
 				return;
 			}
 
@@ -947,12 +1448,30 @@
 		},
 
 		addCustomLink : function( processMethod ) {
-			var url = $('#custom-menu-item-url').val().trim(),
-				label = $('#custom-menu-item-name').val();
+			var url = $('#custom-menu-item-url').val().toString(),
+				label = $('#custom-menu-item-name').val(),
+				urlRegex;
+
+			if ( '' !== url ) {
+				url = url.trim();
+			}
 
 			processMethod = processMethod || api.addMenuItemToBottom;
 
-			if ( '' === url || 'https://' == url || 'http://' == url ) {
+			/*
+			 * Allow URLs including:
+			 * - http://example.com/
+			 * - //example.com
+			 * - /directory/
+			 * - ?query-param
+			 * - #target
+			 * - mailto:foo@example.com
+			 *
+			 * Any further validation will be handled on the server when the setting is attempted to be saved,
+			 * so this pattern does not need to be complete.
+			 */
+			urlRegex = /^((\w+:)?\/\/\w.*|\w+:(?!\/\/$)|\/|\?|#)/;
+			if ( ! urlRegex.test( url ) ) {
 				$('#customlinkdiv').addClass('form-invalid');
 				return false;
 			}
@@ -963,7 +1482,7 @@
 				// Remove the Ajax spinner.
 				$( '.customlinkdiv .spinner' ).removeClass( 'is-active' );
 				// Set custom link form back to defaults.
-				$('#custom-menu-item-name').val('').blur();
+				$('#custom-menu-item-name').val('').trigger( 'blur' );
 				$( '#custom-menu-item-url' ).val( '' ).attr( 'placeholder', 'https://' );
 			});
 		},
@@ -999,7 +1518,8 @@
 			$.post( ajaxurl, params, function(menuMarkup) {
 				var ins = $('#menu-instructions');
 
-				menuMarkup = $.trim( menuMarkup ); // Trim leading whitespaces.
+				menuMarkup = menuMarkup || '';
+				menuMarkup = menuMarkup.toString().trim(); // Trim leading whitespaces.
 				processMethod(menuMarkup, params);
 
 				// Make it stand out a bit more visually, by adding a fadeIn.
@@ -1024,6 +1544,7 @@
 			$menuMarkup.hideAdvancedMenuItemFields().appendTo( api.targetList );
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			wp.a11y.speak( menus.itemAdded );
 			$( document ).trigger( 'menu-item-added', [ $menuMarkup ] );
 		},
 
@@ -1039,11 +1560,12 @@
 			$menuMarkup.hideAdvancedMenuItemFields().prependTo( api.targetList );
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			wp.a11y.speak( menus.itemAdded );
 			$( document ).trigger( 'menu-item-added', [ $menuMarkup ] );
 		},
 
 		attachUnsavedChangesListener : function() {
-			$('#menu-management input, #menu-management select, #menu-management, #menu-management textarea, .menu-location-menus select').change(function(){
+			$('#menu-management input, #menu-management select, #menu-management, #menu-management textarea, .menu-location-menus select').on( 'change', function(){
 				api.registerChange();
 			});
 
@@ -1054,7 +1576,7 @@
 				};
 			} else {
 				// Make the post boxes read-only, as they can't be used yet.
-				$( '#menu-settings-column' ).find( 'input,select' ).end().find( 'a' ).attr( 'href', '#' ).unbind( 'click' );
+				$( '#menu-settings-column' ).find( 'input,select' ).end().find( 'a' ).attr( 'href', '#' ).off( 'click' );
 			}
 		},
 
@@ -1063,7 +1585,7 @@
 		},
 
 		attachTabsPanelListeners : function() {
-			$('#menu-settings-column').bind('click', function(e) {
+			$('#menu-settings-column').on('click', function(e) {
 				var selectAreaMatch, selectAll, panelId, wrapper, items,
 					target = $(e.target);
 
@@ -1083,7 +1605,7 @@
 					target.parent().addClass('tabs');
 
 					// Select the search bar.
-					$('.quick-search', wrapper).focus();
+					$('.quick-search', wrapper).trigger( 'focus' );
 
 					// Hide controls in the search tab if no items found.
 					if ( ! wrapper.find( '.tabs-panel-active .menu-item-title' ).length ) {
@@ -1136,7 +1658,7 @@
 
 				$.post( ajaxurl, this.href.replace( /.*\?/, '' ).replace( /action=([^&]*)/, '' ) + '&action=menu-get-metabox',
 					function( resp ) {
-						var metaBoxData = $.parseJSON( resp ),
+						var metaBoxData = JSON.parse( resp ),
 							toReplace;
 
 						if ( -1 === resp.indexOf( 'replace-id' ) ) {
@@ -1197,9 +1719,8 @@
 		},
 
 		eventOnClickMenuSave : function() {
-			var locs = '',
-			menuName = $('#menu-name'),
-			menuNameVal = menuName.val();
+			var menuName = $('#menu-name'),
+				menuNameVal = menuName.val();
 
 			// Cancel and warn if invalid menu name.
 			if ( ! menuNameVal || ! menuNameVal.replace( /\s+/, '' ) ) {
@@ -1207,10 +1728,17 @@
 				return false;
 			}
 			// Copy menu theme locations.
+			// Note: This appears to be dead code since #nav-menu-theme-locations no longer exists, perhaps removed in r32842.
+			var $updateNavMenu = $('#update-nav-menu');
 			$('#nav-menu-theme-locations select').each(function() {
-				locs += '<input type="hidden" name="' + this.name + '" value="' + $(this).val() + '" />';
+				$updateNavMenu.append(
+					$( '<input>', {
+						type: 'hidden',
+						name: this.name,
+						value: $( this ).val(),
+					} )
+				);
 			});
-			$('#update-nav-menu').append( locs );
 			// Update menu item position data.
 			api.menuList.find('.menu-item-data-position').val( function(index) { return index + 1; } );
 			window.onbeforeunload = null;
@@ -1253,9 +1781,14 @@
 			$item;
 
 			if( ! $items.length ) {
-				$('.categorychecklist', panel).html( '<li><p>' + wp.i18n.__( 'No results found.' ) + '</p></li>' );
+				let noResults = wp.i18n.__( 'No results found.' );
+				const li = $( '<li>' );
+				const p = $( '<p>', { text: noResults } );
+				li.append( p );
+				$('.categorychecklist', panel).empty().append( li );
 				$( '.spinner', panel ).removeClass( 'is-active' );
 				wrapper.addClass( 'has-no-menu-item' );
+				wp.a11y.speak( noResults, 'assertive' );
 				return;
 			}
 
@@ -1282,6 +1815,7 @@
 			});
 
 			$('.categorychecklist', panel).html( $items );
+			wp.a11y.speak( wp.i18n.sprintf( wp.i18n.__( '%d Search Results Found' ), $items.length ), 'assertive' );
 			$( '.spinner', panel ).removeClass( 'is-active' );
 			wrapper.removeClass( 'has-no-menu-item' );
 
@@ -1313,6 +1847,9 @@
 						ins.removeClass( 'menu-instructions-inactive' );
 					}
 					api.refreshAdvancedAccessibility();
+					wp.a11y.speak( menus.itemRemoved );
+					$( '#menu-to-edit' ).updateParentDropdown();
+					$( '#menu-to-edit' ).updateOrderDropdown();
 				});
 		},
 
@@ -1326,6 +1863,42 @@
 
 	};
 
-	$(document).ready(function(){ wpNavMenu.init(); });
+	$( function() {
+
+		wpNavMenu.init();
+
+		// Prevent focused element from being hidden by the sticky footer.
+		$( '.menu-edit a, .menu-edit button, .menu-edit input, .menu-edit textarea, .menu-edit select' ).on('focus', function() {
+			if ( window.innerWidth >= 783 ) {
+				var navMenuHeight = $( '#nav-menu-footer' ).height() + 20;
+				var bottomOffset = $(this).offset().top - ( $(window).scrollTop() + $(window).height() - $(this).height() );
+
+				if ( bottomOffset > 0 ) {
+					bottomOffset = 0;
+				}
+				bottomOffset = bottomOffset * -1;
+
+				if( bottomOffset < navMenuHeight ) {
+					var scrollTop = $(document).scrollTop();
+					$(document).scrollTop( scrollTop + ( navMenuHeight - bottomOffset ) );
+				}
+			}
+		});
+	});
+
+	// Show bulk action.
+	$( document ).on( 'menu-item-added', function() {
+		if ( ! $( '.bulk-actions' ).is( ':visible' ) ) {
+			$( '.bulk-actions' ).show();
+		}
+	} );
+
+	// Hide bulk action.
+	$( document ).on( 'menu-removing-item', function( e, el ) {
+		var menuElement = $( el ).parents( '#menu-to-edit' );
+		if ( menuElement.find( 'li' ).length === 1 && $( '.bulk-actions' ).is( ':visible' ) ) {
+			$( '.bulk-actions' ).hide();
+		}
+	} );
 
 })(jQuery);

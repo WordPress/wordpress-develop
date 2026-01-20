@@ -1,19 +1,32 @@
 <?php
+/**
+ * Mock PHPMailer class for testing.
+ *
+ * @package WordPress
+ * @subpackage UnitTests
+ * @since 4.5.0
+ */
+
 require_once ABSPATH . 'wp-includes/PHPMailer/PHPMailer.php';
 require_once ABSPATH . 'wp-includes/PHPMailer/Exception.php';
+require_once ABSPATH . 'wp-includes/class-wp-phpmailer.php';
 
-class MockPHPMailer extends PHPMailer\PHPMailer\PHPMailer {
-	var $mock_sent = array();
+/**
+ * Test class extending WP_PHPMailer.
+ *
+ * @since 4.5.0
+ */
+class MockPHPMailer extends WP_PHPMailer {
+	public $mock_sent = array();
 
-	function preSend() {
-		$this->Encoding = '8bit';
+	public function preSend() {
 		return parent::preSend();
 	}
 
 	/**
 	 * Override postSend() so mail isn't actually sent.
 	 */
-	function postSend() {
+	public function postSend() {
 		$this->mock_sent[] = array(
 			'to'      => $this->to,
 			'cc'      => $this->cc,
@@ -76,7 +89,7 @@ class MockPHPMailer extends PHPMailer\PHPMailer\PHPMailer {
  *
  * @since 4.4.0
  *
- * @return object|bool
+ * @return MockPHPMailer|false
  */
 function tests_retrieve_phpmailer_instance() {
 	$mailer = false;

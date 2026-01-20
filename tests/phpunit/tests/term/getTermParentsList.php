@@ -7,7 +7,7 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	protected static $c1;
 	protected static $c2;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 
 		self::$c1 = $factory->term->create_and_get( array( 'taxonomy' => 'wptests_tax' ) );
@@ -24,8 +24,8 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 		wp_delete_term( self::$c2->term_id, 'wptests_tax' );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 	}
 

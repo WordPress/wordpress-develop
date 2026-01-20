@@ -27,9 +27,9 @@
 			} else {
 				echo twentyseventeen_time_link();
 				twentyseventeen_edit_link();
-			};
-				echo '</div><!-- .entry-meta -->';
-		};
+			}
+			echo '</div><!-- .entry-meta -->';
+		}
 
 		if ( is_single() ) {
 			the_title( '<h1 class="entry-title">', '</h1>' );
@@ -57,7 +57,7 @@
 			// Only show content if is a single post, or if there's no featured image.
 			the_content(
 				sprintf(
-					/* translators: %s: Post title. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 					get_the_title()
 				)
@@ -72,7 +72,7 @@
 				)
 			);
 
-		};
+		}
 		?>
 
 	</div><!-- .entry-content -->

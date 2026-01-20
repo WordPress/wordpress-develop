@@ -11,6 +11,8 @@
  * Core class used to implement the WP_User object.
  *
  * @since 2.0.0
+ * @since 6.8.0 The `user_pass` property is now hashed using bcrypt by default instead of phpass.
+ *              Existing passwords may still be hashed using phpass.
  *
  * @property string $nickname
  * @property string $description
@@ -34,13 +36,15 @@
  * @property string $locale
  * @property string $rich_editing
  * @property string $syntax_highlighting
+ * @property string $use_ssl
  */
+#[AllowDynamicProperties]
 class WP_User {
 	/**
 	 * User data container.
 	 *
 	 * @since 2.0.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $data;
 
@@ -115,13 +119,18 @@ class WP_User {
 	 *
 	 * @since 2.0.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param int|string|stdClass|WP_User $id      User's ID, a WP_User object, or a user object from the DB.
 	 * @param string                      $name    Optional. User's username
 	 * @param int                         $site_id Optional Site ID, defaults to current site.
 	 */
-	public function __construct( $id = 0, $name = '', $site_id = '' ) {
+	public function __construct( $id = 0, $name = '', $site_id = 0 ) {
+		global $wpdb;
+
 		if ( ! isset( self::$back_compat_keys ) ) {
-			$prefix                 = $GLOBALS['wpdb']->prefix;
+			$prefix = $wpdb->prefix;
+
 			self::$back_compat_keys = array(
 				'user_firstname'             => 'first_name',
 				'user_lastname'              => 'last_name',
@@ -154,7 +163,7 @@ class WP_User {
 		if ( $data ) {
 			$this->init( $data, $site_id );
 		} else {
-			$this->data = new stdClass;
+			$this->data = new stdClass();
 		}
 	}
 
@@ -166,7 +175,10 @@ class WP_User {
 	 * @param object $data    User DB row object.
 	 * @param int    $site_id Optional. The site ID to initialize for.
 	 */
-	public function init( $data, $site_id = '' ) {
+	public function init( $data, $site_id = 0 ) {
+		if ( ! isset( $data->ID ) ) {
+			$data->ID = 0;
+		}
 		$this->data = $data;
 		$this->ID   = (int) $data->ID;
 
@@ -174,16 +186,16 @@ class WP_User {
 	}
 
 	/**
-	 * Return only the main user fields
+	 * Returns only the main user fields.
 	 *
 	 * @since 3.3.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string     $field The field to query against: 'id', 'ID', 'slug', 'email' or 'login'.
-	 * @param string|int $value The field value
-	 * @return object|false Raw user object
+	 * @param string     $field The field to query against: Accepts 'id', 'ID', 'slug', 'email' or 'login'.
+	 * @param string|int $value The field value.
+	 * @return object|false Raw user object.
 	 */
 	public static function get_data_by( $field, $value ) {
 		global $wpdb;
@@ -194,12 +206,11 @@ class WP_User {
 		}
 
 		if ( 'id' === $field ) {
-			// Make sure the value is numeric to avoid casting objects, for example,
-			// to int 1.
+			// Make sure the value is numeric to avoid casting objects, for example, to int 1.
 			if ( ! is_numeric( $value ) ) {
 				return false;
 			}
-			$value = intval( $value );
+			$value = (int) $value;
 			if ( $value < 1 ) {
 				return false;
 			}
@@ -385,7 +396,7 @@ class WP_User {
 	}
 
 	/**
-	 * Determine whether the user exists in the database.
+	 * Determines whether the user exists in the database.
 	 *
 	 * @since 3.4.0
 	 *
@@ -396,7 +407,7 @@ class WP_User {
 	}
 
 	/**
-	 * Retrieve the value of a property or meta key.
+	 * Retrieves the value of a property or meta key.
 	 *
 	 * Retrieves from the users and usermeta table.
 	 *
@@ -410,13 +421,13 @@ class WP_User {
 	}
 
 	/**
-	 * Determine whether a property or meta key is set
+	 * Determines whether a property or meta key is set.
 	 *
 	 * Consults the users and usermeta tables.
 	 *
 	 * @since 3.3.0
 	 *
-	 * @param string $key Property
+	 * @param string $key Property.
 	 * @return bool
 	 */
 	public function has_prop( $key ) {
@@ -424,7 +435,7 @@ class WP_User {
 	}
 
 	/**
-	 * Return an array representation.
+	 * Returns an array representation.
 	 *
 	 * @since 3.5.0
 	 *
@@ -451,7 +462,7 @@ class WP_User {
 	}
 
 	/**
-	 * Set up capability object properties.
+	 * Sets up capability object properties.
 	 *
 	 * Will set the value for the 'cap_key' property to current database table
 	 * prefix, followed by 'capabilities'. Will then check to see if the
@@ -496,7 +507,7 @@ class WP_User {
 	 */
 	public function get_role_caps() {
 		$switch_site = false;
-		if ( is_multisite() && get_current_blog_id() != $this->site_id ) {
+		if ( is_multisite() && get_current_blog_id() !== $this->site_id ) {
 			$switch_site = true;
 
 			switch_to_blog( $this->site_id );
@@ -504,9 +515,15 @@ class WP_User {
 
 		$wp_roles = wp_roles();
 
-		// Filter out caps that are not role names and assign to $this->roles.
+		// Select caps that are role names and assign to $this->roles.
 		if ( is_array( $this->caps ) ) {
-			$this->roles = array_filter( array_keys( $this->caps ), array( $wp_roles, 'is_role' ) );
+			$this->roles = array();
+
+			foreach ( $this->caps as $key => $value ) {
+				if ( $wp_roles->is_role( $key ) ) {
+					$this->roles[] = $key;
+				}
+			}
 		}
 
 		// Build $allcaps from role caps, overlay user's $caps.
@@ -525,7 +542,7 @@ class WP_User {
 	}
 
 	/**
-	 * Add role to user.
+	 * Adds role to user.
 	 *
 	 * Updates the user's meta data option with capabilities and roles.
 	 *
@@ -535,6 +552,10 @@ class WP_User {
 	 */
 	public function add_role( $role ) {
 		if ( empty( $role ) ) {
+			return;
+		}
+
+		if ( in_array( $role, $this->roles, true ) ) {
 			return;
 		}
 
@@ -555,7 +576,7 @@ class WP_User {
 	}
 
 	/**
-	 * Remove role from user.
+	 * Removes role from user.
 	 *
 	 * @since 2.0.0
 	 *
@@ -565,6 +586,7 @@ class WP_User {
 		if ( ! in_array( $role, $this->roles, true ) ) {
 			return;
 		}
+
 		unset( $this->caps[ $role ] );
 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
 		$this->get_role_caps();
@@ -582,7 +604,7 @@ class WP_User {
 	}
 
 	/**
-	 * Set the role of the user.
+	 * Sets the role of the user.
 	 *
 	 * This will remove the previous roles of the user and assign the user the
 	 * new one. You can set the role to an empty string and it will remove all
@@ -593,7 +615,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function set_role( $role ) {
-		if ( 1 === count( $this->roles ) && current( $this->roles ) == $role ) {
+		if ( 1 === count( $this->roles ) && current( $this->roles ) === $role ) {
 			return;
 		}
 
@@ -602,21 +624,37 @@ class WP_User {
 		}
 
 		$old_roles = $this->roles;
+
 		if ( ! empty( $role ) ) {
 			$this->caps[ $role ] = true;
 			$this->roles         = array( $role => true );
 		} else {
-			$this->roles = false;
+			$this->roles = array();
 		}
+
 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
 		$this->get_role_caps();
 		$this->update_user_level_from_caps();
+
+		foreach ( $old_roles as $old_role ) {
+			if ( ! $old_role || $old_role === $role ) {
+				continue;
+			}
+
+			/** This action is documented in wp-includes/class-wp-user.php */
+			do_action( 'remove_user_role', $this->ID, $old_role );
+		}
+
+		if ( $role && ! in_array( $role, $old_roles, true ) ) {
+			/** This action is documented in wp-includes/class-wp-user.php */
+			do_action( 'add_user_role', $this->ID, $role );
+		}
 
 		/**
 		 * Fires after the user's role has changed.
 		 *
 		 * @since 2.9.0
-		 * @since 3.6.0 Added $old_roles to include an array of the user's previous roles.
+		 * @since 3.6.0 Added `$old_roles` to include an array of the user's previous roles.
 		 *
 		 * @param int      $user_id   The user ID.
 		 * @param string   $role      The new role.
@@ -626,7 +664,7 @@ class WP_User {
 	}
 
 	/**
-	 * Choose the maximum level the user has.
+	 * Chooses the maximum level the user has.
 	 *
 	 * Will compare the level from the $item parameter against the $max
 	 * parameter. If the item is incorrect, then just the $max parameter value
@@ -645,7 +683,7 @@ class WP_User {
 	 */
 	public function level_reduction( $max, $item ) {
 		if ( preg_match( '/^level_(10|[0-9])$/i', $item, $matches ) ) {
-			$level = intval( $matches[1] );
+			$level = (int) $matches[1];
 			return max( $max, $level );
 		} else {
 			return $max;
@@ -653,7 +691,7 @@ class WP_User {
 	}
 
 	/**
-	 * Update the maximum user level for the user.
+	 * Updates the maximum user level for the user.
 	 *
 	 * Updates the 'user_level' user metadata (includes prefix that is the
 	 * database table prefix) with the maximum user level. Gets the value from
@@ -670,7 +708,7 @@ class WP_User {
 	}
 
 	/**
-	 * Add capability and grant or deny access to capability.
+	 * Adds capability and grant or deny access to capability.
 	 *
 	 * @since 2.0.0
 	 *
@@ -685,7 +723,7 @@ class WP_User {
 	}
 
 	/**
-	 * Remove capability from user.
+	 * Removes capability from user.
 	 *
 	 * @since 2.0.0
 	 *
@@ -702,7 +740,7 @@ class WP_User {
 	}
 
 	/**
-	 * Remove all of the capabilities of the user.
+	 * Removes all of the capabilities of the user.
 	 *
 	 * @since 2.1.0
 	 *
@@ -799,7 +837,7 @@ class WP_User {
 	}
 
 	/**
-	 * Convert numeric level to level capability name.
+	 * Converts numeric level to level capability name.
 	 *
 	 * Prepends 'level_' to level number.
 	 *
@@ -813,14 +851,14 @@ class WP_User {
 	}
 
 	/**
-	 * Set the site to operate on. Defaults to the current site.
+	 * Sets the site to operate on. Defaults to the current site.
 	 *
 	 * @since 3.0.0
 	 * @deprecated 4.9.0 Use WP_User::for_site()
 	 *
 	 * @param int $blog_id Optional. Site ID, defaults to current site.
 	 */
-	public function for_blog( $blog_id = '' ) {
+	public function for_blog( $blog_id = 0 ) {
 		_deprecated_function( __METHOD__, '4.9.0', 'WP_User::for_site()' );
 
 		$this->for_site( $blog_id );
@@ -835,7 +873,7 @@ class WP_User {
 	 *
 	 * @param int $site_id Site ID to initialize user capabilities for. Default is the current site.
 	 */
-	public function for_site( $site_id = '' ) {
+	public function for_site( $site_id = 0 ) {
 		global $wpdb;
 
 		if ( ! empty( $site_id ) ) {
@@ -868,7 +906,7 @@ class WP_User {
 	 * @since 4.9.0
 	 *
 	 * @return bool[] List of capabilities keyed by the capability name,
-	 *                e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
+	 *                e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
 	 */
 	private function get_caps_data() {
 		$caps = get_user_meta( $this->ID, $this->cap_key, true );

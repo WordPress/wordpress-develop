@@ -7,7 +7,7 @@
  */
 
 /**
- * Add a link to using values provided in $_POST.
+ * Adds a link using values provided in $_POST.
  *
  * @since 2.0.0
  *
@@ -34,7 +34,6 @@ function edit_link( $link_id = 0 ) {
 		);
 	}
 
-	$_POST['link_url']   = esc_html( $_POST['link_url'] );
 	$_POST['link_url']   = esc_url( $_POST['link_url'] );
 	$_POST['link_name']  = esc_html( $_POST['link_name'] );
 	$_POST['link_image'] = esc_html( $_POST['link_image'] );
@@ -59,7 +58,7 @@ function edit_link( $link_id = 0 ) {
  * @return stdClass Default link object.
  */
 function get_default_link_to_edit() {
-	$link = new stdClass;
+	$link = new stdClass();
 	if ( isset( $_GET['linkurl'] ) ) {
 		$link->link_url = esc_url( wp_unslash( $_GET['linkurl'] ) );
 	} else {
@@ -84,7 +83,7 @@ function get_default_link_to_edit() {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $link_id ID of the link to delete
+ * @param int $link_id ID of the link to delete.
  * @return true Always true.
  */
 function wp_delete_link( $link_id ) {
@@ -142,13 +141,33 @@ function get_link_to_edit( $link ) {
 }
 
 /**
- * Inserts/updates links into/in the database.
+ * Inserts a link into the database, or updates an existing link.
+ *
+ * Runs all the necessary sanitizing, provides default values if arguments are missing,
+ * and finally saves the link.
  *
  * @since 2.0.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $linkdata Elements that make up the link to insert.
+ * @param array $linkdata {
+ *     Elements that make up the link to insert.
+ *
+ *     @type int    $link_id          Optional. The ID of the existing link if updating.
+ *     @type string $link_url         The URL the link points to.
+ *     @type string $link_name        The title of the link.
+ *     @type string $link_image       Optional. A URL of an image.
+ *     @type string $link_target      Optional. The target element for the anchor tag.
+ *     @type string $link_description Optional. A short description of the link.
+ *     @type string $link_visible     Optional. 'Y' means visible, anything else means not.
+ *     @type int    $link_owner       Optional. A user ID.
+ *     @type int    $link_rating      Optional. A rating for the link.
+ *     @type string $link_rel         Optional. A relationship of the link to you.
+ *     @type string $link_notes       Optional. An extended description of or notes on the link.
+ *     @type string $link_rss         Optional. A URL of an associated RSS feed.
+ *     @type int    $link_category    Optional. The term ID of the link category.
+ *                                    If empty, uses default link category.
+ * }
  * @param bool  $wp_error Optional. Whether to return a WP_Error object on failure. Default false.
  * @return int|WP_Error Value 0 or WP_Error on failure. The link ID on success.
  */
@@ -196,6 +215,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	$link_rss         = ( ! empty( $parsed_args['link_rss'] ) ) ? $parsed_args['link_rss'] : '';
 	$link_rel         = ( ! empty( $parsed_args['link_rel'] ) ) ? $parsed_args['link_rel'] : '';
 	$link_category    = ( ! empty( $parsed_args['link_category'] ) ) ? $parsed_args['link_category'] : array();
+	$link_updated     = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp', 0 ) );
 
 	// Make sure we set a valid category.
 	if ( ! is_array( $link_category ) || 0 === count( $link_category ) ) {
@@ -203,7 +223,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	}
 
 	if ( $update ) {
-		if ( false === $wpdb->update( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ), compact( 'link_id' ) ) ) {
+		if ( false === $wpdb->update( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss', 'link_updated' ), compact( 'link_id' ) ) ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'db_update_error', __( 'Could not update link in the database.' ), $wpdb->last_error );
 			} else {
@@ -211,7 +231,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 			}
 		}
 	} else {
-		if ( false === $wpdb->insert( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ) ) ) {
+		if ( false === $wpdb->insert( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss', 'link_updated' ) ) ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'db_insert_error', __( 'Could not insert link into the database.' ), $wpdb->last_error );
 			} else {
@@ -248,7 +268,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 }
 
 /**
- * Update link with the specified link categories.
+ * Updates link with the specified link categories.
  *
  * @since 2.1.0
  *
@@ -274,7 +294,7 @@ function wp_set_link_cats( $link_id = 0, $link_categories = array() ) {
  *
  * @since 2.0.0
  *
- * @param array $linkdata Link data to update.
+ * @param array $linkdata Link data to update. See wp_insert_link() for accepted arguments.
  * @return int|WP_Error Value 0 or WP_Error on failure. The updated link ID on success.
  */
 function wp_update_link( $linkdata ) {
@@ -307,7 +327,7 @@ function wp_update_link( $linkdata ) {
  * @since 3.5.0
  * @access private
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function wp_link_manager_disabled_message() {
 	global $pagenow;
@@ -320,10 +340,40 @@ function wp_link_manager_disabled_message() {
 	$really_can_manage_links = current_user_can( 'manage_links' );
 	remove_filter( 'pre_option_link_manager_enabled', '__return_true', 100 );
 
-	if ( $really_can_manage_links && current_user_can( 'install_plugins' ) ) {
-		$link = network_admin_url( 'plugin-install.php?tab=search&amp;s=Link+Manager' );
-		/* translators: %s: URL to install the Link Manager plugin. */
-		wp_die( sprintf( __( 'If you are looking to use the link manager, please install the <a href="%s">Link Manager</a> plugin.' ), $link ) );
+	if ( $really_can_manage_links ) {
+		$plugins = get_plugins();
+
+		if ( empty( $plugins['link-manager/link-manager.php'] ) ) {
+			if ( current_user_can( 'install_plugins' ) ) {
+				$install_url = wp_nonce_url(
+					self_admin_url( 'update.php?action=install-plugin&plugin=link-manager' ),
+					'install-plugin_link-manager'
+				);
+
+				wp_die(
+					sprintf(
+						/* translators: %s: A link to install the Link Manager plugin. */
+						__( 'If you are looking to use the link manager, please install the <a href="%s">Link Manager plugin</a>.' ),
+						esc_url( $install_url )
+					)
+				);
+			}
+		} elseif ( is_plugin_inactive( 'link-manager/link-manager.php' ) ) {
+			if ( current_user_can( 'activate_plugins' ) ) {
+				$activate_url = wp_nonce_url(
+					self_admin_url( 'plugins.php?action=activate&plugin=link-manager/link-manager.php' ),
+					'activate-plugin_link-manager/link-manager.php'
+				);
+
+				wp_die(
+					sprintf(
+						/* translators: %s: A link to activate the Link Manager plugin. */
+						__( 'Please activate the <a href="%s">Link Manager plugin</a> to use the link manager.' ),
+						esc_url( $activate_url )
+					)
+				);
+			}
+		}
 	}
 
 	wp_die( __( 'Sorry, you are not allowed to edit the links for this site.' ) );

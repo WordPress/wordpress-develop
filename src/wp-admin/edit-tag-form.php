@@ -44,14 +44,10 @@ if ( 'category' === $taxonomy ) {
 	do_action_deprecated( 'edit_tag_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
 }
 
-/**
- * Use with caution, see https://developer.wordpress.org/reference/functions/wp_reset_vars/
- */
-wp_reset_vars( array( 'wp_http_referer' ) );
-
+$wp_http_referer = ! empty( $_REQUEST['wp_http_referer'] ) ? sanitize_url( $_REQUEST['wp_http_referer'] ) : '';
 $wp_http_referer = remove_query_arg( array( 'action', 'message', 'tag_ID' ), $wp_http_referer );
 
-/** Also used by Edit Tags */
+// Also used by Edit Tags.
 require_once ABSPATH . 'wp-admin/includes/edit-tag-messages.php';
 
 /**
@@ -59,6 +55,11 @@ require_once ABSPATH . 'wp-admin/includes/edit-tag-messages.php';
  *
  * The dynamic portion of the hook name, `$taxonomy`, refers to
  * the taxonomy slug.
+ *
+ * Possible hook names include:
+ *
+ *  - `category_pre_edit_form`
+ *  - `post_tag_pre_edit_form`
  *
  * @since 3.0.0
  *
@@ -71,19 +72,26 @@ do_action( "{$taxonomy}_pre_edit_form", $tag, $taxonomy ); ?>
 <h1><?php echo $tax->labels->edit_item; ?></h1>
 
 <?php
-$class = ( isset( $msg ) && 5 === $msg ) ? 'error' : 'success';
+$class = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'success';
 
 if ( $message ) {
-	?>
-<div id="message" class="notice notice-<?php echo $class; ?>">
-	<p><strong><?php echo $message; ?></strong></p>
-	<?php if ( $wp_http_referer ) { ?>
-	<p><a href="<?php echo esc_url( wp_validate_redirect( esc_url_raw( $wp_http_referer ), admin_url( 'term.php?taxonomy=' . $taxonomy ) ) ); ?>">
-		<?php echo esc_html( $tax->labels->back_to_items ); ?>
-	</a></p>
-	<?php } ?>
-</div>
-	<?php
+	$message = '<p><strong>' . $message . '</strong></p>';
+	if ( $wp_http_referer ) {
+		$message .= sprintf(
+			'<p><a href="%1$s">%2$s</a></p>',
+			esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), admin_url( 'term.php?taxonomy=' . $taxonomy ) ) ),
+			esc_html( $tax->labels->back_to_items )
+		);
+	}
+
+	wp_admin_notice(
+		$message,
+		array(
+			'type'           => $class,
+			'id'             => 'message',
+			'paragraph_wrap' => false,
+		)
+	);
 }
 ?>
 
@@ -96,14 +104,19 @@ if ( $message ) {
  *
  * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
  *
+ * Possible hook names include:
+ *
+ *  - `category_term_edit_form_tag`
+ *  - `post_tag_term_edit_form_tag`
+ *
  * @since 3.7.0
  */
 do_action( "{$taxonomy}_term_edit_form_tag" );
 ?>
 >
-<input type="hidden" name="action" value="editedtag"/>
-<input type="hidden" name="tag_ID" value="<?php echo esc_attr( $tag_ID ); ?>"/>
-<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>"/>
+<input type="hidden" name="action" value="editedtag" />
+<input type="hidden" name="tag_ID" value="<?php echo esc_attr( $tag_ID ); ?>" />
+<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>" />
 <?php
 wp_original_referer_field( true, 'previous' );
 wp_nonce_field( 'update-tag_' . $tag_ID );
@@ -114,6 +127,11 @@ wp_nonce_field( 'update-tag_' . $tag_ID );
  * At this point, the required hidden fields and nonces have already been output.
  *
  * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+ *
+ * Possible hook names include:
+ *
+ *  - `category_term_edit_form_top`
+ *  - `post_tag_term_edit_form_top`
  *
  * @since 4.5.0
  *
@@ -130,15 +148,14 @@ if ( isset( $tag->name ) ) {
 	<table class="form-table" role="presentation">
 		<tr class="form-field form-required term-name-wrap">
 			<th scope="row"><label for="name"><?php _ex( 'Name', 'term name' ); ?></label></th>
-			<td><input name="name" id="name" type="text" value="<?php echo $tag_name_value; ?>" size="40" aria-required="true" />
-			<p class="description"><?php _e( 'The name is how it appears on your site.' ); ?></p></td>
+			<td><input name="name" id="name" type="text" value="<?php echo $tag_name_value; ?>" size="40" aria-required="true" aria-describedby="name-description" />
+			<p class="description" id="name-description"><?php echo $tax->labels->name_field_description; ?></p></td>
 		</tr>
-<?php if ( ! global_terms_enabled() ) { ?>
 		<tr class="form-field term-slug-wrap">
 			<th scope="row"><label for="slug"><?php _e( 'Slug' ); ?></label></th>
 			<?php
 			/**
-			 * Filters the editable slug.
+			 * Filters the editable slug for a post or term.
 			 *
 			 * Note: This is a multi-use hook in that it is leveraged both for editable
 			 * post URIs and term slugs.
@@ -148,14 +165,13 @@ if ( isset( $tag->name ) ) {
 			 *
 			 * @param string          $slug The editable slug. Will be either a term slug or post URI depending
 			 *                              upon the context in which it is evaluated.
-			 * @param WP_Term|WP_Post $tag  Term or WP_Post object.
+			 * @param WP_Term|WP_Post $tag  Term or post object.
 			 */
 			$slug = isset( $tag->slug ) ? apply_filters( 'editable_slug', $tag->slug, $tag ) : '';
 			?>
-			<td><input name="slug" id="slug" type="text" value="<?php echo esc_attr( $slug ); ?>" size="40" />
-			<p class="description"><?php _e( 'The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.' ); ?></p></td>
+			<td><input name="slug" id="slug" type="text" value="<?php echo esc_attr( $slug ); ?>" size="40" aria-describedby="slug-description" />
+			<p class="description" id="slug-description"><?php echo $tax->labels->slug_field_description; ?></p></td>
 		</tr>
-<?php } ?>
 <?php if ( is_taxonomy_hierarchical( $taxonomy ) ) : ?>
 		<tr class="form-field term-parent-wrap">
 			<th scope="row"><label for="parent"><?php echo esc_html( $tax->labels->parent_item ); ?></label></th>
@@ -171,6 +187,7 @@ if ( isset( $tag->name ) ) {
 					'exclude_tree'     => $tag->term_id,
 					'hierarchical'     => true,
 					'show_option_none' => __( 'None' ),
+					'aria_describedby' => 'parent-description',
 				);
 
 				/** This filter is documented in wp-admin/edit-tags.php */
@@ -178,17 +195,17 @@ if ( isset( $tag->name ) ) {
 				wp_dropdown_categories( $dropdown_args );
 				?>
 				<?php if ( 'category' === $taxonomy ) : ?>
-					<p class="description"><?php _e( 'Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.' ); ?></p>
+					<p class="description" id="parent-description"><?php _e( 'Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.' ); ?></p>
 				<?php else : ?>
-					<p class="description"><?php _e( 'Assign a parent term to create a hierarchy. The term Jazz, for example, would be the parent of Bebop and Big Band.' ); ?></p>
+					<p class="description" id="parent-description"><?php echo $tax->labels->parent_field_description; ?></p>
 				<?php endif; ?>
 			</td>
 		</tr>
 <?php endif; // is_taxonomy_hierarchical() ?>
 		<tr class="form-field term-description-wrap">
 			<th scope="row"><label for="description"><?php _e( 'Description' ); ?></label></th>
-			<td><textarea name="description" id="description" rows="5" cols="50" class="large-text"><?php echo $tag->description; // textarea_escaped ?></textarea>
-			<p class="description"><?php _e( 'The description is not prominent by default; however, some themes may show it.' ); ?></p></td>
+			<td><textarea name="description" id="description" rows="5" cols="50" class="large-text" aria-describedby="description-description"><?php echo $tag->description; // textarea_escaped ?></textarea>
+			<p class="description" id="description-description"><?php echo $tax->labels->desc_field_description; ?></p></td>
 		</tr>
 		<?php
 		// Back compat hooks.
@@ -229,6 +246,11 @@ if ( isset( $tag->name ) ) {
 		 * The dynamic portion of the hook name, `$taxonomy`, refers to
 		 * the taxonomy slug.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `category_edit_form_fields`
+		 *  - `post_tag_edit_form_fields`
+		 *
 		 * @since 3.0.0
 		 *
 		 * @param WP_Term $tag      Current taxonomy term object.
@@ -261,6 +283,11 @@ if ( 'category' === $taxonomy ) {
  *
  * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
  *
+ * Possible hook names include:
+ *
+ *  - `category_edit_form`
+ *  - `post_tag_edit_form`
+ *
  * @since 3.0.0
  *
  * @param WP_Term $tag      Current taxonomy term object.
@@ -275,7 +302,7 @@ do_action( "{$taxonomy}_edit_form", $tag, $taxonomy );
 
 	<?php if ( current_user_can( 'delete_term', $tag->term_id ) ) : ?>
 		<span id="delete-link">
-			<a class="delete" href="<?php echo admin_url( wp_nonce_url( "edit-tags.php?action=delete&taxonomy=$taxonomy&tag_ID=$tag->term_id", 'delete-tag_' . $tag->term_id ) ); ?>"><?php _e( 'Delete' ); ?></a>
+			<a class="delete" href="<?php echo esc_url( admin_url( wp_nonce_url( "edit-tags.php?action=delete&taxonomy=$taxonomy&tag_ID=$tag->term_id", 'delete-tag_' . $tag->term_id ) ) ); ?>"><?php _e( 'Delete' ); ?></a>
 		</span>
 	<?php endif; ?>
 
@@ -285,7 +312,7 @@ do_action( "{$taxonomy}_edit_form", $tag, $taxonomy );
 </div>
 
 <?php if ( ! wp_is_mobile() ) : ?>
-<script type="text/javascript">
+<script>
 try{document.forms.edittag.name.focus();}catch(e){}
 </script>
 	<?php

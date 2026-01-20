@@ -11,7 +11,6 @@
  * Core class used to implement displaying themes to install in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_Themes_List_Table
  */
@@ -37,7 +36,8 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		require ABSPATH . 'wp-admin/includes/theme-install.php';
 
 		global $tabs, $tab, $paged, $type, $theme_field_defaults;
-		wp_reset_vars( array( 'tab' ) );
+
+		$tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : '';
 
 		$search_terms  = array();
 		$search_string = '';
@@ -60,7 +60,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		if ( 'search' === $tab ) {
 			$tabs['search'] = __( 'Search Results' );
 		}
-		$tabs['upload']   = __( 'Upload' );
+		$tabs['upload']   = _x( 'Upload', 'noun' );
 		$tabs['featured'] = _x( 'Featured', 'themes' );
 		//$tabs['popular']  = _x( 'Popular', 'themes' );
 		$tabs['new']     = _x( 'Latest', 'themes' );
@@ -132,8 +132,16 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		 * Filters API request arguments for each Install Themes screen tab.
 		 *
 		 * The dynamic portion of the hook name, `$tab`, refers to the theme install
-		 * tabs. Default tabs are 'dashboard', 'search', 'upload', 'featured',
-		 * 'new', and 'updated'.
+		 * tab.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `install_themes_table_api_args_dashboard`
+		 *  - `install_themes_table_api_args_featured`
+		 *  - `install_themes_table_api_args_new`
+		 *  - `install_themes_table_api_args_search`
+		 *  - `install_themes_table_api_args_updated`
+		 *  - `install_themes_table_api_args_upload`
 		 *
 		 * @since 3.7.0
 		 *
@@ -148,7 +156,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$api = themes_api( 'query_themes', $args );
 
 		if ( is_wp_error( $api ) ) {
-			wp_die( $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try Again' ) . '</a>' );
+			wp_die( '<p>' . $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try Again' ) . '</a></p>' );
 		}
 
 		$this->items = $api->themes;
@@ -178,12 +186,14 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 
 		$display_tabs = array();
 		foreach ( (array) $tabs as $action => $text ) {
-			$current_link_attributes                    = ( $action === $tab ) ? ' class="current" aria-current="page"' : '';
-			$href                                       = self_admin_url( 'theme-install.php?tab=' . $action );
-			$display_tabs[ 'theme-install-' . $action ] = "<a href='$href'$current_link_attributes>$text</a>";
+			$display_tabs[ 'theme-install-' . $action ] = array(
+				'url'     => self_admin_url( 'theme-install.php?tab=' . $action ),
+				'label'   => $text,
+				'current' => $action === $tab,
+			);
 		}
 
-		return $display_tabs;
+		return $this->get_views_links( $display_tabs );
 	}
 
 	/**
@@ -220,6 +230,9 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
 	 */
 	public function display_rows() {
 		$themes = $this->items;
@@ -243,18 +256,18 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *
 	 * @global array $themes_allowedtags
 	 *
-	 * @param object $theme {
+	 * @param stdClass $theme {
 	 *     An object that contains theme data returned by the WordPress.org API.
 	 *
-	 *     @type string $name           Theme name, e.g. 'Twenty Twenty'.
-	 *     @type string $slug           Theme slug, e.g. 'twentytwenty'.
+	 *     @type string $name           Theme name, e.g. 'Twenty Twenty-One'.
+	 *     @type string $slug           Theme slug, e.g. 'twentytwentyone'.
 	 *     @type string $version        Theme version, e.g. '1.1'.
 	 *     @type string $author         Theme author username, e.g. 'melchoyce'.
-	 *     @type string $preview_url    Preview URL, e.g. 'https://2020.wordpress.net/'.
-	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentytwenty/'.
+	 *     @type string $preview_url    Preview URL, e.g. 'https://2021.wordpress.net/'.
+	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentytwentyone/'.
 	 *     @type float  $rating         Rating score.
 	 *     @type int    $num_ratings    The number of ratings.
-	 *     @type string $homepage       Theme homepage, e.g. 'https://wordpress.org/themes/twentytwenty/'.
+	 *     @type string $homepage       Theme homepage, e.g. 'https://wordpress.org/themes/twentytwentyone/'.
 	 *     @type string $description    Theme description.
 	 *     @type string $download_link  Theme ZIP download URL.
 	 * }
@@ -302,7 +315,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		switch ( $status ) {
 			case 'update_available':
 				$actions[] = sprintf(
-					'<a class="install-now" href="%s" title="%s">%s</a>',
+					'<a class="install-now" href="%s" aria-label="%s">%s</a>',
 					esc_url( wp_nonce_url( $update_url, 'upgrade-theme_' . $theme->slug ) ),
 					/* translators: %s: Theme version. */
 					esc_attr( sprintf( __( 'Update to version %s' ), $theme->version ) ),
@@ -312,28 +325,26 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 			case 'newer_installed':
 			case 'latest_installed':
 				$actions[] = sprintf(
-					'<span class="install-now" title="%s">%s</span>',
-					esc_attr__( 'This theme is already installed and is up to date' ),
+					'<span class="install-now">%s</span>',
 					_x( 'Installed', 'theme' )
 				);
 				break;
 			case 'install':
 			default:
 				$actions[] = sprintf(
-					'<a class="install-now" href="%s" title="%s">%s</a>',
+					'<a class="install-now" href="%s" aria-label="%s">%s</a>',
 					esc_url( wp_nonce_url( $install_url, 'install-theme_' . $theme->slug ) ),
 					/* translators: %s: Theme name. */
 					esc_attr( sprintf( _x( 'Install %s', 'theme' ), $name ) ),
-					__( 'Install Now' )
+					_x( 'Install Now', 'theme' )
 				);
 				break;
 		}
 
 		$actions[] = sprintf(
-			'<a class="install-theme-preview" href="%s" title="%s">%s</a>',
+			'<a class="install-theme-preview" href="%s" aria-label="%s">%s</a>',
 			esc_url( $preview_url ),
-			/* translators: %s: Theme name. */
-			esc_attr( sprintf( __( 'Preview %s' ), $name ) ),
+			esc_attr( $preview_title ),
 			__( 'Preview' )
 		);
 
@@ -344,13 +355,14 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		 *
 		 * @param string[] $actions An array of theme action links. Defaults are
 		 *                          links to Install Now, Preview, and Details.
-		 * @param WP_Theme $theme   Theme object.
+		 * @param stdClass $theme   An object that contains theme data returned by the
+		 *                          WordPress.org API.
 		 */
 		$actions = apply_filters( 'theme_install_actions', $actions, $theme );
 
 		?>
-		<a class="screenshot install-theme-preview" href="<?php echo esc_url( $preview_url ); ?>" title="<?php echo esc_attr( $preview_title ); ?>">
-			<img src="<?php echo esc_url( $theme->screenshot_url ); ?>" width="150" alt="" />
+		<a class="screenshot install-theme-preview" href="<?php echo esc_url( $preview_url ); ?>" aria-label="<?php echo esc_attr( $preview_title ); ?>">
+			<img src="<?php echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ?>" width="150" alt="" />
 		</a>
 
 		<h3><?php echo $name; ?></h3>
@@ -404,7 +416,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 * Prints the wrapper for the theme installer with a provided theme's data.
 	 * Used to make the theme installer work for no-js.
 	 *
-	 * @param object $theme - A WordPress.org Theme API object.
+	 * @param stdClass $theme A WordPress.org Theme API object.
 	 */
 	public function theme_installer_single( $theme ) {
 		?>
@@ -424,7 +436,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *
 	 * @global array $themes_allowedtags
 	 *
-	 * @param object $theme - A WordPress.org Theme API object.
+	 * @param stdClass $theme A WordPress.org Theme API object.
 	 */
 	public function install_theme_info( $theme ) {
 		global $themes_allowedtags;
@@ -460,7 +472,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		switch ( $status ) {
 			case 'update_available':
 				printf(
-					'<a class="theme-install button button-primary" href="%s" title="%s">%s</a>',
+					'<a class="theme-install button button-primary" href="%s" aria-label="%s">%s</a>',
 					esc_url( wp_nonce_url( $update_url, 'upgrade-theme_' . $theme->slug ) ),
 					/* translators: %s: Theme version. */
 					esc_attr( sprintf( __( 'Update to version %s' ), $theme->version ) ),
@@ -470,8 +482,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 			case 'newer_installed':
 			case 'latest_installed':
 				printf(
-					'<span class="theme-install" title="%s">%s</span>',
-					esc_attr__( 'This theme is already installed and is up to date' ),
+					'<span class="theme-install">%s</span>',
 					_x( 'Installed', 'theme' )
 				);
 				break;
@@ -493,7 +504,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 			?>
 			</span>
 			<?php if ( isset( $theme->screenshot_url ) ) : ?>
-				<img class="theme-screenshot" src="<?php echo esc_url( $theme->screenshot_url ); ?>" alt="" />
+				<img class="theme-screenshot" src="<?php echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ?>" alt="" />
 			<?php endif; ?>
 			<div class="theme-details">
 				<?php
@@ -534,11 +545,11 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	}
 
 	/**
-	 * Check to see if the theme is already installed.
+	 * Checks to see if the theme is already installed.
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param object $theme - A WordPress.org Theme API object.
+	 * @param stdClass $theme A WordPress.org Theme API object.
 	 * @return string Theme status.
 	 */
 	private function _get_theme_status( $theme ) {

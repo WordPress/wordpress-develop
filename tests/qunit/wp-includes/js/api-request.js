@@ -2,7 +2,10 @@
 ( function( QUnit ) {
 	var originalRootUrl = window.wpApiSettings.root;
 
-	var nonceHeader = { 'X-WP-Nonce': 'not_a_real_nonce' };
+	var expectedHeaders = {
+		'X-WP-Nonce': 'not_a_real_nonce',
+		'Accept': 'application/json, */*;q=0.1'
+	};
 
 	QUnit.module( 'wp-api-request', {
 		afterEach: function() {
@@ -32,6 +35,7 @@
 			url: 'http://localhost/wp-json/wp/v2/posts',
 			headers: {
 				'X-WP-Nonce': 'not_a_real_nonce',
+				'Accept': 'application/json, */*;q=0.1',
 				'Header-Name': 'value'
 			},
 			data: {
@@ -64,11 +68,15 @@
 			var settings = wp.apiRequest.buildAjaxOptions( settingsOriginal );
 
 			assert.notStrictEqual( settings, settingsOriginal );
-			assert.strictEqual( settings.headers, settingsOriginal.headers );
+
+			var expected = {
+				Accept: 'application/json, */*;q=0.1'
+			};
+			expected[ headerName ] = nonceHeader[ headerName ];
 
 			assert.deepEqual( settings, {
 				url: 'aaaa',
-				headers: nonceHeader
+				headers: expected
 			} );
 		} );
 	} );
@@ -87,11 +95,26 @@
 
 		assert.deepEqual( settings, {
 			url: 'aaaa',
-			headers: {},
+			headers: {
+				'Accept': 'application/json, */*;q=0.1'
+			},
 			data: {
 				_wpnonce: 'definitely_not_a_real_nonce'
 			}
 		} );
+	} );
+
+	QUnit.test( 'does not add accept header if already present', function( assert ) {
+		var settingsOriginal = {
+			url: 'aaaa',
+			headers: {
+				'Accept': 'text/xml'
+			}
+		};
+
+		var settings = wp.apiRequest.buildAjaxOptions( settingsOriginal );
+
+		assert.strictEqual( settingsOriginal.headers.Accept, settings.headers.Accept );
 	} );
 
 	QUnit.test( 'accepts namespace and endpoint', function( assert ) {
@@ -100,7 +123,7 @@
 			endpoint: 'posts'
 		} ), {
 			url: 'http://localhost/wp-json/wp/v2/posts',
-			headers: nonceHeader
+			headers: expectedHeaders
 		} );
 	} );
 
@@ -110,7 +133,7 @@
 			endpoint: '/posts'
 		} ), {
 			url: 'http://localhost/wp-json/wp/v2/posts',
-			headers: nonceHeader
+			headers: expectedHeaders
 		} );
 	} );
 
@@ -120,7 +143,7 @@
 			endpoint: ''
 		} ), {
 			url: 'http://localhost/wp-json/wp/v2',
-			headers: nonceHeader
+			headers: expectedHeaders
 		} );
 	} );
 
@@ -130,7 +153,7 @@
 			endpoint: ''
 		} ), {
 			url: 'http://localhost/wp-json/',
-			headers: nonceHeader
+			headers: expectedHeaders
 		} );
 	} );
 
@@ -143,7 +166,7 @@
 				endpoint: '/posts?orderby=title'
 			} ), {
 				url: 'http://localhost/index.php?rest_route=/wp/v2/posts&orderby=title',
-				headers: nonceHeader
+				headers: expectedHeaders
 			} );
 		}
 	);
@@ -157,7 +180,7 @@
 				endpoint: ''
 			} ), {
 				url: 'http://localhost/index.php?rest_route=/',
-				headers: nonceHeader
+				headers: expectedHeaders
 			} );
 		}
 	);

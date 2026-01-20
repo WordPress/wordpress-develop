@@ -16,7 +16,7 @@ var Details = wp.media.view.Attachment.Details,
  * @augments wp.Backbone.View
  * @augments Backbone.View
  */
-TwoColumn = Details.extend(/** @lends wp.media.view.Attachment.Details.TowColumn.prototype */{
+TwoColumn = Details.extend(/** @lends wp.media.view.Attachment.Details.TwoColumn.prototype */{
 	template: wp.template( 'attachment-details-two-column' ),
 
 	initialize: function() {
@@ -35,17 +35,8 @@ TwoColumn = Details.extend(/** @lends wp.media.view.Attachment.Details.TowColumn
 	/**
 	 * Noop this from parent class, doesn't apply here.
 	 */
-	toggleSelectionHandler: function() {},
+	toggleSelectionHandler: function() {}
 
-	render: function() {
-		Details.prototype.render.apply( this, arguments );
-
-		wp.media.mixin.removeAllPlayers();
-		this.$( 'audio, video' ).each( function (i, elem) {
-			var el = wp.media.view.MediaDetails.prepareSrc( elem );
-			new window.MediaElementPlayer( el, wp.media.mixin.mejsSettings );
-		} );
-	}
 });
 
 module.exports = TwoColumn;

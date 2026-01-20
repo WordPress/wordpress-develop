@@ -1,0 +1,119 @@
+name: End-to-end Tests
+
+on:
+  # The end-to-end test suite was introduced in WordPress 5.3.
+  push:
+    branches:
+      - trunk
+      - '5.[3-9]'
+      - '[6-9].[0-9]'
+    tags:
+      - '5.[3-9]'
+      - '5.[3-9].[0-9]+'
+      - '[6-9]+.[0-9]'
+      - '[6-9]+.[0-9].[0-9]+'
+  pull_request:
+    branches:
+      - trunk
+      - '5.[3-9]'
+      - '[6-9].[0-9]'
+    paths:
+      # Any change to a PHP, CSS, or JavaScript file should run checks.
+      - '**.css'
+      - '**.js'
+      - '**.php'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This files affect the e2e tests. Changes could affect the outcome.
+      - 'tests/e2e/**'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/end-to-end-tests.yml'
+      - '.github/workflows/reusable-end-to-end-tests*.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+env:
+  LOCAL_DIR: build
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+jobs:
+  # Runs the end-to-end test suite.
+  e2e-tests:
+    name: ${{ matrix.label }}
+    uses: ./.github/workflows/reusable-end-to-end-tests.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        LOCAL_SCRIPT_DEBUG: [ true, false ]
+        # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
+        label: [ 'E2E Tests' ]
+    with:
+      LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ e2e-tests ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    needs: [ e2e-tests, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: `${context.runId}`,
+              }
+            });

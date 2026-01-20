@@ -17,7 +17,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @since Twenty Eleven 2.2
 	 */
-	function __construct() {
+	public function __construct() {
 		parent::__construct(
 			'widget_twentyeleven_ephemera',
 			__( 'Twenty Eleven Ephemera', 'twentyeleven' ),
@@ -40,7 +40,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 * @since Twenty Eleven 1.0
 	 * @deprecated Twenty Eleven 2.2
 	 */
-	function Twenty_Eleven_Ephemera_Widget() {
+	public function Twenty_Eleven_Ephemera_Widget() {
 		self::__construct();
 	}
 
@@ -49,10 +49,10 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param array $args     An array of standard parameters for widgets in this theme.
-	 * @param array $instance An array of settings for this widget instance.
+	 * @param array                     $args     An array of standard parameters for widgets in this theme.
+	 * @param array<string, string|int> $instance An array of settings for this widget instance.
 	 */
-	function widget( $args, $instance ) {
+	public function widget( $args, $instance ) {
 		$cache = wp_cache_get( 'widget_twentyeleven_ephemera', 'widget' );
 
 		if ( ! is_array( $cache ) ) {
@@ -147,18 +147,21 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 		if ( ! is_customize_preview() ) {
 			wp_cache_set( 'widget_twentyeleven_ephemera', $cache, 'widget' );
 		}
-
 	}
 
 	/**
-	 * Update widget settings.
+	 * Updates widget settings.
 	 *
 	 * Deals with the settings when they are saved by the admin. Here is
 	 * where any validation should be dealt with.
 	 *
 	 * @since Twenty Eleven 1.0
+	 *
+	 * @param array $new_instance New widget instance.
+	 * @param array $old_instance Original widget instance.
+	 * @return array<string, string|int> Updated widget instance.
 	 */
-	function update( $new_instance, $old_instance ) {
+	public function update( $new_instance, $old_instance ) {
 		$instance           = $old_instance;
 		$instance['title']  = strip_tags( $new_instance['title'] );
 		$instance['number'] = (int) $new_instance['number'];
@@ -173,22 +176,24 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Flush widget cache.
+	 * Flushes widget cache.
 	 *
 	 * @since Twenty Eleven 1.0
 	 */
-	function flush_widget_cache() {
+	public function flush_widget_cache() {
 		wp_cache_delete( 'widget_twentyeleven_ephemera', 'widget' );
 	}
 
 	/**
-	 * Set up the widget form.
+	 * Sets up the widget form.
 	 *
 	 * Displays the form for this widget on the Widgets page of the WP Admin area.
 	 *
 	 * @since Twenty Eleven 1.0
+	 *
+	 * @param array $instance The settings for the particular instance of the widget.
 	 */
-	function form( $instance ) {
+	public function form( $instance ) {
 		$title  = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
 		$number = isset( $instance['number'] ) ? absint( $instance['number'] ) : 10;
 		?>

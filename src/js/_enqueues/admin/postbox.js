@@ -14,7 +14,7 @@
 		__ = wp.i18n.__;
 
 	/**
-	 * This object contains all function to handle the behaviour of the post boxes. The post boxes are the boxes you see
+	 * This object contains all function to handle the behavior of the post boxes. The post boxes are the boxes you see
 	 * around the content on the edit page.
 	 *
 	 * @since 2.7.0
@@ -67,9 +67,9 @@
 			}
 
 			if ( id ) {
-				if ( !p.hasClass('closed') && $.isFunction( postboxes.pbshow ) ) {
+				if ( !p.hasClass('closed') && typeof postboxes.pbshow === 'function' ) {
 					postboxes.pbshow( id );
-				} else if ( p.hasClass('closed') && $.isFunction( postboxes.pbhide ) ) {
+				} else if ( p.hasClass('closed') && typeof postboxes.pbhide === 'function' ) {
 					postboxes.pbhide( id );
 				}
 			}
@@ -127,7 +127,7 @@
 				}
 
 				postbox.prevAll( '.postbox:visible' ).eq( 0 ).before( postbox );
-				button.focus();
+				button.trigger( 'focus' );
 				postboxes.updateOrderButtonsProperties();
 				postboxes.save_order( postboxes.page );
 			}
@@ -141,7 +141,7 @@
 				}
 
 				postbox.nextAll( '.postbox:visible' ).eq( 0 ).after( postbox );
-				button.focus();
+				button.trigger( 'focus' );
 				postboxes.updateOrderButtonsProperties();
 				postboxes.save_order( postboxes.page );
 			}
@@ -267,7 +267,7 @@
 			/**
 			 * @since 2.7.0
 			 */
-			$('.postbox .hndle a').click( function(e) {
+			$('.postbox .hndle a').on( 'click', function(e) {
 				e.stopPropagation();
 			});
 
@@ -302,19 +302,19 @@
 			 *
 			 * @return {void}
 			 */
-			$('.hide-postbox-tog').bind('click.postboxes', function() {
+			$('.hide-postbox-tog').on('click.postboxes', function() {
 				var $el = $(this),
 					boxId = $el.val(),
 					$postbox = $( '#' + boxId );
 
 				if ( $el.prop( 'checked' ) ) {
 					$postbox.show();
-					if ( $.isFunction( postboxes.pbshow ) ) {
+					if ( typeof postboxes.pbshow === 'function' ) {
 						postboxes.pbshow( boxId );
 					}
 				} else {
 					$postbox.hide();
-					if ( $.isFunction( postboxes.pbhide ) ) {
+					if ( typeof postboxes.pbhide === 'function' ) {
 						postboxes.pbhide( boxId );
 					}
 				}
@@ -336,7 +336,7 @@
 			 *
 			 * @return {void}
 			 */
-			$('.columns-prefs input[type="radio"]').bind('click.postboxes', function(){
+			$('.columns-prefs input[type="radio"]').on('click.postboxes', function(){
 				var n = parseInt($(this).val(), 10);
 
 				if ( n ) {
@@ -347,7 +347,7 @@
 		},
 
 		/**
-		 * Initializes all the postboxes, mainly their sortable behaviour.
+		 * Initializes all the postboxes, mainly their sortable behavior.
 		 *
 		 * @since 2.7.0
 		 *
@@ -420,7 +420,7 @@
 			});
 
 			if ( isMobile ) {
-				$(document.body).bind('orientationchange.postboxes', function(){ postboxes._pb_change(); });
+				$(document.body).on('orientationchange.postboxes', function(){ postboxes._pb_change(); });
 				this._pb_change();
 			}
 
@@ -461,13 +461,19 @@
 			closed = $( '.postbox' ).filter( '.closed' ).map( function() { return this.id; } ).get().join( ',' );
 			hidden = $( '.postbox' ).filter( ':hidden' ).map( function() { return this.id; } ).get().join( ',' );
 
-			$.post(ajaxurl, {
-				action: 'closed-postboxes',
-				closed: closed,
-				hidden: hidden,
-				closedpostboxesnonce: jQuery('#closedpostboxesnonce').val(),
-				page: page
-			});
+			$.post(
+				ajaxurl,
+				{
+					action: 'closed-postboxes',
+					closed: closed,
+					hidden: hidden,
+					closedpostboxesnonce: jQuery('#closedpostboxesnonce').val(),
+					page: page
+				},
+				function() {
+					wp.a11y.speak( __( 'Screen Options updated.' ) );
+				}
+			);
 		},
 
 		/**

@@ -19,7 +19,7 @@ get_header(); ?>
 			<h1 class="page-title">
 			<?php
 			/* translators: Search query. */
-			printf( __( 'Search Results for: %s', 'twentyseventeen' ), '<span>' . get_search_query() . '</span>' );
+			printf( __( 'Search Results for: %s', 'twentyseventeen' ), '<span>' . esc_html( get_search_query( false ) ) . '</span>' );
 			?>
 			</h1>
 		<?php else : ?>
@@ -28,7 +28,7 @@ get_header(); ?>
 	</header><!-- .page-header -->
 
 	<div id="primary" class="content-area">
-		<main id="main" class="site-main" role="main">
+		<main id="main" class="site-main">
 
 		<?php
 		if ( have_posts() ) :
@@ -47,8 +47,11 @@ get_header(); ?>
 
 			the_posts_pagination(
 				array(
+					/* translators: Hidden accessibility text. */
 					'prev_text'          => twentyseventeen_get_svg( array( 'icon' => 'arrow-left' ) ) . '<span class="screen-reader-text">' . __( 'Previous page', 'twentyseventeen' ) . '</span>',
+					/* translators: Hidden accessibility text. */
 					'next_text'          => '<span class="screen-reader-text">' . __( 'Next page', 'twentyseventeen' ) . '</span>' . twentyseventeen_get_svg( array( 'icon' => 'arrow-right' ) ),
+					/* translators: Hidden accessibility text. */
 					'before_page_number' => '<span class="meta-nav screen-reader-text">' . __( 'Page', 'twentyseventeen' ) . ' </span>',
 				)
 			);

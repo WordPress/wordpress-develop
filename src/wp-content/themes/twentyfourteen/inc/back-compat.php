@@ -12,7 +12,7 @@
  */
 
 /**
- * Prevent switching to Twenty Fourteen on old versions of WordPress.
+ * Prevents switching to Twenty Fourteen on old versions of WordPress.
  *
  * Switches to the default theme.
  *
@@ -26,7 +26,7 @@ function twentyfourteen_switch_theme() {
 add_action( 'after_switch_theme', 'twentyfourteen_switch_theme' );
 
 /**
- * Add message for unsuccessful theme switch.
+ * Adds message for unsuccessful theme switch.
  *
  * Prints an update nag after an unsuccessful attempt to switch to
  * Twenty Fourteen on WordPress versions prior to 3.6.
@@ -34,20 +34,28 @@ add_action( 'after_switch_theme', 'twentyfourteen_switch_theme' );
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_upgrade_notice() {
-	/* translators: %s: WordPress version. */
-	$message = sprintf( __( 'Twenty Fourteen requires at least WordPress version 3.6. You are running version %s. Please upgrade and try again.', 'twentyfourteen' ), $GLOBALS['wp_version'] );
-	printf( '<div class="error"><p>%s</p></div>', $message );
+	printf(
+		'<div class="error"><p>%s</p></div>',
+		sprintf(
+			/* translators: %s: WordPress version. */
+			__( 'Twenty Fourteen requires at least WordPress version 3.6. You are running version %s. Please upgrade and try again.', 'twentyfourteen' ),
+			$GLOBALS['wp_version']
+		)
+	);
 }
 
 /**
- * Prevent the Customizer from being loaded on WordPress versions prior to 3.6.
+ * Prevents the Customizer from being loaded on WordPress versions prior to 3.6.
  *
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_customize() {
 	wp_die(
-		/* translators: %s: WordPress version. */
-		sprintf( __( 'Twenty Fourteen requires at least WordPress version 3.6. You are running version %s. Please upgrade and try again.', 'twentyfourteen' ), $GLOBALS['wp_version'] ),
+		sprintf(
+			/* translators: %s: WordPress version. */
+			__( 'Twenty Fourteen requires at least WordPress version 3.6. You are running version %s. Please upgrade and try again.', 'twentyfourteen' ),
+			$GLOBALS['wp_version']
+		),
 		'',
 		array(
 			'back_link' => true,
@@ -57,14 +65,19 @@ function twentyfourteen_customize() {
 add_action( 'load-customize.php', 'twentyfourteen_customize' );
 
 /**
- * Prevent the Theme Preview from being loaded on WordPress versions prior to 3.4.
+ * Prevents the Theme Preview from being loaded on WordPress versions prior to 3.4.
  *
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_preview() {
 	if ( isset( $_GET['preview'] ) ) {
-		/* translators: %s: WordPress version. */
-		wp_die( sprintf( __( 'Twenty Fourteen requires at least WordPress version 3.6. You are running version %s. Please upgrade and try again.', 'twentyfourteen' ), $GLOBALS['wp_version'] ) );
+		wp_die(
+			sprintf(
+				/* translators: %s: WordPress version. */
+				__( 'Twenty Fourteen requires at least WordPress version 3.6. You are running version %s. Please upgrade and try again.', 'twentyfourteen' ),
+				$GLOBALS['wp_version']
+			)
+		);
 	}
 }
 add_action( 'template_redirect', 'twentyfourteen_preview' );

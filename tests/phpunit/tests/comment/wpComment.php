@@ -2,11 +2,13 @@
 
 /**
  * @group comment
+ *
+ * @covers WP_Comment::get_instance
  */
-class Tests_Term_WpComment extends WP_UnitTestCase {
+class Tests_Comment_WpComment extends WP_UnitTestCase {
 	protected static $comment_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 
 		// Ensure that there is a comment with ID 1.
@@ -22,7 +24,7 @@ class Tests_Term_WpComment extends WP_UnitTestCase {
 			clean_comment_cache( 1 );
 		}
 
-		self::$comment_id = self::factory()->comment->create();
+		self::$comment_id = $factory->comment->create();
 	}
 
 	/**
@@ -31,7 +33,7 @@ class Tests_Term_WpComment extends WP_UnitTestCase {
 	public function test_get_instance_should_work_for_numeric_string() {
 		$found = WP_Comment::get_instance( (string) self::$comment_id );
 
-		$this->assertEquals( self::$comment_id, $found->comment_ID );
+		$this->assertSame( (string) self::$comment_id, $found->comment_ID );
 	}
 
 	/**
@@ -58,6 +60,6 @@ class Tests_Term_WpComment extends WP_UnitTestCase {
 	public function test_get_instance_should_succeed_for_float_that_is_equal_to_post_id() {
 		$found = WP_Comment::get_instance( 1.0 );
 
-		$this->assertEquals( 1, $found->comment_ID );
+		$this->assertSame( '1', $found->comment_ID );
 	}
 }

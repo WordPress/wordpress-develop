@@ -10,7 +10,6 @@
  * @subpackage Twenty_Fourteen
  * @since Twenty Fourteen 1.0
  */
-
 class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 
 	/**
@@ -27,7 +26,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
-	 * @return Twenty_Fourteen_Ephemera_Widget
+	 * @return Twenty_Fourteen_Ephemera_Widget Widget instance.
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -46,7 +45,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Enqueue scripts.
+	 * Enqueues scripts.
 	 *
 	 * @since Twenty Fourteen 1.7
 	 */
@@ -63,7 +62,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Output the HTML for this widget.
+	 * Outputs the HTML for this widget.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -257,35 +256,37 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Deal with the settings when they are saved by the admin.
+	 * Deals with the settings when they are saved by the admin.
 	 *
 	 * Here is where any validation should happen.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 * @since Twenty Fourteen 3.3 Renamed `$instance` to `$old_instance` to match
+	 *                            parent class for PHP 8 named parameter support.
 	 *
 	 * @param array $new_instance New widget instance.
-	 * @param array $instance     Original widget instance.
+	 * @param array $old_instance Original widget instance.
 	 * @return array Updated widget instance.
 	 */
-	function update( $new_instance, $instance ) {
-		$instance['title']  = strip_tags( $new_instance['title'] );
-		$instance['number'] = empty( $new_instance['number'] ) ? 2 : absint( $new_instance['number'] );
+	public function update( $new_instance, $old_instance ) {
+		$old_instance['title']  = strip_tags( $new_instance['title'] );
+		$old_instance['number'] = empty( $new_instance['number'] ) ? 2 : absint( $new_instance['number'] );
 
 		if ( in_array( $new_instance['format'], $this->formats, true ) ) {
-			$instance['format'] = $new_instance['format'];
+			$old_instance['format'] = $new_instance['format'];
 		}
 
-		return $instance;
+		return $old_instance;
 	}
 
 	/**
-	 * Display the form for this widget on the Widgets page of the Admin area.
+	 * Displays the form for this widget on the Widgets page of the Admin area.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
 	 * @param array $instance
 	 */
-	function form( $instance ) {
+	public function form( $instance ) {
 		$title  = ! empty( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
 		$number = ! empty( $instance['number'] ) ? absint( $instance['number'] ) : 2;
 		$format = isset( $instance['format'] ) ? $instance['format'] : '';

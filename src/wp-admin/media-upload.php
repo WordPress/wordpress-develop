@@ -35,8 +35,8 @@ $post_id = isset( $post_id ) ? (int) $post_id : 0;
 // Require an ID for the edit screen.
 if ( isset( $action ) && 'edit' === $action && ! $ID ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 	wp_die(
-		'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-		'<p>' . __( 'Invalid item ID.' ) . '</p>',
+		'<h1>' . __( 'An error occurred during the upload process.' ) . '</h1>' .
+		'<p>' . __( 'Invalid item ID. You can view all media items in the <a href="upload.php">Media Library</a>.' ) . '</p>',
 		403
 	);
 }
@@ -51,7 +51,7 @@ if ( ! empty( $_REQUEST['post_id'] ) && ! current_user_can( 'edit_post', $_REQUE
 
 // Upload type: image, video, file, ...?
 if ( isset( $_GET['type'] ) ) {
-	$type = strval( $_GET['type'] );
+	$type = (string) $_GET['type'];
 } else {
 	/**
 	 * Filters the default media upload type in the legacy (pre-3.5.0) media popup.
@@ -66,7 +66,7 @@ if ( isset( $_GET['type'] ) ) {
 
 // Tab: gallery, library, or type-specific.
 if ( isset( $_GET['tab'] ) ) {
-	$tab = strval( $_GET['tab'] );
+	$tab = (string) $_GET['tab'];
 } else {
 	/**
 	 * Filters the default tab in the legacy (pre-3.5.0) media popup.
@@ -87,12 +87,18 @@ if ( 'type' === $tab || 'type_url' === $tab || ! array_key_exists( $tab, media_u
 	 * media popup based on the current tab.
 	 *
 	 * The dynamic portion of the hook name, `$type`, refers to the specific
-	 * media upload type. Possible values include 'image', 'audio', 'video',
-	 * 'file', etc.
+	 * media upload type.
 	 *
 	 * The hook only fires if the current `$tab` is 'type' (From Computer),
 	 * 'type_url' (From URL), or, if the tab does not exist (i.e., has not
 	 * been registered via the {@see 'media_upload_tabs'} filter.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `media_upload_audio`
+	 *  - `media_upload_file`
+	 *  - `media_upload_image`
+	 *  - `media_upload_video`
 	 *
 	 * @since 2.5.0
 	 */
@@ -110,4 +116,3 @@ if ( 'type' === $tab || 'type_url' === $tab || ! array_key_exists( $tab, media_u
 	 */
 	do_action( "media_upload_{$tab}" );
 }
-

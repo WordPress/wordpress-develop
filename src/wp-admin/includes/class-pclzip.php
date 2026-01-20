@@ -48,7 +48,7 @@
   // 0 : PclZip Class integrated error handling
   // 1 : PclError external library error handling. By enabling this
   //     you must ensure that you have included PclError library.
-  // [2,...] : reserved for futur use
+  // [2,...] : reserved for future use
   if (!defined('PCLZIP_ERROR_EXTERNAL')) {
     define( 'PCLZIP_ERROR_EXTERNAL', 0 );
   }
@@ -166,7 +166,7 @@
   define( 'PCLZIP_CB_POST_EXTRACT', 78002 );
   define( 'PCLZIP_CB_PRE_ADD', 78003 );
   define( 'PCLZIP_CB_POST_ADD', 78004 );
-  /* For futur use
+  /* For future use
   define( 'PCLZIP_CB_PRE_LIST', 78005 );
   define( 'PCLZIP_CB_POST_LIST', 78006 );
   define( 'PCLZIP_CB_PRE_DELETE', 78007 );
@@ -632,9 +632,9 @@
   //                newer_exist : the file was not extracted because a newer file exists
   //                path_creation_fail : the file is not extracted because the folder
   //                                     does not exist and can not be created
-  //                write_error : the file was not extracted because there was a
+  //                write_error : the file was not extracted because there was an
   //                              error while writing the file
-  //                read_error : the file was not extracted because there was a error
+  //                read_error : the file was not extracted because there was an error
   //                             while reading the file
   //                invalid_header : the file was not extracted because of an archive
   //                                 format error (bad file header)
@@ -1170,8 +1170,8 @@
     // ----- Reset the error handler
     $this->privErrorReset();
 
-    // ----- Look if the $p_archive is a PclZip object
-    if ((is_object($p_archive)) && (get_class($p_archive) == 'pclzip'))
+    // ----- Look if the $p_archive is an instantiated PclZip object
+    if ($p_archive instanceof pclzip)
     {
 
       // ----- Duplicate the archive
@@ -1234,8 +1234,8 @@
       return(0);
     }
 
-    // ----- Look if the $p_archive_to_add is a PclZip object
-    if ((is_object($p_archive_to_add)) && (get_class($p_archive_to_add) == 'pclzip'))
+    // ----- Look if the $p_archive_to_add is an instantiated PclZip object
+    if ($p_archive_to_add instanceof pclzip)
     {
 
       // ----- Merge the archive
@@ -1364,12 +1364,12 @@
   // Function : privCheckFormat()
   // Description :
   //   This method check that the archive exists and is a valid zip archive.
-  //   Several level of check exists. (futur)
+  //   Several level of check exists. (future)
   // Parameters :
   //   $p_level : Level of check. Default 0.
   //              0 : Check the first bytes (magic codes) (default value))
-  //              1 : 0 + Check the central directory (futur)
-  //              2 : 1 + Check each file header (futur)
+  //              1 : 0 + Check the central directory (future)
+  //              2 : 1 + Check each file header (future)
   // Return Values :
   //   true on success,
   //   false on error, the error code is set.
@@ -1748,7 +1748,7 @@
         case PCLZIP_CB_POST_EXTRACT :
         case PCLZIP_CB_PRE_ADD :
         case PCLZIP_CB_POST_ADD :
-        /* for futur use
+        /* for future use
         case PCLZIP_CB_PRE_DELETE :
         case PCLZIP_CB_POST_DELETE :
         case PCLZIP_CB_PRE_LIST :
@@ -1854,7 +1854,7 @@
     $p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD] = floor($v_memory_limit_int*PCLZIP_TEMPORARY_FILE_RATIO);
 
 
-    // ----- Sanity check : No threshold if value lower than 1M
+    // ----- Confidence check : No threshold if value lower than 1M
     if ($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD] < 1048576) {
       unset($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD]);
     }
@@ -2674,7 +2674,12 @@
         }
 
         // ----- Read the file content
-        $v_content = @fread($v_file, $p_header['size']);
+        if ($p_header['size'] > 0) {
+          $v_content = @fread($v_file, $p_header['size']);
+        }
+        else {
+          $v_content = '';
+        }
 
         // ----- Close the file
         @fclose($v_file);
@@ -3884,7 +3889,12 @@
 
 
             // ----- Read the compressed file in a buffer (one shot)
-            $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+            if ($p_entry['compressed_size'] > 0) {
+              $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+            }
+            else {
+              $v_buffer = '';
+            }
 
             // ----- Decompress the file
             $v_file_content = @gzinflate($v_buffer);
@@ -4096,7 +4106,12 @@
         if ($p_entry['compressed_size'] == $p_entry['size']) {
 
           // ----- Read the file in a buffer (one shot)
-          $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+          }
+          else {
+            $v_buffer = '';
+          }
 
           // ----- Send the file to the output
           echo $v_buffer;
@@ -4105,7 +4120,12 @@
         else {
 
           // ----- Read the compressed file in a buffer (one shot)
-          $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+          }
+          else {
+            $v_buffer = '';
+          }
 
           // ----- Decompress the file
           $v_file_content = gzinflate($v_buffer);
@@ -4209,12 +4229,22 @@
         if ($p_entry['compression'] == 0) {
 
           // ----- Reading the file
-          $p_string = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $p_string = @fread($this->zip_fd, $p_entry['compressed_size']);
+          }
+          else {
+            $p_string = '';
+          }
         }
         else {
 
           // ----- Reading the file
-          $v_data = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $v_data = @fread($this->zip_fd, $p_entry['compressed_size']);
+          }
+          else {
+            $v_data = '';
+          }
 
           // ----- Decompress the file
           if (($p_string = @gzinflate($v_data)) === FALSE) {
@@ -5684,7 +5714,7 @@
   // --------------------------------------------------------------------------------
   function PclZipUtilTranslateWinPath($p_path, $p_remove_disk_letter=true)
   {
-    if (stristr(php_uname(), 'windows')) {
+    if (PHP_OS_FAMILY == 'Windows') {
       // ----- Look for potential disk letter
       if (($p_remove_disk_letter) && (($v_position = strpos($p_path, ':')) != false)) {
           $p_path = substr($p_path, $v_position+1);

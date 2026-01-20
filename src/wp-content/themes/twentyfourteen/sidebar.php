@@ -6,6 +6,7 @@
  * @subpackage Twenty_Fourteen
  * @since Twenty Fourteen 1.0
  */
+
 ?>
 <div id="secondary">
 	<?php
@@ -16,7 +17,7 @@
 	<?php endif; ?>
 
 	<?php if ( has_nav_menu( 'secondary' ) ) : ?>
-	<nav role="navigation" class="navigation site-navigation secondary-navigation">
+	<nav class="navigation site-navigation secondary-navigation">
 		<?php wp_nav_menu( array( 'theme_location' => 'secondary' ) ); ?>
 	</nav>
 	<?php endif; ?>

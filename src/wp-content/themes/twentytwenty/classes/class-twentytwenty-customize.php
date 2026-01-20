@@ -10,11 +10,15 @@
 if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 	/**
 	 * CUSTOMIZER SETTINGS
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	class TwentyTwenty_Customize {
 
 		/**
-		 * Register customizer options.
+		 * Registers customizer options.
+		 *
+		 * @since Twenty Twenty 1.0
 		 *
 		 * @param WP_Customize_Manager $wp_customize Theme Customizer object.
 		 */
@@ -22,7 +26,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 
 			/**
 			 * Site Title & Description.
-			 * */
+			 */
 			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage';
 			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage';
 
@@ -45,8 +49,9 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 			$wp_customize->selective_refresh->add_partial(
 				'custom_logo',
 				array(
-					'selector'        => '.header-titles [class*=site-]:not(.site-description)',
-					'render_callback' => 'twentytwenty_customize_partial_site_logo',
+					'selector'            => '.header-titles [class*=site-]:not(.site-description)',
+					'render_callback'     => 'twentytwenty_customize_partial_site_logo',
+					'container_inclusive' => true,
 				)
 			);
 
@@ -180,9 +185,10 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 					array(
 						'section'         => 'colors',
 						'settings'        => 'accent_hue',
+						'label'           => __( 'Custom Color', 'twentytwenty' ),
 						'description'     => __( 'Apply a custom color for links, buttons, featured images.', 'twentytwenty' ),
 						'mode'            => 'hue',
-						'active_callback' => function() use ( $wp_customize ) {
+						'active_callback' => static function () use ( $wp_customize ) {
 							return ( 'custom' === $wp_customize->get_setting( 'accent_hue_active' )->value() );
 						},
 					)
@@ -412,9 +418,8 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		/**
 		 * Sanitization callback for the "accent_accessible_colors" setting.
 		 *
-		 * @static
-		 * @access public
 		 * @since Twenty Twenty 1.0
+		 *
 		 * @param array $value The value we want to sanitize.
 		 * @return array Returns sanitized value. Each item in the array gets sanitized separately.
 		 */
@@ -434,9 +439,11 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		}
 
 		/**
-		 * Sanitize select.
+		 * Sanitizes a select input.
 		 *
-		 * @param string $input The input from the setting.
+		 * @since Twenty Twenty 1.0
+		 *
+		 * @param string $input   The input from the setting.
 		 * @param object $setting The selected setting.
 		 * @return string The input from the setting or the default setting.
 		 */
@@ -447,15 +454,16 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		}
 
 		/**
-		 * Sanitize boolean for checkbox.
+		 * Sanitizes a boolean for checkbox.
+		 *
+		 * @since Twenty Twenty 1.0
 		 *
 		 * @param bool $checked Whether or not a box is checked.
-		 * @return bool
+		 * @return bool Whether the checkbox is checked.
 		 */
 		public static function sanitize_checkbox( $checked ) {
 			return ( ( isset( $checked ) && true === $checked ) ? true : false );
 		}
-
 	}
 
 	// Setup the Theme Customizer settings and controls.
@@ -468,7 +476,9 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
  * */
 if ( ! function_exists( 'twentytwenty_customize_partial_blogname' ) ) {
 	/**
-	 * Render the site title for the selective refresh partial.
+	 * Renders the site title for the selective refresh partial.
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	function twentytwenty_customize_partial_blogname() {
 		bloginfo( 'name' );
@@ -477,7 +487,9 @@ if ( ! function_exists( 'twentytwenty_customize_partial_blogname' ) ) {
 
 if ( ! function_exists( 'twentytwenty_customize_partial_blogdescription' ) ) {
 	/**
-	 * Render the site description for the selective refresh partial.
+	 * Renders the site description for the selective refresh partial.
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	function twentytwenty_customize_partial_blogdescription() {
 		bloginfo( 'description' );
@@ -486,9 +498,11 @@ if ( ! function_exists( 'twentytwenty_customize_partial_blogdescription' ) ) {
 
 if ( ! function_exists( 'twentytwenty_customize_partial_site_logo' ) ) {
 	/**
-	 * Render the site logo for the selective refresh partial.
+	 * Renders the site logo for the selective refresh partial.
 	 *
 	 * Doing it this way so we don't have issues with `render_callback`'s arguments.
+	 *
+	 * @since Twenty Twenty 1.0
 	 */
 	function twentytwenty_customize_partial_site_logo() {
 		twentytwenty_site_logo();
@@ -499,18 +513,22 @@ if ( ! function_exists( 'twentytwenty_customize_partial_site_logo' ) ) {
 /**
  * Input attributes for cover overlay opacity option.
  *
+ * @since Twenty Twenty 1.0
+ *
  * @return array Array containing attribute names and their values.
  */
 function twentytwenty_customize_opacity_range() {
 	/**
-	 * Filters the input attributes for opacity
+	 * Filters the input attributes for opacity.
+	 *
+	 * @since Twenty Twenty 1.0
 	 *
 	 * @param array $attrs {
-	 *     The attributes
+	 *     The attributes.
 	 *
-	 *     @type int $min Minimum value
-	 *     @type int $max Maximum value
-	 *     @type int $step Interval between numbers
+	 *     @type int $min  Minimum value.
+	 *     @type int $max  Maximum value.
+	 *     @type int $step Interval between numbers.
 	 * }
 	 */
 	return apply_filters(

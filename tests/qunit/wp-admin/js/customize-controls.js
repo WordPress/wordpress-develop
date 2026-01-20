@@ -6,7 +6,7 @@ wp.customize.settingConstructor.abbreviation = wp.customize.Setting.extend({
 	}
 });
 
-jQuery( window ).load( function() {
+jQuery( 'body' ).on( 'load', function() {
 	'use strict';
 
 	var controlId, controlLabel, controlType, controlContent, controlDescription, controlData, mockControl,
@@ -679,17 +679,17 @@ jQuery( window ).load( function() {
 
 	QUnit.module( 'Customize Utils: wp.customize.utils.getRemainingTime()' );
 	QUnit.test( 'utils.getRemainingTime calculates time correctly', function( assert ) {
-		var datetime = '2599-08-06 12:12:13', timeRemaining, timeRemainingWithDateInstance, timeRemaingingWithTimestamp;
+		var datetime = '2599-08-06 12:12:13', timeRemaining, timeRemainingWithDateInstance, timeRemainingWithTimestamp;
 
 		timeRemaining = wp.customize.utils.getRemainingTime( datetime );
 		timeRemainingWithDateInstance = wp.customize.utils.getRemainingTime( new Date( datetime.replace( /-/g, '/' ) ) );
-		timeRemaingingWithTimestamp = wp.customize.utils.getRemainingTime( ( new Date( datetime.replace( /-/g, '/' ) ) ).getTime() );
+		timeRemainingWithTimestamp = wp.customize.utils.getRemainingTime( ( new Date( datetime.replace( /-/g, '/' ) ) ).getTime() );
 
 		assert.equal( typeof timeRemaining, 'number', timeRemaining );
 		assert.equal( typeof timeRemainingWithDateInstance, 'number', timeRemaining );
-		assert.equal( typeof timeRemaingingWithTimestamp, 'number', timeRemaining );
+		assert.equal( typeof timeRemainingWithTimestamp, 'number', timeRemaining );
 		assert.deepEqual( timeRemaining, timeRemainingWithDateInstance );
-		assert.deepEqual( timeRemaining, timeRemaingingWithTimestamp );
+		assert.deepEqual( timeRemaining, timeRemainingWithTimestamp );
 	});
 
 	QUnit.module( 'Customize Utils: wp.customize.utils.getCurrentTimestamp()' );

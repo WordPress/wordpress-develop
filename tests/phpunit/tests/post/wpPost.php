@@ -3,10 +3,10 @@
 /**
  * @group post
  */
-class Tests_Post_WpPost extends WP_UnitTestCase {
+class Tests_Post_wpPost extends WP_UnitTestCase {
 	protected static $post_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 
 		// Ensure that there is a post with ID 1.
@@ -20,7 +20,7 @@ class Tests_Post_WpPost extends WP_UnitTestCase {
 			);
 		}
 
-		self::$post_id = self::factory()->post->create();
+		self::$post_id = $factory->post->create();
 	}
 
 	/**
@@ -39,6 +39,16 @@ class Tests_Post_WpPost extends WP_UnitTestCase {
 		$found = WP_Post::get_instance( -self::$post_id );
 
 		$this->assertFalse( $found );
+	}
+
+	/**
+	 * @ticket 63850
+	 */
+	public function test_get_instance_should_not_perform_database_query_for_negative_number() {
+		$num_queries = get_num_queries();
+		$found       = WP_Post::get_instance( -self::$post_id );
+
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**

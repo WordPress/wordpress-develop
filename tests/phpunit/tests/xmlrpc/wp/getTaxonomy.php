@@ -5,13 +5,13 @@
  */
 class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'username', 'password', 'category' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_empty_taxonomy() {
+	public function test_empty_taxonomy() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'editor', 'editor', '' ) );
@@ -20,7 +20,7 @@ class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
 	}
 
-	function test_invalid_taxonomy() {
+	public function test_invalid_taxonomy() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'editor', 'editor', 'not_existing' ) );
@@ -29,7 +29,7 @@ class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
 	}
 
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'subscriber', 'subscriber', 'category' ) );
@@ -38,14 +38,14 @@ class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Sorry, you are not allowed to assign terms in this taxonomy.' ), $result->message );
 	}
 
-	function test_taxonomy_validated() {
+	public function test_taxonomy_validated() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'editor', 'editor', 'category' ) );
 		$this->assertNotIXRError( $result );
 	}
 
-	function test_prepare_taxonomy() {
+	public function test_prepare_taxonomy() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'editor', 'editor', 'category' ) );
@@ -59,5 +59,20 @@ class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( (array) $taxonomy->labels, $result['labels'], 'labels' );
 		$this->assertSame( (array) $taxonomy->cap, $result['cap'], 'capabilities' );
 		$this->assertSame( (array) $taxonomy->object_type, $result['object_type'], 'object_types' );
+	}
+
+	/**
+	 * @ticket 51493
+	 */
+	public function test_taxonomy_with_menu_field_specified() {
+		$this->make_user_by_role( 'editor' );
+
+		$fields = array(
+			'menu',
+		);
+
+		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'editor', 'editor', 'category', $fields ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result['show_in_menu'] );
 	}
 }

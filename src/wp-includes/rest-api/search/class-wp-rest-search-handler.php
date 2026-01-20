@@ -12,6 +12,7 @@
  *
  * @since 5.0.0
  */
+#[AllowDynamicProperties]
 abstract class WP_REST_Search_Handler {
 
 	/**
@@ -36,7 +37,7 @@ abstract class WP_REST_Search_Handler {
 	 * Object subtypes managed by this search handler.
 	 *
 	 * @since 5.0.0
-	 * @var array
+	 * @var string[]
 	 */
 	protected $subtypes = array();
 
@@ -56,7 +57,7 @@ abstract class WP_REST_Search_Handler {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @return array Array of object subtype identifiers.
+	 * @return string[] Array of object subtype identifiers.
 	 */
 	public function get_subtypes() {
 		return $this->subtypes;
@@ -78,9 +79,10 @@ abstract class WP_REST_Search_Handler {
 	 * Prepares the search result for a given ID.
 	 *
 	 * @since 5.0.0
+	 * @since 5.6.0 The `$id` parameter can accept a string.
 	 *
-	 * @param int   $id     Item ID.
-	 * @param array $fields Fields to include for the item.
+	 * @param int|string $id     Item ID.
+	 * @param array      $fields Fields to include for the item.
 	 * @return array Associative array containing all fields for the item.
 	 */
 	abstract public function prepare_item( $id, array $fields );
@@ -89,8 +91,9 @@ abstract class WP_REST_Search_Handler {
 	 * Prepares links for the search result of a given ID.
 	 *
 	 * @since 5.0.0
+	 * @since 5.6.0 The `$id` parameter can accept a string.
 	 *
-	 * @param int $id Item ID.
+	 * @param int|string $id Item ID.
 	 * @return array Links for the given item.
 	 */
 	abstract public function prepare_item_links( $id );

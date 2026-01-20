@@ -1,0 +1,363 @@
+name: PHPUnit Tests
+
+on:
+  push:
+    branches:
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    tags:
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+  pull_request:
+    branches:
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    paths:
+      # Any change to a PHP, CSS, JavaScript, JSON, HTML, or otherwise tested file should run checks.
+      - '**.css'
+      - '**.html'
+      - '**.js'
+      - '**.json'
+      - '**.php'
+      - 'src/license.txt'
+      - 'src/SECURITY.md'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
+      - 'Gruntfile.js'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # These files affect the phpunit tests. Changes could affect the outcome.
+      - 'tests/phpunit/**'
+      - 'tests/phpunit/multisite.xml'
+      - 'phpunit.xml.dist'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/phpunit-tests.yml'
+      - '.github/workflows/reusable-phpunit-tests-*.yml'
+  workflow_dispatch:
+  # Once weekly On Sundays at 00:00 UTC.
+  schedule:
+    - cron: '0 0 * * 0'
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  #
+  # Creates a PHPUnit test job for each PHP/MySQL combination.
+  #
+  # Though MySQL 5.5 and 5.6 are still supported by WordPress, they are not currently tested here because the Docker
+  # images do not work. Testing against MariaDB 5.5 provides a reasonable level of MySQL 5.5 testing (see MariaDB matrix
+  # below for more details).
+  #
+  test-with-mysql:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
+        tests-domain: [ 'example.org' ]
+        multisite: [ false, true ]
+        memcached: [ false ]
+
+        include:
+          # Include jobs that test with memcached.
+          - os: ubuntu-24.04
+            php: '8.3'
+            db-type: 'mysql'
+            db-version: '8.4'
+            tests-domain: 'example.org'
+            multisite: false
+            memcached: true
+          - os: ubuntu-24.04
+            php: '8.3'
+            db-type: 'mysql'
+            db-version: '8.4'
+            tests-domain: 'example.org'
+            multisite: true
+            memcached: true
+          # Include jobs with a port on the test domain for both single and multisite.
+          - os: ubuntu-24.04
+            php: '8.4'
+            db-type: 'mysql'
+            db-version: '8.4'
+            tests-domain: 'example.org:8889'
+            multisite: false
+            memcached: false
+          - os: ubuntu-24.04
+            php: '8.4'
+            db-type: 'mysql'
+            db-version: '8.4'
+            tests-domain: 'example.org:8889'
+            multisite: true
+            memcached: false
+          # Report test results to the Host Test Results.
+          - os: ubuntu-24.04
+            db-type: 'mysql'
+            db-version: '8.4'
+            tests-domain: 'example.org'
+            multisite: false
+            memcached: false
+            report: true
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      multisite: ${{ matrix.multisite }}
+      memcached: ${{ matrix.memcached }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      tests-domain: ${{ matrix.tests-domain }}
+      report: ${{ matrix.report || false }}
+
+  #
+  # Creates a PHPUnit test job for each PHP/MariaDB combination.
+  #
+  # All LTS versions of MariaDB supported by WordPress with greater than 1% usage according to w.org/stats should be
+  # tested. The exceptions to this rule are the most recent LTS and version 5.5.
+  #
+  # The 5.5 release was intended as a drop-in replacement for MySQL. Because the MySQL 5.5 Docker containers do not
+  # work, this ensures some level of MySQL 5.5 testing.
+  #
+  test-with-mariadb:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        db-type: [ 'mariadb' ]
+        db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
+        multisite: [ false, true ]
+        memcached: [ false ]
+
+        include:
+        # Include jobs that test with memcached.
+        - os: ubuntu-24.04
+          php: '8.3'
+          db-type: 'mariadb'
+          db-version: '11.8'
+          multisite: false
+          memcached: true
+        - os: ubuntu-24.04
+          php: '8.3'
+          db-type: 'mariadb'
+          db-version: '11.8'
+          multisite: true
+          memcached: true
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      multisite: ${{ matrix.multisite }}
+      memcached: ${{ matrix.memcached }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      report: ${{ false }}
+
+  #
+  # Creates PHPUnit test jobs to test MariaDB and MySQL innovation releases.
+  #
+  # Though innovation releases are deemed "production grade", they never receive LTS status. However, they include new
+  # features and updates that will be included in the next LTS version.
+  #
+  # Because upstream support for innovation releases is dropped when a new one is released (including security updates),
+  # only the most recent innovation version is tested.
+  #
+  # MariaDB does not currently have a supported innovation release.
+  #
+  test-innovation-releases:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        db-type: [ 'mysql', 'mariadb' ]
+        db-version: [ '9.5', '12.0' ]
+        multisite: [ false, true ]
+        memcached: [ false ]
+        db-innovation: [ true ]
+
+        exclude:
+          # Exclude version combinations that don't exist.
+          - db-type: 'mariadb'
+            db-version: '9.5'
+          - db-type: 'mysql'
+            db-version: '12.0'
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      db-innovation: ${{ matrix.db-innovation }}
+      multisite: ${{ matrix.multisite }}
+      memcached: ${{ matrix.memcached }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      report: ${{ false }}
+
+  #
+  # Runs the HTML API test group.
+  #
+  # This test group runs separately due to the large number of tests that are skipped in this group while the
+  # HTML API is being developed. The skipped tests would otherwise cloud the results of all other test groups.
+  #
+  # These tests are run against the most recent LTS version of MySQL.
+  #
+  html-api-test-groups:
+    name: ${{ matrix.label }}
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.0', '8.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '8.4' ]
+        phpunit-test-groups: [ 'html-api-html5lib-tests' ]
+        # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
+        label: [ 'HTML API' ]
+    with:
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
+
+  #
+  # Runs unit tests for forks.
+  #
+  # Because the majority of forks will belong to personal GitHub accounts (which are limited to just 20 concurrent jobs
+  # at any given time), forks only run a small subset of test combinations. This allows contributors to open pull
+  # requests back to their own forks for testing purposes without having to wait hours for workflow to complete.
+  #
+  limited-matrix-for-forks:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.4' ]
+        db-version: [ '8.4', '11.8' ]
+        db-type: [ 'mysql', 'mariadb' ]
+        multisite: [ false ]
+
+        include:
+          # Include one multisite job for each database type.
+          - php: '8.4'
+            db-version: '8.4'
+            db-type: 'mysql'
+            multisite: true
+          - php: '8.4'
+            db-version: '11.8'
+            db-type: 'mariadb'
+            multisite: true
+          # Test with memcached.
+          - php: '8.4'
+            db-version: '8.4'
+            db-type: 'mysql'
+            multisite: true
+            memcached: true
+          # Run specific test groups once.
+          - php: '8.4'
+            db-version: '8.4'
+            db-type: 'mysql'
+            phpunit-test-groups: 'html-api-html5lib-tests'
+
+        exclude:
+          # Exclude PHP versions that are not supported by the database versions.
+          - db-type: 'mysql'
+            db-version: '11.8'
+          - db-type: 'mariadb'
+            db-version: '8.4'
+
+    with:
+      php: ${{ matrix.php }}
+      db-version: ${{ matrix.db-version }}
+      db-type: ${{ matrix.db-type }}
+      memcached: ${{ matrix.memcached || false }}
+      phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: `${context.runId}`,
+              }
+            });

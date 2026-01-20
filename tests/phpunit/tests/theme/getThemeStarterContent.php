@@ -5,12 +5,12 @@
  *
  * @group themes
  */
-class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
+class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 
 	/**
 	 * Testing passing an empty array as starter content.
 	 */
-	function test_add_theme_support_empty() {
+	public function test_add_theme_support_empty() {
 		add_theme_support( 'starter-content', array() );
 		$starter_content = get_theme_starter_content();
 
@@ -20,7 +20,7 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 	/**
 	 * Testing passing nothing as starter content.
 	 */
-	function test_add_theme_support_single_param() {
+	public function test_add_theme_support_single_param() {
 		add_theme_support( 'starter-content' );
 		$starter_content = get_theme_starter_content();
 
@@ -30,7 +30,7 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 	/**
 	 * Testing that placeholder starter content gets expanded, that unrecognized placeholders are discarded, and that custom items are recognized.
 	 */
-	function test_default_content_sections() {
+	public function test_default_content_sections() {
 		/*
 		 * All placeholder identifiers should be referenced in this sample starter
 		 * content and then tested to ensure they get hydrated in the call to
@@ -142,25 +142,25 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 		$this->assertSame( $dehydrated_starter_content['attachments']['featured-image-logo'], $hydrated_starter_content['attachments']['featured-image-logo'] );
 
 		foreach ( $hydrated_starter_content['widgets']['sidebar-1'] as $widget ) {
-			$this->assertInternalType( 'array', $widget );
+			$this->assertIsArray( $widget );
 			$this->assertCount( 2, $widget );
-			$this->assertInternalType( 'string', $widget[0] );
-			$this->assertInternalType( 'array', $widget[1] );
+			$this->assertIsString( $widget[0] );
+			$this->assertIsArray( $widget[1] );
 			$this->assertArrayHasKey( 'title', $widget[1] );
 		}
 		$this->assertSame( 'text', $hydrated_starter_content['widgets']['sidebar-1'][1][0], 'Core content extended' );
 		$this->assertSame( 'Our Story', $hydrated_starter_content['widgets']['sidebar-1'][1][1]['title'], 'Core content extended' );
 
 		foreach ( $hydrated_starter_content['nav_menus']['top']['items'] as $nav_menu_item ) {
-			$this->assertInternalType( 'array', $nav_menu_item );
+			$this->assertIsArray( $nav_menu_item );
 			$this->assertTrue( ! empty( $nav_menu_item['object_id'] ) || ! empty( $nav_menu_item['url'] ) );
 		}
 		$this->assertSame( 'Email Us', $hydrated_starter_content['nav_menus']['top']['items'][4]['title'], 'Core content extended' );
 
 		foreach ( $hydrated_starter_content['posts'] as $key => $post ) {
-			$this->assertInternalType( 'string', $key );
-			$this->assertFalse( is_numeric( $key ) );
-			$this->assertInternalType( 'array', $post );
+			$this->assertIsString( $key );
+			$this->assertIsNotNumeric( $key );
+			$this->assertIsArray( $post );
 			$this->assertArrayHasKey( 'post_type', $post );
 			$this->assertArrayHasKey( 'post_title', $post );
 		}
@@ -172,7 +172,7 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 	/**
 	 * Testing the filter with the text_credits widget.
 	 */
-	function test_get_theme_starter_content_filter() {
+	public function test_get_theme_starter_content_filter() {
 
 		add_theme_support(
 			'starter-content',
@@ -200,7 +200,7 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 	 * @return array Filtered starter content.
 	 */
 	public function filter_theme_starter_content( $content, $config ) {
-		$this->assertInternalType( 'array', $config );
+		$this->assertIsArray( $config );
 		$this->assertCount( 1, $config['widgets']['sidebar-1'] );
 		$content['widgets']['sidebar-1'][] = array(
 			'text',

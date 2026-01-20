@@ -11,7 +11,16 @@
  * Determines if post thumbnail can be displayed.
  */
 function twentynineteen_can_show_post_thumbnail() {
-	return apply_filters( 'twentynineteen_can_show_post_thumbnail', ! post_password_required() && ! is_attachment() && has_post_thumbnail() );
+	$show_post_thumbnail = ! post_password_required() && ! is_attachment() && has_post_thumbnail();
+
+	/**
+	 * Filters whether to show post thumbnail.
+	 *
+	 * @since Twenty Nineteen 1.0
+	 *
+	 * @param bool $show_post_thumbnail Whether to show post thumbnail.
+	 */
+	return apply_filters( 'twentynineteen_can_show_post_thumbnail', $show_post_thumbnail );
 }
 
 /**
@@ -32,6 +41,9 @@ function twentynineteen_get_avatar_size() {
  * Returns true if comment is by author of the post.
  *
  * @see get_comment_class()
+ *
+ * @param WP_Comment|null $comment The comment object to check. Defaults to the current comment.
+ * @return bool True if the comment is by the author of the post, false otherwise.
  */
 function twentynineteen_is_comment_by_post_author( $comment = null ) {
 	if ( is_object( $comment ) && $comment->user_id > 0 ) {
@@ -82,7 +94,12 @@ function twentynineteen_get_discussion_data() {
 }
 
 /**
- * Converts HSL to HEX colors.
+ * Converts HSL to HEX or RGB colors.
+ *
+ * @param float $h      The hue component (0-360).
+ * @param float $s      The saturation component (0-100).
+ * @param float $l      The lightness component (0-100).
+ * @param bool  $to_hex Whether to convert to HEX format (true) or RGB (false). Default true.
  */
 function twentynineteen_hsl_hex( $h, $s, $l, $to_hex = true ) {
 
@@ -94,15 +111,8 @@ function twentynineteen_hsl_hex( $h, $s, $l, $to_hex = true ) {
 	$g = $l;
 	$b = $l;
 	$v = ( $l <= 0.5 ) ? ( $l * ( 1.0 + $s ) ) : ( $l + $s - $l * $s );
-	if ( $v > 0 ) {
-		$m;
-		$sv;
-		$sextant;
-		$fract;
-		$vsf;
-		$mid1;
-		$mid2;
 
+	if ( $v > 0 ) {
 		$m       = $l + $l - $v;
 		$sv      = ( $v - $m ) / $v;
 		$h      *= 6.0;
@@ -145,6 +155,7 @@ function twentynineteen_hsl_hex( $h, $s, $l, $to_hex = true ) {
 				break;
 		}
 	}
+
 	$r = round( $r * 255, 0 );
 	$g = round( $g * 255, 0 );
 	$b = round( $b * 255, 0 );

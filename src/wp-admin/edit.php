@@ -9,6 +9,11 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/**
+ * @global string $typenow The post type of the current screen.
+ */
+global $typenow;
+
 if ( ! $typenow ) {
 	wp_die( __( 'Invalid post type.' ) );
 }
@@ -24,8 +29,8 @@ if ( 'attachment' === $typenow ) {
 }
 
 /**
- * @global string       $post_type
- * @global WP_Post_Type $post_type_object
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
  */
 global $post_type, $post_type_object;
 
@@ -76,15 +81,22 @@ if ( $doaction ) {
 		$sendback = admin_url( $parent_file );
 	}
 	$sendback = add_query_arg( 'paged', $pagenum, $sendback );
-	if ( strpos( $sendback, 'post.php' ) !== false ) {
+	if ( str_contains( $sendback, 'post.php' ) ) {
 		$sendback = admin_url( $post_new_file );
 	}
+
+	$post_ids = array();
 
 	if ( 'delete_all' === $doaction ) {
 		// Prepare for deletion of all posts with a specified post status (i.e. Empty Trash).
 		$post_status = preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] );
 		// Validate the post status exists.
 		if ( get_post_status_object( $post_status ) ) {
+			/**
+			 * @global wpdb $wpdb WordPress database abstraction object.
+			 */
+			global $wpdb;
+
 			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type=%s AND post_status = %s", $post_type, $post_status ) );
 		}
 		$doaction = 'delete';
@@ -96,7 +108,7 @@ if ( $doaction ) {
 		$post_ids = array_map( 'intval', $_REQUEST['post'] );
 	}
 
-	if ( ! isset( $post_ids ) ) {
+	if ( empty( $post_ids ) ) {
 		wp_redirect( $sendback );
 		exit;
 	}
@@ -112,7 +124,7 @@ if ( $doaction ) {
 				}
 
 				if ( wp_check_post_lock( $post_id ) ) {
-					$locked++;
+					++$locked;
 					continue;
 				}
 
@@ -120,13 +132,13 @@ if ( $doaction ) {
 					wp_die( __( 'Error in moving the item to Trash.' ) );
 				}
 
-				$trashed++;
+				++$trashed;
 			}
 
 			$sendback = add_query_arg(
 				array(
 					'trashed' => $trashed,
-					'ids'     => join( ',', $post_ids ),
+					'ids'     => implode( ',', $post_ids ),
 					'locked'  => $locked,
 				),
 				$sendback
@@ -134,6 +146,11 @@ if ( $doaction ) {
 			break;
 		case 'untrash':
 			$untrashed = 0;
+
+			if ( isset( $_GET['doaction'] ) && ( 'undo' === $_GET['doaction'] ) ) {
+				add_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+			}
+
 			foreach ( (array) $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
 					wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ) );
@@ -143,9 +160,12 @@ if ( $doaction ) {
 					wp_die( __( 'Error in restoring the item from Trash.' ) );
 				}
 
-				$untrashed++;
+				++$untrashed;
 			}
 			$sendback = add_query_arg( 'untrashed', $untrashed, $sendback );
+
+			remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10 );
+
 			break;
 		case 'delete':
 			$deleted = 0;
@@ -165,7 +185,7 @@ if ( $doaction ) {
 						wp_die( __( 'Error in deleting the item.' ) );
 					}
 				}
-				$deleted++;
+				++$deleted;
 			}
 			$sendback = add_query_arg( 'deleted', $deleted, $sendback );
 			break;
@@ -222,6 +242,7 @@ if ( 'wp_block' === $post_type ) {
 	wp_enqueue_style( 'wp-list-reusable-blocks' );
 }
 
+// Used in the HTML title tag.
 $title = $post_type_object->labels->name;
 
 if ( 'post' === $post_type ) {
@@ -267,14 +288,18 @@ if ( 'post' === $post_type ) {
 			'title'   => __( 'Bulk actions' ),
 			'content' =>
 					'<p>' . __( 'You can also edit or move multiple posts to the Trash at once. Select the posts you want to act on using the checkboxes, then select the action you want to take from the Bulk actions menu and click Apply.' ) . '</p>' .
-							'<p>' . __( 'When using Bulk Edit, you can change the metadata (categories, author, etc.) for all selected posts at once. To remove a post from the grouping, just click the x next to its name in the Bulk Edit area that appears.' ) . '</p>',
+					'<p>' . sprintf(
+						/* translators: %s: The dismiss dashicon used for buttons that dismiss or remove. */
+						__( 'When using Bulk Edit, you can change the metadata (categories, author, etc.) for all selected posts at once. To remove a post from the grouping, just click the %s<span class="screen-reader-text">remove</span> button next to its name in the Bulk Edit area that appears.' ),
+						'<span class="dashicons dashicons-dismiss" aria-hidden="true" style="font-size: 16px; width: 16px; vertical-align: middle;"></span>'
+					) . '</p>',
 		)
 	);
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/posts-screen/">Documentation on Managing Posts</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/posts-screen/">Documentation on Managing Posts</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 
 } elseif ( 'page' === $post_type ) {
@@ -298,8 +323,8 @@ if ( 'post' === $post_type ) {
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/pages-screen/">Documentation on Managing Pages</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/pages-screen/">Documentation on Managing Pages</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 
 }
@@ -356,17 +381,17 @@ $bulk_messages['page']     = array(
 	'untrashed' => _n( '%s page restored from the Trash.', '%s pages restored from the Trash.', $bulk_counts['untrashed'] ),
 );
 $bulk_messages['wp_block'] = array(
-	/* translators: %s: Number of blocks. */
-	'updated'   => _n( '%s block updated.', '%s blocks updated.', $bulk_counts['updated'] ),
-	'locked'    => ( 1 === $bulk_counts['locked'] ) ? __( '1 block not updated, somebody is editing it.' ) :
-					/* translators: %s: Number of blocks. */
-					_n( '%s block not updated, somebody is editing it.', '%s blocks not updated, somebody is editing them.', $bulk_counts['locked'] ),
-	/* translators: %s: Number of blocks. */
-	'deleted'   => _n( '%s block permanently deleted.', '%s blocks permanently deleted.', $bulk_counts['deleted'] ),
-	/* translators: %s: Number of blocks. */
-	'trashed'   => _n( '%s block moved to the Trash.', '%s blocks moved to the Trash.', $bulk_counts['trashed'] ),
-	/* translators: %s: Number of blocks. */
-	'untrashed' => _n( '%s block restored from the Trash.', '%s blocks restored from the Trash.', $bulk_counts['untrashed'] ),
+	/* translators: %s: Number of patterns. */
+	'updated'   => _n( '%s pattern updated.', '%s patterns updated.', $bulk_counts['updated'] ),
+	'locked'    => ( 1 === $bulk_counts['locked'] ) ? __( '1 pattern not updated, somebody is editing it.' ) :
+					/* translators: %s: Number of patterns. */
+					_n( '%s pattern not updated, somebody is editing it.', '%s patterns not updated, somebody is editing them.', $bulk_counts['locked'] ),
+	/* translators: %s: Number of patterns. */
+	'deleted'   => _n( '%s pattern permanently deleted.', '%s patterns permanently deleted.', $bulk_counts['deleted'] ),
+	/* translators: %s: Number of patterns. */
+	'trashed'   => _n( '%s pattern moved to the Trash.', '%s patterns moved to the Trash.', $bulk_counts['trashed'] ),
+	/* translators: %s: Number of patterns. */
+	'untrashed' => _n( '%s pattern restored from the Trash.', '%s patterns restored from the Trash.', $bulk_counts['untrashed'] ),
 );
 
 /**
@@ -394,12 +419,17 @@ echo esc_html( $post_type_object->labels->name );
 
 <?php
 if ( current_user_can( $post_type_object->cap->create_posts ) ) {
-	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
+	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new_item ) . '</a>';
 }
 
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: Search query. */
-	printf( ' <span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', get_search_query() );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . get_search_query() . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 
@@ -416,13 +446,37 @@ foreach ( $bulk_counts as $message => $count ) {
 	}
 
 	if ( 'trashed' === $message && isset( $_REQUEST['ids'] ) ) {
-		$ids        = preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
-		$messages[] = '<a href="' . esc_url( wp_nonce_url( "edit.php?post_type=$post_type&doaction=undo&action=untrash&ids=$ids", 'bulk-posts' ) ) . '">' . __( 'Undo' ) . '</a>';
+		$ids = preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
+
+		$messages[] = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( wp_nonce_url( "edit.php?post_type=$post_type&doaction=undo&action=untrash&ids=$ids", 'bulk-posts' ) ),
+			__( 'Undo' )
+		);
+	}
+
+	if ( 'untrashed' === $message && isset( $_REQUEST['ids'] ) ) {
+		$ids = explode( ',', $_REQUEST['ids'] );
+
+		if ( 1 === count( $ids ) && current_user_can( 'edit_post', $ids[0] ) ) {
+			$messages[] = sprintf(
+				'<a href="%1$s">%2$s</a>',
+				esc_url( get_edit_post_link( $ids[0] ) ),
+				esc_html( get_post_type_object( get_post_type( $ids[0] ) )->labels->edit_item )
+			);
+		}
 	}
 }
 
 if ( $messages ) {
-	echo '<div id="message" class="updated notice is-dismissible"><p>' . join( ' ', $messages ) . '</p></div>';
+	wp_admin_notice(
+		implode( ' ', $messages ),
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
 }
 unset( $messages );
 
@@ -436,7 +490,7 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( array( 'locked', 'skipped', 'updated
 <?php $wp_list_table->search_box( $post_type_object->labels->search_items, 'post' ); ?>
 
 <input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $_REQUEST['post_status'] ) ? esc_attr( $_REQUEST['post_status'] ) : 'all'; ?>" />
-<input type="hidden" name="post_type" class="post_type_page" value="<?php echo $post_type; ?>" />
+<input type="hidden" name="post_type" class="post_type_page" value="<?php echo esc_attr( $post_type ); ?>" />
 
 <?php if ( ! empty( $_REQUEST['author'] ) ) { ?>
 <input type="hidden" name="author" value="<?php echo esc_attr( $_REQUEST['author'] ); ?>" />
@@ -457,7 +511,7 @@ if ( $wp_list_table->has_items() ) {
 ?>
 
 <div id="ajax-response"></div>
-<br class="clear" />
+<div class="clear"></div>
 </div>
 
 <?php

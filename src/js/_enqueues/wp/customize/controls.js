@@ -6,6 +6,12 @@
 (function( exports, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
+	var reducedMotionMediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+	var isReducedMotion = reducedMotionMediaQuery.matches;
+	reducedMotionMediaQuery.addEventListener( 'change' , function handleReducedMotionChange( event ) {
+		isReducedMotion = event.matches;
+	});
+
 	api.OverlayNotification = api.Notification.extend(/** @lends wp.customize.OverlayNotification.prototype */{
 
 		/**
@@ -289,7 +295,7 @@
 					collection.focusContainer.focus();
 				}
 			} else if ( collection.previousActiveElement ) {
-				$( collection.previousActiveElement ).focus();
+				$( collection.previousActiveElement ).trigger( 'focus' );
 				collection.previousActiveElement = null;
 			}
 
@@ -689,10 +695,22 @@
 	 * @param {Function} [params.completeCallback]
 	 */
 	focus = function ( params ) {
-		var construct, completeCallback, focus, focusElement;
+		var construct, completeCallback, focus, focusElement, sections;
 		construct = this;
 		params = params || {};
 		focus = function () {
+			// If a child section is currently expanded, collapse it.
+			if ( construct.extended( api.Panel ) ) {
+				sections = construct.sections();
+				if ( 1 < sections.length ) {
+					sections.forEach( function ( section ) {
+						if ( section.expanded() ) {
+							section.collapse();
+						}
+					} );
+				}
+			}
+
 			var focusContainer;
 			if ( ( construct.extended( api.Panel ) || construct.extended( api.Section ) ) && construct.expanded && construct.expanded() ) {
 				focusContainer = construct.contentContainer;
@@ -1264,11 +1282,14 @@
 		 * @return {void}
 		 */
 		_animateChangeExpanded: function( completeCallback ) {
-			// Return if CSS transitions are not supported.
-			if ( ! normalizedTransitionendEventName ) {
-				if ( completeCallback ) {
-					completeCallback();
-				}
+			// Return if CSS transitions are not supported or if reduced motion is enabled.
+			if ( ! normalizedTransitionendEventName || isReducedMotion ) {
+				// Schedule the callback until the next tick to prevent focus loss.
+				_.defer( function () {
+					if ( completeCallback ) {
+						completeCallback();
+					}
+				} );
 				return;
 			}
 
@@ -1342,10 +1363,10 @@
 				template = wp.template( 'customize-' + container.containerType + '-default' );
 			}
 			if ( template && container.container ) {
-				return $.trim( template( _.extend(
+				return template( _.extend(
 					{ id: container.id },
 					container.params
-				) ) );
+				) ).toString().trim();
 			}
 
 			return '<li></li>';
@@ -1509,7 +1530,7 @@
 			}
 
 			// Expand/Collapse accordion sections on click.
-			section.container.find( '.accordion-section-title, .customize-section-back' ).on( 'click keydown', function( event ) {
+			section.container.find( '.accordion-section-title button, .customize-section-back, .accordion-section-title[tabindex]' ).on( 'click keydown', function( event ) {
 				if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
 					return;
 				}
@@ -1584,7 +1605,7 @@
 				content = section.contentContainer,
 				overlay = section.headContainer.closest( '.wp-full-overlay' ),
 				backBtn = content.find( '.customize-section-back' ),
-				sectionTitle = section.headContainer.find( '.accordion-section-title' ).first(),
+				sectionTitle = section.headContainer.find( '.accordion-section-title button, .accordion-section-title[tabindex]' ).first(),
 				expand, panel;
 
 			if ( expanded && ! content.hasClass( 'open' ) ) {
@@ -1592,12 +1613,10 @@
 				if ( args.unchanged ) {
 					expand = args.completeCallback;
 				} else {
-					expand = $.proxy( function() {
+					expand = function() {
 						section._animateChangeExpanded( function() {
-							sectionTitle.attr( 'tabindex', '-1' );
 							backBtn.attr( 'tabindex', '0' );
-
-							backBtn.focus();
+							backBtn.trigger( 'focus' );
 							content.css( 'top', '' );
 							container.scrollTop( 0 );
 
@@ -1609,7 +1628,7 @@
 						content.addClass( 'open' );
 						overlay.addClass( 'section-open' );
 						api.state( 'expandedSection' ).set( section );
-					}, this );
+					}.bind( this );
 				}
 
 				if ( ! args.allowMultiple ) {
@@ -1643,9 +1662,7 @@
 				}
 				section._animateChangeExpanded( function() {
 					backBtn.attr( 'tabindex', '-1' );
-					sectionTitle.attr( 'tabindex', '0' );
-
-					sectionTitle.focus();
+					sectionTitle.trigger( 'focus' );
 					content.css( 'top', '' );
 
 					if ( args.completeCallback ) {
@@ -1778,7 +1795,7 @@
 						section.closeDetails();
 					} else {
 
-						// Escape from the inifinite scroll list.
+						// Escape from the infinite scroll list.
 						section.headerContainer.find( '.customize-themes-section-title' ).focus();
 					}
 					event.stopPropagation(); // Prevent section from being collapsed.
@@ -1896,7 +1913,7 @@
 			section.contentContainer.on( 'click', '.feature-filter-toggle', function( e ) {
 				var $themeContainer = $( '.customize-themes-full-container' ),
 					$filterToggle = $( e.currentTarget );
-				section.filtersHeight = $filterToggle.parent().next( '.filter-drawer' ).height();
+				section.filtersHeight = $filterToggle.parents( '.themes-filter-bar' ).next( '.filter-drawer' ).height();
 
 				if ( 0 < $themeContainer.scrollTop() ) {
 					$themeContainer.animate( { scrollTop: 0 }, 400 );
@@ -1911,7 +1928,7 @@
 					.attr( 'aria-expanded', function( i, attr ) {
 						return 'true' === attr ? 'false' : 'true';
 					})
-					.parent().next( '.filter-drawer' ).slideToggle( 180, 'linear' );
+					.parents( '.themes-filter-bar' ).next( '.filter-drawer' ).slideToggle( 180, 'linear' );
 
 				if ( $filterToggle.hasClass( 'open' ) ) {
 					var marginOffset = 1018 < window.innerWidth ? 50 : 76;
@@ -2678,7 +2695,7 @@
 				container = section.headContainer.closest( '.wp-full-overlay-sidebar-content' ),
 				content = section.contentContainer,
 				backBtn = content.find( '.customize-section-back' ),
-				sectionTitle = section.headContainer.find( '.accordion-section-title' ).first(),
+				sectionTitle = section.headContainer.find( '.accordion-section-title button, .accordion-section-title[tabindex]' ).first(),
 				body = $( document.body ),
 				expand, panel;
 
@@ -2696,12 +2713,10 @@
 				if ( args.unchanged ) {
 					expand = args.completeCallback;
 				} else {
-					expand = $.proxy( function() {
+					expand = function() {
 						section._animateChangeExpanded( function() {
-							sectionTitle.attr( 'tabindex', '-1' );
 							backBtn.attr( 'tabindex', '0' );
-
-							backBtn.focus();
+							backBtn.trigger( 'focus' );
 							content.css( 'top', '' );
 							container.scrollTop( 0 );
 
@@ -2711,7 +2726,7 @@
 						} );
 
 						content.addClass( 'open' );
-					}, this );
+					}.bind( this );
 				}
 
 				if ( section.panel() ) {
@@ -2732,9 +2747,7 @@
 				}
 				section._animateChangeExpanded( function() {
 					backBtn.attr( 'tabindex', '-1' );
-					sectionTitle.attr( 'tabindex', '0' );
-
-					sectionTitle.focus();
+					sectionTitle.trigger( 'focus' );
 					content.css( 'top', '' );
 
 					if ( args.completeCallback ) {
@@ -2822,7 +2835,7 @@
 			var meta, panel = this;
 
 			// Expand/Collapse accordion sections on click.
-			panel.headContainer.find( '.accordion-section-title' ).on( 'click keydown', function( event ) {
+			panel.headContainer.find( '.accordion-section-title button, .accordion-section-title[tabindex]' ).on( 'click keydown', function( event ) {
 				if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
 					return;
 				}
@@ -2926,7 +2939,7 @@
 				accordionSection = panel.contentContainer,
 				overlay = accordionSection.closest( '.wp-full-overlay' ),
 				container = accordionSection.closest( '.wp-full-overlay-sidebar-content' ),
-				topPanel = panel.headContainer.find( '.accordion-section-title' ),
+				topPanel = panel.headContainer.find( '.accordion-section-title button, .accordion-section-title[tabindex]' ),
 				backBtn = accordionSection.find( '.customize-panel-back' ),
 				childSections = panel.sections(),
 				skipTransition;
@@ -2953,10 +2966,8 @@
 					} );
 				} else {
 					panel._animateChangeExpanded( function() {
-						topPanel.attr( 'tabindex', '-1' );
 						backBtn.attr( 'tabindex', '0' );
-
-						backBtn.focus();
+						backBtn.trigger( 'focus' );
 						accordionSection.css( 'top', '' );
 						container.scrollTop( 0 );
 
@@ -2975,8 +2986,6 @@
 				skipTransition = accordionSection.hasClass( 'skip-transition' );
 				if ( ! skipTransition ) {
 					panel._animateChangeExpanded( function() {
-						topPanel.attr( 'tabindex', '0' );
-						backBtn.attr( 'tabindex', '-1' );
 
 						topPanel.focus();
 						accordionSection.css( 'top', '' );
@@ -3700,8 +3709,8 @@
 						parentContainer = ( section.contentContainer.is( 'ul' ) ) ? section.contentContainer : section.contentContainer.find( 'ul:first' );
 						if ( ! control.container.parent().is( parentContainer ) ) {
 							parentContainer.append( control.container );
-							control.renderContent();
 						}
+						control.renderContent();
 						control.deferred.embedded.resolve();
 					});
 				});
@@ -3718,7 +3727,7 @@
 		ready: function() {
 			var control = this, newItem;
 			if ( 'dropdown-pages' === control.params.type && control.params.allow_addition ) {
-				newItem = control.container.find( '.new-content-item' );
+				newItem = control.container.find( '.new-content-item-wrapper' );
 				newItem.hide(); // Hide in JS to preserve flex display when showing.
 				control.container.on( 'click', '.add-new-toggle', function( e ) {
 					$( e.currentTarget ).slideUp( 180 );
@@ -3845,7 +3854,7 @@
 			var control = this, container, notifications, hasError = false;
 
 			if ( 'undefined' !== typeof console && console.warn ) {
-				console.warn( '[DEPRECATED] wp.customize.Control.prototype.renderNotifications() is deprecated in favor of instantating a wp.customize.Notifications and calling its render() method.' );
+				console.warn( '[DEPRECATED] wp.customize.Control.prototype.renderNotifications() is deprecated in favor of instantiating a wp.customize.Notifications and calling its render() method.' );
 			}
 
 			container = control.getNotificationsContainerElement();
@@ -3874,9 +3883,9 @@
 
 			control.container.toggleClass( 'has-notifications', 0 !== notifications.length );
 			control.container.toggleClass( 'has-error', hasError );
-			container.empty().append( $.trim(
-				control.notificationsTemplate( { notifications: notifications, altNotice: Boolean( control.altNotice ) } )
-			) );
+			container.empty().append(
+				control.notificationsTemplate( { notifications: notifications, altNotice: Boolean( control.altNotice ) } ).trim()
+			);
 		},
 
 		/**
@@ -4057,24 +4066,32 @@
 		 * @return {void}
 		 */
 		addNewPage: function () {
-			var control = this, promise, toggle, container, input, title, select;
+			var control = this, promise, toggle, container, input, inputError, title, select;
 
 			if ( 'dropdown-pages' !== control.params.type || ! control.params.allow_addition || ! api.Menus ) {
 				return;
 			}
 
 			toggle = control.container.find( '.add-new-toggle' );
-			container = control.container.find( '.new-content-item' );
+			container = control.container.find( '.new-content-item-wrapper' );
 			input = control.container.find( '.create-item-input' );
+			inputError = control.container.find('.create-item-error');
 			title = input.val();
 			select = control.container.find( 'select' );
 
 			if ( ! title ) {
-				input.addClass( 'invalid' );
+				container.addClass( 'form-invalid' );
+				input.attr('aria-invalid', 'true');
+				input.attr('aria-describedby', inputError.attr('id'));
+				inputError.slideDown( 'fast' );
+				wp.a11y.speak( inputError.text() );
 				return;
 			}
 
-			input.removeClass( 'invalid' );
+			container.removeClass( 'form-invalid' );
+			input.attr('aria-invalid', 'false');
+			input.removeAttr('aria-describedby');
+			inputError.hide();
 			input.attr( 'disabled', 'disabled' );
 
 			// The menus functions add the page, publish when appropriate,
@@ -4485,7 +4502,7 @@
 				y = control.settings.y.get();
 				inputValue = String( x ) + ' ' + String( y );
 				radioInput = control.container.find( 'input[name="background-position"][value="' + inputValue + '"]' );
-				radioInput.click();
+				radioInput.trigger( 'click' );
 			} );
 			control.settings.x.bind( updateRadios );
 			control.settings.y.bind( updateRadios );
@@ -4581,26 +4598,29 @@
 		 * @return {Object} Options
 		 */
 		calculateImageSelectOptions: function( attachment, controller ) {
-			var control    = controller.get( 'control' ),
-				flexWidth  = !! parseInt( control.params.flex_width, 10 ),
-				flexHeight = !! parseInt( control.params.flex_height, 10 ),
-				realWidth  = attachment.get( 'width' ),
-				realHeight = attachment.get( 'height' ),
-				xInit = parseInt( control.params.width, 10 ),
-				yInit = parseInt( control.params.height, 10 ),
-				ratio = xInit / yInit,
-				xImg  = xInit,
-				yImg  = yInit,
+			var control       = controller.get( 'control' ),
+				flexWidth     = !! parseInt( control.params.flex_width, 10 ),
+				flexHeight    = !! parseInt( control.params.flex_height, 10 ),
+				realWidth     = attachment.get( 'width' ),
+				realHeight    = attachment.get( 'height' ),
+				xInit         = parseInt( control.params.width, 10 ),
+				yInit         = parseInt( control.params.height, 10 ),
+				requiredRatio = xInit / yInit,
+				realRatio     = realWidth / realHeight,
+				xImg          = xInit,
+				yImg          = yInit,
 				x1, y1, imgSelectOptions;
 
+			controller.set( 'hasRequiredAspectRatio', control.hasRequiredAspectRatio( requiredRatio, realRatio ) );
+			controller.set( 'suggestedCropSize', { width: realWidth, height: realHeight, x1: 0, y1: 0, x2: xInit, y2: yInit } );
 			controller.set( 'canSkipCrop', ! control.mustBeCropped( flexWidth, flexHeight, xInit, yInit, realWidth, realHeight ) );
 
-			if ( realWidth / realHeight > ratio ) {
+			if ( realRatio > requiredRatio ) {
 				yInit = realHeight;
-				xInit = yInit * ratio;
+				xInit = yInit * requiredRatio;
 			} else {
 				xInit = realWidth;
-				yInit = xInit / ratio;
+				yInit = xInit / requiredRatio;
 			}
 
 			x1 = ( realWidth - xInit ) / 2;
@@ -4641,13 +4661,13 @@
 		/**
 		 * Return whether the image must be cropped, based on required dimensions.
 		 *
-		 * @param {boolean} flexW
-		 * @param {boolean} flexH
-		 * @param {number}  dstW
-		 * @param {number}  dstH
-		 * @param {number}  imgW
-		 * @param {number}  imgH
-		 * @return {boolean}
+		 * @param {boolean} flexW Width is flexible.
+		 * @param {boolean} flexH Height is flexible.
+		 * @param {number}  dstW  Required width.
+		 * @param {number}  dstH  Required height.
+		 * @param {number}  imgW  Provided image's width.
+		 * @param {number}  imgH  Provided image's height.
+		 * @return {boolean} Whether cropping is required.
 		 */
 		mustBeCropped: function( flexW, flexH, dstW, dstH, imgW, imgH ) {
 			if ( true === flexW && true === flexH ) {
@@ -4674,6 +4694,25 @@
 		},
 
 		/**
+		 * Check if the image's aspect ratio essentially matches the required aspect ratio.
+		 *
+		 * Floating point precision is low, so this allows a small tolerance. This
+		 * tolerance allows for images over 100,000 px on either side to still trigger
+		 * the cropping flow.
+		 *
+		 * @param {number} requiredRatio Required image ratio.
+		 * @param {number} realRatio     Provided image ratio.
+		 * @return {boolean} Whether the image has the required aspect ratio.
+		 */
+		hasRequiredAspectRatio: function ( requiredRatio, realRatio ) {
+			if ( Math.abs( requiredRatio - realRatio ) < 0.000001 ) {
+				return true;
+			}
+
+			return false;
+		},
+
+		/**
 		 * If cropping was skipped, apply the image data directly to the setting.
 		 */
 		onSkippedCrop: function() {
@@ -4687,10 +4726,19 @@
 		 * @param {Object} attachment
 		 */
 		setImageFromAttachment: function( attachment ) {
+			var control = this;
 			this.params.attachment = attachment;
 
 			// Set the Customizer setting; the callback takes care of rendering.
 			this.setting( attachment.id );
+
+			// Set focus to the first relevant button after the icon.
+			_.defer( function() {
+				var firstButton = control.container.find( '.actions .button' ).first();
+				if ( firstButton.length ) {
+					firstButton.focus();
+				}
+			} );
 		}
 	});
 
@@ -4773,7 +4821,8 @@
 		 * @param {Object} attachment
 		 */
 		setImageFromAttachment: function( attachment ) {
-			var sizes = [ 'site_icon-32', 'thumbnail', 'full' ], link,
+			var control = this,
+				sizes = [ 'site_icon-32', 'thumbnail', 'full' ], link,
 				icon;
 
 			_.each( sizes, function( size ) {
@@ -4794,6 +4843,14 @@
 			// Update the icon in-browser.
 			link = $( 'link[rel="icon"][sizes="32x32"]' );
 			link.attr( 'href', icon.url );
+
+			// Set focus to the first relevant button after the icon.
+			_.defer( function() {
+				var firstButton = control.container.find( '.actions .button' ).first();
+				if ( firstButton.length ) {
+					firstButton.focus();
+				}
+			} );
 		},
 
 		/**
@@ -5452,7 +5509,7 @@
 			controls = section.controls();
 			controlIndex = controls.indexOf( control );
 			if ( controls.length === controlIndex + 1 ) {
-				$( '#customize-footer-actions .collapse-sidebar' ).focus();
+				$( '#customize-footer-actions .collapse-sidebar' ).trigger( 'focus' );
 			} else {
 				controls[ controlIndex + 1 ].container.find( ':focusable:first' ).focus();
 			}
@@ -6336,7 +6393,7 @@
 					} ) );
 				} );
 				previewFrame.container.append( form );
-				form.submit();
+				form.trigger( 'submit' );
 				form.remove(); // No need to keep the form around after submitted.
 			}
 
@@ -7081,7 +7138,7 @@
 
 		// Restore focus if there was a reflow and there was an active (focused) element.
 		if ( wasReflowed && activeElement ) {
-			activeElement.focus();
+			activeElement.trigger( 'focus' );
 		}
 		api.trigger( 'pane-contents-reflowed' );
 	}, api );
@@ -7178,7 +7235,7 @@
 			} ) );
 
 			/**
-			 * Return whether the pubish settings section should be active.
+			 * Return whether the publish settings section should be active.
 			 *
 			 * @return {boolean} Is section active.
 			 */
@@ -7712,7 +7769,7 @@
 			/**
 			 * Trash the current changes.
 			 *
-			 * Revert the Customizer to it's previously-published state.
+			 * Revert the Customizer to its previously-published state.
 			 *
 			 * @since 4.9.0
 			 *
@@ -7779,11 +7836,11 @@
 			},
 
 			/**
-			 * Builds the front preview url with the current state of customizer.
+			 * Builds the front preview URL with the current state of customizer.
 			 *
-			 * @since 4.9
+			 * @since 4.9.0
 			 *
-			 * @return {string} Preview url.
+			 * @return {string} Preview URL.
 			 */
 			getFrontendPreviewUrl: function() {
 				var previewer = this, params, urlParser;
@@ -8314,6 +8371,33 @@
 			}
 
 			/**
+			 * Displays a Site Editor notification when a block theme is activated.
+			 *
+			 * @since 4.9.0
+			 *
+			 * @param {string} [notification] - A notification to display.
+			 * @return {void}
+			 */
+			function addSiteEditorNotification( notification ) {
+				api.notifications.add( new api.Notification( 'site_editor_block_theme_notice', {
+					message: notification,
+					type: 'info',
+					dismissible: false,
+					render: function() {
+						var notification = api.Notification.prototype.render.call( this ),
+							button = notification.find( 'button.switch-to-editor' );
+
+						button.on( 'click', function( event ) {
+							event.preventDefault();
+							location.assign( button.data( 'action' ) );
+						} );
+
+						return notification;
+					}
+				} ) );
+			}
+
+			/**
 			 * Dismiss autosave.
 			 *
 			 * @return {void}
@@ -8387,6 +8471,10 @@
 			if ( api.settings.changeset.latestAutoDraftUuid || api.settings.changeset.hasAutosaveRevision ) {
 				addAutosaveRestoreNotification();
 			}
+			var shouldDisplayBlockThemeNotification = !! parseInt( $( '#customize-info' ).data( 'block-theme' ), 10 );
+			if (shouldDisplayBlockThemeNotification) {
+				addSiteEditorNotification( api.l10n.blockThemeNotification );
+			}
 		})();
 
 		// Check if preview url is valid and load the preview frame.
@@ -8397,10 +8485,10 @@
 		}
 
 		// Button bindings.
-		saveBtn.click( function( event ) {
+		saveBtn.on( 'click', function( event ) {
 			api.previewer.save();
 			event.preventDefault();
-		}).keydown( function( event ) {
+		}).on( 'keydown', function( event ) {
 			if ( 9 === event.which ) { // Tab.
 				return;
 			}
@@ -8410,7 +8498,7 @@
 			event.preventDefault();
 		});
 
-		closeBtn.keydown( function( event ) {
+		closeBtn.on( 'keydown', function( event ) {
 			if ( 9 === event.which ) { // Tab.
 				return;
 			}
@@ -8449,6 +8537,13 @@
 			 * This ensures that ESC meant to collapse a modal dialog or a TinyMCE toolbar won't collapse something else.
 			 */
 			if ( ! $( event.target ).is( 'body' ) && ! $.contains( $( '#customize-controls' )[0], event.target ) ) {
+				return;
+			}
+
+			// Abort if we're inside of a block editor instance.
+			if ( event.target.closest( '.block-editor-writing-flow' ) !== null ||
+				event.target.closest( '.block-editor-block-list__block-popover' ) !== null
+			) {
 				return;
 			}
 
@@ -8752,7 +8847,8 @@
 		if ( title.length ) {
 			api( 'blogname', function( setting ) {
 				var updateTitle = function() {
-					title.text( $.trim( setting() ) || api.l10n.untitledBlogName );
+					var blogTitle = setting() || '';
+					title.text( blogTitle.toString().trim() || api.l10n.untitledBlogName );
 				};
 				setting.bind( updateTitle );
 				updateTitle();

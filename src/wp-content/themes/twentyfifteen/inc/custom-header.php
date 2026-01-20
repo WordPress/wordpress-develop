@@ -8,7 +8,7 @@
  */
 
 /**
- * Set up the WordPress core custom header feature.
+ * Sets up the WordPress core custom header feature.
  *
  * @uses twentyfifteen_header_style()
  */
@@ -47,7 +47,7 @@ function twentyfifteen_custom_header_setup() {
 add_action( 'after_setup_theme', 'twentyfifteen_custom_header_setup' );
 
 /**
- * Convert HEX to RGB.
+ * Converts HEX to RGB.
  *
  * @since Twenty Fifteen 1.0
  *
@@ -58,11 +58,11 @@ add_action( 'after_setup_theme', 'twentyfifteen_custom_header_setup' );
 function twentyfifteen_hex2rgb( $color ) {
 	$color = trim( $color, '#' );
 
-	if ( strlen( $color ) == 3 ) {
+	if ( strlen( $color ) === 3 ) {
 		$r = hexdec( substr( $color, 0, 1 ) . substr( $color, 0, 1 ) );
 		$g = hexdec( substr( $color, 1, 1 ) . substr( $color, 1, 1 ) );
 		$b = hexdec( substr( $color, 2, 1 ) . substr( $color, 2, 1 ) );
-	} elseif ( strlen( $color ) == 6 ) {
+	} elseif ( strlen( $color ) === 6 ) {
 		$r = hexdec( substr( $color, 0, 2 ) );
 		$g = hexdec( substr( $color, 2, 2 ) );
 		$b = hexdec( substr( $color, 4, 2 ) );
@@ -95,7 +95,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 
 		// If we get this far, we have custom styles. Let's do this.
 		?>
-		<style type="text/css" id="twentyfifteen-header-css">
+		<style id="twentyfifteen-header-css">
 		<?php
 		// Short header for when there is no Custom Header and Header Text is hidden.
 		if ( empty( $header_image ) && ! display_header_text() ) :
@@ -186,7 +186,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 			?>
 		.site-title,
 		.site-description {
-			clip: rect(1px, 1px, 1px, 1px);
+			clip-path: inset(50%);
 			position: absolute;
 		}
 	<?php endif; ?>
@@ -272,23 +272,19 @@ function twentyfifteen_sidebar_text_color_css() {
 
 		.site-title a:hover,
 		.site-title a:focus {
-			color: %1$s; /* Fallback for IE7 and IE8 */
 			color: %2$s;
 		}
 
 		.secondary-toggle {
-			border-color: %1$s; /* Fallback for IE7 and IE8 */
 			border-color: %3$s;
 		}
 
 		.secondary-toggle:hover,
 		.secondary-toggle:focus {
-			border-color: %1$s; /* Fallback for IE7 and IE8 */
 			border-color: %4$s;
 		}
 
 		.site-title a {
-			outline-color: %1$s; /* Fallback for IE7 and IE8 */
 			outline-color: %4$s;
 		}
 

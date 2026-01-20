@@ -1,13 +1,9 @@
 <?php
 /**
- * WP_REST_Search_Controller tests
+ * Unit tests covering WP_REST_Search_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- */
-
-/**
- * Tests for WP_REST_Search_Controller.
  *
  * @group restapi
  */
@@ -35,11 +31,27 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	private static $my_content_post_ids = array();
 
 	/**
+	 * Categories.
+	 *
+	 * @var int
+	 */
+	private static $my_category_id;
+
+	/**
+	 * Tags.
+	 *
+	 * @var int
+	 */
+	private static $my_tag_id;
+
+	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		add_theme_support( 'post-formats', array( 'aside' ) );
+
 		self::$my_title_post_ids = $factory->post->create_many(
 			4,
 			array(
@@ -62,12 +74,30 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'post_content' => 'my-foocontent',
 			)
 		);
+
+		set_post_format( self::$my_title_post_ids[0], 'aside' );
+
+		self::$my_category_id = $factory->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Test Category',
+			)
+		);
+
+		self::$my_tag_id = $factory->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Test Tag',
+			)
+		);
 	}
 
 	/**
 	 * Delete our fake data after our tests run.
 	 */
 	public static function wpTearDownAfterClass() {
+		remove_theme_support( 'post-formats' );
+
 		$post_ids = array_merge(
 			self::$my_title_post_ids,
 			self::$my_title_page_ids,
@@ -76,6 +106,15 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 		foreach ( $post_ids as $post_id ) {
 			wp_delete_post( $post_id, true );
+		}
+
+		$term_ids = array(
+			self::$my_category_id,
+			self::$my_tag_id,
+		);
+
+		foreach ( $term_ids as $term_id ) {
+			wp_delete_term( $term_id, true );
 		}
 	}
 
@@ -122,6 +161,101 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Test pagination headers.
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_pagination_headers( $method ) {
+		$total_posts = count( self::$my_title_post_ids ) + count( self::$my_title_page_ids ) + count( self::$my_content_post_ids );
+		$per_page    = 3;
+		$total_pages = (int) ceil( $total_posts / $per_page );
+
+		// Start of the index.
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => $per_page,
+			),
+			$method
+		);
+		$headers  = $response->get_headers();
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+
+		$next_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => 2,
+			),
+			rest_url( '/wp/v2/search' )
+		);
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => 3,
+			),
+			$method
+		);
+		$headers  = $response->get_headers();
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => 2,
+			),
+			rest_url( '/wp/v2/search' )
+		);
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$next_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => 4,
+			),
+			rest_url( '/wp/v2/search' )
+		);
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+
+		// Last page.
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $total_pages,
+			),
+			$method
+		);
+		$headers  = $response->get_headers();
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => $total_pages - 1,
+			),
+			rest_url( '/wp/v2/search' )
+		);
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
 	 * Search through all content with a low limit.
 	 */
 	public function test_get_items_with_limit() {
@@ -132,7 +266,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 3, count( $response->get_data() ) );
+		$this->assertCount( 3, $response->get_data() );
 	}
 
 	/**
@@ -200,13 +334,19 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Search through an invalid type
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_search_type_invalid() {
+	public function test_get_items_search_type_invalid( $method ) {
 		$response = $this->do_request_with_params(
 			array(
 				'per_page' => 100,
 				'type'     => 'invalid',
-			)
+			),
+			$method
 		);
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -214,6 +354,11 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Search through posts of an invalid post type.
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
 	public function test_get_items_search_type_post_subtype_invalid() {
 		$response = $this->do_request_with_params(
@@ -287,6 +432,36 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			self::$my_content_post_ids,
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
+	}
+
+	/**
+	 * @ticket 55674
+	 */
+	public function test_get_items_search_prime_ids() {
+		$action = new MockAction();
+		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
+
+		$query_args = array(
+			'per_page' => 100,
+			'search'   => 'foocontent',
+		);
+		$response   = $this->do_request_with_params( $query_args );
+		$this->assertSame( 200, $response->get_status(), 'Request Status Response is not 200.' );
+
+		$ids = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertSameSets( self::$my_content_post_ids, $ids, 'Query result posts ids do not match with expected ones.' );
+
+		$args               = $action->get_args();
+		$primed_query_found = false;
+		foreach ( $args as $arg ) {
+			// Primed query will use WHERE ID IN clause.
+			if ( str_contains( $arg[0], 'WHERE ID IN (' . implode( ',', $ids ) ) ) {
+				$primed_query_found = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $primed_query_found, 'Prime query was not executed.' );
 	}
 
 	/**
@@ -370,7 +545,6 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array(
 				'id',
 				'title',
-				'_links',
 			),
 			array_keys( $data[0] )
 		);
@@ -394,13 +568,19 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Tests that non-public post types are not allowed.
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_non_public_post_type() {
+	public function test_non_public_post_type( $method ) {
 		$response = $this->do_request_with_params(
 			array(
 				'type'    => 'post',
 				'subtype' => 'post,nav_menu_item',
-			)
+			),
+			$method
 		);
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -515,6 +695,223 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Search through terms of any type.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_type_term() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'term',
+			)
+		);
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array(
+				0 => 1, // That is the default category.
+				self::$my_category_id,
+				self::$my_tag_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search through terms of subtype 'category'.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_type_term_subtype_category() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'term',
+				'subtype'  => 'category',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array(
+				0 => 1, // That is the default category.
+				self::$my_category_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search through posts of an invalid post type.
+	 *
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 51458
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_search_term_subtype_invalid( $method ) {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'term',
+				'subtype'  => 'invalid',
+			),
+			$method
+		);
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Search through posts and pages.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_categories_and_tags() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'term',
+				'subtype'  => 'category,post_tag',
+			)
+		);
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array(
+				0 => 1, // This is the default category.
+				self::$my_category_id,
+				self::$my_tag_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search through all that matches a 'Test Category' search.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_for_test_category() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Test Category',
+				'type'     => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array(
+				self::$my_category_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search through all that matches a 'Test Tag' search.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_for_test_tag() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Test Tag',
+				'type'     => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array(
+				self::$my_tag_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Searching for a term that doesn't exist should return an empty result.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_for_missing_term() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Doesn\'t exist',
+				'type'     => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
+	 * Search through post formats of any type.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_type_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'post-format',
+			)
+		);
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertContains(
+			'Aside',
+			wp_list_pluck( $response->get_data(), 'title' )
+		);
+	}
+
+	/**
+	 * Search through all that matches a 'Aside' search.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_for_test_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Aside',
+				'type'     => 'post-format',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertContains(
+			'Aside',
+			wp_list_pluck( $response->get_data(), 'title' )
+		);
+	}
+
+	/**
+	 * Searching for a post format that doesn't exist should return an empty
+	 * result.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_for_missing_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Doesn\'t exist',
+				'type'     => 'post-format',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
 	 * Perform a REST request to our search endpoint with given parameters.
 	 */
 	private function do_request_with_params( $params = array(), $method = 'GET' ) {
@@ -536,4 +933,96 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		return $request;
 	}
 
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_posts_include_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'include' => array_slice( self::$my_title_post_ids, 1, 2 ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_title_post_ids[1], self::$my_title_post_ids[2] ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_posts_exclude_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'exclude' => self::$my_title_page_ids,
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array_merge(
+				self::$my_title_post_ids,
+				self::$my_content_post_ids
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_terms_include_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'include' => self::$my_tag_id,
+				'type'    => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_tag_id ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_terms_exclude_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				// "1" is the default category.
+				'exclude' => array( 1, self::$my_tag_id ),
+				'type'    => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_category_id ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 60771
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_sanitize_subtypes_validates_type( $method ) {
+		$response = $this->do_request_with_params(
+			array(
+				'subtype' => 'page',
+				'type'    => array( 'invalid' ),
+			),
+			$method
+		);
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
 }

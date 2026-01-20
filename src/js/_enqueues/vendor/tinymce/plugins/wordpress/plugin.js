@@ -16,6 +16,8 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		wpTooltips = false;
 
 	if ( $ ) {
+		// Runs as soon as TinyMCE has started initializing, while plugins are loading.
+		// Handlers attached after the `tinymce.init()` call may not get triggered for this instance.
 		$( document ).triggerHandler( 'tinymce-editor-setup', [ editor ] );
 	}
 
@@ -114,7 +116,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 
 				event.content = event.content.replace( /<!--more(.*?)-->/g, function( match, moretext ) {
 					return '<img src="' + tinymce.Env.transparentSrc + '" data-wp-more="more" data-wp-more-text="' + moretext + '" ' +
-						'class="wp-more-tag mce-wp-more" alt="" title="' + title + '" data-mce-resize="false" data-mce-placeholder="1" />';
+						'class="wp-more-tag mce-wp-more" alt="' + title + '" data-mce-resize="false" data-mce-placeholder="1" />';
 				});
 			}
 
@@ -123,7 +125,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 
 				event.content = event.content.replace( /<!--nextpage-->/g,
 					'<img src="' + tinymce.Env.transparentSrc + '" data-wp-more="nextpage" class="wp-more-tag mce-wp-nextpage" ' +
-						'alt="" title="' + title + '" data-mce-resize="false" data-mce-placeholder="1" />' );
+						'alt="' + title + '" data-mce-resize="false" data-mce-placeholder="1" />' );
 			}
 
 			if ( event.load && event.format !== 'raw' ) {
@@ -142,10 +144,9 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 						'data-wp-preserve="' + encodeURIComponent( match ) + '" ' +
 						'data-mce-resize="false" ' +
 						'data-mce-placeholder="1" '+
-						'class="mce-object" ' +
+						'class="mce-object mce-object-' + tag + '" ' +
 						'width="20" height="20" '+
 						'alt="&lt;' + tag + '&gt;" ' +
-						'title="&lt;' + tag + '&gt;" ' +
 					'/>';
 				} );
 			}
@@ -212,7 +213,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		classname += ' mce-wp-' + tag;
 		title = tag === 'more' ? 'Read more...' : 'Next page';
 		title = __( title );
-		html = '<img src="' + tinymce.Env.transparentSrc + '" alt="" title="' + title + '" class="' + classname + '" ' +
+		html = '<img src="' + tinymce.Env.transparentSrc + '" alt="' + title + '" class="' + classname + '" ' +
 			'data-wp-more="' + tag + '" data-mce-resize="false" data-mce-placeholder="1" />';
 
 		// Most common case.
@@ -251,7 +252,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 
 	editor.addCommand( 'WP_Help', function() {
 		var access = tinymce.Env.mac ? __( 'Ctrl + Alt + letter:' ) : __( 'Shift + Alt + letter:' ),
-			meta = tinymce.Env.mac ? __( 'Cmd + letter:' ) : __( 'Ctrl + letter:' ),
+			meta = tinymce.Env.mac ? __( '⌘ + letter:' ) : __( 'Ctrl + letter:' ),
 			table1 = [],
 			table2 = [],
 			row1 = {},
@@ -540,7 +541,11 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		});
 
 		if ( $ ) {
-			$( document ).triggerHandler( 'tinymce-editor-init', [editor] );
+			// Run on DOM ready. Otherwise TinyMCE may initialize earlier and handlers attached
+			// on DOM ready of after the `tinymce.init()` call may not get triggered.
+			$( function() {
+				$( document ).triggerHandler( 'tinymce-editor-init', [editor] );
+			});
 		}
 
 		if ( window.tinyMCEPreInit && window.tinyMCEPreInit.dragDropUpload ) {
@@ -752,7 +757,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 				tooltip = getTooltip( button.settings.tooltip );
 				button.settings.tooltip = tooltip;
 
-				// Override the aria label wiht the translated tooltip + shortcut.
+				// Override the aria label with the translated tooltip + shortcut.
 				if ( button._aria && button._aria.label ) {
 					button._aria.label = tooltip;
 				}

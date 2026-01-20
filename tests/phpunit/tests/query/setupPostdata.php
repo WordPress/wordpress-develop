@@ -11,20 +11,6 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 
 	protected $pages_global;
 
-	public function setUp() {
-		parent::setUp();
-		return;
-
-		foreach ( $this->global_keys as $global_key ) {
-			if ( isset( $GLOBALS[ $global_key ] ) ) {
-				$this->global_data[ $global_key ] = $GLOBALS[ $global_key ];
-				unset( $GLOBALS[ $global_key ] );
-			} else {
-				$this->global_data[ $global_key ] = null;
-			}
-		}
-	}
-
 	public function test_id() {
 		$p = self::factory()->post->create_and_get();
 		setup_postdata( $p );
@@ -47,7 +33,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 	 * @ticket 30970
 	 */
 	public function test_setup_by_fake_post() {
-		$fake     = new stdClass;
+		$fake     = new stdClass();
 		$fake->ID = 98765;
 		setup_postdata( $fake->ID );
 
@@ -135,6 +121,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -235,6 +224,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'post__in' => array( $post2 ),
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -295,6 +287,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -331,7 +326,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post1 ) );
 		setup_postdata( $post2 );
 
-		$this->assertTrue( empty( $GLOBALS['more'] ) );
+		$this->assertEmpty( $GLOBALS['more'] );
 	}
 
 	/**
@@ -349,7 +344,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $page ) );
 		setup_postdata( $post );
 
-		$this->assertTrue( empty( $GLOBALS['more'] ) );
+		$this->assertEmpty( $GLOBALS['more'] );
 	}
 
 	/**
@@ -381,12 +376,15 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
 
 				// $more should refer to the current loop.
-				$this->assertTrue( empty( $GLOBALS['more'] ) );
+				$this->assertEmpty( $GLOBALS['more'] );
 			}
 		}
 		wp_reset_postdata();
@@ -401,7 +399,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 	 * setup_postdata( $a_post ) followed by the_content() without updating global $post
 	 * should use the content of $a_post rather then the global post.
 	 */
-	function test_setup_postdata_with_the_content() {
+	public function test_setup_postdata_with_the_content() {
 		$post_id                   = self::factory()->post->create( array( 'post_content' => 'global post' ) );
 		$GLOBALS['post']           = get_post( $post_id );
 		$GLOBALS['wp_query']->post = $GLOBALS['post'];

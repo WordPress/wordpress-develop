@@ -8,7 +8,7 @@
  */
 
 /**
- * Upgrader Skin for Automatic WordPress Upgrades
+ * Upgrader Skin for Automatic WordPress Upgrades.
  *
  * This skin is designed to be used when no output is intended, all output
  * is captured and stored for the caller to process and log/email/discard.
@@ -52,29 +52,39 @@ class Automatic_Upgrader_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @return array
+	 * Retrieves the upgrade messages.
+	 *
+	 * @since 3.7.0
+	 *
+	 * @return string[] Messages during an upgrade.
 	 */
 	public function get_upgrade_messages() {
 		return $this->messages;
 	}
 
 	/**
-	 * @param string|array|WP_Error $data
-	 * @param mixed                 ...$args Optional text replacements.
+	 * Stores a message about the upgrade.
+	 *
+	 * @since 3.7.0
+	 * @since 5.9.0 Renamed `$data` to `$feedback` for PHP 8 named parameter support.
+	 *
+	 * @param string|array|WP_Error $feedback Message data.
+	 * @param mixed                 ...$args  Optional text replacements.
 	 */
-	public function feedback( $data, ...$args ) {
-		if ( is_wp_error( $data ) ) {
-			$string = $data->get_error_message();
-		} elseif ( is_array( $data ) ) {
+	public function feedback( $feedback, ...$args ) {
+		if ( is_wp_error( $feedback ) ) {
+			$string = $feedback->get_error_message();
+		} elseif ( is_array( $feedback ) ) {
 			return;
 		} else {
-			$string = $data;
+			$string = $feedback;
 		}
+
 		if ( ! empty( $this->upgrader->strings[ $string ] ) ) {
 			$string = $this->upgrader->strings[ $string ];
 		}
 
-		if ( strpos( $string, '%' ) !== false ) {
+		if ( str_contains( $string, '%' ) ) {
 			if ( ! empty( $args ) ) {
 				$string = vsprintf( $string, $args );
 			}
@@ -103,12 +113,18 @@ class Automatic_Upgrader_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Creates a new output buffer.
+	 *
+	 * @since 3.7.0
 	 */
 	public function header() {
 		ob_start();
 	}
 
 	/**
+	 * Retrieves the buffered content, deletes the buffer, and processes the output.
+	 *
+	 * @since 3.7.0
 	 */
 	public function footer() {
 		$output = ob_get_clean();

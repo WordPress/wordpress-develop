@@ -16,8 +16,24 @@
  * @see Bulk_Upgrader_Skin
  */
 class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
-	public $theme_info = array(); // Theme_Upgrader::bulk_upgrade() will fill this in.
 
+	/**
+	 * Theme info.
+	 *
+	 * The Theme_Upgrader::bulk_upgrade() method will fill this in
+	 * with info retrieved from the Theme_Upgrader::theme_info() method,
+	 * which in turn calls the wp_get_theme() function.
+	 *
+	 * @since 3.0.0
+	 * @var WP_Theme|false The theme's info object, or false.
+	 */
+	public $theme_info = false;
+
+	/**
+	 * Sets up the strings used in the update process.
+	 *
+	 * @since 3.0.0
+	 */
 	public function add_strings() {
 		parent::add_strings();
 		/* translators: 1: Theme name, 2: Number of the theme, 3: Total number of themes being updated. */
@@ -25,6 +41,10 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	}
 
 	/**
+	 * Performs an action before a bulk theme update.
+	 *
+	 * @since 3.0.0
+	 *
 	 * @param string $title
 	 */
 	public function before( $title = '' ) {
@@ -32,6 +52,10 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	}
 
 	/**
+	 * Performs an action following a bulk theme update.
+	 *
+	 * @since 3.0.0
+	 *
 	 * @param string $title
 	 */
 	public function after( $title = '' ) {
@@ -40,6 +64,9 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	}
 
 	/**
+	 * Displays the footer following the bulk update process.
+	 *
+	 * @since 3.0.0
 	 */
 	public function bulk_footer() {
 		parent::bulk_footer();
@@ -48,12 +75,12 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 			'themes_page'  => sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'themes.php' ),
-				__( 'Return to Themes page' )
+				__( 'Go to Themes page' )
 			),
 			'updates_page' => sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'update-core.php' ),
-				__( 'Return to WordPress Updates page' )
+				__( 'Go to WordPress Updates page' )
 			),
 		);
 

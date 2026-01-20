@@ -10,16 +10,15 @@
 /**
  * Fetches an instance of a WP_List_Table class.
  *
- * @access private
  * @since 3.1.0
  *
  * @global string $hook_suffix
  *
- * @param string $class The type of the list table, which is the class name.
- * @param array  $args  Optional. Arguments to pass to the class. Accepts 'screen'.
- * @return WP_List_Table|bool List table object on success, false if the class does not exist.
+ * @param string $class_name The type of the list table, which is the class name.
+ * @param array  $args       Optional. Arguments to pass to the class. Accepts 'screen'.
+ * @return WP_List_Table|false List table object on success, false if the class does not exist.
  */
-function _get_list_table( $class, $args = array() ) {
+function _get_list_table( $class_name, $args = array() ) {
 	$core_classes = array(
 		// Site Admin.
 		'WP_Posts_List_Table'                         => 'posts',
@@ -33,6 +32,7 @@ function _get_list_table( $class, $args = array() ) {
 		'WP_Themes_List_Table'                        => 'themes',
 		'WP_Theme_Install_List_Table'                 => array( 'themes', 'theme-install' ),
 		'WP_Plugins_List_Table'                       => 'plugins',
+		'WP_Application_Passwords_List_Table'         => 'application-passwords',
 
 		// Network Admin.
 		'WP_MS_Sites_List_Table'                      => 'ms-sites',
@@ -44,8 +44,8 @@ function _get_list_table( $class, $args = array() ) {
 		'WP_Privacy_Data_Removal_Requests_List_Table' => 'privacy-data-removal-requests',
 	);
 
-	if ( isset( $core_classes[ $class ] ) ) {
-		foreach ( (array) $core_classes[ $class ] as $required ) {
+	if ( isset( $core_classes[ $class_name ] ) ) {
+		foreach ( (array) $core_classes[ $class_name ] as $required ) {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-' . $required . '-list-table.php';
 		}
 
@@ -57,7 +57,21 @@ function _get_list_table( $class, $args = array() ) {
 			$args['screen'] = null;
 		}
 
-		return new $class( $args );
+		/**
+		 * Filters the list table class to instantiate.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param string $class_name The list table class to use.
+		 * @param array  $args       An array containing _get_list_table() arguments.
+		 */
+		$custom_class_name = apply_filters( 'wp_list_table_class_name', $class_name, $args );
+
+		if ( is_string( $custom_class_name ) && class_exists( $custom_class_name ) ) {
+			$class_name = $custom_class_name;
+		}
+
+		return new $class_name( $args );
 	}
 
 	return false;
@@ -70,9 +84,10 @@ function _get_list_table( $class, $args = array() ) {
  *
  * @since 2.7.0
  *
- * @param string   $screen  The handle for the screen to add help to. This is usually the hook name returned by the
- *                          add_*_page() functions.
- * @param string[] $columns An array of columns with column IDs as the keys and translated column names as the values.
+ * @param string    $screen The handle for the screen to register column headers for. This is
+ *                          usually the hook name returned by the `add_*_page()` functions.
+ * @param string[] $columns An array of columns with column IDs as the keys and translated
+ *                          column names as the values.
  */
 function register_column_headers( $screen, $columns ) {
 	new _WP_List_Table_Compat( $screen, $columns );
