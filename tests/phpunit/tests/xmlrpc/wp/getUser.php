@@ -60,7 +60,6 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 			'display_name'    => 'First Last',
 			'user_url'        => 'http://www.example.com/testuser',
 			'role'            => 'author',
-			'aim'             => 'wordpress',
 			'user_registered' => date_format( date_create( "@{$registered_date}" ), 'Y-m-d H:i:s' ),
 		);
 		$user_id         = wp_insert_user( $user_data );
@@ -98,7 +97,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( $user_data['user_login'], $result['username'] );
 		$this->assertContains( $user_data['role'], $result['roles'] );
 
-		wp_delete_user( $user_id );
+		self::delete_user( $user_id );
 	}
 
 	public function test_no_fields() {

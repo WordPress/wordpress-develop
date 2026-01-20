@@ -3,7 +3,7 @@
 /**
  * Tests for the `wp_is_rest_endpoint()` function.
  *
- * @group rest-api
+ * @group restapi
  * @covers ::wp_is_rest_endpoint
  */
 class Tests_Media_Wp_Is_Rest_Endpoint extends WP_UnitTestCase {

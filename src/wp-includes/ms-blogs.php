@@ -8,6 +8,11 @@
  * @since MU (3.0.0)
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 require_once ABSPATH . WPINC . '/ms-site.php';
 require_once ABSPATH . WPINC . '/ms-network.php';
 
@@ -554,6 +559,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 						'blog-lookup',
 						'blog_meta',
 						'global-posts',
+						'image_editor',
 						'networks',
 						'network-queries',
 						'sites',
@@ -648,6 +654,7 @@ function restore_current_blog() {
 						'blog-lookup',
 						'blog_meta',
 						'global-posts',
+						'image_editor',
 						'networks',
 						'network-queries',
 						'sites',

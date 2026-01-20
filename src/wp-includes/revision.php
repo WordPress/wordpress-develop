@@ -89,8 +89,8 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
 	$revision_data['post_status']   = 'inherit';
 	$revision_data['post_type']     = 'revision';
 	$revision_data['post_name']     = $autosave ? "$post[ID]-autosave-v1" : "$post[ID]-revision-v1"; // "1" is the revisioning system version.
-	$revision_data['post_date']     = isset( $post['post_modified'] ) ? $post['post_modified'] : '';
-	$revision_data['post_date_gmt'] = isset( $post['post_modified_gmt'] ) ? $post['post_modified_gmt'] : '';
+	$revision_data['post_date']     = $post['post_modified'] ?? '';
+	$revision_data['post_date_gmt'] = $post['post_modified_gmt'] ?? '';
 
 	return $revision_data;
 }
@@ -187,7 +187,7 @@ function wp_save_post_revision( $post_id ) {
 			$post_has_changed = false;
 
 			foreach ( array_keys( _wp_post_revision_fields( $post ) ) as $field ) {
-				if ( normalize_whitespace( $post->$field ) !== normalize_whitespace( $latest_revision->$field ) ) {
+				if ( normalize_whitespace( maybe_serialize( $post->$field ) ) !== normalize_whitespace( maybe_serialize( $latest_revision->$field ) ) ) {
 					$post_has_changed = true;
 					break;
 				}
@@ -270,42 +270,34 @@ function wp_save_post_revision( $post_id ) {
  *
  * @since 2.6.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @param int $post_id The post ID.
  * @param int $user_id Optional. The post author ID. Default 0.
  * @return WP_Post|false The autosaved data or false on failure or when no autosave exists.
  */
 function wp_get_post_autosave( $post_id, $user_id = 0 ) {
-	global $wpdb;
-
-	$autosave_name = $post_id . '-autosave-v1';
-	$user_id_query = ( 0 !== $user_id ) ? "AND post_author = $user_id" : null;
-
-	// Construct the autosave query.
-	$autosave_query = "
-		SELECT *
-		FROM $wpdb->posts
-		WHERE post_parent = %d
-		AND post_type = 'revision'
-		AND post_status = 'inherit'
-		AND post_name   = %s " . $user_id_query . '
-		ORDER BY post_date DESC
-		LIMIT 1';
-
-	$autosave = $wpdb->get_results(
-		$wpdb->prepare(
-			$autosave_query,
-			$post_id,
-			$autosave_name
-		)
+	$args = array(
+		'post_type'      => 'revision',
+		'post_status'    => 'inherit',
+		'post_parent'    => $post_id,
+		'name'           => $post_id . '-autosave-v1',
+		'posts_per_page' => 1,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
 	);
 
-	if ( ! $autosave ) {
+	if ( 0 !== $user_id ) {
+		$args['author'] = $user_id;
+	}
+
+	$query = new WP_Query( $args );
+
+	if ( ! $query->have_posts() ) {
 		return false;
 	}
 
-	return get_post( $autosave[0] );
+	return get_post( $query->posts[0] );
 }
 
 /**
@@ -387,7 +379,7 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 		 * Fires once a revision has been saved.
 		 *
 		 * @since 2.6.0
-		 * @since 6.4.0 The post_id parameter was added.
+		 * @since 6.4.0 The `$post_id` parameter was added.
 		 *
 		 * @param int $revision_id Post revision ID.
 		 * @param int $post_id     Post ID.
