@@ -202,7 +202,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 			case '#cdata-section':
 			case '#text':
 				$text_content = $processor->get_modifiable_text();
-				if ( '' === trim( $text_content, " \f\t\r\n" ) ) {
+				if ( '' === $text_content ) {
 					break;
 				}
 				$was_text = true;
