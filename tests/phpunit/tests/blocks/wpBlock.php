@@ -368,19 +368,19 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_provider_test_render_enqueues_scripts_and_styles(): array {
-		$block_markup = '
-			<!-- wp:static -->
-			<div class="static">
-				<!-- wp:static-child -->
-				<div class="static-child">First child</div>
-				<!-- /wp:static-child -->
-				<!-- wp:dynamic /-->
-				<!-- wp:static-child -->
-				<div class="static-child">Last child</div>
-				<!-- /wp:static-child -->
-			</div>
-			<!-- /wp:static -->
-		';
+		$block_markup = <<<'HTML'
+<!-- wp:static -->
+<div class="static">
+	<!-- wp:static-child -->
+	<div class="static-child">First child</div>
+	<!-- /wp:static-child -->
+	<!-- wp:dynamic /-->
+	<!-- wp:static-child -->
+	<div class="static-child">Last child</div>
+	<!-- /wp:static-child -->
+</div>
+<!-- /wp:static -->
+HTML;
 
 		// TODO: Add case where a dynamic block renders other blocks?
 		return array(
