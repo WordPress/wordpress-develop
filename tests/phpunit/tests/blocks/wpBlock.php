@@ -562,9 +562,8 @@ HTML;
 					);
 				},
 				'block_markup'            => '<!-- wp:static --><div class="static"></div><!-- /wp:static -->',
-				'expected_rendered_block' => '
-					<div class="static yes-admin-bar-script-enqueued yes-admin-bar-style-enqueued"></div>
-				',
+				'expected_rendered_block' =>
+					'<div class="static yes-admin-bar-script-enqueued yes-admin-bar-style-enqueued"></div>',
 				'expected_styles'         => array( 'static-view-style', 'admin-bar' ),
 				'expected_scripts'        => array( 'static-view-script', 'admin-bar' ),
 				'expected_script_modules' => array( 'static-view-script-module' ),
