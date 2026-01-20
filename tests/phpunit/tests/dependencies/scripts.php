@@ -2582,7 +2582,7 @@ HTML;
 		$expected  = "<script id='customize-dependency-js-after'>\n";
 		$expected .= "tryCustomizeDependency()\n";
 		$expected .= "//# sourceURL=customize-dependency-js-after\n";
-		$expected .= "</script>";
+		$expected .= '</script>';
 		$this->assertEqualHTMLScriptTagById( $expected, $print_scripts );
 	}
 
