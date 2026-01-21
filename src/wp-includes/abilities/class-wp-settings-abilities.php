@@ -18,7 +18,7 @@ declare( strict_types=1 );
 /**
  * Registers core settings abilities.
  *
- * @since 6.9.0
+ * @since 7.0.0
  * @access private
  */
 class WP_Settings_Abilities {
@@ -26,7 +26,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Available setting groups with show_in_rest enabled.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 * @var array
 	 */
 	private static $available_groups;
@@ -34,7 +34,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Dynamic output schema built from registered settings.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 * @var array
 	 */
 	private static $output_schema;
@@ -50,7 +50,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Registers all settings abilities.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return void
 	 */
@@ -62,7 +62,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Initializes shared data for settings abilities.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return void
 	 */
@@ -75,7 +75,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Gets unique setting groups that have show_in_rest enabled.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return array List of unique group names.
 	 */
@@ -128,7 +128,7 @@ class WP_Settings_Abilities {
 	 * with their types, titles, descriptions, defaults, and any additional
 	 * schema properties from show_in_rest.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return array JSON Schema for the output.
 	 */
@@ -185,7 +185,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Registers the core/get-settings ability.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return void
 	 */
@@ -254,7 +254,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Permission callback for settings abilities.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return bool True if the current user can manage options, false otherwise.
 	 */
@@ -268,7 +268,7 @@ class WP_Settings_Abilities {
 	 * Retrieves all registered settings that are exposed to the REST API,
 	 * grouped by their registration group.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @param array $input {
 	 *     Optional. Input parameters.
@@ -321,7 +321,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Casts a value to the appropriate type based on the setting's registered type.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @param mixed  $value The value to cast.
 	 * @param string $type  The registered type (string, boolean, integer, number, array, object).
