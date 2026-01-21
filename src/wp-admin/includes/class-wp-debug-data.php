@@ -484,7 +484,7 @@ class WP_Debug_Data {
 			} else {
 				$fields['opcode_cache'] = array(
 					'label' => __( 'Opcode cache' ),
-					'value' => ( $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ) ),
+					'value' => $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ),
 					'debug' => $opcache_status['opcache_enabled'],
 				);
 

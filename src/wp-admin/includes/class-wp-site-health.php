@@ -2766,10 +2766,8 @@ class WP_Site_Health {
 		$opcode_cache_enabled = false;
 		if ( function_exists( 'opcache_get_status' ) ) {
 			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discourage -- Warning emitted in failure case.
-			if ( $status ) {
-				if ( true === $status['opcache_enabled'] ) {
-					$opcode_cache_enabled = true;
-				}
+			if ( $status && true === $status['opcache_enabled'] ) {
+				$opcode_cache_enabled = true;
 			}
 		}
 
