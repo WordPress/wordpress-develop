@@ -334,9 +334,9 @@ class WP_Settings_Abilities {
 	 *
 	 * @param mixed  $value The value to cast.
 	 * @param string $type  The registered type (string, boolean, integer, number, array, object).
-	 * @return mixed The cast value.
+	 * @return string|bool|int|float|array The cast value.
 	 */
-	private static function cast_value( $value, string $type ) {
+	private static function cast_value( $value, string $type ): string|bool|int|float|array {
 		switch ( $type ) {
 			case 'boolean':
 				return (bool) $value;
