@@ -104,7 +104,7 @@ if ( 'download_theme' === $action ) {
 
 	// Attempt to extend execution time to allow large theme archives to be created.
 	if ( function_exists( 'set_time_limit' ) ) {
-		@set_time_limit( 300 );
+		@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Disabled to give the server more time to assemble the ZIP file.
 	}
 	// Try native ZipArchive first, fall back to PclZip if needed.
 	if ( class_exists( 'ZipArchive' ) ) {
