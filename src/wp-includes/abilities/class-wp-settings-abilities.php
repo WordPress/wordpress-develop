@@ -40,6 +40,14 @@ class WP_Settings_Abilities {
 	private static $output_schema;
 
 	/**
+	 * Available setting slugs with show_in_rest enabled.
+	 *
+	 * @since 7.0.0
+	 * @var array
+	 */
+	private static $available_slugs;
+
+	/**
 	 * Registers all settings abilities.
 	 *
 	 * @since 6.9.0
@@ -60,6 +68,7 @@ class WP_Settings_Abilities {
 	 */
 	private static function init(): void {
 		self::$available_groups = self::get_available_groups();
+		self::$available_slugs  = self::get_available_slugs();
 		self::$output_schema    = self::build_output_schema();
 	}
 
@@ -87,6 +96,34 @@ class WP_Settings_Abilities {
 		sort( $groups );
 
 		return $groups;
+	}
+
+	/**
+	 * Gets unique setting slugs that have show_in_rest enabled.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return array List of unique setting slugs.
+	 */
+	private static function get_available_slugs(): array {
+		$slugs = array();
+
+		foreach ( get_registered_settings() as $option_name => $args ) {
+			if ( empty( $args['show_in_rest'] ) ) {
+				continue;
+			}
+
+			$rest_name = $option_name;
+			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ) {
+				$rest_name = $args['show_in_rest']['name'];
+			}
+
+			$slugs[] = $rest_name;
+		}
+
+		sort( $slugs );
+
+		return $slugs;
 	}
 
 	/**
@@ -180,9 +217,22 @@ class WP_Settings_Abilities {
 					'properties'           => array(
 						'group' => array(
 							'type'        => 'string',
-							'description' => __( 'Filter settings by group name. If omitted, returns all groups.' ),
+							'description' => __( 'Filter settings by group name. If omitted, returns all groups. Cannot be used with slugs.' ),
 							'enum'        => self::$available_groups,
 						),
+						'slugs' => array(
+							'type'        => 'array',
+							'description' => __( 'Filter settings by specific setting slugs. If omitted, returns all settings. Cannot be used with group.' ),
+							'items'       => array(
+								'type' => 'string',
+								'enum' => self::$available_slugs,
+							),
+						),
+					),
+					'oneOf'                => array(
+						array( 'required' => array( 'group' ) ),
+						array( 'required' => array( 'slugs' ) ),
+						array( 'maxProperties' => 0 ),
 					),
 					'additionalProperties' => false,
 					'default'              => array(),
@@ -224,13 +274,15 @@ class WP_Settings_Abilities {
 	 * @param array $input {
 	 *     Optional. Input parameters.
 	 *
-	 *     @type string $group Optional. Filter settings by group name.
+	 *     @type string   $group Optional. Filter settings by group name. Cannot be used with slugs.
+	 *     @type string[] $slugs Optional. Filter settings by specific setting slugs. Cannot be used with group.
 	 * }
 	 * @return array Settings grouped by registration group.
 	 */
 	public static function execute_get_settings( $input = array() ): array {
 		$input        = is_array( $input ) ? $input : array();
 		$filter_group = ! empty( $input['group'] ) ? $input['group'] : null;
+		$filter_slugs = ! empty( $input['slugs'] ) ? $input['slugs'] : null;
 
 		$registered_settings = get_registered_settings();
 		$settings_by_group   = array();
@@ -249,6 +301,10 @@ class WP_Settings_Abilities {
 			$rest_name = $option_name;
 			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ) {
 				$rest_name = $args['show_in_rest']['name'];
+			}
+
+			if ( $filter_slugs && ! in_array( $rest_name, $filter_slugs, true ) ) {
+				continue;
 			}
 
 			$default = $args['default'] ?? null;
