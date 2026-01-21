@@ -137,7 +137,7 @@ if ( 'download_theme' === $action ) {
 				wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
 			}
 
-			$files_added++;
+			++$files_added;
 		}
 
 		if ( 0 === $files_added ) {
