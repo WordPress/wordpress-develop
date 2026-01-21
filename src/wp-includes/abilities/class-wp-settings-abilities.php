@@ -113,12 +113,7 @@ class WP_Settings_Abilities {
 				continue;
 			}
 
-			$rest_name = $option_name;
-			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ) {
-				$rest_name = $args['show_in_rest']['name'];
-			}
-
-			$slugs[] = $rest_name;
+			$slugs[] = $option_name;
 		}
 
 		sort( $slugs );
@@ -147,11 +142,6 @@ class WP_Settings_Abilities {
 
 			$group = $args['group'] ?? 'general';
 
-			$rest_name = $option_name;
-			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ) {
-				$rest_name = $args['show_in_rest']['name'];
-			}
-
 			$setting_schema = array(
 				'type' => $args['type'] ?? 'string',
 			);
@@ -164,10 +154,6 @@ class WP_Settings_Abilities {
 				$setting_schema['description'] = $args['description'];
 			} elseif ( ! empty( $args['label'] ) ) {
 				$setting_schema['description'] = $args['label'];
-			}
-
-			if ( isset( $args['default'] ) ) {
-				$setting_schema['default'] = $args['default'];
 			}
 
 			if ( ! isset( $group_properties[ $group ] ) ) {
@@ -183,7 +169,7 @@ class WP_Settings_Abilities {
 				);
 			}
 
-			$group_properties[ $group ]['properties'][ $rest_name ] = $setting_schema;
+			$group_properties[ $group ]['properties'][ $option_name ] = $setting_schema;
 		}
 
 		ksort( $group_properties );
@@ -291,19 +277,11 @@ class WP_Settings_Abilities {
 				continue;
 			}
 
-			$rest_name = $option_name;
-			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ) {
-				$rest_name = $args['show_in_rest']['name'];
-			}
-
-			if ( $filter_slugs && ! in_array( $rest_name, $filter_slugs, true ) ) {
+			if ( $filter_slugs && ! in_array( $option_name, $filter_slugs, true ) ) {
 				continue;
 			}
 
 			$default = $args['default'] ?? null;
-			if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema']['default'] ) ) {
-				$default = $args['show_in_rest']['schema']['default'];
-			}
 
 			$value = get_option( $option_name, $default );
 			$value = self::cast_value( $value, $args['type'] ?? 'string' );
@@ -312,7 +290,7 @@ class WP_Settings_Abilities {
 				$settings_by_group[ $group ] = array();
 			}
 
-			$settings_by_group[ $group ][ $rest_name ] = $value;
+			$settings_by_group[ $group ][ $option_name ] = $value;
 		}
 
 		ksort( $settings_by_group );
