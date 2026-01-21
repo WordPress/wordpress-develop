@@ -159,11 +159,6 @@ class WP_Settings_Abilities {
 			if ( ! isset( $group_properties[ $group ] ) ) {
 				$group_properties[ $group ] = array(
 					'type'                 => 'object',
-					'description'          => sprintf(
-						/* translators: %s: Settings group name. */
-						__( '%s settings.' ),
-						ucfirst( $group )
-					),
 					'properties'           => array(),
 					'additionalProperties' => false,
 				);
