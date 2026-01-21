@@ -222,7 +222,48 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'php://input', 'php://input' ),
 			array( 'http://example.com//path.ext', 'http://example.com/path.ext' ),
 			array( 'file://c:\\www\\path\\', 'file://C:/www/path/' ),
+
+			// Edge cases.
+			array( '', '' ), // Empty string should return empty string.
+			array( 123, '123' ), // Integer should be cast to string.
 		);
+	}
+
+	/**
+	 * Tests that wp_normalize_path() works with objects that have __toString().
+	 *
+	 * This is important because the function uses a static cache, and the input
+	 * must be cast to string before being used as an array key.
+	 *
+	 * @ticket 33265
+	 */
+	public function test_wp_normalize_path_with_stringable_object() {
+		$stringable = new class() {
+			public function __toString() {
+				return '/var/www/html\\test';
+			}
+		};
+
+		$this->assertSame( '/var/www/html/test', wp_normalize_path( $stringable ) );
+	}
+
+	/**
+	 * Tests that wp_normalize_path() returns consistent results on repeated calls.
+	 *
+	 * The function uses a static cache, so this verifies cache behavior.
+	 *
+	 * @ticket 33265
+	 */
+	public function test_wp_normalize_path_returns_consistent_results() {
+		$path = 'C:\\www\\path\\';
+
+		$first_call  = wp_normalize_path( $path );
+		$second_call = wp_normalize_path( $path );
+		$third_call  = wp_normalize_path( $path );
+
+		$this->assertSame( $first_call, $second_call, 'Second call should return same result as first.' );
+		$this->assertSame( $second_call, $third_call, 'Third call should return same result as second.' );
+		$this->assertSame( 'C:/www/path/', $first_call, 'Normalized path should match expected value.' );
 	}
 
 	public function test_wp_unique_filename() {

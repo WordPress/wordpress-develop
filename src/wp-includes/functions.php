@@ -2184,6 +2184,14 @@ function path_join( $base, $path ) {
  * @return string Normalized path.
  */
 function wp_normalize_path( $path ) {
+	$path = (string) $path;
+
+	static $cache = array();
+	if ( isset( $cache[ $path ] ) ) {
+		return $cache[ $path ];
+	}
+
+	$original_path = $path;
 	$wrapper = '';
 
 	if ( wp_is_stream( $path ) ) {
@@ -2203,7 +2211,8 @@ function wp_normalize_path( $path ) {
 		$path = ucfirst( $path );
 	}
 
-	return $wrapper . $path;
+	$cache[ $original_path ] = $wrapper . $path;
+	return $cache[ $original_path ];
 }
 
 /**
