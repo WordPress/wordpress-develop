@@ -2568,7 +2568,7 @@ class wpdb {
 	 *                          format is ignored in this case.
 	 * @param string[] $format  Optional. An array of formats to be mapped to each of the values in each row.
 	 *                          A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                          If omitted, all values in `$data` will be treated as strings unless otherwise
+	 *                          If omitted, all values in `$rows` will be treated as strings unless otherwise
 	 *                          specified in wpdb::$field_types. Default empty array.
 	 * @return int|false The number of rows inserted, or false on error.
 	 */

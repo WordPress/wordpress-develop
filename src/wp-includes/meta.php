@@ -228,7 +228,7 @@ function bulk_add_metadata( string $meta_type, int $object_id, array $meta_field
 	$added_keys   = array();
 
 	foreach ( $meta_fields as $meta_key => $meta_value ) {
-		// expected_slashed ($meta_key)
+		// expected_slashed ($meta_key, $meta_value)
 		$meta_key   = wp_unslash( $meta_key );
 		$meta_value = wp_unslash( $meta_value );
 		$meta_value = sanitize_meta( $meta_key, $meta_value, $meta_type, $meta_subtype );
@@ -279,9 +279,9 @@ function bulk_add_metadata( string $meta_type, int $object_id, array $meta_field
 	wp_cache_delete( $object_id, $meta_type . '_meta' );
 
 	foreach ( $data as $datum ) {
-		list( $object_id, $meta_key, $meta_value ) = $datum;
+		list( $row_object_id, $meta_key, $meta_value ) = $datum;
 		/** This action is documented in wp-includes/meta.php */
-		do_action( "added_{$meta_type}_meta", $all_mids[ $meta_key ], $object_id, $meta_key, $meta_value );
+		do_action( "added_{$meta_type}_meta", $all_mids[ $meta_key ], $row_object_id, $meta_key, $meta_value );
 	}
 
 	return $all_mids;
