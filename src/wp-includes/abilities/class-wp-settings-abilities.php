@@ -197,24 +197,44 @@ class WP_Settings_Abilities {
 				'description'         => __( 'Returns registered WordPress settings grouped by their registration group. Returns key-value pairs per setting.' ),
 				'category'            => 'site',
 				'input_schema'        => array(
-					'type'                 => 'object',
-					'properties'           => array(
-						'group' => array(
-							'type'        => 'string',
-							'description' => __( 'Filter settings by group name. If omitted, returns all groups. Cannot be used with slugs.' ),
-							'enum'        => self::$available_groups,
+					'default' => (object) array(),
+					'oneOf'   => array(
+						// Branch 1: No filter (empty object).
+						array(
+							'type'                 => 'object',
+							'additionalProperties' => false,
+							'maxProperties'        => 0,
 						),
-						'slugs' => array(
-							'type'        => 'array',
-							'description' => __( 'Filter settings by specific setting slugs. If omitted, returns all settings. Cannot be used with group.' ),
-							'items'       => array(
-								'type' => 'string',
-								'enum' => self::$available_slugs,
+						// Branch 2: Filter by group only.
+						array(
+							'type'                 => 'object',
+							'properties'           => array(
+								'group' => array(
+									'type'        => 'string',
+									'description' => __( 'Filter settings by group name.' ),
+									'enum'        => self::$available_groups,
+								),
 							),
+							'required'             => array( 'group' ),
+							'additionalProperties' => false,
+						),
+						// Branch 3: Filter by slugs only.
+						array(
+							'type'                 => 'object',
+							'properties'           => array(
+								'slugs' => array(
+									'type'        => 'array',
+									'description' => __( 'Filter settings by specific setting slugs.' ),
+									'items'       => array(
+										'type' => 'string',
+										'enum' => self::$available_slugs,
+									),
+								),
+							),
+							'required'             => array( 'slugs' ),
+							'additionalProperties' => false,
 						),
 					),
-					'additionalProperties' => false,
-					'default'              => array(),
 				),
 				'output_schema'       => self::$output_schema,
 				'execute_callback'    => array( __CLASS__, 'execute_get_settings' ),
