@@ -170,19 +170,16 @@ class WP_Settings_Abilities {
 				$setting_schema['default'] = $args['default'];
 			}
 
-			if ( is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['schema'] ) ) {
-				$setting_schema = array_merge( $setting_schema, $args['show_in_rest']['schema'] );
-			}
-
 			if ( ! isset( $group_properties[ $group ] ) ) {
 				$group_properties[ $group ] = array(
-					'type'        => 'object',
-					'description' => sprintf(
+					'type'                 => 'object',
+					'description'          => sprintf(
 						/* translators: %s: Settings group name. */
 						__( '%s settings.' ),
 						ucfirst( $group )
 					),
-					'properties'  => array(),
+					'properties'           => array(),
+					'additionalProperties' => false,
 				);
 			}
 
@@ -192,9 +189,10 @@ class WP_Settings_Abilities {
 		ksort( $group_properties );
 
 		return array(
-			'type'        => 'object',
-			'description' => __( 'Settings grouped by registration group. Each group contains settings with their current values.' ),
-			'properties'  => $group_properties,
+			'type'                 => 'object',
+			'description'          => __( 'Settings grouped by registration group. Each group contains settings with their current values.' ),
+			'properties'           => $group_properties,
+			'additionalProperties' => false,
 		);
 	}
 
@@ -228,11 +226,6 @@ class WP_Settings_Abilities {
 								'enum' => self::$available_slugs,
 							),
 						),
-					),
-					'oneOf'                => array(
-						array( 'required' => array( 'group' ) ),
-						array( 'required' => array( 'slugs' ) ),
-						array( 'maxProperties' => 0 ),
 					),
 					'additionalProperties' => false,
 					'default'              => array(),
