@@ -188,8 +188,7 @@ if ( 'download_theme' === $action ) {
 	// Send the file to the browser.
 	header( 'Content-Type: application/zip' );
 	$download_filename = sanitize_file_name( $zipname ) . '.zip';
-	$header_filename   = str_replace( array( '\\\\', '"' ), array( '\\\\\\\\', '\\"' ), $download_filename );
-	header( 'Content-Disposition: attachment; filename="' . $header_filename . '"' );
+	header( 'Content-Disposition: attachment; filename="' . $download_filename . '"' );
 	header( 'Content-Length: ' . filesize( $tmpfile ) );
 	readfile( $tmpfile );
 	// Best-effort cleanup of the temporary archive; failure to delete is non-critical.
