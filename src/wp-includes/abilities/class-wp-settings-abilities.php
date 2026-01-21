@@ -192,9 +192,9 @@ class WP_Settings_Abilities {
 				'permission_callback' => array( __CLASS__, 'check_manage_options' ),
 				'meta'                => array(
 					'annotations'  => array(
-						'readOnlyHint'    => true,
-						'destructiveHint' => false,
-						'idempotentHint'  => true,
+						'readonly'    => true,
+						'destructive' => false,
+						'idempotent'  => true,
 					),
 					'show_in_rest' => true,
 				),
