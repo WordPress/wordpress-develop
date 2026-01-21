@@ -83,7 +83,7 @@ class WP_Settings_Abilities {
 		$groups = array();
 
 		foreach ( get_registered_settings() as $args ) {
-			if ( empty( $args['show_in_rest'] ) ) {
+			if ( wp_is_serving_rest_request() && empty( $args['show_in_rest'] ) ) {
 				continue;
 			}
 
@@ -109,7 +109,7 @@ class WP_Settings_Abilities {
 		$slugs = array();
 
 		foreach ( get_registered_settings() as $option_name => $args ) {
-			if ( empty( $args['show_in_rest'] ) ) {
+			if ( wp_is_serving_rest_request() && empty( $args['show_in_rest'] ) ) {
 				continue;
 			}
 
@@ -136,7 +136,7 @@ class WP_Settings_Abilities {
 		$group_properties = array();
 
 		foreach ( get_registered_settings() as $option_name => $args ) {
-			if ( empty( $args['show_in_rest'] ) ) {
+			if ( wp_is_serving_rest_request() && empty( $args['show_in_rest'] ) ) {
 				continue;
 			}
 
@@ -267,7 +267,7 @@ class WP_Settings_Abilities {
 		$settings_by_group   = array();
 
 		foreach ( $registered_settings as $option_name => $args ) {
-			if ( empty( $args['show_in_rest'] ) ) {
+			if ( wp_is_serving_rest_request() && empty( $args['show_in_rest'] ) ) {
 				continue;
 			}
 
