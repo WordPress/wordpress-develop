@@ -88,7 +88,7 @@ if ( 'download_theme' === $action ) {
 		wp_die( '<p>' . __( 'Security check failed.' ) . '</p>' );
 	}
 
-	$theme_dir = $theme->get_stylesheet_directory();
+	$theme_dir = realpath( $theme->get_stylesheet_directory() );
 
 	if ( ! is_dir( $theme_dir ) ) {
 		wp_die( '<p>' . __( 'Theme directory not found.' ) . '</p>' );
@@ -100,12 +100,35 @@ if ( 'download_theme' === $action ) {
 		$zipname .= '.' . $version;
 	}
 
-	$tmpfile = get_temp_dir() . DIRECTORY_SEPARATOR . $zipname . '-' . time() . '.zip';
+	$tmpfile = get_temp_dir() . $zipname . '-' . time() . '.zip';
 
 	// Attempt to extend execution time to allow large theme archives to be created.
 	if ( function_exists( 'set_time_limit' ) ) {
 		@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Disabled to give the server more time to assemble the ZIP file.
 	}
+	$filelist = array();
+	$files    = new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator( $theme_dir, FilesystemIterator::SKIP_DOTS ),
+		RecursiveIteratorIterator::LEAVES_ONLY
+	);
+
+	foreach ( $files as $file ) {
+		// With SKIP_DOTS and LEAVES_ONLY, we don't need to check isDir().
+		$file_path = $file->getRealPath();
+
+		// Ensure path is valid and within theme directory.
+		if ( ! $file_path || ! str_starts_with( $file_path, $theme_dir ) ) {
+			continue;
+		}
+
+		$filelist[] = $file_path;
+	}
+
+	if ( empty( $filelist ) ) {
+		@unlink( $tmpfile );
+		wp_die( '<p>' . __( 'No files found to compress.' ) . '</p>' );
+	}
+
 	// Try native ZipArchive first, fall back to PclZip if needed.
 	if ( class_exists( 'ZipArchive' ) ) {
 		$zip = new ZipArchive();
@@ -114,21 +137,7 @@ if ( 'download_theme' === $action ) {
 			wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
 		}
 
-		$files       = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $theme_dir, FilesystemIterator::SKIP_DOTS ),
-			RecursiveIteratorIterator::LEAVES_ONLY
-		);
-		$files_added = 0;
-
-		foreach ( $files as $file ) {
-			// With SKIP_DOTS and LEAVES_ONLY, we don't need to check isDir().
-			$file_path = $file->getRealPath();
-
-			// Ensure path is valid and within theme directory.
-			if ( ! $file_path || ! str_starts_with( $file_path, $theme_dir ) ) {
-				continue;
-			}
-
+		foreach ( $filelist as $file_path ) {
 			$relative_path = substr( $file_path, strlen( $theme_dir ) + 1 );
 
 			if ( ! $zip->addFile( $file_path, $stylesheet . '/' . $relative_path ) ) {
@@ -136,41 +145,12 @@ if ( 'download_theme' === $action ) {
 				@unlink( $tmpfile );
 				wp_die( '<p>' . __( 'Could not create zip archive.' ) . '</p>' );
 			}
-
-			++$files_added;
 		}
 
-		if ( 0 === $files_added ) {
-			$zip->close();
-			@unlink( $tmpfile );
-			wp_die( '<p>' . __( 'No files found to compress.' ) . '</p>' );
-		}
 		$zip->close();
 	} else {
 		// Use PclZip fallback bundled with WordPress admin.
 		require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
-
-		$filelist = array();
-		$files    = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $theme_dir, FilesystemIterator::SKIP_DOTS ),
-			RecursiveIteratorIterator::LEAVES_ONLY
-		);
-
-		foreach ( $files as $file ) {
-			$file_path = $file->getRealPath();
-
-			// Ensure path is valid and within theme directory.
-			if ( ! $file_path || ! str_starts_with( $file_path, $theme_dir ) ) {
-				continue;
-			}
-
-			$filelist[] = $file_path;
-		}
-
-		if ( empty( $filelist ) ) {
-			@unlink( $tmpfile );
-			wp_die( '<p>' . __( 'No files found to compress.' ) . '</p>' );
-		}
 
 		$archive = new PclZip( $tmpfile );
 		$result  = $archive->create( $filelist, PCLZIP_OPT_REMOVE_PATH, $theme_dir, PCLZIP_OPT_ADD_PATH, $stylesheet );
