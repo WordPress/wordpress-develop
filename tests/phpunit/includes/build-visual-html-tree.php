@@ -237,7 +237,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 							++$indent_level;
 						}
 
-						// If there are no attributes, we're done here.
+						// When no attributes are present, there’s nothing left to do.
 						if ( empty( $block_attrs ) ) {
 							break;
 						}
