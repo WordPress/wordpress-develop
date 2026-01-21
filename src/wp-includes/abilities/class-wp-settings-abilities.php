@@ -322,7 +322,7 @@ class WP_Settings_Abilities {
 	 * @param string $type  The registered type (string, boolean, integer, number, array, object).
 	 * @return string|bool|int|float|array The cast value.
 	 */
-	private static function cast_value( $value, string $type ): string|bool|int|float|array {
+	private static function cast_value( $value, string $type ) {
 		switch ( $type ) {
 			case 'boolean':
 				return (bool) $value;
