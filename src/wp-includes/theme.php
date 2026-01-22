@@ -2134,7 +2134,6 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 
 	// Update post if it already exists, otherwise create a new one.
 	$post = wp_get_custom_css_post( $args['stylesheet'] );
-
 	if ( $post ) {
 		$post_data['ID'] = $post->ID;
 		$r               = wp_update_post( wp_slash( $post_data ), true );
