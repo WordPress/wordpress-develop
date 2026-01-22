@@ -857,7 +857,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		// Check block-specific styles first, then fall back to root styles.
 		$block_name = $block['blockName'] ?? '';
 		if ( null === $global_styles ) {
-			$global_styles = gutenberg_get_global_styles();
+			$global_styles = wp_get_global_styles();
 		}
 		$global_block_gap_value = $global_styles['blocks'][ $block_name ]['spacing']['blockGap'] ?? ( $global_styles['spacing']['blockGap'] ?? null );
 
