@@ -2186,13 +2186,21 @@ function path_join( $base, $path ) {
 function wp_normalize_path( $path ) {
 	$path = (string) $path;
 
-	static $cache = array();
-	if ( isset( $cache[ $path ] ) ) {
-		return $cache[ $path ];
+	static $hot  = array();
+	static $warm = array();
+	static $max  = 100;
+
+	if ( isset( $hot[ $path ] ) ) {
+		return $hot[ $path ];
+	}
+
+	if ( isset( $warm[ $path ] ) ) {
+		$hot[ $path ] = $warm[ $path ];
+		return $hot[ $path ];
 	}
 
 	$original_path = $path;
-	$wrapper = '';
+	$wrapper       = '';
 
 	if ( wp_is_stream( $path ) ) {
 		list( $wrapper, $path ) = explode( '://', $path, 2 );
@@ -2211,8 +2219,17 @@ function wp_normalize_path( $path ) {
 		$path = ucfirst( $path );
 	}
 
-	$cache[ $original_path ] = $wrapper . $path;
-	return $cache[ $original_path ];
+	$value = $wrapper . $path;
+
+	$hot[ $original_path ] = $value;
+
+	// Rotate segments when hot is full.
+	if ( count( $hot ) > $max ) {
+		$warm = $hot;
+		$hot  = array();
+	}
+
+	return $value;
 }
 
 /**
