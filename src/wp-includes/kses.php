@@ -2568,7 +2568,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	$allowed_protocols = wp_allowed_protocols();
 
-	$css_array = explode( ';', trim( $css ) );
+	$css_array = preg_split( '/;(?![^()]*\)|[^"\']*["\'][^"\']*$)/', trim( $css ) );
 
 	/**
 	 * Filters the list of allowed CSS attributes.
