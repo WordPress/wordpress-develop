@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"ref": "892bfad51d2261f44f3a21f934b1c72bd29a2449"
+		"ref": "7bf80ea84eb8b62eceb1bb3fe82e42163673ca79"
 	},
 	"engines": {
 		"node": ">=20.10.0",
@@ -99,7 +99,7 @@
 		"wicg-inert": "3.1.3"
 	},
 	"scripts": {
-		"postinstall": "npm run gutenberg:checkout",
+		"postinstall": "npm run gutenberg:sync && npm run gutenberg:copy -- --dev",
 		"build": "grunt build",
 		"build:dev": "grunt build --dev",
 		"dev": "grunt watch --dev",
@@ -126,7 +126,7 @@
 		"gutenberg:checkout": "node tools/gutenberg/checkout-gutenberg.js",
 		"gutenberg:build": "node tools/gutenberg/build-gutenberg.js",
 		"gutenberg:copy": "node tools/gutenberg/copy-gutenberg-build.js",
-		"gutenberg:integrate": "npm run gutenberg:checkout && npm run gutenberg:build && npm run gutenberg:copy",
+		"gutenberg:sync": "node tools/gutenberg/sync-gutenberg.js",
 		"vendor:copy": "node tools/vendors/copy-vendors.js",
 		"sync-gutenberg-packages": "grunt sync-gutenberg-packages",
 		"postsync-gutenberg-packages": "grunt wp-packages:sync-stable-blocks && grunt build --dev && grunt build"
