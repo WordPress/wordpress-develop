@@ -2135,15 +2135,6 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 	// Update post if it already exists, otherwise create a new one.
 	$post = wp_get_custom_css_post( $args['stylesheet'] );
 
-	/**
-	 * Temporarily remove the {@see wp_filter_post_kses()} `content_save_pre` filter. CSS text is
-	 * stored in post_content, but the filter would process it as HTML and may mangle valid CSS.
-	 */
-	$kses_filter_priority = has_filter( 'content_save_pre', 'wp_filter_post_kses' );
-	if ( false !== $kses_filter_priority ) {
-		remove_filter( 'content_save_pre', 'wp_filter_post_kses', $kses_filter_priority );
-	}
-
 	if ( $post ) {
 		$post_data['ID'] = $post->ID;
 		$r               = wp_update_post( wp_slash( $post_data ), true );
@@ -2161,10 +2152,6 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 				wp_save_post_revision( $r );
 			}
 		}
-	}
-
-	if ( false !== $kses_filter_priority ) {
-		add_filter( 'content_save_pre', 'wp_filter_post_kses', $kses_filter_priority );
 	}
 
 	if ( is_wp_error( $r ) ) {
