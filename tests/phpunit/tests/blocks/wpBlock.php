@@ -708,7 +708,7 @@ HTML
 		);
 
 		// TODO: Why not use do_blocks() instead?
-		$parsed_blocks  = parse_blocks( trim( $block_markup ) );
+		$parsed_blocks  = parse_blocks( $block_markup );
 		$parsed_block   = $parsed_blocks[0];
 		$context        = array();
 		$block          = new WP_Block( $parsed_block, $context, $this->registry );
