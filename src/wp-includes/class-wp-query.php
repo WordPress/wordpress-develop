@@ -796,7 +796,7 @@ class WP_Query {
 	 *                                                   disable cache priming for term meta, so that each
 	 *                                                   get_term_meta() call will hit the database.
 	 *                                                   Defaults to the value of `$update_post_term_cache`.
-	 *     @type int             $w                      The week number of the year. Default empty. Accepts numbers 0-53.
+	 *     @type int             $w                      The week number of the year. Default empty. Accepts numbers 1-53.
 	 *     @type int             $year                   The four-digit year. Default empty. Accepts any four-digit year.
 	 * }
 	 */
@@ -1860,11 +1860,7 @@ class WP_Query {
 	 * @return mixed Contents of the query variable.
 	 */
 	public function get( $query_var, $default_value = '' ) {
-		if ( isset( $this->query_vars[ $query_var ] ) ) {
-			return $this->query_vars[ $query_var ];
-		}
-
-		return $default_value;
+		return $this->query_vars[ $query_var ] ?? $default_value;
 	}
 
 	/**
@@ -1900,8 +1896,8 @@ class WP_Query {
 		 * Fires after the query variable object is created, but before the actual query is run.
 		 *
 		 * Note: If using conditional tags, use the method versions within the passed instance
-		 * (e.g. $this->is_main_query() instead of is_main_query()). This is because the functions
-		 * like is_main_query() test against the global $wp_query instance, not the passed one.
+		 * (e.g. `$query->is_main_query()` instead of `is_main_query()`). This is because the functions
+		 * like `is_main_query()` test against the global `$wp_query` instance, not the passed one.
 		 *
 		 * @since 2.0.0
 		 *
@@ -3019,13 +3015,13 @@ class WP_Query {
 			 */
 			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), &$this ) );
 
-			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
-			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
-			$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
-			$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-			$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
-			$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+			$where    = $clauses['where'] ?? '';
+			$groupby  = $clauses['groupby'] ?? '';
+			$join     = $clauses['join'] ?? '';
+			$orderby  = $clauses['orderby'] ?? '';
+			$distinct = $clauses['distinct'] ?? '';
+			$fields   = $clauses['fields'] ?? '';
+			$limits   = $clauses['limits'] ?? '';
 		}
 
 		/**
@@ -3153,13 +3149,13 @@ class WP_Query {
 			 */
 			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
 
-			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
-			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
-			$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
-			$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-			$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
-			$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+			$where    = $clauses['where'] ?? '';
+			$groupby  = $clauses['groupby'] ?? '';
+			$join     = $clauses['join'] ?? '';
+			$orderby  = $clauses['orderby'] ?? '';
+			$distinct = $clauses['distinct'] ?? '';
+			$fields   = $clauses['fields'] ?? '';
+			$limits   = $clauses['limits'] ?? '';
 		}
 
 		if ( ! empty( $groupby ) ) {
@@ -4066,12 +4062,7 @@ class WP_Query {
 	 */
 	public function get_queried_object_id() {
 		$this->get_queried_object();
-
-		if ( isset( $this->queried_object_id ) ) {
-			return $this->queried_object_id;
-		}
-
-		return 0;
+		return $this->queried_object_id ?? 0;
 	}
 
 	/**
