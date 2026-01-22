@@ -398,6 +398,30 @@ HTML;
 	}
 
 	/**
+	 * Tests that validation errors are caught appropriately.
+	 *
+	 * Note that the $validity \WP_Error object must be reset each time
+	 * as it picks up the Errors and passes them to the next assertion.
+	 *
+	 * @covers WP_Customize_Custom_CSS_Setting::validate
+	 */
+	public function test_validate_basic_css() {
+		// Empty CSS throws no errors.
+		$result = $this->setting->validate( '' );
+		$this->assertTrue( $result );
+
+		// Basic, valid CSS throws no errors.
+		$basic_css = 'body { background: #f00; } h1.site-title { font-size: 36px; } a:hover { text-decoration: none; } input[type="text"] { padding: 1em; }';
+		$result    = $this->setting->validate( $basic_css );
+		$this->assertTrue( $result );
+
+		// Check for illegal closing STYLE tag.
+		$unclosed_comment = $basic_css . '</style>';
+		$result           = $this->setting->validate( $unclosed_comment );
+		$this->assertArrayHasKey( 'illegal_markup', $result->errors );
+	}
+
+	/**
 	 * @ticket 64418
 	 * @covers WP_Customize_Custom_CSS_Setting::validate
 	 */
