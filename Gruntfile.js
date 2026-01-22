@@ -3,7 +3,6 @@
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
-var json2php = require( 'json2php' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -1280,6 +1279,14 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/js/dist/commands.js',
 						],
 						dest: BUILD_DIR + 'wp-includes/js/dist/'
+					},
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/dist/vendor/**/*.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/dist/vendor/'
 					}
 				]
 			}
@@ -1293,7 +1300,9 @@ module.exports = function(grunt) {
 					SOURCE_DIR + '**',
 					'!' + SOURCE_DIR + 'js/**/*.js',
 					// Ignore version control directories.
-					'!' + SOURCE_DIR + '**/.{svn,git}/**'
+					'!' + SOURCE_DIR + '**/.{svn,git}/**',
+					// Ignore third-party plugins.
+					'!' + SOURCE_DIR + 'wp-content/plugins/**'
 				],
 				tasks: ['clean:dynamic', 'copy:dynamic'],
 				options: {
@@ -1413,6 +1422,64 @@ module.exports = function(grunt) {
 		 * Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
 		 */
 		grunt.task.run( 'wp-packages:refresh-deps' );
+	} );
+
+	// Gutenberg integration tasks.
+	grunt.registerTask( 'gutenberg-checkout', 'Checks out the Gutenberg repository.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/checkout-gutenberg.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-build', 'Builds the Gutenberg repository.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/build-gutenberg.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-copy', 'Copies Gutenberg build output to WordPress Core.', function() {
+		const done = this.async();
+		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/copy-gutenberg-build.js', `--build-dir=${ buildDir }` ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-sync', 'Syncs Gutenberg checkout and build if ref has changed.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/sync-gutenberg.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'copy-vendor-scripts', 'Copies vendor scripts from node_modules to wp-includes/js/dist/vendor/.', function() {
+		const done = this.async();
+		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/vendors/copy-vendors.js', `--build-dir=${ buildDir }` ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
 	} );
 
 	grunt.renameTask( 'watch', '_watch' );
@@ -1570,23 +1637,6 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	grunt.registerTask( 'copy:block-json', 'Copies block.json file contents to block-json.php.', function() {
-		var blocks = {};
-		grunt.file.recurse( SOURCE_DIR + 'wp-includes/blocks', function( abspath, rootdir, subdir, filename ) {
-			if ( /^block\.json$/.test( filename ) ) {
-				blocks[ subdir ] = grunt.file.readJSON( abspath );
-			}
-		} );
-		grunt.file.write(
-			SOURCE_DIR + 'wp-includes/blocks/blocks-json.php',
-			'<?php return ' + json2php.make( {
-				linebreak: '\n',
-				indent: '  ',
-				shortArraySyntax: false
-			} )( blocks ) + ';'
-		);
-	} );
-
 	grunt.registerTask( 'copy:js', [
 		'copy:npm-packages',
 		'copy:vendor-js',
@@ -1724,7 +1774,6 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build:files', [
 		'clean:files',
 		'copy:files',
-		'copy:block-json',
 		'copy:version',
 	] );
 
@@ -1854,6 +1903,9 @@ module.exports = function(grunt) {
 			grunt.task.run( [
 				'build:js',
 				'build:css',
+				'gutenberg-sync',
+				'gutenberg-copy',
+				'copy-vendor-scripts',
 				'build:certificates'
 			] );
 		} else {
@@ -1862,6 +1914,9 @@ module.exports = function(grunt) {
 				'build:files',
 				'build:js',
 				'build:css',
+				'gutenberg-sync',
+				'gutenberg-copy',
+				'copy-vendor-scripts',
 				'replace:source-maps',
 				'verify:build'
 			] );
