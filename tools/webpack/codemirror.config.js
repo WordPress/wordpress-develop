@@ -1,5 +1,7 @@
 const path = require( 'path' );
+const webpack = require( 'webpack' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
+const pkg = require( '../../package.json' );
 
 const config = {
 	mode: 'production',
@@ -14,13 +16,30 @@ const config = {
 			new TerserPlugin( {
 				terserOptions: {
 					format: {
-						comments: false,
+						comments: /^\!/,
 					},
 				},
 				extractComments: false,
 			} ),
 		],
 	},
+	plugins: [
+		new webpack.BannerPlugin( {
+			banner: `/*! This file is auto-generated from CodeMirror - v${ pkg.dependencies.codemirror }\n` +
+				`\n` +
+				`CodeMirror, copyright (c) by Marijn Haverbeke and others\n` +
+				`Distributed under an MIT license: http://codemirror.net/LICENSE\n` +
+				`\n` +
+				`This is CodeMirror (http://codemirror.net), a code editor\n` +
+				`implemented in JavaScript on top of the browser's DOM.\n` +
+				`\n` +
+				`You can find some technical background for some of the code below\n` +
+				`at http://marijnhaverbeke.nl/blog/#cm-internals .\n` +
+				`*/\n`,
+			raw: true,
+			entryOnly: true,
+		} ),
+	],
 };
 
 module.exports = config;

@@ -1,10 +1,12 @@
 /* jshint node:true */
 /* jshint esversion: 6 */
+/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
 
 module.exports = function(grunt) {
+	var pkg = grunt.file.readJSON( 'package.json' );
 	var path = require('path'),
 		fs = require( 'fs' ),
 		glob = require( 'glob' ),
@@ -173,7 +175,27 @@ module.exports = function(grunt) {
 			options: {
 				position: 'top',
 				banner: BANNER_TEXT,
-				linebreak: true
+				linebreak: false
+			},
+			codemirror: {
+				options: {
+					banner: `/*! This file is auto-generated from CodeMirror - v${ pkg.dependencies.codemirror }\n` +
+						`\n` +
+						`CodeMirror, copyright (c) by Marijn Haverbeke and others\n` +
+						`Distributed under an MIT license: http://codemirror.net/LICENSE\n` +
+						`\n` +
+						`This is CodeMirror (http://codemirror.net), a code editor\n` +
+						`implemented in JavaScript on top of the browser's DOM.\n` +
+						`\n` +
+						`You can find some technical background for some of the code below\n` +
+						`at http://marijnhaverbeke.nl/blog/#cm-internals .\n` +
+						`*/`
+				},
+				files: {
+					src: [
+						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css'
+					]
+				}
 			},
 			files: {
 				src: [
@@ -1705,6 +1727,7 @@ module.exports = function(grunt) {
 		'webpack:codemirror',
 		'concat:codemirror',
 		'cssmin:codemirror',
+		'usebanner:codemirror',
 		'copy:codemirror'
 	] );
 
