@@ -29,21 +29,22 @@ module.exports = ( env = { buildTarget: 'src/' } ) => {
 						},
 					},
 				extractComments: false,
+					extractComments: false,
+				} ),
+			],
+		},
+		externals: {
+			'csslint': 'window.CSSLint',
+			'htmlhint': 'window.HTMLHint',
+			'jshint': 'window.JSHINT',
+			'jsonlint': 'window.jsonlint',
+		},
+		plugins: [
+			new webpack.BannerPlugin( {
+				banner: codemirrorBanner,
+				raw: true,
+				entryOnly: true,
 			} ),
 		],
-	},
-	externals: {
-		'csslint': 'window.CSSLint',
-		'htmlhint': 'window.HTMLHint',
-		'jshint': 'window.JSHINT',
-		'jsonlint': 'window.jsonlint',
-	},
-			plugins: [
-				new webpack.BannerPlugin( {
-					banner: codemirrorBanner,
-					raw: true,
-					entryOnly: true,
-					include: /codemirror\.min\.js/,
-				} ),
-			],	};
+	};
 };
