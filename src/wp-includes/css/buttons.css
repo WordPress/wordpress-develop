@@ -108,23 +108,24 @@ TABLE OF CONTENTS:
 }
 
 /* Button Icons - Dashicons centering for all button sizes */
+/* Dashicons are 20px font-size, so line-height = target-height / 20 */
 .wp-core-ui .button .dashicons,
 .wp-core-ui .button-primary .dashicons,
 .wp-core-ui .button-secondary .dashicons {
-	line-height: 2.92307692; /* 38px - matches default button */
+	line-height: 1.9; /* 38px (20px * 1.9) - matches default button */
 	vertical-align: top;
 }
 
 .wp-core-ui .button.button-compact .dashicons {
-	line-height: 2.30769231; /* 30px - matches compact button */
+	line-height: 1.5; /* 30px (20px * 1.5) - matches compact button */
 }
 
 .wp-core-ui .button.button-small .dashicons {
-	line-height: 2; /* 22px - matches small button */
+	line-height: 1.1; /* 22px (20px * 1.1) - matches small button */
 }
 
 .wp-core-ui .button.button-hero .dashicons {
-	line-height: 3.28571429; /* 46px - matches hero button */
+	line-height: 2.3; /* 46px (20px * 2.3) - matches hero button */
 }
 
 /* Style Reset buttons as simple text links */
@@ -397,7 +398,7 @@ TABLE OF CONTENTS:
 	.wp-core-ui .button .dashicons,
 	.wp-core-ui .button-primary .dashicons,
 	.wp-core-ui .button-secondary .dashicons {
-		line-height: 2.71428571; /* 38px - matches responsive button */
+		line-height: 1.9; /* 38px (20px * 1.9) - matches responsive button */
 	}
 
 	/* Copy attachment URL button in the legacy edit media page. */
