@@ -75,7 +75,7 @@
 	"dependencies": {
 		"backbone": "1.6.0",
 		"clipboard": "2.0.11",
-		"codemirror": "5.65.18",
+		"codemirror": "5.65.20",
 		"core-js-url-browser": "3.6.4",
 		"csslint": "1.0.5",
 		"element-closest": "3.0.2",
