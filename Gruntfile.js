@@ -179,7 +179,7 @@ module.exports = function(grunt) {
 			},
 			codemirror: {
 				options: {
-					linebreak: true,
+					linebreak: false,
 					banner: `/*! This file is auto-generated from CodeMirror - v${ pkg.dependencies.codemirror }\n` +
 						`\n` +
 						`CodeMirror, copyright (c) by Marijn Haverbeke and others\n` +
@@ -194,7 +194,7 @@ module.exports = function(grunt) {
 				},
 				files: {
 					src: [
-						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.css'
+						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css'
 					]
 				}
 			},
@@ -605,13 +605,20 @@ module.exports = function(grunt) {
 				compatibility: 'ie11'
 			},
 			codemirror: {
-				expand: true,
-				cwd: WORKING_DIR,
-				dest: WORKING_DIR,
-				ext: '.min.css',
-				src: [
-					'wp-includes/js/codemirror/codemirror.css',
-				]
+				files: {
+					[ WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css' ]: [
+						'node_modules/codemirror/lib/codemirror.css',
+						'node_modules/codemirror/addon/hint/show-hint.css',
+						'node_modules/codemirror/addon/lint/lint.css',
+						'node_modules/codemirror/addon/dialog/dialog.css',
+						'node_modules/codemirror/addon/display/fullscreen.css',
+						'node_modules/codemirror/addon/fold/foldgutter.css',
+						'node_modules/codemirror/addon/merge/merge.css',
+						'node_modules/codemirror/addon/scroll/simplescrollbars.css',
+						'node_modules/codemirror/addon/search/matchesonscrollbar.css',
+						'node_modules/codemirror/addon/tern/tern.css'
+					]
+				}
 			},
 			core: {
 				expand: true,
@@ -976,26 +983,6 @@ module.exports = function(grunt) {
 			codemirror: require( './tools/webpack/codemirror.config.js' ),
 		},
 		concat: {
-			codemirror: {
-				options: {
-					process: function( src, filepath ) {
-						return '/* Source: ' + filepath.replace( 'node_modules/', '' ) + '*/\n' + src;
-					}
-				},
-				src: [
-					'node_modules/codemirror/lib/codemirror.css',
-					'node_modules/codemirror/addon/hint/show-hint.css',
-					'node_modules/codemirror/addon/lint/lint.css',
-					'node_modules/codemirror/addon/dialog/dialog.css',
-					'node_modules/codemirror/addon/display/fullscreen.css',
-					'node_modules/codemirror/addon/fold/foldgutter.css',
-					'node_modules/codemirror/addon/merge/merge.css',
-					'node_modules/codemirror/addon/scroll/simplescrollbars.css',
-					'node_modules/codemirror/addon/search/matchesonscrollbar.css',
-					'node_modules/codemirror/addon/tern/tern.css',
-				],
-				dest: WORKING_DIR + 'wp-includes/js/codemirror/codemirror.css'
-			},
 			tinymce: {
 				options: {
 					separator: '\n',
@@ -1726,9 +1713,8 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'build:codemirror', [
 		'webpack:codemirror',
-		'concat:codemirror',
-		'usebanner:codemirror',
 		'cssmin:codemirror',
+		'usebanner:codemirror',
 		'copy:codemirror'
 	] );
 
