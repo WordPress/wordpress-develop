@@ -2179,31 +2179,122 @@ function path_join( $base, $path ) {
  * @since 4.4.0 Ensures upper-case drive letters on Windows systems.
  * @since 4.5.0 Allows for Windows network shares.
  * @since 4.9.7 Allows for PHP file wrappers.
+ * @since 7.0.0 Scheme separators for non-registered stream wrappers are preserved,
+ *              and Windows drive letters are upper-cased when not at the start of path.
  *
  * @param string $path Path to normalize.
  * @return string Normalized path.
  */
 function wp_normalize_path( $path ) {
-	$wrapper = '';
-
-	if ( wp_is_stream( $path ) ) {
-		list( $wrapper, $path ) = explode( '://', $path, 2 );
-
-		$wrapper .= '://';
+	if ( ! is_string( $path ) || '' === $path ) {
+		return '';
 	}
 
-	// Standardize all paths to use '/'.
-	$path = str_replace( '\\', '/', $path );
+	$given_path = $path;
 
-	// Replace multiple slashes down to a singular, allowing for network shares having two slashes.
-	$path = preg_replace( '|(?<=.)/+|', '/', $path );
+	/*
+	 * Normalize backslashes to forward slashes.
+	 * These typically only appear on Windows-based systems.
+	 *
+	 * Example:
+	 *
+	 *     "C:\My Documents\paper.pdf" -> "C:/My Documents/paper.pdf"
+	 */
+	$path = strtr( $path, '\\', '/' );
 
-	// Windows paths should uppercase the drive letter.
-	if ( ':' === substr( $path, 1, 1 ) ) {
-		$path = ucfirst( $path );
+	$end           = strlen( $path );
+	$at            = 0;
+	$was_at        = $at;
+	$start_of_path = 0;
+	$normalized    = '';
+	$has_stream    = false;
+
+	/*
+	 * Valid protocol names must contain alphanumerics, dots (.), plusses (+), or hyphens (-) only.
+	 *
+	 * PHP accepts single-character protocol names, which means this conflates with Windows
+	 * drive-letter paths. This code assumes that any valid scheme will have a protocol name
+	 * longer than one letter in order to disambiguate.
+	 *
+	 * Example:
+	 *
+	 *     - "h⃨t⃨t⃨p⃨s⃨://wordpress.org"
+	 *     - "f⃨i⃨l⃨e⃨:///home/www/wp-content/uploads/2026/01/atat.png"
+	 *     - "f⃨i⃨l⃨e⃨:////Accounting/Reports/2025-taxes.xlsx"
+	 *     - "f⃨t⃨p⃨://server.domain/share/path/query.php"
+	 */
+	$protocol_length = strspn( $path, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.+-' );
+	if ( $protocol_length > 1 && 0 === substr_compare( $given_path, '://', $protocol_length, 3 ) ) {
+		$at            = $protocol_length + 3;
+		$start_of_path = $at;
+		$has_stream    = true;
 	}
 
-	return $wrapper . $path;
+	/*
+	 * Skip the leading double-slash of any network shares.
+	 *
+	 * Example:
+	 *
+	 *     - "//path/to/file"
+	 *        ┄┄
+	 *     - "file:////path/to/file"
+	 *               ┄┄
+	 */
+	if ( 0 === substr_compare( $path, '//', $at, 2 ) ) {
+		$at += 2;
+	}
+
+	/*
+	 * Loop through the rest of the path, replacing a sequence of
+	 * slashes with a single slash.
+	 *
+	 * Example:
+	 *
+	 *     "/var/www/////domain.local/web/root///wp-includes//"
+	 *         becomes
+	 *     "/var/www/domain.local/web/root/wp-includes/"
+	 */
+	while ( $at < $end ) {
+		$next_slash_at = strpos( $path, '//', $at );
+		if ( false === $next_slash_at ) {
+			break;
+		}
+
+		$slash_count = strspn( $path, '/', $next_slash_at );
+		$at          = $next_slash_at + $slash_count;
+		$normalized .= substr( $path, $was_at, $next_slash_at - $was_at + 1 );
+		$was_at      = $at;
+	}
+
+	if ( $was_at < $end ) {
+		$normalized = $was_at > 0
+			? ( $normalized . substr( $path, $was_at ) )
+			: $path;
+	}
+
+	/*
+	 * When provided Windows drive letter prefixes, ensure that they are uppercased.
+	 * At this point the slashes will have already been normalized.
+	 *
+	 * Example:
+	 *
+	 *     "d:/blog/index.php"            -> "D:/blog/index.php"
+	 *     "file://d:/blog/index.php"     -> "file://D:/blog/index.php"
+	 *     "//?/d:/blog/index.php"        -> "//?/D:/blog/index.php"
+	 *     "file:////?/d:/blog/index.php" -> "file:////?/D:/blog/index.php"
+	 */
+	$first_colon_in_path = $end > $start_of_path ? strpos( $given_path, ':', $start_of_path ) : false;
+	if ( false !== $first_colon_in_path && ( ! $has_stream || str_starts_with( $given_path, 'file://' ) ) ) {
+		$is_long_path = 0 === substr_compare( $given_path, '//?/', $start_of_path, 4 );
+		$drive_at     = $start_of_path + ( $is_long_path ? 4 : 0 );
+		$drive        = $normalized[ $drive_at ];
+
+		if ( ( $drive_at + 1 === $first_colon_in_path ) && $drive >= 'a' && $drive <= 'z' ) {
+			$normalized[ $drive_at ] = strtoupper( $normalized[ $drive_at ] );
+		}
+	}
+
+	return $normalized;
 }
 
 /**

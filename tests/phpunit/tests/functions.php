@@ -209,6 +209,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'c:/www/path', 'C:/www/path' ),
 			array( 'c:\\www\\path\\', 'C:/www/path/' ), // Uppercase drive letter.
 			array( 'c:\\\\www\\path\\', 'C:/www/path/' ),
+			array( '//?/c:\\www\\path\\', '//?/C:/www/path/' ), // Uppercase drive letter in long path.
+			array( 'file://c:\\www\\path\\', 'file://C:/www/path/' ), // Uppercase drive letter in file protocol.
+			array( 'file:\\\\c:\\www\\path\\', 'file:/c:/www/path/' ), // No uppercase drive letter in non-protocol.
+			array( 'http://c:\\www\\path\\', 'http://c:/www/path/' ), // No uppercase drive letter in other protocols.
 			array( '\\\\Domain\\DFSRoots\\share\\path\\', '//Domain/DFSRoots/share/path/' ),
 			array( '\\\\Server\\share\\path', '//Server/share/path' ),
 			array( '\\\\Server\\share', '//Server/share' ),
@@ -222,6 +226,8 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'php://input', 'php://input' ),
 			array( 'http://example.com//path.ext', 'http://example.com/path.ext' ),
 			array( 'file://c:\\www\\path\\', 'file://C:/www/path/' ),
+			array( 'file:\\\\c:\\My Documents', 'file:/c:/My Documents' ), // Stream wrappers must use forward slashes.
+			array( 'https:\\\\wordpress.org', 'https:/wordpress.org' ), // Stream wrappers must use forward slashes.
 		);
 	}
 
