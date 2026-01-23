@@ -77,6 +77,7 @@ TREE;
 
 	/**
 	 * @ticket 63527
+	 * @ticket 64531
 	 *
 	 * @covers ::build_visual_html_tree
 	 *
