@@ -294,7 +294,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	/**
 	 * Tests that non-string values are rejected without causing fatal errors.
 	 *
-	 * @ticket 56467
+	 * @ticket 64545
 	 *
 	 * @covers ::add_declaration
 	 */
