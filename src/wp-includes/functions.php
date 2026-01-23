@@ -2186,7 +2186,9 @@ function path_join( $base, $path ) {
  * @return string Normalized path.
  */
 function wp_normalize_path( $path ) {
-	if ( ! is_string( $path ) || '' === $path ) {
+	$path = (string) $path;
+
+	if ( '' === $path ) {
 		return '';
 	}
 
