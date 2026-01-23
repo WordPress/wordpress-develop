@@ -5,10 +5,11 @@ const webpack = require( 'webpack' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
 const codemirrorBanner = require( './codemirror-banner' );
 
-module.exports = ( env ) => {
+module.exports = ( env = { buildTarget: 'src/' } ) => {
 	const buildTarget = env.buildTarget || 'src/';
 
 	return {
+		target: 'browserslist',
 		mode: 'production',
 		entry: './tools/vendors/codemirror-entry.js',
 		output: {
