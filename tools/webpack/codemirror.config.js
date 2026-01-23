@@ -1,3 +1,5 @@
+/* jshint node:true */
+/* jshint esversion: 6 */
 const path = require( 'path' );
 const webpack = require( 'webpack' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
@@ -16,7 +18,7 @@ const config = {
 			new TerserPlugin( {
 				terserOptions: {
 					format: {
-						comments: /^\!/,
+						comments: /^!/,
 					},
 				},
 				extractComments: false,
