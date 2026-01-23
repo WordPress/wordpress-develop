@@ -204,4 +204,39 @@ EOF;
 		);
 		$this->assertSame( $expected, trim( $archives ) );
 	}
+
+	/**
+	 * @ticket 64304
+	 */
+	public function test_wp_get_archives_args_filter() {
+		// Test that the filter can modify the limit argument.
+		add_filter(
+			'wp_get_archives_args',
+			static function ( $args ) {
+				$args['limit'] = 3;
+				return $args;
+			}
+		);
+
+		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
+
+		$expected = join(
+			"\n",
+			array_map(
+				static function ( $id ) {
+					return sprintf( '<li><a href="%s">%s</a></li>', get_permalink( $id ), get_the_title( $id ) );
+				},
+				$ids
+			)
+		);
+		$archives = wp_get_archives(
+			array(
+				'echo'  => false,
+				'type'  => 'postbypost',
+				'limit' => 5, // This should be overridden by the filter to 3.
+			)
+		);
+
+		$this->assertEqualHTML( $expected, $archives );
+	}
 }

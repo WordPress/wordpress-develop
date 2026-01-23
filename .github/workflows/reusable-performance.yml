@@ -347,7 +347,7 @@ jobs:
         env:
           BASE_SHA: ${{ steps.base-sha.outputs.result }}
           CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
-          HOST_NAME: "www.codevitals.run"
+          HOST_NAME: "codevitals.run"
         run: |
           if [ -z "$CODEVITALS_PROJECT_TOKEN" ]; then
             echo "Performance results could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set"

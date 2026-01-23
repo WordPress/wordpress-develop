@@ -280,7 +280,7 @@ function twentynineteen_scripts() {
 			'twentynineteen-touch-navigation',
 			get_theme_file_uri( '/js/touch-keyboard-navigation.js' ),
 			array(),
-			'20230621',
+			'20250802',
 			array(
 				'in_footer' => true,
 				'strategy'  => 'defer',
@@ -349,7 +349,7 @@ function twentynineteen_colors_css_wrap() {
 	}
 	?>
 
-	<style type="text/css" id="custom-theme-colors" <?php echo is_customize_preview() ? 'data-hue="' . absint( $primary_color ) . '"' : ''; ?>>
+	<style id="custom-theme-colors" <?php echo is_customize_preview() ? 'data-hue="' . absint( $primary_color ) . '"' : ''; ?>>
 		<?php echo twentynineteen_custom_colors_css(); ?>
 	</style>
 	<?php
