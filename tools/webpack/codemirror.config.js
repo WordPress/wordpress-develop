@@ -11,10 +11,13 @@ module.exports = ( env = { buildTarget: 'src/' } ) => {
 	return {
 		target: 'browserslist',
 		mode: 'production',
-		entry: './tools/vendors/codemirror-entry.js',
+		entry: {
+			'codemirror.min': './tools/vendors/codemirror-entry.js',
+			'espree.min': './tools/vendors/espree-entry.js',
+		},
 		output: {
 			path: path.resolve( __dirname, '../../', buildTarget, 'wp-includes/js/codemirror' ),
-			filename: 'codemirror.min.js',
+			filename: '[name].js',
 		},
 		optimization: {
 			minimize: true,

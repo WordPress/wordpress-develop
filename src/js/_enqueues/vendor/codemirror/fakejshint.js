@@ -1,4 +1,4 @@
-// JSHINT has some GPL Compatability issues, so we are faking it out and using esprima for validation
+// JSHINT has some GPL Compatability issues, so we are faking it out and using espree for validation
 // Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed
 
 var fakeJSHINT = new function() {
@@ -15,9 +15,13 @@ var fakeJSHINT = new function() {
 	};
 	this.parse = function( code ){
 		try {
-			syntax = window.esprima.parse(code, { tolerant: true, loc: true });
+			syntax = window.espree.parse(code, {
+				ecmaVersion: 'latest',
+				loc: true,
+				sourceType: 'module'
+			});
 			errors = syntax.errors;
-			if ( errors.length > 0 ) {
+			if ( errors && errors.length > 0 ) {
 				for ( var i = 0; i < errors.length; i++) {
 					var error = errors[i];
 					that.data.push( that.convertError( error ) );
