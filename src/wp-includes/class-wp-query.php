@@ -2414,7 +2414,7 @@ class WP_Query {
 
 		// Author stuff for nice URLs.
 
-		if ( '' !== $query_vars['author_name'] ) {
+		if ( '' !== $query_vars['author_name'] && is_string( $query_vars['author_name'] ) ) {
 			if ( str_contains( $query_vars['author_name'], '/' ) ) {
 				$query_vars['author_name'] = explode( '/', $query_vars['author_name'] );
 				if ( $query_vars['author_name'][ count( $query_vars['author_name'] ) - 1 ] ) {
@@ -4035,7 +4035,7 @@ class WP_Query {
 			$this->queried_object_id = (int) $this->post->ID;
 		} elseif ( $this->is_author ) {
 			$author      = (int) $this->get( 'author' );
-			$author_name = $this->get( 'author_name' );
+			$author_name = ( is_string( $this->get( 'author_name' ) ) ) ? $this->get( 'author_name' ) :  false;
 
 			if ( $author ) {
 				$this->queried_object_id = $author;
