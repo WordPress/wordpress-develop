@@ -247,7 +247,7 @@ JS;
 		wp_enqueue_script( 'main-script-a2', '/main-script-a2.js', array( 'dependency-script-a2' ), null, compact( 'strategy' ) );
 		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script id='dependency-script-a2-js' src='/dependency-script-a2.js' type='text/javascript'></script>\n";
-		$expected .= "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>";
+		$expected .= "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Dependents of a blocking dependency are free to have any strategy.' );
 	}
 
@@ -269,8 +269,9 @@ JS;
 		wp_enqueue_script( 'dependent-script-a3', '/dependent-script-a3.js', array( 'main-script-a3' ), null );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = <<<JS
-			<script type='text/javascript' src='/main-script-a3.js' id='main-script-a3-js' data-wp-strategy='{$strategy}'></script>
-			<script id="dependent-script-a3-js" src="/dependent-script-a3.js" type="text/javascript"></script>
+<script type='text/javascript' src='/main-script-a3.js' id='main-script-a3-js' data-wp-strategy='{$strategy}'></script>
+<script id="dependent-script-a3-js" src="/dependent-script-a3.js" type="text/javascript"></script>
+
 JS;
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Blocking dependents must force delayed dependencies to become blocking.' );
 	}
@@ -1353,22 +1354,20 @@ HTML
 		return array(
 			'enqueue_bajo' => array(
 				'enqueues' => array( 'bajo' ),
-				'expected' => '<script fetchpriority="low" id="bajo-js" src="/bajo.js" type="text/javascript"></script>',
+				'expected' => "<script fetchpriority='low' id='bajo-js' src='/bajo.js' type='text/javascript'></script>\n",
 			),
 			'enqueue_auto' => array(
 				'enqueues' => array( 'auto' ),
-				'expected' => '
-					<script type="text/javascript" src="/bajo.js" id="bajo-js" data-wp-fetchpriority="low"></script>
-					<script type="text/javascript" src="/auto.js" id="auto-js"></script>
-				',
+				'expected' =>
+					"<script type='text/javascript' src='/bajo.js' id='bajo-js' data-wp-fetchpriority='low'></script>\n" .
+					"<script type='text/javascript' src='/auto.js' id='auto-js'></script>\n",
 			),
 			'enqueue_alto' => array(
 				'enqueues' => array( 'alto' ),
-				'expected' => '
-					<script type="text/javascript" src="/bajo.js" id="bajo-js" fetchpriority="high" data-wp-fetchpriority="low"></script>
-					<script type="text/javascript" src="/auto.js" id="auto-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
-					<script type="text/javascript" src="/alto.js" id="alto-js" fetchpriority="high"></script>
-				',
+				'expected' =>
+					"<script type='text/javascript' src='/bajo.js' id='bajo-js' fetchpriority='high' data-wp-fetchpriority='low'></script>\n" .
+					"<script type='text/javascript' src='/auto.js' id='auto-js' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n" .
+					"<script type='text/javascript' src='/alto.js' id='alto-js' fetchpriority='high'></script>\n",
 			),
 		);
 	}
@@ -1422,16 +1421,17 @@ HTML
 		wp_enqueue_script( 'x' );
 
 		$actual   = get_echo( 'wp_print_scripts' );
-		$expected = '
-			<script type="text/javascript" src="/z.js" id="z-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
-			<script type="text/javascript" src="/d.js" id="d-js" fetchpriority="high"></script>
-			<script type="text/javascript" src="/e.js" id="e-js"></script>
-			<script type="text/javascript" src="/c.js" id="c-js"></script>
-			<script type="text/javascript" src="/b.js" id="b-js"></script>
-			<script type="text/javascript" src="/a.js" id="a-js" fetchpriority="low"></script>
-			<script type="text/javascript" src="/y.js" id="y-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
-			<script type="text/javascript" src="/x.js" id="x-js" fetchpriority="high"></script>
-		';
+		$expected = <<<'HTML'
+<script type="text/javascript" src="/z.js" id="z-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+<script type="text/javascript" src="/d.js" id="d-js" fetchpriority="high"></script>
+<script type="text/javascript" src="/e.js" id="e-js"></script>
+<script type="text/javascript" src="/c.js" id="c-js"></script>
+<script type="text/javascript" src="/b.js" id="b-js"></script>
+<script type="text/javascript" src="/a.js" id="a-js" fetchpriority="low"></script>
+<script type="text/javascript" src="/y.js" id="y-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+<script type="text/javascript" src="/x.js" id="x-js" fetchpriority="high"></script>
+
+HTML;
 		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
 	}
 
@@ -1487,7 +1487,7 @@ HTML
 
 		$actual = $this->normalize_markup_for_snapshot( get_echo( array( $wp_scripts, 'print_scripts' ) ) );
 		$this->assertEqualHTML(
-			'<script type="text/javascript" src="/wp-includes/js/comment-reply.js" id="comment-reply-js" async="async" data-wp-strategy="async" fetchpriority="low"></script>',
+			"<script type='text/javascript' src='/wp-includes/js/comment-reply.js' id='comment-reply-js' async='async' data-wp-strategy='async' fetchpriority='low'></script>\n",
 			$actual,
 			'<body>',
 			"Snapshot:\n$actual"
@@ -1524,7 +1524,7 @@ HTML
 
 		$this->assertEqualHTML(
 			sprintf(
-				'<script type="text/javascript" src="%s" id="comment-reply-js" async="async" data-wp-strategy="async" fetchpriority="low"></script>',
+				"<script type='text/javascript' src='%s' id='comment-reply-js' async='async' data-wp-strategy='async' fetchpriority='low'></script>\n",
 				includes_url( 'js/comment-reply.js' )
 			),
 			$markup
@@ -2283,6 +2283,7 @@ console.log("before");
 //# sourceURL=test-example-js-before
 /* ]]> */
 </script>
+
 HTML;
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 
@@ -2304,6 +2305,7 @@ console.log("after");
 //# sourceURL=test-example-js-after
 /* ]]> */
 </script>
+
 HTML;
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
@@ -3654,10 +3656,9 @@ HTML;
 					wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => true ) );
 				},
 				'expected_header'    => '',
-				'expected_footer'    => '
-					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js"></script>
-				',
+				'expected_footer'    =>
+					"<script type='text/javascript' src='https://example.com/script-a.js' id='script-a-js' data-wp-strategy='defer'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-b.js' id='script-b-js'></script>\n",
 				'expected_in_footer' => array(
 					'script-a',
 					'script-b',
@@ -3675,10 +3676,9 @@ HTML;
 					wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => true ) );
 				},
 				'expected_header'    => '',
-				'expected_footer'    => '
-					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="async"></script>
-					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js"></script>
-				',
+				'expected_footer'    =>
+					"<script type='text/javascript' src='https://example.com/script-a.js' id='script-a-js' data-wp-strategy='async'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-b.js' id='script-b-js'></script>\n",
 				'expected_in_footer' => array(
 					'script-a',
 					'script-b',
@@ -3695,10 +3695,9 @@ HTML;
 					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => false ) );
 				},
-				'expected_header'    => '
-					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js"></script>
-				',
+				'expected_header'    =>
+					"<script type='text/javascript' src='https://example.com/script-a.js' id='script-a-js' data-wp-strategy='defer'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-b.js' id='script-b-js'></script>\n",
 				'expected_footer'    => '',
 				'expected_in_footer' => array(),
 				'expected_groups'    => array(
@@ -3722,12 +3721,10 @@ HTML;
 						)
 					);
 				},
-				'expected_header'    => '
-					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" defer="defer" data-wp-strategy="defer"></script>
-				',
-				'expected_footer'    => '
-					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
-				',
+				'expected_header'    =>
+					"<script type='text/javascript' src='https://example.com/script-a.js' id='script-a-js' defer='defer' data-wp-strategy='defer'></script>\n",
+				'expected_footer'    =>
+					"<script type='text/javascript' src='https://example.com/script-b.js' id='script-b-js' defer='defer' data-wp-strategy='defer'></script>\n",
 				'expected_in_footer' => array(
 					'script-b',
 				),
@@ -3772,14 +3769,12 @@ HTML;
 						)
 					);
 				},
-				'expected_header'    => '
-					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" defer="defer" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
-				',
-				'expected_footer'    => '
-					<script type="text/javascript" src="https://example.com/script-c.js" id="script-c-js" defer="defer" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
-				',
+				'expected_header'    =>
+					"<script type='text/javascript' src='https://example.com/script-a.js' id='script-a-js' defer='defer' data-wp-strategy='defer'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-b.js' id='script-b-js' defer='defer' data-wp-strategy='defer'></script>\n",
+				'expected_footer'    =>
+					"<script type='text/javascript' src='https://example.com/script-c.js' id='script-c-js' defer='defer' data-wp-strategy='defer'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-d.js' id='script-d-js' defer='defer' data-wp-strategy='defer'></script>\n",
 				'expected_in_footer' => array(
 					'script-c',
 					'script-d',
@@ -3819,12 +3814,11 @@ HTML;
 					);
 				},
 				'expected_header'    => '',
-				'expected_footer'    => '
-					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-c.js" id="script-c-js"></script>
-					<script type="text/javascript" src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
-				',
+				'expected_footer'    =>
+					"<script type='text/javascript' src='https://example.com/script-a.js' id='script-a-js' data-wp-strategy='defer'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-b.js' id='script-b-js' defer='defer' data-wp-strategy='defer'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-c.js' id='script-c-js'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-d.js' id='script-d-js' defer='defer' data-wp-strategy='defer'></script>\n",
 				'expected_in_footer' => array(
 					'script-a',
 					'script-b',
@@ -3866,14 +3860,12 @@ HTML;
 						)
 					);
 				},
-				'expected_header'    => '
-					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
-				',
-				'expected_footer'    => '
-					<script type="text/javascript" src="https://example.com/script-c.js" id="script-c-js"></script>
-					<script type="text/javascript" src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
-				',
+				'expected_header'    =>
+					"<script type='text/javascript' src='https://example.com/script-a.js' id='script-a-js' data-wp-strategy='defer'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-b.js' id='script-b-js' defer='defer' data-wp-strategy='defer'></script>\n",
+				'expected_footer'    =>
+					"<script type='text/javascript' src='https://example.com/script-c.js' id='script-c-js'></script>\n" .
+					"<script type='text/javascript' src='https://example.com/script-d.js' id='script-d-js' defer='defer' data-wp-strategy='defer'></script>\n",
 				'expected_in_footer' => array(
 					'script-c',
 					'script-d',
@@ -4087,6 +4079,7 @@ HTML;
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected = <<<HTML
+
 <script>
 /* <![CDATA[ */
 var one = {"key":"val"};var two = {"key":"val"};
