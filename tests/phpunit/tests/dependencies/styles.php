@@ -814,4 +814,36 @@ HTML;
 
 		$this->assertEqualHTML( $expected, $printed );
 	}
+
+	/**
+	 * Tests that WP_Styles emits a _doing_it_wrong() notice for missing dependencies.
+	 *
+	 * @ticket 64229
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_wp_style_doing_it_wrong_for_missing_dependencies() {
+		$expected_incorrect_usage = 'WP_Styles::add';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		wp_enqueue_style(
+			'main-style',
+			'/main-style.css',
+			array( 'missing-style-dep' )
+		);
+
+		$markup = get_echo( 'wp_print_styles' );
+		$this->assertStringNotContainsString( 'main-style.css', $markup, 'Expected style to be absent.' );
+
+		$this->assertArrayHasKey(
+			$expected_incorrect_usage,
+			$this->caught_doing_it_wrong,
+			"Expected $expected_incorrect_usage to trigger a _doing_it_wrong() notice for missing dependency."
+		);
+
+		$this->assertStringContainsString(
+			'The style with the handle "main-style" was enqueued with dependencies that are not registered: missing-style-dep',
+			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
+			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued styles.'
+		);
+	}
 }
