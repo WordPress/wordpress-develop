@@ -43,6 +43,7 @@ module.exports = ( env = { buildTarget: 'src/' } ) => {
 					banner: codemirrorBanner,
 					raw: true,
 					entryOnly: true,
+					include: /codemirror\.min\.js/,
 				} ),
 			],	};
 };
