@@ -1378,10 +1378,6 @@ div#custom-background-image img {
 	transform: rotate( 45deg );
 }
 
-.background-position-control .button-group .dashicons {
-	margin-top: 9px;
-}
-
 .background-position-control .button-group + .button-group {
 	margin-top: -1px;
 }
