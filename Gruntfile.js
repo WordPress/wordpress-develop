@@ -175,7 +175,7 @@ module.exports = function(grunt) {
 			options: {
 				position: 'top',
 				banner: BANNER_TEXT,
-				linebreak: false
+				linebreak: true
 			},
 			codemirror: {
 				options: {
