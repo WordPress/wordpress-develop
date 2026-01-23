@@ -179,6 +179,7 @@ module.exports = function(grunt) {
 			},
 			codemirror: {
 				options: {
+					linebreak: true,
 					banner: `/*! This file is auto-generated from CodeMirror - v${ pkg.dependencies.codemirror }\n` +
 						`\n` +
 						`CodeMirror, copyright (c) by Marijn Haverbeke and others\n` +
@@ -193,6 +194,7 @@ module.exports = function(grunt) {
 				},
 				files: {
 					src: [
+						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.css',
 						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css'
 					]
 				}
