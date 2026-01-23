@@ -1199,7 +1199,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'csslint', '/wp-includes/js/codemirror/csslint.js', array(), '1.0.5' );
 	$scripts->add( 'esprima', '/wp-includes/js/codemirror/esprima.js', array(), '4.0.1' ); // Deprecated. Use 'espree' instead.
 	$scripts->add( 'espree', '/wp-includes/js/codemirror/espree.min.js', array(), '9.6.1' );
-	$scripts->add( 'jshint', '/wp-includes/js/codemirror/fakejshint.js', array( 'espree' ), '2.9.5' );
+	$scripts->add( 'jshint', '/wp-includes/js/codemirror/fakejshint.js', array( 'espree' ) );
 	$scripts->add( 'jsonlint', '/wp-includes/js/codemirror/jsonlint.js', array(), '1.6.3' );
 	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '1.8.0' );
 	$scripts->add( 'htmlhint-kses', '/wp-includes/js/codemirror/htmlhint-kses.js', array( 'htmlhint' ) );
