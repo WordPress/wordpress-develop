@@ -194,8 +194,7 @@ module.exports = function(grunt) {
 				},
 				files: {
 					src: [
-						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.css',
-						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css'
+						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.css'
 					]
 				}
 			},
@@ -1728,8 +1727,8 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build:codemirror', [
 		'webpack:codemirror',
 		'concat:codemirror',
-		'cssmin:codemirror',
 		'usebanner:codemirror',
+		'cssmin:codemirror',
 		'copy:codemirror'
 	] );
 
