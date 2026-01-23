@@ -1715,7 +1715,9 @@ p.auto-update-status {
 .button.installing:before,
 .button.activated-message:before,
 .button.activating-message:before {
-	margin: 3px 5px 0 -2px;
+	margin: 0 5px 0 -2px;
+	line-height: 1.9; /* 38px (20px * 1.9) - matches button */
+	vertical-align: top;
 }
 
 #plugin-information-footer .button {
@@ -1733,11 +1735,13 @@ p.auto-update-status {
 #plugin-information-footer .button.updated-message:before,
 #plugin-information-footer .button.activated-message:before,
 #plugin-information-footer .button.activating-message:before {
-	margin: 9px 5px 0 -2px;
+	margin: 0 5px 0 -2px;
+	line-height: 1.9; /* 38px (20px * 1.9) - matches button */
+	vertical-align: top;
 }
 
 #plugin-information-footer .button.update-now.updating-message:before {
-	margin: -3px 5px 0 -2px;
+	margin: 0 5px 0 -2px;
 }
 
 .button-primary.updating-message:before,
