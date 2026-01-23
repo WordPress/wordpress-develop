@@ -103,16 +103,6 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that addslashes_gpc() triggers a deprecation notice.
-	 *
-	 * @ticket 64539
-	 */
-	public function test_addslashes_gpc_is_deprecated() {
-		$this->setExpectedDeprecated( 'addslashes_gpc' );
-		addslashes_gpc( 'test data' );
-	}
-
-	/**
 	 * Tests that addslashes_gpc() returns the same result as wp_slash() for strings.
 	 *
 	 * @ticket 64539
