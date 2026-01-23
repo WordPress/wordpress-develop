@@ -141,6 +141,52 @@ if ( ! function_exists( 'twentytwentyfive_register_block_bindings' ) ) :
 endif;
 add_action( 'init', 'twentytwentyfive_register_block_bindings' );
 
+/**
+ * Registers the 'books' custom post type.
+ *
+ * @since Twenty Twenty-Five 1.0
+ *
+ * @return void
+ */
+function twentytwentyfive_register_books_post_type() {
+	$labels = array(
+		'name'               => _x( 'Books', 'post type general name', 'twentytwentyfive' ),
+		'singular_name'      => _x( 'Book', 'post type singular name', 'twentytwentyfive' ),
+		'menu_name'          => _x( 'Books', 'admin menu', 'twentytwentyfive' ),
+		'name_admin_bar'     => _x( 'Book', 'add new on admin bar', 'twentytwentyfive' ),
+		'add_new'            => _x( 'Add New', 'book', 'twentytwentyfive' ),
+		'add_new_item'       => __( 'Add New Book', 'twentytwentyfive' ),
+		'new_item'           => __( 'New Book', 'twentytwentyfive' ),
+		'edit_item'          => __( 'Edit Book', 'twentytwentyfive' ),
+		'view_item'          => __( 'View Book', 'twentytwentyfive' ),
+		'all_items'          => __( 'All Books', 'twentytwentyfive' ),
+		'search_items'       => __( 'Search Books', 'twentytwentyfive' ),
+		'parent_item_colon'  => __( 'Parent Books:', 'twentytwentyfive' ),
+		'not_found'          => __( 'No books found.', 'twentytwentyfive' ),
+		'not_found_in_trash' => __( 'No books found in Trash.', 'twentytwentyfive' ),
+	);
+
+	$args = array(
+		'labels'                 => $labels,
+		'public'                 => true,
+		'publicly_queryable'     => true,
+		'show_ui'                => true,
+		'show_in_menu'           => true,
+		'query_var'              => true,
+		'rewrite'                => array( 'slug' => 'book' ),
+		'capability_type'        => 'post',
+		'has_archive'            => true,
+		'hierarchical'           => false,
+		'menu_position'          => null,
+		'supports'               => array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'comments' ),
+		'show_in_rest'           => true,
+		'show_in_home_page_list' => true,
+	);
+
+	register_post_type( 'book', $args );
+}
+add_action( 'init', 'twentytwentyfive_register_books_post_type' );
+
 if ( ! function_exists( 'twentytwentyfive_format_binding' ) ) :
 	/**
 	 * Callback function for the post format name block binding source.
@@ -157,3 +203,5 @@ if ( ! function_exists( 'twentytwentyfive_format_binding' ) ) :
 		}
 	}
 endif;
+
+

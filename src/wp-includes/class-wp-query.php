@@ -4470,8 +4470,10 @@ class WP_Query {
 	 * @return bool Whether the query is for the front page of the site.
 	 */
 	public function is_front_page() {
+		$post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
+
 		// Most likely case.
-		if ( 'posts' === get_option( 'show_on_front' ) && $this->is_home() ) {
+		if ( in_array( get_option( 'show_on_front' ), $post_types_allowed_on_home_page, true ) && $this->is_home() ) {
 			return true;
 		} elseif ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' )
 			&& $this->is_page( get_option( 'page_on_front' ) )

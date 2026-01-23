@@ -67,16 +67,6 @@ settings_fields( 'reading' );
 if ( ! is_utf8_charset() ) {
 	add_settings_field( 'blog_charset', __( 'Encoding for pages and feeds' ), 'options_reading_blog_charset', 'reading', 'default', array( 'label_for' => 'blog_charset' ) );
 }
-?>
-
-<?php if ( ! get_pages() ) : ?>
-<input name="show_on_front" type="hidden" value="posts" />
-<table class="form-table" role="presentation">
-	<?php
-	if ( 'posts' != get_option( 'show_on_front' ) ) :
-		update_option( 'show_on_front', 'posts' );
-	endif;
-
 /**
  * this fillter overrides which post type are show in the dropdown
  *
@@ -88,36 +78,23 @@ if ( ! is_utf8_charset() ) {
  */
 $post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
 $args = array(
-	'post_type'     =>	$post_types_allowed_on_home_page,
-	'post_status'	=>	'publish',
-	'fields'        => 'ids'
+	'post_type'   => $post_types_allowed_on_home_page,
+	'post_status' => 'publish',
+	'fields'      => 'ids'
 );
 $allowed_pages = new WP_Query( $args );
+?>
 
-//if ( empty( $allowed_pages->posts ) ) : ?>
-<!--<input name="show_on_front" type="hidden" value="posts" />-->
-<!--<table class="form-table" role="presentation">-->
-<!--    <tr>-->
-<!--        <th scope="row">--><?php //_e( 'Your homepage displays' ); ?><!--</th>-->
-<!--        <td>--><?php
-//            $content_type_links = array();
-//            foreach ($post_types_allowed_on_home_page as $type ){
-//	            $content_type_links[] = sprintf('<a href="%s">%s</a>',
-//		            'edit.php?post_type=' . $type, ucfirst( $type ) );
-//            }
-//        printf(
-//            /* translators: %s: URL to Pages screen. */
-//            __( 'No selectable pages found! Add at least one of these content types %s' ),
-//            implode( ', ', $content_type_links )
-//            );
-//        ?>
-<!--        </td>-->
-<!--	--><?php
-//	if ( 'posts' !== get_option( 'show_on_front' ) ) :
-//		update_option( 'show_on_front', 'posts' );
-//	endif;
-//
-//else :
+<?php if ( ! get_pages() ) : ?>
+<input name="show_on_front" type="hidden" value="posts" />
+<table class="form-table" role="presentation">
+	<?php
+	if ( 'posts' != get_option( 'show_on_front' ) ) :
+		update_option( 'show_on_front', 'posts' );
+	endif;
+endif;
+
+
 	if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
 		update_option( 'show_on_front', 'posts' );
 	}
@@ -130,22 +107,26 @@ $allowed_pages = new WP_Query( $args );
 <td id="front-static-pages"><fieldset>
 	<legend class="screen-reader-text"><span><?php echo $your_homepage_displays_title; ?></span></legend>
 	<p><label>
-        <input name="show_on_front" type="radio" value="posts" class="tog" <?php
+<?php
         $allowed_archives_on_home_page = array( 'posts') + $post_types_allowed_on_home_page;
         unset( $allowed_archives_on_home_page['page'] );
-        checked( in_array( get_option( 'show_on_front' ), $allowed_archives_on_home_page, true ) ); ?> />
-        <?php
         if( 1 === count( $allowed_archives_on_home_page ) ) {
-	        _e( 'Your latest posts' );
+	        _e( sprintf( 'Your latest %s', get_post_type_object( $allowed_archives_on_home_page[0] )->labels->name ) );
+		?><input name="show_on_front" type="hidden" value="<?php echo esc_attr( $allowed_archives_on_home_page[0] ); ?>" /> <?php
         } else {
-		$output = "<select name='show_archive_on_front' id='homepage_types'>\n";
+		$output = "<select name='show_on_front' id='homepage_types'>\n";
+		$output .= sprintf( '<option value="page" %s>A static page (select below)</option>', selected( -1, strtolower( get_option( 'show_on_front' ) ), false ) ) ;
 		foreach ( $allowed_archives_on_home_page as $post_type ){
 		    $post_type = ( 'posts' === $post_type ) ? 'post' : $post_type;
-			$output .= sprintf( '<option %s>%s</option>', $post_type, get_post_type_object( $post_type )->labels->name ) ;
+			$output .= sprintf( '<option value="%s" %s>%s</option>',
+				$post_type,
+				selected( $post_type, strtolower( get_option( 'show_on_front' ) ),false   ),
+				sprintf( __( 'Your latest %s' ), get_post_type_object( $post_type )->labels->name )
+			) ;
         }
 		$output .= "</select>\n";
 
-        printf( __( 'Your latest %s' ), $output );
+        echo $output;
         }
 		?>
 	</label>
@@ -166,13 +147,13 @@ $allowed_pages = new WP_Query( $args );
         </p>
        <?php else : ?>
 	<p><label>
-		<input name="show_on_front" type="radio" value="page" class="tog" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
+<!--		<input name="show_on_front" type="radio" value="page" class="tog" --><?php //checked( 'page', get_option( 'show_on_front' ) ); ?><!-- />-->
 		<?php
-		printf(
-			/* translators: %s: URL to Pages screen. */
-			__( 'A <a href="%s">static page</a> (select below)' ),
-			'edit.php?post_type=page'
-		);
+//		printf(
+//			/* translators: %s: URL to Pages screen. */
+//			__( 'A <a href="%s">static page</a> (select below)' ),
+//			'edit.php?post_type=page'
+//		);
 		?>
 	</label>
 	</p>
@@ -190,7 +171,10 @@ $allowed_pages = new WP_Query( $args );
 		);
 		$cpt_posts  = new WP_Query( $args );
 		foreach ( $cpt_posts->posts as $cpt_post ) {
-			$output .= sprintf( '<option %s>%s</option>', $cpt_post->ID, $cpt_post->post_name ) ;
+			$output .= sprintf( '<option value="%s" %s>%s</option>',
+				$cpt_post->ID,
+				selected( $cpt_post->ID, get_option( 'page_on_front' ),false   ),
+				$cpt_post->post_name ) ;
         }
 		$output .= '</optgroup>';
 	}
