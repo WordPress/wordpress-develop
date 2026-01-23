@@ -28,7 +28,6 @@ module.exports = ( env = { buildTarget: 'src/' } ) => {
 							comments: /^!/,
 						},
 					},
-				extractComments: false,
 					extractComments: false,
 				} ),
 			],
