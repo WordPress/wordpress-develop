@@ -1,6 +1,6 @@
 <?php
 /**
- * Administration API: WP_List_Table class
+ * Administration API: WP_List_Table class.
  *
  * @package WordPress
  * @subpackage List_Table
@@ -80,14 +80,14 @@ class WP_List_Table {
 	protected $_column_headers;
 
 	/**
-	 * {@internal Missing Summary}
+	 * List of properties that are back-filled for backward compatibility.
 	 *
 	 * @var array
 	 */
 	protected $compat_fields = array( '_args', '_pagination_args', 'screen', '_actions', '_pagination' );
 
 	/**
-	 * {@internal Missing Summary}
+	 * List of methods that are back-filled for backward compatibility.
 	 *
 	 * @var array
 	 */
@@ -280,7 +280,7 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Checks the current user's permissions
+	 * Checks the current user's permissions.
 	 *
 	 * @since 3.1.0
 	 * @abstract
