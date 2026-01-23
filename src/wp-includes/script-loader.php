@@ -1713,6 +1713,7 @@ function wp_default_styles( $styles ) {
 
 	// Only add CONTENT styles here that should be enqueued in the iframe!
 	$wp_edit_blocks_dependencies = array(
+		'wp-base-styles',
 		'wp-components',
 		/*
 		 * This needs to be added before the block library styles,
