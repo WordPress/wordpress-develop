@@ -311,6 +311,25 @@ module.exports = function(grunt) {
 					}
 				]
 			},
+			'codemirror': {
+				files: [
+					{
+						[ WORKING_DIR + 'wp-includes/js/codemirror/csslint.js' ]: [ './node_modules/csslint/dist/csslint.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/esprima.js' ]: [ './node_modules/esprima/dist/esprima.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/htmlhint.js' ]: [ './node_modules/htmlhint/dist/htmlhint.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/jsonlint.js' ]: [ './node_modules/jsonlint/web/jsonlint.js' ],
+					},
+					{
+						expand: true,
+						cwd: SOURCE_DIR + 'js/_enqueues/vendor/codemirror/',
+						src: [
+							'fakejshint.js',
+							'htmlhint-kses.js',
+						],
+						dest: WORKING_DIR + 'wp-includes/js/codemirror/'
+					}
+				]
+			},
 			'vendor-js': {
 				files: [
 					{
@@ -561,6 +580,15 @@ module.exports = function(grunt) {
 		cssmin: {
 			options: {
 				compatibility: 'ie11'
+			},
+			codemirror: {
+				expand: true,
+				cwd: WORKING_DIR,
+				dest: WORKING_DIR,
+				ext: '.min.css',
+				src: [
+					'wp-includes/js/codemirror/codemirror.css',
+				]
 			},
 			core: {
 				expand: true,
@@ -921,9 +949,30 @@ module.exports = function(grunt) {
 		webpack: {
 			prod: webpackConfig( { environment: 'production', buildTarget: WORKING_DIR } ),
 			dev: webpackConfig( { environment: 'development', buildTarget: WORKING_DIR } ),
-			watch: webpackConfig( { environment: 'development', watch: true } )
+			watch: webpackConfig( { environment: 'development', watch: true } ),
+			codemirror: require( './tools/webpack/codemirror.config.js' ),
 		},
 		concat: {
+			codemirror: {
+				options: {
+					process: function( src, filepath ) {
+						return '/* Source: ' + filepath.replace( 'node_modules/', '' ) + '*/\n' + src;
+					}
+				},
+				src: [
+					'node_modules/codemirror/lib/codemirror.css',
+					'node_modules/codemirror/addon/hint/show-hint.css',
+					'node_modules/codemirror/addon/lint/lint.css',
+					'node_modules/codemirror/addon/dialog/dialog.css',
+					'node_modules/codemirror/addon/display/fullscreen.css',
+					'node_modules/codemirror/addon/fold/foldgutter.css',
+					'node_modules/codemirror/addon/merge/merge.css',
+					'node_modules/codemirror/addon/scroll/simplescrollbars.css',
+					'node_modules/codemirror/addon/search/matchesonscrollbar.css',
+					'node_modules/codemirror/addon/tern/tern.css',
+				],
+				dest: WORKING_DIR + 'wp-includes/js/codemirror/codemirror.css'
+			},
 			tinymce: {
 				options: {
 					separator: '\n',
@@ -1652,6 +1701,13 @@ module.exports = function(grunt) {
 		'uglify:moment'
 	] );
 
+	grunt.registerTask( 'build:codemirror', [
+		'webpack:codemirror',
+		'concat:codemirror',
+		'cssmin:codemirror',
+		'copy:codemirror'
+	] );
+
 	grunt.registerTask( 'build:webpack', [
 		'clean:webpack-assets',
 		'webpack:prod',
@@ -1902,6 +1958,7 @@ module.exports = function(grunt) {
 			grunt.task.run( [
 				'build:js',
 				'build:css',
+				'build:codemirror',
 				'gutenberg-sync',
 				'gutenberg-copy',
 				'copy-vendor-scripts',
@@ -1913,6 +1970,7 @@ module.exports = function(grunt) {
 				'build:files',
 				'build:js',
 				'build:css',
+				'build:codemirror',
 				'gutenberg-sync',
 				'gutenberg-copy',
 				'copy-vendor-scripts',
