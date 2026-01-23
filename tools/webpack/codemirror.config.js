@@ -25,6 +25,12 @@ const config = {
 			} ),
 		],
 	},
+	externals: {
+		'csslint': 'window.CSSLint',
+		'htmlhint': 'window.HTMLHint',
+		'jshint': 'window.JSHINT',
+		'jsonlint': 'window.jsonlint',
+	},
 	plugins: [
 		new webpack.BannerPlugin( {
 			banner: `/*! This file is auto-generated from CodeMirror - v${ pkg.dependencies.codemirror }\n` +

@@ -335,6 +335,14 @@ module.exports = function(grunt) {
 				]
 			},
 			'codemirror': {
+				options: {
+					process: function( content, srcpath ) {
+						if ( srcpath.indexOf( 'htmlhint.js' ) !== -1 ) {
+							return content + '\nif ( window.HTMLHint && window.HTMLHint.HTMLHint ) { window.HTMLHint = window.HTMLHint.HTMLHint; }';
+						}
+						return content;
+					}
+				},
 				files: [
 					{
 						[ WORKING_DIR + 'wp-includes/js/codemirror/csslint.js' ]: [ './node_modules/csslint/dist/csslint.js' ],
