@@ -659,7 +659,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	}
 
 	$settings['canEditCSS'] = current_user_can( 'edit_css' );
-	
+
 	return $editor_settings;
 }
 
