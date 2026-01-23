@@ -326,7 +326,7 @@ module.exports = function(grunt) {
 			'codemirror': {
 				options: {
 					process: function( content, srcpath ) {
-						if ( srcpath.indexOf( 'htmlhint.min.js' ) !== -1 ) {
+						if ( srcpath.includes( 'htmlhint.min.js' ) ) {
 							return content + '\nif ( window.HTMLHint && window.HTMLHint.HTMLHint ) { window.HTMLHint = window.HTMLHint.HTMLHint; }';
 						}
 						return content;
