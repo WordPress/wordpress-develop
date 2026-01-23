@@ -543,14 +543,13 @@ input[type="number"].tiny-text {
 	margin-left: 1em;
 }
 
-.wp-hide-pw > .dashicons,
-.wp-cancel-pw > .dashicons {
-	position: relative;
-	top: 3px;
+.wp-core-ui .button.wp-hide-pw > .dashicons,
+.wp-core-ui .button.wp-cancel-pw > .dashicons {
 	width: 1.25rem;
 	height: 1.25rem;
-	top: 0.25rem;
 	font-size: 20px;
+	line-height: 1;
+	vertical-align: middle;
 }
 
 .wp-cancel-pw .dashicons-no {
@@ -583,11 +582,6 @@ fieldset label,
 
 .wp-pwd button {
 	height: min-content;
-}
-
-.wp-pwd button.pwd-toggle .dashicons {
-	position: relative;
-	top: 0.25rem;
 }
 
 .wp-pwd {
