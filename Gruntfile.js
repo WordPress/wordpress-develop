@@ -988,7 +988,7 @@ module.exports = function(grunt) {
 			prod: webpackConfig( { environment: 'production', buildTarget: WORKING_DIR } ),
 			dev: webpackConfig( { environment: 'development', buildTarget: WORKING_DIR } ),
 			watch: webpackConfig( { environment: 'development', watch: true } ),
-			codemirror: require( './tools/webpack/codemirror.config.js' ),
+			codemirror: require( './tools/webpack/codemirror.config.js' )( { buildTarget: WORKING_DIR } ),
 		},
 		concat: {
 			tinymce: {

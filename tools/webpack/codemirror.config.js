@@ -5,22 +5,25 @@ const webpack = require( 'webpack' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
 const pkg = require( '../../package.json' );
 
-const config = {
-	mode: 'production',
-	entry: './tools/vendors/codemirror-entry.js',
-	output: {
-		path: path.resolve( __dirname, '../../src/wp-includes/js/codemirror' ),
-		filename: 'codemirror.min.js',
-	},
-	optimization: {
-		minimize: true,
-		minimizer: [
-			new TerserPlugin( {
-				terserOptions: {
-					format: {
-						comments: /^!/,
+module.exports = ( env ) => {
+	const buildTarget = env.buildTarget || 'src/';
+
+	return {
+		mode: 'production',
+		entry: './tools/vendors/codemirror-entry.js',
+		output: {
+			path: path.resolve( __dirname, '../../', buildTarget, 'wp-includes/js/codemirror' ),
+			filename: 'codemirror.min.js',
+		},
+		optimization: {
+			minimize: true,
+			minimizer: [
+				new TerserPlugin( {
+					terserOptions: {
+						format: {
+							comments: /^!/,
+						},
 					},
-				},
 				extractComments: false,
 			} ),
 		],
@@ -44,10 +47,9 @@ const config = {
 				`You can find some technical background for some of the code below\n` +
 				`at http://marijnhaverbeke.nl/blog/#cm-internals .\n` +
 				`*/\n`,
-			raw: true,
-			entryOnly: true,
+				raw: true,
+				entryOnly: true,
 		} ),
 	],
+	};
 };
-
-module.exports = config;
