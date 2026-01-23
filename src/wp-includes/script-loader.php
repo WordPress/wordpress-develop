@@ -281,7 +281,8 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets_file = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets      = file_exists( $assets_file ) ? include $assets_file : array();
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
@@ -1629,7 +1630,7 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'code-editor', "/wp-admin/css/code-editor$suffix.css", array( 'wp-codemirror' ) );
 	$styles->add( 'site-health', "/wp-admin/css/site-health$suffix.css" );
 
-	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n' ) );
+	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n', 'wp-base-styles' ) );
 
 	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
 	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
@@ -1712,6 +1713,7 @@ function wp_default_styles( $styles ) {
 
 	// Only add CONTENT styles here that should be enqueued in the iframe!
 	$wp_edit_blocks_dependencies = array(
+		'wp-base-styles',
 		'wp-components',
 		/*
 		 * This needs to be added before the block library styles,
@@ -1744,10 +1746,14 @@ function wp_default_styles( $styles ) {
 		$wp_edit_blocks_dependencies
 	);
 
+	$styles->add( 'wp-view-transitions-admin', false );
+	did_action( 'init' ) && $styles->add_inline_style( 'wp-view-transitions-admin', wp_get_view_transitions_admin_css() );
+
 	$package_styles = array(
 		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
 		'block-directory'      => array(),
+		'base-styles'          => array(),
 		'components'           => array(),
 		'commands'             => array( 'wp-components' ),
 		'edit-post'            => array(
@@ -1810,6 +1816,11 @@ function wp_default_styles( $styles ) {
 		if ( 'block-library' === $package && wp_should_load_separate_core_block_assets() ) {
 			$path = "/wp-includes/css/dist/$package/common$suffix.css";
 		}
+
+		if ( 'base-styles' === $package ) {
+			$path = "/wp-includes/css/dist/base-styles/admin-schemes$suffix.css";
+		}
+
 		$styles->add( $handle, $path, $dependencies );
 		$styles->add_data( $handle, 'path', ABSPATH . $path );
 	}
@@ -2648,7 +2659,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * This only affects front end and not the block editor screens.
  *
  * @since 5.8.0
- * @see @see wp_should_load_block_assets_on_demand()
+ * @see wp_should_load_block_assets_on_demand()
  * @see wp_enqueue_registered_block_scripts_and_styles()
  * @see register_block_style_handle()
  *
@@ -2869,30 +2880,6 @@ function wp_enqueue_editor_block_directory_assets() {
 function wp_enqueue_editor_format_library_assets() {
 	wp_enqueue_script( 'wp-format-library' );
 	wp_enqueue_style( 'wp-format-library' );
-}
-
-/**
- * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
- *
- * @since 5.7.0
- *
- * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
- * @return string String made of sanitized `<script>` tag attributes.
- */
-function wp_sanitize_script_attributes( $attributes ) {
-	$attributes_string = '';
-
-	foreach ( $attributes as $attribute_name => $attribute_value ) {
-		if ( is_bool( $attribute_value ) ) {
-			if ( $attribute_value ) {
-				$attributes_string .= ' ' . esc_attr( $attribute_name );
-			}
-		} else {
-			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
-		}
-	}
-
-	return $attributes_string;
 }
 
 /**
