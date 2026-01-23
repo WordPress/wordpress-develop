@@ -1,4 +1,4 @@
-// Define CodeMirror globally before other imports to ensure they attach to it.
+// Import CodeMirror core to be exposed as window.wp.CodeMirror.
 var CodeMirror = require( 'codemirror/lib/codemirror' );
 
 // Keymaps
@@ -86,7 +86,13 @@ require( 'codemirror/mode/sql/sql' );
 require( 'codemirror/mode/xml/xml' );
 require( 'codemirror/mode/yaml/yaml' );
 
-// Global Exposure
+/**
+ * Please note that the codemirror-standalone "runmode" addon is setting `window.CodeMirror`
+ * as "a minimal CodeMirror needed to use runMode". So this `window.CodeMirror` is _different_
+ * from `window.wp.CodeMirror`. It is not known if the former is actually being used by extensions.
+ *
+ * @see https://github.com/codemirror/codemirror5/blob/78555dd4ac9bc691f081eec8266a01d3fbcc0d4e/src/addon/runmode/codemirror-standalone.js#L5-L24
+ */
 if ( ! window.wp ) {
 	window.wp = {};
 }
