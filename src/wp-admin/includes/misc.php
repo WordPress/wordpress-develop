@@ -1018,7 +1018,7 @@ function admin_color_scheme_picker( $user_id ) {
 	$current_color = get_user_option( 'admin_color', $user_id );
 
 	if ( empty( $current_color ) || ! isset( $_wp_admin_css_colors[ $current_color ] ) ) {
-		$current_color = 'fresh';
+		$current_color = 'modern';
 	}
 	?>
 	<fieldset id="color-picker" class="scheme-list">

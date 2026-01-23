@@ -886,6 +886,10 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
+	if ( $wp_current_db_version < 60718 ) {
+		upgrade_700();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2479,6 +2483,28 @@ function upgrade_682() {
 		$ping_sites_value = implode( "\n", $ping_sites_value );
 		update_option( 'ping_sites', $ping_sites_value );
 	}
+}
+
+/**
+ * Executes changes made in WordPress 7.0.
+ *
+ * @ignore
+ * @since 7.0.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+function upgrade_700() {
+	global $wpdb;
+
+	// Migrate users with 'fresh' admin color to 'modern'.
+	$wpdb->query(
+		$wpdb->prepare(
+			"UPDATE $wpdb->usermeta SET meta_value = %s WHERE meta_key = %s AND meta_value = %s",
+			'modern',
+			'admin_color',
+			'fresh'
+		)
+	);
 }
 
 /**
