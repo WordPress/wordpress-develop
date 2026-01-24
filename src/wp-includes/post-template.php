@@ -410,19 +410,9 @@ function the_excerpt() {
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Post excerpt.
  */
-function get_the_excerpt( $post = null ) {
 
-/**
- * Retrieve the post excerpt.
- *
- * @since 1.2.0
- *
- * @param int|WP_Post|null $post Optional. Post ID or post object. Default is global $post.
- * @return string The post excerpt.
- */
 function get_the_excerpt( $post = null ) {
     $post = get_post( $post );
-
     if ( ! $post ) {
         return '';
     }
@@ -432,7 +422,7 @@ function get_the_excerpt( $post = null ) {
      *
      * @since 1.2.0
      *
-     * @param string  $text The post excerpt.
+     * @param string $text The post excerpt.
      * @param WP_Post $post Post object.
      */
     $text = apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
@@ -444,8 +434,10 @@ function get_the_excerpt( $post = null ) {
         if ( function_exists( 'strip_shortcodes' ) ) {
             // Temporarily remove escaped shortcodes so strip_shortcodes() won't expand them
             $text = preg_replace( '/\\\\\[.*?\]/', '', $text );
+
             // Remove normal shortcodes
             $text = strip_shortcodes( $text );
+
             // Optional: restore escaped shortcodes back to text if needed
             // Here we keep them in original $post->post_content for output later
         }
@@ -467,7 +459,7 @@ function the_excerpt() {
     echo apply_filters( 'the_excerpt', get_the_excerpt() );
 }
 
-}
+
 /**
  * Determines whether the post has a custom excerpt.
  *
