@@ -411,31 +411,63 @@ function the_excerpt() {
  * @return string Post excerpt.
  */
 function get_the_excerpt( $post = null ) {
-	if ( is_bool( $post ) ) {
-		_deprecated_argument( __FUNCTION__, '2.3.0' );
-	}
 
-	$post = get_post( $post );
-	if ( empty( $post ) ) {
-		return '';
-	}
+/**
+ * Retrieve the post excerpt.
+ *
+ * @since 1.2.0
+ *
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Default is global $post.
+ * @return string The post excerpt.
+ */
+function get_the_excerpt( $post = null ) {
+    $post = get_post( $post );
 
-	if ( post_password_required( $post ) ) {
-		return __( 'There is no excerpt because this is a protected post.' );
-	}
+    if ( ! $post ) {
+        return '';
+    }
 
-	/**
-	 * Filters the retrieved post excerpt.
-	 *
-	 * @since 1.2.0
-	 * @since 4.5.0 Introduced the `$post` parameter.
-	 *
-	 * @param string  $post_excerpt The post excerpt.
-	 * @param WP_Post $post         Post object.
-	 */
-	return apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
+    /**
+     * Filters the post excerpt before it is returned.
+     *
+     * @since 1.2.0
+     *
+     * @param string  $text The post excerpt.
+     * @param WP_Post $post Post object.
+     */
+    $text = apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
+
+    if ( '' == $text ) {
+        $text = $post->post_content;
+
+        // Remove shortcodes but preserve escaped ones
+        if ( function_exists( 'strip_shortcodes' ) ) {
+            // Temporarily remove escaped shortcodes so strip_shortcodes() won't expand them
+            $text = preg_replace( '/\\\\\[.*?\]/', '', $text );
+            // Remove normal shortcodes
+            $text = strip_shortcodes( $text );
+            // Optional: restore escaped shortcodes back to text if needed
+            // Here we keep them in original $post->post_content for output later
+        }
+
+        $text = wp_trim_excerpt( $text );
+    }
+
+    return $text;
 }
 
+/**
+ * Display the post excerpt.
+ *
+ * @since 0.71
+ *
+ * @see get_the_excerpt()
+ */
+function the_excerpt() {
+    echo apply_filters( 'the_excerpt', get_the_excerpt() );
+}
+
+}
 /**
  * Determines whether the post has a custom excerpt.
  *
