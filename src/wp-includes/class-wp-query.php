@@ -4035,11 +4035,11 @@ class WP_Query {
 			$this->queried_object_id = (int) $this->post->ID;
 		} elseif ( $this->is_author ) {
 			$author      = (int) $this->get( 'author' );
-			$author_name = ( is_string( $this->get( 'author_name' ) ) ) ? $this->get( 'author_name' ) :  false;
+			$author_name = $this->get( 'author_name' );
 
 			if ( $author ) {
 				$this->queried_object_id = $author;
-			} elseif ( $author_name ) {
+			} elseif ( is_string( $author_name ) && '' !== $author_name ) {
 				$user = get_user_by( 'slug', $author_name );
 
 				if ( $user ) {
