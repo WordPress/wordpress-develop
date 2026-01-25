@@ -2,7 +2,7 @@
 // Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed
 
 var fakeJSHINT = new function() {
-	var syntax, errors;
+	var syntax;
 	var that = this;
 	this.data = [];
 	this.convertError = function( error ){
@@ -20,15 +20,7 @@ var fakeJSHINT = new function() {
 				loc: true,
 				sourceType: 'module'
 			});
-			errors = syntax.errors;
-			if ( errors && errors.length > 0 ) {
-				for ( var i = 0; i < errors.length; i++) {
-					var error = errors[i];
-					that.data.push( that.convertError( error ) );
-				}
-			} else {
-				that.data = [];
-			}
+			that.data = [];
 		} catch (e) {
 			that.data.push( that.convertError( e ) );
 		}
