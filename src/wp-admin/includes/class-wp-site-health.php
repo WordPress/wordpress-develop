@@ -2760,7 +2760,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @return array The test result.
+	 * @return array<string, string|array<string, string>> The test result.
 	 */
 	public function get_test_opcode_cache() {
 		$opcode_cache_enabled = false;
@@ -2795,7 +2795,7 @@ class WP_Site_Health {
 		if ( ! $opcode_cache_enabled ) {
 			$result['status']       = 'recommended';
 			$result['label']        = __( 'Opcode cache is not enabled' );
-			$result['description'] .= '<p>' . __( 'Opcode cache is not enabled. Enabling this cache can significantly improve the performance of your site.' ) . '</p>';
+			$result['description'] .= '<p>' . __( 'Enabling this cache can significantly improve the performance of your site.' ) . '</p>';
 		}
 
 		return $result;
