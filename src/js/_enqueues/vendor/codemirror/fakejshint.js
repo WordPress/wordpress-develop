@@ -1,7 +1,7 @@
 // JSHINT has some GPL Compatability issues, so we are faking it out and using espree for validation
 // Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed
 
-var fakeJSHINT = new function() {
+var fakeJSHINT = function() {
 	var syntax;
 	var that = this;
 	this.data = [];
