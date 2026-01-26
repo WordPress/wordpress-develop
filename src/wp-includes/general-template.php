@@ -4153,12 +4153,14 @@ function wp_get_code_editor_settings( $args ) {
 			'outline-none'              => true,
 		),
 		'jshint'     => array(
-			// The following are copied from <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
+			// This version is copied from <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
+			'esversion' => 10,
+
+			// The remaining options are not supported by Espree, which is used instead of JSHint for licensing reasons.
 			'boss'      => true,
 			'curly'     => true,
 			'eqeqeq'    => true,
 			'eqnull'    => true,
-			'esversion' => 10,
 			'expr'      => true,
 			'immed'     => true,
 			'noarg'     => true,
@@ -4166,9 +4168,7 @@ function wp_get_code_editor_settings( $args ) {
 			'quotmark'  => 'single',
 			'undef'     => true,
 			'unused'    => true,
-
 			'browser'   => true,
-
 			'globals'   => array(
 				'_'                 => false,
 				'Backbone'          => false,

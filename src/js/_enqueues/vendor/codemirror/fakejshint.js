@@ -1,66 +1,162 @@
-// JSHINT has some GPL Compatability issues, so we are faking it out and using espree for validation
-// Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed
+/* globals espree: false */
 
-( () => {
+/**
+ * JSHINT has some GPL Compatability issues, so we are faking it out and using espree for validation
+ * Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed.
+ *
+ * This emulates the JSHint API <https://jshint.com/docs/api/>.
+ *
+ * @since 4.9.3
+ */
+
+/**
+ * JSHint options supported by Espree.
+ *
+ * @see https://jshint.com/docs/options/
+ * @see https://www.npmjs.com/package/espree#options
+ *
+ * @typedef {Object} SupportedJSHintOptions
+ * @property {3|5|6|7|8|9|10|11} [esversion] - "This option is used to specify the ECMAScript version to which the code must adhere."
+ * @property {boolean} [es5] - "This option enables syntax first defined in the ECMAScript 5.1 specification. This includes allowing reserved keywords as object properties."
+ * @property {boolean} [es3] - "This option tells JSHint that your code needs to adhere to ECMAScript 3 specification. Use this option if you need your program to be executable in older browsers—such as Internet Explorer 6/7/8/9—and other legacy JavaScript environments."
+ * @property {boolean} [module] - "This option informs JSHint that the input code describes an ECMAScript 6 module. All module code is interpreted as strict mode code."
+ * @property {'implied'} [strict] - "This option requires the code to run in ECMAScript 5's strict mode."
+ */
+
+/**
+ * JSHint Error.
+ *
+ * @typedef {Object} JSHintError
+ * @property {number} line - Line number.
+ * @property {number} character - Column number.
+ * @property {string} reason - Error message.
+ * @property {'E'} code - Error code.
+ */
+
+window.JSHINT = ( () => {
 	/**
-	 * @typedef {Object} JSHINTError
-	 * @property {number} line - Line number.
-	 * @property {number} character - Column number.
-	 * @property {string} reason - Error message.
-	 * @property {string} code - Error code.
+	 * Collected error(s) during parsing.
+	 *
+	 * @type {JSHintError[]}
 	 */
+	const errors = [];
 
 	/**
-	 * Fake JSHINT.
+	 * Current options.
+	 *
+	 * @type {SupportedJSHintOptions}
 	 */
-	const fakeJSHINT = {
-		/**
-		 * Collected error(s) during parsing.
-		 *
-		 * @type {JSHINTError[]}
-		 */
-		data: [],
+	let currentOptions = {};
 
-		/**
-		 * Converts a SyntaxError to a JSHINT error.
-		 *
-		 * @param {SyntaxError} error - SyntaxError to convert.
-		 * @returns {JSHINTError}
-		 */
-		convertError( error ) {
-			return {
-				line: error.lineNumber,
-				character: error.column,
-				reason: error.message,
-				code: 'E',
-			};
-		},
+	/**
+	 * Parses JS code to find errors.
+	 *
+	 * @param {string} source - JavaScript source code.
+	 * @param {SupportedJSHintOptions} [options={}] - Linting options.
+	 */
+	function parse( source, options = {} ) {
+		errors.length = 0;
+		try {
+			espree.parse( source, {
+				...getOptions( options ),
+				loc: true,
+			} );
+		} catch ( error ) {
+			errors.push( convertError( error ) );
+		}
+	}
 
-		/**
-		 * Parses JS code to find errors.
-		 *
-		 * @param {string} code - JS code to parse.
-		 */
-		parse( code ) {
-			try {
-				window.espree.parse( code, {
-					ecmaVersion: 'latest',
-					loc: true,
-					sourceType: 'module',
-				} );
-				this.data = [];
-			} catch ( error ) {
-				this.data.push( this.convertError( error ) );
-			}
-		},
-	};
+	/**
+	 * Gets the options for Espree from the supported JSHint options.
+	 *
+	 * @param {SupportedJSHintOptions} [options={}] - Linting options.
+	 * @return {{
+	 *     ecmaVersion?: number|'latest',
+	 *     ecmaFeatures?: {
+	 *         impliedStrict?: true
+	 *     }
+	 * }}
+	 */
+	function getOptions( options ) {
+		const ecmaFeatures = {};
+		if ( options.strict === 'implied' ) {
+			ecmaFeatures.impliedStrict = true;
+		}
 
-	window.JSHINT = ( text ) => {
-		fakeJSHINT.parse( text );
-	};
-	window.JSHINT.data = () => {
 		return {
-			errors: fakeJSHINT.data,
+			ecmaVersion: getEcmaVersion( options ),
+			sourceType: options.module ? 'module' : 'script',
+			ecmaFeatures,
+		};
+	}
+
+	/**
+	 * Converts a SyntaxError to a JSHINT error.
+	 *
+	 * @param {SyntaxError} error - SyntaxError to convert.
+	 * @returns {JSHintError}
+	 */
+	function convertError( error ) {
+		return {
+			line: error.lineNumber,
+			character: error.column,
+			reason: error.message,
+			code: 'E',
+		};
+	}
+
+	/**
+	 * Gets the ECMAScript version.
+	 *
+	 * @param {SupportedJSHintOptions} options
+	 * @returns {number|'latest'}
+	 */
+	function getEcmaVersion( options ) {
+		if ( typeof options.esversion === 'number' ) {
+			return options.esversion;
+		} else if ( options.es5 ) {
+			return 5;
+		} else if ( options.es3 ) {
+			return 3;
+		} else {
+			return 'latest';
+		}
+	}
+
+	/**
+	 * Parses JS code to find errors.
+	 *
+	 * @param {string} source - JavaScript source code.
+	 * @param {SupportedJSHintOptions} options - Linting options.
+	 */
+	function fakeJSHINT( source, options ) {
+		parse( source, options );
+	}
+
+	/**
+	 * An array of warnings and errors generated by the most recent invocation of JSHINT.
+	 *
+	 * Note: Since Espree does not support warnings, and only will throw one exception when parsing, this array will
+	 * only ever be empty or contain a single error.
+	 *
+	 * @type {JSHintError[]}
+	 */
+	fakeJSHINT.errors = errors;
+
+	/**
+	 * Generates a report containing details about the most recent invocation of JSHINT.
+	 *
+	 * @returns {{
+	 *     options: SupportedJSHintOptions,
+	 *     errors: JSHintError[]
+	 * }}
+	 */
+	fakeJSHINT.data = () => {
+		return {
+			options: currentOptions,
+			errors,
 		};
 	};
+
+	return fakeJSHINT;
 } )();
