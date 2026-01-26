@@ -16,7 +16,7 @@
  * @see https://www.npmjs.com/package/espree#options
  *
  * @typedef {Object} SupportedJSHintOptions
- * @property {3|5|6|7|8|9|10|11} [esversion] - "This option is used to specify the ECMAScript version to which the code must adhere."
+ * @property {number} [esversion] - "This option is used to specify the ECMAScript version to which the code must adhere."
  * @property {boolean} [es5] - "This option enables syntax first defined in the ECMAScript 5.1 specification. This includes allowing reserved keywords as object properties."
  * @property {boolean} [es3] - "This option tells JSHint that your code needs to adhere to ECMAScript 3 specification. Use this option if you need your program to be executable in older browsers—such as Internet Explorer 6/7/8/9—and other legacy JavaScript environments."
  * @property {boolean} [module] - "This option informs JSHint that the input code describes an ECMAScript 6 module. All module code is interpreted as strict mode code."
