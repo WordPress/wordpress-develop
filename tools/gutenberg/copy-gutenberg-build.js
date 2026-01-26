@@ -105,6 +105,10 @@ const COPY_CONFIG = {
 			files: [ 'packages/icons/src/manifest.php' ],
 			destination: 'icons',
 		},
+		{
+			files: [ 'packages/icons/src/library/*.svg' ],
+			destination: 'icons/library',
+		},
 	],
 };
 
@@ -1068,10 +1072,17 @@ async function main() {
 		const dest = path.join( wpIncludesDir, fileMap.destination );
 		fs.mkdirSync( dest, { recursive: true } );
 		for ( const src of fileMap.files ) {
-			fs.copyFileSync(
-				path.join( gutenbergDir, src ),
-				path.join( dest, path.basename( src ) )
-			);
+			// Don't run `src` through `glob` unless it contains asterisks, so
+			// that non-existing files cause errors when calling `copyFile`
+			const matches = src.includes( '*' )
+				? fs.globSync( path.join( gutenbergDir, src ) )
+				: [ path.join( gutenbergDir, src ) ];
+			for ( const match of matches ) {
+				fs.copyFileSync(
+					match,
+					path.join( dest, path.basename( match ) )
+				);
+			}
 		}
 	}
 
