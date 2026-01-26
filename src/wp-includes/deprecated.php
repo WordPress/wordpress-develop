@@ -6481,15 +6481,31 @@ function wp_print_auto_sizes_contain_css_fix() {
 }
 
 /**
- * Registers development scripts that integrate with `@wordpress/scripts`.
+ * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
  *
- * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
+ * This function is deprecated, use {@see wp_get_script_tag()} or {@see wp_get_inline_script_tag()} instead.
  *
- * @since 6.0.0
- * @deprecated 7.0.0 Obsolete due to a change in how Gutenberg is included in Core. See #64393.
+ * @since 5.7.0
+ * @deprecated 7.0.0 Use wp_get_script_tag() or wp_get_inline_script_tag().
+ * @see wp_get_script_tag()
+ * @see wp_get_inline_script_tag()
  *
- * @param WP_Scripts $scripts WP_Scripts object.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string String made of sanitized `<script>` tag attributes.
  */
-function wp_register_development_scripts( $scripts ) {
-	_deprecated_function( __FUNCTION__, '7.0.0' );
+function wp_sanitize_script_attributes( $attributes ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_get_script_tag() or wp_get_inline_script_tag()' );
+
+	$attributes_string = '';
+	foreach ( $attributes as $attribute_name => $attribute_value ) {
+		if ( is_bool( $attribute_value ) ) {
+			if ( $attribute_value ) {
+				$attributes_string .= ' ' . esc_attr( $attribute_name );
+			}
+		} else {
+			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
+	}
+	return $attributes_string;
 }
+

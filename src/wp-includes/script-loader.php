@@ -166,6 +166,50 @@ function wp_default_packages_vendor( $scripts ) {
 }
 
 /**
+ * Registers development scripts that integrate with `@wordpress/scripts`.
+ *
+ * These scripts enable hot module replacement (HMR) for block development
+ * when using `wp-scripts start --hot`.
+ *
+ * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
+ *
+ * @since 6.0.0
+ *
+ * @param WP_Scripts $scripts WP_Scripts object.
+ */
+function wp_register_development_scripts( $scripts ) {
+	if (
+		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
+		|| empty( $scripts->registered['react'] )
+		|| defined( 'WP_RUN_CORE_TESTS' )
+	) {
+		return;
+	}
+
+	// React Refresh runtime - exposes ReactRefreshRuntime global.
+	// No dependencies.
+	$scripts->add(
+		'wp-react-refresh-runtime',
+		'/wp-includes/js/dist/development/react-refresh-runtime.js',
+		array(),
+		'0.14.0'
+	);
+
+	// React Refresh entry - injects runtime into global hook.
+	// Must load before React to set up hooks.
+	$scripts->add(
+		'wp-react-refresh-entry',
+		'/wp-includes/js/dist/development/react-refresh-entry.js',
+		array( 'wp-react-refresh-runtime' ),
+		'0.14.0'
+	);
+
+	// Add entry as a dependency of React so it loads first.
+	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
+	$scripts->registered['react']->deps[] = 'wp-react-refresh-entry';
+}
+
+/**
  * Returns contents of an inline script used in appending polyfill scripts for
  * browsers which fail the provided tests. The provided array is a mapping from
  * a condition to verify feature support to its polyfill script handle.
@@ -237,7 +281,8 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets_file = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets      = file_exists( $assets_file ) ? include $assets_file : array();
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
@@ -618,6 +663,7 @@ function wp_tinymce_inline_scripts() {
  */
 function wp_default_packages( $scripts ) {
 	wp_default_packages_vendor( $scripts );
+	wp_register_development_scripts( $scripts );
 	wp_register_tinymce_scripts( $scripts );
 	wp_default_packages_scripts( $scripts );
 
@@ -1584,7 +1630,7 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'code-editor', "/wp-admin/css/code-editor$suffix.css", array( 'wp-codemirror' ) );
 	$styles->add( 'site-health', "/wp-admin/css/site-health$suffix.css" );
 
-	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n' ) );
+	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n', 'wp-base-styles' ) );
 
 	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
 	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
@@ -1667,6 +1713,7 @@ function wp_default_styles( $styles ) {
 
 	// Only add CONTENT styles here that should be enqueued in the iframe!
 	$wp_edit_blocks_dependencies = array(
+		'wp-base-styles',
 		'wp-components',
 		/*
 		 * This needs to be added before the block library styles,
@@ -1699,10 +1746,14 @@ function wp_default_styles( $styles ) {
 		$wp_edit_blocks_dependencies
 	);
 
+	$styles->add( 'wp-view-transitions-admin', false );
+	did_action( 'init' ) && $styles->add_inline_style( 'wp-view-transitions-admin', wp_get_view_transitions_admin_css() );
+
 	$package_styles = array(
 		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
 		'block-directory'      => array(),
+		'base-styles'          => array(),
 		'components'           => array(),
 		'commands'             => array( 'wp-components' ),
 		'edit-post'            => array(
@@ -1765,6 +1816,11 @@ function wp_default_styles( $styles ) {
 		if ( 'block-library' === $package && wp_should_load_separate_core_block_assets() ) {
 			$path = "/wp-includes/css/dist/$package/common$suffix.css";
 		}
+
+		if ( 'base-styles' === $package ) {
+			$path = "/wp-includes/css/dist/base-styles/admin-schemes$suffix.css";
+		}
+
 		$styles->add( $handle, $path, $dependencies );
 		$styles->add_data( $handle, 'path', ABSPATH . $path );
 	}
@@ -2603,7 +2659,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * This only affects front end and not the block editor screens.
  *
  * @since 5.8.0
- * @see @see wp_should_load_block_assets_on_demand()
+ * @see wp_should_load_block_assets_on_demand()
  * @see wp_enqueue_registered_block_scripts_and_styles()
  * @see register_block_style_handle()
  *
@@ -2827,37 +2883,6 @@ function wp_enqueue_editor_format_library_assets() {
 }
 
 /**
- * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
- *
- * Automatically injects type attribute if needed.
- * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
- *
- * @since 5.7.0
- *
- * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
- * @return string String made of sanitized `<script>` tag attributes.
- */
-function wp_sanitize_script_attributes( $attributes ) {
-	$attributes_string = '';
-
-	/*
-	 * If HTML5 script tag is supported, only the attribute name is added
-	 * to $attributes_string for entries with a boolean value, and that are true.
-	 */
-	foreach ( $attributes as $attribute_name => $attribute_value ) {
-		if ( is_bool( $attribute_value ) ) {
-			if ( $attribute_value ) {
-				$attributes_string .= ' ' . esc_attr( $attribute_name );
-			}
-		} else {
-			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
-		}
-	}
-
-	return $attributes_string;
-}
-
-/**
  * Formats `<script>` loader tags.
  *
  * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.
@@ -2880,7 +2905,31 @@ function wp_get_script_tag( $attributes ) {
 	 */
 	$attributes = apply_filters( 'wp_script_attributes', $attributes );
 
-	return sprintf( "<script%s></script>\n", wp_sanitize_script_attributes( $attributes ) );
+	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
+	$processor->next_tag();
+	foreach ( $attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the
+		 * same attribute in HTML, therefore it’s possible that the
+		 * input array might contain duplicate attributes even though
+		 * it’s keyed on their name. Calling code should rewrite an
+		 * attribute’s value rather than sending a duplicate attribute.
+		 *
+		 * Example:
+		 *
+		 *     array( 'id' => 'main', 'ID' => 'nav' )
+		 *
+		 * In this example, there are two keys both describing the `id`
+		 * attribute. PHP array iteration is in key-insertion order so
+		 * the 'id' value will be set in the SCRIPT tag.
+		 */
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
+		}
+
+		$processor->set_attribute( $name, $value ?? true );
+	}
+	return "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -2901,13 +2950,27 @@ function wp_print_script_tag( $attributes ) {
  * Constructs an inline script tag.
  *
  * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
- * Automatically injects type attribute if needed.
+ *
+ * If the `$data` is unsafe to embed in a `<script>` tag, an empty script tag with the provided
+ * attributes will be returned. JavaScript and JSON contents can be escaped, so this is only likely
+ * to be a problem with unusual content types.
+ *
+ * Example:
+ *
+ *     // The dangerous JavaScript in this example will be safely escaped.
+ *     // A string with the script tag and the desired contents will be returned.
+ *     wp_get_inline_script_tag( 'console.log( "</script>" );' );
+ *
+ *     // This data is unsafe and `text/plain` cannot be escaped.
+ *     // The following will return `""` to indicate failure:
+ *     wp_get_inline_script_tag( '</script>', array( 'type' => 'text/plain' ) );
  *
  * @since 5.7.0
+ * @since 7.0.0 Returns an empty string if the data cannot be safely embedded in a script tag.
  *
  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
- * @return string String containing inline JavaScript code wrapped around `<script>` tag.
+ * @return string HTML script tag containing the provided $data or the empty string `""` if the data cannot be safely embedded in a script tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
@@ -2924,7 +2987,41 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
-	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $data );
+	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
+	$processor->next_tag();
+	foreach ( $attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the
+		 * same attribute in HTML, therefore it’s possible that the
+		 * input array might contain duplicate attributes even though
+		 * it’s keyed on their name. Calling code should rewrite an
+		 * attribute’s value rather than sending a duplicate attribute.
+		 *
+		 * Example:
+		 *
+		 *     array( 'id' => 'main', 'ID' => 'nav' )
+		 *
+		 * In this example, there are two keys both describing the `id`
+		 * attribute. PHP array iteration is in key-insertion order so
+		 * the 'id' value will be set in the SCRIPT tag.
+		 */
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
+		}
+
+		$processor->set_attribute( $name, $value ?? true );
+	}
+
+	if ( ! $processor->set_modifiable_text( $data ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Unable to set inline script data.' ),
+			'7.0.0'
+		);
+		return '';
+	}
+
+	return "{$processor->get_updated_html()}\n";
 }
 
 /**
