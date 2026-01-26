@@ -1,7 +1,7 @@
 /* globals espree: false */
 
 /**
- * JSHINT has some GPL Compatability issues, so we are faking it out and using espree for validation
+ * JSHINT has some GPL compatibility issues, so we are faking it out and using espree for validation
  * Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed.
  *
  * This emulates the JSHint API <https://jshint.com/docs/api/>.
@@ -55,6 +55,7 @@ window.JSHINT = ( () => {
 	 * @param {SupportedJSHintOptions} [options={}] - Linting options.
 	 */
 	function parse( source, options = {} ) {
+		currentOptions = options;
 		errors.length = 0;
 		try {
 			espree.parse( source, {
@@ -69,7 +70,7 @@ window.JSHINT = ( () => {
 	/**
 	 * Gets the options for Espree from the supported JSHint options.
 	 *
-	 * @param {SupportedJSHintOptions} [options={}] - Linting options for JSHint.
+	 * @param {SupportedJSHintOptions} options - Linting options for JSHint.
 	 * @return {{
 	 *     ecmaVersion?: number|'latest',
 	 *     ecmaFeatures?: {
@@ -109,25 +110,26 @@ window.JSHINT = ( () => {
 	 * Gets the ECMAScript version.
 	 *
 	 * @param {SupportedJSHintOptions} options - Options.
-	 * @return {number|'latest'}
+	 * @return {number|'latest'} ECMAScript version.
 	 */
 	function getEcmaVersion( options ) {
 		if ( typeof options.esversion === 'number' ) {
 			return options.esversion;
-		} else if ( options.es5 ) {
-			return 5;
-		} else if ( options.es3 ) {
-			return 3;
-		} else {
-			return 'latest';
 		}
+		if ( options.es5 ) {
+			return 5;
+		}
+		if ( options.es3 ) {
+			return 3;
+		}
+		return 'latest';
 	}
 
 	/**
 	 * Parses JS code to find errors.
 	 *
 	 * @param {string} source - JavaScript source code.
-	 * @param {SupportedJSHintOptions} options - Linting options.
+	 * @param {SupportedJSHintOptions} [options] - Linting options.
 	 */
 	function fakeJSHINT( source, options ) {
 		parse( source, options );
