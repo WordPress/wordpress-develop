@@ -985,8 +985,8 @@ function wp_save_image( $post_id ) {
 	// Generate new filename.
 	$path = get_attached_file( $post_id );
 
-	$basename = pathinfo( $path, PATHINFO_BASENAME );
-	$dirname  = pathinfo( $path, PATHINFO_DIRNAME );
+	$basename  = pathinfo( $path, PATHINFO_BASENAME );
+	$dirname   = pathinfo( $path, PATHINFO_DIRNAME );
 	$extension = pathinfo( $path, PATHINFO_EXTENSION );
 	$filename  = pathinfo( $path, PATHINFO_FILENAME );
 	$suffix    = time() . rand( 100, 999 );

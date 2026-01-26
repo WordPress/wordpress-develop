@@ -309,16 +309,16 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 		return new WP_Error( 'upload_error', $file['error'] );
 	}
 
-	$name = $_FILES[ $file_id ]['name'];
+	$name      = $_FILES[ $file_id ]['name'];
 	$extension = pathinfo( $name, PATHINFO_EXTENSION );
 	$name      = wp_basename( $name, ".$extension" );
 
-	$url     = $file['url'];
-	$type    = $file['type'];
-	$file    = $file['file'];
-	$title   = sanitize_text_field( $name );
-	$content = '';
-	$excerpt = '';
+	$url       = $file['url'];
+	$type      = $file['type'];
+	$file      = $file['file'];
+	$title     = sanitize_text_field( $name );
+	$content   = '';
+	$excerpt   = '';
 
 	if ( preg_match( '#^audio#', $type ) ) {
 		$meta = wp_read_audio_metadata( $file );
