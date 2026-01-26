@@ -134,9 +134,11 @@ window.JSHINT = ( () => {
 	 *
 	 * @param {string} source - JavaScript source code.
 	 * @param {SupportedJSHintOptions} [options] - Linting options.
+	 * @return {boolean} Whether the code is valid.
 	 */
 	function fakeJSHINT( source, options ) {
 		parse( source, options );
+		return errors.length === 0;
 	}
 
 	/**
