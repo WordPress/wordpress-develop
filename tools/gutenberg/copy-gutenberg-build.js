@@ -98,6 +98,14 @@ const COPY_CONFIG = {
 			{ from: 'theme-i18n.json', to: 'theme-i18n.json' },
 		],
 	},
+
+	// Specific files to copy to wp-includes/$destination
+	wpIncludes: [
+		{
+			files: [ 'packages/icons/src/manifest.php' ],
+			destination: 'icons',
+		},
+	],
 };
 
 /**
@@ -982,10 +990,7 @@ async function main() {
 						}
 					}
 				}
-			} else if (
-				entry.isFile() &&
-				entry.name.endsWith( '.js' )
-			) {
+			} else if ( entry.isFile() && entry.name.endsWith( '.js' ) ) {
 				// Copy root-level JS files
 				const dest = path.join( scriptsDest, entry.name );
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
@@ -1054,6 +1059,19 @@ async function main() {
 			console.log( `   ✅ ${ fileMap.to }` );
 		} else {
 			console.log( `   ⚠️  Not found: ${ fileMap.from }` );
+		}
+	}
+
+	// Copy remaining files to wp-includes
+	console.log( '\n📦 Copying remaining files to wp-includes...' );
+	for ( const fileMap of COPY_CONFIG.wpIncludes ) {
+		const dest = path.join( wpIncludesDir, fileMap.destination );
+		fs.mkdirSync( dest, { recursive: true } );
+		for ( const src of fileMap.files ) {
+			fs.copyFileSync(
+				path.join( gutenbergDir, src ),
+				path.join( dest, path.basename( src ) )
+			);
 		}
 	}
 
