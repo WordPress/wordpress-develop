@@ -389,11 +389,12 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 			)
 		);
 		$output   = get_echo( 'wp_custom_css_cb' );
-		$expected = <<<'HTML'
-<style id="wp-custom-css">
-*::before { content: "\3c\2fstyle><script>alert(1)</script>"; }
-</style>
-HTML;
+		$expected =
+			<<<'HTML'
+			<style id="wp-custom-css">
+			*::before { content: "\3c\2fstyle><script>alert(1)</script>"; }
+			</style>
+			HTML;
 		$this->assertEqualHTML( $expected, $output );
 	}
 
@@ -426,13 +427,14 @@ HTML;
 	 * @covers WP_Customize_Custom_CSS_Setting::validate
 	 */
 	public function test_validate_accepts_css_property_at_rule() {
-		$css = <<<'CSS'
-@property --animate {
-	syntax: "<custom-ident>";
-	inherits: true;
-	initial-value: false;
-}
-CSS;
+		$css =
+			<<<'CSS'
+			@property --animate {
+				syntax: "<custom-ident>";
+				inherits: true;
+				initial-value: false;
+			}
+			CSS;
 		$this->assertTrue( $this->setting->validate( $css ) );
 	}
 
@@ -442,13 +444,14 @@ CSS;
 	 * @covers ::wp_custom_css_cb
 	 */
 	public function test_save_and_print_property_at_rule() {
-		$css = <<<'CSS'
-@property --animate {
-	syntax: "<custom-ident>";
-	inherits: true;
-	initial-value: false;
-}
-CSS;
+		$css =
+			<<<'CSS'
+			@property --animate {
+				syntax: "<custom-ident>";
+				inherits: true;
+				initial-value: false;
+			}
+			CSS;
 		wp_update_custom_css_post( $css, array( 'stylesheet' => $this->setting->stylesheet ) );
 		$output   = get_echo( 'wp_custom_css_cb' );
 		$expected = "<style id='wp-custom-css'>\n{$css}\n</style>\n";
