@@ -6,13 +6,41 @@
  * @group post
  */
 class Tests_Post extends WP_UnitTestCase {
-	protected static $editor_id;
 	protected static $grammarian_id;
+
+	protected static $user_ids = array(
+		'administrator' => null,
+		'editor'        => null,
+		'author'        => null,
+		'contributor'   => null,
+	);
 
 	private $post_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+
+		self::$user_ids = array(
+			'administrator' => $factory->user->create(
+				array(
+					'role' => 'administrator',
+				)
+			),
+			'editor'        => $factory->user->create(
+				array(
+					'role' => 'editor',
+				)
+			),
+			'author'        => $factory->user->create(
+				array(
+					'role' => 'author',
+				)
+			),
+			'contributor'   => $factory->user->create(
+				array(
+					'role' => 'contributor',
+				)
+			),
+		);
 
 		add_role(
 			'grammarian',
@@ -142,6 +170,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24803
+	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts() {
 		$post_type = rand_str( 20 );
@@ -154,13 +183,56 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$count = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 1, $count->publish );
+		$this->assertSame( '1', $count->publish );
 
 		_unregister_post_type( $post_type );
 		$count = wp_count_posts( $post_type, 'readable' );
 		$this->assertEquals( new stdClass(), $count );
 	}
 
+	/**
+	 * Ensure `wp_count_posts()` in 'readable' context excludes private posts
+	 * authored by other users when the current user lacks the capability to
+	 * read private posts.
+	 *
+	 * @ticket 61097
+	 *
+	 * @covers ::wp_count_posts
+	 */
+	public function test_wp_count_posts_readable_excludes_unreadable_private_posts() {
+		$post_type = rand_str( 20 );
+		register_post_type( $post_type );
+
+		$admin_user_id = self::$user_ids['administrator'];
+
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_type'   => $post_type,
+				'post_status' => 'publish',
+				'post_author' => $admin_user_id,
+			)
+		);
+
+		self::factory()->post->create_many(
+			3,
+			array(
+				'post_type'   => $post_type,
+				'post_status' => 'private',
+				'post_author' => $admin_user_id,
+			)
+		);
+
+		wp_set_current_user( self::$user_ids['author'] );
+
+		$count = wp_count_posts( $post_type, 'readable' );
+		$this->assertSame( '5', $count->publish );
+		_unregister_post_type( $post_type );
+	}
+
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_filtered() {
 		$post_type = rand_str( 20 );
 		register_post_type( $post_type );
@@ -173,19 +245,22 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$count1 = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 3, $count1->publish );
+		$this->assertSame( '3', $count1->publish );
 
 		add_filter( 'wp_count_posts', array( $this, 'filter_wp_count_posts' ) );
 		$count2 = wp_count_posts( $post_type, 'readable' );
 		remove_filter( 'wp_count_posts', array( $this, 'filter_wp_count_posts' ) );
-		$this->assertEquals( 2, $count2->publish );
+		$this->assertSame( '2', $count2->publish );
 	}
 
 	public function filter_wp_count_posts( $counts ) {
-		$counts->publish = 2;
+		$counts->publish = '2';
 		return $counts;
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_insert_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -201,11 +276,14 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertNotEquals( 'publish', $post->post_status );
 
 		$after_draft_counts = wp_count_posts();
-		$this->assertEquals( 1, $after_draft_counts->draft );
-		$this->assertEquals( 2, $after_draft_counts->publish );
+		$this->assertSame( '1', $after_draft_counts->draft );
+		$this->assertSame( '2', $after_draft_counts->publish );
 		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_trash_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -219,13 +297,14 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertNotEquals( 'publish', $post->post_status );
 
 		$after_trash_counts = wp_count_posts();
-		$this->assertEquals( 1, $after_trash_counts->trash );
-		$this->assertEquals( 2, $after_trash_counts->publish );
+		$this->assertSame( '1', $after_trash_counts->trash );
+		$this->assertSame( '2', $after_trash_counts->publish );
 		$this->assertNotEquals( $initial_counts->publish, $after_trash_counts->publish );
 	}
 
 	/**
 	 * @ticket 49685
+	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts_status_changes_visible() {
 		self::factory()->post->create_many( 3 );
@@ -252,7 +331,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = self::factory()->post->create( array( 'post_type' => $post_type ) );
 		wp_set_object_terms( $post, 'foo', $tax );
 
-		wp_set_current_user( self::$editor_id );
+		wp_set_current_user( self::$user_ids['editor'] );
 
 		$wp_tag_cloud = wp_tag_cloud(
 			array(
@@ -305,7 +384,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_excerpt' => 'foo&#x1f610;bat',
 		);
 
-		wp_set_current_user( self::$editor_id );
+		wp_set_current_user( self::$user_ids['editor'] );
 
 		edit_post( $data );
 
@@ -421,30 +500,6 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $a1->get_call_count() );
 		$this->assertSame( 1, $a2->get_call_count() );
-	}
-
-	public function test_wp_delete_post_reassign_hierarchical_post_type() {
-		$grandparent_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$parent_page_id      = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $grandparent_page_id,
-			)
-		);
-		$page_id             = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $parent_page_id,
-			)
-		);
-
-		$this->assertSame( $parent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $parent_page_id, true );
-		$this->assertSame( $grandparent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $grandparent_page_id, true );
-		$this->assertSame( 0, get_post( $page_id )->post_parent );
 	}
 
 	/**
@@ -758,5 +813,244 @@ class Tests_Post extends WP_UnitTestCase {
 		add_filter( 'use_block_editor_for_post', '__return_true' );
 		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
 		remove_filter( 'use_block_editor_for_post', '__return_true' );
+	}
+
+	/**
+	 * @ticket 26798
+	 *
+	 * @dataProvider data_wp_insert_post_handle_malformed_post_date
+	 *
+	 * The purpose of this test is to ensure that invalid dates do not
+	 * cause PHP errors when wp_insert_post() is called, and that the
+	 * posts are not actually "inserted" (created).
+	 */
+	public function test_wp_insert_post_handle_malformed_post_date( $input, $expected ) {
+		$post = array(
+			'post_author'  => self::$user_ids['editor'],
+			'post_status'  => 'publish',
+			'post_content' => 'content',
+			'post_title'   => 'title',
+			'post_date'    => $input,
+		);
+
+		// Inserting the post should fail gracefully.
+		$id     = wp_insert_post( $post );
+		$actual = ! empty( $id );
+
+		// Compare if post was (or was not) inserted.
+		$this->assertSame( $actual, $expected );
+	}
+
+	/**
+	 * @ticket 26798
+	 */
+	public function data_wp_insert_post_handle_malformed_post_date() {
+		return array(
+			array(
+				'2012-01-01',
+				true,
+			),
+			// 24-hour time format.
+			array(
+				'2012-01-01 13:00:00',
+				true,
+			),
+			// ISO8601 date with timezone.
+			array(
+				'2016-01-16T00:00:00Z',
+				true,
+			),
+			// ISO8601 date with timezone offset.
+			array(
+				'2016-01-16T00:00:00+0100',
+				true,
+			),
+			// RFC3339 Format.
+			array(
+				'1970-01-01T01:00:00+01:00',
+				true,
+			),
+			// RSS Format
+			array(
+				'1970-01-01T01:00:00+0100',
+				true,
+			),
+			// Leap year.
+			array(
+				'2012-02-29',
+				true,
+			),
+			// Strange formats.
+			array(
+				'2012-01-01 0',
+				true,
+			),
+			array(
+				'2012-01-01 25:00:00',
+				true,
+			),
+			array(
+				'2012-01-01 00:60:00',
+				true,
+			),
+			// Dates without leading zeros (valid but malformed format).
+			array(
+				'2012-08-1',
+				true,
+			),
+			array(
+				'2012-1-08 00:00:00',
+				true,
+			),
+			array(
+				'2012-01-8 00:00:00',
+				true,
+			),
+			// Failures.
+			array(
+				'2012-08-0z',
+				false,
+			),
+			array(
+				'201-01-08 00:00:00',
+				false,
+			),
+			array(
+				'201-01-08 00:60:00',
+				false,
+			),
+			array(
+				'201a-01-08 00:00:00',
+				false,
+			),
+			array(
+				'2012-31-08 00:00:00',
+				false,
+			),
+			array(
+				'2012-01-48 00:00:00',
+				false,
+			),
+			// Not a leap year.
+			array(
+				'2011-02-29',
+				false,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 26798
+	 *
+	 * @dataProvider data_wp_resolve_post_date_regex
+	 *
+	 * Tests the regex inside of wp_resolve_post_date(), with
+	 * the emphasis on the date format (not the time).
+	 */
+	public function test_wp_resolve_post_date_regex( $date, $expected ) {
+		// Attempt to resolve post date.
+		$actual = wp_resolve_post_date( $date );
+
+		// Compare if resolved post date is (or is not) valid.
+		$this->assertSame( $actual, $expected );
+	}
+
+	/**
+	 * @ticket 26798
+	 */
+	public function data_wp_resolve_post_date_regex() {
+		return array(
+			array(
+				'2012-01-01',
+				'2012-01-01',
+			),
+			array(
+				'2012-01-01 00:00:00',
+				'2012-01-01 00:00:00',
+			),
+			// ISO8601 date with timezone.
+			array(
+				'2016-01-16T00:00:00Z',
+				'2016-01-16T00:00:00Z',
+			),
+			// ISO8601 date with timezone offset.
+			array(
+				'2016-01-16T00:00:00+0100',
+				'2016-01-16T00:00:00+0100',
+			),
+			// RFC3339 Format.
+			array(
+				'1970-01-01T01:00:00+01:00',
+				'1970-01-01T01:00:00+01:00',
+			),
+			// RSS Format
+			array(
+				'1970-01-01T01:00:00+0100',
+				'1970-01-01T01:00:00+0100',
+			),
+			// 24-hour time format.
+			array(
+				'2012-01-01 13:00:00',
+				'2012-01-01 13:00:00',
+			),
+			array(
+				'2016-01-16T00:0',
+				'2016-01-16T00:0',
+			),
+			array(
+				'2012-01-01 0',
+				'2012-01-01 0',
+			),
+			array(
+				'2012-01-01 00:00',
+				'2012-01-01 00:00',
+			),
+			array(
+				'2012-01-01 25:00:00',
+				'2012-01-01 25:00:00',
+			),
+			array(
+				'2012-01-01 00:60:00',
+				'2012-01-01 00:60:00',
+			),
+			array(
+				'2012-01-01 00:00:60',
+				'2012-01-01 00:00:60',
+			),
+			// Dates without leading zeros (valid but malformed format).
+			array(
+				'2012-1-08',
+				'2012-1-08',
+			),
+			array(
+				'2012-01-8',
+				'2012-01-8',
+			),
+			array(
+				'201-01-08',
+				false,
+			),
+			array(
+				'201a-01-08',
+				false,
+			),
+			array(
+				'2012-31-08',
+				false,
+			),
+			array(
+				'2012-01-48 00:00:00',
+				false,
+			),
+			// Leap year.
+			array(
+				'2012-02-29',
+				'2012-02-29',
+			),
+			array(
+				'2011-02-29',
+				false,
+			),
+		);
 	}
 }

@@ -339,6 +339,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$views = apply_filters( "views_{$this->screen->id}", $views );
 
 		$this->screen->render_screen_reader_content( 'heading_views' );
+
+		printf(
+			/* translators: %s: https://wordpress.org/plugins/ */
+			'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins from the <a href="%s">WordPress Plugin Directory</a> right on this page, or upload a plugin in .zip format by clicking the button above.' ) . '</p>',
+			__( 'https://wordpress.org/plugins/' )
+		);
 		?>
 <div class="wp-filter">
 	<ul class="filter-links">
@@ -452,15 +458,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$a = $plugin_a->$orderby;
 		$b = $plugin_b->$orderby;
 
-		if ( $a === $b ) {
-			return 0;
-		}
-
-		if ( 'DESC' === $this->order ) {
-			return ( $a < $b ) ? 1 : -1;
-		} else {
-			return ( $a < $b ) ? -1 : 1;
-		}
+		return 'DESC' === $this->order ?
+			$b <=> $a :
+			$a <=> $b;
 	}
 
 	/**
@@ -550,8 +550,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				$author = ' <cite>' . sprintf( __( 'By %s' ), $author ) . '</cite>';
 			}
 
-			$requires_php = isset( $plugin['requires_php'] ) ? $plugin['requires_php'] : null;
-			$requires_wp  = isset( $plugin['requires'] ) ? $plugin['requires'] : null;
+			$requires_php = $plugin['requires_php'] ?? null;
+			$requires_wp  = $plugin['requires'] ?? null;
 
 			$compatible_php = is_php_version_compatible( $requires_php );
 			$compatible_wp  = is_wp_version_compatible( $requires_wp );

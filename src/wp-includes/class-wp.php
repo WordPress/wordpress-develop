@@ -167,7 +167,7 @@ class WP {
 			$error               = '404';
 			$this->did_permalink = true;
 
-			$pathinfo         = isset( $_SERVER['PATH_INFO'] ) ? $_SERVER['PATH_INFO'] : '';
+			$pathinfo         = $_SERVER['PATH_INFO'] ?? '';
 			list( $pathinfo ) = explode( '?', $pathinfo );
 			$pathinfo         = str_replace( '%', '%25', $pathinfo );
 
@@ -539,7 +539,7 @@ class WP {
 		}
 
 		if ( is_singular() ) {
-			$post = isset( $wp_query->post ) ? $wp_query->post : null;
+			$post = $wp_query->post ?? null;
 
 			// Only set X-Pingback for single posts that allow pings.
 			if ( $post && pings_open( $post ) ) {
@@ -587,6 +587,9 @@ class WP {
 
 		/**
 		 * Fires once the requested HTTP headers for caching, content type, etc. have been sent.
+		 *
+		 * The {@see 'wp_finalized_template_enhancement_output_buffer'} action may be used to send
+		 * headers after rendering the template into an output buffer.
 		 *
 		 * @since 2.1.0
 		 *
@@ -666,7 +669,7 @@ class WP {
 
 		$GLOBALS['query_string'] = $this->query_string;
 		$GLOBALS['posts']        = & $wp_query->posts;
-		$GLOBALS['post']         = isset( $wp_query->post ) ? $wp_query->post : null;
+		$GLOBALS['post']         = $wp_query->post ?? null;
 		$GLOBALS['request']      = $wp_query->request;
 
 		if ( $wp_query->is_single() || $wp_query->is_page() ) {
@@ -752,7 +755,7 @@ class WP {
 			$content_found = true;
 
 			if ( is_singular() ) {
-				$post = isset( $wp_query->post ) ? $wp_query->post : null;
+				$post = $wp_query->post ?? null;
 				$next = '<!--nextpage-->';
 
 				// Check for paged content that exceeds the max number of pages.

@@ -48,7 +48,7 @@ function twentytwelve_custom_header_setup() {
 add_action( 'after_setup_theme', 'twentytwelve_custom_header_setup' );
 
 /**
- * Load our special font CSS file.
+ * Loads our special font CSS file.
  *
  * @since Twenty Twelve 1.2
  */
@@ -61,7 +61,7 @@ function twentytwelve_custom_header_fonts() {
 add_action( 'admin_print_styles-appearance_page_custom-header', 'twentytwelve_custom_header_fonts' );
 
 /**
- * Style the header text displayed on the blog.
+ * Styles the header text displayed on the blog.
  *
  * get_header_textcolor() options: 515151 is default, hide text (returns 'blank'), or any hex value.
  *
@@ -77,7 +77,7 @@ function twentytwelve_header_style() {
 
 	// If we get this far, we have custom styles.
 	?>
-	<style type="text/css" id="twentytwelve-header-css">
+	<style id="twentytwelve-header-css">
 	<?php
 		// Has the text been hidden?
 	if ( ! display_header_text() ) :
@@ -101,13 +101,13 @@ function twentytwelve_header_style() {
 }
 
 /**
- * Style the header image displayed on the Appearance > Header admin panel.
+ * Styles the header image displayed on the Appearance > Header admin panel.
  *
  * @since Twenty Twelve 1.0
  */
 function twentytwelve_admin_header_style() {
 	?>
-	<style type="text/css" id="twentytwelve-admin-header-css">
+	<style id="twentytwelve-admin-header-css">
 	.appearance_page_custom-header #headimg {
 		border: none;
 		font-family: "Open Sans", Helvetica, Arial, sans-serif;
@@ -141,7 +141,7 @@ function twentytwelve_admin_header_style() {
 }
 
 /**
- * Output markup to be displayed on the Appearance > Header admin panel.
+ * Outputs markup to be displayed on the Appearance > Header admin panel.
  *
  * This callback overrides the default markup displayed there.
  *
@@ -168,7 +168,7 @@ function twentytwelve_admin_header_image() {
 
 
 /**
- * Output markup to be displayed.
+ * Outputs markup to be displayed.
  *
  * @since Twenty Twelve 4.1
  */
