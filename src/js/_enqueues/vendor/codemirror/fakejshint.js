@@ -58,7 +58,7 @@ window.JSHINT = ( () => {
 		errors.length = 0;
 		try {
 			espree.parse( source, {
-				...getOptions( options ),
+				...getEspreeOptions( options ),
 				loc: true,
 			} );
 		} catch ( error ) {
@@ -69,7 +69,7 @@ window.JSHINT = ( () => {
 	/**
 	 * Gets the options for Espree from the supported JSHint options.
 	 *
-	 * @param {SupportedJSHintOptions} [options={}] - Linting options.
+	 * @param {SupportedJSHintOptions} [options={}] - Linting options for JSHint.
 	 * @return {{
 	 *     ecmaVersion?: number|'latest',
 	 *     ecmaFeatures?: {
@@ -77,7 +77,7 @@ window.JSHINT = ( () => {
 	 *     }
 	 * }}
 	 */
-	function getOptions( options ) {
+	function getEspreeOptions( options ) {
 		const ecmaFeatures = {};
 		if ( options.strict === 'implied' ) {
 			ecmaFeatures.impliedStrict = true;
@@ -94,7 +94,7 @@ window.JSHINT = ( () => {
 	 * Converts a SyntaxError to a JSHINT error.
 	 *
 	 * @param {SyntaxError} error - SyntaxError to convert.
-	 * @returns {JSHintError}
+	 * @return {JSHintError} JSHint error.
 	 */
 	function convertError( error ) {
 		return {
@@ -108,8 +108,8 @@ window.JSHINT = ( () => {
 	/**
 	 * Gets the ECMAScript version.
 	 *
-	 * @param {SupportedJSHintOptions} options
-	 * @returns {number|'latest'}
+	 * @param {SupportedJSHintOptions} options - Options.
+	 * @return {number|'latest'}
 	 */
 	function getEcmaVersion( options ) {
 		if ( typeof options.esversion === 'number' ) {
@@ -146,7 +146,7 @@ window.JSHINT = ( () => {
 	/**
 	 * Generates a report containing details about the most recent invocation of JSHINT.
 	 *
-	 * @returns {{
+	 * @return {{
 	 *     options: SupportedJSHintOptions,
 	 *     errors: JSHintError[]
 	 * }}
