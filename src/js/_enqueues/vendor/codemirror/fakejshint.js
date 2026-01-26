@@ -34,6 +34,8 @@
  */
 
 window.JSHINT = ( () => {
+	'use strict';
+
 	/**
 	 * Collected error(s) during parsing.
 	 *
