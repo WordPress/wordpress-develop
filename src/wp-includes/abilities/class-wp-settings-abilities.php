@@ -24,7 +24,7 @@ declare( strict_types=1 );
 class WP_Settings_Abilities {
 
 	/**
-	 * Available setting groups with show_in_rest enabled.
+	 * Available setting groups with show_in_abilities enabled.
 	 *
 	 * @since 7.0.0
 	 * @var array
@@ -40,7 +40,7 @@ class WP_Settings_Abilities {
 	private static $output_schema;
 
 	/**
-	 * Available setting slugs with show_in_rest enabled.
+	 * Available setting slugs with show_in_abilities enabled.
 	 *
 	 * @since 7.0.0
 	 * @var array
@@ -73,7 +73,7 @@ class WP_Settings_Abilities {
 	}
 
 	/**
-	 * Gets unique setting groups that have show_in_rest enabled.
+	 * Gets unique setting groups that have show_in_abilities enabled.
 	 *
 	 * @since 7.0.0
 	 *
@@ -83,7 +83,7 @@ class WP_Settings_Abilities {
 		$groups = array();
 
 		foreach ( get_registered_settings() as $args ) {
-			if ( wp_is_serving_rest_request() && empty( $args['show_in_rest'] ) ) {
+			if ( empty( $args['show_in_abilities'] ) ) {
 				continue;
 			}
 
@@ -99,7 +99,7 @@ class WP_Settings_Abilities {
 	}
 
 	/**
-	 * Gets unique setting slugs that have show_in_rest enabled.
+	 * Gets unique setting slugs that have show_in_abilities enabled.
 	 *
 	 * @since 7.0.0
 	 *
@@ -109,7 +109,7 @@ class WP_Settings_Abilities {
 		$slugs = array();
 
 		foreach ( get_registered_settings() as $option_name => $args ) {
-			if ( wp_is_serving_rest_request() && empty( $args['show_in_rest'] ) ) {
+			if ( empty( $args['show_in_abilities'] ) ) {
 				continue;
 			}
 
@@ -136,7 +136,7 @@ class WP_Settings_Abilities {
 		$group_properties = array();
 
 		foreach ( get_registered_settings() as $option_name => $args ) {
-			if ( wp_is_serving_rest_request() && empty( $args['show_in_rest'] ) ) {
+			if ( empty( $args['show_in_abilities'] ) ) {
 				continue;
 			}
 
@@ -260,7 +260,7 @@ class WP_Settings_Abilities {
 	/**
 	 * Execute callback for core/get-settings ability.
 	 *
-	 * Retrieves all registered settings that are exposed to the REST API,
+	 * Retrieves all registered settings that are exposed through the Abilities API,
 	 * grouped by their registration group.
 	 *
 	 * @since 7.0.0
@@ -282,7 +282,7 @@ class WP_Settings_Abilities {
 		$settings_by_group   = array();
 
 		foreach ( $registered_settings as $option_name => $args ) {
-			if ( wp_is_serving_rest_request() && empty( $args['show_in_rest'] ) ) {
+			if ( empty( $args['show_in_abilities'] ) ) {
 				continue;
 			}
 
