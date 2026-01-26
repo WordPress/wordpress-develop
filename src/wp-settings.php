@@ -242,6 +242,12 @@ require ABSPATH . WPINC . '/kses.php';
 require ABSPATH . WPINC . '/cron.php';
 require ABSPATH . WPINC . '/deprecated.php';
 require ABSPATH . WPINC . '/script-loader.php';
+if ( file_exists( ABSPATH . WPINC . '/build/routes.php' ) ) {
+	require ABSPATH . WPINC . '/build/routes.php';
+}
+if ( file_exists( ABSPATH . WPINC . '/build/pages.php' ) ) {
+	require ABSPATH . WPINC . '/build/pages.php';
+}
 require ABSPATH . WPINC . '/taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-term.php';
@@ -404,6 +410,7 @@ require ABSPATH . WPINC . '/block-supports/shadow.php';
 require ABSPATH . WPINC . '/block-supports/background.php';
 require ABSPATH . WPINC . '/block-supports/block-style-variations.php';
 require ABSPATH . WPINC . '/block-supports/aria-label.php';
+require ABSPATH . WPINC . '/block-supports/anchor.php';
 require ABSPATH . WPINC . '/block-supports/block-visibility.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine.php';
@@ -426,6 +433,7 @@ require ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
 require ABSPATH . WPINC . '/class-wp-url-pattern-prefixer.php';
 require ABSPATH . WPINC . '/class-wp-speculation-rules.php';
 require ABSPATH . WPINC . '/speculative-loading.php';
+require ABSPATH . WPINC . '/view-transitions.php';
 
 add_action( 'after_setup_theme', array( wp_script_modules(), 'add_hooks' ) );
 add_action( 'after_setup_theme', array( wp_interactivity(), 'add_hooks' ) );
