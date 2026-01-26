@@ -80,7 +80,7 @@ $post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_pa
 $args = array(
 	'post_type'   => $post_types_allowed_on_home_page,
 	'post_status' => 'publish',
-	'fields'      => 'ids'
+	'fields'      => 'ids',
 );
 $allowed_pages = new WP_Query( $args );
 ?>
@@ -89,18 +89,17 @@ $allowed_pages = new WP_Query( $args );
 <input name="show_on_front" type="hidden" value="posts" />
 <table class="form-table" role="presentation">
 	<?php
-	if ( 'posts' != get_option( 'show_on_front' ) ) :
+	if ( 'posts' !== get_option( 'show_on_front' ) ) :
 		update_option( 'show_on_front', 'posts' );
 	endif;
 endif;
 
+if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
+	update_option( 'show_on_front', 'posts' );
+}
 
-	if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
-		update_option( 'show_on_front', 'posts' );
-	}
-
-	$your_homepage_displays_title = __( 'Your homepage displays' );
-	?>
+$your_homepage_displays_title = __( 'Your homepage displays' );
+?>
 <table class="form-table" role="presentation">
 <tr>
 <th scope="row"><?php echo $your_homepage_displays_title; ?></th>

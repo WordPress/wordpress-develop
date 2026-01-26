@@ -1044,6 +1044,18 @@ class WP_Query {
 			$this->is_home = true;
 		}
 
+		if ( $this->is_home && 'page' !== get_option( 'show_on_front' ) && empty( $query_vars['post_type'] ) ) {
+			$post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
+			$front_page_post_type            = get_option( 'show_on_front' );
+			if ( 'posts' === $front_page_post_type ) {
+				$front_page_post_type = 'post';
+			}
+
+			if ( in_array( $front_page_post_type, $post_types_allowed_on_home_page, true ) ) {
+				$query_vars['post_type'] = $front_page_post_type;
+			}
+		}
+
 		// Correct `is_*` for 'page_on_front' and 'page_for_posts'.
 		if ( $this->is_home && 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) ) {
 			$_query = wp_parse_args( $this->query );

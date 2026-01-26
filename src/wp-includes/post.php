@@ -26,18 +26,18 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
 			),
-			'public'                => true,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
-			'capability_type'       => 'post',
-			'map_meta_cap'          => true,
-			'menu_position'         => 5,
-			'menu_icon'             => 'dashicons-admin-post',
-			'hierarchical'          => false,
-			'rewrite'               => false,
-			'query_var'             => false,
-			'delete_with_user'      => true,
-			'supports'              => array(
+			'public'                 => true,
+			'_builtin'               => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'             => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
+			'capability_type'        => 'post',
+			'map_meta_cap'           => true,
+			'menu_position'          => 5,
+			'menu_icon'              => 'dashicons-admin-post',
+			'hierarchical'           => false,
+			'rewrite'                => false,
+			'query_var'              => false,
+			'delete_with_user'       => true,
+			'supports'               => array(
 				'title',
 				'editor' => array( 'notes' => true ),
 				'author',
@@ -49,10 +49,10 @@ function create_initial_post_types() {
 				'revisions',
 				'post-formats',
 			),
-			'show_in_rest'          => true,
-			'rest_base'             => 'posts',
-			'rest_controller_class' => 'WP_REST_Posts_Controller',
-			'show_in_home_page_list'=> null,
+			'show_in_rest'           => true,
+			'rest_base'              => 'posts',
+			'rest_controller_class'  => 'WP_REST_Posts_Controller',
+			'show_in_home_page_list' => null,
 		)
 	);
 
@@ -62,19 +62,19 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name_admin_bar' => _x( 'Page', 'add new from admin bar' ),
 			),
-			'public'                => true,
-			'publicly_queryable'    => false,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
-			'capability_type'       => 'page',
-			'map_meta_cap'          => true,
-			'menu_position'         => 20,
-			'menu_icon'             => 'dashicons-admin-page',
-			'hierarchical'          => true,
-			'rewrite'               => false,
-			'query_var'             => false,
-			'delete_with_user'      => true,
-			'supports'              => array(
+			'public'                 => true,
+			'publicly_queryable'     => false,
+			'_builtin'               => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'             => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
+			'capability_type'        => 'page',
+			'map_meta_cap'           => true,
+			'menu_position'          => 20,
+			'menu_icon'              => 'dashicons-admin-page',
+			'hierarchical'           => true,
+			'rewrite'                => false,
+			'query_var'              => false,
+			'delete_with_user'       => true,
+			'supports'               => array(
 				'title',
 				'editor' => array( 'notes' => true ),
 				'author',
@@ -84,10 +84,10 @@ function create_initial_post_types() {
 				'comments',
 				'revisions',
 			),
-			'show_in_rest'          => true,
-			'rest_base'             => 'pages',
-			'rest_controller_class' => 'WP_REST_Posts_Controller',
-			'show_in_home_page_list'=> true,
+			'show_in_rest'           => true,
+			'rest_base'              => 'pages',
+			'rest_controller_class'  => 'WP_REST_Posts_Controller',
+			'show_in_home_page_list' => true,
 		)
 	);
 

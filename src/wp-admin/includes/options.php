@@ -116,7 +116,7 @@ function options_reading_add_js() {
 	jQuery( function($) {
 		var section = $('#front-static-pages'),
 			selects = section.find('.staticPages select'),
-            homepage_types = section.find('select#homepage_types')
+			homepage_types = section.find('select#homepage_types')
 			check_disabled = function(){
 				selects.prop( 'disabled', homepage_types.val() !== "page" );
 			};
