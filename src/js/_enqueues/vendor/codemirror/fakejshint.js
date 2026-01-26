@@ -94,15 +94,16 @@ window.JSHINT = ( () => {
 	}
 
 	/**
-	 * Converts a SyntaxError to a JSHINT error.
+	 * Converts an Espree error to a JSHINT error.
 	 *
-	 * @param {SyntaxError} error - SyntaxError to convert.
+	 * @param {Error|SyntaxError} error - Error to convert.
 	 * @return {JSHintError} JSHint error.
 	 */
 	function convertError( error ) {
+		// Note: A lineNumber of 0 causes CodeMirror to log out a warning in the console. This is as desired for a generic Espree error.
 		return {
-			line: error.lineNumber,
-			character: error.column,
+			line: error.lineNumber || 0,
+			character: error.column || 0,
 			reason: error.message,
 			code: 'E',
 		};
