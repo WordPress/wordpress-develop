@@ -128,6 +128,8 @@ window.JSHINT = ( () => {
 	/**
 	 * Parses JS code to find errors.
 	 *
+	 * @see https://jshint.com/docs/api/
+	 *
 	 * @param {string} source - JavaScript source code.
 	 * @param {SupportedJSHintOptions} [options] - Linting options.
 	 */
