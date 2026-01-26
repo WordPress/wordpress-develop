@@ -1072,11 +1072,10 @@ async function main() {
 		const dest = path.join( wpIncludesDir, fileMap.destination );
 		fs.mkdirSync( dest, { recursive: true } );
 		for ( const src of fileMap.files ) {
-			// Don't run `src` through `glob` unless it contains asterisks, so
-			// that non-existing files cause errors when calling `copyFile`
-			const matches = src.includes( '*' )
-				? fs.globSync( path.join( gutenbergDir, src ) )
-				: [ path.join( gutenbergDir, src ) ];
+			const matches = fs.globSync( path.join( gutenbergDir, src ) );
+			if ( ! matches.length ) {
+				throw new Error( `No files found matching '${ src }'` );
+			}
 			for ( const match of matches ) {
 				fs.copyFileSync(
 					match,
