@@ -195,7 +195,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 			 * Note how in the second example, both of the style contents are benign
 			 * when analyzed on their own. The first style was likely the result of
 			 * improper truncation, while the second is perfectly sound. It was only
-			 * through concatenation that these two scripts combined to form content
+			 * through concatenation that these two styles combined to form content
 			 * that would have broken out of the containing STYLE element, thus
 			 * corrupting the page and potentially introducing security issues.
 			 *
