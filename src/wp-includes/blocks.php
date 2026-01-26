@@ -1693,7 +1693,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * @since 5.3.1
  *
  * @param array $block {
- *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
+ *     An associative array of a single parsed block object. {@see WP_Block_Node}.
  *
  *     @type string|null $blockName    Name of block.
  *     @type array       $attrs        Attributes from block comment delimiters.
@@ -1734,7 +1734,7 @@ function serialize_block( $block ) {
  *     Array of block structures.
  *
  *     @type array ...$0 {
- *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
+ *         An associative array of a single parsed block object. {@see WP_Block_Node}.
  *
  *         @type string|null $blockName    Name of block.
  *         @type array       $attrs        Attributes from block comment delimiters.
@@ -1776,7 +1776,7 @@ function serialize_blocks( $blocks ) {
  *
  * @see serialize_block()
  *
- * @param array    $block         An associative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param array    $block         An associative array of a single parsed block object. {@see WP_Block_Node}.
  * @param callable $pre_callback  Callback to run on each block in the tree before it is traversed and serialized.
  *                                It is called with the following arguments: &$block, $parent_block, $previous_block.
  *                                Its string return value will be prepended to the serialized block markup.
@@ -1938,7 +1938,7 @@ function resolve_pattern_blocks( $blocks ) {
  *
  * @see serialize_blocks()
  *
- * @param array[]  $blocks        An array of parsed blocks. See WP_Block_Parser_Block.
+ * @param array[]  $blocks        An array of parsed blocks. {@see WP_Block_Node}.
  * @param callable $pre_callback  Callback to run on each block in the tree before it is traversed and serialized.
  *                                It is called with the following arguments: &$block, $parent_block, $previous_block.
  *                                Its string return value will be prepended to the serialized block markup.
@@ -2033,11 +2033,11 @@ function _filter_block_content_callback( $matches ) {
  *
  * @since 5.3.1
  *
- * @param WP_Block_Parser_Block $block             The parsed block object.
- * @param array[]|string        $allowed_html      An array of allowed HTML elements and attributes,
- *                                                 or a context name such as 'post'. See wp_kses_allowed_html()
- *                                                 for the list of accepted context names.
- * @param string[]              $allowed_protocols Optional. Array of allowed URL protocols.
+ * @param array          $block             The parsed block object. {@see WP_Block_Node}.
+ * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
+ *                                          or a context name such as 'post'. See wp_kses_allowed_html()
+ *                                          for the list of accepted context names.
+ * @param string[]       $allowed_protocols Optional. Array of allowed URL protocols.
  *                                                 Defaults to the result of wp_allowed_protocols().
  * @return array The filtered and sanitized block object result.
  */
@@ -2261,7 +2261,7 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  * @global WP_Post $post The post to edit.
  *
  * @param array $parsed_block {
- *     An associative array of the block being rendered. See WP_Block_Parser_Block.
+ *     An associative array of the block being rendered. {@see WP_Block_Node}.
  *
  *     @type string|null $blockName    Name of block.
  *     @type array       $attrs        Attributes from block comment delimiters.
@@ -2285,7 +2285,7 @@ function render_block( $parsed_block ) {
 	 *
 	 * @param string|null   $pre_render   The pre-rendered content. Default null.
 	 * @param array         $parsed_block {
-	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. {@see WP_Block_Node}.
 	 *
 	 *     @type string|null $blockName    Name of block.
 	 *     @type array       $attrs        Attributes from block comment delimiters.
@@ -2311,7 +2311,7 @@ function render_block( $parsed_block ) {
 	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
 	 * @param array         $parsed_block {
-	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. {@see WP_Block_Node}.
 	 *
 	 *     @type string|null $blockName    Name of block.
 	 *     @type array       $attrs        Attributes from block comment delimiters.
@@ -2323,7 +2323,7 @@ function render_block( $parsed_block ) {
 	 * }
 	 * @param array         $source_block {
 	 *     An un-modified copy of `$parsed_block`, as it appeared in the source content.
-	 *     See WP_Block_Parser_Block.
+	 *     {@see WP_Block_Node}.
 	 *
 	 *     @type string|null $blockName    Name of block.
 	 *     @type array       $attrs        Attributes from block comment delimiters.
@@ -2359,7 +2359,7 @@ function render_block( $parsed_block ) {
 	 *
 	 * @param array         $context      Default context.
 	 * @param array         $parsed_block {
-	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. {@see WP_Block_Node}.
 	 *
 	 *     @type string|null $blockName    Name of block.
 	 *     @type array       $attrs        Attributes from block comment delimiters.
@@ -2399,7 +2399,7 @@ function render_block( $parsed_block ) {
  *     Array of block structures.
  *
  *     @type array ...$0 {
- *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
+ *         An associative array of a single parsed block object. {@see WP_Block_Node}.
  *
  *         @type string|null $blockName    Name of block.
  *         @type array       $attrs        Attributes from block comment delimiters.
