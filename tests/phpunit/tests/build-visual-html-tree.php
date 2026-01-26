@@ -9,13 +9,13 @@
  */
 class Tests_Build_Equivalent_HTML_Semantic_Tree extends WP_UnitTestCase {
 	public function data_build_equivalent_html_semantic_tree() {
-		$block_markup = <<<END
-			<!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
-			  <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
-			<!-- /wp:separator -->
-END;
+		$block_markup = <<<'HTML'
+<!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
+  <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
+<!-- /wp:separator -->
+HTML;
 
-		$tree_structure = <<<END
+		$tree_structure = <<<'TREE'
 BLOCK["core/separator"]
   {
     "backgroundColor": "accent-1",
@@ -29,19 +29,55 @@ BLOCK["core/separator"]
       }
     }
   }
+  "
+  "
   <hr>
     class="has-custom-classname is-style-default wp-block-separator"
     style="margin-top:50px;margin-bottom:50px;"
+  "
+"
 
-END;
+TREE;
 
-		return array(
-			'Block delimiter' => array( $block_markup, $tree_structure ),
-		);
+		yield 'Block delimiter' => array( $block_markup, $tree_structure );
+
+		$block_markup = <<<'HTML'
+<!-- wp:example/block -->
+	One
+	<!-- wp:example/nested-void /-->
+	Two
+	<!-- wp:example/nested -->
+		Three
+	<!-- /wp:example/nested -->
+	Four
+<!-- /wp:example/block -->
+HTML;
+
+		$tree_structure = <<<'TREE'
+BLOCK["example/block"]
+  "
+	One
+	"
+  BLOCK["example/nested-void"]
+  "
+	Two
+	"
+  BLOCK["example/nested"]
+    "
+		Three
+	"
+  "
+	Four
+"
+
+TREE;
+
+		yield 'Text nodes in blocks' => array( $block_markup, $tree_structure );
 	}
 
 	/**
 	 * @ticket 63527
+	 * @ticket 64531
 	 *
 	 * @covers ::build_visual_html_tree
 	 *
@@ -140,5 +176,42 @@ END;
 		$tree_actual   = build_visual_html_tree( $actual, '<body>' );
 
 		$this->assertNotSame( $tree_expected, $tree_actual );
+	}
+
+	/**
+	 * @ticket 64531
+	 *
+	 * @covers ::build_visual_html_tree
+	 */
+	public function test_spacing() {
+		$html = <<<'HTML'
+<p> space-surrounded&#x20;</p>
+<p>&nbsp;nbsp-surrounded&#xA0;</p>
+<p>
+newline-surrounded&#xA;</p>
+<p>&#x9;tab-surrounded	</p>
+<p>ok</p>
+HTML;
+
+		$expected = <<<TREE
+<p>
+  " space-surrounded "
+"\n"
+<p>
+  "\u{00A0}nbsp-surrounded\u{00A0}"
+"\n"
+<p>
+  "\nnewline-surrounded\n"
+"\n"
+<p>
+  "\ttab-surrounded\t"
+"\n"
+<p>
+  "ok"
+
+TREE;
+
+		$tree_result = build_visual_html_tree( $html, '<body>' );
+		$this->assertSame( $expected, $tree_result );
 	}
 }
