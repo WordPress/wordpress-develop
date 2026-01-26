@@ -166,6 +166,8 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 		// Restores the more descriptive, specific name for use within this method.
 		$css = $value;
 
+		$validity = new WP_Error();
+
 		$length = strlen( $css );
 		for (
 			$at = strcspn( $css, '<' );
@@ -210,32 +212,35 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 			);
 			if ( $possible_style_close_tag ) {
 				if ( $remaining_strlen < 8 ) {
-					return new WP_Error(
+					$validity->add(
 						'illegal_markup',
 						sprintf(
 							/* translators: %s is the CSS that was provided. */
 							__( 'The CSS must not end in "%s".' ),
 							esc_html( substr( $css, $at ) )
-						),
-						array( 'status' => 400 )
+						)
 					);
+					break;
 				}
 
 				if ( 1 === strspn( $css, " \t\f\r\n/>", $at + 7, 1 ) ) {
-					return new WP_Error(
+					$validity->add(
 						'illegal_markup',
 						sprintf(
 							/* translators: %s is the CSS that was provided. */
 							__( 'The CSS must not contain "%s".' ),
 							esc_html( substr( $css, $at, 8 ) )
-						),
-						array( 'status' => 400 )
+						)
 					);
+					break;
 				}
 			}
 		}
 
-		return parent::validate( $css );
+		if ( ! $validity->has_errors() ) {
+			$validity = parent::validate( $css );
+		}
+		return $validity;
 	}
 
 	/**
