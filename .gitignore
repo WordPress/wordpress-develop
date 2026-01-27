@@ -38,9 +38,6 @@ wp-tests-config.php
 /src/wp-includes/blocks/*
 !/src/wp-includes/blocks/index.php
 /src/wp-includes/build
-/src/wp-includes/class-wp-block-parser.php
-/src/wp-includes/class-wp-block-parser-block.php
-/src/wp-includes/class-wp-block-parser-frame.php
 /src/wp-includes/theme.json
 /packagehash.txt
 /.gutenberg-hash
