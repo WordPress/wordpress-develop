@@ -1295,6 +1295,17 @@ class WP_Block_Processor {
 				$block['innerBlocks'][]  = $inner_block;
 				$block['innerContent'][] = null;
 			}
+
+			/*
+			 * Because the parser has advanced past the closing block token, it
+			 * may be matched on an HTML span. This needs to be processed before
+			 * moving on to the next token at the start of the next loop iteration.
+			 */
+			if ( $this->is_html() ) {
+				$chunk                   = $this->get_html_content();
+				$block['innerHTML']     .= $chunk;
+				$block['innerContent'][] = $chunk;
+			}
 		}
 
 		return $block;
@@ -1440,12 +1451,17 @@ class WP_Block_Processor {
 			return true;
 		}
 
-		// This is a core/freeform text block, it’s special.
-		if ( $this->is_html() && 0 === ( $this->open_blocks_length[0] ?? null ) ) {
-			return (
-				'core/freeform' === $block_type ||
-				'freeform' === $block_type
-			);
+		if ( $this->is_html() ) {
+			// This is a core/freeform text block, it’s special.
+			if ( 0 === ( $this->open_blocks_length[0] ?? null ) ) {
+				return (
+					'core/freeform' === $block_type ||
+					'freeform' === $block_type
+				);
+			}
+
+			// Otherwise this is innerHTML and not a block.
+			return false;
 		}
 
 		return $this->are_equal_block_types( $this->source_text, $this->namespace_at, $this->name_at - $this->namespace_at + $this->name_length, $block_type, 0, strlen( $block_type ) );
