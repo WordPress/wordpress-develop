@@ -851,7 +851,7 @@ function fetch_feed( $url ) {
 		 *
 		 * Accounts for either an empty string or an empty array passed as the $url parameter.
 		 */
-		return new WP_Error( 'simplepie-error', __( 'WP HTTP Error: A valid URL was not provided.' ) );
+		return new WP_Error( 'simplepie-error', __( 'A URL was not provided.' ) );
 	} elseif ( is_array( $url ) && count( $url ) === 1 ) {
 		$url = array_shift( $url );
 	} elseif ( is_array( $url ) ) {

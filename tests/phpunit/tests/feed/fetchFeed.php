@@ -101,7 +101,7 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 
 		$this->assertWPError( $feed, 'A WP_Error object is expected when no URL is provided.' );
 		$this->assertSame( 'simplepie-error', $feed->get_error_code() );
-		$this->assertSame( 'WP HTTP Error: A valid URL was not provided.', $feed->get_error_message() );
+		$this->assertSame( 'A URL was not provided.', $feed->get_error_message() );
 	}
 
 	/**
@@ -114,7 +114,7 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 
 		$this->assertWPError( $feed, 'A WP_Error object is expected when no URL is provided.' );
 		$this->assertSame( 'simplepie-error', $feed->get_error_code() );
-		$this->assertSame( 'WP HTTP Error: A valid URL was not provided.', $feed->get_error_message() );
+		$this->assertSame( 'A URL was not provided.', $feed->get_error_message() );
 	}
 
 	/**
