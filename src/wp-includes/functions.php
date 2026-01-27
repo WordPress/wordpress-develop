@@ -2196,6 +2196,7 @@ function wp_normalize_path( $path ) {
 
 	if ( isset( $warm[ $path ] ) ) {
 		$hot[ $path ] = $warm[ $path ];
+		unset( $warm[ $path ] );
 		return $hot[ $path ];
 	}
 
