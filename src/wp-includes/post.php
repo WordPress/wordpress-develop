@@ -1803,9 +1803,9 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                          move existing blocks and delete blocks.
  *                                                       * If set to 'insert', the user is able to move existing blocks
  *                                                         but is unable to insert new blocks and delete blocks.
- *                                                         Default false.
  *                                                       * If set to 'contentOnly', the user is only able to edit the content
  *                                                         of existing blocks.
+ *                                                       Default false.
  *     @type bool         $_builtin                     FOR INTERNAL USE ONLY! True if this post type is a native or
  *                                                      "built-in" post_type. Default false.
  *     @type string       $_edit_link                   FOR INTERNAL USE ONLY! URL segment to use for edit link of
