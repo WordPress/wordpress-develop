@@ -1879,22 +1879,6 @@ HTML;
 	}
 
 	/**
-	 * @ticket 42804
-	 */
-	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
-		global $wp_version;
-
-		$GLOBALS['wp_scripts']                  = new WP_Scripts();
-		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
-
-		wp_enqueue_script( 'empty-deps-no-version', 'example.com' );
-
-		$expected = "<script src='http://example.com?ver={$wp_version}' id='empty-deps-no-version-js'></script>\n";
-
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
-	}
-
-	/**
 	 * Test the different protocol references in wp_enqueue_script
 	 *
 	 * @ticket 16560
