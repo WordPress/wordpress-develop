@@ -19,7 +19,8 @@ require( 'codemirror/addon/hint/xml-hint' );
 require( 'codemirror/addon/lint/lint' );
 require( 'codemirror/addon/lint/css-lint' );
 require( 'codemirror/addon/lint/html-lint' );
-require( 'codemirror/addon/lint/javascript-lint' );
+
+require( '../../src/js/_enqueues/vendor/codemirror/javascript-lint' );
 require( 'codemirror/addon/lint/json-lint' );
 
 // Addons (Other)

@@ -79,6 +79,7 @@
 		"core-js-url-browser": "3.6.4",
 		"csslint": "1.0.5",
 		"element-closest": "3.0.2",
+		"espree": "9.6.1",
 		"esprima": "4.0.1",
 		"formdata-polyfill": "4.0.10",
 		"hoverintent": "2.2.1",

@@ -194,6 +194,25 @@ function wp_default_script_modules() {
 		$module_deps = $script_module_data['module_dependencies'] ?? array();
 		wp_register_script_module( $script_module_id, $path, $module_deps, $script_module_data['version'], $args );
 	}
+
+	wp_register_script_module(
+		'espree',
+		includes_url( 'js/codemirror/espree.min.js' ),
+		array(),
+		'9.6.1'
+	);
+
+	// The following is a workaround for classic scripts not yet being able to depend on modules. See <https://core.trac.wordpress.org/ticket/61500>.
+	wp_register_script_module(
+		'wp-codemirror',
+		'', // An empty string is a hack to cause the dependencies to be printed in the importmap without a dependent script being printed.
+		array(
+			array(
+				'id'     => 'espree',
+				'import' => 'dynamic',
+			),
+		)
+	);
 }
 
 /**
