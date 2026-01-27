@@ -810,6 +810,7 @@ HTML;
 h1 { background: blue; }h2 { color: green; }
 /*# sourceURL=css-inline-concat-one%2Ctwo */
 </style>
+
 HTML;
 
 		$this->assertEqualHTML( $expected, $printed );
