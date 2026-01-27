@@ -855,10 +855,10 @@ function fetch_feed( $url ) {
 	} elseif ( is_array( $url ) && count( $url ) === 1 ) {
 		$url = array_shift( $url );
 	} elseif ( is_array( $url ) ) {
-		$feeds              = array();
-		$simplepie_errors   = array();
-		$simplepie_instance = clone $feed;
+		$feeds            = array();
+		$simplepie_errors = array();
 		foreach ( $url as $feed_url ) {
+			$simplepie_instance = clone $feed;
 			$simplepie_instance->set_feed_url( $feed_url );
 			$simplepie_instance->init();
 			$simplepie_instance->set_output_encoding( get_bloginfo( 'charset' ) );
@@ -870,10 +870,12 @@ function fetch_feed( $url ) {
 					esc_url( $feed_url ),
 					$simplepie_instance->error()
 				);
+				unset( $simplepie_instance );
 				continue;
 			}
 
 			$feeds[] = $simplepie_instance;
+			unset( $simplepie_instance );
 		}
 
 		if ( ! empty( $simplepie_errors ) ) {
