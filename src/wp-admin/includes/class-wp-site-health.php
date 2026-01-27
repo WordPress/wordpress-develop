@@ -2784,12 +2784,12 @@ class WP_Site_Health {
 			),
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				'https://www.php.net/manual/en/book.opcache.php',
+				esc_url( 'https://www.php.net/manual/en/book.opcache.php' ),
 				__( 'Learn more about OPcache.' ),
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			),
-			'test'        => 'opcache_cache',
+			'test'        => 'opcode_cache',
 		);
 
 		if ( ! $opcode_cache_enabled ) {
