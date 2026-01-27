@@ -849,6 +849,7 @@ function fetch_feed( $url ) {
 		$url = array_shift( $url );
 	} elseif ( is_array( $url ) ) {
 		$feeds              = array();
+		$simplepie_errors   = array();
 		$simplepie_instance = clone $feed;
 		foreach ( $url as $feed_url ) {
 			$simplepie_instance->set_feed_url( $feed_url );
@@ -856,11 +857,22 @@ function fetch_feed( $url ) {
 			$simplepie_instance->set_output_encoding( get_bloginfo( 'charset' ) );
 
 			if ( $simplepie_instance->error() ) {
-				return new WP_Error( 'simplepie-error', $simplepie_instance->error() );
+				$simplepie_errors[] = sprintf(
+					/* translators: %1$s is the feed URL, %2$s is the error message. */
+					__( 'Error fetching feed %1$s: %2$s' ),
+					esc_url( $feed_url ),
+					$simplepie_instance->error()
+				);
+				continue;
 			}
 
 			$feeds[] = $simplepie_instance;
 		}
+
+		if ( ! empty( $simplepie_errors ) ) {
+			return new WP_Error( 'simplepie-error', $simplepie_errors );
+		}
+
 		$items = SimplePie\SimplePie::merge_items( $feeds );
 		$feed->init();
 		$feed->data['items'] = $items;
