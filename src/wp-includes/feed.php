@@ -845,7 +845,14 @@ function fetch_feed( $url ) {
 	 */
 	do_action_ref_array( 'wp_feed_options', array( &$feed, $url ) );
 
-	if ( is_array( $url ) && count( $url ) <= 1 ) {
+	if ( empty( $url ) ) {
+		/*
+		 * Known error: no URL provided do not attempt to process.
+		 *
+		 * Accounts for either an empty string or an empty array passed as the $url parameter.
+		 */
+		return new WP_Error( 'simplepie-error', __( 'WP HTTP Error: A valid URL was not provided.' ) );
+	} elseif ( is_array( $url ) && count( $url ) === 1 ) {
 		$url = array_shift( $url );
 	} elseif ( is_array( $url ) ) {
 		$feeds              = array();
