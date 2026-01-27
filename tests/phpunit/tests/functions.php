@@ -235,7 +235,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * This is important because the function uses a static cache, and the input
 	 * must be cast to string before being used as an array key.
 	 *
-	 * @ticket 33265
+	 * @ticket 64538
 	 */
 	public function test_wp_normalize_path_with_stringable_object() {
 		$stringable = new class() {
@@ -252,7 +252,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * The function uses a static cache, so this verifies cache behavior.
 	 *
-	 * @ticket 33265
+	 * @ticket 64538
 	 */
 	public function test_wp_normalize_path_returns_consistent_results() {
 		$path = 'C:\\www\\path\\';
