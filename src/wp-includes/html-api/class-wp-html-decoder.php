@@ -295,7 +295,7 @@ class WP_HTML_Decoder {
 			 * This comment is here to note and explain why there's no check to
 			 * remove these characters or replace them.
 			 *
-			 * @see https://infra.spec.whatwg.org/#noncharacter
+			 * @link https://infra.spec.whatwg.org/#noncharacter
 			 */
 
 			/*
@@ -418,7 +418,7 @@ class WP_HTML_Decoder {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @see https://www.rfc-editor.org/rfc/rfc3629 For the UTF-8 standard.
+	 * @link https://www.rfc-editor.org/rfc/rfc3629 For the UTF-8 standard.
 	 *
 	 * @param int $code_point Which code point to convert.
 	 * @return string Converted code point, or `�` if invalid.
