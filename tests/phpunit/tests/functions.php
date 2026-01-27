@@ -266,6 +266,104 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( 'C:/www/path/', $first_call, 'Normalized path should match expected value.' );
 	}
 
+	/**
+	 * Tests that wp_normalize_path() cache rotation works correctly.
+	 *
+	 * The function uses a two-tier cache (hot/warm) with max 100 entries in hot.
+	 * This verifies that after exceeding the cache size, both old and new paths
+	 * still return correct results.
+	 *
+	 * @ticket 64538
+	 */
+	public function test_wp_normalize_path_cache_rotation() {
+		$paths    = array();
+		$expected = array();
+
+		// Generate 150 unique paths to exceed the 100-entry hot cache limit.
+		for ( $i = 0; $i < 150; $i++ ) {
+			$paths[ $i ]    = "/var/www/test-{$i}\\subdir\\";
+			$expected[ $i ] = "/var/www/test-{$i}/subdir/";
+		}
+
+		// First pass: normalize all paths (fills hot, triggers rotation to warm).
+		$results_first_pass = array();
+		foreach ( $paths as $i => $path ) {
+			$results_first_pass[ $i ] = wp_normalize_path( $path );
+		}
+
+		// Verify all first pass results are correct.
+		foreach ( $results_first_pass as $i => $result ) {
+			$this->assertSame(
+				$expected[ $i ],
+				$result,
+				"First pass: Path {$i} should be normalized correctly."
+			);
+		}
+
+		// Second pass: verify old paths (now in warm) still return correct results.
+		// Access early paths which should have rotated to warm cache.
+		for ( $i = 0; $i < 50; $i++ ) {
+			$this->assertSame(
+				$expected[ $i ],
+				wp_normalize_path( $paths[ $i ] ),
+				"Second pass: Early path {$i} should still return correct result from warm cache."
+			);
+		}
+
+		// Verify recent paths (should be in hot cache) also work.
+		for ( $i = 100; $i < 150; $i++ ) {
+			$this->assertSame(
+				$expected[ $i ],
+				wp_normalize_path( $paths[ $i ] ),
+				"Second pass: Recent path {$i} should return correct result from hot cache."
+			);
+		}
+	}
+
+	/**
+	 * Tests that wp_normalize_path() cache segments do not exceed the maximum size.
+	 *
+	 * The function uses a two-tier cache with a max of 100 entries per segment.
+	 * This verifies the cache remains bounded after processing many unique paths.
+	 *
+	 * @ticket 64538
+	 */
+	public function test_wp_normalize_path_cache_segment_limits() {
+		// Generate 250 unique paths to ensure multiple cache rotations.
+		for ( $i = 0; $i < 250; $i++ ) {
+			wp_normalize_path( "/unique/path/number-{$i}\\file.php" );
+		}
+
+		// Use reflection to inspect the static cache variables.
+		$reflection     = new ReflectionFunction( 'wp_normalize_path' );
+		$static_vars    = $reflection->getStaticVariables();
+		$hot_count      = count( $static_vars['hot'] );
+		$warm_count     = count( $static_vars['warm'] );
+		$max            = $static_vars['max'];
+
+		// Verify hot cache does not exceed max.
+		$this->assertLessThanOrEqual(
+			$max,
+			$hot_count,
+			"Hot cache ({$hot_count} entries) should not exceed max ({$max})."
+		);
+
+		// Verify warm cache does not exceed max.
+		$this->assertLessThanOrEqual(
+			$max,
+			$warm_count,
+			"Warm cache ({$warm_count} entries) should not exceed max ({$max})."
+		);
+
+		// Verify total cached entries is bounded (at most 2x max).
+		$total = $hot_count + $warm_count;
+		$this->assertLessThanOrEqual(
+			$max * 2,
+			$total,
+			"Total cache ({$total} entries) should not exceed 2x max (" . ( $max * 2 ) . ').'
+		);
+	}
+
 	public function test_wp_unique_filename() {
 
 		$testdir = DIR_TESTDATA . '/images/';

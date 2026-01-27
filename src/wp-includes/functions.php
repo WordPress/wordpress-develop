@@ -2225,7 +2225,7 @@ function wp_normalize_path( $path ) {
 	$hot[ $original_path ] = $value;
 
 	// Rotate segments when hot is full.
-	if ( count( $hot ) > $max ) {
+	if ( count( $hot ) >= $max ) {
 		$warm = $hot;
 		$hot  = array();
 	}
