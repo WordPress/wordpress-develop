@@ -882,9 +882,8 @@ function fetch_feed( $url ) {
 			return new WP_Error( 'simplepie-error', $simplepie_errors );
 		}
 
-		$items = SimplePie\SimplePie::merge_items( $feeds );
 		$feed->init();
-		$feed->data['items'] = $items;
+		$feed->data['items'] = SimplePie\SimplePie::merge_items( $feeds );
 		return $feed;
 	}
 
