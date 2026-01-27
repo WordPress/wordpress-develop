@@ -1,8 +1,11 @@
 /* jshint node:true */
 /* jshint esversion: 6 */
-const pkg = require( '../../package.json' );
+const codemirrorVersion = require( 'codemirror/package.json' ).version;
+if ( typeof codemirrorVersion !== 'string' ) {
+	throw new Error( 'Could not read CodeMirror version from package.json' );
+}
 
-module.exports = `/*! This file is auto-generated from CodeMirror - v${ pkg.dependencies.codemirror }
+module.exports = `/*! This file is auto-generated from CodeMirror - v${ codemirrorVersion }
 
 CodeMirror, copyright (c) by Marijn Haverbeke and others
 Distributed under an MIT license: http://codemirror.net/LICENSE
