@@ -85,11 +85,10 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 			'paragraph block' => array(
 				'content',
 				<<<HTML
-<!-- wp:paragraph -->
-<p>This should not appear</p>
-<!-- /wp:paragraph -->
-HTML
-				,
+					<!-- wp:paragraph -->
+					<p>This should not appear</p>
+					<!-- /wp:paragraph -->
+					HTML,
 				'<p>test source value</p>',
 			),
 			'button block'    => array(
