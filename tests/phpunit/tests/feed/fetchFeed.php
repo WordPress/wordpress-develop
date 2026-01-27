@@ -53,6 +53,7 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 		}
 
 		$this->assertEqualHTML( $content[0], $content[1], null, 'The contents of the first two items should be identical.' );
+		$this->assertCount( 20, $feed->get_items(), 'The feed should contain 20 items.' );
 	}
 
 	/**
