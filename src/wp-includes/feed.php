@@ -850,7 +850,7 @@ function fetch_feed( $url ) {
 	} elseif ( is_array( $url ) ) {
 		$feeds              = array();
 		$simplepie_instance = clone $feed;
-		foreach ( (array) $url as $feed_url ) {
+		foreach ( $url as $feed_url ) {
 			$simplepie_instance->set_feed_url( $feed_url );
 			$simplepie_instance->init();
 			$simplepie_instance->set_output_encoding( get_bloginfo( 'charset' ) );
