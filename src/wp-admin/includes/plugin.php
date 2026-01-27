@@ -2169,12 +2169,13 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  * @global array  $_wp_submenu_nopriv
  * @global string $plugin_page
  * @global array  $_registered_pages
+ * @global array  $admin_page_hooks
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
 function user_can_access_admin_page() {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
-		$plugin_page, $_registered_pages;
+		$plugin_page, $_registered_pages, $admin_page_hooks;
 
 	$parent = get_admin_page_parent();
 
@@ -2190,6 +2191,11 @@ function user_can_access_admin_page() {
 		$hookname = get_plugin_page_hookname( $plugin_page, $parent );
 
 		if ( ! isset( $_registered_pages[ $hookname ] ) ) {
+			return false;
+		}
+
+		// It's a toplevel page, but accessed with the wrong parent.
+		if ( isset( $admin_page_hooks[$plugin_page] ) && $parent !== $plugin_page ) {
 			return false;
 		}
 	}
