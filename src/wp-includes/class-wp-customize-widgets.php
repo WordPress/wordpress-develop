@@ -924,7 +924,7 @@ final class WP_Customize_Widgets {
 					<span class="customize-action">
 						<?php
 						$panel       = $this->manager->get_panel( 'widgets' );
-						$panel_title = isset( $panel->title ) ? $panel->title : __( 'Widgets' );
+						$panel_title = $panel->title ?? __( 'Widgets' );
 						/* translators: &#9656; is the unicode right-pointing triangle. %s: Section title in the Customizer. */
 						printf( __( 'Customizing &#9656; %s' ), esc_html( $panel_title ) );
 						?>
@@ -1123,7 +1123,7 @@ final class WP_Customize_Widgets {
 			$available_widget = array_merge(
 				$available_widget,
 				array(
-					'temp_id'      => isset( $args['_temp_id'] ) ? $args['_temp_id'] : null,
+					'temp_id'      => $args['_temp_id'] ?? null,
 					'is_multi'     => $is_multi_widget,
 					'control_tpl'  => $control_tpl,
 					'multi_number' => ( 'multi' === $args['_add'] ) ? $args['_multi_num'] : false,
@@ -1335,7 +1335,7 @@ final class WP_Customize_Widgets {
 			unset( $registered_widget['callback'] ); // May not be JSON-serializable.
 		}
 		wp_print_inline_script_tag(
-			sprintf( 'var _wpWidgetCustomizerPreviewSettings = %s;', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) )
+			sprintf( 'var _wpWidgetCustomizerPreviewSettings = %s;', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ )
 		);
 	}
 

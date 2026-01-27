@@ -60,11 +60,8 @@ final class WP_Block_Templates_Registry {
 		}
 
 		if ( $error_message ) {
-			_doing_it_wrong(
-				__METHOD__,
-				$error_message,
-				'6.7.0'
-			);
+			_doing_it_wrong( __METHOD__, $error_message, '6.7.0' );
+
 			return new WP_Error( $error_code, $error_message );
 		}
 
@@ -78,16 +75,16 @@ final class WP_Block_Templates_Registry {
 			$template->theme       = $theme_name;
 			$template->plugin      = $plugin;
 			$template->author      = null;
-			$template->content     = isset( $args['content'] ) ? $args['content'] : '';
+			$template->content     = $args['content'] ?? '';
 			$template->source      = 'plugin';
 			$template->slug        = $slug;
 			$template->type        = 'wp_template';
-			$template->title       = isset( $args['title'] ) ? $args['title'] : $template_name;
-			$template->description = isset( $args['description'] ) ? $args['description'] : '';
+			$template->title       = $args['title'] ?? $template_name;
+			$template->description = $args['description'] ?? '';
 			$template->status      = 'publish';
 			$template->origin      = 'plugin';
 			$template->is_custom   = ! isset( $default_template_types[ $template_name ] );
-			$template->post_types  = isset( $args['post_types'] ) ? $args['post_types'] : array();
+			$template->post_types  = $args['post_types'] ?? array();
 		}
 
 		$this->registered_templates[ $template_name ] = $template;
@@ -204,11 +201,11 @@ final class WP_Block_Templates_Registry {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string $template_name Template name.
+	 * @param string|null $template_name Template name.
 	 * @return bool True if the template is registered, false otherwise.
 	 */
 	public function is_registered( $template_name ) {
-		return isset( $this->registered_templates[ $template_name ] );
+		return isset( $template_name, $this->registered_templates[ $template_name ] );
 	}
 
 	/**
@@ -221,14 +218,12 @@ final class WP_Block_Templates_Registry {
 	 */
 	public function unregister( $template_name ) {
 		if ( ! $this->is_registered( $template_name ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				/* translators: %s: Template name. */
-				sprintf( __( 'Template "%s" is not registered.' ), $template_name ),
-				'6.7.0'
-			);
 			/* translators: %s: Template name. */
-			return new WP_Error( 'template_not_registered', __( 'Template "%s" is not registered.' ) );
+			$error_message = sprintf( __( 'Template "%s" is not registered.' ), $template_name );
+
+			_doing_it_wrong( __METHOD__, $error_message, '6.7.0' );
+
+			return new WP_Error( 'template_not_registered', $error_message );
 		}
 
 		$unregistered_template = $this->registered_templates[ $template_name ];
