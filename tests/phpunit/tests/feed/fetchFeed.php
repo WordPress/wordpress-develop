@@ -45,7 +45,7 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 	 * @ticket 64136
 	 */
 	public function test_fetch_feed_supports_multiple_feeds() {
-		$feed    = fetch_feed( array( 'https://wordpress.org/news/feed/', 'https://wordpress.org/news/feed/' ) );
+		$feed    = fetch_feed( array( 'https://wordpress.org/news/feed/', 'https://wordpress.org/news/feed/atom/' ) );
 		$content = array();
 
 		foreach ( $feed->get_items( 0, 2 ) as $item ) {
