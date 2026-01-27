@@ -2195,7 +2195,7 @@ function user_can_access_admin_page() {
 		}
 
 		// It's a toplevel page, but accessed with the wrong parent.
-		if ( isset( $admin_page_hooks[$plugin_page] ) && $parent !== $plugin_page ) {
+		if ( isset( $admin_page_hooks[ $plugin_page ] ) && $parent !== $plugin_page ) {
 			return false;
 		}
 	}
