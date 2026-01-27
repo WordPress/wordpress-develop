@@ -882,6 +882,7 @@ HTML;
 h1 { background: blue; }h2 { color: green; }
 /*# sourceURL=css-inline-concat-one%2Ctwo */
 </style>
+
 HTML;
 
 		$this->assertEqualHTML( $expected, $printed );
@@ -935,7 +936,7 @@ HTML;
 		wp_enqueue_style( 'test-style?qs1=q1&qs2=q2', '/test-style.css', array(), $version );
 		$markup = get_echo( 'wp_print_styles' );
 
-		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' media='all' />";
+		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' media='all' />\n";
 		$this->assertEqualHTML( $expected, $markup, '<body>', 'Expected equal snapshot for wp_print_styles() with version ' . var_export( $version, true ) . ":\n$markup" );
 	}
 
@@ -956,7 +957,7 @@ HTML;
 		wp_enqueue_style( 'test-style?qs1=q1&qs2=q2' );
 		$markup = get_echo( 'wp_print_styles' );
 
-		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' media='all' />";
+		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' media='all' />\n";
 		$this->assertEqualHTML( $expected, $markup, '<body>', 'Expected equal snapshot for wp_print_styles() with version ' . var_export( $version, true ) . ":\n$markup" );
 	}
 
