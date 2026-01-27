@@ -92,6 +92,32 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure fetch_feed() returns WP_Error for empty URL (string).
+	 *
+	 * @ticket 64136
+	 */
+	public function test_fetch_feed_returns_an_error_for_unspecified_url() {
+		$feed = fetch_feed( '' );
+
+		$this->assertWPError( $feed, 'A WP_Error object is expected when no URL is provided.' );
+		$this->assertSame( 'simplepie-error', $feed->get_error_code() );
+		$this->assertSame( 'WP HTTP Error: A valid URL was not provided.', $feed->get_error_message() );
+	}
+
+	/**
+	 * Ensure fetch_feed() returns WP_Error for empty URL (array).
+	 *
+	 * @ticket 64136
+	 */
+	public function test_fetch_feed_returns_an_error_for_unspecified_url_array() {
+		$feed = fetch_feed( array() );
+
+		$this->assertWPError( $feed, 'A WP_Error object is expected when no URL is provided.' );
+		$this->assertSame( 'simplepie-error', $feed->get_error_code() );
+		$this->assertSame( 'WP HTTP Error: A valid URL was not provided.', $feed->get_error_message() );
+	}
+
+	/**
 	 * Ensure fetch_feed() accepts multiple feeds.
 	 *
 	 * The main purpose of this test is to ensure that the SimplePie deprecation warning
