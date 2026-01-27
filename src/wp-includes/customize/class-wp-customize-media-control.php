@@ -94,7 +94,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 				 */
 				$wp_filetype = wp_check_filetype( $this->setting->default );
 				$ext  = $wp_filetype['ext'];
-				
+
 				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp', 'webp', 'avif' ), true ) ? 'image' : 'document';
 
 				$default_attachment = array(
