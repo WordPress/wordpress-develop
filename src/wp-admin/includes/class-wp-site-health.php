@@ -1885,7 +1885,7 @@ class WP_Site_Health {
 	/**
 	 * Tests if registration is open to everyone and the default role is privileged.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return array The test results.
 	 */
