@@ -295,16 +295,16 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 */
 	public static function data_ambiguous_ampersands() {
 		return array(
-			'Starting with logical AND'            => array( 'data', '&amp', '&' ),
-			'Starting with logical AND (attr)'     => array( 'attribute', '&amp', '&' ),
-			'Ambiguous with equals'                => array( 'data', '&not=', '¬=' ),
-			'Ambiguous with equals (attr)'         => array( 'attribute', '&not=', '&not=' ),
-			'Ambiguous with alphanumeric'          => array( 'data', '&notit', '¬it' ),
-			'Ambiguous with alphanumeric (attr)'   => array( 'attribute', '&notit', '&notit' ),
-			'Not ambiguous (semicolon)'            => array( 'data', '&not;', '¬' ),
-			'Not ambiguous (semicolon) (attr)'     => array( 'attribute', '&not;', '¬' ),
-			'Not ambiguous (non-alphanum)'         => array( 'data', '&not ', '¬ ' ),
-			'Not ambiguous (non-alphanum) (attr)'  => array( 'attribute', '&not ', '¬ ' ),
+			'Starting with logical AND'           => array( 'data', '&amp', '&' ),
+			'Starting with logical AND (attr)'    => array( 'attribute', '&amp', '&' ),
+			'Ambiguous with equals'               => array( 'data', '&not=', '¬=' ),
+			'Ambiguous with equals (attr)'        => array( 'attribute', '&not=', '&not=' ),
+			'Ambiguous with alphanumeric'         => array( 'data', '&notit', '¬it' ),
+			'Ambiguous with alphanumeric (attr)'  => array( 'attribute', '&notit', '&notit' ),
+			'Not ambiguous (semicolon)'           => array( 'data', '&not;', '¬' ),
+			'Not ambiguous (semicolon) (attr)'    => array( 'attribute', '&not;', '¬' ),
+			'Not ambiguous (non-alphanum)'        => array( 'data', '&not ', '¬ ' ),
+			'Not ambiguous (non-alphanum) (attr)' => array( 'attribute', '&not ', '¬ ' ),
 		);
 	}
 }
