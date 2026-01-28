@@ -1,21 +1,9 @@
-/* globals define, CodeMirror */
 /* jshint devel: true */
 
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: https://codemirror.net/5/LICENSE
 
-( function ( mod ) {
-	if ( typeof exports === 'object' && typeof module === 'object' ) {
-		// CommonJS
-		mod( require( 'codemirror' ) );
-	} else if ( typeof define === 'function' && define.amd ) {
-		// AMD
-		define( [ 'codemirror' ], mod );
-		// Plain browser env
-	} else {
-		mod( CodeMirror );
-	}
-} )( function ( CodeMirror ) {
+( ( CodeMirror ) => {
 	'use strict';
 
 	/**
@@ -26,8 +14,8 @@
 	 * @typedef {Object} CodeMirrorLintError
 	 * @property {string} message - Error message.
 	 * @property {'error'} severity - Severity.
-	 * @property {{line: number, ch: number}} from - From position.
-	 * @property {{line: number, ch: number}} to - To position.
+	 * @property {CodeMirror.Position} from - From position.
+	 * @property {CodeMirror.Position} to - To position.
 	 */
 
 	/**
@@ -70,8 +58,8 @@
 				errors.push( {
 					message: error.message,
 					severity: 'error',
-					from: { line, ch: error.column - 1 },
-					to: { line, ch: error.column },
+					from: CodeMirror.Pos( line, error.column - 1 ),
+					to: CodeMirror.Pos( line, error.column ),
 				} );
 			} else {
 				console.warn( '[CodeMirror] Unable to lint JavaScript:', error );
@@ -125,4 +113,4 @@
 		}
 		return 'latest';
 	}
-} );
+} )( require( 'codemirror' ) );
