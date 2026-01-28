@@ -846,12 +846,8 @@ function fetch_feed( $url ) {
 	do_action_ref_array( 'wp_feed_options', array( &$feed, $url ) );
 
 	if ( empty( $url ) ) {
-		/*
-		 * Known error: no URL provided do not attempt to process.
-		 *
-		 * Accounts for either an empty string or an empty array passed as the $url parameter.
-		 */
-		return new WP_Error( 'simplepie-error', __( 'A URL was not provided.' ) );
+		// Ensure $url is an empty string, even if passed as an empty array.
+		$url = '';
 	} elseif ( is_array( $url ) && count( $url ) === 1 ) {
 		$url = array_shift( $url );
 	} elseif ( is_array( $url ) ) {

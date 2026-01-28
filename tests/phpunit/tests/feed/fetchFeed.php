@@ -92,29 +92,25 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure fetch_feed() returns WP_Error for empty URL (string).
+	 * Ensure fetch_feed() returns a SimplePie object for an empty URL (string).
 	 *
 	 * @ticket 64136
 	 */
-	public function test_fetch_feed_returns_an_error_for_unspecified_url() {
+	public function test_fetch_feed_returns_a_simplepie_object_for_unspecified_url_string() {
 		$feed = fetch_feed( '' );
 
-		$this->assertWPError( $feed, 'A WP_Error object is expected when no URL is provided.' );
-		$this->assertSame( 'simplepie-error', $feed->get_error_code() );
-		$this->assertSame( 'A URL was not provided.', $feed->get_error_message() );
+		$this->assertInstanceOf( 'SimplePie\\SimplePie', $feed );
 	}
 
 	/**
-	 * Ensure fetch_feed() returns WP_Error for empty URL (array).
+	 * Ensure fetch_feed() returns a SimplePie object for an empty URL (array).
 	 *
 	 * @ticket 64136
 	 */
-	public function test_fetch_feed_returns_an_error_for_unspecified_url_array() {
+	public function test_fetch_feed_returns_a_simplepie_object_for_unspecified_url_array() {
 		$feed = fetch_feed( array() );
 
-		$this->assertWPError( $feed, 'A WP_Error object is expected when no URL is provided.' );
-		$this->assertSame( 'simplepie-error', $feed->get_error_code() );
-		$this->assertSame( 'A URL was not provided.', $feed->get_error_message() );
+		$this->assertInstanceOf( 'SimplePie\\SimplePie', $feed );
 	}
 
 	/**
