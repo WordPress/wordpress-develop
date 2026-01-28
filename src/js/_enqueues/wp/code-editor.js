@@ -2,6 +2,9 @@
  * @output wp-admin/js/code-editor.js
  */
 
+/* jshint esversion: 11 */
+/* eslint-env es2020 */
+
 if ( 'undefined' === typeof window.wp ) {
 	/**
 	 * @namespace wp
@@ -320,8 +323,9 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 						'/' === event.key && 'tag' === token.type ||
 						isAlphaKey && 'tag' === token.type ||
 						isAlphaKey && 'attribute' === token.type ||
-						'=' === event.key && 
-						'=' === token.string && token.state.curState && token.state.curState.htmlState && token.state.curState.htmlState.tagName;
+						'=' === event.key &&
+						'=' === token.string &&
+						token.state.curState?.htmlState?.tagName;
 				} else if ( 'css' === innerMode ) {
 					shouldAutocomplete =
 						isAlphaKey ||
