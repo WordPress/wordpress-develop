@@ -320,7 +320,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 						'/' === event.key && 'tag' === token.type ||
 						isAlphaKey && 'tag' === token.type ||
 						isAlphaKey && 'attribute' === token.type ||
-						'=' === token.string && token.state.htmlState && token.state.htmlState.tagName;
+						'=' === event.key && 
+						'=' === token.string && token.state.curState && token.state.curState.htmlState && token.state.curState.htmlState.tagName;
 				} else if ( 'css' === innerMode ) {
 					shouldAutocomplete =
 						isAlphaKey ||
@@ -329,7 +330,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 				} else if ( 'javascript' === innerMode ) {
 					shouldAutocomplete = isAlphaKey || '.' === event.key;
 				} else if ( 'clike' === innerMode && 'php' === codemirror.options.mode ) {
-					shouldAutocomplete = 'keyword' === token.type || 'variable' === token.type;
+					shouldAutocomplete = isAlphaKey && ( 'keyword' === token.type || 'variable' === token.type );
 				}
 				if ( shouldAutocomplete ) {
 					codemirror.showHint( { completeSingle: false } );
