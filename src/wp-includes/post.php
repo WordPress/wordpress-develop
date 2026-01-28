@@ -52,7 +52,7 @@ function create_initial_post_types() {
 			'show_in_rest'           => true,
 			'rest_base'              => 'posts',
 			'rest_controller_class'  => 'WP_REST_Posts_Controller',
-			'show_in_home_page_list' => null,
+			'show_in_home_page_list' => true,
 		)
 	);
 
@@ -87,7 +87,6 @@ function create_initial_post_types() {
 			'show_in_rest'           => true,
 			'rest_base'              => 'pages',
 			'rest_controller_class'  => 'WP_REST_Posts_Controller',
-			'show_in_home_page_list' => true,
 		)
 	);
 
