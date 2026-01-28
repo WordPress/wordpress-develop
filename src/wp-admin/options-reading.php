@@ -68,7 +68,7 @@ if ( ! is_utf8_charset() ) {
 	add_settings_field( 'blog_charset', __( 'Encoding for pages and feeds' ), 'options_reading_blog_charset', 'reading', 'default', array( 'label_for' => 'blog_charset' ) );
 }
 /**
- * this fillter overrides which post type are show in the dropdown
+ * This filter overrides which post type are show in the dropdown.
  *
  * @uses get_post_types
  *
