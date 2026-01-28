@@ -846,8 +846,23 @@ function fetch_feed( $url ) {
 	do_action_ref_array( 'wp_feed_options', array( &$feed, $url ) );
 
 	if ( empty( $url ) ) {
-		// Ensure $url is an empty string, even if passed as an empty array.
-		$url = '';
+		/*
+		 * @todo: Set $url to empty string once supported by SimplePie.
+		 *
+		 * The early return without proceeding is to work around a PHP 8.5
+		 * deprecation issue resolved in https://github.com/simplepie/simplepie/pull/949
+		 *
+		 * To avoid the duplicate code, this block can be replaced with `$url = '';` once SimplePie
+		 * is upgraded to a version that includes the fix.
+		 */
+		$feed->init();
+		$feed->set_output_encoding( get_bloginfo( 'charset' ) );
+
+		if ( $feed->error() ) {
+			return new WP_Error( 'simplepie-error', $feed->error() );
+		}
+
+		return $feed;
 	} elseif ( is_array( $url ) && count( $url ) === 1 ) {
 		$url = array_shift( $url );
 	} elseif ( is_array( $url ) ) {
