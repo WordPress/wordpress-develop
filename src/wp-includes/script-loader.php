@@ -230,7 +230,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 		$src = $scripts->registered[ $handle ]->src;
 		$ver = $scripts->registered[ $handle ]->ver;
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
+		if ( is_string( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
 			$src = $scripts->base_url . $src;
 		}
 
@@ -693,14 +693,14 @@ function wp_scripts_get_suffix( $type = '' ) {
 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 		 * wp-includes/functions.php is not loaded.
 		 */
-		require ABSPATH . WPINC . '/version.php';
+		$versions = require ABSPATH . WPINC . '/version.php';
 
 		/*
 		 * Note: str_contains() is not used here, as this file can be included
 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
-		$develop_src = false !== strpos( $wp_version, '-src' );
+		$develop_src = false !== strpos( $versions['wp_version'] ?? '', '-src' );
 
 		if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 			define( 'SCRIPT_DEBUG', $develop_src );
@@ -1089,7 +1089,7 @@ function wp_default_scripts( $scripts ) {
 			'var mejsL10n = %s;',
 			wp_json_encode(
 				array(
-					'language' => strtolower( strtok( determine_locale(), '_-' ) ),
+					'language' => strtolower( (string) strtok( determine_locale(), '_-' ) ),
 					'strings'  => array(
 						'mejs.download-file'       => __( 'Download File' ),
 						'mejs.install-flash'       => __( 'You are using a browser that does not have Flash player enabled or installed. Please turn on your Flash player plugin or download the latest version from https://get.adobe.com/flashplayer/' ),
@@ -1556,7 +1556,7 @@ function wp_default_styles( $styles ) {
 	 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 	 * wp-includes/functions.php is not loaded.
 	 */
-	require ABSPATH . WPINC . '/version.php';
+	$versions = require ABSPATH . WPINC . '/version.php';
 
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 		/*
@@ -1564,7 +1564,7 @@ function wp_default_styles( $styles ) {
 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
-		define( 'SCRIPT_DEBUG', false !== strpos( $wp_version, '-src' ) );
+		define( 'SCRIPT_DEBUG', false !== strpos( $versions['wp_version'] ?? '', '-src' ) );
 	}
 
 	$guessurl = site_url();
@@ -1607,7 +1607,13 @@ function wp_default_styles( $styles ) {
 		$open_sans_font_url = "https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,300,400,600&subset=$subsets&display=fallback";
 	}
 
-	// Register a stylesheet for the selected admin color scheme.
+	/*
+	 * Register a stylesheet for the selected admin color scheme.
+	 * The src here is uniquely `true` to ensure that the dependency is not treated as an alias and so that the
+	 * `wp_style_loader_src` filters will apply. This results in the wp_style_loader_src() function applying on the
+	 * value so that it can dynamically apply the user-selected color. If no user-defined color is supplied, then
+	 * the function returns `false` so that it ultimately does behave as an alias.
+	 */
 	$styles->add( 'colors', true, array( 'wp-admin', 'buttons' ) );
 
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
@@ -1921,7 +1927,7 @@ function wp_prototype_before_jquery( $js_array ) {
 
 	unset( $js_array[ $prototype ] );
 
-	array_splice( $js_array, $jquery, 0, 'prototype' );
+	array_splice( $js_array, (int) $jquery, 0, 'prototype' );
 
 	return $js_array;
 }
@@ -2089,15 +2095,15 @@ function wp_localize_community_events() {
  *
  * @global array $_wp_admin_css_colors
  *
- * @param string $src    Source URL.
- * @param string $handle Either 'colors' or 'colors-rtl'.
- * @return string|false URL path to CSS stylesheet for Administration Screens.
+ * @param string|bool $src    Source URL.
+ * @param string      $handle Either 'colors' or 'colors-rtl'.
+ * @return string|bool URL path to CSS stylesheet for Administration Screens.
  */
 function wp_style_loader_src( $src, $handle ) {
 	global $_wp_admin_css_colors;
 
 	if ( wp_installing() ) {
-		return preg_replace( '#^wp-admin/#', './', $src );
+		return (string) preg_replace( '#^wp-admin/#', './', $src ); // TODO: Parameter #3 $subject of function preg_replace expects array<float|int|string>|string, bool|string given.
 	}
 
 	if ( 'colors' === $handle ) {
@@ -2114,7 +2120,7 @@ function wp_style_loader_src( $src, $handle ) {
 			return false;
 		}
 
-		$parsed = parse_url( $src );
+		$parsed = parse_url( $src ); // TODO: Parameter #1 $url of function parse_url expects string, bool|string given.
 		if ( isset( $parsed['query'] ) && $parsed['query'] ) {
 			wp_parse_str( $parsed['query'], $qv );
 			$url = add_query_arg( $qv, $url );
@@ -3052,7 +3058,7 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
  * @global WP_Styles $wp_styles
  */
 function wp_maybe_inline_styles() {
-	global $wp_styles;
+	$wp_styles = wp_styles();
 
 	$total_inline_limit = 40000;
 	/**
@@ -3074,7 +3080,7 @@ function wp_maybe_inline_styles() {
 		}
 		$src  = $wp_styles->registered[ $handle ]->src;
 		$path = $wp_styles->get_data( $handle, 'path' );
-		if ( $path && $src ) {
+		if ( is_string( $path ) && '' !== $path && is_string( $src ) && '' !== $src ) {
 			$size = wp_filesize( $path );
 			if ( 0 === $size && ! file_exists( $path ) ) {
 				_doing_it_wrong(
@@ -3139,7 +3145,7 @@ function wp_maybe_inline_styles() {
 				);
 				continue;
 			}
-			$style['css'] = file_get_contents( $style['path'] );
+			$style['css'] = (string) file_get_contents( $style['path'] );
 
 			/*
 			 * Check if the style contains relative URLs that need to be modified.
@@ -3175,7 +3181,7 @@ function wp_maybe_inline_styles() {
  * @return string The CSS with URLs made relative to the WordPress installation.
  */
 function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
-	return preg_replace_callback(
+	return (string) preg_replace_callback(
 		'#(url\s*\(\s*[\'"]?\s*)([^\'"\)]+)#',
 		static function ( $matches ) use ( $stylesheet_url ) {
 			list( , $prefix, $url ) = $matches;
@@ -3749,7 +3755,7 @@ function wp_hoist_late_printed_styles() {
 		if ( count( $enqueued_block_styles ) > 0 ) {
 			ob_start();
 			wp_styles()->do_items( $enqueued_block_styles );
-			$printed_block_styles = ob_get_clean();
+			$printed_block_styles = (string) ob_get_clean();
 		}
 
 		/*
@@ -3759,7 +3765,7 @@ function wp_hoist_late_printed_styles() {
 		 */
 		ob_start();
 		wp_styles()->do_footer_items();
-		$printed_late_styles = ob_get_clean();
+		$printed_late_styles = (string) ob_get_clean();
 	};
 
 	/*
@@ -3776,14 +3782,14 @@ function wp_hoist_late_printed_styles() {
 		// The normal priority for wp_print_footer_scripts() is to run at 20.
 		add_action( 'wp_footer', $capture_late_styles, 20 );
 	} else {
-		remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts', $wp_print_footer_scripts_priority );
+		remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts', (int) $wp_print_footer_scripts_priority );
 		add_action(
 			'wp_print_footer_scripts',
 			static function () use ( $capture_late_styles ) {
 				$capture_late_styles();
 				print_footer_scripts();
 			},
-			$wp_print_footer_scripts_priority
+			(int) $wp_print_footer_scripts_priority
 		);
 	}
 

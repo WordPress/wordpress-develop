@@ -397,13 +397,13 @@ class WP_Styles extends WP_Dependencies {
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param string            $src    The source of the enqueued style.
+	 * @param string|true       $src    The source of the enqueued style.
 	 * @param string|false|null $ver    The version of the enqueued style.
 	 * @param string            $handle The style's registered handle.
 	 * @return string Style's fully-qualified URL.
 	 */
 	public function _css_href( $src, $ver, $handle ) {
-		if ( ! is_bool( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
+		if ( is_string( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
 			$src = $this->base_url . $src;
 		}
 
@@ -419,15 +419,17 @@ class WP_Styles extends WP_Dependencies {
 				$query_args = array_merge( $query_args, $parsed_args );
 			}
 		}
-		$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
+		if ( count( $query_args ) > 0 ) {
+			$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
+		}
 
 		/**
 		 * Filters an enqueued style's fully-qualified URL.
 		 *
 		 * @since 2.6.0
 		 *
-		 * @param string $src    The source URL of the enqueued style.
-		 * @param string $handle The style's registered handle.
+		 * @param string|true $src    The source URL of the enqueued style.
+		 * @param string      $handle The style's registered handle.
 		 */
 		$src = apply_filters( 'style_loader_src', $src, $handle );
 		return esc_url( $src );

@@ -372,8 +372,8 @@ class WP_Scripts extends WP_Dependencies {
 			 *
 			 * @since 2.2.0
 			 *
-			 * @param string $src    Script loader source path.
-			 * @param string $handle Script handle.
+			 * @param string|true $src    Script loader source path.
+			 * @param string      $handle Script handle.
 			 */
 			$filtered_src = apply_filters( 'script_loader_src', $src, $handle );
 
@@ -413,7 +413,7 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
+		if ( is_string( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
 			$src = $this->base_url . $src;
 		}
 
@@ -429,12 +429,17 @@ class WP_Scripts extends WP_Dependencies {
 				$query_args = array_merge( $query_args, $parsed_args );
 			}
 		}
-		$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
+		if ( count( $query_args ) > 0 ) {
+			$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
+		}
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
-		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
-
-		if ( ! $src ) {
+		$src = apply_filters( 'script_loader_src', $src, $handle );
+		if ( ! is_string( $src ) ) {
+			return true;
+		}
+		$src = esc_url_raw( $src );
+		if ( ! is_string( $src ) || ! $src ) {
 			return true;
 		}
 
