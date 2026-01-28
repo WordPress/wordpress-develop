@@ -2775,6 +2775,36 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		);
 	}
 
+	/**
+	 * Test that the `class_list` property is a list.
+	 *
+	 * @ticket 64247
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
+	public function test_class_list_is_list() {
+		$post_id = self::factory()->post->create();
+
+		// Filter 'post_class' to add a duplicate which should be removed by `array_unique()`.
+		add_filter(
+			'post_class',
+			function ( $classes ) {
+				return array_merge(
+					array( 'duplicate-class', 'duplicate-class' ),
+					$classes
+				);
+			}
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'class_list', $data );
+		$this->assertContains( 'duplicate-class', $data['class_list'] );
+		$this->assertTrue( array_is_list( $data['class_list'] ), 'Expected class_list to be a list.' );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 

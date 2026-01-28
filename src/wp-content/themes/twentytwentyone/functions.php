@@ -375,9 +375,13 @@ add_action( 'widgets_init', 'twenty_twenty_one_widgets_init' );
  * @return void
  */
 function twenty_twenty_one_content_width() {
-	// This variable is intended to be overruled from themes.
-	// Open WPCS issue: {@link https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/1043}.
-	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	/**
+	 * Filters Twenty Twenty-One content width of the theme.
+	 *
+	 * @since Twenty Twenty-One 1.0
+	 *
+	 * @param int $content_width Content width in pixels.
+	 */
 	$GLOBALS['content_width'] = apply_filters( 'twenty_twenty_one_content_width', 750 );
 }
 add_action( 'after_setup_theme', 'twenty_twenty_one_content_width', 0 );
@@ -651,7 +655,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Twenty-One 1.6
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */

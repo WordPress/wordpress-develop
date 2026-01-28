@@ -159,7 +159,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * @param bool        $check_mime Whether to prevent uploads of unsupported image types.
 		 * @param string|null $mime_type  The mime type of the file being uploaded (if available).
 		 */
-		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, isset( $files['file']['type'] ) ? $files['file']['type'] : null );
+		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, $files['file']['type'] ?? null );
 
 		// If the upload is an image, check if the server can handle the mime type.
 		if (
@@ -777,7 +777,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$new_attachment_post->post_parent = $new_attachment_post->post_parent ?? 0;
 
 		// Insert the new attachment post.
-		$new_attachment_id = wp_insert_attachment( wp_slash( $new_attachment_post ), $saved['path'], 0, true );
+		$new_attachment_id = wp_insert_attachment( wp_slash( (array) $new_attachment_post ), $saved['path'], 0, true );
 
 		if ( is_wp_error( $new_attachment_id ) ) {
 			if ( 'db_update_error' === $new_attachment_id->get_error_code() ) {

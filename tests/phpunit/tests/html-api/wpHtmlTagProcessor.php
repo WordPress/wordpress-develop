@@ -312,6 +312,68 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that set_attribute doesn’t allow setting an
+	 * attribute with an invalid name and thus break syntax.
+	 *
+	 * @ticket 63863
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_attribute
+	 *
+	 * @dataProvider data_invalid_attribute_names
+	 *
+	 * @param string $invalid_name Invalid attribute name.
+	 */
+	public function test_set_attribute_rejects_invalid_names( $invalid_name ) {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
+
+		$this->assertFalse(
+			$processor->set_attribute( $invalid_name, true ),
+			'Should have rejected invalid attribute name.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_invalid_attribute_names() {
+		$invalid_names = array(
+			'Empty' => array( '' ),
+		);
+
+		// Syntax-like characters.
+		foreach ( str_split( '"\'>&</ =' ) as $c ) {
+			$invalid_names[ $c ] = array( "too{$c}late" );
+		}
+
+		// C0 controls.
+		for ( $i = 0; $i <= 0x1F; $i++ ) {
+			$c                                    = chr( $i );
+			$invalid_names[ "C0 Controls: {$i}" ] = array( "shut{$c}down" );
+		}
+
+		// Noncharacters.
+		for ( $i = 0xFDD0; $i <= 0xFDEF; $i++ ) {
+			$h                                       = dechex( $i );
+			$c                                       = mb_chr( $i );
+			$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+		}
+
+		for ( $b = 0; $b <= 16; $b++ ) {
+			for ( $x = 0xFFFE; $x <= 0xFFFF; $x++ ) {
+				$i                                       = ( $b << 16 ) + $x;
+				$h                                       = dechex( $i );
+				$c                                       = mb_chr( $i );
+				$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+			}
+		}
+
+		return $invalid_names;
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
@@ -2825,11 +2887,11 @@ HTML;
 			),
 			'HTML tag opening inside attribute value'      => array(
 				'input'    => '<pre id="<code" class="wp-block-code <code is poetry&gt;"><code>This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
-				'expected' => '<pre foo="bar" id="<code" class="wp-block-code &lt;code is poetry&amp;gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
+				'expected' => '<pre foo="bar" id="<code" class="wp-block-code &lt;code is poetry&gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
 			),
 			'HTML tag brackets in attribute values and data markup' => array(
 				'input'    => '<pre id="<code-&gt;-block-&gt;" class="wp-block-code <code is poetry&gt;"><code>This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
-				'expected' => '<pre foo="bar" id="<code-&gt;-block-&gt;" class="wp-block-code &lt;code is poetry&amp;gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
+				'expected' => '<pre foo="bar" id="<code-&gt;-block-&gt;" class="wp-block-code &lt;code is poetry&gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
 			),
 			'Single and double quotes in attribute value'  => array(
 				'input'    => '<p title="Demonstrating how to use single quote (\') and double quote (&quot;)"><span>test</span>',
@@ -2963,6 +3025,50 @@ HTML
 				'input'    => '<hr id a  =5><span>test</span>',
 				'expected' => '<hr class="firstTag" foo="bar" id a  =5><span class="secondTag">test</span>',
 			),
+		);
+	}
+
+	/**
+	 * @ticket 64340
+	 */
+	public function test_class_changes_produce_correct_html() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="&amp;">' );
+		$processor->next_tag();
+
+		$processor->add_class( '"' );
+		$processor->get_updated_html();
+
+		$processor->add_class( 'OK' );
+		$processor->get_updated_html();
+
+		$this->assertTrue( $processor->has_class( '&' ), 'Missing expected "&" class.' );
+		$this->assertTrue( $processor->has_class( '"' ), 'Missing expected \'"\' class.' );
+		$this->assertTrue( $processor->has_class( 'OK' ), 'Missing expected "OK" class.' );
+
+		$expected = '<div class="&amp; &quot; OK">';
+		$this->assertEqualHTML(
+			$expected,
+			$processor->get_updated_html(),
+			'<body>',
+			'HTML was not correctly updated after adding classes.'
+		);
+
+		$processor->remove_class( '&' );
+		$processor->get_updated_html();
+
+		$processor->remove_class( '"' );
+		$processor->get_updated_html();
+
+		$this->assertFalse( $processor->has_class( '&' ) );
+		$this->assertFalse( $processor->has_class( '"' ) );
+		$this->assertTrue( $processor->has_class( 'OK' ) );
+
+		$expected = '<div class="OK">';
+		$this->assertEqualHTML(
+			$expected,
+			$processor->get_updated_html(),
+			'<body>',
+			'HTML was not correctly updated after removing classes.'
 		);
 	}
 

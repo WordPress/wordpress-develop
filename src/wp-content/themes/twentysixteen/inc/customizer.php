@@ -90,7 +90,7 @@ if ( ! function_exists( 'twentysixteen_header_style' ) ) :
 
 		// If the header text has been hidden.
 		?>
-		<style type="text/css" id="twentysixteen-header-css">
+		<style id="twentysixteen-header-css">
 		.site-branding {
 			margin: 0 auto 0 0;
 		}
@@ -791,13 +791,11 @@ function twentysixteen_get_color_scheme_css( $colors ) {
 	.comment-reply-link,
 	.no-comments,
 	.widecolumn .mu_register .mu_alert {
-		border-color: {$colors['main_text_color']}; /* Fallback for IE7 and IE8 */
 		border-color: {$colors['border_color']};
 	}
 
 	hr,
 	code {
-		background-color: {$colors['main_text_color']}; /* Fallback for IE7 and IE8 */
 		background-color: {$colors['border_color']};
 	}
 
@@ -1089,7 +1087,7 @@ function twentysixteen_main_text_color_css() {
 		.comment-author,
 		.comment-reply-title small a:hover,
 		.comment-reply-title small a:focus {
-			color: %1$s
+			color: %1$s;
 		}
 
 		blockquote,
@@ -1169,13 +1167,11 @@ function twentysixteen_main_text_color_css() {
 		.comment-reply-link,
 		.no-comments,
 		.widecolumn .mu_register .mu_alert {
-			border-color: %1$s; /* Fallback for IE7 and IE8 */
 			border-color: %2$s;
 		}
 
 		hr,
 		code {
-			background-color: %1$s; /* Fallback for IE7 and IE8 */
 			background-color: %2$s;
 		}
 
