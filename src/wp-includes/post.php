@@ -3968,6 +3968,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
  */
 function _reset_front_page_settings_for_post( $post_id ) {
 	$post = get_post( $post_id );
+	/** This filter is documented in wp-includes/class-wp-query.php:1057 */
 	$post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
 	if ( in_array( $post->post_type, $post_types_allowed_on_home_page, true ) ) {
 		/*

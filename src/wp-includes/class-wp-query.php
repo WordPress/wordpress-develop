@@ -1044,7 +1044,17 @@ class WP_Query {
 			$this->is_home = true;
 		}
 
+		// this block control what is CPT is used for the home page archive list
 		if ( $this->is_home && 'page' !== get_option( 'show_on_front' ) && empty( $query_vars['post_type'] ) ) {
+			/**
+			 * Filters the CPT that can be displayed as home page achivle list.
+			 *
+			 * Only 'post' is set as default.
+			 *
+			 * @since 7.0.0
+			 *
+			 * @param string[] $search_columns Array of post-types.
+			 */
 			$post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
 			$front_page_post_type            = get_option( 'show_on_front' );
 			if ( 'posts' === $front_page_post_type ) {
@@ -4482,6 +4492,7 @@ class WP_Query {
 	 * @return bool Whether the query is for the front page of the site.
 	 */
 	public function is_front_page() {
+		/** This filter is documented in wp-includes/class-wp-query.php:1057 */
 		$post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
 
 		// Most likely case.

@@ -67,15 +67,7 @@ settings_fields( 'reading' );
 if ( ! is_utf8_charset() ) {
 	add_settings_field( 'blog_charset', __( 'Encoding for pages and feeds' ), 'options_reading_blog_charset', 'reading', 'default', array( 'label_for' => 'blog_charset' ) );
 }
-/**
- * This filter overrides which post type are show in the dropdown.
- *
- * @uses get_post_types
- *
- * @param array $args
- * @return $args
- *
- */
+/** This filter is documented in wp-includes/class-wp-query.php:1057 */
 $post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
 $args = array(
 	'post_type'   => $post_types_allowed_on_home_page,
@@ -107,7 +99,7 @@ $your_homepage_displays_title = __( 'Your homepage displays' );
 	<legend class="screen-reader-text"><span><?php echo $your_homepage_displays_title; ?></span></legend>
 	<p><label>
 <?php
-        $allowed_archives_on_home_page = array( 'posts') + $post_types_allowed_on_home_page;
+        $allowed_archives_on_home_page = $post_types_allowed_on_home_page;
         unset( $allowed_archives_on_home_page['page'] );
         if( 1 === count( $allowed_archives_on_home_page ) ) {
 	        _e( sprintf( 'Your latest %s', get_post_type_object( $allowed_archives_on_home_page[0] )->labels->name ) );
@@ -146,14 +138,6 @@ $your_homepage_displays_title = __( 'Your homepage displays' );
         </p>
        <?php else : ?>
 	<p><label>
-<!--		<input name="show_on_front" type="radio" value="page" class="tog" --><?php //checked( 'page', get_option( 'show_on_front' ) ); ?><!-- />-->
-		<?php
-//		printf(
-//			/* translators: %s: URL to Pages screen. */
-//			__( 'A <a href="%s">static page</a> (select below)' ),
-//			'edit.php?post_type=page'
-//		);
-		?>
 	</label>
 	</p>
 <ul class="staticPages">
