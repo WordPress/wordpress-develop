@@ -133,7 +133,7 @@ $your_homepage_displays_title = __( 'Your homepage displays' );
        <?php if ( empty( $allowed_pages->posts ) ) : ?>
         <p> <?php
 	       $content_type_links = array();
-	       foreach ($post_types_allowed_on_home_page as $type ){
+	       foreach ( $post_types_allowed_on_home_page as $type ){
 		       $content_type_links[] = sprintf('<a href="%s">%s</a>',
 			       'edit.php?post_type=' . $type, ucfirst( $type ) );
 	       }
