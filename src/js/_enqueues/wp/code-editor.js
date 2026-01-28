@@ -2,7 +2,6 @@
  * @output wp-admin/js/code-editor.js
  */
 
-/* jshint esversion: 11 */
 /* eslint-env es2020 */
 
 if ( 'undefined' === typeof window.wp ) {
