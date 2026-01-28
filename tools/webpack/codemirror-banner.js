@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* jshint esversion: 6 */
 const codemirrorVersion = require( 'codemirror/package.json' ).version;
 if ( typeof codemirrorVersion !== 'string' ) {
 	throw new Error( 'Could not read CodeMirror version from package.json' );
