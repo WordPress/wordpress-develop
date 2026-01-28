@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* jshint esversion: 6 */
 /* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
