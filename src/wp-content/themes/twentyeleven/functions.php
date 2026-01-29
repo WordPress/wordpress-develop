@@ -304,7 +304,8 @@ endif; // twentyeleven_setup()
  */
 function twentyeleven_scripts_styles() {
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20240703' );
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks' . $suffix . '.css', array(), '20240703' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
 
