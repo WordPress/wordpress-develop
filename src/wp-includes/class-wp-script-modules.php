@@ -461,9 +461,9 @@ class WP_Script_Modules {
 			'id'   => $id . '-js-module',
 		);
 
-		$script_module = $this->registered[ $id ];
-		$dependents    = $this->get_recursive_dependents( $id );
-		$fetchpriority = $this->get_highest_fetchpriority( array_merge( array( $id ), $dependents ) );
+		$script_module     = $this->registered[ $id ];
+		$queued_dependents = array_intersect( $this->queue, $this->get_recursive_dependents( $id ) );
+		$fetchpriority     = $this->get_highest_fetchpriority( array_merge( array( $id ), $queued_dependents ) );
 		if ( 'auto' !== $fetchpriority ) {
 			$attributes['fetchpriority'] = $fetchpriority;
 		}
@@ -739,10 +739,10 @@ class WP_Script_Modules {
 				_doing_it_wrong(
 					get_class( $this ) . '::register',
 					sprintf(
-						/* translators: 1: Script module ID, 2: Comma-separated list of missing dependency IDs. */
+						/* translators: 1: Script module ID, 2: List of missing dependency IDs. */
 						__( 'The script module with the ID "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 						$id,
-						implode( ', ', $missing_dependencies )
+						implode( wp_get_list_item_separator(), $missing_dependencies )
 					),
 					'6.9.1'
 				);
