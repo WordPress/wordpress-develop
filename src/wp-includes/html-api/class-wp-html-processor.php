@@ -151,7 +151,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @var int
 	 */
-	const MAX_BOOKMARKS = 100;
+	const MAX_BOOKMARKS = 10_000;
 
 	/**
 	 * Holds the working state of the parser, including the stack of
