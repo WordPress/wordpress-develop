@@ -1,9 +1,9 @@
 <?php
-
 /**
- * @group query
- * @group home
- */
+* @group: query
+* @covers ::parse_query
+* @ticket:19958
+*/
 class Tests_Query_HomePageCpt extends WP_UnitTestCase {
 	private $cpt_allowed = 'cpt_allowed';
 	private $cpt_not_allowed = 'cpt_not_allowed';
