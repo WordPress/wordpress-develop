@@ -522,7 +522,7 @@ function wpautop( $text, $br = true ) {
 				continue;
 			} elseif ( preg_match( '!^</.+>$!s', $droplet ) ) {
 				// Here's closing element, let's move back up a level.
-				array_pop($peeable);
+				array_pop( $peeable );
 			} elseif ( preg_match( '!^<' . $peeblocks . '(?: [^>]*)?>$!s', $droplet ) ) {
 				// We've just entered a pee-able block, mark it so.
 				$peeable[] = true;
