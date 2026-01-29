@@ -484,13 +484,85 @@ function wpautop( $text, $br = true ) {
 	// Change multiple <br>'s into two line breaks, which will turn into paragraphs.
 	$text = preg_replace( '|<br\s*/?>\s*<br\s*/?>|', "\n\n", $text );
 
-	$allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
+	// Block level elements that can contain a <p>.
+	$peeblocks = 'caption|td|th|div|dd|dt|li|form|map|blockquote|address|fieldset|section|article|aside|header|footer|nav|figure|figcaption|details|menu';
+
+	// Block level elements that cannot contain a <p>.
+	$peefreeblocks = 'table|thead|tfoot|col|colgroup|tbody|tr|dl|ul|ol|pre|area|math|style|p|h[1-6]|hr|legend|hgroup|summary';
+
+	$allblocks     = "(?:$peeblocks|$peefreeblocks)";
+	$peeblocks     = "(?:$peeblocks)";
+	$peefreeblocks = "(?:$peefreeblocks)";
+
+	// Empty elements that cannot contain anything.
+	$emptyblocks = '(?:hr|br)';
+
+	// Media elements that will be processed later.
+	$mediablocks = '(?:object|param|embed|audio|video|source|track)';
+
+	// Split the HTML into a stream of elements and text nodes.
+	$stream = wp_html_split( $text );
+
+	// Assume that the top level is pee-able.
+	$peeable = array( true );
+
+	foreach ( $stream as $id => $droplet ) {
+		if ( '<' === substr( $droplet, 0, 1 ) ) {
+			if (preg_match('!<' . $emptyblocks . '(?: [^>]*)?>!s', $droplet)) {
+				// If we encounter an empty element, ignore it.
+				continue;
+			} elseif (preg_match('!^<.+/>$!s', $droplet)) {
+				// Ignore self-closing elements, too.
+				continue;
+			} elseif (preg_match('%^<!--.+-->$%s', $droplet)) {
+				// Comments can be ignored.
+				continue;
+			} elseif (preg_match('%^<!\[CDATA\[.+\]\]>$%s', $droplet)) {
+				// CDATA can totally be ignored.
+				continue;
+			} elseif (preg_match('!^</.+>$!s', $droplet)) {
+				// Here's closing element, let's move back up a level.
+				array_pop($peeable);
+			} elseif (preg_match('!^<' . $peeblocks . '(?: [^>]*)?>$!s', $droplet)) {
+				// We've just entered a pee-able block, mark it so.
+				$peeable[] = true;
+			} elseif (preg_match('!^<' . $mediablocks . '(?: [^>]*)?>$!s', $droplet)) {
+				// Media blocks can't really be pee'd, but they are handled later on.
+				$peeable[] = true;
+			} else {
+				$peeable[] = false;
+			}
+
+			// We can't pee an element, so move to the next droplet.
+			continue;
+
+		}
+
+		// If the current level can't be pee'd, protect it from being pee'd later.
+		if ( ! end( $peeable ) ) {
+			$stream[ $id ] = str_replace( "\n", '<!-- wpnl -->', $droplet );
+		}
+	}
+
+	// If we accidentally marked the final newline as being unpee-able (for
+	// example, if there's some malformed HTML that didn't close properly), fix it.
+	if ( '<!-- wpnl -->' === $stream[ $id ] ) {
+		$stream[ $id ] = "\n";
+	}
+
+	$text = implode( $stream );
 
 	// Add a double line break above block-level opening tags.
 	$text = preg_replace( '!(<' . $allblocks . '[\s/>])!', "\n\n$1", $text );
 
 	// Add a double line break below block-level closing tags.
 	$text = preg_replace( '!(</' . $allblocks . '>)!', "$1\n\n", $text );
+
+	// Add a double line break below block-level opening tags that are allowed to contain a <p>.
+	$text = preg_replace( '%(<' . $peeblocks . '(?: [^>]*)?>)%', "$1\n\n", $text );
+
+	// Add a double line break above block-level closing tags that are allowed to contain a <p>.
+	$text = preg_replace( '%(</' . $peeblocks . '>)%', "\n\n$1", $text );
 
 	// Add a double line break after hr tags, which are self closing.
 	$text = preg_replace( '!(<hr\s*?/?>)!', "$1\n\n", $text );
@@ -533,6 +605,9 @@ function wpautop( $text, $br = true ) {
 		$text = preg_replace( '|</figcaption>\s*|', '</figcaption>', $text );
 	}
 
+	// If there's only one paragraph inside a pee block, remove the newlines.
+	$text = preg_replace( '%(<(' . $peeblocks . ")(?: [^>]*)?>)\n\n((?(?!\n\n).)*)\n\n(</\\2>)%s", '$1$3$4', $text );
+
 	// Remove more than two contiguous line breaks.
 	$text = preg_replace( "/\n\n+/", "\n\n", $text );
 
@@ -564,10 +639,10 @@ function wpautop( $text, $br = true ) {
 	$text = str_replace( '</blockquote></p>', '</p></blockquote>', $text );
 
 	// If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
-	$text = preg_replace( '!<p>\s*(</?' . $allblocks . '[^>]*>)!', '$1', $text );
+	$text = preg_replace( '%<p>(?:\s|<!-- wpnl -->)*(</?' . $allblocks . '[^>]*>)%', '$1', $text );
 
 	// If an opening or closing block element tag is followed by a closing <p> tag, remove it.
-	$text = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*</p>!', '$1', $text );
+	$text = preg_replace( '%(</?' . $allblocks . '[^>]*>)(?:\s|<!-- wpnl -->)*</p>%', '$1', $text );
 
 	// Optionally insert line breaks.
 	if ( $br ) {
