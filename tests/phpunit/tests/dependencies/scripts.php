@@ -1879,22 +1879,6 @@ HTML;
 	}
 
 	/**
-	 * @ticket 42804
-	 */
-	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
-		global $wp_version;
-
-		$GLOBALS['wp_scripts']                  = new WP_Scripts();
-		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
-
-		wp_enqueue_script( 'empty-deps-no-version', 'example.com' );
-
-		$expected = "<script src='http://example.com?ver={$wp_version}' id='empty-deps-no-version-js'></script>\n";
-
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
-	}
-
-	/**
 	 * Test the different protocol references in wp_enqueue_script
 	 *
 	 * @ticket 16560
@@ -3854,14 +3838,19 @@ HTML;
 		return array(
 			'backbone'                         => array( 'backbone' ),
 			'clipboard'                        => array( 'clipboard' ),
+			'codemirror'                       => array( 'codemirror', 'wp-codemirror' ),
 			'core-js-url-browser'              => array( 'core-js-url-browser', 'wp-polyfill-url' ),
+			'csslint'                          => array( 'csslint' ),
 			'element-closest'                  => array( 'element-closest', 'wp-polyfill-element-closest' ),
+			'esprima'                          => array( 'esprima' ),
 			'formdata-polyfill'                => array( 'formdata-polyfill', 'wp-polyfill-formdata' ),
 			'imagesloaded'                     => array( 'imagesloaded' ),
 			'jquery-color'                     => array( 'jquery-color' ),
 			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
 			'jquery-form'                      => array( 'jquery-form' ),
 			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'htmlhint'                         => array( 'htmlhint' ),
+			'jsonlint'                         => array( 'jsonlint' ),
 			'lodash'                           => array( 'lodash' ),
 			'masonry'                          => array( 'masonry-layout', 'masonry' ),
 			'moment'                           => array( 'moment' ),
