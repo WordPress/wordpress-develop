@@ -113,15 +113,13 @@ window.wpWidgets = {
 		});
 
 		$(document.body).on('click.widgets-toggle', function(e) {
-			var target = $(e.target), css = {},
-				widget, inside, targetWidth, widgetWidth, margin, saveButton, widgetId,
+			var target = $(e.target),
+				widget, inside, saveButton, widgetId,
 				toggleBtn = target.closest( '.widget' ).find( '.widget-top button.widget-action' );
 
 			if ( target.parents('.widget-top').length && ! target.parents('#available-widgets').length ) {
 				widget = target.closest('div.widget');
 				inside = widget.children('.widget-inside');
-				targetWidth = parseInt( widget.find('input.widget-width').val(), 10 );
-				widgetWidth = widget.parent().width();
 				widgetId = inside.find( '.widget-id' ).val();
 
 				// Save button is initially disabled, but is enabled when a field is changed.
@@ -137,16 +135,6 @@ window.wpWidgets = {
 				}
 
 				if ( inside.is(':hidden') ) {
-					if ( targetWidth > 250 && ( targetWidth + 30 > widgetWidth ) && widget.closest('div.widgets-sortables').length ) {
-						if ( widget.closest('div.widget-liquid-right').length ) {
-							margin = isRTL ? 'margin-right' : 'margin-left';
-						} else {
-							margin = isRTL ? 'margin-left' : 'margin-right';
-						}
-
-						css[ margin ] = widgetWidth - ( targetWidth + 30 ) + 'px';
-						widget.css( css );
-					}
 					/*
 					 * Don't change the order of attributes changes and animation:
 					 * it's important for screen readers, see ticket #31476.
