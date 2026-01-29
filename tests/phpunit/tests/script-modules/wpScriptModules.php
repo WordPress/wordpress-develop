@@ -2031,12 +2031,10 @@ HTML;
 		wp_enqueue_script(
 			'classic',
 			'/classic.js',
+			array( 'classic-dependency' ),
+			false,
 			array(
-				'classic-dependency',
-				array(
-					'type' => 'module',
-					'id'   => 'example',
-				),
+				'module_dependencies' => array( 'example' ),
 			)
 		);
 
@@ -2092,22 +2090,19 @@ HTML;
 		wp_register_script(
 			'_test_classic-dependency_',
 			'/classic-transitive-dep.js',
+			array(),
+			false,
 			array(
-				array(
-					'type' => 'module',
-					'id'   => 'classic-transitive-dependency',
-				),
+				'module_dependencies' => array( 'classic-transitive-dependency' ),
 			)
 		);
 		wp_enqueue_script(
 			'_test_classic_',
 			'/classic.js',
+			array( '_test_classic-dependency_' ),
+			false,
 			array(
-				'_test_classic-dependency_',
-				array(
-					'type' => 'module',
-					'id'   => 'not-enqueued',
-				),
+				'module_dependencies' => array( 'not-enqueued' ),
 			)
 		);
 
