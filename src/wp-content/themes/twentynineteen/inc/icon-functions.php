@@ -80,7 +80,8 @@ function twentynineteen_add_dropdown_icons( $item_output, $item, $depth, $args )
 		// Inject the keyboard_arrow_left SVG inside the parent nav menu item, and let the item link to the parent item.
 		// @todo Only do this for nested submenus? If on a first-level submenu, then really the link could be "#" since the desire is to remove the target entirely.
 		$link = sprintf(
-			'<button class="menu-item-link-return" tabindex="-1">%s',
+			'<button class="menu-item-link-return" tabindex="-1" aria-label="%s">%s',
+			esc_attr( sprintf( __( 'Return to %s', 'twentynineteen' ), $item->title ) ),
 			twentynineteen_get_icon_svg( 'chevron_left', 24 )
 		);
 
@@ -106,7 +107,8 @@ function twentynineteen_add_dropdown_icons( $item_output, $item, $depth, $args )
 		$icon = twentynineteen_get_icon_svg( 'keyboard_arrow_down', 24 );
 
 		$item_output .= sprintf(
-			'<button class="submenu-expand" tabindex="-1">%s</button>',
+			'<button class="submenu-expand" tabindex="-1" aria-label="%s">%s</button>',
+			esc_attr( sprintf( __( 'Expand child menu for %s', 'twentynineteen' ), $item->title ) ),
 			$icon
 		);
 	}
