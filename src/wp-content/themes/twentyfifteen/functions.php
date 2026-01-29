@@ -440,7 +440,8 @@ function twentyfifteen_scripts() {
 	wp_enqueue_style( 'twentyfifteen-style', get_stylesheet_uri(), array(), '20251202' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyfifteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfifteen-style' ), '20240715' );
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	wp_enqueue_style( 'twentyfifteen-block-style', get_template_directory_uri() . '/css/blocks' . $suffix . '.css', array( 'twentyfifteen-style' ), '20240715' );
 
 	// Register handles for removed stylesheets and scripts.
 	wp_register_style( 'twentyfifteen-ie', false, array( 'twentyfifteen-style' ) );
