@@ -565,7 +565,13 @@ class WP_Script_Modules {
 			}
 		}
 
-		foreach ( array_keys( $this->get_dependencies( array_merge( $classic_script_dependencies, $this->queue ) ) ) as $id ) {
+		$ids = array_unique(
+			array_merge(
+				$classic_script_dependencies,
+				array_keys( $this->get_dependencies( array_merge( $classic_script_dependencies, $this->queue ) ) )
+			)
+		);
+		foreach ( $ids as $id ) {
 			$src = $this->get_src( $id );
 			if ( '' !== $src && null !== $src ) {
 				$imports[ $id ] = $src;
