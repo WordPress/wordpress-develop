@@ -35,10 +35,10 @@ class Tests_Admin_TrashRedirect extends WP_UnitTestCase {
 	 */
 	public function test_empty_trash_view_redirects_to_all_posts() {
 		// Mock the request for empty trash.
-		$_GET['post_status'] = 'trash';
-		$_GET['post_type']   = 'post';
+		$_GET['post_status']     = 'trash';
+		$_GET['post_type']       = 'post';
 		$_REQUEST['post_status'] = 'trash';
-		$_SERVER['REQUEST_URI'] = admin_url( 'edit.php?post_status=trash' );
+		$_SERVER['REQUEST_URI']  = admin_url( 'edit.php?post_status=trash' );
 
 		try {
 			ob_start();
