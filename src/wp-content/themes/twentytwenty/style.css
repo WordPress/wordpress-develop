@@ -21,6 +21,13 @@ Use it to make something cool, have fun, and share what you've learned
 with others.
 */
 
+/*
+ * IMPORTANT: This file is only served on the frontend when `SCRIPT_DEBUG` is enabled;
+ * in most instances, the `style.min.css` file will be served. This theme uses SCSS for styles.
+ * After making changes to SCSS files, run `npm run build` in the theme directory to compile
+ * SCSS to CSS and regenerate the minified version.
+ */
+
 /*--------------------------------------------------------------
 >>> TABLE OF CONTENTS:
 ----------------------------------------------------------------

@@ -1,6 +1,6 @@
 {
 	"name": "twentytwenty",
-	"version": "3.0.0",
+	"version": "3.0",
 	"description": "Default WP Theme",
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
@@ -26,6 +26,7 @@
 		"@wordpress/scripts": "^30.27.0",
 		"autoprefixer": "^10.4.22",
 		"concurrently": "^9.2.1",
+		"cssnano": "^7.1.2",
 		"postcss": "^8.5.6",
 		"postcss-cli": "^11.0.1",
 		"rtlcss": "^4.3.0",
@@ -47,7 +48,7 @@
 		"map": false
 	},
 	"scripts": {
-		"build": "npm run build:vendor-prefixes && npm run build:rtl",
+		"build": "npm run build:vendor-prefixes && npm run build:rtl && npm run build:minify",
 		"build:rtl": "concurrently \"npm run build:rtl-style\" \"npm run build:rtl-esb\" \"npm run build:rtl-esc\"",
 		"build:rtl-style": "rtlcss style.css style-rtl.css",
 		"build:rtl-esb": "rtlcss assets/css/editor-style-block.css assets/css/editor-style-block-rtl.css",
@@ -56,6 +57,7 @@
 		"build:vendor-prefixes-style": "postcss -r --no-map style.css assets/css/editor-style-block.css assets/css/editor-style-classic.css",
 		"build:vendor-prefixes-esb": "postcss -r --no-map assets/css/editor-style-block.css ",
 		"build:vendor-prefixes-esc": "postcss -r --no-map assets/css/editor-style-classic.css",
+		"build:minify": "postcss style.css --use cssnano -o style.min.css --no-map",
 		"lint:css": "wp-scripts lint-style 'style.css' 'assets/**/*.css'",
 		"lint:js": "wp-scripts lint-js 'assets/**/*.js'",
 		"lint:pkg-json": "wp-scripts lint-pkg-json"

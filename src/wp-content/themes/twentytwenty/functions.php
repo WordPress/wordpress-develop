@@ -194,9 +194,11 @@ add_action( 'init', 'twentytwenty_register_block_patterns' );
  */
 function twentytwenty_register_styles() {
 
-	$theme_version = wp_get_theme()->get( 'Version' );
+	$theme_version  = wp_get_theme()->get( 'Version' );
+	$suffix         = SCRIPT_DEBUG ? '' : '.min';
+	$stylesheet_uri = SCRIPT_DEBUG ? get_stylesheet_uri() : str_replace( '.css', $suffix . '.css', get_stylesheet_uri() );
 
-	wp_enqueue_style( 'twentytwenty-style', get_stylesheet_uri(), array(), $theme_version );
+	wp_enqueue_style( 'twentytwenty-style', $stylesheet_uri, array(), $theme_version );
 	wp_style_add_data( 'twentytwenty-style', 'rtl', 'replace' );
 
 	// Enqueue the CSS file for the variable font, Inter.
