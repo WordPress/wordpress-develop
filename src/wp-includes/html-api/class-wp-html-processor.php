@@ -1156,12 +1156,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * otherwise might involve messier calling and return conventions.
 			 */
 			return false;
-		} catch ( Exception $e ) {
-			if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
-				return false;
-			}
-			// Rethrow any other exceptions for higher-level handling.
-			throw $e;
 		}
 	}
 
