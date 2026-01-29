@@ -2052,7 +2052,7 @@ HTML;
 	/**
 	 * @ticket 61500
 	 */
-	public function test_included_modules_concat_With_enqueued_dependencies() {
+	public function test_included_modules_concat_with_enqueued_dependencies() {
 		$this->script_modules->register( 'dependency-of-enqueued', '/dependency-of-enqueued.js' );
 		$this->script_modules->enqueue(
 			'enqueued',
@@ -2079,6 +2079,14 @@ HTML;
 		$import_map = $this->get_import_map();
 		$this->assertCount( 1, $import_map, 'Initial import map count was wrong.' );
 		$this->assertArrayHasKey( 'dependency-of-enqueued', $import_map, 'Initial missing "dependency-of-enqueued" script module in import map.' );
+
+		// Reset the printed modules so we can check again later.
+		$reflection    = new ReflectionClass( $this->script_modules );
+		$done_property = $reflection->getProperty( 'done' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$done_property->setAccessible( true );
+		}
+		$done_property->setValue( $this->script_modules, array() );
 
 		// Enqueuing a script with a module dependency should add it to the import map.
 		wp_register_script(
