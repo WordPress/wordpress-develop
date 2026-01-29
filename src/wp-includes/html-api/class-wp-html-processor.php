@@ -6307,7 +6307,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *                                   Defaults to auto-creating a bookmark name.
 	 * @return WP_HTML_Token|false Newly-created virtual token or false on failure.
 	 */
-	private function insert_virtual_node( $token_name, $bookmark_name = null ): WP_HTML_Token|bool {
+	private function insert_virtual_node( $token_name, $bookmark_name = null ) {
 		$here = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 		$name = $bookmark_name ?? $this->bookmark_token();
 		if ( false === $name ) {
