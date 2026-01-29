@@ -1040,13 +1040,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$token_name            = $this->get_token_name();
 
 		if ( self::REPROCESS_CURRENT_NODE !== $node_to_process ) {
-			try {
-				$bookmark_name = $this->bookmark_token();
-			} catch ( Exception $e ) {
-				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
-					return false;
-				}
-				throw $e;
+			$bookmark_name = $this->bookmark_token();
+			if ( false === $bookmark_name ) {
+				return false;
 			}
 
 			$this->state->current_token = new WP_HTML_Token(
@@ -5115,14 +5111,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.4.0
 	 * @since 6.5.0 Renamed from bookmark_tag() to bookmark_token().
 	 *
-	 * @throws Exception When unable to allocate requested bookmark.
-	 *
 	 * @return string|false Name of created bookmark, or false if unable to create.
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
 			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
-			throw new Exception( 'could not allocate bookmark' );
+			return false;
 		}
 
 		return "{$this->bookmark_counter}";
@@ -6302,7 +6296,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
+	 * @throws WP_HTML_Unsupported_Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
 	 * @param string      $token_name    Name of token to create and insert into the stack of open elements.
 	 * @param string|null $bookmark_name Optional. Name to give bookmark for created virtual node.
@@ -6312,6 +6306,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function insert_virtual_node( $token_name, $bookmark_name = null ): WP_HTML_Token {
 		$here = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 		$name = $bookmark_name ?? $this->bookmark_token();
+		if ( false === $name ) {
+			$this->bail( 'Unable to insert virtual node, bookmarks exhausted.' );
+		}
 
 		$this->bookmarks[ $name ] = new WP_HTML_Span( $here->start, 0 );
 
