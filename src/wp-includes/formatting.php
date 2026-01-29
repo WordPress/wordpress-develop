@@ -508,25 +508,25 @@ function wpautop( $text, $br = true ) {
 
 	foreach ( $stream as $id => $droplet ) {
 		if ( '<' === substr( $droplet, 0, 1 ) ) {
-			if (preg_match('!<' . $emptyblocks . '(?: [^>]*)?>!s', $droplet)) {
+			if ( preg_match( '!<' . $emptyblocks . '(?: [^>]*)?>!s', $droplet ) ) {
 				// If we encounter an empty element, ignore it.
 				continue;
-			} elseif (preg_match('!^<.+/>$!s', $droplet)) {
+			} elseif ( preg_match( '!^<.+/>$!s', $droplet ) ) {
 				// Ignore self-closing elements, too.
 				continue;
-			} elseif (preg_match('%^<!--.+-->$%s', $droplet)) {
+			} elseif ( preg_match( '%^<!--.+-->$%s', $droplet ) ) {
 				// Comments can be ignored.
 				continue;
-			} elseif (preg_match('%^<!\[CDATA\[.+\]\]>$%s', $droplet)) {
+			} elseif ( preg_match( '%^<!\[CDATA\[.+\]\]>$%s', $droplet ) ) {
 				// CDATA can totally be ignored.
 				continue;
-			} elseif (preg_match('!^</.+>$!s', $droplet)) {
+			} elseif ( preg_match( '!^</.+>$!s', $droplet ) ) {
 				// Here's closing element, let's move back up a level.
 				array_pop($peeable);
-			} elseif (preg_match('!^<' . $peeblocks . '(?: [^>]*)?>$!s', $droplet)) {
+			} elseif ( preg_match( '!^<' . $peeblocks . '(?: [^>]*)?>$!s', $droplet ) ) {
 				// We've just entered a pee-able block, mark it so.
 				$peeable[] = true;
-			} elseif (preg_match('!^<' . $mediablocks . '(?: [^>]*)?>$!s', $droplet)) {
+			} elseif ( preg_match( '!^<' . $mediablocks . '(?: [^>]*)?>$!s', $droplet ) ) {
 				// Media blocks can't really be pee'd, but they are handled later on.
 				$peeable[] = true;
 			} else {
