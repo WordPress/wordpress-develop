@@ -2,7 +2,7 @@
  * @output wp-admin/js/widgets.js
  */
 
-/* global ajaxurl, isRtl, wpWidgets */
+/* global ajaxurl, wpWidgets */
 
 (function($) {
 	var $document = $( document );
@@ -27,8 +27,7 @@ window.wpWidgets = {
 			self = this,
 			chooser = $('.widgets-chooser'),
 			selectSidebar = chooser.find('.widgets-chooser-sidebars'),
-			sidebars = $('div.widgets-sortables'),
-			isRTL = !! ( 'undefined' !== typeof isRtl && isRtl );
+			sidebars = $('div.widgets-sortables');
 
 		// Handle the widgets containers in the right column.
 		$( '#widgets-right .sidebar-name' )
