@@ -599,6 +599,7 @@ add_action( 'wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_enqueue_command_palette_assets' );
+add_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_classic_theme_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
@@ -620,6 +621,7 @@ add_action( 'enqueue_block_editor_assets', 'wp_enqueue_registered_block_scripts_
 add_action( 'enqueue_block_editor_assets', 'enqueue_editor_block_styles_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_block_directory_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_format_library_assets' );
+add_action( 'enqueue_block_editor_assets', 'wp_enqueue_block_editor_script_modules' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_global_styles_css_custom_properties' );
 add_action( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );

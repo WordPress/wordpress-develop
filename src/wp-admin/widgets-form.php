@@ -139,7 +139,7 @@ if ( isset( $_POST['savewidget'] ) || isset( $_POST['removewidget'] ) ) {
 	$position   = isset( $_POST[ $sidebar_id . '_position' ] ) ? (int) $_POST[ $sidebar_id . '_position' ] - 1 : 0;
 
 	$id_base = $_POST['id_base'];
-	$sidebar = isset( $sidebars_widgets[ $sidebar_id ] ) ? $sidebars_widgets[ $sidebar_id ] : array();
+	$sidebar = $sidebars_widgets[ $sidebar_id ] ?? array();
 
 	// Delete.
 	if ( isset( $_POST['removewidget'] ) && $_POST['removewidget'] ) {
@@ -187,9 +187,9 @@ if ( isset( $_POST['savewidget'] ) || isset( $_POST['removewidget'] ) ) {
 
 	// Remove old position.
 	if ( ! isset( $_POST['delete_widget'] ) ) {
-		foreach ( $sidebars_widgets as $sidebar_id => $sidebar ) {
-			if ( is_array( $sidebar ) ) {
-				$sidebars_widgets[ $sidebar_id ] = array_diff( $sidebar, array( $widget_id ) );
+		foreach ( $sidebars_widgets as $sidebar_widget_id => $sidebar_widget ) {
+			if ( is_array( $sidebar_widget ) ) {
+				$sidebars_widgets[ $sidebar_widget_id ] = array_diff( $sidebar_widget, array( $widget_id ) );
 			}
 		}
 
@@ -261,14 +261,14 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 	}
 
 	if ( ! isset( $sidebar ) ) {
-		$sidebar = isset( $_GET['sidebar'] ) ? $_GET['sidebar'] : 'wp_inactive_widgets';
+		$sidebar = $_GET['sidebar'] ?? 'wp_inactive_widgets';
 	}
 
 	if ( ! isset( $multi_number ) ) {
-		$multi_number = isset( $control['params'][0]['number'] ) ? $control['params'][0]['number'] : '';
+		$multi_number = $control['params'][0]['number'] ?? '';
 	}
 
-	$id_base = isset( $control['id_base'] ) ? $control['id_base'] : $control['id'];
+	$id_base = $control['id_base'] ?? $control['id'];
 
 	// Show the widget form.
 	$width = ' style="width:' . max( $control['width'], 350 ) . 'px"';

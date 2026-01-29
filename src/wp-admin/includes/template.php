@@ -1616,7 +1616,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  *
  * @param string   $id       Slug-name to identify the section. Used in the 'id' attribute of tags.
  * @param string   $title    Formatted title of the section. Shown as the heading for the section.
- * @param callable $callback Function that echos out any content at the top of the section (between heading and fields).
+ * @param callable $callback Function that displays any content at the top of the section (between heading and fields).
  * @param string   $page     The slug-name of the settings page on which to show the section. Built-in pages include
  *                           'general', 'reading', 'writing', 'discussion', 'media', etc. Create your own using
  *                           add_options_page();
@@ -2138,7 +2138,7 @@ function iframe_header( $title = '', $deprecated = false ) {
 	<?php
 	wp_enqueue_style( 'colors' );
 	?>
-<script type="text/javascript">
+<script>
 addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
@@ -2187,7 +2187,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 	?>
 <body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo esc_attr( $admin_body_classes ); ?>">
-<script type="text/javascript">
+<script>
 (function(){
 var c = document.body.className;
 c = c.replace(/no-js/, 'js');
@@ -2226,7 +2226,7 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
+<script>if(typeof wpOnload==='function')wpOnload();</script>
 </body>
 </html>
 	<?php
@@ -2251,6 +2251,7 @@ function _post_states( $post, $display = true ) {
 
 	if ( ! empty( $post_states ) ) {
 		$state_count = count( $post_states );
+		$separator   = wp_get_list_item_separator();
 
 		$i = 0;
 
@@ -2259,9 +2260,9 @@ function _post_states( $post, $display = true ) {
 		foreach ( $post_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? ', ' : '';
+			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$post_states_html .= "<span class='post-state'>{$state}{$separator}</span>";
+			$post_states_html .= "<span class='post-state'>{$state}{$suffix}</span>";
 		}
 	}
 
@@ -2295,12 +2296,11 @@ function _post_states( $post, $display = true ) {
  */
 function get_post_states( $post ) {
 	$post_states = array();
-
-	if ( isset( $_REQUEST['post_status'] ) ) {
-		$post_status = $_REQUEST['post_status'];
-	} else {
-		$post_status = '';
+	if ( ! $post instanceof WP_Post ) {
+		return $post_states;
 	}
+
+	$post_status = $_REQUEST['post_status'] ?? '';
 
 	if ( ! empty( $post->post_password ) ) {
 		$post_states['protected'] = _x( 'Password protected', 'post status' );
@@ -2379,6 +2379,7 @@ function _media_states( $post, $display = true ) {
 
 	if ( ! empty( $media_states ) ) {
 		$state_count = count( $media_states );
+		$separator   = wp_get_list_item_separator();
 
 		$i = 0;
 
@@ -2387,9 +2388,9 @@ function _media_states( $post, $display = true ) {
 		foreach ( $media_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? ', ' : '';
+			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$media_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
+			$media_states_string .= "<span class='post-state'>{$state}{$suffix}</span>";
 		}
 	}
 
@@ -2493,7 +2494,7 @@ function get_media_states( $post ) {
  */
 function compression_test() {
 	?>
-	<script type="text/javascript">
+	<script>
 	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	var testCompression = {
 		get : function(test) {

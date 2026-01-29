@@ -38,8 +38,8 @@ function media_upload_tabs() {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $tabs
- * @return array $tabs with gallery if post has image attachment
+ * @param array $tabs Associative array of default tab names.
+ * @return array $tabs Filtered tabs with gallery if post has image attachment.
  */
 function update_gallery_tab( $tabs ) {
 	global $wpdb;
@@ -71,7 +71,7 @@ function update_gallery_tab( $tabs ) {
  *
  * @since 2.5.0
  *
- * @global string $redir_tab
+ * @global string $redir_tab The name of the tab to redirect to.
  */
 function the_media_upload_tabs() {
 	global $redir_tab;
@@ -272,7 +272,7 @@ function _cleanup_image_add_caption( $matches ) {
  */
 function media_send_to_editor( $html ) {
 	?>
-	<script type="text/javascript">
+	<script>
 	var win = window.dialogArguments || opener || parent || top;
 	win.send_to_editor( <?php echo wp_json_encode( $html, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 	</script>
@@ -527,7 +527,7 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
  *
- * @global string $body_id
+ * @global string $body_id The ID attribute value for the body element.
  *
  * @param callable $content_func Function that outputs the content.
  * @param mixed    ...$args      Optional additional parameters to pass to the callback function when it's called.
@@ -550,7 +550,7 @@ function wp_iframe( $content_func, ...$args ) {
 	}
 
 	?>
-	<script type="text/javascript">
+	<script>
 	addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 	var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',
 	isRtl = <?php echo (int) is_rtl(); ?>;
@@ -612,7 +612,7 @@ function wp_iframe( $content_func, ...$args ) {
 	?>
 	</head>
 	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js">
-	<script type="text/javascript">
+	<script>
 	document.body.className = document.body.className.replace('no-js', 'js');
 	</script>
 	<?php
@@ -623,7 +623,7 @@ function wp_iframe( $content_func, ...$args ) {
 	do_action( 'admin_print_footer_scripts' );
 
 	?>
-	<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
+	<script>if(typeof wpOnload==='function')wpOnload();</script>
 	</body>
 	</html>
 	<?php
@@ -821,7 +821,7 @@ function media_upload_form_handler() {
 
 	if ( isset( $_POST['insert-gallery'] ) || isset( $_POST['update-gallery'] ) ) {
 		?>
-		<script type="text/javascript">
+		<script>
 		var win = window.dialogArguments || opener || parent || top;
 		win.tb_remove();
 		</script>
@@ -832,7 +832,7 @@ function media_upload_form_handler() {
 
 	if ( isset( $send_id ) ) {
 		$attachment = wp_unslash( $_POST['attachments'][ $send_id ] );
-		$html       = isset( $attachment['post_title'] ) ? $attachment['post_title'] : '';
+		$html       = $attachment['post_title'] ?? '';
 
 		if ( ! empty( $attachment['url'] ) ) {
 			$rel = '';
@@ -1558,7 +1558,7 @@ function get_media_items( $post_id, $errors ) {
 			continue;
 		}
 
-		$item = get_media_item( $id, array( 'errors' => isset( $errors[ $id ] ) ? $errors[ $id ] : null ) );
+		$item = get_media_item( $id, array( 'errors' => $errors[ $id ] ?? null ) );
 
 		if ( $item ) {
 			$output .= "\n<div id='media-item-$id' class='media-item child-of-$attachment->post_parent preloaded'><div class='progress hidden'><div class='bar'></div></div><div id='media-upload-error-$id' class='hidden'></div><div class='filename hidden'></div>$item\n</div>";
@@ -2070,7 +2070,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 function media_upload_header() {
 	$post_id = isset( $_REQUEST['post_id'] ) ? (int) $_REQUEST['post_id'] : 0;
 
-	echo '<script type="text/javascript">post_id = ' . $post_id . ';</script>';
+	echo '<script>post_id = ' . $post_id . ';</script>';
 
 	if ( empty( $_GET['chromeless'] ) ) {
 		echo '<div id="media-upload-header">';
@@ -2103,8 +2103,8 @@ function media_upload_form( $errors = null ) {
 
 	$upload_action_url = admin_url( 'async-upload.php' );
 	$post_id           = isset( $_REQUEST['post_id'] ) ? (int) $_REQUEST['post_id'] : 0;
-	$_type             = isset( $type ) ? $type : '';
-	$_tab              = isset( $tab ) ? $tab : '';
+	$_type             = $type ?? '';
+	$_tab              = $tab ?? '';
 
 	$max_upload_size = wp_max_upload_size();
 	if ( ! $max_upload_size ) {
@@ -2219,7 +2219,7 @@ function media_upload_form( $errors = null ) {
 	$plupload_init = apply_filters( 'plupload_init', $plupload_init );
 
 	?>
-	<script type="text/javascript">
+	<script>
 	<?php
 	// Verify size is an int. If not return default value.
 	$large_size_h = absint( get_option( 'large_size_h' ) );
@@ -2361,7 +2361,7 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
 
 	<?php media_upload_form( $errors ); ?>
 
-	<script type="text/javascript">
+	<script>
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
@@ -2427,7 +2427,7 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 
 	<h3 class="media-title"><?php _e( 'Insert media from another website' ); ?></h3>
 
-	<script type="text/javascript">
+	<script>
 	var addExtImage = {
 
 	width : '',
@@ -2568,7 +2568,7 @@ function media_upload_gallery_form( $errors ) {
 	}
 
 	?>
-	<script type="text/javascript">
+	<script>
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
@@ -2896,7 +2896,7 @@ function media_upload_library_form( $errors ) {
 	<form enctype="multipart/form-data" method="post" action="<?php echo esc_url( $form_action_url ); ?>" class="<?php echo $form_class; ?>" id="library-form">
 	<?php wp_nonce_field( 'media-form' ); ?>
 
-	<script type="text/javascript">
+	<script>
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
@@ -3656,7 +3656,7 @@ function wp_read_video_metadata( $file ) {
 
 	wp_add_id3_tag_data( $metadata, $data );
 
-	$file_format = isset( $metadata['fileformat'] ) ? $metadata['fileformat'] : null;
+	$file_format = $metadata['fileformat'] ?? null;
 
 	/**
 	 * Filters the array of metadata retrieved from a video.
@@ -3739,7 +3739,7 @@ function wp_read_audio_metadata( $file ) {
 
 	wp_add_id3_tag_data( $metadata, $data );
 
-	$file_format = isset( $metadata['fileformat'] ) ? $metadata['fileformat'] : null;
+	$file_format = $metadata['fileformat'] ?? null;
 
 	/**
 	 * Filters the array of metadata retrieved from an audio file.
@@ -3769,8 +3769,8 @@ function wp_read_audio_metadata( $file ) {
  * @link https://github.com/JamesHeinrich/getID3/blob/master/structure.txt
  *
  * @param array $metadata The metadata returned by getID3::analyze().
- * @return int|false A UNIX timestamp for the media's creation date if available
- *                   or a boolean FALSE if a timestamp could not be determined.
+ * @return int|false A Unix timestamp for the media's creation date if available
+ *                   or a boolean false if the timestamp could not be determined.
  */
 function wp_get_media_creation_timestamp( $metadata ) {
 	$creation_date = false;
