@@ -1099,6 +1099,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			++$reached_tokens;
 		}
 		$this->assertSame( WP_HTML_Processor::MAX_BOOKMARKS, $reached_tokens );
+		$this->assertSame( 'exceeded-max-bookmarks', $processor->get_last_error() );
 	}
 
 	/**
@@ -1135,5 +1136,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		 */
 		$this->assertGreaterThanOrEqual( WP_HTML_Processor::MAX_BOOKMARKS - 1, $reached_tokens );
 		$this->assertLessThanOrEqual( WP_HTML_Processor::MAX_BOOKMARKS + 1, $reached_tokens );
+
+		$this->assertSame( 'exceeded-max-bookmarks', $processor->get_last_error() );
 	}
 }

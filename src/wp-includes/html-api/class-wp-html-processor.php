@@ -989,8 +989,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
-	 *
 	 * @see self::PROCESS_NEXT_NODE
 	 * @see self::REPROCESS_CURRENT_NODE
 	 *
@@ -1605,7 +1603,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Switch the insertion mode to "before head", then reprocess the token.
 		 */
 		before_html_anything_else:
-		$this->insert_virtual_node( 'HTML' );
+		if ( ! $this->insert_virtual_node( 'HTML' ) ) {
+			return false;
+		}
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -1702,7 +1702,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Insert an HTML element for a "head" start tag token with no attributes.
 		 */
 		before_head_anything_else:
-		$this->state->head_element   = $this->insert_virtual_node( 'HEAD' );
+		$head_element = $this->insert_virtual_node( 'HEAD' );
+		if ( ! $head_element ) {
+			return false;
+		}
+		$this->state->head_element   = $head_element;
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -2171,7 +2175,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Insert an HTML element for a "body" start tag token with no attributes.
 		 */
 		after_head_anything_else:
-		$this->insert_virtual_node( 'BODY' );
+		if ( ! $this->insert_virtual_node( 'BODY' ) ) {
+			return false;
+		}
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -3323,7 +3329,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Insert an HTML element for a "colgroup" start tag token with no attributes,
 				 * > then switch the insertion mode to "in column group".
 				 */
-				$this->insert_virtual_node( 'COLGROUP' );
+				if ( ! $this->insert_virtual_node( 'COLGROUP' ) ) {
+					return false;
+				}
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
@@ -3349,7 +3357,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Insert an HTML element for a "tbody" start tag token with no attributes,
 				 * > then switch the insertion mode to "in table body".
 				 */
-				$this->insert_virtual_node( 'TBODY' );
+				if ( ! $this->insert_virtual_node( 'TBODY' ) ) {
+					return false;
+				}
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
@@ -3704,7 +3714,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TD':
 				// @todo Indicate a parse error once it's possible.
 				$this->state->stack_of_open_elements->clear_to_table_body_context();
-				$this->insert_virtual_node( 'TR' );
+				if ( ! $this->insert_virtual_node( 'TR' ) ) {
+					return false;
+				}
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
@@ -6290,18 +6302,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @throws WP_HTML_Unsupported_Exception When unable to allocate a bookmark for the next token in the input HTML document.
-	 *
 	 * @param string      $token_name    Name of token to create and insert into the stack of open elements.
 	 * @param string|null $bookmark_name Optional. Name to give bookmark for created virtual node.
 	 *                                   Defaults to auto-creating a bookmark name.
-	 * @return WP_HTML_Token Newly-created virtual token.
+	 * @return WP_HTML_Token|false Newly-created virtual token or false on failure.
 	 */
-	private function insert_virtual_node( $token_name, $bookmark_name = null ): WP_HTML_Token {
+	private function insert_virtual_node( $token_name, $bookmark_name = null ): WP_HTML_Token|bool {
 		$here = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 		$name = $bookmark_name ?? $this->bookmark_token();
 		if ( false === $name ) {
-			$this->bail( 'Unable to insert virtual node, bookmarks exhausted.' );
+			return false;
 		}
 
 		$this->bookmarks[ $name ] = new WP_HTML_Span( $here->start, 0 );
