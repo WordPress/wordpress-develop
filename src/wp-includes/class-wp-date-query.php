@@ -120,7 +120,7 @@ class WP_Date_Query {
 	 *                                               or an array of years if `$compare` supports it. Default empty.
 	 *             @type int|int[]    $month         Optional. The two-digit month number. Accepts numbers 1-12 or an
 	 *                                               array of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|int[]    $week          Optional. The week number of the year. Accepts numbers 0-53 or an
+	 *             @type int|int[]    $week          Optional. The week number of the year. Accepts numbers 1-53 or an
 	 *                                               array of valid numbers if `$compare` supports it. Default empty.
 	 *             @type int|int[]    $dayofyear     Optional. The day number of the year. Accepts numbers 1-366 or an
 	 *                                               array of valid numbers if `$compare` supports it.
@@ -208,11 +208,7 @@ class WP_Date_Query {
 				continue;
 			}
 
-			if ( isset( $parent_query[ $dkey ] ) ) {
-				$queries[ $dkey ] = $parent_query[ $dkey ];
-			} else {
-				$queries[ $dkey ] = $dvalue;
-			}
+			$queries[ $dkey ] = $parent_query[ $dkey ] ?? $dvalue;
 		}
 
 		// Validate the dates passed in the query.
@@ -482,16 +478,24 @@ class WP_Date_Query {
 		global $wpdb;
 
 		$valid_columns = array(
-			'post_date',
-			'post_date_gmt',
-			'post_modified',
-			'post_modified_gmt',
-			'comment_date',
-			'comment_date_gmt',
-			'user_registered',
-			'registered',
-			'last_updated',
+			'post_date',         // Part of $wpdb->posts.
+			'post_date_gmt',     // Part of $wpdb->posts.
+			'post_modified',     // Part of $wpdb->posts.
+			'post_modified_gmt', // Part of $wpdb->posts.
+			'comment_date',      // Part of $wpdb->comments.
+			'comment_date_gmt',  // Part of $wpdb->comments.
+			'user_registered',   // Part of $wpdb->users.
 		);
+
+		if ( is_multisite() ) {
+			$valid_columns = array_merge(
+				$valid_columns,
+				array(
+					'registered',   // Part of $wpdb->blogs.
+					'last_updated', // Part of $wpdb->blogs.
+				)
+			);
+		}
 
 		// Attempt to detect a table prefix.
 		if ( ! str_contains( $column, '.' ) ) {
@@ -525,11 +529,14 @@ class WP_Date_Query {
 				$wpdb->users    => array(
 					'user_registered',
 				),
-				$wpdb->blogs    => array(
+			);
+
+			if ( is_multisite() ) {
+				$known_columns[ $wpdb->blogs ] = array(
 					'registered',
 					'last_updated',
-				),
-			);
+				);
+			}
 
 			// If it's a known column name, add the appropriate table prefix.
 			foreach ( $known_columns as $table_name => $table_columns ) {

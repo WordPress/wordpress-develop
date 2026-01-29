@@ -52,7 +52,7 @@ $menu_locations = get_nav_menu_locations();
 $num_locations  = count( array_keys( $locations ) );
 
 // Allowed actions: add, update, delete.
-$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'edit';
+$action = $_REQUEST['action'] ?? 'edit';
 
 /*
  * If a JSON blob of navigation menu data is found, expand it and inject it
@@ -672,12 +672,14 @@ if ( is_nav_menu( $nav_menu_selected_id ) ) {
 }
 
 /**
- * @global int $_wp_nav_menu_max_depth
+ * Adds a CSS class to display the max depth of the navigation menu.
  *
  * @since 3.0.0
  *
- * @param string $classes
- * @return string
+ * @global int $_wp_nav_menu_max_depth Maximum depth of the navigation menu.
+ *
+ * @param string $classes Existing CSS classes for the body tag.
+ * @return string Modified CSS classes including the menu max depth class.
  */
 function wp_nav_menu_max_depth( $classes ) {
 	global $_wp_nav_menu_max_depth;
@@ -1122,14 +1124,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 									<p><?php echo $starter_copy; ?></p>
 								</div>
 
-								<?php if ( ! $add_new_screen ) : ?>
-									<div id="nav-menu-bulk-actions-top" class="bulk-actions" <?php echo $hide_style; ?>>
-										<label class="bulk-select-button" for="bulk-select-switcher-top">
-											<input type="checkbox" id="bulk-select-switcher-top" name="bulk-select-switcher-top" class="bulk-select-switcher">
-											<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
-										</label>
-									</div>
-								<?php endif; ?>
+								<div id="nav-menu-bulk-actions-top" class="bulk-actions" <?php echo $hide_style; ?>>
+									<label class="bulk-select-button" for="bulk-select-switcher-top">
+										<input type="checkbox" id="bulk-select-switcher-top" name="bulk-select-switcher-top" class="bulk-select-switcher">
+										<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
+									</label>
+								</div>
 
 								<?php
 								if ( isset( $edit_markup ) && ! is_wp_error( $edit_markup ) ) {
