@@ -556,11 +556,10 @@ class WP_Script_Modules {
 				}
 
 				$module_dependencies = $wp_scripts->get_data( $handle, 'module_dependencies' );
-				if ( ! $module_dependencies ) {
-					continue;
-				}
-				foreach ( $module_dependencies as $id ) {
-					$classic_script_dependencies[] = $id;
+				if ( is_array( $module_dependencies ) ) {
+					foreach ( $module_dependencies as $id ) {
+						$classic_script_dependencies[] = $id;
+					}
 				}
 			}
 		}
