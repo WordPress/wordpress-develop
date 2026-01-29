@@ -2016,7 +2016,6 @@ HTML;
 	}
 
 	/**
-<<<<<<< HEAD
 	 * @ticket 61500
 	 */
 	public function test_included_module_appears_in_importmap() {
@@ -2116,7 +2115,9 @@ HTML;
 		$this->assertArrayHasKey( 'classic-transitive-dependency', $import_map, 'Final missing "classic-transitive-dependency" script module in import map.' );
 		$this->assertArrayHasKey( 'not-enqueued', $import_map, 'Final missing "not-enqueued" script module in import map.' );
 		$this->assertArrayHasKey( 'dependency-of-not-enqueued', $import_map, 'Final missing "dependency-of-not-enqueued" script module in import map.' );
-=======
+	}
+
+	/**
 	 * Tests various ways of printing and dependency ordering of script modules.
 	 *
 	 * This ensures that the global function aliases pass all the same parameters as the class methods.
@@ -2513,6 +2514,5 @@ HTML;
 			'The script module with the ID "main-module" was enqueued with dependencies that are not registered: missing-mod-dep',
 			$this->caught_doing_it_wrong[ $expected_incorrect_usage ]
 		);
->>>>>>> 35307740e87f52425fb6736055f7d5b91573f842
 	}
 }
