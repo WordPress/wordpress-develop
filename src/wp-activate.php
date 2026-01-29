@@ -104,12 +104,12 @@ function wpmu_activate_stylesheet() {
 		.wp-activate-container { max-width: 1280px; width: 100%; margin: 0 auto; text-align: start; background: #fff; color: #333; padding: 1.5rem; box-sizing: border-box; }
 		.wp-activate-container form { margin: 1.5rem 0; }
 		.wp-activate-container a { color: #2271b1; }
+		.wp-activate-container p { font-size: 18px; }
 		#submit, #key { font-size: 24px; box-sizing: border-box; }
 		#key { width: 100%; }
 		#submit { width: auto; }
 		#language { margin-top: 0.5em; }
 		.wp-activate-container .error { background: #f86; color: #333; }
-		#signup-welcome p { font-size: 18px; }
 		span.h3 { font-weight: 600; }
 	</style>
 	<?php
