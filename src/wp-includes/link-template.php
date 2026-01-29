@@ -1625,7 +1625,7 @@ function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 	 * Filters the comment edit link.
 	 *
 	 * @since 2.3.0
-	 * @since 6.7.0 The $comment_id and $context parameters are now being passed to the filter.
+	 * @since 6.7.0 The `$comment_id` and `$context` parameters are now being passed to the filter.
 	 *
 	 * @param string $location   The edit link.
 	 * @param int    $comment_id Unique ID of the comment to generate an edit link.
@@ -2438,7 +2438,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 	$request = remove_query_arg( 'paged' );
 
 	$home_root = parse_url( home_url() );
-	$home_root = ( isset( $home_root['path'] ) ) ? $home_root['path'] : '';
+	$home_root = $home_root['path'] ?? '';
 	$home_root = preg_quote( $home_root, '|' );
 
 	$request = preg_replace( '|^' . $home_root . '|i', '', $request );

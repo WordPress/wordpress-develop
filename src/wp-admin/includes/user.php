@@ -62,7 +62,7 @@ function edit_user( $user_id = 0 ) {
 			wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
 		}
 
-		$potential_role = isset( $wp_roles->role_objects[ $new_role ] ) ? $wp_roles->role_objects[ $new_role ] : false;
+		$potential_role = $wp_roles->role_objects[ $new_role ] ?? false;
 
 		/*
 		 * Don't let anyone with 'promote_users' edit their own role to something without it.
@@ -482,7 +482,7 @@ function wp_revoke_user( $id ) {
 /**
  * @since 2.8.0
  *
- * @global int $user_ID
+ * @global int $user_ID Current user ID.
  *
  * @param false $errors Deprecated.
  */
@@ -505,8 +505,8 @@ function default_password_nag_handler( $errors = false ) {
 /**
  * @since 2.8.0
  *
- * @param int     $user_ID
- * @param WP_User $old_data
+ * @param int     $user_ID  User ID.
+ * @param WP_User $old_data The user object before the update.
  */
 function default_password_nag_edit_user( $user_ID, $old_data ) {
 	// Short-circuit it.
@@ -602,7 +602,7 @@ function use_ssl_preference( $user ) {
 /**
  * @since MU (3.0.0)
  *
- * @param string $text
+ * @param string $text The email body text.
  * @return string User site invitation email message.
  */
 function admin_created_user_email( $text ) {

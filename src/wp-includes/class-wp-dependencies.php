@@ -477,10 +477,7 @@ class WP_Dependencies {
 		switch ( $status ) {
 			case 'registered':
 			case 'scripts': // Back compat.
-				if ( isset( $this->registered[ $handle ] ) ) {
-					return $this->registered[ $handle ];
-				}
-				return false;
+				return $this->registered[ $handle ] ?? false;
 
 			case 'enqueued':
 			case 'queue': // Back compat.
@@ -572,10 +569,10 @@ class WP_Dependencies {
 	 */
 	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
 		return sprintf(
-			/* translators: 1: Handle, 2: Comma-separated list of missing dependency handles. */
+			/* translators: 1: Handle, 2: List of missing dependency handles. */
 			__( 'The handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 			$handle,
-			implode( ', ', $missing_dependency_handles )
+			implode( wp_get_list_item_separator(), $missing_dependency_handles )
 		);
 	}
 }
