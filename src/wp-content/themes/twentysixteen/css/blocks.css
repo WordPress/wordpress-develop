@@ -3,6 +3,12 @@ Theme Name: Twenty Sixteen
 Description: Used to style blocks.
 */
 
+/*
+ * IMPORTANT: This file is only served on the frontend when `SCRIPT_DEBUG` is enabled;
+ * in most instances, the `blocks.min.css` file will be served. After making changes to this file,
+ * run `npm run build` in the theme directory to regenerate the minified version.
+ */
+
 /*--------------------------------------------------------------
 >>> TABLE OF CONTENTS:
 ----------------------------------------------------------------
