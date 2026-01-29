@@ -148,6 +148,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * so this class constant from the Tag Processor is overwritten.
 	 *
 	 * @since 6.4.0
+	 * @since 7.0.0 Increased from 100 to 1,000
 	 *
 	 * @var int
 	 */
