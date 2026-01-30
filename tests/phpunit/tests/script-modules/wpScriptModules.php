@@ -2120,6 +2120,48 @@ HTML;
 		$this->assertCount( 4, $import_map, 'Final import map count was wrong: ' . print_r( $import_map, true ) );
 	}
 
+
+	/**
+	 * Tests that WP_Scripts emits a _doing_it_wrong() notice for missing script module dependencies.
+	 *
+	 * @ticket 61500
+	 * @ticket 64229
+	 * @covers WP_Script_Modules::get_import_map
+	 */
+	public function test_wp_scripts_doing_it_wrong_for_missing_script_module_dependencies() {
+		$expected_incorrect_usage = 'WP_Scripts::add';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		wp_enqueue_script(
+			'registered-dep',
+			'/registered-dep.js',
+			array(),
+			null,
+			array(
+				'module_dependencies' => array( 'does-not-exist' ),
+			)
+		);
+
+		$import_map = $this->get_import_map();
+		$this->assertSame( array(), $import_map, 'Expected importmap to be empty.' );
+		$markup = get_echo( 'wp_print_scripts' );
+
+		// TODO: Should this actually be omitted?
+		$this->assertStringContainsString( 'registered-dep.js', $markup, 'Expected script to be present.' );
+
+		$this->assertArrayHasKey(
+			$expected_incorrect_usage,
+			$this->caught_doing_it_wrong,
+			"Expected $expected_incorrect_usage to trigger a _doing_it_wrong() notice for missing dependency."
+		);
+
+		$this->assertStringContainsString(
+			'The script handle "registered-dep" was enqueued with script module dependencies ("module_dependencies") that are not registered: does-not-exist',
+			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
+			'Expected _doing_it_wrong() notice to indicate missing script module dependencies for enqueued script.'
+		);
+	}
+
 	/**
 	 * Tests various ways of printing and dependency ordering of script modules.
 	 *

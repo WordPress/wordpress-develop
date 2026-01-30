@@ -564,8 +564,27 @@ class WP_Script_Modules {
 
 				$module_dependencies = $wp_scripts->get_data( $handle, 'module_dependencies' );
 				if ( is_array( $module_dependencies ) ) {
+					$missing_module_dependencies = array();
 					foreach ( $module_dependencies as $id ) {
-						$classic_script_module_dependencies[] = $id;
+						if ( ! isset( $this->registered[ $id ] ) ) {
+							$missing_module_dependencies[] = $id;
+						} else {
+							$classic_script_module_dependencies[] = $id;
+						}
+					}
+
+					if ( count( $missing_module_dependencies ) > 0 ) {
+						_doing_it_wrong(
+							WP_Scripts::class . '::add',
+							sprintf(
+								/* translators: 1: Script handle, 2: 'module_dependencies', 3: List of missing dependency IDs. */
+								__( 'The script handle "%1$s" was enqueued with script module dependencies ("%2$s") that are not registered: %3$s.' ),
+								$handle,
+								'module_dependencies',
+								implode( wp_get_list_item_separator(), $missing_module_dependencies )
+							),
+							'7.0.0'
+						);
 					}
 				}
 
@@ -590,7 +609,6 @@ class WP_Script_Modules {
 				$imports[ $id ] = $src;
 			}
 		}
-
 		return array( 'imports' => $imports );
 	}
 
