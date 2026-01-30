@@ -1631,6 +1631,8 @@ function set_transient( $transient, $value, $expiration = 0 ) {
  *
  * @since 4.9.0
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param bool        $force_db Optional. Force cleanup to run against the database even when an
  *                              external object cache is used. Default false.
  * @param string|bool $prefix   Optional. Transient name prefix. When provided, only expired transients
