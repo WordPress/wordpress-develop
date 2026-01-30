@@ -1278,6 +1278,58 @@ HTML
 	}
 
 	/**
+	 * Tests validation of module_dependencies in WP_Scripts::add_data().
+	 *
+	 * @ticket 61500
+	 *
+	 * @covers WP_Scripts::add_data
+	 *
+	 * @dataProvider data_add_data_module_dependencies_validation
+	 *
+	 * @param mixed      $data     Data to add.
+	 * @param string     $message  Expected error message.
+	 * @param bool       $expected Expected return value.
+	 * @param array|null $stored   Expected stored value.
+	 */
+	public function test_add_data_module_dependencies_validation( $data, string $message, bool $expected, ?array $stored ) {
+		wp_register_script( 'test-script', '/test.js' );
+
+		$expected_incorrect_usage = 'WP_Scripts::add_data';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		$this->assertSame( $expected, wp_scripts()->add_data( 'test-script', 'module_dependencies', $data ) );
+		$this->assertStringContainsString( $message, $this->caught_doing_it_wrong[ $expected_incorrect_usage ] );
+
+		if ( null === $stored ) {
+			$this->assertFalse( wp_scripts()->get_data( 'test-script', 'module_dependencies' ) );
+		} else {
+			$this->assertSame( $stored, wp_scripts()->get_data( 'test-script', 'module_dependencies' ) );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{data: mixed, message: string, expected: bool, stored: string[]|null}>
+	 */
+	public function data_add_data_module_dependencies_validation(): array {
+		return array(
+			'non-array' => array(
+				'data'     => 'not-an-array',
+				'message'  => 'The value for "module_dependencies" must be an array',
+				'expected' => false,
+				'stored'   => null,
+			),
+			'bad-items' => array(
+				'data'     => array( 'valid', 123, true, array() ),
+				'message'  => 'has script module dependencies ("module_dependencies") that are not strings and have been removed',
+				'expected' => true,
+				'stored'   => array( 'valid' ),
+			),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array<string, array{enqueues: string[], expected: string}>
