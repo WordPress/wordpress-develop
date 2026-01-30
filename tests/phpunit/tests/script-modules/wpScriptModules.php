@@ -40,9 +40,9 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		global $wp_script_modules, $wp_version;
-		$wp_script_modules      = $this->original_script_modules;
-		$wp_version             = $this->original_wp_version;
-		$GLOBALS['wp_scripts']  = $this->old_wp_scripts;
+		$wp_script_modules     = $this->original_script_modules;
+		$wp_version            = $this->original_wp_version;
+		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 		parent::tear_down();
 	}
 
