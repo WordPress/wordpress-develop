@@ -586,7 +586,7 @@ class WP_Script_Modules {
 		);
 		foreach ( $ids as $id ) {
 			$src = $this->get_src( $id );
-			if ( '' !== $src && null !== $src ) {
+			if ( '' !== $src ) {
 				$imports[ $id ] = $src;
 			}
 		}
@@ -822,11 +822,11 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 *
 	 * @param string $id The script module identifier.
-	 * @return string|null The script module src with a version if relevant.
+	 * @return string The script module src with a version if relevant.
 	 */
-	private function get_src( string $id ): ?string {
+	private function get_src( string $id ): string {
 		if ( ! isset( $this->registered[ $id ] ) ) {
-			return null;
+			return '';
 		}
 
 		$script_module = $this->registered[ $id ];
