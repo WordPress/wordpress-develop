@@ -556,7 +556,7 @@ class WP_Script_Modules {
 
 			$processed = array();
 			while ( ! empty( $handles ) ) {
-				$handle = array_shift( $handles );
+				$handle = array_pop( $handles );
 				if ( isset( $processed[ $handle ] ) || ! isset( $wp_scripts->registered[ $handle ] ) ) {
 					continue;
 				}
