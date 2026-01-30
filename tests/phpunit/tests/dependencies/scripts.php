@@ -106,6 +106,73 @@ JS;
 	}
 
 	/**
+	 * Tests that scripts trigger _doing_it_wrong for unrecognized keys in the $args array.
+	 *
+	 * @ticket 63486
+	 *
+	 * @covers ::wp_register_script
+	 * @covers ::wp_enqueue_script
+	 * @covers ::_wp_scripts_check_extra_args
+	 *
+	 * @dataProvider data_unrecognized_keys_in_args
+	 *
+	 * @param string $function_name Function name to call.
+	 * @param array  $args          Arguments to pass to the function.
+	 * @param string $expected_msg  Expected error message substring.
+	 */
+	public function test_unrecognized_keys_in_args( string $function_name, array $args, string $expected_msg ) {
+		$this->setExpectedIncorrectUsage( $function_name );
+
+		call_user_func_array( $function_name, $args );
+
+		$this->assertStringContainsString(
+			$expected_msg,
+			$this->caught_doing_it_wrong[ $function_name ]
+		);
+	}
+
+	/**
+	 * Data provider for test_unrecognized_keys_in_args.
+	 *
+	 * @return array<string, array{function_name: string, args: array, expected_msg: string}>
+	 */
+	public function data_unrecognized_keys_in_args(): array {
+		return array(
+			'register_script' => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array(
+					'unrecognized-key-register',
+					'/script.js',
+					array(),
+					null,
+					array(
+						'unrecognized_key' => 'value',
+						'another_bad_key'  => 'value',
+					),
+				),
+				'expected_msg'  => 'Unrecognized keys in the $args array: unrecognized_key, another_bad_key',
+			),
+			'enqueue_script'  => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array(
+					'unrecognized-key-enqueue',
+					'/script.js',
+					array(),
+					null,
+					array(
+						'strategy'            => 'defer',
+						'in_footer'           => true,
+						'fetchpriority'       => 'high',
+						'module_dependencies' => array( 'foo' ),
+						'invalid_key'         => 'bar',
+					),
+				),
+				'expected_msg'  => 'Unrecognized keys in the $args array: invalid_key',
+			),
+		);
+	}
+
+	/**
 	 * Test versioning
 	 *
 	 * @ticket 11315
@@ -1322,7 +1389,7 @@ HTML
 			),
 			'bad-items' => array(
 				'data'     => array( 'valid', 123, true, array() ),
-				'message'  => 'has script module dependencies ("module_dependencies") that are not strings and have been removed',
+				'message'  => 'has one or more of its script module dependencies ("module_dependencies") which are not strings',
 				'expected' => true,
 				'stored'   => array( 'valid' ),
 			),

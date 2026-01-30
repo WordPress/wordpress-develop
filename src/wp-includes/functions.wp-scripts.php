@@ -69,6 +69,33 @@ function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
 }
 
 /**
+ * Checks if the $args array contains any unrecognized keys.
+ *
+ * @ignore
+ * @since 7.0.0
+ *
+ * @param string $function_name Function name.
+ * @param array  $args          Array of extra args for the script.
+ */
+function _wp_scripts_check_extra_args( string $function_name, array $args ) {
+	$allowed_keys = array( 'strategy', 'in_footer', 'fetchpriority', 'module_dependencies' );
+	$unknown_keys = array_diff( array_keys( $args ), $allowed_keys );
+
+	if ( ! empty( $unknown_keys ) ) {
+		_doing_it_wrong(
+			$function_name,
+			sprintf(
+				/* translators: 1: $args, 2: List of unrecognized keys. */
+				__( 'Unrecognized keys in the %1$s array: %2$s.' ),
+				'$args',
+				implode( wp_get_list_item_separator(), $unknown_keys )
+			),
+			'7.0.0'
+		);
+	}
+}
+
+/**
  * Prints scripts in document head that are in the $handles queue.
  *
  * Called by admin-header.php and {@see 'wp_head'} hook. Since it is called by wp_head on every page load,
@@ -187,6 +214,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 		);
 	}
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
+	_wp_scripts_check_extra_args( __FUNCTION__, $args );
 
 	$wp_scripts = wp_scripts();
 
@@ -382,6 +410,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 				'in_footer' => (bool) $args,
 			);
 		}
+		_wp_scripts_check_extra_args( __FUNCTION__, $args );
 
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
