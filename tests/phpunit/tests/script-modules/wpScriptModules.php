@@ -2010,22 +2010,21 @@ HTML;
 
 		$this->assertSame( array(), $this->get_enqueued_script_modules(), 'Final enqueued script modules was wrong.' );
 		$this->assertSame( array(), $this->get_preloaded_script_modules(), 'Final module preloads was wrong.' );
-
-		$import_map = $this->get_import_map();
-		$this->assertCount( 2, $import_map, 'Final import map count was wrong.' );
-		$this->assertArrayHasKey( 'example', $import_map, 'Final missing "example" script module in import map.' );
-		$this->assertArrayHasKey( 'dependency', $import_map, 'Final missing "dependency" script module in import map.' );
+		$this->assertEqualSets(
+			array( 'example', 'dependency' ),
+			array_keys( $this->get_import_map() ),
+			'Import map keys were wrong.'
+		);
 	}
 
 	/**
-	 * Tests that script modules identified as dependencies of classic scripts are correctly included in the import map,
-	 * even when those module dependencies are attached to transitive classic script dependencies.
+	 * Tests that dynamic dependencies of enqueued script modules are included in the import map.
 	 *
 	 * @ticket 61500
 	 *
 	 * @covers WP_Script_Modules::get_import_map
 	 */
-	public function test_included_modules_concat_with_enqueued_dependencies() {
+	public function test_import_map_includes_dynamic_dependencies_of_enqueued_modules() {
 		$this->script_modules->register( 'dependency-of-enqueued', '/dependency-of-enqueued.js' );
 		$this->script_modules->enqueue(
 			'enqueued',
@@ -2038,32 +2037,32 @@ HTML;
 			)
 		);
 
-		$this->script_modules->register( 'classic-transitive-dependency', '/classic-transitive-dependency.js' );
+		$enqueued = $this->get_enqueued_script_modules();
+		$this->assertCount( 1, $enqueued, 'Enqueue count was wrong.' );
+		$this->assertArrayHasKey( 'enqueued', $enqueued, 'Missing "enqueued" script module enqueue.' );
+		$this->assertCount( 0, $this->get_preloaded_script_modules(), 'Module preload count was wrong.' );
+		$this->assertEqualSets(
+			array( 'dependency-of-enqueued' ),
+			array_keys( $this->get_import_map() ),
+			'Import map keys were wrong.'
+		);
+	}
 
+	/**
+	 * Tests that script module dependencies of enqueued classic scripts (including transitive ones) are included in the import map.
+	 *
+	 * @ticket 61500
+	 *
+	 * @covers WP_Script_Modules::get_import_map
+	 */
+	public function test_import_map_includes_dependencies_of_classic_scripts_recursive() {
+		$this->script_modules->register( 'classic-transitive-dependency', '/classic-transitive-dependency.js' );
 		$this->script_modules->register( 'dependency-of-not-enqueued', '/dependency-of-not-enqueued.js' );
 		$this->script_modules->register( 'not-enqueued', '/not-enqueued.js', array( 'dependency-of-not-enqueued' ) );
 
-		// Only dependency-enqueued should be printed.
-		$enqueued = $this->get_enqueued_script_modules();
-		$this->assertCount( 1, $enqueued, 'Initial enqueue count was wrong.' );
-		$this->assertArrayHasKey( 'enqueued', $enqueued, 'Initial missing "enqueued" script module enqueue.' );
-		$this->assertCount( 0, $this->get_preloaded_script_modules(), 'Initial module preload count was wrong.' );
-
-		$import_map = $this->get_import_map();
-		$this->assertCount( 1, $import_map, 'Initial import map count was wrong.' );
-		$this->assertArrayHasKey( 'dependency-of-enqueued', $import_map, 'Initial missing "dependency-of-enqueued" script module in import map.' );
-
-		// Reset the printed modules so we can check again later.
-		$reflection    = new ReflectionClass( $this->script_modules );
-		$done_property = $reflection->getProperty( 'done' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$done_property->setAccessible( true );
-		}
-		$done_property->setValue( $this->script_modules, array() );
-
 		// Enqueuing a script with a module dependency should add it to the import map.
 		wp_register_script(
-			'_test_classic-dependency_',
+			'classic-transitive-dep',
 			'/classic-transitive-dep.js',
 			array(),
 			false,
@@ -2072,9 +2071,9 @@ HTML;
 			)
 		);
 		wp_enqueue_script(
-			'_test_classic_',
+			'classic',
 			'/classic.js',
-			array( '_test_classic-dependency_' ),
+			array( 'classic-transitive-dep' ),
 			false,
 			array(
 				'module_dependencies' => array( 'not-enqueued' ),
@@ -2082,17 +2081,17 @@ HTML;
 		);
 
 		$enqueued = $this->get_enqueued_script_modules();
-		$this->assertCount( 1, $enqueued, 'Final enqueue count was wrong.' );
-		$this->assertArrayHasKey( 'enqueued', $enqueued, 'Final missing "enqueued" script module enqueue.' );
-
-		$this->assertCount( 0, $this->get_preloaded_script_modules(), 'Final module preload count was wrong.' );
-
-		$import_map = $this->get_import_map();
-		$this->assertArrayHasKey( 'dependency-of-enqueued', $import_map, 'Final missing "dependency-of-enqueued" script module in import map.' );
-		$this->assertArrayHasKey( 'classic-transitive-dependency', $import_map, 'Final missing "classic-transitive-dependency" script module in import map.' );
-		$this->assertArrayHasKey( 'not-enqueued', $import_map, 'Final missing "not-enqueued" script module in import map.' );
-		$this->assertArrayHasKey( 'dependency-of-not-enqueued', $import_map, 'Final missing "dependency-of-not-enqueued" script module in import map.' );
-		$this->assertCount( 4, $import_map, 'Final import map count was wrong: ' . print_r( $import_map, true ) );
+		$this->assertCount( 0, $enqueued, 'Enqueue count was wrong.' );
+		$this->assertCount( 0, $this->get_preloaded_script_modules(), 'Module preload count was wrong.' );
+		$this->assertEqualSets(
+			array(
+				'classic-transitive-dependency',
+				'not-enqueued',
+				'dependency-of-not-enqueued',
+			),
+			array_keys( $this->get_import_map() ),
+			'Import map keys were wrong.'
+		);
 	}
 
 	/**
