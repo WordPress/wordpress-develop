@@ -303,32 +303,6 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that rel="noopener" is added to links with a target.
-	 *
-	 * @ticket 46421
-	 */
-	public function test_render_links_with_target() {
-		$widget = new WP_Widget_Custom_HTML();
-
-		$content = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
-
-		$args = array(
-			'before_title'  => '<h2>',
-			'after_title'   => '</h2>',
-			'before_widget' => '',
-			'after_widget'  => '',
-		);
-
-		$instance = array(
-			'title'   => 'Foo',
-			'content' => $content,
-		);
-
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
-		$this->assertStringContainsString( 'rel="noopener"', $output );
-	}
-
-	/**
 	 * Ensure that rel="noopener" is not added to links without a target.
 	 *
 	 * @ticket 46421

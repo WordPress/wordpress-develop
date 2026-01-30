@@ -48,11 +48,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		parent::__construct(
 			array(
 				'plural' => 'themes',
-				'screen' => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen' => $args['screen'] ?? null,
 			)
 		);
 
-		$status = isset( $_REQUEST['theme_status'] ) ? $_REQUEST['theme_status'] : 'all';
+		$status = $_REQUEST['theme_status'] ?? 'all';
 		if ( ! in_array( $status, array( 'all', 'enabled', 'disabled', 'upgrade', 'search', 'broken', 'auto-update-enabled', 'auto-update-disabled' ), true ) ) {
 			$status = 'all';
 		}
@@ -153,7 +153,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			$themes[ $filter ][ $key ] = $themes['all'][ $key ];
 
 			$theme_data = array(
-				'update_supported' => isset( $theme->update_supported ) ? $theme->update_supported : true,
+				'update_supported' => $theme->update_supported ?? true,
 			);
 
 			// Extra info if known. array_merge() ensures $theme_data has precedence if keys collide.
@@ -302,15 +302,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		$a = $theme_a[ $orderby ];
 		$b = $theme_b[ $orderby ];
 
-		if ( $a === $b ) {
-			return 0;
-		}
-
-		if ( 'DESC' === $order ) {
-			return ( $a < $b ) ? 1 : -1;
-		} else {
-			return ( $a < $b ) ? -1 : 1;
-		}
+		return 'DESC' === $order ?
+			$b <=> $a :
+			$a <=> $b;
 	}
 
 	/**
@@ -704,8 +698,14 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		global $status, $totals;
 
 		if ( $theme->errors() ) {
-			$pre = 'broken' === $status ? __( 'Broken Theme:' ) . ' ' : '';
-			echo '<p><strong class="error-message">' . $pre . $theme->errors()->get_error_message() . '</strong></p>';
+			$pre = 'broken' === $status ? '<strong class="error-message">' . __( 'Broken Theme:' ) . '</strong> ' : '';
+			wp_admin_notice(
+				$pre . $theme->errors()->get_error_message(),
+				array(
+					'type'               => 'error',
+					'additional_classes' => 'inline',
+				)
+			);
 		}
 
 		if ( $this->is_site_themes ) {

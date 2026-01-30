@@ -571,7 +571,7 @@ abstract class WP_REST_Controller {
 	 */
 	public function get_fields_for_response( $request ) {
 		$schema     = $this->get_item_schema();
-		$properties = isset( $schema['properties'] ) ? $schema['properties'] : array();
+		$properties = $schema['properties'] ?? array();
 
 		$additional_fields = $this->get_additional_fields();
 
@@ -662,11 +662,11 @@ abstract class WP_REST_Controller {
 	/**
 	 * Sanitizes the slug value.
 	 *
-	 * @since 4.7.0
-	 *
-	 * @internal We can't use sanitize_title() directly, as the second
+	 * {@internal We can't use sanitize_title() directly, as the second
 	 * parameter is the fallback title, which would end up being set to the
-	 * request object.
+	 * request object.}
+	 *
+	 * @since 4.7.0
 	 *
 	 * @see https://github.com/WP-API/WP-API/issues/1585
 	 *

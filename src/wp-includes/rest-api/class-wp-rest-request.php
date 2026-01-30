@@ -162,6 +162,18 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Determines if the request is the given method.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $method HTTP method.
+	 * @return bool Whether the request is of the given method.
+	 */
+	public function is_method( $method ) {
+		return $this->get_method() === strtoupper( $method );
+	}
+
+	/**
 	 * Canonicalizes the header name.
 	 *
 	 * Ensures that header names are always treated the same regardless of
@@ -482,6 +494,11 @@ class WP_REST_Request implements ArrayAccess {
 			}
 		}
 
+		// Exclude rest_route if pretty permalinks are not enabled.
+		if ( ! get_option( 'permalink_structure' ) ) {
+			unset( $params['rest_route'] );
+		}
+
 		return $params;
 	}
 
@@ -518,7 +535,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_query_params() {
 		return $this->params['GET'];
@@ -570,7 +587,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_file_params() {
 		return $this->params['FILES'];
@@ -596,7 +613,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_default_params() {
 		return $this->params['defaults'];
