@@ -533,6 +533,9 @@ class WP_Script_Modules {
 	 * Returns the import map array.
 	 *
 	 * @since 6.5.0
+	 * @since 7.0.0 Script module dependencies ('module_dependencies') of classic scripts are now included.
+	 *
+	 * @global WP_Scripts $wp_scripts
 	 *
 	 * @return array<string, array<string, string>> Array with an `imports` key mapping to an array of script module
 	 *                                              identifiers and their respective URLs, including the version query.
@@ -542,7 +545,8 @@ class WP_Script_Modules {
 
 		$imports = array();
 
-		$classic_script_dependencies = array();
+		// Identify script modules that are dependencies of classic scripts.
+		$classic_script_module_dependencies = array();
 		if ( $wp_scripts instanceof WP_Scripts ) {
 			$handles = array_merge(
 				$wp_scripts->queue,
@@ -553,7 +557,6 @@ class WP_Script_Modules {
 			$processed = array();
 			while ( ! empty( $handles ) ) {
 				$handle = array_shift( $handles );
-
 				if ( isset( $processed[ $handle ] ) || ! isset( $wp_scripts->registered[ $handle ] ) ) {
 					continue;
 				}
@@ -562,7 +565,7 @@ class WP_Script_Modules {
 				$module_dependencies = $wp_scripts->get_data( $handle, 'module_dependencies' );
 				if ( is_array( $module_dependencies ) ) {
 					foreach ( $module_dependencies as $id ) {
-						$classic_script_dependencies[] = $id;
+						$classic_script_module_dependencies[] = $id;
 					}
 				}
 
@@ -574,10 +577,11 @@ class WP_Script_Modules {
 			}
 		}
 
+		// Note: the script modules in $this->queue are not included in the importmap because they get printed as scripts.
 		$ids = array_unique(
 			array_merge(
-				$classic_script_dependencies,
-				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_dependencies ) ) )
+				$classic_script_module_dependencies,
+				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_module_dependencies ) ) )
 			)
 		);
 		foreach ( $ids as $id ) {
