@@ -2843,15 +2843,44 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
+		/*
+		 * For the `class` attribute, ensure that enqueued class changes from
+		 * `add_class` and `remove_class` are flushed into attribute updates.
+		 */
+		$this->class_name_updates_to_attributes_updates();
+
 		$comparable = strtolower( $prefix );
 
-		$matches = array();
+		// Use associative array to efficiently track unique attribute names
+		$result = array();
+
+		// First, collect attributes from the parsed HTML.
 		foreach ( array_keys( $this->attributes ) as $attr_name ) {
 			if ( str_starts_with( $attr_name, $comparable ) ) {
-				$matches[] = $attr_name;
+				$result[ $attr_name ] = true;
 			}
 		}
-		return $matches;
+
+		// Then, apply any enqueued attribute updates.
+		foreach ( $this->lexical_updates as $name => $update ) {
+			// Skip numeric keys (used for other types of updates).
+			if ( is_int( $name ) ) {
+				continue;
+			}
+
+			// Process only if the name matches the prefix.
+			if ( str_starts_with( $name, $comparable ) ) {
+				// If the update text is empty, the attribute is being removed.
+				if ( '' === $update->text ) {
+					unset( $result[ $name ] );
+				} else {
+					// Attribute is being added or modified.
+					$result[ $name ] = true;
+				}
+			}
+		}
+
+		return array_keys( $result );
 	}
 
 	/**
