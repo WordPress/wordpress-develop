@@ -22,6 +22,11 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	protected $original_wp_version;
 
 	/**
+	 * @var WP_Scripts|null
+	 */
+	protected $old_wp_scripts;
+
+	/**
 	 * Instance of WP_Script_Modules.
 	 *
 	 * @var WP_Script_Modules
@@ -36,9 +41,12 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		parent::set_up();
 		$this->original_script_modules = $wp_script_modules;
 		$this->original_wp_version     = $wp_version;
+		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
 		$wp_script_modules             = null;
 		$this->script_modules          = wp_script_modules();
-		unset( $GLOBALS['wp_scripts'] );
+
+		$GLOBALS['wp_scripts']                  = new WP_Scripts();
+		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 	}
 
 	/**
@@ -46,39 +54,11 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		global $wp_script_modules, $wp_version;
+		$wp_script_modules      = $this->original_script_modules;
+		$wp_version             = $this->original_wp_version;
+		$GLOBALS['wp_scripts']  = $this->old_wp_scripts;
 		parent::tear_down();
-		$wp_script_modules = $this->original_script_modules;
-		$wp_version        = $this->original_wp_version;
 	}
-
-	private static $wp_scripts;
-	private static $wp_scripts_was_set = false;
-
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
-		// If the global is set, store it for restoring when done testing.
-		static::$wp_scripts_was_set = array_key_exists( 'wp_scripts', $GLOBALS );
-		if ( static::$wp_scripts_was_set ) {
-			static::$wp_scripts = $GLOBALS['wp_scripts'];
-			unset( $GLOBALS['wp_scripts'] );
-		}
-	}
-
-	public static function tear_down_after_class() {
-		// Restore the global if it was set before running this set of tests.
-		if ( static::$wp_scripts_was_set ) {
-			$GLOBALS['wp_scripts'] = static::$wp_scripts;
-		}
-
-		parent::tear_down_after_class();
-	}
-
-	public function clean_up_global_scope() {
-		unset( $GLOBALS['wp_scripts'] );
-		parent::clean_up_global_scope();
-	}
-
 
 	/**
 	 * Gets a list of the enqueued script modules.
