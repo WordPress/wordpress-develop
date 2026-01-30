@@ -2464,7 +2464,7 @@ function wp_insert_user( $userdata ) {
 
 	$meta['show_admin_bar_front'] = empty( $userdata['show_admin_bar_front'] ) ? 'true' : $userdata['show_admin_bar_front'];
 
-	$meta['locale'] = isset( $userdata['locale'] ) ? $userdata['locale'] : '';
+	$meta['locale'] = $userdata['locale'] ?? '';
 
 	$compacted = compact( 'user_pass', 'user_nicename', 'user_email', 'user_url', 'user_registered', 'user_activation_key', 'display_name' );
 	$data      = wp_unslash( $compacted );
@@ -3175,7 +3175,9 @@ function check_password_reset_key(
 		 * Filters the return value of check_password_reset_key() when an
 		 * old-style key or an expired key is used.
 		 *
-		 * @since 3.7.0 Previously plain-text keys were stored in the database.
+		 * Prior to 3.7, plain-text keys were stored in the database.
+		 *
+		 * @since 3.7.0
 		 * @since 4.3.0 Previously key hashes were stored without an expiration time.
 		 *
 		 * @param WP_Error $return  A WP_Error object denoting an expired key.
@@ -4844,6 +4846,13 @@ function wp_send_user_request( $request_id ) {
 		$switched_locale = switch_to_locale( get_locale() );
 	}
 
+	/*
+	 * Generate the new user request key first, as it is used by both the $request
+	 * object and the confirm_url array.
+	 * See https://core.trac.wordpress.org/ticket/44940
+	 */
+	$request->confirm_key = wp_generate_user_request_key( $request_id );
+
 	$email_data = array(
 		'request'     => $request,
 		'email'       => $request->email,
@@ -4852,7 +4861,7 @@ function wp_send_user_request( $request_id ) {
 			array(
 				'action'      => 'confirmaction',
 				'request_id'  => $request_id,
-				'confirm_key' => wp_generate_user_request_key( $request_id ),
+				'confirm_key' => $request->confirm_key,
 			),
 			wp_login_url()
 		),

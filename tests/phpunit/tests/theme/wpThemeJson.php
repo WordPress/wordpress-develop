@@ -1216,14 +1216,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'blockGap' => null,
 					),
 				),
+				'styles'   => array(
+					'spacing' => array(
+						'blockGap' => '1em',
+					),
+				),
 			),
 			'default'
 		);
-		$stylesheet = $theme_json->get_stylesheet( array( 'base-layout-styles' ) );
+		// Set base_layout_styles to true to generate only base layout styles without alignment rules.
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'base_layout_styles' => true ) );
 
-		// Note the `base-layout-styles` includes a fallback gap for the Columns block for backwards compatibility.
+		// Verify that layout styles are still generated, but without .wp-site-blocks alignment rules and flow/constrained base styles.
 		$this->assertSame(
-			':where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}',
+			':where(body) { margin: 0; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}',
 			$stylesheet
 		);
 	}
@@ -1245,10 +1251,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 			'default'
 		);
-		$stylesheet = $theme_json->get_stylesheet( array( 'base-layout-styles' ) );
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null );
 		remove_theme_support( 'disable-layout-styles' );
 
-		// All Layout styles should be skipped.
+		// All Layout styles should be skipped when disable-layout-styles theme support is added.
 		$this->assertSame(
 			'',
 			$stylesheet
@@ -4725,6 +4731,68 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual_styles );
 	}
 
+	/**
+	 * Tests that block style variations with blockGap generate proper layout styles.
+	 *
+	 * @ticket 64533
+	 */
+	public function test_get_styles_for_block_with_style_variations_and_block_gap() {
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'withGap',
+				'label' => 'With Gap',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'withGap' => array(
+									'color'   => array(
+										'background' => 'tomato',
+									),
+									'spacing' => array(
+										'blockGap' => '5rem',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$metadata = array(
+			'name'       => 'core/group',
+			'path'       => array( 'styles', 'blocks', 'core/group' ),
+			'selector'   => '.wp-block-group',
+			'css'        => '.wp-block-group',
+			'variations' => array(
+				array(
+					'path'     => array( 'styles', 'blocks', 'core/group', 'variations', 'withGap' ),
+					'selector' => '.is-style-withGap.wp-block-group',
+				),
+			),
+		);
+
+		$actual_styles = $theme_json->get_styles_for_block( $metadata );
+
+		unregister_block_style( 'core/group', 'withGap' );
+
+		$expected = ':root :where(.is-style-withGap.wp-block-group){background-color: tomato;}:root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-flow) > :first-child{margin-block-start: 0;}:root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-flow) > :last-child{margin-block-end: 0;}:root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-flow) > *{margin-block-start: 5rem;margin-block-end: 0;}:root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-constrained) > :first-child{margin-block-start: 0;}:root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-constrained) > :last-child{margin-block-end: 0;}:root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-constrained) > *{margin-block-start: 5rem;margin-block-end: 0;}:root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-flex){gap: 5rem;}:root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-grid){gap: 5rem;}';
+		$this->assertSame( $expected, $actual_styles );
+	}
+
 	public function test_block_style_variations() {
 		wp_set_current_user( static::$administrator_id );
 
@@ -6410,5 +6478,217 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $button_variations );
+	}
+
+	/**
+	 * Tests that block-level settings inherit global default settings when not explicitly set.
+	 *
+	 * When a block doesn't have its own default presets setting, it should inherit
+	 * the global setting from the theme. This affects whether default presets
+	 * are filtered out during merging.
+	 *
+	 * @ticket 64195
+	 */
+	public function test_merge_incoming_data_block_level_inherits_global_default_setting() {
+		$defaults = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color' => array(
+						'defaultDuotone' => true,
+						'duotone'        => array(
+							array(
+								'slug'   => 'dark-grayscale',
+								'colors' => array( '#000000', '#7f7f7f' ),
+								'name'   => 'Default Dark grayscale',
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+		$theme    = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'  => array(
+						'defaultDuotone' => false,
+					),
+					'blocks' => array(
+						'core/image' => array(
+							'color' => array(
+								// No defaultDuotone setting - should inherit global (false) set by theme.
+								'duotone' => array(
+									array(
+										'slug'   => 'dark-grayscale',
+										'colors' => array( '#000000', '#7f7f7f' ),
+										'name'   => 'Theme Dark grayscale',
+									),
+								),
+							),
+						),
+						'core/cover' => array(
+							'color' => array(
+								'defaultDuotone' => true, // Explicitly enabled at block level
+								'duotone'        => array(
+									array(
+										'slug'   => 'dark-grayscale',
+										'colors' => array( '#000000', '#7f7f7f' ),
+										'name'   => 'Cover Dark grayscale',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'  => array(
+					'defaultDuotone' => false,
+					'duotone'        => array(
+						'default' => array(
+							array(
+								'slug'   => 'dark-grayscale',
+								'colors' => array( '#000000', '#7f7f7f' ),
+								'name'   => 'Default Dark grayscale',
+							),
+						),
+					),
+				),
+				'blocks' => array(
+					'core/image' => array(
+						'color' => array(
+							'duotone' => array(
+								'theme' => array(
+									array(
+										'slug'   => 'dark-grayscale',
+										'colors' => array( '#000000', '#7f7f7f' ),
+										'name'   => 'Theme Dark grayscale',
+									),
+								),
+							),
+						),
+					),
+					'core/cover' => array(
+						'color' => array(
+							'defaultDuotone' => true,
+							'duotone'        => array(
+								'theme' => array(
+									// Should be filtered out because block-level defaults are enabled
+									// and slug matches default
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$defaults->merge( $theme );
+		$actual = $defaults->get_raw_data();
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Tests that presets with unique slugs are preserved during merging.
+	 *
+	 * When merging theme presets, any preset with a slug that doesn't match
+	 * a default preset should always be preserved, regardless of default
+	 * preset settings. Only presets with matching slugs should be filtered out
+	 * when defaults are enabled.
+	 *
+	 * @ticket 64195
+	 */
+	public function test_merge_incoming_data_unique_slugs_always_preserved() {
+		$defaults = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color' => array(
+						'defaultDuotone' => true, // Defaults enabled
+						'duotone'        => array(
+							array(
+								'slug'   => 'dark-grayscale',
+								'colors' => array( '#000000', '#7f7f7f' ),
+								'name'   => 'Default Dark grayscale',
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+		$theme    = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'color' => array(
+								'defaultDuotone' => true, // Block-level defaults enabled
+								'duotone'        => array(
+									array(
+										'slug'   => 'custom-unique',
+										'colors' => array( '#ff0000', '#00ff00' ),
+										'name'   => 'Custom Unique',
+									),
+									array(
+										'slug'   => 'dark-grayscale', // Matches default slug
+										'colors' => array( '#111111', '#888888' ),
+										'name'   => 'Theme Dark grayscale',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'  => array(
+					'defaultDuotone' => true,
+					'duotone'        => array(
+						'default' => array(
+							array(
+								'slug'   => 'dark-grayscale',
+								'colors' => array( '#000000', '#7f7f7f' ),
+								'name'   => 'Default Dark grayscale',
+							),
+						),
+					),
+				),
+				'blocks' => array(
+					'core/image' => array(
+						'color' => array(
+							'defaultDuotone' => true,
+							'duotone'        => array(
+								'theme' => array(
+									array(
+										'slug'   => 'custom-unique', // Should always be preserved
+										'colors' => array( '#ff0000', '#00ff00' ),
+										'name'   => 'Custom Unique',
+									),
+									// 'dark-grayscale' should be filtered out due to slug match
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$defaults->merge( $theme );
+		$actual = $defaults->get_raw_data();
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 }

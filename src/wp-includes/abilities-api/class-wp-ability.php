@@ -103,7 +103,7 @@ class WP_Ability {
 	 * The ability execute callback.
 	 *
 	 * @since 6.9.0
-	 * @var callable( mixed $input= ): (mixed|WP_Error)
+	 * @var callable(mixed): (mixed|WP_Error)
 	 */
 	protected $execute_callback;
 
@@ -111,7 +111,7 @@ class WP_Ability {
 	 * The optional ability permission callback.
 	 *
 	 * @since 6.9.0
-	 * @var callable( mixed $input= ): (bool|WP_Error)
+	 * @var callable(mixed): (bool|WP_Error)
 	 */
 	protected $permission_callback;
 
@@ -193,7 +193,7 @@ class WP_Ability {
 	 * Prepares and validates the properties used to instantiate the ability.
 	 *
 	 * Errors are thrown as exceptions instead of WP_Errors to allow for simpler handling and overloading. They are then
-	 * caught and converted to a WP_Error when by WP_Abilities_Registry::register().
+	 * caught and converted to a WP_Error by WP_Abilities_Registry::register().
 	 *
 	 * @since 6.9.0
 	 *
@@ -277,13 +277,15 @@ class WP_Ability {
 			);
 		}
 
-		if ( empty( $args['execute_callback'] ) || ! is_callable( $args['execute_callback'] ) ) {
+		// If we are not overriding `ability_class` parameter during instantiation, then we need to validate the execute_callback.
+		if ( get_class( $this ) === self::class && ( empty( $args['execute_callback'] ) || ! is_callable( $args['execute_callback'] ) ) ) {
 			throw new InvalidArgumentException(
 				__( 'The ability properties must contain a valid `execute_callback` function.' )
 			);
 		}
 
-		if ( empty( $args['permission_callback'] ) || ! is_callable( $args['permission_callback'] ) ) {
+		// If we are not overriding `ability_class` parameter during instantiation, then we need to validate the permission_callback.
+		if ( get_class( $this ) === self::class && ( empty( $args['permission_callback'] ) || ! is_callable( $args['permission_callback'] ) ) ) {
 			throw new InvalidArgumentException(
 				__( 'The ability properties must provide a valid `permission_callback` function.' )
 			);
