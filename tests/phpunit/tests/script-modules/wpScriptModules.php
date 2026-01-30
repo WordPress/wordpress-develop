@@ -2119,8 +2119,16 @@ HTML;
 		$this->assertSame( array(), $import_map, 'Expected importmap to be empty.' );
 		$markup = get_echo( 'wp_print_scripts' );
 
-		// TODO: Should this actually be omitted?
-		$this->assertStringContainsString( 'registered-dep.js', $markup, 'Expected script to be present.' );
+		/*
+		 * In the future, we may want to have missing script module dependencies for classic scripts to cause the
+		 * classic script to not be printed. This would align the behavior with script modules that have missing
+		 * script module dependencies, and classic scripts that have missing classic script dependencies. Nevertheless,
+		 * since script module dependencies rely on dynamic imports, the dependency may not be as strong. This means
+		 * the classic script may still work or have a fallback in case the script module fails to dynamically import.
+		 * This same change could be made for script modules as well, where if a script module has a missing dynamic
+		 * script module dependency, this could similarly not because to omit printing the dependent script module.
+		 */
+		$this->assertStringContainsString( 'registered-dep.js', $markup, 'Expected script to be present, even though it has a missing script module dependency.' );
 
 		$this->assertArrayHasKey(
 			$expected_incorrect_usage,
