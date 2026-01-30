@@ -1982,7 +1982,11 @@ HTML;
 	}
 
 	/**
+	 * Tests that script modules identified as dependencies of classic scripts are included in the import map.
+	 *
 	 * @ticket 61500
+	 *
+	 * @covers WP_Script_Modules::get_import_map
 	 */
 	public function test_included_module_appears_in_importmap() {
 		$this->script_modules->register( 'dependency', '/dep.js' );
@@ -2014,7 +2018,12 @@ HTML;
 	}
 
 	/**
+	 * Tests that script modules identified as dependencies of classic scripts are correctly included in the import map,
+	 * even when those module dependencies are attached to transitive classic script dependencies.
+	 *
 	 * @ticket 61500
+	 *
+	 * @covers WP_Script_Modules::get_import_map
 	 */
 	public function test_included_modules_concat_with_enqueued_dependencies() {
 		$this->script_modules->register( 'dependency-of-enqueued', '/dependency-of-enqueued.js' );
@@ -2085,7 +2094,6 @@ HTML;
 		$this->assertArrayHasKey( 'dependency-of-not-enqueued', $import_map, 'Final missing "dependency-of-not-enqueued" script module in import map.' );
 		$this->assertCount( 4, $import_map, 'Final import map count was wrong: ' . print_r( $import_map, true ) );
 	}
-
 
 	/**
 	 * Tests that WP_Scripts emits a _doing_it_wrong() notice for missing script module dependencies.
