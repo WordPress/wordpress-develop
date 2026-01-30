@@ -2113,11 +2113,11 @@ HTML;
 		$this->assertCount( 0, $this->get_preloaded_script_modules(), 'Final module preload count was wrong.' );
 
 		$import_map = $this->get_import_map();
-		$this->assertCount( 4, $import_map, 'Final import map count was wrong.' );
 		$this->assertArrayHasKey( 'dependency-of-enqueued', $import_map, 'Final missing "dependency-of-enqueued" script module in import map.' );
 		$this->assertArrayHasKey( 'classic-transitive-dependency', $import_map, 'Final missing "classic-transitive-dependency" script module in import map.' );
 		$this->assertArrayHasKey( 'not-enqueued', $import_map, 'Final missing "not-enqueued" script module in import map.' );
 		$this->assertArrayHasKey( 'dependency-of-not-enqueued', $import_map, 'Final missing "dependency-of-not-enqueued" script module in import map.' );
+		$this->assertCount( 4, $import_map, 'Final import map count was wrong: ' . print_r( $import_map, true ) );
 	}
 
 	/**

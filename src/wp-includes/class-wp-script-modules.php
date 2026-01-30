@@ -544,21 +544,31 @@ class WP_Script_Modules {
 
 		$classic_script_dependencies = array();
 		if ( $wp_scripts instanceof WP_Scripts ) {
-			foreach ( $wp_scripts->registered as $dependency ) {
-				$handle = $dependency->handle;
+			$handles = array_merge(
+				$wp_scripts->queue,
+				$wp_scripts->to_do,
+				$wp_scripts->done
+			);
 
-				if (
-					! $wp_scripts->query( $handle, 'done' ) &&
-					! $wp_scripts->query( $handle, 'to_do' ) &&
-					! $wp_scripts->query( $handle, 'enqueued' )
-				) {
+			$processed = array();
+			while ( ! empty( $handles ) ) {
+				$handle = array_shift( $handles );
+
+				if ( isset( $processed[ $handle ] ) || ! isset( $wp_scripts->registered[ $handle ] ) ) {
 					continue;
 				}
+				$processed[ $handle ] = true;
 
 				$module_dependencies = $wp_scripts->get_data( $handle, 'module_dependencies' );
 				if ( is_array( $module_dependencies ) ) {
 					foreach ( $module_dependencies as $id ) {
 						$classic_script_dependencies[] = $id;
+					}
+				}
+
+				foreach ( $wp_scripts->registered[ $handle ]->deps as $dep ) {
+					if ( ! isset( $processed[ $dep ] ) ) {
+						$handles[] = $dep;
 					}
 				}
 			}
@@ -567,7 +577,7 @@ class WP_Script_Modules {
 		$ids = array_unique(
 			array_merge(
 				$classic_script_dependencies,
-				array_keys( $this->get_dependencies( array_merge( $classic_script_dependencies, $this->queue ) ) )
+				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_dependencies ) ) )
 			)
 		);
 		foreach ( $ids as $id ) {
