@@ -1469,6 +1469,10 @@ EOF;
 				'css'      => 'display: flex',
 				'expected' => 'display: flex',
 			),
+			array(
+				'css'      => 'display: grid',
+				'expected' => 'display: grid',
+			),
 		);
 	}
 
