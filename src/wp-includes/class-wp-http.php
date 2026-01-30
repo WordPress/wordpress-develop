@@ -786,7 +786,7 @@ class WP_Http {
 	 */
 	public static function buildCookieHeader( &$r ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		if ( ! empty( $r['cookies'] ) ) {
-			// Upgrade any name => value cookie pairs to WP_HTTP_Cookie instances.
+			// Upgrade any name => value cookie pairs to WP_Http_Cookie instances.
 			foreach ( $r['cookies'] as $name => $value ) {
 				if ( ! is_object( $value ) ) {
 					$r['cookies'][ $name ] = new WP_Http_Cookie(

@@ -157,7 +157,7 @@ function wp_safe_remote_head( $url, $args = array() ) {
  *         @type int|false    $code    HTTP response code.
  *         @type string|false $message HTTP response message.
  *     }
- *     @type WP_HTTP_Cookie[]               $cookies       Array of response cookies.
+ *     @type WP_Http_Cookie[]               $cookies       Array of response cookies.
  *     @type WP_HTTP_Requests_Response|null $http_response Raw HTTP response object.
  * }
  */
