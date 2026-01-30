@@ -69,15 +69,17 @@ function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
 }
 
 /**
- * Checks if the $args array contains any unrecognized keys.
+ * Adds the data for the recognized args and warns for unrecognized args.
  *
  * @ignore
  * @since 7.0.0
  *
- * @param string $function_name Function name.
- * @param array  $args          Array of extra args for the script.
+ * @param string     $function_name Function name.
+ * @param WP_Scripts $wp_scripts    WP_Scripts instance.
+ * @param string     $handle        Script handle.
+ * @param array      $args          Array of extra args for the script.
  */
-function _wp_scripts_check_extra_args( string $function_name, array $args ) {
+function _wp_scripts_add_args_data( string $function_name, WP_Scripts $wp_scripts, string $handle, array $args ) {
 	$allowed_keys = array( 'strategy', 'in_footer', 'fetchpriority', 'module_dependencies' );
 	$unknown_keys = array_diff( array_keys( $args ), $allowed_keys );
 
@@ -92,6 +94,19 @@ function _wp_scripts_check_extra_args( string $function_name, array $args ) {
 			),
 			'7.0.0'
 		);
+	}
+
+	if ( ! empty( $args['in_footer'] ) ) {
+		$wp_scripts->add_data( $handle, 'group', 1 );
+	}
+	if ( ! empty( $args['strategy'] ) ) {
+		$wp_scripts->add_data( $handle, 'strategy', $args['strategy'] );
+	}
+	if ( ! empty( $args['fetchpriority'] ) ) {
+		$wp_scripts->add_data( $handle, 'fetchpriority', $args['fetchpriority'] );
+	}
+	if ( ! empty( $args['module_dependencies'] ) ) {
+		$wp_scripts->add_data( $handle, 'module_dependencies', $args['module_dependencies'] );
 	}
 }
 
@@ -214,23 +229,12 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 		);
 	}
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
-	_wp_scripts_check_extra_args( __FUNCTION__, $args );
 
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-	if ( ! empty( $args['in_footer'] ) ) {
-		$wp_scripts->add_data( $handle, 'group', 1 );
-	}
-	if ( ! empty( $args['strategy'] ) ) {
-		$wp_scripts->add_data( $handle, 'strategy', $args['strategy'] );
-	}
-	if ( ! empty( $args['fetchpriority'] ) ) {
-		$wp_scripts->add_data( $handle, 'fetchpriority', $args['fetchpriority'] );
-	}
-	if ( ! empty( $args['module_dependencies'] ) ) {
-		$wp_scripts->add_data( $handle, 'module_dependencies', $args['module_dependencies'] );
-	}
+	_wp_scripts_add_args_data( __FUNCTION__, $wp_scripts, $handle, $args );
+
 	return $registered;
 }
 
@@ -410,23 +414,11 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 				'in_footer' => (bool) $args,
 			);
 		}
-		_wp_scripts_check_extra_args( __FUNCTION__, $args );
 
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
-		if ( ! empty( $args['in_footer'] ) ) {
-			$wp_scripts->add_data( $_handle[0], 'group', 1 );
-		}
-		if ( ! empty( $args['strategy'] ) ) {
-			$wp_scripts->add_data( $_handle[0], 'strategy', $args['strategy'] );
-		}
-		if ( ! empty( $args['fetchpriority'] ) ) {
-			$wp_scripts->add_data( $_handle[0], 'fetchpriority', $args['fetchpriority'] );
-		}
-		if ( ! empty( $args['module_dependencies'] ) ) {
-			$wp_scripts->add_data( $_handle[0], 'module_dependencies', $args['module_dependencies'] );
-		}
+		_wp_scripts_add_args_data( __FUNCTION__, $wp_scripts, $_handle[0], $args );
 	}
 
 	$wp_scripts->enqueue( $handle );

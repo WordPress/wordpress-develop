@@ -112,7 +112,7 @@ JS;
 	 *
 	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
-	 * @covers ::_wp_scripts_check_extra_args
+	 * @covers ::_wp_scripts_add_args_data
 	 *
 	 * @dataProvider data_unrecognized_keys_in_args
 	 *
