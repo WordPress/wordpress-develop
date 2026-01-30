@@ -242,11 +242,24 @@ class WP_Terms_List_Table extends WP_List_Table {
 			return;
 		}
 
+		// Handle custom display of default category by showing it first in the list.
+		$default_category = false;
+		if ( 'category' === $taxonomy ) {
+			$default_category = get_term( get_option( 'default_category' ), 'category' );
+			if ( ! $default_category || is_wp_error( $default_category ) ) {
+				$default_category = false;
+			}
+		}
+
 		if ( is_taxonomy_hierarchical( $taxonomy ) && ! isset( $this->callback_args['orderby'] ) ) {
 			if ( ! empty( $this->callback_args['search'] ) ) {// Ignore children on searches.
 				$children = array();
 			} else {
 				$children = _get_term_hierarchy( $taxonomy );
+			}
+
+			if ( $default_category ) {
+				$this->single_row( $default_category );
 			}
 
 			/*
@@ -255,7 +268,14 @@ class WP_Terms_List_Table extends WP_List_Table {
 			 */
 			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count );
 		} else {
+			if ( $default_category ) {
+				$this->single_row( $default_category );
+			}
+
 			foreach ( $this->items as $term ) {
+				if ( $default_category && $default_category->term_id === $term->term_id ) {
+					continue;
+				}
 				$this->single_row( $term );
 			}
 		}
@@ -275,6 +295,12 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		$end = $start + $per_page;
 
+		// Handle display of default category by showing it first in the list, capture default category id.
+		$default_category_id = false;
+		if ( 'category' === $taxonomy ) {
+			$default_category_id = (int) get_option( 'default_category' );
+		}
+
 		foreach ( $terms as $key => $term ) {
 
 			if ( $count >= $end ) {
@@ -282,6 +308,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 			}
 
 			if ( $term->parent !== $parent_term && empty( $_REQUEST['s'] ) ) {
+				continue;
+			}
+
+			// Skip duplicating display of default category.
+			if ( $default_category_id && $default_category_id === $term->term_id ) {
 				continue;
 			}
 
@@ -383,6 +414,12 @@ class WP_Terms_List_Table extends WP_List_Table {
 	public function column_name( $tag ) {
 		$taxonomy = $this->screen->taxonomy;
 
+		$default_term       = get_option( 'default_' . $taxonomy );
+		$default_term_label = '';
+		if ( $tag->term_id == $default_term ) {
+			$default_term_label = ' &mdash; <span class="taxonomy-default-label">' . __( 'Default' ) . '</span>';
+		}
+
 		$pad = str_repeat( '&#8212; ', max( 0, $this->level ) );
 
 		/**
@@ -422,8 +459,9 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		$output = sprintf(
-			'<strong>%s</strong><br />',
-			$name
+			'<strong>%s%s</strong><br />',
+			$name,
+			$default_term_label
 		);
 
 		/** This filter is documented in wp-admin/includes/class-wp-terms-list-table.php */
