@@ -19,6 +19,11 @@ body {
 	--wp-admin-color-text: #{variables.$text-color};
 	--wp-admin-color-icon: #{variables.$icon-color};
 	--wp-admin-color-highlight: #{variables.$highlight-color};
+	--wp-admin-color-highlight--rgb: #{color.red(variables.$highlight-color)}, #{color.green(variables.$highlight-color)}, #{color.blue(variables.$highlight-color)};
+	--wp-admin-color-highlight-darker-10: #{color.adjust(variables.$highlight-color, $lightness: -5%)};
+	--wp-admin-color-highlight-darker-10--rgb: #{color.red(color.adjust(variables.$highlight-color, $lightness: -5%))}, #{color.green(color.adjust(variables.$highlight-color, $lightness: -5%))}, #{color.blue(color.adjust(variables.$highlight-color, $lightness: -5%))};
+	--wp-admin-color-highlight-darker-20: #{color.adjust(variables.$highlight-color, $lightness: -10%)};
+	--wp-admin-color-highlight-darker-20--rgb: #{color.red(color.adjust(variables.$highlight-color, $lightness: -10%))}, #{color.green(color.adjust(variables.$highlight-color, $lightness: -10%))}, #{color.blue(color.adjust(variables.$highlight-color, $lightness: -10%))};
 	--wp-admin-color-notification: #{variables.$notification-color};
 	--wp-admin-color-body-background: #{variables.$body-background};
 	--wp-admin-color-link: #{variables.$link};
