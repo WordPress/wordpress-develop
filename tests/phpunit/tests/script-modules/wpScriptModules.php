@@ -2126,7 +2126,7 @@ HTML;
 		 * since script module dependencies rely on dynamic imports, the dependency may not be as strong. This means
 		 * the classic script may still work or have a fallback in case the script module fails to dynamically import.
 		 * This same change could be made for script modules as well, where if a script module has a missing dynamic
-		 * script module dependency, this could similarly not because to omit printing the dependent script module.
+		 * script module dependency, this might similarly not be sufficient reason to omit printing the dependent script module.
 		 */
 		$this->assertStringContainsString( 'registered-dep.js', $markup, 'Expected script to be present, even though it has a missing script module dependency.' );
 
