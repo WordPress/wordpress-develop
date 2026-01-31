@@ -4045,7 +4045,6 @@ function wp_enqueue_code_editor( $args ) {
 
 	wp_enqueue_script( 'code-editor' );
 	wp_enqueue_style( 'code-editor' );
-	wp_enqueue_script_module( 'wp-codemirror' ); // Hack to get importmap printed with espree.
 
 	if ( isset( $settings['codemirror']['mode'] ) ) {
 		$mode = $settings['codemirror']['mode'];

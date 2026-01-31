@@ -201,18 +201,6 @@ function wp_default_script_modules() {
 		array(),
 		'9.6.1'
 	);
-
-	// The following is a workaround for classic scripts not yet being able to depend on modules. See <https://core.trac.wordpress.org/ticket/61500>.
-	wp_register_script_module(
-		'wp-codemirror',
-		'', // An empty string is a hack to cause the dependencies to be printed in the importmap without a dependent script being printed.
-		array(
-			array(
-				'id'     => 'espree',
-				'import' => 'dynamic',
-			),
-		)
-	);
 }
 
 /**
