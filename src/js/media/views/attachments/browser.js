@@ -193,35 +193,46 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority:   -100,
 				text:       l10n.filterAttachments,
 				level:      'h2',
-				className:  'media-attachments-filter-heading'
+				className:  'media-attachments-filter-heading screen-reader-text'
 			}).render() );
 		}
 
 		if ( showFilterByType ) {
 			// "Filters" is a <select>, a visually hidden label element needs to be rendered before.
-			this.toolbar.set( 'filtersLabel', new wp.media.view.Label({
+			var filtersLabel = new wp.media.view.Label({
 				value: l10n.filterByType,
 				attributes: {
 					'for':  'media-attachment-filters'
 				},
 				priority:   -80
-			}).render() );
+			});
 
 			if ( 'uploaded' === this.options.filters ) {
-				this.toolbar.set( 'filters', new wp.media.view.AttachmentFilters.Uploaded({
+				Filters = new wp.media.view.AttachmentFilters.Uploaded({
 					controller: this.controller,
 					model:      this.collection.props,
-					priority:   -80
-				}).render() );
+				});
 			} else {
 				Filters = new wp.media.view.AttachmentFilters.All({
 					controller: this.controller,
 					model:      this.collection.props,
-					priority:   -80
 				});
-
-				this.toolbar.set( 'filters', Filters.render() );
 			}
+
+			var filterContainer = wp.media.View.extend({
+				tagname: 'div',
+				className: 'media-filter-container type-filter',
+
+				initialize: function() {
+					this.views.add( [ filtersLabel, Filters ] );
+				}
+			});
+
+			this.toolbar.set( 'filters', new filterContainer({
+				controller: this.controller,
+				model:      this.controller.props,
+				priority:   -80
+			}) ).render();
 		}
 
 		/*
@@ -241,18 +252,31 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}).render() );
 
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
+			var dateFilterLabel = new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
 				},
-				priority: -75
-			}).render() );
-			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
+			});
+			var dateFilter = new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-				priority: -75
-			}).render() );
+			});
+
+			var dateFilterContainer = wp.media.View.extend({
+				tagname: 'div',
+				className: 'media-filter-container date-filter',
+
+				initialize: function() {
+					this.views.add( [ dateFilterLabel, dateFilter ] );
+				}
+			});
+
+			this.toolbar.set( 'dateFilters', new dateFilterContainer({
+				controller: this.controller,
+				model:      this.collection.props,
+				priority:   -75
+			}) ).render();
 
 			// BulkSelection is a <div> with subviews, including screen reader text.
 			this.toolbar.set( 'selectModeToggleButton', new wp.media.view.SelectModeToggleButton({
@@ -363,18 +387,31 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		} else if ( this.options.date ) {
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
+			var dateFilterLabel = new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
 				},
-				priority: -75
-			}).render() );
-			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
+			});
+			var dateFilter = new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-				priority: -75
-			}).render() );
+			});
+
+			var dateFilterContainer = wp.media.View.extend({
+				tagname: 'div',
+				className: 'media-filter-container date-filter',
+
+				initialize: function() {
+					this.views.add( [ dateFilterLabel, dateFilter ] );
+				}
+			});
+
+			this.toolbar.set( 'dateFilters', new dateFilterContainer({
+				controller: this.controller,
+				model:      this.collection.props,
+				priority:   -75
+			}) ).render();
 		}
 
 		if ( this.options.search ) {

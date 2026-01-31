@@ -27,6 +27,15 @@
 	font-size: 13px;
 }
 
+.media-modal .media-filter-container label {
+	display: block;
+}
+
+.media-modal .media-filter-container select,
+.media-modal .search-form input {
+	margin-top: 6px;
+}
+
 .media-modal .legend-inline {
 	position: absolute;
 	transform: translate(-100%, 50%);
@@ -267,13 +276,6 @@
 	-webkit-font-smoothing: subpixel-antialiased;
 }
 
-.media-modal-content .media-frame select.attachment-filters {
-	margin-top: 32px;
-	margin-right: 2%;
-	width: 42%;
-	width: calc(48% - 12px);
-}
-
 /* higher specificity */
 .wp-core-ui .media-modal-icon {
 	background-image: url(../images/uploader-icons.png);
@@ -289,10 +291,10 @@
 	left: 0;
 	right: 0;
 	z-index: 100;
-	height: 60px;
+	height: 48px;
 	padding: 0 16px;
 	border: 0 solid #dcdcde;
-	overflow: hidden;
+	overflow: auto;
 }
 
 .media-frame-toolbar .media-toolbar {
@@ -312,6 +314,9 @@
 .media-toolbar-secondary {
 	float: left;
 	height: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
 }
 
 .media-toolbar-primary > .media-button,
@@ -887,24 +892,10 @@
 }
 
 /**
- * Attachment Browser Filters
- */
-.media-frame select.attachment-filters {
-	margin-top: 11px;
-	margin-right: 2%;
-	max-width: 42%;
-	max-width: calc(48% - 12px);
-}
-
-.media-frame select.attachment-filters:last-of-type {
-	margin-right: 0;
-}
-
-/**
  * Search
  */
 .media-frame .search {
-	margin: 32px 0 0;
+	margin: 0;
 	padding: 4px;
 	font-size: 13px;
 	color: #3c434a;
@@ -917,11 +908,7 @@
 }
 
 .media-modal .media-frame .media-search-input-label {
-	position: absolute;
-	left: 0;
-	top: 10px;
-	margin: 0;
-	line-height: 1;
+	display: block;
 }
 
 /**
@@ -1173,8 +1160,8 @@
 
 .attachments-browser .media-toolbar {
 	right: 300px;
-	height: 72px;
 	background: #fff;
+	padding: 12px 16px;
 }
 
 .attachments-browser.hide-sidebar .media-toolbar {
@@ -2551,7 +2538,7 @@
 	}
 
 	.attachments-browser .media-toolbar {
-		height: 82px;
+		height: 74px;
 	}
 
 	.attachments-browser .attachments,
