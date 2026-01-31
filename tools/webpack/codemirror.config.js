@@ -9,7 +9,7 @@ module.exports = ( env = { buildTarget: 'src/' } ) => {
 	const outputPath = path.resolve( __dirname, '../../', buildTarget, 'wp-includes/js/codemirror' );
 
 	const optimization = {
-		minimize: !true,
+		minimize: true,
 		minimizer: [
 			new TerserPlugin( {
 				terserOptions: {
