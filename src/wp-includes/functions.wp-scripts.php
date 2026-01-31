@@ -417,7 +417,9 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
-		_wp_scripts_add_args_data( __FUNCTION__, $wp_scripts, $_handle[0], $args );
+		if ( ! empty( $args ) ) {
+			_wp_scripts_add_args_data( __FUNCTION__, $wp_scripts, $_handle[0], $args );
+		}
 	}
 
 	$wp_scripts->enqueue( $handle );
