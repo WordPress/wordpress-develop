@@ -1,5 +1,11 @@
 /* jshint devel: true */
 
+/**
+ * CodeMirror JavaScript linter.
+ *
+ * @since 7.0.0
+ */
+
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: https://codemirror.net/5/LICENSE
 
@@ -33,6 +39,8 @@ const CodeMirror = require( 'codemirror' );
 
 /**
  * Validates JavaScript.
+ *
+ * @since 7.0.0
  *
  * @param {string} text - Source.
  * @param {SupportedJSHintOptions} options - Linting options.
@@ -73,6 +81,8 @@ CodeMirror.registerHelper( 'lint', 'javascript', validator );
 /**
  * Gets the options for Espree from the supported JSHint options.
  *
+ * @since 7.0.0
+ *
  * @param {SupportedJSHintOptions} options - Linting options for JSHint.
  * @return {{
  *     ecmaVersion?: number|'latest',
@@ -96,6 +106,8 @@ function getEspreeOptions( options ) {
 
 /**
  * Gets the ECMAScript version.
+ *
+ * @since 7.0.0
  *
  * @param {SupportedJSHintOptions} options - Options.
  * @return {number|'latest'} ECMAScript version.
