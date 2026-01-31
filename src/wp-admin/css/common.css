@@ -1058,6 +1058,9 @@ th.action-links {
 
 .filter-items {
 	float: left;
+	display: flex;
+	align-items: center;
+	gap: 12px;
 }
 
 .filter-links {

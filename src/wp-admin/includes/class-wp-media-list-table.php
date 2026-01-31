@@ -277,22 +277,23 @@ class WP_Media_List_Table extends WP_List_Table {
 		<div class="wp-filter">
 			<div class="filter-items">
 				<?php $this->view_switcher( $mode ); ?>
-
-				<label for="attachment-filter" class="screen-reader-text">
-					<?php
-					/* translators: Hidden accessibility text. */
-					_e( 'Filter by type' );
-					?>
-				</label>
-				<select class="attachment-filters" name="attachment-filter" id="attachment-filter">
-					<?php
-					if ( ! empty( $views ) ) {
-						foreach ( $views as $class => $view ) {
-							echo "\t$view\n";
+				<div class="media-filter-container">
+					<label for="attachment-filter">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Filter by type' );
+						?>
+					</label>
+					<select class="attachment-filters" name="attachment-filter" id="attachment-filter">
+						<?php
+						if ( ! empty( $views ) ) {
+							foreach ( $views as $class => $view ) {
+								echo "\t$view\n";
+							}
 						}
-					}
-					?>
-				</select>
+						?>
+					</select>
+				</div>
 
 				<?php
 				$this->extra_tablenav( 'bar' );

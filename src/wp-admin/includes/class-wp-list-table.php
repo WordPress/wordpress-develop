@@ -760,28 +760,30 @@ class WP_List_Table {
 
 		$selected_month = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
 		?>
-		<label for="filter-by-date" class="screen-reader-text"><?php echo get_post_type_object( $post_type )->labels->filter_by_date; ?></label>
-		<select name="m" id="filter-by-date">
-			<option<?php selected( $selected_month, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
-		<?php
-		foreach ( $months as $arc_row ) {
-			if ( 0 === (int) $arc_row->year ) {
-				continue;
+		<div class="filter-container">
+			<label for="filter-by-date"><?php echo get_post_type_object( $post_type )->labels->filter_by_date; ?></label>
+			<select name="m" id="filter-by-date">
+				<option<?php selected( $selected_month, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
+			<?php
+			foreach ( $months as $arc_row ) {
+				if ( 0 === (int) $arc_row->year ) {
+					continue;
+				}
+
+				$month = zeroise( $arc_row->month, 2 );
+				$year  = $arc_row->year;
+
+				printf(
+					"<option %s value='%s'>%s</option>\n",
+					selected( $selected_month, $year . $month, false ),
+					esc_attr( $year . $month ),
+					/* translators: 1: Month name, 2: 4-digit year. */
+					esc_html( sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year ) )
+				);
 			}
-
-			$month = zeroise( $arc_row->month, 2 );
-			$year  = $arc_row->year;
-
-			printf(
-				"<option %s value='%s'>%s</option>\n",
-				selected( $selected_month, $year . $month, false ),
-				esc_attr( $year . $month ),
-				/* translators: 1: Month name, 2: 4-digit year. */
-				esc_html( sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year ) )
-			);
-		}
-		?>
-		</select>
+			?>
+			</select>
+		</div>
 		<?php
 	}
 

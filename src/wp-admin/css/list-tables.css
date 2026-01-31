@@ -727,8 +727,7 @@ th.sorted a span {
 }
 
 .wp-filter .actions {
-	display: inline-block;
-	vertical-align: middle;
+	display: flex;
 }
 
 .tablenav .delete {
