@@ -533,13 +533,77 @@ class WP_Script_Modules {
 	 * Returns the import map array.
 	 *
 	 * @since 6.5.0
+	 * @since 7.0.0 Script module dependencies ('module_dependencies') of classic scripts are now included.
+	 *
+	 * @global WP_Scripts $wp_scripts
 	 *
 	 * @return array<string, array<string, string>> Array with an `imports` key mapping to an array of script module
 	 *                                              identifiers and their respective URLs, including the version query.
 	 */
 	private function get_import_map(): array {
+		global $wp_scripts;
+
 		$imports = array();
-		foreach ( array_keys( $this->get_dependencies( $this->queue ) ) as $id ) {
+
+		// Identify script modules that are dependencies of classic scripts.
+		$classic_script_module_dependencies = array();
+		if ( $wp_scripts instanceof WP_Scripts ) {
+			$handles = array_merge(
+				$wp_scripts->queue,
+				$wp_scripts->to_do,
+				$wp_scripts->done
+			);
+
+			$processed = array();
+			while ( ! empty( $handles ) ) {
+				$handle = array_pop( $handles );
+				if ( isset( $processed[ $handle ] ) || ! isset( $wp_scripts->registered[ $handle ] ) ) {
+					continue;
+				}
+				$processed[ $handle ] = true;
+
+				$module_dependencies = $wp_scripts->get_data( $handle, 'module_dependencies' );
+				if ( is_array( $module_dependencies ) ) {
+					$missing_module_dependencies = array();
+					foreach ( $module_dependencies as $id ) {
+						if ( ! isset( $this->registered[ $id ] ) ) {
+							$missing_module_dependencies[] = $id;
+						} else {
+							$classic_script_module_dependencies[] = $id;
+						}
+					}
+
+					if ( count( $missing_module_dependencies ) > 0 ) {
+						_doing_it_wrong(
+							'WP_Scripts::add_data',
+							sprintf(
+								/* translators: 1: Script handle, 2: 'module_dependencies', 3: List of missing dependency IDs. */
+								__( 'The script with the handle "%1$s" was enqueued with script module dependencies ("%2$s") that are not registered: %3$s.' ),
+								$handle,
+								'module_dependencies',
+								implode( wp_get_list_item_separator(), $missing_module_dependencies )
+							),
+							'7.0.0'
+						);
+					}
+				}
+
+				foreach ( $wp_scripts->registered[ $handle ]->deps as $dep ) {
+					if ( ! isset( $processed[ $dep ] ) ) {
+						$handles[] = $dep;
+					}
+				}
+			}
+		}
+
+		// Note: the script modules in $this->queue are not included in the importmap because they get printed as scripts.
+		$ids = array_unique(
+			array_merge(
+				$classic_script_module_dependencies,
+				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_module_dependencies ) ) )
+			)
+		);
+		foreach ( $ids as $id ) {
 			$src = $this->get_src( $id );
 			if ( '' !== $src ) {
 				$imports[ $id ] = $src;

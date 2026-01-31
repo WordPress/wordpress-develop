@@ -920,6 +920,45 @@ JS;
 				);
 				return false;
 			}
+		} elseif ( 'module_dependencies' === $key ) {
+			if ( ! is_array( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: 'module_dependencies', 2: Script handle. */
+						__( 'The value for "%1$s" must be an array for the "%2$s" script.' ),
+						'module_dependencies',
+						$handle
+					),
+					'7.0.0'
+				);
+				return false;
+			}
+
+			$sanitized_value = array();
+			$has_invalid_ids = false;
+			foreach ( $value as $id ) {
+				if ( ! is_string( $id ) ) {
+					$has_invalid_ids = true;
+				} else {
+					$sanitized_value[] = $id;
+				}
+			}
+
+			if ( $has_invalid_ids ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Script handle, 2: 'module_dependencies' */
+						__( 'The script handle "%1$s" has one or more of its script module dependencies ("%2$s") which are not strings.' ),
+						$handle,
+						'module_dependencies'
+					),
+					'7.0.0'
+				);
+			}
+
+			$value = $sanitized_value;
 		}
 		return parent::add_data( $handle, $key, $value );
 	}

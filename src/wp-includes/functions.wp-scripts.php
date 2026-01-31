@@ -69,6 +69,47 @@ function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
 }
 
 /**
+ * Adds the data for the recognized args and warns for unrecognized args.
+ *
+ * @ignore
+ * @since 7.0.0
+ *
+ * @param string     $function_name Function name.
+ * @param WP_Scripts $wp_scripts    WP_Scripts instance.
+ * @param string     $handle        Script handle.
+ * @param array      $args          Array of extra args for the script.
+ */
+function _wp_scripts_add_args_data( string $function_name, WP_Scripts $wp_scripts, string $handle, array $args ) {
+	$allowed_keys = array( 'strategy', 'in_footer', 'fetchpriority', 'module_dependencies' );
+	$unknown_keys = array_diff( array_keys( $args ), $allowed_keys );
+	if ( ! empty( $unknown_keys ) ) {
+		_doing_it_wrong(
+			$function_name,
+			sprintf(
+				/* translators: 1: $args, 2: List of unrecognized keys. */
+				__( 'Unrecognized keys in the %1$s array: %2$s.' ),
+				'$args',
+				implode( wp_get_list_item_separator(), $unknown_keys )
+			),
+			'7.0.0'
+		);
+	}
+
+	if ( ! empty( $args['in_footer'] ) ) {
+		$wp_scripts->add_data( $handle, 'group', 1 );
+	}
+	if ( ! empty( $args['strategy'] ) ) {
+		$wp_scripts->add_data( $handle, 'strategy', $args['strategy'] );
+	}
+	if ( ! empty( $args['fetchpriority'] ) ) {
+		$wp_scripts->add_data( $handle, 'fetchpriority', $args['fetchpriority'] );
+	}
+	if ( ! empty( $args['module_dependencies'] ) ) {
+		$wp_scripts->add_data( $handle, 'module_dependencies', $args['module_dependencies'] );
+	}
+}
+
+/**
  * Prints scripts in document head that are in the $handles queue.
  *
  * Called by admin-header.php and {@see 'wp_head'} hook. Since it is called by wp_head on every page load,
@@ -159,22 +200,24 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  * @since 4.3.0 A return value was added.
  * @since 6.3.0 The $in_footer parameter of type boolean was overloaded to be an $args parameter of type array.
  * @since 6.9.0 The $fetchpriority parameter of type string was added to the $args parameter of type array.
+ * @since 7.0.0 The $module_dependencies parameter of type string[] was added to the $args parameter of type array.
  *
- * @param string                          $handle Name of the script. Should be unique.
- * @param string|false                    $src    Full URL of the script, or path of the script relative to the WordPress root directory.
- *                                                If source is set to false, script is an alias of other scripts it depends on.
- * @param string[]                        $deps   Optional. An array of registered script handles this script depends on. Default empty array.
- * @param string|bool|null                $ver    Optional. String specifying script version number, if it has one, which is added to the URL
- *                                                as a query string for cache busting purposes. If version is set to false, a version
- *                                                number is automatically added equal to current installed WordPress version.
- *                                                If set to null, no version is added.
- * @param array<string, string|bool>|bool $args   {
- *     Optional. An array of additional script loading strategies. Default empty array.
+ * @param string                                   $handle Name of the script. Should be unique.
+ * @param string|false                             $src    Full URL of the script, or path of the script relative to the WordPress root directory.
+ *                                                         If source is set to false, script is an alias of other scripts it depends on.
+ * @param string[]                                 $deps   Optional. An array of registered script handles this script depends on. Default empty array.
+ * @param string|bool|null                         $ver    Optional. String specifying script version number, if it has one, which is added to the URL
+ *                                                         as a query string for cache busting purposes. If version is set to false, a version
+ *                                                         number is automatically added equal to current installed WordPress version.
+ *                                                         If set to null, no version is added.
+ * @param array<string, string|bool|string[]>|bool $args   {
+ *     Optional. An array of extra args for the script. Default empty array.
  *     Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
- *     @type string    $strategy      Optional. If provided, may be either 'defer' or 'async'.
- *     @type bool      $in_footer     Optional. Whether to print the script in the footer. Default 'false'.
- *     @type string    $fetchpriority Optional. The fetch priority for the script. Default 'auto'.
+ *     @type string   $strategy            Optional. If provided, may be either 'defer' or 'async'.
+ *     @type bool     $in_footer           Optional. Whether to print the script in the footer. Default 'false'.
+ *     @type string   $fetchpriority       Optional. The fetch priority for the script. Default 'auto'.
+ *     @type string[] $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default empty array.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -189,15 +232,8 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-	if ( ! empty( $args['in_footer'] ) ) {
-		$wp_scripts->add_data( $handle, 'group', 1 );
-	}
-	if ( ! empty( $args['strategy'] ) ) {
-		$wp_scripts->add_data( $handle, 'strategy', $args['strategy'] );
-	}
-	if ( ! empty( $args['fetchpriority'] ) ) {
-		$wp_scripts->add_data( $handle, 'fetchpriority', $args['fetchpriority'] );
-	}
+	_wp_scripts_add_args_data( __FUNCTION__, $wp_scripts, $handle, $args );
+
 	return $registered;
 }
 
@@ -345,22 +381,24 @@ function wp_deregister_script( $handle ) {
  * @since 2.1.0
  * @since 6.3.0 The $in_footer parameter of type boolean was overloaded to be an $args parameter of type array.
  * @since 6.9.0 The $fetchpriority parameter of type string was added to the $args parameter of type array.
+ * @since 7.0.0 The $module_dependencies parameter of type string[] was added to the $args parameter of type array.
  *
- * @param string                          $handle Name of the script. Should be unique.
- * @param string                          $src    Full URL of the script, or path of the script relative to the WordPress root directory.
- *                                                Default empty.
- * @param string[]                        $deps   Optional. An array of registered script handles this script depends on. Default empty array.
- * @param string|bool|null                $ver    Optional. String specifying script version number, if it has one, which is added to the URL
- *                                                as a query string for cache busting purposes. If version is set to false, a version
- *                                                number is automatically added equal to current installed WordPress version.
- *                                                If set to null, no version is added.
- * @param array<string, string|bool>|bool $args   {
- *     Optional. An array of additional script loading strategies. Default empty array.
+ * @param string                                   $handle Name of the script. Should be unique.
+ * @param string                                   $src    Full URL of the script, or path of the script relative to the WordPress root directory.
+ *                                                         Default empty.
+ * @param string[]                                 $deps   Optional. An array of registered script handles this script depends on. Default empty array.
+ * @param string|bool|null                         $ver    Optional. String specifying script version number, if it has one, which is added to the URL
+ *                                                         as a query string for cache busting purposes. If version is set to false, a version
+ *                                                         number is automatically added equal to current installed WordPress version.
+ *                                                         If set to null, no version is added.
+ * @param array<string, string|bool|string[]>|bool $args   {
+ *     Optional. An array of extra args for the script. Default empty array.
  *     Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
- *     @type string    $strategy      Optional. If provided, may be either 'defer' or 'async'.
- *     @type bool      $in_footer     Optional. Whether to print the script in the footer. Default 'false'.
- *     @type string    $fetchpriority Optional. The fetch priority for the script. Default 'auto'.
+ *     @type string   $strategy            Optional. If provided, may be either 'defer' or 'async'.
+ *     @type bool     $in_footer           Optional. Whether to print the script in the footer. Default 'false'.
+ *     @type string   $fetchpriority       Optional. The fetch priority for the script. Default 'auto'.
+ *     @type string[] $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default empty array.
  * }
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
@@ -379,14 +417,8 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
-		if ( ! empty( $args['in_footer'] ) ) {
-			$wp_scripts->add_data( $_handle[0], 'group', 1 );
-		}
-		if ( ! empty( $args['strategy'] ) ) {
-			$wp_scripts->add_data( $_handle[0], 'strategy', $args['strategy'] );
-		}
-		if ( ! empty( $args['fetchpriority'] ) ) {
-			$wp_scripts->add_data( $_handle[0], 'fetchpriority', $args['fetchpriority'] );
+		if ( ! empty( $args ) ) {
+			_wp_scripts_add_args_data( __FUNCTION__, $wp_scripts, $_handle[0], $args );
 		}
 	}
 
