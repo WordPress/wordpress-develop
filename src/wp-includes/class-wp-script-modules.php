@@ -575,10 +575,10 @@ class WP_Script_Modules {
 
 					if ( count( $missing_module_dependencies ) > 0 ) {
 						_doing_it_wrong(
-							WP_Scripts::class . '::add',
+							'WP_Scripts::add_data',
 							sprintf(
 								/* translators: 1: Script handle, 2: 'module_dependencies', 3: List of missing dependency IDs. */
-								__( 'The script handle "%1$s" was enqueued with script module dependencies ("%2$s") that are not registered: %3$s.' ),
+								__( 'The script with the handle "%1$s" was enqueued with script module dependencies ("%2$s") that are not registered: %3$s.' ),
 								$handle,
 								'module_dependencies',
 								implode( wp_get_list_item_separator(), $missing_module_dependencies )
