@@ -42,7 +42,7 @@
 	async function validator( text, options ) {
 		const errors = /** @type {CodeMirrorLintError[]} */ [];
 		try {
-			const espree = await import( 'espree' );
+			const espree = await import( /* webpackIgnore: true */ 'espree' );
 			espree.parse( text, {
 				...getEspreeOptions( options ),
 				loc: true,
