@@ -82,7 +82,6 @@ function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
 function _wp_scripts_add_args_data( string $function_name, WP_Scripts $wp_scripts, string $handle, array $args ) {
 	$allowed_keys = array( 'strategy', 'in_footer', 'fetchpriority', 'module_dependencies' );
 	$unknown_keys = array_diff( array_keys( $args ), $allowed_keys );
-
 	if ( ! empty( $unknown_keys ) ) {
 		_doing_it_wrong(
 			$function_name,
@@ -218,7 +217,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *     @type string   $strategy            Optional. If provided, may be either 'defer' or 'async'.
  *     @type bool     $in_footer           Optional. Whether to print the script in the footer. Default 'false'.
  *     @type string   $fetchpriority       Optional. The fetch priority for the script. Default 'auto'.
- *     @type string[] $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default 'array()'.
+ *     @type string[] $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default empty array.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -399,7 +398,7 @@ function wp_deregister_script( $handle ) {
  *     @type string   $strategy            Optional. If provided, may be either 'defer' or 'async'.
  *     @type bool     $in_footer           Optional. Whether to print the script in the footer. Default 'false'.
  *     @type string   $fetchpriority       Optional. The fetch priority for the script. Default 'auto'.
- *     @type string[] $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default 'array()'.
+ *     @type string[] $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default empty array.
  * }
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
