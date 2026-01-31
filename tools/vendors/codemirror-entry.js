@@ -1,5 +1,5 @@
 // Import CodeMirror core to be exposed as window.wp.CodeMirror.
-var CodeMirror = require( 'codemirror/lib/codemirror' );
+const CodeMirror = require( 'codemirror/lib/codemirror' );
 
 // Keymaps
 require( 'codemirror/keymap/emacs' );
