@@ -2102,7 +2102,7 @@ HTML;
 	 * @covers WP_Script_Modules::get_import_map
 	 */
 	public function test_wp_scripts_doing_it_wrong_for_missing_script_module_dependencies() {
-		$expected_incorrect_usage = 'WP_Scripts::add';
+		$expected_incorrect_usage = 'WP_Scripts::add_data';
 		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
 
 		wp_enqueue_script(
@@ -2137,7 +2137,7 @@ HTML;
 		);
 
 		$this->assertStringContainsString(
-			'The script handle "registered-dep" was enqueued with script module dependencies ("module_dependencies") that are not registered: does-not-exist',
+			'The script with the handle "registered-dep" was enqueued with script module dependencies ("module_dependencies") that are not registered: does-not-exist',
 			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
 			'Expected _doing_it_wrong() notice to indicate missing script module dependencies for enqueued script.'
 		);
