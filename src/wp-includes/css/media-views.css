@@ -937,6 +937,20 @@
 	box-sizing: border-box;
 }
 
+.wp-core-ui .attachment::after {
+	content: attr(aria-label);
+	position: absolute;
+	bottom: 8px;
+	width: calc( 100% - 16px );
+	left: 8px;
+	font-size: .875rem;
+	background-color: rgba( 255, 255, 255, .7 );
+	color: #1d2327;
+	max-height: 2rem;
+	overflow: scroll;
+	text-align: start;
+}
+
 .wp-core-ui .attachment:focus,
 .wp-core-ui .selected.attachment:focus,
 .wp-core-ui .attachment.details:focus {
