@@ -937,18 +937,23 @@
 	box-sizing: border-box;
 }
 
-.wp-core-ui .attachment::after {
+.wp-core-ui .attachment:not(:has(.filename))::after {
 	content: attr(aria-label);
 	position: absolute;
 	bottom: 8px;
 	width: calc( 100% - 16px );
 	left: 8px;
-	font-size: .875rem;
-	background-color: rgba( 255, 255, 255, .7 );
+	font-size: 12px;
+	background-color: rgba(255, 255, 255, 0.8);
 	color: #1d2327;
 	max-height: 2rem;
-	overflow: scroll;
+	overflow: hidden;
 	text-align: start;
+	padding: 5px 10px;
+	word-wrap: break-word;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+	box-sizing: border-box;
+	font-weight: 600;
 }
 
 .wp-core-ui .attachment:focus,
