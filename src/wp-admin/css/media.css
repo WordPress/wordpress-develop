@@ -555,13 +555,17 @@ border color while dragging a file over the uploader drop area */
 	height: auto;
 }
 
+.media-frame.mode-grid .media-toolbar label {
+	display: block;
+}
+
 .media-frame.mode-grid .media-toolbar select {
 	margin: 0 10px 0 0;
 }
 
 .media-frame.mode-grid.mode-edit .media-toolbar-secondary > .select-mode-toggle-button {
 	margin: 0 8px 0 0;
-	vertical-align: middle;
+	height: 100%;
 }
 
 .media-frame.mode-grid .attachments-browser .bulk-select {
