@@ -40,11 +40,11 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * Configure linting.
 	 *
-	 * @param {CodeMirror} editor - Editor.
-	 * @param {Object}     settings - Code editor settings.
-	 * @param {Object}     settings.codeMirror - Settings for CodeMirror.
-	 * @param {Function}   settings.onChangeLintingErrors - Callback for when there are changes to linting errors.
-	 * @param {Function}   settings.onUpdateErrorNotice - Callback to update error notice.
+	 * @param {CodeMirror.Editor} editor - Editor.
+	 * @param {Object}            settings - Code editor settings.
+	 * @param {Object}            settings.codeMirror - Settings for CodeMirror.
+	 * @param {Function}          settings.onChangeLintingErrors - Callback for when there are changes to linting errors.
+	 * @param {Function}          settings.onUpdateErrorNotice - Callback to update error notice.
 	 *
 	 * @return {Function} Update error notice function.
 	 */
@@ -217,11 +217,11 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * Configure tabbing.
 	 *
-	 * @param {CodeMirror} codemirror - Editor.
-	 * @param {Object}     settings - Code editor settings.
-	 * @param {Object}     settings.codeMirror - Settings for CodeMirror.
-	 * @param {Function}   settings.onTabNext - Callback to handle tabbing to the next tabbable element.
-	 * @param {Function}   settings.onTabPrevious - Callback to handle tabbing to the previous tabbable element.
+	 * @param {CodeMirror.Editor} codemirror - Editor.
+	 * @param {Object}            settings - Code editor settings.
+	 * @param {Object}            settings.codeMirror - Settings for CodeMirror.
+	 * @param {Function}          settings.onTabNext - Callback to handle tabbing to the next tabbable element.
+	 * @param {Function}          settings.onTabPrevious - Callback to handle tabbing to the previous tabbable element.
 	 *
 	 * @return {void}
 	 */
@@ -264,7 +264,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * @typedef {object} wp.codeEditor~CodeEditorInstance
 	 * @property {object} settings - The code editor settings.
-	 * @property {CodeMirror} codemirror - The CodeMirror instance.
+	 * @property {CodeMirror.Editor} codemirror - The CodeMirror instance.
 	 * @property {Function} updateErrorNotice - Force update the error notice.
 	 */
 
