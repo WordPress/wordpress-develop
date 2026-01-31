@@ -1,13 +1,8 @@
-/* jshint devel: true */
-
 /**
  * CodeMirror JavaScript linter.
  *
  * @since 7.0.0
  */
-
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/5/LICENSE
 
 const CodeMirror = require( 'codemirror' );
 
@@ -69,7 +64,7 @@ async function validator( text, options ) {
 				to: CodeMirror.Pos( line, error.column ),
 			} );
 		} else {
-			console.warn( '[CodeMirror] Unable to lint JavaScript:', error );
+			console.warn( '[CodeMirror] Unable to lint JavaScript:', error ); // jshint ignore:line
 		}
 	}
 
