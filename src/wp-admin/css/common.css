@@ -1108,8 +1108,9 @@ th.action-links {
 	margin: 0;
 }
 
-/* Use flexbox only on the plugins install page. The `filter-links` and search form children will become flex items. */
-.plugin-install-php .wp-filter {
+/* Use flexbox only on the plugins install page and upload page. The `filter-links` and search form children will become flex items. */
+.plugin-install-php .wp-filter,
+.upload-php .wp-filter {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-between;
