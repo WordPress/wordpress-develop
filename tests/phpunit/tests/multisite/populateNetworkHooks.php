@@ -56,6 +56,13 @@ if ( is_multisite() ) :
 				)
 			);
 
+			remove_action( 'before_populate_network', array( $this, 'hook_action_counter' ), 10 );
+			remove_action( 'after_populate_network', array( $this, 'hook_action_counter' ), 10 );
+
+			global $wpdb;
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", $network_id ) );
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->site} WHERE id = %d", $network_id ) );
+
 			$this->assertSame( 1, $this->action_counts['before_populate_network'], 'before_populate_network action should fire once' );
 			$this->assertSame( 1, $this->action_counts['after_populate_network'], 'after_populate_network action should fire once' );
 
@@ -63,13 +70,6 @@ if ( is_multisite() ) :
 			$this->assertSame( $domain, $this->action_args['before_populate_network']['domain'], 'Domain should match in before_populate_network hook' );
 			$this->assertSame( $network_id, $this->action_args['after_populate_network']['network_id'], 'Network ID should match in after_populate_network hook' );
 			$this->assertSame( $domain, $this->action_args['after_populate_network']['domain'], 'Domain should match in after_populate_network hook' );
-
-			remove_action( 'before_populate_network', array( $this, 'hook_action_counter' ), 10 );
-			remove_action( 'after_populate_network', array( $this, 'hook_action_counter' ), 10 );
-
-			global $wpdb;
-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", $network_id ) );
-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->site} WHERE id = %d", $network_id ) );
 		}
 
 		/**
@@ -90,13 +90,13 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertTrue( $this->hook_called, 'The modify_domain_hook action should have been called' );
-
 			remove_action( 'before_populate_network', array( $this, 'modify_domain_hook' ), 10 );
 
 			global $wpdb;
 			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", $network_id ) );
 			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->site} WHERE id = %d", $network_id ) );
+
+			$this->assertTrue( $this->hook_called, 'The modify_domain_hook action should have been called' );
 		}
 
 		/**

@@ -376,7 +376,7 @@ class Custom_Image_Header {
 			}
 		}
 		?>
-<script type="text/javascript">
+<script>
 (function($){
 	var default_color = '<?php echo esc_js( $default_color ); ?>',
 		header_text_fields;
@@ -431,7 +431,7 @@ class Custom_Image_Header {
 	public function js_2() {
 
 		?>
-<script type="text/javascript">
+<script>
 	function onEndCrop( coords ) {
 		jQuery( '#x1' ).val(coords.x);
 		jQuery( '#y1' ).val(coords.y);
@@ -1351,7 +1351,7 @@ endif;
 	 * @return int Attachment ID.
 	 */
 	final public function insert_attachment( $attachment, $cropped ) {
-		$parent_id = isset( $attachment['post_parent'] ) ? $attachment['post_parent'] : null;
+		$parent_id = $attachment['post_parent'] ?? null;
 		unset( $attachment['post_parent'] );
 
 		$attachment_id = wp_insert_attachment( $attachment, $cropped );
@@ -1584,8 +1584,8 @@ endif;
 
 		foreach ( $header_images as &$header_image ) {
 			$header_meta               = get_post_meta( $header_image['attachment_id'] );
-			$header_image['timestamp'] = isset( $header_meta[ $timestamp_key ] ) ? $header_meta[ $timestamp_key ] : '';
-			$header_image['alt_text']  = isset( $header_meta[ $alt_text_key ] ) ? $header_meta[ $alt_text_key ] : '';
+			$header_image['timestamp'] = $header_meta[ $timestamp_key ] ?? '';
+			$header_image['alt_text']  = $header_meta[ $alt_text_key ] ?? '';
 		}
 
 		return $header_images;

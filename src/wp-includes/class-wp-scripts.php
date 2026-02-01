@@ -450,7 +450,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		// Determine fetchpriority.
-		$original_fetchpriority = isset( $obj->extra['fetchpriority'] ) ? $obj->extra['fetchpriority'] : null;
+		$original_fetchpriority = $obj->extra['fetchpriority'] ?? null;
 		if ( null === $original_fetchpriority || ! $this->is_valid_fetchpriority( $original_fetchpriority ) ) {
 			$original_fetchpriority = 'auto';
 		}
@@ -1191,10 +1191,10 @@ JS;
 	 */
 	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
 		return sprintf(
-			/* translators: 1: Script handle, 2: Comma-separated list of missing dependency handles. */
+			/* translators: 1: Script handle, 2: List of missing dependency handles. */
 			__( 'The script with the handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 			$handle,
-			implode( ', ', $missing_dependency_handles )
+			implode( wp_get_list_item_separator(), $missing_dependency_handles )
 		);
 	}
 }
