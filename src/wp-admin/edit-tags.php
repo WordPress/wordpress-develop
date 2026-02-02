@@ -627,11 +627,14 @@ if ( $can_edit_terms ) {
 <div class="form-wrap edit-term-notes">
 <p>
 	<?php
+	$default_category_id = get_option( 'default_category' );
 	printf(
-		/* translators: %s: Default category. */
-		__( 'Deleting a category does not delete the posts in that category. Instead, posts that were only assigned to the deleted category are set to the default category %s. The default category cannot be deleted.' ),
+		/* translators: 1: Default category name, 2: URL to edit the default category, 3: URL to Writing Settings. */
+		__( 'Deleting a category does not delete the posts in that category. Instead, posts that were only assigned to the deleted category are set to the default category %1$s. The default category cannot be deleted, but it can be <a href="%2$s">renamed</a> or you can choose a <a href="%3$s">different default category</a>.' ),
 		/** This filter is documented in wp-includes/category-template.php */
-		'<strong>' . apply_filters( 'the_category', get_cat_name( get_option( 'default_category' ) ), '', '' ) . '</strong>'
+		'<strong>' . apply_filters( 'the_category', get_cat_name( $default_category_id ), '', '' ) . '</strong>',
+		esc_url( get_edit_term_link( $default_category_id, 'category' ) ),
+		esc_url( admin_url( 'options-writing.php#default-category-row' ) )
 	);
 	?>
 </p>
