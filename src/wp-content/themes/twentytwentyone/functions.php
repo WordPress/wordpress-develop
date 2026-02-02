@@ -23,6 +23,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 	 * as indicating support for post thumbnails.
 	 *
 	 * @since Twenty Twenty-One 1.0
+	 * @since Twenty Twenty-One 2.8 Removed editor stylesheet for Internet Explorer.
 	 *
 	 * @return void
 	 */
@@ -123,17 +124,8 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 			add_theme_support( 'dark-editor-style' );
 		}
 
-		$editor_stylesheet_path = './assets/css/style-editor.css';
-
-		// Note, the is_IE global variable is defined by WordPress and is used
-		// to detect if the current browser is internet explorer.
-		global $is_IE;
-		if ( $is_IE ) {
-			$editor_stylesheet_path = './assets/css/ie-editor.css';
-		}
-
 		// Enqueue editor styles.
-		add_editor_style( $editor_stylesheet_path );
+		add_editor_style( './assets/css/style-editor.css' );
 
 		// Add custom editor font sizes.
 		add_theme_support(
@@ -609,6 +601,7 @@ function twentytwentyone_the_html_classes() {
  * Adds "is-IE" class to body if the user is on Internet Explorer.
  *
  * @since Twenty Twenty-One 1.0
+ * @deprecated Twenty Twenty-One 2.8 Removed Internet Explorer support.
  *
  * @return void
  */
@@ -626,7 +619,6 @@ function twentytwentyone_add_ie_class() {
 		echo "<script>$script</script>\n";
 	}
 }
-add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
 
 if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	/**
