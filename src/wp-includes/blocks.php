@@ -2375,6 +2375,20 @@ function render_block( $parsed_block ) {
 
 	$block = new WP_Block( $parsed_block, $context );
 
+	/**
+	 * Allows render_block() to be short-circuited after context processing, by returning a non-null value.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string|null   $pre_render_output The pre-rendered content. Default null.
+	 * @param WP_Block      $block             The block instance with processed context.
+	 * @param WP_Block|null $parent_block      If this is a nested block, a reference to the parent block.
+	 */
+	$pre_render_output = apply_filters( 'pre_render_block_output', null, $block, $parent_block );
+	if ( ! is_null( $pre_render_output ) ) {
+		return $pre_render_output;
+	}
+
 	return $block->render();
 }
 
