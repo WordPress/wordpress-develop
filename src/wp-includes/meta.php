@@ -1569,6 +1569,8 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
  *
  * @since 5.5.0
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param mixed  $value     Current value passed to filter.
  * @param int    $object_id ID of the object metadata is for.
  * @param string $meta_key  Metadata key.
@@ -1648,6 +1650,8 @@ function registered_meta_key_exists( $object_type, $meta_key, $object_subtype = 
  * @since 4.6.0
  * @since 4.9.8 The `$object_subtype` parameter was added.
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param string $object_type    Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                               'user', or any other object type with an associated meta table.
  * @param string $meta_key       Metadata key.
@@ -1697,6 +1701,8 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
  *
  * @since 4.6.0
  * @since 4.9.8 The `$object_subtype` parameter was added.
+ *
+ * @global array $wp_meta_keys Global registry for meta keys.
  *
  * @param string $object_type    Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                               'user', or any other object type with an associated meta table.

@@ -3411,6 +3411,8 @@ function _search_terms_tidy( $t ) {
  * @since 2.1.0
  * @deprecated 3.9.0
  *
+ * @global bool $wp_rich_edit_exists Whether TinyMCE is available.
+ *
  * @return bool Whether TinyMCE exists.
  */
 function rich_edit_exists() {
