@@ -243,11 +243,14 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		// Handle custom display of default category by showing it first in the list.
-		$default_category = false;
+		$default_category    = false;
+		$default_category_id = 0;
 		if ( 'category' === $taxonomy ) {
-			$default_category = get_term( get_option( 'default_category' ), 'category' );
+			$default_category_id = (int) get_option( 'default_category' );
+			$default_category    = get_term( $default_category_id, 'category' );
 			if ( ! $default_category || is_wp_error( $default_category ) ) {
-				$default_category = false;
+				$default_category    = false;
+				$default_category_id = 0;
 			}
 		}
 
@@ -258,7 +261,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 				$children = _get_term_hierarchy( $taxonomy );
 			}
 
-			if ( $default_category ) {
+			// Only show pinned default category on the first page.
+			if ( $default_category && 0 === $offset ) {
 				$this->single_row( $default_category );
 			}
 
@@ -266,14 +270,15 @@ class WP_Terms_List_Table extends WP_List_Table {
 			 * Some funky recursion to get the job done (paging & parents mainly) is contained within.
 			 * Skip it for non-hierarchical taxonomies for performance sake.
 			 */
-			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count );
+			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count, 0, 0, $default_category_id );
 		} else {
-			if ( $default_category ) {
+			// Only show pinned default category on the first page.
+			if ( $default_category && 0 === $offset ) {
 				$this->single_row( $default_category );
 			}
 
 			foreach ( $this->items as $term ) {
-				if ( $default_category && $default_category->term_id === $term->term_id ) {
+				if ( $default_category_id && $default_category_id === $term->term_id ) {
 					continue;
 				}
 				$this->single_row( $term );
@@ -290,16 +295,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param int    $count
 	 * @param int    $parent_term
 	 * @param int    $level
+	 * @param int    $default_category_id
 	 */
-	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent_term = 0, $level = 0 ) {
+	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent_term = 0, $level = 0, $default_category_id = 0 ) {
 
 		$end = $start + $per_page;
-
-		// Handle display of default category by showing it first in the list, capture default category id.
-		$default_category_id = false;
-		if ( 'category' === $taxonomy ) {
-			$default_category_id = (int) get_option( 'default_category' );
-		}
 
 		foreach ( $terms as $key => $term ) {
 
@@ -355,7 +355,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			unset( $terms[ $key ] );
 
 			if ( isset( $children[ $term->term_id ] ) && empty( $_REQUEST['s'] ) ) {
-				$this->_rows( $taxonomy, $terms, $children, $start, $per_page, $count, $term->term_id, $level + 1 );
+				$this->_rows( $taxonomy, $terms, $children, $start, $per_page, $count, $term->term_id, $level + 1, $default_category_id );
 			}
 		}
 	}
