@@ -1389,7 +1389,7 @@ HTML
 			),
 			'bad-items' => array(
 				'data'     => array( 'valid', 123, true, array() ),
-				'message'  => 'has one or more of its script module dependencies ("module_dependencies") which are not strings',
+				'message'  => 'has one or more of its script module dependencies ("module_dependencies") which are invalid',
 				'expected' => true,
 				'stored'   => array( 'valid' ),
 			),
