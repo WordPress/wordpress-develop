@@ -122,7 +122,6 @@ class WP_Post_Type_Abilities {
 			'taxonomies' => array(
 				'type'        => 'boolean',
 				'description' => __( 'Whether to include taxonomy terms in the response.' ),
-				'default'     => false,
 			),
 		);
 
@@ -130,7 +129,6 @@ class WP_Post_Type_Abilities {
 			$include_properties['meta'] = array(
 				'type'        => 'boolean',
 				'description' => __( 'Whether to include post meta in the response.' ),
-				'default'     => false,
 			);
 		}
 
@@ -190,16 +188,14 @@ class WP_Post_Type_Abilities {
 				),
 				'per_page' => array(
 					'type'        => 'integer',
-					'description' => __( 'Maximum number of posts to return.' ),
+					'description' => __( 'Maximum number of posts to return. Defaults to 10.' ),
 					'minimum'     => 1,
 					'maximum'     => 100,
-					'default'     => 10,
 				),
 				'page'     => array(
 					'type'        => 'integer',
-					'description' => __( 'Page number for paginated results.' ),
+					'description' => __( 'Page number for paginated results. Defaults to 1.' ),
 					'minimum'     => 1,
-					'default'     => 1,
 				),
 				'order'    => array(
 					'type'                 => 'object',
@@ -207,15 +203,13 @@ class WP_Post_Type_Abilities {
 					'properties'           => array(
 						'orderby'   => array(
 							'type'        => 'string',
-							'description' => __( 'Field to order results by.' ),
+							'description' => __( 'Field to order results by. Defaults to date.' ),
 							'enum'        => array( 'date', 'title', 'modified', 'id', 'author', 'relevance' ),
-							'default'     => 'date',
 						),
 						'direction' => array(
 							'type'        => 'string',
-							'description' => __( 'Order direction.' ),
+							'description' => __( 'Order direction. Defaults to desc.' ),
 							'enum'        => array( 'asc', 'desc' ),
-							'default'     => 'desc',
 						),
 					),
 					'additionalProperties' => false,
