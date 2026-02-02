@@ -1991,6 +1991,7 @@ HTML;
 	public function test_included_module_appears_in_importmap() {
 		$this->script_modules->register( 'dependency', '/dep.js' );
 		$this->script_modules->register( 'example', '/example.js', array( 'dependency' ) );
+		$this->script_modules->register( 'example2', '/example2.js' );
 
 		// Nothing printed now.
 		$this->assertSame( array(), $this->get_enqueued_script_modules(), 'Initial enqueued script modules was wrong.' );
@@ -2004,14 +2005,19 @@ HTML;
 			array( 'classic-dependency' ),
 			false,
 			array(
-				'module_dependencies' => array( 'example' ),
+				'module_dependencies' => array(
+					'example',
+					array(
+						'id' => 'example2',
+					),
+				),
 			)
 		);
 
 		$this->assertSame( array(), $this->get_enqueued_script_modules(), 'Final enqueued script modules was wrong.' );
 		$this->assertSame( array(), $this->get_preloaded_script_modules(), 'Final module preloads was wrong.' );
 		$this->assertEqualSets(
-			array( 'example', 'dependency' ),
+			array( 'example', 'example2', 'dependency' ),
 			array_keys( $this->get_import_map() ),
 			'Import map keys were wrong.'
 		);
