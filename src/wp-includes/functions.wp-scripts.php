@@ -214,10 +214,11 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *     Optional. An array of extra args for the script. Default empty array.
  *     Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
- *     @type string   $strategy            Optional. If provided, may be either 'defer' or 'async'.
- *     @type bool     $in_footer           Optional. Whether to print the script in the footer. Default 'false'.
- *     @type string   $fetchpriority       Optional. The fetch priority for the script. Default 'auto'.
- *     @type string[] $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default empty array.
+ *     @type string                              $strategy            Optional. If provided, may be either 'defer' or 'async'.
+ *     @type bool                                $in_footer           Optional. Whether to print the script in the footer. Default 'false'.
+ *     @type string                              $fetchpriority       Optional. The fetch priority for the script. Default 'auto'.
+ *     @type array<string|array<string, string>> $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default empty array.
+ *                                                                    For the full data format, see the `$deps` param of {@see wp_register_script_module()}.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
