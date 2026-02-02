@@ -48,7 +48,7 @@ const COPY_CONFIG = {
 		source: 'scripts',
 		destination: 'js/dist',
 		copyDirectories: true, // Copy subdirectories
-		patterns: [ '*.js', '*.js.map' ],
+		patterns: [ '*.js' ],
 		// Rename vendors/ to vendor/ when copying
 		directoryRenames: {
 			vendors: 'vendor',
@@ -87,22 +87,6 @@ const COPY_CONFIG = {
 				scripts: 'scripts/widgets/blocks',
 				styles: 'styles/widgets',
 				php: 'widgets/src/blocks',
-			},
-		],
-	},
-
-	// PHP source files (non-block files, copied from packages)
-	phpSource: {
-		files: [
-			{
-				// Block parser classes
-				package: 'block-serialization-default-parser',
-				files: [
-					'class-wp-block-parser.php',
-					'class-wp-block-parser-block.php',
-					'class-wp-block-parser-frame.php',
-				],
-				destination: '', // Root of wp-includes
 			},
 		],
 	},
@@ -239,16 +223,15 @@ function copyBlockAssets( config ) {
 			// 1. Copy scripts/JSON (everything except PHP)
 			const blockScriptsSrc = path.join( scriptsSrc, blockName );
 			if ( fs.existsSync( blockScriptsSrc ) ) {
-				const files = fs.readdirSync( blockScriptsSrc );
-				for ( const file of files ) {
-					if ( file.endsWith( '.php' ) ) {
-						continue; // Skip PHP, copied from packages
+				fs.cpSync(
+					blockScriptsSrc,
+					blockDest,
+					{
+						recursive: true,
+						// Skip PHP, copied from packages
+						filter: f => ! f.endsWith( '.php' ),
 					}
-					fs.copyFileSync(
-						path.join( blockScriptsSrc, file ),
-						path.join( blockDest, file )
-					);
-				}
+				);
 			}
 
 			// 2. Copy styles (if they exist in per-block directory)
@@ -916,25 +899,21 @@ async function main() {
 						// Only copy react-jsx-runtime files, skip react and react-dom
 						const vendorFiles = fs.readdirSync( src );
 						let copiedCount = 0;
+						fs.mkdirSync( dest, { recursive: true } );
 						for ( const file of vendorFiles ) {
-							if ( file.startsWith( 'react-jsx-runtime' ) ) {
+							if (
+								file.startsWith( 'react-jsx-runtime' ) &&
+								file.endsWith( '.js' )
+							) {
 								const srcFile = path.join( src, file );
 								const destFile = path.join( dest, file );
-								fs.mkdirSync( dest, { recursive: true } );
 
-								if (
-									file.endsWith( '.js' ) &&
-									! file.endsWith( '.js.map' )
-								) {
-									let content = fs.readFileSync(
-										srcFile,
-										'utf8'
-									);
-									content = removeSourceMaps( content );
-									fs.writeFileSync( destFile, content );
-								} else {
-									fs.copyFileSync( srcFile, destFile );
-								}
+								let content = fs.readFileSync(
+									srcFile,
+									'utf8'
+								);
+								content = removeSourceMaps( content );
+								fs.writeFileSync( destFile, content );
 								copiedCount++;
 							}
 						}
@@ -955,9 +934,7 @@ async function main() {
 
 					for ( const file of packageFiles ) {
 						if (
-							/^index\.(js|js\.map|min\.js|min\.js\.map|min\.asset\.php)$/.test(
-								file
-							)
+							/^index\.(js|min\.js|min\.asset\.php)$/.test( file )
 						) {
 							const srcFile = path.join( src, file );
 							// Replace 'index.' with 'package-name.'
@@ -972,10 +949,7 @@ async function main() {
 							} );
 
 							// Apply source map removal for .js files
-							if (
-								file.endsWith( '.js' ) &&
-								! file.endsWith( '.js.map' )
-							) {
+							if ( file.endsWith( '.js' ) ) {
 								let content = fs.readFileSync(
 									srcFile,
 									'utf8'
@@ -983,7 +957,7 @@ async function main() {
 								content = removeSourceMaps( content );
 								fs.writeFileSync( destPath, content );
 							} else {
-								// Copy other files as-is
+								// Copy other files as-is (.min.asset.php)
 								fs.copyFileSync( srcFile, destPath );
 							}
 						}
@@ -991,22 +965,15 @@ async function main() {
 				}
 			} else if (
 				entry.isFile() &&
-				/\.(js|js\.map)$/.test( entry.name )
+				entry.name.endsWith( '.js' )
 			) {
 				// Copy root-level JS files
 				const dest = path.join( scriptsDest, entry.name );
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
 
-				if (
-					entry.name.endsWith( '.js' ) &&
-					! entry.name.endsWith( '.js.map' )
-				) {
-					let content = fs.readFileSync( src, 'utf8' );
-					content = removeSourceMaps( content );
-					fs.writeFileSync( dest, content );
-				} else {
-					fs.copyFileSync( src, dest );
-				}
+				let content = fs.readFileSync( src, 'utf8' );
+				content = removeSourceMaps( content );
+				fs.writeFileSync( dest, content );
 			}
 		}
 
@@ -1044,38 +1011,7 @@ async function main() {
 	);
 	copyBlockAssets( COPY_CONFIG.blocks );
 
-	// 6. Copy non-block PHP source files (from packages)
-	console.log( '\n📦 Copying non-block PHP files...' );
-	const phpSourceConfig = COPY_CONFIG.phpSource;
-
-	for ( const fileGroup of phpSourceConfig.files ) {
-		const packageSrc = path.join( gutenbergPackagesDir, fileGroup.package );
-
-		if ( ! fs.existsSync( packageSrc ) ) {
-			console.log( `   ⚠️  Package not found: ${ fileGroup.package }` );
-			continue;
-		}
-
-		for ( const file of fileGroup.files ) {
-			const src = path.join( packageSrc, file );
-			const dest = path.join(
-				wpIncludesDir,
-				fileGroup.destination,
-				file
-			);
-
-			if ( fs.existsSync( src ) ) {
-				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-				let content = fs.readFileSync( src, 'utf8' );
-				fs.writeFileSync( dest, content );
-			}
-		}
-		console.log(
-			`   ✅ ${ fileGroup.package } (${ fileGroup.files.length } files)`
-		);
-	}
-
-	// 7. Copy theme JSON files (from Gutenberg lib directory)
+	// 6. Copy theme JSON files (from Gutenberg lib directory)
 	console.log( '\n📦 Copying theme JSON files...' );
 	const themeJsonConfig = COPY_CONFIG.themeJson;
 	const gutenbergLibDir = path.join( gutenbergDir, 'lib' );
@@ -1102,19 +1038,19 @@ async function main() {
 		}
 	}
 
-	// 9. Generate script-modules-packages.min.php from individual asset files
+	// 7. Generate script-modules-packages.min.php from individual asset files
 	console.log( '\n📦 Generating script-modules-packages.min.php...' );
 	generateScriptModulesPackages();
 
-	// 10. Generate script-loader-packages.min.php
+	// 8. Generate script-loader-packages.min.php
 	console.log( '\n📦 Generating script-loader-packages.min.php...' );
 	generateScriptLoaderPackages();
 
-	// 11. Generate require-dynamic-blocks.php and require-static-blocks.php
+	// 9. Generate require-dynamic-blocks.php and require-static-blocks.php
 	console.log( '\n📦 Generating block registration files...' );
 	generateBlockRegistrationFiles();
 
-	// 12. Generate blocks-json.php from block.json files
+	// 10. Generate blocks-json.php from block.json files
 	console.log( '\n📦 Generating blocks-json.php...' );
 	generateBlocksJson();
 

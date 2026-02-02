@@ -164,4 +164,23 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * Test failure conditions setting inline script tag contents.
+	 *
+	 * @ticket 64500
+	 */
+	public function test_script_tag_dangerous_unescapeable_contents() {
+		$this->setExpectedIncorrectUsage( 'wp_get_inline_script_tag' );
+		/*
+		 * </script> cannot be printed inside a script tag
+		 * the `example/example` type is an unknown type with no known escaping rules.
+		 * The only choice is to abort.
+		 */
+		$result = wp_get_inline_script_tag(
+			'</script>',
+			array( 'type' => 'example/example' )
+		);
+		$this->assertSame( '', $result );
+	}
 }
