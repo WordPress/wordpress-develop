@@ -7,6 +7,23 @@
  * @group rewrite
  */
 class Tests_Admin_OptionsPermalink extends WP_UnitTestCase {
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '/%postname%/' );
+		create_initial_taxonomies();
+	}
+
+	public function tear_down() {
+		global $wp_rewrite;
+
+		$wp_rewrite->set_category_base( '' );
+		$wp_rewrite->set_tag_base( '' );
+		$wp_rewrite->flush_rules();
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Data provider for base sanitization tests.
 	 */
