@@ -584,7 +584,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @return WP_Site_Health
 	 */
-	private function setup_site_health_with_debug_properties( bool $wp_debug = false, $wp_debug_log = false, ?bool $wp_debug_display = null ) {
+	private function setup_site_health_with_debug_properties( bool $wp_debug = false, $wp_debug_log = false, ?bool $wp_debug_display = null ): WP_Site_Health {
 		$site_health = new WP_Site_Health();
 		$reflection  = new ReflectionClass( $site_health );
 
@@ -615,7 +615,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @ticket 64071
 	 *
 	 * @param string $log_path Path to set for error_log.
-	 *
 	 * @return string|false Original error_log value.
 	 */
 	private function set_error_log_path( string $log_path = '' ) {
@@ -640,9 +639,9 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @ticket 64071
 	 *
-	 * @return array
+	 * @return array<string, string|array<string, string>>
 	 */
-	private function get_debug_mode_disabled_result() {
+	private function get_debug_mode_disabled_result(): array {
 		return array(
 			'status' => 'good',
 			'label'  => 'Your site is not set to output debug information',
@@ -661,9 +660,9 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
 	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
-	private function get_debug_error_log_public_result( bool $wp_debug_log_defined = true ) {
+	private function get_debug_error_log_public_result( bool $wp_debug_log_defined = true ): array {
 
 		$result = array(
 			'status'      => 'critical',
@@ -685,10 +684,9 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @ticket 64071
 	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
-	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
-	private function get_debug_error_log_private_result( bool $wp_debug_log_defined = true ) {
+	private function get_debug_error_log_private_result( bool $wp_debug_log_defined = true ): array {
 
 		$result = array(
 			'status'      => 'good',
@@ -710,10 +708,9 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @ticket 64071
 	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
-	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
-	private function get_debug_log_non_existent_path_result( bool $wp_debug_log_defined = true ) {
+	private function get_debug_log_non_existent_path_result( bool $wp_debug_log_defined = true ): array {
 
 		$result = array(
 			'status'      => 'critical',
@@ -736,7 +733,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_disabled() {
+	public function test_is_in_debug_mode_disabled(): void {
 		$site_health     = $this->setup_site_health_with_debug_properties( false, false, null );
 		$actual_result   = $site_health->get_test_is_in_debug_mode();
 		$expected_result = $this->get_debug_mode_disabled_result();
@@ -756,7 +753,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_enabled_no_error_log() {
+	public function test_is_in_debug_mode_enabled_no_error_log(): void {
 		$site_health        = $this->setup_site_health_with_debug_properties( true, false, null );
 		$original_error_log = $this->set_error_log_path( '' );
 		$actual_result      = $site_health->get_test_is_in_debug_mode();
@@ -777,7 +774,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_error_log_public() {
+	public function test_is_in_debug_mode_error_log_public(): void {
 		$site_health        = $this->setup_site_health_with_debug_properties( true, true, null );
 		$public_log_path    = ABSPATH . 'wp-content/debug.log';
 		$original_error_log = $this->set_error_log_path( $public_log_path );
@@ -798,7 +795,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_error_log_public_without_wp_debug_log() {
+	public function test_is_in_debug_mode_error_log_public_without_wp_debug_log(): void {
 		$site_health        = $this->setup_site_health_with_debug_properties( true, false, null );
 		$public_log_path    = ABSPATH . 'wp-content/debug.log';
 		$original_error_log = $this->set_error_log_path( $public_log_path );
@@ -819,7 +816,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_error_log_private() {
+	public function test_is_in_debug_mode_error_log_private(): void {
 		$site_health        = $this->setup_site_health_with_debug_properties( true, true, null );
 		$private_log_path   = '/var/log/php-error.log';
 		$original_error_log = $this->set_error_log_path( $private_log_path );
@@ -840,7 +837,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_error_log_private_without_wp_debug_log() {
+	public function test_is_in_debug_mode_error_log_private_without_wp_debug_log(): void {
 		$site_health        = $this->setup_site_health_with_debug_properties( true, false, null );
 		$private_log_path   = '/var/log/php-error.log';
 		$original_error_log = $this->set_error_log_path( $private_log_path );
@@ -861,7 +858,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_error_log_non_existent() {
+	public function test_is_in_debug_mode_error_log_non_existent(): void {
 		$site_health        = $this->setup_site_health_with_debug_properties( true, true, null );
 		$invalid_log_path   = '/nonexistent/path/that/does/not/exist/debug.log';
 		$original_error_log = $this->set_error_log_path( $invalid_log_path );
@@ -882,7 +879,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_error_log_non_existent_without_wp_debug_log() {
+	public function test_is_in_debug_mode_error_log_non_existent_without_wp_debug_log(): void {
 		$site_health        = $this->setup_site_health_with_debug_properties( true, false, null );
 		$invalid_log_path   = '/nonexistent/path/that/does/not/exist/debug.log';
 		$original_error_log = $this->set_error_log_path( $invalid_log_path );
@@ -897,13 +894,29 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests get_test_is_in_debug_mode() when WP_DEBUG_DISPLAY is explicitly disabled.
+	 *
+	 * @ticket 64071
+	 *
+	 * @covers ::get_test_is_in_debug_mode()
+	 */
+	public function test_is_in_debug_mode_display_disabled(): void {
+		$site_health     = $this->setup_site_health_with_debug_properties( true, true, false );
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_mode_disabled_result();
+
+		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when WP_DEBUG_DISPLAY is explicitly false.' );
+		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate debug mode is disabled.' );
+	}
+
+	/**
 	 * Tests get_test_is_in_debug_mode() when WP_DEBUG_DISPLAY is enabled in production.
 	 *
 	 * @ticket 64071
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_display_enabled_production() {
+	public function test_is_in_debug_mode_display_enabled_production(): void {
 		$site_health_mock = $this->getMockBuilder( 'WP_Site_Health' )
 			->onlyMethods( array( 'is_development_environment' ) )
 			->getMock();
@@ -911,16 +924,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$site_health_mock->method( 'is_development_environment' )
 			->willReturn( false );
 
-		$site_health     = new WP_Site_Health();
-		$reflection_mock = new ReflectionClass( $site_health );
+		$reflection = new ReflectionClass( WP_Site_Health::class );
 
-		$wp_debug_property_mock = $reflection_mock->getProperty( 'wp_debug' );
+		$wp_debug_property_mock = $reflection->getProperty( 'wp_debug' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$wp_debug_property_mock->setAccessible( true );
 		}
 		$wp_debug_property_mock->setValue( $site_health_mock, true );
 
-		$wp_debug_display_property_mock = $reflection_mock->getProperty( 'wp_debug_display' );
+		$wp_debug_display_property_mock = $reflection->getProperty( 'wp_debug_display' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$wp_debug_display_property_mock->setAccessible( true );
 		}
@@ -940,7 +952,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_display_enabled_development() {
+	public function test_is_in_debug_mode_display_enabled_development(): void {
 		$site_health_mock = $this->getMockBuilder( 'WP_Site_Health' )
 			->onlyMethods( array( 'is_development_environment' ) )
 			->getMock();
@@ -948,16 +960,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$site_health_mock->method( 'is_development_environment' )
 			->willReturn( true );
 
-		$site_health     = new WP_Site_Health();
-		$reflection_mock = new ReflectionClass( $site_health );
+		$reflection = new ReflectionClass( WP_Site_Health::class );
 
-		$wp_debug_property_mock = $reflection_mock->getProperty( 'wp_debug' );
+		$wp_debug_property_mock = $reflection->getProperty( 'wp_debug' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$wp_debug_property_mock->setAccessible( true );
 		}
 		$wp_debug_property_mock->setValue( $site_health_mock, true );
 
-		$wp_debug_display_property_mock = $reflection_mock->getProperty( 'wp_debug_display' );
+		$wp_debug_display_property_mock = $reflection->getProperty( 'wp_debug_display' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$wp_debug_display_property_mock->setAccessible( true );
 		}
@@ -977,7 +988,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
-	public function test_is_in_debug_mode_result_structure() {
+	public function test_is_in_debug_mode_result_structure(): void {
 		$site_health   = new WP_Site_Health();
 		$actual_result = $site_health->get_test_is_in_debug_mode();
 
