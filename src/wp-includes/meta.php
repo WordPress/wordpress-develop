@@ -1397,6 +1397,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
  * @since 6.7.0 The `label` argument was added to the arguments array.
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param string       $object_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                                  'user', or any other object type with an associated meta table.
  * @param string       $meta_key    Meta key to register.
