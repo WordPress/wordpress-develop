@@ -322,7 +322,10 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 						( '/' === event.key && 'tag' === token.type ) ||
 						( isAlphaKey && 'tag' === token.type ) ||
 						( isAlphaKey && 'attribute' === token.type ) ||
-						( '=' === event.key && '=' === token.string && token.state.curState?.htmlState?.tagName )
+						( '=' === event.key && '=' === token.string && (
+							token.state.htmlState?.tagName ||
+							token.state.curState?.htmlState?.tagName
+						) )
 					);
 				} else if ( 'css' === innerMode ) {
 					shouldAutocomplete =
