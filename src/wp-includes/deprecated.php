@@ -101,9 +101,6 @@ function the_category_ID($display = true) {
  * @deprecated 0.71 Use get_the_category_by_ID()
  * @see get_the_category_by_ID()
  *
- * @global int $currentcat
- * @global int $previouscat
- *
  * @param string $before Optional. Text to display before the category. Default empty.
  * @param string $after  Optional. Text to display after the category. Default empty.
  */
@@ -3410,8 +3407,6 @@ function _search_terms_tidy( $t ) {
  *
  * @since 2.1.0
  * @deprecated 3.9.0
- *
- * @global bool $wp_rich_edit_exists Whether TinyMCE is available.
  *
  * @return bool Whether TinyMCE exists.
  */
