@@ -576,12 +576,9 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Helper method to set up WP_Site_Health instance with debug properties.
 	 *
-	 * @ticket 64071
-	 *
 	 * @param bool        $wp_debug         Value for wp_debug property.
 	 * @param bool|string $wp_debug_log     Value for wp_debug_log property.
 	 * @param bool|null   $wp_debug_display Value for wp_debug_display property.
-	 *
 	 * @return WP_Site_Health
 	 */
 	private function setup_site_health_with_debug_properties( bool $wp_debug = false, $wp_debug_log = false, ?bool $wp_debug_display = null ): WP_Site_Health {
@@ -612,8 +609,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Helper method to set error_log ini setting and restore it later.
 	 *
-	 * @ticket 64071
-	 *
 	 * @param string $log_path Path to set for error_log.
 	 * @return string|false Original error_log value.
 	 */
@@ -626,18 +621,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Helper method to restore error_log ini setting.
 	 *
-	 * @ticket 64071
-	 *
 	 * @param string|false $original_value Original error_log value.
 	 */
-	private function restore_error_log_path( $original_value ) {
+	private function restore_error_log_path( $original_value ): void {
 		ini_set( 'error_log', $original_value );
 	}
 
 	/**
 	 * Returns the expected result array when debug mode is disabled.
-	 *
-	 * @ticket 64071
 	 *
 	 * @return array<string, string|array<string, string>>
 	 */
@@ -656,10 +647,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Returns the expected result array when debug log is in a public location.
 	 *
-	 * @ticket 64071
-	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
-	 *
 	 * @return array<string, string>
 	 */
 	private function get_debug_error_log_public_result( bool $wp_debug_log_defined = true ): array {
@@ -680,8 +668,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Returns the expected result array when debug log is in a private location.
-	 *
-	 * @ticket 64071
 	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
 	 * @return array<string, string>
@@ -704,8 +690,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * Returns the expected result array when debug log path does not exist.
-	 *
-	 * @ticket 64071
 	 *
 	 * @param bool $wp_debug_log_defined Whether WP_DEBUG_LOG is defined.
 	 * @return array<string, string>
