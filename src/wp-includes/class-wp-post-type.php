@@ -372,6 +372,19 @@ final class WP_Post_Type {
 	public $show_in_rest;
 
 	/**
+	 * Whether to register abilities for this post type via the Abilities API.
+	 *
+	 * Can be a boolean or an array of ability names mapped to booleans.
+	 * - If true, all supported abilities are registered (currently just 'get').
+	 * - If false (default), no abilities are registered.
+	 * - If an array, selectively enable abilities: e.g. array( 'get' => true ).
+	 *
+	 * @since 7.0.0
+	 * @var bool|array $show_in_abilities
+	 */
+	public $show_in_abilities;
+
+	/**
 	 * The base path for this post type's REST API endpoints.
 	 *
 	 * @since 4.7.4
@@ -551,6 +564,7 @@ final class WP_Post_Type {
 			'can_export'                      => true,
 			'delete_with_user'                => null,
 			'show_in_rest'                    => false,
+			'show_in_abilities'               => false,
 			'rest_base'                       => false,
 			'rest_namespace'                  => false,
 			'rest_controller_class'           => false,

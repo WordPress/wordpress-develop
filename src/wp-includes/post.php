@@ -50,6 +50,7 @@ function create_initial_post_types() {
 				'post-formats',
 			),
 			'show_in_rest'          => true,
+			'show_in_abilities'     => true,
 			'rest_base'             => 'posts',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
 		)
@@ -84,6 +85,7 @@ function create_initial_post_types() {
 				'revisions',
 			),
 			'show_in_rest'          => true,
+			'show_in_abilities'     => true,
 			'rest_base'             => 'pages',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
 		)
