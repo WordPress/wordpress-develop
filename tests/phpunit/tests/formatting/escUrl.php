@@ -311,4 +311,13 @@ EOT;
 		$this->assertSame( '//[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( '//[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 		$this->assertSame( 'http://[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( 'http://[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 	}
+
+	/**
+	 * @ticket 46791
+	 */
+	public function test_directory_relative_references() {
+		$this->assertSame( './current-directory', esc_url( './current-directory' ) );
+		$this->assertSame( '../parent-directory', esc_url( '../parent-directory' ) );
+		$this->assertSame( '../../../../up-four-directories', esc_url( '../../../../up-four-directories' ) );
+	}
 }
