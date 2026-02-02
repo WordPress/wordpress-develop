@@ -570,6 +570,14 @@ class WP_Terms_List_Table extends WP_List_Table {
 			);
 		}
 
+		if ( 'category' === $taxonomy && $tag->term_id === (int) get_option( 'default_category' ) ) {
+			$actions['change-default'] = sprintf(
+				'<a href="%s">%s</a>',
+				admin_url( 'options-writing.php#default-category-row' ),
+				__( 'Change Default' )
+			);
+		}
+
 		/**
 		 * Filters the action links displayed for each term in the Tags list table.
 		 *
