@@ -93,7 +93,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 				 * Note that the default value must be a URL, NOT an attachment ID.
 				 */
 				$ext  = wp_check_filetype( $this->setting->default )['ext'];
-				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp', 'webp', 'avif' ), true ) ? 'image' : 'document';
+				$type = in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'avif' ), true ) ? 'image' : 'document';
 
 				$default_attachment = array(
 					'id'    => 1,
