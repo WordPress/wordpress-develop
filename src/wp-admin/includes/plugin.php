@@ -1054,7 +1054,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 		return new WP_Error( 'could_not_remove_plugin', sprintf( $message, implode( ', ', $errors ) ) );
 	}
 
-	// Clean up plugin cache to remove stale data after plugin deletion.
+	// Clears the plugin cache to remove stale data following plugin deletion.
 	wp_clean_plugins_cache();
 
 	return true;
