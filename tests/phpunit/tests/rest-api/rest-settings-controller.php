@@ -806,7 +806,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$administrator );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
-		$request->set_body( array() );
+		$request->set_body( '' );
 
 		$response = rest_get_server()->dispatch( $request );
 
