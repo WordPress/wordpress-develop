@@ -9,6 +9,8 @@
 /**
  * Tells WordPress to load the WordPress theme and output it.
  *
+ * This is a meaningless change to a production file.
+ *
  * @var bool
  */
 define( 'WP_USE_THEMES', true );
