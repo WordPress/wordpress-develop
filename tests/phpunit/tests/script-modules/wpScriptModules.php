@@ -15,7 +15,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 	protected string $original_wp_version;
 
-	protected ?WP_Scripts $old_wp_scripts;
+	protected ?WP_Scripts $original_wp_scripts;
 
 	protected WP_Script_Modules $script_modules;
 
@@ -27,7 +27,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		parent::set_up();
 		$this->original_script_modules = $wp_script_modules;
 		$this->original_wp_version     = $wp_version;
-		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
+		$this->original_wp_scripts     = $wp_scripts ?? null;
 		$wp_script_modules             = null;
 		$this->script_modules          = wp_script_modules();
 
@@ -42,7 +42,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		global $wp_script_modules, $wp_scripts, $wp_version;
 		$wp_script_modules = $this->original_script_modules;
 		$wp_version        = $this->original_wp_version;
-		$wp_scripts        = $this->old_wp_scripts;
+		$wp_scripts        = $this->original_wp_scripts;
 		parent::tear_down();
 	}
 
