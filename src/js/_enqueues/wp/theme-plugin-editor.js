@@ -400,13 +400,13 @@ wp.themePluginEditor = (function( $ ) {
 		editor.codemirror.on( 'change', component.onChange );
 
 		editor.codemirror.setOption( 'extraKeys', {
-            'Ctrl-S': function () {
-                component.form.submit();
-            },
-            'Cmd-S': function () {
-                component.form.submit();
-            }
-        });
+			'Ctrl-S': function () {
+				component.form.submit();
+			},
+			'Cmd-S': function () {
+				component.form.submit();
+			},
+		} );
 
 		// Improve the editor accessibility.
 		$( editor.codemirror.display.lineDiv )
