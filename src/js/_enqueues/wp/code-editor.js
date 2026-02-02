@@ -322,7 +322,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 						( '/' === event.key && 'tag' === token.type ) ||
 						( isAlphaKey && 'tag' === token.type ) ||
 						( isAlphaKey && 'attribute' === token.type ) ||
-						( '=' === event.key && '=' === token.string && (
+						( '=' === event.key && (
 							token.state.htmlState?.tagName ||
 							token.state.curState?.htmlState?.tagName
 						) )
