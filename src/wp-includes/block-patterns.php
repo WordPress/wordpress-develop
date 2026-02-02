@@ -79,6 +79,11 @@ function _register_core_block_patterns_and_categories() {
 			'query-grid-posts',
 			'query-large-title-posts',
 			'query-offset-posts',
+			'navigation-overlay',
+			'navigation-overlay-black-bg',
+			'navigation-overlay-accent-bg',
+			'navigation-overlay-centered',
+			'navigation-overlay-centered-with-extras',
 		);
 
 		foreach ( $core_block_patterns as $core_block_pattern ) {
