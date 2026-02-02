@@ -722,6 +722,46 @@ class WP_Post_Type_Abilities {
 			$required[]                = 'ping_status';
 		}
 
+		// Optional fields included when requested via `include` input flags.
+		$term_schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'id'   => array(
+					'type'        => 'integer',
+					'description' => __( 'The term ID.' ),
+				),
+				'name' => array(
+					'type'        => 'string',
+					'description' => __( 'The term name.' ),
+				),
+				'slug' => array(
+					'type'        => 'string',
+					'description' => __( 'The term slug.' ),
+				),
+			),
+			'required'             => array( 'id', 'name', 'slug' ),
+			'additionalProperties' => false,
+		);
+
+		$properties['taxonomies'] = array(
+			'type'                 => 'object',
+			'description'          => __( 'Taxonomy terms grouped by taxonomy name. Only present when include.taxonomies is true.' ),
+			'additionalProperties' => array(
+				'type'  => 'array',
+				'items' => $term_schema,
+			),
+		);
+
+		if ( post_type_supports( $slug, 'custom-fields' ) ) {
+			$properties['meta'] = array(
+				'type'                 => 'object',
+				'description'          => __( 'Public post meta key-value pairs. Only present when include.meta is true.' ),
+				'additionalProperties' => array(
+					'type' => array( 'string', 'array' ),
+				),
+			);
+		}
+
 		return array(
 			'type'                 => 'object',
 			'properties'           => $properties,
@@ -998,7 +1038,7 @@ class WP_Post_Type_Abilities {
 				}
 			}
 
-			$data['taxonomies'] = $terms_data;
+			$data['taxonomies'] = ! empty( $terms_data ) ? $terms_data : new stdClass();
 		}
 
 		if ( ! empty( $include['meta'] ) && post_type_supports( $slug, 'custom-fields' ) ) {
@@ -1012,7 +1052,7 @@ class WP_Post_Type_Abilities {
 				$public_meta[ $key ] = count( $values ) === 1 ? $values[0] : $values;
 			}
 
-			$data['meta'] = $public_meta;
+			$data['meta'] = ! empty( $public_meta ) ? $public_meta : new stdClass();
 		}
 
 		return $data;
