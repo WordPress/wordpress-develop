@@ -228,6 +228,13 @@ function _register_core_block_patterns_and_categories() {
 			'description' => __( 'A variety of header designs displaying your site title and navigation.' ),
 		)
 	);
+	register_block_pattern_category(
+		'navigation',
+		array(
+			'label'       => _x( 'Navigation', 'Block pattern category' ),
+			'description' => __( 'A variety of designs displaying site navigation.' ),
+		)
+	);
 }
 
 /**
