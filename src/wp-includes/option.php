@@ -1651,9 +1651,11 @@ function delete_expired_transients( $force_db = false, $prefix = false ) {
 		return;
 	}
 
-	$prefix         = $prefix ?? '';
-	$transient_like = $wpdb->esc_like( "_transient_$prefix" ) . '%';
-	$timeout_like   = $wpdb->esc_like( '_transient_timeout_' ) . '%';
+	$transient_like = $wpdb->esc_like(
+		'_transient_' . ( $prefix ? $prefix : '' )
+	) . '%';
+
+	$timeout_like = $wpdb->esc_like( '_transient_timeout_' ) . '%';
 
 	$wpdb->query(
 		$wpdb->prepare(
@@ -1672,7 +1674,11 @@ function delete_expired_transients( $force_db = false, $prefix = false ) {
 
 	if ( ! is_multisite() ) {
 		// Single-site: site transients stored in options table.
-		$site_timeout_like = $wpdb->esc_like( "_site_transient_$prefix" ) . '%';
+
+		$site_transient_like = $wpdb->esc_like(
+			'_site_transient_' . ( $prefix ? $prefix : '' )
+		) . '%';
+
 		$site_timeout_like = $wpdb->esc_like( '_site_transient_timeout_' ) . '%';
 
 		$wpdb->query(
@@ -1692,8 +1698,12 @@ function delete_expired_transients( $force_db = false, $prefix = false ) {
 
 	} elseif ( is_main_site() && is_main_network() ) {
 		// Multisite: site transients stored in sitemeta.
-		$site_transient_like = $wpdb->esc_like( "_site_transient_$prefix" ) . '%';
-		$site_timeout_like   = $wpdb->esc_like( '_site_transient_timeout_' ) . '%';
+
+		$site_transient_like = $wpdb->esc_like(
+			'_site_transient_' . ( $prefix ? $prefix : '' )
+		) . '%';
+
+		$site_timeout_like = $wpdb->esc_like( '_site_transient_timeout_' ) . '%';
 
 		$wpdb->query(
 			$wpdb->prepare(
