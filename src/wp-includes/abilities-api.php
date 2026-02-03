@@ -227,7 +227,7 @@ declare( strict_types = 1 );
  * @see wp_unregister_ability()
  *
  * @param string               $name The name of the ability. Must be the fully-namespaced
- *                                   string identifier, e.g. `my-plugin/my-ability` or `my-plugin/resource/my-ability`
+ *                                   string identifier, e.g. `my-plugin/my-ability` or `my-plugin/resource/my-ability`.
  * @param array<string, mixed> $args {
  *     An associative array of arguments for configuring the ability.
  *
