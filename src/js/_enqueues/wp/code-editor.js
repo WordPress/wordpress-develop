@@ -46,7 +46,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * @param {Function}   settings.onChangeLintingErrors - Callback for when there are changes to linting errors.
 	 * @param {Function}   settings.onUpdateErrorNotice - Callback to update error notice.
 	 *
-	 * @return {void}
+	 * @return {Function} Update error notice function.
 	 */
 	function configureLinting( editor, settings ) { // eslint-disable-line complexity
 		var currentErrorAnnotations = [], previouslyShownErrorAnnotations = [];
@@ -209,6 +209,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 				updateErrorNotice();
 			}
 		});
+
+		return updateErrorNotice;
 	}
 
 	/**
@@ -261,6 +263,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * @typedef {object} wp.codeEditor~CodeEditorInstance
 	 * @property {object} settings - The code editor settings.
 	 * @property {CodeMirror} codemirror - The CodeMirror instance.
+	 * @property {Function} updateErrorNotice - Force update the error notice.
 	 */
 
 	/**
@@ -282,7 +285,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * @return {CodeEditorInstance} Instance.
 	 */
 	wp.codeEditor.initialize = function initialize( textarea, settings ) {
-		var $textarea, codemirror, instanceSettings, instance;
+		var $textarea, codemirror, instanceSettings, instance, updateErrorNotice;
 		if ( 'string' === typeof textarea ) {
 			$textarea = $( '#' + textarea );
 		} else {
@@ -294,11 +297,12 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 
 		codemirror = wp.CodeMirror.fromTextArea( $textarea[0], instanceSettings.codemirror );
 
-		configureLinting( codemirror, instanceSettings );
+		updateErrorNotice = configureLinting( codemirror, instanceSettings );
 
 		instance = {
 			settings: instanceSettings,
-			codemirror: codemirror
+			codemirror: codemirror,
+			updateErrorNotice: updateErrorNotice
 		};
 
 		if ( codemirror.showHint ) {

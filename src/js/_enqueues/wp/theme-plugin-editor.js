@@ -191,6 +191,10 @@ wp.themePluginEditor = (function( $ ) {
 			return;
 		}
 
+		if ( component.instance && component.instance.updateErrorNotice ) {
+			component.instance.updateErrorNotice();
+		}
+
 		// Scroll to the line that has the error.
 		if ( component.lintErrors.length ) {
 			component.instance.codemirror.setCursor( component.lintErrors[0].from.line );
@@ -399,13 +403,13 @@ wp.themePluginEditor = (function( $ ) {
 		editor = wp.codeEditor.initialize( $( '#newcontent' ), codeEditorSettings );
 		editor.codemirror.on( 'change', component.onChange );
 
+		function onSaveShortcut() {
+			component.form.submit();
+		}
+
 		editor.codemirror.setOption( 'extraKeys', {
-			'Ctrl-S': function () {
-				component.form.submit();
-			},
-			'Cmd-S': function () {
-				component.form.submit();
-			},
+			'Ctrl-S': onSaveShortcut,
+			'Cmd-S': onSaveShortcut,
 		} );
 
 		// Improve the editor accessibility.
