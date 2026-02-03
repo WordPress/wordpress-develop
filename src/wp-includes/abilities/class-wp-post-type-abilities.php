@@ -116,6 +116,7 @@ class WP_Post_Type_Abilities {
 	 * @return array The JSON schema for input.
 	 */
 	private static function build_get_input_schema( WP_Post_Type $post_type_object ): array {
+		$slug     = $post_type_object->name;
 		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
 		$include_properties = array(
@@ -125,7 +126,7 @@ class WP_Post_Type_Abilities {
 			),
 		);
 
-		if ( post_type_supports( $post_type_object->name, 'custom-fields' ) ) {
+		if ( post_type_supports( $slug, 'custom-fields' ) ) {
 			$include_properties['meta'] = array(
 				'type'        => 'boolean',
 				'description' => __( 'Whether to include post meta in the response.' ),
@@ -151,85 +152,104 @@ class WP_Post_Type_Abilities {
 			'date' => self::build_date_query_schema(),
 		);
 
-		// Single post retrieval by ID.
-		$by_id_schema = array(
-			'type'                 => 'object',
-			'description'          => __( 'Retrieve a single post by its ID.' ),
-			'required'             => array( 'id' ),
-			'properties'           => array(
-				'id'      => array(
-					'type'        => 'integer',
-					'description' => __( 'Unique identifier for the post.' ),
-					'minimum'     => 1,
-				),
-				'include' => $include_schema,
+		// Build orderby enum dynamically based on post type supports.
+		$orderby_values = array( 'date', 'title', 'modified', 'id', 'author', 'relevance' );
+		if ( post_type_supports( $slug, 'page-attributes' ) ) {
+			$orderby_values[] = 'menu_order';
+		}
+		if ( post_type_supports( $slug, 'comments' ) ) {
+			$orderby_values[] = 'comment_count';
+		}
+
+		// All properties are optional. When `id` is present, single-post mode.
+		// When absent, query mode. Empty input returns latest published posts.
+		$properties = array(
+			'id'       => array(
+				'type'        => 'integer',
+				'description' => __( 'Unique identifier for the post. When provided, retrieves a single post by ID.' ),
+				'minimum'     => 1,
 			),
-			'additionalProperties' => false,
+			'status'   => array(
+				'type'        => 'string',
+				'description' => __( 'Filter by post status.' ),
+				'enum'        => $statuses,
+			),
+			'search'   => array(
+				'type'        => 'string',
+				'description' => __( 'Search term to filter posts by.' ),
+			),
+			'author'   => array(
+				'type'        => 'integer',
+				'description' => __( 'Filter posts by author user ID.' ),
+				'minimum'     => 1,
+			),
+			'per_page' => array(
+				'type'        => 'integer',
+				'description' => __( 'Maximum number of posts to return. Defaults to 10.' ),
+				'minimum'     => 1,
+				'maximum'     => 100,
+			),
+			'page'     => array(
+				'type'        => 'integer',
+				'description' => __( 'Page number for paginated results. Defaults to 1.' ),
+				'minimum'     => 1,
+			),
+			'order'    => array(
+				'type'                 => 'object',
+				'description'          => __( 'Ordering parameters.' ),
+				'properties'           => array(
+					'orderby'   => array(
+						'type'        => 'string',
+						'description' => __( 'Field to order results by. Defaults to date.' ),
+						'enum'        => $orderby_values,
+					),
+					'direction' => array(
+						'type'        => 'string',
+						'description' => __( 'Order direction. Defaults to desc.' ),
+						'enum'        => array( 'asc', 'desc' ),
+					),
+				),
+				'additionalProperties' => false,
+			),
+			'query'    => array(
+				'type'                 => 'object',
+				'description'          => __( 'Advanced query filters for taxonomy terms, meta values, and dates.' ),
+				'properties'           => $query_properties,
+				'additionalProperties' => false,
+			),
+			'include'  => $include_schema,
 		);
 
-		// Multi-post query with filters.
-		$query_schema = array(
-			'type'                 => 'object',
-			'description'          => __( 'Query multiple posts with optional filters.' ),
-			'properties'           => array(
-				'status'   => array(
-					'type'        => 'string',
-					'description' => __( 'Filter by post status.' ),
-					'enum'        => $statuses,
-				),
-				'search'   => array(
-					'type'        => 'string',
-					'description' => __( 'Search term to filter posts by.' ),
-				),
-				'author'   => array(
-					'type'        => 'integer',
-					'description' => __( 'Filter posts by author user ID.' ),
-					'minimum'     => 1,
-				),
-				'per_page' => array(
-					'type'        => 'integer',
-					'description' => __( 'Maximum number of posts to return. Defaults to 10.' ),
-					'minimum'     => 1,
-					'maximum'     => 100,
-				),
-				'page'     => array(
-					'type'        => 'integer',
-					'description' => __( 'Page number for paginated results. Defaults to 1.' ),
-					'minimum'     => 1,
-				),
-				'order'    => array(
-					'type'                 => 'object',
-					'description'          => __( 'Ordering parameters.' ),
-					'properties'           => array(
-						'orderby'   => array(
-							'type'        => 'string',
-							'description' => __( 'Field to order results by. Defaults to date.' ),
-							'enum'        => array( 'date', 'title', 'modified', 'id', 'author', 'relevance' ),
-						),
-						'direction' => array(
-							'type'        => 'string',
-							'description' => __( 'Order direction. Defaults to desc.' ),
-							'enum'        => array( 'asc', 'desc' ),
-						),
-					),
-					'additionalProperties' => false,
-				),
-				'query'    => array(
-					'type'                 => 'object',
-					'description'          => __( 'Advanced query filters for taxonomy terms, meta values, and dates.' ),
-					'properties'           => $query_properties,
-					'additionalProperties' => false,
-				),
-				'include'  => $include_schema,
-			),
-			'additionalProperties' => false,
-		);
+		// Supports-dependent filter properties.
+		if ( post_type_supports( $slug, 'comments' ) ) {
+			$properties['comment_status'] = array(
+				'type'        => 'string',
+				'description' => __( 'Filter by comment status.' ),
+				'enum'        => array( 'open', 'closed' ),
+			);
+		}
+
+		if ( post_type_supports( $slug, 'trackbacks' ) ) {
+			$properties['ping_status'] = array(
+				'type'        => 'string',
+				'description' => __( 'Filter by ping status.' ),
+				'enum'        => array( 'open', 'closed' ),
+			);
+		}
+
+		if ( $post_type_object->hierarchical ) {
+			$properties['parent'] = array(
+				'type'        => 'integer',
+				'description' => __( 'Filter by parent post ID. Use 0 for top-level posts.' ),
+				'minimum'     => 0,
+			);
+		}
 
 		return array(
-			'oneOf' => array(
-				$by_id_schema,
-				$query_schema,
-			),
+			'type'                 => 'object',
+			'properties'           => $properties,
+			'additionalProperties' => false,
+			'default'              => array(),
 		);
 	}
 
@@ -873,15 +893,29 @@ class WP_Post_Type_Abilities {
 			$query_args['author'] = (int) $input['author'];
 		}
 
+		if ( ! empty( $input['comment_status'] ) ) {
+			$query_args['comment_status'] = sanitize_key( $input['comment_status'] );
+		}
+
+		if ( ! empty( $input['ping_status'] ) ) {
+			$query_args['ping_status'] = sanitize_key( $input['ping_status'] );
+		}
+
+		if ( isset( $input['parent'] ) ) {
+			$query_args['post_parent'] = (int) $input['parent'];
+		}
+
 		if ( ! empty( $input['order'] ) ) {
 			$order_input = $input['order'];
 			$orderby_map = array(
-				'date'      => 'date',
-				'title'     => 'title',
-				'modified'  => 'modified',
-				'id'        => 'ID',
-				'author'    => 'author',
-				'relevance' => 'relevance',
+				'date'          => 'date',
+				'title'         => 'title',
+				'modified'      => 'modified',
+				'id'            => 'ID',
+				'author'        => 'author',
+				'relevance'     => 'relevance',
+				'menu_order'    => 'menu_order',
+				'comment_count' => 'comment_count',
 			);
 
 			if ( ! empty( $order_input['orderby'] ) && isset( $orderby_map[ $order_input['orderby'] ] ) ) {
