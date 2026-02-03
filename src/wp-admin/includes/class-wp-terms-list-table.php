@@ -242,15 +242,6 @@ class WP_Terms_List_Table extends WP_List_Table {
 			return;
 		}
 
-		// Handle custom display of default category by showing it first in the list.
-		$default_category = null;
-		if ( 'category' === $taxonomy ) {
-			$default_category = get_term( (int) get_option( 'default_category' ), 'category' );
-			if ( ! ( $default_category instanceof WP_Term ) ) {
-				$default_category = null;
-			}
-		}
-
 		if ( is_taxonomy_hierarchical( $taxonomy ) && ! isset( $this->callback_args['orderby'] ) ) {
 			if ( ! empty( $this->callback_args['search'] ) ) {// Ignore children on searches.
 				$children = array();
@@ -258,26 +249,13 @@ class WP_Terms_List_Table extends WP_List_Table {
 				$children = _get_term_hierarchy( $taxonomy );
 			}
 
-			// Only show pinned default category on the first page.
-			if ( $default_category && 0 === $offset ) {
-				$this->single_row( $default_category );
-			}
-
 			/*
 			 * Some funky recursion to get the job done (paging & parents mainly) is contained within.
 			 * Skip it for non-hierarchical taxonomies for performance sake.
 			 */
-			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count, 0, 0, $default_category ? $default_category->term_id : 0 );
+			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count );
 		} else {
-			// Only show pinned default category on the first page.
-			if ( $default_category && 0 === $offset ) {
-				$this->single_row( $default_category );
-			}
-
 			foreach ( $this->items as $term ) {
-				if ( $default_category && $default_category->term_id === $term->term_id ) {
-					continue;
-				}
 				$this->single_row( $term );
 			}
 		}
@@ -292,9 +270,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param int    $count
 	 * @param int    $parent_term
 	 * @param int    $level
-	 * @param int    $default_category_id Optional. Term ID of the default category to skip displaying, or 0 if none. Default 0.
 	 */
-	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent_term = 0, $level = 0, $default_category_id = 0 ) {
+	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent_term = 0, $level = 0 ) {
 
 		$end = $start + $per_page;
 
@@ -305,11 +282,6 @@ class WP_Terms_List_Table extends WP_List_Table {
 			}
 
 			if ( $term->parent !== $parent_term && empty( $_REQUEST['s'] ) ) {
-				continue;
-			}
-
-			// Skip duplicating display of default category.
-			if ( $default_category_id && $default_category_id === $term->term_id ) {
 				continue;
 			}
 
@@ -352,7 +324,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			unset( $terms[ $key ] );
 
 			if ( isset( $children[ $term->term_id ] ) && empty( $_REQUEST['s'] ) ) {
-				$this->_rows( $taxonomy, $terms, $children, $start, $per_page, $count, $term->term_id, $level + 1, $default_category_id );
+				$this->_rows( $taxonomy, $terms, $children, $start, $per_page, $count, $term->term_id, $level + 1 );
 			}
 		}
 	}
