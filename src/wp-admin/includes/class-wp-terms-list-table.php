@@ -267,7 +267,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			 * Some funky recursion to get the job done (paging & parents mainly) is contained within.
 			 * Skip it for non-hierarchical taxonomies for performance sake.
 			 */
-			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count, 0, 0, $default_category->term_id );
+			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count, 0, 0, $default_category ? $default_category->term_id : 0 );
 		} else {
 			// Only show pinned default category on the first page.
 			if ( $default_category && 0 === $offset ) {
