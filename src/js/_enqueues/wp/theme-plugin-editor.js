@@ -86,7 +86,7 @@ wp.themePluginEditor = (function( $ ) {
 		$( window ).on( 'keydown', function( event ) {
 			if ( ( event.ctrlKey || event.metaKey ) && ( 's' === event.key.toLowerCase() ) ) {
 				event.preventDefault();
-				component.submit( event );
+				component.form.trigger( 'submit' );
 			}
 		} );
 	};
