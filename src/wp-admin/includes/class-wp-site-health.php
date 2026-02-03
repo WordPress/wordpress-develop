@@ -3390,10 +3390,11 @@ class WP_Site_Health {
 	public function get_page_cache_headers() {
 
 		$cache_hit_callback = static function ( $header_value ) {
-			return str_contains( strtolower( $header_value ), 'hit' );
+			return (bool) preg_match( '/\bhit\b/i', $header_value );
 		};
 
 		$cache_headers = array(
+			// Standard HTTP caching headers.
 			'cache-control'          => static function ( $header_value ) {
 				return (bool) preg_match( '/max-age=[1-9]/', $header_value );
 			},
@@ -3405,24 +3406,39 @@ class WP_Site_Health {
 			},
 			'last-modified'          => '',
 			'etag'                   => '',
+
+			// Custom caching headers.
 			'x-cache-enabled'        => static function ( $header_value ) {
 				return 'true' === strtolower( $header_value );
 			},
 			'x-cache-disabled'       => static function ( $header_value ) {
 				return ( 'on' !== strtolower( $header_value ) );
 			},
+			// OpenResty srcache-nginx-module.
 			'x-srcache-store-status' => $cache_hit_callback,
 			'x-srcache-fetch-status' => $cache_hit_callback,
 
-			// Generic caching proxies (Nginx, Varnish, etc.)
-			'x-cache'           => $cache_hit_callback,
-			'x-cache-status'    => $cache_hit_callback,
-			'x-litespeed-cache' => $cache_hit_callback,
-			'x-proxy-cache'     => $cache_hit_callback,
-			'via'               => '',
+			// Generic caching proxies (Nginx, Varnish, etc.).
+			'x-cache'                => $cache_hit_callback,
+			'x-cache-status'         => $cache_hit_callback,
+			'x-litespeed-cache'      => $cache_hit_callback,
+			'x-proxy-cache'          => $cache_hit_callback,
 
-			// Cloudflare
-			'cf-cache-status' => $cache_hit_callback,
+			/**
+			 * Varnish Cache.
+			 *
+			 * For a cache hit, it includes both the ID of the current request and the ID of the request
+			 * that populated the cache. For a miss, it only includes the current request ID.
+			 *
+			 * @link https://vinyl-cache.org/docs/2.1/faq/http.html
+			 */
+			'x-varnish'              => static function ( $header_value ) {
+				return (bool) preg_match( '/\d+ \d+/', $header_value );
+			},
+			'via'                    => '',
+
+			// Cloudflare.
+			'cf-cache-status'        => $cache_hit_callback,
 		);
 
 		/**

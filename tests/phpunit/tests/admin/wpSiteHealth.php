@@ -408,6 +408,33 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
 			),
+			'false-positive-hit-in-word'             => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-cache' => 'shit' )
+				),
+				'expected_status' => 'recommended',
+				'expected_label'  => $recommended_label,
+			),
+			'varnish-header'                         => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-varnish' => '123 456' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'varnish-header-miss'                    => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-varnish' => '123' )
+				),
+				'expected_status' => 'recommended',
+				'expected_label'  => $recommended_label,
+			),
 		);
 	}
 
