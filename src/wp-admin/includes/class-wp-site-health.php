@@ -3414,14 +3414,31 @@ class WP_Site_Health {
 			'x-cache-disabled'       => static function ( $header_value ) {
 				return ( 'on' !== strtolower( $header_value ) );
 			},
-			// OpenResty srcache-nginx-module.
-			'x-srcache-store-status' => $cache_hit_callback,
+
+			/**
+			 * OpenResty srcache-nginx-module.
+			 *
+			 * The `x-srcache-store-status` header indicates if the response was stored in the cache.
+			 * Valid values include `STORE` and `BYPASS`.
+			 *
+			 * The `x-srcache-fetch-status` header indicates if the response was fetched from the cache.
+			 * Valid values include `HIT`, `MISS`, and `BYPASS`.
+			 *
+			 * @link https://github.com/openresty/srcache-nginx-module
+			 */
+			'x-srcache-store-status' => static function ( $header_value ) {
+				return 'store' === strtolower( $header_value );
+			},
 			'x-srcache-fetch-status' => $cache_hit_callback,
 
-			// Generic caching proxies (Nginx, Varnish, etc.).
+			// Generic caching proxies (Nginx, Varnish, Squid, Go, Fastly, LiteSpeed, etc.).
+
 			'x-cache'                => $cache_hit_callback,
+
 			'x-cache-status'         => $cache_hit_callback,
+
 			'x-litespeed-cache'      => $cache_hit_callback,
+
 			'x-proxy-cache'          => $cache_hit_callback,
 
 			/**

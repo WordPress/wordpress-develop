@@ -435,6 +435,33 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				'expected_status' => 'recommended',
 				'expected_label'  => $recommended_label,
 			),
+			'srcache-store-status'                   => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-srcache-store-status' => 'STORE' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'srcache-store-status-bypass'            => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-srcache-store-status' => 'BYPASS' )
+				),
+				'expected_status' => 'recommended',
+				'expected_label'  => $recommended_label,
+			),
+			'srcache-fetch-status'                   => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-srcache-fetch-status' => 'HIT' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
 		);
 	}
 
