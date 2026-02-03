@@ -226,10 +226,8 @@ declare( strict_types = 1 );
  * @see wp_register_ability_category()
  * @see wp_unregister_ability()
  *
- * @param string               $name The name of the ability. Must contain 2 to 4 segments separated
- *                                   by forward slashes, e.g., `my-plugin/my-ability` or
- *                                   `my-plugin/resource/my-ability`. Can only contain lowercase
- *                                   alphanumeric characters, dashes, and forward slashes.
+ * @param string               $name The name of the ability. Must be the fully-namespaced
+ *                                   string identifier, e.g. `my-plugin/my-ability` or `my-plugin/resource/my-ability`
  * @param array<string, mixed> $args {
  *     An associative array of arguments for configuring the ability.
  *
