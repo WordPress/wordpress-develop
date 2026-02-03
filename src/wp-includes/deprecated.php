@@ -3371,7 +3371,7 @@ function wp_convert_bytes_to_hr( $bytes ) {
 
 	$units = array( 0 => 'B', 1 => 'KB', 2 => 'MB', 3 => 'GB', 4 => 'TB' );
 	$log   = log( $bytes, KB_IN_BYTES );
-	$power = (int) $log;
+	$power = ! is_nan( $log ) && ! is_infinite( $log ) ? (int) $log : 0;
 	$size  = KB_IN_BYTES ** ( $log - $power );
 
 	if ( ! is_nan( $size ) && array_key_exists( $power, $units ) ) {
@@ -4264,9 +4264,7 @@ function wp_render_duotone_filter_preset( $preset ) {
 function wp_skip_border_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$border_support = isset( $block_type->supports['__experimentalBorder'] )
-		? $block_type->supports['__experimentalBorder']
-		: false;
+	$border_support = $block_type->supports['__experimentalBorder'] ?? false;
 
 	return is_array( $border_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
@@ -4288,9 +4286,7 @@ function wp_skip_border_serialization( $block_type ) {
 function wp_skip_dimensions_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$dimensions_support = isset( $block_type->supports['__experimentalDimensions'] )
-		? $block_type->supports['__experimentalDimensions']
-		: false;
+	$dimensions_support = $block_type->supports['__experimentalDimensions'] ?? false;
 
 	return is_array( $dimensions_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
@@ -4312,9 +4308,7 @@ function wp_skip_dimensions_serialization( $block_type ) {
 function wp_skip_spacing_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$spacing_support = isset( $block_type->supports['spacing'] )
-		? $block_type->supports['spacing']
-		: false;
+	$spacing_support = $block_type->supports['spacing'] ?? false;
 
 	return is_array( $spacing_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
@@ -6424,39 +6418,6 @@ function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
 }
 
 /**
- * Sanitizes category data based on context.
- *
- * @since 2.3.0
- * @deprecated 6.9.0
- *
- * @param object|array $category Category data.
- * @param string       $context  Optional. Default 'display'.
- * @return object|array Same type as $category with sanitized data for safe use.
- */
-function sanitize_category( $category, $context = 'display' ) {
-	_deprecated_function( __FUNCTION__, '6.9.0', 'sanitize_term' );
-	return sanitize_term( $category, 'category', $context );
-}
-
-/**
- * Sanitizes data in single category key field.
- *
- * @since 2.3.0
- * @deprecated 6.9.0
- *
- * @param string $field   Category key to sanitize.
- * @param mixed  $value   Category value to sanitize.
- * @param int    $cat_id  Category ID.
- * @param string $context What filter to use, 'raw', 'display', etc.
- *
- * @return mixed Value after $value has been sanitized.
- */
-function sanitize_category_field( $field, $value, $cat_id, $context ) {
-	_deprecated_function( __FUNCTION__, '6.9.0', 'sanitize_term_field' );
-	return sanitize_term_field( $field, $value, $cat_id, 'category', $context );
-}
-
-/**
  * Loads classic theme styles on classic themes in the editor.
  *
  * This is used for backwards compatibility for Button and File blocks specifically.
@@ -6494,3 +6455,61 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 
 	return $editor_settings;
 }
+
+/**
+ * Prints a CSS rule to fix potential visual issues with images using `sizes=auto`.
+ *
+ * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
+ * `width: auto` or `width: fit-content` to appear smaller.
+ *
+ * @since 6.7.1
+ * @deprecated 6.9.0 Use wp_enqueue_img_auto_sizes_contain_css_fix() instead.
+ * @see wp_enqueue_img_auto_sizes_contain_css_fix()
+ *
+ * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
+ * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62731
+ */
+function wp_print_auto_sizes_contain_css_fix() {
+	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_enqueue_img_auto_sizes_contain_css_fix' );
+
+	/** This filter is documented in wp-includes/media.php */
+	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
+	if ( ! $add_auto_sizes ) {
+		return;
+	}
+
+	?>
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	<?php
+}
+
+/**
+ * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
+ *
+ * This function is deprecated, use {@see wp_get_script_tag()} or {@see wp_get_inline_script_tag()} instead.
+ *
+ * @since 5.7.0
+ * @deprecated 7.0.0 Use wp_get_script_tag() or wp_get_inline_script_tag().
+ * @see wp_get_script_tag()
+ * @see wp_get_inline_script_tag()
+ *
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string String made of sanitized `<script>` tag attributes.
+ */
+function wp_sanitize_script_attributes( $attributes ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_get_script_tag() or wp_get_inline_script_tag()' );
+
+	$attributes_string = '';
+	foreach ( $attributes as $attribute_name => $attribute_value ) {
+		if ( is_bool( $attribute_value ) ) {
+			if ( $attribute_value ) {
+				$attributes_string .= ' ' . esc_attr( $attribute_name );
+			}
+		} else {
+			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
+	}
+	return $attributes_string;
+}
+

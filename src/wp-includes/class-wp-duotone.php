@@ -52,7 +52,7 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @var array
+	 * @var ?array
 	 */
 	private static $global_styles_block_names;
 
@@ -76,7 +76,7 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @var array
+	 * @var ?array
 	 */
 	private static $global_styles_presets;
 
@@ -209,7 +209,7 @@ class WP_Duotone {
 			'rad'  => 360 / ( M_PI * 2 ),
 		);
 
-		$factor = isset( $angle_units[ $unit ] ) ? $angle_units[ $unit ] : 1;
+		$factor = $angle_units[ $unit ] ?? 1;
 
 		return (float) $value * $factor;
 	}
@@ -246,7 +246,7 @@ class WP_Duotone {
 				'r' => (int) base_convert( $hex[0] . $hex[0], 16, 10 ),
 				'g' => (int) base_convert( $hex[1] . $hex[1], 16, 10 ),
 				'b' => (int) base_convert( $hex[2] . $hex[2], 16, 10 ),
-				'a' => 4 === strlen( $hex ) ? round( base_convert( $hex[3] . $hex[3], 16, 10 ) / 255, 2 ) : 1,
+				'a' => 4 === strlen( $hex ) ? round( (int) base_convert( $hex[3] . $hex[3], 16, 10 ) / 255, 2 ) : 1,
 			);
 		}
 
@@ -972,9 +972,7 @@ class WP_Duotone {
 		 * If the experimental duotone support was set, that value is to be
 		 * treated as a selector and requires scoping.
 		 */
-		$experimental_duotone = isset( $block_type->supports['color']['__experimentalDuotone'] )
-			? $block_type->supports['color']['__experimentalDuotone']
-			: false;
+		$experimental_duotone = $block_type->supports['color']['__experimentalDuotone'] ?? false;
 		if ( $experimental_duotone ) {
 			$root_selector = wp_get_block_css_selector( $block_type );
 			return is_string( $experimental_duotone )
@@ -1003,7 +1001,7 @@ class WP_Duotone {
 		}
 		// Get the per block settings from the theme.json.
 		$tree              = wp_get_global_settings();
-		$presets_by_origin = isset( $tree['color']['duotone'] ) ? $tree['color']['duotone'] : array();
+		$presets_by_origin = $tree['color']['duotone'] ?? array();
 
 		self::$global_styles_presets = array();
 		foreach ( $presets_by_origin as $presets ) {
@@ -1304,9 +1302,7 @@ class WP_Duotone {
 	 * @return array Filtered block type settings.
 	 */
 	public static function migrate_experimental_duotone_support_flag( $settings, $metadata ) {
-		$duotone_support = isset( $metadata['supports']['color']['__experimentalDuotone'] )
-			? $metadata['supports']['color']['__experimentalDuotone']
-			: null;
+		$duotone_support = $metadata['supports']['color']['__experimentalDuotone'] ?? null;
 
 		if ( ! isset( $settings['supports']['filter']['duotone'] ) && null !== $duotone_support ) {
 			_wp_array_set( $settings, array( 'supports', 'filter', 'duotone' ), (bool) $duotone_support );
