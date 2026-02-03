@@ -81,6 +81,14 @@ wp.themePluginEditor = (function( $ ) {
 				component.docsLookUpButton.prop( 'disabled', false );
 			}
 		} );
+
+		// Initiate saving the file when not focused in CodeMirror or when the user has syntax highlighting turned off.
+		$( window ).on( 'keydown', function( event ) {
+			if ( ( event.ctrlKey || event.metaKey ) && ( 's' === event.key.toLowerCase() ) ) {
+				event.preventDefault();
+				component.submit( event );
+			}
+		} );
 	};
 
 	/**
