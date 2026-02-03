@@ -312,6 +312,11 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 					return;
 				}
 
+				// Prevent autocompletion when read-only (e.g. while saving).
+				if ( codemirror.getOption( 'readOnly' ) ) {
+					return;
+				}
+
 				// Prevent autocompletion in string literals or comments.
 				token = codemirror.getTokenAt( codemirror.getCursor() );
 				if ( 'string' === token.type || 'comment' === token.type ) {
