@@ -309,8 +309,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 			codemirror.on( 'inputRead', function( editor, change ) {
 				var shouldAutocomplete, isAlphaKey, lineBeforeCursor, innerMode, token, char;
 
-				// Skip autocompletion when pasting as it could result in overwhelming hints.
-				if ( 'paste' === change.origin ) {
+				// Only trigger autocompletion for typed input or IME composition.
+				if ( '+input' !== change.origin && ! change.origin.startsWith( '*compose' ) ) {
 					return;
 				}
 
