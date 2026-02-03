@@ -259,6 +259,33 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 			)
 		);
 
+		// Insert a few posts in each category to enable pagination.
+		for ( $p = 0; $p < 6; $p++ ) {
+			self::$post_ids[] = $factory->post->create(
+				array(
+					'post_title'    => 'Post in category parent ' . $p,
+					'post_type'     => 'post',
+					'post_category' => array( self::$terms['/category/parent/'] ),
+				)
+			);
+
+			self::$post_ids[] = $factory->post->create(
+				array(
+					'post_title'    => 'Post in category child-1 ' . $p,
+					'post_type'     => 'post',
+					'post_category' => array( self::$terms['/category/parent/child-1/'] ),
+				)
+			);
+
+			self::$post_ids[] = $factory->post->create(
+				array(
+					'post_title'    => 'Post in category child-2 ' . $p,
+					'post_type'     => 'post',
+					'post_category' => array( self::$terms['/category/parent/child-1/child-2/'] ),
+				)
+			);
+		}
+
 		self::$term_ids[ $tag1 ] = 'post_tag';
 	}
 

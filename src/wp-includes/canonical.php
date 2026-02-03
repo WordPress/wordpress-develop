@@ -346,6 +346,28 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$tax_url = get_term_link( (int) $obj->term_id, $obj->taxonomy );
 
 				if ( $tax_url && ! is_wp_error( $tax_url ) ) {
+					$category_permastruct = $wp_rewrite->get_category_permastruct();
+
+					// Redirect if the current category path doesn't match the canonical path.
+					if ( is_category()
+						&& ! empty( $obj->parent )
+						&& $category_permastruct
+						&& str_contains( $category_permastruct, '%category%' )
+						&& ! empty( $wp->query_vars['category_name'] )
+					) {
+						$category_path_slug = get_category_parents( $obj->term_id, false, '/', true );
+
+						if ( $category_path_slug && ! is_wp_error( $category_path_slug ) ) {
+							$category_path_slug    = untrailingslashit( $category_path_slug );
+							$category_path         = str_replace( '%category%', $category_path_slug, $category_permastruct );
+							$request_category_path = str_replace( '%category%', $wp->query_vars['category_name'], $category_permastruct );
+
+							if ( $category_path !== $request_category_path ) {
+								$redirect['path'] = str_replace( $request_category_path, $category_path, $redirect['path'] );
+							}
+						}
+					}
+
 					if ( ! empty( $redirect['query'] ) ) {
 						// Strip taxonomy query vars off the URL.
 						$qv_remove = array( 'term', 'taxonomy' );
