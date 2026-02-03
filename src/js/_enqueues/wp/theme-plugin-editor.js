@@ -412,7 +412,7 @@ wp.themePluginEditor = (function( $ ) {
 		editor.codemirror.on( 'change', component.onChange );
 
 		function onSaveShortcut() {
-			component.form.submit();
+			component.form.trigger( 'submit' );
 		}
 
 		editor.codemirror.setOption( 'extraKeys', {
