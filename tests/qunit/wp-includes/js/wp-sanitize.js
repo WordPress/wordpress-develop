@@ -32,6 +32,11 @@ QUnit.test( 'stripTags should return "0" for input "0"', function( assert ) {
 	assert.strictEqual( result, '0', 'stripTags( "0" ) should return "0"' );
 } );
 
+QUnit.test( 'stripTags should return "false" for input false', function( assert ) {
+	const result = wp.sanitize.stripTags( false );
+	assert.strictEqual( result, 'false', 'stripTags( false ) should return "false"' );
+} );
+
 QUnit.test( 'stripTags should return empty string for empty string input', function( assert ) {
 	const result = wp.sanitize.stripTags( '' );
 	assert.strictEqual( result, '', 'stripTags( "" ) should return ""' );
