@@ -831,8 +831,16 @@ class WP_Post_Type_Abilities {
 			$input = is_array( $input ) ? $input : array();
 
 			// For single post retrieval, check specific post permission.
+			// If the post doesn't exist, verify the user has general read
+			// capability before letting the execute callback return a 404.
 			if ( ! empty( $input['id'] ) ) {
-				return current_user_can( 'read_post', (int) $input['id'] );
+				$post = get_post( (int) $input['id'] );
+
+				if ( ! $post || $post->post_type !== $post_type_object->name ) {
+					return current_user_can( $post_type_object->cap->read_others_posts ?? 'read' );
+				}
+
+				return current_user_can( 'read_post', $post->ID );
 			}
 
 			// For queries, check general read capability.
