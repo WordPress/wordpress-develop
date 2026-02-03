@@ -586,7 +586,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					/**
 					 * Filters the status text of default switch case in the plugins list table.
 					 *
-					 * @since 6.9.0
+					 * @since 7.0.0
 					 *
 					 * @param string $text  Plugins list status text. Default empty string.
 					 * @param int    $count Count of the number of plugins.
