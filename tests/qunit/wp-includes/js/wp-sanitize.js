@@ -22,9 +22,9 @@ QUnit.test( 'stripTags should convert numbers to strings', function( assert ) {
 	assert.strictEqual( result, '123', 'stripTags( 123 ) should return "123"' );
 } );
 
-QUnit.test( 'stripTags should return "0" for input 0', function( assert ) {
+QUnit.test( 'stripTags should return empty string for input 0', function( assert ) {
 	const result = wp.sanitize.stripTags( 0 );
-	assert.strictEqual( result, '0', 'stripTags( 0 ) should return "0"' );
+	assert.strictEqual( result, '', 'stripTags( 0 ) should return ""' );
 } );
 
 QUnit.test( 'stripTags should return "0" for input "0"', function( assert ) {
@@ -32,9 +32,14 @@ QUnit.test( 'stripTags should return "0" for input "0"', function( assert ) {
 	assert.strictEqual( result, '0', 'stripTags( "0" ) should return "0"' );
 } );
 
-QUnit.test( 'stripTags should return "false" for input false', function( assert ) {
+QUnit.test( 'stripTags should return empty string for input false', function( assert ) {
 	const result = wp.sanitize.stripTags( false );
-	assert.strictEqual( result, 'false', 'stripTags( false ) should return "false"' );
+	assert.strictEqual( result, '', 'stripTags( false ) should return ""' );
+} );
+
+QUnit.test( 'stripTags should return empty string for input NaN', function( assert ) {
+	const result = wp.sanitize.stripTags( NaN );
+	assert.strictEqual( result, '', 'stripTags( NaN ) should return ""' );
 } );
 
 QUnit.test( 'stripTags should return empty string for empty string input', function( assert ) {

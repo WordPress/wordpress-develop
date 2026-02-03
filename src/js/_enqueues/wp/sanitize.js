@@ -23,7 +23,7 @@
 		 * @return {string} Stripped text.
 		 */
 		stripTags: function( text ) {
-			if ( null == text ) {
+			if ( ! text ) {
 				return '';
 			}
 
