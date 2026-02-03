@@ -74,15 +74,16 @@ function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
  * @ignore
  * @since 7.0.0
  *
- * @param string     $function_name Function name.
- * @param WP_Scripts $wp_scripts    WP_Scripts instance.
- * @param string     $handle        Script handle.
- * @param array      $args          Array of extra args for the script.
+ * @param WP_Scripts $wp_scripts WP_Scripts instance.
+ * @param string     $handle     Script handle.
+ * @param array      $args       Array of extra args for the script.
  */
-function _wp_scripts_add_args_data( string $function_name, WP_Scripts $wp_scripts, string $handle, array $args ) {
+function _wp_scripts_add_args_data( WP_Scripts $wp_scripts, string $handle, array $args ) {
 	$allowed_keys = array( 'strategy', 'in_footer', 'fetchpriority', 'module_dependencies' );
 	$unknown_keys = array_diff( array_keys( $args ), $allowed_keys );
 	if ( ! empty( $unknown_keys ) ) {
+		$trace         = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 );
+		$function_name = ( $trace[1]['class'] ?? '' ) . ( $trace[1]['type'] ?? '' ) . $trace[1]['function'];
 		_doing_it_wrong(
 			$function_name,
 			sprintf(
@@ -233,7 +234,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-	_wp_scripts_add_args_data( __FUNCTION__, $wp_scripts, $handle, $args );
+	_wp_scripts_add_args_data( $wp_scripts, $handle, $args );
 
 	return $registered;
 }
@@ -420,7 +421,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
 		if ( ! empty( $args ) ) {
-			_wp_scripts_add_args_data( __FUNCTION__, $wp_scripts, $_handle[0], $args );
+			_wp_scripts_add_args_data( $wp_scripts, $_handle[0], $args );
 		}
 	}
 
