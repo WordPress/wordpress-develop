@@ -3378,16 +3378,13 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Returns a list of headers and its verification callback to verify if page cache is enabled or not.
-	 *
-	 * Note: key is header name and value could be callable function to verify header value.
-	 * Empty value mean existence of header detect page cache is enabled.
+	 * Returns a mapping to response headers to an optional callback to verify if page cache is enabled or not.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array List of client caching headers and their (optional) verification callbacks.
+	 * @return array<string, ?callable> Mapping of page caching headers and their (optional) verification callbacks.
 	 */
-	public function get_page_cache_headers() {
+	public function get_page_cache_headers(): array {
 
 		$cache_hit_callback = static function ( $header_value ) {
 			return (bool) preg_match( '/\bhit\b/i', $header_value );
@@ -3404,8 +3401,8 @@ class WP_Site_Health {
 			'age'                    => static function ( $header_value ) {
 				return is_numeric( $header_value ) && $header_value > 0;
 			},
-			'last-modified'          => '',
-			'etag'                   => '',
+			'last-modified'          => null,
+			'etag'                   => null,
 
 			// Custom caching headers.
 			'x-cache-enabled'        => static function ( $header_value ) {
@@ -3452,7 +3449,7 @@ class WP_Site_Health {
 			'x-varnish'              => static function ( $header_value ) {
 				return (bool) preg_match( '/\d+ \d+/', $header_value );
 			},
-			'via'                    => '',
+			'via'                    => null,
 
 			// Cloudflare.
 			'cf-cache-status'        => $cache_hit_callback,
@@ -3463,9 +3460,9 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param array $cache_headers Array of supported cache headers.
+		 * @param array<string, ?callable> $cache_headers Mapping of page caching headers and their (optional) verification callbacks.
 		 */
-		return apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
+		return (array) apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
 	}
 
 	/**
