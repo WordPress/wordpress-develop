@@ -306,14 +306,25 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 		};
 
 		if ( codemirror.showHint ) {
-			codemirror.on( 'keyup', function( editor, event ) { // eslint-disable-line complexity
-				var shouldAutocomplete, isAlphaKey = /^[a-zA-Z]$/.test( event.key ), lineBeforeCursor, innerMode, token;
-				if ( codemirror.state.completionActive && isAlphaKey ) {
+			codemirror.on( 'inputRead', function( editor, change ) {
+				var shouldAutocomplete, isAlphaKey, lineBeforeCursor, innerMode, token, char;
+
+				// Skip autocompletion when pasting as it could result in overwhelming hints.
+				if ( 'paste' === change.origin ) {
 					return;
 				}
 
-				// Prevent autocompletion when read-only (e.g. while saving).
-				if ( codemirror.getOption( 'readOnly' ) ) {
+				// Only trigger autocompletion for single-character inputs.
+				// The text property is an array of strings, one for each line.
+				// We check that there is only one line and that line has only one character.
+				if ( 1 !== change.text.length || 1 !== change.text[0].length ) {
+					return;
+				}
+
+				char = change.text[0];
+				isAlphaKey = /^[a-zA-Z]$/.test( char );
+
+				if ( codemirror.state.completionActive && isAlphaKey ) {
 					return;
 				}
 
@@ -327,11 +338,11 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 				lineBeforeCursor = codemirror.doc.getLine( codemirror.doc.getCursor().line ).substr( 0, codemirror.doc.getCursor().ch );
 				if ( 'html' === innerMode || 'xml' === innerMode ) {
 					shouldAutocomplete = (
-						'<' === event.key ||
-						( '/' === event.key && 'tag' === token.type ) ||
+						'<' === char ||
+						( '/' === char && 'tag' === token.type ) ||
 						( isAlphaKey && 'tag' === token.type ) ||
 						( isAlphaKey && 'attribute' === token.type ) ||
-						( '=' === event.key && (
+						( '=' === char && (
 							token.state.htmlState?.tagName ||
 							token.state.curState?.htmlState?.tagName
 						) )
@@ -339,17 +350,17 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 				} else if ( 'css' === innerMode ) {
 					shouldAutocomplete =
 						isAlphaKey ||
-						':' === event.key ||
-						( ' ' === event.key && /:\s+$/.test( lineBeforeCursor ) );
+						':' === char ||
+						( ' ' === char && /:\s+$/.test( lineBeforeCursor ) );
 				} else if ( 'javascript' === innerMode ) {
-					shouldAutocomplete = isAlphaKey || '.' === event.key;
+					shouldAutocomplete = isAlphaKey || '.' === char;
 				} else if ( 'clike' === innerMode && 'php' === codemirror.options.mode ) {
 					shouldAutocomplete = isAlphaKey && ( 'keyword' === token.type || 'variable' === token.type );
 				}
 				if ( shouldAutocomplete ) {
 					codemirror.showHint( { completeSingle: false } );
 				}
-			});
+			} );
 		}
 
 		// Facilitate tabbing out of the editor.
