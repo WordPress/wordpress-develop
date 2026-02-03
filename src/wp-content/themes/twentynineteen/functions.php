@@ -181,7 +181,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Nineteen 2.3
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */
@@ -242,9 +244,13 @@ add_filter( 'excerpt_more', 'twentynineteen_excerpt_more' );
  * @global int $content_width Content width.
  */
 function twentynineteen_content_width() {
-	// This variable is intended to be overruled from themes.
-	// Open WPCS issue: {@link https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/1043}.
-	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	/**
+	 * Filters Twenty Nineteen content width of the theme.
+	 *
+	 * @since Twenty Nineteen 1.0
+	 *
+	 * @param int $content_width Content width in pixels.
+	 */
 	$GLOBALS['content_width'] = apply_filters( 'twentynineteen_content_width', 640 );
 }
 add_action( 'after_setup_theme', 'twentynineteen_content_width', 0 );
@@ -274,7 +280,7 @@ function twentynineteen_scripts() {
 			'twentynineteen-touch-navigation',
 			get_theme_file_uri( '/js/touch-keyboard-navigation.js' ),
 			array(),
-			'20230621',
+			'20250802',
 			array(
 				'in_footer' => true,
 				'strategy'  => 'defer',
@@ -343,7 +349,7 @@ function twentynineteen_colors_css_wrap() {
 	}
 	?>
 
-	<style type="text/css" id="custom-theme-colors" <?php echo is_customize_preview() ? 'data-hue="' . absint( $primary_color ) . '"' : ''; ?>>
+	<style id="custom-theme-colors" <?php echo is_customize_preview() ? 'data-hue="' . absint( $primary_color ) . '"' : ''; ?>>
 		<?php echo twentynineteen_custom_colors_css(); ?>
 	</style>
 	<?php

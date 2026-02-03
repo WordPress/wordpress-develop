@@ -4264,9 +4264,7 @@ function wp_render_duotone_filter_preset( $preset ) {
 function wp_skip_border_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$border_support = isset( $block_type->supports['__experimentalBorder'] )
-		? $block_type->supports['__experimentalBorder']
-		: false;
+	$border_support = $block_type->supports['__experimentalBorder'] ?? false;
 
 	return is_array( $border_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
@@ -4288,9 +4286,7 @@ function wp_skip_border_serialization( $block_type ) {
 function wp_skip_dimensions_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$dimensions_support = isset( $block_type->supports['__experimentalDimensions'] )
-		? $block_type->supports['__experimentalDimensions']
-		: false;
+	$dimensions_support = $block_type->supports['__experimentalDimensions'] ?? false;
 
 	return is_array( $dimensions_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
@@ -4312,9 +4308,7 @@ function wp_skip_dimensions_serialization( $block_type ) {
 function wp_skip_spacing_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$spacing_support = isset( $block_type->supports['spacing'] )
-		? $block_type->supports['spacing']
-		: false;
+	$spacing_support = $block_type->supports['spacing'] ?? false;
 
 	return is_array( $spacing_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
@@ -5897,10 +5891,9 @@ function _wp_theme_json_webfonts_handler() {
 function print_embed_styles() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	$suffix    = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
 	?>
-	<style<?php echo $type_attr; ?>>
+	<style>
 		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
 	</style>
 	<?php
@@ -5922,9 +5915,8 @@ function print_emoji_styles() {
 
 	$printed = true;
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?>>
+	<style>
 	img.wp-smiley,
 	img.emoji {
 		display: inline !important;
@@ -5949,9 +5941,8 @@ function print_emoji_styles() {
  */
 function wp_admin_bar_header() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>
+	<style media="print">#wpadminbar { display:none; }</style>
 	<?php
 }
 
@@ -5963,9 +5954,8 @@ function wp_admin_bar_header() {
  */
 function _admin_bar_bump_cb() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?> media="screen">
+	<style media="screen">
 	html { margin-top: 32px !important; }
 	@media screen and ( max-width: 782px ) {
 	  html { margin-top: 46px !important; }
@@ -6489,3 +6479,33 @@ function wp_print_auto_sizes_contain_css_fix() {
 	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
 	<?php
 }
+
+/**
+ * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
+ *
+ * This function is deprecated, use {@see wp_get_script_tag()} or {@see wp_get_inline_script_tag()} instead.
+ *
+ * @since 5.7.0
+ * @deprecated 7.0.0 Use wp_get_script_tag() or wp_get_inline_script_tag().
+ * @see wp_get_script_tag()
+ * @see wp_get_inline_script_tag()
+ *
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string String made of sanitized `<script>` tag attributes.
+ */
+function wp_sanitize_script_attributes( $attributes ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_get_script_tag() or wp_get_inline_script_tag()' );
+
+	$attributes_string = '';
+	foreach ( $attributes as $attribute_name => $attribute_value ) {
+		if ( is_bool( $attribute_value ) ) {
+			if ( $attribute_value ) {
+				$attributes_string .= ' ' . esc_attr( $attribute_name );
+			}
+		} else {
+			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
+	}
+	return $attributes_string;
+}
+

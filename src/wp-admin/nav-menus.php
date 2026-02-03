@@ -52,7 +52,7 @@ $menu_locations = get_nav_menu_locations();
 $num_locations  = count( array_keys( $locations ) );
 
 // Allowed actions: add, update, delete.
-$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'edit';
+$action = $_REQUEST['action'] ?? 'edit';
 
 /*
  * If a JSON blob of navigation menu data is found, expand it and inject it
@@ -672,12 +672,14 @@ if ( is_nav_menu( $nav_menu_selected_id ) ) {
 }
 
 /**
+ * Adds a CSS class to display the max depth of the navigation menu.
+ *
  * @since 3.0.0
  *
- * @global int $_wp_nav_menu_max_depth
+ * @global int $_wp_nav_menu_max_depth Maximum depth of the navigation menu.
  *
- * @param string $classes
- * @return string
+ * @param string $classes Existing CSS classes for the body tag.
+ * @return string Modified CSS classes including the menu max depth class.
  */
 function wp_nav_menu_max_depth( $classes ) {
 	global $_wp_nav_menu_max_depth;

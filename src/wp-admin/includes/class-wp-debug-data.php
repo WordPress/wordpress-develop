@@ -373,8 +373,8 @@ class WP_Debug_Data {
 		);
 		$fields['httpd_software']      = array(
 			'label' => __( 'Web server' ),
-			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
-			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
+			'value' => $_SERVER['SERVER_SOFTWARE'] ?? __( 'Unable to determine what web server software is used' ),
+			'debug' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
 		);
 		$fields['php_version']         = array(
 			'label' => __( 'PHP version' ),
@@ -505,12 +505,12 @@ class WP_Debug_Data {
 		}
 
 		// Check if a robots.txt file exists.
-		if ( is_file( ABSPATH . 'robots.txt' ) ) {
+		if ( is_file( get_home_path() . 'robots.txt' ) ) {
 			// If the file exists, turn debug info to true.
 			$robotstxt_debug = true;
 
 			/* translators: %s: robots.txt */
-			$robotstxt_string = sprintf( __( 'There is a static %s file in your installation folder. WordPress cannot dynamically serve one.' ), 'robots.txt' );
+			$robotstxt_string = sprintf( __( 'Your site is using a static %s file. WordPress cannot dynamically serve one.' ), 'robots.txt' );
 		} elseif ( got_url_rewrite() ) {
 			// No robots.txt file available and rewrite rules in place, turn debug info to false.
 			$robotstxt_debug = false;
@@ -522,7 +522,7 @@ class WP_Debug_Data {
 			$robotstxt_debug = true;
 
 			/* translators: %s: robots.txt */
-			$robotstxt_string = sprintf( __( 'WordPress cannot dynamically serve a %s file due to a lack of rewrite rule support' ), 'robots.txt' );
+			$robotstxt_string = sprintf( __( 'WordPress cannot dynamically serve a %s file due to a lack of rewrite rule support.' ), 'robots.txt' );
 
 		}
 
@@ -1591,6 +1591,11 @@ class WP_Debug_Data {
 				'label' => 'DB_COLLATE',
 				'value' => $db_collate,
 				'debug' => $db_collate_debug,
+			),
+			'EMPTY_TRASH_DAYS'    => array(
+				'label' => 'EMPTY_TRASH_DAYS',
+				'value' => EMPTY_TRASH_DAYS ? EMPTY_TRASH_DAYS : __( 'Empty value' ),
+				'debug' => EMPTY_TRASH_DAYS,
 			),
 		);
 
