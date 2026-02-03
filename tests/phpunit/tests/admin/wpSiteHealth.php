@@ -12,10 +12,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * An instance of the class to test.
 	 *
 	 * @since 6.1.0
-	 *
-	 * @var WP_Site_Health
 	 */
-	private $instance;
+	private WP_Site_Health $instance;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Include the `WP_Site_Health` file.
@@ -172,7 +170,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_page_cache_headers()
 	 * @covers ::check_for_page_caching()
 	 */
-	public function test_get_page_cache( $responses, $expected_status, $expected_label, $good_basic_auth = null, $delay_the_response = false ) {
+	public function test_get_page_cache( array $responses, string $expected_status, string $expected_label, bool $good_basic_auth = false, bool $delay_the_response = false ) {
 		$expected_props = array(
 			'badge'  => array(
 				'label' => __( 'Performance' ),
@@ -183,7 +181,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			'label'  => $expected_label,
 		);
 
-		if ( null !== $good_basic_auth ) {
+		if ( $good_basic_auth ) {
 			$_SERVER['PHP_AUTH_USER'] = 'admin';
 			$_SERVER['PHP_AUTH_PW']   = 'password';
 		}
@@ -219,7 +217,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 					);
 				}
 
-				if ( null !== $good_basic_auth ) {
+				if ( $good_basic_auth ) {
 					$this->assertArrayHasKey(
 						'Authorization',
 						$parsed_args['headers']
@@ -263,9 +261,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @ticket 56041
 	 *
-	 * @return array[]
+	 * @return array<string, array{
+	 *     responses: array<int, string|array<string, string|string[]>>,
+	 *     expected_status: 'recommended'|'critical'|'good',
+	 *     expected_label: string,
+	 *     good_basic_auth?: bool,
+	 *     delay_the_response?: bool,
+	 * }>
 	 */
-	public function data_get_page_cache() {
+	public function data_get_page_cache(): array {
 		$recommended_label = 'Page cache is not detected but the server response time is OK';
 		$good_label        = 'Page cache is detected and the server response time is good';
 		$critical_label    = 'Page cache is not detected and the server response time is slow';
@@ -278,13 +282,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status' => 'recommended',
 				'expected_label'  => $error_label,
-				'good_basic_auth' => false,
+				'good_basic_auth' => true,
 			),
 			'no-cache-control'                       => array(
 				'responses'          => array_fill( 0, 3, array() ),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
+				'good_basic_auth'    => false,
 				'delay_the_response' => true,
 			),
 			'no-cache'                               => array(
@@ -310,7 +314,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				'responses'          => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
+				'good_basic_auth'    => false,
 				'delay_the_response' => true,
 			),
 			'age'                                    => array(
@@ -366,7 +370,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
+				'good_basic_auth'    => false,
 				'delay_the_response' => true,
 			),
 			'cache-control-with-basic-auth'          => array(
@@ -396,7 +400,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
+				'good_basic_auth'    => false,
 				'delay_the_response' => true,
 			),
 			'x-cache-disabled'                       => array(
@@ -458,6 +462,24 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 					0,
 					3,
 					array( 'x-srcache-fetch-status' => 'HIT' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'last-modified'                          => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'last-modified' => 'Wed, 21 Oct 2015 07:28:00 GMT' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'via'                                    => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'via' => '1.1 varnish' )
 				),
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,

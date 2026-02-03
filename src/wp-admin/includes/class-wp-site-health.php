@@ -3429,13 +3429,9 @@ class WP_Site_Health {
 			'x-srcache-fetch-status' => $cache_hit_callback,
 
 			// Generic caching proxies (Nginx, Varnish, Squid, Go, Fastly, LiteSpeed, etc.).
-
 			'x-cache'                => $cache_hit_callback,
-
 			'x-cache-status'         => $cache_hit_callback,
-
 			'x-litespeed-cache'      => $cache_hit_callback,
-
 			'x-proxy-cache'          => $cache_hit_callback,
 
 			/**
