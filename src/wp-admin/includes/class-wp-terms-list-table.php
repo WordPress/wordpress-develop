@@ -292,7 +292,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param int    $count
 	 * @param int    $parent_term
 	 * @param int    $level
-	 * @param int    $default_category_id
+	 * @param int    $default_category_id Optional. Term ID of the default category to skip displaying, or 0 if none. Default 0.
 	 */
 	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent_term = 0, $level = 0, $default_category_id = 0 ) {
 
@@ -413,7 +413,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		$default_term       = get_option( 'default_' . $taxonomy );
 		$default_term_label = '';
-		if ( $tag->term_id == $default_term ) {
+		if ( $tag->term_id === (int) $default_term ) {
 			$default_term_label = ' &mdash; <span class="taxonomy-default-label">' . __( 'Default' ) . '</span>';
 		}
 
