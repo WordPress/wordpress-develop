@@ -634,7 +634,7 @@ if ( $can_edit_terms ) {
 		/** This filter is documented in wp-includes/category-template.php */
 		'<strong>' . apply_filters( 'the_category', get_cat_name( $default_category_id ), '', '' ) . '</strong>',
 		esc_url( get_edit_term_link( $default_category_id, 'category' ) ),
-		esc_url( admin_url( 'options-writing.php#default-category-row' ) )
+		esc_url( admin_url( 'options-writing.php#default_category' ) )
 	);
 	?>
 </p>

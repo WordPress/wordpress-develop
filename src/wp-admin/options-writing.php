@@ -78,7 +78,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 </fieldset></td>
 </tr>
 <?php endif; ?>
-<tr id="default-category-row">
+<tr>
 <th scope="row"><label for="default_category"><?php _e( 'Default Post Category' ); ?></label></th>
 <td>
 <?php

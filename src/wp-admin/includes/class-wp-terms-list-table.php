@@ -243,14 +243,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		// Handle custom display of default category by showing it first in the list.
-		$default_category    = false;
-		$default_category_id = 0;
+		$default_category = null;
 		if ( 'category' === $taxonomy ) {
-			$default_category_id = (int) get_option( 'default_category' );
-			$default_category    = get_term( $default_category_id, 'category' );
-			if ( ! $default_category || is_wp_error( $default_category ) ) {
-				$default_category    = false;
-				$default_category_id = 0;
+			$default_category = get_term( (int) get_option( 'default_category' ), 'category' );
+			if ( ! ( $default_category instanceof WP_Term ) ) {
+				$default_category = null;
 			}
 		}
 
@@ -270,7 +267,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			 * Some funky recursion to get the job done (paging & parents mainly) is contained within.
 			 * Skip it for non-hierarchical taxonomies for performance sake.
 			 */
-			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count, 0, 0, $default_category_id );
+			$this->_rows( $taxonomy, $this->items, $children, $offset, $number, $count, 0, 0, $default_category->term_id );
 		} else {
 			// Only show pinned default category on the first page.
 			if ( $default_category && 0 === $offset ) {
@@ -278,7 +275,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			}
 
 			foreach ( $this->items as $term ) {
-				if ( $default_category_id && $default_category_id === $term->term_id ) {
+				if ( $default_category && $default_category->term_id === $term->term_id ) {
 					continue;
 				}
 				$this->single_row( $term );
@@ -573,7 +570,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		if ( 'category' === $taxonomy && (int) get_option( 'default_category' ) === $tag->term_id ) {
 			$actions['change-default'] = sprintf(
 				'<a href="%s">%s</a>',
-				admin_url( 'options-writing.php#default-category-row' ),
+				admin_url( 'options-writing.php#default_category' ),
 				__( 'Change Default' )
 			);
 		}
