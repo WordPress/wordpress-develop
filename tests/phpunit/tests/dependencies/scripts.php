@@ -150,7 +150,7 @@ JS;
 						'another_bad_key'  => 'value',
 					),
 				),
-				'expected_msg'  => 'Unrecognized keys in the $args array: unrecognized_key, another_bad_key',
+				'expected_msg'  => 'Unrecognized key(s) in the $args param: unrecognized_key, another_bad_key. Supported keys: strategy, in_footer, fetchpriority, module_dependencies',
 			),
 			'enqueue_script'  => array(
 				'function_name' => 'wp_enqueue_script',
@@ -167,7 +167,7 @@ JS;
 						'invalid_key'         => 'bar',
 					),
 				),
-				'expected_msg'  => 'Unrecognized keys in the $args array: invalid_key',
+				'expected_msg'  => 'Unrecognized key(s) in the $args param: invalid_key. Supported keys: strategy, in_footer, fetchpriority, module_dependencies',
 			),
 		);
 	}

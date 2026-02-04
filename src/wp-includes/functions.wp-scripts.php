@@ -87,10 +87,11 @@ function _wp_scripts_add_args_data( WP_Scripts $wp_scripts, string $handle, arra
 		_doing_it_wrong(
 			$function_name,
 			sprintf(
-				/* translators: 1: $args, 2: List of unrecognized keys. */
-				__( 'Unrecognized keys in the %1$s array: %2$s.' ),
+				/* translators: 1: $args, 2: List of unrecognized keys, 3: List of supported keys. */
+				__( 'Unrecognized key(s) in the %1$s param: %2$s. Supported keys: %3$s' ),
 				'$args',
-				implode( wp_get_list_item_separator(), $unknown_keys )
+				implode( wp_get_list_item_separator(), $unknown_keys ),
+				implode( wp_get_list_item_separator(), $allowed_keys )
 			),
 			'7.0.0'
 		);
