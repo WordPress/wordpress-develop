@@ -84,7 +84,11 @@ wp.themePluginEditor = (function( $ ) {
 
 		// Initiate saving the file when not focused in CodeMirror or when the user has syntax highlighting turned off.
 		$( window ).on( 'keydown', function( event ) {
-			if ( ( event.ctrlKey || event.metaKey ) && ( 's' === event.key.toLowerCase() ) ) {
+			if (
+				( event.ctrlKey || event.metaKey ) &&
+				( 's' === event.key.toLowerCase() ) &&
+				( ! component.instance || ! component.instance.codemirror.hasFocus() )
+			) {
 				event.preventDefault();
 				component.form.trigger( 'submit' );
 			}
