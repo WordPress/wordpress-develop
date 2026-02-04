@@ -1628,8 +1628,6 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  *     @type string $after_section  HTML content to append to the section's HTML output. Default empty.
  *     @type string $section_class  The class name to use for the section. Default empty.
  * }
- *
- * @global array $wp_settings_sections Global settings sections array.
  */
 function add_settings_section( $id, $title, $callback, $page, $args = array() ) {
 	global $wp_settings_sections;

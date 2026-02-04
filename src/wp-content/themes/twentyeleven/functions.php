@@ -757,11 +757,11 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
+	 * @global WP_Comment $comment Global comment object.
+	 *
 	 * @param WP_Comment $comment The comment object.
 	 * @param array      $args    An array of comment arguments. @see get_comment_reply_link()
 	 * @param int        $depth   The depth of the comment.
-	 *
-	 * @global WP_Comment $comment Global comment object.
 	 */
 	function twentyeleven_comment( $comment, $args, $depth ) {
 		$GLOBALS['comment'] = $comment;
