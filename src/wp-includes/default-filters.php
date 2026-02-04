@@ -681,6 +681,7 @@ add_action( 'load-post-new.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-site-editor.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-widgets.php', 'wp_set_up_cross_origin_isolation' );
 add_filter( 'mod_rewrite_rules', 'wp_filter_mod_rewrite_rules_for_wasm' );
+add_action( 'wp_enqueue_media', 'wp_override_media_templates' );
 
 // Nav menu.
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );

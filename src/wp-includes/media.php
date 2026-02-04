@@ -6503,3 +6503,35 @@ function wp_filter_mod_rewrite_rules_for_wasm( string $rules ): string {
 
 	return $rules;
 }
+
+/**
+ * Overrides templates from wp_print_media_templates with custom ones.
+ *
+ * Adds `crossorigin` attribute to all tags that could have assets
+ * loaded from a different domain for cross-origin isolation support.
+ *
+ * @since 6.9.0
+ */
+function wp_override_media_templates() {
+	remove_action( 'admin_footer', 'wp_print_media_templates' );
+	add_action(
+		'admin_footer',
+		static function () {
+			ob_start();
+			wp_print_media_templates();
+			$html = (string) ob_get_clean();
+
+			$tags = array(
+				'audio',
+				'img',
+				'video',
+			);
+
+			foreach ( $tags as $tag ) {
+				$html = (string) str_replace( "<$tag", "<$tag crossorigin=\"anonymous\"", $html );
+			}
+
+			echo $html;
+		}
+	);
+}
