@@ -103,9 +103,11 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 				?>
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
 				<?php
-				/*
+				/**
 				 * The header image.
-				 * Check if this is a post or page, if it has a thumbnail, and if it's a big one
+				 * Check if this is a post or page, if it has a thumbnail, and if it's a big one.
+				 *
+				 * @global WP_Post $post Global post object.
 				 */
 				$image = false;
 				if ( is_singular() && has_post_thumbnail( $post->ID ) ) {
