@@ -990,6 +990,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$data['missing_image_sizes'] = array_keys( wp_get_missing_image_subsizes( $post->ID ) );
 		}
 
+		if ( in_array( 'filename', $fields, true ) ) {
+			$data['filename'] = $this->get_attachment_filename( $post->ID );
+		}
+
+		if ( in_array( 'filesize', $fields, true ) ) {
+			$data['filesize'] = $this->get_attachment_filesize( $post->ID );
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		$data = $this->filter_response_by_context( $data, $context );
@@ -1156,6 +1164,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'type'        => 'array',
 			'items'       => array( 'type' => 'string' ),
 			'context'     => array( 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema['properties']['filename'] = array(
+			'description' => __( 'Original attachment file name.' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema['properties']['filesize'] = array(
+			'description' => __( 'Attachment file size in bytes.' ),
+			'type'        => 'integer',
+			'context'     => array( 'view', 'edit' ),
 			'readonly'    => true,
 		);
 
@@ -1723,5 +1745,54 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Gets the attachment's original file name.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return string|null Attachment file name, or null if not found.
+	 */
+	protected function get_attachment_filename( $attachment_id ) {
+		$path = wp_get_original_image_path( $attachment_id );
+
+		if ( $path ) {
+			return wp_basename( $path );
+		}
+
+		$path = get_attached_file( $attachment_id );
+
+		if ( $path ) {
+			return wp_basename( $path );
+		}
+
+		return null;
+	}
+
+	/**
+	 * Gets the attachment's file size in bytes.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return int|null Attachment file size in bytes, or null if not available.
+	 */
+	protected function get_attachment_filesize( $attachment_id ) {
+		$meta = wp_get_attachment_metadata( $attachment_id );
+
+		if ( isset( $meta['filesize'] ) ) {
+			return $meta['filesize'];
+		}
+
+		$original_path = wp_get_original_image_path( $attachment_id );
+		$attached_file = $original_path ? $original_path : get_attached_file( $attachment_id );
+
+		if ( is_string( $attached_file ) && file_exists( $attached_file ) ) {
+			return wp_filesize( $attached_file );
+		}
+
+		return null;
 	}
 }
