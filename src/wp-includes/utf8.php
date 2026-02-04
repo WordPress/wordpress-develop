@@ -147,9 +147,9 @@ if ( _wp_can_use_pcre_u() ) :
 	 *  - U+FFFE–U+FFFF
 	 *  - U+1FFFE, U+1FFFF, U+2FFFE, U+2FFFF, …, U+10FFFE, U+10FFFF
 	 *
-	 * @see https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-23/#G12612
-	 * @see https://www.w3.org/TR/xml/#charsets
-	 * @see https://html.spec.whatwg.org/#attributes-2
+	 * @link https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-23/#G12612
+	 * @link https://www.w3.org/TR/xml/#charsets
+	 * @link https://html.spec.whatwg.org/#attributes-2
 	 *
 	 * @since 6.9.0
 	 *

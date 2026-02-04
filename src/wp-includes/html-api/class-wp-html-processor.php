@@ -467,7 +467,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * fragment. Special care must be taken when processing fragments that are expected to appear
 	 * in specific contexts. SVG and TABLE are good examples, but there are others.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-parsing-algorithm
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-parsing-algorithm
 	 *
 	 * @since 6.8.0
 	 *

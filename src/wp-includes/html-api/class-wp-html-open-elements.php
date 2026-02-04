@@ -439,7 +439,7 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0
 	 * @since 6.7.0 Full implementation.
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-table-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-table-scope
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
@@ -470,7 +470,7 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0 Stub implementation (throws).
 	 * @since 6.7.0 Full implementation.
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-select-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-select-scope
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether the given element is in SELECT scope.
@@ -497,7 +497,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-button-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-button-scope
 	 *
 	 * @return bool Whether a P is in BUTTON scope.
 	 */
@@ -510,7 +510,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
+	 * @link https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
 	 * @return bool Whether a node was popped off of the stack.
 	 */

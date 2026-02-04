@@ -57,7 +57,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	 * A different alternative considered was to invalidate the cache upon certain
 	 * events such as options add/update/delete, user meta, etc.
 	 * It was judged not enough, hence this approach.
-	 * See https://github.com/WordPress/gutenberg/pull/45372
+	 * @link https://github.com/WordPress/gutenberg/pull/45372
 	 */
 	$cache_group = 'theme_json';
 	$cache_key   = 'wp_get_global_settings_' . $origin;

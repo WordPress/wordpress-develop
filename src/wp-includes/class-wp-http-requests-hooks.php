@@ -64,7 +64,7 @@ class WP_HTTP_Requests_Hooks extends WpOrg\Requests\Hooks {
 		 *
 		 * This action maps Requests internal hook to a native WordPress action.
 		 *
-		 * @see https://github.com/WordPress/Requests/blob/master/docs/hooks.md
+		 * @link https://github.com/WordPress/Requests/blob/master/docs/hooks.md
 		 *
 		 * @since 4.7.0
 		 *
