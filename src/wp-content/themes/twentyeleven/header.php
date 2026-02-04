@@ -16,6 +16,10 @@
 <title>
 <?php
 	// Print the <title> tag based on what is being viewed.
+	/**
+	 * @global int $page  The current page number for multi-paged posts.
+	 * @global int $paged The current page number for the archive.
+	 */
 	global $page, $paged;
 
 	wp_title( '|', true, 'right' );
