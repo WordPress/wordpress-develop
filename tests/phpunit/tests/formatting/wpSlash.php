@@ -106,6 +106,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	 * Tests that addslashes_gpc() returns the same result as wp_slash() for strings.
 	 *
 	 * @ticket 64539
+	 * @covers ::addslashes_gpc
 	 * @expectedDeprecated addslashes_gpc
 	 */
 	public function test_addslashes_gpc_matches_wp_slash_for_strings() {
@@ -117,6 +118,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	 * Tests that addslashes_gpc() returns the same result as wp_slash() for arrays.
 	 *
 	 * @ticket 64539
+	 * @covers ::addslashes_gpc
 	 * @expectedDeprecated addslashes_gpc
 	 */
 	public function test_addslashes_gpc_matches_wp_slash_for_arrays() {
