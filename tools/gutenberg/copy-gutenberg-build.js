@@ -223,16 +223,15 @@ function copyBlockAssets( config ) {
 			// 1. Copy scripts/JSON (everything except PHP)
 			const blockScriptsSrc = path.join( scriptsSrc, blockName );
 			if ( fs.existsSync( blockScriptsSrc ) ) {
-				const files = fs.readdirSync( blockScriptsSrc );
-				for ( const file of files ) {
-					if ( file.endsWith( '.php' ) ) {
-						continue; // Skip PHP, copied from packages
+				fs.cpSync(
+					blockScriptsSrc,
+					blockDest,
+					{
+						recursive: true,
+						// Skip PHP, copied from packages
+						filter: f => ! f.endsWith( '.php' ),
 					}
-					fs.copyFileSync(
-						path.join( blockScriptsSrc, file ),
-						path.join( blockDest, file )
-					);
-				}
+				);
 			}
 
 			// 2. Copy styles (if they exist in per-block directory)
