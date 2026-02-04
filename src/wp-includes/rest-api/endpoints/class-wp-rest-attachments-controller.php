@@ -1081,6 +1081,34 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( in_array( 'missing_image_sizes', $fields, true ) ) {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 			$data['missing_image_sizes'] = array_keys( wp_get_missing_image_subsizes( $post->ID ) );
+
+			// Handle PDFs which don't use wp_get_missing_image_subsizes().
+			if ( empty( $data['missing_image_sizes'] ) && 'application/pdf' === get_post_mime_type( $post ) ) {
+				$metadata = wp_get_attachment_metadata( $post->ID, true );
+
+				if ( ! is_array( $metadata ) ) {
+					$metadata = array();
+				}
+
+				$metadata['sizes'] = $metadata['sizes'] ?? array();
+
+				$fallback_sizes = array(
+					'thumbnail',
+					'medium',
+					'large',
+				);
+
+				// The filter might have been added by ::create_item().
+				remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
+
+				/** This filter is documented in wp-admin/includes/image.php */
+				$fallback_sizes = apply_filters( 'fallback_intermediate_image_sizes', $fallback_sizes, $metadata );
+
+				$registered_sizes = wp_get_registered_image_subsizes();
+				$merged_sizes     = array_keys( array_intersect_key( $registered_sizes, array_flip( $fallback_sizes ) ) );
+
+				$data['missing_image_sizes'] = array_values( array_diff( $merged_sizes, array_keys( $metadata['sizes'] ) ) );
+			}
 		}
 
 		if ( in_array( 'filename', $fields, true ) ) {
