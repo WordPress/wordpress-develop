@@ -4,7 +4,7 @@
  * @since 7.0.0
  */
 
-const CodeMirror = require( 'codemirror' );
+import CodeMirror from 'codemirror';
 
 /**
  * CodeMirror Lint Error.
