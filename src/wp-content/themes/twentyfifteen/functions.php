@@ -29,6 +29,8 @@
  * Set the content width based on the theme's design and stylesheet.
  *
  * @since Twenty Fifteen 1.0
+ *
+ * @global int $content_width The content width.
  */
 if ( ! isset( $content_width ) ) {
 	$content_width = 660;
@@ -61,6 +63,8 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 		 *
 		 * Manual loading of text domain is not required after the introduction of
 		 * just in time translation loading in WordPress version 4.6.
+		 *
+		 * @global string $wp_version The WordPress version.
 		 *
 		 * @ticket 58318
 		 */
@@ -498,6 +502,8 @@ add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles' )
  *
  * @since Twenty Fifteen 1.7
  * @deprecated Twenty Fifteen 3.4 Disabled filter because, by default, fonts are self-hosted.
+ *
+ * @global string $wp_version The WordPress version.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.
