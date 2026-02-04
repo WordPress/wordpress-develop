@@ -6485,3 +6485,21 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 	return $processor->get_updated_html();
 }
+
+/**
+ * Filters the list of rewrite rules formatted for output to an .htaccess file.
+ *
+ * Adds support for serving WebAssembly files used by client-side media processing.
+ *
+ * @since 6.9.0
+ *
+ * @param string $rules mod_rewrite Rewrite rules formatted for .htaccess.
+ * @return string Filtered rewrite rules.
+ */
+function wp_filter_mod_rewrite_rules_for_wasm( string $rules ): string {
+	$rules .= "\n# BEGIN WordPress client-side media processing\n" .
+				"AddType application/wasm wasm\n" .
+				"# END WordPress client-side media processing\n";
+
+	return $rules;
+}
