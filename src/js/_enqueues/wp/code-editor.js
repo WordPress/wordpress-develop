@@ -301,8 +301,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 
 		instance = {
 			settings: instanceSettings,
-			codemirror: codemirror,
-			updateErrorNotice: updateErrorNotice
+			codemirror,
+			updateErrorNotice,
 		};
 
 		if ( codemirror.showHint ) {
