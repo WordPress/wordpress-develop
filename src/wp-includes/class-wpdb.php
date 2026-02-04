@@ -467,7 +467,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogs;
 
@@ -476,7 +476,7 @@ class wpdb {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogmeta;
 
@@ -485,7 +485,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $registration_log;
 
@@ -494,7 +494,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $signups;
 
@@ -503,7 +503,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $site;
 
@@ -512,7 +512,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitecategories;
 
@@ -521,7 +521,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitemeta;
 
@@ -826,7 +826,7 @@ class wpdb {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $name  The private member to unset
+	 * @param string $name The private member to unset.
 	 */
 	public function __unset( $name ) {
 		unset( $this->$name );
@@ -960,13 +960,7 @@ class wpdb {
 				return;
 			}
 
-			$modes_str = $modes_array[0];
-
-			if ( empty( $modes_str ) ) {
-				return;
-			}
-
-			$modes = explode( ',', $modes_str );
+			$modes = explode( ',', $modes_array[0] );
 		}
 
 		$modes = array_change_key_case( $modes, CASE_UPPER );
@@ -2659,12 +2653,12 @@ class wpdb {
 	 * @see wpdb::$field_types
 	 * @see wp_set_wpdb_vars()
 	 *
-	 * @param string       $table           Table name.
-	 * @param array        $data            Data to update (in column => value pairs).
+	 * @param string          $table        Table name.
+	 * @param array           $data         Data to update (in column => value pairs).
 	 *                                      Both $data columns and $data values should be "raw" (neither should be SQL escaped).
 	 *                                      Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                      format is ignored in this case.
-	 * @param array        $where           A named array of WHERE clauses (in column => value pairs).
+	 * @param array           $where        A named array of WHERE clauses (in column => value pairs).
 	 *                                      Multiple clauses will be joined with ANDs.
 	 *                                      Both $where columns and $where values should be "raw".
 	 *                                      Sending a null value will create an IS NULL comparison - the corresponding
@@ -2910,7 +2904,7 @@ class wpdb {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param array $data {
+	 * @param array  $data {
 	 *     Array of values and formats keyed by their field names,
 	 *     as it comes from the wpdb::process_field_formats() method.
 	 *
@@ -2961,7 +2955,7 @@ class wpdb {
 	 *
 	 * @since 4.2.1
 	 *
-	 * @param array $data {
+	 * @param array  $data {
 	 *     Array of values, formats, and charsets keyed by their field names,
 	 *     as it comes from the wpdb::process_field_charsets() method.
 	 *
@@ -4087,7 +4081,8 @@ class wpdb {
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
 		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
-			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+			&& ( PHP_VERSION_ID <= 80015 // PHP 8.0.15 or older.
+				|| 80100 <= PHP_VERSION_ID && PHP_VERSION_ID <= 80102 ) // PHP 8.1.0 to PHP 8.1.2.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
 			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );

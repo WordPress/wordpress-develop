@@ -733,12 +733,9 @@ function locale_stylesheet() {
 		return;
 	}
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
 	printf(
-		'<link rel="stylesheet" href="%s"%s media="screen" />',
-		$stylesheet,
-		$type_attr
+		'<link rel="stylesheet" href="%s" media="screen" />',
+		$stylesheet
 	);
 }
 
@@ -1002,7 +999,20 @@ function validate_theme_requirements( $stylesheet ) {
 		);
 	}
 
-	return true;
+	/**
+	 * Filters the theme requirement validation response.
+	 *
+	 * If a theme fails due to a Core-provided validation (incompatible WP, PHP versions), this
+	 * filter will not fire. A WP_Error response will already be returned.
+	 *
+	 * This filter is intended to add additional validation steps by site administrators.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param bool|WP_Error $met_requirements True if the theme meets requirements, WP_Error if not.
+	 * @param string $stylesheet Directory name for the theme.
+	 */
+	return apply_filters( 'validate_theme_requirements', true, $stylesheet );
 }
 
 /**
@@ -1094,7 +1104,7 @@ function get_theme_mod( $name, $default_value = false ) {
  */
 function set_theme_mod( $name, $value ) {
 	$mods      = get_theme_mods();
-	$old_value = isset( $mods[ $name ] ) ? $mods[ $name ] : false;
+	$old_value = $mods[ $name ] ?? false;
 
 	/**
 	 * Filters the theme modification, or 'theme_mod', value on save.
@@ -1500,7 +1510,6 @@ function header_image() {
 function get_uploaded_header_images() {
 	$header_images = array();
 
-	// @todo Caching.
 	$headers = get_posts(
 		array(
 			'post_type'  => 'attachment',
@@ -1520,17 +1529,12 @@ function get_uploaded_header_images() {
 		$header_data  = wp_get_attachment_metadata( $header->ID );
 		$header_index = $header->ID;
 
-		$header_images[ $header_index ]                  = array();
-		$header_images[ $header_index ]['attachment_id'] = $header->ID;
-		$header_images[ $header_index ]['url']           = $url;
-		$header_images[ $header_index ]['thumbnail_url'] = $url;
-		$header_images[ $header_index ]['alt_text']      = get_post_meta( $header->ID, '_wp_attachment_image_alt', true );
-
-		if ( isset( $header_data['attachment_parent'] ) ) {
-			$header_images[ $header_index ]['attachment_parent'] = $header_data['attachment_parent'];
-		} else {
-			$header_images[ $header_index ]['attachment_parent'] = '';
-		}
+		$header_images[ $header_index ]                      = array();
+		$header_images[ $header_index ]['attachment_id']     = $header->ID;
+		$header_images[ $header_index ]['url']               = $url;
+		$header_images[ $header_index ]['thumbnail_url']     = $url;
+		$header_images[ $header_index ]['alt_text']          = get_post_meta( $header->ID, '_wp_attachment_image_alt', true );
+		$header_images[ $header_index ]['attachment_parent'] = $header_data['attachment_parent'] ?? '';
 
 		if ( isset( $header_data['width'] ) ) {
 			$header_images[ $header_index ]['width'] = $header_data['width'];
@@ -1884,11 +1888,9 @@ function _custom_background_cb() {
 		$color = false;
 	}
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
 	if ( ! $background && ! $color ) {
 		if ( is_customize_preview() ) {
-			printf( '<style%s id="custom-background-css"></style>', $type_attr );
+			echo '<style id="custom-background-css"></style>';
 		}
 		return;
 	}
@@ -1941,11 +1943,13 @@ function _custom_background_cb() {
 
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
-	?>
-<style<?php echo $type_attr; ?> id="custom-background-css">
-body.custom-background { <?php echo trim( $style ); ?> }
-</style>
-	<?php
+
+	$processor = new WP_HTML_Tag_Processor( '<style id="custom-background-css"></style>' );
+	$processor->next_tag();
+
+	$style_tag_content = 'body.custom-background { ' . trim( $style ) . ' }';
+	$processor->set_modifiable_text( "\n{$style_tag_content}\n" );
+	echo "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -1955,17 +1959,15 @@ body.custom-background { <?php echo trim( $style ); ?> }
  */
 function wp_custom_css_cb() {
 	$styles = wp_get_custom_css();
-	if ( $styles || is_customize_preview() ) :
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-		?>
-		<style<?php echo $type_attr; ?> id="wp-custom-css">
-			<?php
-			// Note that esc_html() cannot be used because `div &gt; span` is not interpreted properly.
-			echo strip_tags( $styles );
-			?>
-		</style>
-		<?php
-	endif;
+	if ( ! $styles && ! is_customize_preview() ) {
+		return;
+	}
+
+	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+	$processor->next_tag();
+	$processor->set_attribute( 'id', 'wp-custom-css' );
+	$processor->set_modifiable_text( "\n{$styles}\n" );
+	echo "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -2994,11 +2996,9 @@ function _custom_logo_header_styles() {
 		$classes = (array) get_theme_support( 'custom-logo', 'header-text' );
 		$classes = array_map( 'sanitize_html_class', $classes );
 		$classes = '.' . implode( ', .', $classes );
-
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 		?>
 		<!-- Custom Logo: hide header text -->
-		<style id="custom-logo-css"<?php echo $type_attr; ?>>
+		<style id="custom-logo-css">
 			<?php echo $classes; ?> {
 				position: absolute;
 				clip-path: inset(50%);
@@ -3042,10 +3042,7 @@ function get_theme_support( $feature, ...$args ) {
 		case 'custom-logo':
 		case 'custom-header':
 		case 'custom-background':
-			if ( isset( $_wp_theme_features[ $feature ][0][ $args[0] ] ) ) {
-				return $_wp_theme_features[ $feature ][0][ $args[0] ];
-			}
-			return false;
+			return $_wp_theme_features[ $feature ][0][ $args[0] ] ?? false;
 
 		default:
 			return $_wp_theme_features[ $feature ];
@@ -3423,7 +3420,7 @@ function get_registered_theme_feature( $feature ) {
 		return null;
 	}
 
-	return isset( $_wp_registered_theme_features[ $feature ] ) ? $_wp_registered_theme_features[ $feature ] : null;
+	return $_wp_registered_theme_features[ $feature ] ?? null;
 }
 
 /**
@@ -3815,7 +3812,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
-	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 }
 
 /**

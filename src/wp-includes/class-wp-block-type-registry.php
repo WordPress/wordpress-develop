@@ -134,7 +134,7 @@ final class WP_Block_Type_Registry {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param string $name Block type name including namespace.
+	 * @param string|null $name Block type name including namespace.
 	 * @return WP_Block_Type|null The registered block type, or null if it is not registered.
 	 */
 	public function get_registered( $name ) {
@@ -161,21 +161,14 @@ final class WP_Block_Type_Registry {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param string $name Block type name including namespace.
+	 * @param string|null $name Block type name including namespace.
 	 * @return bool True if the block type is registered, false otherwise.
 	 */
 	public function is_registered( $name ) {
-		return isset( $this->registered_block_types[ $name ] );
+		return isset( $name, $this->registered_block_types[ $name ] );
 	}
 
-	/**
-	 * Unserialize magic method.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param array $data Data to unserialize.
-	 */
-	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+	public function __wakeup() {
 		if ( ! $this->registered_block_types ) {
 			return;
 		}
@@ -187,15 +180,6 @@ final class WP_Block_Type_Registry {
 				throw new UnexpectedValueException();
 			}
 		}
-	}
-
-	/**
-	 * Wakeup magic method.
-	 *
-	 * @since 6.4.0
-	 */
-	public function __wakeup() {
-		$this->__unserialize( array() );
 	}
 
 	/**

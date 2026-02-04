@@ -1374,7 +1374,7 @@ function wp_comment_form_unfiltered_html_nonce() {
 
 	if ( current_user_can( 'unfiltered_html' ) ) {
 		wp_nonce_field( 'unfiltered-html-comment_' . $post_id, '_wp_unfiltered_html_comment_disabled', false );
-		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();" );
+		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 	}
 }
 
@@ -2593,6 +2593,8 @@ function comment_form( $args = array(), $post = null ) {
 		}
 	}
 
+	$original_fields = $fields;
+
 	/**
 	 * Filters the default comment form fields.
 	 *
@@ -2806,7 +2808,7 @@ function comment_form( $args = array(), $post = null ) {
 
 					echo $args['comment_notes_after'];
 
-				} elseif ( ! is_user_logged_in() ) {
+				} elseif ( ! is_user_logged_in() || ! isset( $original_fields[ $name ] ) ) {
 
 					if ( $first_field === $name ) {
 						/**

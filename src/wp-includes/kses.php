@@ -109,10 +109,13 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'br'         => array(),
 		'button'     => array(
-			'disabled' => true,
-			'name'     => true,
-			'type'     => true,
-			'value'    => true,
+			'disabled'            => true,
+			'name'                => true,
+			'type'                => true,
+			'value'               => true,
+			'popovertarget'       => true,
+			'popovertargetaction' => true,
+			'aria-haspopup'       => true,
 		),
 		'caption'    => array(
 			'align' => true,
@@ -135,6 +138,9 @@ if ( ! CUSTOM_TAGS ) {
 			'valign'  => true,
 			'width'   => true,
 		),
+		'data'       => array(
+			'value' => true,
+		),
 		'del'        => array(
 			'datetime' => true,
 		),
@@ -143,9 +149,16 @@ if ( ! CUSTOM_TAGS ) {
 		'details'    => array(
 			'align' => true,
 			'open'  => true,
+			'name'  => true,
 		),
 		'div'        => array(
-			'align' => true,
+			'align'   => true,
+			'popover' => true,
+		),
+		'dialog'     => array(
+			'closedby' => true,
+			'open'     => true,
+			'popover'  => true,
 		),
 		'dl'         => array(),
 		'dt'         => array(),
@@ -234,6 +247,14 @@ if ( ! CUSTOM_TAGS ) {
 		'menu'       => array(
 			'type' => true,
 		),
+		'meter'      => array(
+			'high'    => true,
+			'low'     => true,
+			'max'     => true,
+			'min'     => true,
+			'optimum' => true,
+			'value'   => true,
+		),
 		'nav'        => array(
 			'align' => true,
 		),
@@ -253,6 +274,10 @@ if ( ! CUSTOM_TAGS ) {
 		'pre'        => array(
 			'width' => true,
 		),
+		'progress'   => array(
+			'max'   => true,
+			'value' => true,
+		),
 		'q'          => array(
 			'cite' => true,
 		),
@@ -263,6 +288,7 @@ if ( ! CUSTOM_TAGS ) {
 		'ruby'       => array(),
 		's'          => array(),
 		'samp'       => array(),
+		'search'     => array(),
 		'span'       => array(
 			'align' => true,
 		),
@@ -344,6 +370,9 @@ if ( ! CUSTOM_TAGS ) {
 			'charoff' => true,
 			'valign'  => true,
 		),
+		'time'       => array(
+			'datetime' => true,
+		),
 		'title'      => array(),
 		'tr'         => array(
 			'align'   => true,
@@ -362,7 +391,9 @@ if ( ! CUSTOM_TAGS ) {
 		'tt'         => array(),
 		'u'          => array(),
 		'ul'         => array(
-			'type' => true,
+			'type'    => true,
+			'popover' => true,
+			'role'    => true,
 		),
 		'ol'         => array(
 			'start'    => true,
@@ -382,6 +413,186 @@ if ( ! CUSTOM_TAGS ) {
 			'src'         => true,
 			'width'       => true,
 		),
+		'wbr'        => array(),
+	);
+
+	// https://www.w3.org/TR/mathml-core/#global-attributes
+	// Except common attributes added by _wp_add_global_attributes.
+	$math_global_attributes = array(
+		'displaystyle'   => true,
+		'scriptlevel'    => true,
+		'mathbackground' => true,
+		'mathcolor'      => true,
+		'mathsize'       => true,
+		// Common attributes also defined by _wp_add_global_attributes.
+		// We do not want to add all those global attributes though.
+		'class'          => true,
+		'data-*'         => true,
+		'dir'            => true,
+		'id'             => true,
+		'style'          => true,
+	);
+
+	$math_overunder_attributes = array(
+		'accentunder' => true,
+		'accent'      => true,
+	);
+
+	$allowedposttags = array_merge(
+		$allowedposttags,
+		array(
+			// https://www.w3.org/TR/mathml-core/#the-top-level-math-element
+			'math'          => array_merge(
+				$math_global_attributes,
+				array(
+					'display' => true,
+				)
+			),
+
+			// https://www.w3.org/TR/mathml-core/#token-elements
+			// https://www.w3.org/TR/mathml-core/#text-mtext
+			'mtext'         => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#the-mi-element
+			'mi'            => array_merge(
+				$math_global_attributes,
+				array(
+					'mathvariant' => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#number-mn
+			'mn'            => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#operator-fence-separator-or-accent-mo
+			'mo'            => array_merge(
+				$math_global_attributes,
+				array(
+					'form'          => true,
+					'fence'         => true,
+					'separator'     => true,
+					'lspace'        => true,
+					'rspace'        => true,
+					'stretchy'      => true,
+					'symmetric'     => true,
+					'maxsize'       => true,
+					'minsize'       => true,
+					'largeop'       => true,
+					'movablelimits' => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#space-mspace
+			'mspace'        => array_merge(
+				$math_global_attributes,
+				array(
+					'width'  => true,
+					'height' => true,
+					'depth'  => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#string-literal-ms
+			'ms'            => $math_global_attributes,
+
+			// https://www.w3.org/TR/mathml-core/#general-layout-schemata
+			// https://www.w3.org/TR/mathml-core/#horizontally-group-sub-expressions-mrow
+			'mrow'          => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#fractions-mfrac
+			'mfrac'         => array_merge(
+				$math_global_attributes,
+				array(
+					'linethickness' => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#radicals-msqrt-mroot
+			'msqrt'         => $math_global_attributes,
+			'mroot'         => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#style-change-mstyle
+			'mstyle'        => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#error-message-merror
+			'merror'        => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#adjust-space-around-content-mpadded
+			'mpadded'       => array_merge(
+				$math_global_attributes,
+				array(
+					'width'   => true,
+					'height'  => true,
+					'depth'   => true,
+					'lspace'  => true,
+					'voffset' => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#making-sub-expressions-invisible-mphantom
+			'mphantom'      => $math_global_attributes,
+
+			// https://www.w3.org/TR/mathml-core/#script-and-limit-schemata
+			// https://www.w3.org/TR/mathml-core/#subscripts-and-superscripts-msub-msup-msubsup
+			'msub'          => $math_global_attributes,
+			'msup'          => $math_global_attributes,
+			'msubsup'       => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#underscripts-and-overscripts-munder-mover-munderover
+			'munder'        => array_merge( $math_global_attributes, $math_overunder_attributes ),
+			'mover'         => array_merge( $math_global_attributes, $math_overunder_attributes ),
+			'munderover'    => array_merge( $math_global_attributes, $math_overunder_attributes ),
+			// https://www.w3.org/TR/mathml-core/#prescripts-and-tensor-indices-mmultiscripts
+			'mmultiscripts' => $math_global_attributes,
+			'mprescripts'   => $math_global_attributes,
+
+			// https://www.w3.org/TR/mathml-core/#tabular-math
+			// https://www.w3.org/TR/mathml-core/#table-or-matrix-mtable
+			'mtable'        => array_merge(
+				$math_global_attributes,
+				array(
+					// Non-standard, used by temml/katex.
+					// https://developer.mozilla.org/en-US/docs/Web/MathML/Reference/Element/mtable
+					'columnalign'   => true,
+					'rowspacing'    => true,
+					'columnspacing' => true,
+					'align'         => true,
+					'rowalign'      => true,
+					'columnlines'   => true,
+					'rowlines'      => true,
+					'frame'         => true,
+					'framespacing'  => true,
+					'width'         => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#row-in-table-or-matrix-mtr
+			'mtr'           => array_merge(
+				$math_global_attributes,
+				array(
+					// Non-standard, used by temml/katex.
+					// https://developer.mozilla.org/en-US/docs/Web/MathML/Reference/Element/mtr
+					'columnalign' => true,
+					'rowalign'    => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#entry-in-table-or-matrix-mtd
+			'mtd'           => array_merge(
+				$math_global_attributes,
+				array(
+					'columnspan'  => true,
+					'rowspan'     => true,
+					// Non-standard, used by temml/katex.
+					// https://developer.mozilla.org/en-US/docs/Web/MathML/Reference/Element/mtd
+					'columnalign' => true,
+					'rowalign'    => true,
+				)
+			),
+
+			// https://www.w3.org/TR/mathml-core/#semantics-and-presentation
+			'semantics'     => $math_global_attributes,
+			'annotation'    => array_merge(
+				$math_global_attributes,
+				array(
+					'encoding' => true,
+				)
+			),
+
+			// Non-standard but widely supported, used by temml/katex.
+			'menclose'      => array_merge(
+				$math_global_attributes,
+				array(
+					'notation' => true,
+				)
+			),
+		)
 	);
 
 	/**
@@ -1374,160 +1585,77 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 }
 
 /**
- * Builds an attribute list from string containing attributes.
+ * Given a string of HTML attributes and values, parse into a structured attribute list.
  *
- * This function does a lot of work. It parses an attribute list into an array
- * with attribute data, and tries to do the right thing even if it gets weird
- * input. It will add quotes around attribute values that don't have any quotes
- * or apostrophes around them, to make it easier to produce HTML code that will
- * conform to W3C's HTML specification. It will also remove bad URL protocols
- * from attribute values. It also reduces duplicate attributes by using the
- * attribute defined first (`foo='bar' foo='baz'` will result in `foo='bar'`).
+ * This function performs a number of transformations while parsing attribute strings:
+ *  - It normalizes attribute values and surrounds them with double quotes.
+ *  - It normalizes HTML character references inside attribute values.
+ *  - It removes “bad” URL protocols from attribute values.
+ *
+ * Otherwise this reads the attributes as if they were part of an HTML tag. It performs
+ * these transformations to lower the risk of mis-parsing down the line and to perform
+ * URL sanitization in line with the rest of the `kses` subsystem. Importantly, it does
+ * not decode the attribute values, meaning that special HTML syntax characters will
+ * be left with character references in the `value` property.
+ *
+ * Example:
+ *
+ *     $attrs = wp_kses_hair( 'class="is-wide" inert data-lazy=\'&lt;img&#00062\' =/🐮=/' );
+ *     $attrs === array(
+ *         'class'     => array( 'name' => 'class', 'value' => 'is-wide', 'whole' => 'class="is-wide"', 'vless' => 'n' ),
+ *         'inert'     => array( 'name' => 'inert', 'value' => '', 'whole' => 'inert', 'vless' => 'y' ),
+ *         'data-lazy' => array( 'name' => 'data-lazy', 'value' => '&lt;img&gt;', 'whole' => 'data-lazy="&lt;img&gt;"', 'vless' => 'n' ),
+ *         '='         => array( 'name' => '=', 'value' => '', 'whole' => '=', 'vless' => 'y' ),
+ *         '🐮'        => array( 'name' => '🐮', 'value' => '/', 'whole' => '🐮="/"', 'vless' => 'n' ),
+ *     );
  *
  * @since 1.0.0
+ * @since 7.0.0 Reliably parses HTML via the HTML API.
  *
  * @param string   $attr              Attribute list from HTML element to closing HTML element tag.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
- * @return array[] Array of attribute information after parsing.
+ * @return array<string, array{name: string, value: string, whole: string, vless: 'y'|'n'}> Array of attribute information after parsing.
  */
 function wp_kses_hair( $attr, $allowed_protocols ) {
-	$attrarr  = array();
-	$mode     = 0;
-	$attrname = '';
-	$uris     = wp_kses_uri_attributes();
+	$attributes = array();
+	$uris       = wp_kses_uri_attributes();
 
-	// Loop through the whole attribute list.
+	$processor = new WP_HTML_Tag_Processor( "<wp {$attr}>" );
+	$processor->next_token();
 
-	while ( strlen( $attr ) !== 0 ) {
-		$working = 0; // Was the last operation successful?
+	$attribute_names = $processor->get_attribute_names_with_prefix( '' );
+	if ( null === $attribute_names || 0 === count( $attribute_names ) ) {
+		return $attributes;
+	}
 
-		switch ( $mode ) {
-			case 0:
-				if ( preg_match( '/^([_a-zA-Z][-_a-zA-Z0-9:.]*)/', $attr, $match ) ) {
-					$attrname = $match[1];
-					$working  = 1;
-					$mode     = 1;
-					$attr     = preg_replace( '/^[_a-zA-Z][-_a-zA-Z0-9:.]*/', '', $attr );
-				}
+	$syntax_characters = array(
+		'&' => '&amp;',
+		'<' => '&lt;',
+		'>' => '&gt;',
+		"'" => '&apos;',
+		'"' => '&quot;',
+	);
 
-				break;
-
-			case 1:
-				if ( preg_match( '/^\s*=\s*/', $attr ) ) { // Equals sign.
-					$working = 1;
-					$mode    = 2;
-					$attr    = preg_replace( '/^\s*=\s*/', '', $attr );
-					break;
-				}
-
-				if ( preg_match( '/^\s+/', $attr ) ) { // Valueless.
-					$working = 1;
-					$mode    = 0;
-
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
-						$attrarr[ $attrname ] = array(
-							'name'  => $attrname,
-							'value' => '',
-							'whole' => $attrname,
-							'vless' => 'y',
-						);
-					}
-
-					$attr = preg_replace( '/^\s+/', '', $attr );
-				}
-
-				break;
-
-			case 2:
-				if ( preg_match( '%^"([^"]*)"(\s+|/?$)%', $attr, $match ) ) {
-					// "value"
-					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
-
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
-						$attrarr[ $attrname ] = array(
-							'name'  => $attrname,
-							'value' => $thisval,
-							'whole' => "$attrname=\"$thisval\"",
-							'vless' => 'n',
-						);
-					}
-
-					$working = 1;
-					$mode    = 0;
-					$attr    = preg_replace( '/^"[^"]*"(\s+|$)/', '', $attr );
-					break;
-				}
-
-				if ( preg_match( "%^'([^']*)'(\s+|/?$)%", $attr, $match ) ) {
-					// 'value'
-					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
-
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
-						$attrarr[ $attrname ] = array(
-							'name'  => $attrname,
-							'value' => $thisval,
-							'whole' => "$attrname='$thisval'",
-							'vless' => 'n',
-						);
-					}
-
-					$working = 1;
-					$mode    = 0;
-					$attr    = preg_replace( "/^'[^']*'(\s+|$)/", '', $attr );
-					break;
-				}
-
-				if ( preg_match( "%^([^\s\"']+)(\s+|/?$)%", $attr, $match ) ) {
-					// value
-					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
-
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
-						$attrarr[ $attrname ] = array(
-							'name'  => $attrname,
-							'value' => $thisval,
-							'whole' => "$attrname=\"$thisval\"",
-							'vless' => 'n',
-						);
-					}
-
-					// We add quotes to conform to W3C's HTML spec.
-					$working = 1;
-					$mode    = 0;
-					$attr    = preg_replace( "%^[^\s\"']+(\s+|$)%", '', $attr );
-				}
-
-				break;
-		} // End switch.
-
-		if ( 0 === $working ) { // Not well-formed, remove and try again.
-			$attr = wp_kses_html_error( $attr );
-			$mode = 0;
+	foreach ( $attribute_names as $name ) {
+		$value   = $processor->get_attribute( $name );
+		$is_bool = true === $value;
+		if ( is_string( $value ) && in_array( $name, $uris, true ) ) {
+			$value = wp_kses_bad_protocol( $value, $allowed_protocols );
 		}
-	} // End while.
 
-	if ( 1 === $mode && false === array_key_exists( $attrname, $attrarr ) ) {
-		/*
-		 * Special case, for when the attribute list ends with a valueless
-		 * attribute like "selected".
-		 */
-		$attrarr[ $attrname ] = array(
-			'name'  => $attrname,
-			'value' => '',
-			'whole' => $attrname,
-			'vless' => 'y',
+		// Reconstruct and normalize the attribute value.
+		$recoded = $is_bool ? '' : strtr( $value, $syntax_characters );
+		$whole   = $is_bool ? $name : "{$name}=\"{$recoded}\"";
+
+		$attributes[ $name ] = array(
+			'name'  => $name,
+			'value' => $recoded,
+			'whole' => $whole,
+			'vless' => $is_bool ? 'y' : 'n',
 		);
 	}
 
-	return $attrarr;
+	return $attributes;
 }
 
 /**
@@ -2263,7 +2391,13 @@ function wp_filter_global_styles_post( $data ) {
 		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data, 'custom' );
 
 		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
-		return wp_slash( wp_json_encode( $data_to_encode ) );
+		/**
+		 * JSON encode the data stored in post content.
+		 * Escape characters that are likely to be mangled by HTML filters: "<>&".
+		 *
+		 * This matches the escaping in {@see WP_REST_Global_Styles_Controller::prepare_item_for_database()}.
+		 */
+		return wp_slash( wp_json_encode( $data_to_encode, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) );
 	}
 	return $data;
 }
@@ -2496,6 +2630,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'column-rule',
 			'column-span',
 			'column-width',
+
+			'display',
 
 			'color',
 			'filter',
@@ -2822,7 +2958,7 @@ function _wp_kses_allow_pdf_objects( $url ) {
 	// If the URL host matches the current site's media URL, it's safe.
 	$upload_info = wp_upload_dir( null, false );
 	$parsed_url  = wp_parse_url( $upload_info['url'] );
-	$upload_host = isset( $parsed_url['host'] ) ? $parsed_url['host'] : '';
+	$upload_host = $parsed_url['host'] ?? '';
 	$upload_port = isset( $parsed_url['port'] ) ? ':' . $parsed_url['port'] : '';
 
 	if ( str_starts_with( $url, "http://$upload_host$upload_port/" )

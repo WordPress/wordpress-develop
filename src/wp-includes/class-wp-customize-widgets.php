@@ -554,6 +554,7 @@ final class WP_Customize_Widgets {
 	 * @see WP_Customize_Panel::$active_callback
 	 *
 	 * @global array $wp_registered_sidebars
+	 *
 	 * @return bool Active.
 	 */
 	public function is_panel_active() {
@@ -923,7 +924,7 @@ final class WP_Customize_Widgets {
 					<span class="customize-action">
 						<?php
 						$panel       = $this->manager->get_panel( 'widgets' );
-						$panel_title = isset( $panel->title ) ? $panel->title : __( 'Widgets' );
+						$panel_title = $panel->title ?? __( 'Widgets' );
 						/* translators: &#9656; is the unicode right-pointing triangle. %s: Section title in the Customizer. */
 						printf( __( 'Customizing &#9656; %s' ), esc_html( $panel_title ) );
 						?>
@@ -1122,7 +1123,7 @@ final class WP_Customize_Widgets {
 			$available_widget = array_merge(
 				$available_widget,
 				array(
-					'temp_id'      => isset( $args['_temp_id'] ) ? $args['_temp_id'] : null,
+					'temp_id'      => $args['_temp_id'] ?? null,
 					'is_multi'     => $is_multi_widget,
 					'control_tpl'  => $control_tpl,
 					'multi_number' => ( 'multi' === $args['_add'] ) ? $args['_multi_num'] : false,
@@ -1334,7 +1335,7 @@ final class WP_Customize_Widgets {
 			unset( $registered_widget['callback'] ); // May not be JSON-serializable.
 		}
 		wp_print_inline_script_tag(
-			sprintf( 'var _wpWidgetCustomizerPreviewSettings = %s;', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) )
+			sprintf( 'var _wpWidgetCustomizerPreviewSettings = %s;', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ )
 		);
 	}
 
@@ -1807,14 +1808,14 @@ final class WP_Customize_Widgets {
 	 *
 	 * @since 4.5.0
 	 *
+	 * @see WP_Customize_Nav_Menus::filter_wp_nav_menu_args()
+	 *
 	 * @param array $params {
 	 *     Dynamic sidebar params.
 	 *
 	 *     @type array $args        Sidebar args.
 	 *     @type array $widget_args Widget args.
 	 * }
-	 * @see WP_Customize_Nav_Menus::filter_wp_nav_menu_args()
-	 *
 	 * @return array Params.
 	 */
 	public function filter_dynamic_sidebar_params( $params ) {
