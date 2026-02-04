@@ -937,11 +937,14 @@ JS;
 
 			$sanitized_value = array();
 			$has_invalid_ids = false;
-			foreach ( $value as $id ) {
-				if ( ! is_string( $id ) ) {
-					$has_invalid_ids = true;
+			foreach ( $value as $module ) {
+				if (
+					is_string( $module ) ||
+					( is_array( $module ) && isset( $module['id'] ) && is_string( $module['id'] ) )
+				) {
+					$sanitized_value[] = $module;
 				} else {
-					$sanitized_value[] = $id;
+					$has_invalid_ids = true;
 				}
 			}
 
@@ -950,7 +953,7 @@ JS;
 					__METHOD__,
 					sprintf(
 						/* translators: 1: Script handle, 2: 'module_dependencies' */
-						__( 'The script handle "%1$s" has one or more of its script module dependencies ("%2$s") which are not strings.' ),
+						__( 'The script handle "%1$s" has one or more of its script module dependencies ("%2$s") which are invalid.' ),
 						$handle,
 						'module_dependencies'
 					),

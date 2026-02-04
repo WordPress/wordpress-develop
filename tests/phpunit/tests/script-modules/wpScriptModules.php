@@ -15,7 +15,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 	protected string $original_wp_version;
 
-	protected ?WP_Scripts $old_wp_scripts;
+	protected ?WP_Scripts $original_wp_scripts;
 
 	protected WP_Script_Modules $script_modules;
 
@@ -27,7 +27,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		parent::set_up();
 		$this->original_script_modules = $wp_script_modules;
 		$this->original_wp_version     = $wp_version;
-		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
+		$this->original_wp_scripts     = $wp_scripts ?? null;
 		$wp_script_modules             = null;
 		$this->script_modules          = wp_script_modules();
 
@@ -39,11 +39,11 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * Tear down.
 	 */
 	public function tear_down() {
+		parent::tear_down();
 		global $wp_script_modules, $wp_scripts, $wp_version;
 		$wp_script_modules = $this->original_script_modules;
 		$wp_version        = $this->original_wp_version;
-		$wp_scripts        = $this->old_wp_scripts;
-		parent::tear_down();
+		$wp_scripts        = $this->original_wp_scripts;
 	}
 
 	/**
@@ -1991,6 +1991,7 @@ HTML;
 	public function test_included_module_appears_in_importmap() {
 		$this->script_modules->register( 'dependency', '/dep.js' );
 		$this->script_modules->register( 'example', '/example.js', array( 'dependency' ) );
+		$this->script_modules->register( 'example2', '/example2.js' );
 
 		// Nothing printed now.
 		$this->assertSame( array(), $this->get_enqueued_script_modules(), 'Initial enqueued script modules was wrong.' );
@@ -2004,14 +2005,19 @@ HTML;
 			array( 'classic-dependency' ),
 			false,
 			array(
-				'module_dependencies' => array( 'example' ),
+				'module_dependencies' => array(
+					'example',
+					array(
+						'id' => 'example2',
+					),
+				),
 			)
 		);
 
 		$this->assertSame( array(), $this->get_enqueued_script_modules(), 'Final enqueued script modules was wrong.' );
 		$this->assertSame( array(), $this->get_preloaded_script_modules(), 'Final module preloads was wrong.' );
 		$this->assertEqualSets(
-			array( 'example', 'dependency' ),
+			array( 'example', 'example2', 'dependency' ),
 			array_keys( $this->get_import_map() ),
 			'Import map keys were wrong.'
 		);

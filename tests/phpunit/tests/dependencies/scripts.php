@@ -150,7 +150,7 @@ JS;
 						'another_bad_key'  => 'value',
 					),
 				),
-				'expected_msg'  => 'Unrecognized keys in the $args array: unrecognized_key, another_bad_key',
+				'expected_msg'  => 'Unrecognized key(s) in the $args param: unrecognized_key, another_bad_key. Supported keys: strategy, in_footer, fetchpriority, module_dependencies',
 			),
 			'enqueue_script'  => array(
 				'function_name' => 'wp_enqueue_script',
@@ -167,7 +167,7 @@ JS;
 						'invalid_key'         => 'bar',
 					),
 				),
-				'expected_msg'  => 'Unrecognized keys in the $args array: invalid_key',
+				'expected_msg'  => 'Unrecognized key(s) in the $args param: invalid_key. Supported keys: strategy, in_footer, fetchpriority, module_dependencies',
 			),
 		);
 	}
@@ -1377,7 +1377,7 @@ HTML
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{data: mixed, message: string, expected: bool, stored: string[]|null}>
+	 * @return array<string, array{data: mixed, message: string, expected: bool, stored: array<string|array<string, string>>|null}>
 	 */
 	public function data_add_data_module_dependencies_validation(): array {
 		return array(
@@ -1388,10 +1388,10 @@ HTML
 				'stored'   => null,
 			),
 			'bad-items' => array(
-				'data'     => array( 'valid', 123, true, array() ),
-				'message'  => 'has one or more of its script module dependencies ("module_dependencies") which are not strings',
+				'data'     => array( 'valid', 123, true, array(), array( 'id' => 'valid2' ) ),
+				'message'  => 'has one or more of its script module dependencies ("module_dependencies") which are invalid',
 				'expected' => true,
-				'stored'   => array( 'valid' ),
+				'stored'   => array( 'valid', array( 'id' => 'valid2' ) ),
 			),
 		);
 	}
