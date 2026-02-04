@@ -401,8 +401,15 @@ function twenty_twenty_one_scripts() {
 	// to detect if the current browser is internet explorer.
 	global $is_IE, $wp_scripts;
 	$theme_version = wp_get_theme()->get( 'Version' );
-	$suffix        = SCRIPT_DEBUG ? '' : '.min';
-	
+
+	// Determine the stylesheet suffix.
+	$suffix           = '';
+	$can_use_minified = ! is_child_theme() || file_exists( get_stylesheet_directory() . '/style.min.css' );
+
+	if ( ! SCRIPT_DEBUG && $can_use_minified ) {
+		$suffix = '.min';
+	}
+
 	if ( $is_IE ) {
 		// If IE 11 or below, use a flattened stylesheet with static values replacing CSS Variables.
 		wp_enqueue_style( 'twenty-twenty-one-style', get_template_directory_uri() . '/assets/css/ie.css', array(), $theme_version );
