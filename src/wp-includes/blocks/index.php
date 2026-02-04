@@ -5,12 +5,23 @@
  * @package WordPress
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 define( 'BLOCKS_PATH', ABSPATH . WPINC . '/blocks/' );
 
 // Include files required for core blocks registration.
-require BLOCKS_PATH . 'legacy-widget.php';
-require BLOCKS_PATH . 'widget-group.php';
-require BLOCKS_PATH . 'require-dynamic-blocks.php';
+if ( file_exists( BLOCKS_PATH . 'legacy-widget.php' ) ) {
+	require BLOCKS_PATH . 'legacy-widget.php';
+}
+if ( file_exists( BLOCKS_PATH . 'widget-group.php' ) ) {
+	require BLOCKS_PATH . 'widget-group.php';
+}
+if ( file_exists( BLOCKS_PATH . 'require-dynamic-blocks.php' ) ) {
+	require BLOCKS_PATH . 'require-dynamic-blocks.php';
+}
 
 /**
  * Registers core block style handles.
@@ -20,11 +31,9 @@ require BLOCKS_PATH . 'require-dynamic-blocks.php';
  * avoids unnecessary logic and filesystem lookups in the other function.
  *
  * @since 6.3.0
- *
- * @global string $wp_version The WordPress version string.
  */
 function register_core_block_style_handles() {
-	global $wp_version;
+	$wp_version = wp_get_wp_version();
 
 	if ( ! wp_should_load_separate_core_block_assets() ) {
 		return;
@@ -40,6 +49,9 @@ function register_core_block_style_handles() {
 
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
+		if ( ! file_exists( BLOCKS_PATH . 'blocks-json.php' ) ) {
+			return;
+		}
 		$core_blocks_meta = require BLOCKS_PATH . 'blocks-json.php';
 	}
 
@@ -147,6 +159,9 @@ add_action( 'init', 'register_core_block_style_handles', 9 );
  * @since 5.5.0
  */
 function register_core_block_types_from_metadata() {
+	if ( ! file_exists( BLOCKS_PATH . 'require-static-blocks.php' ) ) {
+		return;
+	}
 	$block_folders = require BLOCKS_PATH . 'require-static-blocks.php';
 	foreach ( $block_folders as $block_folder ) {
 		register_block_type_from_metadata(
@@ -155,3 +170,23 @@ function register_core_block_types_from_metadata() {
 	}
 }
 add_action( 'init', 'register_core_block_types_from_metadata' );
+
+/**
+ * Registers the core block metadata collection.
+ *
+ * This function is hooked into the 'init' action with a priority of 9,
+ * ensuring that the core block metadata is registered before the regular
+ * block initialization that happens at priority 10.
+ *
+ * @since 6.7.0
+ */
+function wp_register_core_block_metadata_collection() {
+	if ( ! file_exists( BLOCKS_PATH . 'blocks-json.php' ) ) {
+		return;
+	}
+	wp_register_block_metadata_collection(
+		BLOCKS_PATH,
+		BLOCKS_PATH . 'blocks-json.php'
+	);
+}
+add_action( 'init', 'wp_register_core_block_metadata_collection', 9 );

@@ -1000,6 +1000,18 @@ h6,
 	padding: 20px;
 }
 
+.wp-block[data-align=left] > .wp-block-image {
+
+	/*rtl:ignore*/
+	margin-left: 0;
+}
+
+.wp-block[data-align=right] > .wp-block-image {
+
+	/*rtl:ignore*/
+	margin-right: 0;
+}
+
 .wp-block-latest-comments {
 	padding-left: 0;
 }
@@ -2331,7 +2343,7 @@ pre.wp-block-verse {
 	color: #28303d;
 }
 
-[data-block] {
+[data-block]:where(:not(.wp-block-list-item)) {
 	margin-top: 30px;
 	margin-bottom: 30px;
 }
@@ -2422,11 +2434,15 @@ pre.wp-block-verse {
 
 	.wp-block[data-align=left] > * {
 		max-width: 290px;
+
+		/*rtl:ignore*/
 		margin-right: 25px;
 	}
 
 	.wp-block[data-align=right] > * {
 		max-width: 290px;
+
+		/*rtl:ignore*/
 		margin-left: 25px;
 	}
 }
@@ -2439,13 +2455,10 @@ pre.wp-block-verse {
 	left: 5px;
 }
 
-html {
-	line-height: 1.7;
-}
-
 html,
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	line-height: 1.7;
 }
 
 body {
