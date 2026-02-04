@@ -40,7 +40,6 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
 	public function tear_down() {
@@ -53,7 +52,6 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::tear_down();
@@ -69,6 +67,8 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 * @ticket 59357
 	 * @ticket 60175
 	 * @ticket 61123
+	 * @ticket 61720
+	 * @ticket 61858
 	 *
 	 * @covers ::wp_render_background_support
 	 *
@@ -136,23 +136,24 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'url' => 'https://example.com/image.jpg',
 					),
 				),
-				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
-			'background image style with contain, position, and repeat is applied' => array(
+			'background image style with contain, position, attachment, and repeat is applied' => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
 				'block_name'          => 'test/background-rules-are-output',
 				'background_settings' => array(
 					'backgroundImage' => true,
 				),
 				'background_style'    => array(
-					'backgroundImage'  => array(
+					'backgroundImage'      => array(
 						'url' => 'https://example.com/image.jpg',
 					),
-					'backgroundRepeat' => 'no-repeat',
-					'backgroundSize'   => 'contain',
+					'backgroundRepeat'     => 'no-repeat',
+					'backgroundSize'       => 'contain',
+					'backgroundAttachment' => 'fixed',
 				),
-				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-position:center;background-repeat:no-repeat;background-size:contain;">Content</div>',
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&apos;https://example.com/image.jpg&apos;);background-position:50% 50%;background-repeat:no-repeat;background-size:contain;background-attachment:fixed;">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
 			'background image style is appended if a style attribute already exists' => array(
@@ -166,7 +167,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'url' => 'https://example.com/image.jpg',
 					),
 				),
-				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
 				'wrapper'             => '<div class="wp-block-test" style="color: red">Content</div>',
 			),
 			'background image style is appended if a style attribute containing multiple styles already exists' => array(
@@ -180,8 +181,23 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'url' => 'https://example.com/image.jpg',
 					),
 				),
-				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;font-size: 15px;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;font-size: 15px;background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
 				'wrapper'             => '<div class="wp-block-test" style="color: red;font-size: 15px;">Content</div>',
+			),
+			'background image style is appended if a boolean style attribute already exists' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-rules-are-output',
+				'background_settings' => array(
+					'backgroundImage' => true,
+				),
+				'background_style'    => array(
+					'backgroundImage' => array(
+						'url'    => 'https://example.com/image.jpg',
+						'source' => 'file',
+					),
+				),
+				'expected_wrapper'    => '<div class="has-background" classname="wp-block-test" style="background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
+				'wrapper'             => '<div classname="wp-block-test" style>Content</div>',
 			),
 			'background image style is not applied if the block does not support background image' => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',

@@ -39,9 +39,10 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 			$this->instance->has( 'foo' ),
 			'Incorrect availability status for textdomain with custom path'
 		);
-		$this->assertFalse(
+		$this->assertSame(
+			WP_LANG_DIR . '/bar/',
 			$this->instance->get( 'foo', 'en_US' ),
-			'Should not return custom path for textdomain and en_US locale'
+			'Should return custom path for textdomain and en_US locale'
 		);
 		$this->assertSame(
 			WP_LANG_DIR . '/bar/',
