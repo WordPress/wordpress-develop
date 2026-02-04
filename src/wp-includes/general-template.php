@@ -4153,8 +4153,11 @@ function wp_get_code_editor_settings( $args ) {
 		'jshint'     => array(
 			'esversion' => 11,
 
-			// The following are copied from <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
-			// Nevertheless, they are not supported by Espree, which is used instead of JSHint for licensing reasons.
+			// The following JSHint *linting rule* options are copied from
+			// <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
+			// Parsing-related options such as `esversion` (and, in other contexts, `es5`, `es3`, `module`, `strict`)
+			// are honored by the Espree-based integration, but these linting-rule options are not interpreted by Espree
+			// and are kept only for compatibility/documentation with the original JSHint configuration.
 			'boss'      => true,
 			'curly'     => true,
 			'eqeqeq'    => true,
