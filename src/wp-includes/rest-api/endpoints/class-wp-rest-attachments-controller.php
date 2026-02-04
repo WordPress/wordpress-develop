@@ -998,6 +998,22 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$data['filesize'] = $this->get_attachment_filesize( $post->ID );
 		}
 
+		if ( in_array( 'exif_orientation', $fields, true ) && wp_attachment_is_image( $post ) ) {
+			$metadata = wp_get_attachment_metadata( $post->ID, true );
+
+			// Default to 1 (no rotation needed) if orientation not set.
+			$orientation = 1;
+
+			if (
+				is_array( $metadata ) &&
+				isset( $metadata['image_meta']['orientation'] )
+			) {
+				$orientation = (int) $metadata['image_meta']['orientation'];
+			}
+
+			$data['exif_orientation'] = $orientation;
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		$data = $this->filter_response_by_context( $data, $context );
@@ -1178,6 +1194,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description' => __( 'Attachment file size in bytes.' ),
 			'type'        => 'integer',
 			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema['properties']['exif_orientation'] = array(
+			'description' => __( 'EXIF orientation value. Values 1-8 follow the EXIF specification, where 1 means no rotation needed.' ),
+			'type'        => 'integer',
+			'context'     => array( 'edit' ),
 			'readonly'    => true,
 		);
 
