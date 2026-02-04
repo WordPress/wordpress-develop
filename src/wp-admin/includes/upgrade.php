@@ -2491,20 +2491,23 @@ function upgrade_682() {
  * @ignore
  * @since 7.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
  */
 function upgrade_700() {
-	global $wpdb;
+	global $wp_current_db_version, $wpdb;
 
 	// Migrate users with 'fresh' admin color to 'modern'.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE $wpdb->usermeta SET meta_value = %s WHERE meta_key = %s AND meta_value = %s",
-			'modern',
-			'admin_color',
-			'fresh'
-		)
-	);
+	if ( $wp_current_db_version < 60718 ) {
+		$wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'modern' ),
+			array(
+				'meta_key'   => 'admin_color',
+				'meta_value' => 'fresh',
+			)
+		);
+	}
 }
 
 /**
