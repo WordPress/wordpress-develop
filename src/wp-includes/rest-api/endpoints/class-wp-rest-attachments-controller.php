@@ -63,6 +63,43 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'args'                => $this->get_edit_media_item_args(),
 			)
 		);
+
+		$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
+		// Special case to set 'original_image' in attachment metadata.
+		$valid_image_sizes[] = 'original';
+		// Used for PDF thumbnails.
+		$valid_image_sizes[] = 'full';
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[\d]+)/sideload',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'sideload_item' ),
+					'permission_callback' => array( $this, 'sideload_item_permissions_check' ),
+					'args'                => array(
+						'id'             => array(
+							'description' => __( 'Unique identifier for the attachment.' ),
+							'type'        => 'integer',
+						),
+						'image_size'     => array(
+							'description' => __( 'Image size.' ),
+							'type'        => 'string',
+							'enum'        => $valid_image_sizes,
+							'required'    => true,
+						),
+						'convert_format' => array(
+							'type'        => 'boolean',
+							'default'     => true,
+							'description' => __( 'Whether to convert image formats.' ),
+						),
+					),
+				),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
+			)
+		);
 	}
 
 	/**
@@ -1873,5 +1910,190 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Checks if a given request has access to sideload a file.
+	 *
+	 * Sideloading a file for an existing attachment
+	 * requires both update and create permissions.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
+	 */
+	public function sideload_item_permissions_check( $request ) {
+		return $this->edit_media_item_permissions_check( $request );
+	}
+
+	/**
+	 * Side-loads a media file without creating a new attachment.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+	 */
+	public function sideload_item( WP_REST_Request $request ) {
+		$attachment_id = $request['id'];
+
+		$post = $this->get_post( $attachment_id );
+
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		if (
+			! wp_attachment_is_image( $post ) &&
+			! wp_attachment_is( 'pdf', $post )
+		) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID. Only images and PDFs can be sideloaded.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( isset( $request['convert_format'] ) && ! $request['convert_format'] ) {
+			// Prevent image conversion as that is done client-side.
+			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+		}
+
+		// Get the file via $_FILES or raw data.
+		$files   = $request->get_file_params();
+		$headers = $request->get_headers();
+
+		/*
+		 * wp_unique_filename() will always add numeric suffix if the name looks like a sub-size to avoid conflicts.
+		 * See https://github.com/WordPress/wordpress-develop/blob/30954f7ac0840cfdad464928021d7f380940c347/src/wp-includes/functions.php#L2576-L2582
+		 * With the following filter we can work around this safeguard.
+		 */
+		$attachment_filename = get_attached_file( $attachment_id, true );
+		$attachment_filename = $attachment_filename ? wp_basename( $attachment_filename ) : null;
+
+		$filter_filename = function ( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number ) use ( $attachment_filename ) {
+			return $this->filter_wp_unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number, $attachment_filename );
+		};
+
+		add_filter( 'wp_unique_filename', $filter_filename, 10, 6 );
+
+		$parent_post = get_post_parent( $attachment_id );
+
+		$time = null;
+
+		// Matches logic in media_handle_upload().
+		// The post date doesn't usually matter for pages, so don't backdate this upload.
+		if ( $parent_post && 'page' !== $parent_post->post_type && substr( $parent_post->post_date, 0, 4 ) > 0 ) {
+			$time = $parent_post->post_date;
+		}
+
+		if ( ! empty( $files ) ) {
+			$file = $this->upload_from_file( $files, $headers, $time );
+		} else {
+			$file = $this->upload_from_data( $request->get_body(), $headers, $time );
+		}
+
+		remove_filter( 'wp_unique_filename', $filter_filename );
+		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+
+		if ( is_wp_error( $file ) ) {
+			return $file;
+		}
+
+		$type = $file['type'];
+		$path = $file['file'];
+
+		$image_size = $request['image_size'];
+
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+
+		if ( ! $metadata ) {
+			$metadata = array();
+		}
+
+		if ( 'original' === $image_size ) {
+			$metadata['original_image'] = wp_basename( $path );
+		} else {
+			$metadata['sizes'] = $metadata['sizes'] ?? array();
+
+			$size = wp_getimagesize( $path );
+
+			$metadata['sizes'][ $image_size ] = array(
+				'width'     => $size ? $size[0] : 0,
+				'height'    => $size ? $size[1] : 0,
+				'file'      => wp_basename( $path ),
+				'mime-type' => $type,
+				'filesize'  => wp_filesize( $path ),
+			);
+		}
+
+		wp_update_attachment_metadata( $attachment_id, $metadata );
+
+		$response_request = new WP_REST_Request(
+			WP_REST_Server::READABLE,
+			rest_get_route_for_post( $attachment_id )
+		);
+
+		$response_request['context'] = 'edit';
+
+		if ( isset( $request['_fields'] ) ) {
+			$response_request['_fields'] = $request['_fields'];
+		}
+
+		$response = $this->prepare_item_for_response( get_post( $attachment_id ), $response_request );
+
+		$response->header( 'Location', rest_url( rest_get_route_for_post( $attachment_id ) ) );
+
+		return $response;
+	}
+
+	/**
+	 * Filters wp_unique_filename during sideloads.
+	 *
+	 * wp_unique_filename() will always add numeric suffix if the name looks like a sub-size to avoid conflicts.
+	 * Adding this closure to the filter helps work around this safeguard.
+	 *
+	 * Example: when uploading myphoto.jpeg, WordPress normally creates myphoto-150x150.jpeg,
+	 * and when uploading myphoto-150x150.jpeg, it will be renamed to myphoto-150x150-1.jpeg
+	 * However, here it is desired not to add the suffix in order to maintain the same
+	 * naming convention as if the file was uploaded regularly.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @link https://github.com/WordPress/wordpress-develop/blob/30954f7ac0840cfdad464928021d7f380940c347/src/wp-includes/functions.php#L2576-L2582
+	 *
+	 * @param string        $filename                 Unique file name.
+	 * @param string        $ext                      File extension. Example: ".png".
+	 * @param string        $dir                      Directory path.
+	 * @param callable|null $unique_filename_callback Callback function that generates the unique file name.
+	 * @param string[]      $alt_filenames            Array of alternate file names that were checked for collisions.
+	 * @param int|string    $number                   The highest number that was used to make the file name unique
+	 *                                                or an empty string if unused.
+	 * @param string|null   $attachment_filename      Original attachment file name.
+	 * @return string Filtered file name.
+	 */
+	private function filter_wp_unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number, $attachment_filename ) {
+		if ( empty( $number ) || ! $attachment_filename ) {
+			return $filename;
+		}
+
+		$ext       = pathinfo( $filename, PATHINFO_EXTENSION );
+		$name      = pathinfo( $filename, PATHINFO_FILENAME );
+		$orig_name = pathinfo( $attachment_filename, PATHINFO_FILENAME );
+
+		if ( ! $ext || ! $name ) {
+			return $filename;
+		}
+
+		$matches = array();
+		if ( preg_match( '/(.*)(-\d+x\d+)-' . $number . '$/', $name, $matches ) ) {
+			$filename_without_suffix = $matches[1] . $matches[2] . ".$ext";
+			if ( $matches[1] === $orig_name && ! file_exists( "$dir/$filename_without_suffix" ) ) {
+				return $filename_without_suffix;
+			}
+		}
+
+		return $filename;
 	}
 }
