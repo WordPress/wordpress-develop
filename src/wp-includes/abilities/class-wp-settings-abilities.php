@@ -73,6 +73,25 @@ class WP_Settings_Abilities {
 	}
 
 	/**
+	 * Gets registered settings that have show_in_abilities enabled.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return array Associative array of option_name => args for allowed settings.
+	 */
+	private static function get_allowed_settings(): array {
+		$settings = array();
+
+		foreach ( get_registered_settings() as $option_name => $args ) {
+			if ( ! empty( $args['show_in_abilities'] ) ) {
+				$settings[ $option_name ] = $args;
+			}
+		}
+
+		return $settings;
+	}
+
+	/**
 	 * Gets unique setting groups that have show_in_abilities enabled.
 	 *
 	 * @since 7.0.0
@@ -82,11 +101,7 @@ class WP_Settings_Abilities {
 	private static function get_available_groups(): array {
 		$groups = array();
 
-		foreach ( get_registered_settings() as $args ) {
-			if ( empty( $args['show_in_abilities'] ) ) {
-				continue;
-			}
-
+		foreach ( self::get_allowed_settings() as $args ) {
 			$group = $args['group'] ?? 'general';
 			if ( ! in_array( $group, $groups, true ) ) {
 				$groups[] = $group;
@@ -108,11 +123,7 @@ class WP_Settings_Abilities {
 	private static function get_available_slugs(): array {
 		$slugs = array();
 
-		foreach ( get_registered_settings() as $option_name => $args ) {
-			if ( empty( $args['show_in_abilities'] ) ) {
-				continue;
-			}
-
+		foreach ( self::get_allowed_settings() as $option_name => $args ) {
 			$slugs[] = $option_name;
 		}
 
@@ -135,11 +146,7 @@ class WP_Settings_Abilities {
 	private static function build_output_schema(): array {
 		$group_properties = array();
 
-		foreach ( get_registered_settings() as $option_name => $args ) {
-			if ( empty( $args['show_in_abilities'] ) ) {
-				continue;
-			}
-
+		foreach ( self::get_allowed_settings() as $option_name => $args ) {
 			$group = $args['group'] ?? 'general';
 
 			$setting_schema = array(
@@ -278,14 +285,9 @@ class WP_Settings_Abilities {
 		$filter_group = ! empty( $input['group'] ) ? $input['group'] : null;
 		$filter_slugs = ! empty( $input['slugs'] ) ? $input['slugs'] : null;
 
-		$registered_settings = get_registered_settings();
-		$settings_by_group   = array();
+		$settings_by_group = array();
 
-		foreach ( $registered_settings as $option_name => $args ) {
-			if ( empty( $args['show_in_abilities'] ) ) {
-				continue;
-			}
-
+		foreach ( self::get_allowed_settings() as $option_name => $args ) {
 			$group = $args['group'] ?? 'general';
 
 			if ( $filter_group && $group !== $filter_group ) {
