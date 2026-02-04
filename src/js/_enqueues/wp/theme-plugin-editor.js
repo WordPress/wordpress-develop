@@ -2,7 +2,9 @@
  * @output wp-admin/js/theme-plugin-editor.js
  */
 
-/* eslint no-magic-numbers: ["error", { "ignore": [-1, 0, 1] }] */
+/* eslint-env es2020 */
+
+/* eslint no-magic-numbers: ["error", { "ignore": [-1, 0, 1, 9, 1000] }] */
 
 if ( ! window.wp ) {
 	window.wp = {};
@@ -420,6 +422,7 @@ wp.themePluginEditor = (function( $ ) {
 		}
 
 		editor.codemirror.setOption( 'extraKeys', {
+			...( editor.codemirror.getOption( 'extraKeys' ) || {} ),
 			'Ctrl-S': onSaveShortcut,
 			'Cmd-S': onSaveShortcut,
 		} );
