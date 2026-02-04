@@ -52,7 +52,7 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @var array
+	 * @var ?array
 	 */
 	private static $global_styles_block_names;
 
@@ -76,7 +76,7 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @var array
+	 * @var ?array
 	 */
 	private static $global_styles_presets;
 
@@ -209,13 +209,13 @@ class WP_Duotone {
 			'rad'  => 360 / ( M_PI * 2 ),
 		);
 
-		$factor = isset( $angle_units[ $unit ] ) ? $angle_units[ $unit ] : 1;
+		$factor = $angle_units[ $unit ] ?? 1;
 
 		return (float) $value * $factor;
 	}
 
 	/**
-	 * Parses any valid Hex3, Hex4, Hex6 or Hex8 string and converts it to an RGBA object
+	 * Parses any valid Hex3, Hex4, Hex6 or Hex8 string and converts it to an RGBA object.
 	 *
 	 * Direct port of colord's parseHex function.
 	 *
@@ -246,7 +246,7 @@ class WP_Duotone {
 				'r' => (int) base_convert( $hex[0] . $hex[0], 16, 10 ),
 				'g' => (int) base_convert( $hex[1] . $hex[1], 16, 10 ),
 				'b' => (int) base_convert( $hex[2] . $hex[2], 16, 10 ),
-				'a' => 4 === strlen( $hex ) ? round( base_convert( $hex[3] . $hex[3], 16, 10 ) / 255, 2 ) : 1,
+				'a' => 4 === strlen( $hex ) ? round( (int) base_convert( $hex[3] . $hex[3], 16, 10 ) / 255, 2 ) : 1,
 			);
 		}
 
@@ -286,7 +286,7 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Parses a valid RGB[A] CSS color function/string
+	 * Parses a valid RGB[A] CSS color function/string.
 	 *
 	 * Direct port of colord's parseRgbaString function.
 	 *
@@ -972,9 +972,7 @@ class WP_Duotone {
 		 * If the experimental duotone support was set, that value is to be
 		 * treated as a selector and requires scoping.
 		 */
-		$experimental_duotone = isset( $block_type->supports['color']['__experimentalDuotone'] )
-			? $block_type->supports['color']['__experimentalDuotone']
-			: false;
+		$experimental_duotone = $block_type->supports['color']['__experimentalDuotone'] ?? false;
 		if ( $experimental_duotone ) {
 			$root_selector = wp_get_block_css_selector( $block_type );
 			return is_string( $experimental_duotone )
@@ -1003,7 +1001,7 @@ class WP_Duotone {
 		}
 		// Get the per block settings from the theme.json.
 		$tree              = wp_get_global_settings();
-		$presets_by_origin = isset( $tree['color']['duotone'] ) ? $tree['color']['duotone'] : array();
+		$presets_by_origin = $tree['color']['duotone'] ?? array();
 
 		self::$global_styles_presets = array();
 		foreach ( $presets_by_origin as $presets ) {
@@ -1155,6 +1153,45 @@ class WP_Duotone {
 	}
 
 	/**
+	 * Fixes the issue with our generated class name not being added to the block's outer container
+	 * in classic themes due to gutenberg_restore_image_outer_container from layout block supports.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @return string Filtered block content.
+	 */
+	public static function restore_image_outer_container( $block_content ) {
+		if ( wp_theme_has_theme_json() ) {
+			return $block_content;
+		}
+
+		$tags          = new WP_HTML_Tag_Processor( $block_content );
+		$wrapper_query = array(
+			'tag_name'   => 'div',
+			'class_name' => 'wp-block-image',
+		);
+		if ( ! $tags->next_tag( $wrapper_query ) ) {
+			return $block_content;
+		}
+
+		$tags->set_bookmark( 'wrapper-div' );
+		$tags->next_tag();
+
+		$inner_classnames = explode( ' ', $tags->get_attribute( 'class' ) );
+		foreach ( $inner_classnames as $classname ) {
+			if ( 0 === strpos( $classname, 'wp-duotone' ) ) {
+				$tags->remove_class( $classname );
+				$tags->seek( 'wrapper-div' );
+				$tags->add_class( $classname );
+				break;
+			}
+		}
+
+		return $tags->get_updated_html();
+	}
+
+	/**
 	 * Appends the used block duotone filter declarations to the inline block supports CSS.
 	 *
 	 * Uses the declarations saved in earlier calls to self::enqueue_block_css.
@@ -1265,9 +1302,7 @@ class WP_Duotone {
 	 * @return array Filtered block type settings.
 	 */
 	public static function migrate_experimental_duotone_support_flag( $settings, $metadata ) {
-		$duotone_support = isset( $metadata['supports']['color']['__experimentalDuotone'] )
-			? $metadata['supports']['color']['__experimentalDuotone']
-			: null;
+		$duotone_support = $metadata['supports']['color']['__experimentalDuotone'] ?? null;
 
 		if ( ! isset( $settings['supports']['filter']['duotone'] ) && null !== $duotone_support ) {
 			_wp_array_set( $settings, array( 'supports', 'filter', 'duotone' ), (bool) $duotone_support );
