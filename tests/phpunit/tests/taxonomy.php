@@ -4,6 +4,18 @@
  * @group taxonomy
  */
 class Tests_Taxonomy extends WP_UnitTestCase {
+
+	/**
+	 * Editor user ID.
+	 *
+	 * @var int $editor_id
+	 */
+	public static $editor_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
+
 	public function test_get_post_taxonomies() {
 		$this->assertSame( array( 'category', 'post_tag', 'post_format' ), get_object_taxonomies( 'post' ) );
 	}
@@ -28,7 +40,11 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	}
 
 	public function test_get_post_taxonomy() {
-		foreach ( get_object_taxonomies( 'post' ) as $taxonomy ) {
+		$taxonomies = get_object_taxonomies( 'post' );
+
+		$this->assertNotEmpty( $taxonomies );
+
+		foreach ( $taxonomies as $taxonomy ) {
 			$tax = get_taxonomy( $taxonomy );
 			// Should return an object with the correct taxonomy object type.
 			$this->assertIsObject( $tax );
@@ -110,7 +126,11 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	}
 
 	public function test_get_link_taxonomy() {
-		foreach ( get_object_taxonomies( 'link' ) as $taxonomy ) {
+		$taxonomies = get_object_taxonomies( 'link' );
+
+		$this->assertNotEmpty( $taxonomies );
+
+		foreach ( $taxonomies as $taxonomy ) {
 			$tax = get_taxonomy( $taxonomy );
 			// Should return an object with the correct taxonomy object type.
 			$this->assertIsObject( $tax );
@@ -1002,7 +1022,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			)
 		);
 
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 		$updated_post_id = edit_post(
 			array(
 				'post_ID'   => $post->ID,
@@ -1028,7 +1048,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_default_term_for_custom_taxonomy() {
 
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$tax = 'custom-tax';
 

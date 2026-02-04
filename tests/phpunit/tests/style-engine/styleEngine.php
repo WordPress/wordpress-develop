@@ -14,20 +14,15 @@
  */
 class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
-	 * Cleans up stores after each test.
-	 */
-	public function tear_down() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-		parent::tear_down();
-	}
-
-	/**
 	 * Tests generating block styles and classnames based on various manifestations of the $block_styles argument.
 	 *
 	 * @ticket 56467
 	 * @ticket 58549
 	 * @ticket 58590
 	 * @ticket 60175
+	 * @ticket 61720
+	 * @ticket 62189
+	 * @ticket 63799
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -169,6 +164,29 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_border_radius_presets'           => array(
+				'block_styles'    => array(
+					'border' => array(
+						'radius' => array(
+							'topLeft'     => 'var:preset|border-radius|large',
+							'topRight'    => 'var:preset|border-radius|large',
+							'bottomLeft'  => 'var:preset|border-radius|large',
+							'bottomRight' => 'var:preset|border-radius|large',
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'border-top-left-radius:var(--wp--preset--border-radius--large);border-top-right-radius:var(--wp--preset--border-radius--large);border-bottom-left-radius:var(--wp--preset--border-radius--large);border-bottom-right-radius:var(--wp--preset--border-radius--large);',
+					'declarations' => array(
+						'border-top-left-radius'     => 'var(--wp--preset--border-radius--large)',
+						'border-top-right-radius'    => 'var(--wp--preset--border-radius--large)',
+						'border-bottom-left-radius'  => 'var(--wp--preset--border-radius--large)',
+						'border-bottom-right-radius' => 'var(--wp--preset--border-radius--large)',
+					),
+				),
+			),
+
 			'inline_valid_dimensions_style'                => array(
 				'block_styles'    => array(
 					'dimensions' => array(
@@ -227,11 +245,12 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'textDecoration' => 'underline',
 						'textTransform'  => 'uppercase',
 						'letterSpacing'  => '2',
+						'writingMode'    => 'vertical-rl',
 					),
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;letter-spacing:2;',
+					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;letter-spacing:2;writing-mode:vertical-rl;',
 					'declarations' => array(
 						'font-size'       => 'clamp(2em, 2vw, 4em)',
 						'font-family'     => 'Roboto,Oxygen-Sans,Ubuntu,sans-serif',
@@ -242,6 +261,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'text-decoration' => 'underline',
 						'text-transform'  => 'uppercase',
 						'letter-spacing'  => '2',
+						'writing-mode'    => 'vertical-rl',
 					),
 				),
 			),
@@ -539,22 +559,24 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 			'inline_background_image_url_with_background_size' => array(
 				'block_styles'    => array(
 					'background' => array(
-						'backgroundImage'    => array(
+						'backgroundImage'      => array(
 							'url' => 'https://example.com/image.jpg',
 						),
-						'backgroundPosition' => 'center',
-						'backgroundRepeat'   => 'no-repeat',
-						'backgroundSize'     => 'cover',
+						'backgroundPosition'   => 'center',
+						'backgroundRepeat'     => 'no-repeat',
+						'backgroundSize'       => 'cover',
+						'backgroundAttachment' => 'fixed',
 					),
 				),
 				'options'         => array(),
 				'expected_output' => array(
-					'css'          => "background-image:url('https://example.com/image.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;",
+					'css'          => "background-image:url('https://example.com/image.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;background-attachment:fixed;",
 					'declarations' => array(
-						'background-image'    => "url('https://example.com/image.jpg')",
-						'background-position' => 'center',
-						'background-repeat'   => 'no-repeat',
-						'background-size'     => 'cover',
+						'background-image'      => "url('https://example.com/image.jpg')",
+						'background-position'   => 'center',
+						'background-repeat'     => 'no-repeat',
+						'background-size'       => 'cover',
+						'background-attachment' => 'fixed',
 					),
 				),
 			),
