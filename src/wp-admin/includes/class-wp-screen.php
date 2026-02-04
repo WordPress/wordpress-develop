@@ -988,7 +988,7 @@ final class WP_Screen {
 	 *
 	 * @global array $wp_meta_boxes Global meta box state.
 	 *
-	 * @return bool
+	 * @return bool Whether the current screen is the block editor.
 	 */
 	public function show_screen_options() {
 		global $wp_meta_boxes;
