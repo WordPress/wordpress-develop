@@ -66,6 +66,36 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Retrieves the query params for the attachments collection.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $method Optional. HTTP method of the request.
+	 *                       The arguments for `CREATABLE` requests are
+	 *                       checked for required values and may fall-back to a given default.
+	 *                       Default WP_REST_Server::CREATABLE.
+	 * @return array Endpoint arguments.
+	 */
+	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
+		$args = parent::get_endpoint_args_for_item_schema( $method );
+
+		if ( WP_REST_Server::CREATABLE === $method ) {
+			$args['generate_sub_sizes'] = array(
+				'type'        => 'boolean',
+				'default'     => true,
+				'description' => __( 'Whether to generate image sub sizes.' ),
+			);
+			$args['convert_format']     = array(
+				'type'        => 'boolean',
+				'default'     => true,
+				'description' => __( 'Whether to convert image formats.' ),
+			);
+		}
+
+		return $args;
+	}
+
+	/**
 	 * Determines the allowed query_vars for a get_items() response and
 	 * prepares for WP_Query.
 	 *
@@ -192,6 +222,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Creates a single attachment.
 	 *
 	 * @since 4.7.0
+	 * @since 6.9.0 Added `generate_sub_sizes` and `convert_format` parameters.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -205,9 +236,28 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
+		// Handle generate_sub_sizes parameter.
+		if ( isset( $request['generate_sub_sizes'] ) && ! $request['generate_sub_sizes'] ) {
+			add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
+			add_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
+			// Disable server-side EXIF rotation so the client can handle it.
+			// This preserves the original orientation value in the metadata.
+			add_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
+		}
+
+		// Handle convert_format parameter.
+		if ( isset( $request['convert_format'] ) && ! $request['convert_format'] ) {
+			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+		}
+
 		$insert = $this->insert_attachment( $request );
 
 		if ( is_wp_error( $insert ) ) {
+			// Clean up filters on error.
+			remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
+			remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
+			remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
+			remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 			return $insert;
 		}
 
@@ -282,6 +332,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * At this point the server may run out of resources and post-processing of uploaded images may fail.
 		 */
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
+
+		// Clean up filters.
+		remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
+		remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
+		remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
+		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
