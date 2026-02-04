@@ -451,7 +451,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	fwrite( $file, "<html>\n" );
 	fwrite( $file, "<head>\n" );
 	fwrite( $file, "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />\n" );
-	fwrite( $file, "<style type='text/css'>" );
+	fwrite( $file, '<style>' );
 	fwrite( $file, 'body { color: black; font-family: Arial, sans-serif; font-size: 11pt; margin: 15px auto; width: 860px; }' );
 	fwrite( $file, 'table { background: #f0f0f0; border: 1px solid #ddd; margin-bottom: 20px; width: 100%; }' );
 	fwrite( $file, 'th { padding: 5px; text-align: left; width: 20%; }' );
@@ -613,7 +613,7 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 
 	/**
 	 * Filters the recipient of the personal data export email notification.
-	 * Should be used with great caution to avoid sending the data export link to wrong emails.
+	 * Should be used with great caution to avoid sending the data export link to the wrong email.
 	 *
 	 * @since 5.3.0
 	 *
@@ -678,10 +678,11 @@ All at ###SITENAME###
 	 * Filters the text of the email sent with a personal data export file.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 * ###EXPIRATION###         The date when the URL will be automatically deleted.
-	 * ###LINK###               URL of the personal data export file for the user.
-	 * ###SITENAME###           The name of the site.
-	 * ###SITEURL###            The URL to the site.
+	 *
+	 *  - `###EXPIRATION###` The date when the URL will be automatically deleted.
+	 *  - `###LINK###`       URL of the personal data export file for the user.
+	 *  - `###SITENAME###`   The name of the site.
+	 *  - `###SITEURL###`    The URL to the site.
 	 *
 	 * @since 4.9.6
 	 * @since 5.3.0 Introduced the `$email_data` array.

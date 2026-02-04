@@ -48,10 +48,14 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	 */
 	private function get_pattern_cache( $wp_theme ) {
 		$reflection = new ReflectionMethod( $wp_theme, 'get_pattern_cache' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$pattern_cache = $reflection->invoke( $wp_theme, 'get_pattern_cache' );
-		$reflection->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( false );
+		}
 
 		return $pattern_cache;
 	}
@@ -64,9 +68,13 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	 */
 	private function get_cache_hash( $wp_theme ) {
 		$reflection = new ReflectionProperty( get_class( $wp_theme ), 'cache_hash' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 		$cache_hash = $reflection->getValue( $wp_theme );
-		$reflection->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( false );
+		}
 		return $cache_hash;
 	}
 
