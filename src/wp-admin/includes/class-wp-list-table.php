@@ -490,7 +490,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return array An associative array of views.
+	 * @return array<string, string> An associative array of views.
 	 */
 	protected function get_views() {
 		return array();
@@ -554,7 +554,7 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 * @since 5.6.0 A bulk action can now contain an array of options in order to create an optgroup.
 	 *
-	 * @return array An associative array of bulk actions.
+	 * @return array<string, string|array<string, string>> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		return array();
@@ -1179,7 +1179,7 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 * @abstract
 	 *
-	 * @return array An associative array of columns.
+	 * @return array<string, string> An associative array of columns.
 	 */
 	public function get_columns() {
 		die( 'function WP_List_Table::get_columns() must be overridden in a subclass.' );
@@ -1202,7 +1202,7 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 * @since 6.3.0 Added 'abbr', 'orderby-text' and 'initially-sorted-column-order'.
 	 *
-	 * @return array An associative array of sortable columns.
+	 * @return array<string, array<int, string|bool>|string> An associative array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 		return array();
@@ -1293,7 +1293,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return array Column information.
+	 * @return array<int, array|string> Column information.
 	 */
 	protected function get_column_info() {
 		// $_column_headers is already set / cached.

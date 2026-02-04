@@ -1186,7 +1186,7 @@ function image_align_input_fields( $post, $checked = '' ) {
  *
  * @param WP_Post     $post
  * @param bool|string $check
- * @return array An array of data for the image size input fields.
+ * @return array<string, string> An array of data for the image size input fields.
  */
 function image_size_input_fields( $post, $check = '' ) {
 	/**
@@ -1313,7 +1313,7 @@ function wp_caption_input_textarea( $edit_post ) {
  *
  * @param array  $form_fields
  * @param object $post
- * @return array The attachment form fields.
+ * @return array<string, array<string, mixed>> The attachment form fields.
  */
 function image_attachment_fields_to_edit( $form_fields, $post ) {
 	return $form_fields;
@@ -1380,7 +1380,7 @@ function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
  *
  * @param WP_Post $post
  * @param array   $errors
- * @return array The attachment fields.
+ * @return array<string, array<string, mixed>> The attachment fields.
  */
 function get_attachment_fields_to_edit( $post, $errors = null ) {
 	if ( is_int( $post ) ) {
@@ -1871,7 +1871,7 @@ function get_media_item( $attachment_id, $args = null ) {
  *
  * @param int   $attachment_id
  * @param array $args
- * @return array An array containing the media item and its metadata.
+ * @return array<string, string> An array containing the media item and its metadata.
  */
 function get_compat_media_markup( $attachment_id, $args = null ) {
 	$post = get_post( $attachment_id );

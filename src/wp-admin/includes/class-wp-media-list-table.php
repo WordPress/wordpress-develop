@@ -119,7 +119,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @global array $post_mime_types
 	 * @global array $avail_post_mime_types
-	 * @return array An array of links for the available views.
+	 * @return array<string, string> An array of links for the available views.
 	 */
 	protected function get_views() {
 		global $post_mime_types, $avail_post_mime_types;
@@ -174,7 +174,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array An associative array of bulk actions.
+	 * @return array<string, string> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		$actions = array();
@@ -393,7 +393,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array An array of sortable columns.
+	 * @return array<string, array<int, mixed>> An array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 		return array(
@@ -764,7 +764,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @param WP_Post $post
 	 * @param string  $att_title
-	 * @return array An array of row actions.
+	 * @return array<string, string> An array of row actions.
 	 */
 	private function _get_row_actions( $post, $att_title ) {
 		$actions = array();

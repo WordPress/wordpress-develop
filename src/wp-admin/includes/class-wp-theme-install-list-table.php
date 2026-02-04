@@ -179,7 +179,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	/**
 	 * @global array $tabs
 	 * @global string $tab
-	 * @return array An array of links for the available views.
+	 * @return array<string, string> An array of links for the available views.
 	 */
 	protected function get_views() {
 		global $tabs, $tab;

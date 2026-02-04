@@ -34,7 +34,7 @@ function get_preferred_from_update_core() {
  *
  * @param array $options Set $options['dismissed'] to true to show dismissed upgrades too,
  *                       set $options['available'] to false to skip not-dismissed updates.
- * @return array|false Array of the update objects on success, false on failure.
+ * @return array<object>|false Array of the update objects on success, false on failure.
  */
 function get_core_updates( $options = array() ) {
 	$options = array_merge(
@@ -126,7 +126,7 @@ function find_core_auto_update() {
  *
  * @param string $version Version string to query.
  * @param string $locale  Locale to query.
- * @return array|false An array of checksums on success, false on failure.
+ * @return array<string, string>|false An array of checksums on success, false on failure.
  */
 function get_core_checksums( $version, $locale ) {
 	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), '', '&' );
@@ -401,7 +401,7 @@ function update_right_now_message() {
  *
  * @since 2.9.0
  *
- * @return object[] Array of plugin objects with available updates.
+ * @return array<string, object> Array of plugin objects with available updates.
  */
 function get_plugin_updates() {
 	$all_plugins     = get_plugins();
@@ -624,7 +624,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
  *
  * @since 2.9.0
  *
- * @return WP_Theme[] Array of theme objects with available updates.
+ * @return array<string, WP_Theme> Array of theme objects with available updates.
  */
 function get_theme_updates() {
 	$current = get_site_transient( 'update_themes' );
