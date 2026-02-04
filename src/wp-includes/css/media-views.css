@@ -155,11 +155,6 @@
 
 .media-frame ::-moz-placeholder {
 	color: #646970;
-	opacity: 1;
-}
-
-.media-frame :-ms-input-placeholder {
-	color: #646970;
 }
 
 /*
@@ -252,8 +247,8 @@
 
 .media-modal-close .media-modal-icon:before {
 	content: "\f158";
+	content: "\f158" / '';
 	font: normal 20px/1 dashicons;
-	speak: never;
 	vertical-align: middle;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -709,6 +704,7 @@
 	color: #043959;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
+	z-index: 1;
 }
 
 .media-router .active,
@@ -1081,14 +1077,20 @@
 	width: 22px;
 	padding: 0;
 	background-color: #fff;
-	background-position: -96px 4px;
 	border-radius: 3px;
 	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
 	transition: none;
 }
 
-.wp-core-ui .attachment-close:hover,
-.wp-core-ui .attachment-close:focus {
+.wp-core-ui .attachment-close .media-modal-icon {
+	display: inline-block;
+	background-position: -96px 4px;
+	height: 22px;
+	width: 22px;
+}
+
+.wp-core-ui .attachment-close:hover .media-modal-icon,
+.wp-core-ui .attachment-close:focus .media-modal-icon {
 	background-position: -36px 4px;
 }
 
@@ -1245,6 +1247,7 @@
 	color: #50575e;
 	display: inline-block;
 	content: "\f335";
+	content: "\f335" / '';
 	font-weight: 300;
 	margin-top: 1px;
 }
@@ -1999,6 +2002,7 @@
 
 .media-modal .imgedit-help-toggled span.dashicons:before {
 	content: "\f142";
+	content: "\f142" / '';
 }
 
 .media-modal .imgedit-thumbnail-preview {
@@ -2177,17 +2181,18 @@
 
 .image-details .advanced-toggle:after {
 	font: normal 20px/1 dashicons;
-	speak: never;
 	vertical-align: top;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	content: "\f140";
+	content: "\f140" / '';
 	display: inline-block;
 	margin-top: -2px;
 }
 
 .image-details .advanced-visible .advanced-toggle:after {
 	content: "\f142";
+	content: "\f142" / '';
 }
 
 .image-details .custom-size label, /* Back-compat for pre-5.3 */
@@ -2487,12 +2492,13 @@
 
 	/* Visually hide the menu heading keeping it available to assistive technologies. */
 	.media-frame-menu-heading {
-		clip: rect(1px, 1px, 1px, 1px);
 		clip-path: inset(50%);
 		height: 1px;
 		overflow: hidden;
 		padding: 0;
 		width: 1px;
+		border: 0;
+		margin: -1px;
 		word-wrap: normal !important;
 	}
 
@@ -2531,7 +2537,8 @@
 		width: 230px;
 	}
 
-	.options-general-php .crop-content.site-icon {
+	.options-general-php .crop-content.site-icon,
+	.wp-customizer:not(.mobile) .media-frame-content .crop-content.site-icon {
 		margin-right: 262px;
 	}
 
@@ -2831,7 +2838,8 @@
 		position: fixed;
 	}
 
-	.options-general-php .crop-content.site-icon {
+	.options-general-php .crop-content.site-icon,
+	.wp-customizer:not(.mobile) .media-frame-content .crop-content.site-icon {
 		margin-right: 0;
 	}
 
