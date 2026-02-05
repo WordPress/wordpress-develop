@@ -323,7 +323,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket TBD
+	 * @ticket 64607
 	 *
 	 * @dataProvider data_provider_normalize_special_leading_newline_cases
 	 */
@@ -334,6 +334,11 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		$this->assertEqualHTML( $expected, $normalized_twice );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public static function data_provider_normalize_special_leading_newline_cases() {
 		return array(
 			'Leading newline in PRE'             => array(
