@@ -37,6 +37,28 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63854
+	 *
+	 * @covers ::create_fragment
+	 * @expectedIncorrectUsage WP_HTML_Processor::create_fragment
+	 */
+	public function test_create_fragment_validates_html_parameter() {
+		$processor = WP_HTML_Processor::create_fragment( null );
+		$this->assertNull( $processor );
+	}
+
+	/**
+	 * @ticket 63854
+	 *
+	 * @covers ::create_full_parser
+	 * @expectedIncorrectUsage WP_HTML_Processor::create_full_parser
+	 */
+	public function test_create_full_parser_validates_html_parameter() {
+		$processor = WP_HTML_Processor::create_full_parser( null );
+		$this->assertNull( $processor );
+	}
+
+	/**
 	 * Once stepping to the end of the document, WP_HTML_Processor::get_tag
 	 * should no longer report a tag. It should report `null` because there
 	 * is no tag matched or open.
