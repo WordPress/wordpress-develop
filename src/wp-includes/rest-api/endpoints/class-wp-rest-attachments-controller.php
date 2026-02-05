@@ -105,7 +105,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Retrieves the query params for the attachments collection.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @param string $method Optional. HTTP method of the request.
 	 *                       The arguments for `CREATABLE` requests are
@@ -259,7 +259,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Creates a single attachment.
 	 *
 	 * @since 4.7.0
-	 * @since 6.9.0 Added `generate_sub_sizes` and `convert_format` parameters.
+	 * @since 7.0.0 Added `generate_sub_sizes` and `convert_format` parameters.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -1894,7 +1894,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Gets the attachment's original file name.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return string|null Attachment file name, or null if not found.
@@ -1918,7 +1918,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Gets the attachment's file size in bytes.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return int|null Attachment file size in bytes, or null if not available.
@@ -1946,7 +1946,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Sideloading a file for an existing attachment
 	 * requires both update and create permissions.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
@@ -1958,7 +1958,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Side-loads a media file without creating a new attachment.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -2087,7 +2087,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * However, here it is desired not to add the suffix in order to maintain the same
 	 * naming convention as if the file was uploaded regularly.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @link https://github.com/WordPress/wordpress-develop/blob/30954f7ac0840cfdad464928021d7f380940c347/src/wp-includes/functions.php#L2576-L2582
 	 *

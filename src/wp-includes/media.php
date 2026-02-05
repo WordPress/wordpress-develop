@@ -6366,7 +6366,7 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
  * Required for enabling SharedArrayBuffer for WebAssembly-based
  * media processing in the editor.
  *
- * @since 6.9.0
+ * @since 7.0.0
  *
  * @link https://web.dev/coop-coep/
  */
@@ -6400,7 +6400,7 @@ function wp_set_up_cross_origin_isolation() {
  * Sends headers and uses an output buffer to add crossorigin="anonymous"
  * attributes where needed.
  *
- * @since 6.9.0
+ * @since 7.0.0
  *
  * @link https://web.dev/coop-coep/
  *
@@ -6424,7 +6424,7 @@ function wp_start_cross_origin_isolation_output_buffer() {
 /**
  * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
  *
- * @since 6.9.0
+ * @since 7.0.0
  *
  * @param string $html HTML input.
  * @return string Modified HTML.
@@ -6491,7 +6491,7 @@ function wp_add_crossorigin_attributes( string $html ): string {
  *
  * Adds support for serving WebAssembly files used by client-side media processing.
  *
- * @since 6.9.0
+ * @since 7.0.0
  *
  * @param string $rules mod_rewrite Rewrite rules formatted for .htaccess.
  * @return string Filtered rewrite rules.
@@ -6510,7 +6510,7 @@ function wp_filter_mod_rewrite_rules_for_wasm( string $rules ): string {
  * Adds `crossorigin` attribute to all tags that could have assets
  * loaded from a different domain for cross-origin isolation support.
  *
- * @since 6.9.0
+ * @since 7.0.0
  */
 function wp_override_media_templates() {
 	remove_action( 'admin_footer', 'wp_print_media_templates' );
