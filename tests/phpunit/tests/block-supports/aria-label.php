@@ -47,6 +47,7 @@ class Tests_Block_Supports_Aria_Label extends WP_UnitTestCase {
 	 * Tests that aria-label block support works as expected.
 	 *
 	 * @ticket 62919
+	 * @ticket 64594
 	 *
 	 * @dataProvider data_aria_label_block_support
 	 *
