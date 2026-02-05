@@ -200,11 +200,7 @@ class WP_Plugin_Dependencies {
 	 * @return array An array of dependency plugin slugs.
 	 */
 	public static function get_dependencies( $plugin_file ) {
-		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
-			return self::$dependencies[ $plugin_file ];
-		}
-
-		return array();
+		return self::$dependencies[ $plugin_file ] ?? array();
 	}
 
 	/**
@@ -354,12 +350,7 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function get_dependency_data( $slug ) {
 		$dependency_api_data = self::get_dependency_api_data();
-
-		if ( isset( $dependency_api_data[ $slug ] ) ) {
-			return $dependency_api_data[ $slug ];
-		}
-
-		return false;
+		return $dependency_api_data[ $slug ] ?? false;
 	}
 
 	/**
@@ -870,6 +861,9 @@ class WP_Plugin_Dependencies {
 	 * @return string The plugin's slug.
 	 */
 	protected static function convert_to_slug( $plugin_file ) {
+		if ( 'hello.php' === $plugin_file ) {
+			return 'hello-dolly';
+		}
 		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : str_replace( '.php', '', $plugin_file );
 	}
 }

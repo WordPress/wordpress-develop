@@ -16,7 +16,6 @@ if ( false ) {
 	<title>Error: PHP is not running</title>
 </head>
 <body class="wp-core-ui">
-	<p id="logo"><a href="https://wordpress.org/">WordPress</a></p>
 	<h1>Error: PHP is not running</h1>
 	<p>WordPress requires that your web server is running PHP. Your server does not have PHP installed, or PHP is turned off.</p>
 </body>
@@ -53,7 +52,7 @@ $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : 0;
  *
  * @since 2.5.0
  *
- * @param string $body_classes
+ * @param string $body_classes Class attribute values for the body tag.
  */
 function display_header( $body_classes = '' ) {
 	header( 'Content-Type: text/html; charset=utf-8' );
@@ -86,7 +85,7 @@ function display_header( $body_classes = '' ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|null $error
+ * @param string|null $error Error message to display, if any.
  */
 function display_setup_form( $error = null ) {
 	global $wpdb;
@@ -180,19 +179,12 @@ function display_setup_form( $error = null ) {
 			<td><input name="admin_email" type="email" id="admin_email" size="25" aria-describedby="admin-email-desc" value="<?php echo esc_attr( $admin_email ); ?>" />
 			<p id="admin-email-desc"><?php _e( 'Double-check your email address before continuing.' ); ?></p></td>
 		</tr>
+		<?php $blog_privacy_selector_title = has_action( 'blog_privacy_selector' ) ? __( 'Site visibility' ) : __( 'Search engine visibility' ); ?>
 		<tr>
-			<th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?></th>
+			<th scope="row"><?php echo $blog_privacy_selector_title; ?></th>
 			<td>
 				<fieldset>
-					<legend class="screen-reader-text"><span>
-						<?php
-						has_action( 'blog_privacy_selector' )
-							/* translators: Hidden accessibility text. */
-							? _e( 'Site visibility' )
-							/* translators: Hidden accessibility text. */
-							: _e( 'Search engine visibility' );
-						?>
-					</span></legend>
+					<legend class="screen-reader-text"><span><?php echo $blog_privacy_selector_title; ?></span></legend>
 					<?php
 					if ( has_action( 'blog_privacy_selector' ) ) {
 						?>
@@ -478,13 +470,13 @@ switch ( $step ) {
 
 if ( ! wp_is_mobile() ) {
 	?>
-<script type="text/javascript">var t = document.getElementById('weblog_title'); if (t){ t.focus(); }</script>
+<script>var t = document.getElementById('weblog_title'); if (t){ t.focus(); }</script>
 	<?php
 }
 
 wp_print_scripts( $scripts_to_print );
 ?>
-<script type="text/javascript">
+<script>
 jQuery( function( $ ) {
 	$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
 } );
