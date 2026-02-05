@@ -1434,7 +1434,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html
 		 */
-		if ( $tag_name === 'TEXTAREA' || $tag_name === 'PRE' || $tag_name === 'LISTING' ) {
+		if ( 'TEXTAREA' === $tag_name || 'PRE' === $tag_name || 'LISTING' === $tag_name ) {
 			$html .= "\n";
 		}
 
