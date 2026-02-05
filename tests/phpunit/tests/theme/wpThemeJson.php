@@ -783,6 +783,63 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64598
+	 */
+	public function test_get_stylesheet_preset_css_vars_use_feature_selector() {
+		register_block_type(
+			'test/feature-selector',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'       => '.wp-block-test-feature-selector .wp-block-test-feature-selector__inner',
+					'dimensions' => array(
+						'root' => '.wp-block-test-feature-selector',
+					),
+				),
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'test/feature-selector' => array(
+							'dimensions' => array(
+								'dimensionSizes' => array(
+									array(
+										'slug' => '25',
+										'size' => '25%',
+									),
+									array(
+										'slug' => '50',
+										'size' => '50%',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$variables = $theme_json->get_stylesheet( array( 'variables' ) );
+
+		// Dimension preset CSS vars should be on the feature selector,
+		// not the block's root selector.
+		$this->assertStringContainsString(
+			'.wp-block-test-feature-selector{--wp--preset--dimension--25: 25%;--wp--preset--dimension--50: 50%;}',
+			$variables
+		);
+		$this->assertStringNotContainsString(
+			'.wp-block-test-feature-selector .wp-block-test-feature-selector__inner{--wp--preset--dimension',
+			$variables
+		);
+
+		unregister_block_type( 'test/feature-selector' );
+	}
+
+	/**
 	 * @ticket 53175
 	 * @ticket 54336
 	 * @ticket 58550
