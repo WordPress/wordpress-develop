@@ -102,7 +102,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that unauthenticated users cannot access the get-settings ability.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_requires_authentication(): void {
 		wp_set_current_user( 0 );
@@ -116,7 +116,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that subscribers cannot access the get-settings ability.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_requires_manage_options_capability(): void {
 		wp_set_current_user( self::$subscriber_id );
@@ -130,7 +130,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that administrators can access the get-settings ability.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_allows_administrators(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -142,7 +142,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the get-settings ability returns settings grouped by registration group.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_returns_grouped_settings(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -161,7 +161,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the get-settings ability can filter by group.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_filters_by_group(): void {
 		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -186,7 +186,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the get-settings ability can filter by specific slugs.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_filters_by_slugs(): void {
 		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -213,7 +213,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that settings without show_in_abilities are excluded.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_excludes_settings_without_show_in_abilities(): void {
 		register_setting(
@@ -243,7 +243,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that core settings with show_in_abilities are included.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_includes_settings_with_show_in_abilities(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -265,7 +265,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that boolean settings are cast to actual booleans.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_casts_boolean_values(): void {
 		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -290,7 +290,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that integer settings are cast to actual integers.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_casts_integer_values(): void {
 		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -315,7 +315,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the get-settings ability requires GET method (read-only).
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_requires_get_method(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -332,7 +332,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the get-settings ability returns correct values.
 	 *
-	 * @ticket 62635
+	 * @ticket 64605
 	 */
 	public function test_core_get_settings_returns_correct_values(): void {
 		update_option( 'blogname', 'Test Site Name' );
