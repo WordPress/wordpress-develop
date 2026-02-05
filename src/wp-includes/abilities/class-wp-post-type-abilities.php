@@ -879,9 +879,9 @@ class WP_Post_Type_Abilities {
 	 *
 	 * @param WP_Post_Type $post_type_object The post type object.
 	 * @param array        $input            The input parameters.
-	 * @return array Query results with posts, total, and total_pages.
+	 * @return array|WP_Error Query results with posts, total, and total_pages, or error.
 	 */
-	private static function execute_get_query( WP_Post_Type $post_type_object, array $input ): array {
+	private static function execute_get_query( WP_Post_Type $post_type_object, array $input ) {
 		$per_page = $input['per_page'] ?? 10;
 		$page     = $input['page'] ?? 1;
 
@@ -939,6 +939,23 @@ class WP_Post_Type_Abilities {
 			$query_input = $input['query'];
 
 			if ( ! empty( $query_input['tax'] ) ) {
+				// Validate that all taxonomies in the query are public.
+				$taxonomies_in_query = self::extract_taxonomies_from_query( $query_input['tax'] );
+				$allowed_taxonomies  = self::get_allowed_taxonomies( $post_type_object->name );
+				$invalid_taxonomies  = array_diff( $taxonomies_in_query, $allowed_taxonomies );
+
+				if ( ! empty( $invalid_taxonomies ) ) {
+					return new WP_Error(
+						'invalid_taxonomy',
+						sprintf(
+							/* translators: %s: Comma-separated list of invalid taxonomy slugs. */
+							__( 'The following taxonomies are not allowed: %s' ),
+							implode( ', ', $invalid_taxonomies )
+						),
+						array( 'status' => 400 )
+					);
+				}
+
 				$tax_query = self::process_query_recursive(
 					$query_input['tax'],
 					array( __CLASS__, 'process_tax_clause' )
@@ -949,6 +966,23 @@ class WP_Post_Type_Abilities {
 			}
 
 			if ( ! empty( $query_input['meta'] ) ) {
+				// Validate that all meta keys in the query have show_in_abilities enabled.
+				$meta_keys_in_query = self::extract_meta_keys_from_query( $query_input['meta'] );
+				$allowed_meta_keys  = self::get_allowed_meta_keys( $post_type_object->name );
+				$invalid_keys       = array_diff( $meta_keys_in_query, $allowed_meta_keys );
+
+				if ( ! empty( $invalid_keys ) ) {
+					return new WP_Error(
+						'invalid_meta_key',
+						sprintf(
+							/* translators: %s: Comma-separated list of invalid meta keys. */
+							__( 'The following meta keys are not allowed: %s' ),
+							implode( ', ', $invalid_keys )
+						),
+						array( 'status' => 400 )
+					);
+				}
+
 				$meta_query = self::process_query_recursive(
 					$query_input['meta'],
 					array( __CLASS__, 'process_meta_clause' )
@@ -1025,8 +1059,8 @@ class WP_Post_Type_Abilities {
 		}
 
 		if ( post_type_supports( $slug, 'author' ) ) {
-			$author          = get_userdata( (int) $post->post_author );
-			$data['author']  = array(
+			$author         = get_userdata( (int) $post->post_author );
+			$data['author'] = array(
 				'id'           => (int) $post->post_author,
 				'display_name' => $author ? $author->display_name : '',
 			);
@@ -1042,8 +1076,8 @@ class WP_Post_Type_Abilities {
 		}
 
 		if ( post_type_supports( $slug, 'post-formats' ) ) {
-			$format          = get_post_format( $post );
-			$data['format']  = $format ? $format : 'standard';
+			$format         = get_post_format( $post );
+			$data['format'] = $format ? $format : 'standard';
 		}
 
 		if ( post_type_supports( $slug, 'comments' ) ) {
@@ -1084,11 +1118,17 @@ class WP_Post_Type_Abilities {
 		}
 
 		if ( ! empty( $include['meta'] ) && post_type_supports( $slug, 'custom-fields' ) ) {
-			$meta        = get_post_meta( $post->ID );
-			$public_meta = array();
+			$meta              = get_post_meta( $post->ID );
+			$public_meta       = array();
+			$allowed_meta_keys = self::get_allowed_meta_keys( $slug );
 
 			foreach ( $meta as $key => $values ) {
+				// Skip protected meta keys.
 				if ( is_protected_meta( $key, 'post' ) ) {
+					continue;
+				}
+				// Only include meta keys that are registered with show_in_abilities enabled.
+				if ( ! in_array( $key, $allowed_meta_keys, true ) ) {
 					continue;
 				}
 				$public_meta[ $key ] = count( $values ) === 1 ? $values[0] : $values;
@@ -1218,19 +1258,38 @@ class WP_Post_Type_Abilities {
 		}
 
 		$allowed_compare = array(
-			'=', '!=', '>', '>=', '<', '<=',
-			'LIKE', 'NOT LIKE', 'IN', 'NOT IN',
-			'BETWEEN', 'NOT BETWEEN',
-			'EXISTS', 'NOT EXISTS',
-			'REGEXP', 'NOT REGEXP', 'RLIKE',
+			'=',
+			'!=',
+			'>',
+			'>=',
+			'<',
+			'<=',
+			'LIKE',
+			'NOT LIKE',
+			'IN',
+			'NOT IN',
+			'BETWEEN',
+			'NOT BETWEEN',
+			'EXISTS',
+			'NOT EXISTS',
+			'REGEXP',
+			'NOT REGEXP',
+			'RLIKE',
 		);
 		if ( ! empty( $clause['compare'] ) && in_array( $clause['compare'], $allowed_compare, true ) ) {
 			$result['compare'] = $clause['compare'];
 		}
 
 		$allowed_types = array(
-			'NUMERIC', 'CHAR', 'DATE', 'DATETIME',
-			'TIME', 'BINARY', 'SIGNED', 'UNSIGNED', 'DECIMAL',
+			'NUMERIC',
+			'CHAR',
+			'DATE',
+			'DATETIME',
+			'TIME',
+			'BINARY',
+			'SIGNED',
+			'UNSIGNED',
+			'DECIMAL',
 		);
 		if ( ! empty( $clause['type'] ) && in_array( $clause['type'], $allowed_types, true ) ) {
 			$result['type'] = $clause['type'];
@@ -1251,9 +1310,16 @@ class WP_Post_Type_Abilities {
 		$result = array();
 
 		$int_fields = array(
-			'year', 'month', 'week', 'day',
-			'hour', 'minute', 'second',
-			'dayofweek', 'dayofweek_iso', 'dayofyear',
+			'year',
+			'month',
+			'week',
+			'day',
+			'hour',
+			'minute',
+			'second',
+			'dayofweek',
+			'dayofweek_iso',
+			'dayofyear',
 		);
 
 		foreach ( $int_fields as $field ) {
@@ -1314,5 +1380,110 @@ class WP_Post_Type_Abilities {
 		if ( ! empty( $input['column'] ) && in_array( $input['column'], $allowed_columns, true ) ) {
 			$result['column'] = $input['column'];
 		}
+	}
+
+	/**
+	 * Returns all meta keys that are registered with show_in_abilities enabled for a post type.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $post_type_slug The post type slug.
+	 * @return string[] List of allowed meta keys.
+	 */
+	private static function get_allowed_meta_keys( string $post_type_slug ): array {
+		$registered_meta = array_merge(
+			get_registered_meta_keys( 'post', $post_type_slug ),
+			get_registered_meta_keys( 'post' )
+		);
+
+		$allowed = array();
+		foreach ( $registered_meta as $key => $args ) {
+			if ( ! empty( $args['show_in_abilities'] ) ) {
+				$allowed[] = $key;
+			}
+		}
+
+		return $allowed;
+	}
+
+	/**
+	 * Extracts all meta keys from a meta query structure recursively.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array $query The meta query input.
+	 * @return string[] List of meta keys found in the query.
+	 */
+	private static function extract_meta_keys_from_query( array $query ): array {
+		$keys = array();
+
+		if ( ! empty( $query['queries'] ) && is_array( $query['queries'] ) ) {
+			foreach ( $query['queries'] as $sub_query ) {
+				if ( ! is_array( $sub_query ) ) {
+					continue;
+				}
+
+				if ( isset( $sub_query['queries'] ) ) {
+					// Nested group: recurse.
+					$keys = array_merge( $keys, self::extract_meta_keys_from_query( $sub_query ) );
+				} elseif ( ! empty( $sub_query['key'] ) ) {
+					// Leaf clause with a key.
+					$keys[] = sanitize_key( $sub_query['key'] );
+				}
+			}
+		}
+
+		return array_unique( $keys );
+	}
+
+	/**
+	 * Returns all public taxonomies associated with a post type.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $post_type_slug The post type slug.
+	 * @return string[] List of allowed taxonomy slugs.
+	 */
+	private static function get_allowed_taxonomies( string $post_type_slug ): array {
+		$taxonomies = get_object_taxonomies( $post_type_slug, 'objects' );
+		$allowed    = array();
+
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public ) {
+				$allowed[] = $taxonomy->name;
+			}
+		}
+
+		return $allowed;
+	}
+
+	/**
+	 * Extracts all taxonomy slugs from a taxonomy query structure recursively.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array $query The taxonomy query input.
+	 * @return string[] List of taxonomy slugs found in the query.
+	 */
+	private static function extract_taxonomies_from_query( array $query ): array {
+		$taxonomies = array();
+
+		if ( ! empty( $query['queries'] ) && is_array( $query['queries'] ) ) {
+			foreach ( $query['queries'] as $sub_query ) {
+				if ( ! is_array( $sub_query ) ) {
+					continue;
+				}
+
+				if ( isset( $sub_query['queries'] ) ) {
+					// Nested group: recurse.
+					$taxonomies = array_merge( $taxonomies, self::extract_taxonomies_from_query( $sub_query ) );
+				} elseif ( ! empty( $sub_query['taxonomy'] ) ) {
+					// Leaf clause with a taxonomy.
+					$taxonomies[] = sanitize_key( $sub_query['taxonomy'] );
+				}
+			}
+		}
+
+		return array_unique( $taxonomies );
 	}
 }

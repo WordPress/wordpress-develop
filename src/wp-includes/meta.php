@@ -1396,6 +1396,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 5.5.0 The `$default` argument was added to the arguments array.
  * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
  * @since 6.7.0 The `label` argument was added to the arguments array.
+ * @since 7.0.0 The `show_in_abilities` argument was added to the arguments array.
  *
  * @global array $wp_meta_keys Global registry for meta keys.
  *
@@ -1419,13 +1420,15 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *     @type callable   $sanitize_callback A function or method to call when sanitizing `$meta_key` data.
  *     @type callable   $auth_callback     Optional. A function or method to call when performing edit_post_meta,
  *                                         add_post_meta, and delete_post_meta capability checks.
- *     @type bool|array $show_in_rest      Whether data associated with this meta key can be considered public and
- *                                         should be accessible via the REST API. A custom post type must also declare
- *                                         support for custom fields for registered meta to be accessible via REST.
- *                                         When registering complex meta values this argument may optionally be an
- *                                         array with 'schema' or 'prepare_callback' keys instead of a boolean.
- *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key. Can only be used when the
- *                                         object type is 'post'.
+ *     @type bool|array $show_in_rest       Whether data associated with this meta key can be considered public and
+ *                                          should be accessible via the REST API. A custom post type must also declare
+ *                                          support for custom fields for registered meta to be accessible via REST.
+ *                                          When registering complex meta values this argument may optionally be an
+ *                                          array with 'schema' or 'prepare_callback' keys instead of a boolean.
+ *     @type bool       $show_in_abilities  Whether this meta key should be exposed through the Abilities API.
+ *                                          Default false.
+ *     @type bool       $revisions_enabled  Whether to enable revisions support for this meta_key. Can only be used when the
+ *                                          object type is 'post'.
  * }
  * @param string|array $deprecated Deprecated. Use `$args` instead.
  * @return bool True if the meta key was successfully registered in the global array, false if not.
@@ -1440,16 +1443,17 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	$defaults = array(
-		'object_subtype'    => '',
-		'type'              => 'string',
-		'label'             => '',
-		'description'       => '',
-		'default'           => '',
-		'single'            => false,
-		'sanitize_callback' => null,
-		'auth_callback'     => null,
-		'show_in_rest'      => false,
-		'revisions_enabled' => false,
+		'object_subtype'     => '',
+		'type'               => 'string',
+		'label'              => '',
+		'description'        => '',
+		'default'            => '',
+		'single'             => false,
+		'sanitize_callback'  => null,
+		'auth_callback'      => null,
+		'show_in_rest'       => false,
+		'show_in_abilities'  => false,
+		'revisions_enabled'  => false,
 	);
 
 	// There used to be individual args for sanitize and auth callbacks.

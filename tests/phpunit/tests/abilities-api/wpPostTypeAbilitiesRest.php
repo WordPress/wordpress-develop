@@ -5,6 +5,8 @@ declare( strict_types=1 );
 /**
  * Tests for the post type get ability via the REST API.
  *
+ * @ticket 64606
+ *
  * @covers WP_Post_Type_Abilities
  *
  * @group abilities-api
@@ -143,6 +145,12 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		foreach ( wp_get_ability_categories() as $category ) {
 			wp_unregister_ability_category( $category->get_slug() );
 		}
+
+		// Unregister test meta keys.
+		unregister_meta_key( 'post', 'footnotes' );
+		unregister_meta_key( 'post', 'a' );
+		unregister_meta_key( 'post', 'b' );
+		unregister_meta_key( 'post', 'c' );
 	}
 
 	/**
@@ -151,6 +159,45 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	public function set_up(): void {
 		parent::set_up();
 		wp_set_current_user( self::$editor_id );
+
+		// Register meta keys with show_in_abilities enabled.
+		// This must be done in set_up() because the global $wp_meta_keys is reset between tests.
+		register_meta(
+			'post',
+			'footnotes',
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => true,
+			)
+		);
+		register_meta(
+			'post',
+			'a',
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => true,
+			)
+		);
+		register_meta(
+			'post',
+			'b',
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => true,
+			)
+		);
+		register_meta(
+			'post',
+			'c',
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => true,
+			)
+		);
 	}
 
 	/**
@@ -184,6 +231,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests that the ability run route is registered.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_route_is_registered(): void {
 		$routes = rest_get_server()->get_routes();
@@ -196,6 +245,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests that POST method is rejected for this readonly ability.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_post_method_rejected(): void {
 		$request = new WP_REST_Request( 'POST', self::ROUTE );
@@ -208,6 +259,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests retrieving a single post by ID.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_get_single_post_by_id(): void {
 		$response = $this->dispatch_get_ability( array( 'id' => self::$post_ids[1] ) );
@@ -227,6 +280,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests retrieving a single post with meta and taxonomies included.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_get_single_post_with_meta_and_taxonomies(): void {
 		$response = $this->dispatch_get_ability(
@@ -245,10 +300,11 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 		// Meta should contain the public meta keys.
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertArrayHasKey( 'footnotes', $data['meta'] );
-		$this->assertArrayHasKey( 'a', $data['meta'] );
-		$this->assertArrayHasKey( 'b', $data['meta'] );
-		$this->assertSame( '23', $data['meta']['a'] );
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( 'footnotes', $meta );
+		$this->assertArrayHasKey( 'a', $meta );
+		$this->assertArrayHasKey( 'b', $meta );
+		$this->assertSame( '23', $meta['a'] );
 
 		// Taxonomies should contain post_tag terms.
 		$this->assertArrayHasKey( 'taxonomies', $data );
@@ -260,6 +316,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests that requesting a non-existent post returns 404.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_get_single_post_not_found(): void {
 		$response = $this->dispatch_get_ability( array( 'id' => 999999 ) );
@@ -269,6 +327,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests that query mode returns paginated results.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_query_returns_paginated_results(): void {
 		$response = $this->dispatch_get_ability(
@@ -289,6 +349,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests meta query with EXISTS operator finds only the post with footnotes.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_meta_query_exists(): void {
 		$response = $this->dispatch_get_ability(
@@ -320,6 +382,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * Tests nested meta query: a=23 AND (b=1 OR c=1).
 	 *
 	 * Should match posts 1 and 2.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_meta_query_nested_and_or(): void {
 		$response = $this->dispatch_get_ability(
@@ -368,6 +432,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * Tests nested tax query: tag t-23 AND (tag c-1 OR tag b-1).
 	 *
 	 * Should match posts 1 and 2.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_tax_query_nested_and_or(): void {
 		$response = $this->dispatch_get_ability(
@@ -417,6 +483,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 *
 	 * Should match posts 1, 2, 3, 5, 6 (all 2025 posts that have day=26 or month=11).
 	 * Post 4 excluded because it is from 2024.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_date_query_nested_and_or(): void {
 		$response = $this->dispatch_get_ability(
@@ -456,6 +524,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests that unauthenticated requests are rejected.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_unauthenticated_query_rejected(): void {
 		wp_set_current_user( 0 );
@@ -467,6 +537,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests that authenticated editor can query posts.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_authenticated_query_succeeds(): void {
 		$response = $this->dispatch_get_ability( array() );
@@ -480,6 +552,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 	/**
 	 * Tests ordering by title ascending.
+	 *
+	 * @ticket 64606
 	 */
 	public function test_query_with_ordering(): void {
 		$response = $this->dispatch_get_ability(
@@ -505,5 +579,150 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		$sorted = $titles;
 		sort( $sorted, SORT_STRING );
 		$this->assertSame( $sorted, $titles );
+	}
+
+	/**
+	 * Tests that only meta keys registered with show_in_abilities are included.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_only_includes_show_in_abilities_registered_keys(): void {
+		// Post 4 has meta key 'x' which is NOT registered with show_in_abilities.
+		$response = $this->dispatch_get_ability(
+			array(
+				'id'      => self::$post_ids[4],
+				'include' => array( 'meta' => true ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		// The 'x' meta key should NOT be present since it's not registered with show_in_abilities.
+		$this->assertArrayNotHasKey( 'x', (array) $data['meta'] );
+	}
+
+	/**
+	 * Tests that meta query with unregistered meta key returns an error.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_query_with_invalid_key_returns_error(): void {
+		$response = $this->dispatch_get_ability(
+			array(
+				'query' => array(
+					'meta' => array(
+						'queries' => array(
+							array(
+								'key'     => 'invalid_meta_key',
+								'compare' => 'EXISTS',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 400, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'invalid_meta_key', $data['code'] );
+	}
+
+	/**
+	 * Tests that meta query with valid registered meta key succeeds.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_query_with_valid_key_succeeds(): void {
+		$response = $this->dispatch_get_ability(
+			array(
+				'query' => array(
+					'meta' => array(
+						'queries' => array(
+							array(
+								'key'     => 'a',
+								'compare' => '=',
+								'value'   => '23',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'posts', $data );
+	}
+
+	/**
+	 * Tests that tax query with non-public taxonomy returns an error.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_tax_query_with_non_public_taxonomy_returns_error(): void {
+		// Register a non-public taxonomy for testing.
+		register_taxonomy(
+			'private_tax',
+			'post',
+			array(
+				'public' => false,
+			)
+		);
+
+		$response = $this->dispatch_get_ability(
+			array(
+				'query' => array(
+					'tax' => array(
+						'queries' => array(
+							array(
+								'taxonomy' => 'private_tax',
+								'terms'    => array( 'test-term' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 400, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'invalid_taxonomy', $data['code'] );
+
+		// Clean up.
+		unregister_taxonomy( 'private_tax' );
+	}
+
+	/**
+	 * Tests that tax query with public taxonomy succeeds.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_tax_query_with_public_taxonomy_succeeds(): void {
+		$response = $this->dispatch_get_ability(
+			array(
+				'query' => array(
+					'tax' => array(
+						'queries' => array(
+							array(
+								'taxonomy' => 'post_tag',
+								'terms'    => array( 't-23' ),
+								'field'    => 'slug',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'posts', $data );
 	}
 }
