@@ -120,7 +120,6 @@ if ( ! $is_dev_version ) {
 		sanitize_title( $wp_version )
 	);
 
-	/* translators: 1: WP Version URL, 2: WP Version Text. */
 	$wp_version_text = sprintf(
 		'<a href="%1$s">%2$s</a>',
 		$version_url,
@@ -149,7 +148,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		/*
 		 * Calculate how many seconds it's been since the reminder was postponed.
-		 * This allows us not to show it if the query arg is set, but visited due to caches, bookmarks or similar.
+		 * This allows us to not show it if the query arg is set, but visited due to caches, bookmarks or similar.
 		 */
 		$time_passed = time() - ( $postponed_time - $remind_interval );
 
