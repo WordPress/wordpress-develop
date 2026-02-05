@@ -27,7 +27,7 @@ class WP_Settings_Abilities {
 	 * Available setting groups with show_in_abilities enabled.
 	 *
 	 * @since 7.0.0
-	 * @var array
+	 * @var string[]
 	 */
 	private static $available_groups;
 
@@ -43,7 +43,7 @@ class WP_Settings_Abilities {
 	 * Available setting slugs with show_in_abilities enabled.
 	 *
 	 * @since 7.0.0
-	 * @var array
+	 * @var string[]
 	 */
 	private static $available_slugs;
 
@@ -96,7 +96,7 @@ class WP_Settings_Abilities {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @return array List of unique group names.
+	 * @return string[] List of unique group names.
 	 */
 	private static function get_available_groups(): array {
 		$groups = array();
@@ -118,7 +118,7 @@ class WP_Settings_Abilities {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @return array List of unique setting slugs.
+	 * @return string[] List of unique setting slugs.
 	 */
 	private static function get_available_slugs(): array {
 		$slugs = array();
