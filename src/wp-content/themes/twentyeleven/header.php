@@ -15,12 +15,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>
 <?php
-	/**
-	 * Print the <title> tag based on what is being viewed.
-	 *
-	 * @global int $page  The current page number for multi-paged posts.
-	 * @global int $paged The current page number for the archive.
-	 */
+	// Print the <title> tag based on what is being viewed.
 	global $page, $paged;
 
 	wp_title( '|', true, 'right' );
@@ -103,11 +98,9 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 				?>
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
 				<?php
-				/**
+				/*
 				 * The header image.
-				 * Check if this is a post or page, if it has a thumbnail, and if it's a big one.
-				 *
-				 * @global WP_Post $post Global post object.
+				 * Check if this is a post or page, if it has a thumbnail, and if it's a big one
 				 */
 				$image = false;
 				if ( is_singular() && has_post_thumbnail( $post->ID ) ) {

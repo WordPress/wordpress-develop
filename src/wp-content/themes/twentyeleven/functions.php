@@ -83,8 +83,6 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		 * Manual loading of text domain is not required after the introduction of
 		 * just in time translation loading in WordPress version 4.6.
 		 *
-		 * @global string $wp_version The WordPress version.
-		 *
 		 * @ticket 58318
 		 */
 		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
@@ -638,8 +636,6 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @global WP_Query $wp_query WordPress query object.
-	 *
 	 * @param string $html_id The HTML id attribute.
 	 */
 	function twentyeleven_content_nav( $html_id ) {
@@ -756,8 +752,6 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 	 * Used as a callback by wp_list_comments() for displaying the comments.
 	 *
 	 * @since Twenty Eleven 1.0
-	 *
-	 * @global WP_Comment $comment Global comment object.
 	 *
 	 * @param WP_Comment $comment The comment object.
 	 * @param array      $args    An array of comment arguments. @see get_comment_reply_link()
