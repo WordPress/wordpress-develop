@@ -663,7 +663,7 @@ HTML;
 	 * @ticket 64607
 	 */
 	public function test_modifiable_text_special_pre() {
-		$set_text = "\nAFTER NEWLINE";
+		$set_text  = "\nAFTER NEWLINE";
 		$processor = new WP_HTML_Tag_Processor( '<pre>REPLACEME<!--x--></pre>' );
 		$processor->next_tag();
 		$processor->next_token();
@@ -689,7 +689,7 @@ HTML;
 	 * @ticket 64607
 	 */
 	public function test_modifiable_text_special_listing() {
-		$set_text = "\nAFTER NEWLINE";
+		$set_text  = "\nAFTER NEWLINE";
 		$processor = new WP_HTML_Tag_Processor( '<listing>REPLACEME<!--x--></listing>' );
 		$processor->next_tag();
 		$processor->next_token();

@@ -35,7 +35,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * @ticket 64607
 	 */
 	public function test_modifiable_text_special_pre() {
-		$set_text = "\nAFTER NEWLINE";
+		$set_text  = "\nAFTER NEWLINE";
 		$processor = WP_HTML_Processor::create_fragment( '<pre>REPLACEME<!--x--></pre>' );
 		$processor->next_tag();
 		$processor->next_token();
@@ -58,7 +58,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * @ticket 64607
 	 */
 	public function test_modifiable_text_special_pre_leading_whitespace() {
-		$set_text = "\nAFTER NEWLINE.";
+		$set_text  = "\nAFTER NEWLINE.";
 		$processor = WP_HTML_Processor::create_fragment( "<pre>\nREPLACEME<!--x--></pre>" );
 		$processor->next_tag();
 		$processor->next_token();
@@ -144,7 +144,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * @ticket 64607
 	 */
 	public function test_modifiable_text_special_listing() {
-		$set_text = "\nAFTER NEWLINE";
+		$set_text  = "\nAFTER NEWLINE";
 		$processor = WP_HTML_Processor::create_fragment( '<listing>REPLACEME<!--x--></listing>' );
 		$processor->next_tag();
 		$processor->next_token();
