@@ -3889,9 +3889,16 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 	// Ensure HTTP 500 status code for critical errors, even if headers were already sent.
 	$is_critical_error = false;
 	if ( $message instanceof WP_Error ) {
-			$is_critical_error = $message->get_error_code();
-	} elseif ( 'internal_server_error' === $parsed_args['code'] || 500 === $parsed_args['response'] ) {
+		$error_code = $message->get_error_code();
+		$error_data = $message->get_error_data();
+
+		if ( 'internal_server_error' === $error_code ) {
 			$is_critical_error = true;
+		} elseif ( is_array( $error_data ) && isset( $error_data['status'] ) && 500 === (int) $error_data['status'] ) {
+			$is_critical_error = true;
+		}
+	} elseif ( 'internal_server_error' === $parsed_args['code'] || 500 === $parsed_args['response'] ) {
+		$is_critical_error = true;
 	}
 
 	if ( $is_critical_error ) {
