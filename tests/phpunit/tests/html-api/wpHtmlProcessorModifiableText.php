@@ -134,7 +134,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 			yield "<{$tag_name}> with no leading newline" => array(
 				"<{$tag_name}>REPLACEME<!--x--></{$tag_name}>",
 				1,
-				"REPLACEME",
+				'REPLACEME',
 				"\nAFTER NEWLINE.",
 				"<{$tag_name}>\n\nAFTER NEWLINE.<!--x--></{$tag_name}>",
 			);
