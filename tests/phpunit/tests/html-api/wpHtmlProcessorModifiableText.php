@@ -181,6 +181,14 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 				"\r\nCR-N",
 				"<{$tag_name}>\n\nCR-N<!--x--></{$tag_name}>",
 			);
+
+			yield "{$tag_label} clear text" => array(
+				"<{$tag_name}>REPLACEME<!--x--></{$tag_name}>",
+				1,
+				'REPLACEME',
+				'',
+				"<{$tag_name}><!--x--></{$tag_name}>",
+			);
 		}
 	}
 }
