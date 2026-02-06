@@ -289,20 +289,20 @@ require ABSPATH . WPINC . '/class-wp-http-requests-hooks.php';
 require ABSPATH . WPINC . '/php-ai-client/autoload.php';
 
 // WP AI Client - PSR-7 implementations.
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-psr7-stream.php';
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-psr7-uri.php';
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-psr7-request.php';
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-psr7-response.php';
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-psr17-factory.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-psr7-stream.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-psr7-uri.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-psr7-request.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-psr7-response.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-psr17-factory.php';
 
 // WP AI Client - HTTP transport and infrastructure.
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-http-client.php';
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-discovery-strategy.php';
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-event-dispatcher.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-http-client.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-discovery-strategy.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-event-dispatcher.php';
 
-// WP AI Client - Prompt builder.
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-ability-function-resolver.php';
-require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-prompt-builder.php';
+// WP AI Client - Abilities and prompt builder.
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-ability-function-resolver.php';
+require ABSPATH . WPINC . '/class-wp-ai-client-prompt-builder.php';
 
 // WP AI Client - Initialization.
 WP_AI_Client_Discovery_Strategy::init();
