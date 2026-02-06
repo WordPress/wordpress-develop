@@ -1478,7 +1478,7 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{set_up: Closure|null, inline_size_limit: int,  expected_styles: array{ HEAD: string[], BODY: string[] }}>
+	 * @return array<string, array{set_up: Closure|null, content: string, inline_size_limit: int, expected_styles: array{ HEAD: string[], BODY: string[] }}>
 	 */
 	public function data_wp_hoist_late_printed_styles(): array {
 		$blocks_content = '<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator --><!-- wp:third-party/test --><div>This is only a test!</div><!-- /wp:third-party/test -->';
