@@ -834,12 +834,8 @@ function get_comment_link( $comment = null, $args = array() ) {
 
 	if ( $cpage && get_option( 'page_comments' ) ) {
 		if ( $wp_rewrite->using_permalinks() ) {
-			if ( $cpage ) {
-				$comment_link = trailingslashit( $comment_link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
-			}
-
-			$comment_link = user_trailingslashit( $comment_link, 'comment' );
-		} elseif ( $cpage ) {
+			$comment_link = trailingslashit( $comment_link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
+		} else {
 			$comment_link = add_query_arg( 'cpage', $cpage, $comment_link );
 		}
 	}
@@ -1184,30 +1180,30 @@ function get_comment_type( $comment_id = 0 ) {
  *
  * @since 0.71
  *
- * @param string|false $commenttxt   Optional. String to display for comment type. Default false.
- * @param string|false $trackbacktxt Optional. String to display for trackback type. Default false.
- * @param string|false $pingbacktxt  Optional. String to display for pingback type. Default false.
+ * @param string|false $comment_text   Optional. String to display for comment type. Default false.
+ * @param string|false $trackback_text Optional. String to display for trackback type. Default false.
+ * @param string|false $pingback_text  Optional. String to display for pingback type. Default false.
  */
-function comment_type( $commenttxt = false, $trackbacktxt = false, $pingbacktxt = false ) {
-	if ( false === $commenttxt ) {
-		$commenttxt = _x( 'Comment', 'noun' );
+function comment_type( $comment_text = false, $trackback_text = false, $pingback_text = false ) {
+	if ( false === $comment_text ) {
+		$comment_text = _x( 'Comment', 'noun' );
 	}
-	if ( false === $trackbacktxt ) {
-		$trackbacktxt = __( 'Trackback' );
+	if ( false === $trackback_text ) {
+		$trackback_text = __( 'Trackback' );
 	}
-	if ( false === $pingbacktxt ) {
-		$pingbacktxt = __( 'Pingback' );
+	if ( false === $pingback_text ) {
+		$pingback_text = __( 'Pingback' );
 	}
 	$type = get_comment_type();
 	switch ( $type ) {
 		case 'trackback':
-			echo $trackbacktxt;
+			echo $trackback_text;
 			break;
 		case 'pingback':
-			echo $pingbacktxt;
+			echo $pingback_text;
 			break;
 		default:
-			echo $commenttxt;
+			echo $comment_text;
 	}
 }
 
@@ -1378,7 +1374,7 @@ function wp_comment_form_unfiltered_html_nonce() {
 
 	if ( current_user_can( 'unfiltered_html' ) ) {
 		wp_nonce_field( 'unfiltered-html-comment_' . $post_id, '_wp_unfiltered_html_comment_disabled', false );
-		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();" );
+		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 	}
 }
 
@@ -1754,7 +1750,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  * @param int|WP_Comment $comment Optional. Comment being replied to. Default current comment.
  * @param int|WP_Post    $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
  *                                Default current post.
- * @return string|false|null Link to show comment form, if successful. False, if comments are closed.
+ * @return string|false|null Link to show comment form on success. False if comments are closed. Null on failure.
  */
 function get_comment_reply_link( $args = array(), $comment = null, $post = null ) {
 	$defaults = array(
@@ -1777,13 +1773,13 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 	$args['depth']     = (int) $args['depth'];
 
 	if ( 0 === $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
-		return;
+		return null;
 	}
 
 	$comment = get_comment( $comment );
 
 	if ( empty( $comment ) ) {
-		return;
+		return null;
 	}
 
 	if ( empty( $post ) ) {
@@ -1911,9 +1907,9 @@ function comment_reply_link( $args = array(), $comment = null, $post = null ) {
  *     @type string $before     Text or HTML to add before the reply link. Default empty.
  *     @type string $after      Text or HTML to add after the reply link. Default empty.
  * }
- * @param int|WP_Post $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
- *                             Default current post.
- * @return string|false|null Link to show comment form, if successful. False, if comments are closed.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object the comment is going to be displayed on.
+ *                          Default current post.
+ * @return string|false Link to show comment form on success. False if comments are closed.
  */
 function get_post_reply_link( $args = array(), $post = null ) {
 	$defaults = array(
@@ -2597,6 +2593,8 @@ function comment_form( $args = array(), $post = null ) {
 		}
 	}
 
+	$original_fields = $fields;
+
 	/**
 	 * Filters the default comment form fields.
 	 *
@@ -2810,7 +2808,7 @@ function comment_form( $args = array(), $post = null ) {
 
 					echo $args['comment_notes_after'];
 
-				} elseif ( ! is_user_logged_in() ) {
+				} elseif ( ! is_user_logged_in() || ! isset( $original_fields[ $name ] ) ) {
 
 					if ( $first_field === $name ) {
 						/**
