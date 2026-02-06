@@ -2567,8 +2567,8 @@ function wp_enqueue_global_styles() {
 	 * The footer should only be used for classic themes when loading assets on demand is enabled. This is now the
 	 * default with the introduction of hoisting late-printed styles (via {@see wp_load_classic_theme_block_styles_on_demand()}).
 	 * So even though the main global styles are not printed here in the HEAD for classic themes with on-demand asset
-	 * loading, placeholder for the global styles is still enqueued. Then when {@see wp_hoist_late_printed_styles()}
-	 * processes the output buffer, it can locate the placeholder and inject the global styles from the footer in to the
+	 * loading, a placeholder for the global styles is still enqueued. Then when {@see wp_hoist_late_printed_styles()}
+	 * processes the output buffer, it can locate the placeholder and inject the global styles from the footer into the
 	 * HEAD.
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/64099
