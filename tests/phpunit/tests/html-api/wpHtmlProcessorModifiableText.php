@@ -83,22 +83,39 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_modifiable_text_special_leading_whitespace
 	 *
-	 * @param string $html          HTML containing the element to test.
+	 * @param string $html             HTML containing the element to test.
 	 * @param int    $advance_n_tokens Count of times to run `next_token()` after `next_tag()`.
-	 * @param string $initial_text  Expected modifiable text before the update.
-	 * @param string $expected_html Expected HTML output after setting modifiable text.
+	 * @param string $stopped_on_text  Expected modifiable text before the update.
+	 * @param string $set_text         Text to set.
+	 * @param string $expected_html    Expected HTML output after setting modifiable text.
 	 */
-	public function test_modifiable_text_special_leading_whitespace( string $html, int $advance_n_tokens, string $initial_text, string $expected_html ) {
-		$set_text  = "\nAFTER NEWLINE.";
+	public function test_modifiable_text_special_leading_whitespace(
+		string $html,
+		int $advance_n_tokens,
+		string $stopped_on_text,
+		string $set_text,
+		string $expected_html
+	) {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		$processor->next_tag();
 		while ( --$advance_n_tokens >= 0 ) {
 			$processor->next_token();
 		}
 		$this->assertSame( '#text', $processor->get_token_type() );
-		$this->assertSame( $initial_text, $processor->get_modifiable_text() );
+		$this->assertSame( $stopped_on_text, $processor->get_modifiable_text() );
 		$processor->set_modifiable_text( $set_text );
-		$this->assertSame( $set_text, $processor->get_modifiable_text() );
+
+		// Newline normalization transforms \r and \r\n into \n.
+		$this->assertSame(
+			strtr(
+				$set_text,
+				array(
+					"\r\n" => "\n",
+					"\r"   => "\n",
+				)
+			),
+			$processor->get_modifiable_text()
+		);
 		$this->assertEqualHTML(
 			$expected_html,
 			$processor->get_updated_html(),
@@ -121,25 +138,48 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 				"<{$tag_name}>\nREPLACEME<!--x--></{$tag_name}>",
 				1,
 				'',
+				$set_text,
 				"<{$tag_name}>\n{$set_text}REPLACEME<!--x--></{$tag_name}>",
 			);
+
 			yield "{$tag_label} with leading newline, second text node" => array(
 				"<{$tag_name}>\nREPLACEME<!--x--></{$tag_name}>",
 				2,
 				'REPLACEME',
+				$set_text,
 				"<{$tag_name}>\n{$set_text}<!--x--></{$tag_name}>",
 			);
+
 			yield "{$tag_label} with leading space, first text node" => array(
 				"<{$tag_name}> REPLACEME<!--x--></{$tag_name}>",
 				1,
 				' ',
+				$set_text,
 				"<{$tag_name}>\n{$set_text}REPLACEME<!--x--></{$tag_name}>",
 			);
+
 			yield "{$tag_label} with leading space, second text node" => array(
 				"<{$tag_name}> REPLACEME<!--x--></{$tag_name}>",
 				2,
 				'REPLACEME',
+				$set_text,
 				"<{$tag_name}>\n {$set_text}<!--x--></{$tag_name}>",
+			);
+
+			yield "{$tag_label} insert with leading carriage return" => array(
+				"<{$tag_name}>REPLACEME<!--x--></{$tag_name}>",
+				1,
+				'REPLACEME',
+				"\rCR",
+				"<{$tag_name}>\n\nCR<!--x--></{$tag_name}>",
+			);
+
+			yield "{$tag_label} insert with leading carriage return + newline" => array(
+				"<{$tag_name}>REPLACEME<!--x--></{$tag_name}>",
+				1,
+				'REPLACEME',
+				"\r\nCR-N",
+				"<{$tag_name}>\n\nCR-N<!--x--></{$tag_name}>",
 			);
 		}
 	}
