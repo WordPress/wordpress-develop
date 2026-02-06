@@ -640,7 +640,7 @@ HTML;
 	/**
 	 * TEXTAREA elements ignore the first newline in their content.
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
-	 * is present in the resulting TEXTAREA.
+	 * is present in the resulting element.
 	 *
 	 * @ticket 64607
 	 */
@@ -651,14 +651,14 @@ HTML;
 		$this->assertSame(
 			"\nAFTER NEWLINE",
 			$processor->get_modifiable_text(),
-			'Should have preserved the leading newline in the TEXTAREA content.'
+			'Should have preserved the leading newline in the content.'
 		);
 	}
 
 	/**
 	 * PRE elements ignore the first newline in their content.
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
-	 * is present in the resulting TEXTAREA.
+	 * is present in the resulting element.
 	 *
 	 * @ticket 64607
 	 */
@@ -677,14 +677,14 @@ HTML;
 			HTML,
 			$processor->get_updated_html(),
 			'<body>',
-			'Should have preserved the leading newline in the TEXTAREA content.'
+			'Should have preserved the leading newline in the content.'
 		);
 	}
 
 	/**
 	 * LISTING elements ignore the first newline in their content.
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
-	 * is present in the resulting TEXTAREA.
+	 * is present in the resulting element.
 	 *
 	 * @ticket 64607
 	 */
@@ -703,7 +703,7 @@ HTML;
 			HTML,
 			$processor->get_updated_html(),
 			'<body>',
-			'Should have preserved the leading newline in the TEXTAREA content.'
+			'Should have preserved the leading newline in the content.'
 		);
 	}
 }
