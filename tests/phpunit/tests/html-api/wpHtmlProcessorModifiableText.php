@@ -28,6 +28,56 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	}
 
 	/**
+	 * TEXTAREA elements ignore the first newline in their content.
+	 * Setting the modifiable text with a leading carriage return should be normalized
+	 * and ensure the leading newline is present in the resulting TEXTAREA.
+	 *
+	 * @ticket 64609
+	 */
+	public function test_modifiable_text_special_textarea_carriage_return() {
+		$processor = WP_HTML_Processor::create_fragment( '<textarea></textarea>' );
+		$processor->next_token();
+		$processor->set_modifiable_text( "\rCR" );
+		// Newline normalization transforms \r into \n, and special handling should preserve it.
+		$this->assertSame(
+			"\nCR",
+			$processor->get_modifiable_text(),
+			'Should have normalized carriage return and preserved the leading newline in the TEXTAREA content.'
+		);
+		$this->assertEqualHTML(
+			"<textarea>\n\nCR</textarea>",
+			$processor->get_updated_html(),
+			'<body>',
+			'Should have doubled the newline in the output HTML to preserve the leading newline.'
+		);
+	}
+
+	/**
+	 * TEXTAREA elements ignore the first newline in their content.
+	 * Setting the modifiable text with a leading carriage return + newline should be normalized
+	 * and ensure the leading newline is present in the resulting TEXTAREA.
+	 *
+	 * @ticket 64609
+	 */
+	public function test_modifiable_text_special_textarea_carriage_return_newline() {
+		$processor = WP_HTML_Processor::create_fragment( '<textarea></textarea>' );
+		$processor->next_token();
+		$processor->set_modifiable_text( "\r\nCR-N" );
+		// Newline normalization transforms \r\n into \n, and special handling should preserve it.
+		$this->assertSame(
+			"\nCR-N",
+			$processor->get_modifiable_text(),
+			'Should have normalized carriage return + newline and preserved the leading newline in the TEXTAREA content.'
+		);
+		$this->assertEqualHTML(
+			"<textarea>\n\nCR-N</textarea>",
+			$processor->get_updated_html(),
+			'<body>',
+			'Should have doubled the newline in the output HTML to preserve the leading newline.'
+		);
+	}
+
+	/**
 	 * PRE and LISTING elements ignore the first newline in their content.
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
 	 * is present in the resulting element.
