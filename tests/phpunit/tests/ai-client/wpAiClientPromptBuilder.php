@@ -2324,11 +2324,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$registry       = AiClient::defaultRegistry();
 		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
 
-		// Simulate an error state by directly setting the error property.
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$error_property   = $reflection_class->getProperty( 'error' );
-		$error_property->setAccessible( true );
-		$error_property->setValue( $prompt_builder, new WP_Error( 'test_error', 'Test error message' ) );
+		// Trigger an error state by calling a nonexistent method.
+		$prompt_builder->nonexistent_method();
 
 		$result = $prompt_builder->with_text( 'Test' );
 		$this->assertSame( $prompt_builder, $result, 'Fluent method should return same instance when in error state' );
@@ -2338,23 +2335,36 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that terminating methods return WP_Error when in error state.
+	 * Tests that support check methods return false when in error state.
 	 *
 	 * @ticket TBD
 	 */
-	public function test_terminating_methods_return_wp_error_in_error_state() {
+	public function test_support_check_methods_return_false_in_error_state() {
 		$registry       = AiClient::defaultRegistry();
 		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
 
-		$test_error       = new WP_Error( 'test_error', 'Test error message' );
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$error_property   = $reflection_class->getProperty( 'error' );
-		$error_property->setAccessible( true );
-		$error_property->setValue( $prompt_builder, $test_error );
+		// Trigger an error state by calling a nonexistent method.
+		$prompt_builder->nonexistent_method();
+
+		$this->assertFalse( $prompt_builder->is_supported(), 'is_supported should return false when in error state' );
+		$this->assertFalse( $prompt_builder->is_supported_for_text_generation(), 'is_supported_for_text_generation should return false when in error state' );
+	}
+
+	/**
+	 * Tests that generating methods return WP_Error when in error state.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_generating_methods_return_wp_error_in_error_state() {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
+
+		// Trigger an error state by calling a nonexistent method.
+		$prompt_builder->nonexistent_method();
 
 		$result = $prompt_builder->generate_text();
 		$this->assertWPError( $result, 'generate_text should return WP_Error when in error state' );
-		$this->assertSame( $test_error, $result, 'Should return the same WP_Error instance' );
+		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
 	}
 
 	/**

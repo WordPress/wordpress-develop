@@ -32,11 +32,11 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * handling instead of exceptions, snake_case method naming, and integration
  * with the Abilities API.
  *
- * Only the terminate methods will return a WP_Error, to not break the fluent
+ * Only the generating methods will return a WP_Error, to not break the fluent
  * interface. As soon as any exception is caught in a chain of method calls,
  * the returned instance will be in an error state, and all subsequent method
  * calls will be no-ops that just return the same error state instance. Only
- * when a terminate method is called, the WP_Error will be returned.
+ * when a generating method is called, the WP_Error will be returned.
  *
  * @since 6.8.0
  *
@@ -108,14 +108,14 @@ class WP_AI_Client_Prompt_Builder {
 	private ?WP_Error $error = null;
 
 	/**
-	 * List of methods that terminate the fluent interface and return a result.
+	 * List of methods that generate a result from the prompt.
 	 *
 	 * Structured as a map for faster lookups.
 	 *
 	 * @since 6.8.0
 	 * @var array<string, bool>
 	 */
-	private static array $terminate_methods = array(
+	private static array $generating_methods = array(
 		'generate_result'               => true,
 		'generate_text_result'          => true,
 		'generate_image_result'         => true,
@@ -129,6 +129,25 @@ class WP_AI_Client_Prompt_Builder {
 		'convert_text_to_speeches'      => true,
 		'generate_speech'               => true,
 		'generate_speeches'             => true,
+	);
+
+	/**
+	 * List of methods that check whether the prompt is supported.
+	 *
+	 * Structured as a map for faster lookups.
+	 *
+	 * @since 6.8.0
+	 * @var array<string, bool>
+	 */
+	private static array $support_check_methods = array(
+		'is_supported'                            => true,
+		'is_supported_for_text_generation'        => true,
+		'is_supported_for_image_generation'       => true,
+		'is_supported_for_text_to_speech_conversion' => true,
+		'is_supported_for_video_generation'       => true,
+		'is_supported_for_speech_generation'      => true,
+		'is_supported_for_music_generation'       => true,
+		'is_supported_for_embedding_generation'   => true,
 	);
 
 	/**
@@ -219,14 +238,17 @@ class WP_AI_Client_Prompt_Builder {
 		 * or return the same instance for other methods to maintain the fluent interface.
 		 */
 		if ( null !== $this->error ) {
-			if ( self::is_terminating_method( $name ) ) {
+			if ( self::is_generating_method( $name ) ) {
 				return $this->error;
+			}
+			if ( self::is_support_check_method( $name ) ) {
+				return false;
 			}
 			return $this;
 		}
 
 		// Check if the prompt should be prevented for is_supported* and generate_*/convert_text_to_speech* methods.
-		if ( $this->is_support_check_method( $name ) || $this->is_generating_method( $name ) ) {
+		if ( self::is_support_check_method( $name ) || self::is_generating_method( $name ) ) {
 			/**
 			 * Filters whether to prevent the prompt from being executed.
 			 *
@@ -239,7 +261,7 @@ class WP_AI_Client_Prompt_Builder {
 
 			if ( $prevent ) {
 				// For is_supported* methods, return false.
-				if ( $this->is_support_check_method( $name ) ) {
+				if ( self::is_support_check_method( $name ) ) {
 					return false;
 				}
 
@@ -252,7 +274,7 @@ class WP_AI_Client_Prompt_Builder {
 					)
 				);
 
-				if ( self::is_terminating_method( $name ) ) {
+				if ( self::is_generating_method( $name ) ) {
 					return $this->error;
 				}
 				return $this;
@@ -278,7 +300,7 @@ class WP_AI_Client_Prompt_Builder {
 				)
 			);
 
-			if ( self::is_terminating_method( $name ) ) {
+			if ( self::is_generating_method( $name ) ) {
 				return $this->error;
 			}
 			return $this;
@@ -293,8 +315,8 @@ class WP_AI_Client_Prompt_Builder {
 	 * @param string $name The method name.
 	 * @return bool True if the method is a support check method, false otherwise.
 	 */
-	protected function is_support_check_method( string $name ): bool {
-		return str_starts_with( $name, 'is_supported' );
+	private static function is_support_check_method( string $name ): bool {
+		return isset( self::$support_check_methods[ $name ] );
 	}
 
 	/**
@@ -305,21 +327,8 @@ class WP_AI_Client_Prompt_Builder {
 	 * @param string $name The method name.
 	 * @return bool True if the method is a generating method, false otherwise.
 	 */
-	protected function is_generating_method( string $name ): bool {
-		return str_starts_with( $name, 'generate_' )
-			|| str_starts_with( $name, 'convert_text_to_speech' );
-	}
-
-	/**
-	 * Checks if a method is a terminating method.
-	 *
-	 * @since 6.8.0
-	 *
-	 * @param string $name The method name.
-	 * @return bool True if the method is a terminating method, false otherwise.
-	 */
-	private static function is_terminating_method( string $name ): bool {
-		return isset( self::$terminate_methods[ $name ] );
+	private static function is_generating_method( string $name ): bool {
+		return isset( self::$generating_methods[ $name ] );
 	}
 
 	/**
