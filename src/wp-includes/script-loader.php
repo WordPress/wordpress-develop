@@ -2546,18 +2546,39 @@ function wp_enqueue_global_styles() {
 	$is_block_theme   = wp_is_block_theme();
 	$is_classic_theme = ! $is_block_theme;
 
-	/*
-	 * Global styles should be printed in the head for block themes, or for classic themes when loading assets on
-	 * demand is disabled, which is the default.
-	 * The footer should only be used for classic themes when loading assets on demand is enabled.
+	/**
+	 * Global styles should be printed in the HEAD for block themes, or for classic themes when loading assets on
+	 * demand is disabled (which is no longer the default).
 	 *
-	 * See https://core.trac.wordpress.org/ticket/53494 and https://core.trac.wordpress.org/ticket/61965.
+	 * @link https://core.trac.wordpress.org/ticket/53494
+	 * @link https://core.trac.wordpress.org/ticket/61965
 	 */
 	if (
-		( $is_block_theme && doing_action( 'wp_footer' ) ) ||
-		( $is_classic_theme && doing_action( 'wp_footer' ) && ! $assets_on_demand ) ||
-		( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $assets_on_demand )
+		doing_action( 'wp_footer' ) &&
+		(
+			$is_block_theme ||
+			( $is_classic_theme && ! $assets_on_demand )
+		)
 	) {
+		return;
+	}
+
+	/**
+	 * The footer should only be used for classic themes when loading assets on demand is enabled. This is now the
+	 * default with the introduction of hoisting late-printed styles (via {@see wp_load_classic_theme_block_styles_on_demand()}).
+	 * So even though the main global styles are not printed here in the HEAD for classic themes with on-demand asset
+	 * loading, placeholder for the global styles is still enqueued. Then when {@see wp_hoist_late_printed_styles()}
+	 * processes the output buffer, it can locate the placeholder and inject the global styles from the footer in to the
+	 * HEAD.
+	 *
+	 * @link https://core.trac.wordpress.org/ticket/64099
+	 */
+	if ( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $assets_on_demand ) {
+		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+			wp_register_style( 'wp-global-styles-placeholder', false );
+			wp_add_inline_style( 'wp-global-styles-placeholder', '/* Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer. */' );
+			wp_enqueue_style( 'wp-global-styles-placeholder' );
+		}
 		return;
 	}
 
@@ -3866,11 +3887,27 @@ function wp_hoist_late_printed_styles() {
 
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
 				}
+
+				/**
+				 * Replaces the current token.
+				 *
+				 * @param string $text Text to replace with.
+				 */
+				public function replace( string $text ) {
+					$span = $this->get_span();
+
+					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, $text );
+				}
 			};
 
 			// Locate the insertion points in the HEAD.
 			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 				if (
+					'STYLE' === $processor->get_tag() &&
+					'wp-global-styles-placeholder-inline-css' === $processor->get_attribute( 'id' )
+				) {
+					$processor->set_bookmark( 'wp_global_styles_placeholder' );
+				} elseif (
 					'STYLE' === $processor->get_tag() &&
 					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
@@ -3900,6 +3937,15 @@ function wp_hoist_late_printed_styles() {
 						$processor->set_bookmark( 'last_style_at_enqueue_block_assets' );
 					}
 				}
+			}
+
+			/**
+			 * Replace the placeholder for global styles enqueued during {@see wp_enqueue_global_styles()}.
+			 */
+			if ( '' !== $printed_global_styles && $processor->has_bookmark( 'wp_global_styles_placeholder' ) ) {
+				$processor->seek( 'wp_global_styles_placeholder' );
+				$processor->replace( $printed_global_styles );
+				$printed_global_styles = '';
 			}
 
 			/*
