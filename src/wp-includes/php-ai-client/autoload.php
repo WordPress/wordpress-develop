@@ -17,7 +17,7 @@ spl_autoload_register(
 	static function ( $class_name ) {
 		// Namespace prefix for the AI client.
 		$client_prefix    = 'WordPress\\AiClient\\';
-		$client_prefix_len = 20; // strlen( 'WordPress\\AiClient\\' )
+		$client_prefix_len = 19; // strlen( 'WordPress\\AiClient\\' )
 
 		// Namespace prefix for scoped dependencies.
 		$scoped_prefix     = 'WordPress\\AiClientDependencies\\';
@@ -27,7 +27,7 @@ spl_autoload_register(
 		$psr_prefixes = array(
 			'Psr\\Http\\Client\\'        => 16,
 			'Psr\\Http\\Message\\'       => 17,
-			'Psr\\EventDispatcher\\'     => 21,
+			'Psr\\EventDispatcher\\'     => 20,
 			'Psr\\SimpleCache\\'         => 16,
 		);
 
