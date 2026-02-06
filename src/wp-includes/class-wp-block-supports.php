@@ -181,8 +181,9 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 
 	// This is hardcoded on purpose.
 	// We only support a fixed list of attributes.
-	$attributes_to_merge = array( 'style', 'class', 'id', 'aria-label' );
-	$attributes          = array();
+	$attributes_to_merge     = array( 'style', 'class', 'id', 'aria-label' );
+	$attributes_to_override  = array( 'id', 'aria-label' );
+	$attributes              = array();
 	foreach ( $attributes_to_merge as $attribute_name ) {
 		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {
 			continue;
@@ -195,6 +196,11 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 
 		if ( empty( $extra_attributes[ $attribute_name ] ) ) {
 			$attributes[ $attribute_name ] = $new_attributes[ $attribute_name ];
+			continue;
+		}
+
+		if ( in_array( $attribute_name, $attributes_to_override, true ) ) {
+			$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ];
 			continue;
 		}
 
