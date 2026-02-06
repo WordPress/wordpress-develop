@@ -70,6 +70,10 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The HTML Processor has special behavior when a text node starts with whitespace.
+	 * Test that PRE and LISTING `::set_modifiable_text()` handling works correctly
+	 * with leading whitespace.
+	 *
 	 * PRE and LISTING elements ignore the first newline in their content.
 	 * Leading whitespace may split into multiple text nodes in the HTML Processor.
 	 * Setting the modifiable text with a leading newline should ensure that the
