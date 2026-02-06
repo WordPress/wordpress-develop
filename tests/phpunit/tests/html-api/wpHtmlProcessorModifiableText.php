@@ -14,6 +14,10 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * Setting the modifiable text with a leading newline (or carriage return variants)
 	 * should ensure that the leading newline is present in the resulting TEXTAREA.
 	 *
+	 * TEXTAREA are treated as atomic tags by the tag processor, so `set_modifiable_text()`
+	 * is called directly on the TEXTAREA token, making them different from PRE and LISTING
+	 * tags that also have special newline handling in HTML.
+	 *
 	 * @ticket 64609
 	 *
 	 * @dataProvider data_modifiable_text_special_textarea
@@ -51,15 +55,15 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 */
 	public static function data_modifiable_text_special_textarea() {
 		return array(
-			'Leading newline'                    => array(
+			'Leading newline'                   => array(
 				"\nAFTER NEWLINE",
 				"<textarea>\n\nAFTER NEWLINE</textarea>",
 			),
-			'Leading carriage return'            => array(
+			'Leading carriage return'           => array(
 				"\rCR",
 				"<textarea>\n\nCR</textarea>",
 			),
-			'Leading carriage return + newline'  => array(
+			'Leading carriage return + newline' => array(
 				"\r\nCR-N",
 				"<textarea>\n\nCR-N</textarea>",
 			),
@@ -68,55 +72,13 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 
 	/**
 	 * PRE and LISTING elements ignore the first newline in their content.
-	 * Setting the modifiable text with a leading newline should ensure that the leading newline
-	 * is present in the resulting element.
-	 *
-	 * @ticket 64609
-	 *
-	 * @dataProvider data_modifiable_text_special_pre_tags
-	 *
-	 * @param string $tag_name The tag name to test (e.g. 'pre', 'listing').
-	 */
-	public function test_modifiable_text_special_pre_tags( string $tag_name ) {
-		$set_text  = "\nAFTER NEWLINE";
-		$processor = WP_HTML_Processor::create_fragment( "<{$tag_name}>REPLACEME<!--x--></{$tag_name}>" );
-		$processor->next_tag();
-		$processor->next_token();
-		$this->assertSame( '#text', $processor->get_token_type() );
-		$processor->set_modifiable_text( $set_text );
-		$this->assertSame( $set_text, $processor->get_modifiable_text() );
-		$this->assertEqualHTML(
-			<<<HTML
-			<{$tag_name}>
-			{$set_text}<!--x--></{$tag_name}>
-			HTML,
-			$processor->get_updated_html(),
-			'<body>',
-			"Should have preserved the leading newline in the {$tag_name} content."
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_modifiable_text_special_pre_tags() {
-		return array(
-			'PRE'     => array( 'pre' ),
-			'LISTING' => array( 'listing' ),
-		);
-	}
-
-	/**
-	 * The HTML Processor has special behavior when a text node starts with whitespace.
-	 * Test that PRE and LISTING `::set_modifiable_text()` handling works correctly
-	 * with leading whitespace.
-	 *
-	 * PRE and LISTING elements ignore the first newline in their content.
 	 * Leading whitespace may split into multiple text nodes in the HTML Processor.
 	 * Setting the modifiable text with a leading newline should ensure that the
 	 * leading newline is present in the resulting element.
+	 *
+	 * The HTML Processor has special behavior when a text node starts with whitespace.
+	 * Test that PRE and LISTING `::set_modifiable_text()` handling works correctly
+	 * with leading whitespace.
 	 *
 	 * @ticket 64609
 	 *
@@ -167,45 +129,49 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * Data provider.
 	 */
 	public static function data_modifiable_text_special_leading_whitespace() {
-		$set_text = "\nAFTER NEWLINE.";
+		$tags = array( 'pre', 'listing' );
+		foreach ( $tags as $tag_name ) {
+			yield "<{$tag_name}> with no leading newline" => array(
+				"<{$tag_name}>REPLACEME<!--x--></{$tag_name}>",
+				1,
+				"REPLACEME",
+				"\nAFTER NEWLINE.",
+				"<{$tag_name}>\n\nAFTER NEWLINE.<!--x--></{$tag_name}>",
+			);
 
-		foreach ( self::data_modifiable_text_special_pre_tags() as $tag_data ) {
-			$tag_name  = $tag_data[0];
-			$tag_label = strtoupper( $tag_name );
-
-			yield "{$tag_label} with leading newline, first text node" => array(
+			yield "<{$tag_name}> with leading newline, first text node" => array(
 				"<{$tag_name}>\nREPLACEME<!--x--></{$tag_name}>",
 				1,
 				'',
-				$set_text,
-				"<{$tag_name}>\n{$set_text}REPLACEME<!--x--></{$tag_name}>",
+				"\nAFTER NEWLINE.",
+				"<{$tag_name}>\n\nAFTER NEWLINE.REPLACEME<!--x--></{$tag_name}>",
 			);
 
-			yield "{$tag_label} with leading newline, second text node" => array(
+			yield "<{$tag_name}> with leading newline, second text node" => array(
 				"<{$tag_name}>\nREPLACEME<!--x--></{$tag_name}>",
 				2,
 				'REPLACEME',
-				$set_text,
-				"<{$tag_name}>\n{$set_text}<!--x--></{$tag_name}>",
+				"\nAFTER NEWLINE.",
+				"<{$tag_name}>\n\nAFTER NEWLINE.<!--x--></{$tag_name}>",
 			);
 
-			yield "{$tag_label} with leading space, first text node" => array(
+			yield "<{$tag_name}> with leading space, first text node" => array(
 				"<{$tag_name}> REPLACEME<!--x--></{$tag_name}>",
 				1,
 				' ',
-				$set_text,
-				"<{$tag_name}>\n{$set_text}REPLACEME<!--x--></{$tag_name}>",
+				"\nAFTER NEWLINE.",
+				"<{$tag_name}>\n\nAFTER NEWLINE.REPLACEME<!--x--></{$tag_name}>",
 			);
 
-			yield "{$tag_label} with leading space, second text node" => array(
+			yield "<{$tag_name}> with leading space, second text node" => array(
 				"<{$tag_name}> REPLACEME<!--x--></{$tag_name}>",
 				2,
 				'REPLACEME',
-				$set_text,
-				"<{$tag_name}>\n {$set_text}<!--x--></{$tag_name}>",
+				"\nAFTER NEWLINE.",
+				"<{$tag_name}>\n \nAFTER NEWLINE.<!--x--></{$tag_name}>",
 			);
 
-			yield "{$tag_label} insert with leading carriage return" => array(
+			yield "<{$tag_name}> insert with leading carriage return" => array(
 				"<{$tag_name}>REPLACEME<!--x--></{$tag_name}>",
 				1,
 				'REPLACEME',
@@ -213,7 +179,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 				"<{$tag_name}>\n\nCR<!--x--></{$tag_name}>",
 			);
 
-			yield "{$tag_label} insert with leading carriage return + newline" => array(
+			yield "<{$tag_name}> insert with leading carriage return + newline" => array(
 				"<{$tag_name}>REPLACEME<!--x--></{$tag_name}>",
 				1,
 				'REPLACEME',
@@ -221,7 +187,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 				"<{$tag_name}>\n\nCR-N<!--x--></{$tag_name}>",
 			);
 
-			yield "{$tag_label} clear text" => array(
+			yield "<{$tag_name}> clear text" => array(
 				"<{$tag_name}>REPLACEME<!--x--></{$tag_name}>",
 				1,
 				'REPLACEME',
