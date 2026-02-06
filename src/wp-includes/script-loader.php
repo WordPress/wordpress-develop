@@ -3940,9 +3940,10 @@ function wp_hoist_late_printed_styles() {
 			}
 
 			/**
-			 * Replace the placeholder for global styles enqueued during {@see wp_enqueue_global_styles()}.
+			 * Replace the placeholder for global styles enqueued during {@see wp_enqueue_global_styles()}. This is done
+			 * even if $printed_global_styles is empty.
 			 */
-			if ( '' !== $printed_global_styles && $processor->has_bookmark( 'wp_global_styles_placeholder' ) ) {
+			if ( $processor->has_bookmark( 'wp_global_styles_placeholder' ) ) {
 				$processor->seek( 'wp_global_styles_placeholder' );
 				$processor->replace( $printed_global_styles );
 				$printed_global_styles = '';

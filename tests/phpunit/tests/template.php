@@ -1624,12 +1624,11 @@ class Tests_Template extends WP_UnitTestCase {
 			),
 			'no_global_styles'                            => array(
 				'set_up'            => static function () {
-					add_filter(
-						'print_styles_array',
-						static function ( $handles ) {
-							return array_values( array_diff( $handles, array( 'global-styles' ) ) );
-						}
-					);
+					$dequeue = static function () {
+						wp_dequeue_style( 'global-styles' );
+					};
+					add_action( 'wp_enqueue_scripts', $dequeue, 1000 );
+					add_action( 'wp_footer', $dequeue, 2 );
 				},
 				'content'           => $blocks_content,
 				'inline_size_limit' => PHP_INT_MAX,
@@ -1994,9 +1993,15 @@ class Tests_Template extends WP_UnitTestCase {
 		// Create a simulated output buffer.
 		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>' . $content . '</main>' . $footer_output . '</body></html>';
 
-		$placeholder_regexp = '#/\*wp_block_styles_on_demand_placeholder:[a-f0-9]+\*/#';
-		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) && wp_style_is( 'wp-block-library', 'enqueued' ) ) {
-			$this->assertMatchesRegularExpression( $placeholder_regexp, $buffer, 'Expected the placeholder to be present in the buffer.' );
+		$global_styles_placeholder_regexp = '#<style id="wp-global-styles-placeholder-inline-css">#';
+		$block_library_placeholder_regexp = '#/\*wp_block_styles_on_demand_placeholder:[a-f0-9]+\*/#';
+		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+			if ( wp_style_is( 'global-styles', 'enqueued' ) ) {
+				$this->assertMatchesRegularExpression( $global_styles_placeholder_regexp, $buffer, 'Expected the global-styles placeholder to be present in the buffer.' );
+			}
+			if ( wp_style_is( 'wp-block-library', 'enqueued' ) ) {
+				$this->assertMatchesRegularExpression( $block_library_placeholder_regexp, $buffer, 'Expected the wp-block-library placeholder to be present in the buffer.' );
+			}
 		}
 
 		// Apply the output buffer filter.
@@ -2004,7 +2009,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '</head>', $filtered_buffer, 'Expected the closing HEAD tag to be in the response.' );
 
-		$this->assertDoesNotMatchRegularExpression( $placeholder_regexp, $filtered_buffer, 'Expected the placeholder to be removed.' );
+		$this->assertDoesNotMatchRegularExpression( $global_styles_placeholder_regexp, $filtered_buffer, 'Expected the global-styles placeholder to be removed.' );
+		$this->assertDoesNotMatchRegularExpression( $block_library_placeholder_regexp, $filtered_buffer, 'Expected the wp-block-library placeholder to be removed.' );
 		$found_styles = array(
 			'HEAD' => array(),
 			'BODY' => array(),
