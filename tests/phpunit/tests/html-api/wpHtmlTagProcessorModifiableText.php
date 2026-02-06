@@ -653,6 +653,16 @@ HTML;
 			$processor->get_modifiable_text(),
 			'Should have preserved the leading newline in the content.'
 		);
+		$this->assertEqualHTML(
+			<<<'HTML'
+			<textarea>
+
+			AFTER NEWLINE</textarea>
+			HTML,
+			$processor->get_updated_html(),
+			'<body>',
+			'Should have preserved the leading newline in the content.'
+		);
 	}
 
 	/**
