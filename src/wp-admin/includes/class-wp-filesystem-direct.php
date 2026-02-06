@@ -173,6 +173,11 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			// Avoid calling chmod if the requested mode is already
 			// set, to avoid chmod throwing an exception when we aren't owner
 			$currentmode = fileperms( $file ) & 0777;
+
+			// fileperms populates the stat cache, so have to
+			// clear it to maintain parity with previous behavior
+			clearstatcache( true, $file );
+
 			if ( $currentmode === $mode ) {
 				return true;
 			}
