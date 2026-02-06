@@ -14,7 +14,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
 	 * is present in the resulting TEXTAREA.
 	 *
-	 * @ticket 64607
+	 * @ticket 64609
 	 */
 	public function test_modifiable_text_special_textarea() {
 		$processor = WP_HTML_Processor::create_fragment( '<textarea></textarea>' );
@@ -32,7 +32,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
 	 * is present in the resulting element.
 	 *
-	 * @ticket 64607
+	 * @ticket 64609
 	 *
 	 * @dataProvider data_modifiable_text_special_pre_tags
 	 *
@@ -79,7 +79,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * Setting the modifiable text with a leading newline should ensure that the
 	 * leading newline is present in the resulting element.
 	 *
-	 * @ticket 64607
+	 * @ticket 64609
 	 *
 	 * @dataProvider data_modifiable_text_special_leading_whitespace
 	 *

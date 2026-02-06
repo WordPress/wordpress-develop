@@ -642,7 +642,7 @@ HTML;
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
 	 * is present in the resulting element.
 	 *
-	 * @ticket 64607
+	 * @ticket 64609
 	 */
 	public function test_modifiable_text_special_textarea() {
 		$processor = new WP_HTML_Tag_Processor( '<textarea></textarea>' );
@@ -660,7 +660,7 @@ HTML;
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
 	 * is present in the resulting element.
 	 *
-	 * @ticket 64607
+	 * @ticket 64609
 	 */
 	public function test_modifiable_text_special_pre() {
 		$set_text  = "\nAFTER NEWLINE";
@@ -686,7 +686,7 @@ HTML;
 	 * Setting the modifiable text with a leading newline should ensure that the leading newline
 	 * is present in the resulting element.
 	 *
-	 * @ticket 64607
+	 * @ticket 64609
 	 */
 	public function test_modifiable_text_special_listing() {
 		$set_text  = "\nAFTER NEWLINE";
