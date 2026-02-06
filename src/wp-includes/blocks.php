@@ -3057,7 +3057,7 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
  * @since 7.0.0
  *
  * @param WP_Block $block Block instance.
- * @return array Query vars suitable for get_terms() or wp_count_terms().
+ * @return array<string, mixed> Query vars suitable for get_terms() or wp_count_terms().
  */
 function build_terms_query_vars_from_block( $block ) {
 	$query = $block->context['termQuery'];
@@ -3107,12 +3107,12 @@ function build_terms_query_vars_from_block( $block ) {
 }
 
 /**
- * Registers the 'termspage' query variable for terms pagination.
+ * Registers the 'termspage' public query variable to support pagination for the Terms Query block.
  *
  * @since 7.0.0
  *
- * @param array $vars The array of existing query variables.
- * @return array Modified query variables including 'termspage'.
+ * @param array<int, string> $vars The array of existing query variables.
+ * @return array<int, string> Modified query variables including 'termspage'.
  */
 function terms_query_register_query_vars( $vars ) {
 	$vars[] = 'termspage';
