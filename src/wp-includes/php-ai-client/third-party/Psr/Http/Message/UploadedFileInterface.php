@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 /**
  * Value object representing a file uploaded through an HTTP request.
@@ -28,7 +28,7 @@ interface UploadedFileInterface
      * @throws \RuntimeException in cases when no stream is available or can be
      *     created.
      */
-    public function getStream(): \Psr\Http\Message\StreamInterface;
+    public function getStream(): StreamInterface;
     /**
      * Move the uploaded file to a new location.
      *

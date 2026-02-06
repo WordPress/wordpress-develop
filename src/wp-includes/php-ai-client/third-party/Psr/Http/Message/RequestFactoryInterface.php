@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 interface RequestFactoryInterface
 {
@@ -14,5 +14,5 @@ interface RequestFactoryInterface
      *
      * @return RequestInterface
      */
-    public function createRequest(string $method, $uri): \Psr\Http\Message\RequestInterface;
+    public function createRequest(string $method, $uri): RequestInterface;
 }

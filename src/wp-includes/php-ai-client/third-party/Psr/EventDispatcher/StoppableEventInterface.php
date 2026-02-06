@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace Psr\EventDispatcher;
+namespace WordPress\AiClientDependencies\Psr\EventDispatcher;
 
 /**
  * An Event whose processing may be interrupted when the event has been handled.

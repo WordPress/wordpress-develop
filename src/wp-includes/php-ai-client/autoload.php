@@ -16,20 +16,12 @@ require_once __DIR__ . '/src/polyfills.php';
 spl_autoload_register(
 	static function ( $class_name ) {
 		// Namespace prefix for the AI client.
-		$client_prefix    = 'WordPress\\AiClient\\';
+		$client_prefix     = 'WordPress\\AiClient\\';
 		$client_prefix_len = 19; // strlen( 'WordPress\\AiClient\\' )
 
-		// Namespace prefix for scoped dependencies.
+		// Namespace prefix for scoped dependencies (includes Psr\*, Http\*, etc.).
 		$scoped_prefix     = 'WordPress\\AiClientDependencies\\';
 		$scoped_prefix_len = 31; // strlen( 'WordPress\\AiClientDependencies\\' )
-
-		// PSR interface namespaces (not scoped, kept global).
-		$psr_prefixes = array(
-			'Psr\\Http\\Client\\'        => 16,
-			'Psr\\Http\\Message\\'       => 17,
-			'Psr\\EventDispatcher\\'     => 20,
-			'Psr\\SimpleCache\\'         => 16,
-		);
 
 		$base_dir = __DIR__;
 
@@ -51,18 +43,6 @@ spl_autoload_register(
 				require $file;
 			}
 			return;
-		}
-
-		// 3. Psr\* interfaces → third-party/Psr/...
-		foreach ( $psr_prefixes as $prefix => $prefix_len ) {
-			if ( 0 === strncmp( $class_name, $prefix, $prefix_len ) ) {
-				$relative_class = substr( $class_name, 4 ); // Strip 'Psr\' prefix, keep sub-namespace.
-				$file           = $base_dir . '/third-party/Psr/' . str_replace( '\\', '/', $relative_class ) . '.php';
-				if ( file_exists( $file ) ) {
-					require $file;
-				}
-				return;
-			}
 		}
 	}
 );

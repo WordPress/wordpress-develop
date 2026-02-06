@@ -26,7 +26,7 @@ use WordPress\AiClient\Results\Enums\FinishReasonEnum;
 /**
  * Trait providing shared mock model creation methods for testing.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 trait WP_AI_Client_Mock_Model_Creation_Trait {
 

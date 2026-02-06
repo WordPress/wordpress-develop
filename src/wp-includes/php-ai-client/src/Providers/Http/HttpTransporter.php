@@ -5,11 +5,11 @@ namespace WordPress\AiClient\Providers\Http;
 
 use WordPress\AiClientDependencies\Http\Discovery\Psr17FactoryDiscovery;
 use WordPress\AiClientDependencies\Http\Discovery\Psr18ClientDiscovery;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Client\ClientInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamFactoryInterface;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\Http\Contracts\ClientWithOptionsInterface;
 use WordPress\AiClient\Providers\Http\Contracts\HttpTransporterInterface;
@@ -75,9 +75,9 @@ class HttpTransporter implements HttpTransporterInterface
             } else {
                 $psr7Response = $this->client->sendRequest($psr7Request);
             }
-        } catch (\Psr\Http\Client\NetworkExceptionInterface $e) {
+        } catch (\WordPress\AiClientDependencies\Psr\Http\Client\NetworkExceptionInterface $e) {
             throw NetworkException::fromPsr18NetworkException($psr7Request, $e);
-        } catch (\Psr\Http\Client\ClientExceptionInterface $e) {
+        } catch (\WordPress\AiClientDependencies\Psr\Http\Client\ClientExceptionInterface $e) {
             // Handle other PSR-18 client exceptions that are not network-related
             throw new RuntimeException(sprintf('HTTP client error occurred while sending request to %s: %s', $request->getUri(), $e->getMessage()), 0, $e);
         }

@@ -2,7 +2,7 @@
 
 namespace WordPress\AiClientDependencies\Http\Client;
 
-use Psr\Http\Client\ClientExceptionInterface as PsrClientException;
+use WordPress\AiClientDependencies\Psr\Http\Client\ClientExceptionInterface as PsrClientException;
 /**
  * Every HTTP Client related Exception must implement this interface.
  *

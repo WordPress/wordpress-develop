@@ -4,12 +4,12 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\StreamInterface;
-use Psr\Http\Message\UriInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UriInterface;
 
 /**
  * Minimal PSR-7 HTTP request implementation.
@@ -17,14 +17,14 @@ use Psr\Http\Message\UriInterface;
  * Immutable value object representing an outgoing HTTP request for the AI Client
  * HTTP transport layer.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_PSR7_Request implements RequestInterface {
 
 	/**
 	 * HTTP method.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $method;
@@ -32,7 +32,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Request URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var UriInterface
 	 */
 	private $uri;
@@ -40,7 +40,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * HTTP protocol version.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $protocol_version = '1.1';
@@ -50,7 +50,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	 *
 	 * Each value is an array with 'name' (original case) and 'values' (list of strings).
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var array<string, array{name: string, values: list<string>}>
 	 */
 	private $headers = array();
@@ -58,7 +58,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Request body.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var StreamInterface
 	 */
 	private $body;
@@ -66,7 +66,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Explicit request target, if set.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string|null
 	 */
 	private $request_target;
@@ -74,7 +74,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string              $method HTTP method.
 	 * @param string|UriInterface $uri    Request URI.
@@ -93,7 +93,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Retrieves the HTTP protocol version.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string HTTP protocol version.
 	 */
@@ -104,7 +104,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Returns an instance with the specified HTTP protocol version.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $version HTTP protocol version.
 	 * @return static
@@ -119,7 +119,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Retrieves all message header values.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string[][] Associative array of headers.
 	 */
@@ -136,7 +136,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Checks if a header exists by the given case-insensitive name.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name Case-insensitive header field name.
 	 * @return bool
@@ -148,7 +148,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Retrieves a message header value by the given case-insensitive name.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name Case-insensitive header field name.
 	 * @return string[] Header values.
@@ -166,7 +166,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Retrieves a comma-separated string of the values for a single header.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name Case-insensitive header field name.
 	 * @return string
@@ -178,7 +178,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Returns an instance with the provided value replacing the specified header.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string          $name  Case-insensitive header field name.
 	 * @param string|string[] $value Header value(s).
@@ -194,7 +194,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Returns an instance with the specified header appended with the given value.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string          $name  Case-insensitive header field name to add.
 	 * @param string|string[] $value Header value(s).
@@ -223,7 +223,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Returns an instance without the specified header.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name Case-insensitive header field name to remove.
 	 * @return static
@@ -238,7 +238,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Gets the body of the message.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return StreamInterface
 	 */
@@ -249,7 +249,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Returns an instance with the specified message body.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param StreamInterface $body Body.
 	 * @return static
@@ -264,7 +264,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Retrieves the message's request target.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string
 	 */
@@ -291,7 +291,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Returns an instance with the specific request-target.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $requestTarget Request target.
 	 * @return static
@@ -306,7 +306,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Retrieves the HTTP method of the request.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string
 	 */
@@ -317,7 +317,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Returns an instance with the provided HTTP method.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $method Case-sensitive method.
 	 * @return static
@@ -332,7 +332,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Retrieves the URI instance.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return UriInterface
 	 */
@@ -343,7 +343,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Returns an instance with the provided URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param UriInterface $uri          New request URI to use.
 	 * @param bool         $preserveHost Preserve the original state of the Host header.
@@ -369,7 +369,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	/**
 	 * Sets a header internally (mutating, for use in constructor and clone methods).
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string          $name  Header name.
 	 * @param string|string[] $value Header value(s).

@@ -2,7 +2,7 @@
 
 namespace WordPress\AiClientDependencies\Http\Client;
 
-use Psr\Http\Client\ClientInterface;
+use WordPress\AiClientDependencies\Psr\Http\Client\ClientInterface;
 /**
  * {@inheritdoc}
  *

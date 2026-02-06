@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 interface ResponseFactoryInterface
 {
@@ -14,5 +14,5 @@ interface ResponseFactoryInterface
      *
      * @return ResponseInterface
      */
-    public function createResponse(int $code = 200, string $reasonPhrase = ''): \Psr\Http\Message\ResponseInterface;
+    public function createResponse(int $code = 200, string $reasonPhrase = ''): ResponseInterface;
 }

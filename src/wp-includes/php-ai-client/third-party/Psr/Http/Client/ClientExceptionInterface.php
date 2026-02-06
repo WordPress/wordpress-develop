@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Client;
+namespace WordPress\AiClientDependencies\Psr\Http\Client;
 
 /**
  * Every HTTP client related exception MUST implement this interface.

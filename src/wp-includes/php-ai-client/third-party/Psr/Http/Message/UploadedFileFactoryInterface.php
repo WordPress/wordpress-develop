@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 interface UploadedFileFactoryInterface
 {
@@ -24,5 +24,5 @@ interface UploadedFileFactoryInterface
      *
      * @throws \InvalidArgumentException If the file resource is not readable.
      */
-    public function createUploadedFile(\Psr\Http\Message\StreamInterface $stream, ?int $size = null, int $error = \UPLOAD_ERR_OK, ?string $clientFilename = null, ?string $clientMediaType = null): \Psr\Http\Message\UploadedFileInterface;
+    public function createUploadedFile(StreamInterface $stream, ?int $size = null, int $error = \UPLOAD_ERR_OK, ?string $clientFilename = null, ?string $clientMediaType = null): UploadedFileInterface;
 }

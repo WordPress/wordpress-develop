@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
 use WordPress\AiClient\Messages\DTO\Message;
@@ -16,14 +16,14 @@ use WordPress\AiClient\Tools\DTO\FunctionResponse;
 /**
  * Resolves and executes WordPress Abilities API function calls from AI models.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_Ability_Function_Resolver {
 
 	/**
 	 * Prefix used to identify ability function calls.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private const ABILITY_PREFIX = 'wpab__';
@@ -31,7 +31,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 	/**
 	 * Checks if a function call is an ability call.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param FunctionCall $call The function call to check.
 	 * @return bool True if the function call is an ability call, false otherwise.
@@ -48,7 +48,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 	/**
 	 * Executes a WordPress ability from a function call.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param FunctionCall $call The function call to execute.
 	 * @return FunctionResponse The response from executing the ability.
@@ -107,7 +107,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 	/**
 	 * Checks if a message contains any ability function calls.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param Message $message The message to check.
 	 * @return bool True if the message contains ability calls, false otherwise.
@@ -128,7 +128,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 	/**
 	 * Executes all ability function calls in a message.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param Message $message The message containing function calls.
 	 * @return Message A new message with function responses.
@@ -154,7 +154,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 	 *
 	 * Transforms "tec/create_event" to "wpab__tec__create_event".
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $ability_name The ability name to convert.
 	 * @return string The function name.
@@ -168,7 +168,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 	 *
 	 * Transforms "wpab__tec__create_event" to "tec/create_event".
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $function_name The function name to convert.
 	 * @return string The ability name.

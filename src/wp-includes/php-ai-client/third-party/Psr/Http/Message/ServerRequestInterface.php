@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 /**
  * Representation of an incoming, server-side HTTP request.
@@ -40,7 +40,7 @@ namespace Psr\Http\Message;
  * be implemented such that they retain the internal state of the current
  * message and return an instance that contains the changed state.
  */
-interface ServerRequestInterface extends \Psr\Http\Message\RequestInterface
+interface ServerRequestInterface extends RequestInterface
 {
     /**
      * Retrieve server parameters.
@@ -80,7 +80,7 @@ interface ServerRequestInterface extends \Psr\Http\Message\RequestInterface
      * @param array $cookies Array of key/value pairs representing cookies.
      * @return static
      */
-    public function withCookieParams(array $cookies): \Psr\Http\Message\ServerRequestInterface;
+    public function withCookieParams(array $cookies): ServerRequestInterface;
     /**
      * Retrieve query string arguments.
      *
@@ -116,7 +116,7 @@ interface ServerRequestInterface extends \Psr\Http\Message\RequestInterface
      *     $_GET.
      * @return static
      */
-    public function withQueryParams(array $query): \Psr\Http\Message\ServerRequestInterface;
+    public function withQueryParams(array $query): ServerRequestInterface;
     /**
      * Retrieve normalized file upload data.
      *
@@ -141,7 +141,7 @@ interface ServerRequestInterface extends \Psr\Http\Message\RequestInterface
      * @return static
      * @throws \InvalidArgumentException if an invalid structure is provided.
      */
-    public function withUploadedFiles(array $uploadedFiles): \Psr\Http\Message\ServerRequestInterface;
+    public function withUploadedFiles(array $uploadedFiles): ServerRequestInterface;
     /**
      * Retrieve any parameters provided in the request body.
      *
@@ -186,7 +186,7 @@ interface ServerRequestInterface extends \Psr\Http\Message\RequestInterface
      * @throws \InvalidArgumentException if an unsupported argument type is
      *     provided.
      */
-    public function withParsedBody($data): \Psr\Http\Message\ServerRequestInterface;
+    public function withParsedBody($data): ServerRequestInterface;
     /**
      * Retrieve attributes derived from the request.
      *
@@ -230,7 +230,7 @@ interface ServerRequestInterface extends \Psr\Http\Message\RequestInterface
      * @param mixed $value The value of the attribute.
      * @return static
      */
-    public function withAttribute(string $name, $value): \Psr\Http\Message\ServerRequestInterface;
+    public function withAttribute(string $name, $value): ServerRequestInterface;
     /**
      * Return an instance that removes the specified derived request attribute.
      *
@@ -245,5 +245,5 @@ interface ServerRequestInterface extends \Psr\Http\Message\RequestInterface
      * @param string $name The attribute name.
      * @return static
      */
-    public function withoutAttribute(string $name): \Psr\Http\Message\ServerRequestInterface;
+    public function withoutAttribute(string $name): ServerRequestInterface;
 }

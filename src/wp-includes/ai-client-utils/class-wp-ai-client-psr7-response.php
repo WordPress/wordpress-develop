@@ -4,11 +4,11 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamInterface;
 
 /**
  * Minimal PSR-7 HTTP response implementation.
@@ -16,14 +16,14 @@ use Psr\Http\Message\StreamInterface;
  * Immutable value object representing an incoming HTTP response for the AI Client
  * HTTP transport layer.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_PSR7_Response implements ResponseInterface {
 
 	/**
 	 * HTTP status code.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var int
 	 */
 	private $status_code;
@@ -31,7 +31,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Reason phrase associated with the status code.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $reason_phrase;
@@ -39,7 +39,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * HTTP protocol version.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $protocol_version = '1.1';
@@ -49,7 +49,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	 *
 	 * Each value is an array with 'name' (original case) and 'values' (list of strings).
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var array<string, array{name: string, values: list<string>}>
 	 */
 	private $headers = array();
@@ -57,7 +57,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Response body.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var StreamInterface
 	 */
 	private $body;
@@ -65,7 +65,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param int    $status_code   HTTP status code.
 	 * @param string $reason_phrase Reason phrase to associate with the status code.
@@ -79,7 +79,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Gets the response status code.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return int Status code.
 	 */
@@ -90,7 +90,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Returns an instance with the specified status code and reason phrase.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param int    $code         The 3-digit integer result code to set.
 	 * @param string $reasonPhrase The reason phrase to use.
@@ -107,7 +107,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Gets the response reason phrase associated with the status code.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string Reason phrase.
 	 */
@@ -118,7 +118,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Retrieves the HTTP protocol version.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string HTTP protocol version.
 	 */
@@ -129,7 +129,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Returns an instance with the specified HTTP protocol version.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $version HTTP protocol version.
 	 * @return static
@@ -144,7 +144,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Retrieves all message header values.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string[][] Associative array of headers.
 	 */
@@ -161,7 +161,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Checks if a header exists by the given case-insensitive name.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name Case-insensitive header field name.
 	 * @return bool
@@ -173,7 +173,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Retrieves a message header value by the given case-insensitive name.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name Case-insensitive header field name.
 	 * @return string[] Header values.
@@ -191,7 +191,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Retrieves a comma-separated string of the values for a single header.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name Case-insensitive header field name.
 	 * @return string
@@ -203,7 +203,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Returns an instance with the provided value replacing the specified header.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string          $name  Case-insensitive header field name.
 	 * @param string|string[] $value Header value(s).
@@ -223,7 +223,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Returns an instance with the specified header appended with the given value.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string          $name  Case-insensitive header field name to add.
 	 * @param string|string[] $value Header value(s).
@@ -252,7 +252,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Returns an instance without the specified header.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name Case-insensitive header field name to remove.
 	 * @return static
@@ -267,7 +267,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Gets the body of the message.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return StreamInterface
 	 */
@@ -278,7 +278,7 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	/**
 	 * Returns an instance with the specified message body.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param StreamInterface $body Body.
 	 * @return static

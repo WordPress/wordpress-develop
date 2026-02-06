@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 interface UriFactoryInterface
 {
@@ -13,5 +13,5 @@ interface UriFactoryInterface
      *
      * @throws \InvalidArgumentException If the given URI cannot be parsed.
      */
-    public function createUri(string $uri = ''): \Psr\Http\Message\UriInterface;
+    public function createUri(string $uri = ''): UriInterface;
 }

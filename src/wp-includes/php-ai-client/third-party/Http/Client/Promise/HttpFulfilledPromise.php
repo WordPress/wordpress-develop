@@ -4,7 +4,7 @@ namespace WordPress\AiClientDependencies\Http\Client\Promise;
 
 use WordPress\AiClientDependencies\Http\Client\Exception;
 use WordPress\AiClientDependencies\Http\Promise\Promise;
-use Psr\Http\Message\ResponseInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseInterface;
 final class HttpFulfilledPromise implements Promise
 {
     /**

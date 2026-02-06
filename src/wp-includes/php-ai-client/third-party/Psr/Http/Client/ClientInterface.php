@@ -1,9 +1,9 @@
 <?php
 
-namespace Psr\Http\Client;
+namespace WordPress\AiClientDependencies\Psr\Http\Client;
 
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseInterface;
 interface ClientInterface
 {
     /**

@@ -1,8 +1,8 @@
 <?php
 
-namespace Psr\Http\Client;
+namespace WordPress\AiClientDependencies\Psr\Http\Client;
 
-use Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
 /**
  * Thrown when the request cannot be completed because of network issues.
  *
@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestInterface;
  *
  * Example: the target host name can not be resolved or the connection failed.
  */
-interface NetworkExceptionInterface extends \Psr\Http\Client\ClientExceptionInterface
+interface NetworkExceptionInterface extends ClientExceptionInterface
 {
     /**
      * Returns the request.

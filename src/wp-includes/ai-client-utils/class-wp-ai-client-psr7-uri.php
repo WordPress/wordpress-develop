@@ -4,24 +4,24 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
-use Psr\Http\Message\UriInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UriInterface;
 
 /**
  * Minimal PSR-7 URI implementation.
  *
  * Wraps PHP's parse_url() components into an immutable UriInterface value object.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_PSR7_Uri implements UriInterface {
 
 	/**
 	 * Standard ports for HTTP and HTTPS.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var array<string, int>
 	 */
 	private static $default_ports = array(
@@ -32,7 +32,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * URI scheme (e.g. "http", "https").
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $scheme = '';
@@ -40,7 +40,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * URI user info (e.g. "user:password").
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $user_info = '';
@@ -48,7 +48,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * URI host.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $host = '';
@@ -56,7 +56,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * URI port.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var int|null
 	 */
 	private $port;
@@ -64,7 +64,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * URI path.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $path = '';
@@ -72,7 +72,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * URI query string.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $query = '';
@@ -80,7 +80,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * URI fragment.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $fragment = '';
@@ -88,7 +88,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $uri URI string to parse.
 	 */
@@ -118,7 +118,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Retrieves the scheme component of the URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string The URI scheme.
 	 */
@@ -129,7 +129,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Retrieves the authority component of the URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string The URI authority, in "[user-info@]host[:port]" format.
 	 */
@@ -154,7 +154,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Retrieves the user information component of the URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string The URI user information.
 	 */
@@ -165,7 +165,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Retrieves the host component of the URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string The URI host.
 	 */
@@ -176,7 +176,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Retrieves the port component of the URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return int|null The URI port, or null if standard or not set.
 	 */
@@ -191,7 +191,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Retrieves the path component of the URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string The URI path.
 	 */
@@ -202,7 +202,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Retrieves the query string of the URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string The URI query string.
 	 */
@@ -213,7 +213,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Retrieves the fragment component of the URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string The URI fragment.
 	 */
@@ -224,7 +224,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Returns an instance with the specified scheme.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $scheme The scheme to use with the new instance.
 	 * @return static A new instance with the specified scheme.
@@ -239,7 +239,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Returns an instance with the specified user information.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string      $user     The user name to use for authority.
 	 * @param string|null $password The password associated with $user.
@@ -259,7 +259,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Returns an instance with the specified host.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $host The hostname to use with the new instance.
 	 * @return static A new instance with the specified host.
@@ -274,7 +274,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Returns an instance with the specified port.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param int|null $port The port to use with the new instance.
 	 * @return static A new instance with the specified port.
@@ -289,7 +289,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Returns an instance with the specified path.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $path The path to use with the new instance.
 	 * @return static A new instance with the specified path.
@@ -304,7 +304,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Returns an instance with the specified query string.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $query The query string to use with the new instance.
 	 * @return static A new instance with the specified query string.
@@ -319,7 +319,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Returns an instance with the specified URI fragment.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $fragment The fragment to use with the new instance.
 	 * @return static A new instance with the specified fragment.
@@ -334,7 +334,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Returns the string representation as a URI reference.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string
 	 */
@@ -374,7 +374,7 @@ class WP_AI_Client_PSR7_Uri implements UriInterface {
 	/**
 	 * Checks whether the current port is the standard port for the scheme.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return bool True if port is the standard port for the current scheme.
 	 */

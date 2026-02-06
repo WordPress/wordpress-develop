@@ -4,10 +4,10 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
-use Psr\EventDispatcher\EventDispatcherInterface;
+use WordPress\AiClientDependencies\Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * WordPress-specific PSR-14 event dispatcher for the AI Client.
@@ -15,7 +15,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  * Bridges PSR-14 events to WordPress action hooks, enabling plugins to hook
  * into AI client lifecycle events.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_Event_Dispatcher implements EventDispatcherInterface {
 
@@ -25,7 +25,7 @@ class WP_AI_Client_Event_Dispatcher implements EventDispatcherInterface {
 	 * Converts the event class name to a WordPress action hook name and fires it.
 	 * For example, BeforeGenerateResultEvent becomes wp_ai_client_before_generate_result.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param object $event The event object to dispatch.
 	 * @return object The same event object, potentially modified by listeners.
@@ -47,7 +47,7 @@ class WP_AI_Client_Event_Dispatcher implements EventDispatcherInterface {
 		 * - wp_ai_client_before_generate_result
 		 * - wp_ai_client_after_generate_result
 		 *
-		 * @since 6.8.0
+		 * @since 7.0.0
 		 *
 		 * @param object $event The event object.
 		 */
@@ -59,7 +59,7 @@ class WP_AI_Client_Event_Dispatcher implements EventDispatcherInterface {
 	/**
 	 * Converts an event object class name to a WordPress action hook name portion.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param object $event The event object.
 	 * @return string The hook name portion derived from the event class name.

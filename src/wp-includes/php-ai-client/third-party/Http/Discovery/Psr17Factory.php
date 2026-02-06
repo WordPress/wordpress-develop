@@ -2,18 +2,18 @@
 
 namespace WordPress\AiClientDependencies\Http\Discovery;
 
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestFactoryInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Http\Message\StreamInterface;
-use Psr\Http\Message\UploadedFileFactoryInterface;
-use Psr\Http\Message\UploadedFileInterface;
-use Psr\Http\Message\UriFactoryInterface;
-use Psr\Http\Message\UriInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ServerRequestFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ServerRequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UploadedFileFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UploadedFileInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UriFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UriInterface;
 /**
  * A generic PSR-17 implementation.
  *

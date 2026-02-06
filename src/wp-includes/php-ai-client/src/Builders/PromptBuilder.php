@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace WordPress\AiClient\Builders;
 
-use Psr\EventDispatcher\EventDispatcherInterface;
+use WordPress\AiClientDependencies\Psr\EventDispatcher\EventDispatcherInterface;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Events\AfterGenerateResultEvent;

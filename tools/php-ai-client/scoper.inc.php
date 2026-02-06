@@ -2,11 +2,8 @@
 /**
  * PHP-Scoper configuration for bundling php-ai-client dependencies.
  *
- * Scopes Http\* namespaces (php-http packages) to WordPress\AiClientDependencies\Http\*
- * to avoid conflicts with plugin-bundled versions.
- *
- * PSR interfaces (Psr\*) are excluded from scoping so that external HTTP
- * implementations (Guzzle, Nyholm, etc.) remain type-compatible.
+ * Scopes all third-party namespaces (Http\*, Psr\*, etc.) to
+ * WordPress\AiClientDependencies\* to avoid conflicts with plugin-bundled versions.
  *
  * @package WordPress
  */
@@ -22,7 +19,7 @@ return array(
 			->files()
 			->ignoreVCS( true )
 			->notName( '/LICENSE|.*\\.md|.*\\.dist|Makefile/' )
-			->exclude( array( 'doc', 'test', 'test_old', 'tests', 'Tests', 'vendor-bin' ) )
+			->exclude( array( 'composer', 'doc', 'test', 'test_old', 'tests', 'Tests', 'vendor-bin' ) )
 			->in( 'vendor' ),
 
 		// Include the AI client source files so `use` statements referencing
@@ -38,15 +35,6 @@ return array(
 	'exclude-namespaces' => array(
 		// The AI client's own namespace must not be scoped.
 		'WordPress\\AiClient',
-
-		// PSR interfaces stay global for type compatibility with external implementations.
-		'Psr\\Http\\Client',
-		'Psr\\Http\\Message',
-		'Psr\\EventDispatcher',
-		'Psr\\SimpleCache',
-
-		// Composer's own namespace.
-		'Composer',
 	),
 
 	'exclude-files' => array(),

@@ -1,24 +1,24 @@
 <?php
 
-namespace Http\Discovery\Composer;
+namespace WordPress\AiClientDependencies\Http\Discovery\Composer;
 
-use Composer\Composer;
-use Composer\DependencyResolver\Pool;
-use Composer\EventDispatcher\EventSubscriberInterface;
-use Composer\Factory;
-use Composer\Installer;
-use Composer\IO\IOInterface;
-use Composer\Json\JsonFile;
-use Composer\Json\JsonManipulator;
-use Composer\Package\Locker;
-use Composer\Package\Version\VersionParser;
-use Composer\Package\Version\VersionSelector;
-use Composer\Plugin\PluginInterface;
-use Composer\Repository\InstalledRepositoryInterface;
-use Composer\Repository\RepositorySet;
-use Composer\Script\Event;
-use Composer\Script\ScriptEvents;
-use Composer\Util\Filesystem;
+use WordPress\AiClientDependencies\Composer\Composer;
+use WordPress\AiClientDependencies\Composer\DependencyResolver\Pool;
+use WordPress\AiClientDependencies\Composer\EventDispatcher\EventSubscriberInterface;
+use WordPress\AiClientDependencies\Composer\Factory;
+use WordPress\AiClientDependencies\Composer\Installer;
+use WordPress\AiClientDependencies\Composer\IO\IOInterface;
+use WordPress\AiClientDependencies\Composer\Json\JsonFile;
+use WordPress\AiClientDependencies\Composer\Json\JsonManipulator;
+use WordPress\AiClientDependencies\Composer\Package\Locker;
+use WordPress\AiClientDependencies\Composer\Package\Version\VersionParser;
+use WordPress\AiClientDependencies\Composer\Package\Version\VersionSelector;
+use WordPress\AiClientDependencies\Composer\Plugin\PluginInterface;
+use WordPress\AiClientDependencies\Composer\Repository\InstalledRepositoryInterface;
+use WordPress\AiClientDependencies\Composer\Repository\RepositorySet;
+use WordPress\AiClientDependencies\Composer\Script\Event;
+use WordPress\AiClientDependencies\Composer\Script\ScriptEvents;
+use WordPress\AiClientDependencies\Composer\Util\Filesystem;
 use WordPress\AiClientDependencies\Http\Discovery\ClassDiscovery;
 /**
  * Auto-installs missing implementations.
@@ -48,7 +48,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * depending on which one is already installed on the right side.
      */
     private const STICKYNESS_RULES = ['symfony/http-client' => 'symfony/framework-bundle', 'php-http/guzzle7-adapter' => 'guzzlehttp/guzzle:^7', 'php-http/guzzle6-adapter' => 'guzzlehttp/guzzle:^6', 'php-http/guzzle5-adapter' => 'guzzlehttp/guzzle:^5', 'php-http/cakephp-adapter' => 'cakephp/cakephp', 'php-http/react-adapter' => 'react/event-loop', 'php-http/buzz-adapter' => 'kriswallsmith/buzz:^0.15.1', 'php-http/artax-adapter' => 'amphp/artax:^3', 'http-interop/http-factory-guzzle' => 'guzzlehttp/psr7:^1', 'http-interop/http-factory-slim' => 'slim/slim:^3'];
-    private const INTERFACE_MAP = ['php-http/async-client-implementation' => ['WordPress\AiClientDependencies\Http\Client\HttpAsyncClient'], 'php-http/client-implementation' => ['WordPress\AiClientDependencies\Http\Client\HttpClient'], 'psr/http-client-implementation' => ['Psr\Http\Client\ClientInterface'], 'psr/http-factory-implementation' => ['Psr\Http\Message\RequestFactoryInterface', 'Psr\Http\Message\ResponseFactoryInterface', 'Psr\Http\Message\ServerRequestFactoryInterface', 'Psr\Http\Message\StreamFactoryInterface', 'Psr\Http\Message\UploadedFileFactoryInterface', 'Psr\Http\Message\UriFactoryInterface']];
+    private const INTERFACE_MAP = ['php-http/async-client-implementation' => ['WordPress\AiClientDependencies\Http\Client\HttpAsyncClient'], 'php-http/client-implementation' => ['WordPress\AiClientDependencies\Http\Client\HttpClient'], 'psr/http-client-implementation' => ['WordPress\AiClientDependencies\Psr\Http\Client\ClientInterface'], 'psr/http-factory-implementation' => ['WordPress\AiClientDependencies\Psr\Http\Message\RequestFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\ResponseFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\ServerRequestFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\StreamFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\UploadedFileFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\UriFactoryInterface']];
     public static function getSubscribedEvents(): array
     {
         return [ScriptEvents::PRE_AUTOLOAD_DUMP => 'preAutoloadDump', ScriptEvents::POST_UPDATE_CMD => 'postUpdate'];

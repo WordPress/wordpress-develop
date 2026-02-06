@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
 use WordPress\AiClient\Builders\PromptBuilder;
@@ -38,7 +38,7 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * calls will be no-ops that just return the same error state instance. Only
  * when a generating method is called, the WP_Error will be returned.
  *
- * @since 6.8.0
+ * @since 7.0.0
  *
  * @method self with_text(string $text) Adds text to the current message.
  * @method self with_file($file, ?string $mimeType = null) Adds a file to the current message.
@@ -94,7 +94,7 @@ class WP_AI_Client_Prompt_Builder {
 	/**
 	 * Wrapped prompt builder instance from the PHP AI Client SDK.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var PromptBuilder
 	 */
 	private PromptBuilder $builder;
@@ -102,7 +102,7 @@ class WP_AI_Client_Prompt_Builder {
 	/**
 	 * WordPress error instance, if any error occurred during method calls.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var WP_Error|null
 	 */
 	private ?WP_Error $error = null;
@@ -112,7 +112,7 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * Structured as a map for faster lookups.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var array<string, bool>
 	 */
 	private static array $generating_methods = array(
@@ -136,7 +136,7 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * Structured as a map for faster lookups.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var array<string, bool>
 	 */
 	private static array $support_check_methods = array(
@@ -153,7 +153,7 @@ class WP_AI_Client_Prompt_Builder {
 	/**
 	 * Constructor.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
 	 * @param mixed            $prompt   Optional initial prompt content.
@@ -164,7 +164,7 @@ class WP_AI_Client_Prompt_Builder {
 		/**
 		 * Filters the default request timeout in seconds for AI Client HTTP requests.
 		 *
-		 * @since 6.8.0
+		 * @since 7.0.0
 		 *
 		 * @param int $default_timeout The default timeout in seconds.
 		 */
@@ -185,7 +185,7 @@ class WP_AI_Client_Prompt_Builder {
 	 * Converts each WP_Ability to a FunctionDeclaration using the wpab__ prefix
 	 * naming convention and passes them to the underlying prompt builder.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param WP_Ability|string ...$abilities The abilities to register, either as WP_Ability objects or ability name strings.
 	 * @return self The current instance for method chaining.
@@ -226,7 +226,7 @@ class WP_AI_Client_Prompt_Builder {
 	 * any exceptions thrown, stores them, and returns a WP_Error when a terminate method
 	 * is called.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string            $name      The method name in snake_case.
 	 * @param array<int, mixed> $arguments The method arguments.
@@ -252,7 +252,7 @@ class WP_AI_Client_Prompt_Builder {
 			/**
 			 * Filters whether to prevent the prompt from being executed.
 			 *
-			 * @since 6.8.0
+			 * @since 7.0.0
 			 *
 			 * @param bool                        $prevent Whether to prevent the prompt. Default false.
 			 * @param WP_AI_Client_Prompt_Builder $builder A clone of the prompt builder instance (read-only).
@@ -310,7 +310,7 @@ class WP_AI_Client_Prompt_Builder {
 	/**
 	 * Checks if a method name is a support check method (is_supported*).
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name The method name.
 	 * @return bool True if the method is a support check method, false otherwise.
@@ -322,7 +322,7 @@ class WP_AI_Client_Prompt_Builder {
 	/**
 	 * Checks if a method name is a generating method (generate_*, convert_text_to_speech*).
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name The method name.
 	 * @return bool True if the method is a generating method, false otherwise.
@@ -334,7 +334,7 @@ class WP_AI_Client_Prompt_Builder {
 	/**
 	 * Retrieves a callable for a given PHP AI Client SDK prompt builder method name.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $name The method name in snake_case.
 	 * @return callable The callable for the specified method.
@@ -360,7 +360,7 @@ class WP_AI_Client_Prompt_Builder {
 	/**
 	 * Converts snake_case to camelCase.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $snake_case The snake_case string.
 	 * @return string The camelCase string.

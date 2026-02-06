@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 /**
  * Representation of an outgoing, server-side response.
@@ -17,7 +17,7 @@ namespace Psr\Http\Message;
  * be implemented such that they retain the internal state of the current
  * message and return an instance that contains the changed state.
  */
-interface ResponseInterface extends \Psr\Http\Message\MessageInterface
+interface ResponseInterface extends MessageInterface
 {
     /**
      * Gets the response status code.
@@ -48,7 +48,7 @@ interface ResponseInterface extends \Psr\Http\Message\MessageInterface
      * @return static
      * @throws \InvalidArgumentException For invalid status code arguments.
      */
-    public function withStatus(int $code, string $reasonPhrase = ''): \Psr\Http\Message\ResponseInterface;
+    public function withStatus(int $code, string $reasonPhrase = ''): ResponseInterface;
     /**
      * Gets the response reason phrase associated with the status code.
      *

@@ -2,8 +2,8 @@
 
 namespace WordPress\AiClientDependencies\Http\Client\Exception;
 
-use Psr\Http\Client\NetworkExceptionInterface as PsrNetworkException;
-use Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Client\NetworkExceptionInterface as PsrNetworkException;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
 /**
  * Thrown when the request cannot be completed because of network issues.
  *

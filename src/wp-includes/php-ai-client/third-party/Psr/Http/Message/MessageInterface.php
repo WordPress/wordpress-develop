@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 /**
  * HTTP messages consist of requests from a client to a server and responses
@@ -37,7 +37,7 @@ interface MessageInterface
      * @param string $version HTTP protocol version
      * @return static
      */
-    public function withProtocolVersion(string $version): \Psr\Http\Message\MessageInterface;
+    public function withProtocolVersion(string $version): MessageInterface;
     /**
      * Retrieves all message header values.
      *
@@ -123,7 +123,7 @@ interface MessageInterface
      * @return static
      * @throws \InvalidArgumentException for invalid header names or values.
      */
-    public function withHeader(string $name, $value): \Psr\Http\Message\MessageInterface;
+    public function withHeader(string $name, $value): MessageInterface;
     /**
      * Return an instance with the specified header appended with the given value.
      *
@@ -140,7 +140,7 @@ interface MessageInterface
      * @return static
      * @throws \InvalidArgumentException for invalid header names or values.
      */
-    public function withAddedHeader(string $name, $value): \Psr\Http\Message\MessageInterface;
+    public function withAddedHeader(string $name, $value): MessageInterface;
     /**
      * Return an instance without the specified header.
      *
@@ -153,13 +153,13 @@ interface MessageInterface
      * @param string $name Case-insensitive header field name to remove.
      * @return static
      */
-    public function withoutHeader(string $name): \Psr\Http\Message\MessageInterface;
+    public function withoutHeader(string $name): MessageInterface;
     /**
      * Gets the body of the message.
      *
      * @return StreamInterface Returns the body as a stream.
      */
-    public function getBody(): \Psr\Http\Message\StreamInterface;
+    public function getBody(): StreamInterface;
     /**
      * Return an instance with the specified message body.
      *
@@ -173,5 +173,5 @@ interface MessageInterface
      * @return static
      * @throws \InvalidArgumentException When the body is not valid.
      */
-    public function withBody(\Psr\Http\Message\StreamInterface $body): \Psr\Http\Message\MessageInterface;
+    public function withBody(StreamInterface $body): MessageInterface;
 }

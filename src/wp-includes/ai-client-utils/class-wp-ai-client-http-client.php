@@ -4,14 +4,14 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Client\ClientInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamFactoryInterface;
 use WordPress\AiClient\Providers\Http\Contracts\ClientWithOptionsInterface;
 use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
 use WordPress\AiClient\Providers\Http\Exception\NetworkException;
@@ -22,14 +22,14 @@ use WordPress\AiClient\Providers\Http\Exception\NetworkException;
  * Allows WordPress HTTP functions to be used as a PSR-18 compliant HTTP client
  * for the AI Client SDK.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInterface {
 
 	/**
 	 * Response factory instance.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var ResponseFactoryInterface
 	 */
 	private $response_factory;
@@ -37,7 +37,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	/**
 	 * Stream factory instance.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var StreamFactoryInterface
 	 */
 	private $stream_factory;
@@ -45,7 +45,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	/**
 	 * Constructor.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param ResponseFactoryInterface $response_factory PSR-17 Response factory.
 	 * @param StreamFactoryInterface   $stream_factory   PSR-17 Stream factory.
@@ -58,7 +58,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	/**
 	 * Sends a PSR-7 request and returns a PSR-7 response.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param RequestInterface $request The PSR-7 request.
 	 * @return ResponseInterface The PSR-7 response.
@@ -88,7 +88,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	/**
 	 * Sends a PSR-7 request with transport options and returns a PSR-7 response.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param RequestInterface $request The PSR-7 request.
 	 * @param RequestOptions   $options Transport options for the request.
@@ -121,7 +121,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	/**
 	 * Prepares WordPress HTTP API arguments from a PSR-7 request.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param RequestInterface    $request The PSR-7 request.
 	 * @param RequestOptions|null $options Optional transport options for the request.
@@ -152,7 +152,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	/**
 	 * Prepares headers for WordPress HTTP API.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param RequestInterface $request The PSR-7 request.
 	 * @return array<string, string> Headers array for WordPress HTTP API.
@@ -174,7 +174,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	/**
 	 * Prepares request body for WordPress HTTP API.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param RequestInterface $request The PSR-7 request.
 	 * @return string|null The request body.
@@ -196,7 +196,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	/**
 	 * Creates a PSR-7 response from a WordPress HTTP response.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param array<string, mixed> $wp_response WordPress HTTP API response array.
 	 * @return ResponseInterface PSR-7 response.

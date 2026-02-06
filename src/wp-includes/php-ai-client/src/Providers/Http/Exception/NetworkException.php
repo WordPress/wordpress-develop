@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace WordPress\AiClient\Providers\Http\Exception;
 
-use Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\Http\DTO\Request;
 /**

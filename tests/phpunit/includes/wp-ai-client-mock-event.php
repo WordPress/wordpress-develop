@@ -11,7 +11,7 @@
  *
  * The class name ends with 'Event' to test the suffix stripping behavior.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_Mock_Event {
 }

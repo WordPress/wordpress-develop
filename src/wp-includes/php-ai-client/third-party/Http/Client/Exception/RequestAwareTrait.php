@@ -2,7 +2,7 @@
 
 namespace WordPress\AiClientDependencies\Http\Client\Exception;
 
-use Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
 trait RequestAwareTrait
 {
     /**

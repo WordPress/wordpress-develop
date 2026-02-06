@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace WordPress\AiClient;
 
-use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\SimpleCache\CacheInterface;
+use WordPress\AiClientDependencies\Psr\EventDispatcher\EventDispatcherInterface;
+use WordPress\AiClientDependencies\Psr\SimpleCache\CacheInterface;
 use WordPress\AiClient\Builders\PromptBuilder;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Common\Exception\RuntimeException;

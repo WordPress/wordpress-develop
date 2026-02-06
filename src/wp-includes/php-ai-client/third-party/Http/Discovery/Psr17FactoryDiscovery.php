@@ -4,12 +4,12 @@ namespace WordPress\AiClientDependencies\Http\Discovery;
 
 use WordPress\AiClientDependencies\Http\Discovery\Exception\DiscoveryFailedException;
 use WordPress\AiClientDependencies\Http\Discovery\Exception\NotFoundException as RealNotFoundException;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\ServerRequestFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Http\Message\UploadedFileFactoryInterface;
-use Psr\Http\Message\UriFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ServerRequestFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UploadedFileFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UriFactoryInterface;
 /**
  * Finds PSR-17 factories.
  *

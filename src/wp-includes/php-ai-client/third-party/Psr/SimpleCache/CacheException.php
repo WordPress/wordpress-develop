@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\SimpleCache;
+namespace WordPress\AiClientDependencies\Psr\SimpleCache;
 
 /**
  * Interface used for all types of exceptions thrown by the implementing library.

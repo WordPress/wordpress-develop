@@ -3,7 +3,7 @@
 namespace WordPress\AiClientDependencies\Http\Client;
 
 use WordPress\AiClientDependencies\Http\Promise\Promise;
-use Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
 /**
  * Sends a PSR-7 Request in an asynchronous way by returning a Promise.
  *

@@ -1,8 +1,8 @@
 <?php
 
-namespace Psr\Http\Client;
+namespace WordPress\AiClientDependencies\Psr\Http\Client;
 
-use Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
 /**
  * Exception for when a request failed.
  *
@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestInterface;
  *      - Request is invalid (e.g. method is missing)
  *      - Runtime request errors (e.g. the body stream is not seekable)
  */
-interface RequestExceptionInterface extends \Psr\Http\Client\ClientExceptionInterface
+interface RequestExceptionInterface extends ClientExceptionInterface
 {
     /**
      * Returns the request.

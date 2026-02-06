@@ -4,17 +4,17 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Http\Message\StreamInterface;
-use Psr\Http\Message\UriFactoryInterface;
-use Psr\Http\Message\UriInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\RequestInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\ResponseInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UriFactoryInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\UriInterface;
 
 /**
  * Combined PSR-17 factory for creating PSR-7 HTTP message objects.
@@ -22,14 +22,14 @@ use Psr\Http\Message\UriInterface;
  * Implements all four PSR-17 factory interfaces, delegating to the minimal
  * WP AI Client PSR-7 implementations.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFactoryInterface, StreamFactoryInterface, UriFactoryInterface {
 
 	/**
 	 * Creates a new request.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string              $method The HTTP method associated with the request.
 	 * @param UriInterface|string $uri    The URI associated with the request.
@@ -42,7 +42,7 @@ class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFac
 	/**
 	 * Creates a new response.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param int    $code         HTTP status code. Defaults to 200.
 	 * @param string $reasonPhrase Reason phrase to associate with status code.
@@ -55,7 +55,7 @@ class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFac
 	/**
 	 * Creates a new stream from a string.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $content String content with which to populate the stream.
 	 * @return StreamInterface
@@ -67,7 +67,7 @@ class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFac
 	/**
 	 * Creates a stream from an existing file.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $filename Filename or stream URI to use as basis of stream.
 	 * @param string $mode     Mode with which to open the underlying filename/stream.
@@ -86,7 +86,7 @@ class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFac
 	/**
 	 * Creates a new stream from an existing resource.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param resource $resource PHP resource to use as basis of stream.
 	 * @return StreamInterface
@@ -104,7 +104,7 @@ class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFac
 	/**
 	 * Creates a new URI.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $uri The URI string.
 	 * @return UriInterface

@@ -1,6 +1,6 @@
 <?php
 
-namespace Psr\Http\Message;
+namespace WordPress\AiClientDependencies\Psr\Http\Message;
 
 /**
  * Representation of an outgoing, client-side request.
@@ -21,7 +21,7 @@ namespace Psr\Http\Message;
  * be implemented such that they retain the internal state of the current
  * message and return an instance that contains the changed state.
  */
-interface RequestInterface extends \Psr\Http\Message\MessageInterface
+interface RequestInterface extends MessageInterface
 {
     /**
      * Retrieves the message's request target.
@@ -57,7 +57,7 @@ interface RequestInterface extends \Psr\Http\Message\MessageInterface
      * @param string $requestTarget
      * @return static
      */
-    public function withRequestTarget(string $requestTarget): \Psr\Http\Message\RequestInterface;
+    public function withRequestTarget(string $requestTarget): RequestInterface;
     /**
      * Retrieves the HTTP method of the request.
      *
@@ -79,7 +79,7 @@ interface RequestInterface extends \Psr\Http\Message\MessageInterface
      * @return static
      * @throws \InvalidArgumentException for invalid HTTP methods.
      */
-    public function withMethod(string $method): \Psr\Http\Message\RequestInterface;
+    public function withMethod(string $method): RequestInterface;
     /**
      * Retrieves the URI instance.
      *
@@ -89,7 +89,7 @@ interface RequestInterface extends \Psr\Http\Message\MessageInterface
      * @return UriInterface Returns a UriInterface instance
      *     representing the URI of the request.
      */
-    public function getUri(): \Psr\Http\Message\UriInterface;
+    public function getUri(): UriInterface;
     /**
      * Returns an instance with the provided URI.
      *
@@ -120,5 +120,5 @@ interface RequestInterface extends \Psr\Http\Message\MessageInterface
      * @param bool $preserveHost Preserve the original state of the Host header.
      * @return static
      */
-    public function withUri(\Psr\Http\Message\UriInterface $uri, bool $preserveHost = \false): \Psr\Http\Message\RequestInterface;
+    public function withUri(UriInterface $uri, bool $preserveHost = \false): RequestInterface;
 }

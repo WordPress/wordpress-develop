@@ -4,10 +4,10 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
-use Psr\Http\Message\StreamInterface;
+use WordPress\AiClientDependencies\Psr\Http\Message\StreamInterface;
 
 /**
  * Minimal string-backed PSR-7 stream implementation.
@@ -15,14 +15,14 @@ use Psr\Http\Message\StreamInterface;
  * Provides the StreamInterface methods needed by the AI Client HTTP transport
  * layer without requiring PHP stream resources.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_PSR7_Stream implements StreamInterface {
 
 	/**
 	 * The string content of the stream.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var string
 	 */
 	private $content;
@@ -30,7 +30,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Current read/write offset position.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 * @var int
 	 */
 	private $offset = 0;
@@ -38,7 +38,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $content Initial content for the stream.
 	 */
@@ -49,7 +49,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Reads all data from the stream into a string.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string
 	 */
@@ -60,7 +60,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Closes the stream. No-op for string-backed streams.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 */
 	public function close(): void {
 		// No-op.
@@ -69,7 +69,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Separates any underlying resources from the stream.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return resource|null Always null for string-backed streams.
 	 */
@@ -80,7 +80,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Gets the size of the stream.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return int|null The size in bytes.
 	 */
@@ -91,7 +91,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Returns the current position of the read/write pointer.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return int Position of the pointer.
 	 */
@@ -102,7 +102,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Returns true if the stream is at the end.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return bool
 	 */
@@ -113,7 +113,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Returns whether the stream is seekable.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return bool Always true.
 	 */
@@ -124,7 +124,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Seeks to a position in the stream.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param int $offset Stream offset.
 	 * @param int $whence One of SEEK_SET, SEEK_CUR, or SEEK_END.
@@ -152,7 +152,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Seeks to the beginning of the stream.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 */
 	public function rewind(): void {
 		$this->offset = 0;
@@ -161,7 +161,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Returns whether the stream is writable.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return bool Always true.
 	 */
@@ -172,7 +172,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Writes data to the stream.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $string The string to write.
 	 * @return int Number of bytes written.
@@ -188,7 +188,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Returns whether the stream is readable.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return bool Always true.
 	 */
@@ -199,7 +199,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Reads data from the stream.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param int $length Number of bytes to read.
 	 * @return string Data read from the stream.
@@ -214,7 +214,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Returns the remaining contents of the stream.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return string
 	 */
@@ -228,7 +228,7 @@ class WP_AI_Client_PSR7_Stream implements StreamInterface {
 	/**
 	 * Gets stream metadata.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string|null $key Specific metadata to retrieve.
 	 * @return array|mixed|null Returns null for specific keys, empty array otherwise.

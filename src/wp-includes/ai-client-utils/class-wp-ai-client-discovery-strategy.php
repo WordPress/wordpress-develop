@@ -4,12 +4,12 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 6.8.0
+ * @since 7.0.0
  */
 
 use WordPress\AiClientDependencies\Http\Discovery\Psr18ClientDiscovery;
 use WordPress\AiClientDependencies\Http\Discovery\Strategy\DiscoveryStrategy;
-use Psr\Http\Client\ClientInterface;
+use WordPress\AiClientDependencies\Psr\Http\Client\ClientInterface;
 
 /**
  * Discovery strategy for WordPress HTTP client.
@@ -17,14 +17,14 @@ use Psr\Http\Client\ClientInterface;
  * Registers the WordPress HTTP client adapter with the HTTPlug discovery system
  * so the AI Client SDK can find and use it automatically.
  *
- * @since 6.8.0
+ * @since 7.0.0
  */
 class WP_AI_Client_Discovery_Strategy implements DiscoveryStrategy {
 
 	/**
 	 * Initializes and registers the discovery strategy.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 */
 	public static function init() {
 		if ( ! class_exists( '\WordPress\AiClientDependencies\Http\Discovery\Psr18ClientDiscovery' ) ) {
@@ -37,7 +37,7 @@ class WP_AI_Client_Discovery_Strategy implements DiscoveryStrategy {
 	/**
 	 * Gets candidates for discovery.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string $type The type of discovery.
 	 * @return array<array<string, mixed>> List of candidates.
@@ -54,12 +54,12 @@ class WP_AI_Client_Discovery_Strategy implements DiscoveryStrategy {
 		}
 
 		$psr17_factories = array(
-			'Psr\Http\Message\RequestFactoryInterface',
-			'Psr\Http\Message\ResponseFactoryInterface',
-			'Psr\Http\Message\ServerRequestFactoryInterface',
-			'Psr\Http\Message\StreamFactoryInterface',
-			'Psr\Http\Message\UploadedFileFactoryInterface',
-			'Psr\Http\Message\UriFactoryInterface',
+			'WordPress\AiClientDependencies\Psr\Http\Message\RequestFactoryInterface',
+			'WordPress\AiClientDependencies\Psr\Http\Message\ResponseFactoryInterface',
+			'WordPress\AiClientDependencies\Psr\Http\Message\ServerRequestFactoryInterface',
+			'WordPress\AiClientDependencies\Psr\Http\Message\StreamFactoryInterface',
+			'WordPress\AiClientDependencies\Psr\Http\Message\UploadedFileFactoryInterface',
+			'WordPress\AiClientDependencies\Psr\Http\Message\UriFactoryInterface',
 		);
 
 		if ( in_array( $type, $psr17_factories, true ) ) {
@@ -76,7 +76,7 @@ class WP_AI_Client_Discovery_Strategy implements DiscoveryStrategy {
 	/**
 	 * Creates an instance of the WordPress HTTP client.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @return WP_AI_Client_HTTP_Client
 	 */
