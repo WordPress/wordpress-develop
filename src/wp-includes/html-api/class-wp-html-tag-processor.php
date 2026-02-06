@@ -3776,7 +3776,10 @@ class WP_HTML_Tag_Processor {
 			 * This preserves the intention of adding text with a leading newline which would
 			 * be removed in HTML.
 			 */
-			if ( $this->skip_newline_at === $this->text_starts_at && str_starts_with( $plaintext_content, "\n" ) ) {
+			if (
+				$this->skip_newline_at === $this->text_starts_at &&
+				1 === strspn( $plaintext_content, "\n\r", 0, 1 )
+			) {
 				$plaintext_content = "\n{$plaintext_content}";
 			}
 
