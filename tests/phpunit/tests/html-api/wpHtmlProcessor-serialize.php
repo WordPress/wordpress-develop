@@ -323,9 +323,15 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are preserved upon normalization,
+	 * and that normalization is idempotent in these cases.
+	 *
 	 * @ticket 64607
 	 *
 	 * @dataProvider data_provider_normalize_special_leading_newline_cases
+	 *
+	 * @param string $input    HTML input containing leading newlines in PRE, LISTING, or TEXTAREA elements.
+	 * @param string $expected Expected output after normalization, which should preserve leading newlines.
 	 */
 	public function test_normalize_special_leading_newline_handling( string $input, string $expected ) {
 		$normalized = WP_HTML_Processor::normalize( $input );
