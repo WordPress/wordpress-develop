@@ -3771,10 +3771,8 @@ class WP_HTML_Tag_Processor {
 	public function set_modifiable_text( string $plaintext_content ): bool {
 		if ( self::STATE_TEXT_NODE === $this->parser_state ) {
 			/*
-			 * In case the text starts at a position where a newline is skipped _and_ starts
-			 * with a newline, add an additional newline.
-			 * This preserves the intention of adding text with a leading newline which would
-			 * be removed in HTML.
+			 * HTML ignores a single leading newline in this context. If a leading newline
+			 * is intended, preserve it by adding an extra newline.
 			 */
 			if (
 				$this->skip_newline_at === $this->text_starts_at &&
@@ -3889,10 +3887,10 @@ class WP_HTML_Tag_Processor {
 					},
 					$plaintext_content
 				);
+
 				/*
-				 * A single leading newline will be removed from TEXTAREA contents, if present.
-				 * If the intention is to start with a leading newline, ensure that it is preserved
-				 * by adding an additional leading newline.
+				 * HTML ignores a single leading newline in this context. If a leading newline
+				 * is intended, preserve it by adding an extra newline.
 				 */
 				if (
 					'TEXTAREA' === $this->get_tag() &&
