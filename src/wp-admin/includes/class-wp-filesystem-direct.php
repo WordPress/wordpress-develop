@@ -170,6 +170,13 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 		}
 
 		if ( ! $recursive || ! $this->is_dir( $file ) ) {
+			// Avoid calling chmod if the requested mode is already
+			// set, to avoid chmod throwing an exception when we aren't owner
+			$currentmode = fileperms( $file ) & 0777;
+			if ( $currentmode === $mode ) {
+				return true;
+			}
+
 			return chmod( $file, $mode );
 		}
 
