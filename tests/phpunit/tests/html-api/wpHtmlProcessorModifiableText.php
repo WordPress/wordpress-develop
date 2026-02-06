@@ -105,20 +105,38 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 
 	/**
 	 * Data provider.
-	 *
-	 * @return Generator
 	 */
 	public static function data_modifiable_text_special_leading_whitespace() {
 		$set_text = "\nAFTER NEWLINE.";
 
 		foreach ( self::data_modifiable_text_special_pre_tags() as $tag_data ) {
-			$tag_name = $tag_data[0];
-			$TAG      = strtoupper( $tag_name );
+			$tag_name  = $tag_data[0];
+			$tag_label = strtoupper( $tag_name );
 
-			yield "{$TAG} with leading newline, first text node"  => array( "<{$tag_name}>\nREPLACEME<!--x--></{$tag_name}>", 1, '', "<{$tag_name}>\n{$set_text}REPLACEME<!--x--></{$tag_name}>" );
-			yield "{$TAG} with leading newline, second text node" => array( "<{$tag_name}>\nREPLACEME<!--x--></{$tag_name}>", 2, 'REPLACEME', "<{$tag_name}>\n{$set_text}<!--x--></{$tag_name}>" );
-			yield "{$TAG} with leading space, first text node"    => array( "<{$tag_name}> REPLACEME<!--x--></{$tag_name}>", 1, ' ', "<{$tag_name}>\n{$set_text}REPLACEME<!--x--></{$tag_name}>" );
-			yield "{$TAG} with leading space, second text node"   => array( "<{$tag_name}> REPLACEME<!--x--></{$tag_name}>", 2, 'REPLACEME', "<{$tag_name}>\n {$set_text}<!--x--></{$tag_name}>" );
+			yield "{$tag_label} with leading newline, first text node" => array(
+				"<{$tag_name}>\nREPLACEME<!--x--></{$tag_name}>",
+				1,
+				'',
+				"<{$tag_name}>\n{$set_text}REPLACEME<!--x--></{$tag_name}>",
+			);
+			yield "{$tag_label} with leading newline, second text node" => array(
+				"<{$tag_name}>\nREPLACEME<!--x--></{$tag_name}>",
+				2,
+				'REPLACEME',
+				"<{$tag_name}>\n{$set_text}<!--x--></{$tag_name}>",
+			);
+			yield "{$tag_label} with leading space, first text node" => array(
+				"<{$tag_name}> REPLACEME<!--x--></{$tag_name}>",
+				1,
+				' ',
+				"<{$tag_name}>\n{$set_text}REPLACEME<!--x--></{$tag_name}>",
+			);
+			yield "{$tag_label} with leading space, second text node" => array(
+				"<{$tag_name}> REPLACEME<!--x--></{$tag_name}>",
+				2,
+				'REPLACEME',
+				"<{$tag_name}>\n {$set_text}<!--x--></{$tag_name}>",
+			);
 		}
 	}
 }
