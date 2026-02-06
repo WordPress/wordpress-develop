@@ -50,9 +50,12 @@ class WP_Debug_Data {
 			'wp-active-theme'     => self::get_wp_active_theme(),
 			'wp-parent-theme'     => self::get_wp_parent_theme(),
 			'wp-themes-inactive'  => self::get_wp_themes_inactive(),
+			'wp-themes-sizes'     => self::get_wp_themes_sizes(),
 			'wp-mu-plugins'       => self::get_wp_mu_plugins(),
 			'wp-plugins-active'   => self::get_wp_plugins_active(),
 			'wp-plugins-inactive' => self::get_wp_plugins_inactive(),
+			'wp-plugins-sizes'    => self::get_wp_plugins_sizes(),
+			'wp-uploads-sizes'    => self::get_wp_uploads_sizes(),
 			'wp-media'            => self::get_wp_media(),
 			'wp-server'           => self::get_wp_server(),
 			'wp-database'         => self::get_wp_database(),
@@ -894,7 +897,7 @@ class WP_Debug_Data {
 
 		return array(
 			/* translators: Filesystem directory paths and storage sizes. */
-			'label'  => __( 'Directories and Sizes' ),
+			'label'  => __( 'Directories and Sizes (overall)' ),
 			'fields' => $fields,
 		);
 	}
@@ -1048,6 +1051,309 @@ class WP_Debug_Data {
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Gets the WordPress plugin sizes section of the debug data.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @return array|null Plugin sizes debug data for single sites,
+	 *                    otherwise `null` for multi-site installs.
+	 */
+	private static function get_wp_plugins_sizes(): ?array {
+		if ( is_multisite() ) {
+			return null;
+		}
+
+		$plugins = get_plugins();
+		$fields  = array();
+
+		foreach ( $plugins as $plugin_path => $plugin ) {
+			// Get the plugin directory name from the plugin path.
+			$plugin_dir = dirname( $plugin_path );
+
+			// Determine if the plugin is active or inactive.
+			$is_active     = is_plugin_active( $plugin_path );
+			$status_label  = $is_active ? __( 'Active' ) : __( 'Inactive' );
+			$status_debug  = $is_active ? 'active' : 'inactive';
+
+			// Single-file plugins in the root plugins directory.
+			if ( '.' === $plugin_dir ) {
+				$plugin_file_path = WP_PLUGIN_DIR . '/' . $plugin_path;
+
+				if ( file_exists( $plugin_file_path ) ) {
+					$plugin_size       = filesize( $plugin_file_path );
+					$plugin_size_human = size_format( $plugin_size, 2 );
+					$plugin_size_debug = sprintf( '%s (%d bytes)', $plugin_size_human, $plugin_size );
+				} else {
+					$plugin_size_human = __( 'Unable to determine size.' );
+					$plugin_size_debug = 'unknown';
+				}
+			} else {
+				// Plugin in its own directory.
+				$plugin_dir_path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+
+				if ( is_dir( $plugin_dir_path ) ) {
+					$plugin_size = recurse_dirsize( $plugin_dir_path );
+
+					if ( false === $plugin_size ) {
+						$plugin_size_human = __( 'The size cannot be calculated. The directory is not accessible.' );
+						$plugin_size_debug = 'not accessible';
+					} elseif ( null === $plugin_size ) {
+						$plugin_size_human = __( 'The directory size calculation has timed out.' );
+						$plugin_size_debug = 'timeout';
+					} else {
+						$plugin_size_human = size_format( $plugin_size, 2 );
+						$plugin_size_debug = sprintf( '%s (%d bytes)', $plugin_size_human, $plugin_size );
+					}
+				} else {
+					$plugin_size_human = __( 'Unable to determine size.' );
+					$plugin_size_debug = 'unknown';
+				}
+			}
+
+			/* translators: 1: Plugin size. 2: Plugin status (Active/Inactive). */
+			$value_string = sprintf( __( '%1$s | %2$s' ), $plugin_size_human, $status_label );
+			$debug_string = sprintf( '%s, %s', $plugin_size_debug, $status_debug );
+
+			$fields[ sanitize_text_field( $plugin['Name'] ) ] = array(
+				'label' => $plugin['Name'],
+				'value' => $value_string,
+				'debug' => $debug_string,
+			);
+		}
+
+		return array(
+			'label'       => __( 'Plugin Sizes' ),
+			'description' => __( 'The size of each plugin directory or file in the plugins folder.' ),
+			'show_count'  => true,
+			'fields'      => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress uploads directory sizes section of the debug data.
+	 *
+	 * This shows the sizes of non-WordPress files and directories in the uploads folder,
+	 * which are typically created by plugins for caching, backups, logs, or other purposes.
+	 *
+	 * Built-in WordPress directories are excluded:
+	 * - Year directories (e.g., 2024, 2025) containing media uploads
+	 * - Multisite 'sites' directory
+	 *
+	 * Uses transient caching to avoid recalculating sizes on every page load.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @return array|null Uploads directory sizes debug data, or `null` if no
+	 *                    plugin-created content exists.
+	 */
+	private static function get_wp_uploads_sizes(): ?array {
+		$upload_dir      = wp_upload_dir();
+		$uploads_basedir = $upload_dir['basedir'];
+
+		if ( ! is_dir( $uploads_basedir ) ) {
+			return null;
+		}
+
+		// Use transient caching to improve performance (cache for 1 hour).
+		$transient_key = 'wp_debug_uploads_sizes';
+		$cached_data   = get_transient( $transient_key );
+
+		if ( false !== $cached_data && is_array( $cached_data ) ) {
+			// Return null if cache indicates no plugin content was found.
+			if ( empty( $cached_data['fields'] ) ) {
+				return null;
+			}
+
+			return array(
+				'label'       => __( 'Uploads Directory Contents (Non-Media)' ),
+				'description' => __( 'The size of plugin-created files and directories in the uploads folder. WordPress media directories are excluded. Sizes are cached for 1 hour.' ),
+				'show_count'  => true,
+				'fields'      => $cached_data['fields'],
+			);
+		}
+
+		$fields = array();
+
+		// Get list of items in uploads directory.
+		$items = scandir( $uploads_basedir );
+
+		if ( false === $items ) {
+			return null;
+		}
+
+		/*
+		 * Define patterns and names for WordPress built-in directories to exclude.
+		 * These directories are managed by WordPress core and don't need to be shown.
+		 */
+		$excluded_dirs = self::get_wp_uploads_excluded_dirs();
+
+		/*
+		 * Set a time limit for size calculations to prevent timeouts.
+		 * Allow up to 10 seconds for all calculations.
+		 */
+		$max_execution_time = 10;
+		$start_time         = microtime( true );
+		$timed_out          = false;
+
+		foreach ( $items as $item ) {
+			// Skip current and parent directory references.
+			if ( '.' === $item || '..' === $item ) {
+				continue;
+			}
+
+			// Check if we've exceeded the time limit.
+			if ( ( microtime( true ) - $start_time ) > $max_execution_time ) {
+				$timed_out = true;
+				break;
+			}
+
+			$item_path = $uploads_basedir . '/' . $item;
+			$is_dir    = is_dir( $item_path );
+
+			// Skip WordPress built-in directories.
+			if ( $is_dir && self::is_wp_uploads_excluded_dir( $item, $excluded_dirs ) ) {
+				continue;
+			}
+
+			// Determine item type.
+			if ( $is_dir ) {
+				$type_label = __( 'Directory' );
+				$type_debug = 'directory';
+			} else {
+				$type_label = __( 'File' );
+				$type_debug = 'file';
+			}
+
+			// Calculate size with remaining time limit.
+			$remaining_time = $max_execution_time - ( microtime( true ) - $start_time );
+
+			if ( $is_dir ) {
+				$item_size = recurse_dirsize( $item_path, null, $remaining_time );
+
+				if ( false === $item_size ) {
+					$size_human = __( 'The size cannot be calculated. The directory is not accessible.' );
+					$size_debug = 'not accessible';
+				} elseif ( null === $item_size ) {
+					$size_human = __( 'The directory size calculation has timed out.' );
+					$size_debug = 'timeout';
+				} else {
+					$size_human = size_format( $item_size, 2 );
+					$size_debug = sprintf( '%s (%d bytes)', $size_human, $item_size );
+				}
+			} else {
+				$item_size = filesize( $item_path );
+
+				if ( false === $item_size ) {
+					$size_human = __( 'Unable to determine size.' );
+					$size_debug = 'unknown';
+				} else {
+					$size_human = size_format( $item_size, 2 );
+					$size_debug = sprintf( '%s (%d bytes)', $size_human, $item_size );
+				}
+			}
+
+			/* translators: 1: Item size. 2: Item type (Directory/File). */
+			$value_string = sprintf( __( '%1$s | %2$s' ), $size_human, $type_label );
+			$debug_string = sprintf( '%s, %s', $size_debug, $type_debug );
+
+			$fields[ sanitize_text_field( $item ) ] = array(
+				'label' => $item,
+				'value' => $value_string,
+				'debug' => $debug_string,
+			);
+		}
+
+		// Add timeout notice if calculation was interrupted.
+		if ( $timed_out ) {
+			$fields['_timeout_notice'] = array(
+				'label' => __( 'Notice' ),
+				'value' => __( 'Size calculation timed out. Not all items are shown.' ),
+				'debug' => 'timeout - partial results',
+			);
+		}
+
+		// Sort fields alphabetically by key.
+		ksort( $fields );
+
+		// Cache the results for 1 hour (even if empty, to avoid repeated scans).
+		set_transient( $transient_key, array( 'fields' => $fields ), HOUR_IN_SECONDS );
+
+		// Return null if no plugin-created content was found.
+		if ( empty( $fields ) ) {
+			return null;
+		}
+
+		return array(
+			'label'       => __( 'Uploads Directory Contents (Non-Media)' ),
+			'description' => __( 'The size of plugin-created files and directories in the uploads folder. WordPress media directories are excluded. Sizes are cached for 1 hour.' ),
+			'show_count'  => true,
+			'fields'      => $fields,
+		);
+	}
+
+	/**
+	 * Gets the list of WordPress built-in directories to exclude from uploads size calculation.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @return array {
+	 *     Array of exclusion rules.
+	 *
+	 *     @type string[] $exact    Exact directory names to exclude.
+	 *     @type string[] $patterns Regex patterns for directories to exclude.
+	 * }
+	 */
+	private static function get_wp_uploads_excluded_dirs(): array {
+		$excluded = array(
+			'exact'    => array(
+				'sites',        // Multisite uploads directory.
+			),
+			'patterns' => array(
+				'/^[0-9]{4}$/', // Year directories (e.g., 2024, 2025).
+			),
+		);
+
+		/**
+		 * Filters the list of directories to exclude from uploads size calculation.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param array $excluded {
+		 *     Array of exclusion rules.
+		 *
+		 *     @type string[] $exact    Exact directory names to exclude.
+		 *     @type string[] $patterns Regex patterns for directories to exclude.
+		 * }
+		 */
+		return apply_filters( 'wp_debug_uploads_excluded_dirs', $excluded );
+	}
+
+	/**
+	 * Checks if a directory should be excluded from uploads size calculation.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $dir_name      The directory name to check.
+	 * @param array  $excluded_dirs The exclusion rules from get_wp_uploads_excluded_dirs().
+	 * @return bool True if the directory should be excluded, false otherwise.
+	 */
+	private static function is_wp_uploads_excluded_dir( string $dir_name, array $excluded_dirs ): bool {
+		// Check exact matches.
+		if ( in_array( $dir_name, $excluded_dirs['exact'], true ) ) {
+			return true;
+		}
+
+		// Check pattern matches.
+		foreach ( $excluded_dirs['patterns'] as $pattern ) {
+			if ( preg_match( $pattern, $dir_name ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -1436,6 +1742,81 @@ class WP_Debug_Data {
 			'label'      => __( 'Inactive Themes' ),
 			'show_count' => true,
 			'fields'     => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress theme sizes section of the debug data.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @return array|null Theme sizes debug data for single sites,
+	 *                    otherwise `null` for multi-site installs.
+	 */
+	private static function get_wp_themes_sizes(): ?array {
+		if ( is_multisite() ) {
+			return null;
+		}
+
+		$all_themes   = wp_get_themes();
+		$active_theme = wp_get_theme();
+		$parent_theme = $active_theme->parent();
+		$fields       = array();
+
+		foreach ( $all_themes as $theme_slug => $theme ) {
+			// Determine the theme status.
+			if ( $active_theme->stylesheet === $theme_slug ) {
+				$status_label = __( 'Active' );
+				$status_debug = 'active';
+			} elseif ( ! empty( $parent_theme ) && $parent_theme->stylesheet === $theme_slug ) {
+				$status_label = __( 'Parent Theme' );
+				$status_debug = 'parent';
+			} else {
+				$status_label = __( 'Inactive' );
+				$status_debug = 'inactive';
+			}
+
+			$theme_dir_path = $theme->get_stylesheet_directory();
+
+			if ( is_dir( $theme_dir_path ) ) {
+				$theme_size = recurse_dirsize( $theme_dir_path );
+
+				if ( false === $theme_size ) {
+					$theme_size_human = __( 'The size cannot be calculated. The directory is not accessible.' );
+					$theme_size_debug = 'not accessible';
+				} elseif ( null === $theme_size ) {
+					$theme_size_human = __( 'The directory size calculation has timed out.' );
+					$theme_size_debug = 'timeout';
+				} else {
+					$theme_size_human = size_format( $theme_size, 2 );
+					$theme_size_debug = sprintf( '%s (%d bytes)', $theme_size_human, $theme_size );
+				}
+			} else {
+				$theme_size_human = __( 'Unable to determine size.' );
+				$theme_size_debug = 'unknown';
+			}
+
+			/* translators: 1: Theme size. 2: Theme status (Active/Inactive/Parent Theme). */
+			$value_string = sprintf( __( '%1$s | %2$s' ), $theme_size_human, $status_label );
+			$debug_string = sprintf( '%s, %s', $theme_size_debug, $status_debug );
+
+			$fields[ sanitize_text_field( $theme->name ) ] = array(
+				'label' => sprintf(
+					/* translators: 1: Theme name. 2: Theme slug. */
+					__( '%1$s (%2$s)' ),
+					$theme->name,
+					$theme_slug
+				),
+				'value' => $value_string,
+				'debug' => $debug_string,
+			);
+		}
+
+		return array(
+			'label'       => __( 'Theme Sizes' ),
+			'description' => __( 'The size of each theme directory in the themes folder.' ),
+			'show_count'  => true,
+			'fields'      => $fields,
 		);
 	}
 
