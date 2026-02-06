@@ -2576,7 +2576,7 @@ function wp_enqueue_global_styles() {
 	if ( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $assets_on_demand ) {
 		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
 			wp_register_style( 'wp-global-styles-placeholder', false );
-			wp_add_inline_style( 'wp-global-styles-placeholder', '/* Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer. */' );
+			wp_add_inline_style( 'wp-global-styles-placeholder', ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer." }' );
 			wp_enqueue_style( 'wp-global-styles-placeholder' );
 		}
 		return;
