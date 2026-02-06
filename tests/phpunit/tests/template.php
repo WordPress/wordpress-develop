@@ -1497,7 +1497,7 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$common_late_in_head = array(
-			// Styles printed at wp_head priority 100.
+			// Styles printed at wp_head priority 101.
 			'wp-custom-css',
 		);
 
