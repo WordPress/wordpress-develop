@@ -1788,7 +1788,7 @@ class Tests_Template extends WP_UnitTestCase {
 				),
 			),
 
-			// This tests the Elementor scenario.
+			// This tests the Elementor scenario (e.g. Hello Elementor).
 			'dequeue_block_library_but_with_theme_json_and_no_block_content' => array(
 				'set_up'            => static function () {
 					add_action(
@@ -1826,6 +1826,52 @@ class Tests_Template extends WP_UnitTestCase {
 					'HEAD' => array_merge(
 						$early_common_styles,
 						array(
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+			),
+
+			// This tests the Elementor scenario but a theme.json is not present.
+			'dequeue_block_library_but_without_theme_json_and_no_block_content' => array(
+				'set_up'            => static function () {
+					add_action(
+						'wp_enqueue_scripts',
+						static function () {
+							wp_dequeue_style( 'wp-block-library' );
+							wp_dequeue_style( 'wp-block-library-theme' );
+							wp_dequeue_style( 'custom-block-styles' );
+						},
+						999
+					);
+
+					/*
+					 * Simulate the theme NOT having a theme.json so that 'classic-theme-styles' is enqueued.
+					 */
+					$GLOBALS['_wp_tests_development_mode'] = 'theme';
+					add_filter(
+						'theme_file_path',
+						static function ( $path, $file ) {
+							if ( 'theme.json' === $file ) {
+								$path = __DIR__ . '/does-not-exist.json';
+							}
+							return $path;
+						},
+						10,
+						2
+					);
+				},
+				'content'           => 'Hello World!',
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'classic-theme-styles-css',
 							'global-styles-inline-css',
 						),
 						$common_at_wp_enqueue_scripts,
