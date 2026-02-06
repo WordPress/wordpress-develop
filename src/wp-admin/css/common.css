@@ -1436,7 +1436,7 @@ div[class="update-message"] { /* back-compat for pre-4.6 */
 div.updated p,
 div.error p,
 .form-table td .notice p {
-	margin: 0.5em 0;
+	margin: 7px 0;
 	padding: 2px;
 }
 
