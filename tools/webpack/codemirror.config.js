@@ -51,7 +51,7 @@ module.exports = ( env = { buildTarget: 'src/' } ) => {
 		target: 'browserslist',
 		mode: 'production',
 		entry: {
-			'espree.min': './tools/vendors/espree-entry.js',
+			'espree.min': 'espree',
 		},
 		output: {
 			path: outputPath,
