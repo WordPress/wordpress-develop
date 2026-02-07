@@ -375,7 +375,7 @@ class WP_AI_Client_PSR7_Request implements RequestInterface {
 	 * @param string|string[] $value Header value(s).
 	 */
 	private function set_header_internal( string $name, $value ): void {
-		$normalized                    = strtolower( $name );
+		$normalized                   = strtolower( $name );
 		$this->headers[ $normalized ] = array(
 			'name'   => $name,
 			'values' => is_array( $value ) ? $value : array( $value ),

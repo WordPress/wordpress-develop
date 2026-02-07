@@ -210,9 +210,9 @@ class WP_AI_Client_PSR7_Response implements ResponseInterface {
 	 * @return static
 	 */
 	public function withHeader( string $name, $value ): self {
-		$new                                       = clone $this;
-		$normalized                                = strtolower( $name );
-		$new->headers[ $normalized ]               = array(
+		$new                         = clone $this;
+		$normalized                  = strtolower( $name );
+		$new->headers[ $normalized ] = array(
 			'name'   => $name,
 			'values' => is_array( $value ) ? $value : array( $value ),
 		);

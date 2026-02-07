@@ -19,7 +19,7 @@ class Tests_AI_Client_EventDispatcher extends WP_UnitTestCase {
 		$dispatcher = new WP_AI_Client_Event_Dispatcher();
 		$event      = new WP_AI_Client_Mock_Event();
 
-		$hook_fired = false;
+		$hook_fired  = false;
 		$fired_event = null;
 
 		add_action(
@@ -43,8 +43,8 @@ class Tests_AI_Client_EventDispatcher extends WP_UnitTestCase {
 	 * @ticket TBD
 	 */
 	public function test_dispatch_returns_event_without_listeners() {
-		$dispatcher = new WP_AI_Client_Event_Dispatcher();
-		$event      = new stdClass();
+		$dispatcher        = new WP_AI_Client_Event_Dispatcher();
+		$event             = new stdClass();
 		$event->test_value = 'original';
 
 		$result = $dispatcher->dispatch( $event );

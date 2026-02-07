@@ -140,14 +140,14 @@ class WP_AI_Client_Prompt_Builder {
 	 * @var array<string, bool>
 	 */
 	private static array $support_check_methods = array(
-		'is_supported'                            => true,
-		'is_supported_for_text_generation'        => true,
-		'is_supported_for_image_generation'       => true,
+		'is_supported'                               => true,
+		'is_supported_for_text_generation'           => true,
+		'is_supported_for_image_generation'          => true,
 		'is_supported_for_text_to_speech_conversion' => true,
-		'is_supported_for_video_generation'       => true,
-		'is_supported_for_speech_generation'      => true,
-		'is_supported_for_music_generation'       => true,
-		'is_supported_for_embedding_generation'   => true,
+		'is_supported_for_video_generation'          => true,
+		'is_supported_for_speech_generation'         => true,
+		'is_supported_for_music_generation'          => true,
+		'is_supported_for_embedding_generation'      => true,
 	);
 
 	/**
