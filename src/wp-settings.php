@@ -303,6 +303,7 @@ require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-event-dispatcher.
 // WP AI Client - Abilities and prompt builder.
 require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-ability-function-resolver.php';
 require ABSPATH . WPINC . '/class-wp-ai-client-prompt-builder.php';
+require ABSPATH . WPINC . '/ai-client.php';
 
 // WP AI Client - Initialization.
 WP_AI_Client_Discovery_Strategy::init();
