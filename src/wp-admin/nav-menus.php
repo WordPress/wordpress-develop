@@ -1207,13 +1207,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 												&& 0 !== $nav_menu_selected_id
 												&& $menu_locations[ $location ] === $nav_menu_selected_id
 											) {
-													$checked = true;
+												$checked = true;
 											}
 
 											if ( ! empty( $menu_locations[ $location ] )
 												&& $menu_locations[ $location ] !== $nav_menu_selected_id
 											) {
-													$aria_describedby = "theme-location-set-$location";
+												$aria_describedby = "theme-location-set-$location";
 											}
 											?>
 											<div class="menu-settings-input checkbox-input">
@@ -1225,14 +1225,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 														aria-describedby="<?php echo esc_attr( $aria_describedby ); ?>"
 													<?php endif; ?>
 												/>
-												<label for="locations-<?php echo esc_attr( $location ); ?>"><?php echo $description; ?></label>
+												<label for="locations-<?php echo esc_attr( $location ); ?>"><?php echo esc_html( $description ); ?></label>
 												<?php if ( '' !== $aria_describedby ) : ?>
 													<span class="theme-location-set" id="theme-location-set-<?php echo esc_attr( $location ); ?>">
 													<?php
 														printf(
-															/* translators: %s: Menu name. */
+															/* translators: %s: Menu name, or a message indicating that the menu was not found. */
 															_x( '(Currently set to: %s)', 'menu location' ),
-															is_nav_menu( $menu_locations[ $location ] ) ? wp_get_nav_menu_object( $menu_locations[ $location ] )->name : __( 'an invalid menu ID' )
+															is_nav_menu( $menu_locations[ $location ] ) ? esc_html( wp_get_nav_menu_object( $menu_locations[ $location ] )->name ) : __( 'an unknown menu' )
 														);
 													?>
 													</span>
