@@ -158,16 +158,15 @@ function wp_print_media_templates() {
 
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text, 4: External link icon. */
-		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a> %4$s. Leave empty if the image is purely decorative.' ),
+		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 		/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
 		esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
 		'target="_blank"',
 		sprintf(
-			'<span class="screen-reader-text"> %s</span>',
+			'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
 			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
-		),
-		'<span aria-hidden="true" class="dashicons dashicons-external"></span>'
+		)
 	);
 	?>
 
