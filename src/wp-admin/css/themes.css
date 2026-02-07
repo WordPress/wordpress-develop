@@ -1138,9 +1138,11 @@ p.no-themes-local {
 }
 
 @media only screen and (max-width: 1120px) {
+	.upload-plugin .wp-upload-form,
 	.upload-theme .wp-upload-form {
 		margin: 20px 0;
 		max-width: 100%;
+		width: 100%;
 	}
 	.upload-theme .install-help {
 		font-size: 15px;
@@ -2025,12 +2027,14 @@ body.full-overlay-active {
 	.upload-plugin .wp-upload-form input[type=file], 
 	.upload-theme .wp-upload-form input[type=file] {
 		padding: 30px 30px 80px;
+		width: 100%;
 	}
 
-	:is(.upload-theme, .upload-plugin) .wp-upload-form input[type="submit"] {
+	:is(.upload-theme, .upload-plugin) .wp-upload-form input[type="submit"].button {
 		right: unset;
-		left: 30px;
-    	bottom: 30px;
+		left: 50%;
+		transform: translateX(-50%) !important;
+    	top: calc( 1.4em + 42px ); /* Line height of control + gap + top padding. */
 		margin: 10px 0 0;
 	}
 }
