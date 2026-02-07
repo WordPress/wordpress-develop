@@ -227,7 +227,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return string The current action.
+	 * @return string|false The current action.
 	 */
 	public function current_action() {
 		if ( isset( $_REQUEST['found_post_id'] ) && isset( $_REQUEST['media'] ) ) {
