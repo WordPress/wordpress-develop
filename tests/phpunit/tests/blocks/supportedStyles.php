@@ -152,6 +152,24 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Runs assertions that the rendered output has expected content and aria-label attr.
+	 *
+	 * @param array  $block               Block to render.
+	 * @param string $expected_aria_label Expected output aria-label attr string.
+	 */
+	private function assert_content_and_aria_label_match( $block, $expected_aria_label ) {
+		$styled_block = $this->render_example_block( $block );
+		$content      = $this->get_content_from_block( $styled_block );
+
+		$this->assertSame( self::BLOCK_CONTENT, $content, 'Block content does not match expected content' );
+		$this->assertSame(
+			$expected_aria_label,
+			$this->get_attribute_from_block( 'aria-label', $styled_block ),
+			'Aria-label does not match expected aria-label'
+		);
+	}
+
+	/**
 	 * Tests color support for named color support for named colors.
 	 */
 	public function test_named_color_support() {
@@ -683,6 +701,31 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		$expected_classes = 'foo-bar-class';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
+	}
+
+	/**
+	 * Tests aria-label server-side block support.
+	 */
+	public function test_aria_label_support() {
+		$block_type_settings = array(
+			'attributes' => array(),
+			'supports'   => array(
+				'ariaLabel' => true,
+			),
+		);
+		$this->register_block_type( 'core/example', $block_type_settings );
+
+		$block = array(
+			'blockName'    => 'core/example',
+			'attrs'        => array(
+				'ariaLabel' => 'Label',
+			),
+			'innerBlock'   => array(),
+			'innerContent' => array(),
+			'innerHTML'    => array(),
+		);
+
+		$this->assert_content_and_aria_label_match( $block, 'Label' );
 	}
 
 	/**
