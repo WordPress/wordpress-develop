@@ -488,9 +488,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			echo '<label for="cat">' . esc_html( get_taxonomy( 'category' )->labels->filter_by_item ) . '</label>';
 
-		wp_dropdown_categories( $dropdown_options );
+			wp_dropdown_categories( $dropdown_options );
+		}
 	}
-}
 	/**
 	 * Displays an authors drop-down for filtering on the Posts list table.
 	 *
