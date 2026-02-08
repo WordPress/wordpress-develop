@@ -3750,7 +3750,7 @@ function wp_ajax_query_themes() {
  *
  * @global WP_Post    $post          Global post object.
  * @global WP_Embed   $wp_embed      WordPress Embed object.
- * @global WP_Scripts $wp_scripts    WordPress Scripts object.
+ * @global WP_Scripts $wp_scripts    Script dependencies object.
  * @global int        $content_width Shared post content width.
  */
 function wp_ajax_parse_embed() {
