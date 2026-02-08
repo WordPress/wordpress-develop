@@ -3107,20 +3107,6 @@ function build_terms_query_vars_from_block( $block ) {
 }
 
 /**
- * Registers the 'termspage' public query variable to support pagination for the Terms Query block.
- *
- * @since 7.0.0
- *
- * @param array<int, string> $vars The array of existing query variables.
- * @return array<int, string> Modified query variables including 'termspage'.
- */
-function terms_query_register_query_vars( $vars ) {
-	$vars[] = 'termspage';
-	return $vars;
-}
-add_filter( 'query_vars', 'terms_query_register_query_vars' );
-
-/**
  * Strips all HTML from the content of footnotes, and sanitizes the ID.
  *
  * This function expects slashed data on the footnotes content.
