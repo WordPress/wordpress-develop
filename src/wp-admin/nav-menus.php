@@ -1200,8 +1200,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 										<legend class="menu-settings-group-name howto"><?php _e( 'Display location' ); ?></legend>
 										<?php
 										foreach ( $locations as $location => $description ) :
-											$checked          = false;
-											$aria_describedby = '';
+											$checked               = false;
+											$theme_location_set_id = '';
 
 											if ( isset( $menu_locations[ $location ] )
 												&& 0 !== $nav_menu_selected_id
@@ -1213,7 +1213,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 											if ( ! empty( $menu_locations[ $location ] )
 												&& $menu_locations[ $location ] !== $nav_menu_selected_id
 											) {
-												$aria_describedby = "theme-location-set-$location";
+												$theme_location_set_id = "theme-location-set-$location";
 											}
 											?>
 											<div class="menu-settings-input checkbox-input">
@@ -1221,13 +1221,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 													name="menu-locations[<?php echo esc_attr( $location ); ?>]"
 													id="locations-<?php echo esc_attr( $location ); ?>"
 													value="<?php echo esc_attr( $nav_menu_selected_id ); ?>"
-													<?php if ( '' !== $aria_describedby ) : ?>
-														aria-describedby="<?php echo esc_attr( $aria_describedby ); ?>"
+													<?php if ( '' !== $theme_location_set_id ) : ?>
+														aria-describedby="<?php echo esc_attr( $theme_location_set_id ); ?>"
 													<?php endif; ?>
 												/>
 												<label for="locations-<?php echo esc_attr( $location ); ?>"><?php echo esc_html( $description ); ?></label>
-												<?php if ( '' !== $aria_describedby ) : ?>
-													<span class="theme-location-set" id="theme-location-set-<?php echo esc_attr( $location ); ?>">
+												<?php if ( '' !== $theme_location_set_id ) : ?>
+													<span class="theme-location-set" id="<?php echo esc_attr( $theme_location_set_id ); ?>">
 													<?php
 														printf(
 															/* translators: %s: Menu name, or a message indicating that the menu was not found. */
