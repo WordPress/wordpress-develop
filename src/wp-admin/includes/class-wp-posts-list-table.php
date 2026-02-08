@@ -490,8 +490,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			wp_dropdown_categories( $dropdown_options );
 		}
-	}
-	
+	}	
 	/**
 	 * Displays an authors drop-down for filtering on the Posts list table.
 	 *
