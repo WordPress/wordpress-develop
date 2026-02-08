@@ -538,6 +538,11 @@ if ( isset( $_GET['wp_lang'] ) ) {
 	setcookie( 'wp_lang', sanitize_text_field( $_GET['wp_lang'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
 }
 
+if ( isset( $_GET['user_login' ] ) ) {
+	setcookie( 'wp_user_login', sanitize_text_field( $_GET['user_login'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
+	wp_safe_redirect( wp_login_url() );
+}
+
 /**
  * Fires when the login form is initialized.
  *
@@ -1002,8 +1007,8 @@ switch ( $action ) {
 			reset_password( $user, $_POST['pass1'] );
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 			$login_url = wp_login_url();
-			if ( isset( $_GET['user_login'] ) ) {
-				$login_url = add_query_arg( 'user_login', rawurlencode( wp_unslash( $_GET['user_login'] ) ), $login_url );
+			if ( isset( $_COOKIE['wp_user_login'] ) ) {
+				$login_url = add_query_arg( 'user_login', rawurlencode( wp_unslash( $_COOKIE['wp_user_login'] ) ), $login_url );
 			}
 			login_header(
 				__( 'Password Reset' ),
@@ -1511,8 +1516,8 @@ switch ( $action ) {
 		}
 
 		wp_enqueue_script( 'user-profile' );
-		if ( isset( $_GET['user_login'] ) ) {
-			$user_login = wp_unslash( $_GET['user_login'] );
+		if ( isset( $_COOKIE['wp_user_login'] ) ) {
+			$user_login = wp_unslash( $_COOKIE['wp_user_login'] );
 		}
 		?>
 
