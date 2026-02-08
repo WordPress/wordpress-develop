@@ -1003,10 +1003,14 @@ switch ( $action ) {
 		if ( ( ! $errors->has_errors() ) && isset( $_POST['pass1'] ) && ! empty( $_POST['pass1'] ) ) {
 			reset_password( $user, $_POST['pass1'] );
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
+			$login_url = wp_login_url();
+			if ( isset( $_GET['user'] ) ) {
+				$login_url = add_query_arg( 'user', rawurlencode( wp_unslash( $_GET['user'] ) ), $login_url );
+			}
 			login_header(
 				__( 'Password Reset' ),
 				wp_get_admin_notice(
-					__( 'Your password has been reset.' ) . ' <a href="' . esc_url( wp_login_url() ) . '?' . 'user=' . $username . '">' . __( 'Log in' ) . '</a>',
+					__( 'Your password has been reset.' ) . ' <a href="' . esc_url( $login_url ) . '">' . __( 'Log in' ) . '</a>',
 					array(
 						'type'               => 'info',
 						'additional_classes' => array( 'message', 'reset-pass' ),
