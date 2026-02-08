@@ -514,6 +514,26 @@ input[type="number"].tiny-text {
 	max-width: 12.5rem;
 }
 
+.tablenav .actions label {
+	float: left;
+	margin-right: 8px;
+	margin-top: 0;
+	line-height: 2.16666667;
+	vertical-align: middle;
+	font-weight: 600;
+}
+
+.tablenav .actions .filters-group {
+	border: 0;
+	padding: 0;
+	margin: 0;
+}
+
+.tablenav .actions label + select {
+	margin-left: 0;
+	margin-right: 12px;
+}
+
 #timezone_string option {
 	margin-left: 1em;
 }

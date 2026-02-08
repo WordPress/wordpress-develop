@@ -486,10 +486,82 @@ class WP_Posts_List_Table extends WP_List_Table {
 				'selected'        => $cat,
 			);
 
-			echo '<label class="screen-reader-text" for="cat">' . get_taxonomy( 'category' )->labels->filter_by_item . '</label>';
+			echo '<label for="cat">' . esc_html( get_taxonomy( 'category' )->labels->filter_by_item ) . '</label>';
 
 			wp_dropdown_categories( $dropdown_options );
 		}
+	}
+	
+	/**
+	 * Displays an authors drop-down for filtering on the Posts list table.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $post_type Post type slug.
+	 */
+	protected function authors_dropdown( $post_type ) {
+		/**
+		 * Filters whether to remove the 'Authors' drop-down from the post list table.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool   $disable   Whether to disable the authors drop-down. Default false.
+		 * @param string $post_type Post type slug.
+		 */
+		if ( apply_filters( 'disable_authors_dropdown', false, $post_type ) ) {
+			return;
+		}
+
+		$post_type_object = get_post_type_object( $post_type );
+
+		// Only show author filter if post type supports authors.
+		if ( ! post_type_supports( $post_type, 'author' ) ) {
+			return;
+		}
+
+		// Check if there are multiple authors with published posts for this post type.
+		$authors = get_users(
+			array(
+				'who'                 => 'authors',
+				'has_published_posts' => array( $post_type ),
+				'fields'              => array( 'ID', 'display_name' ),
+				'orderby'             => 'display_name',
+			)
+		);
+
+		// Only display the dropdown if there are multiple authors.
+		if ( count( $authors ) < 2 ) {
+			return;
+		}
+
+		$selected_author = isset( $_GET['author'] ) ? (int) $_GET['author'] : 0;
+
+		/**
+		 * Filters the authors shown in the authors drop-down.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param WP_User[] $authors   Array of WP_User objects.
+		 * @param string    $post_type Post type slug.
+		 */
+		$authors = apply_filters( 'posts_authors_dropdown_authors', $authors, $post_type );
+
+		?>
+		<label for="filter-by-author"><?php esc_html_e( 'Filter by author' ); ?></label>
+		<select name="author" id="filter-by-author">
+			<option value="0"<?php selected( $selected_author, 0 ); ?>><?php esc_html_e( 'All authors' ); ?></option>
+			<?php
+			foreach ( $authors as $author ) {
+				printf(
+					'<option value="%1$d"%2$s>%3$s</option>',
+					(int) $author->ID,
+					selected( $selected_author, $author->ID, false ),
+					esc_html( $author->display_name )
+				);
+			}
+			?>
+		</select>
+		<?php
 	}
 
 	/**
@@ -533,10 +605,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$displayed_post_format = $_GET['post_format'] ?? '';
 		?>
-		<label for="filter-by-format" class="screen-reader-text">
+		<label for="filter-by-format">
 			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Filter by post format' );
+			_e( 'Format' );
 			?>
 		</label>
 		<select name="post_format" id="filter-by-format">
@@ -574,6 +645,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$this->months_dropdown( $this->screen->post_type );
 			$this->categories_dropdown( $this->screen->post_type );
 			$this->formats_dropdown( $this->screen->post_type );
+			$this->authors_dropdown( $this->screen->post_type );
 
 			/**
 			 * Fires before the Filter button on the Posts and Pages list tables.
@@ -595,8 +667,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$output = ob_get_clean();
 
 			if ( ! empty( $output ) ) {
+				echo '<fieldset class="filters-group">';
+				echo '<legend class="screen-reader-text">' . esc_html__( 'Filters' ) . '</legend>';
 				echo $output;
 				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				echo '</fieldset>';
 			}
 		}
 
