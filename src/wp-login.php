@@ -1002,8 +1002,8 @@ switch ( $action ) {
 			reset_password( $user, $_POST['pass1'] );
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 			$login_url = wp_login_url();
-			if ( isset( $_GET['user'] ) ) {
-				$login_url = add_query_arg( 'user', rawurlencode( wp_unslash( $_GET['user'] ) ), $login_url );
+			if ( isset( $_GET['user_login'] ) ) {
+				$login_url = add_query_arg( 'user_login', rawurlencode( wp_unslash( $_GET['user_login'] ) ), $login_url );
 			}
 			login_header(
 				__( 'Password Reset' ),
@@ -1511,8 +1511,8 @@ switch ( $action ) {
 		}
 
 		wp_enqueue_script( 'user-profile' );
-		if ( isset( $_GET['user'] ) ) {
-			$user_login = wp_unslash( $_GET['user'] );
+		if ( isset( $_GET['user_login'] ) ) {
+			$user_login = wp_unslash( $_GET['user_login'] );
 		}
 		?>
 
