@@ -520,7 +520,12 @@ final class WP_Interactivity_API {
 					array_pop( $tag_stack );
 				}
 			} else {
-				if ( 0 !== count( $p->get_attribute_names_with_prefix( 'data-wp-each-child' ) ) ) {
+				$each_child_attrs = $p->get_attribute_names_with_prefix( 'data-wp-each-child' );
+				if ( null === $each_child_attrs ) {
+					continue;
+				}
+
+				if ( 0 !== count( $each_child_attrs ) ) {
 					/*
 					 * If the tag has a `data-wp-each-child` directive, jump to its closer
 					 * tag because those tags have already been processed.
@@ -631,7 +636,7 @@ final class WP_Interactivity_API {
 	 * @since 6.6.0 The function now adds a warning when the namespace is null, falsy, or the directive value is empty.
 	 * @since 6.6.0 Removed `default_namespace` and `context` arguments.
 	 * @since 6.6.0 Add support for derived state.
-	 * @since 6.9.0 Recieve $entry as an argument instead of the directive value string.
+	 * @since 6.9.0 Receive $entry as an argument instead of the directive value string.
 	 *
 	 * @param array $entry An array containing a whole directive entry with its namespace, value, suffix, or unique ID.
 	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
@@ -899,14 +904,11 @@ final class WP_Interactivity_API {
 				$a_suffix = $a['suffix'] ?? '';
 				$b_suffix = $b['suffix'] ?? '';
 				if ( $a_suffix !== $b_suffix ) {
-					return $a_suffix < $b_suffix ? -1 : 1;
+					return $a_suffix <=> $b_suffix;
 				}
 				$a_id = $a['unique_id'] ?? '';
 				$b_id = $b['unique_id'] ?? '';
-				if ( $a_id === $b_id ) {
-					return 0;
-				}
-				return $a_id > $b_id ? 1 : -1;
+				return $a_id <=> $b_id;
 			}
 		);
 		return $entries;

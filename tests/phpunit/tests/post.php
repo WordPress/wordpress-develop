@@ -183,7 +183,7 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$count = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 1, $count->publish );
+		$this->assertSame( '1', $count->publish );
 
 		_unregister_post_type( $post_type );
 		$count = wp_count_posts( $post_type, 'readable' );
@@ -226,7 +226,7 @@ class Tests_Post extends WP_UnitTestCase {
 		wp_set_current_user( self::$user_ids['author'] );
 
 		$count = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 5, $count->publish );
+		$this->assertSame( '5', $count->publish );
 		_unregister_post_type( $post_type );
 	}
 
@@ -245,16 +245,16 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$count1 = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 3, $count1->publish );
+		$this->assertSame( '3', $count1->publish );
 
 		add_filter( 'wp_count_posts', array( $this, 'filter_wp_count_posts' ) );
 		$count2 = wp_count_posts( $post_type, 'readable' );
 		remove_filter( 'wp_count_posts', array( $this, 'filter_wp_count_posts' ) );
-		$this->assertEquals( 2, $count2->publish );
+		$this->assertSame( '2', $count2->publish );
 	}
 
 	public function filter_wp_count_posts( $counts ) {
-		$counts->publish = 2;
+		$counts->publish = '2';
 		return $counts;
 	}
 
@@ -276,8 +276,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertNotEquals( 'publish', $post->post_status );
 
 		$after_draft_counts = wp_count_posts();
-		$this->assertEquals( 1, $after_draft_counts->draft );
-		$this->assertEquals( 2, $after_draft_counts->publish );
+		$this->assertSame( '1', $after_draft_counts->draft );
+		$this->assertSame( '2', $after_draft_counts->publish );
 		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
@@ -297,8 +297,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertNotEquals( 'publish', $post->post_status );
 
 		$after_trash_counts = wp_count_posts();
-		$this->assertEquals( 1, $after_trash_counts->trash );
-		$this->assertEquals( 2, $after_trash_counts->publish );
+		$this->assertSame( '1', $after_trash_counts->trash );
+		$this->assertSame( '2', $after_trash_counts->publish );
 		$this->assertNotEquals( $initial_counts->publish, $after_trash_counts->publish );
 	}
 
@@ -813,5 +813,244 @@ class Tests_Post extends WP_UnitTestCase {
 		add_filter( 'use_block_editor_for_post', '__return_true' );
 		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
 		remove_filter( 'use_block_editor_for_post', '__return_true' );
+	}
+
+	/**
+	 * @ticket 26798
+	 *
+	 * @dataProvider data_wp_insert_post_handle_malformed_post_date
+	 *
+	 * The purpose of this test is to ensure that invalid dates do not
+	 * cause PHP errors when wp_insert_post() is called, and that the
+	 * posts are not actually "inserted" (created).
+	 */
+	public function test_wp_insert_post_handle_malformed_post_date( $input, $expected ) {
+		$post = array(
+			'post_author'  => self::$user_ids['editor'],
+			'post_status'  => 'publish',
+			'post_content' => 'content',
+			'post_title'   => 'title',
+			'post_date'    => $input,
+		);
+
+		// Inserting the post should fail gracefully.
+		$id     = wp_insert_post( $post );
+		$actual = ! empty( $id );
+
+		// Compare if post was (or was not) inserted.
+		$this->assertSame( $actual, $expected );
+	}
+
+	/**
+	 * @ticket 26798
+	 */
+	public function data_wp_insert_post_handle_malformed_post_date() {
+		return array(
+			array(
+				'2012-01-01',
+				true,
+			),
+			// 24-hour time format.
+			array(
+				'2012-01-01 13:00:00',
+				true,
+			),
+			// ISO8601 date with timezone.
+			array(
+				'2016-01-16T00:00:00Z',
+				true,
+			),
+			// ISO8601 date with timezone offset.
+			array(
+				'2016-01-16T00:00:00+0100',
+				true,
+			),
+			// RFC3339 Format.
+			array(
+				'1970-01-01T01:00:00+01:00',
+				true,
+			),
+			// RSS Format
+			array(
+				'1970-01-01T01:00:00+0100',
+				true,
+			),
+			// Leap year.
+			array(
+				'2012-02-29',
+				true,
+			),
+			// Strange formats.
+			array(
+				'2012-01-01 0',
+				true,
+			),
+			array(
+				'2012-01-01 25:00:00',
+				true,
+			),
+			array(
+				'2012-01-01 00:60:00',
+				true,
+			),
+			// Dates without leading zeros (valid but malformed format).
+			array(
+				'2012-08-1',
+				true,
+			),
+			array(
+				'2012-1-08 00:00:00',
+				true,
+			),
+			array(
+				'2012-01-8 00:00:00',
+				true,
+			),
+			// Failures.
+			array(
+				'2012-08-0z',
+				false,
+			),
+			array(
+				'201-01-08 00:00:00',
+				false,
+			),
+			array(
+				'201-01-08 00:60:00',
+				false,
+			),
+			array(
+				'201a-01-08 00:00:00',
+				false,
+			),
+			array(
+				'2012-31-08 00:00:00',
+				false,
+			),
+			array(
+				'2012-01-48 00:00:00',
+				false,
+			),
+			// Not a leap year.
+			array(
+				'2011-02-29',
+				false,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 26798
+	 *
+	 * @dataProvider data_wp_resolve_post_date_regex
+	 *
+	 * Tests the regex inside of wp_resolve_post_date(), with
+	 * the emphasis on the date format (not the time).
+	 */
+	public function test_wp_resolve_post_date_regex( $date, $expected ) {
+		// Attempt to resolve post date.
+		$actual = wp_resolve_post_date( $date );
+
+		// Compare if resolved post date is (or is not) valid.
+		$this->assertSame( $actual, $expected );
+	}
+
+	/**
+	 * @ticket 26798
+	 */
+	public function data_wp_resolve_post_date_regex() {
+		return array(
+			array(
+				'2012-01-01',
+				'2012-01-01',
+			),
+			array(
+				'2012-01-01 00:00:00',
+				'2012-01-01 00:00:00',
+			),
+			// ISO8601 date with timezone.
+			array(
+				'2016-01-16T00:00:00Z',
+				'2016-01-16T00:00:00Z',
+			),
+			// ISO8601 date with timezone offset.
+			array(
+				'2016-01-16T00:00:00+0100',
+				'2016-01-16T00:00:00+0100',
+			),
+			// RFC3339 Format.
+			array(
+				'1970-01-01T01:00:00+01:00',
+				'1970-01-01T01:00:00+01:00',
+			),
+			// RSS Format
+			array(
+				'1970-01-01T01:00:00+0100',
+				'1970-01-01T01:00:00+0100',
+			),
+			// 24-hour time format.
+			array(
+				'2012-01-01 13:00:00',
+				'2012-01-01 13:00:00',
+			),
+			array(
+				'2016-01-16T00:0',
+				'2016-01-16T00:0',
+			),
+			array(
+				'2012-01-01 0',
+				'2012-01-01 0',
+			),
+			array(
+				'2012-01-01 00:00',
+				'2012-01-01 00:00',
+			),
+			array(
+				'2012-01-01 25:00:00',
+				'2012-01-01 25:00:00',
+			),
+			array(
+				'2012-01-01 00:60:00',
+				'2012-01-01 00:60:00',
+			),
+			array(
+				'2012-01-01 00:00:60',
+				'2012-01-01 00:00:60',
+			),
+			// Dates without leading zeros (valid but malformed format).
+			array(
+				'2012-1-08',
+				'2012-1-08',
+			),
+			array(
+				'2012-01-8',
+				'2012-01-8',
+			),
+			array(
+				'201-01-08',
+				false,
+			),
+			array(
+				'201a-01-08',
+				false,
+			),
+			array(
+				'2012-31-08',
+				false,
+			),
+			array(
+				'2012-01-48 00:00:00',
+				false,
+			),
+			// Leap year.
+			array(
+				'2012-02-29',
+				'2012-02-29',
+			),
+			array(
+				'2011-02-29',
+				false,
+			),
+		);
 	}
 }

@@ -12,8 +12,8 @@
  * Declare these as global in case schema.php is included from a function.
  *
  * @global wpdb   $wpdb            WordPress database abstraction object.
- * @global array  $wp_queries
- * @global string $charset_collate
+ * @global array  $wp_queries      Global database queries array.
+ * @global string $charset_collate Database charset and collation.
  */
 global $wpdb, $wp_queries, $charset_collate;
 
@@ -560,6 +560,9 @@ function populate_options( array $options = array() ) {
 
 		// 6.4.0
 		'wp_attachment_pages_enabled'     => 0,
+
+		// 6.9.0
+		'wp_notes_notify'                 => 1,
 	);
 
 	// 3.3.0

@@ -188,7 +188,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 			 *
 			 * @since Twenty Eleven 1.0
 			 *
-			 * @param int The default header image width in pixels. Default 1000.
+			 * @param int $width The default header image width in pixels. Default 1000.
 			 */
 			'width'                  => apply_filters( 'twentyeleven_header_image_width', 1000 ),
 			/**
@@ -196,7 +196,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 			 *
 			 * @since Twenty Eleven 1.0
 			 *
-			 * @param int The default header image height in pixels. Default 288.
+			 * @param int $height The default header image height in pixels. Default 288.
 			 */
 			'height'                 => apply_filters( 'twentyeleven_header_image_height', 288 ),
 			// Support flexible heights.
@@ -335,7 +335,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 
 		// If we get this far, we have custom styles. Let's do this.
 		?>
-		<style type="text/css" id="twentyeleven-header-css">
+		<style id="twentyeleven-header-css">
 		<?php
 		// Has the text been hidden?
 		if ( 'blank' === $text_color ) :
@@ -369,7 +369,7 @@ if ( ! function_exists( 'twentyeleven_admin_header_style' ) ) :
 	 */
 	function twentyeleven_admin_header_style() {
 		?>
-	<style type="text/css" id="twentyeleven-admin-header-css">
+	<style id="twentyeleven-admin-header-css">
 	.appearance_page_custom-header #headimg {
 		border: none;
 	}
@@ -988,7 +988,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Eleven 4.1
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */
