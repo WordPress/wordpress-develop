@@ -3891,7 +3891,7 @@ function wp_ajax_parse_embed() {
  * @since 4.0.0
  *
  * @global WP_Post    $post       Global post object.
- * @global WP_Scripts $wp_scripts WordPress Scripts object.
+ * @global WP_Scripts $wp_scripts Script dependencies object.
  */
 function wp_ajax_parse_media_shortcode() {
 	global $post, $wp_scripts;
