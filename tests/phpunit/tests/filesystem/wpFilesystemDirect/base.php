@@ -90,7 +90,7 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 			} elseif ( 'f' === $entry['type'] ) {
 				$this->create_file_if_needed(
 					$entry['path'],
-					isset( $entry['contents'] ) ? $entry['contents'] : ''
+					$entry['contents'] ?? ''
 				);
 			}
 		}

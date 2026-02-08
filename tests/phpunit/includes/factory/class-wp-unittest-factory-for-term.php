@@ -109,7 +109,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 			return $term_id;
 		}
 
-		$taxonomy = isset( $args['taxonomy'] ) ? $args['taxonomy'] : $this->taxonomy;
+		$taxonomy = $args['taxonomy'] ?? $this->taxonomy;
 
 		return get_term( $term_id, $taxonomy );
 	}
