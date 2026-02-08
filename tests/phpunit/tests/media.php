@@ -222,14 +222,34 @@ CAP;
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
+		$mark = "\u{203B}";
+
+		$this->assertStringNotContainsString(
+			self::HTML_CONTENT,
+			$mark,
+			'Test caption content should not contain the mark surrounding it: check test setup.'
+		);
+
 		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
-				'caption' => self::HTML_CONTENT,
+				'caption' => $mark . self::HTML_CONTENT . $mark,
 			)
 		);
 
-		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
+		$result_chunks = explode( $mark, $result );
+		$this->assertSame(
+			3,
+			count( $result_chunks ),
+			'Expected to find embedded caption inside marks, but failed to do so.'
+		);
+
+		$this->assertEqualHTML(
+			self::HTML_CONTENT,
+			$result_chunks[1],
+			'<body>',
+			'Should have embedded the caption inside the image output.'
+		);
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {
@@ -6657,6 +6677,10 @@ EOF;
 	 * @dataProvider data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix
 	 */
 	public function test_wp_enqueue_img_auto_sizes_contain_css_fix( ?Closure $set_up, bool $expected, ?string $expected_deprecated = null ): void {
+		// These files are created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
+		self::touch( ABSPATH . WPINC . '/css/dist/block-library/style.css' );
+		self::touch( ABSPATH . WPINC . '/css/dist/block-library/common.css' );
+
 		if ( $set_up ) {
 			$set_up();
 		}

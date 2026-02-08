@@ -173,7 +173,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * @since 1.2.1
 	 * @since 5.5.0 is_email() is used for email validation,
 	 *              instead of PHPMailer's default validator.
-	 * @since 6.9.0 Added $embeds parameter.
+	 * @since 6.9.0 The `$embeds` parameter was added.
+	 * @since 6.9.0 Improved Content-Type header handling for multipart messages.
 	 *
 	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
@@ -192,6 +193,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 * Filters the wp_mail() arguments.
 		 *
 		 * @since 2.2.0
+		 * @since 6.9.0 The `$embeds` element was added to the `$args` array.
 		 *
 		 * @param array $args {
 		 *     Array of the `wp_mail()` arguments.
@@ -214,6 +216,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 * the email was successfully sent.
 		 *
 		 * @since 5.7.0
+		 * @since 6.9.0 The `$embeds` element was added to the `$atts` array.
 		 *
 		 * @param null|bool $return Short-circuit return value.
 		 * @param array     $atts {
@@ -351,6 +354,9 @@ if ( ! function_exists( 'wp_mail' ) ) :
 								} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
 									$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
 									$charset  = '';
+									if ( preg_match( '~^multipart/(\S+)~', $content_type, $matches ) ) {
+										$content_type = 'multipart/' . strtolower( $matches[1] ) . '; boundary="' . $boundary . '"';
+									}
 								}
 
 								// Avoid setting an empty $content_type.
@@ -383,6 +389,15 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$phpmailer->clearReplyTos();
 		$phpmailer->Body    = '';
 		$phpmailer->AltBody = '';
+
+		/*
+		 * Reset encoding to 8-bit, as it may have been automatically downgraded
+		 * to 7-bit by PHPMailer (based on the body contents) in a previous call
+		 * to wp_mail().
+		 *
+		 * See https://core.trac.wordpress.org/ticket/33972
+		 */
+		$phpmailer->Encoding = PHPMailer\PHPMailer\PHPMailer::ENCODING_8BIT;
 
 		// Set "From" name and email.
 
@@ -538,10 +553,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					}
 				}
 			}
-
-			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
-				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
-			}
 		}
 
 		if ( ! empty( $attachments ) ) {
@@ -564,7 +575,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 * @since 6.9.0
 				 *
 				 * @param array $args {
-				 *     An array of arguments for `addEmbeddedImage()`.
+				 *     An array of arguments for PHPMailer's addEmbeddedImage() method.
+				 *
 				 *     @type string $path        The path to the file.
 				 *     @type string $cid         The Content-ID of the image. Default: The key in the embeds array.
 				 *     @type string $name        The filename of the image.
@@ -609,7 +621,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
 
-		$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
+		$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' );
 
 		// Send!
 		try {
@@ -623,9 +635,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			 * process the request without any errors.
 			 *
 			 * @since 5.9.0
+			 * @since 6.9.0 The `$embeds` element was added to the `$mail_data` array.
 			 *
 			 * @param array $mail_data {
-			 *     An array containing the email recipient(s), subject, message, headers, and attachments.
+			 *     An array containing the email recipient(s), subject, message, headers, attachments, and embeds.
 			 *
 			 *     @type string[] $to          Email addresses to send message.
 			 *     @type string   $subject     Email subject.
@@ -642,12 +655,12 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			$mail_data['phpmailer_exception_code'] = $e->getCode();
 
 			/**
-			 * Fires after a PHPMailer\PHPMailer\Exception is caught.
+			 * Fires after a PHPMailer exception is caught.
 			 *
 			 * @since 4.4.0
 			 *
 			 * @param WP_Error $error A WP_Error object with the PHPMailer\PHPMailer\Exception message, and an array
-			 *                        containing the mail recipient, subject, message, headers, and attachments.
+			 *                        containing the mail recipient, subject, message, headers, attachments, and embeds.
 			 */
 			do_action( 'wp_mail_failed', new WP_Error( 'wp_mail_failed', $e->getMessage(), $mail_data ) );
 
@@ -1038,11 +1051,13 @@ endif;
 
 if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 	/**
-	 * Sets the authentication cookies based on user ID.
+	 * Sets the authentication cookies for a given user ID.
 	 *
-	 * The $remember parameter increases the time that the cookie will be kept. The
-	 * default the cookie is kept without remembering is two days. When $remember is
-	 * set, the cookies will be kept for 14 days or two weeks.
+	 * The `$remember` parameter controls cookie persistence:
+	 * - If true, the cookie is persistent (default 14 days, filterable via {@see 'auth_cookie_expiration'}).
+	 * - If false, the cookie is a browser session cookie (expires when the browser closes).
+	 *   Internally, {@see 'auth_cookie_expiration'} is still applied, to expire the login after
+	 *   two days or when the browser is closed, whichever occurs first.
 	 *
 	 * @since 2.5.0
 	 * @since 4.3.0 Added the `$token` parameter.
@@ -1505,7 +1520,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 		}
 
 		/**
-		 * Filters the X-Redirect-By header.
+		 * Filters the value of the `X-Redirect-By` HTTP header.
 		 *
 		 * Allows applications to identify themselves when they're doing a redirect.
 		 *
@@ -1707,7 +1722,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		 * @param string[] $hosts An array of allowed host names.
 		 * @param string   $host  The host name of the redirect destination; empty string if not set.
 		 */
-		$allowed_hosts = (array) apply_filters( 'allowed_redirect_hosts', array( $wpp['host'] ), isset( $lp['host'] ) ? $lp['host'] : '' );
+		$allowed_hosts = (array) apply_filters( 'allowed_redirect_hosts', array( $wpp['host'] ), $lp['host'] ?? '' );
 
 		if ( isset( $lp['host'] ) && ( ! in_array( $lp['host'], $allowed_hosts, true ) && strtolower( $wpp['host'] ) !== $lp['host'] ) ) {
 			$location = $fallback_url;
@@ -1885,6 +1900,20 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					$subject = sprintf( __( '[%1$s] Pingback: "%2$s"' ), $blogname, $post->post_title );
 					break;
 
+				case 'note':
+					/* translators: %s: Post title. */
+					$notify_message = sprintf( __( 'New note on your post "%s"' ), $post->post_title ) . "\r\n";
+					/* translators: 1: Note author's name, 2: Note author's IP address, 3: Note author's hostname. */
+					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					/* translators: %s: Note author email. */
+					$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
+					/* translators: %s: Note text. */
+					$notify_message .= sprintf( __( 'Note: %s' ), "\r\n" . ( empty( $comment_content ) ? __( 'resolved/reopened' ) : $comment_content ) ) . "\r\n\r\n";
+					$notify_message .= __( 'You can see all notes on this post here:' ) . "\r\n";
+					/* translators: Note notification email subject. 1: Site title, 2: Post title. */
+					$subject = sprintf( __( '[%1$s] Note: "%2$s"' ), $blogname, $post->post_title );
+					break;
+
 				default: // Comments.
 					/* translators: %s: Post title. */
 					$notify_message = sprintf( __( 'New comment on your post "%s"' ), $post->post_title ) . "\r\n";
@@ -1908,11 +1937,15 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					break;
 			}
 
-			$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
 			/* translators: %s: Comment URL. */
-			$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
+			if ( 'note' === $comment->comment_type ) {
+				$notify_message .= get_edit_post_link( $comment->comment_post_ID, 'url' ) . "\r\n";
+			} else {
+				$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
+				$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
+			}
 
-			if ( user_can( $post->post_author, 'edit_comment', $comment->comment_ID ) ) {
+			if ( 'note' !== $comment->comment_type && user_can( $post->post_author, 'edit_comment', $comment->comment_ID ) ) {
 				if ( EMPTY_TRASH_DAYS ) {
 					/* translators: Comment moderation. %s: Comment action URL. */
 					$notify_message .= sprintf( __( 'Trash it: %s' ), admin_url( "comment.php?action=trash&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
@@ -2350,9 +2383,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *
 		 * @see https://core.trac.wordpress.org/tickets/42957
 		 */
-		$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user->user_login ) . "&key=$key&action=rp", 'login' ) . "\r\n\r\n";
-
-		$message .= wp_login_url() . "\r\n";
+		$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user->user_login ) . "&key=$key&action=rp", 'login' ) . "\r\n";
 
 		$wp_new_user_notification_email = array(
 			'to'      => $user->user_email,
@@ -2746,11 +2777,10 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		 * - `PASSWORD_ARGON2ID`
 		 * - `PASSWORD_DEFAULT`
 		 *
-		 * The values of the algorithm constants are strings in PHP 7.4+ and integers in PHP 7.3 and earlier.
-		 *
 		 * @since 6.8.0
+		 * @since 7.0.0 The `$algorithm` parameter is now always a string.
 		 *
-		 * @param string|int $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
+		 * @param string $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
 		 */
 		$algorithm = apply_filters( 'wp_hash_password_algorithm', PASSWORD_BCRYPT );
 
@@ -2760,14 +2790,13 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		 * The default hashing algorithm is bcrypt, but this can be changed via the {@see 'wp_hash_password_algorithm'}
 		 * filter. You must ensure that the options are appropriate for the algorithm in use.
 		 *
-		 * The values of the algorithm constants are strings in PHP 7.4+ and integers in PHP 7.3 and earlier.
-		 *
 		 * @since 6.8.0
+		 * @since 7.0.0 The `$algorithm` parameter is now always a string.
 		 *
-		 * @param array      $options   Array of options to pass to the password hashing functions.
-		 *                              By default this is an empty array which means the default
-		 *                              options will be used.
-		 * @param string|int $algorithm The hashing algorithm in use.
+		 * @param array  $options   Array of options to pass to the password hashing functions.
+		 *                          By default this is an empty array which means the default
+		 *                          options will be used.
+		 * @param string $algorithm The hashing algorithm in use.
 		 */
 		$options = apply_filters( 'wp_hash_password_options', array(), $algorithm );
 

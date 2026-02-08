@@ -1052,6 +1052,26 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 47719
+	 */
+	public function test_include_should_return_no_terms_when_0() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
+
+		$query = new WP_Term_Query(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'include'  => array( 0 ),
+			)
+		);
+
+		$expected = array();
+		$this->assertSame( $expected, $query->terms );
+		$this->assertSame( $expected, $query->get_terms() );
+	}
+
+	/**
 	 * Ensure cache keys are generated without WPDB placeholders.
 	 *
 	 * @ticket 57298
