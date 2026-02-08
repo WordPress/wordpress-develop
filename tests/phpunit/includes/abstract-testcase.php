@@ -104,6 +104,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 */
 	public function set_up() {
+		global $wp_rewrite;
+
 		set_time_limit( 0 );
 
 		$this->factory = static::factory();
@@ -115,8 +117,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		if ( ! self::$hooks_saved ) {
 			$this->_backup_hooks();
 		}
-
-		global $wp_rewrite;
 
 		$this->clean_up_global_scope();
 
@@ -167,7 +167,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function tear_down() {
 		global $wpdb, $wp_the_query, $wp_query, $wp;
+
 		$wpdb->query( 'ROLLBACK' );
+
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
 				restore_current_blog();
@@ -467,9 +469,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function unregister_all_meta_keys() {
 		global $wp_meta_keys;
+
 		if ( ! is_array( $wp_meta_keys ) ) {
 			return;
 		}
+
 		foreach ( $wp_meta_keys as $object_type => $type_keys ) {
 			foreach ( $type_keys as $object_subtype => $subtype_keys ) {
 				foreach ( $subtype_keys as $key => $value ) {
@@ -486,8 +490,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function start_transaction() {
 		global $wpdb;
+
 		$wpdb->query( 'SET autocommit = 0;' );
 		$wpdb->query( 'START TRANSACTION;' );
+
 		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 	}
@@ -501,6 +507,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public static function commit_transaction() {
 		global $wpdb;
+
 		$wpdb->query( 'COMMIT;' );
 	}
 
