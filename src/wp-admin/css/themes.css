@@ -1142,7 +1142,6 @@ p.no-themes-local {
 	.upload-theme .wp-upload-form {
 		margin: 20px 0;
 		max-width: 100%;
-		width: 100%;
 	}
 	.upload-theme .install-help {
 		font-size: 15px;
@@ -2022,6 +2021,11 @@ body.full-overlay-active {
 	.theme-browser .theme .theme-actions {
 		padding-top: 4px;
 		padding-bottom: 4px;
+	}
+
+	.upload-plugin .wp-upload-form,
+	.upload-theme .wp-upload-form {
+		width: 100%;
 	}
 
 	.upload-plugin .wp-upload-form input[type=file], 
