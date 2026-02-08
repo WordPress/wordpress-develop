@@ -997,9 +997,7 @@ switch ( $action ) {
 		 * @param WP_User|WP_Error $user   WP_User object if the login and reset key match. WP_Error object otherwise.
 		 */
 		do_action( 'validate_password_reset', $errors, $user );
-		if ( isset( $_GET['user'] ) ) {
-			$username = wp_unslash( $_GET['user'] );
-		}
+
 		if ( ( ! $errors->has_errors() ) && isset( $_POST['pass1'] ) && ! empty( $_POST['pass1'] ) ) {
 			reset_password( $user, $_POST['pass1'] );
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
