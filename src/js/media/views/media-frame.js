@@ -110,7 +110,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 			tabPanelEl
 				.attr( {
 					role: 'tabpanel',
-					'aria-labelledby': ariaLabelledby
+					'aria-labelledby': ariaLabelledby,
 				} );
 		}
 	},
