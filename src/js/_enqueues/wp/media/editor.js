@@ -704,11 +704,7 @@
 		 */
 		init: function() {
 			$('#postimagediv').on( 'click keyup keydown', '#set-post-thumbnail', function( event ) {
-				if ( 
-					event.type === 'keyup' && event.key === ' '
-					|| event.type === 'keydown' && event.key === 'Enter'
-					|| event.type === 'click'
-				) {
+				if ( ( event.type === 'keyup' && event.key === ' ' ) || ( event.type === 'keydown' && event.key === 'Enter' ) || event.type === 'click' ) {
 					event.preventDefault();
 					// Stop propagation to prevent thickbox from activating.
 					event.stopPropagation();
@@ -716,11 +712,7 @@
 					wp.media.featuredImage.frame().open();
 				}
 			}).on( 'click keyup keydown', '#remove-post-thumbnail', function(event) {
-				if ( 
-					event.type === 'keyup' && event.key === ' '
-					|| event.type === 'keydown' && event.key === 'Enter'
-					|| event.type === 'click'
-				) {
+				if ( ( event.type === 'keyup' && event.key === ' ' ) || ( event.type === 'keydown' && event.key === 'Enter' ) || event.type === 'click' ) {
 					wp.media.featuredImage.remove();
 					return false;
 				}
