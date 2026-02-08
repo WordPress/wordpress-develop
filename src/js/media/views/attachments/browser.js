@@ -232,9 +232,10 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				controller: this.controller,
 				model:      this.controller.props,
 				priority:   -80
-			}) ).render();
+			}).render() );
 		}
-
+		
+		var dateFilter, dateFilterLabel, dateFilterContainer;
 		/*
 		 * Feels odd to bring the global media library switcher into the Attachment browser view.
 		 * Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
@@ -252,18 +253,18 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}).render() );
 
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			var dateFilterLabel = new wp.media.view.Label({
+			dateFilterLabel = new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
 				},
 			});
-			var dateFilter = new wp.media.view.DateFilter({
+			dateFilter = new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
 			});
 
-			var dateFilterContainer = wp.media.View.extend({
+			dateFilterContainer = wp.media.View.extend({
 				tagname: 'div',
 				className: 'media-filter-container date-filter',
 
@@ -276,7 +277,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				controller: this.controller,
 				model:      this.collection.props,
 				priority:   -75
-			}) ).render();
+			}).render() );
 
 			// BulkSelection is a <div> with subviews, including screen reader text.
 			this.toolbar.set( 'selectModeToggleButton', new wp.media.view.SelectModeToggleButton({
@@ -387,18 +388,18 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		} else if ( this.options.date ) {
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			var dateFilterLabel = new wp.media.view.Label({
+			dateFilterLabel = new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
 				},
 			});
-			var dateFilter = new wp.media.view.DateFilter({
+			dateFilter = new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
 			});
 
-			var dateFilterContainer = wp.media.View.extend({
+			dateFilterContainer = wp.media.View.extend({
 				tagname: 'div',
 				className: 'media-filter-container date-filter',
 
@@ -411,7 +412,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				controller: this.controller,
 				model:      this.collection.props,
 				priority:   -75
-			}) ).render();
+			}).render() );
 		}
 
 		if ( this.options.search ) {
