@@ -588,6 +588,10 @@ abstract class WP_REST_Meta_Fields {
 	 * @return array|false The meta array, if valid, false otherwise.
 	 */
 	public function check_meta_is_array( $value, $request, $param ) {
+		if ( is_object( $value ) ) {
+			$value = (array) $value;
+		}
+
 		if ( ! is_array( $value ) ) {
 			return false;
 		}
