@@ -57,6 +57,7 @@ class WP_Settings_Abilities {
 	public static function register(): void {
 		self::init();
 		self::register_get_settings();
+		self::register_update_settings();
 	}
 
 	/**
@@ -259,6 +260,60 @@ class WP_Settings_Abilities {
 	}
 
 	/**
+	 * Registers the core/update-settings ability.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return void
+	 */
+	private static function register_update_settings(): void {
+		wp_register_ability(
+			'core/update-settings',
+			array(
+				'label'               => __( 'Update Settings' ),
+				'description'         => __( 'Updates registered WordPress settings. Only settings with show_in_abilities enabled can be modified.' ),
+				'category'            => 'site',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'required'             => array( 'settings' ),
+					'properties'           => array(
+						'settings' => array(
+							'type'                 => 'object',
+							'description'          => __( 'Settings to update, grouped by registration group. Same structure as returned by core/get-settings.' ),
+							'additionalProperties' => true,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				'output_schema'       => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'updated_settings'  => array(
+							'type'        => 'object',
+							'description' => __( 'Settings that were successfully updated, grouped by registration group. Same shape as input.' ),
+						),
+						'validation_errors' => array(
+							'type'        => 'object',
+							'description' => __( 'Validation errors grouped by registration group. Same shape as input but with error messages as values.' ),
+						),
+					),
+					'additionalProperties' => false,
+				),
+				'execute_callback'    => array( __CLASS__, 'execute_update_settings' ),
+				'permission_callback' => array( __CLASS__, 'check_manage_options' ),
+				'meta'                => array(
+					'annotations'  => array(
+						'readonly'    => false,
+						'destructive' => false,
+						'idempotent'  => true,
+					),
+					'show_in_rest' => true,
+				),
+			)
+		);
+	}
+
+	/**
 	 * Permission callback for settings abilities.
 	 *
 	 * @since 7.0.0
@@ -318,6 +373,130 @@ class WP_Settings_Abilities {
 		ksort( $settings_by_group );
 
 		return $settings_by_group;
+	}
+
+	/**
+	 * Execute callback for core/update-settings ability.
+	 *
+	 * Updates registered settings that are exposed through the Abilities API.
+	 * Returns updated settings and validation errors in a grouped structure
+	 * matching the input format.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array $input {
+	 *     Input parameters.
+	 *
+	 *     @type array $settings Settings to update, grouped by registration group.
+	 * }
+	 * @return array {
+	 *     @type array $updated_settings  Settings that were successfully updated, grouped by registration group.
+	 *     @type array $validation_errors Validation errors grouped by registration group.
+	 * }
+	 */
+	public static function execute_update_settings( $input = array() ): array {
+		$input = is_array( $input ) ? $input : array();
+
+		if ( empty( $input['settings'] ) || ! is_array( $input['settings'] ) ) {
+			return array(
+				'updated_settings'  => (object) array(),
+				'validation_errors' => (object) array(),
+			);
+		}
+
+		$grouped_settings  = $input['settings'];
+		$allowed_settings  = self::get_allowed_settings();
+
+		$updated_settings  = array();
+		$validation_errors = array();
+
+		// Iterate through groups (general, reading, writing, etc.).
+		foreach ( $grouped_settings as $group => $settings ) {
+			if ( ! is_array( $settings ) ) {
+				if ( ! isset( $validation_errors[ $group ] ) ) {
+					$validation_errors[ $group ] = array();
+				}
+				$validation_errors[ $group ]['_error'] = __( 'Group settings must be an object.' );
+				continue;
+			}
+
+			// Iterate through settings within each group.
+			foreach ( $settings as $option_name => $value ) {
+				// Check if setting is allowed.
+				if ( ! isset( $allowed_settings[ $option_name ] ) ) {
+					if ( ! isset( $validation_errors[ $group ] ) ) {
+						$validation_errors[ $group ] = array();
+					}
+					$validation_errors[ $group ][ $option_name ] = __( 'Setting is not allowed to be modified.' );
+					continue;
+				}
+
+				$args = $allowed_settings[ $option_name ];
+
+				// Verify setting belongs to the specified group.
+				$setting_group = $args['group'] ?? 'general';
+				if ( $setting_group !== $group ) {
+					if ( ! isset( $validation_errors[ $group ] ) ) {
+						$validation_errors[ $group ] = array();
+					}
+					$validation_errors[ $group ][ $option_name ] = sprintf(
+						/* translators: 1: Expected group, 2: Provided group. */
+						__( 'Setting belongs to group "%1$s", not "%2$s".' ),
+						$setting_group,
+						$group
+					);
+					continue;
+				}
+
+				// Build schema for validation.
+				$schema = array(
+					'type' => $args['type'] ?? 'string',
+				);
+				if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema'] ) ) {
+					$schema = array_merge( $schema, $args['show_in_rest']['schema'] );
+				}
+
+				// Validate value against schema.
+				$validation = rest_validate_value_from_schema( $value, $schema, $option_name );
+				if ( is_wp_error( $validation ) ) {
+					if ( ! isset( $validation_errors[ $group ] ) ) {
+						$validation_errors[ $group ] = array();
+					}
+					$validation_errors[ $group ][ $option_name ] = $validation->get_error_message();
+					continue;
+				}
+
+				// Sanitize the value.
+				$sanitized_value = rest_sanitize_value_from_schema( $value, $schema );
+
+				// Apply registered sanitize callback if exists.
+				if ( ! empty( $args['sanitize_callback'] ) && is_callable( $args['sanitize_callback'] ) ) {
+					$sanitized_value = call_user_func( $args['sanitize_callback'], $sanitized_value );
+				}
+
+				$updated = update_option( $option_name, $sanitized_value );
+				if ( $updated || get_option( $option_name ) === $sanitized_value ) {
+					// Add to updated_settings with the same grouped structure.
+					if ( ! isset( $updated_settings[ $group ] ) ) {
+						$updated_settings[ $group ] = array();
+					}
+					$updated_settings[ $group ][ $option_name ] = self::cast_value(
+						get_option( $option_name ),
+						$args['type'] ?? 'string'
+					);
+				} else {
+					if ( ! isset( $validation_errors[ $group ] ) ) {
+						$validation_errors[ $group ] = array();
+					}
+					$validation_errors[ $group ][ $option_name ] = __( 'Failed to update setting.' );
+				}
+			}
+		}
+
+		return array(
+			'updated_settings'  => ! empty( $updated_settings ) ? $updated_settings : (object) array(),
+			'validation_errors' => ! empty( $validation_errors ) ? $validation_errors : (object) array(),
+		);
 	}
 
 	/**
