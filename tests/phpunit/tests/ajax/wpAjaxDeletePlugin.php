@@ -131,7 +131,8 @@ class Tests_Ajax_wpAjaxDeletePlugin extends WP_Ajax_UnitTestCase {
 	 * @group ms-excluded
 	 *
 	 * @covers ::delete_plugins
-	 * @covers ::wp_clean_plugins_cache
+	 *
+	 * @ticket 64568
 	 */
 	public function test_delete_plugin() {
 		$this->_setRole( 'administrator' );
