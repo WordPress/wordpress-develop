@@ -32,12 +32,12 @@ class WP_Settings_Abilities {
 	private static $available_groups;
 
 	/**
-	 * Dynamic output schema built from registered settings.
+	 * Schema for settings grouped by registration group.
 	 *
 	 * @since 7.0.0
 	 * @var array
 	 */
-	private static $output_schema;
+	private static $settings_schema;
 
 	/**
 	 * Available setting slugs with show_in_abilities enabled.
@@ -70,7 +70,7 @@ class WP_Settings_Abilities {
 	private static function init(): void {
 		self::$available_groups = self::get_available_groups();
 		self::$available_slugs  = self::get_available_slugs();
-		self::$output_schema    = self::build_output_schema();
+		self::$settings_schema  = self::build_settings_schema();
 	}
 
 	/**
@@ -134,7 +134,7 @@ class WP_Settings_Abilities {
 	}
 
 	/**
-	 * Builds a rich output schema from registered settings metadata.
+	 * Builds a schema for settings grouped by registration group.
 	 *
 	 * Creates a JSON Schema that documents each setting group and its settings
 	 * with their types, titles, descriptions, defaults, and any additional
@@ -142,9 +142,9 @@ class WP_Settings_Abilities {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @return array JSON Schema for the output.
+	 * @return array JSON Schema for settings.
 	 */
-	private static function build_output_schema(): array {
+	private static function build_settings_schema(): array {
 		$group_properties = array();
 
 		foreach ( self::get_allowed_settings() as $option_name => $args ) {
@@ -244,7 +244,7 @@ class WP_Settings_Abilities {
 						),
 					),
 				),
-				'output_schema'       => self::$output_schema,
+				'output_schema'       => self::$settings_schema,
 				'execute_callback'    => array( __CLASS__, 'execute_get_settings' ),
 				'permission_callback' => array( __CLASS__, 'check_manage_options' ),
 				'meta'                => array(
@@ -267,6 +267,10 @@ class WP_Settings_Abilities {
 	 * @return void
 	 */
 	private static function register_update_settings(): void {
+		// Reuse settings schema with updated description for input.
+		$input_settings_schema                = self::$settings_schema;
+		$input_settings_schema['description'] = __( 'Settings to update, grouped by registration group. Same structure as returned by core/get-settings.' );
+
 		wp_register_ability(
 			'core/update-settings',
 			array(
@@ -277,11 +281,7 @@ class WP_Settings_Abilities {
 					'type'                 => 'object',
 					'required'             => array( 'settings' ),
 					'properties'           => array(
-						'settings' => array(
-							'type'                 => 'object',
-							'description'          => __( 'Settings to update, grouped by registration group. Same structure as returned by core/get-settings.' ),
-							'additionalProperties' => true,
-						),
+						'settings' => $input_settings_schema,
 					),
 					'additionalProperties' => false,
 				),
