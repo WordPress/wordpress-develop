@@ -3026,13 +3026,13 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 	$GLOBALS['new_whitelist_options'] = &$new_allowed_options;
 
 	$defaults = array(
-		'type'               => 'string',
-		'group'              => $option_group,
-		'label'              => '',
-		'description'        => '',
-		'sanitize_callback'  => null,
-		'show_in_rest'       => false,
-		'show_in_abilities'  => false,
+		'type'              => 'string',
+		'group'             => $option_group,
+		'label'             => '',
+		'description'       => '',
+		'sanitize_callback' => null,
+		'show_in_rest'      => false,
+		'show_in_abilities' => false,
 	);
 
 	// Back-compat: old sanitize callback is added.

@@ -404,8 +404,8 @@ class WP_Settings_Abilities {
 			);
 		}
 
-		$grouped_settings  = $input['settings'];
-		$allowed_settings  = self::get_allowed_settings();
+		$grouped_settings = $input['settings'];
+		$allowed_settings = self::get_allowed_settings();
 
 		$updated_settings  = array();
 		$validation_errors = array();
