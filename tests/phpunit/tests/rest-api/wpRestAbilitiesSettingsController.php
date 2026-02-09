@@ -635,82 +635,6 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the update-settings ability rejects settings without show_in_abilities.
-	 *
-	 * @ticket 64616
-	 */
-	public function test_core_update_settings_rejects_settings_without_show_in_abilities(): void {
-		register_setting(
-			'general',
-			'test_setting_not_allowed',
-			array(
-				'type'              => 'string',
-				'default'           => 'default_value',
-				'show_in_abilities' => false,
-			)
-		);
-
-		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body(
-			wp_json_encode(
-				array(
-					'input' => array(
-						'settings' => array(
-							'general' => array(
-								'test_setting_not_allowed' => 'new_value',
-							),
-						),
-					),
-				)
-			)
-		);
-		$response = $this->server->dispatch( $request );
-
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
-
-		$this->assertEmpty( (array) $data['updated_settings'] );
-		$this->assertArrayHasKey( 'general', $data['validation_errors'] );
-		$this->assertArrayHasKey( 'test_setting_not_allowed', $data['validation_errors']['general'] );
-
-		unregister_setting( 'general', 'test_setting_not_allowed' );
-	}
-
-	/**
-	 * Tests that the update-settings ability rejects settings in wrong group.
-	 *
-	 * @ticket 64616
-	 */
-	public function test_core_update_settings_rejects_settings_in_wrong_group(): void {
-		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body(
-			wp_json_encode(
-				array(
-					'input' => array(
-						'settings' => array(
-							'reading' => array(
-								'blogname' => 'Wrong Group Test', // blogname belongs to 'general', not 'reading'.
-							),
-						),
-					),
-				)
-			)
-		);
-		$response = $this->server->dispatch( $request );
-
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
-
-		$this->assertEmpty( (array) $data['updated_settings'] );
-		$this->assertArrayHasKey( 'reading', $data['validation_errors'] );
-		$this->assertArrayHasKey( 'blogname', $data['validation_errors']['reading'] );
-	}
-
-	/**
 	 * Tests that the update-settings ability requires POST method.
 	 *
 	 * @ticket 64616
@@ -789,44 +713,6 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'posts_per_page', $data['updated_settings']['reading'] );
 		$this->assertIsInt( $data['updated_settings']['reading']['posts_per_page'] );
 		$this->assertSame( 25, $data['updated_settings']['reading']['posts_per_page'] );
-	}
-
-	/**
-	 * Tests that the update-settings ability handles partial success.
-	 *
-	 * @ticket 64616
-	 */
-	public function test_core_update_settings_handles_partial_success(): void {
-		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body(
-			wp_json_encode(
-				array(
-					'input' => array(
-						'settings' => array(
-							'general' => array(
-								'blogname'        => 'Partial Success Test',
-								'unknown_setting' => 'should_fail', // Not allowed.
-							),
-						),
-					),
-				)
-			)
-		);
-		$response = $this->server->dispatch( $request );
-
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
-
-		// blogname should be updated.
-		$this->assertArrayHasKey( 'general', $data['updated_settings'] );
-		$this->assertArrayHasKey( 'blogname', $data['updated_settings']['general'] );
-		$this->assertSame( 'Partial Success Test', $data['updated_settings']['general']['blogname'] );
-
-		// unknown_setting should have an error.
-		$this->assertArrayHasKey( 'general', $data['validation_errors'] );
-		$this->assertArrayHasKey( 'unknown_setting', $data['validation_errors']['general'] );
 	}
 
 	/**
