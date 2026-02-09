@@ -1008,7 +1008,7 @@ switch ( $action ) {
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 			$login_url = wp_login_url();
 			if ( isset( $_COOKIE['wp_user_login'] ) ) {
-				$login_url = add_query_arg( 'user_login', rawurlencode( wp_unslash( $_COOKIE['wp_user_login'] ) ), $login_url );
+				$login_url = add_query_arg( 'user_login', rawurlencode( sanitize_user( wp_unslash( $_COOKIE['wp_user_login'] ) ) ), $login_url );
 			}
 			login_header(
 				__( 'Password Reset' ),
