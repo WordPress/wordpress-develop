@@ -161,7 +161,6 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 	}
 
-
 	/**
 	 * Tests color support for named color support for named colors.
 	 */
