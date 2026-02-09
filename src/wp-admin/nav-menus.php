@@ -1232,7 +1232,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 														printf(
 															/* translators: %s: Menu name, or a message indicating that the menu was not found. */
 															_x( '(Currently set to: %s)', 'menu location' ),
-															is_nav_menu( $menu_locations[ $location ] ) ? esc_html( wp_get_nav_menu_object( $menu_locations[ $location ] )->name ) : __( 'an unknown menu' )
+															is_nav_menu( $menu_locations[ $location ] ) 
+																? esc_html( wp_get_nav_menu_object( $menu_locations[ $location ] )->name ) 
+																: __( 'an unknown menu' )
 														);
 													?>
 													</span>
