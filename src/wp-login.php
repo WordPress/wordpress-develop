@@ -539,7 +539,7 @@ if ( isset( $_GET['wp_lang'] ) ) {
 }
 
 if ( isset( $_GET['user_login'] ) ) {
-	setcookie( 'wp_user_login', sanitize_text_field( $_GET['user_login'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
+	setcookie( 'wp_user_login', sanitize_text_field( wp_unslash( $_GET['user_login'] ) ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
 	wp_safe_redirect( wp_login_url() );
 }
 
