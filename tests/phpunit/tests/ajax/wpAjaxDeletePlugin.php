@@ -131,6 +131,7 @@ class Tests_Ajax_wpAjaxDeletePlugin extends WP_Ajax_UnitTestCase {
 	 * @group ms-excluded
 	 *
 	 * @covers ::delete_plugins
+	 * @covers ::wp_clean_plugins_cache
 	 */
 	public function test_delete_plugin() {
 		$this->_setRole( 'administrator' );
@@ -138,6 +139,17 @@ class Tests_Ajax_wpAjaxDeletePlugin extends WP_Ajax_UnitTestCase {
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
 		$_POST['plugin']      = 'foo.php';
 		$_POST['slug']        = 'foo';
+
+		// Adds the plugin cache.
+		$plugins_cache = array(
+			'' => array(
+				'foo.php' => array(
+					'Name'    => 'Foo Plugin',
+					'Version' => '1.0',
+				),
+			),
+		);
+		wp_cache_set( 'plugins', $plugins_cache, 'plugins' );
 
 		// Make the request.
 		try {
@@ -160,5 +172,8 @@ class Tests_Ajax_wpAjaxDeletePlugin extends WP_Ajax_UnitTestCase {
 		);
 
 		$this->assertSameSets( $expected, $response );
+
+		// Verify that wp_clean_plugins_cache() was called and cleared both cache and transient.
+		$this->assertFalse( wp_cache_get( 'plugins', 'plugins' ), 'Plugins cache should be cleared after delete_plugins()' );
 	}
 }
