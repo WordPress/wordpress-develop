@@ -195,6 +195,9 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 	/**
 	 * Ensures that class and style attributes from extra attributes and block supports are merged.
+	 *
+	 * @ticket 64603
+	 * @covers WP_Block_Supports::get_block_wrapper_attributes()
 	 */
 	public function test_block_wrapper_attributes_merge() {
 		$block_type_settings = array(
