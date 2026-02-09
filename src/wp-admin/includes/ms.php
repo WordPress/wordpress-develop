@@ -847,13 +847,15 @@ function can_edit_network( $network_id ) {
  */
 function _thickbox_path_admin_subfolder() {
 	?>
-<script type="text/javascript">
+<script>
 var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) ); ?>";
 </script>
 	<?php
 }
 
 /**
+ * @since 3.0.0
+ *
  * @param array $users
  * @return bool
  */
@@ -1008,7 +1010,7 @@ function confirm_delete_users( $users ) {
  */
 function network_settings_add_js() {
 	?>
-<script type="text/javascript">
+<script>
 jQuery( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).on( 'submit', function() {

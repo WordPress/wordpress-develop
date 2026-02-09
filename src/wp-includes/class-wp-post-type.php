@@ -303,6 +303,7 @@ final class WP_Post_Type {
 	 *   and delete blocks.
 	 * - If set to 'insert', the user is able to move existing blocks but is unable to insert
 	 *   new blocks and delete blocks.
+	 * - If set to 'contentOnly', the user is only able to edit the content of existing blocks.
 	 *
 	 * Default false.
 	 *
@@ -655,11 +656,7 @@ final class WP_Post_Type {
 				$args['rewrite']['feeds'] = (bool) $args['has_archive'];
 			}
 			if ( ! isset( $args['rewrite']['ep_mask'] ) ) {
-				if ( isset( $args['permalink_epmask'] ) ) {
-					$args['rewrite']['ep_mask'] = $args['permalink_epmask'];
-				} else {
-					$args['rewrite']['ep_mask'] = EP_PERMALINK;
-				}
+				$args['rewrite']['ep_mask'] = $args['permalink_epmask'] ?? EP_PERMALINK;
 			}
 		}
 

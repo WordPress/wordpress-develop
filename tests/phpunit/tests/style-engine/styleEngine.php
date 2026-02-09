@@ -14,14 +14,6 @@
  */
 class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
-	 * Cleans up stores after each test.
-	 */
-	public function tear_down() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-		parent::tear_down();
-	}
-
-	/**
 	 * Tests generating block styles and classnames based on various manifestations of the $block_styles argument.
 	 *
 	 * @ticket 56467
@@ -30,6 +22,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 60175
 	 * @ticket 61720
 	 * @ticket 62189
+	 * @ticket 63799
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -167,6 +160,29 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'margin-left'                => '2vh',
 						'margin-bottom'              => '2px',
 						'margin-right'               => '10em',
+					),
+				),
+			),
+
+			'inline_valid_border_radius_presets'           => array(
+				'block_styles'    => array(
+					'border' => array(
+						'radius' => array(
+							'topLeft'     => 'var:preset|border-radius|large',
+							'topRight'    => 'var:preset|border-radius|large',
+							'bottomLeft'  => 'var:preset|border-radius|large',
+							'bottomRight' => 'var:preset|border-radius|large',
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'border-top-left-radius:var(--wp--preset--border-radius--large);border-top-right-radius:var(--wp--preset--border-radius--large);border-bottom-left-radius:var(--wp--preset--border-radius--large);border-bottom-right-radius:var(--wp--preset--border-radius--large);',
+					'declarations' => array(
+						'border-top-left-radius'     => 'var(--wp--preset--border-radius--large)',
+						'border-top-right-radius'    => 'var(--wp--preset--border-radius--large)',
+						'border-bottom-left-radius'  => 'var(--wp--preset--border-radius--large)',
+						'border-bottom-right-radius' => 'var(--wp--preset--border-radius--large)',
 					),
 				),
 			),
