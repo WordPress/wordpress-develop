@@ -15,23 +15,9 @@ header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ), true
 // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Used intentionally to ensure full content in feed.
 $more = 1;
 
-// Register a simple autoloader for the bundled League HTMLToMarkdown library.
-spl_autoload_register( function ( $class ) {
-	if ( 0 === strpos( $class, 'League\\HTMLToMarkdown\\' ) ) {
-		$relative = str_replace( 'League\\HTMLToMarkdown\\', '', $class );
-		$relative = str_replace( '\\', DIRECTORY_SEPARATOR, $relative );
-		$file = ABSPATH . WPINC . '/html-to-markdown/' . $relative . '.php';
-		if ( file_exists( $file ) ) {
-			require_once $file;
-		}
-	}
-} );
+include_once 'HTML_To_Markdown_Converter.php';
 
-// Create a converter instance; tune options if desired.
-$__wp_md_converter = new \League\HTMLToMarkdown\HtmlConverter( array(
-	'header_style' => 'atx',
-	'suppress_errors' => true,
-) );
+$__wp_md_converter = new HTML_To_Markdown_Converter();
 
 // Feed header as Markdown.
 echo '# ' . wp_strip_all_tags( get_bloginfo( 'name' ) ) . ' — ' . __( 'Markdown Feed', 'default' ) . "\n\n";
