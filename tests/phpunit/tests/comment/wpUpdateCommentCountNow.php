@@ -47,8 +47,8 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	}
 
 	/**
-	* @ticket 64325
-	*/
+	 * @ticket 64325
+	 */
 	public function test_only_approved_regular_comments_are_counted() {
 		$post_id = self::factory()->post->create();
 
