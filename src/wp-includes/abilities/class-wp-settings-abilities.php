@@ -399,8 +399,7 @@ class WP_Settings_Abilities {
 
 		if ( empty( $input['settings'] ) || ! is_array( $input['settings'] ) ) {
 			return array(
-				'updated_settings'  => (object) array(),
-				'validation_errors' => (object) array(),
+				'updated_settings' => (object) array(),
 			);
 		}
 
@@ -493,10 +492,15 @@ class WP_Settings_Abilities {
 			}
 		}
 
-		return array(
-			'updated_settings'  => ! empty( $updated_settings ) ? $updated_settings : (object) array(),
-			'validation_errors' => ! empty( $validation_errors ) ? $validation_errors : (object) array(),
+		$result = array(
+			'updated_settings' => ! empty( $updated_settings ) ? $updated_settings : (object) array(),
 		);
+
+		if ( ! empty( $validation_errors ) ) {
+			$result['validation_errors'] = $validation_errors;
+		}
+
+		return $result;
 	}
 
 	/**
