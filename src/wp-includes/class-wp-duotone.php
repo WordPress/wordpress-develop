@@ -546,8 +546,8 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $duotone_attr The duotone attribute from a block.
-	 * @return string The slug of the duotone preset or an empty string if no slug is found.
+	 * @param string|string[] $duotone_attr The duotone attribute from a block.
+	 * @return string The slug of the duotone preset or an empty string if no slug is found (including when an array was passed).
 	 */
 	private static function get_slug_from_attribute( $duotone_attr ) {
 		if ( ! is_string( $duotone_attr ) ) {
@@ -570,7 +570,7 @@ class WP_Duotone {
 	 * @since 6.3.0
 	 *
 	 * @param string $duotone_attr The duotone attribute from a block.
-	 * @return bool True if the duotone preset present and valid.
+	 * @param string|string[] $duotone_attr The duotone attribute from a block.
 	 */
 	private static function is_preset( $duotone_attr ) {
 		if ( ! is_string( $duotone_attr ) ) {
