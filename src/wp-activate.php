@@ -103,7 +103,6 @@ function wpmu_activate_stylesheet() {
 	<style>
 		.wp-activate-container { max-width: 1280px; width: 100%; margin: 0 auto; text-align: start; padding: 24px; box-sizing: border-box; }
 		.wp-activate-container form { margin: 24px 0; }
-		.wp-activate-container a { color: #2271b1; }
 		.wp-activate-container p { font-size: 18px; }
 		#submit, #key { font-size: 24px; box-sizing: border-box; }
 		#key { width: 100%; }
