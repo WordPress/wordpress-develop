@@ -45,6 +45,14 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		// Register initial settings first so abilities can build schemas.
 		register_initial_settings();
 
+		// Unregister any existing abilities/categories to avoid "already registered" notices.
+		foreach ( wp_get_abilities() as $ability ) {
+			wp_unregister_ability( $ability->get_name() );
+		}
+		foreach ( wp_get_ability_categories() as $ability_category ) {
+			wp_unregister_ability_category( $ability_category->get_slug() );
+		}
+
 		// Ensure core abilities are registered for these tests.
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
