@@ -1518,7 +1518,7 @@ switch ( $action ) {
 		}
 
 		wp_enqueue_script( 'user-profile' );
-		if ( isset( $_COOKIE['wp_user_login'] ) ) {
+		if ( ! $user_login && isset( $_COOKIE['wp_user_login'] ) ) {
 			$user_login = sanitize_user( wp_unslash( $_COOKIE['wp_user_login'] ) );
 		}
 		?>
