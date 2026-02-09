@@ -711,7 +711,7 @@
 
 					wp.media.featuredImage.frame().open();
 				}
-			}).on( 'click keyup keydown', '#remove-post-thumbnail', function(event) {
+			}).on( 'click keyup keydown', '#remove-post-thumbnail', function( event ) {
 				if ( ( event.type === 'keyup' && event.key === ' ' ) || ( event.type === 'keydown' && event.key === 'Enter' ) || event.type === 'click' ) {
 					wp.media.featuredImage.remove();
 					return false;
