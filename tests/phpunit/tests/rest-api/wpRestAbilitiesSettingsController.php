@@ -450,7 +450,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that unauthenticated users cannot access the update-settings ability.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_requires_authentication(): void {
 		wp_set_current_user( 0 );
@@ -478,7 +478,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that subscribers cannot access the update-settings ability.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_requires_manage_options_capability(): void {
 		wp_set_current_user( self::$subscriber_id );
@@ -506,7 +506,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that administrators can access the update-settings ability.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_allows_administrators(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -532,7 +532,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability successfully updates settings.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_updates_settings_in_database(): void {
 		$original_title = get_option( 'blogname' );
@@ -564,7 +564,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability returns grouped structure matching input.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_returns_grouped_structure(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -601,7 +601,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability can update multiple groups.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_updates_multiple_groups(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -637,7 +637,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability rejects settings without show_in_abilities.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_rejects_settings_without_show_in_abilities(): void {
 		register_setting(
@@ -681,7 +681,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability rejects settings in wrong group.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_rejects_settings_in_wrong_group(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -713,7 +713,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability requires POST method.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_requires_post_method(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -728,7 +728,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability casts boolean values correctly.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_casts_boolean_values(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -761,7 +761,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability casts integer values correctly.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_casts_integer_values(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -794,7 +794,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability handles partial success.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_handles_partial_success(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -832,7 +832,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests that the update-settings ability returns empty objects when no settings provided.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_returns_empty_when_no_settings(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
@@ -859,7 +859,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * Tests the symmetry between get-settings and update-settings.
 	 *
-	 * @ticket 64605
+	 * @ticket 64616
 	 */
 	public function test_core_update_settings_symmetry_with_get_settings(): void {
 		// First, get settings.
