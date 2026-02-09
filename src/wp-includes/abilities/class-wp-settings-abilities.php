@@ -437,16 +437,18 @@ class WP_Settings_Abilities {
 					$sanitized_value = call_user_func( $args['sanitize_callback'], $sanitized_value );
 				}
 
-				$updated = update_option( $option_name, $sanitized_value );
-				if ( $updated || get_option( $option_name ) === $sanitized_value ) {
+				$setting_type = $args['type'] ?? 'string';
+				$updated      = update_option( $option_name, $sanitized_value );
+
+				// Cast current value for comparison (handles type mismatches from database).
+				$current_value = self::cast_value( get_option( $option_name ), $setting_type );
+
+				if ( $updated || $current_value === $sanitized_value ) {
 					// Add to updated_settings with the same grouped structure.
 					if ( ! isset( $updated_settings[ $group ] ) ) {
 						$updated_settings[ $group ] = array();
 					}
-					$updated_settings[ $group ][ $option_name ] = self::cast_value(
-						get_option( $option_name ),
-						$args['type'] ?? 'string'
-					);
+					$updated_settings[ $group ][ $option_name ] = $current_value;
 				} else {
 					return new WP_Error(
 						'rest_setting_update_failed',
