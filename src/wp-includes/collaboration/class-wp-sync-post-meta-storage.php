@@ -33,24 +33,11 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	private static $storage_post_id = null;
 
 	/**
-	 * Registers the custom post type for sync storage.
+	 * Initializer.
 	 *
 	 * @since 6.8.0
 	 */
-	public function init(): void {
-		register_post_type(
-			self::POST_TYPE,
-			array(
-				'label'              => 'Sync Storage',
-				'public'             => false,
-				'publicly_queryable' => false,
-				'show_in_menu'       => false,
-				'show_in_rest'       => false,
-				'show_ui'            => false,
-				'supports'           => array( 'custom-fields' ),
-			)
-		);
-	}
+	public function init(): void {}
 
 	/**
 	 * Adds a sync update to a given room.
