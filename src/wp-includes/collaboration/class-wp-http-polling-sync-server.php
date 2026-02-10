@@ -18,7 +18,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const REST_NAMESPACE = 'wp/v2/sync';
+	const REST_NAMESPACE = 'wp-sync/v1';
 
 	/**
 	 * Awareness timeout in seconds. Clients that haven't updated
