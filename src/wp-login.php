@@ -1508,7 +1508,7 @@ switch ( $action ) {
 		wp_enqueue_script( 'user-profile' );
 		$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
 		if ( ! $user_login && isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
-			$user_login = sanitize_user( wp_unslash( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) ) );
+			$user_login = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
 		}
 		?>
 
