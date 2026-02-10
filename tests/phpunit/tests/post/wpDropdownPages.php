@@ -219,4 +219,33 @@ NO;
 
 		$this->assertMatchesRegularExpression( '/<select[^>]+class=\'bar\'/', $found );
 	}
+
+	/**
+	 * Test that published child pages remain selectable when parent is trashed.
+	 *
+	 * @ticket 11235
+	 */
+	public function test_child_page_available_when_parent_trashed() {
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+
+		$child_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_trash_post( $parent_id );
+
+		$output = wp_dropdown_pages( array( 'echo' => 0 ) );
+		
+		$this->assertStringContainsString( 'value="' . $child_id . '"', $output, 'Published child page should remain available even when parent is trashed.' );
+		$this->assertStringNotContainsString( 'value="' . $parent_id . '"', $output, 'Trashed parent should not appear in dropdown.' );
+	}
 }
