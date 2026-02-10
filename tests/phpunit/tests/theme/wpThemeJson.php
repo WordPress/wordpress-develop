@@ -6784,7 +6784,14 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link){background-color: transparent;border-color: currentColor;border-width: 1px;border-style: solid;color: currentColor;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:hover){background-color: red;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:focus){background-color: yellow;color: black;}';
-		$actual   = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true, 'include_block_style_variations' => true ) );
+		$actual   = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'         => true,
+				'include_block_style_variations' => true,
+			)
+		);
 
 		unregister_block_style( 'core/button', 'outline' );
 
