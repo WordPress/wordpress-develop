@@ -6734,6 +6734,14 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Test that block pseudo selectors are processed correctly within variations.
 	 */
 	public function test_block_variation_pseudo_selectors_are_processed() {
+		register_block_style(
+			'core/button',
+			array(
+				'name'  => 'outline',
+				'label' => 'Outline',
+			)
+		);
+
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -6776,7 +6784,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link){background-color: transparent;border-color: currentColor;border-width: 1px;border-style: solid;color: currentColor;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:hover){background-color: red;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:focus){background-color: yellow;color: black;}';
-		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+		$actual   = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		unregister_block_style( 'core/button', 'outline' );
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
