@@ -21,7 +21,7 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		 */
 		public function __construct() {
 			if ( function_exists( 'mb_substr' )
-				&& ( (int) ini_get( 'mbstring.func_overload' ) & 2 ) // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated
+				&& ( (int) ini_get( 'mbstring.func_overload' ) & 2 ) // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecatedRemoved
 			) {
 				$this->is_overloaded = true;
 			} else {

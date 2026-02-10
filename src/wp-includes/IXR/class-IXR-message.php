@@ -120,7 +120,7 @@ class IXR_Message
 
             if (!xml_parse($this->_parser, $part, $final)) {
                 if (PHP_VERSION_ID < 80000) { // xml_parser_free() has no effect as of PHP 8.0.
-                    xml_parser_free($this->_parser);
+                    xml_parser_free($this->_parser); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.xml_parser_freeDeprecated -- Called inside a PHP version guard.
                 }
 
                 unset($this->_parser);
@@ -133,7 +133,7 @@ class IXR_Message
         } while (true);
 
         if (PHP_VERSION_ID < 80000) { // xml_parser_free() has no effect as of PHP 8.0.
-            xml_parser_free($this->_parser);
+            xml_parser_free($this->_parser); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.xml_parser_freeDeprecated -- Called inside a PHP version guard.
         }
 
         unset($this->_parser);

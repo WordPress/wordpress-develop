@@ -25,7 +25,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		if ( $this->image ) {
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
 				// We don't need the original in memory anymore.
-				imagedestroy( $this->image );
+				imagedestroy( $this->image ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 			}
 		}
 	}
@@ -113,7 +113,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		} elseif (
 			function_exists( 'imagecreatefromavif' ) && ( 'image/avif' === wp_get_image_mime( $this->file ) )
 		) {
-			$this->image = @imagecreatefromavif( $this->file );
+			$this->image = @imagecreatefromavif( $this->file ); // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.imagecreatefromavifFound -- Wrapped in function_exists().
 		} else {
 			$this->image = @imagecreatefromstring( $file_contents );
 		}
@@ -191,7 +191,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 		if ( is_gd_image( $resized ) ) {
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-				imagedestroy( $this->image );
+				imagedestroy( $this->image ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 			}
 
 			$this->image = $resized;
@@ -332,7 +332,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$saved = $this->_save( $resized );
 
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-				imagedestroy( $resized );
+				imagedestroy( $resized ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 			}
 		}
 
@@ -392,7 +392,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 		if ( is_gd_image( $dst ) ) {
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-				imagedestroy( $this->image );
+				imagedestroy( $this->image ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 			}
 
 			$this->image = $dst;
@@ -423,7 +423,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				imagesavealpha( $rotated, true );
 
 				if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-					imagedestroy( $this->image );
+					imagedestroy( $this->image ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 				}
 
 				$this->image = $rotated;
@@ -458,7 +458,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 			if ( imagecopyresampled( $dst, $this->image, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
 				if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-					imagedestroy( $this->image );
+					imagedestroy( $this->image ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 				}
 
 				$this->image = $dst;
@@ -617,7 +617,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			if ( 'image/webp' === $this->mime_type && defined( 'IMG_WEBP_LOSSLESS' ) ) {
 				$webp_info = wp_get_webp_info( $this->file );
 				if ( ! empty( $webp_info['type'] ) && 'lossless' === $webp_info['type'] ) {
-					$quality = IMG_WEBP_LOSSLESS;
+					$quality = IMG_WEBP_LOSSLESS; // phpcs:ignore PHPCompatibility.Constants.NewConstants.img_webp_losslessFound -- Wrapped in defined().
 					parent::set_quality( $quality, $dims );
 				}
 			}
@@ -658,7 +658,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			case 'image/avif':
 				if ( function_exists( 'imageavif' ) ) {
 					header( 'Content-Type: image/avif' );
-					return imageavif( $this->image, null, $this->get_quality() );
+					return imageavif( $this->image, null, $this->get_quality() ); // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.imageavifFound -- Wrapped in function_exists().
 				}
 				// Fall back to JPEG.
 			default:

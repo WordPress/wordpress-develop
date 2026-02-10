@@ -393,7 +393,7 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 			case 'image/avif':
 				if ( function_exists( 'imageavif' ) ) {
 					header( 'Content-Type: image/avif' );
-					return imageavif( $image, null, 90 );
+					return imageavif( $image, null, 90 ); // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.imageavifFound -- Wrapped in function_exists().
 				}
 				return false;
 			default:
@@ -502,7 +502,7 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 				return false;
 			case 'image/avif':
 				if ( function_exists( 'imageavif' ) ) {
-					return imageavif( $image, $filename );
+					return imageavif( $image, $filename ); // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.imageavifFound -- Wrapped in function_exists().
 				}
 				return false;
 			default:
@@ -546,7 +546,7 @@ function _rotate_image_resource( $img, $angle ) {
 
 		if ( is_gd_image( $rotated ) ) {
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-				imagedestroy( $img );
+				imagedestroy( $img ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 			}
 
 			$img = $rotated;
@@ -584,7 +584,7 @@ function _flip_image_resource( $img, $horz, $vert ) {
 
 		if ( imagecopyresampled( $dst, $img, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-				imagedestroy( $img );
+				imagedestroy( $img ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 			}
 
 			$img = $dst;
@@ -613,7 +613,7 @@ function _crop_image_resource( $img, $x, $y, $w, $h ) {
 	if ( is_gd_image( $dst ) ) {
 		if ( imagecopy( $dst, $img, 0, 0, $x, $y, $w, $h ) ) {
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-				imagedestroy( $img );
+				imagedestroy( $img ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated -- Called inside a PHP version guard.
 			}
 
 			$img = $dst;
