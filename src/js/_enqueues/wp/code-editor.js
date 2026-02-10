@@ -232,17 +232,14 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 			$textarea.data( 'next-tab-blurs', false );
 		});
 		codemirror.on( 'keydown', function onKeydown( editor, event ) {
-			const tabKeyCode = 9;
-			const escKeyCode = 27;
-
 			// Take note of the ESC keypress so that the next TAB can focus outside the editor.
-			if ( escKeyCode === event.keyCode ) {
+			if ( 'Escape' === event.key ) {
 				$textarea.data( 'next-tab-blurs', true );
 				return;
 			}
 
 			// Short-circuit if tab key is not being pressed or the tab key press should move focus.
-			if ( tabKeyCode !== event.keyCode || ! $textarea.data( 'next-tab-blurs' ) ) {
+			if ( 'Tab' !== event.key || ! $textarea.data( 'next-tab-blurs' ) ) {
 				return;
 			}
 
