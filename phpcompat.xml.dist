@@ -79,20 +79,20 @@
 	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.safe_modeDeprecatedRemoved">
 		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 	</rule>
-	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated">
+	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecatedRemoved">
 		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 		<exclude-pattern>/PHPMailer/PHPMailer\.php$</exclude-pattern>
 	</rule>
-	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_runtimeDeprecated">
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_runtimeDeprecatedRemoved">
 		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 	</rule>
-	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_gpcDeprecated">
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_gpcDeprecatedRemoved">
 		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 	</rule>
 	<rule ref="PHPCompatibility.Lists.AssignmentOrder.Affected">
 		<exclude-pattern>/ID3/module.audio-video.quicktime\.php$</exclude-pattern>
 	</rule>
-	<rule ref="PHPCompatibility.Constants.RemovedConstants.intl_idna_variant_2003Deprecated">
+	<rule ref="PHPCompatibility.Constants.RemovedConstants.intl_idna_variant_2003DeprecatedRemoved">
 		<exclude-pattern>/PHPMailer/PHPMailer\.php$</exclude-pattern>
 	</rule>
 	<rule ref="PHPCompatibility.ParameterValues.NewIDNVariantDefault.NotSet">
