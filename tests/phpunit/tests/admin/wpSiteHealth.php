@@ -576,6 +576,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tests get_test_opcode_cache() return structure.
 	 *
+	 * @ticket 63697
+	 *
 	 * @covers ::get_test_opcode_cache()
 	 */
 	public function test_get_test_opcode_cache_return_structure() {
@@ -604,6 +606,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * Tests get_test_opcode_cache() result when opcode cache is enabled or not.
 	 *
 	 * Covers: opcache enabled, disabled, not available, and opcache_get_status() returns false.
+	 *
+	 * @ticket 63697
 	 *
 	 * @covers ::get_test_opcode_cache()
 	 */
