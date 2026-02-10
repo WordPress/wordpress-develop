@@ -44,7 +44,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		parent::__construct(
 			array(
 				'plural' => 'sites',
-				'screen' => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen' => $args['screen'] ?? null,
 			)
 		);
 	}
@@ -135,7 +135,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			}
 		}
 
-		$order_by = isset( $_REQUEST['orderby'] ) ? $_REQUEST['orderby'] : '';
+		$order_by = $_REQUEST['orderby'] ?? '';
 		if ( 'registered' === $order_by ) {
 			// 'registered' is a valid field name.
 		} elseif ( 'lastupdated' === $order_by ) {
@@ -674,6 +674,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 		if ( ! empty( $site_states ) ) {
 			$state_count = count( $site_states );
+			$separator   = wp_get_list_item_separator();
 
 			$i = 0;
 
@@ -682,9 +683,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			foreach ( $site_states as $state ) {
 				++$i;
 
-				$separator = ( $i < $state_count ) ? ', ' : '';
+				$suffix = ( $i < $state_count ) ? $separator : '';
 
-				echo "<span class='post-state'>{$state}{$separator}</span>";
+				echo "<span class='post-state'>{$state}{$suffix}</span>";
 			}
 		}
 	}

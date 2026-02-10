@@ -64,20 +64,23 @@ class Tests_Actions extends WP_UnitTestCase {
 		$hook_name = __FUNCTION__;
 
 		add_action( $hook_name, array( &$a, 'action' ) );
+		add_action( $hook_name, array( &$a, 'action' ), 100 );
 		do_action( $hook_name );
 
 		// Make sure our hook was called correctly.
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
+		$this->assertSame( 2, $a->get_call_count() );
+		$this->assertSame( array( $hook_name, $hook_name ), $a->get_hook_names() );
 
 		// Now remove the action, do it again, and make sure it's not called this time.
 		remove_action( $hook_name, array( &$a, 'action' ) );
+		remove_action( $hook_name, array( &$a, 'action' ), 100 );
 		do_action( $hook_name );
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
+		$this->assertSame( 2, $a->get_call_count() );
+		$this->assertSame( array( $hook_name, $hook_name ), $a->get_hook_names() );
 	}
 
 	/**
+	 * @ticket 64186
 	 * @covers ::has_action
 	 */
 	public function test_has_action() {
@@ -89,7 +92,20 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		add_action( $hook_name, $callback );
 		$this->assertSame( 10, has_action( $hook_name, $callback ) );
+		$this->assertFalse( has_action( $hook_name, $callback, 9 ) );
 		$this->assertTrue( has_action( $hook_name ) );
+
+		add_action( $hook_name, $callback, 9 );
+		add_action( $hook_name, $callback, 11 );
+		$this->assertSame( 9, has_action( $hook_name, $callback ) );
+		$this->assertTrue( has_action( $hook_name, $callback, 9 ) );
+		$this->assertTrue( has_action( $hook_name, $callback, 10 ) );
+		$this->assertTrue( has_action( $hook_name, $callback, 11 ) );
+		$this->assertTrue( has_action( $hook_name ) );
+
+		remove_action( $hook_name, $callback, 9 );
+		remove_action( $hook_name, $callback, 11 );
+		$this->assertSame( 10, has_action( $hook_name, $callback ) );
 
 		remove_action( $hook_name, $callback );
 		$this->assertFalse( has_action( $hook_name, $callback ) );

@@ -22,10 +22,10 @@ require_once ABSPATH . 'wp-admin/includes/class-walker-nav-menu-checklist.php';
  */
 function _wp_ajax_menu_quick_search( $request = array() ) {
 	$args            = array();
-	$type            = isset( $request['type'] ) ? $request['type'] : '';
-	$object_type     = isset( $request['object_type'] ) ? $request['object_type'] : '';
-	$query           = isset( $request['q'] ) ? $request['q'] : '';
-	$response_format = isset( $request['response-format'] ) ? $request['response-format'] : '';
+	$type            = $request['type'] ?? '';
+	$object_type     = $request['object_type'] ?? '';
+	$query           = $request['q'] ?? '';
+	$response_format = $request['response-format'] ?? '';
 
 	if ( ! $response_format || ! in_array( $response_format, array( 'json', 'markup' ), true ) ) {
 		$response_format = 'json';
@@ -80,20 +80,37 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 				}
 			}
 		}
-	} elseif ( preg_match( '/quick-search-(posttype|taxonomy)-([a-zA-Z_-]*\b)/', $type, $matches ) ) {
+	} elseif ( preg_match( '/quick-search-(posttype|taxonomy)-([a-zA-Z0-9_-]*\b)/', $type, $matches ) ) {
 		if ( 'posttype' === $matches[1] && get_post_type_object( $matches[2] ) ) {
 			$post_type_obj = _wp_nav_menu_meta_box_object( get_post_type_object( $matches[2] ) );
-			$args          = array_merge(
-				$args,
-				array(
-					'no_found_rows'          => true,
-					'update_post_meta_cache' => false,
-					'update_post_term_cache' => false,
-					'posts_per_page'         => 10,
-					'post_type'              => $matches[2],
-					's'                      => $query,
-				)
+			$query_args    = array(
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'posts_per_page'         => 10,
+				'post_type'              => $matches[2],
+				's'                      => $query,
+				'search_columns'         => array( 'post_title' ),
 			);
+			/**
+			 * Filter the menu quick search arguments.
+			 *
+			 * @since 6.9.0
+			 *
+			 * @param array $args {
+			 *     Menu quick search arguments.
+			 *
+			 *     @type boolean      $no_found_rows          Whether to return found rows data. Default true.
+			 *     @type boolean      $update_post_meta_cache Whether to update post meta cache. Default false.
+			 *     @type boolean      $update_post_term_cache Whether to update post term cache. Default false.
+			 *     @type int          $posts_per_page         Number of posts to return. Default 10.
+			 *     @type string       $post_type              Type of post to return.
+			 *     @type string       $s                      Search query.
+			 *     @type array        $search_columns         Which post table columns to query.
+			 * }
+			*/
+			$query_args = apply_filters( 'wp_ajax_menu_quick_search_args', $query_args );
+			$args       = array_merge( $args, $query_args );
 
 			if ( isset( $post_type_obj->_default_query ) ) {
 				$args = array_merge( $args, (array) $post_type_obj->_default_query );
@@ -495,7 +512,6 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		}
 	}
 
-	// @todo Transient caching of these results with proper invalidation on updating of a post of this type.
 	$get_posts = new WP_Query();
 	$posts     = $get_posts->query( $args );
 
@@ -1167,19 +1183,19 @@ function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
 			}
 
 			$args = array(
-				'menu-item-db-id'       => ( isset( $_item_object_data['menu-item-db-id'] ) ? $_item_object_data['menu-item-db-id'] : '' ),
-				'menu-item-object-id'   => ( isset( $_item_object_data['menu-item-object-id'] ) ? $_item_object_data['menu-item-object-id'] : '' ),
-				'menu-item-object'      => ( isset( $_item_object_data['menu-item-object'] ) ? $_item_object_data['menu-item-object'] : '' ),
-				'menu-item-parent-id'   => ( isset( $_item_object_data['menu-item-parent-id'] ) ? $_item_object_data['menu-item-parent-id'] : '' ),
-				'menu-item-position'    => ( isset( $_item_object_data['menu-item-position'] ) ? $_item_object_data['menu-item-position'] : '' ),
-				'menu-item-type'        => ( isset( $_item_object_data['menu-item-type'] ) ? $_item_object_data['menu-item-type'] : '' ),
-				'menu-item-title'       => ( isset( $_item_object_data['menu-item-title'] ) ? $_item_object_data['menu-item-title'] : '' ),
-				'menu-item-url'         => ( isset( $_item_object_data['menu-item-url'] ) ? $_item_object_data['menu-item-url'] : '' ),
-				'menu-item-description' => ( isset( $_item_object_data['menu-item-description'] ) ? $_item_object_data['menu-item-description'] : '' ),
-				'menu-item-attr-title'  => ( isset( $_item_object_data['menu-item-attr-title'] ) ? $_item_object_data['menu-item-attr-title'] : '' ),
-				'menu-item-target'      => ( isset( $_item_object_data['menu-item-target'] ) ? $_item_object_data['menu-item-target'] : '' ),
-				'menu-item-classes'     => ( isset( $_item_object_data['menu-item-classes'] ) ? $_item_object_data['menu-item-classes'] : '' ),
-				'menu-item-xfn'         => ( isset( $_item_object_data['menu-item-xfn'] ) ? $_item_object_data['menu-item-xfn'] : '' ),
+				'menu-item-db-id'       => $_item_object_data['menu-item-db-id'] ?? '',
+				'menu-item-object-id'   => $_item_object_data['menu-item-object-id'] ?? '',
+				'menu-item-object'      => $_item_object_data['menu-item-object'] ?? '',
+				'menu-item-parent-id'   => $_item_object_data['menu-item-parent-id'] ?? '',
+				'menu-item-position'    => $_item_object_data['menu-item-position'] ?? '',
+				'menu-item-type'        => $_item_object_data['menu-item-type'] ?? '',
+				'menu-item-title'       => $_item_object_data['menu-item-title'] ?? '',
+				'menu-item-url'         => $_item_object_data['menu-item-url'] ?? '',
+				'menu-item-description' => $_item_object_data['menu-item-description'] ?? '',
+				'menu-item-attr-title'  => $_item_object_data['menu-item-attr-title'] ?? '',
+				'menu-item-target'      => $_item_object_data['menu-item-target'] ?? '',
+				'menu-item-classes'     => $_item_object_data['menu-item-classes'] ?? '',
+				'menu-item-xfn'         => $_item_object_data['menu-item-xfn'] ?? '',
 			);
 
 			$items_saved[] = wp_update_nav_menu_item( $menu_id, $_actual_db_id, $args );
@@ -1431,7 +1447,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 
 			$args = array();
 			foreach ( $post_fields as $field ) {
-				$args[ $field ] = isset( $_POST[ $field ][ $_key ] ) ? $_POST[ $field ][ $_key ] : '';
+				$args[ $field ] = $_POST[ $field ][ $_key ] ?? '';
 			}
 
 			$menu_item_db_id = wp_update_nav_menu_item(

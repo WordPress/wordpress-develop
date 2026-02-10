@@ -11,10 +11,6 @@ class Tests_Readme extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_readme_php_version() {
-		$this->markTestSkipped(
-			'Temporarily disabled. Test should be re-enabled once WordPress is fully compatible with PHP 8.0+.'
-		);
-
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
@@ -24,7 +20,7 @@ class Tests_Readme extends WP_UnitTestCase {
 
 		$response_body = $this->get_response_body( 'https://www.php.net/supported-versions.php' );
 
-		preg_match_all( '#<tr class="stable">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $response_body, $php_matches );
+		preg_match_all( '#<tr class="(?:stable|security)">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $response_body, $php_matches );
 
 		$this->assertContains( $matches[1], $php_matches[1], "readme.html's Recommended PHP version is too old. Remember to update the WordPress.org Requirements page, too." );
 	}
