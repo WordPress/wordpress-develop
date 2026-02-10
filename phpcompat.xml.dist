@@ -115,11 +115,42 @@
 	</rule>
 
 	<!--
-		Excluded while waiting for PHPCompatibility v10.
-		See <https://github.com/PHPCompatibility/PHPCompatibility/issues/1481>.
+		The #[\SensitiveParameter] attribute is used intentionally.
+		It is silently ignored on PHP < 8.0 and active on 8.0+.
+		See https://core.trac.wordpress.org/ticket/57304.
 	-->
-	<rule ref="PHPCompatibility.FunctionDeclarations.NewClosure.ThisFoundInStatic">
-		<exclude-pattern>/src/wp-includes/script-loader\.php$</exclude-pattern>
+	<rule ref="PHPCompatibility.Attributes.NewAttributes.PHPNativeAttributeFound">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
+	<!-- Third-party library: SimplePie. -->
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.strftimeDeprecated">
+		<exclude-pattern>/SimplePie/src/Item\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionDeclarations.RemovedCallingDestructAfterConstructorExit.Found">
+		<exclude-pattern>/SimplePie/src/SimplePie\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.curl_closeDeprecated">
+		<exclude-pattern>/SimplePie/src/File\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.xml_parser_freeDeprecated">
+		<exclude-pattern>/SimplePie/src/Parser\.php$</exclude-pattern>
+		<exclude-pattern>/SimplePie/src/SimplePie\.php$</exclude-pattern>
+	</rule>
+
+	<!-- Third-party library: getID3. -->
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated">
+		<exclude-pattern>/ID3/getid3\.lib\.php$</exclude-pattern>
+	</rule>
+
+	<!-- Third-party library: Snoopy (not maintained anymore and deprecated since WP 3.0). -->
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.socket_set_timeoutDeprecated">
+		<exclude-pattern>/class-snoopy\.php$</exclude-pattern>
+	</rule>
+
+	<!-- Third-party library: Nyholm/Psr7. -->
+	<rule ref="PHPCompatibility.ParameterValues.RemovedTriggerErrorLevel.Deprecated">
+		<exclude-pattern>/php-ai-client/third-party/Nyholm/Psr7/StreamTrait\.php$</exclude-pattern>
 	</rule>
 
 </ruleset>
