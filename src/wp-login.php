@@ -1486,6 +1486,14 @@ switch ( $action ) {
 			wp_clear_auth_cookie();
 		}
 
+		// Obtain user from password reset cookie flow before clearing cookie.
+		$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
+		if ( isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
+			$user_login      = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
+			list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
+			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
+		}
+
 		login_header( __( 'Log In' ), '', $errors );
 
 		if ( isset( $_POST['log'] ) ) {
@@ -1506,10 +1514,6 @@ switch ( $action ) {
 		}
 
 		wp_enqueue_script( 'user-profile' );
-		$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
-		if ( ! $user_login && isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
-			$user_login = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
-		}
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
