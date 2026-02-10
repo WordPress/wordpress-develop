@@ -241,7 +241,7 @@ class WP_HTTP_Polling_Sync_Server {
 			}
 
 			// Get updates for this client.
-			$room_response              = $this->get_updates_after( $room, $client_id, $cursor, $is_compactor );
+			$room_response              = $this->get_updates( $room, $client_id, $cursor, $is_compactor );
 			$room_response['awareness'] = $merged_awareness;
 
 			$response['rooms'][] = $room_response;
@@ -252,8 +252,6 @@ class WP_HTTP_Polling_Sync_Server {
 
 	/**
 	 * Checks if the current user can sync a specific entity type.
-	 *
-	 * @since 7.0.0
 	 *
 	 * @param string      $entity_kind The entity kind.
 	 * @param string      $entity_name The entity name.
@@ -287,12 +285,10 @@ class WP_HTTP_Polling_Sync_Server {
 	/**
 	 * Processes and stores an awareness update from a client.
 	 *
-	 * @since 7.0.0
-	 *
-	 * @param string     $room             Room identifier.
-	 * @param int        $client_id        Client identifier.
-	 * @param array|null $awareness_update  Awareness state sent by the client.
-	 * @return array Updated awareness state for the room.
+	 * @param string                    $room             Room identifier.
+	 * @param int                       $client_id        Client identifier.
+	 * @param array<string, mixed>|null $awareness_update Awareness state sent by the client.
+	 * @return array<int, array<string, mixed>> Updated awareness state for the room.
 	 */
 	private function process_awareness_update( string $room, int $client_id, ?array $awareness_update ): array {
 		$existing_awareness = $this->storage->get_awareness_state( $room );
@@ -336,12 +332,10 @@ class WP_HTTP_Polling_Sync_Server {
 	/**
 	 * Processes a sync update based on its type.
 	 *
-	 * @since 7.0.0
-	 *
-	 * @param string $room      Room identifier.
-	 * @param int    $client_id Client identifier.
-	 * @param int    $cursor    Client cursor (marker of last seen update).
-	 * @param array  $update    Sync update with 'type' and 'data' fields.
+	 * @param string               $room      Room identifier.
+	 * @param int                  $client_id Client identifier.
+	 * @param int                  $cursor    Client cursor (marker of last seen update).
+	 * @param array<string, mixed> $update    Sync update with 'type' and 'data' fields.
 	 */
 	private function process_sync_update( string $room, int $client_id, int $cursor, array $update ): void {
 		$data = $update['data'];
@@ -354,39 +348,44 @@ class WP_HTTP_Polling_Sync_Server {
 				 * updates with markers before the client's cursor to preserve updates
 				 * that arrived since the client's last sync.
 				 *
-				 * The remove_updates_before_cursor method returns false if there
-				 * is a newer compaction update already stored.
+				 * Check for a newer compaction update first. If one exists, skip this
+				 * compaction to avoid overwriting it.
 				 */
-				if ( $this->remove_updates_before_cursor( $room, $cursor ) ) {
+				$updates_after_cursor = $this->storage->get_updates_after_cursor( $room, $cursor );
+				$has_newer_compaction = false;
+
+				foreach ( $updates_after_cursor as $existing ) {
+					if ( self::UPDATE_TYPE_COMPACTION === $existing['type'] ) {
+						$has_newer_compaction = true;
+						break;
+					}
+				}
+
+				if ( ! $has_newer_compaction ) {
+					$this->storage->remove_updates_before_cursor( $room, $cursor );
 					$this->add_update( $room, $client_id, $type, $data );
 				}
 				break;
 
 			case self::UPDATE_TYPE_SYNC_STEP1:
+			case self::UPDATE_TYPE_SYNC_STEP2:
+			case self::UPDATE_TYPE_UPDATE:
 				/*
 				 * Sync step 1 announces a client's state vector. Other clients need
 				 * to see it so they can respond with sync_step2 containing missing
 				 * updates. The cursor-based filtering prevents re-delivery.
+				 *
+				 * Sync step 2 contains updates for a specific client.
+				 *
+				 * All updates are stored persistently.
 				 */
-				$this->add_update( $room, $client_id, $type, $data );
-				break;
-
-			case self::UPDATE_TYPE_SYNC_STEP2:
-				// Sync step 2 contains updates for a specific client.
-				$this->add_update( $room, $client_id, $type, $data );
-				break;
-
-			case self::UPDATE_TYPE_UPDATE:
-				// Regular document updates are stored persistently.
 				$this->add_update( $room, $client_id, $type, $data );
 				break;
 		}
 	}
 
 	/**
-	 * Adds an update to a room's update list.
-	 *
-	 * @since 7.0.0
+	 * Adds an update to a room's update list via storage.
 	 *
 	 * @param string $room      Room identifier.
 	 * @param int    $client_id Client identifier.
@@ -394,31 +393,20 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param string $data      Base64-encoded update data.
 	 */
 	private function add_update( string $room, int $client_id, string $type, string $data ): void {
-		$update_envelope = array(
+		$update = array(
 			'client_id' => $client_id,
-			'type'      => $type,
 			'data'      => $data,
-			'timestamp' => $this->get_time_marker(),
+			'type'      => $type,
 		);
 
-		$this->storage->add_update( $room, $update_envelope );
+		$this->storage->add_update( $room, $update );
 	}
 
 	/**
-	 * Gets the current time in milliseconds as a comparable time marker.
+	 * Gets sync updates for a specific client from a room after a given cursor.
 	 *
-	 * @since 7.0.0
-	 *
-	 * @return int Current time in milliseconds.
-	 */
-	private function get_time_marker(): int {
-		return floor( microtime( true ) * 1000 );
-	}
-
-	/**
-	 * Gets sync updates from a room after a given cursor.
-	 *
-	 * @since 7.0.0
+	 * Delegates cursor-based retrieval to the storage layer, then applies
+	 * client-specific filtering and compaction logic.
 	 *
 	 * @param string $room         Room identifier.
 	 * @param int    $client_id    Client identifier.
@@ -426,35 +414,17 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param bool   $is_compactor True if this client is nominated to perform compaction.
 	 * @return array<string, mixed> Response data for this room.
 	 */
-	private function get_updates_after( string $room, int $client_id, int $cursor, bool $is_compactor ): array {
-		$end_cursor    = $this->get_time_marker() - 100; // Small buffer to ensure consistency.
-		$all_updates   = $this->storage->get_all_updates( $room );
-		$total_updates = count( $all_updates );
-		$updates       = array();
+	private function get_updates( string $room, int $client_id, int $cursor, bool $is_compactor ): array {
+		$updates_after_cursor = $this->storage->get_updates_after_cursor( $room, $cursor );
+		$total_updates        = $this->storage->get_update_count( $room );
 
-		foreach ( $all_updates as $update ) {
-			// Skip updates from this client, unless they are compaction updates.
+		// Filter out this client's updates, except compaction updates.
+		$typed_updates = array();
+		foreach ( $updates_after_cursor as $update ) {
 			if ( $client_id === $update['client_id'] && self::UPDATE_TYPE_COMPACTION !== $update['type'] ) {
 				continue;
 			}
 
-			// Skip updates before our cursor.
-			if ( $update['timestamp'] > $cursor ) {
-				$updates[] = $update;
-			}
-		}
-
-		// Sort by update timestamp to ensure order.
-		usort(
-			$updates,
-			function ( $a, $b ) {
-				return ( $a['timestamp'] ?? 0 ) <=> ( $b['timestamp'] ?? 0 );
-			}
-		);
-
-		// Convert to typed update format for response.
-		$typed_updates = array();
-		foreach ( $updates as $update ) {
 			$typed_updates[] = array(
 				'data' => $update['data'],
 				'type' => $update['type'],
@@ -464,49 +434,15 @@ class WP_HTTP_Polling_Sync_Server {
 		// Determine if this client should perform compaction.
 		$compaction_request = null;
 		if ( $is_compactor && $total_updates > self::COMPACTION_THRESHOLD ) {
-			$compaction_request = $all_updates;
+			$compaction_request = $updates_after_cursor;
 		}
 
 		return array(
 			'compaction_request' => $compaction_request,
-			'end_cursor'         => $end_cursor,
+			'end_cursor'         => $this->storage->get_cursor( $room ),
 			'room'               => $room,
 			'total_updates'      => $total_updates,
 			'updates'            => $typed_updates,
 		);
-	}
-
-	/**
-	 * Removes updates from a room that are older than the given compaction marker.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param string $room   Room identifier.
-	 * @param int    $cursor Remove updates with markers < this cursor.
-	 * @return bool True if this compaction is the latest, false if a newer compaction update exists.
-	 */
-	private function remove_updates_before_cursor( string $room, int $cursor ): bool {
-		$all_updates = $this->storage->get_all_updates( $room );
-		$this->storage->remove_all_updates( $room );
-
-		$is_latest_compaction = true;
-		$updates_to_keep      = array();
-
-		foreach ( $all_updates as $update ) {
-			if ( $update['timestamp'] >= $cursor ) {
-				$updates_to_keep[] = $update;
-
-				if ( self::UPDATE_TYPE_COMPACTION === $update['type'] ) {
-					$is_latest_compaction = false;
-				}
-			}
-		}
-
-		// Replace all updates with filtered list.
-		foreach ( $updates_to_keep as $update ) {
-			$this->storage->add_update( $room, $update );
-		}
-
-		return $is_latest_compaction;
 	}
 }
