@@ -183,7 +183,7 @@ class WP_HTTP_Polling_Sync_Server {
 			if ( 2 !== count( $type_parts ) ) {
 				return new WP_Error(
 					'invalid_room_format',
-					'Invalid room format. Expected: entity_kind/entity_name or entity_kind/entity_name:id',
+					__( 'Invalid room format. Expected: entity_kind/entity_name or entity_kind/entity_name:id' ),
 					array( 'status' => 400 )
 				);
 			}
@@ -199,7 +199,11 @@ class WP_HTTP_Polling_Sync_Server {
 			if ( ! $this->can_user_sync_entity_type( $entity_kind, $entity_name, $object_id ) ) {
 				return new WP_Error(
 					'forbidden',
-					sprintf( 'You do not have permission to sync this entity: %s.', $room ),
+					sprintf(
+						/* translators: %s: The room name encodes the current entity being synced. */
+						__( 'You do not have permission to sync this entity: %s.' ),
+						$room
+					),
 					array( 'status' => 401 )
 				);
 			}
