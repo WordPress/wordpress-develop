@@ -1494,7 +1494,7 @@ class WP_Query {
 		/**
 		 * Filters the columns to search in a WP_Query search.
 		 *
-		 * The supported columns are `post_title`, `post_excerpt` and `post_content`.
+		 * The supported columns are `post_title`, `post_excerpt`, `post_content`, and `post_name`.
 		 * They are all included by default.
 		 *
 		 * @since 6.2.0
