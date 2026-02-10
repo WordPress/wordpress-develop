@@ -17,7 +17,12 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	window.wp.codeEditor = {};
 }
 
-( function( $, wp ) {
+/**
+ * @param {jQuery} $ - jQuery.
+ * @param {object} wp - WordPress namespace.
+ * @param {import('underscore').UnderscoreStatic} _ - Underscore.
+ */
+( function( $, wp, _ ) {
 	'use strict';
 
 	/**
@@ -366,4 +371,4 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 		return instance;
 	};
 
-})( window.jQuery, window.wp );
+})( window.jQuery, window.wp, window._ );
