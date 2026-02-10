@@ -8611,6 +8611,7 @@ function use_block_editor_for_post_type( $post_type ) {
  * Registers any additional post meta fields.
  *
  * @since 6.3.0 Adds `wp_pattern_sync_status` meta field to the wp_block post type so an unsynced option can be added.
+ * @since 7.0.0 Adds `_crdt_document` meta field to post types so that CRDT documents can be persisted.
  *
  * @link https://github.com/WordPress/gutenberg/pull/51144
  */
@@ -8628,6 +8629,30 @@ function wp_create_initial_post_meta() {
 					'enum' => array( 'partial', 'unsynced' ),
 				),
 			),
+		)
+	);
+
+	register_meta(
+		'post',
+		'_crdt_document',
+		array(
+			'auth_callback'     => function ( bool $_allowed, string $_meta_key, int $object_id, int $user_id ): bool {
+				return user_can( $user_id, 'edit_post', $object_id );
+			},
+			/*
+			 * Revisions must be disabled because we always want to preserve
+			 * the latest persisted CRDT document, even when a revision is restored.
+			 * This ensures that we can continue to apply updates to a shared document
+			 * and peers can simply merge the restored revision like any other incoming
+			 * update.
+			 *
+			 * If we want to persist CRDT documents alongside revisions in the
+			 * future, we should do so in a separate meta key.
+			 */
+			'revisions_enabled' => false,
+			'show_in_rest'      => true,
+			'single'            => true,
+			'type'              => 'string',
 		)
 	);
 }
