@@ -6069,8 +6069,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58588
 	 * @ticket 60613
 	 *
-	 * @covers WP_Theme_JSON_Gutenberg::resolve_variables
-	 * @covers WP_Theme_JSON_Gutenberg::convert_variables_to_value
+	 * @covers WP_Theme_JSON::resolve_variables
+	 * @covers WP_Theme_JSON::convert_variables_to_value
 	 */
 	public function test_resolve_variables() {
 		$primary_color   = '#9DFF20';
@@ -6698,9 +6698,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Test that block pseudo selectors are processed correctly.
 	 */
 	public function test_block_pseudo_selectors_are_processed() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/button' => array(
@@ -6734,9 +6734,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Test that block pseudo selectors are processed correctly within variations.
 	 */
 	public function test_block_variation_pseudo_selectors_are_processed() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/button' => array(
@@ -6783,9 +6783,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Test that non-whitelisted pseudo selectors are ignored for blocks.
 	 */
 	public function test_block_pseudo_selectors_ignores_non_whitelisted() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/button' => array(
@@ -6820,9 +6820,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Test that blocks without pseudo selector support ignore pseudo selectors.
 	 */
 	public function test_blocks_without_pseudo_support_ignore_pseudo_selectors() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/paragraph' => array(
@@ -6849,9 +6849,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Test that block pseudo selectors work with elements within blocks.
 	 */
 	public function test_block_pseudo_selectors_with_elements() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/button' => array(
