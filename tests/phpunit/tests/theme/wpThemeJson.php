@@ -6788,7 +6788,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			array( 'styles' ),
 			null,
 			array(
-				'skip_root_layout_styles'         => true,
+				'skip_root_layout_styles'        => true,
 				'include_block_style_variations' => true,
 			)
 		);
