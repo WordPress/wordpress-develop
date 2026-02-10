@@ -3742,16 +3742,21 @@ function wp_hoist_late_printed_styles() {
 	/*
 	 * Add a placeholder comment into the inline styles for wp-block-library, after which the late block styles
 	 * can be hoisted from the footer to be printed in the header by means of a filter below on the template enhancement
-	 * output buffer. The `wp_print_styles` action is used to ensure that if the inline style gets replaced at
-	 * `enqueue_block_assets` or `wp_enqueue_scripts` that the placeholder will be sure to be present.
+	 * output buffer.
+	 *
+	 * Note that wp_maybe_inline_styles() prepends the inlined style to the extra 'after' array, which happens after
+	 * this code runs. This ensures that the placeholder appears right after any inlined wp-block-library styles,
+	 * which would be common.css.
 	 */
 	$placeholder = sprintf( '/*%s*/', uniqid( 'wp_block_styles_on_demand_placeholder:' ) );
-	add_action(
-		'wp_print_styles',
-		static function () use ( $placeholder ) {
+	$dependency  = wp_styles()->query( 'wp-block-library', 'registered' );
+	if ( $dependency ) {
+		if ( ! isset( $dependency->extra['after'] ) ) {
 			wp_add_inline_style( 'wp-block-library', $placeholder );
+		} else {
+			array_unshift( $dependency->extra['after'], $placeholder );
 		}
-	);
+	}
 
 	/*
 	 * Create a substitute for `print_late_styles()` which is aware of block styles. This substitute does not print
@@ -3963,13 +3968,34 @@ function wp_hoist_late_printed_styles() {
 				$css_text = $processor->get_modifiable_text();
 
 				/*
-				 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
-				 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
-				 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
-				 * comment), then remove the STYLE entirely.
+				 * Split the block library inline style by the placeholder to identify the original inlined CSS, which
+				 * is likely would be common.css, followed by any inline styles which had been added by the theme or
+				 * plugins via `wp_add_inline_style( 'wp-block-library', '...' )`. The separate block styles loaded on
+				 * demand will get inserted after the inlined common.css and before the extra inline styles added by the
+				 * user.
 				 */
-				$css_text = str_replace( $placeholder, '', $css_text );
-				if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
+				$css_text_around_placeholder = explode( $placeholder, $css_text, 2 );
+				$extra_inline_styles         = '';
+				if ( count( $css_text_around_placeholder ) === 2 ) {
+					$css_text = $css_text_around_placeholder[0];
+					if ( '' !== trim( $css_text ) ) {
+						$inlined_src = wp_styles()->get_data( 'wp-block-library', 'inlined_src' );
+						if ( $inlined_src ) {
+							$css_text .= sprintf(
+								"\n/*# sourceURL=%s */\n",
+								esc_url_raw( $inlined_src )
+							);
+						}
+					}
+					$extra_inline_styles = $css_text_around_placeholder[1];
+				}
+
+				/*
+				 * The placeholder CSS comment was added to the inline style in order to force an inline STYLE tag to
+				 * be printed. Now that the inline style has been located and the placeholder comment was be removed, if
+				 * there is no CSS left in the STYLE tag after removal, then remove the STYLE entirely.
+				 */
+				if ( '' === trim( $css_text ) ) {
 					$processor->remove();
 				} else {
 					$processor->set_modifiable_text( $css_text );
@@ -3977,6 +4003,15 @@ function wp_hoist_late_printed_styles() {
 
 				$inserted_after            = $printed_core_block_styles;
 				$printed_core_block_styles = '';
+
+				/*
+				 * Add a new inline style for any user styles added wp_add_inline_style( 'wp-block-library', '...' ).
+				 * This must be added here after $printed_core_block_styles to preserve the original CSS cascade when
+				 * the combined block library stylesheet was used.
+				 */
+				if ( ! preg_match( ':^\s*/\*# sourceURL=\S+? \*/\s*$:s', $extra_inline_styles ) ) {
+					$inserted_after .= "<style id='wp-block-library-inline-css-extra'>$extra_inline_styles</style>\n";
+				}
 
 				// If the classic-theme-styles is absent, then the third-party block styles cannot be inserted after it, so they get inserted here.
 				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
