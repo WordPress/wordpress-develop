@@ -233,7 +233,6 @@ NO;
 			)
 		);
 
-		
 		$child_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
