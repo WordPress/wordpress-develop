@@ -244,7 +244,7 @@ NO;
 		wp_trash_post( $parent_id );
 
 		$output = wp_dropdown_pages( array( 'echo' => 0 ) );
-		
+
 		$this->assertStringContainsString( 'value="' . $child_id . '"', $output, 'Published child page should remain available even when parent is trashed.' );
 		$this->assertStringNotContainsString( 'value="' . $parent_id . '"', $output, 'Trashed parent should not appear in dropdown.' );
 	}
