@@ -30,7 +30,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @since 6.8.0
 	 * @var int|null
 	 */
-	private static $storage_post_id = null;
+	private static ?int $storage_post_id = null;
 
 	/**
 	 * Initializer.
@@ -152,9 +152,9 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @since 6.8.0
 	 *
-	 * @return int Post ID.
+	 * @return int|null Post ID.
 	 */
-	private function get_storage_post_id(): int {
+	private function get_storage_post_id(): ?int {
 		if ( is_int( self::$storage_post_id ) ) {
 			return self::$storage_post_id;
 		}
@@ -165,13 +165,14 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 				'post_type'      => self::POST_TYPE,
 				'posts_per_page' => 1,
 				'post_status'    => 'publish',
-				'orderby'        => 'ID',
+				'fields'         => 'ids',
 				'order'          => 'ASC',
 			)
 		);
 
-		if ( ! empty( $posts ) ) {
-			self::$storage_post_id = $posts[0]->ID;
+		$post_id = array_first( $posts );
+		if ( is_int( $post_id ) ) {
+			self::$storage_post_id = $post_id;
 			return self::$storage_post_id;
 		}
 
@@ -184,7 +185,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			)
 		);
 
-		if ( ! is_wp_error( $post_id ) ) {
+		if ( is_int( $post_id ) ) {
 			self::$storage_post_id = $post_id;
 		}
 

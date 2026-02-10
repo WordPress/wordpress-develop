@@ -190,11 +190,7 @@ class WP_HTTP_Polling_Sync_Server {
 
 			$entity_kind = $type_parts[0];
 			$entity_name = $object_parts[0];
-			$object_id   = null;
-
-			if ( isset( $object_parts[1] ) ) {
-				$object_id = $object_parts[1];
-			}
+			$object_id   = $object_parts[1] ?? null;
 
 			if ( ! $this->can_user_sync_entity_type( $entity_kind, $entity_name, $object_id ) ) {
 				return new WP_Error(
@@ -428,7 +424,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param int    $client_id    Client identifier.
 	 * @param int    $cursor       Return updates after this cursor.
 	 * @param bool   $is_compactor True if this client is nominated to perform compaction.
-	 * @return array Response data for this room.
+	 * @return array<string, mixed> Response data for this room.
 	 */
 	private function get_updates_after( string $room, int $client_id, int $cursor, bool $is_compactor ): array {
 		$end_cursor    = $this->get_time_marker() - 100; // Small buffer to ensure consistency.
