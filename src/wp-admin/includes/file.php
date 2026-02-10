@@ -262,6 +262,7 @@ function wp_get_theme_file_editable_extensions( $theme ) {
 		'inc',
 		'include',
 		'js',
+		'mjs',
 		'json',
 		'jsx',
 		'less',
