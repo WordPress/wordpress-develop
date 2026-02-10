@@ -1486,7 +1486,7 @@ switch ( $action ) {
 			wp_clear_auth_cookie();
 		}
 
-		// Obtain user from password reset cookie flow before clearing cookie.
+		// Obtain user from password reset cookie flow before clearing the cookie.
 		$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
 		if ( isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
 			$user_login      = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
