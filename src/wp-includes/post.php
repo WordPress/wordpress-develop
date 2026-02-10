@@ -6266,6 +6266,11 @@ function get_page_children( $page_id, $pages ) {
 		}
 	}
 
+	if ( 0 === $page_id ) {
+		$parent_ids = array_keys( $children );
+		$page_ids   = wp_list_pluck( $pages, 'ID' );
+	}
+
 	return $page_list;
 }
 
