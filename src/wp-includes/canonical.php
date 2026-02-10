@@ -978,6 +978,7 @@ function redirect_guess_404_permalink() {
 			'update_post_term_cache' => false,
 			'fields'                 => 'ids',
 			'orderby'                => 'none',
+			'suppress_filters'       => 'true',
 		);
 
 		if ( $strict_guess ) {
