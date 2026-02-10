@@ -202,6 +202,7 @@ function wp_get_plugin_file_editable_extensions( $plugin ) {
 		'inc',
 		'include',
 		'js',
+		'mjs',
 		'json',
 		'jsx',
 		'less',
