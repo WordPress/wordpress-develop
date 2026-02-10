@@ -334,7 +334,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 				}
 
 				const innerMode = wp.CodeMirror.innerMode( codemirror.getMode(), token.state ).mode.name;
-				const lineBeforeCursor = codemirror.doc.getLine( codemirror.doc.getCursor().line ).substr( 0, codemirror.doc.getCursor().ch );
+				const lineBeforeCursor = codemirror.doc.getLine( codemirror.doc.getCursor().line ).slice( 0, codemirror.doc.getCursor().ch );
 				let shouldAutocomplete;
 				if ( 'html' === innerMode || 'xml' === innerMode ) {
 					shouldAutocomplete = (
