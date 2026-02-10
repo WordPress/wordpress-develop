@@ -2799,21 +2799,21 @@ class WP_Theme_JSON {
 					'variations' => $variation_selectors,
 					'css'        => $selector,
 				);
-			}
 
-			// Handle any pseudo selectors for the block.
-			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
-				foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo_selector ) {
-					if ( isset( $theme_json['styles']['blocks'][ $name ][ $pseudo_selector ] ) ) {
-						$nodes[] = array(
-							'name'       => $name,
-							'path'       => array( 'styles', 'blocks', $name, $pseudo_selector ),
-							'selector'   => static::append_to_selector( $selector, $pseudo_selector ),
-							'selectors'  => $feature_selectors,
-							'duotone'    => $duotone_selector,
-							'variations' => $variation_selectors,
-							'css'        => static::append_to_selector( $selector, $pseudo_selector ),
-						);
+				// Handle any pseudo selectors for the block.
+				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
+					foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo_selector ) {
+						if ( isset( $theme_json['styles']['blocks'][ $name ][ $pseudo_selector ] ) ) {
+							$nodes[] = array(
+								'name'       => $name,
+								'path'       => array( 'styles', 'blocks', $name, $pseudo_selector ),
+								'selector'   => static::append_to_selector( $selector, $pseudo_selector ),
+								'selectors'  => $feature_selectors,
+								'duotone'    => $duotone_selector,
+								'variations' => $variation_selectors,
+								'css'        => static::append_to_selector( $selector, $pseudo_selector ),
+							);
+						}
 					}
 				}
 			}
