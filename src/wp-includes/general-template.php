@@ -4152,6 +4152,7 @@ function wp_get_code_editor_settings( $args ) {
 		),
 		'jshint'     => array(
 			'esversion' => 11,
+			'module'    => str_ends_with( $args['file'] ?? '', '.mjs' ),
 
 			// The following JSHint *linting rule* options are copied from
 			// <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
@@ -4239,6 +4240,7 @@ function wp_get_code_editor_settings( $args ) {
 					$type = 'message/http';
 					break;
 				case 'js':
+				case 'mjs':
 					$type = 'text/javascript';
 					break;
 				case 'json':
