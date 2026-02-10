@@ -173,7 +173,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @return bool|WP_Error True if user has permission, otherwise WP_Error with details.
 	 */
 	public function check_permissions( WP_REST_Request $request ) {
-		$rooms = $request->get_param( 'rooms' );
+		$rooms = $request['rooms'];
 
 		foreach ( $rooms as $room ) {
 			$room         = $room['room'];
@@ -222,7 +222,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @return WP_REST_Response|WP_Error Response object or error.
 	 */
 	public function handle_request( WP_REST_Request $request ) {
-		$rooms    = $request->get_param( 'rooms' );
+		$rooms    = $request['rooms'];
 		$response = array(
 			'rooms' => array(),
 		);
