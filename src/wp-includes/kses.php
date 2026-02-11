@@ -2757,6 +2757,28 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	);
 
 	/*
+	 * CSS attributes that accept rgb(a) color data types.
+	 *
+	 */
+	$css_color_data_types = array(
+		'color',
+
+		'border',
+		'border-color',
+		'border-right',
+		'border-right-color',
+		'border-bottom',
+		'border-bottom-color',
+		'border-left',
+		'border-left-color',
+		'border-top',
+		'border-top-color',
+
+		'background',
+		'background-color',
+	);
+
+	/*
 	 * CSS attributes that accept gradient data types.
 	 *
 	 */
@@ -2779,6 +2801,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$css_test_string = $css_item;
 		$found           = false;
 		$url_attr        = false;
+		$color_attr      = false;
 		$gradient_attr   = false;
 		$is_custom_var   = false;
 
@@ -2798,6 +2821,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
+				$color_attr    = in_array( $css_selector, $css_color_data_types, true );
 			}
 
 			if ( $is_custom_var ) {
@@ -2836,6 +2860,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			$css_value = trim( $parts[1] );
 			if ( preg_match( '/^(repeating-)?(linear|radial|conic)-gradient\(([^()]|rgb[a]?\([^()]*\))*\)$/', $css_value ) ) {
 				// Remove the whole `gradient` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $css_value, '', $css_test_string );
+			}
+		}
+
+		if ( $found && $color_attr ) {
+			$css_value = trim( $parts[1] );
+			$comma_syntax = '/^rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*(?:,\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i';
+			$space_syntax = '/^rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s*(?:\/\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i';
+
+			if ( preg_match( $comma_syntax, $css_value ) || preg_match( $space_syntax, $css_value ) ) {
 				$css_test_string = str_replace( $css_value, '', $css_test_string );
 			}
 		}
