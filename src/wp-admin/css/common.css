@@ -930,10 +930,12 @@ a#remove-post-thumbnail:hover,
 	clear: both;
 	border-top: 1px solid #dcdcde;
 	background: #f6f7f7;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 #delete-action {
-	float: left;
 	line-height: 2.30769231; /* 30px */
 }
 
@@ -950,7 +952,7 @@ a#remove-post-thumbnail:hover,
 
 #publishing-action {
 	text-align: right;
-	float: right;
+	margin-left: auto;
 	line-height: 1.9;
 }
 
