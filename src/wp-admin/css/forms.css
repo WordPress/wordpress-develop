@@ -521,6 +521,9 @@ input[type="number"].tiny-text {
 #doaction2,
 #post-query-submit {
 	margin: 0 8px 0 0;
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
+	padding: 0 12px;
 }
 
 /* @since 5.7.0 secondary bulk action controls require JS. */
@@ -537,6 +540,9 @@ input[type="number"].tiny-text {
 	float: left;
 	margin-right: 6px;
 	max-width: 12.5rem;
+	min-height: 32px;
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+	padding: 0 24px 0 8px;
 }
 
 #timezone_string option {
@@ -779,6 +785,19 @@ p.search-box {
 	position: relative;
 	float: right;
 	margin: 11px 0;
+}
+
+p.search-box input[type="search"],
+p.search-box input[type="text"] {
+	min-height: 32px;
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+	padding: 0 8px;
+}
+
+p.search-box .button {
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
+	padding: 0 12px;
 }
 
 .network-admin.themes-php p.search-box {

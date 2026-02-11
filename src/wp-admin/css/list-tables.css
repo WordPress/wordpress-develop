@@ -668,6 +668,9 @@ th.sorted a span {
 	margin: 0 2px 0 0;
 	font-size: 13px;
 	text-align: center;
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
+	padding: 0 8px;
 }
 
 .tablenav .total-pages {
@@ -680,7 +683,7 @@ th.sorted a span {
 
 .tablenav {
 	clear: both;
-	height: 40px;
+	height: 32px;
 	margin: 6px 0 4px;
 	vertical-align: middle;
 }
@@ -703,12 +706,12 @@ th.sorted a span {
 .tablenav .tablenav-pages .tablenav-pages-navspan {
 	display: inline-block;
 	vertical-align: baseline;
-	min-width: 40px;
-	min-height: 40px;
+	min-width: 32px;
+	min-height: 32px;
 	margin: 0;
 	padding: 0 4px;
 	font-size: 16px;
-	line-height: 2.375; /* 38px - matches default button */
+	line-height: 1.875; /* 30px for 32px height */
 	text-align: center;
 }
 

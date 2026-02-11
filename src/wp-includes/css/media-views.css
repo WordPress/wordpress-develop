@@ -267,6 +267,28 @@
 	-webkit-font-smoothing: subpixel-antialiased;
 }
 
+.media-modal-content .button {
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
+	padding: 0 12px;
+}
+
+.media-modal-content input[type="text"],
+.media-modal-content input[type="search"],
+.media-modal-content select {
+	min-height: 32px;
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+}
+
+.media-modal-content input[type="text"],
+.media-modal-content input[type="search"] {
+	padding: 0 8px;
+}
+
+.media-modal-content select {
+	padding: 0 24px 0 8px;
+}
+
 .media-modal-content .media-frame select.attachment-filters {
 	margin-top: 32px;
 	margin-right: 2%;

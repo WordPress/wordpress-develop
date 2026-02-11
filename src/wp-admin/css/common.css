@@ -636,11 +636,10 @@ code {
 	background: transparent;
 	font-size: 13px;
 	font-weight: 500;
-	min-height: 40px;
-	line-height: 2.92307692; /* 38px for 40px height */
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height */
 	color: #2271b1; /* use the standard color used for buttons */
-	padding: 0 10px;
-	min-height: 30px;
+	padding: 0 12px;
 	-webkit-appearance: none;
 
 }
@@ -1107,6 +1106,24 @@ th.action-links {
 
 .wp-filter .search-form select {
 	margin: 0;
+}
+
+.wp-filter .search-form input[type="search"] {
+	min-height: 32px;
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+	padding: 0 8px;
+}
+
+.wp-filter .search-form select {
+	min-height: 32px;
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+	padding: 0 24px 0 8px;
+}
+
+.wp-filter .button {
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
+	padding: 0 12px;
 }
 
 /* Use flexbox only on the plugins install page and upload page. The `filter-links` and search form children will become flex items. */
