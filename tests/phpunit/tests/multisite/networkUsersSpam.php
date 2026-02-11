@@ -56,7 +56,7 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 		// Ensure user is not marked as spam initially.
 		$user = get_userdata( self::$user_id );
 		if ( $user ) {
-			$user_data = $user->to_array();
+			$user_data         = $user->to_array();
 			$user_data['spam'] = '0';
 			wp_update_user( $user_data );
 		}
@@ -73,8 +73,8 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 		}
 
 		// Mark user as spam (simulating the logic from users.php).
-		$user = get_userdata( self::$user_id );
-		$user_data = $user->to_array();
+		$user              = get_userdata( self::$user_id );
+		$user_data         = $user->to_array();
 		$user_data['spam'] = '1';
 		wp_update_user( $user_data );
 
@@ -112,7 +112,7 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 			}
 		}
 
-		$user_data = $user->to_array();
+		$user_data         = $user->to_array();
 		$user_data['spam'] = '1';
 		wp_update_user( $user_data );
 
@@ -165,8 +165,8 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 	 */
 	public function test_unmark_user_spam_does_not_propagate_to_blogs_by_default() {
 		// First, mark user and blogs as spam manually.
-		$user = get_userdata( self::$user_id );
-		$user_data = $user->to_array();
+		$user              = get_userdata( self::$user_id );
+		$user_data         = $user->to_array();
 		$user_data['spam'] = '1';
 		wp_update_user( $user_data );
 
@@ -181,8 +181,8 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 		}
 
 		// Unmark user as spam (simulating the logic from users.php).
-		$user = get_userdata( self::$user_id );
-		$user_data = $user->to_array();
+		$user              = get_userdata( self::$user_id );
+		$user_data         = $user->to_array();
 		$user_data['spam'] = '0';
 		wp_update_user( $user_data );
 
@@ -203,8 +203,8 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 	 */
 	public function test_unmark_user_spam_propagates_to_blogs_when_filter_enabled() {
 		// First, mark user and blogs as spam manually.
-		$user = get_userdata( self::$user_id );
-		$user_data = $user->to_array();
+		$user              = get_userdata( self::$user_id );
+		$user_data         = $user->to_array();
 		$user_data['spam'] = '1';
 		wp_update_user( $user_data );
 
@@ -231,7 +231,7 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 			}
 		}
 
-		$user_data = $user->to_array();
+		$user_data         = $user->to_array();
 		$user_data['spam'] = '0';
 		wp_update_user( $user_data );
 
@@ -303,8 +303,8 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 	 */
 	public function test_unmark_spam_only_affects_current_network_blogs() {
 		// Mark user and blogs as spam manually.
-		$user = get_userdata( self::$user_id );
-		$user_data = $user->to_array();
+		$user              = get_userdata( self::$user_id );
+		$user_data         = $user->to_array();
 		$user_data['spam'] = '1';
 		wp_update_user( $user_data );
 
@@ -332,7 +332,7 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 			}
 		}
 
-		$user_data = $user->to_array();
+		$user_data         = $user->to_array();
 		$user_data['spam'] = '0';
 		wp_update_user( $user_data );
 
@@ -341,9 +341,9 @@ class Tests_Multisite_NetworkUsersSpam extends WP_UnitTestCase {
 		$blogs_in_current_network = 0;
 		foreach ( self::$blog_ids as $blog_id ) {
 			if ( ! is_main_site( $blog_id ) && isset( $blogs_before[ $blog_id ] ) ) {
-				$blog = get_site( $blog_id );
+				$blog         = get_site( $blog_id );
 				$blog_details = $blogs_before[ $blog_id ];
-				
+
 				// In a standard multisite setup, all blogs are in the same network.
 				// Verify the blog's network matches the current network.
 				if ( $current_network_id === $blog_details->site_id ) {
