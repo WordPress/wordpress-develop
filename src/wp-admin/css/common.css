@@ -1823,7 +1823,7 @@ p.auto-update-status {
 	height: auto;
 	min-height: 32px; /* Compact size for header buttons */
 	margin-bottom: 0;
-	padding: 3px 6px 3px 16px;
+	padding: 0 6px 0 16px;
 	background: #fff;
 	border-radius: 0 0 4px 4px;
 	color: #646970;
