@@ -282,6 +282,27 @@ class WP_Theme_JSON_Resolver {
 			$theme_json_data = static::inject_variations_from_block_style_variation_files( $theme_json_data, $variations );
 			$theme_json_data = static::inject_variations_from_block_styles_registry( $theme_json_data );
 
+			/*
+			 * The core Separator block has Block Styles that rely on different CSS
+			 * properties. For example, the "Dots" style renders using `::before` and
+			 * requires styling the `color` property instead of `border-color`.
+			 * TwentyTwenty's default style renders using a linear gradient that can't
+			 * be applied to `color` so uses `background` instead.
+			 *
+			 * End users are only given a single color control in the Global Styles UI
+			 * so we need to ensure all the required values are set if a theme only adds
+			 * the `background` property, matching the UI.
+			 */
+			$separator_color = $theme_json_data['styles']['blocks']['core/separator']['color']['background'] ?? null;
+			if ( $separator_color ) {
+				if ( ! isset( $theme_json_data['styles']['blocks']['core/separator']['color']['text'] ) ) {
+					_wp_array_set( $theme_json_data, array( 'styles', 'blocks', 'core/separator', 'color', 'text' ), $separator_color );
+				}
+				if ( ! isset( $theme_json_data['styles']['blocks']['core/separator']['border']['color'] ) ) {
+					_wp_array_set( $theme_json_data, array( 'styles', 'blocks', 'core/separator', 'border', 'color' ), $separator_color );
+				}
+			}
+
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
 			 *
@@ -587,6 +608,21 @@ class WP_Theme_JSON_Resolver {
 				unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
 				$config = $decoded_data;
 			}
+		}
+
+		/*
+		 * The Separator block uses different CSS properties for its color depending
+		 * on how it is being rendered e.g. as "content" for the Dots style, or
+		 * as a border etc.
+		 *
+		 * Uses are only presented with a single color control for background. Any
+		 * selection of a background color should be applied to the other paths
+		 * so it can be honored.
+		 */
+		$separator_color = $config['styles']['blocks']['core/separator']['color']['background'] ?? null;
+		if ( $separator_color ) {
+			_wp_array_set( $config, array( 'styles', 'blocks', 'core/separator', 'color', 'text' ), $separator_color );
+			_wp_array_set( $config, array( 'styles', 'blocks', 'core/separator', 'border', 'color' ), $separator_color );
 		}
 
 		/** This filter is documented in wp-includes/class-wp-theme-json-resolver.php */

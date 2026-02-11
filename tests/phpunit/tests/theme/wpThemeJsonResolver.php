@@ -1484,4 +1484,277 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex( $expected, $actual, 'Merged variation styles do not match.' );
 	}
+
+	/**
+	 * Tests that separator block colors are correctly merged in user data.
+	 *
+	 * @ticket 62624
+	 *
+	 * @dataProvider data_separator_color_merge_user_data
+	 *
+	 * @param array $input_styles    The styles to test.
+	 * @param array $expected_styles The expected merged styles.
+	 */
+	public function test_separator_color_merge_user_data( $input_styles, $expected_styles ) {
+		switch_theme( 'block-theme' );
+		wp_set_current_user( self::$administrator_id );
+
+		// Create user CPT with the test styles.
+		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme(), true );
+		$config   = json_decode( $user_cpt['post_content'], true );
+
+		_wp_array_set( $config, array( 'styles', 'blocks', 'core/separator' ), $input_styles );
+
+		$user_cpt['post_content'] = wp_json_encode( $config );
+		wp_update_post( $user_cpt, true, false );
+
+		// Get the merged data.
+		$theme_json    = WP_Theme_JSON_Resolver::get_user_data();
+		$actual_styles = $theme_json->get_raw_data()['styles']['blocks']['core/separator'] ?? null;
+
+		// Clean up the test post.
+		wp_delete_post( $user_cpt['ID'], true );
+
+		$this->assertSameSetsWithIndex( $expected_styles, $actual_styles );
+	}
+
+	/**
+	 * Tests that separator block colors are correctly merged in theme data.
+	 *
+	 * @ticket 62624
+	 *
+	 * @dataProvider data_separator_color_merge_theme_data
+	 *
+	 * @param array $input_styles    The styles to test.
+	 * @param array $expected_styles The expected merged styles.
+	 */
+	public function test_separator_color_merge_theme_data( $input_styles, $expected_styles ) {
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . '/wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		$theme_json_string = wp_json_encode(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/separator' => $input_styles,
+					),
+				),
+			)
+		);
+
+		// Create a temporary theme.json file.
+		$temp_theme_json = wp_tempnam( 'theme-json-test' );
+		$wp_filesystem->put_contents( $temp_theme_json, $theme_json_string );
+
+		add_filter(
+			'theme_file_path',
+			function ( $path ) use ( $temp_theme_json ) {
+				if ( str_contains( $path, 'theme.json' ) ) {
+					return $temp_theme_json;
+				}
+				return $path;
+			}
+		);
+
+		// Get the merged data.
+		$theme_json    = WP_Theme_JSON_Resolver::get_theme_data();
+		$actual_styles = $theme_json->get_raw_data()['styles']['blocks']['core/separator'] ?? null;
+
+		wp_delete_file( $temp_theme_json );
+
+		$this->assertSameSetsWithIndex( $expected_styles, $actual_styles );
+	}
+
+	/**
+	 * Data provider for separator color merge tests in user data.
+	 *
+	 * @return array
+	 */
+	public function data_separator_color_merge_user_data() {
+		return array(
+			'only background'                    => array(
+				'input_styles'    => array(
+					'color' => array(
+						'background' => 'blue',
+					),
+				),
+				'expected_styles' => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'blue', // Always set to match background.
+					),
+					'border' => array(
+						'color' => 'blue', // Always set to match background.
+					),
+				),
+			),
+			'background and text'                => array(
+				'input_styles'    => array(
+					'color' => array(
+						'background' => 'blue',
+						'text'       => 'red',
+					),
+				),
+				'expected_styles' => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'blue', // Always overridden by background.
+					),
+					'border' => array(
+						'color' => 'blue', // Always set to match background.
+					),
+				),
+			),
+			'only text'                          => array(
+				'input_styles'    => array(
+					'color' => array(
+						'text' => 'red',
+					),
+				),
+				'expected_styles' => array(
+					'color' => array(
+						'text' => 'red',
+					),
+				),
+			),
+			'background, text, and border-color' => array(
+				'input_styles'    => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'red',
+					),
+					'border' => array(
+						'color' => 'pink',
+					),
+				),
+				'expected_styles' => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'blue', // Always overridden by background.
+					),
+					'border' => array(
+						'color' => 'blue', // Always overridden by background.
+					),
+				),
+			),
+			'background and border-color'        => array(
+				'input_styles'    => array(
+					'color'  => array(
+						'background' => 'blue',
+					),
+					'border' => array(
+						'color' => 'pink',
+					),
+				),
+				'expected_styles' => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'blue', // Always set to match background.
+					),
+					'border' => array(
+						'color' => 'blue', // Always overridden by background.
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Data provider for separator color merge tests in theme data.
+	 *
+	 * @return array
+	 */
+	public function data_separator_color_merge_theme_data() {
+		return array(
+			'only background'                    => array(
+				'input_styles'    => array(
+					'color' => array(
+						'background' => 'blue',
+					),
+				),
+				'expected_styles' => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'blue', // Set because not defined.
+					),
+					'border' => array(
+						'color' => 'blue', // Set because not defined.
+					),
+				),
+			),
+			'background and text'                => array(
+				'input_styles'    => array(
+					'color' => array(
+						'background' => 'blue',
+						'text'       => 'red',
+					),
+				),
+				'expected_styles' => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'red', // Kept because already defined.
+					),
+					'border' => array(
+						'color' => 'blue', // Set because not defined.
+					),
+				),
+			),
+			'only text'                          => array(
+				'input_styles'    => array(
+					'color' => array(
+						'text' => 'red',
+					),
+				),
+				'expected_styles' => array(
+					'color' => array(
+						'text' => 'red',
+					),
+				),
+			),
+			'background, text, and border-color' => array(
+				'input_styles'    => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'red',
+					),
+					'border' => array(
+						'color' => 'pink',
+					),
+				),
+				'expected_styles' => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'red', // Kept because already defined.
+					),
+					'border' => array(
+						'color' => 'pink', // Kept because already defined.
+					),
+				),
+			),
+			'background and border-color'        => array(
+				'input_styles'    => array(
+					'color'  => array(
+						'background' => 'blue',
+					),
+					'border' => array(
+						'color' => 'pink',
+					),
+				),
+				'expected_styles' => array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'blue', // Set because not defined.
+					),
+					'border' => array(
+						'color' => 'pink', // Kept because already defined.
+					),
+				),
+			),
+		);
+	}
 }
