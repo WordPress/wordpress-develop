@@ -2169,6 +2169,7 @@ html.wp-toolbar {
 
 .postbox-header .handle-actions {
 	flex-shrink: 0;
+	padding-inline-end: 6px;
 }
 
 /* Post box order and toggle buttons. */
