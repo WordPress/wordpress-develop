@@ -180,6 +180,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'default_template_types',
 			'description',
 			'is_block_theme',
+			'has_theme_json',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -222,6 +223,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author_uri',
 			'description',
 			'is_block_theme',
+			'has_theme_json',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -363,7 +365,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 20, $properties );
+		$this->assertCount( 21, $properties );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -381,6 +383,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'default_template_types', $properties );
 
 		$this->assertArrayHasKey( 'is_block_theme', $properties );
+		$this->assertArrayHasKey( 'has_theme_json', $properties );
 
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['name']['properties'] );
@@ -544,6 +547,27 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertArrayHasKey( 'is_block_theme', $result[0] );
 		$this->assertTrue( $result[0]['is_block_theme'] );
+	}
+
+	/**
+	 * @ticket 63253
+	 * @covers WP_REST_Themes_Controller::prepare_item_for_response
+	 */
+	public function test_theme_has_theme_json() {
+		// Test classic theme (Theme without theme.json).
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertArrayHasKey( 'has_theme_json', $result[0] );
+		$this->assertFalse( $result[0]['has_theme_json'] );
+
+		// Test block theme (Theme with theme.json).
+		switch_theme( 'block-theme' );
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertArrayHasKey( 'has_theme_json', $result[0] );
+		$this->assertTrue( $result[0]['has_theme_json'] );
 	}
 
 	/**
@@ -1372,6 +1396,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author_uri',
 			'description',
 			'is_block_theme',
+			'has_theme_json',
 			'name',
 			'requires_php',
 			'requires_wp',

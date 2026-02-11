@@ -332,6 +332,10 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			$data['is_block_theme'] = $theme->is_block_theme();
 		}
 
+		if ( rest_is_field_included( 'has_theme_json', $fields ) ) {
+			$data['has_theme_json'] = wp_theme_has_theme_json();
+		}
+
 		if ( rest_is_field_included( 'stylesheet_uri', $fields ) ) {
 			if ( $this->is_same_theme( $theme, $current_theme ) ) {
 				$data['stylesheet_uri'] = get_stylesheet_directory_uri();
@@ -552,6 +556,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				),
 				'is_block_theme'              => array(
 					'description' => __( 'Whether the theme is a block-based theme.' ),
+					'type'        => 'boolean',
+					'readonly'    => true,
+				),
+				'has_theme_json'              => array(
+					'description' => __( 'Whether the theme has a theme.json file.' ),
 					'type'        => 'boolean',
 					'readonly'    => true,
 				),
