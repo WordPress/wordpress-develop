@@ -29,7 +29,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * Default settings for code editor.
 	 *
 	 * @since 4.9.0
-	 * @type {object}
+	 * @type {CodeEditorSettings}
 	 */
 	wp.codeEditor.defaultSettings = {
 		codemirror: {},
@@ -46,10 +46,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * Configure linting.
 	 *
 	 * @param {CodeMirror.Editor} editor - Editor.
-	 * @param {Object}            settings - Code editor settings.
-	 * @param {Object}            settings.codeMirror - Settings for CodeMirror.
-	 * @param {Function}          settings.onChangeLintingErrors - Callback for when there are changes to linting errors.
-	 * @param {Function}          settings.onUpdateErrorNotice - Callback to update error notice.
+	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
 	 * @return {Function} Update error notice function.
 	 */
@@ -223,10 +220,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * Configure tabbing.
 	 *
 	 * @param {CodeMirror.Editor} codemirror - Editor.
-	 * @param {Object}            settings - Code editor settings.
-	 * @param {Object}            settings.codeMirror - Settings for CodeMirror.
-	 * @param {Function}          settings.onTabNext - Callback to handle tabbing to the next tabbable element.
-	 * @param {Function}          settings.onTabPrevious - Callback to handle tabbing to the previous tabbable element.
+	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
 	 * @return {void}
 	 */
@@ -264,8 +258,74 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	}
 
 	/**
+	 * Settings for the code editor.
+	 *
+	 * @typedef {object} CodeEditorSettings
+	 *
+	 * @property {object} codemirror - CodeMirror settings.
+	 * @property {number} codemirror.indentUnit - Indent unit.
+	 * @property {boolean} codemirror.indentWithTabs - Whether to indent with tabs.
+	 * @property {string} codemirror.inputStyle - Input style.
+	 * @property {boolean} codemirror.lineNumbers - Whether to show line numbers.
+	 * @property {boolean} codemirror.lineWrapping - Whether to wrap lines.
+	 * @property {boolean} codemirror.styleActiveLine - Whether to style active line.
+	 * @property {boolean} codemirror.continueComments - Whether to continue comments.
+	 * @property {Object<string, string>} codemirror.extraKeys - Extra keys.
+	 * @property {string} codemirror.direction - Text direction.
+	 * @property {string[]} codemirror.gutters - Gutters.
+	 * @property {string} codemirror.mode - Mode.
+	 * @property {boolean|object} codemirror.lint - Whether to enable linting.
+	 * @property {boolean} codemirror.autoCloseBrackets - Whether to auto-close brackets.
+	 * @property {boolean} codemirror.matchBrackets - Whether to match brackets.
+	 *
+	 * @property {object} csslint - CSSLint rules.
+	 * @property {boolean} csslint.errors - Errors.
+	 * @property {boolean} [csslint.box-model] - Box model rules.
+	 * @property {boolean} [csslint.display-property-grouping] - Display property grouping rules.
+	 * @property {boolean} [csslint.duplicate-properties] - Duplicate properties rules.
+	 * @property {boolean} [csslint.known-properties] - Known properties rules.
+	 * @property {boolean} [csslint.outline-none] - Outline none rules.
+	 *
+	 * @property {object} jshint - JSHint rules.
+	 * @property {number} jshint.esversion - ECMAScript version.
+	 * @property {boolean} jshint.module - Whether to use modules.
+	 * @property {boolean} jshint.boss - Whether to allow assignments in control expressions.
+	 * @property {boolean} jshint.curly - Whether to require curly braces.
+	 * @property {boolean} jshint.eqeqeq - Whether to require === and !==.
+	 * @property {boolean} jshint.eqnull - Whether to allow == null.
+	 * @property {boolean} jshint.expr - Whether to allow expressions.
+	 * @property {boolean} jshint.immed - Whether to require immediate function invocation.
+	 * @property {boolean} jshint.noarg - Whether to prohibit arguments.caller/callee.
+	 * @property {boolean} jshint.nonbsp - Whether to prohibit non-breaking spaces.
+	 * @property {string} jshint.quotmark - Quote mark preference.
+	 * @property {boolean} jshint.undef - Whether to prohibit undefined variables.
+	 * @property {boolean} jshint.unused - Whether to prohibit unused variables.
+	 * @property {boolean} jshint.browser - Whether to enable browser globals.
+	 * @property {Object<string, boolean>} jshint.globals - Global variables.
+	 *
+	 * @property {object} htmlhint - HTMLHint rules.
+	 * @property {boolean} [htmlhint.tagname-lowercase] - Tag name lowercase rules.
+	 * @property {boolean} [htmlhint.attr-lowercase] - Attribute lowercase rules.
+	 * @property {boolean} [htmlhint.attr-value-double-quotes] - Attribute value double quotes rules.
+	 * @property {boolean} [htmlhint.doctype-first] - Doctype first rules.
+	 * @property {boolean} [htmlhint.tag-pair] - Tag pair rules.
+	 * @property {boolean} [htmlhint.spec-char-escape] - Spec char escape rules.
+	 * @property {boolean} [htmlhint.id-unique] - ID unique rules.
+	 * @property {boolean} [htmlhint.src-not-empty] - Src not empty rules.
+	 * @property {boolean} [htmlhint.attr-no-duplication] - Attribute no duplication rules.
+	 * @property {boolean} [htmlhint.alt-require] - Alt require rules.
+	 * @property {string} [htmlhint.space-tab-mixed-disabled] - Space tab mixed disabled rules.
+	 * @property {boolean} [htmlhint.attr-unsafe-chars] - Attribute unsafe chars rules.
+	 *
+	 * @property {Function} [onTabNext] - Callback to handle tabbing to the next tabbable element.
+	 * @property {Function} [onTabPrevious] - Callback to handle tabbing to the previous tabbable element.
+	 * @property {Function} [onChangeLintingErrors] - Callback for when the linting errors have changed.
+	 * @property {Function} [onUpdateErrorNotice] - Callback for when error notice should be displayed.
+	 */
+
+	/**
 	 * @typedef {object} wp.codeEditor~CodeEditorInstance
-	 * @property {object} settings - The code editor settings.
+	 * @property {CodeEditorSettings} settings - The code editor settings.
 	 * @property {CodeMirror.Editor} codemirror - The CodeMirror instance.
 	 * @property {Function} updateErrorNotice - Force update the error notice.
 	 */
@@ -276,15 +336,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * @since 4.9.0
 	 *
 	 * @param {string|jQuery|Element} textarea - The HTML id, jQuery object, or DOM Element for the textarea that is used for the editor.
-	 * @param {Object}                [settings] - Settings to override defaults.
-	 * @param {Function}              [settings.onChangeLintingErrors] - Callback for when the linting errors have changed.
-	 * @param {Function}              [settings.onUpdateErrorNotice] - Callback for when error notice should be displayed.
-	 * @param {Function}              [settings.onTabPrevious] - Callback to handle tabbing to the previous tabbable element.
-	 * @param {Function}              [settings.onTabNext] - Callback to handle tabbing to the next tabbable element.
-	 * @param {Object}                [settings.codemirror] - Options for CodeMirror.
-	 * @param {Object}                [settings.csslint] - Rules for CSSLint.
-	 * @param {Object}                [settings.htmlhint] - Rules for HTMLHint.
-	 * @param {Object}                [settings.jshint] - Rules for JSHint.
+	 * @param {CodeEditorSettings}    [settings] - Settings to override defaults.
 	 *
 	 * @return {CodeEditorInstance} Instance.
 	 */
