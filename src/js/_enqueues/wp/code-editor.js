@@ -262,18 +262,18 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 *
 	 * @typedef {object} CodeEditorSettings
 	 *
-	 * @property {object} [codemirror] - CodeMirror settings.
+	 * @property {import('codemirror').EditorConfiguration} [codemirror] - CodeMirror settings.
 	 * @property {number} [codemirror.indentUnit] - Indent unit.
 	 * @property {boolean} [codemirror.indentWithTabs] - Whether to indent with tabs.
-	 * @property {string} [codemirror.inputStyle] - Input style.
+	 * @property {'textarea'|'contenteditable'} [codemirror.inputStyle] - Input style.
 	 * @property {boolean} [codemirror.lineNumbers] - Whether to show line numbers.
 	 * @property {boolean} [codemirror.lineWrapping] - Whether to wrap lines.
 	 * @property {boolean} [codemirror.styleActiveLine] - Whether to style active line.
 	 * @property {boolean} [codemirror.continueComments] - Whether to continue comments.
 	 * @property {Object<string, string>} [codemirror.extraKeys] - Extra keys.
-	 * @property {string} [codemirror.direction] - Text direction.
+	 * @property {'ltr'|'rtl'} [codemirror.direction] - Text direction.
 	 * @property {string[]} [codemirror.gutters] - Gutters.
-	 * @property {string} [codemirror.mode] - Mode.
+	 * @property {string|object} [codemirror.mode] - Mode.
 	 * @property {boolean|object} [codemirror.lint] - Whether to enable linting.
 	 * @property {boolean} [codemirror.autoCloseBrackets] - Whether to auto-close brackets.
 	 * @property {boolean} [codemirror.matchBrackets] - Whether to match brackets.
