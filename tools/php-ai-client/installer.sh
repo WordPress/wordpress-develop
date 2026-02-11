@@ -194,6 +194,51 @@ fi
 # Copy reorganized third-party dependencies.
 cp -R "$THIRD_PARTY_DIR/." "$TARGET_DIR/third-party/"
 
+# Third-party paths to remove (not needed at runtime).
+REMOVE_PATHS=(
+	# Composer plugin (build-time only).
+	"Http/Discovery/Composer"
+
+	# HTTPlug client library (SDK uses PSR-18 directly).
+	"Http/Client"
+
+	# Promise/async support (SDK is synchronous).
+	"Http/Promise"
+
+	# Deprecated discovery classes superseded by Psr18ClientDiscovery / Psr17FactoryDiscovery.
+	"Http/Discovery/HttpClientDiscovery.php"
+	"Http/Discovery/HttpAsyncClientDiscovery.php"
+	"Http/Discovery/MessageFactoryDiscovery.php"
+	"Http/Discovery/UriFactoryDiscovery.php"
+	"Http/Discovery/StreamFactoryDiscovery.php"
+	"Http/Discovery/NotFoundException.php"
+
+	# Convenience wrappers not used by the SDK.
+	"Http/Discovery/Psr17Factory.php"
+	"Http/Discovery/Psr18Client.php"
+
+	# Mock strategy (not in default strategy list).
+	"Http/Discovery/Strategy/MockClientStrategy.php"
+
+	# Server-side PSR-7 interfaces (SDK is client-side only).
+	"Psr/Http/Message/ServerRequestInterface.php"
+	"Psr/Http/Message/ServerRequestFactoryInterface.php"
+	"Psr/Http/Message/UploadedFileInterface.php"
+	"Psr/Http/Message/UploadedFileFactoryInterface.php"
+
+	# PSR-14 interfaces not used by the event dispatcher.
+	"Psr/EventDispatcher/ListenerProviderInterface.php"
+	"Psr/EventDispatcher/StoppableEventInterface.php"
+
+	# PSR-16 cache exception interfaces (never thrown or caught).
+	"Psr/SimpleCache/CacheException.php"
+	"Psr/SimpleCache/InvalidArgumentException.php"
+)
+
+for path in "${REMOVE_PATHS[@]}"; do
+	rm -rf "$TARGET_DIR/third-party/$path"
+done
+
 # ---------------------------------------------------------------------------
 # Generate autoload.php
 # ---------------------------------------------------------------------------
