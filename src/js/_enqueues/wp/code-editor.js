@@ -45,7 +45,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * Configure linting.
 	 *
-	 * @param {CodeMirror.Editor} editor - Editor.
+	 * @param {CodeMirror.EditorFromTextArea} editor - Editor.
 	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
 	 * @return {Function} Update error notice function.
@@ -219,7 +219,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * Configure tabbing.
 	 *
-	 * @param {CodeMirror.Editor} codemirror - Editor.
+	 * @param {CodeMirror.EditorFromTextArea} codemirror - Editor.
 	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
 	 * @return {void}
