@@ -74,8 +74,8 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @param int             $object_id Object ID to fetch meta for.
 	 * @param WP_REST_Request $request   Full details about the request.
-	 * @return array|stdClass Array containing the meta values keyed by name,
-	 *                        or stdClass if empty to ensure JSON object encoding.
+	 * @return array|object Array containing the meta values keyed by name,
+	 *                      or an empty object if to ensure JSON object encoding.
 	 */
 	public function get_value( $object_id, $request ) {
 		$fields   = $this->get_registered_fields();
@@ -108,7 +108,7 @@ abstract class WP_REST_Meta_Fields {
 
 		// Use stdClass so that JSON result is {} and not [].
 		if ( empty( $response ) ) {
-			return new stdClass();
+			return (object) array();
 		}
 
 		return $response;
