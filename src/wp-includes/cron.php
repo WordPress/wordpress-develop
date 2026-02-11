@@ -29,7 +29,7 @@
  *
  * @param int    $timestamp  Unix timestamp (UTC) for when to next run the event.
  * @param string $hook       Action hook to execute when the event is run.
- *  * @param array  $args {
+ * @param array  $args {
  *     Optional. Array containing arguments to pass to the hook's callback
  *     function. Each value in the array is passed to the callback as an
  *     individual parameter. The array keys are ignored.
