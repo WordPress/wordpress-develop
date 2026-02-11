@@ -8,13 +8,12 @@ window.wp = window.wp || {};
 ( function($) {
 
 // Set up our namespace...
-var themes, l10n;
+var themes;
 themes = wp.themes = wp.themes || {};
 
 // Store the theme data and settings for organized and quick access.
 // themes.data.settings, themes.data.themes, themes.data.l10n.
 themes.data = _wpThemeSettings;
-l10n = themes.data.l10n;
 
 // Shortcut for isInstall check.
 themes.isInstall = !! themes.data.settings.isInstall;
@@ -119,7 +118,7 @@ themes.view.Appearance = wp.Backbone.View.extend({
 		view.render();
 		this.searchContainer
 			.find( '.search-box' )
-			.append( $.parseHTML( '<label for="wp-filter-search-input">' + l10n.search + '</label>' ) )
+			.append( $.parseHTML( '<label for="wp-filter-search-input">' + wp.i18n.__( themes.data.l10n.search ) + '</label>' ) )
 			.append( view.el );
 
 		this.searchContainer.on( 'submit', function( event ) {
@@ -973,9 +972,9 @@ themes.view.Preview = themes.view.Details.extend({
 	collapse: function( event ) {
 		var $button = $( event.currentTarget );
 		if ( 'true' === $button.attr( 'aria-expanded' ) ) {
-			$button.attr({ 'aria-expanded': 'false', 'aria-label': l10n.expandSidebar });
+			$button.attr({ 'aria-expanded': 'false', 'aria-label': wp.i18n.__( themes.data.l10n.expandSidebar ) });
 		} else {
-			$button.attr({ 'aria-expanded': 'true', 'aria-label': l10n.collapseSidebar });
+			$button.attr({ 'aria-expanded': 'true', 'aria-label': wp.i18n.__( themes.data.l10n.collapseSidebar ) });
 		}
 
 		this.$el.toggleClass( 'collapsed' ).toggleClass( 'expanded' );
@@ -1221,7 +1220,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 		// 'Add new theme' element shown at the end of the grid.
 		if ( ! themes.isInstall && themes.data.settings.canInstall ) {
-			this.$el.append( '<div class="theme add-new-theme"><a href="' + themes.data.settings.installURI + '"><div class="theme-screenshot"><span aria-hidden="true"></span></div><h2 class="theme-name">' + l10n.addNew + '</h2></a></div>' );
+			this.$el.append( '<div class="theme add-new-theme"><a href="' + themes.data.settings.installURI + '"><div class="theme-screenshot"><span aria-hidden="true"></span></div><h2 class="theme-name">' + wp.i18n.__( themes.data.l10n.addNew ) + '</h2></a></div>' );
 		}
 
 		this.parent.page++;
@@ -1356,9 +1355,9 @@ themes.view.Themes = wp.Backbone.View.extend({
 	// Dispatch audible search results feedback message.
 	announceSearchResults: function( count ) {
 		if ( 0 === count ) {
-			wp.a11y.speak( l10n.noThemesFound );
+			wp.a11y.speak( wp.i18n.__( themes.data.l10n.noThemesFound ) );
 		} else {
-			wp.a11y.speak( l10n.themesFound.replace( '%d', count ) );
+			wp.a11y.speak( wp.i18n.sprintf( wp.i18n.__( themes.data.l10n.themesFound ), count ) );
 		}
 	}
 });
@@ -1676,7 +1675,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		this.listenTo( this.collection, 'query:fail', function() {
 			$( 'body' ).removeClass( 'loading-content' );
 			$( '.theme-browser' ).find( 'div.error' ).remove();
-			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="notice notice-error"><p>' + l10n.error + '</p><p><button class="button try-again">' + l10n.tryAgain + '</button></p></div>' );
+			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="notice notice-error"><p>' + wp.i18n.sprintf( wp.i18n.__( themes.data.l10n.error ), 'https://wordpress.org/support/forums/' ) + '</p><p><button class="button try-again">' + wp.i18n.__( themes.data.l10n.tryAgain ) + '</button></p></div>' );
 			$( '.theme-browser .error .try-again' ).on( 'click', function( e ) {
 				e.preventDefault();
 				$( 'input.wp-filter-search' ).trigger( 'input' );
@@ -1808,7 +1807,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		}
 
 		if ( ! tags ) {
-			wp.a11y.speak( l10n.selectFeatureFilter );
+			wp.a11y.speak( wp.i18n.__( themes.data.l10n.selectFeatureFilter ) );
 			return;
 		}
 

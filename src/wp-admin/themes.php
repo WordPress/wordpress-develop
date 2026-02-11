@@ -231,17 +231,18 @@ wp_localize_script(
 			'adminUrl'      => parse_url( admin_url(), PHP_URL_PATH ),
 		),
 		'l10n'     => array(
-			'addNew'        => __( 'Add Theme' ),
-			'search'        => __( 'Search installed themes' ),
+			'addNew'        => 'Add Theme',
+			'search'        => 'Search installed themes',
 			/* translators: %d: Number of themes. */
-			'themesFound'   => __( 'Number of Themes found: %d' ),
-			'noThemesFound' => __( 'No themes found. Try a different search.' ),
+			'themesFound'   => 'Number of Themes found: %d',
+			'noThemesFound' => 'No themes found. Try a different search.',
 		),
 	)
 );
 
 add_thickbox();
 wp_enqueue_script( 'theme' );
+wp_set_script_translations( 'theme' );
 wp_enqueue_script( 'updates' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
