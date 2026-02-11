@@ -1606,7 +1606,7 @@ p.customize-section-description {
 }
 
 .customize-control-header button.random .dice {
-	margin-top: 4px;
+	margin-top: 0;
 }
 
 .customize-control-header .placeholder:hover .dice,
