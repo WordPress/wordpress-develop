@@ -1486,7 +1486,7 @@ div.error p,
 
 .notice-dismiss {
 	position: absolute;
-	top: 8px;
+	top: 12px;
 	right: 12px;
 	border: none;
 	margin: 0;
