@@ -19,7 +19,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 
 /**
  * @param {jQuery} $ - jQuery.
- * @param {object} wp - WordPress namespace.
+ * @param {Object} wp - WordPress namespace.
+ * @param {import('codemirror')} wp.CodeMirror - CodeMirror.
  * @param {import('underscore').UnderscoreStatic} _ - Underscore.
  */
 ( function( $, wp, _ ) {
@@ -45,7 +46,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * Configure linting.
 	 *
-	 * @param {CodeMirror.EditorFromTextArea & { performLint?: function }} editor - Editor.
+	 * @param {CodeMirrorEditor} editor - Editor.
 	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
 	 * @return {Function} Update error notice function.
@@ -120,7 +121,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 				/**
 				 * @param {LintAnnotation[]} annotations - Annotations.
 				 * @param {LintAnnotation[]} annotationsSorted - Sorted annotations.
-				 * @param {CodeMirror.Editor} cm - Editor.
+				 * @param {CodeMirrorEditor} cm - Editor.
 				 */
 				return function( annotations, annotationsSorted, cm ) {
 					const errorAnnotations = annotations.filter( function( annotation ) {
@@ -224,7 +225,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * Configure tabbing.
 	 *
-	 * @param {CodeMirror.EditorFromTextArea} codemirror - Editor.
+	 * @param {CodeMirrorEditor} codemirror - Editor.
 	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
 	 * @return {void}
@@ -273,6 +274,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * @typedef {object} CodeMirrorState
 	 * @property {boolean} [completionActive] - Whether completion is active.
+	 * @property {boolean} [focused] - Whether the editor is focused.
 	 */
 
 	/**
@@ -283,24 +285,21 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 */
 
 	/**
+	 * @typedef {import('codemirror').EditorConfiguration & {
+	 *   lint?: boolean | object,
+	 *   autoCloseBrackets?: boolean,
+	 *   matchBrackets?: boolean,
+	 *   continueComments?: boolean,
+	 *   styleActiveLine?: boolean
+	 * }} CodeMirrorSettings
+	 */
+
+	/**
+	 * Settings for the code editor.
+	 *
 	 * @typedef {object} CodeEditorSettings
 	 *
-	 * @property {import('codemirror').EditorConfiguration} [codemirror] - CodeMirror settings.
-	 * @property {number} [codemirror.indentUnit] - Indent unit.
-	 * @property {boolean} [codemirror.indentWithTabs] - Whether to indent with tabs.
-	 * @property {'textarea'|'contenteditable'} [codemirror.inputStyle] - Input style.
-	 * @property {boolean} [codemirror.lineNumbers] - Whether to show line numbers.
-	 * @property {boolean} [codemirror.lineWrapping] - Whether to wrap lines.
-	 * @property {boolean} [codemirror.styleActiveLine] - Whether to style active line.
-	 * @property {boolean} [codemirror.continueComments] - Whether to continue comments.
-	 * @property {Object<string, string>} [codemirror.extraKeys] - Extra keys.
-	 * @property {'ltr'|'rtl'} [codemirror.direction] - Text direction.
-	 * @property {string[]} [codemirror.gutters] - Gutters.
-	 * @property {string|object} [codemirror.mode] - Mode.
-	 * @property {boolean|object} [codemirror.lint] - Whether to enable linting.
-	 * @property {boolean} [codemirror.autoCloseBrackets] - Whether to auto-close brackets.
-	 * @property {boolean} [codemirror.matchBrackets] - Whether to match brackets.
-	 *
+	 * @property {CodeMirrorSettings} [codemirror] - CodeMirror settings.
 	 * @property {object} [csslint] - CSSLint rules.
 	 * @property {boolean} [csslint.errors] - Errors.
 	 * @property {boolean} [csslint.box-model] - Box model rules.
@@ -347,9 +346,27 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 */
 
 	/**
+	 * @typedef {Object} CodeMirrorEditor
+	 * @property {import('codemirror').Doc} doc - Document.
+	 * @property {CodeMirrorState} state - State.
+	 * @property {CodeMirrorSettings} options - Options.
+	 * @property {function(string):*} getOption - Get option.
+	 * @property {function(string, *):void} setOption - Set option.
+	 * @property {function(string, function):void} on - On event.
+	 * @property {function(string, function):void} off - Off event.
+	 * @property {function():void} [performLint] - Perform lint.
+	 * @property {function(object):void} [showHint] - Show hint.
+	 * @property {function():object} getMode - Get mode.
+	 * @property {function():import('codemirror').Position} getCursor - Get cursor.
+	 * @property {function(import('codemirror').Position):import('codemirror').Token} getTokenAt - Get token at.
+	 * @property {function():HTMLElement} getWrapperElement - Get wrapper element.
+	 * @property {function():HTMLTextAreaElement} getTextArea - Get text area.
+	 */
+
+	/**
 	 * @typedef {object} wp.codeEditor~CodeEditorInstance
 	 * @property {CodeEditorSettings} settings - The code editor settings.
-	 * @property {CodeMirror.EditorFromTextArea & { performLint?: function, showHint?: function, state: CodeMirrorState }} codemirror - The CodeMirror instance.
+	 * @property {CodeMirrorEditor} codemirror - The CodeMirror instance.
 	 * @property {Function} updateErrorNotice - Force update the error notice.
 	 */
 
@@ -374,6 +391,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 		/** @type {CodeEditorSettings} */
 		const instanceSettings = $.extend( true, {}, wp.codeEditor.defaultSettings, settings );
 
+		/** @type {CodeMirrorEditor} */
 		const codemirror = wp.CodeMirror.fromTextArea( $textarea[0], instanceSettings.codemirror );
 
 		const updateErrorNotice = configureLinting( codemirror, instanceSettings );
