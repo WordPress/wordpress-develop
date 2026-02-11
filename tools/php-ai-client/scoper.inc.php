@@ -45,13 +45,7 @@ return array(
 		'/^WPINC$/',
 	),
 
-	'exclude-functions' => array(
-		// polyfills.php defines global functions guarded by function_exists().
-		'str_starts_with',
-		'str_ends_with',
-		'str_contains',
-		'array_is_list',
-	),
+	'exclude-functions' => array(),
 
 	'patchers' => array(
 		/**

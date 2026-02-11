@@ -258,9 +258,6 @@ cat > "$TARGET_DIR/autoload.php" << 'AUTOLOAD_PHP'
  * @since 7.0.0
  */
 
-// Load polyfills (each function is guarded by function_exists).
-require_once __DIR__ . '/src/polyfills.php';
-
 spl_autoload_register(
 	static function ( $class_name ) {
 		// Namespace prefix for the AI client.
