@@ -59,7 +59,7 @@
 	display: flow-root; /* avoid margin collapsing between parent and first/last child elements */
 	/* Required min-height to make the jQuery UI Sortable drop zone work. */
 	min-height: 0;
-	margin: 0 8px 0 0;
+	margin-right: 8px;
 	padding: 4px;
 }
 
