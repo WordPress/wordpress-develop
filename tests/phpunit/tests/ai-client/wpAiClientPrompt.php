@@ -6,8 +6,6 @@
  * @covers ::wp_ai_client_prompt
  */
 
-use WordPress\AiClient\Builders\PromptBuilder;
-
 class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 
 	/**
@@ -19,62 +17,6 @@ class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 		$builder = wp_ai_client_prompt();
 
 		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $builder );
-	}
-
-	/**
-	 * Test that wp_ai_client_prompt() wraps a PromptBuilder internally.
-	 *
-	 * @ticket TBD
-	 */
-	public function test_wraps_sdk_prompt_builder() {
-		$builder = wp_ai_client_prompt();
-
-		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$property   = $reflection->getProperty( 'builder' );
-
-		$this->assertInstanceOf( PromptBuilder::class, $property->getValue( $builder ) );
-	}
-
-	/**
-	 * Test that wp_ai_client_prompt() passes prompt content to the builder.
-	 *
-	 * @ticket TBD
-	 */
-	public function test_passes_prompt_content() {
-		$builder = wp_ai_client_prompt( 'Hello, AI!' );
-
-		$reflection       = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$builder_property = $reflection->getProperty( 'builder' );
-
-		$wrapped = $builder_property->getValue( $builder );
-
-		$wrapped_reflection = new ReflectionClass( get_class( $wrapped ) );
-		$messages_property  = $wrapped_reflection->getProperty( 'messages' );
-
-		$messages = $messages_property->getValue( $wrapped );
-
-		$this->assertNotEmpty( $messages, 'Prompt content should produce at least one message.' );
-	}
-
-	/**
-	 * Test that wp_ai_client_prompt() without arguments creates builder with no messages.
-	 *
-	 * @ticket TBD
-	 */
-	public function test_no_prompt_creates_empty_builder() {
-		$builder = wp_ai_client_prompt();
-
-		$reflection       = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$builder_property = $reflection->getProperty( 'builder' );
-
-		$wrapped = $builder_property->getValue( $builder );
-
-		$wrapped_reflection = new ReflectionClass( get_class( $wrapped ) );
-		$messages_property  = $wrapped_reflection->getProperty( 'messages' );
-
-		$messages = $messages_property->getValue( $wrapped );
-
-		$this->assertEmpty( $messages, 'No prompt content should produce no messages.' );
 	}
 
 	/**

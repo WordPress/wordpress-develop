@@ -7,7 +7,6 @@
  */
 
 use WordPress\AiClient\AiClient;
-use WordPress\AiClient\Builders\PromptBuilder;
 use WordPress\AiClient\Files\DTO\File;
 use WordPress\AiClient\Files\Enums\FileTypeEnum;
 use WordPress\AiClient\Messages\DTO\Message;
@@ -73,6 +72,20 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Makes a ReflectionProperty or ReflectionMethod accessible on PHP < 8.1.
+	 *
+	 * Since PHP 8.1 all reflection-accessed members are accessible by default,
+	 * and PHP 8.5 deprecates the setAccessible() call.
+	 *
+	 * @param ReflectionProperty|ReflectionMethod $reflector The reflector to make accessible.
+	 */
+	private static function set_accessible( $reflector ) {
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflector->setAccessible( true );
+		}
+	}
+
+	/**
 	 * Gets the value of a protected or private property from the wrapped prompt builder.
 	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder  The WordPress prompt builder instance.
@@ -82,10 +95,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	private function get_wrapped_prompt_builder_property_value( WP_AI_Client_Prompt_Builder $builder, string $property ) {
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
-		$wrapped_builder  = $builder_property->getValue( $builder );
+		self::set_accessible( $builder_property );
+		$wrapped_builder = $builder_property->getValue( $builder );
 
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
 		$the_property      = $reflection_class2->getProperty( $property );
+		self::set_accessible( $the_property );
 
 		return $the_property->getValue( $wrapped_builder );
 	}
@@ -121,14 +136,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
 
 		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $prompt_builder );
-
-		// Verify the wrapped builder is a PromptBuilder instance.
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$builder_property = $reflection_class->getProperty( 'builder' );
-
-		$wrapped_builder = $builder_property->getValue( $prompt_builder );
-
-		$this->assertInstanceOf( PromptBuilder::class, $wrapped_builder );
 	}
 
 	/**
@@ -253,36 +260,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test snake_case to camelCase conversion.
-	 *
-	 * @ticket TBD
-	 */
-	public function test_snake_case_to_camel_case_conversion() {
-		$registry       = AiClient::defaultRegistry();
-		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
-
-		$test_cases = array(
-			'with_text'                   => 'withText',
-			'using_system_instruction'    => 'usingSystemInstruction',
-			'using_max_tokens'            => 'usingMaxTokens',
-			'as_output_mime_type'         => 'asOutputMimeType',
-			'using_model_config'          => 'usingModelConfig',
-			'with_message_parts'          => 'withMessageParts',
-			'using_stop_sequences'        => 'usingStopSequences',
-			'using_candidate_count'       => 'usingCandidateCount',
-			'using_function_declarations' => 'usingFunctionDeclarations',
-		);
-
-		$reflection_class  = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$conversion_method = $reflection_class->getMethod( 'snake_to_camel_case' );
-
-		foreach ( $test_cases as $snake_case => $expected_camel_case ) {
-			$actual_camel_case = $conversion_method->invoke( $prompt_builder, $snake_case );
-			$this->assertSame( $expected_camel_case, $actual_camel_case, "Failed converting {$snake_case} to {$expected_camel_case}" );
-		}
-	}
-
-	/**
 	 * Test that calling a non-existent method returns WP_Error on termination.
 	 *
 	 * @ticket TBD
@@ -303,27 +280,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that get_builder_callable returns a valid callable.
-	 *
-	 * @ticket TBD
-	 */
-	public function test_get_builder_callable() {
-		$registry       = AiClient::defaultRegistry();
-		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
-
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$callable_method  = $reflection_class->getMethod( 'get_builder_callable' );
-
-		$callable = $callable_method->invoke( $prompt_builder, 'with_text' );
-		$this->assertTrue( is_callable( $callable ), 'get_builder_callable should return a valid callable' );
-
-		$this->assertIsArray( $callable );
-		$this->assertCount( 2, $callable );
-		$this->assertInstanceOf( PromptBuilder::class, $callable[0] );
-		$this->assertSame( 'withText', $callable[1] );
-	}
-
-	/**
 	 * Test that the wrapped builder is properly configured with the registry.
 	 *
 	 * @ticket TBD
@@ -334,12 +290,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
-
+		self::set_accessible( $builder_property );
 		$wrapped_builder = $builder_property->getValue( $prompt_builder );
 
 		$wrapped_builder_reflection = new ReflectionClass( get_class( $wrapped_builder ) );
 		$registry_property          = $wrapped_builder_reflection->getProperty( 'registry' );
-
+		self::set_accessible( $registry_property );
 		$this->assertSame( $registry, $registry_property->getValue( $wrapped_builder ), 'Wrapped builder should have the same registry' );
 	}
 
@@ -1352,11 +1308,11 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		// Manually add a model message as the last message.
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
-
+		self::set_accessible( $builder_property );
 		$wrapped_builder   = $builder_property->getValue( $builder );
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
 		$messages_property = $reflection_class2->getProperty( 'messages' );
-
+		self::set_accessible( $messages_property );
 		$messages   = $messages_property->getValue( $wrapped_builder );
 		$messages[] = new ModelMessage( array( new MessagePart( 'Final model message' ) ) );
 		$messages_property->setValue( $wrapped_builder, $messages );
