@@ -262,48 +262,48 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 *
 	 * @typedef {object} CodeEditorSettings
 	 *
-	 * @property {object} codemirror - CodeMirror settings.
-	 * @property {number} codemirror.indentUnit - Indent unit.
-	 * @property {boolean} codemirror.indentWithTabs - Whether to indent with tabs.
-	 * @property {string} codemirror.inputStyle - Input style.
-	 * @property {boolean} codemirror.lineNumbers - Whether to show line numbers.
-	 * @property {boolean} codemirror.lineWrapping - Whether to wrap lines.
-	 * @property {boolean} codemirror.styleActiveLine - Whether to style active line.
-	 * @property {boolean} codemirror.continueComments - Whether to continue comments.
-	 * @property {Object<string, string>} codemirror.extraKeys - Extra keys.
-	 * @property {string} codemirror.direction - Text direction.
-	 * @property {string[]} codemirror.gutters - Gutters.
-	 * @property {string} codemirror.mode - Mode.
-	 * @property {boolean|object} codemirror.lint - Whether to enable linting.
-	 * @property {boolean} codemirror.autoCloseBrackets - Whether to auto-close brackets.
-	 * @property {boolean} codemirror.matchBrackets - Whether to match brackets.
+	 * @property {object} [codemirror] - CodeMirror settings.
+	 * @property {number} [codemirror.indentUnit] - Indent unit.
+	 * @property {boolean} [codemirror.indentWithTabs] - Whether to indent with tabs.
+	 * @property {string} [codemirror.inputStyle] - Input style.
+	 * @property {boolean} [codemirror.lineNumbers] - Whether to show line numbers.
+	 * @property {boolean} [codemirror.lineWrapping] - Whether to wrap lines.
+	 * @property {boolean} [codemirror.styleActiveLine] - Whether to style active line.
+	 * @property {boolean} [codemirror.continueComments] - Whether to continue comments.
+	 * @property {Object<string, string>} [codemirror.extraKeys] - Extra keys.
+	 * @property {string} [codemirror.direction] - Text direction.
+	 * @property {string[]} [codemirror.gutters] - Gutters.
+	 * @property {string} [codemirror.mode] - Mode.
+	 * @property {boolean|object} [codemirror.lint] - Whether to enable linting.
+	 * @property {boolean} [codemirror.autoCloseBrackets] - Whether to auto-close brackets.
+	 * @property {boolean} [codemirror.matchBrackets] - Whether to match brackets.
 	 *
-	 * @property {object} csslint - CSSLint rules.
-	 * @property {boolean} csslint.errors - Errors.
+	 * @property {object} [csslint] - CSSLint rules.
+	 * @property {boolean} [csslint.errors] - Errors.
 	 * @property {boolean} [csslint.box-model] - Box model rules.
 	 * @property {boolean} [csslint.display-property-grouping] - Display property grouping rules.
 	 * @property {boolean} [csslint.duplicate-properties] - Duplicate properties rules.
 	 * @property {boolean} [csslint.known-properties] - Known properties rules.
 	 * @property {boolean} [csslint.outline-none] - Outline none rules.
 	 *
-	 * @property {object} jshint - JSHint rules.
-	 * @property {number} jshint.esversion - ECMAScript version.
-	 * @property {boolean} jshint.module - Whether to use modules.
-	 * @property {boolean} jshint.boss - Whether to allow assignments in control expressions.
-	 * @property {boolean} jshint.curly - Whether to require curly braces.
-	 * @property {boolean} jshint.eqeqeq - Whether to require === and !==.
-	 * @property {boolean} jshint.eqnull - Whether to allow == null.
-	 * @property {boolean} jshint.expr - Whether to allow expressions.
-	 * @property {boolean} jshint.immed - Whether to require immediate function invocation.
-	 * @property {boolean} jshint.noarg - Whether to prohibit arguments.caller/callee.
-	 * @property {boolean} jshint.nonbsp - Whether to prohibit non-breaking spaces.
-	 * @property {string} jshint.quotmark - Quote mark preference.
-	 * @property {boolean} jshint.undef - Whether to prohibit undefined variables.
-	 * @property {boolean} jshint.unused - Whether to prohibit unused variables.
-	 * @property {boolean} jshint.browser - Whether to enable browser globals.
-	 * @property {Object<string, boolean>} jshint.globals - Global variables.
+	 * @property {object} [jshint] - JSHint rules.
+	 * @property {number} [jshint.esversion] - ECMAScript version.
+	 * @property {boolean} [jshint.module] - Whether to use modules.
+	 * @property {boolean} [jshint.boss] - Whether to allow assignments in control expressions.
+	 * @property {boolean} [jshint.curly] - Whether to require curly braces.
+	 * @property {boolean} [jshint.eqeqeq] - Whether to require === and !==.
+	 * @property {boolean} [jshint.eqnull] - Whether to allow == null.
+	 * @property {boolean} [jshint.expr] - Whether to allow expressions.
+	 * @property {boolean} [jshint.immed] - Whether to require immediate function invocation.
+	 * @property {boolean} [jshint.noarg] - Whether to prohibit arguments.caller/callee.
+	 * @property {boolean} [jshint.nonbsp] - Whether to prohibit non-breaking spaces.
+	 * @property {string} [jshint.quotmark] - Quote mark preference.
+	 * @property {boolean} [jshint.undef] - Whether to prohibit undefined variables.
+	 * @property {boolean} [jshint.unused] - Whether to prohibit unused variables.
+	 * @property {boolean} [jshint.browser] - Whether to enable browser globals.
+	 * @property {Object<string, boolean>} [jshint.globals] - Global variables.
 	 *
-	 * @property {object} htmlhint - HTMLHint rules.
+	 * @property {object} [htmlhint] - HTMLHint rules.
 	 * @property {boolean} [htmlhint.tagname-lowercase] - Tag name lowercase rules.
 	 * @property {boolean} [htmlhint.attr-lowercase] - Attribute lowercase rules.
 	 * @property {boolean} [htmlhint.attr-value-double-quotes] - Attribute value double quotes rules.
