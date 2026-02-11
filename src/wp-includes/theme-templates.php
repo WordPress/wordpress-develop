@@ -99,10 +99,11 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id
 }
 
 /**
- * Enqueues the skip-link script & styles.
+ * Enqueues the skip-link styles.
  *
  * @access private
  * @since 6.4.0
+ * @since 7.0.0 A script is no longer printed in favor of being added via {@see _block_template_add_skip_link()}.
  *
  * @global string $_wp_current_template_content
  */
@@ -217,6 +218,7 @@ function wp_enqueue_block_template_skip_link() {
 	wp_register_script( $script_handle, false, array(), false, array( 'in_footer' => true ) );
 	wp_add_inline_script( $script_handle, $skip_link_script );
 	wp_enqueue_script( $script_handle );
+	wp_enqueue_style( 'wp-block-template-skip-link' );
 }
 
 /**
