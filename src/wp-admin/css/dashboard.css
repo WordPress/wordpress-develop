@@ -68,7 +68,7 @@
 }
 
 #dashboard-widgets .postbox-container .empty-container {
-	outline: 2px dashed rgba(0, 0, 0, 0.15);
+	outline: 2px dashed rgb(0, 0, 0, 0.15);
 	outline-offset: -2px;
 	border-radius: 8px;
 	height: 250px;
@@ -77,13 +77,13 @@
 /* Only highlight drop zones when dragging. */
 .is-dragging-metaboxes #dashboard-widgets .meta-box-sortables {
 	border-radius: 8px;
-	background: rgba(var(--wp-admin-theme-color--rgb), 0.04);
+	background: rgb(var(--wp-admin-theme-color--rgb), 0.04);
 	min-height: 100px;
 }
 
 .is-dragging-metaboxes #dashboard-widgets .postbox-container .empty-container {
-	outline: 2px dashed rgba(0, 0, 0, 0.15);
-	background: rgba(0, 0, 0, 0.01);
+	outline: 2px dashed rgb(0, 0, 0, 0.15);
+	background: rgb(0, 0, 0, 0.01);
 }
 
 #dashboard-widgets .postbox-container .empty-container:after {
@@ -141,7 +141,7 @@
 	overflow: auto;
 	margin: 16px 0;
 	background-color: #151515;
-	border: 1px solid rgba(0, 0, 0, 0.1);
+	border: 1px solid rgb(0, 0, 0, 0.1);
 	border-radius: 8px;
 	font-size: 14px;
 	line-height: 1.3;

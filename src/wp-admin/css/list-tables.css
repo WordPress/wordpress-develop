@@ -1488,7 +1488,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	width: 48.5%;
 	width: calc( 50% - 8px );
 	background-color: #ffffff;
-	border: 1px solid rgba(0, 0, 0, 0.1);
+	border: 1px solid rgb(0, 0, 0, 0.1);
 	border-radius: 8px;
 	box-sizing: border-box;
 	overflow: hidden;
@@ -1672,7 +1672,7 @@ div.action-links,
 	clear: both;
 	padding: 16px;
 	background-color: #f6f7f7;
-	border-top: 1px solid rgba(0, 0, 0, 0.1);
+	border-top: 1px solid rgb(0, 0, 0, 0.1);
 	overflow: hidden;
 }
 

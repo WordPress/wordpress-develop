@@ -787,7 +787,7 @@ img.emoji {
 }
 
 .stuffbox .hndle {
-	border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+	border-bottom: 1px solid rgb(0, 0, 0, 0.1);
 }
 
 .quicktags {
@@ -2156,7 +2156,7 @@ html.wp-toolbar {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+	border-bottom: 1px solid rgb(0, 0, 0, 0.1);
 }
 
 .postbox-header .hndle {
@@ -2209,7 +2209,7 @@ html.wp-toolbar {
 	border: 2px solid var(--wp-admin-theme-color);
 	border-radius: 8px;
 	margin-bottom: 20px;
-	background: rgba(var(--wp-admin-theme-color--rgb), 0.04);
+	background: rgb(var(--wp-admin-theme-color--rgb), 0.04);
 }
 
 .postbox,
@@ -2218,7 +2218,7 @@ html.wp-toolbar {
 	padding: 0;
 	line-height: 1;
 	background: #ffffff;
-	border: 1px solid rgba(0, 0, 0, 0.1);
+	border: 1px solid rgb(0, 0, 0, 0.1);
 	border-radius: 0;
 }
 

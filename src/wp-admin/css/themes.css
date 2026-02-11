@@ -65,7 +65,7 @@ body.js .theme-browser.search-loading {
 	position: relative;
 	width: 30.6%;
 	background: #ffffff;
-	border: 1px solid rgba(0, 0, 0, 0.1);
+	border: 1px solid rgb(0, 0, 0, 0.1);
 	border-radius: 8px;
 	box-sizing: border-box;
 	overflow: hidden;
@@ -86,7 +86,7 @@ body.js .theme-browser.search-loading {
 	height: 18px;
 	margin: 0;
 	padding: 16px;
-	border-top: 1px solid rgba(0, 0, 0, 0.1);
+	border-top: 1px solid rgb(0, 0, 0, 0.1);
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
