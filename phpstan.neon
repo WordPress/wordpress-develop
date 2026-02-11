@@ -1,0 +1,12 @@
+parameters:
+	level: 2
+	phpVersion: 70224
+	paths:
+		- src/wp-includes/html-api
+		- src/wp-includes/class-wp-token-map.php
+	scanFiles:
+		- src/wp-includes/compat.php
+		- src/wp-includes/formatting.php
+		- src/wp-includes/functions.php
+		- src/wp-includes/kses.php
+		- src/wp-includes/l10n.php

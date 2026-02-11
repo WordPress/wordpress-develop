@@ -1594,12 +1594,11 @@ class WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			if ( '/' === $html[ $at ] ) {
+			$is_closing = '/' === $html[ $at ];
+
+			if ( $is_closing ) {
 				$closer_potentially_starts_at = $at - 1;
-				$is_closing                   = true;
 				++$at;
-			} else {
-				$is_closing = false;
 			}
 
 			/*

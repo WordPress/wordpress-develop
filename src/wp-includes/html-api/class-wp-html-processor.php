@@ -583,6 +583,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $message Explains support is missing in order to parse the current node.
+	 *
+	 * @return never
 	 */
 	private function bail( string $message ) {
 		$here  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
@@ -3179,9 +3181,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			$this->generate_implied_end_tags( $token_name );
-			if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
-				// @todo Record parse error: this error doesn't impact parsing.
-			}
+			// @todo record parse error if $node is not the current node.
 
 			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
 				$this->state->stack_of_open_elements->pop();
