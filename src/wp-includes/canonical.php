@@ -923,7 +923,6 @@ function strip_fragment_from_url( $url ) {
  * @return string|false The correct URL if one is found. False on failure.
  */
 function redirect_guess_404_permalink() {
-
 	/**
 	 * Filters whether to attempt to guess a redirect URL for a 404 request.
 	 *
