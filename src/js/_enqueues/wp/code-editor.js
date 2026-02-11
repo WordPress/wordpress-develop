@@ -45,7 +45,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * Configure linting.
 	 *
-	 * @param {CodeMirror.EditorFromTextArea} editor - Editor.
+	 * @param {CodeMirror.EditorFromTextArea & { performLint?: function }} editor - Editor.
 	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
 	 * @return {Function} Update error notice function.
@@ -172,7 +172,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 			}
 
 			// Force update on error notice to show or hide.
-			if ( editor.getOption( 'lint' ) ) {
+			if ( editor.getOption( 'lint' ) && editor.performLint ) {
 				editor.performLint();
 			} else {
 				currentErrorAnnotations = [];
@@ -326,7 +326,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * @typedef {object} wp.codeEditor~CodeEditorInstance
 	 * @property {CodeEditorSettings} settings - The code editor settings.
-	 * @property {CodeMirror.EditorFromTextArea} codemirror - The CodeMirror instance.
+	 * @property {CodeMirror.EditorFromTextArea & { performLint?: function, showHint?: function }} codemirror - The CodeMirror instance.
 	 * @property {Function} updateErrorNotice - Force update the error notice.
 	 */
 
