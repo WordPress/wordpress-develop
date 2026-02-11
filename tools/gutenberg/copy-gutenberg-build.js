@@ -259,6 +259,25 @@ function copyBlockAssets( config ) {
 				const content = fs.readFileSync( blockPhpSrc, 'utf8' );
 				fs.writeFileSync( phpDest, content );
 			}
+
+			// 4. Copy PHP subdirectories from packages (e.g., shared/helpers.php)
+			const blockPhpDir = path.join( phpSrc, blockName );
+			if ( fs.existsSync( blockPhpDir ) ) {
+				const rootIndex = path.join( blockPhpDir, 'index.php' );
+				fs.cpSync( blockPhpDir, blockDest, {
+					recursive: true,
+					filter: function hasPhpFiles( src ) {
+						const stat = fs.statSync( src );
+						if ( stat.isDirectory() ) {
+							return fs.readdirSync( src, { withFileTypes: true } ).some(
+								( entry ) => hasPhpFiles( path.join( src, entry.name ) )
+							);
+						}
+						// Copy PHP files, but skip root index.php (handled by step 3)
+						return src.endsWith( '.php' ) && src !== rootIndex;
+					},
+				} );
+			}
 		}
 
 		console.log(
