@@ -68,7 +68,8 @@
 }
 
 #dashboard-widgets .postbox-container .empty-container {
-	border: 2px dashed rgba(0, 0, 0, 0.15);
+	outline: 2px dashed rgba(0, 0, 0, 0.15);
+	outline-offset: -2px;
 	border-radius: 8px;
 	height: 250px;
 }
@@ -81,7 +82,7 @@
 }
 
 .is-dragging-metaboxes #dashboard-widgets .postbox-container .empty-container {
-	border: 2px dashed rgba(0, 0, 0, 0.15);
+	outline: 2px dashed rgba(0, 0, 0, 0.15);
 	background: rgba(0, 0, 0, 0.01);
 }
 
