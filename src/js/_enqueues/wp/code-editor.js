@@ -208,7 +208,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 		 * called.
 		 */
 		$( document.body ).on( 'mousedown', function( event ) {
-			if ( editor.state.focused && ! editor.getWrapperElement().contains( event.target ) && ! $( event.target ).hasClass( 'CodeMirror-hint' ) ) {
+			if ( editor.state.focused && ! editor.getWrapperElement().contains( event.target ) && ! event.target.classList.contains( 'CodeMirror-hint' ) ) {
 				updateErrorNotice();
 			}
 		});
