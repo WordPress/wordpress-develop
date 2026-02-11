@@ -5,7 +5,7 @@
  * Button mixin - creates a primary button effect.
  * Uses CSS custom properties for theme color support across color schemes.
  */
-@mixin button( $button-color, $button-text-color: #fff ) {
+@mixin button( $button-text-color: #fff ) {
 	background: var(--wp-admin-theme-color);
 	border-color: transparent;
 	border-radius: tokens.$radius-s;

@@ -184,7 +184,7 @@ input[type="radio"]:focus {
 
 	/* Primary button - theme color background */
 	.button-primary {
-		@include mixins.button( variables.$button-color );
+		@include mixins.button();
 	}
 
 	.button-group > .button.active {
