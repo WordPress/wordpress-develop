@@ -15,9 +15,10 @@ module.exports = function (
 	// Only building Core-specific media files and development scripts.
 	// Blocks, packages, script modules, and vendors are now sourced from
 	// the Gutenberg build (see tools/gutenberg/copy-gutenberg-build.js).
+	// Note: developmentConfig returns an array of configs, so we spread it.
 	const config = [
 		mediaConfig( env ),
-		developmentConfig( env ),
+		...developmentConfig( env ),
 	];
 
 	return config;

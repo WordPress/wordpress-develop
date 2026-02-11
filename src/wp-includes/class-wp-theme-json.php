@@ -610,6 +610,16 @@ class WP_Theme_JSON {
 	);
 
 	/**
+	 * The valid pseudo-selectors that can be used for blocks.
+	 *
+	 * @since 7.0
+	 * @var array
+	 */
+	const VALID_BLOCK_PSEUDO_SELECTORS = array(
+		'core/button' => array( ':hover', ':focus', ':focus-visible', ':active' ),
+	);
+
+	/**
 	 * The valid elements that can be found under styles.
 	 *
 	 * @since 5.8.0
@@ -699,6 +709,35 @@ class WP_Theme_JSON {
 		return $schema_in_root_and_per_origin;
 	}
 
+
+	/**
+	 * Processes pseudo-selectors for any node (block or variation).
+	 *
+	 * @param array  $node The node data (block or variation).
+	 * @param string $base_selector The base selector.
+	 * @param array  $settings The theme settings.
+	 * @param string $block_name The block name.
+	 * @return array Array of pseudo-selector declarations.
+	 */
+	private static function process_pseudo_selectors( $node, $base_selector, $settings, $block_name ) {
+		$pseudo_declarations = array();
+
+		if ( ! isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) ) {
+			return $pseudo_declarations;
+		}
+
+		foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] as $pseudo_selector ) {
+			if ( isset( $node[ $pseudo_selector ] ) ) {
+				$combined_selector                         = static::append_to_selector( $base_selector, $pseudo_selector );
+				$declarations                              = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, null );
+				$pseudo_declarations[ $combined_selector ] = $declarations;
+			}
+		}
+
+		return $pseudo_declarations;
+	}
+
+
 	/**
 	 * Returns a class name by an element name.
 	 *
@@ -744,6 +783,7 @@ class WP_Theme_JSON {
 		array( 'spacing', 'margin' ),
 		array( 'spacing', 'padding' ),
 		array( 'typography', 'lineHeight' ),
+		array( 'typography', 'textColumns' ),
 	);
 
 	/**
@@ -1017,6 +1057,13 @@ class WP_Theme_JSON {
 			$schema_settings_blocks[ $block ]           = static::VALID_SETTINGS;
 			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
 			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
+
+			// Add pseudo-selectors for blocks that support them
+			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
+				foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
+					$schema_styles_blocks[ $block ][ $pseudo_selector ] = $styles_non_top_level;
+				}
+			}
 		}
 
 		$block_style_variation_styles             = static::VALID_STYLES;
@@ -1039,7 +1086,18 @@ class WP_Theme_JSON {
 
 			$schema_styles_variations = array();
 			if ( ! empty( $style_variation_names ) ) {
-				$schema_styles_variations = array_fill_keys( $style_variation_names, $block_style_variation_styles );
+				foreach ( $style_variation_names as $variation_name ) {
+					$variation_schema = $block_style_variation_styles;
+
+					// Add pseudo-selectors to variations for blocks that support them
+					if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
+						foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
+							$variation_schema[ $pseudo_selector ] = $styles_non_top_level;
+						}
+					}
+
+					$schema_styles_variations[ $variation_name ] = $variation_schema;
+				}
 			}
 
 			$schema_styles_blocks[ $block ]['variations'] = $schema_styles_variations;
@@ -1615,7 +1673,7 @@ class WP_Theme_JSON {
 		$selector                 = $block_metadata['selector'] ?? '';
 		$has_block_gap_support    = isset( $this->theme_json['settings']['spacing']['blockGap'] );
 		$has_fallback_gap_support = ! $has_block_gap_support; // This setting isn't useful yet: it exists as a placeholder for a future explicit fallback gap styles support.
-		$node                     = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
+		$node                     = $options['node'] ?? _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
 		$layout_definitions       = wp_get_layout_definitions();
 		$layout_selector_pattern  = '/^[a-zA-Z0-9\-\.\,\ *+>:\(\)]*$/'; // Allow alphanumeric classnames, spaces, wildcard, sibling, child combinator and pseudo class selectors.
 
@@ -2356,18 +2414,6 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			/*
-			 * Look up protected properties, keyed by value path.
-			 * Skip protected properties that are explicitly set to `null`.
-			 */
-			$path_string = implode( '.', $value_path );
-			if (
-				isset( static::PROTECTED_PROPERTIES[ $path_string ] ) &&
-				_wp_array_get( $settings, static::PROTECTED_PROPERTIES[ $path_string ], null ) === null
-			) {
-				continue;
-			}
-
 			// Calculates fluid typography rules where available.
 			if ( 'font-size' === $css_property ) {
 				/*
@@ -2753,6 +2799,23 @@ class WP_Theme_JSON {
 					'variations' => $variation_selectors,
 					'css'        => $selector,
 				);
+
+				// Handle any pseudo selectors for the block.
+				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
+					foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo_selector ) {
+						if ( isset( $theme_json['styles']['blocks'][ $name ][ $pseudo_selector ] ) ) {
+							$nodes[] = array(
+								'name'       => $name,
+								'path'       => array( 'styles', 'blocks', $name, $pseudo_selector ),
+								'selector'   => static::append_to_selector( $selector, $pseudo_selector ),
+								'selectors'  => $feature_selectors,
+								'duotone'    => $duotone_selector,
+								'variations' => $variation_selectors,
+								'css'        => static::append_to_selector( $selector, $pseudo_selector ),
+							);
+						}
+					}
+				}
 			}
 
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
@@ -2811,8 +2874,9 @@ class WP_Theme_JSON {
 		$is_root_selector     = static::ROOT_BLOCK_SELECTOR === $selector;
 
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
-		$style_variation_declarations = array();
-		$style_variation_custom_css   = array();
+		$style_variation_declarations    = array();
+		$style_variation_custom_css      = array();
+		$style_variation_layout_metadata = array();
 		if ( ! empty( $block_metadata['variations'] ) ) {
 			foreach ( $block_metadata['variations'] as $style_variation ) {
 				$style_variation_node           = _wp_array_get( $this->theme_json, $style_variation['path'], array() );
@@ -2848,9 +2912,27 @@ class WP_Theme_JSON {
 
 				// Compute declarations for remaining styles not covered by feature level selectors.
 				$style_variation_declarations[ $style_variation['selector'] ] = static::compute_style_properties( $style_variation_node, $settings, null, $this->theme_json );
+
+				// Process pseudo-selectors for this variation (e.g., :hover, :focus)
+				$block_name                    = isset( $block_metadata['name'] ) ? $block_metadata['name'] : ( in_array( 'blocks', $block_metadata['path'], true ) && count( $block_metadata['path'] ) >= 3 ? $block_metadata['path'][2] : null );
+				$variation_pseudo_declarations = static::process_pseudo_selectors( $style_variation_node, $style_variation['selector'], $settings, $block_name );
+				$style_variation_declarations  = array_merge( $style_variation_declarations, $variation_pseudo_declarations );
+
 				// Store custom CSS for the style variation.
 				if ( isset( $style_variation_node['css'] ) ) {
 					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $style_variation['selector'] );
+				}
+
+				// Store variation metadata and node for layout styles generation.
+				// Only store if the variation has blockGap defined.
+				if ( isset( $style_variation_node['spacing']['blockGap'] ) ) {
+					// Append block selector to the variation selector for proper targeting.
+					$variation_metadata_with_selector                                = $style_variation;
+					$variation_metadata_with_selector['selector']                    = $style_variation['selector'] . $block_metadata['css'];
+					$style_variation_layout_metadata[ $style_variation['selector'] ] = array(
+						'metadata' => $variation_metadata_with_selector,
+						'node'     => $style_variation_node,
+					);
 				}
 			}
 		}
@@ -2868,6 +2950,23 @@ class WP_Theme_JSON {
 
 		if ( isset( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
 			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
+		}
+
+		/*
+		 * Check if we're processing a block pseudo-selector.
+		 * $block_metadata['path'] = array( 'styles', 'blocks', 'core/button', ':hover' );
+		 */
+		$is_processing_block_pseudo = false;
+		$block_pseudo_selector      = null;
+		if ( in_array( 'blocks', $block_metadata['path'], true ) && count( $block_metadata['path'] ) >= 4 ) {
+			$block_name        = $block_metadata['path'][2]; // 'core/button'
+			$last_path_element = $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ]; // ':hover'
+
+			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) &&
+				in_array( $last_path_element, static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ], true ) ) {
+				$is_processing_block_pseudo = true;
+				$block_pseudo_selector      = $last_path_element;
+			}
 		}
 
 		/*
@@ -2899,6 +2998,14 @@ class WP_Theme_JSON {
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
+		} elseif ( $is_processing_block_pseudo ) {
+			// Process block pseudo-selector styles
+			// For block pseudo-selectors, we need to get the block data first, then access the pseudo-selector
+			$block_name  = $block_metadata['path'][2]; // 'core/button'
+			$block_data  = _wp_array_get( $this->theme_json, array( 'styles', 'blocks', $block_name ), array() );
+			$pseudo_data = isset( $block_data[ $block_pseudo_selector ] ) ? $block_data[ $block_pseudo_selector ] : array();
+
+			$declarations = static::compute_style_properties( $pseudo_data, $settings, null, $this->theme_json, $selector, $use_root_padding );
 		} else {
 			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json, $selector, $use_root_padding );
 		}
@@ -3004,6 +3111,10 @@ class WP_Theme_JSON {
 		// 6. Generate and append the style variation rulesets.
 		foreach ( $style_variation_declarations as $style_variation_selector => $individual_style_variation_declarations ) {
 			$block_rules .= static::to_ruleset( ":root :where($style_variation_selector)", $individual_style_variation_declarations );
+			if ( isset( $style_variation_layout_metadata[ $style_variation_selector ] ) ) {
+				$variation_data = $style_variation_layout_metadata[ $style_variation_selector ];
+				$block_rules   .= $this->get_layout_styles( $variation_data['metadata'], array( 'node' => $variation_data['node'] ) );
+			}
 			if ( isset( $style_variation_custom_css[ $style_variation_selector ] ) ) {
 				$block_rules .= $style_variation_custom_css[ $style_variation_selector ];
 			}
@@ -3079,7 +3190,7 @@ class WP_Theme_JSON {
 			$css .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 		}
 
-		// Block gap styles will be output unless explicitly set to `null`. See static::PROTECTED_PROPERTIES.
+		// Block gap styles will be output unless explicitly set to `null`.
 		if ( isset( $this->theme_json['settings']['spacing']['blockGap'] ) ) {
 			$block_gap_value = static::get_property_value( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ) );
 			$css            .= ":where(.wp-site-blocks) > * { margin-block-start: $block_gap_value; margin-block-end: 0; }";
