@@ -6905,4 +6905,132 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button,.wp-block-button .wp-block-button__link  .wp-block-button__link){color: green;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button:hover,.wp-block-button .wp-block-button__link  .wp-block-button__link:hover){color: orange;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_boolean_values_when_schema_expects_boolean() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'lightbox' => array(
+						'enabled'      => true,
+						'allowEditing' => false,
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertTrue( $settings['lightbox']['enabled'], 'Enabled should be true' );
+		$this->assertFalse( $settings['lightbox']['allowEditing'], 'Allow editing should be false' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_removes_non_boolean_values_when_schema_expects_boolean() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'lightbox' => array(
+						'enabled'      => 'not-a-boolean',
+						'allowEditing' => 123,
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertArrayNotHasKey( 'enabled', $settings['lightbox'] ?? array(), 'Enabled should be removed' );
+		$this->assertArrayNotHasKey( 'allowEditing', $settings['lightbox'] ?? array(), 'Allow editing should be removed' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_boolean_values_in_block_settings() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'lightbox' => array(
+								'enabled'      => true,
+								'allowEditing' => false,
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertTrue( $settings['blocks']['core/image']['lightbox']['enabled'], 'Enabled should be true' );
+		$this->assertFalse( $settings['blocks']['core/image']['lightbox']['allowEditing'], 'Allow editing should be false' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_removes_non_boolean_values_in_block_settings() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'lightbox' => array(
+								'enabled'      => 'string-value',
+								'allowEditing' => array( 'not', 'a', 'boolean' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$lightbox = $settings['blocks']['core/image']['lightbox'] ?? array();
+		$this->assertArrayNotHasKey( 'enabled', $lightbox, 'Enabled should be removed' );
+		$this->assertArrayNotHasKey( 'allowEditing', $lightbox, 'Allow editing should be removed' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_null_schema_behavior() {
+		// Test that settings with null in schema (no type validation) still accept any type.
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'appearanceTools' => 'string-value', // null in schema, should accept any type.
+					'custom'          => array( 'nested' => 'value' ), // null in schema, should accept any type.
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertSame( 'string-value', $settings['appearanceTools'], 'Appearance tools should be string value' );
+		$this->assertSame( array( 'nested' => 'value' ), $settings['custom'], 'Custom should be array value' );
+	}
 }
