@@ -311,6 +311,10 @@ WP_AI_Client_Discovery_Strategy::init();
 WordPress\AiClient\AiClient::setCache( new WP_AI_Client_Cache() );
 WordPress\AiClient\AiClient::setEventDispatcher( new WP_AI_Client_Event_Dispatcher() );
 
+// WP AI Client - Credentials management.
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-credentials-manager.php';
+$GLOBALS['wp_ai_client_credentials_manager'] = new WP_AI_Client_Credentials_Manager();
+
 require ABSPATH . WPINC . '/widgets.php';
 require ABSPATH . WPINC . '/class-wp-widget.php';
 require ABSPATH . WPINC . '/class-wp-widget-factory.php';
@@ -775,6 +779,10 @@ $GLOBALS['wp']->init();
  * @since 1.5.0
  */
 do_action( 'init' );
+
+// WP AI Client - Collect providers and pass credentials after plugins have loaded.
+$GLOBALS['wp_ai_client_credentials_manager']->collect_providers();
+$GLOBALS['wp_ai_client_credentials_manager']->pass_credentials_to_client();
 
 // Check site status.
 if ( is_multisite() ) {
