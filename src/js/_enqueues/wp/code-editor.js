@@ -271,6 +271,18 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 */
 
 	/**
+	 * @typedef {object} CodeMirrorState
+	 * @property {boolean} [completionActive] - Whether completion is active.
+	 */
+
+	/**
+	 * @typedef {object} CodeMirrorTokenState
+	 * @property {object} [htmlState] - HTML state.
+	 * @property {string} [htmlState.tagName] - Tag name.
+	 * @property {CodeMirrorTokenState} [curState] - Current state.
+	 */
+
+	/**
 	 * @typedef {object} CodeEditorSettings
 	 *
 	 * @property {import('codemirror').EditorConfiguration} [codemirror] - CodeMirror settings.
@@ -337,7 +349,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * @typedef {object} wp.codeEditor~CodeEditorInstance
 	 * @property {CodeEditorSettings} settings - The code editor settings.
-	 * @property {CodeMirror.EditorFromTextArea & { performLint?: function, showHint?: function }} codemirror - The CodeMirror instance.
+	 * @property {CodeMirror.EditorFromTextArea & { performLint?: function, showHint?: function, state: CodeMirrorState }} codemirror - The CodeMirror instance.
 	 * @property {Function} updateErrorNotice - Force update the error notice.
 	 */
 
@@ -394,7 +406,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 				}
 
 				// Prevent autocompletion in string literals or comments.
-				const token = codemirror.getTokenAt( codemirror.getCursor() );
+				const token = /** @type {import('codemirror').Token & { state: CodeMirrorTokenState }} */ ( codemirror.getTokenAt( codemirror.getCursor() ) );
 				if ( 'string' === token.type || 'comment' === token.type ) {
 					return;
 				}
