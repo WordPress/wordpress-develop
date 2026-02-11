@@ -1168,7 +1168,7 @@ p.customize-section-description {
 
 #available-menu-items .new-content-item .add-content,
 .customize-control-dropdown-pages .new-content-item .add-content {
-	margin: 2px 0 2px 6px;
+	margin: 0 0 0 6px;
 	flex-grow: 1;
 }
 
