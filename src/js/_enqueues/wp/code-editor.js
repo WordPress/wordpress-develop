@@ -326,7 +326,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * @typedef {object} wp.codeEditor~CodeEditorInstance
 	 * @property {CodeEditorSettings} settings - The code editor settings.
-	 * @property {CodeMirror.Editor} codemirror - The CodeMirror instance.
+	 * @property {CodeMirror.EditorFromTextArea} codemirror - The CodeMirror instance.
 	 * @property {Function} updateErrorNotice - Force update the error notice.
 	 */
 
@@ -338,7 +338,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * @param {string|jQuery|Element} textarea - The HTML id, jQuery object, or DOM Element for the textarea that is used for the editor.
 	 * @param {CodeEditorSettings}    [settings] - Settings to override defaults.
 	 *
-	 * @return {CodeEditorInstance} Instance.
+	 * @return {wp.codeEditor~CodeEditorInstance} Instance.
 	 */
 	wp.codeEditor.initialize = function initialize( textarea, settings ) {
 		let $textarea;
@@ -348,13 +348,14 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 			$textarea = $( textarea );
 		}
 
-		const instanceSettings = $.extend( {}, wp.codeEditor.defaultSettings, settings );
-		instanceSettings.codemirror = $.extend( {}, instanceSettings.codemirror );
+		/** @type {CodeEditorSettings} */
+		const instanceSettings = $.extend( true, {}, wp.codeEditor.defaultSettings, settings );
 
 		const codemirror = wp.CodeMirror.fromTextArea( $textarea[0], instanceSettings.codemirror );
 
 		const updateErrorNotice = configureLinting( codemirror, instanceSettings );
 
+		/** @type {wp.codeEditor~CodeEditorInstance} */
 		const instance = {
 			settings: instanceSettings,
 			codemirror,
