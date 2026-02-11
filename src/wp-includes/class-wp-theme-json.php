@@ -2536,7 +2536,7 @@ class WP_Theme_JSON {
 	 * @param string $default_selector  Fallback selector.
 	 * @return string The resolved selector.
 	 */
-	private static function get_feature_selector( $feature_selectors, $feature_key, $default_selector ) {
+	private static function get_feature_selector( array $feature_selectors, string $feature_key, string $default_selector ): string {
 		if ( ! isset( $feature_selectors[ $feature_key ] ) ) {
 			return $default_selector;
 		}
@@ -2547,11 +2547,7 @@ class WP_Theme_JSON {
 			return $feature;
 		}
 
-		if ( isset( $feature['root'] ) ) {
-			return $feature['root'];
-		}
-
-		return $default_selector;
+		return $feature['root'] ?? $default_selector;
 	}
 
 	/**
