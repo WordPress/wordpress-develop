@@ -2670,9 +2670,27 @@ function wp_ajax_upload_attachment() {
 		wp_die();
 	}
 
+	/**
+	 * Ajax handler check set as featured image or not
+	 * if set as featured image and set as doc. file then it's return error.
+	 *
+	 * @since 6.9.0
+	 */
+	$success = true;
+
+	if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'upload-attachment' && isset( $_REQUEST['is_featured'] ) && $_REQUEST['is_featured'] == 'true' && isset( $attachment['type'] ) && $attachment['type'] != 'image' ) {
+
+		$success    = false;
+		$attachment = array(
+			'message'  => __( 'The uploaded file is not a valid image. Please select valid file format.' ),
+			'filename' => $_FILES['async-upload']['name'],
+		);
+
+	}
+
 	echo wp_json_encode(
 		array(
-			'success' => true,
+			'success' => $success,
 			'data'    => $attachment,
 		)
 	);
