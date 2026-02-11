@@ -616,7 +616,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$opcache_enabled = false;
 		if ( function_exists( 'opcache_get_status' ) ) {
-			$status = opcache_get_status( false );
+			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
 			if ( $status && true === $status['opcache_enabled'] ) {
 				$opcache_enabled = true;
 			}

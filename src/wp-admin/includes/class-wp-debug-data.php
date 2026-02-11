@@ -504,31 +504,33 @@ class WP_Debug_Data {
 						),
 					);
 
-					$fields['opcode_cache_interned_strings_usage'] = array(
-						'label' => __( 'Opcode cache interned strings usage' ),
-						'value' => sprintf(
-							/* translators: 1: Percentage used, 2: Total memory, 3: Free memory */
-							__( '%1$s%% of %2$s (%3$s free)' ),
-							number_format_i18n( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
-							size_format( $opcache_status['interned_strings_usage']['buffer_size'] ),
-							size_format( $opcache_status['interned_strings_usage']['free_memory'] )
-						),
-						'debug' => sprintf(
-							'%s%% of %s (%s free)',
-							round( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
-							$opcache_status['interned_strings_usage']['buffer_size'],
-							$opcache_status['interned_strings_usage']['free_memory']
-						),
-					);
+					if ( 0 !== $opcache_status['interned_strings_usage']['buffer_size'] ) {
+						$fields['opcode_cache_interned_strings_usage'] = array(
+							'label' => __( 'Opcode cache interned strings usage' ),
+							'value' => sprintf(
+								/* translators: 1: Percentage used, 2: Total memory, 3: Free memory */
+								__( '%1$s%% of %2$s (%3$s free)' ),
+								number_format_i18n( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
+								size_format( $opcache_status['interned_strings_usage']['buffer_size'] ),
+								size_format( $opcache_status['interned_strings_usage']['free_memory'] )
+							),
+							'debug' => sprintf(
+								'%s%% of %s (%s free)',
+								round( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
+								$opcache_status['interned_strings_usage']['buffer_size'],
+								$opcache_status['interned_strings_usage']['free_memory']
+							),
+						);
+					}
 
 					$fields['opcode_cache_hit_rate'] = array(
 						'label' => __( 'Opcode cache hit rate' ),
 						'value' => sprintf(
 							/* translators: %s: Hit rate percentage */
 							__( '%s%%' ),
-							round( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 )
+							number_format_i18n( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 )
 						),
-						'debug' => $opcache_status['opcache_statistics']['opcache_hit_rate'],
+						'debug' => round( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 ),
 					);
 
 					$fields['opcode_cache_full'] = array(
