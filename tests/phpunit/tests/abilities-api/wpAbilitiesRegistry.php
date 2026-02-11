@@ -23,6 +23,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Set up each test method.
 	 */
 	public function set_up(): void {
+		require_once DIR_TESTDATA . '/../includes/class-tests-custom-ability-class.php';
+
 		parent::set_up();
 
 		$this->registry = new WP_Abilities_Registry();
@@ -131,6 +133,74 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_invalid_uppercase_characters_in_name() {
 		$result = $this->registry->register( 'Test/AddNumbers', self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should accept ability name with 3 segments (2 slashes).
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 */
+	public function test_register_valid_name_with_three_segments() {
+		$result = $this->registry->register( 'test/sub/add-numbers', self::$test_ability_args );
+		$this->assertInstanceOf( WP_Ability::class, $result );
+		$this->assertSame( 'test/sub/add-numbers', $result->get_name() );
+	}
+
+	/**
+	 * Should accept ability name with 4 segments (3 slashes).
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 */
+	public function test_register_valid_name_with_four_segments() {
+		$result = $this->registry->register( 'test/sub/deep/add-numbers', self::$test_ability_args );
+		$this->assertInstanceOf( WP_Ability::class, $result );
+		$this->assertSame( 'test/sub/deep/add-numbers', $result->get_name() );
+	}
+
+	/**
+	 * Should reject ability name with 5 segments (exceeds maximum of 4).
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_name_with_five_segments() {
+		$result = $this->registry->register( 'test/a/b/c/too-deep', self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should reject ability name with empty segments (double slashes).
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_name_with_empty_segment() {
+		$result = $this->registry->register( 'test//add-numbers', self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should reject ability name with trailing slash.
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_name_with_trailing_slash() {
+		$result = $this->registry->register( 'test/add-numbers/', self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -255,6 +325,36 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should allow ability registration with custom ability_class that overrides do_execute.
+	 *
+	 * @ticket 64407
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_register_with_custom_ability_class_without_execute_callback() {
+		// Remove execute_callback and permission_callback since the custom class provides its own implementation.
+		unset( self::$test_ability_args['execute_callback'] );
+		unset( self::$test_ability_args['permission_callback'] );
+
+		self::$test_ability_args['ability_class'] = 'Tests_Custom_Ability_Class';
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+
+		$this->assertInstanceOf( WP_Ability::class, $result, 'Should return a WP_Ability instance.' );
+		$this->assertInstanceOf( Tests_Custom_Ability_Class::class, $result, 'Should return an instance of the custom class.' );
+
+		// Verify the custom execute method works.
+		$execute_result = $result->execute(
+			array(
+				'a' => 5,
+				'b' => 3,
+			)
+		);
+		$this->assertSame( 15, $execute_result, 'Custom do_execute should multiply instead of add.' );
 	}
 
 	/**

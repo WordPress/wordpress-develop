@@ -176,7 +176,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 		$classes[] = 'interim-login';
 
 		?>
-		<style type="text/css">html{background-color: transparent;}</style>
+		<style>html{background-color: transparent;}</style>
 		<?php
 
 		if ( 'success' === $interim_login ) {
@@ -397,13 +397,13 @@ function login_footer( $input_id = '' ) {
 					);
 
 					/**
-					 * Filters default arguments for the Languages select input on the login screen.
+					 * Filters default arguments for the Language select input on the login screen.
 					 *
 					 * The arguments get passed to the wp_dropdown_languages() function.
 					 *
 					 * @since 5.9.0
 					 *
-					 * @param array $args Arguments for the Languages select input on the login screen.
+					 * @param array $args Arguments for the Language select input on the login screen.
 					 */
 					wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
 					?>
@@ -1000,7 +1000,6 @@ switch ( $action ) {
 
 		if ( ( ! $errors->has_errors() ) && isset( $_POST['pass1'] ) && ! empty( $_POST['pass1'] ) ) {
 			reset_password( $user, $_POST['pass1'] );
-			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 			login_header(
 				__( 'Password Reset' ),
 				wp_get_admin_notice(
@@ -1485,6 +1484,14 @@ switch ( $action ) {
 		// Clear any stale cookies.
 		if ( $reauth ) {
 			wp_clear_auth_cookie();
+		}
+
+		// Obtain user from password reset cookie flow before clearing the cookie.
+		$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
+		if ( isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
+			$user_login      = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
+			list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
+			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 		}
 
 		login_header( __( 'Log In' ), '', $errors );
