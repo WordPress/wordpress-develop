@@ -82,13 +82,13 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	private function get_wrapped_prompt_builder_property_value( WP_AI_Client_Prompt_Builder $builder, string $property ) {
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
-		$builder_property->setAccessible( true );
+
 
 		$wrapped_builder = $builder_property->getValue( $builder );
 
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
 		$the_property      = $reflection_class2->getProperty( $property );
-		$the_property->setAccessible( true );
+
 
 		return $the_property->getValue( $wrapped_builder );
 	}
@@ -128,7 +128,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		// Verify the wrapped builder is a PromptBuilder instance.
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
-		$builder_property->setAccessible( true );
+
 		$wrapped_builder = $builder_property->getValue( $prompt_builder );
 
 		$this->assertInstanceOf( PromptBuilder::class, $wrapped_builder );
@@ -278,7 +278,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$reflection_class  = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$conversion_method = $reflection_class->getMethod( 'snake_to_camel_case' );
-		$conversion_method->setAccessible( true );
+
 
 		foreach ( $test_cases as $snake_case => $expected_camel_case ) {
 			$actual_camel_case = $conversion_method->invoke( $prompt_builder, $snake_case );
@@ -317,7 +317,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$callable_method  = $reflection_class->getMethod( 'get_builder_callable' );
-		$callable_method->setAccessible( true );
+
 
 		$callable = $callable_method->invoke( $prompt_builder, 'with_text' );
 		$this->assertTrue( is_callable( $callable ), 'get_builder_callable should return a valid callable' );
@@ -339,12 +339,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
-		$builder_property->setAccessible( true );
+
 		$wrapped_builder = $builder_property->getValue( $prompt_builder );
 
 		$wrapped_builder_reflection = new ReflectionClass( get_class( $wrapped_builder ) );
 		$registry_property          = $wrapped_builder_reflection->getProperty( 'registry' );
-		$registry_property->setAccessible( true );
+
 
 		$this->assertSame( $registry, $registry_property->getValue( $wrapped_builder ), 'Wrapped builder should have the same registry' );
 	}
@@ -1358,11 +1358,11 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		// Manually add a model message as the last message.
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
-		$builder_property->setAccessible( true );
+
 		$wrapped_builder   = $builder_property->getValue( $builder );
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
 		$messages_property = $reflection_class2->getProperty( 'messages' );
-		$messages_property->setAccessible( true );
+
 
 		$messages   = $messages_property->getValue( $wrapped_builder );
 		$messages[] = new ModelMessage( array( new MessagePart( 'Final model message' ) ) );

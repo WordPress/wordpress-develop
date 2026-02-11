@@ -31,7 +31,7 @@ class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 
 		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$property   = $reflection->getProperty( 'builder' );
-		$property->setAccessible( true );
+	
 
 		$this->assertInstanceOf( PromptBuilder::class, $property->getValue( $builder ) );
 	}
@@ -46,12 +46,12 @@ class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 
 		$reflection       = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection->getProperty( 'builder' );
-		$builder_property->setAccessible( true );
+
 		$wrapped = $builder_property->getValue( $builder );
 
 		$wrapped_reflection = new ReflectionClass( get_class( $wrapped ) );
 		$messages_property  = $wrapped_reflection->getProperty( 'messages' );
-		$messages_property->setAccessible( true );
+
 		$messages = $messages_property->getValue( $wrapped );
 
 		$this->assertNotEmpty( $messages, 'Prompt content should produce at least one message.' );
@@ -67,12 +67,12 @@ class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 
 		$reflection       = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection->getProperty( 'builder' );
-		$builder_property->setAccessible( true );
+
 		$wrapped = $builder_property->getValue( $builder );
 
 		$wrapped_reflection = new ReflectionClass( get_class( $wrapped ) );
 		$messages_property  = $wrapped_reflection->getProperty( 'messages' );
-		$messages_property->setAccessible( true );
+
 		$messages = $messages_property->getValue( $wrapped );
 
 		$this->assertEmpty( $messages, 'No prompt content should produce no messages.' );
