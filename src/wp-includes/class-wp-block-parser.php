@@ -245,7 +245,7 @@ class WP_Block_Parser {
 		 * match back in PHP to see which one it was.
 		 */
 		$has_match = preg_match(
-			'/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s',
+			'/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)(?:\/(?P<variation>[a-z][a-z0-9_-]*))?\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s',
 			$this->document,
 			$matches,
 			PREG_OFFSET_CAPTURE,
@@ -264,13 +264,14 @@ class WP_Block_Parser {
 
 		list( $match, $started_at ) = $matches[0];
 
-		$length    = strlen( $match );
-		$is_closer = isset( $matches['closer'] ) && -1 !== $matches['closer'][1];
-		$is_void   = isset( $matches['void'] ) && -1 !== $matches['void'][1];
-		$namespace = $matches['namespace'];
-		$namespace = ( isset( $namespace ) && -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
-		$name      = $namespace . $matches['name'][0];
-		$has_attrs = isset( $matches['attrs'] ) && -1 !== $matches['attrs'][1];
+		$length       = strlen( $match );
+		$is_closer    = isset( $matches['closer'] ) && -1 !== $matches['closer'][1];
+		$is_void      = isset( $matches['void'] ) && -1 !== $matches['void'][1];
+		$is_variation = isset( $matches['variation'] ) && -1 !== $matches['variation'][1];
+		$namespace    = $matches['namespace'];
+		$namespace    = ( isset( $namespace ) && -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
+		$name         = $is_variation ? $namespace . $matches['name'][0] . '/' . $matches['variation'][0] : $namespace . $matches['name'][0];
+		$has_attrs    = isset( $matches['attrs'] ) && -1 !== $matches['attrs'][1];
 
 		/*
 		 * Fun fact! It's not trivial in PHP to create "an empty associative array" since all arrays

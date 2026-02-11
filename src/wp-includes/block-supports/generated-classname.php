@@ -54,6 +54,11 @@ function wp_apply_generated_classname_support( $block_type ) {
 	if ( $has_generated_classname_support ) {
 		$block_classname = wp_get_block_default_classname( $block_type->name );
 
+		// If the block is a variation and thus has an alias, generate a classname based on the canonical block name.
+		if ( block_is_variation( $block_type->name ) ) {
+			$block_classname .= ' ' . get_canonical_block_name( $block_type->name );
+		}
+
 		if ( $block_classname ) {
 			$attributes['class'] = $block_classname;
 		}
