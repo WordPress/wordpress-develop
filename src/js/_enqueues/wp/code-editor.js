@@ -430,7 +430,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 				}
 
 				const innerMode = wp.CodeMirror.innerMode( codemirror.getMode(), token.state ).mode.name;
-				const lineBeforeCursor = codemirror.doc.getLine( codemirror.doc.getCursor().line ).slice( 0, codemirror.doc.getCursor().ch );
+				const doc = codemirror.getDoc();
+				const lineBeforeCursor = doc.getLine( doc.getCursor().line ).slice( 0, doc.getCursor().ch );
 				let shouldAutocomplete = false;
 				if ( 'html' === innerMode || 'xml' === innerMode ) {
 					shouldAutocomplete = (
