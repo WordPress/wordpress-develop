@@ -102,7 +102,7 @@ input[type="week"]:focus,
 select:focus,
 textarea:focus {
 	border-color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -361,7 +361,7 @@ input[type="radio"].disabled:checked:before {
 .wp-core-ui select:focus {
 	border-color: var(--wp-admin-theme-color);
 	color: #1e1e1e;
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 }
 
 .wp-core-ui select:active {

@@ -52,7 +52,7 @@ span.wp-media-buttons-icon:before {
 	&:focus {
 		color: var(--wp-admin-theme-color);
 		border-radius: tokens.$radius-s;
-		box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+		box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 		outline: 1px solid transparent;
 	}
 
@@ -132,7 +132,7 @@ input[type="week"]:focus,
 select:focus,
 textarea:focus {
 	border-color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 }
 
 // Checkbox/Radio focus - Gutenberg-style outset focus ring
@@ -146,7 +146,7 @@ input[type="radio"]:focus {
 // Select focus (wp-core-ui styled selects)
 .wp-core-ui select:focus {
 	border-color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 }
 
 // Autocomplete focus state
@@ -158,13 +158,13 @@ input[type="radio"]:focus {
 // Password field focus
 #pass1:focus,
 #pass1-text:focus {
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 }
 
 // Password toggle button focus
 .mailserver-pass-wrap .button.wp-hide-pw:focus {
 	border-color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 }
 
 
@@ -242,7 +242,7 @@ input[type="radio"]:focus {
 	background: transparent;
 	border-color: var(--wp-admin-theme-color);
 	color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 	outline: 1px solid transparent;
 }
 
