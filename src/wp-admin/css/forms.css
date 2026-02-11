@@ -102,8 +102,7 @@ input[type="week"]:focus,
 select:focus,
 textarea:focus {
 	border-color: #3858e9;
-	/* Expand border by 0.5px for total 1.5px effect */
-	box-shadow: 0 0 0 0.5px #3858e9;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) #3858e9;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -362,7 +361,7 @@ input[type="radio"].disabled:checked:before {
 .wp-core-ui select:focus {
 	border-color: #3858e9;
 	color: #1e1e1e;
-	box-shadow: 0 0 0 0.5px #3858e9;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) #3858e9;
 }
 
 .wp-core-ui select:active {

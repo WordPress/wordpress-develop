@@ -114,7 +114,7 @@ input[type="radio"]:checked::before {
 	color: variables.$link-focus;
 }
 
-// Text input focus - Gutenberg-style 1.5px border effect
+// Text input focus - outset focus ring matching button focus style
 input[type="text"]:focus,
 input[type="password"]:focus,
 input[type="color"]:focus,
@@ -132,7 +132,7 @@ input[type="week"]:focus,
 select:focus,
 textarea:focus {
 	border-color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
 }
 
 // Checkbox/Radio focus - Gutenberg-style outset focus ring
@@ -146,7 +146,7 @@ input[type="radio"]:focus {
 // Select focus (wp-core-ui styled selects)
 .wp-core-ui select:focus {
 	border-color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
 }
 
 // Autocomplete focus state
@@ -158,13 +158,13 @@ input[type="radio"]:focus {
 // Password field focus
 #pass1:focus,
 #pass1-text:focus {
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
 }
 
 // Password toggle button focus
 .mailserver-pass-wrap .button.wp-hide-pw:focus {
 	border-color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
 }
 
 
