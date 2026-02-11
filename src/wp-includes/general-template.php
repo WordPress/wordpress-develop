@@ -1873,11 +1873,7 @@ function get_the_post_type_description() {
 	$post_type_obj = get_post_type_object( $post_type );
 
 	// Check if a description is set.
-	if ( isset( $post_type_obj->description ) ) {
-		$description = $post_type_obj->description;
-	} else {
-		$description = '';
-	}
+	$description = $post_type_obj->description ?? '';
 
 	/**
 	 * Filters the description for a post type archive.
@@ -4019,7 +4015,7 @@ function wp_enqueue_editor() {
  * @since 4.9.0
  *
  * @see wp_enqueue_editor()
- * @see wp_get_code_editor_settings();
+ * @see wp_get_code_editor_settings()
  * @see _WP_Editors::parse_settings()
  *
  * @param array $args {
@@ -4073,7 +4069,6 @@ function wp_enqueue_code_editor( $args ) {
 				case 'text/x-php':
 					wp_enqueue_script( 'htmlhint' );
 					wp_enqueue_script( 'csslint' );
-					wp_enqueue_script( 'jshint' );
 					if ( ! current_user_can( 'unfiltered_html' ) ) {
 						wp_enqueue_script( 'htmlhint-kses' );
 					}
@@ -4085,7 +4080,6 @@ function wp_enqueue_code_editor( $args ) {
 				case 'application/ld+json':
 				case 'text/typescript':
 				case 'application/typescript':
-					wp_enqueue_script( 'jshint' );
 					wp_enqueue_script( 'jsonlint' );
 					break;
 			}
@@ -4157,30 +4151,39 @@ function wp_get_code_editor_settings( $args ) {
 			'outline-none'              => true,
 		),
 		'jshint'     => array(
-			// The following are copied from <https://github.com/WordPress/wordpress-develop/blob/4.8.1/.jshintrc>.
-			'boss'     => true,
-			'curly'    => true,
-			'eqeqeq'   => true,
-			'eqnull'   => true,
-			'es3'      => true,
-			'expr'     => true,
-			'immed'    => true,
-			'noarg'    => true,
-			'nonbsp'   => true,
-			'onevar'   => true,
-			'quotmark' => 'single',
-			'trailing' => true,
-			'undef'    => true,
-			'unused'   => true,
+			'esversion' => 11,
+			'module'    => str_ends_with( $args['file'] ?? '', '.mjs' ),
 
-			'browser'  => true,
-
-			'globals'  => array(
-				'_'        => false,
-				'Backbone' => false,
-				'jQuery'   => false,
-				'JSON'     => false,
-				'wp'       => false,
+			// The following JSHint *linting rule* options are copied from
+			// <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
+			// Parsing-related options such as `esversion` (and, in other contexts, `es5`, `es3`, `module`, `strict`)
+			// are honored by the Espree-based integration, but these linting-rule options are not interpreted by Espree
+			// and are kept only for compatibility/documentation with the original JSHint configuration.
+			'boss'      => true,
+			'curly'     => true,
+			'eqeqeq'    => true,
+			'eqnull'    => true,
+			'expr'      => true,
+			'immed'     => true,
+			'noarg'     => true,
+			'nonbsp'    => true,
+			'quotmark'  => 'single',
+			'undef'     => true,
+			'unused'    => true,
+			'browser'   => true,
+			'globals'   => array(
+				'_'                 => false,
+				'Backbone'          => false,
+				'jQuery'            => false,
+				'JSON'              => false,
+				'wp'                => false,
+				'export'            => false,
+				'module'            => false,
+				'require'           => false,
+				'WorkerGlobalScope' => false,
+				'self'              => false,
+				'OffscreenCanvas'   => false,
+				'Promise'           => false,
 			),
 		),
 		'htmlhint'   => array(
@@ -4237,6 +4240,7 @@ function wp_get_code_editor_settings( $args ) {
 					$type = 'message/http';
 					break;
 				case 'js':
+				case 'mjs':
 					$type = 'text/javascript';
 					break;
 				case 'json':
@@ -4658,7 +4662,7 @@ function paginate_links( $args = '' ) {
 	$url_parts    = explode( '?', $pagenum_link );
 
 	// Get max pages and current page out of the current query, if available.
-	$total   = isset( $wp_query->max_num_pages ) ? $wp_query->max_num_pages : 1;
+	$total   = $wp_query->max_num_pages ?? 1;
 	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 
 	// Append the format placeholder to the base URL.
@@ -4697,7 +4701,7 @@ function paginate_links( $args = '' ) {
 	if ( isset( $url_parts[1] ) ) {
 		// Find the format argument.
 		$format       = explode( '?', str_replace( '%_%', $args['format'], $args['base'] ) );
-		$format_query = isset( $format[1] ) ? $format[1] : '';
+		$format_query = $format[1] ?? '';
 		wp_parse_str( $format_query, $format_args );
 
 		// Find the query args of the requested URL.
@@ -5061,7 +5065,7 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 	}
 
 	$stylesheet_link = sprintf(
-		"<link rel='stylesheet' href='%s' type='text/css' />\n",
+		"<link rel='stylesheet' href='%s' />\n",
 		esc_url( wp_admin_css_uri( $file ) )
 	);
 
@@ -5080,7 +5084,7 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 
 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
 		$rtl_stylesheet_link = sprintf(
-			"<link rel='stylesheet' href='%s' type='text/css' />\n",
+			"<link rel='stylesheet' href='%s' />\n",
 			esc_url( wp_admin_css_uri( "$file-rtl" ) )
 		);
 
