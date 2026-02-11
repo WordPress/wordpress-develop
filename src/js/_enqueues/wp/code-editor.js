@@ -117,8 +117,13 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 
 			// Wrap the onUpdateLinting CodeMirror event to route to onChangeLintingErrors and onUpdateErrorNotice.
 			options.onUpdateLinting = (function( onUpdateLintingOverridden ) {
+				/**
+				 * @param {LintAnnotation[]} annotations - Annotations.
+				 * @param {LintAnnotation[]} annotationsSorted - Sorted annotations.
+				 * @param {CodeMirror.Editor} cm - Editor.
+				 */
 				return function( annotations, annotationsSorted, cm ) {
-					const errorAnnotations = _.filter( annotations, function( annotation ) {
+					const errorAnnotations = annotations.filter( function( annotation ) {
 						return 'error' === annotation.severity;
 					} );
 
@@ -258,8 +263,14 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	}
 
 	/**
-	 * Settings for the code editor.
-	 *
+	 * @typedef {object} LintAnnotation
+	 * @property {string} message - Message.
+	 * @property {'error'|'warning'} severity - Severity.
+	 * @property {import('codemirror').Position} from - From position.
+	 * @property {import('codemirror').Position} to - To position.
+	 */
+
+	/**
 	 * @typedef {object} CodeEditorSettings
 	 *
 	 * @property {import('codemirror').EditorConfiguration} [codemirror] - CodeMirror settings.
