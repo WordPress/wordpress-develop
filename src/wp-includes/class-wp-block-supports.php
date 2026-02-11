@@ -121,7 +121,7 @@ class WP_Block_Supports {
 
 			if ( ! empty( $new_attributes ) ) {
 				foreach ( $new_attributes as $attribute_name => $attribute_value ) {
-					if ( empty( $output[ $attribute_name ] ) ) {
+					if ( ! array_key_exists( $attribute_name, $output ) || '' === (string) $output[ $attribute_name ] ) {
 						$output[ $attribute_name ] = $attribute_value;
 					} else {
 						$output[ $attribute_name ] .= " $attribute_value";
@@ -184,26 +184,32 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	$attributes_to_merge = array( 'style', 'class', 'id', 'aria-label' );
 	$attributes          = array();
 	foreach ( $attributes_to_merge as $attribute_name ) {
-		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {
+		$new_value   = array_key_exists( $attribute_name, $new_attributes ) ? (string) $new_attributes[ $attribute_name ] : '';
+		$extra_value = array_key_exists( $attribute_name, $extra_attributes ) ? (string) $extra_attributes[ $attribute_name ] : '';
+
+		if ( '' === $new_value && '' === $extra_value ) {
 			continue;
 		}
 
-		if ( empty( $new_attributes[ $attribute_name ] ) ) {
-			$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ];
+		if ( '' === $new_value ) {
+			$attributes[ $attribute_name ] = $extra_value;
 			continue;
 		}
 
-		if ( empty( $extra_attributes[ $attribute_name ] ) ) {
-			$attributes[ $attribute_name ] = $new_attributes[ $attribute_name ];
+		if ( '' === $extra_value ) {
+			$attributes[ $attribute_name ] = $new_value;
 			continue;
 		}
 
-		$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ] . ' ' . $new_attributes[ $attribute_name ];
+		$attributes[ $attribute_name ] = $extra_value . ' ' . $new_value;
 	}
 
 	foreach ( $extra_attributes as $attribute_name => $value ) {
 		if ( ! in_array( $attribute_name, $attributes_to_merge, true ) ) {
-			$attributes[ $attribute_name ] = $value;
+			$string_value = (string) $value;
+			if ( '' !== $string_value ) {
+				$attributes[ $attribute_name ] = $string_value;
+			}
 		}
 	}
 
