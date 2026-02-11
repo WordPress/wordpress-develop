@@ -1423,6 +1423,7 @@ p.description code,
 
 #poststuff .tagsdiv .ajaxtag {
 	margin-top: 1em;
+	display: flex;
 }
 
 #poststuff .tagsdiv .howto {
@@ -1434,7 +1435,7 @@ p.description code,
 }
 
 .tagsdiv .newtag {
-	width: 180px;
+	flex: 1;
 }
 
 .tagsdiv .the-tags {
