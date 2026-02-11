@@ -819,7 +819,8 @@ function wp_uninitialize_site( $site_id ) {
 
 	$uploads = wp_get_upload_dir();
 
-	$tables = $wpdb->tables( 'blog' );
+	$prep_query = $wpdb->prepare( 'SELECT table_name FROM information_schema.TABLES WHERE table_name LIKE %s;', $wpdb->esc_like( "{$wpdb->base_prefix}{$site->id}_" ) . '%' );
+	$tables     = $wpdb->get_results( $prep_query, ARRAY_A );
 
 	/**
 	 * Filters the tables to drop when the site is deleted.
@@ -832,7 +833,8 @@ function wp_uninitialize_site( $site_id ) {
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
 
 	foreach ( (array) $drop_tables as $table ) {
-		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$table_name = $table['table_name'];
+		$wpdb->query( "DROP TABLE IF EXISTS `$table_name`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -936,7 +938,7 @@ function wp_is_site_initialized( $site_id ) {
 	}
 
 	$suppress = $wpdb->suppress_errors();
-	$result   = (bool) $wpdb->get_results( "DESCRIBE {$wpdb->posts}" );
+	$result   = (bool) $wpdb->get_results( "DESCRIBE {$wpdb->get_blog_prefix()posts}" );
 	$wpdb->suppress_errors( $suppress );
 
 	if ( $switch ) {
