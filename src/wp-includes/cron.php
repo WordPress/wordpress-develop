@@ -340,7 +340,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
  * @param string $recurrence How often the event should subsequently recur.
  *                           See wp_get_schedules() for accepted values.
  * @param string $hook       Action hook to execute when the event is run.
- *  * @param array  $args {
+ * @param array  $args {
  *     Optional. Array containing each separate argument to pass to the hook's
  *     callback function.
  *
