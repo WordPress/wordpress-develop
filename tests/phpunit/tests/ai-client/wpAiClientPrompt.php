@@ -31,7 +31,6 @@ class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 
 		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$property   = $reflection->getProperty( 'builder' );
-	
 
 		$this->assertInstanceOf( PromptBuilder::class, $property->getValue( $builder ) );
 	}

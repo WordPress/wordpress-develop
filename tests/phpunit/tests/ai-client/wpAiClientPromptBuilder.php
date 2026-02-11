@@ -82,13 +82,10 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	private function get_wrapped_prompt_builder_property_value( WP_AI_Client_Prompt_Builder $builder, string $property ) {
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
-
-
-		$wrapped_builder = $builder_property->getValue( $builder );
+		$wrapped_builder  = $builder_property->getValue( $builder );
 
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
 		$the_property      = $reflection_class2->getProperty( $property );
-
 
 		return $the_property->getValue( $wrapped_builder );
 	}
@@ -279,7 +276,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$reflection_class  = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$conversion_method = $reflection_class->getMethod( 'snake_to_camel_case' );
 
-
 		foreach ( $test_cases as $snake_case => $expected_camel_case ) {
 			$actual_camel_case = $conversion_method->invoke( $prompt_builder, $snake_case );
 			$this->assertSame( $expected_camel_case, $actual_camel_case, "Failed converting {$snake_case} to {$expected_camel_case}" );
@@ -318,7 +314,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
 		$callable_method  = $reflection_class->getMethod( 'get_builder_callable' );
 
-
 		$callable = $callable_method->invoke( $prompt_builder, 'with_text' );
 		$this->assertTrue( is_callable( $callable ), 'get_builder_callable should return a valid callable' );
 
@@ -344,7 +339,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$wrapped_builder_reflection = new ReflectionClass( get_class( $wrapped_builder ) );
 		$registry_property          = $wrapped_builder_reflection->getProperty( 'registry' );
-
 
 		$this->assertSame( $registry, $registry_property->getValue( $wrapped_builder ), 'Wrapped builder should have the same registry' );
 	}
@@ -1362,7 +1356,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$wrapped_builder   = $builder_property->getValue( $builder );
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
 		$messages_property = $reflection_class2->getProperty( 'messages' );
-
 
 		$messages   = $messages_property->getValue( $wrapped_builder );
 		$messages[] = new ModelMessage( array( new MessagePart( 'Final model message' ) ) );
