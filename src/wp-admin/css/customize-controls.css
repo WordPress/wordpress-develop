@@ -70,7 +70,7 @@ body {
 
 #customize-save-button-wrapper {
 	float: right;
-	margin-top: 9px;
+	margin-top: 3px; /* Vertically center 40px button in 45px header */
 }
 
 body:not(.ready) #customize-save-button-wrapper .save {
@@ -185,7 +185,7 @@ body.trashing #publish-settings {
 }
 
 #customize-header-actions .spinner {
-	margin-top: 13px;
+	margin-top: 13px; /* Vertically center 20px spinner in 45px header */
 	margin-right: 4px;
 }
 
@@ -1796,7 +1796,7 @@ p.customize-section-description {
 	position: absolute;
 	right: 10px;
 	top: 50%;
-	margin-top: -14px;
+	margin-top: -20px; /* Half of 40px button height for vertical centering */
 	font-weight: 400;
 }
 
@@ -2725,7 +2725,7 @@ body.adding-widget .add-new-widget:before,
 #available-widgets-filter input,
 #available-menu-items-search input {
 	width: 100%;
-	min-height: 32px;
+	min-height: 40px;
 	margin: 1px 0;
 	padding: 0 30px;
 }
@@ -2739,7 +2739,7 @@ body.adding-widget .add-new-widget:before,
 #available-widgets-filter .search-icon {
 	display: block;
 	position: absolute;
-	bottom: 15px; /* 13 container padding +1 input margin +1 input border */
+	bottom: 19px; /* 13 container padding +1 input margin +1 input border +4 centering in 40px input */
 	left: 16px;
 	width: 30px;
 	height: 30px;
@@ -2751,7 +2751,7 @@ body.adding-widget .add-new-widget:before,
 #available-widgets-filter .clear-results,
 #available-menu-items-search .accordion-section-title .clear-results {
 	position: absolute;
-	top: 36px; /* 13 container padding +1 input margin +1 input border */
+	top: 40px; /* 13 container padding +1 input margin +1 input border +4 centering in 40px input */
 	right: 16px;
 	width: 30px;
 	height: 30px;
@@ -3089,7 +3089,7 @@ body.adding-widget .add-new-widget:before,
 	}
 
 	#available-menu-items-search .clear-results {
-		top: 36px;
+		top: 40px;
 		right: 16px;
 	}
 

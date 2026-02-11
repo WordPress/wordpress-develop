@@ -1501,7 +1501,7 @@ body.full-overlay-active {
 }
 
 .wp-full-overlay-sidebar .wp-full-overlay-header a.back {
-	margin-top: 9px;
+	margin-top: 3px; /* Vertically center 40px button in 45px header */
 }
 
 .wp-full-overlay-sidebar .wp-full-overlay-footer {
@@ -1949,7 +1949,7 @@ body.full-overlay-active {
 
 .theme-install-overlay .wp-full-overlay-header .button {
 	float: right;
-	margin: 8px 10px 0 0;
+	margin: 3px 10px 0 0; /* Vertically center 40px button in 45px header */
 }
 
 .theme-install-overlay .wp-full-overlay-sidebar {
