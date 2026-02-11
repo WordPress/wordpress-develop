@@ -123,7 +123,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 					} );
 
 					if ( onUpdateLintingOverridden ) {
-						onUpdateLintingOverridden.apply( annotations, annotationsSorted, cm );
+						onUpdateLintingOverridden( annotations, annotationsSorted, cm );
 					}
 
 					// Skip if there are no changes to the errors.
