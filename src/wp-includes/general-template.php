@@ -4885,7 +4885,7 @@ function register_admin_color_schemes() {
 
 	wp_admin_css_color(
 		'modern',
-		_x( 'Modern', 'admin color scheme' ),
+		_x( 'Default', 'admin color scheme' ),
 		admin_url( "css/colors/modern/colors$suffix.css" ),
 		array( '#1e1e1e', '#3858e9', '#7b90ff' ),
 		array(
