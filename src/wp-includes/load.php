@@ -382,6 +382,8 @@ function wp_is_development_mode( $mode ) {
  * @deprecated 5.4.0 Deprecated in favor of do_favicon().
  */
 function wp_favicon_request() {
+	_deprecated_function( __FUNCTION__, '5.4.0', 'do_favicon()' );
+
 	if ( '/favicon.ico' === $_SERVER['REQUEST_URI'] ) {
 		header( 'Content-Type: image/vnd.microsoft.icon' );
 		exit;
@@ -1320,6 +1322,8 @@ function shutdown_action_hook() {
  * @return object The cloned object.
  */
 function wp_clone( $input_object ) {
+	_deprecated_function( __FUNCTION__, '3.2.0' );
+
 	// Use parens for clone to accommodate PHP 4. See #17880.
 	return clone( $input_object );
 }
