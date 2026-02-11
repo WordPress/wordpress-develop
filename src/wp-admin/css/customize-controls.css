@@ -1459,17 +1459,16 @@ p.customize-section-description {
 
 .customize-control .attachment-media-view .upload-button {
 	width: 100%;
-	padding: 9px 0;
+	text-align: center;
 }
 
 .customize-control .attachment-media-view .upload-button.control-focus {
 	width: auto;
-	padding: 0 10px;
 }
 
 .customize-control.customize-control-header .actions .upload-button.button.new {
 	width: 100%;
-	padding: 9px 0;
+	text-align: center;
 }
 
 .customize-control .attachment-media-view .thumbnail,
@@ -3027,7 +3026,7 @@ body.adding-widget .add-new-widget:before,
 	}
 
 	.customize-control .attachment-media-view .upload-button {
-		padding: 5px 0;
+		text-align: center;
 	}
 
 	#customize-control-changeset_status .customize-inside-control-row {
