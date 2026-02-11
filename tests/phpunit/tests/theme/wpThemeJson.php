@@ -44,6 +44,16 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		static::$user_id = self::factory()->user->create();
 	}
 
+	public function tear_down() {
+		$registry = WP_Block_Type_Registry::get_instance();
+
+		if ( $registry->is_registered( 'test/feature-selector' ) ) {
+			unregister_block_type( 'test/feature-selector' );
+		}
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
@@ -835,8 +845,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'.wp-block-test-feature-selector .wp-block-test-feature-selector__inner{--wp--preset--dimension',
 			$variables
 		);
-
-		unregister_block_type( 'test/feature-selector' );
 	}
 
 	/**
