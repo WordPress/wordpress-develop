@@ -12,8 +12,8 @@
  * Declare these as global in case schema.php is included from a function.
  *
  * @global wpdb   $wpdb            WordPress database abstraction object.
- * @global array  $wp_queries
- * @global string $charset_collate
+ * @global array  $wp_queries      Global database queries array.
+ * @global string $charset_collate Database charset and collation.
  */
 global $wpdb, $wp_queries, $charset_collate;
 
@@ -588,7 +588,7 @@ function populate_options( array $options = array() ) {
 	);
 
 	$keys             = "'" . implode( "', '", array_keys( $options ) ) . "'";
-	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 	$insert = '';
 
