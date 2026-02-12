@@ -20,6 +20,7 @@ wp-tests-config.php
 /node_modules
 /npm-debug.log
 /build
+/gutenberg
 /tests/phpunit/build
 /wp-cli.local.yml
 /jsdoc
@@ -30,21 +31,23 @@ wp-tests-config.php
 /src/wp-admin/css/colors/*/*.css
 /src/wp-admin/js
 /src/wp-includes/assets/*
-!/src/wp-includes/assets/script-loader-packages.min.php
-!/src/wp-includes/assets/script-modules-packages.min.php
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
 /src/wp-includes/css/*-rtl.css
-/src/wp-includes/blocks/**/*.css
-/src/wp-includes/blocks/**/*.js
-/src/wp-includes/blocks/**/*.js.map
+/src/wp-includes/blocks/*
+!/src/wp-includes/blocks/index.php
+/src/wp-includes/build
+/src/wp-includes/theme.json
 /packagehash.txt
+/.gutenberg-hash
 /artifacts
 /setup.log
+/coverage
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
+/src/wp-content/database
 /src/wp-content/fonts
 /src/wp-content/languages
 /src/wp-content/mu-plugins
@@ -85,6 +88,12 @@ wp-tests-config.php
 /src/wp-content/themes/twentynineteen/node_modules
 /src/wp-content/themes/twentytwentyone/node_modules
 /src/wp-content/themes/twentytwenty/node_modules
+/src/wp-content/themes/twentytwentytwo/node_modules
+/src/wp-content/themes/twentytwentyfive/node_modules
+
+# Minified files in bundled themes
+/src/wp-content/themes/twentytwentytwo/*.min.css
+/src/wp-content/themes/twentytwentyfive/*.min.css
 
 # Operating system specific files
 .DS_Store

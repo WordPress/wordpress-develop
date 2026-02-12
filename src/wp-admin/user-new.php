@@ -69,6 +69,9 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 		$redirect = add_query_arg( array( 'update' => 'addexisting' ), 'user-new.php' );
 	} else {
 		if ( isset( $_POST['noconfirmation'] ) && current_user_can( 'manage_network_users' ) ) {
+
+			wp_ensure_editable_role( $_REQUEST['role'] );
+
 			$result = add_existing_user_to_blog(
 				array(
 					'user_id' => $user_id,
@@ -225,6 +228,8 @@ Please click the following link to confirm the invite:
 				add_filter( 'wpmu_welcome_user_notification', '__return_false' ); // Disable welcome email.
 			}
 
+			wp_ensure_editable_role( $_REQUEST['role'] );
+
 			wpmu_signup_user(
 				$new_user_login,
 				$new_user_email,
@@ -261,7 +266,7 @@ Please click the following link to confirm the invite:
 }
 
 // Used in the HTML title tag.
-$title       = __( 'Add New User' );
+$title       = __( 'Add User' );
 $parent_file = 'users.php';
 
 $do_both = false;
@@ -269,7 +274,7 @@ if ( is_multisite() && current_user_can( 'promote_users' ) && current_user_can( 
 	$do_both = true;
 }
 
-$help = '<p>' . __( 'To add a new user to your site, fill in the form on this screen and click the Add New User button at the bottom.' ) . '</p>';
+$help = '<p>' . __( 'To add a new user to your site, fill in the form on this screen and click the Add User button at the bottom.' ) . '</p>';
 
 if ( is_multisite() ) {
 	$help .= '<p>' . __( 'Because this is a multisite installation, you may add accounts that already exist on the Network by specifying a username or email, and defining a role. For more options, such as specifying a password, you have to be a Network Administrator and use the hover link under an existing user&#8217;s name to Edit the user profile under Network Admin > All Users.' ) . '</p>' .
@@ -280,7 +285,7 @@ if ( is_multisite() ) {
 	'<p>' . __( 'By default, new users will receive an email letting them know they&#8217;ve been added as a user for your site. This email will also contain a password reset link. Uncheck the box if you do not want to send the new user a welcome email.' ) . '</p>';
 }
 
-$help .= '<p>' . __( 'Remember to click the Add New User button at the bottom of this screen when you are finished.' ) . '</p>';
+$help .= '<p>' . __( 'Remember to click the Add User button at the bottom of this screen when you are finished.' ) . '</p>';
 
 get_current_screen()->add_help_tab(
 	array(
@@ -383,7 +388,7 @@ if ( isset( $_GET['update'] ) ) {
 <h1 id="add-new-user">
 <?php
 if ( current_user_can( 'create_users' ) ) {
-	_e( 'Add New User' );
+	_e( 'Add User' );
 } elseif ( current_user_can( 'promote_users' ) ) {
 	_e( 'Add Existing User' );
 }
@@ -507,7 +512,7 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 
 if ( current_user_can( 'create_users' ) ) {
 	if ( $do_both ) {
-		echo '<h2 id="create-new-user">' . __( 'Add New User' ) . '</h2>';
+		echo '<h2 id="create-new-user">' . __( 'Add User' ) . '</h2>';
 	}
 	?>
 <p><?php _e( 'Create a brand new user and add them to this site.' ); ?></p>
@@ -659,7 +664,7 @@ if ( current_user_can( 'create_users' ) ) {
 	do_action( 'user_new_form', 'add-new-user' );
 	?>
 
-	<?php submit_button( __( 'Add New User' ), 'primary', 'createuser', true, array( 'id' => 'createusersub' ) ); ?>
+	<?php submit_button( __( 'Add User' ), 'primary', 'createuser', true, array( 'id' => 'createusersub' ) ); ?>
 
 </form>
 <?php } // End if current_user_can( 'create_users' ). ?>

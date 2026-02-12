@@ -190,12 +190,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * Sets Image Compression quality on a 1-100% scale.
 	 *
 	 * @since 3.5.0
+	 * @since 6.8.0 The `$dims` parameter was added.
 	 *
-	 * @param int $quality Compression Quality. Range: [1,100]
+	 * @param int   $quality Compression Quality. Range: [1,100]
+	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
 	 */
-	public function set_quality( $quality = null ) {
-		$quality_result = parent::set_quality( $quality );
+	public function set_quality( $quality = null, $dims = array() ) {
+		$quality_result = parent::set_quality( $quality, $dims );
 		if ( is_wp_error( $quality_result ) ) {
 			return $quality_result;
 		} else {
@@ -303,7 +305,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *    image operations within the time of the HTTP request.
 	 *
 	 * @since 6.2.0
-	 * @since 6.3.0 This method was deprecated.
+	 * @deprecated 6.3.0 No longer used in core.
 	 *
 	 * @return int|null The new limit on success, null on failure.
 	 */
@@ -346,7 +348,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *     If true, image will be cropped to the specified dimensions using center positions.
 	 *     If an array, the image will be cropped using the array to specify the crop location:
 	 *
-	 *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+	 *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
 	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
 	 * }
 	 * @return true|WP_Error
@@ -366,6 +368,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( $crop ) {
 			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 		}
+
+		$this->set_quality(
+			null,
+			array(
+				'width'  => $dst_w,
+				'height' => $dst_h,
+			)
+		);
 
 		// Execute the resize.
 		$thumb_result = $this->thumbnail_image( $dst_w, $dst_h );
@@ -434,6 +444,51 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
+			/**
+			 * Special handling for certain types of PNG images:
+			 * 1. For PNG images, we need to specify compression settings and remove unneeded chunks.
+			 * 2. For indexed PNG images, the number of colors must not exceed 256.
+			 * 3. For indexed PNG images with an alpha channel, the tRNS chunk must be preserved.
+			 * 4. For indexed PNG images with true alpha transparency (an alpha channel > 1 bit), we need to avoid saving
+			 * the image using ImageMagick's 'png8' format,  because that supports only binary (1 bit) transparency.
+			 *
+			 * For #4 we want to check whether the image has a 1-bit alpha channel before resizing,  because resizing
+			 * may cause the number of alpha values to multiply due to antialiasing. If the original image had only a
+			 * 1-bit alpha channel, then a 1-bit alpha channel should be good enough for the resized images.
+			 *
+			 * Perform all the necessary checks before resizing the image and store the results in variables for later use.
+			 */
+			$is_png                                      = false;
+			$is_indexed_png                              = false;
+			$is_indexed_png_with_alpha_channel           = false;
+			$is_indexed_png_with_true_alpha_transparency = false;
+
+			if ( 'image/png' === $this->mime_type ) {
+				$is_png = true;
+
+				if (
+					is_callable( array( $this->image, 'getImageProperty' ) )
+					&& '3' === $this->image->getImageProperty( 'png:IHDR.color-type-orig' )
+				) {
+					$is_indexed_png = true;
+
+					if (
+						is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+						&& $this->image->getImageAlphaChannel()
+					) {
+						$is_indexed_png_with_alpha_channel = true;
+
+						if (
+							is_callable( array( $this->image, 'getImageChannelDepth' ) )
+							&& defined( 'Imagick::CHANNEL_ALPHA' )
+							&& 1 < $this->image->getImageChannelDepth( Imagick::CHANNEL_ALPHA )
+						) {
+							$is_indexed_png_with_true_alpha_transparency = true;
+						}
+					}
+				}
+			}
+
 			/*
 			 * To be more efficient, resample large images to 5x the destination size before resizing
 			 * whenever the output size is less that 1/3 of the original image size (1/3^2 ~= .111),
@@ -470,11 +525,45 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
 			}
 
-			if ( 'image/png' === $this->mime_type ) {
+			if ( $is_png ) {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				$this->image->setOption( 'png:exclude-chunk', 'all' );
+
+				// Indexed PNG files get some additional handling.
+				// See #63448 for details.
+				if ( $is_indexed_png ) {
+
+					// Check for an alpha channel.
+					if ( $is_indexed_png_with_alpha_channel ) {
+						$this->image->setOption( 'png:include-chunk', 'tRNS' );
+					} else {
+						$this->image->setOption( 'png:exclude-chunk', 'all' );
+					}
+
+					$this->image->quantizeImage( 256, $this->image->getColorspace(), 0, false, false );
+
+					/*
+					 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
+					 * ImageMagick tends to save grayscale images as grayscale PNGs rather than indexed PNGs,
+					 * even though grayscale PNGs usually have considerably larger file sizes.
+					 * But we can force ImageMagick to save the image as an indexed PNG instead,
+					 * by telling it to use png8 format.
+					 *
+					 * Note that we need to first call quantizeImage() before checking getImageColorspace(),
+					 * because only after calling quantizeImage() will the colorspace be COLORSPACE_GRAY for grayscale images
+					 * (and we have not found any other way to identify grayscale images).
+					 *
+					 * We need to avoid forcing indexed format for images with true alpha transparency,
+					 * because ImageMagick does not support saving an image with true alpha transparency as an indexed PNG.
+					 */
+					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() && ! $is_indexed_png_with_true_alpha_transparency ) {
+						// Set the image format to Indexed PNG.
+						$this->image->setOption( 'png:format', 'png8' );
+					}
+				} else {
+					$this->image->setOption( 'png:exclude-chunk', 'all' );
+				}
 			}
 
 			/*
@@ -493,11 +582,23 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				}
 			}
 
-			// Limit the bit depth of resized images to 8 bits per channel.
+			// Limit the bit depth of resized images.
 			if ( is_callable( array( $this->image, 'getImageDepth' ) ) && is_callable( array( $this->image, 'setImageDepth' ) ) ) {
-				if ( 8 < $this->image->getImageDepth() ) {
-					$this->image->setImageDepth( 8 );
-				}
+				/**
+				 * Filters the maximum bit depth of resized images.
+				 *
+				 * This filter only applies when resizing using the Imagick editor since GD
+				 * does not support getting or setting bit depth.
+				 *
+				 * Use this to adjust the maximum bit depth of resized images.
+				 *
+				 * @since 6.8.0
+				 *
+				 * @param int $max_depth   The maximum bit depth. Default is the input depth.
+				 * @param int $image_depth The bit depth of the original image.
+				 */
+				$max_depth = apply_filters( 'image_max_bit_depth', $this->image->getImageDepth(), $this->image->getImageDepth() );
+				$this->image->setImageDepth( $max_depth );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_resize_error', $e->getMessage() );
