@@ -35,9 +35,9 @@ If you are not using the Docker environment, you can run PHPStan via Composer di
 ```bash
 composer run analyse
 
-compose run analyse -- --memory-limit=4G
-compose run analyse -- tests/phpstan/src/wp-includes/template.php
-compose run analyse -- -vvv --debug
+composer run analyse -- --memory-limit=4G
+composer run analyse -- tests/phpstan/src/wp-includes/template.php
+composer run analyse -- -vvv --debug
 ```
 
 For available flags, see https://phpstan.org/user-guide/command-line-usage.
