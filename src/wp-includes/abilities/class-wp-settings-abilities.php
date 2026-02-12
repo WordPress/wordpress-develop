@@ -142,7 +142,7 @@ class WP_Settings_Abilities {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @return array JSON Schema for settings.
+	 * @return array<string, mixed> JSON Schema for settings.
 	 */
 	private static function build_settings_schema(): array {
 		$group_properties = array();
