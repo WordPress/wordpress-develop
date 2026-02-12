@@ -175,7 +175,7 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 	/**
 	 * Tests that height block support works as expected.
 	 *
-	 * @ticket 64200
+	 * @ticket 64202
 	 *
 	 * @covers ::wp_apply_dimensions_support
 	 *
