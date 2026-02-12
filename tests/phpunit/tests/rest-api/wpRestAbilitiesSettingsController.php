@@ -343,6 +343,8 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64605
 	 */
 	public function test_core_get_settings_returns_correct_values(): void {
+		$original_blogname = get_option( 'blogname' );
+
 		update_option( 'blogname', 'Test Site Name' );
 
 		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -360,6 +362,9 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertSame( 'Test Site Name', $data['general']['blogname'] );
+
+		// Restore original value.
+		update_option( 'blogname', $original_blogname );
 	}
 
 	/**
@@ -509,6 +514,8 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64616
 	 */
 	public function test_core_update_settings_allows_administrators(): void {
+		$original_blogname = get_option( 'blogname' );
+
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body(
@@ -527,6 +534,9 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
+
+		// Restore original value.
+		update_option( 'blogname', $original_blogname );
 	}
 
 	/**
@@ -567,6 +577,9 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64616
 	 */
 	public function test_core_update_settings_returns_grouped_structure(): void {
+		$original_blogname        = get_option( 'blogname' );
+		$original_blogdescription = get_option( 'blogdescription' );
+
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body(
@@ -595,6 +608,10 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'blogdescription', $data['updated_settings']['general'] );
 		$this->assertSame( 'Test Title', $data['updated_settings']['general']['blogname'] );
 		$this->assertSame( 'Test Description', $data['updated_settings']['general']['blogdescription'] );
+
+		// Restore original values.
+		update_option( 'blogname', $original_blogname );
+		update_option( 'blogdescription', $original_blogdescription );
 	}
 
 	/**
@@ -603,6 +620,9 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64616
 	 */
 	public function test_core_update_settings_updates_multiple_groups(): void {
+		$original_blogname       = get_option( 'blogname' );
+		$original_posts_per_page = get_option( 'posts_per_page' );
+
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body(
@@ -631,6 +651,10 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'reading', $data['updated_settings'] );
 		$this->assertSame( 'Multi Group Test', $data['updated_settings']['general']['blogname'] );
 		$this->assertSame( 15, $data['updated_settings']['reading']['posts_per_page'] );
+
+		// Restore original values.
+		update_option( 'blogname', $original_blogname );
+		update_option( 'posts_per_page', $original_posts_per_page );
 	}
 
 	/**
@@ -654,6 +678,8 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64616
 	 */
 	public function test_core_update_settings_casts_boolean_values(): void {
+		$original_use_smilies = get_option( 'use_smilies' );
+
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body(
@@ -679,6 +705,9 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'use_smilies', $data['updated_settings']['writing'] );
 		$this->assertIsBool( $data['updated_settings']['writing']['use_smilies'] );
 		$this->assertFalse( $data['updated_settings']['writing']['use_smilies'] );
+
+		// Restore original value.
+		update_option( 'use_smilies', $original_use_smilies );
 	}
 
 	/**
@@ -687,6 +716,8 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64616
 	 */
 	public function test_core_update_settings_casts_integer_values(): void {
+		$original_posts_per_page = get_option( 'posts_per_page' );
+
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body(
@@ -712,6 +743,9 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'posts_per_page', $data['updated_settings']['reading'] );
 		$this->assertIsInt( $data['updated_settings']['reading']['posts_per_page'] );
 		$this->assertSame( 25, $data['updated_settings']['reading']['posts_per_page'] );
+
+		// Restore original value.
+		update_option( 'posts_per_page', $original_posts_per_page );
 	}
 
 	/**
@@ -746,6 +780,9 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64616
 	 */
 	public function test_core_update_settings_symmetry_with_get_settings(): void {
+		$original_blogname        = get_option( 'blogname' );
+		$original_blogdescription = get_option( 'blogdescription' );
+
 		// First, get settings.
 		$get_request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
 		$get_request->set_query_params(
@@ -786,5 +823,9 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		// Verify the values are actually in the database.
 		$this->assertSame( 'Symmetry Test Title', get_option( 'blogname' ) );
 		$this->assertSame( 'Symmetry Test Description', get_option( 'blogdescription' ) );
+
+		// Restore original values.
+		update_option( 'blogname', $original_blogname );
+		update_option( 'blogdescription', $original_blogdescription );
 	}
 }
