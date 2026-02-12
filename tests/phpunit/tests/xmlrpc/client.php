@@ -17,6 +17,11 @@ class Tests_XMLRPC_Client extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( '/server.php?this-is-needed=true', $client->path );
 	}
 
+	public function test_ixr_client_does_not_error_when_host_is_missing() {
+		$client = new IXR_Client( '/no-host-here' );
+		$this->assertSame( '', $client->server );
+	}
+
 	/**
 	 * @ticket 26947
 	 */
