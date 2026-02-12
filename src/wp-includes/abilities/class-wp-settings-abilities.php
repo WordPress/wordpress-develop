@@ -35,7 +35,7 @@ class WP_Settings_Abilities {
 	 * Schema for settings grouped by registration group.
 	 *
 	 * @since 7.0.0
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	private static array $settings_schema;
 
