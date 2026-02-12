@@ -237,12 +237,6 @@ final class WP_Style_Engine {
 					'dimension' => '--wp--preset--dimension--$slug',
 				),
 			),
-			'width'       => array(
-				'property_keys' => array(
-					'default' => 'width',
-				),
-				'path'          => array( 'dimensions', 'width' ),
-			),
 		),
 		'spacing'    => array(
 			'padding' => array(
