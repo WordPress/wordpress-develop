@@ -142,6 +142,28 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `current_theme_supports( 'html5', 'script' )` always returns true.
+	 *
+	 * Non-HTML5 script output was removed in WordPress 7.0, so script support
+	 * is now always enabled regardless of theme configuration.
+	 *
+	 * @ticket 64442
+	 */
+	public function test_html5_script_support_always_true() {
+		// Should be true even without any theme support registered.
+		remove_theme_support( 'html5' );
+		$this->assertTrue( current_theme_supports( 'html5', 'script' ) );
+
+		// Should still be true after adding other html5 types but not script.
+		add_theme_support( 'html5', array( 'comment-form' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'script' ) );
+
+		// Other types should still work normally.
+		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
+		$this->assertFalse( current_theme_supports( 'html5', 'search-form' ) );
+	}
+
+	/**
 	 * @ticket 51390
 	 *
 	 * @expectedIncorrectUsage add_theme_support( 'post-formats' )

@@ -3193,6 +3193,12 @@ function current_theme_supports( $feature, ...$args ) {
 			 * Specific areas of HTML5 support *must* be passed via an array to add_theme_support().
 			 */
 			$type = $args[0];
+
+			// HTML5 script support is always enabled since non-HTML5 script output was removed in 7.0.
+			if ( 'html5' === $feature && 'script' === $type ) {
+				return true;
+			}
+
 			return in_array( $type, $_wp_theme_features[ $feature ][0], true );
 
 		case 'custom-logo':
