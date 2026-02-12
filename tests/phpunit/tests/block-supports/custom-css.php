@@ -2,7 +2,7 @@
 /**
  * Test the custom CSS block support.
  *
- * @package gutenberg
+ * @package WordPress
  */
 
 class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
