@@ -432,8 +432,9 @@ class WP_Settings_Abilities {
 				$setting_type = $args['type'] ?? 'string';
 				$updated      = update_option( $option_name, $sanitized_value );
 
-				// Cast current value for comparison (handles type mismatches from database).
-				$current_value = self::cast_value( get_option( $option_name ), $setting_type );
+				// Cast values for comparison (handles type mismatches from database and REST sanitization).
+				$current_value   = self::cast_value( get_option( $option_name ), $setting_type );
+				$sanitized_value = self::cast_value( $sanitized_value, $setting_type );
 
 				if ( $updated || $current_value === $sanitized_value ) {
 					// Add to updated_settings with the same grouped structure.
