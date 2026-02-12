@@ -400,36 +400,33 @@ class WP_Settings_Abilities {
 
 			// Iterate through settings within each group.
 			foreach ( $settings as $option_name => $value ) {
-				// Skip settings that are not allowed (handled by schema validation).
 				if ( ! isset( $allowed_settings[ $option_name ] ) ) {
 					continue;
 				}
 
 				$args = $allowed_settings[ $option_name ];
 
-				// Skip settings in wrong group (handled by schema validation).
 				$setting_group = $args['group'] ?? 'general';
 				if ( $setting_group !== $group ) {
 					continue;
 				}
 
-				// Build schema for sanitization.
+				$setting_type = $args['type'] ?? 'string';
+
 				$schema = array(
-					'type' => $args['type'] ?? 'string',
+					'type' => $setting_type,
 				);
 				if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema'] ) ) {
 					$schema = array_merge( $schema, $args['show_in_rest']['schema'] );
 				}
 
-				// Sanitize the value.
 				$sanitized_value = rest_sanitize_value_from_schema( $value, $schema );
 
-				// Apply registered sanitize callback if exists.
 				if ( ! empty( $args['sanitize_callback'] ) && is_callable( $args['sanitize_callback'] ) ) {
 					$sanitized_value = call_user_func( $args['sanitize_callback'], $sanitized_value );
 				}
 
-				$setting_type = $args['type'] ?? 'string';
+				
 				$updated      = update_option( $option_name, $sanitized_value );
 
 				// Cast values for comparison (handles type mismatches from database and REST sanitization).
@@ -437,7 +434,6 @@ class WP_Settings_Abilities {
 				$sanitized_value = self::cast_value( $sanitized_value, $setting_type );
 
 				if ( $updated || $current_value === $sanitized_value ) {
-					// Add to updated_settings with the same grouped structure.
 					if ( ! isset( $updated_settings[ $group ] ) ) {
 						$updated_settings[ $group ] = array();
 					}
