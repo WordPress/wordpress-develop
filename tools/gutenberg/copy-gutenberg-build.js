@@ -91,22 +91,6 @@ const COPY_CONFIG = {
 		],
 	},
 
-	// PHP source files (non-block files, copied from packages)
-	phpSource: {
-		files: [
-			{
-				// Block parser classes
-				package: 'block-serialization-default-parser',
-				files: [
-					'class-wp-block-parser.php',
-					'class-wp-block-parser-block.php',
-					'class-wp-block-parser-frame.php',
-				],
-				destination: '', // Root of wp-includes
-			},
-		],
-	},
-
 	// Theme JSON files (from Gutenberg lib directory)
 	themeJson: {
 		files: [
@@ -239,16 +223,15 @@ function copyBlockAssets( config ) {
 			// 1. Copy scripts/JSON (everything except PHP)
 			const blockScriptsSrc = path.join( scriptsSrc, blockName );
 			if ( fs.existsSync( blockScriptsSrc ) ) {
-				const files = fs.readdirSync( blockScriptsSrc );
-				for ( const file of files ) {
-					if ( file.endsWith( '.php' ) ) {
-						continue; // Skip PHP, copied from packages
+				fs.cpSync(
+					blockScriptsSrc,
+					blockDest,
+					{
+						recursive: true,
+						// Skip PHP, copied from packages
+						filter: f => ! f.endsWith( '.php' ),
 					}
-					fs.copyFileSync(
-						path.join( blockScriptsSrc, file ),
-						path.join( blockDest, file )
-					);
-				}
+				);
 			}
 
 			// 2. Copy styles (if they exist in per-block directory)
@@ -275,6 +258,25 @@ function copyBlockAssets( config ) {
 				);
 				const content = fs.readFileSync( blockPhpSrc, 'utf8' );
 				fs.writeFileSync( phpDest, content );
+			}
+
+			// 4. Copy PHP subdirectories from packages (e.g., shared/helpers.php)
+			const blockPhpDir = path.join( phpSrc, blockName );
+			if ( fs.existsSync( blockPhpDir ) ) {
+				const rootIndex = path.join( blockPhpDir, 'index.php' );
+				fs.cpSync( blockPhpDir, blockDest, {
+					recursive: true,
+					filter: function hasPhpFiles( src ) {
+						const stat = fs.statSync( src );
+						if ( stat.isDirectory() ) {
+							return fs.readdirSync( src, { withFileTypes: true } ).some(
+								( entry ) => hasPhpFiles( path.join( src, entry.name ) )
+							);
+						}
+						// Copy PHP files, but skip root index.php (handled by step 3)
+						return src.endsWith( '.php' ) && src !== rootIndex;
+					},
+				} );
 			}
 		}
 
@@ -1028,38 +1030,7 @@ async function main() {
 	);
 	copyBlockAssets( COPY_CONFIG.blocks );
 
-	// 6. Copy non-block PHP source files (from packages)
-	console.log( '\n📦 Copying non-block PHP files...' );
-	const phpSourceConfig = COPY_CONFIG.phpSource;
-
-	for ( const fileGroup of phpSourceConfig.files ) {
-		const packageSrc = path.join( gutenbergPackagesDir, fileGroup.package );
-
-		if ( ! fs.existsSync( packageSrc ) ) {
-			console.log( `   ⚠️  Package not found: ${ fileGroup.package }` );
-			continue;
-		}
-
-		for ( const file of fileGroup.files ) {
-			const src = path.join( packageSrc, file );
-			const dest = path.join(
-				wpIncludesDir,
-				fileGroup.destination,
-				file
-			);
-
-			if ( fs.existsSync( src ) ) {
-				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-				let content = fs.readFileSync( src, 'utf8' );
-				fs.writeFileSync( dest, content );
-			}
-		}
-		console.log(
-			`   ✅ ${ fileGroup.package } (${ fileGroup.files.length } files)`
-		);
-	}
-
-	// 7. Copy theme JSON files (from Gutenberg lib directory)
+	// 6. Copy theme JSON files (from Gutenberg lib directory)
 	console.log( '\n📦 Copying theme JSON files...' );
 	const themeJsonConfig = COPY_CONFIG.themeJson;
 	const gutenbergLibDir = path.join( gutenbergDir, 'lib' );
@@ -1086,19 +1057,19 @@ async function main() {
 		}
 	}
 
-	// 9. Generate script-modules-packages.min.php from individual asset files
+	// 7. Generate script-modules-packages.min.php from individual asset files
 	console.log( '\n📦 Generating script-modules-packages.min.php...' );
 	generateScriptModulesPackages();
 
-	// 10. Generate script-loader-packages.min.php
+	// 8. Generate script-loader-packages.min.php
 	console.log( '\n📦 Generating script-loader-packages.min.php...' );
 	generateScriptLoaderPackages();
 
-	// 11. Generate require-dynamic-blocks.php and require-static-blocks.php
+	// 9. Generate require-dynamic-blocks.php and require-static-blocks.php
 	console.log( '\n📦 Generating block registration files...' );
 	generateBlockRegistrationFiles();
 
-	// 12. Generate blocks-json.php from block.json files
+	// 10. Generate blocks-json.php from block.json files
 	console.log( '\n📦 Generating blocks-json.php...' );
 	generateBlocksJson();
 

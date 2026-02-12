@@ -2838,18 +2838,6 @@ function untrailingslashit( $value ) {
 }
 
 /**
- * Adds slashes to a string or recursively adds slashes to strings within an array.
- *
- * @since 0.71
- *
- * @param string|array $gpc String or array of data to slash.
- * @return string|array Slashed `$gpc`.
- */
-function addslashes_gpc( $gpc ) {
-	return wp_slash( $gpc );
-}
-
-/**
  * Navigates through an array, object, or scalar, and removes slashes from the values.
  *
  * @since 2.0.0
@@ -5227,11 +5215,6 @@ function wp_pre_kses_less_than_callback( $matches ) {
  * @return string Filtered text to run through KSES.
  */
 function wp_pre_kses_block_attributes( $content, $allowed_html, $allowed_protocols ) {
-	// If the block parser isn't available, skip block attribute filtering.
-	if ( ! class_exists( 'WP_Block_Parser' ) ) {
-		return $content;
-	}
-
 	/*
 	 * `filter_block_content` is expected to call `wp_kses`. Temporarily remove
 	 * the filter to avoid recursion.
