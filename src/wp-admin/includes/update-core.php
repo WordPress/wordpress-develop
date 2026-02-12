@@ -842,6 +842,9 @@ $_old_files = array(
 	// 6.9
 	'wp-includes/SimplePie/src/Decode',
 	'wp-includes/SimplePie/src/Core.php',
+	// 7.0
+	'wp-includes/certificates/cacert.pem',
+	'wp-includes/certificates/legacy-1024bit.pem',
 );
 
 /**
