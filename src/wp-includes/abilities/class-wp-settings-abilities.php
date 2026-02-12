@@ -122,15 +122,7 @@ class WP_Settings_Abilities {
 	 * @return string[] List of unique setting slugs.
 	 */
 	private static function get_available_slugs(): array {
-		$slugs = array();
-
-		foreach ( self::get_allowed_settings() as $option_name => $args ) {
-			$slugs[] = $option_name;
-		}
-
-		sort( $slugs );
-
-		return $slugs;
+		return sort( array_keys( self::get_allowed_settings() ) );
 	}
 
 	/**
