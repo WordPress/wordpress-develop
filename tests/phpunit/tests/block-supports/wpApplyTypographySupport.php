@@ -73,7 +73,7 @@ class Tests_Block_Supports_WpApplyTypographySupport extends WP_UnitTestCase {
 	 */
 	public function data_text_indent_block_support() {
 		return array(
-			'style is applied'                                                         => array(
+			'style is applied' => array(
 				'block_name' => 'test/text-indent-block-supports',
 				'typography' => array(
 					'textIndent' => true,
@@ -82,7 +82,7 @@ class Tests_Block_Supports_WpApplyTypographySupport extends WP_UnitTestCase {
 					'style' => 'text-indent:2em;',
 				),
 			),
-			'style output is skipped when serialization is skipped'                    => array(
+			'style output is skipped when serialization is skipped' => array(
 				'block_name' => 'test/text-indent-with-skipped-serialization-block-supports',
 				'typography' => array(
 					'textIndent'                      => true,
