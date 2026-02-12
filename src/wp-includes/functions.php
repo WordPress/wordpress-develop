@@ -3766,7 +3766,7 @@ function wp_nonce_ays( $action ) {
  *     @type bool   $exit           Whether to exit the process after completion. Default true.
  * }
  *
- * @return never|void Returns false if `$args['exit']` is false, otherwise exists.
+ * @return never|void Returns false if `$args['exit']` is false, otherwise exits.
  *
  * @phpstan-return ($args['exit'] is false ? void : never)
  */
