@@ -263,8 +263,6 @@ class WP_Settings_Abilities {
 	 * Registers the core/update-settings ability.
 	 *
 	 * @since 7.0.0
-	 *
-	 * @return void
 	 */
 	private static function register_update_settings(): void {
 		// Reuse settings schema with updated descriptions for input and output.
