@@ -160,10 +160,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 *
-	 * @global wpdb       $wpdb         WordPress database abstraction object.
-	 * @global WP_Query   $wp_the_query WordPress Query object.
-	 * @global WP_Query   $wp_query     WordPress Query object.
-	 * @global WP         $wp           WordPress environment object.
+	 * @global wpdb     $wpdb         WordPress database abstraction object.
+	 * @global WP_Query $wp_the_query Main WordPress query object.
+	 * @global WP_Query $wp_query     WordPress query object.
+	 * @global WP       $wp           WordPress environment object.
 	 */
 	public function tear_down() {
 		global $wpdb, $wp_the_query, $wp_query, $wp;
@@ -370,10 +370,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Stores $wp_filter, $wp_actions, $wp_filters, and $wp_current_filter
 	 * on a class variable so they can be restored on tear_down() using _restore_hooks().
 	 *
-	 * @global array $wp_filter         Stores all of the filters and actions.
-	 * @global array $wp_actions        Stores the number of times each action was triggered.
-	 * @global array $wp_filters        Stores the number of times each filter was triggered.
-	 * @global array $wp_current_filter Stores the list of current filters with the current one last.
+	 * @global array $wp_filter         All of the filters and actions.
+	 * @global array $wp_actions        The number of times each action was triggered.
+	 * @global array $wp_filters        The number of times each filter was triggered.
+	 * @global array $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _backup_hooks() {
 		self::$hooks_saved['wp_filter'] = array();
@@ -393,10 +393,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Restores the hook-related globals to their state at set_up()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
-	 * @global array $wp_filter         Stores all of the filters and actions.
-	 * @global array $wp_actions        Stores the number of times each action was triggered.
-	 * @global array $wp_filters        Stores the number of times each filter was triggered.
-	 * @global array $wp_current_filter Stores the list of current filters with the current one last.
+	 * @global array $wp_filter         All of the filters and actions.
+	 * @global array $wp_actions        The number of times each action was triggered.
+	 * @global array $wp_filters        The number of times each filter was triggered.
+	 * @global array $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _restore_hooks() {
 		if ( isset( self::$hooks_saved['wp_filter'] ) ) {
