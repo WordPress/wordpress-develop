@@ -40,7 +40,7 @@ permissions: {}
 jobs:
   # Runs PHPStan Static Analysis.
   phpstan:
-    name: PHP coding standards
+    name: PHP static analysis
     uses: ./.github/workflows/reusable-php-static-analysis.yml
     permissions:
       contents: read
