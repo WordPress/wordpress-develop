@@ -65,7 +65,7 @@ class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_should_not_switch_to_same_user_type_equivalency
 	 */
-	public function test_should_not_switch_to_same_user_type_equivalency( $type_function ) {
+	public function test_should_not_switch_to_same_user_type_equivalency( string $type_function ) {
 		wp_set_current_user( self::$user_id );
 		$this->assertSame( self::$user_id, get_current_user_id() );
 
@@ -81,7 +81,7 @@ class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_should_not_switch_to_same_user_type_equivalency() {
+	public function data_should_not_switch_to_same_user_type_equivalency(): array {
 		return array(
 			'integer' => array( 'type_function' => 'intval' ),
 			'string'  => array( 'type_function' => 'strval' ),
