@@ -280,7 +280,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 			'dimensions' => array(
 				'aspectRatio' => true,
+				'height'      => true,
 				'minHeight'   => true,
+				'width'       => true,
 			),
 			'position'   => array(
 				'sticky' => true,
@@ -319,7 +321,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'dimensions' => array(
 						'aspectRatio' => true,
+						'height'      => true,
 						'minHeight'   => true,
+						'width'       => true,
 					),
 					'position'   => array(
 						'sticky' => true,
@@ -6069,8 +6073,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58588
 	 * @ticket 60613
 	 *
-	 * @covers WP_Theme_JSON_Gutenberg::resolve_variables
-	 * @covers WP_Theme_JSON_Gutenberg::convert_variables_to_value
+	 * @covers WP_Theme_JSON::resolve_variables
+	 * @covers WP_Theme_JSON::convert_variables_to_value
 	 */
 	public function test_resolve_variables() {
 		$primary_color   = '#9DFF20';
@@ -6692,5 +6696,345 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$actual = $defaults->get_raw_data();
 
 		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Test that block pseudo selectors are processed correctly.
+	 */
+	public function test_block_pseudo_selectors_are_processed() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'  => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover' => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							':focus' => array(
+								'color' => array(
+									'text'       => 'red',
+									'background' => 'yellow',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link:focus){background-color: yellow;color: red;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * Test that block pseudo selectors are processed correctly within variations.
+	 */
+	public function test_block_variation_pseudo_selectors_are_processed() {
+		register_block_style(
+			'core/button',
+			array(
+				'name'  => 'outline',
+				'label' => 'Outline',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'      => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							'variations' => array(
+								'outline' => array(
+									'color'  => array(
+										'text'       => 'currentColor',
+										'background' => 'transparent',
+									),
+									'border' => array(
+										'color' => 'currentColor',
+										'width' => '1px',
+										'style' => 'solid',
+									),
+									':hover' => array(
+										'color' => array(
+											'text'       => 'white',
+											'background' => 'red',
+										),
+									),
+									':focus' => array(
+										'color' => array(
+											'text'       => 'black',
+											'background' => 'yellow',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link){background-color: transparent;border-color: currentColor;border-width: 1px;border-style: solid;color: currentColor;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:hover){background-color: red;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:focus){background-color: yellow;color: black;}';
+		$actual   = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+
+		unregister_block_style( 'core/button', 'outline' );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Test that non-whitelisted pseudo selectors are ignored for blocks.
+	 */
+	public function test_block_pseudo_selectors_ignores_non_whitelisted() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'     => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover'    => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							':levitate' => array(
+								'color' => array(
+									'text'       => 'yellow',
+									'background' => 'black',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+		$this->assertStringNotContainsString( '.wp-block-button .wp-block-button__link:levitate{', $theme_json->get_stylesheet( array( 'styles' ) ) );
+	}
+
+	/**
+	 * Test that blocks without pseudo selector support ignore pseudo selectors.
+	 */
+	public function test_blocks_without_pseudo_support_ignore_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color'  => array(
+								'text' => 'black',
+							),
+							':hover' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(p){color: black;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+		$this->assertStringNotContainsString( 'p:hover{', $theme_json->get_stylesheet( array( 'styles' ) ) );
+	}
+
+	/**
+	 * Test that block pseudo selectors work with elements within blocks.
+	 */
+	public function test_block_pseudo_selectors_with_elements() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'    => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover'   => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							'elements' => array(
+								'button' => array(
+									'color'  => array(
+										'text' => 'green',
+									),
+									':hover' => array(
+										'color' => array(
+											'text' => 'orange',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button,.wp-block-button .wp-block-button__link  .wp-block-button__link){color: green;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button:hover,.wp-block-button .wp-block-button__link  .wp-block-button__link:hover){color: orange;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_boolean_values_when_schema_expects_boolean() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'lightbox' => array(
+						'enabled'      => true,
+						'allowEditing' => false,
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertTrue( $settings['lightbox']['enabled'], 'Enabled should be true' );
+		$this->assertFalse( $settings['lightbox']['allowEditing'], 'Allow editing should be false' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_removes_non_boolean_values_when_schema_expects_boolean() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'lightbox' => array(
+						'enabled'      => 'not-a-boolean',
+						'allowEditing' => 123,
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertArrayNotHasKey( 'enabled', $settings['lightbox'] ?? array(), 'Enabled should be removed' );
+		$this->assertArrayNotHasKey( 'allowEditing', $settings['lightbox'] ?? array(), 'Allow editing should be removed' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_boolean_values_in_block_settings() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'lightbox' => array(
+								'enabled'      => true,
+								'allowEditing' => false,
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertTrue( $settings['blocks']['core/image']['lightbox']['enabled'], 'Enabled should be true' );
+		$this->assertFalse( $settings['blocks']['core/image']['lightbox']['allowEditing'], 'Allow editing should be false' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_removes_non_boolean_values_in_block_settings() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'lightbox' => array(
+								'enabled'      => 'string-value',
+								'allowEditing' => array( 'not', 'a', 'boolean' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$lightbox = $settings['blocks']['core/image']['lightbox'] ?? array();
+		$this->assertArrayNotHasKey( 'enabled', $lightbox, 'Enabled should be removed' );
+		$this->assertArrayNotHasKey( 'allowEditing', $lightbox, 'Allow editing should be removed' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_null_schema_behavior() {
+		// Test that settings with null in schema (no type validation) still accept any type.
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'appearanceTools' => 'string-value', // null in schema, should accept any type.
+					'custom'          => array( 'nested' => 'value' ), // null in schema, should accept any type.
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertSame( 'string-value', $settings['appearanceTools'], 'Appearance tools should be string value' );
+		$this->assertSame( array( 'nested' => 'value' ), $settings['custom'], 'Custom should be array value' );
 	}
 }

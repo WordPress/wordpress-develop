@@ -572,4 +572,63 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
 		add_option( 'test_set_autoloaded_option', $heavy_option_string, '', true );
 	}
+
+	/**
+	 * Tests get_test_opcode_cache() return structure.
+	 *
+	 * @ticket 63697
+	 *
+	 * @covers ::get_test_opcode_cache()
+	 */
+	public function test_get_test_opcode_cache_return_structure() {
+		$result = $this->instance->get_test_opcode_cache();
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'label', $result );
+		$this->assertArrayHasKey( 'status', $result );
+		$this->assertArrayHasKey( 'badge', $result );
+		$this->assertArrayHasKey( 'description', $result );
+		$this->assertArrayHasKey( 'actions', $result );
+		$this->assertArrayHasKey( 'test', $result );
+
+		$this->assertSame( 'opcode_cache', $result['test'] );
+		$this->assertSame(
+			array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			$result['badge']
+		);
+		$this->assertContains( $result['status'], array( 'good', 'recommended' ), 'Status must be good or recommended.' );
+	}
+
+	/**
+	 * Tests get_test_opcode_cache() result when opcode cache is enabled or not.
+	 *
+	 * Covers: opcache enabled, disabled, not available, and opcache_get_status() returns false.
+	 *
+	 * @ticket 63697
+	 *
+	 * @covers ::get_test_opcode_cache()
+	 */
+	public function test_get_test_opcode_cache_result_by_environment() {
+		$result = $this->instance->get_test_opcode_cache();
+
+		$opcache_enabled = false;
+		if ( function_exists( 'opcache_get_status' ) ) {
+			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+			if ( $status && true === $status['opcache_enabled'] ) {
+				$opcache_enabled = true;
+			}
+		}
+
+		if ( $opcache_enabled ) {
+			$this->assertSame( 'good', $result['status'], 'When opcache is enabled, status should be "good".' );
+			$this->assertSame( __( 'Opcode cache is enabled' ), $result['label'] );
+		} else {
+			$this->assertSame( 'recommended', $result['status'] );
+			$this->assertSame( __( 'Opcode cache is not enabled' ), $result['label'] );
+			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
+		}
+	}
 }
