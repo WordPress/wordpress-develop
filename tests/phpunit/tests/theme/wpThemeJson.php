@@ -280,7 +280,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 			'dimensions' => array(
 				'aspectRatio' => true,
+				'height'      => true,
 				'minHeight'   => true,
+				'width'       => true,
 			),
 			'position'   => array(
 				'sticky' => true,
@@ -319,7 +321,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'dimensions' => array(
 						'aspectRatio' => true,
+						'height'      => true,
 						'minHeight'   => true,
+						'width'       => true,
 					),
 					'position'   => array(
 						'sticky' => true,
