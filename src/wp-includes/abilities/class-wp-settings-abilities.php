@@ -382,7 +382,7 @@ class WP_Settings_Abilities {
 	 *
 	 *     @type array $settings Settings to update, grouped by registration group.
 	 * }
-	 * @return array|WP_Error Updated settings on success, WP_Error on failure.
+	 * @return array<string, array<string, mixed>|object>|WP_Error Updated settings on success, WP_Error on failure.
 	 */
 	public static function execute_update_settings( $input = array() ) {
 		$input = is_array( $input ) ? $input : array();
