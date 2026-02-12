@@ -45,7 +45,7 @@ class WP_Settings_Abilities {
 	 * @since 7.0.0
 	 * @var string[]
 	 */
-	private static $available_slugs;
+	private static array $available_slugs;
 
 	/**
 	 * Registers all settings abilities.
