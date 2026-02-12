@@ -809,10 +809,13 @@ p.search-box .button {
 	clear: left;
 }
 
-.tablenav .search-plugins input[name="s"],
-.tagsdiv .newtag {
+.tablenav .search-plugins input[name="s"] {
 	float: left;
 	margin: 0 4px 0 0;
+}
+
+.tagsdiv .newtag {
+	margin: 0;
 }
 
 .js.plugins-php .search-box .wp-filter-search {
