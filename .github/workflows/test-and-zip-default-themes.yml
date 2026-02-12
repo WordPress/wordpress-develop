@@ -11,6 +11,14 @@ on:
       - '.npmrc'
       - '.nvmrc'
       # Changes to any themes with a build script should be confirmed.
+      - 'src/wp-content/themes/twentyten/**'
+      - 'src/wp-content/themes/twentyeleven/**'
+      - 'src/wp-content/themes/twentytwelve/**'
+      - 'src/wp-content/themes/twentythirteen/**'
+      - 'src/wp-content/themes/twentyfourteen/**'
+      - 'src/wp-content/themes/twentyfifteen/**'
+      - 'src/wp-content/themes/twentysixteen/**'
+      - 'src/wp-content/themes/twentyseventeen/**'
       - 'src/wp-content/themes/twentynineteen/**'
       - 'src/wp-content/themes/twentytwenty/**'
       - 'src/wp-content/themes/twentytwentyone/**'
@@ -28,6 +36,14 @@ on:
       - '.npmrc'
       - '.nvmrc'
       # Changes to any themes with a build script should be confirmed.
+      - 'src/wp-content/themes/twentyten/**'
+      - 'src/wp-content/themes/twentyeleven/**'
+      - 'src/wp-content/themes/twentytwelve/**'
+      - 'src/wp-content/themes/twentythirteen/**'
+      - 'src/wp-content/themes/twentyfourteen/**'
+      - 'src/wp-content/themes/twentyfifteen/**'
+      - 'src/wp-content/themes/twentysixteen/**'
+      - 'src/wp-content/themes/twentyseventeen/**'
       - 'src/wp-content/themes/twentynineteen/**'
       - 'src/wp-content/themes/twentytwenty/**'
       - 'src/wp-content/themes/twentytwentyone/**'
@@ -129,6 +145,14 @@ jobs:
             'twentytwentyone',
             'twentytwenty',
             'twentynineteen',
+            'twentyseventeen',
+            'twentysixteen',
+            'twentyfifteen',
+            'twentyfourteen',
+            'twentythirteen',
+            'twentytwelve',
+            'twentyeleven',
+            'twentyten',
         ]
 
     defaults:
@@ -228,7 +252,20 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js for themes needing minification
-        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        if: |
+          matrix.theme == 'twentytwentytwo' ||
+          matrix.theme == 'twentytwentyfive' ||
+          matrix.theme == 'twentynineteen' ||
+          matrix.theme == 'twentytwenty' ||
+          matrix.theme == 'twentytwentyone' ||
+          matrix.theme == 'twentyseventeen' ||
+          matrix.theme == 'twentysixteen' ||
+          matrix.theme == 'twentyfifteen' ||
+          matrix.theme == 'twentyfourteen' ||
+          matrix.theme == 'twentythirteen' ||
+          matrix.theme == 'twentytwelve' ||
+          matrix.theme == 'twentyeleven' ||
+          matrix.theme == 'twentyten'
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version-file: '.nvmrc'
@@ -236,12 +273,38 @@ jobs:
           cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
 
       - name: Install npm dependencies
-        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        if: |
+          matrix.theme == 'twentytwentytwo' ||
+          matrix.theme == 'twentytwentyfive' ||
+          matrix.theme == 'twentynineteen' ||
+          matrix.theme == 'twentytwenty' ||
+          matrix.theme == 'twentytwentyone' ||
+          matrix.theme == 'twentyseventeen' ||
+          matrix.theme == 'twentysixteen' ||
+          matrix.theme == 'twentyfifteen' ||
+          matrix.theme == 'twentyfourteen' ||
+          matrix.theme == 'twentythirteen' ||
+          matrix.theme == 'twentytwelve' ||
+          matrix.theme == 'twentyeleven' ||
+          matrix.theme == 'twentyten'
         run: npm ci
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Build theme assets
-        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        if: |
+          matrix.theme == 'twentytwentytwo' ||
+          matrix.theme == 'twentytwentyfive' ||
+          matrix.theme == 'twentynineteen' ||
+          matrix.theme == 'twentytwenty' ||
+          matrix.theme == 'twentytwentyone' ||
+          matrix.theme == 'twentyseventeen' ||
+          matrix.theme == 'twentysixteen' ||
+          matrix.theme == 'twentyfifteen' ||
+          matrix.theme == 'twentyfourteen' ||
+          matrix.theme == 'twentythirteen' ||
+          matrix.theme == 'twentytwelve' ||
+          matrix.theme == 'twentyeleven' ||
+          matrix.theme == 'twentyten'
         run: npm run build
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 

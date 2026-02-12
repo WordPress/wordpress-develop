@@ -656,6 +656,17 @@ module.exports = function(grunt) {
 				src: [
 					'wp-content/themes/twentytwentytwo/style.css',
 					'wp-content/themes/twentytwentyfive/style.css',
+					'wp-content/themes/twentyten/blocks.css',
+					'wp-content/themes/twentyeleven/blocks.css',
+					'wp-content/themes/twentytwelve/css/blocks.css',
+					'wp-content/themes/twentythirteen/css/blocks.css',
+					'wp-content/themes/twentyfourteen/css/blocks.css',
+					'wp-content/themes/twentyfifteen/css/blocks.css',
+					'wp-content/themes/twentysixteen/css/blocks.css',
+					'wp-content/themes/twentyseventeen/assets/css/blocks.css',
+					'wp-content/themes/twentynineteen/style.css',
+					'wp-content/themes/twentytwenty/style.css',
+					'wp-content/themes/twentytwentyone/style.css',
 				]
 			}
 		},

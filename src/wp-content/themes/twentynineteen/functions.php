@@ -261,7 +261,11 @@ add_action( 'after_setup_theme', 'twentynineteen_content_width', 0 );
  * @since Twenty Nineteen 1.0
  */
 function twentynineteen_scripts() {
-	wp_enqueue_style( 'twentynineteen-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ) );
+	$theme_version  = wp_get_theme()->get( 'Version' );
+	$suffix         = SCRIPT_DEBUG ? '' : '.min';
+	$stylesheet_uri = SCRIPT_DEBUG ? get_stylesheet_uri() : str_replace( '.css', $suffix . '.css', get_stylesheet_uri() );
+
+	wp_enqueue_style( 'twentynineteen-style', $stylesheet_uri, array(), $theme_version );
 
 	wp_style_add_data( 'twentynineteen-style', 'rtl', 'replace' );
 

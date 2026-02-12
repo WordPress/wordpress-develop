@@ -85,13 +85,32 @@ wp-tests-config.php
 /src/wp-content/sunrise.php
 
 # Files and folders relating to wp-content build tools.
+/src/wp-content/themes/twentyten/node_modules
+/src/wp-content/themes/twentyeleven/node_modules
+/src/wp-content/themes/twentytwelve/node_modules
+/src/wp-content/themes/twentythirteen/node_modules
+/src/wp-content/themes/twentyfourteen/node_modules
+/src/wp-content/themes/twentyfifteen/node_modules
+/src/wp-content/themes/twentysixteen/node_modules
+/src/wp-content/themes/twentyseventeen/node_modules
 /src/wp-content/themes/twentynineteen/node_modules
-/src/wp-content/themes/twentytwentyone/node_modules
 /src/wp-content/themes/twentytwenty/node_modules
+/src/wp-content/themes/twentytwentyone/node_modules
 /src/wp-content/themes/twentytwentytwo/node_modules
 /src/wp-content/themes/twentytwentyfive/node_modules
 
 # Minified files in bundled themes
+/src/wp-content/themes/twentyten/*.min.css
+/src/wp-content/themes/twentyeleven/*.min.css
+/src/wp-content/themes/twentytwelve/**/*.min.css
+/src/wp-content/themes/twentythirteen/**/*.min.css
+/src/wp-content/themes/twentyfourteen/**/*.min.css
+/src/wp-content/themes/twentyfifteen/**/*.min.css
+/src/wp-content/themes/twentysixteen/**/*.min.css
+/src/wp-content/themes/twentyseventeen/**/*.min.css
+/src/wp-content/themes/twentynineteen/*.min.css
+/src/wp-content/themes/twentytwenty/*.min.css
+/src/wp-content/themes/twentytwentyone/*.min.css
 /src/wp-content/themes/twentytwentytwo/*.min.css
 /src/wp-content/themes/twentytwentyfive/*.min.css
 

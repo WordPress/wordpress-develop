@@ -347,7 +347,8 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20251202' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20240520' );
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks' . $suffix . '.css', array( 'twentythirteen-style' ), '20240520' );
 
 	// Registers the Internet Explorer specific stylesheet.
 	wp_register_style( 'twentythirteen-ie', false, array( 'twentythirteen-style' ) );
