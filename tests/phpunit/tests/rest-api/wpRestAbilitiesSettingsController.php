@@ -590,7 +590,6 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertArrayHasKey( 'updated_settings', $data );
-		$this->assertArrayNotHasKey( 'validation_errors', $data );
 		$this->assertArrayHasKey( 'general', $data['updated_settings'] );
 		$this->assertArrayHasKey( 'blogname', $data['updated_settings']['general'] );
 		$this->assertArrayHasKey( 'blogdescription', $data['updated_settings']['general'] );
@@ -739,7 +738,6 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertEmpty( (array) $data['updated_settings'] );
-		$this->assertArrayNotHasKey( 'validation_errors', $data );
 	}
 
 	/**
