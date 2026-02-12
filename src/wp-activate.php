@@ -93,6 +93,28 @@ function do_activate_header() {
 }
 add_action( 'wp_head', 'do_activate_header' );
 
+// Add body class for wp-activate page.
+add_filter( 'body_class', 'wp_activate_body_class' );
+
+/**
+ * Add body class for wp-signup.php
+ *
+ * @param array $body_class array of body classes
+ *
+ * @return array
+ */
+function wp_activate_body_class( $body_class ) {
+
+	if ( is_array( $body_class ) ) {
+		array_push( $body_class, 'wp-activate-page' );
+	} else {
+		$body_class = array();
+		array_push( $body_class, 'wp-activate-page' );
+	}
+
+	return $body_class;
+}
+
 /**
  * Loads styles specific to this page.
  *
@@ -107,6 +129,7 @@ function wpmu_activate_stylesheet() {
 		#language { margin-top: 0.5em; }
 		.wp-activate-container .error { background: #f66; color: #333; }
 		span.h3 { padding: 0 8px; font-size: 1.3em; font-weight: 600; }
+		.wp-activate-page #header, .wp-activate-page #footer{ max-width: 90%; margin: 0 auto }
 	</style>
 	<?php
 }

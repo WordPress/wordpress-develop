@@ -12,6 +12,29 @@ require __DIR__ . '/wp-load.php';
 
 add_filter( 'wp_robots', 'wp_robots_no_robots' );
 
+// Add body class for wp-signup page.
+add_filter( 'body_class', 'wp_signup_body_class' );
+
+/**
+ * Add body class for wp-signup.php
+ *
+ * @param array $body_class array of body classes
+ *
+ * @return array
+ */
+function wp_signup_body_class( $body_class ) {
+
+	if ( is_array( $body_class ) ) {
+		array_push( $body_class, 'wp-signup-page' );
+	} else {
+		$body_class = array();
+		array_push( $body_class, 'wp-signup-page' );
+	}
+
+	return $body_class;
+
+}
+
 require __DIR__ . '/wp-blog-header.php';
 
 nocache_headers();
@@ -88,6 +111,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register .signup-options .wp-signup-radio-button { display: block; }
 		.mu_register .privacy-intro .wp-signup-radio-button { margin-right: 0.5em; }
 		.rtl .mu_register .wp-signup-blogname { direction: ltr; text-align: right; }
+		.wp-signup-page #header, .wp-signup-page #footer { max-width: 90%; margin: 0 auto }
 	</style>
 	<?php
 }
