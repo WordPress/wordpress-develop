@@ -61,6 +61,8 @@ class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 	/**
 	 * Ensure user switching doesn't occur for the same user, even if type is non-int.
 	 *
+	 * @ticket 64628
+	 *
 	 * @dataProvider data_should_not_switch_to_same_user_type_equivalency
 	 */
 	public function test_should_not_switch_to_same_user_type_equivalency( $type_function ) {
