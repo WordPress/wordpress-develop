@@ -37,7 +37,7 @@ class WP_Settings_Abilities {
 	 * @since 7.0.0
 	 * @var array
 	 */
-	private static $settings_schema;
+	private static array $settings_schema;
 
 	/**
 	 * Available setting slugs with show_in_abilities enabled.
