@@ -346,21 +346,14 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 */
 
 	/**
-	 * @typedef {Object} CodeMirrorEditor
-	 * @property {import('codemirror').Doc} doc - Document.
-	 * @property {CodeMirrorState} state - State.
-	 * @property {CodeMirrorSettings} options - Options.
-	 * @property {function(string):*} getOption - Get option.
-	 * @property {function(string, *):void} setOption - Set option.
-	 * @property {function(string, function):void} on - On event.
-	 * @property {function(string, function):void} off - Off event.
-	 * @property {function():void} [performLint] - Perform lint.
-	 * @property {function(object):void} [showHint] - Show hint.
-	 * @property {function():object} getMode - Get mode.
-	 * @property {function():import('codemirror').Position} getCursor - Get cursor.
-	 * @property {function(import('codemirror').Position):import('codemirror').Token} getTokenAt - Get token at.
-	 * @property {function():HTMLElement} getWrapperElement - Get wrapper element.
-	 * @property {function():HTMLTextAreaElement} getTextArea - Get text area.
+	 * @typedef {import('codemirror').EditorFromTextArea & {
+	 *   performLint?: function(): void,
+	 *   showHint?: function(object): void,
+	 *   getOption(name: 'lint' | keyof import('codemirror').EditorConfiguration): any,
+	 *   setOption(name: 'lint' | keyof import('codemirror').EditorConfiguration, value: any): void,
+	 *   on(event: 'optionChange' | 'startCompletion' | 'endCompletion' | keyof import('codemirror').EditorEventMap, handler: function): void,
+	 *   off(event: 'optionChange' | 'startCompletion' | 'endCompletion' | keyof import('codemirror').EditorEventMap, handler: function): void
+	 * }} CodeMirrorEditor
 	 */
 
 	/**
