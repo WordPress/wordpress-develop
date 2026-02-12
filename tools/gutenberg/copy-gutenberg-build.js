@@ -12,6 +12,7 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
 const json2php = require( 'json2php' );
+const glob = require( 'glob' );
 
 // Paths
 const rootDir = path.resolve( __dirname, '../..' );
@@ -1072,7 +1073,7 @@ async function main() {
 		const dest = path.join( wpIncludesDir, fileMap.destination );
 		fs.mkdirSync( dest, { recursive: true } );
 		for ( const src of fileMap.files ) {
-			const matches = fs.globSync( path.join( gutenbergDir, src ) );
+			const matches = glob.sync( path.join( gutenbergDir, src ) );
 			if ( ! matches.length ) {
 				throw new Error( `No files found matching '${ src }'` );
 			}
