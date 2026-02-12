@@ -301,8 +301,10 @@ require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-cache.php';
 require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-discovery-strategy.php';
 require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-event-dispatcher.php';
 
-// WP AI Client - Abilities and prompt builder.
+// WP AI Client - Abilities, capabilities, and prompt builder.
 require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-ability-function-resolver.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-capabilities.php';
+require ABSPATH . WPINC . '/ai-client-utils/class-wp-ai-client-json-schema-converter.php';
 require ABSPATH . WPINC . '/class-wp-ai-client-prompt-builder.php';
 require ABSPATH . WPINC . '/ai-client.php';
 
@@ -376,6 +378,8 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-co
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-ai-v1-generate-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-ai-v1-providers-controller.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';

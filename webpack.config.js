@@ -1,4 +1,5 @@
 const mediaConfig = require( './tools/webpack/media' );
+const aiClientConfig = require( './tools/webpack/ai-client' );
 const developmentConfig = require( './tools/webpack/development' );
 
 module.exports = function (
@@ -18,6 +19,7 @@ module.exports = function (
 	// Note: developmentConfig returns an array of configs, so we spread it.
 	const config = [
 		mediaConfig( env ),
+		aiClientConfig( env ),
 		...developmentConfig( env ),
 	];
 
