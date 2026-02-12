@@ -2,7 +2,7 @@
 /**
  * Defines default WordPress constants for discovery.
  *
- * Mocks the constant initiation that would normally happen in wp-includes/wp-setttings.php.
+ * Mocks the constant initiation that would normally happen in wp-includes/wp-settings.php.
  */
 
 // wp_initial_constants()
