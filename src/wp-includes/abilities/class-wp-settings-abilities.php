@@ -426,8 +426,7 @@ class WP_Settings_Abilities {
 					$sanitized_value = call_user_func( $args['sanitize_callback'], $sanitized_value );
 				}
 
-				
-				$updated      = update_option( $option_name, $sanitized_value );
+				$updated = update_option( $option_name, $sanitized_value );
 
 				// Cast values for comparison (handles type mismatches from database and REST sanitization).
 				$current_value   = self::cast_value( get_option( $option_name ), $setting_type );
