@@ -9,12 +9,12 @@
 
 declare( strict_types = 1 );
 
+require_once __DIR__ . '/abilities/class-wp-settings-abilities.php';
+
 /**
  * Registers the core ability categories.
  *
  * @since 6.9.0
- *
- * @return void
  */
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
@@ -39,7 +39,7 @@ function wp_register_core_ability_categories(): void {
  *
  * @since 6.9.0
  *
- * @return void
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 function wp_register_core_abilities(): void {
 	$category_site = 'site';
@@ -259,4 +259,6 @@ function wp_register_core_abilities(): void {
 			),
 		)
 	);
+
+	WP_Settings_Abilities::register();
 }
