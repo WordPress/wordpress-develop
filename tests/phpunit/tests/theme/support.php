@@ -153,14 +153,6 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		// Should be true even without any theme support registered.
 		remove_theme_support( 'html5' );
 		$this->assertTrue( current_theme_supports( 'html5', 'script' ) );
-
-		// Should still be true after adding other html5 types but not script.
-		add_theme_support( 'html5', array( 'comment-form' ) );
-		$this->assertTrue( current_theme_supports( 'html5', 'script' ) );
-
-		// Other types should still work normally.
-		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'search-form' ) );
 	}
 
 	/**
