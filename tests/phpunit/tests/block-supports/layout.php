@@ -58,8 +58,6 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 			)
 		);
-
-		// WP_Theme_JSON_Resolver::clean_cached_data();
 	}
 
 	public function tear_down() {
@@ -759,7 +757,6 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 */
 	public function test_layout_support_flag_uses_variation_block_gap_value() {
 		switch_theme( 'block-theme' );
-		add_theme_support( 'appearance-tools' );
 
 		$block_content = '<div class="wp-block-group is-style-custom-gap"></div>';
 		$block         = array(
@@ -770,7 +767,6 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 					'type'               => 'grid',
 					'columnCount'        => 3,
 					'minimumColumnWidth' => '12rem',
-
 				),
 			),
 			'innerBlocks'  => array(),
@@ -791,8 +787,5 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			$actual_stylesheet,
 			'Generated CSS should contain the variation blockGap value of 99px.'
 		);
-
-		// Clean up.
-		remove_theme_support( 'appearance-tools' );
 	}
 }
