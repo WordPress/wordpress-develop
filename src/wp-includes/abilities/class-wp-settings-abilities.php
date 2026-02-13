@@ -378,7 +378,7 @@ class WP_Settings_Abilities {
 	 * }
 	 * @return array<string, array<string, mixed>|object>|WP_Error Updated settings on success, WP_Error on failure.
 	 */
-	public static function execute_update_settings( $input = array() ) {
+	public static function execute_update_settings( $input = array() ): array {
 		$input = is_array( $input ) ? $input : array();
 
 		if ( empty( $input['settings'] ) || ! is_array( $input['settings'] ) ) {
