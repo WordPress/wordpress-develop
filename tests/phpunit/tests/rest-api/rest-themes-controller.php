@@ -429,7 +429,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'editor-spacing-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'editor-styles', $theme_supports );
 		$this->assertArrayHasKey( 'formats', $theme_supports );
+
 		$this->assertArrayHasKey( 'html5', $theme_supports );
+		$this->assertSame(
+			array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ),
+			$theme_supports['html5']
+		);
+
 		$this->assertArrayHasKey( 'post-thumbnails', $theme_supports );
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
