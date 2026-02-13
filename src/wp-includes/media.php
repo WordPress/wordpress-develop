@@ -6514,15 +6514,27 @@ function wp_override_media_templates() {
 			wp_print_media_templates();
 			$html = (string) ob_get_clean();
 
-			$tags = array(
-				'audio',
-				'img',
-				'video',
-			);
+			/*
+			 * The media templates are inside <script type="text/html"> tags,
+			 * whose content is treated as raw text by the HTML Tag Processor.
+			 * Extract each script block's content, process it separately,
+			 * then reassemble the full output.
+			 */
+			$html = (string) preg_replace_callback(
+				'#(<script\b[^>]*>)(.*?)(</script>)#s',
+				static function ( $matches ) {
+					$processor = new WP_HTML_Tag_Processor( $matches[2] );
 
-			foreach ( $tags as $tag ) {
-				$html = (string) str_replace( "<$tag", "<$tag crossorigin=\"anonymous\"", $html );
-			}
+					while ( $processor->next_tag() ) {
+						if ( in_array( $processor->get_tag(), array( 'AUDIO', 'IMG', 'VIDEO' ), true ) ) {
+							$processor->set_attribute( 'crossorigin', 'anonymous' );
+						}
+					}
+
+					return $matches[1] . $processor->get_updated_html() . $matches[3];
+				},
+				$html
+			);
 
 			echo $html;
 		}
