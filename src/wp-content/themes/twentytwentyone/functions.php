@@ -498,7 +498,7 @@ add_action( 'enqueue_block_editor_assets', 'twentytwentyone_block_editor_script'
  */
 function twenty_twenty_one_skip_link_focus_fix() {
 	?>
-	<!-- Internet Explorer support was removed. -->
+	<!-- <?php echo __FUNCTION__; ?>(): Internet Explorer support was removed. -->
 	<?php
 }
 
