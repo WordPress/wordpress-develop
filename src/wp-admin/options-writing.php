@@ -54,7 +54,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
-wp_enqueue_script( 'user-profile' );
+wp_enqueue_script( 'options' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
