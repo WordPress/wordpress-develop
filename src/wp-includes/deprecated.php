@@ -6166,7 +6166,9 @@ function the_block_template_skip_link() {
 			padding: 0;
 			position: absolute !important;
 			width: 1px;
+			/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 			word-wrap: normal !important;
+			word-break: normal !important;
 		}
 
 		.skip-link.screen-reader-text:focus {
@@ -6481,6 +6483,24 @@ function wp_print_auto_sizes_contain_css_fix() {
 }
 
 /**
+ * Adds slashes to a string or recursively adds slashes to strings within an array.
+ *
+ * This function is just a wrapper for `wp_slash()`. It was originally related to
+ * magic quotes functionality which was deprecated in PHP 5.3.0 and removed in PHP 5.4.0.
+ *
+ * @since 0.71
+ * @deprecated 7.0.0 Use wp_slash() instead.
+ * @see wp_slash()
+ *
+ * @param string|array $gpc String or array of data to slash.
+ * @return string|array Slashed `$gpc`.
+ */
+function addslashes_gpc( $gpc ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_slash()' );
+	return wp_slash( $gpc );
+}
+
+/**
  * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
  *
  * This function is deprecated, use {@see wp_get_script_tag()} or {@see wp_get_inline_script_tag()} instead.
@@ -6508,4 +6528,3 @@ function wp_sanitize_script_attributes( $attributes ) {
 	}
 	return $attributes_string;
 }
-
