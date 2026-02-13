@@ -4403,7 +4403,7 @@ function _add_default_theme_supports() {
 	 * (which use default template functions) and `[caption]` and `[gallery]` shortcodes.
 	 * Other blocks contain their own HTML5 markup.
 	 */
-	add_theme_support( 'html5', array( 'comment-form', 'comment-list', 'search-form', 'gallery', 'caption', 'style', 'script' ) );
+	add_theme_support( 'html5', array( 'comment-form', 'comment-list', 'search-form', 'gallery', 'caption', 'style' ) );
 	add_theme_support( 'automatic-feed-links' );
 
 	add_filter( 'should_load_separate_core_block_assets', '__return_true' );
