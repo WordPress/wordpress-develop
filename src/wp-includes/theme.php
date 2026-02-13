@@ -3149,28 +3149,26 @@ function _remove_theme_support( $feature ) {
  *              by adding it to the function signature.
  * @since 7.0.0 HTML5 script support will always report `true`.
  *
- * @global array $_wp_theme_features
- *
  * @param string $feature The feature being checked. See add_theme_support() for the list
  *                        of possible values.
  * @param mixed  ...$args Optional extra arguments to be checked against certain features.
  * @return bool True if the active theme supports the feature, false otherwise.
  */
 function current_theme_supports( $feature, ...$args ) {
-	global $_wp_theme_features;
-
 	if ( 'custom-header-uploads' === $feature ) {
 		return current_theme_supports( 'custom-header', 'uploads' );
 	}
 
-	if ( ! isset( $_wp_theme_features[ $feature ] ) ) {
+	$feature_support = get_theme_support( $feature, ...$args );
+
+	if ( ! $feature_support ) {
 		return false;
 	}
 
 	// If no args passed then no extra checks need to be performed.
 	if ( ! $args ) {
 		/** This filter is documented in wp-includes/theme.php */
-		return apply_filters( "current_theme_supports-{$feature}", true, $args, $_wp_theme_features[ $feature ] ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		return apply_filters( "current_theme_supports-{$feature}", true, $args, $feature_support ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 
 	switch ( $feature ) {
@@ -3180,11 +3178,11 @@ function current_theme_supports( $feature, ...$args ) {
 			 * by passing an array of types to add_theme_support().
 			 * If no array was passed, then any type is accepted.
 			 */
-			if ( true === $_wp_theme_features[ $feature ] ) {  // Registered for all types.
+			if ( true === $feature_support ) {  // Registered for all types.
 				return true;
 			}
 			$content_type = $args[0];
-			return in_array( $content_type, $_wp_theme_features[ $feature ][0], true );
+			return in_array( $content_type, $feature_support[0], true );
 
 		case 'html5':
 		case 'post-formats':
@@ -3201,13 +3199,13 @@ function current_theme_supports( $feature, ...$args ) {
 				return true;
 			}
 
-			return in_array( $type, $_wp_theme_features[ $feature ][0], true );
+			return in_array( $type, $feature_support[0], true );
 
 		case 'custom-logo':
 		case 'custom-header':
 		case 'custom-background':
 			// Specific capabilities can be registered by passing an array to add_theme_support().
-			return ( isset( $_wp_theme_features[ $feature ][0][ $args[0] ] ) && $_wp_theme_features[ $feature ][0][ $args[0] ] );
+			return ( isset( $feature_support[0][ $args[0] ] ) && $feature_support[0][ $args[0] ] );
 	}
 
 	/**
@@ -3222,7 +3220,7 @@ function current_theme_supports( $feature, ...$args ) {
 	 * @param array  $args     Array of arguments for the feature.
 	 * @param string $feature  The theme feature.
 	 */
-	return apply_filters( "current_theme_supports-{$feature}", true, $args, $_wp_theme_features[ $feature ] ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	return apply_filters( "current_theme_supports-{$feature}", true, $args, $feature_support ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
 
 /**
