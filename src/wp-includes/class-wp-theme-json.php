@@ -2544,10 +2544,6 @@ class WP_Theme_JSON {
 			}
 		}
 
-		if ( is_array( $value ) ) {
-			return $value;
-		}
-
 		return $value;
 	}
 
