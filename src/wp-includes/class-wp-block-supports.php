@@ -181,9 +181,14 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 
 	// This is hardcoded on purpose.
 	// We only support a fixed list of attributes.
-	$attributes_to_merge = array( 'style', 'class', 'id', 'aria-label' );
-	$attributes          = array();
-	foreach ( $attributes_to_merge as $attribute_name ) {
+	$handled_attributes = array(
+		'style'      => true,
+		'class'      => true,
+		'id'         => false,
+		'aria-label' => false,
+	);
+	$attributes         = array();
+	foreach ( $handled_attributes as $attribute_name => $is_merged ) {
 		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {
 			continue;
 		}
@@ -198,11 +203,15 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 			continue;
 		}
 
-		$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ] . ' ' . $new_attributes[ $attribute_name ];
+		if ( $is_merged ) {
+			$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ] . ' ' . $new_attributes[ $attribute_name ];
+		} else {
+			$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ];
+		}
 	}
 
 	foreach ( $extra_attributes as $attribute_name => $value ) {
-		if ( ! in_array( $attribute_name, $attributes_to_merge, true ) ) {
+		if ( ! isset( $handled_attributes[ $attribute_name ] ) ) {
 			$attributes[ $attribute_name ] = $value;
 		}
 	}
