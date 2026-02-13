@@ -45,6 +45,14 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @param WP_UnitTest_Factory $factory Test factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
+		// Unregister any existing abilities and categories to start fresh.
+		foreach ( wp_get_abilities() as $ability ) {
+			wp_unregister_ability( $ability->get_name() );
+		}
+		foreach ( wp_get_ability_categories() as $category ) {
+			wp_unregister_ability_category( $category->get_slug() );
+		}
+
 		// Ensure core abilities are registered.
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
@@ -198,6 +206,43 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 				'show_in_abilities' => true,
 			)
 		);
+
+		// Unregister all existing abilities so we can re-register with updated schema.
+		foreach ( wp_get_abilities() as $ability ) {
+			wp_unregister_ability( $ability->get_name() );
+		}
+
+		// Remove core abilities registration to prevent ALL abilities from being registered
+		// when we only want to re-register post type abilities with updated schema.
+		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+
+		// Simulate the init action to allow re-registration without "doing it wrong" warning.
+		$this->simulate_doing_wp_abilities_init_action();
+
+		// Re-register all post type abilities so the schema includes the meta keys enum.
+		WP_Post_Type_Abilities::register();
+
+		// Clean up the simulated action.
+		$this->end_simulated_wp_abilities_init_action();
+	}
+
+	/**
+	 * Simulates the `wp_abilities_api_init` action.
+	 *
+	 * This makes `doing_action('wp_abilities_api_init')` return true without
+	 * firing all hooks registered on that action.
+	 */
+	private function simulate_doing_wp_abilities_init_action(): void {
+		global $wp_current_filter;
+		$wp_current_filter[] = 'wp_abilities_api_init';
+	}
+
+	/**
+	 * Ends the simulated `wp_abilities_api_init` action.
+	 */
+	private function end_simulated_wp_abilities_init_action(): void {
+		global $wp_current_filter;
+		array_pop( $wp_current_filter );
 	}
 
 	/**
@@ -628,7 +673,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		$this->assertSame( 400, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 'invalid_meta_key', $data['code'] );
+		// Schema validation catches invalid meta keys.
+		$this->assertSame( 'ability_invalid_input', $data['code'] );
 	}
 
 	/**
@@ -692,7 +738,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		$this->assertSame( 400, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 'invalid_taxonomy', $data['code'] );
+		// Schema validation catches non-public taxonomies.
+		$this->assertSame( 'ability_invalid_input', $data['code'] );
 
 		// Clean up.
 		unregister_taxonomy( 'private_tax' );

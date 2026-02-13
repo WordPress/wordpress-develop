@@ -143,11 +143,11 @@ class WP_Post_Type_Abilities {
 		$query_properties = array(
 			'tax'  => self::build_query_group_schema(
 				__( 'Taxonomy query to filter posts by taxonomy terms.' ),
-				self::build_tax_clause_schema()
+				self::build_tax_clause_schema( $slug )
 			),
 			'meta' => self::build_query_group_schema(
 				__( 'Meta query to filter posts by post meta values.' ),
-				self::build_meta_clause_schema()
+				self::build_meta_clause_schema( $slug )
 			),
 			'date' => self::build_date_query_schema(),
 		);
@@ -310,17 +310,25 @@ class WP_Post_Type_Abilities {
 	 *
 	 * @since 7.0.0
 	 *
+	 * @param string $post_type_slug The post type slug.
 	 * @return array The JSON schema for a taxonomy query clause.
 	 */
-	private static function build_tax_clause_schema(): array {
+	private static function build_tax_clause_schema( string $post_type_slug ): array {
+		$allowed_taxonomies = self::get_allowed_taxonomies( $post_type_slug );
+
+		$taxonomy_schema = array(
+			'type'        => 'string',
+			'description' => __( 'Taxonomy slug to query.' ),
+		);
+		if ( ! empty( $allowed_taxonomies ) ) {
+			$taxonomy_schema['enum'] = $allowed_taxonomies;
+		}
+
 		return array(
 			'type'                 => 'object',
 			'required'             => array( 'taxonomy', 'terms' ),
 			'properties'           => array(
-				'taxonomy'         => array(
-					'type'        => 'string',
-					'description' => __( 'Taxonomy slug to query.' ),
-				),
+				'taxonomy'         => $taxonomy_schema,
 				'terms'            => array(
 					'type'        => 'array',
 					'description' => __( 'Taxonomy terms to match.' ),
@@ -352,17 +360,25 @@ class WP_Post_Type_Abilities {
 	 *
 	 * @since 7.0.0
 	 *
+	 * @param string $post_type_slug The post type slug.
 	 * @return array The JSON schema for a meta query clause.
 	 */
-	private static function build_meta_clause_schema(): array {
+	private static function build_meta_clause_schema( string $post_type_slug ): array {
+		$allowed_meta_keys = self::get_allowed_meta_keys( $post_type_slug );
+
+		$key_schema = array(
+			'type'        => 'string',
+			'description' => __( 'Meta key to query.' ),
+		);
+		if ( ! empty( $allowed_meta_keys ) ) {
+			$key_schema['enum'] = $allowed_meta_keys;
+		}
+
 		return array(
 			'type'                 => 'object',
 			'required'             => array( 'key' ),
 			'properties'           => array(
-				'key'     => array(
-					'type'        => 'string',
-					'description' => __( 'Meta key to query.' ),
-				),
+				'key'     => $key_schema,
 				'value'   => array(
 					'type'        => array( 'string', 'integer', 'array' ),
 					'description' => __( 'Meta value to match. Use an array for BETWEEN, NOT BETWEEN, IN, and NOT IN comparisons.' ),
