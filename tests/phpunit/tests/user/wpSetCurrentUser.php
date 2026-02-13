@@ -67,7 +67,7 @@ class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 	 */
 	public function test_should_not_switch_to_same_user_type_equivalency( string $type_function ) {
 		wp_set_current_user( self::$user_id );
-		$this->assertSame( self::$user_id, get_current_user_id() );
+		$this->assertSame( self::$user_id, get_current_user_id(), "Current user's ID should match the ID of the user switched to." );
 
 		$action = new MockAction();
 		add_action( 'set_current_user', array( $action, 'action' ) );
