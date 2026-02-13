@@ -53,22 +53,6 @@ wp_localize_script(
 			'installURI' => current_user_can( 'install_themes' ) ? self_admin_url( 'theme-install.php' ) : null,
 			'adminUrl'   => parse_url( self_admin_url(), PHP_URL_PATH ),
 		),
-		'l10n'            => array(
-			'addNew'              => 'Add Theme',
-			'search'              => 'Search Themes',
-			'upload'              => 'Upload Theme',
-			'back'                => 'Back',
-			/* translators: %s: Support forums URL. */
-			'error'               => 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.',
-			'tryAgain'            => 'Try Again',
-			/* translators: %d: Number of themes. */
-			'themesFound'         => 'Number of Themes found: %d',
-			'noThemesFound'       => 'No themes found. Try a different search.',
-			'collapseSidebar'     => 'Collapse Sidebar',
-			'expandSidebar'       => 'Expand Sidebar',
-			/* translators: Hidden accessibility text. */
-			'selectFeatureFilter' => 'Select one or more Theme features to filter by',
-		),
 		'installedThemes' => array_keys( $installed_themes ),
 		'activeTheme'     => get_stylesheet(),
 	)

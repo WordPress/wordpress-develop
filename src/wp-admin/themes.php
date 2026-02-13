@@ -230,13 +230,6 @@ wp_localize_script(
 			'confirmDelete' => __( "Are you sure you want to delete this theme?\n\nClick 'Cancel' to go back, 'OK' to confirm the delete." ),
 			'adminUrl'      => parse_url( admin_url(), PHP_URL_PATH ),
 		),
-		'l10n'     => array(
-			'addNew'        => 'Add Theme',
-			'search'        => 'Search installed themes',
-			/* translators: %d: Number of themes. */
-			'themesFound'   => 'Number of Themes found: %d',
-			'noThemesFound' => 'No themes found. Try a different search.',
-		),
 	)
 );
 
