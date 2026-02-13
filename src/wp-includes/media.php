@@ -6444,8 +6444,6 @@ function wp_add_crossorigin_attributes( string $html ): string {
 		'SOURCE' => 'src',
 	);
 
-	$tag_names = array_keys( $tags );
-
 	while ( $processor->next_tag() ) {
 		$tag = $processor->get_tag();
 
