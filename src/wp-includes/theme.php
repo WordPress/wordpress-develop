@@ -3146,6 +3146,7 @@ function _remove_theme_support( $feature ) {
  * @since 2.9.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 7.0.0 HTML5 script support will always report `true`.
  *
  * @global array $_wp_theme_features
  *
@@ -3194,7 +3195,7 @@ function current_theme_supports( $feature, ...$args ) {
 			 */
 			$type = $args[0];
 
-			// HTML5 script support is always enabled since non-HTML5 script output was removed in 7.0.
+			// Non-HTML5 script support is deprecated. HTML5 script support is always enabled.
 			if ( 'html5' === $feature && 'script' === $type ) {
 				return true;
 			}
