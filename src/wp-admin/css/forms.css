@@ -18,7 +18,8 @@ textarea {
 	overflow: auto;
 	padding: 2px 6px;
 	/* inherits font size 14px */
-	line-height: 1.42857143; /* 20px */
+	line-height: 1.42857143;
+	/* 20px */
 	resize: vertical;
 }
 
@@ -69,14 +70,16 @@ input[type="url"],
 input[type="week"] {
 	padding: 0 8px;
 	/* inherits font size 14px */
-	line-height: 2; /* 28px */
+	line-height: 2;
+	/* 28px */
 	/* Only necessary for IE11 */
 	min-height: 30px;
 }
 
 ::-webkit-datetime-edit {
 	/* inherits font size 14px */
-	line-height: 1.85714286; /* 26px */
+	line-height: 1.85714286;
+	/* 26px */
 }
 
 input[type="text"]:focus,
@@ -132,7 +135,7 @@ input[type="radio"] {
 	transition: .05s border-color ease-in-out;
 }
 
-input[type="radio"]:checked + label:before {
+input[type="radio"]:checked+label:before {
 	color: #8c8f94;
 }
 
@@ -141,7 +144,7 @@ input[type="radio"]:checked + label:before {
 	color: #135e96;
 }
 
-td > input[type="checkbox"],
+td>input[type="checkbox"],
 .wp-admin p input[type="checkbox"],
 .wp-admin p input[type="radio"] {
 	margin-top: 0;
@@ -184,15 +187,19 @@ input[type="checkbox"]:checked::before {
 input[type="radio"]:checked::before {
 	content: "";
 	border-radius: 50%;
-	width: 0.5rem; /* 8px */
-	height: 0.5rem; /* 8px */
-	margin: 0.1875rem; /* 3px */
+	width: 0.5rem;
+	/* 8px */
+	height: 0.5rem;
+	/* 8px */
+	margin: 0.1875rem;
+	/* 3px */
 	background-color: #3582c4;
 	/* 16px not sure if still necessary, comes from the MP6 redesign in r26072 */
 	line-height: 1.14285714;
 }
 
 @-moz-document url-prefix() {
+
 	input[type="checkbox"],
 	input[type="radio"],
 	.form-table input.tog {
@@ -314,7 +321,8 @@ input[type="radio"].disabled:checked:before {
 /* Select styles are based on the default button in buttons.css */
 .wp-core-ui select {
 	font-size: 14px;
-	line-height: 2; /* 28px */
+	line-height: 2;
+	/* 28px */
 	color: #2c3338;
 	border-color: #8c8f94;
 	box-shadow: none;
@@ -442,9 +450,9 @@ p.submit {
 	text-align: right;
 }
 
-table.form-table + p.submit,
-table.form-table + input + p.submit,
-table.form-table + input + input + p.submit {
+table.form-table+p.submit,
+table.form-table+input+p.submit,
+table.form-table+input+input+p.submit {
 	border-top: none;
 	padding-top: 0;
 }
@@ -518,8 +526,8 @@ input[type="number"].tiny-text {
 	margin-left: 1em;
 }
 
-.wp-hide-pw > .dashicons,
-.wp-cancel-pw > .dashicons {
+.wp-hide-pw>.dashicons,
+.wp-cancel-pw>.dashicons {
 	position: relative;
 	top: 3px;
 	width: 1.25rem;
@@ -533,12 +541,12 @@ input[type="number"].tiny-text {
 }
 
 label,
-#your-profile label + a {
+#your-profile label+a {
 	vertical-align: middle;
 }
 
 fieldset label,
-#your-profile label + a {
+#your-profile label+a {
 	vertical-align: middle;
 }
 
@@ -664,19 +672,23 @@ fieldset label,
 	font-family: Consolas, Monaco, monospace;
 }
 
-#pass1.short, #pass1-text.short {
+#pass1.short,
+#pass1-text.short {
 	border-color: #e65054;
 }
 
-#pass1.bad, #pass1-text.bad {
+#pass1.bad,
+#pass1-text.bad {
 	border-color: #f86368;
 }
 
-#pass1.good, #pass1-text.good {
+#pass1.good,
+#pass1-text.good {
 	border-color: #f0c33c;
 }
 
-#pass1.strong, #pass1-text.strong {
+#pass1.strong,
+#pass1-text.strong {
 	border-color: #68de7c;
 }
 
@@ -867,7 +879,8 @@ ul#add-to-blog-users {
 	font-weight: 600;
 }
 
-.form-table th.th-full, /* Not used by core. Back-compat for pre-4.8 */
+.form-table th.th-full,
+/* Not used by core. Back-compat for pre-4.8 */
 .form-table .td-full {
 	width: auto;
 	padding: 20px 10px 20px 0;
@@ -974,6 +987,7 @@ table.form-table td .updated p {
 	border-spacing: 0;
 	border-collapse: collapse;
 }
+
 .color-palette .color-palette-shade,
 .color-palette td {
 	display: table-cell;
@@ -1013,6 +1027,10 @@ table.form-table td .updated p {
 
 .auth-app-card.card {
 	max-width: 768px;
+}
+
+.auth-app-card p {
+	word-wrap: break-word;
 }
 
 .authorize-application-php .form-wrap p {
@@ -1214,7 +1232,7 @@ table.form-table td .updated p {
 	margin-bottom: 16px;
 }
 
-.form-table.permalink-structure .structure-selection .row > div {
+.form-table.permalink-structure .structure-selection .row>div {
 	max-width: calc(100% - 24px);
 	display: inline-flex;
 	flex-direction: column;
@@ -1512,6 +1530,7 @@ table.form-table td .updated p {
 -------------------------------------------------------------- */
 
 @media screen and (max-width: 782px) {
+
 	/* Input Elements */
 	textarea {
 		-webkit-appearance: none;
@@ -1537,7 +1556,8 @@ table.form-table td .updated p {
 	}
 
 	::-webkit-datetime-edit {
-		line-height: 1.875; /* 30px */
+		line-height: 1.875;
+		/* 30px */
 	}
 
 	input[type="checkbox"],
@@ -1585,7 +1605,8 @@ table.form-table td .updated p {
 	.wp-admin .form-table select {
 		min-height: 40px;
 		font-size: 16px;
-		line-height: 1.625; /* 26px */
+		line-height: 1.625;
+		/* 26px */
 		padding: 5px 24px 5px 8px;
 	}
 
@@ -1663,13 +1684,14 @@ table.form-table td .updated p {
 	input[type="number"].small-text,
 	.form-table input[type="text"].small-text {
 		width: auto;
-		max-width: 4.375em; /* 70px, enough for 4 digits to fit comfortably */
+		max-width: 4.375em;
+		/* 70px, enough for 4 digits to fit comfortably */
 		display: inline;
 		padding: 3px 6px;
 		margin: 0 3px;
 	}
 
-	.form-table .regular-text ~ input[type="text"].small-text {
+	.form-table .regular-text~input[type="text"].small-text {
 		margin-top: 5px;
 	}
 
@@ -1734,7 +1756,7 @@ table.form-table td .updated p {
 		margin-top: 8px;
 	}
 
-	.form-table.permalink-structure .structure-selection .row > div {
+	.form-table.permalink-structure .structure-selection .row>div {
 		max-width: calc(100% - 36px);
 		width: 100%;
 	}
@@ -1751,12 +1773,12 @@ table.form-table td .updated p {
 		font-size: 14px;
 	}
 
-	.form-table td > label:first-child {
+	.form-table td>label:first-child {
 		display: inline-block;
 		margin-top: 0.35em;
 	}
 
-	.background-position-control .button-group > label {
+	.background-position-control .button-group>label {
 		font-size: 0;
 	}
 
@@ -1886,6 +1908,7 @@ table.form-table td .updated p {
 }
 
 @media only screen and (max-width: 768px) {
+
 	.form-field input[type="text"],
 	.form-field input[type="email"],
 	.form-field input[type="password"],
@@ -1899,7 +1922,9 @@ table.form-table td .updated p {
 	}
 }
 
-@media only screen and (max-height: 480px), screen and (max-width: 450px) {
+@media only screen and (max-height: 480px),
+screen and (max-width: 450px) {
+
 	/* Request Credentials / File Editor Warning */
 	.request-filesystem-credentials-dialog .notification-dialog,
 	.file-editor-warning .notification-dialog {
@@ -1915,6 +1940,7 @@ table.form-table td .updated p {
 
 /* Smartphone */
 @media screen and (max-width: 600px) {
+
 	/* Color Picker Options */
 	.color-option {
 		width: 49%;
@@ -1932,6 +1958,7 @@ table.form-table td .updated p {
 	0% {
 		transform: rotate(0deg);
 	}
+
 	100% {
 		transform: rotate(359deg);
 	}
