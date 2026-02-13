@@ -1127,7 +1127,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			if (
 				is_array( $metadata ) &&
-				isset( $metadata['image_meta']['orientation'] )
+				isset( $metadata['image_meta']['orientation'] ) &&
+				(int) $metadata['image_meta']['orientation'] > 0
 			) {
 				$orientation = (int) $metadata['image_meta']['orientation'];
 			}
