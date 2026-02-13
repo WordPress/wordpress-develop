@@ -29,9 +29,10 @@
  *
  * @param int    $timestamp  Unix timestamp (UTC) for when to next run the event.
  * @param string $hook       Action hook to execute when the event is run.
- * @param array  $args       Optional. Array containing arguments to pass to the hook's callback
- *                           function. Each value in the array is passed to the callback as an
- *                           individual parameter. The array keys are ignored.
+ * @param array  $args       Optional. Array containing arguments to pass to the
+ *                           hook's callback function. Each value in the array
+ *                           is passed to the callback as an individual parameter.
+ *                           The array keys are ignored. Default empty array.
  *
  *                           These arguments are also used to uniquely identify the scheduled event.
  *                           When checking for an existing scheduled event using wp_next_scheduled()
@@ -39,8 +40,6 @@
  *                           the arguments do not match exactly, WordPress will treat the event as
  *                           different, which may result in duplicate cron events being scheduled
  *                           unintentionally.
- *
- *                           Default empty array.
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
  */
@@ -338,8 +337,10 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
  * @param string $recurrence How often the event should subsequently recur.
  *                           See wp_get_schedules() for accepted values.
  * @param string $hook       Action hook to execute when the event is run.
- * @param array  $args       Optional. Array containing each separate argument to pass to the hook's
- *                           callback function.
+ * @param array  $args       Optional. Array containing arguments to pass to the
+ *                           hook's callback function. Each value in the array
+ *                           is passed to the callback as an individual parameter.
+ *                           The array keys are ignored. Default empty array.
  *
  *                           These arguments are used to uniquely identify the scheduled event and
  *                           must match those used when the event was originally scheduled via
@@ -348,8 +349,6 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
  *                           named event exists. This can lead to duplicate cron events being
  *                           scheduled on every page load, potentially causing excessive growth of
  *                           the cron option and database performance issues.
- *
- *                           Default empty array.
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully rescheduled. False or WP_Error on failure.
  */
