@@ -101,10 +101,10 @@ add_action( 'wp_head', 'do_activate_header' );
 function wpmu_activate_stylesheet() {
 	?>
 	<style>
-		.wp-activate-container { max-width: 1280px; width: 100%; margin: 0 auto; text-align: start; padding: 24px; box-sizing: border-box; }
+		.wp-activate-container { width: 90%; margin: 0 auto; text-align: start; padding: 24px; box-sizing: border-box; }
 		.wp-activate-container form { margin: 24px 0; }
 		.wp-activate-container p { font-size: 18px; }
-		#key, #submit { font-size: 24px; box-sizing: border-box; margin: 2px 0; }
+		#key, #submit { font-size: 24px; box-sizing: border-box; margin: 5px 0; }
 		#key { width: 100%; }
 		#submit { width: auto; }
 		span.h3 { font-weight: 600; }
