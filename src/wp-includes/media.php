@@ -6447,7 +6447,7 @@ function wp_add_crossorigin_attributes( string $html ): string {
 	while ( $processor->next_tag() ) {
 		$tag = $processor->get_tag();
 
-		if ( ! in_array( $tag, $tag_names, true ) ) {
+		if ( ! isset( $tags[ $tag ] ) ) {
 			continue;
 		}
 
