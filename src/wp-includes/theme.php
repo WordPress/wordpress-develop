@@ -3031,10 +3031,6 @@ function _custom_logo_header_styles() {
 function get_theme_support( $feature, ...$args ) {
 	global $_wp_theme_features;
 
-	if ( 'custom-header-uploads' === $feature ) {
-		return get_theme_support( 'custom-header', 'uploads' );
-	}
-
 	if ( ! isset( $_wp_theme_features[ $feature ] ) ) {
 		return false;
 	}
@@ -3159,6 +3155,10 @@ function _remove_theme_support( $feature ) {
  * @return bool True if the active theme supports the feature, false otherwise.
  */
 function current_theme_supports( $feature, ...$args ) {
+	if ( 'custom-header-uploads' === $feature ) {
+		return current_theme_supports( 'custom-header', 'uploads' );
+	}
+
 	$feature_support = get_theme_support( $feature, ...$args );
 
 	if ( ! $feature_support ) {
