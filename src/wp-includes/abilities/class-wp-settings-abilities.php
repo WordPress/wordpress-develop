@@ -371,7 +371,7 @@ class WP_Settings_Abilities {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param array $input {
+	 * @param array<string, mixed> $input {
 	 *     Input parameters.
 	 *
 	 *     @type array $settings Settings to update, grouped by registration group.
