@@ -1807,7 +1807,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		}
 
 		if ( ! tags ) {
-			wp.a11y.speak( wp.i18n.__( themes.data.l10n.selectFeatureFilter ) );
+			wp.a11y.speak( wp.i18n.__( 'Select one or more Theme features to filter by' ) );
 			return;
 		}
 
