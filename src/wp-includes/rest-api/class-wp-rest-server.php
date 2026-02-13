@@ -1371,14 +1371,14 @@ class WP_REST_Server {
 		// Add media processing settings for users who can upload files.
 		if ( current_user_can( 'upload_files' ) ) {
 			// Image sizes with normalized data.
-			$sizes = wp_get_registered_image_subsizes();
-			foreach ( $sizes as $name => &$size ) {
-				$size['height'] = (int) $size['height'];
-				$size['width']  = (int) $size['width'];
-				$size['name']   = $name;
+			$available['image_sizes'] = array();
+			foreach ( wp_get_registered_image_subsizes() as $name => $size ) {
+				$available['image_sizes'][] = array(
+					'height' => (int) $size['height'],
+					'width'  => (int) $size['width'],
+					'name'   => $name,
+				);
 			}
-			unset( $size );
-			$available['image_sizes'] = $sizes;
 
 			/** This filter is documented in wp-admin/includes/image.php */
 			$available['image_size_threshold'] = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
