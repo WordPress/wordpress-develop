@@ -2684,4 +2684,188 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			array( array( 'alternate' ) ),
 		);
 	}
+
+	/**
+	 * Test that OPTIONS request returns empty properties as object instead of array.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_options_request_empty_properties_returns_object() {
+		// Use the posts endpoint which has meta with empty properties by default.
+		$_SERVER['REQUEST_METHOD'] = 'OPTIONS';
+		rest_get_server()->serve_request( '/wp/v2/posts' );
+		$data = json_decode( rest_get_server()->sent_body );
+
+		$this->assertObjectHasProperty( 'schema', $data, 'Response should contain schema.' );
+		$this->assertObjectHasProperty( 'properties', $data->schema, 'Schema should contain properties.' );
+		$this->assertObjectHasProperty( 'meta', $data->schema->properties, 'Properties should contain meta.' );
+		$this->assertObjectHasProperty( 'properties', $data->schema->properties->meta, 'Meta should contain properties.' );
+		// Meta properties should be an object (empty or not) for JSON schema compliance.
+		$this->assertIsObject( $data->schema->properties->meta->properties, 'Meta properties should be an object, not an array.' );
+	}
+
+	/**
+	 * Test that serve_request sanitizes nested empty properties in schema.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_serve_request_sanitizes_nested_schema_properties() {
+		// Register a route with nested empty properties to test sanitization.
+		rest_get_server()->register_route(
+			'test-ns',
+			'/test-ns/test',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
+				),
+				'schema' => function () {
+					return array(
+						'$schema'    => 'http://json-schema.org/draft-04/schema#',
+						'title'      => 'test',
+						'type'       => 'object',
+						'properties' => array(
+							'meta' => array(
+								'type'       => 'object',
+								'properties' => array(),
+							),
+						),
+					);
+				},
+			)
+		);
+
+		$_SERVER['REQUEST_METHOD'] = 'OPTIONS';
+		rest_get_server()->serve_request( '/test-ns/test' );
+		$data = json_decode( rest_get_server()->sent_body );
+
+		$this->assertObjectHasProperty( 'schema', $data, 'Response should contain schema.' );
+		$this->assertIsObject( $data->schema->properties->meta->properties, 'Nested empty properties should be an object.' );
+	}
+
+
+	/**
+	 * Test that sanitize_schema_properties_recursive handles empty properties array.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_sanitize_schema_properties_recursive_converts_empty_properties_to_object() {
+		$server = new WP_REST_Server();
+
+		$method = new ReflectionMethod( $server, 'sanitize_schema_properties_recursive' );
+		$method->setAccessible( true );
+
+		$data = array(
+			'type'       => 'object',
+			'properties' => array(),
+		);
+
+		$result = $method->invoke( $server, $data );
+
+		$this->assertIsObject( $result['properties'], 'Empty properties should be converted to an object.' );
+	}
+
+	/**
+	 * Test that sanitize_schema_properties_recursive preserves non-empty properties.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_sanitize_schema_properties_recursive_preserves_non_empty_properties() {
+		$server = new WP_REST_Server();
+
+		$method = new ReflectionMethod( $server, 'sanitize_schema_properties_recursive' );
+		$method->setAccessible( true );
+
+		$data = array(
+			'type'       => 'object',
+			'properties' => array(
+				'id' => array(
+					'type' => 'integer',
+				),
+			),
+		);
+
+		$result = $method->invoke( $server, $data );
+
+		$this->assertIsArray( $result['properties'], 'Non-empty properties should remain an array.' );
+		$this->assertArrayHasKey( 'id', $result['properties'] );
+	}
+
+	/**
+	 * Test that sanitize_schema_properties_recursive handles nested structures.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_sanitize_schema_properties_recursive_handles_nested_structures() {
+		$server = new WP_REST_Server();
+
+		$method = new ReflectionMethod( $server, 'sanitize_schema_properties_recursive' );
+		$method->setAccessible( true );
+
+		$data = array(
+			'type'       => 'object',
+			'properties' => array(
+				'meta' => array(
+					'type'       => 'object',
+					'properties' => array(),
+				),
+			),
+		);
+
+		$result = $method->invoke( $server, $data );
+
+		$this->assertIsArray( $result['properties'], 'Top-level non-empty properties should remain an array.' );
+		$this->assertIsObject( $result['properties']['meta']['properties'], 'Nested empty properties should be converted to an object.' );
+	}
+
+	/**
+	 * Test that sanitize_schema_properties_recursive handles object input.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_sanitize_schema_properties_recursive_handles_object_input() {
+		$server = new WP_REST_Server();
+
+		$method = new ReflectionMethod( $server, 'sanitize_schema_properties_recursive' );
+		$method->setAccessible( true );
+
+		$data = (object) array(
+			'type'       => 'object',
+			'properties' => array(),
+		);
+
+		$result = $method->invoke( $server, $data );
+
+		$this->assertIsObject( $result, 'Result should be an object when input is an object.' );
+		$this->assertIsObject( $result->properties, 'Empty properties should be converted to an object.' );
+	}
+
+	/**
+	 * Test that sanitize_schema_properties_recursive preserves other data.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_sanitize_schema_properties_recursive_preserves_other_data() {
+		$server = new WP_REST_Server();
+
+		$method = new ReflectionMethod( $server, 'sanitize_schema_properties_recursive' );
+		$method->setAccessible( true );
+
+		$data = array(
+			'$schema'     => 'http://json-schema.org/draft-04/schema#',
+			'title'       => 'test',
+			'type'        => 'object',
+			'description' => 'A test schema',
+			'properties'  => array(),
+		);
+
+		$result = $method->invoke( $server, $data );
+
+		$this->assertSame( 'http://json-schema.org/draft-04/schema#', $result['$schema'] );
+		$this->assertSame( 'test', $result['title'] );
+		$this->assertSame( 'object', $result['type'] );
+		$this->assertSame( 'A test schema', $result['description'] );
+		$this->assertIsObject( $result['properties'] );
+	}
 }
