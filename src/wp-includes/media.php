@@ -6381,13 +6381,8 @@ function wp_set_up_cross_origin_isolation() {
 		return;
 	}
 
-	$user_id = get_current_user_id();
-	if ( ! $user_id ) {
-		return;
-	}
-
 	// Cross-origin isolation is not needed if users can't upload files anyway.
-	if ( ! user_can( $user_id, 'upload_files' ) ) {
+	if ( ! current_user_can( 'upload_files' ) ) {
 		return;
 	}
 
