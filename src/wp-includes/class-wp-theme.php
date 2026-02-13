@@ -233,7 +233,7 @@ final class WP_Theme implements ArrayAccess {
 	 * By default the bucket is not cached, so this value is useless.
 	 *
 	 * @since 3.4.0
-	 * @var bool
+	 * @var int
 	 */
 	private static $cache_expiration = 1800;
 
@@ -1002,7 +1002,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param string       $header    Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
 	 * @param string|array $value     Value to mark up. An array for Tags header, string otherwise.
-	 * @param string       $translate Whether the header has been translated.
+	 * @param bool         $translate Whether the header has been translated.
 	 * @return string Value, marked up.
 	 */
 	private function markup_header( $header, $value, $translate ) {

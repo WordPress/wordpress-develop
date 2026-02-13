@@ -30,7 +30,7 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 		// If `$id` matches the current user, there is nothing to do.
 		if ( isset( $current_user )
 		&& ( $current_user instanceof WP_User )
-		&& ( $id === $current_user->ID )
+		&& ( (int) $id === $current_user->ID )
 		&& ( null !== $id )
 		) {
 			return $current_user;
@@ -446,7 +446,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$from_name = apply_filters( 'wp_mail_from_name', $from_name );
 
 		try {
-			$phpmailer->setFrom( $from_email, $from_name );
+			$phpmailer->setFrom( $from_email, $from_name, false );
 		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
