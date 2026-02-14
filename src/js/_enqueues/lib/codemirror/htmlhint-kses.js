@@ -6,23 +6,20 @@ HTMLHint.addRule({
 	init: function( parser, reporter, options ) {
 		'use strict';
 
-		var self = this;
-		parser.addListener( 'tagstart', function( event ) {
-			var attr, col, attrName, allowedAttributes, i, len, tagName;
-
-			tagName = event.tagName.toLowerCase();
+		parser.addListener( 'tagstart', ( event ) => {
+			const tagName = event.tagName.toLowerCase();
 			if ( ! options[ tagName ] ) {
-				reporter.error( 'Tag <' + event.tagName + '> is not allowed.', event.line, event.col, self, event.raw );
+				reporter.error( 'Tag <' + event.tagName + '> is not allowed.', event.line, event.col, this, event.raw );
 				return;
 			}
 
-			allowedAttributes = options[ tagName ];
-			col = event.col + event.tagName.length + 1;
-			for ( i = 0, len = event.attrs.length; i < len; i++ ) {
-				attr = event.attrs[ i ];
-				attrName = attr.name.toLowerCase();
+			const allowedAttributes = options[ tagName ];
+			const col = event.col + event.tagName.length + 1;
+			for ( let i = 0, len = event.attrs.length; i < len; i++ ) {
+				const attr = event.attrs[ i ];
+				const attrName = attr.name.toLowerCase();
 				if ( ! allowedAttributes[ attrName ] ) {
-					reporter.error( 'Tag attribute [' + attr.raw + ' ] is not allowed.', event.line, col + attr.index, self, attr.raw );
+					reporter.error( 'Tag attribute [' + attr.raw + ' ] is not allowed.', event.line, col + attr.index, this, attr.raw );
 				}
 			}
 		});
