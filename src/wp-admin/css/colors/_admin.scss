@@ -81,27 +81,28 @@ input[type=radio]:checked::before {
 	color: variables.$link-focus;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="color"]:focus,
-input[type="date"]:focus,
-input[type="datetime"]:focus,
-input[type="datetime-local"]:focus,
-input[type="email"]:focus,
-input[type="month"]:focus,
-input[type="number"]:focus,
-input[type="search"]:focus,
-input[type="tel"]:focus,
-input[type="text"]:focus,
-input[type="time"]:focus,
-input[type="url"]:focus,
-input[type="week"]:focus,
-input[type="checkbox"]:focus,
-input[type="radio"]:focus,
-select:focus,
-textarea:focus {
-	border-color: variables.$highlight-color;
-	box-shadow: 0 0 0 1px variables.$highlight-color;
+.wp-core-ui {
+	input[type="text"]:focus,
+	input[type="password"]:focus,
+	input[type="color"]:focus,
+	input[type="date"]:focus,
+	input[type="datetime"]:focus,
+	input[type="datetime-local"]:focus,
+	input[type="email"]:focus,
+	input[type="month"]:focus,
+	input[type="number"]:focus,
+	input[type="search"]:focus,
+	input[type="tel"]:focus,
+	input[type="time"]:focus,
+	input[type="url"]:focus,
+	input[type="week"]:focus,
+	input[type="checkbox"]:focus,
+	input[type="radio"]:focus,
+	select:focus,
+	textarea:focus {
+		border-color: variables.$highlight-color;
+		box-shadow: 0 0 0 1px variables.$highlight-color;
+	}
 }
 
 
@@ -564,15 +565,27 @@ ul#adminmenu > li.current > a.current:after {
 	background-color: variables.$highlight-color;
 }
 
-.details.attachment {
-	box-shadow:
-		inset 0 0 0 3px #fff,
-		inset 0 0 0 7px variables.$highlight-color;
-}
+.wp-core-ui {
+	.attachment.details {
+		box-shadow:
+			inset 0 0 0 3px #fff,
+			inset 0 0 0 7px variables.$highlight-color;
+	}
 
-.attachment.details .check {
-	background-color: variables.$highlight-color;
-	box-shadow: 0 0 0 1px #fff, 0 0 0 2px variables.$highlight-color;
+	.attachment.details .check,
+	.attachment.selected .check:focus,
+	.media-frame.mode-grid .attachment.selected .check {
+		background-color: variables.$highlight-color;
+		box-shadow: 0 0 0 1px #fff, 0 0 0 2px variables.$highlight-color;
+	}
+
+	.attachment:focus,
+	.selected.attachment:focus,
+	.attachment.details:focus {
+		box-shadow:
+			inset 0 0 2px 3px #fff,
+			inset 0 0 0 7px variables.$highlight-color;
+	}
 }
 
 .media-selection .attachment.selection.details .thumbnail {
