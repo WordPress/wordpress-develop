@@ -350,7 +350,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 			 * @param {CodeMirrorEditor} editor - Editor instance.
 			 * @return {void}
 			 */
-			updateErrorNotice: updateErrorNotice
+			updateErrorNotice,
 		};
 	}
 
