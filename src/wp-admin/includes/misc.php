@@ -492,6 +492,9 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
  * @since 4.9.0
  * @access private
  *
+ * @global string $file   Path to the file being edited.
+ * @global string $plugin Path to the plugin file relative to the plugins directory.
+ *
  * @param array|string $tree  List of file/folder paths, or filename.
  * @param string       $label Name of file or folder to print.
  * @param int          $level The aria-level for the current iteration.
@@ -816,7 +819,7 @@ function set_screen_options() {
  * @since 2.8.0
  *
  * @param string $filename The file path to the configuration file.
- * @return bool
+ * @return bool Whether the rule exists.
  */
 function iis7_rewrite_rule_exists( $filename ) {
 	if ( ! file_exists( $filename ) ) {
@@ -849,7 +852,7 @@ function iis7_rewrite_rule_exists( $filename ) {
  * @since 2.8.0
  *
  * @param string $filename Name of the configuration file.
- * @return bool
+ * @return bool Whether the rule was deleted.
  */
 function iis7_delete_rewrite_rule( $filename ) {
 	// If configuration file does not exist then rules also do not exist, so there is nothing to delete.
@@ -889,7 +892,7 @@ function iis7_delete_rewrite_rule( $filename ) {
  *
  * @param string $filename     The file path to the configuration file.
  * @param string $rewrite_rule The XML fragment with URL Rewrite rule.
- * @return bool
+ * @return bool Whether the rule was added.
  */
 function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	if ( ! class_exists( 'DOMDocument', false ) ) {
@@ -1022,12 +1025,7 @@ function admin_color_scheme_picker( $user_id ) {
 	}
 	?>
 	<fieldset id="color-picker" class="scheme-list">
-		<legend class="screen-reader-text"><span>
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Administration Color Scheme' );
-			?>
-		</span></legend>
+		<legend class="screen-reader-text"><span><?php _e( 'Administration Color Scheme' ); ?></span></legend>
 		<?php
 		wp_nonce_field( 'save-color-scheme', 'color-nonce', false );
 		foreach ( $_wp_admin_css_colors as $color => $color_info ) :
@@ -1058,9 +1056,9 @@ function admin_color_scheme_picker( $user_id ) {
 
 /**
  *
- * @global array $_wp_admin_css_colors
- *
  * @since 3.8.0
+ *
+ * @global array $_wp_admin_css_colors
  */
 function wp_color_scheme_settings() {
 	global $_wp_admin_css_colors;
@@ -1085,7 +1083,7 @@ function wp_color_scheme_settings() {
 		);
 	}
 
-	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
+	echo '<script>var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
 }
 
 /**
@@ -1626,8 +1624,8 @@ function wp_check_php_version() {
 
 	$response['is_lower_than_future_minimum'] = false;
 
-	// The minimum supported PHP version will be updated to 7.4 in the future. Check if the current version is lower.
-	if ( version_compare( $version, '7.4', '<' ) ) {
+	// The minimum supported PHP version will be updated to at least 8.0 in the future. Check if the current version is lower.
+	if ( version_compare( $version, '8.0', '<' ) ) {
 		$response['is_lower_than_future_minimum'] = true;
 
 		// Force showing of warnings.
