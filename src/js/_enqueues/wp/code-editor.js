@@ -46,21 +46,24 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 	/**
 	 * Configure linting.
 	 *
-	 * @param {CodeMirrorEditor} editor - Editor.
 	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
-	 * @return {Function} Update error notice function.
+	 * @return {Object} Linting controller.
 	 */
-	function configureLinting( editor, settings ) { // eslint-disable-line complexity
+	function configureLinting( settings ) { // eslint-disable-line complexity
+		/** @type {LintAnnotation[]} */
 		let currentErrorAnnotations = [];
+
+		/** @type {LintAnnotation[]} */
 		let previouslyShownErrorAnnotations = [];
 
 		/**
 		 * Call the onUpdateErrorNotice if there are new errors to show.
 		 *
+		 * @param {CodeMirrorEditor} editor - Editor.
 		 * @return {void}
 		 */
-		function updateErrorNotice() {
+		function updateErrorNotice( editor ) {
 			if ( settings.onUpdateErrorNotice && ! _.isEqual( currentErrorAnnotations, previouslyShownErrorAnnotations ) ) {
 				settings.onUpdateErrorNotice( currentErrorAnnotations, editor );
 				previouslyShownErrorAnnotations = currentErrorAnnotations;
@@ -70,10 +73,10 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		/**
 		 * Get lint options.
 		 *
-		 * @return {Object} Lint options.
+		 * @return {Object|false} Lint options.
 		 */
 		function getLintOptions() { // eslint-disable-line complexity
-			let options = /** @type {any} */ ( editor.getOption( 'lint' ) );
+			let options = settings.codemirror?.lint ?? false;
 
 			if ( ! options ) {
 				return false;
@@ -95,17 +98,17 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 			}
 
 			// Configure JSHint.
-			if ( 'javascript' === settings.codemirror.mode && settings.jshint ) {
+			if ( 'javascript' === settings.codemirror?.mode && settings.jshint ) {
 				$.extend( options.options, settings.jshint );
 			}
 
 			// Configure CSSLint.
-			if ( 'css' === settings.codemirror.mode && settings.csslint ) {
+			if ( 'css' === settings.codemirror?.mode && settings.csslint ) {
 				$.extend( options.options, settings.csslint );
 			}
 
 			// Configure HTMLHint.
-			if ( 'htmlmixed' === settings.codemirror.mode && settings.htmlhint ) {
+			if ( 'htmlmixed' === settings.codemirror?.mode && settings.htmlhint ) {
 				options.options.rules = $.extend( {}, settings.htmlhint );
 
 				if ( settings.jshint ) {
@@ -149,8 +152,8 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 					 * were previously errors shown. In these cases, update immediately so they can know
 					 * that they fixed the errors.
 					 */
-					if ( ! editor.state.focused || 0 === currentErrorAnnotations.length || previouslyShownErrorAnnotations.length > 0 ) {
-						updateErrorNotice();
+					if ( ! cm.state.focused || 0 === currentErrorAnnotations.length || previouslyShownErrorAnnotations.length > 0 ) {
+						updateErrorNotice( cm );
 					}
 				};
 			})( options.onUpdateLinting );
@@ -158,68 +161,82 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 			return options;
 		}
 
-		editor.setOption( 'lint', getLintOptions() );
+		return {
+			getLintOptions,
+			/**
+			 * @param {CodeMirrorEditor} editor - Editor instance.
+			 * @return {void}
+			 */
+			init: function( editor ) {
+				// Keep lint options populated.
+				editor.on( 'optionChange', function( _cm, option ) {
+					const gutterName = 'CodeMirror-lint-markers';
+					if ( 'lint' !== ( /** @type {string} */ ( option ) ) ) {
+						return;
+					}
+					const gutters = ( /** @type {string[]} */ ( editor.getOption( 'gutters' ) ) ) || [];
+					const options = editor.getOption( 'lint' );
+					if ( true === options ) {
+						if ( ! _.contains( gutters, gutterName ) ) {
+							editor.setOption( 'gutters', [ gutterName ].concat( gutters ) );
+						}
+						editor.setOption( 'lint', getLintOptions() ); // Expand to include linting options.
+					} else if ( ! options ) {
+						editor.setOption( 'gutters', _.without( gutters, gutterName ) );
+					}
 
-		// Keep lint options populated.
-		editor.on( 'optionChange', function( _cm, option ) {
-			const gutterName = 'CodeMirror-lint-markers';
-			if ( 'lint' !== ( /** @type {string} */ ( option ) ) ) {
-				return;
-			}
-			const gutters = ( /** @type {string[]} */ ( editor.getOption( 'gutters' ) ) ) || [];
-			const options = editor.getOption( 'lint' );
-			if ( true === options ) {
-				if ( ! _.contains( gutters, gutterName ) ) {
-					editor.setOption( 'gutters', [ gutterName ].concat( gutters ) );
-				}
-				editor.setOption( 'lint', getLintOptions() ); // Expand to include linting options.
-			} else if ( ! options ) {
-				editor.setOption( 'gutters', _.without( gutters, gutterName ) );
-			}
+					// Force update on error notice to show or hide.
+					if ( editor.getOption( 'lint' ) && editor.performLint ) {
+						editor.performLint();
+					} else {
+						currentErrorAnnotations = [];
+						updateErrorNotice( editor );
+					}
+				} );
 
-			// Force update on error notice to show or hide.
-			if ( editor.getOption( 'lint' ) && editor.performLint ) {
-				editor.performLint();
-			} else {
-				currentErrorAnnotations = [];
-				updateErrorNotice();
-			}
-		} );
+				// Update error notice when leaving the editor.
+				editor.on( 'blur', function() {
+					updateErrorNotice( editor );
+				} );
 
-		// Update error notice when leaving the editor.
-		editor.on( 'blur', updateErrorNotice );
+				// Work around hint selection with mouse causing focus to leave editor.
+				editor.on( 'startCompletion', function() {
+					editor.off( 'blur', ( /** @type {any} */ ( updateErrorNotice ) ) );
+				} );
+				editor.on( 'endCompletion', function() {
+					const editorRefocusWait = 500;
+					editor.on( 'blur', function() {
+						updateErrorNotice( editor );
+					} );
 
-		// Work around hint selection with mouse causing focus to leave editor.
-		editor.on( 'startCompletion', function() {
-			editor.off( 'blur', updateErrorNotice );
-		} );
-		editor.on( 'endCompletion', function() {
-			const editorRefocusWait = 500;
-			editor.on( 'blur', updateErrorNotice );
+					// Wait for editor to possibly get re-focused after selection.
+					_.delay( function() {
+						if ( ! editor.state.focused ) {
+							updateErrorNotice( editor );
+						}
+					}, editorRefocusWait );
+				} );
 
-			// Wait for editor to possibly get re-focused after selection.
-			_.delay( function() {
-				if ( ! editor.state.focused ) {
-					updateErrorNotice();
-				}
-			}, editorRefocusWait );
-		});
-
-		/*
-		 * Make sure setting validities are set if the user tries to click Publish
-		 * while an autocomplete dropdown is still open. The Customizer will block
-		 * saving when a setting has an error notifications on it. This is only
-		 * necessary for mouse interactions because keyboards will have already
-		 * blurred the field and cause onUpdateErrorNotice to have already been
-		 * called.
-		 */
-		$( document.body ).on( 'mousedown', function( /** @type {JQuery.MouseDownEvent} */ event ) {
-			if ( editor.state.focused && ! editor.getWrapperElement().contains( /** @type {Node} */ ( event.target ) ) && ! ( /** @type {HTMLElement} */ ( event.target ) ).classList.contains( 'CodeMirror-hint' ) ) {
-				updateErrorNotice();
-			}
-		});
-
-		return updateErrorNotice;
+				/*
+				 * Make sure setting validities are set if the user tries to click Publish
+				 * while an autocomplete dropdown is still open. The Customizer will block
+				 * saving when a setting has an error notifications on it. This is only
+				 * necessary for mouse interactions because keyboards will have already
+				 * blurred the field and cause onUpdateErrorNotice to have already been
+				 * called.
+				 */
+				$( document.body ).on( 'mousedown', function( /** @type {JQuery.MouseDownEvent} */ event ) {
+					if ( editor.state.focused && ! editor.getWrapperElement().contains( /** @type {Node} */ ( event.target ) ) && ! ( /** @type {HTMLElement} */ ( event.target ) ).classList.contains( 'CodeMirror-hint' ) ) {
+						updateErrorNotice( editor );
+					}
+				} );
+			},
+			/**
+			 * @param {CodeMirrorEditor} editor - Editor instance.
+			 * @return {void}
+			 */
+			updateErrorNotice: updateErrorNotice
+		};
 	}
 
 	/**
@@ -392,15 +409,22 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		/** @type {CodeEditorSettings} */
 		const instanceSettings = $.extend( true, {}, wp.codeEditor.defaultSettings, settings );
 
+		const lintingController = configureLinting( instanceSettings );
+		if ( instanceSettings.codemirror ) {
+			instanceSettings.codemirror.lint = lintingController.getLintOptions();
+		}
+
 		const codemirror = /** @type {CodeMirrorEditor} */ ( wp.CodeMirror.fromTextArea( $textarea[0], instanceSettings.codemirror ) );
 
-		const updateErrorNotice = configureLinting( codemirror, instanceSettings );
+		lintingController.init( codemirror );
 
 		/** @type {CodeEditorInstance} */
 		const instance = {
 			settings: instanceSettings,
 			codemirror,
-			updateErrorNotice,
+			updateErrorNotice: function() {
+				lintingController.updateErrorNotice( codemirror );
+			},
 		};
 
 		if ( codemirror.showHint ) {
