@@ -202,34 +202,31 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 			}
 
 			if ( true === options ) {
-				options = {
-					options: {}
-				};
+				options = {};
 			} else if ( _.isObject( options ) ) {
 				options = $.extend( {}, options );
 			}
-			const linterOptions = /** @type {import('codemirror/addon/lint/lint').LintStateOptions<CSSLintRules | JSHintRules | HTMLHintRules>} */ ( options );
+			const linterOptions = /** @type {import('codemirror/addon/lint/lint').LintStateOptions<any> & (CSSLintRules | JSHintRules | HTMLHintRules) & { rules?: any }} */ ( options );
 
 			// Configure JSHint.
 			if ( 'javascript' === settings.codemirror?.mode && settings.jshint ) {
-				linterOptions.options = $.extend( linterOptions.options || {}, settings.jshint );
+				$.extend( linterOptions, settings.jshint );
 			}
 
 			// Configure CSSLint.
 			if ( 'css' === settings.codemirror?.mode && settings.csslint ) {
-				linterOptions.options = $.extend( linterOptions.options || {}, settings.csslint );
+				$.extend( linterOptions, settings.csslint );
 			}
 
 			// Configure HTMLHint.
 			if ( 'htmlmixed' === settings.codemirror?.mode && settings.htmlhint ) {
-				linterOptions.options = $.extend( linterOptions.options || {}, settings.htmlhint );
+				linterOptions.rules = $.extend( {}, settings.htmlhint );
 
-				const rules = /** @type {HTMLHintRules} */ ( linterOptions.options );
 				if ( settings.jshint ) {
-					rules.jshint = settings.jshint;
+					linterOptions.rules.jshint = settings.jshint;
 				}
 				if ( settings.csslint ) {
-					rules.csslint = settings.csslint;
+					linterOptions.rules.csslint = settings.csslint;
 				}
 			}
 
