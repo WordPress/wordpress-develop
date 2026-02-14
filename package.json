@@ -31,6 +31,7 @@
 		"@playwright/test": "1.56.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.1",
 		"@types/codemirror": "5.60.17",
+		"@types/espree": "10.1.0",
 		"@types/jquery": "3.5.33",
 		"@types/underscore": "1.11.15",
 		"@wordpress/e2e-test-utils-playwright": "1.33.2",
