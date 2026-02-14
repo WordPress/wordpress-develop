@@ -49,7 +49,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 
 /**
  * @typedef {import('codemirror').EditorConfiguration & {
- *   lint?: boolean | import('codemirror/addon/lint/lint').Linter,
+ *   lint?: boolean | import('codemirror/addon/lint/lint').Linter<any>,
  *   autoCloseBrackets?: boolean,
  *   matchBrackets?: boolean,
  *   continueComments?: boolean,
@@ -191,10 +191,10 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		/**
 		 * Get lint options.
 		 *
-		 * @return {import('codemirror/addon/lint/lint').Linter|false} Lint options.
+		 * @return {import('codemirror/addon/lint/lint').Linter<any>|false} Lint options.
 		 */
 		function getLintOptions() { // eslint-disable-line complexity
-			/** @type {import('codemirror/addon/lint/lint').Linter | boolean} */
+			/** @type {import('codemirror/addon/lint/lint').Linter<any> | boolean} */
 			let options = settings.codemirror?.lint ?? false;
 
 			if ( ! options ) {
@@ -209,7 +209,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 			} else if ( _.isObject( options ) ) {
 				options = $.extend( {}, options );
 			}
-			const linterOptions = /** @type {import('codemirror/addon/lint/lint').Linter & { rules?: any, onUpdateLinting?: Function }} */ ( options );
+			const linterOptions = /** @type {import('codemirror/addon/lint/lint').Linter<any> & { rules?: any, onUpdateLinting?: Function }} */ ( options );
 
 			// Configure JSHint.
 			if ( 'javascript' === settings.codemirror?.mode && settings.jshint ) {
@@ -380,9 +380,9 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 			}
 
 			// Focus on previous or next focusable item.
-			if ( event.shiftKey ) {
+			if ( event.shiftKey && settings.onTabPrevious ) {
 				settings.onTabPrevious( codemirror, event );
-			} else {
+			} else if ( ! event.shiftKey && settings.onTabNext ) {
 				settings.onTabNext( codemirror, event );
 			}
 
@@ -396,7 +396,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 
 	/**
 	 * @typedef {object} LintingController
-	 * @property {() => import('codemirror/addon/lint/lint').Linter|false} getLintOptions - Get lint options.
+	 * @property {() => import('codemirror/addon/lint/lint').Linter<any>|false} getLintOptions - Get lint options.
 	 * @property {(editor: CodeMirrorEditor) => void} init - Initialize.
 	 * @property {(editor: CodeMirrorEditor) => void} updateErrorNotice - Update error notice.
 	 */
@@ -443,7 +443,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		if ( codemirror.showHint ) {
 			codemirror.on( 'inputRead', function( _editor, change ) {
 				// Only trigger autocompletion for typed input or IME composition.
-				if ( '+input' !== change.origin && ! change.origin.startsWith( '*compose' ) ) {
+				if ( ! change.origin || ( '+input' !== change.origin && ! change.origin.startsWith( '*compose' ) ) ) {
 					return;
 				}
 
@@ -498,7 +498,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		}
 
 		// Facilitate tabbing out of the editor.
-		configureTabbing( codemirror, settings );
+		configureTabbing( codemirror, instanceSettings );
 
 		return instance;
 	};
