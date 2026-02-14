@@ -389,8 +389,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		/** @type {CodeEditorSettings} */
 		const instanceSettings = $.extend( true, {}, wp.codeEditor.defaultSettings, settings );
 
-		/** @type {CodeMirrorEditor} */
-		const codemirror = wp.CodeMirror.fromTextArea( $textarea[0], instanceSettings.codemirror );
+		const codemirror = /** @type {CodeMirrorEditor} */ ( wp.CodeMirror.fromTextArea( $textarea[0], instanceSettings.codemirror ) );
 
 		const updateErrorNotice = configureLinting( codemirror, instanceSettings );
 
