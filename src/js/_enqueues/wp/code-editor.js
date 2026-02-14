@@ -337,7 +337,11 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 				 * called.
 				 */
 				$( document.body ).on( 'mousedown', function( /** @type {JQuery.MouseDownEvent} */ event ) {
-					if ( editor.state.focused && ! editor.getWrapperElement().contains( /** @type {Node} */ ( event.target ) ) && ! ( /** @type {HTMLElement} */ ( event.target ) ).classList.contains( 'CodeMirror-hint' ) ) {
+					if (
+						editor.state.focused &&
+						! editor.getWrapperElement().contains( event.target ) &&
+						! event.target.classList.contains( 'CodeMirror-hint' )
+					) {
 						updateErrorNotice( editor );
 					}
 				} );
