@@ -161,7 +161,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		editor.setOption( 'lint', getLintOptions() );
 
 		// Keep lint options populated.
-		editor.on( 'optionChange', function( cm, option ) {
+		editor.on( 'optionChange', function( _cm, option ) {
 			const gutterName = 'CodeMirror-lint-markers';
 			if ( 'lint' !== option ) {
 				return;
@@ -236,7 +236,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		codemirror.on( 'blur', function() {
 			$textarea.data( 'next-tab-blurs', false );
 		});
-		codemirror.on( 'keydown', function onKeydown( editor, event ) {
+		codemirror.on( 'keydown', function onKeydown( _editor, event ) {
 			// Take note of the ESC keypress so that the next TAB can focus outside the editor.
 			if ( 'Escape' === event.key ) {
 				$textarea.data( 'next-tab-blurs', true );
@@ -269,12 +269,6 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 	 * @property {'error'|'warning'} severity - Severity.
 	 * @property {import('codemirror').Position} from - From position.
 	 * @property {import('codemirror').Position} to - To position.
-	 */
-
-	/**
-	 * @typedef {object} CodeMirrorState
-	 * @property {boolean} [completionActive] - Whether completion is active.
-	 * @property {boolean} [focused] - Whether the editor is focused.
 	 */
 
 	/**
@@ -359,6 +353,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 	 * @typedef {import('codemirror').EditorFromTextArea & {
 	 *   performLint?: function(): void,
 	 *   showHint?: function(object): void,
+	 *   options: import('codemirror').EditorConfiguration,
 	 *   getOption(name: 'lint' | keyof import('codemirror').EditorConfiguration): any,
 	 *   setOption(name: 'lint' | keyof import('codemirror').EditorConfiguration, value: any): void,
 	 *   on(event: 'optionChange' | 'startCompletion' | 'endCompletion' | keyof import('codemirror').EditorEventMap, handler: function): void,
@@ -407,7 +402,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		};
 
 		if ( codemirror.showHint ) {
-			codemirror.on( 'inputRead', function( editor, change ) {
+			codemirror.on( 'inputRead', function( _editor, change ) {
 				// Only trigger autocompletion for typed input or IME composition.
 				if ( '+input' !== change.origin && ! change.origin.startsWith( '*compose' ) ) {
 					return;
