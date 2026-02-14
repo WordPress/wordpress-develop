@@ -295,49 +295,59 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 	 */
 
 	/**
+	 * @typedef {object} CSSLintRules
+	 * @property {boolean} [errors] - Errors.
+	 * @property {boolean} [box-model] - Box model rules.
+	 * @property {boolean} [display-property-grouping] - Display property grouping rules.
+	 * @property {boolean} [duplicate-properties] - Duplicate properties rules.
+	 * @property {boolean} [known-properties] - Known properties rules.
+	 * @property {boolean} [outline-none] - Outline none rules.
+	 */
+
+	/**
+	 * @typedef {object} JSHintRules
+	 * @property {number} [esversion] - ECMAScript version.
+	 * @property {boolean} [module] - Whether to use modules.
+	 * @property {boolean} [boss] - Whether to allow assignments in control expressions.
+	 * @property {boolean} [curly] - Whether to require curly braces.
+	 * @property {boolean} [eqeqeq] - Whether to require === and !==.
+	 * @property {boolean} [eqnull] - Whether to allow == null.
+	 * @property {boolean} [expr] - Whether to allow expressions.
+	 * @property {boolean} [immed] - Whether to require immediate function invocation.
+	 * @property {boolean} [noarg] - Whether to prohibit arguments.caller/callee.
+	 * @property {boolean} [nonbsp] - Whether to prohibit non-breaking spaces.
+	 * @property {string} [quotmark] - Quote mark preference.
+	 * @property {boolean} [undef] - Whether to prohibit undefined variables.
+	 * @property {boolean} [unused] - Whether to prohibit unused variables.
+	 * @property {boolean} [browser] - Whether to enable browser globals.
+	 * @property {Object<string, boolean>} [globals] - Global variables.
+	 */
+
+	/**
+	 * @typedef {object} HTMLHintRules
+	 * @property {boolean} [tagname-lowercase] - Tag name lowercase rules.
+	 * @property {boolean} [attr-lowercase] - Attribute lowercase rules.
+	 * @property {boolean} [attr-value-double-quotes] - Attribute value double quotes rules.
+	 * @property {boolean} [doctype-first] - Doctype first rules.
+	 * @property {boolean} [tag-pair] - Tag pair rules.
+	 * @property {boolean} [spec-char-escape] - Spec char escape rules.
+	 * @property {boolean} [id-unique] - ID unique rules.
+	 * @property {boolean} [src-not-empty] - Src not empty rules.
+	 * @property {boolean} [attr-no-duplication] - Attribute no duplication rules.
+	 * @property {boolean} [alt-require] - Alt require rules.
+	 * @property {string} [space-tab-mixed-disabled] - Space tab mixed disabled rules.
+	 * @property {boolean} [attr-unsafe-chars] - Attribute unsafe chars rules.
+	 */
+
+	/**
 	 * Settings for the code editor.
 	 *
 	 * @typedef {object} CodeEditorSettings
 	 *
 	 * @property {CodeMirrorSettings} [codemirror] - CodeMirror settings.
-	 * @property {object} [csslint] - CSSLint rules.
-	 * @property {boolean} [csslint.errors] - Errors.
-	 * @property {boolean} [csslint.box-model] - Box model rules.
-	 * @property {boolean} [csslint.display-property-grouping] - Display property grouping rules.
-	 * @property {boolean} [csslint.duplicate-properties] - Duplicate properties rules.
-	 * @property {boolean} [csslint.known-properties] - Known properties rules.
-	 * @property {boolean} [csslint.outline-none] - Outline none rules.
-	 *
-	 * @property {object} [jshint] - JSHint rules.
-	 * @property {number} [jshint.esversion] - ECMAScript version.
-	 * @property {boolean} [jshint.module] - Whether to use modules.
-	 * @property {boolean} [jshint.boss] - Whether to allow assignments in control expressions.
-	 * @property {boolean} [jshint.curly] - Whether to require curly braces.
-	 * @property {boolean} [jshint.eqeqeq] - Whether to require === and !==.
-	 * @property {boolean} [jshint.eqnull] - Whether to allow == null.
-	 * @property {boolean} [jshint.expr] - Whether to allow expressions.
-	 * @property {boolean} [jshint.immed] - Whether to require immediate function invocation.
-	 * @property {boolean} [jshint.noarg] - Whether to prohibit arguments.caller/callee.
-	 * @property {boolean} [jshint.nonbsp] - Whether to prohibit non-breaking spaces.
-	 * @property {string} [jshint.quotmark] - Quote mark preference.
-	 * @property {boolean} [jshint.undef] - Whether to prohibit undefined variables.
-	 * @property {boolean} [jshint.unused] - Whether to prohibit unused variables.
-	 * @property {boolean} [jshint.browser] - Whether to enable browser globals.
-	 * @property {Object<string, boolean>} [jshint.globals] - Global variables.
-	 *
-	 * @property {object} [htmlhint] - HTMLHint rules.
-	 * @property {boolean} [htmlhint.tagname-lowercase] - Tag name lowercase rules.
-	 * @property {boolean} [htmlhint.attr-lowercase] - Attribute lowercase rules.
-	 * @property {boolean} [htmlhint.attr-value-double-quotes] - Attribute value double quotes rules.
-	 * @property {boolean} [htmlhint.doctype-first] - Doctype first rules.
-	 * @property {boolean} [htmlhint.tag-pair] - Tag pair rules.
-	 * @property {boolean} [htmlhint.spec-char-escape] - Spec char escape rules.
-	 * @property {boolean} [htmlhint.id-unique] - ID unique rules.
-	 * @property {boolean} [htmlhint.src-not-empty] - Src not empty rules.
-	 * @property {boolean} [htmlhint.attr-no-duplication] - Attribute no duplication rules.
-	 * @property {boolean} [htmlhint.alt-require] - Alt require rules.
-	 * @property {string} [htmlhint.space-tab-mixed-disabled] - Space tab mixed disabled rules.
-	 * @property {boolean} [htmlhint.attr-unsafe-chars] - Attribute unsafe chars rules.
+	 * @property {CSSLintRules} [csslint] - CSSLint rules.
+	 * @property {JSHintRules} [jshint] - JSHint rules.
+	 * @property {HTMLHintRules} [htmlhint] - HTMLHint rules.
 	 *
 	 * @property {Function} [onTabNext] - Callback to handle tabbing to the next tabbable element.
 	 * @property {Function} [onTabPrevious] - Callback to handle tabbing to the previous tabbable element.
@@ -357,7 +367,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 	 */
 
 	/**
-	 * @typedef {object} wp.codeEditor~CodeEditorInstance
+	 * @typedef {object} CodeEditorInstance
 	 * @property {CodeEditorSettings} settings - The code editor settings.
 	 * @property {CodeMirrorEditor} codemirror - The CodeMirror instance.
 	 * @property {Function} updateErrorNotice - Force update the error notice.
@@ -371,7 +381,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 	 * @param {string|jQuery|Element} textarea - The HTML id, jQuery object, or DOM Element for the textarea that is used for the editor.
 	 * @param {CodeEditorSettings}    [settings] - Settings to override defaults.
 	 *
-	 * @return {wp.codeEditor~CodeEditorInstance} Instance.
+	 * @return {CodeEditorInstance} Instance.
 	 */
 	wp.codeEditor.initialize = function initialize( textarea, settings ) {
 		let $textarea;
@@ -389,7 +399,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 
 		const updateErrorNotice = configureLinting( codemirror, instanceSettings );
 
-		/** @type {wp.codeEditor~CodeEditorInstance} */
+		/** @type {CodeEditorInstance} */
 		const instance = {
 			settings: instanceSettings,
 			codemirror,
