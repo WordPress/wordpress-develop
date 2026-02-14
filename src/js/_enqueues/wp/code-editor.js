@@ -49,7 +49,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 
 /**
  * @typedef {import('codemirror').EditorConfiguration & {
- *   lint?: boolean | import('codemirror/addon/lint/lint').LintStateOptions<any>,
+ *   lint?: boolean | CombinedLintOptions,
  *   autoCloseBrackets?: boolean,
  *   matchBrackets?: boolean,
  *   continueComments?: boolean,
@@ -118,6 +118,10 @@ if ( 'undefined' === typeof wp.codeEditor ) {
  * @property {(codemirror: CodeMirrorEditor, event: KeyboardEvent|JQuery.KeyDownEvent) => void} [onTabPrevious] - Callback to handle tabbing to the previous tabbable element.
  * @property {(errorAnnotations: LintAnnotation[], annotations: LintAnnotation[], annotationsSorted: LintAnnotation[], cm: CodeMirrorEditor) => void} [onChangeLintingErrors] - Callback for when the linting errors have changed.
  * @property {(errorAnnotations: LintAnnotation[], editor: CodeMirrorEditor) => void} [onUpdateErrorNotice] - Callback for when error notice should be displayed.
+ */
+
+/**
+ * @typedef {import('codemirror/addon/lint/lint').LintStateOptions<Record<string, unknown>> & JSHintRules & CSSLintRules & { rules?: HTMLHintRules }} CombinedLintOptions
  */
 
 /**
@@ -191,10 +195,10 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		/**
 		 * Get lint options.
 		 *
-		 * @return {import('codemirror/addon/lint/lint').LintStateOptions<any>|false} Lint options.
+		 * @return {CombinedLintOptions|false} Lint options.
 		 */
 		function getLintOptions() { // eslint-disable-line complexity
-			/** @type {import('codemirror/addon/lint/lint').LintStateOptions<any> | boolean} */
+			/** @type {CombinedLintOptions | boolean} */
 			let options = settings.codemirror?.lint ?? false;
 
 			if ( ! options ) {
@@ -206,7 +210,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 			} else if ( _.isObject( options ) ) {
 				options = $.extend( {}, options );
 			}
-			const linterOptions = /** @type {import('codemirror/addon/lint/lint').LintStateOptions<any> & (CSSLintRules | JSHintRules | HTMLHintRules) & { rules?: any }} */ ( options );
+			const linterOptions = /** @type {CombinedLintOptions} */ ( options );
 
 			// Configure JSHint.
 			if ( 'javascript' === settings.codemirror?.mode && settings.jshint ) {
@@ -222,10 +226,10 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 			if ( 'htmlmixed' === settings.codemirror?.mode && settings.htmlhint ) {
 				linterOptions.rules = $.extend( {}, settings.htmlhint );
 
-				if ( settings.jshint ) {
+				if ( settings.jshint && linterOptions.rules ) {
 					linterOptions.rules.jshint = settings.jshint;
 				}
-				if ( settings.csslint ) {
+				if ( settings.csslint && linterOptions.rules ) {
 					linterOptions.rules.csslint = settings.csslint;
 				}
 			}
@@ -393,7 +397,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 
 	/**
 	 * @typedef {object} LintingController
-	 * @property {() => import('codemirror/addon/lint/lint').LintStateOptions<any>|false} getLintOptions - Get lint options.
+	 * @property {() => CombinedLintOptions|false} getLintOptions - Get lint options.
 	 * @property {(editor: CodeMirrorEditor) => void} init - Initialize.
 	 * @property {(editor: CodeMirrorEditor) => void} updateErrorNotice - Update error notice.
 	 */
