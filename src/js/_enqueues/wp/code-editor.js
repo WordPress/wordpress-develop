@@ -4,17 +4,17 @@
 
 /* eslint-env es2020 */
 
-if ( 'undefined' === typeof window.wp ) {
+if ( 'undefined' === typeof wp ) {
 	/**
 	 * @namespace wp
 	 */
 	window.wp = {};
 }
-if ( 'undefined' === typeof window.wp.codeEditor ) {
+if ( 'undefined' === typeof wp.codeEditor ) {
 	/**
 	 * @namespace wp.codeEditor
 	 */
-	window.wp.codeEditor = {};
+	wp.codeEditor = {};
 }
 
 /**
@@ -459,4 +459,4 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 		return instance;
 	};
 
-})( window.jQuery, window.wp, window._ );
+})( jQuery, wp, _ );
