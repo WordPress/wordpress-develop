@@ -162,7 +162,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		onTabNext: function() {},
 		onTabPrevious: function() {},
 		onChangeLintingErrors: function() {},
-		onUpdateErrorNotice: function() {}
+		onUpdateErrorNotice: function() {},
 	};
 
 	/**

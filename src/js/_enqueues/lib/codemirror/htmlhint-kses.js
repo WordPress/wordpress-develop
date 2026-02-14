@@ -30,5 +30,5 @@ HTMLHint.addRule({
 				}
 			}
 		});
-	}
+	},
 });
