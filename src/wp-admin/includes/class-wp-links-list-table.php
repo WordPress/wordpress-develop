@@ -42,10 +42,10 @@ class WP_Links_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global int    $cat_id
-	 * @global string $s
-	 * @global string $orderby
-	 * @global string $order
+	 * @global int    $cat_id  Link category ID.
+	 * @global string $s       Search string.
+	 * @global string $orderby The field to order the links by.
+	 * @global string $order   The direction to order the links.
 	 */
 	public function prepare_items() {
 		global $cat_id, $s, $orderby, $order;
@@ -93,8 +93,8 @@ class WP_Links_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global int $cat_id
-	 * @param string $which
+	 * @global int $cat_id Link category ID.
+	 * @param string $which The location: 'top' or 'bottom'.
 	 */
 	protected function extra_tablenav( $which ) {
 		global $cat_id;
@@ -224,7 +224,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @global int $cat_id
+	 * @global int $cat_id Link category ID.
 	 *
 	 * @param object $link The current link object.
 	 */
