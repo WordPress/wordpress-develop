@@ -410,6 +410,7 @@ require ABSPATH . WPINC . '/block-supports/shadow.php';
 require ABSPATH . WPINC . '/block-supports/background.php';
 require ABSPATH . WPINC . '/block-supports/block-style-variations.php';
 require ABSPATH . WPINC . '/block-supports/aria-label.php';
+require ABSPATH . WPINC . '/block-supports/auto-register.php';
 require ABSPATH . WPINC . '/block-supports/anchor.php';
 require ABSPATH . WPINC . '/block-supports/block-visibility.php';
 require ABSPATH . WPINC . '/style-engine.php';
