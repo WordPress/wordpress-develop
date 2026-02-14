@@ -64,7 +64,7 @@ do_action( 'before_signup_header' );
 function wpmu_signup_stylesheet() {
 	?>
 	<style>
-		.mu_register { width: 90%; margin: 0 auto; text-align: start; padding: 24px; }
+		.mu_register { width: 90%; margin: 0 auto; text-align: start; padding: 24px; box-sizing: border-box; }
 		.mu_register p { font-size: 18px; }
 		.mu_register form { margin: 24px 0; }
 		.mu_register fieldset,
