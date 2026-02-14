@@ -163,10 +163,10 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		// Keep lint options populated.
 		editor.on( 'optionChange', function( _cm, option ) {
 			const gutterName = 'CodeMirror-lint-markers';
-			if ( 'lint' !== option ) {
+			if ( 'lint' !== ( /** @type {string} */ ( option ) ) ) {
 				return;
 			}
-			const gutters = editor.getOption( 'gutters' ) || [];
+			const gutters = ( /** @type {string[]} */ ( editor.getOption( 'gutters' ) ) ) || [];
 			const options = editor.getOption( 'lint' );
 			if ( true === options ) {
 				if ( ! _.contains( gutters, gutterName ) ) {
