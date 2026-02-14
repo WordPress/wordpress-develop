@@ -88,34 +88,25 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 				options = $.extend( {}, options );
 			}
 
-			/*
-			 * Note that rules must be sent in the "deprecated" lint.options property
-			 * to prevent linter from complaining about unrecognized options.
-			 * See <https://github.com/codemirror/CodeMirror/pull/4944>.
-			 */
-			if ( ! options.options ) {
-				options.options = {};
-			}
-
 			// Configure JSHint.
 			if ( 'javascript' === settings.codemirror?.mode && settings.jshint ) {
-				$.extend( options.options, settings.jshint );
+				$.extend( options, settings.jshint );
 			}
 
 			// Configure CSSLint.
 			if ( 'css' === settings.codemirror?.mode && settings.csslint ) {
-				$.extend( options.options, settings.csslint );
+				$.extend( options, settings.csslint );
 			}
 
 			// Configure HTMLHint.
 			if ( 'htmlmixed' === settings.codemirror?.mode && settings.htmlhint ) {
-				options.options.rules = $.extend( {}, settings.htmlhint );
+				options.rules = $.extend( {}, settings.htmlhint );
 
 				if ( settings.jshint ) {
-					options.options.rules.jshint = settings.jshint;
+					options.rules.jshint = settings.jshint;
 				}
 				if ( settings.csslint ) {
-					options.options.rules.csslint = settings.csslint;
+					options.rules.csslint = settings.csslint;
 				}
 			}
 
