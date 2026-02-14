@@ -213,8 +213,8 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		 * blurred the field and cause onUpdateErrorNotice to have already been
 		 * called.
 		 */
-		$( document.body ).on( 'mousedown', function( event ) {
-			if ( editor.state.focused && ! editor.getWrapperElement().contains( event.target ) && ! event.target.classList.contains( 'CodeMirror-hint' ) ) {
+		$( document.body ).on( 'mousedown', function( /** @type {JQuery.MouseDownEvent} */ event ) {
+			if ( editor.state.focused && ! editor.getWrapperElement().contains( /** @type {Node} */ ( event.target ) ) && ! ( /** @type {HTMLElement} */ ( event.target ) ).classList.contains( 'CodeMirror-hint' ) ) {
 				updateErrorNotice();
 			}
 		});
