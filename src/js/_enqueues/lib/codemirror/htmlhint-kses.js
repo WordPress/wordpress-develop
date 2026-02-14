@@ -3,6 +3,15 @@
 HTMLHint.addRule({
 	id: 'kses',
 	description: 'Element or attribute cannot be used.',
+	/**
+	 * Initialize.
+	 *
+	 * @this {import('htmlhint/types').Rule}
+	 * @param {import('htmlhint').HTMLParser} parser - Parser.
+	 * @param {import('htmlhint').Reporter} reporter - Reporter.
+	 * @param {Record<string, Record<string, boolean>>} options - KSES options.
+	 * @return {void}
+	 */
 	init: function( parser, reporter, options ) {
 		'use strict';
 

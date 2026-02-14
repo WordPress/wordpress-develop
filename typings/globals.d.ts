@@ -6,11 +6,11 @@ interface Window {
 	jQuery: any;
 	_: any;
 	Backbone: any;
-	HTMLHint: any;
+	HTMLHint: typeof import('htmlhint').HTMLHint;
 }
 
 declare var wp: any;
 declare var jQuery: any;
 declare var _: any;
 declare var Backbone: any;
-declare var HTMLHint: any;
+declare var HTMLHint: typeof import('htmlhint').HTMLHint;
