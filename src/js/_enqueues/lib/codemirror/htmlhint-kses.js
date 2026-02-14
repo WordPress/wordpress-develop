@@ -23,11 +23,10 @@ HTMLHint.addRule({
 			}
 
 			const allowedAttributes = options[ tagName ];
-			const col = event.col + event.tagName.length + 1;
-			for ( const attr of event.attrs ) {
-				const attrName = attr.name.toLowerCase();
-				if ( ! allowedAttributes[ attrName ] ) {
-					reporter.error( `Tag attribute [${attr.raw}] is not allowed.`, event.line, col + attr.index, this, attr.raw );
+			const column = event.col + event.tagName.length + 1;
+			for ( const attribute of event.attrs ) {
+				if ( ! allowedAttributes[ attribute.name.toLowerCase() ] ) {
+					reporter.error( `Tag attribute [${attribute.raw}] is not allowed.`, event.line, column + attribute.index, this, attribute.raw );
 				}
 			}
 		});
