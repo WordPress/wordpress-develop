@@ -1,6 +1,11 @@
 {
-	"parserOptions": {
-		"sourceType": "module",
-		"ecmaVersion": 2020
-	}
+	"overrides": [
+		{
+			"files": [ "javascript-lint.js" ],
+			"parserOptions": {
+				"sourceType": "module",
+				"ecmaVersion": 2020
+			}
+		}
+	]
 }
