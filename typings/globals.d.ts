@@ -1,3 +1,6 @@
+/// <reference types="codemirror/addon/lint/lint" />
+/// <reference types="codemirror/addon/hint/show-hint" />
+
 interface Window {
 	wp: any;
 	jQuery: any;

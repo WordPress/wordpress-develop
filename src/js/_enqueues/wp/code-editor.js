@@ -73,7 +73,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		 * @return {Object} Lint options.
 		 */
 		function getLintOptions() { // eslint-disable-line complexity
-			let options = editor.getOption( 'lint' );
+			let options = /** @type {any} */ ( editor.getOption( 'lint' ) );
 
 			if ( ! options ) {
 				return false;
@@ -350,14 +350,17 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 	 */
 
 	/**
+	 * @typedef {object} CodeMirrorState
+	 * @property {boolean} [completionActive] - Whether completion is active.
+	 * @property {boolean} [focused] - Whether the editor is focused.
+	 */
+
+	/**
 	 * @typedef {import('codemirror').EditorFromTextArea & {
-	 *   performLint?: function(): void,
-	 *   showHint?: function(object): void,
 	 *   options: import('codemirror').EditorConfiguration,
-	 *   getOption(name: 'lint' | keyof import('codemirror').EditorConfiguration): any,
-	 *   setOption(name: 'lint' | keyof import('codemirror').EditorConfiguration, value: any): void,
-	 *   on(event: 'optionChange' | 'startCompletion' | 'endCompletion' | keyof import('codemirror').EditorEventMap, handler: function): void,
-	 *   off(event: 'optionChange' | 'startCompletion' | 'endCompletion' | keyof import('codemirror').EditorEventMap, handler: function): void
+	 *   performLint?: function(): void,
+	 *   showHint?: function(import('codemirror').ShowHintOptions): void,
+	 *   state: CodeMirrorState
 	 * }} CodeMirrorEditor
 	 */
 
