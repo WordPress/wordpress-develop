@@ -1,8 +1,9 @@
 /* global HTMLHint */
-/* eslint no-magic-numbers: ["error", { "ignore": [0, 1] }] */
+/* eslint no-magic-numbers: ["error", { "ignore": [1] }] */
 HTMLHint.addRule({
 	id: 'kses',
 	description: 'Element or attribute cannot be used.',
+
 	/**
 	 * Initialize.
 	 *
