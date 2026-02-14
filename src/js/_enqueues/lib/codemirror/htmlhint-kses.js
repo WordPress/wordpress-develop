@@ -1,6 +1,6 @@
 /* global HTMLHint */
 /* eslint no-magic-numbers: ["error", { "ignore": [1] }] */
-HTMLHint.addRule({
+HTMLHint.addRule( {
 	id: 'kses',
 	description: 'Element or attribute cannot be used.',
 
@@ -13,13 +13,19 @@ HTMLHint.addRule({
 	 * @param {Record<string, Record<string, boolean>>} options - KSES options.
 	 * @return {void}
 	 */
-	init: function( parser, reporter, options ) {
+	init: function ( parser, reporter, options ) {
 		'use strict';
 
 		parser.addListener( 'tagstart', ( event ) => {
 			const tagName = event.tagName.toLowerCase();
 			if ( ! options[ tagName ] ) {
-				reporter.error( `Tag <${event.tagName}> is not allowed.`, event.line, event.col, this, event.raw );
+				reporter.error(
+					`Tag <${ event.tagName }> is not allowed.`,
+					event.line,
+					event.col,
+					this,
+					event.raw
+				);
 				return;
 			}
 
@@ -27,9 +33,15 @@ HTMLHint.addRule({
 			const column = event.col + event.tagName.length + 1;
 			for ( const attribute of event.attrs ) {
 				if ( ! allowedAttributes[ attribute.name.toLowerCase() ] ) {
-					reporter.error( `Tag attribute [${attribute.raw}] is not allowed.`, event.line, column + attribute.index, this, attribute.raw );
+					reporter.error(
+						`Tag attribute [${ attribute.raw }] is not allowed.`,
+						event.line,
+						column + attribute.index,
+						this,
+						attribute.raw
+					);
 				}
 			}
-		});
+		} );
 	},
-});
+} );
