@@ -182,12 +182,12 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		/**
 		 * Call the onUpdateErrorNotice if there are new errors to show.
 		 *
-		 * @param {CodeMirrorEditor} editor - Editor.
+		 * @param {import('codemirror').Editor} editor - Editor.
 		 * @return {void}
 		 */
 		function updateErrorNotice( editor ) {
 			if ( settings.onUpdateErrorNotice && ! _.isEqual( currentErrorAnnotations, previouslyShownErrorAnnotations ) ) {
-				settings.onUpdateErrorNotice( currentErrorAnnotations, editor );
+				settings.onUpdateErrorNotice( currentErrorAnnotations, /** @type {CodeMirrorEditor} */ ( editor ) );
 				previouslyShownErrorAnnotations = currentErrorAnnotations;
 			}
 		}
@@ -310,19 +310,15 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 				} );
 
 				// Update error notice when leaving the editor.
-				editor.on( 'blur', function() {
-					updateErrorNotice( editor );
-				} );
+				editor.on( 'blur', updateErrorNotice );
 
 				// Work around hint selection with mouse causing focus to leave editor.
 				editor.on( 'startCompletion', function() {
-					editor.off( 'blur', ( /** @type {any} */ ( updateErrorNotice ) ) );
+					editor.off( 'blur', updateErrorNotice );
 				} );
 				editor.on( 'endCompletion', function() {
 					const editorRefocusWait = 500;
-					editor.on( 'blur', function() {
-						updateErrorNotice( editor );
-					} );
+					editor.on( 'blur', updateErrorNotice );
 
 					// Wait for editor to possibly get re-focused after selection.
 					_.delay( function() {
@@ -399,7 +395,7 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 	 * @typedef {object} LintingController
 	 * @property {() => CombinedLintOptions|false} getLintOptions - Get lint options.
 	 * @property {(editor: CodeMirrorEditor) => void} init - Initialize.
-	 * @property {(editor: CodeMirrorEditor) => void} updateErrorNotice - Update error notice.
+	 * @property {(editor: import('codemirror').Editor) => void} updateErrorNotice - Update error notice.
 	 */
 
 	/**
