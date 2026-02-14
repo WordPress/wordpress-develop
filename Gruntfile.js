@@ -334,7 +334,7 @@ module.exports = function(grunt) {
 				files: [
 					{
 						[ WORKING_DIR + 'wp-includes/js/codemirror/csslint.js' ]: [ './node_modules/csslint/dist/csslint.js' ],
-						[ WORKING_DIR + 'wp-includes/js/codemirror/esprima.js' ]: [ './src/js/_enqueues/vendor/esprima.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/esprima.js' ]: [ './node_modules/esprima/dist/esprima.js' ],
 						[ WORKING_DIR + 'wp-includes/js/codemirror/htmlhint.js' ]: [ './node_modules/htmlhint/dist/htmlhint.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/codemirror/jsonlint.js' ]: [ './node_modules/jsonlint/web/jsonlint.js' ],
 					},
