@@ -15,8 +15,7 @@ HTMLHint.addRule({
 
 			const allowedAttributes = options[ tagName ];
 			const col = event.col + event.tagName.length + 1;
-			for ( let i = 0, len = event.attrs.length; i < len; i++ ) {
-				const attr = event.attrs[ i ];
+			for ( const attr of event.attrs ) {
 				const attrName = attr.name.toLowerCase();
 				if ( ! allowedAttributes[ attrName ] ) {
 					reporter.error( 'Tag attribute [' + attr.raw + ' ] is not allowed.', event.line, col + attr.index, this, attr.raw );
