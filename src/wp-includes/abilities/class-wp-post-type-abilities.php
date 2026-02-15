@@ -1207,6 +1207,7 @@ class WP_Post_Type_Abilities {
 				}
 			}
 
+			// Use stdClass for empty value to ensure JSON encodes as {} not [].
 			$data['taxonomies'] = ! empty( $terms_data ) ? $terms_data : new stdClass();
 		}
 
@@ -1227,6 +1228,7 @@ class WP_Post_Type_Abilities {
 				$public_meta[ $key ] = count( $values ) === 1 ? $values[0] : $values;
 			}
 
+			// Use stdClass for empty value to ensure JSON encodes as {} not [].
 			$data['meta'] = ! empty( $public_meta ) ? $public_meta : new stdClass();
 		}
 
