@@ -1498,7 +1498,7 @@ class WP_Post_Type_Abilities {
 			}
 		}
 
-		return $allowed;
+		return array_unique( $allowed );
 	}
 
 	/**
