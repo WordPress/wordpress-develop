@@ -588,6 +588,7 @@ class WP_Post_Type_Abilities {
 		return array(
 			'type'                 => 'object',
 			'description'          => __( 'Date query to filter posts by date fields.' ),
+			'required'             => array( 'queries' ),
 			'properties'           => array(
 				'relation' => array(
 					'type'        => 'string',
@@ -601,7 +602,7 @@ class WP_Post_Type_Abilities {
 				),
 				'queries'  => array(
 					'type'        => 'array',
-					'description' => __( 'List of date query clauses or nested groups.' ),
+					'description' => __( 'List of query clauses or nested groups.' ),
 					'items'       => array(
 						'oneOf' => array(
 							$date_clause_schema,
