@@ -1108,7 +1108,7 @@ class WP_Post_Type_Abilities {
 			return array( 'publish' );
 		}
 
-		return $statuses;
+		return array_map( 'sanitize_key', $statuses );
 	}
 
 	/**
