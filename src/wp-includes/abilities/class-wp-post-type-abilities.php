@@ -268,22 +268,10 @@ class WP_Post_Type_Abilities {
 	 * @return array The JSON schema for the query group.
 	 */
 	private static function build_query_group_schema( string $description, array $leaf_schema ): array {
-		$nested_group_schema = array(
-			'type'                 => 'object',
-			'description'          => __( 'Nested query group with its own relation.' ),
-			'required'             => array( 'queries' ),
-			'properties'           => array(
-				'relation' => array(
-					'type'        => 'string',
-					'description' => __( 'Logical relation between nested clauses.' ),
-					'enum'        => array( 'AND', 'OR' ),
-				),
-				'queries'  => array(
-					'type'        => 'array',
-					'description' => __( 'Nested query clauses.' ),
-				),
-			),
-			'additionalProperties' => false,
+		$nested_group_schema = self::build_nested_group_schema(
+			$leaf_schema,
+			__( 'Nested query group with its own relation.' ),
+			__( 'Nested query clauses.' )
 		);
 
 		return array(
@@ -308,6 +296,51 @@ class WP_Post_Type_Abilities {
 			),
 			'additionalProperties' => false,
 		);
+	}
+
+	/**
+	 * Builds a nested query group schema recursively.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array  $leaf_schema         JSON Schema for a leaf clause.
+	 * @param string $group_description   Description for the nested group.
+	 * @param string $queries_description Description for the nested queries array.
+	 * @param int    $depth               Remaining recursion depth.
+	 * @return array The nested query group schema.
+	 */
+	private static function build_nested_group_schema( array $leaf_schema, string $group_description, string $queries_description, int $depth = 3 ): array {
+		$group_schema = array(
+			'type'                 => 'object',
+			'description'          => $group_description,
+			'required'             => array( 'queries' ),
+			'properties'           => array(
+				'relation' => array(
+					'type'        => 'string',
+					'description' => __( 'Logical relation between nested clauses.' ),
+					'enum'        => array( 'AND', 'OR' ),
+				),
+				'queries'  => array(
+					'type'        => 'array',
+					'description' => $queries_description,
+				),
+			),
+			'additionalProperties' => false,
+		);
+
+		if ( $depth <= 0 ) {
+			$group_schema['properties']['queries']['items'] = $leaf_schema;
+			return $group_schema;
+		}
+
+		$group_schema['properties']['queries']['items'] = array(
+			'oneOf' => array(
+				$leaf_schema,
+				self::build_nested_group_schema( $leaf_schema, $group_description, $queries_description, $depth - 1 ),
+			),
+		);
+
+		return $group_schema;
 	}
 
 	/**
@@ -541,22 +574,10 @@ class WP_Post_Type_Abilities {
 			'additionalProperties' => false,
 		);
 
-		$nested_group_schema = array(
-			'type'                 => 'object',
-			'description'          => __( 'Nested date query group with its own relation.' ),
-			'required'             => array( 'queries' ),
-			'properties'           => array(
-				'relation' => array(
-					'type'        => 'string',
-					'description' => __( 'Logical relation between nested clauses.' ),
-					'enum'        => array( 'AND', 'OR' ),
-				),
-				'queries'  => array(
-					'type'        => 'array',
-					'description' => __( 'Nested date query clauses.' ),
-				),
-			),
-			'additionalProperties' => false,
+		$nested_group_schema = self::build_nested_group_schema(
+			$date_clause_schema,
+			__( 'Nested date query group with its own relation.' ),
+			__( 'Nested date query clauses.' )
 		);
 
 		return array(
@@ -1317,12 +1338,12 @@ class WP_Post_Type_Abilities {
 	 * @return array|null The processed clause or null if invalid.
 	 */
 	private static function process_meta_clause( array $clause ): ?array {
-		if ( empty( $clause['key'] ) ) {
+		if ( ! isset( $clause['key'] ) || ! is_string( $clause['key'] ) || '' === $clause['key'] ) {
 			return null;
 		}
 
 		$result = array(
-			'key' => sanitize_key( $clause['key'] ),
+			'key' => $clause['key'],
 		);
 
 		if ( isset( $clause['value'] ) ) {
@@ -1498,9 +1519,9 @@ class WP_Post_Type_Abilities {
 				if ( isset( $sub_query['queries'] ) ) {
 					// Nested group: recurse.
 					$keys = array_merge( $keys, self::extract_meta_keys_from_query( $sub_query ) );
-				} elseif ( ! empty( $sub_query['key'] ) ) {
+				} elseif ( isset( $sub_query['key'] ) && is_string( $sub_query['key'] ) && '' !== $sub_query['key'] ) {
 					// Leaf clause with a key.
-					$keys[] = sanitize_key( $sub_query['key'] );
+					$keys[] = $sub_query['key'];
 				}
 			}
 		}

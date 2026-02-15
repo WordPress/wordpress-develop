@@ -85,6 +85,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		update_post_meta( self::$post_ids[1], 'footnotes', '[{}]' );
 		update_post_meta( self::$post_ids[1], 'a', '23' );
 		update_post_meta( self::$post_ids[1], 'b', '1' );
+		update_post_meta( self::$post_ids[1], 'My.Key', 'special' );
 		wp_set_object_terms( self::$post_ids[1], array( 't-23', 'c-1' ), 'post_tag' );
 
 		// Post 2: a=23, c=1, tags t-23 & b-1, date 2025-11-15.
@@ -169,6 +170,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		unregister_meta_key( 'post', 'a' );
 		unregister_meta_key( 'post', 'b' );
 		unregister_meta_key( 'post', 'c' );
+		unregister_meta_key( 'post', 'My.Key' );
 	}
 
 	/**
@@ -216,24 +218,17 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 				'show_in_abilities' => true,
 			)
 		);
+		register_meta(
+			'post',
+			'My.Key',
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => true,
+			)
+		);
 
-		// Unregister all existing abilities so we can re-register with updated schema.
-		foreach ( wp_get_abilities() as $ability ) {
-			wp_unregister_ability( $ability->get_name() );
-		}
-
-		// Remove core abilities registration to prevent ALL abilities from being registered
-		// when we only want to re-register post type abilities with updated schema.
-		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-
-		// Simulate the init action to allow re-registration without "doing it wrong" warning.
-		$this->simulate_doing_wp_abilities_init_action();
-
-		// Re-register all post type abilities so the schema includes the meta keys enum.
-		WP_Post_Type_Abilities::register();
-
-		// Clean up the simulated action.
-		$this->end_simulated_wp_abilities_init_action();
+		$this->reregister_post_type_abilities();
 	}
 
 	/**
@@ -253,6 +248,20 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	private function end_simulated_wp_abilities_init_action(): void {
 		global $wp_current_filter;
 		array_pop( $wp_current_filter );
+	}
+
+	/**
+	 * Re-registers post type abilities so input schemas include the current meta key registry.
+	 */
+	private function reregister_post_type_abilities(): void {
+		foreach ( wp_get_abilities() as $ability ) {
+			wp_unregister_ability( $ability->get_name() );
+		}
+
+		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+		$this->simulate_doing_wp_abilities_init_action();
+		WP_Post_Type_Abilities::register();
+		$this->end_simulated_wp_abilities_init_action();
 	}
 
 	/**
@@ -757,6 +766,126 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'posts', $data );
+	}
+
+	/**
+	 * Tests that meta query works with a registered non-slug meta key.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_query_with_non_slug_registered_key_succeeds(): void {
+		$response = $this->dispatch_get_ability(
+			array(
+				'query' => array(
+					'meta' => array(
+						'queries' => array(
+							array(
+								'key'     => 'My.Key',
+								'compare' => 'EXISTS',
+							),
+						),
+					),
+				),
+				'per_page' => 100,
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data     = $response->get_data();
+		$post_ids = $this->get_response_post_ids( $data );
+
+		$this->assertSame( 1, $data['total'] );
+		$this->assertContains( self::$post_ids[1], $post_ids );
+	}
+
+	/**
+	 * Tests that post-type-specific show_in_abilities overrides global registration.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_query_respects_post_type_specific_show_in_abilities_override(): void {
+		register_meta(
+			'post',
+			'override_key',
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => false,
+			)
+		);
+
+		register_meta(
+			'post',
+			'override_key',
+			array(
+				'object_subtype'    => 'post',
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => true,
+			)
+		);
+
+		update_post_meta( self::$post_ids[1], 'override_key', '1' );
+		$this->reregister_post_type_abilities();
+
+		$response = $this->dispatch_get_ability(
+			array(
+				'query' => array(
+					'meta' => array(
+						'queries' => array(
+							array(
+								'key'     => 'override_key',
+								'compare' => 'EXISTS',
+							),
+						),
+					),
+				),
+				'per_page' => 100,
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data     = $response->get_data();
+		$post_ids = $this->get_response_post_ids( $data );
+
+		$this->assertSame( 1, $data['total'] );
+		$this->assertContains( self::$post_ids[1], $post_ids );
+	}
+
+	/**
+	 * Tests that invalid clauses in deeply nested meta queries fail schema validation.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_query_deep_nested_invalid_clause_rejected(): void {
+		$response = $this->dispatch_get_ability(
+			array(
+				'query' => array(
+					'meta' => array(
+						'queries' => array(
+							array(
+								'relation' => 'AND',
+								'queries'  => array(
+									array(
+										'relation' => 'OR',
+										'queries'  => array(
+											array(
+												'foo' => 'bar',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
 	}
 
 	/**
