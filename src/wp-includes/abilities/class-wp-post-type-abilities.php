@@ -1174,8 +1174,7 @@ class WP_Post_Type_Abilities {
 		}
 
 		if ( post_type_supports( $slug, 'post-formats' ) ) {
-			$format         = get_post_format( $post );
-			$data['format'] = $format ? $format : 'standard';
+			$data['format'] = get_post_format( $post ) ?: 'standard';
 		}
 
 		if ( post_type_supports( $slug, 'comments' ) ) {
