@@ -33,6 +33,8 @@
 	position: relative;
 	height: 100%;
 	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
 	overflow-y: auto;
 	overscroll-behavior: none;
 	background: #fff;
@@ -623,6 +625,7 @@ code {
 .wrap {
 	margin: 0;
 	padding: 10px 20px 0 20px;
+	margin-top: -32px;
 }
 
 .wrap > h2:first-child, /* Back-compat for pre-4.4 */
@@ -1884,7 +1887,7 @@ p.auto-update-status {
 }
 
 #screen-meta-links {
-	float: right;
+	align-self: flex-end;
 	margin: 0 20px 0 0;
 }
 
@@ -4049,6 +4052,7 @@ img {
 		border-radius: 0;
 		height: auto;
 		overflow: visible;
+		display: block;
 	}
 
 	.wrap {
