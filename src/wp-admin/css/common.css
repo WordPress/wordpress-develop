@@ -1470,20 +1470,20 @@ div.error p,
 .notice a,
 .error a,
 .updated a {
-	color: var(--wp-admin-theme-color-darker-10);
+	color: var(--wp-admin-theme-color-darker-10, #2145e6);
 	text-decoration: underline;
 }
 
 .notice a:hover,
 .error a:hover,
 .updated a:hover {
-	color: var(--wp-admin-theme-color-darker-20);
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .notice a:focus,
 .error a:focus,
 .updated a:focus {
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	outline: 2px solid transparent;
 	border-radius: 2px;
 }
@@ -1532,7 +1532,7 @@ div.error p,
 }
 
 .notice-dismiss:focus {
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
