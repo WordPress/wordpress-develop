@@ -45,12 +45,11 @@ body.js.block-editor-page #wpbody-content {
 	overflow: hidden;
 }
 
-body.js.block-editor-page .interface-interface-skeleton {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
+body.js.block-editor-page:not(.is-fullscreen-mode) .interface-interface-skeleton {
+	right: 16px;
 	bottom: 16px;
+	border-radius: 8px;
+	overflow: hidden;
 }
 
 /* Fullscreen mode: remove frame */
