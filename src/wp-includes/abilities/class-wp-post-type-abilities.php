@@ -1219,17 +1219,23 @@ class WP_Post_Type_Abilities {
 			$meta              = get_post_meta( $post->ID );
 			$public_meta       = array();
 			$allowed_meta_keys = self::get_allowed_meta_keys( $slug );
+			$registered_meta   = array_merge(
+				get_registered_meta_keys( 'post' ),
+				get_registered_meta_keys( 'post', $slug )
+			);
 
 			foreach ( $meta as $key => $values ) {
 				// Skip protected meta keys.
 				if ( is_protected_meta( $key, 'post' ) ) {
 					continue;
 				}
-				// Only include meta keys that are registered with show_in_abilities enabled.
+				// Only include meta keys that are explicitly allowed.
 				if ( ! in_array( $key, $allowed_meta_keys, true ) ) {
 					continue;
 				}
-				$public_meta[ $key ] = count( $values ) === 1 ? $values[0] : $values;
+				// Respect the registered 'single' property for consistent behavior with get_post_meta().
+				$is_single           = ! empty( $registered_meta[ $key ]['single'] );
+				$public_meta[ $key ] = $is_single ? ( $values[0] ?? null ) : $values;
 			}
 
 			// Use stdClass for empty value to ensure JSON encodes as {} not [].
