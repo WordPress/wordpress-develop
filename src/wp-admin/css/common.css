@@ -31,7 +31,6 @@
 
 #wpbody-content {
 	position: relative;
-	padding-bottom: 24px;
 	height: 100%;
 	box-sizing: border-box;
 	overflow-y: auto;
@@ -41,12 +40,17 @@
 }
 
 /* Block editor frame overrides */
-body.js.block-editor-page #wpwrap {
+body.js.block-editor-page #wpbody-content {
+	padding-bottom: 0;
 	overflow: hidden;
 }
 
-body.js.block-editor-page #wpbody-content {
-	padding-bottom: 0;
+body.js.block-editor-page .interface-interface-skeleton {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 16px;
 }
 
 /* Fullscreen mode: remove frame */
