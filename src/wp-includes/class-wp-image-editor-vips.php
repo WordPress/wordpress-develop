@@ -350,13 +350,24 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @return true|WP_Error
 	 */
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
-		// If destination width/height isn't specified, use same as source
-		if ( $dst_w === null ) {
+		// If destination width/height isn't specified, use same as source.
+		if ( ! $dst_w ) {
 			$dst_w = $src_w;
 		}
 
-		if ( $dst_h === null ) {
+		if ( ! $dst_h ) {
 			$dst_h = $src_h;
+		}
+
+		foreach ( array( $src_w, $src_h, $dst_w, $dst_h ) as $value ) {
+			if ( ! is_numeric( $value ) || (int) $value <= 0 ) {
+				return new WP_Error( 'image_crop_error', __( 'Image crop failed.' ), $this->file );
+			}
+		}
+
+		if ( $src_abs ) {
+			$src_w -= $src_x;
+			$src_h -= $src_y;
 		}
 
 		try {
@@ -388,12 +399,19 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @return true|WP_Error
 	 */
 	public function rotate( $angle ) {
-		// VIPS rotate is clockwise, WordPress expects counter-clockwise,
-		// so we need to invert the angle.
-		$angle = 360 - $angle;
+		$angle = -$angle;
+		$angle = ( 360 + ( $angle % 360 ) ) % 360;
 
 		try {
-			$this->image = $this->image->rotate( $angle );
+			if ( 90 === $angle ) {
+				$this->image = $this->image->rot90();
+			} elseif ( 180 === $angle ) {
+				$this->image = $this->image->rot180();
+			} elseif ( 270 === $angle ) {
+				$this->image = $this->image->rot270();
+			} else {
+				$this->image = $this->image->rotate( $angle );
+			}
 
 			// Update size since rotation may change dimensions.
 			$result = $this->update_size();
@@ -418,11 +436,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 */
 	public function flip( $horz, $vert ) {
 		try {
-			if ( $horz ) {
+			if ( $vert ) {
 				$this->image = $this->image->fliphor();
 			}
 
-			if ( $vert ) {
+			if ( $horz ) {
 				$this->image = $this->image->flipver();
 			}
 
