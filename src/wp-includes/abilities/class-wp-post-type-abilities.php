@@ -170,9 +170,14 @@ class WP_Post_Type_Abilities {
 				'minimum'     => 1,
 			),
 			'status'   => array(
-				'type'        => 'string',
-				'description' => __( 'Filter by post status.' ),
-				'enum'        => $statuses,
+				'type'        => 'array',
+				'description' => __( 'Filter by one or more post statuses. Defaults to publish.' ),
+				'uniqueItems' => true,
+				'items'       => array(
+					'type' => 'string',
+					'enum' => $statuses,
+				),
+				'default'     => array( 'publish' ),
 			),
 			'search'   => array(
 				'type'        => 'string',
@@ -843,24 +848,43 @@ class WP_Post_Type_Abilities {
 	 * @return Closure The permission callback.
 	 */
 	private static function make_permission_get_callback( WP_Post_Type $post_type_object ): Closure {
-		return static function ( $input = array() ) use ( $post_type_object ): bool {
+		return static function ( $input = array() ) use ( $post_type_object ) {
 			$input = is_array( $input ) ? $input : array();
 
-			// For single post retrieval, check specific post permission.
-			// If the post doesn't exist, verify the user has general read
-			// capability before letting the execute callback return a 404.
 			if ( ! empty( $input['id'] ) ) {
 				$post = get_post( (int) $input['id'] );
 
 				if ( ! $post || $post->post_type !== $post_type_object->name ) {
-					return current_user_can( $post_type_object->cap->read_others_posts ?? 'read' );
+					return current_user_can( $post_type_object->cap->read ?? 'read' );
 				}
 
-				return current_user_can( 'read_post', $post->ID );
+				return self::check_post_read_permission( $post );
 			}
 
-			// For queries, check general read capability.
-			return current_user_can( $post_type_object->cap->read ?? 'read' );
+			$statuses = self::normalize_statuses_input( $input );
+
+			if ( ! current_user_can( $post_type_object->cap->read ?? 'read' ) ) {
+				return false;
+			}
+
+			if ( count( $statuses ) === 1 && $statuses[0] === 'publish' ) {
+				return current_user_can( $post_type_object->cap->read ?? 'read' );
+			}
+
+			if ( current_user_can( $post_type_object->cap->edit_posts ?? 'edit_posts' ) ) {
+				return true;
+			}
+
+			if ( current_user_can( $post_type_object->cap->read_private_posts ?? 'read_private_posts' ) ) {
+				foreach ( $statuses as $status ) {
+					if ( 'private' !== $status && 'publish' !== $status ) {
+						return false;
+					}
+				}
+				return true;
+			}
+
+			return false;
 		};
 	}
 
@@ -903,10 +927,9 @@ class WP_Post_Type_Abilities {
 
 		$query_args = array(
 			'post_type'      => $post_type_object->name,
-			'post_status'    => $input['status'] ?? 'publish',
+			'post_status'    => self::normalize_statuses_input( $input ),
 			'posts_per_page' => $per_page,
 			'paged'          => $page,
-			'perm'           => 'readable',
 		);
 
 		if ( ! empty( $input['search'] ) ) {
@@ -1024,6 +1047,10 @@ class WP_Post_Type_Abilities {
 		$posts = array();
 
 		foreach ( $query->posts as $post ) {
+			if ( ! self::check_post_read_permission( $post ) ) {
+				continue;
+			}
+
 			$posts[] = self::format_post( $post, $post_type_object, $input );
 		}
 
@@ -1032,6 +1059,35 @@ class WP_Post_Type_Abilities {
 			'total'       => (int) $query->found_posts,
 			'total_pages' => (int) $query->max_num_pages,
 		);
+	}
+
+	/**
+	 * Checks whether a post is readable, matching WP_REST_Posts_Controller behavior.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return bool Whether the post can be read.
+	 */
+	private static function check_post_read_permission( WP_Post $post ): bool {
+		return current_user_can( 'read_post', $post->ID );
+	}
+
+	/**
+	 * Normalizes input statuses to a non-empty array with publish as the default.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array $input Input parameters.
+	 * @return string[] Normalized list of statuses.
+	 */
+	private static function normalize_statuses_input( array $input ): array {
+		$statuses = $input['status'] ?? array( 'publish' );
+		if ( ! is_array( $statuses ) || empty( $statuses ) ) {
+			return array( 'publish' );
+		}
+
+		return $statuses;
 	}
 
 	/**

@@ -26,7 +26,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	protected static $editor_id;
 
 	/**
-	 * Test post IDs indexed 1-6 matching the fixture table.
+	 * Test post IDs indexed 1-7 matching the fixture table.
 	 *
 	 * @var int[]
 	 */
@@ -136,6 +136,16 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 				'post_title'  => 'Post for date day26',
 				'post_status' => 'publish',
 				'post_date'   => '2025-06-26 10:00:00',
+			)
+		);
+
+		// Post 7: private post, used for permission checks.
+		self::$post_ids[7] = $factory->post->create(
+			array(
+				'post_title'  => 'Private post',
+				'post_status' => 'private',
+				'post_author' => self::$editor_id,
+				'post_date'   => '2025-12-01 10:00:00',
 			)
 		);
 	}
@@ -568,14 +578,58 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	}
 
 	/**
-	 * Tests that unauthenticated requests are rejected.
+	 * Tests that unauthenticated requests cannot query published posts.
 	 *
 	 * @ticket 64606
 	 */
-	public function test_unauthenticated_query_rejected(): void {
+	public function test_unauthenticated_query_published_posts_rejected(): void {
 		wp_set_current_user( 0 );
 
 		$response = $this->dispatch_get_ability( array() );
+
+		$this->assertContains( $response->get_status(), array( 401, 403 ) );
+	}
+
+	/**
+	 * Tests that unauthenticated requests cannot query private posts.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_unauthenticated_query_private_status_rejected(): void {
+		wp_set_current_user( 0 );
+
+		$response = $this->dispatch_get_ability(
+			array(
+				'status' => array( 'private' ),
+			)
+		);
+
+		$this->assertContains( $response->get_status(), array( 401, 403 ) );
+		$this->assertSame( 'rest_ability_cannot_execute', $response->get_data()['code'] );
+	}
+
+	/**
+	 * Tests that unauthenticated requests cannot read a published post by ID.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_unauthenticated_get_single_published_post_rejected(): void {
+		wp_set_current_user( 0 );
+
+		$response = $this->dispatch_get_ability( array( 'id' => self::$post_ids[1] ) );
+
+		$this->assertContains( $response->get_status(), array( 401, 403 ) );
+	}
+
+	/**
+	 * Tests that unauthenticated requests cannot read a private post by ID.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_unauthenticated_get_single_private_post_rejected(): void {
+		wp_set_current_user( 0 );
+
+		$response = $this->dispatch_get_ability( array( 'id' => self::$post_ids[7] ) );
 
 		$this->assertContains( $response->get_status(), array( 401, 403 ) );
 	}
