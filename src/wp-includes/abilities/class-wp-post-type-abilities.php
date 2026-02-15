@@ -81,8 +81,8 @@ class WP_Post_Type_Abilities {
 				'description'         => sprintf(
 					/* translators: %1$s: Post type singular name (lowercase), %2$s: Post type plural name (lowercase). */
 					__( 'Retrieves a single %1$s by ID or queries multiple %2$s with optional filters.' ),
-					strtolower( $label ),
-					strtolower( $post_type_object->labels->name ?? $post_type_object->label )
+					$label,
+					$post_type_object->labels->name ?? $post_type_object->label
 				),
 				'category'            => 'post',
 				'input_schema'        => self::build_get_input_schema( $post_type_object ),
