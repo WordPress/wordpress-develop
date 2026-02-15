@@ -13,7 +13,7 @@
  * @param array $parsed_block The parsed block.
  * @return array The same parsed block with custom CSS class name added if appropriate.
  */
-function gutenberg_render_custom_css_support_styles( $parsed_block ) {
+function wp_render_custom_css_support_styles( $parsed_block ) {
 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $parsed_block['blockName'] );
 
 	if ( ! block_has_support( $block_type, 'customCSS', true ) ) {
@@ -41,7 +41,7 @@ function gutenberg_render_custom_css_support_styles( $parsed_block ) {
 
 	// Process the custom CSS using the same method as global styles.
 	$selector      = '.' . $class_name;
-	$processed_css = WP_Theme_JSON_Gutenberg::process_blocks_custom_css( $custom_css, $selector );
+	$processed_css = WP_Theme_JSON::process_blocks_custom_css( $custom_css, $selector );
 
 	if ( ! empty( $processed_css ) ) {
 		/*
@@ -61,14 +61,14 @@ function gutenberg_render_custom_css_support_styles( $parsed_block ) {
  *
  * @since 7.0.0
  */
-function gutenberg_enqueue_block_custom_css() {
+function wp_enqueue_block_custom_css() {
 	wp_enqueue_style( 'wp-block-custom-css' );
 }
 
 /**
  * Applies the custom CSS class name to the block's rendered HTML.
  *
- * The class name is generated in `gutenberg_render_custom_css_support_styles`
+ * The class name is generated in `wp_render_custom_css_support_styles`
  * and stored in block attributes. This filter adds it to the actual markup.
  *
  * @since 7.0.0
@@ -77,7 +77,7 @@ function gutenberg_enqueue_block_custom_css() {
  * @param array  $block         Block object.
  * @return string               Filtered block content.
  */
-function gutenberg_render_custom_css_class_name( $block_content, $block ) {
+function wp_render_custom_css_class_name( $block_content, $block ) {
 	$class_string = $block['attrs']['className'] ?? '';
 	preg_match( '/\bwp-custom-css-\S+\b/', $class_string, $matches );
 
@@ -95,6 +95,6 @@ function gutenberg_render_custom_css_class_name( $block_content, $block ) {
 	return $tags->get_updated_html();
 }
 
-add_filter( 'render_block', 'gutenberg_render_custom_css_class_name', 10, 2 );
-add_filter( 'render_block_data', 'gutenberg_render_custom_css_support_styles', 10, 1 );
-add_action( 'wp_enqueue_scripts', 'gutenberg_enqueue_block_custom_css', 1 );
+add_filter( 'render_block', 'wp_render_custom_css_class_name', 10, 2 );
+add_filter( 'render_block_data', 'wp_render_custom_css_support_styles', 10, 1 );
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_block_custom_css', 1 );

@@ -54,7 +54,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS support adds class name when block has custom CSS.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_support_adds_class_name_when_css_present() {
 		$this->register_custom_css_block_with_support(
@@ -71,7 +71,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayHasKey( 'className', $result['attrs'], 'Block should have className added.' );
 		$this->assertMatchesRegularExpression( '/wp-custom-css-/', $result['attrs']['className'], 'className should contain wp-custom-css- prefix.' );
@@ -80,7 +80,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS support preserves existing className.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_support_preserves_existing_class_name() {
 		$this->register_custom_css_block_with_support(
@@ -98,7 +98,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertStringContainsString( 'my-existing-class', $result['attrs']['className'], 'Existing className should be preserved.' );
 		$this->assertMatchesRegularExpression( '/wp-custom-css-/', $result['attrs']['className'], 'className should also contain wp-custom-css- prefix.' );
@@ -107,7 +107,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS support returns unchanged block when support is disabled.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_support_returns_unchanged_when_support_disabled() {
 		$this->register_custom_css_block_with_support(
@@ -124,7 +124,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayNotHasKey( 'className', $result['attrs'], 'Block should not have className added when support is disabled.' );
 	}
@@ -132,7 +132,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS support returns unchanged block when no CSS attribute present.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_support_returns_unchanged_when_no_css() {
 		$this->register_custom_css_block_with_support(
@@ -149,7 +149,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayNotHasKey( 'className', $result['attrs'], 'Block should not have className added when no CSS attribute.' );
 	}
@@ -157,7 +157,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS support returns unchanged block when CSS is empty.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_support_returns_unchanged_when_css_empty() {
 		$this->register_custom_css_block_with_support(
@@ -174,7 +174,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayNotHasKey( 'className', $result['attrs'], 'Block should not have className added when CSS is empty.' );
 	}
@@ -182,7 +182,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS support returns unchanged block when CSS is whitespace only.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_support_returns_unchanged_when_css_whitespace_only() {
 		$this->register_custom_css_block_with_support(
@@ -199,7 +199,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayNotHasKey( 'className', $result['attrs'], 'Block should not have className added when CSS is whitespace only.' );
 	}
@@ -207,7 +207,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS support returns unchanged block when style attribute is missing.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_support_returns_unchanged_when_no_style_attribute() {
 		$this->register_custom_css_block_with_support(
@@ -220,7 +220,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			'attrs'     => array(),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayNotHasKey( 'className', $result['attrs'], 'Block should not have className added when no style attribute.' );
 	}
@@ -228,7 +228,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that render_block filter adds custom CSS class to block content.
 	 *
-	 * @covers ::gutenberg_render_custom_css_class_name
+	 * @@ticket 64544
 	 */
 	public function test_render_custom_css_class_name_adds_class_to_content() {
 		$block_content = '<div class="wp-block-paragraph">Test content</div>';
@@ -239,7 +239,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_class_name( $block_content, $block );
+		$result = wp_render_custom_css_class_name( $block_content, $block );
 
 		$this->assertStringContainsString( 'wp-custom-css-123abc', $result, 'Custom CSS class should be added to block content.' );
 	}
@@ -247,7 +247,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that render_block filter preserves existing classes when adding custom CSS class.
 	 *
-	 * @covers ::gutenberg_render_custom_css_class_name
+	 * @ticket 64544
 	 */
 	public function test_render_custom_css_class_name_preserves_existing_classes() {
 		$block_content = '<div class="existing-class another-class">Test content</div>';
@@ -258,7 +258,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_class_name( $block_content, $block );
+		$result = wp_render_custom_css_class_name( $block_content, $block );
 
 		$this->assertStringContainsString( 'existing-class', $result, 'Existing classes should be preserved.' );
 		$this->assertStringContainsString( 'another-class', $result, 'All existing classes should be preserved.' );
@@ -268,7 +268,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that render_block filter returns unchanged content when no custom CSS class in attrs.
 	 *
-	 * @covers ::gutenberg_render_custom_css_class_name
+	 * @ticket 64544
 	 */
 	public function test_render_custom_css_class_name_returns_unchanged_when_no_custom_css_class() {
 		$block_content = '<div class="wp-block-paragraph">Test content</div>';
@@ -279,7 +279,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_class_name( $block_content, $block );
+		$result = wp_render_custom_css_class_name( $block_content, $block );
 
 		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when no custom CSS class.' );
 	}
@@ -287,7 +287,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that render_block filter returns unchanged content when className is empty.
 	 *
-	 * @covers ::gutenberg_render_custom_css_class_name
+	 * @ticket 64544
 	 */
 	public function test_render_custom_css_class_name_returns_unchanged_when_classname_empty() {
 		$block_content = '<div class="wp-block-paragraph">Test content</div>';
@@ -296,7 +296,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			'attrs'     => array(),
 		);
 
-		$result = gutenberg_render_custom_css_class_name( $block_content, $block );
+		$result = wp_render_custom_css_class_name( $block_content, $block );
 
 		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when className is empty.' );
 	}
@@ -304,7 +304,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that render_block filter returns empty string when content is empty.
 	 *
-	 * @covers ::gutenberg_render_custom_css_class_name
+	 * @ticket 64544
 	 */
 	public function test_render_custom_css_class_name_returns_empty_when_content_empty() {
 		$block_content = '';
@@ -315,7 +315,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_class_name( $block_content, $block );
+		$result = wp_render_custom_css_class_name( $block_content, $block );
 
 		$this->assertSame( '', $result, 'Result should be empty when block content is empty.' );
 	}
@@ -323,7 +323,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS class is extracted correctly when mixed with other classes.
 	 *
-	 * @covers ::gutenberg_render_custom_css_class_name
+	 * @ticket 64544
 	 */
 	public function test_render_custom_css_class_name_extracts_class_from_mixed_classnames() {
 		$block_content = '<p>Test content</p>';
@@ -334,7 +334,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_class_name( $block_content, $block );
+		$result = wp_render_custom_css_class_name( $block_content, $block );
 
 		$this->assertStringContainsString( 'wp-custom-css-mixed123', $result, 'Custom CSS class should be extracted and added.' );
 	}
@@ -342,7 +342,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS support is enabled by default.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_support_enabled_by_default() {
 		$this->register_custom_css_block_with_support(
@@ -359,7 +359,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayHasKey( 'className', $result['attrs'], 'Block should have className added by default when customCSS support is not explicitly set.' );
 	}
@@ -367,7 +367,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS containing HTML opening tags is rejected.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_rejects_html_opening_tags() {
 		$this->register_custom_css_block_with_support(
@@ -384,7 +384,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayNotHasKey( 'className', $result['attrs'], 'Block should not have className added when CSS contains HTML opening tags.' );
 	}
@@ -392,7 +392,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS containing HTML closing tags is rejected.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_rejects_html_closing_tags() {
 		$this->register_custom_css_block_with_support(
@@ -409,7 +409,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayNotHasKey( 'className', $result['attrs'], 'Block should not have className added when CSS contains HTML closing tags.' );
 	}
@@ -417,7 +417,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that valid CSS without HTML markup is accepted.
 	 *
-	 * @covers ::gutenberg_render_custom_css_support_styles
+	 * @ticket 64544
 	 */
 	public function test_custom_css_accepts_valid_css() {
 		$this->register_custom_css_block_with_support(
@@ -434,7 +434,7 @@ class WP_Block_Supports_Custom_CSS_Test extends WP_UnitTestCase {
 			),
 		);
 
-		$result = gutenberg_render_custom_css_support_styles( $parsed_block );
+		$result = wp_render_custom_css_support_styles( $parsed_block );
 
 		$this->assertArrayHasKey( 'className', $result['attrs'], 'Block should have className added for valid CSS.' );
 	}
