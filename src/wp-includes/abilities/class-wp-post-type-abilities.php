@@ -301,12 +301,16 @@ class WP_Post_Type_Abilities {
 	/**
 	 * Builds a nested query group schema recursively.
 	 *
+	 * The depth parameter limits how deeply nested query groups can be. With the default
+	 * depth of 3, consumers can nest up to 3 levels of AND/OR groups. This prevents
+	 * infinitely recursive schemas while allowing sufficiently complex queries.
+	 *
 	 * @since 7.0.0
 	 *
 	 * @param array  $leaf_schema         JSON Schema for a leaf clause.
 	 * @param string $group_description   Description for the nested group.
 	 * @param string $queries_description Description for the nested queries array.
-	 * @param int    $depth               Remaining recursion depth.
+	 * @param int    $depth               Remaining recursion depth. Default 3.
 	 * @return array The nested query group schema.
 	 */
 	private static function build_nested_group_schema( array $leaf_schema, string $group_description, string $queries_description, int $depth = 3 ): array {
