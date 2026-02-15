@@ -79,7 +79,7 @@ class WP_Post_Type_Abilities {
 					$label
 				),
 				'description'         => sprintf(
-					/* translators: %1$s: Post type singular name (lowercase), %2$s: Post type plural name (lowercase). */
+					/* translators: %1$s: Post type singular name, %2$s: Post type plural name. */
 					__( 'Retrieves a single %1$s by ID or queries multiple %2$s with optional filters.' ),
 					$label,
 					$post_type_object->labels->name ?? $post_type_object->label
