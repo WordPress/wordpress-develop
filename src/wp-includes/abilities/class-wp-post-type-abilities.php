@@ -277,6 +277,7 @@ class WP_Post_Type_Abilities {
 		return array(
 			'type'                 => 'object',
 			'description'          => $description,
+			'required'             => array( 'queries' ),
 			'properties'           => array(
 				'relation' => array(
 					'type'        => 'string',

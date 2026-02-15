@@ -945,6 +945,26 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	}
 
 	/**
+	 * Tests that top-level meta query requires a queries list.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_query_missing_queries_rejected(): void {
+		$response = $this->dispatch_get_ability(
+			array(
+				'query' => array(
+					'meta' => array(
+						'relation' => 'AND',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
+	}
+
+	/**
 	 * Tests that tax query with non-public taxonomy returns an error.
 	 *
 	 * @ticket 64606
