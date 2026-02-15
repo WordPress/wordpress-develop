@@ -819,7 +819,7 @@ class WP_Post_Type_Abilities {
 				'type'                 => 'object',
 				'description'          => __( 'Public post meta key-value pairs. Only present when include.meta is true.' ),
 				'additionalProperties' => array(
-					'type' => array( 'string', 'array' ),
+					'type' => array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' ),
 				),
 			);
 		}
