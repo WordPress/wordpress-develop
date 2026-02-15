@@ -925,7 +925,7 @@ class WP_Post_Type_Abilities {
 		if ( ! $post || $post->post_type !== $post_type_object->name ) {
 			return new WP_Error(
 				'post_not_found',
-				__( 'Post not found.' ),
+				__( 'The requested post was not found or is not of this type.' ),
 				array( 'status' => 404 )
 			);
 		}
