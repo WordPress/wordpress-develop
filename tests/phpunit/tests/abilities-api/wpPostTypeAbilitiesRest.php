@@ -171,6 +171,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		unregister_meta_key( 'post', 'b' );
 		unregister_meta_key( 'post', 'c' );
 		unregister_meta_key( 'post', 'My.Key' );
+		unregister_meta_key( 'post', 'structured_object' );
 	}
 
 	/**
@@ -223,6 +224,15 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			'My.Key',
 			array(
 				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => true,
+			)
+		);
+		register_meta(
+			'post',
+			'structured_object',
+			array(
+				'type'              => 'object',
 				'single'            => true,
 				'show_in_abilities' => true,
 			)
@@ -710,6 +720,52 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 		// The 'x' meta key should NOT be present since it's not registered with show_in_abilities.
 		$this->assertArrayNotHasKey( 'x', (array) $data['meta'] );
+	}
+
+	/**
+	 * Tests that object-like meta values are allowed by the output schema.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_include_supports_object_values(): void {
+		$filter = static function ( $check, $object_id, $meta_key, $single, $meta_type ) {
+			if ( 'post' !== $meta_type || self::$post_ids[1] !== $object_id || '' !== $meta_key || $single ) {
+				return $check;
+			}
+
+			return array(
+				'structured_object' => array(
+					(object) array(
+						'foo'    => 'bar',
+						'nested' => array(
+							'baz' => 'qux',
+						),
+					),
+				),
+			);
+		};
+
+		add_filter( 'get_post_metadata', $filter, 10, 5 );
+
+		$response = $this->dispatch_get_ability(
+			array(
+				'id'      => self::$post_ids[1],
+				'include' => array( 'meta' => true ),
+			)
+		);
+		remove_filter( 'get_post_metadata', $filter, 10 );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( 'structured_object', $meta );
+
+		$structured_object = (array) $meta['structured_object'];
+		$this->assertSame( 'bar', $structured_object['foo'] );
+		$this->assertSame( 'qux', $structured_object['nested']['baz'] );
 	}
 
 	/**
