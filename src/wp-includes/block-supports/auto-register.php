@@ -37,16 +37,16 @@ function wp_mark_auto_generate_control_attributes( array $args, string $block_ty
 		return $args;
 	}
 
-	foreach ( $args['attributes'] as $name => $def ) {
+	foreach ( $args['attributes'] as $attr_key => $attr_schema ) {
 		// Skip HTML-derived attributes (edited inline, not via inspector).
-		if ( ! empty( $def['source'] ) ) {
+		if ( ! empty( $attr_schema['source'] ) ) {
 			continue;
 		}
 		// Skip internal attributes (not user-configurable).
-		if ( isset( $def['role'] ) && 'local' === $def['role'] ) {
+		if ( isset( $attr_schema['role'] ) && 'local' === $attr_schema['role'] ) {
 			continue;
 		}
-		$args['attributes'][ $name ]['autoGenerateControl'] = true;
+		$args['attributes'][ $attr_key ]['autoGenerateControl'] = true;
 	}
 
 	return $args;
