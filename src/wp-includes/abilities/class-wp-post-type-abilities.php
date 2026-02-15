@@ -889,7 +889,7 @@ class WP_Post_Type_Abilities {
 			}
 
 			if ( 1 === count( $statuses ) && 'publish' === $statuses[0] ) {
-				return current_user_can( $post_type_object->cap->read ?? 'read' );
+				return true;
 			}
 
 			if ( current_user_can( $post_type_object->cap->edit_posts ?? 'edit_posts' ) ) {
