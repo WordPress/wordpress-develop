@@ -77,12 +77,15 @@ class WP_Links_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Displays the message for no items.
 	 */
 	public function no_items() {
 		_e( 'No links found.' );
 	}
 
 	/**
+	 * Gets the list of bulk actions.
+	 *
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
@@ -142,6 +145,8 @@ class WP_Links_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets the list of sortable columns.
+	 *
 	 * @return array
 	 */
 	protected function get_sortable_columns() {
