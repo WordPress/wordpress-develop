@@ -28,6 +28,16 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 */
 	protected $original_image;
 
+	/**
+	 * Cache of mime type support checks.
+	 *
+	 * Dynamic writeToBuffer probe is used because VIPS support depends on runtime configuration
+	 * and optional dependencies. Cache prevents repeated expensive encoder checks.
+	 *
+	 * @var array<string,bool>
+	 */
+	protected static $mime_support_cache = array();
+
 	public function __destruct() {
 		if ( $this->image ) {
 			// VIPS uses reference counting and automatic memory management.
@@ -85,13 +95,21 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @return bool
 	 */
 	public static function supports_mime_type( $mime_type ) {
+		if ( isset( self::$mime_support_cache[ $mime_type ] ) ) {
+			return self::$mime_support_cache[ $mime_type ];
+		}
+
 		$vips_extension = strtoupper( self::get_extension( $mime_type ) );
 
 		if ( ! $vips_extension ) {
+			self::$mime_support_cache[ $mime_type ] = false;
+
 			return false;
 		}
 
 		if ( ! self::test() ) {
+			self::$mime_support_cache[ $mime_type ] = false;
+
 			return false;
 		}
 
@@ -104,18 +122,41 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			'TIFF' => 'tif',
 			'TIF'  => 'tif',
 			'HEIC' => 'heic',
+			'HEIF' => 'heif',
 			'AVIF' => 'avif',
+			'JXL'  => 'jxl',
 		);
 
 		$target_extension = isset( $extension_map[ $vips_extension ] ) ? $extension_map[ $vips_extension ] : strtolower( $vips_extension );
 
 		// Probe encoder support directly.
+		// Use Image::black() to test write support (encoding) rather than findLoad() which only tests read support (decoding).
 		try {
 			$test_image = Jcupitt\Vips\Image::black( 1, 1 );
-			$buffer     = $test_image->writeToBuffer( '.' . $target_extension );
+			
+			// Some formats (like GIF) have issues with writeToBuffer in ImageMagick, so test with writeToFile
+			$temp_file = tempnam( sys_get_temp_dir(), 'vips_test_' ) . '.' . $target_extension;
+			
+			try {
+				$test_image->writeToFile( $temp_file );
+				$supported = file_exists( $temp_file ) && filesize( $temp_file ) > 0;
+				
+				if ( file_exists( $temp_file ) ) {
+					unlink( $temp_file );
+				}
+			} catch ( Exception $write_error ) {
+				$supported = false;
+				if ( file_exists( $temp_file ) ) {
+					unlink( $temp_file );
+				}
+			}
 
-			return is_string( $buffer ) && '' !== $buffer;
+			self::$mime_support_cache[ $mime_type ] = $supported;
+
+			return $supported;
 		} catch ( Exception $e ) {
+			self::$mime_support_cache[ $mime_type ] = false;
+
 			return false;
 		}
 	}
@@ -359,6 +400,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			$dst_h = $src_h;
 		}
 
+		// Validate all dimension parameters match GD pattern for consistency.
 		foreach ( array( $src_w, $src_h, $dst_w, $dst_h ) as $value ) {
 			if ( ! is_numeric( $value ) || (int) $value <= 0 ) {
 				return new WP_Error( 'image_crop_error', __( 'Image crop failed.' ), $this->file );
@@ -371,13 +413,17 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		}
 
 		try {
-			// Crop the image.
-			$cropped = $this->image->crop( (int) $src_x, (int) $src_y, (int) $src_w, (int) $src_h );
+			// Clamp crop dimensions to image bounds (matching GD behavior).
+			$actual_src_w = min( (int) $src_w, $this->image->width - (int) $src_x );
+			$actual_src_h = min( (int) $src_h, $this->image->height - (int) $src_y );
 
-			// Resize if needed.
-			if ( $src_w !== $dst_w || $src_h !== $dst_h ) {
-				$h_scale = $dst_w / $src_w;
-				$v_scale = $dst_h / $src_h;
+			// Crop the image with clamped dimensions.
+			$cropped = $this->image->crop( (int) $src_x, (int) $src_y, $actual_src_w, $actual_src_h );
+
+			// Resize to destination dimensions (GD resamples to $dst_w x $dst_h regardless of actual cropped size).
+			if ( $actual_src_w !== $dst_w || $actual_src_h !== $dst_h ) {
+				$h_scale = $dst_w / $actual_src_w;
+				$v_scale = $dst_h / $actual_src_h;
 				$cropped = $cropped->resize( $h_scale, array( 'vscale' => $v_scale ) );
 			}
 
@@ -403,6 +449,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		$angle = ( 360 + ( $angle % 360 ) ) % 360;
 
 		try {
+			// Use fast rot90/rot180/rot270 paths for right angles to avoid interpolation and improve speed.
 			if ( 90 === $angle ) {
 				$this->image = $this->image->rot90();
 			} elseif ( 180 === $angle ) {
@@ -436,6 +483,8 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 */
 	public function flip( $horz, $vert ) {
 		try {
+			// WordPress flip convention: $vert=flip vertically (use fliphor to flip along horizontal axis).
+			// WordPress flip convention: $horz=flip horizontally (use flipver to flip along vertical axis).
 			if ( $vert ) {
 				$this->image = $this->image->fliphor();
 			}
