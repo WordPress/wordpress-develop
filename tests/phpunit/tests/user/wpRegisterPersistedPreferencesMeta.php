@@ -53,6 +53,7 @@ class Tests_User_WpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 						'additionalProperties' => true,
 					),
 				),
+				'show_in_abilities' => false,
 				'revisions_enabled' => false,
 			),
 			$wp_meta_keys['user'][''][ $meta_key ],
