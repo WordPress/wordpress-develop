@@ -1,32 +1,67 @@
 /* 2 column liquid layout */
 #wpwrap {
-	height: auto;
-	min-height: 100%;
+	height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
 	width: 100%;
 	position: relative;
 	-webkit-font-smoothing: subpixel-antialiased;
+	background: #1e1e1e;
+	overflow: hidden;
 }
 
 #wpcontent {
 	height: 100%;
-	padding-left: 20px;
+	padding: 0 16px 16px 0;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
 }
 
-#wpcontent,
-#wpfooter {
+#wpcontent {
 	margin-left: 160px;
 }
 
-.folded #wpcontent,
-.folded #wpfooter {
+.folded #wpcontent {
 	margin-left: 36px;
 }
 
+#wpbody {
+	flex: 1;
+	min-height: 0;
+}
+
 #wpbody-content {
-	padding-bottom: 65px;
-	float: left;
-	width: 100%;
-	overflow: visible;
+	position: relative;
+	padding-bottom: 24px;
+	height: 100%;
+	box-sizing: border-box;
+	overflow-y: auto;
+	overscroll-behavior: none;
+	background: #fff;
+	border-radius: 8px;
+}
+
+/* Block editor frame overrides */
+body.js.block-editor-page #wpwrap {
+	overflow: hidden;
+}
+
+body.js.block-editor-page #wpbody-content {
+	padding-bottom: 0;
+}
+
+/* Fullscreen mode: remove frame */
+body.is-fullscreen-mode #wpwrap {
+	height: 100vh;
+	background: #fff;
+}
+
+body.is-fullscreen-mode #wpcontent {
+	padding: 0;
+	margin-left: 0;
+}
+
+body.is-fullscreen-mode #wpbody-content {
+	border-radius: 0;
 }
 
 /* inner 2 column liquid layout */
@@ -222,7 +257,7 @@ body {
 }
 
 body {
-	background: #f0f0f1;
+	background: #fff;
 	color: #3c434a;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 13px;
@@ -583,7 +618,8 @@ code {
 }
 
 .wrap {
-	margin: 10px 20px 0 2px;
+	margin: 0;
+	padding: 10px 20px 0 20px;
 }
 
 .wrap > h2:first-child, /* Back-compat for pre-4.4 */
@@ -1852,7 +1888,7 @@ p.auto-update-status {
 /* screen options and help tabs revert */
 #screen-meta {
 	display: none;
-	margin: 0 20px -1px 0;
+	margin: 0 20px -1px 20px;
 	position: relative;
 	background-color: #fff;
 	border: 1px solid #c3c4c7;
@@ -2352,12 +2388,10 @@ html.wp-toolbar {
 ------------------------------------------------------------------------------*/
 
 #wpfooter {
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
 	padding: 10px 20px;
 	color: #50575e;
+	margin-top: auto;
+	padding-top: 24px;
 }
 
 #wpfooter p {
@@ -2416,8 +2450,8 @@ h3 .nav-tab, /* Back-compat for pre-4.4 */
 .nav-tab-active:hover,
 .nav-tab-active:focus,
 .nav-tab-active:focus:active {
-	border-bottom: 1px solid #f0f0f1;
-	background: #f0f0f1;
+	border-bottom: 1px solid #fff;
+	background: #fff;
 	color: #000;
 }
 
@@ -3990,20 +4024,34 @@ img {
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
 	}
 
+	#wpwrap {
+		height: auto;
+		overflow: visible;
+	}
+
 	#wpcontent {
 		position: relative;
 		margin-left: 0;
-		padding-left: 10px;
+		padding: 0;
+		height: auto;
+		display: block;
+	}
+
+	#wpbody {
+		min-height: 0;
 	}
 
 	#wpbody-content {
 		padding-bottom: 100px;
+		border-radius: 0;
+		height: auto;
+		overflow: visible;
 	}
 
 	.wrap {
 		clear: both;
-		margin-right: 12px;
-		margin-left: 0;
+		margin: 0;
+		padding: 10px 12px 0;
 	}
 
 	/* categories */
@@ -4271,6 +4319,7 @@ img {
 	#screen-meta,
 	#screen-meta-links {
 		margin-right: 10px;
+		margin-left: 10px;
 	}
 
 	#screen-meta-links {
