@@ -23,9 +23,9 @@
  * @since 7.0.0
  * @access private
  *
- * @param array  $args       Array of arguments for registering a block type.
- * @param string $block_type Block type name including namespace.
- * @return array Modified block type arguments.
+ * @param array<string, mixed> $args       Array of arguments for registering a block type.
+ * @param string               $block_type Block type name including namespace.
+ * @return array<string, mixed> Modified block type arguments.
  */
 function wp_mark_auto_generate_control_attributes( array $args, string $block_type ): array {
 	if ( empty( $args['attributes'] ) || ! is_array( $args['attributes'] ) ) {
