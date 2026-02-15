@@ -1034,6 +1034,13 @@ class WP_Site_Health {
 			),
 		);
 
+		if ( class_exists( 'Jcupitt\\Vips\\Image' ) ) {
+			$modules['vips'] = array(
+				'class'    => 'Jcupitt\\Vips\\Image',
+				'required' => false,
+			);
+		}
+
 		/**
 		 * Filters the array representing all the modules we wish to test for.
 		 *
