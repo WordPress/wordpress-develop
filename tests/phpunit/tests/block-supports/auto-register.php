@@ -20,7 +20,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 			),
 		);
 
-		$result = wp_mark_auto_generate_control_attributes( $settings, 'test/block' );
+		$result = wp_mark_auto_generate_control_attributes( $settings );
 
 		$this->assertTrue( $result['attributes']['title']['autoGenerateControl'] );
 		$this->assertTrue( $result['attributes']['count']['autoGenerateControl'] );
@@ -38,7 +38,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 			),
 		);
 
-		$result = wp_mark_auto_generate_control_attributes( $settings, 'test/block' );
+		$result = wp_mark_auto_generate_control_attributes( $settings );
 
 		$this->assertArrayNotHasKey( 'autoGenerateControl', $result['attributes']['title'] );
 	}
@@ -60,7 +60,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 			),
 		);
 
-		$result = wp_mark_auto_generate_control_attributes( $settings, 'test/block' );
+		$result = wp_mark_auto_generate_control_attributes( $settings );
 
 		$this->assertTrue( $result['attributes']['title']['autoGenerateControl'] );
 		$this->assertArrayNotHasKey( 'autoGenerateControl', $result['attributes']['content'] );
@@ -87,7 +87,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 			),
 		);
 
-		$result = wp_mark_auto_generate_control_attributes( $settings, 'test/block' );
+		$result = wp_mark_auto_generate_control_attributes( $settings );
 
 		$this->assertTrue( $result['attributes']['title']['autoGenerateControl'] );
 		$this->assertArrayNotHasKey( 'autoGenerateControl', $result['attributes']['blob'] );
@@ -101,7 +101,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 			'supports' => array( 'auto_register' => true ),
 		);
 
-		$result = wp_mark_auto_generate_control_attributes( $settings, 'test/block' );
+		$result = wp_mark_auto_generate_control_attributes( $settings );
 
 		$this->assertSame( $settings, $result );
 	}

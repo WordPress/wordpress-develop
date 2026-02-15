@@ -23,11 +23,10 @@
  * @since 7.0.0
  * @access private
  *
- * @param array<string, mixed> $args       Array of arguments for registering a block type.
- * @param string               $block_type Block type name including namespace.
+ * @param array<string, mixed> $args Array of arguments for registering a block type.
  * @return array<string, mixed> Modified block type arguments.
  */
-function wp_mark_auto_generate_control_attributes( array $args, string $block_type ): array {
+function wp_mark_auto_generate_control_attributes( array $args ): array {
 	if ( empty( $args['attributes'] ) || ! is_array( $args['attributes'] ) ) {
 		return $args;
 	}
@@ -53,4 +52,4 @@ function wp_mark_auto_generate_control_attributes( array $args, string $block_ty
 }
 
 // Priority 5 to mark original attributes before other filters (priority 10+) might add their own.
-add_filter( 'register_block_type_args', 'wp_mark_auto_generate_control_attributes', 5, 2 );
+add_filter( 'register_block_type_args', 'wp_mark_auto_generate_control_attributes', 5, 1 );
