@@ -91,26 +91,30 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			return false;
 		}
 
-		// Check if VIPS supports this format.
+		if ( ! self::test() ) {
+			return false;
+		}
+
+		$extension_map = array(
+			'JPEG' => 'jpg',
+			'JPG'  => 'jpg',
+			'PNG'  => 'png',
+			'WEBP' => 'webp',
+			'GIF'  => 'gif',
+			'TIFF' => 'tif',
+			'TIF'  => 'tif',
+			'HEIC' => 'heic',
+			'AVIF' => 'avif',
+		);
+
+		$target_extension = isset( $extension_map[ $vips_extension ] ) ? $extension_map[ $vips_extension ] : strtolower( $vips_extension );
+
+		// Probe encoder support directly.
 		try {
-			// Map common MIME types to VIPS format names.
-			$format_map = array(
-				'JPEG' => 'jpeg',
-				'JPG'  => 'jpeg',
-				'PNG'  => 'png',
-				'WEBP' => 'webp',
-				'GIF'  => 'gif',
-				'TIFF' => 'tiff',
-				'TIF'  => 'tiff',
-				'HEIC' => 'heif',
-				'AVIF' => 'heif', // AVIF is part of HEIF family.
-			);
+			$test_image = Jcupitt\Vips\Image::black( 1, 1 );
+			$buffer     = $test_image->writeToBuffer( '.' . $target_extension );
 
-			$format = isset( $format_map[ $vips_extension ] ) ? $format_map[ $vips_extension ] : strtolower( $vips_extension );
-
-			// VIPS can usually handle these formats.
-			$supported_formats = array( 'jpeg', 'png', 'webp', 'gif', 'tiff', 'heif' );
-			return in_array( $format, $supported_formats, true );
+			return is_string( $buffer ) && '' !== $buffer;
 		} catch ( Exception $e ) {
 			return false;
 		}
