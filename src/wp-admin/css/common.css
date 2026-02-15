@@ -4033,6 +4033,7 @@ img {
 	#wpwrap {
 		height: auto;
 		overflow: visible;
+		background: none;
 	}
 
 	#wpcontent {
@@ -4053,6 +4054,8 @@ img {
 		height: auto;
 		overflow: visible;
 		display: block;
+		background: none;
+		overscroll-behavior: auto;
 	}
 
 	.wrap {
@@ -4330,6 +4333,7 @@ img {
 	}
 
 	#screen-meta-links {
+		float: right;
 		margin-bottom: 20px; /* Add margins beneath links for better spacing between boxes and elements */
 	}
 

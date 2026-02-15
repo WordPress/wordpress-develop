@@ -663,7 +663,7 @@ li#wp-admin-bar-menu-toggle {
 	.auto-fold #wpcontent {
 		position: relative;
 		margin-left: 0;
-		padding-left: 10px;
+		padding-left: 0;
 	}
 
 	.sticky-menu #adminmenuwrap {
