@@ -1408,8 +1408,8 @@ class WP_Post_Type_Abilities {
 	 */
 	private static function get_allowed_meta_keys( string $post_type_slug ): array {
 		$registered_meta = array_merge(
+			get_registered_meta_keys( 'post' ),
 			get_registered_meta_keys( 'post', $post_type_slug ),
-			get_registered_meta_keys( 'post' )
 		);
 
 		$allowed = array();
