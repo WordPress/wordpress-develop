@@ -832,7 +832,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	public function test_meta_query_with_non_slug_registered_key_succeeds(): void {
 		$response = $this->dispatch_get_ability(
 			array(
-				'query' => array(
+				'query'    => array(
 					'meta' => array(
 						'queries' => array(
 							array(
@@ -887,7 +887,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 		$response = $this->dispatch_get_ability(
 			array(
-				'query' => array(
+				'query'    => array(
 					'meta' => array(
 						'queries' => array(
 							array(
