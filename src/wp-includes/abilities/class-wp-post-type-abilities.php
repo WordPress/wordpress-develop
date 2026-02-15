@@ -888,7 +888,7 @@ class WP_Post_Type_Abilities {
 				return false;
 			}
 
-			if ( count( $statuses ) === 1 && $statuses[0] === 'publish' ) {
+			if ( 1 === count( $statuses ) && 'publish' === $statuses[0] ) {
 				return current_user_can( $post_type_object->cap->read ?? 'read' );
 			}
 
