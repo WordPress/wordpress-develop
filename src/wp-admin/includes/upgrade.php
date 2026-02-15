@@ -886,7 +886,7 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
-	if ( $wp_current_db_version < 60718 ) {
+	if ( $wp_current_db_version < 61644 ) {
 		upgrade_700();
 	}
 
@@ -2498,7 +2498,7 @@ function upgrade_700() {
 	global $wp_current_db_version, $wpdb;
 
 	// Migrate users with 'fresh' admin color to 'modern'.
-	if ( $wp_current_db_version < 60718 ) {
+	if ( $wp_current_db_version < 61644 ) {
 		$wpdb->update(
 			$wpdb->usermeta,
 			array( 'meta_value' => 'modern' ),
