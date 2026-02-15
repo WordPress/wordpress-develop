@@ -458,6 +458,22 @@ class WP_Debug_Data {
 			'debug' => $imagick_loaded,
 		);
 
+		$ffi_loaded = extension_loaded( 'ffi' );
+
+		$fields['ffi_availability'] = array(
+			'label' => __( 'Is the PHP FFI extension available?' ),
+			'value' => ( $ffi_loaded ? __( 'Yes' ) : __( 'No' ) ),
+			'debug' => $ffi_loaded,
+		);
+
+		$vips_loaded = class_exists( 'Jcupitt\\Vips\\Image' );
+
+		$fields['vips_availability'] = array(
+			'label' => __( 'Is the libvips PHP library available?' ),
+			'value' => ( $vips_loaded ? __( 'Yes' ) : __( 'No' ) ),
+			'debug' => $vips_loaded,
+		);
+
 		// Opcode Cache.
 		if ( function_exists( 'opcache_get_status' ) ) {
 			$opcache_status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
@@ -663,6 +679,20 @@ class WP_Debug_Data {
 			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
+		$vips_version = $not_available;
+		if ( class_exists( 'Jcupitt\\Vips\\Config' ) ) {
+			try {
+				$vips_version = Jcupitt\Vips\Config::version();
+			} catch ( Exception $e ) {
+				$vips_version = __( 'Unable to determine' );
+			}
+		}
+
+		$fields['vips_version'] = array(
+			'label' => __( 'libvips version' ),
+			'value' => $vips_version,
+		);
+
 		// Get the PHP ini directive values.
 		$file_uploads        = ini_get( 'file_uploads' );
 		$post_max_size       = ini_get( 'post_max_size' );
@@ -791,6 +821,31 @@ class WP_Debug_Data {
 				'label' => __( 'GD supported file formats' ),
 				'value' => implode( ', ', $gd_image_formats ),
 			);
+		}
+
+		if ( class_exists( 'WP_Image_Editor_Vips' ) ) {
+			$vips_image_formats = array();
+			$vips_formats       = array(
+				'JPEG' => 'image/jpeg',
+				'PNG'  => 'image/png',
+				'GIF'  => 'image/gif',
+				'WebP' => 'image/webp',
+				'HEIC' => 'image/heic',
+				'AVIF' => 'image/avif',
+			);
+
+			foreach ( $vips_formats as $vips_label => $vips_mime_type ) {
+				if ( WP_Image_Editor_Vips::supports_mime_type( $vips_mime_type ) ) {
+					$vips_image_formats[] = $vips_label;
+				}
+			}
+
+			if ( ! empty( $vips_image_formats ) ) {
+				$fields['vips_formats'] = array(
+					'label' => __( 'libvips supported file formats' ),
+					'value' => implode( ', ', $vips_image_formats ),
+				);
+			}
 		}
 
 		// Get Ghostscript information, if available.

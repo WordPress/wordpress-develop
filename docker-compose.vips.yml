@@ -1,0 +1,7 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: tools/local-env/php-vips/Dockerfile
+      args:
+        LOCAL_PHP: ${LOCAL_PHP-latest}

@@ -180,6 +180,22 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		);
 	}
 
+	if ( extension_loaded( 'ffi' ) && class_exists( 'Jcupitt\\Vips\\Config' ) && class_exists( 'Jcupitt\\Vips\\Image' ) ) {
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-vips.php';
+
+		// Add data for libvips WebP, AVIF, HEIC and JPEG XL support.
+		$query['image_support']['vips'] = array_keys(
+			array_filter(
+				array(
+					'webp' => WP_Image_Editor_Vips::supports_mime_type( 'image/webp' ),
+					'avif' => WP_Image_Editor_Vips::supports_mime_type( 'image/avif' ),
+					'heic' => WP_Image_Editor_Vips::supports_mime_type( 'image/heic' ),
+					'jxl'  => false,
+				)
+			)
+		);
+	}
+
 	/**
 	 * Filters the query arguments sent as part of the core version check.
 	 *
@@ -203,7 +219,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 *     @type int    $initial_db_version Database version of WordPress at time of installation.
 	 *     @type array  $extensions         List of PHP extensions and their versions.
 	 *     @type array  $platform_flags     List containing the operating system name and bit support.
-	 *     @type array  $image_support      List of image formats supported by GD and Imagick.
+	 *     @type array  $image_support      List of image formats supported by GD, Imagick, and VIPS.
 	 * }
 	 */
 	$query = apply_filters( 'core_version_check_query_args', $query );
