@@ -3019,6 +3019,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		'description'       => '',
 		'sanitize_callback' => null,
 		'show_in_rest'      => false,
+		'show_in_abilities' => false,
 	);
 
 	// Back-compat: old sanitize callback is added.

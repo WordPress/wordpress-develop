@@ -1443,17 +1443,17 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	$defaults = array(
-		'object_subtype'     => '',
-		'type'               => 'string',
-		'label'              => '',
-		'description'        => '',
-		'default'            => '',
-		'single'             => false,
-		'sanitize_callback'  => null,
-		'auth_callback'      => null,
-		'show_in_rest'       => false,
-		'show_in_abilities'  => false,
-		'revisions_enabled'  => false,
+		'object_subtype'    => '',
+		'type'              => 'string',
+		'label'             => '',
+		'description'       => '',
+		'default'           => '',
+		'single'            => false,
+		'sanitize_callback' => null,
+		'auth_callback'     => null,
+		'show_in_rest'      => false,
+		'show_in_abilities' => false,
+		'revisions_enabled' => false,
 	);
 
 	// There used to be individual args for sanitize and auth callbacks.
