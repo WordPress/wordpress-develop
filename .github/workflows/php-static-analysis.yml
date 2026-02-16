@@ -1,7 +1,7 @@
 name: PHPStan Static Analysis
 
 on:
-  # PHPStan testing was introduced in @todo.
+  # PHPStan testing was introduced in 7.0.0.
   push:
     branches:
       - trunk
