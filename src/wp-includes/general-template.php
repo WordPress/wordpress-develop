@@ -2716,8 +2716,8 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
  *
  * @since 3.0.0
  *
- * @param string      $format Optional. PHP date format. Defaults to the 'date_format' option.
- * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
+ * @param string           $format Optional. PHP date format. Defaults to the 'date_format' option.
+ * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Date the current post was written. False on failure.
  */
 function get_the_date( $format = '', $post = null ) {
@@ -2782,8 +2782,8 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
  * @since 2.1.0
  * @since 4.6.0 Added the `$post` parameter.
  *
- * @param string      $format Optional. PHP date format. Defaults to the 'date_format' option.
- * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
+ * @param string           $format Optional. PHP date format. Defaults to the 'date_format' option.
+ * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Date the current post was modified. False on failure.
  */
 function get_the_modified_date( $format = '', $post = null ) {
@@ -2838,10 +2838,10 @@ function the_time( $format = '' ) {
  *
  * @since 1.5.0
  *
- * @param string      $format Optional. Format to use for retrieving the time the post
- *                            was written. Accepts 'G', 'U', or PHP date format.
- *                            Defaults to the 'time_format' option.
- * @param int|WP_Post $post   Post ID or post object. Default is global `$post` object.
+ * @param string           $format Optional. Format to use for retrieving the time the post
+ *                                 was written. Accepts 'G', 'U', or PHP date format.
+ *                                 Defaults to the 'time_format' option.
+ * @param int|WP_Post|null $post   Post ID or post object. Default is global `$post` object.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
  */
@@ -2874,11 +2874,11 @@ function get_the_time( $format = '', $post = null ) {
  *
  * @since 2.0.0
  *
- * @param string      $format    Optional. Format to use for retrieving the time the post
- *                               was written. Accepts 'G', 'U', or PHP date format. Default 'U'.
- * @param bool        $gmt       Optional. Whether to retrieve the GMT time. Default false.
- * @param int|WP_Post $post      Post ID or post object. Default is global `$post` object.
- * @param bool        $translate Whether to translate the time string. Default false.
+ * @param string           $format    Optional. Format to use for retrieving the time the post
+ *                                    was written. Accepts 'G', 'U', or PHP date format. Default 'U'.
+ * @param bool             $gmt       Optional. Whether to retrieve the GMT time. Default false.
+ * @param int|WP_Post|null $post      Post ID or post object. Default is global `$post` object.
+ * @param bool             $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
  */
@@ -2938,11 +2938,11 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
  *
  * @since 5.3.0
  *
- * @param int|WP_Post $post   Optional. Post ID or post object. Default is global `$post` object.
- * @param string      $field  Optional. Published or modified time to use from database. Accepts 'date' or 'modified'.
- *                            Default 'date'.
- * @param string      $source Optional. Local or UTC time to use from database. Accepts 'local' or 'gmt'.
- *                            Default 'local'.
+ * @param int|WP_Post|null $post   Optional. Post ID or post object. Default is global `$post` object.
+ * @param string           $field  Optional. Published or modified time to use from database. Accepts 'date' or 'modified'.
+ *                                 Default 'date'.
+ * @param string           $source Optional. Local or UTC time to use from database. Accepts 'local' or 'gmt'.
+ *                                 Default 'local'.
  * @return DateTimeImmutable|false Time object on success, false on failure.
  */
 function get_post_datetime( $post = null, $field = 'date', $source = 'local' ) {
@@ -2983,9 +2983,9 @@ function get_post_datetime( $post = null, $field = 'date', $source = 'local' ) {
  *
  * @since 5.3.0
  *
- * @param int|WP_Post $post  Optional. Post ID or post object. Default is global `$post` object.
- * @param string      $field Optional. Published or modified time to use from database. Accepts 'date' or 'modified'.
- *                           Default 'date'.
+ * @param int|WP_Post|null $post  Optional. Post ID or post object. Default is global `$post` object.
+ * @param string           $field Optional. Published or modified time to use from database. Accepts 'date' or 'modified'.
+ *                                Default 'date'.
  * @return int|false Unix timestamp on success, false on failure.
  */
 function get_post_timestamp( $post = null, $field = 'date' ) {
@@ -3026,10 +3026,10 @@ function the_modified_time( $format = '' ) {
  * @since 2.0.0
  * @since 4.6.0 Added the `$post` parameter.
  *
- * @param string      $format Optional. Format to use for retrieving the time the post
- *                            was modified. Accepts 'G', 'U', or PHP date format.
- *                            Defaults to the 'time_format' option.
- * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
+ * @param string           $format Optional. Format to use for retrieving the time the post
+ *                                 was modified. Accepts 'G', 'U', or PHP date format.
+ *                                 Defaults to the 'time_format' option.
+ * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Formatted date string or Unix timestamp. False on failure.
  */
 function get_the_modified_time( $format = '', $post = null ) {
@@ -3063,11 +3063,11 @@ function get_the_modified_time( $format = '', $post = null ) {
  *
  * @since 2.0.0
  *
- * @param string      $format    Optional. Format to use for retrieving the time the post
- *                               was modified. Accepts 'G', 'U', or PHP date format. Default 'U'.
- * @param bool        $gmt       Optional. Whether to retrieve the GMT time. Default false.
- * @param int|WP_Post $post      Post ID or post object. Default is global `$post` object.
- * @param bool        $translate Whether to translate the time string. Default false.
+ * @param string           $format    Optional. Format to use for retrieving the time the post
+ *                                    was modified. Accepts 'G', 'U', or PHP date format. Default 'U'.
+ * @param bool             $gmt       Optional. Whether to retrieve the GMT time. Default false.
+ * @param int|WP_Post|null $post      Post ID or post object. Default is global `$post` object.
+ * @param bool             $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
  */
@@ -4892,8 +4892,20 @@ function register_admin_color_schemes() {
 	$suffix .= SCRIPT_DEBUG ? '' : '.min';
 
 	wp_admin_css_color(
-		'fresh',
+		'modern',
 		_x( 'Default', 'admin color scheme' ),
+		admin_url( "css/colors/modern/colors$suffix.css" ),
+		array( '#1e1e1e', '#3858e9', '#7b90ff' ),
+		array(
+			'base'    => '#f3f1f1',
+			'focus'   => '#fff',
+			'current' => '#fff',
+		)
+	);
+
+	wp_admin_css_color(
+		'fresh',
+		_x( 'Fresh', 'admin color scheme' ),
 		false,
 		array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
 		array(
@@ -4912,18 +4924,6 @@ function register_admin_color_schemes() {
 			'base'    => '#999',
 			'focus'   => '#ccc',
 			'current' => '#ccc',
-		)
-	);
-
-	wp_admin_css_color(
-		'modern',
-		_x( 'Modern', 'admin color scheme' ),
-		admin_url( "css/colors/modern/colors$suffix.css" ),
-		array( '#1e1e1e', '#3858e9', '#7b90ff' ),
-		array(
-			'base'    => '#f3f1f1',
-			'focus'   => '#fff',
-			'current' => '#fff',
 		)
 	);
 
