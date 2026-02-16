@@ -1318,7 +1318,7 @@ HTML;
 			wp_interactivity_state(
 				'core/router',
 				array(
-					'url' => set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . wp_unslash( $_SERVER['REQUEST_URI'] ) ),
+					'url' => get_self_link(),
 				)
 			);
 
