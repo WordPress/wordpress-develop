@@ -33,7 +33,7 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 	 */
 	public function data_adds_class_to_content() {
 		return array(
-			'class is added to block content'          => array(
+			'class is added to block content'           => array(
 				'block_content'  => '<div class="wp-block-paragraph">Test content</div>',
 				'block'          => array(
 					'blockName' => 'core/paragraph',
