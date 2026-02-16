@@ -34,8 +34,10 @@ global $hook_suffix;
 		<?php
 		$text = sprintf(
 			/* translators: %s: https://wordpress.org/ */
-			__( 'Thank you for creating with <a href="%s" onclick="javascript:return confirm(\'Are you sure you want to leave this page?\');">WordPress</a>.' ),
-			esc_url( __( 'https://wordpress.org/' ) )
+			__( 'Thank you for creating with <a href="%s" onclick="javascript:return confirm(\'%s\');">WordPress</a>.' ),
+			esc_url( __( 'https://wordpress.org/' ) ),
+			/* translators: %s: confirmation message. */
+			esc_js( __( "Are you sure you want to leave this page?\n 'Cancel' to stay, 'OK' to leave." ) )
 		);
 
 		/**

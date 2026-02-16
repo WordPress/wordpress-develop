@@ -198,8 +198,9 @@ else :
 		<?php
 		printf(
 			/* translators: %s: Documentation URL. */
-			__( 'Your theme determines how content is displayed in browsers. <a href="%s" onclick="javascript:return confirm(\'Are you sure you want to leave this page?\');">Learn more about feeds</a>.' ),
-			__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
+			__( 'Your theme determines how content is displayed in browsers. <a href="%s" onclick="javascript:return confirm(\'%s\');">Learn more about feeds</a>.' ),
+			__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' ),
+			esc_js( __( "Are you sure you want to leave this page?\n 'Cancel' to stay, 'OK' to leave." ) )
 		);
 		?>
 	</p>
