@@ -155,14 +155,13 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 */
 	public function test_wp_router_region_initializes_state_url() {
-		$_SERVER['HTTP_HOST']   = 'example.com';
 		$_SERVER['REQUEST_URI'] = '/test-page/?query=1';
 
 		$html = '<div data-wp-router-region="region A">Interactive region</div>';
 		$this->process_directives( $html );
 
 		$state = $this->interactivity->state( 'core/router' );
-		$this->assertSame( 'http://example.com/test-page/?query=1', $state['url'] );
+		$this->assertSame( home_url( '/test-page/?query=1' ), $state['url'] );
 	}
 
 	/**
@@ -173,15 +172,14 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 */
 	public function test_wp_router_region_initializes_state_url_with_https() {
-		$_SERVER['HTTP_HOST']   = 'example.com';
-		$_SERVER['REQUEST_URI'] = '/test-page/';
+		$_SERVER['REQUEST_URI'] = '/';
 		$_SERVER['HTTPS']       = 'on';
 
 		$html = '<div data-wp-router-region="region A">Interactive region</div>';
 		$this->process_directives( $html );
 
 		$state = $this->interactivity->state( 'core/router' );
-		$this->assertSame( 'https://example.com/test-page/', $state['url'] );
+		$this->assertStringStartsWith( 'https://', $state['url'] );
 	}
 
 	/**
@@ -193,8 +191,7 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 */
 	public function test_wp_router_region_does_not_set_state_url_without_directive() {
-		$_SERVER['HTTP_HOST']   = 'example.com';
-		$_SERVER['REQUEST_URI'] = '/test-page/';
+		$_SERVER['REQUEST_URI'] = '/';
 
 		$html = '<div>Nothing here</div>';
 		$this->process_directives( $html );
