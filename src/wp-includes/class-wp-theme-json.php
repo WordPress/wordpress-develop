@@ -1526,7 +1526,7 @@ class WP_Theme_JSON {
 	 * @param string $selector The selector to nest.
 	 * @return string The processed CSS.
 	 */
-	public function process_blocks_custom_css( $css, $selector ) {
+	public static function process_blocks_custom_css( $css, $selector ) {
 		$processed_css = '';
 
 		if ( empty( $css ) ) {
