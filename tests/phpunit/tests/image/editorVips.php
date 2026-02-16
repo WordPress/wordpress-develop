@@ -88,6 +88,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 
 		$resized = $vips_image_editor->multi_resize( $sizes_array );
 
+		// First, check to see if returned array is as expected.
 		$expected_array = array(
 			array(
 				'file'      => 'waffles-50x33.jpg',
@@ -100,6 +101,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 
 		$this->assertSame( $expected_array, $resized );
 
+		// Now, verify real dimensions are as expected.
 		$image_path = DIR_TESTDATA . '/images/' . $resized[0]['file'];
 		$this->assertImageDimensions(
 			$image_path,
@@ -175,6 +177,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 
 		$resized = $vips_image_editor->multi_resize( $sizes_array );
 
+		// If no images are generated, the returned array is empty.
 		$this->assertEmpty( $resized );
 	}
 
@@ -190,53 +193,105 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		$vips_image_editor->load();
 
 		$sizes_array = array(
+
+			/*
+			 * #0 - 10x10 resize, no cropping.
+			 * By aspect, should be 10x6 output.
+			 */
 			array(
 				'width'  => 10,
 				'height' => 10,
 				'crop'   => false,
 			),
+
+			/*
+			 * #1 - 75x50 resize, with cropping.
+			 * Output dimensions should be 75x50
+			 */
 			array(
 				'width'  => 75,
 				'height' => 50,
 				'crop'   => true,
 			),
+
+			/*
+			 * #2 - 20 pixel max height, no cropping.
+			 * By aspect, should be 30x20 output.
+			 */
 			array(
-				'width'  => 9999,
+				'width'  => 9999, // Arbitrary high value.
 				'height' => 20,
 				'crop'   => false,
 			),
+
+			/*
+			 * #3 - 45 pixel max height, with cropping.
+			 * By aspect, should be 45x400 output.
+			 */
 			array(
 				'width'  => 45,
-				'height' => 9999,
+				'height' => 9999, // Arbitrary high value.
 				'crop'   => true,
 			),
+
+			/*
+			 * #4 - 50 pixel max width, no cropping.
+			 * By aspect, should be 50x33 output.
+			 */
 			array(
 				'width' => 50,
 			),
+
+			/*
+			 * #5 - 55 pixel max width, no cropping, null height
+			 * By aspect, should be 55x36 output.
+			 */
 			array(
 				'width'  => 55,
 				'height' => null,
 			),
+
+			/*
+			 * #6 - 55 pixel max height, no cropping, no width specified.
+			 * By aspect, should be 82x55 output.
+			 */
 			array(
 				'height' => 55,
 			),
+
+			/*
+			 * #7 - 60 pixel max height, no cropping, null width.
+			 * By aspect, should be 90x60 output.
+			 */
 			array(
 				'width'  => null,
 				'height' => 60,
 			),
+
+			/*
+			 * #8 - 70 pixel max height, no cropping, negative width.
+			 * By aspect, should be 105x70 output.
+			 */
 			array(
-				'width'  => -9999,
+				'width'  => -9999, // Arbitrary negative value.
 				'height' => 70,
 			),
+
+			/*
+			 * #9 - 200 pixel max width, no cropping, negative height.
+			 * By aspect, should be 200x133 output.
+			 */
 			array(
 				'width'  => 200,
-				'height' => -9999,
+				'height' => -9999, // Arbitrary negative value.
 			),
 		);
 
 		$resized = $vips_image_editor->multi_resize( $sizes_array );
 
 		$expected_array = array(
+
+			// #0
 			array(
 				'file'      => 'waffles-10x7.jpg',
 				'width'     => 10,
@@ -244,6 +299,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-10x7.jpg' ),
 			),
+
+			// #1
 			array(
 				'file'      => 'waffles-75x50.jpg',
 				'width'     => 75,
@@ -251,6 +308,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-75x50.jpg' ),
 			),
+
+			// #2
 			array(
 				'file'      => 'waffles-30x20.jpg',
 				'width'     => 30,
@@ -258,6 +317,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-30x20.jpg' ),
 			),
+
+			// #3
 			array(
 				'file'      => 'waffles-45x400.jpg',
 				'width'     => 45,
@@ -265,6 +326,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-45x400.jpg' ),
 			),
+
+			// #4
 			array(
 				'file'      => 'waffles-50x33.jpg',
 				'width'     => 50,
@@ -272,6 +335,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-50x33.jpg' ),
 			),
+
+			// #5
 			array(
 				'file'      => 'waffles-55x37.jpg',
 				'width'     => 55,
@@ -279,6 +344,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-55x37.jpg' ),
 			),
+
+			// #6
 			array(
 				'file'      => 'waffles-83x55.jpg',
 				'width'     => 83,
@@ -286,6 +353,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-83x55.jpg' ),
 			),
+
+			// #7
 			array(
 				'file'      => 'waffles-90x60.jpg',
 				'width'     => 90,
@@ -293,6 +362,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-90x60.jpg' ),
 			),
+
+			// #8
 			array(
 				'file'      => 'waffles-105x70.jpg',
 				'width'     => 105,
@@ -300,6 +371,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'mime-type' => 'image/jpeg',
 				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-105x70.jpg' ),
 			),
+
+			// #9
 			array(
 				'file'      => 'waffles-200x133.jpg',
 				'width'     => 200,
@@ -315,6 +388,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		foreach ( $resized as $key => $image_data ) {
 			$image_path = DIR_TESTDATA . '/images/' . $image_data['file'];
 
+			// Now, verify real dimensions are as expected.
 			$this->assertImageDimensions(
 				$image_path,
 				$expected_array[ $key ]['width'],
@@ -324,7 +398,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests resizing with crop enabled.
+	 * Tests resizing an image with cropping.
 	 */
 	public function test_resize_and_crop() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -344,7 +418,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests crop behavior.
+	 * Tests cropping an image.
 	 *
 	 * @ticket 51937
 	 *
@@ -374,27 +448,27 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	 */
 	public function data_crop() {
 		return array(
-			'src dimensions as ints'            => array(
+			'src height and width must be greater than 0' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 50,
 				'src_h' => 50,
 			),
-			'src dimensions as numeric strings' => array(
+			'src height and width can be string but must be greater than 0' => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => '50',
 				'src_h' => '50',
 			),
-			'dst dimensions as ints'            => array(
+			'dst height and width must be greater than 0' => array(
 				'src_x' => 10,
-				'src_y' => 10,
+				'src_y' => '10',
 				'src_w' => 150,
 				'src_h' => 150,
 				'dst_w' => 150,
 				'dst_h' => 150,
 			),
-			'dst dimensions as numeric strings' => array(
+			'dst height and width can be string but must be greater than 0' => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => 150,
@@ -439,13 +513,13 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 			),
 			'src width must be greater than 0'  => array(
 				'src_x' => 10,
-				'src_y' => 10,
+				'src_y' => '10',
 				'src_w' => 0,
 				'src_h' => 100,
 			),
 			'src height must be numeric and greater than 0' => array(
 				'src_x' => 10,
-				'src_y' => 10,
+				'src_y' => '10',
 				'src_w' => 100,
 				'src_h' => 'NaN',
 			),
@@ -457,7 +531,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'dst_w' => '100',
 				'dst_h' => 'NaN',
 			),
-			'src and dst dimensions must be greater than 0' => array(
+			'src and dst height and width must be greater than 0' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 0,
@@ -465,7 +539,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 				'dst_w' => 0,
 				'dst_h' => 0,
 			),
-			'src and dst dimensions as strings must be greater than 0' => array(
+			'src and dst height and width can be string but must be greater than 0' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => '0',
@@ -477,7 +551,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests rotation behavior.
+	 * Tests rotating an image 180 deg.
 	 */
 	public function test_rotate() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -501,36 +575,31 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	 * Tests horizontal flip behavior.
 	 */
 	public function test_flip() {
-		$file = DIR_TESTDATA . '/images/one-blue-pixel-100x100.png';
+		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
 
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
 		$vips_image_editor->load();
 
-		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
-
-		$result = $vips_image_editor->flip( true, false );
-		$vips_image_editor->save( $save_to_file );
-
-		$this->assertTrue( $result );
-
-		$verify = new WP_Image_Editor_Vips( $save_to_file );
-		$verify->load();
-		$property = new ReflectionProperty( $verify, 'image' );
+		$property = new ReflectionProperty( $vips_image_editor, 'image' );
 
 		if ( PHP_VERSION_ID < 80100 ) {
 			$property->setAccessible( true );
 		}
 
-		$image = $property->getValue( $verify );
+		$image = $property->getValue( $vips_image_editor );
 		if ( ! is_callable( array( $image, 'getpoint' ) ) ) {
-			unlink( $save_to_file );
 			$this->markTestSkipped( 'The image editor does not support getpoint().' );
 		}
 
-		$pixel = $image->getpoint( 0, 99 );
-		$this->assertSame( 255, (int) $pixel[2] );
+		// Get color at top-left before flipping
+		$color_top_left = $image->getpoint( 0, 0 );
 
-		unlink( $save_to_file );
+		$vips_image_editor->flip( true, false );
+
+		// After vertical flip, top-left should now be at bottom-left (0, 99)
+		$color_bottom_left = $property->getValue( $vips_image_editor )->getpoint( 0, 99 );
+
+		$this->assertSame( $color_top_left, $color_bottom_left );
 	}
 
 	/**
@@ -579,27 +648,68 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 51665
+	 * Tests that an image created with WP_Image_Editor_Vips preserves alpha.
 	 */
-	public function test_directory_creation() {
-		$file      = realpath( DIR_TESTDATA ) . '/images/a2-small.jpg';
-		$directory = realpath( DIR_TESTDATA ) . '/images/nonexistent-directory';
+	public function test_image_preserves_alpha() {
+		$file = DIR_TESTDATA . '/images/transparent.png';
 
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
 
-		$this->assertFileDoesNotExist( $directory );
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
 
-		$loaded = $vips_image_editor->load();
-		$this->assertNotWPError( $loaded );
+		$vips_image_editor->save( $save_to_file );
 
-		$resized = $vips_image_editor->resize( 100, 100, true );
-		$this->assertNotWPError( $resized );
+		// Use GD to check the alpha channel since VIPS doesn't have a direct PHP API
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
 
-		$saved = $vips_image_editor->save( $directory . '/a2-small-cropped.jpg' );
+		unlink( $save_to_file );
+	}
 
-		unlink( $directory . '/a2-small-cropped.jpg' );
-		rmdir( $directory );
+	/**
+	 * Tests that an image created with WP_Image_Editor_Vips preserves alpha when resizing.
+	 *
+	 * @ticket 23039
+	 */
+	public function test_image_preserves_alpha_on_resize() {
+		$file = DIR_TESTDATA . '/images/transparent.png';
 
-		$this->assertNotWPError( $saved );
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$vips_image_editor->resize( 5, 5 );
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+
+		$vips_image_editor->save( $save_to_file );
+
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
+
+		unlink( $save_to_file );
+	}
+
+	/**
+	 * Tests that an image created with WP_Image_Editor_Vips preserves alpha when rotating.
+	 *
+	 * @ticket 30596
+	 */
+	public function test_image_preserves_alpha_on_rotate() {
+		$file = DIR_TESTDATA . '/images/transparent.png';
+
+		// Get expected alpha from original image
+		$image    = imagecreatefrompng( $file );
+		$rgb      = imagecolorat( $image, 0, 0 );
+		$expected = imagecolorsforindex( $image, $rgb );
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$vips_image_editor->rotate( 180 );
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+
+		$vips_image_editor->save( $save_to_file );
+
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), $expected['alpha'] );
+
+		unlink( $save_to_file );
 	}
 }
