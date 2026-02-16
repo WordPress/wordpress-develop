@@ -497,14 +497,10 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	);
 
 	$editor_settings['__experimentalBlockBindingsSupportedAttributes'] = array();
-	$editor_settings['autoRegisterBlocks']                             = array();
-	foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_name => $block_type ) {
-		$supported_block_attributes = get_block_bindings_supported_attributes( $block_name );
+	foreach ( array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() ) as $block_type ) {
+		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
 		if ( ! empty( $supported_block_attributes ) ) {
-			$editor_settings['__experimentalBlockBindingsSupportedAttributes'][ $block_name ] = $supported_block_attributes;
-		}
-		if ( ! empty( $block_type->supports['auto_register'] ) && ! empty( $block_type->render_callback ) ) {
-			$editor_settings['autoRegisterBlocks'][] = $block_name;
+			$editor_settings['__experimentalBlockBindingsSupportedAttributes'][ $block_type ] = $supported_block_attributes;
 		}
 	}
 
