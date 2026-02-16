@@ -788,4 +788,91 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			'Generated CSS should contain the variation blockGap value of 99px.'
 		);
 	}
+
+	/**
+	 * Tests that wp_get_variation_name_from_class correctly extracts variation names from class strings.
+	 *
+	 * @ticket 64624
+	 * @covers ::wp_get_variation_name_from_class
+	 *
+	 * @dataProvider data_get_variation_name_from_class
+	 *
+	 * @param string      $class_name        CSS class string to test.
+	 * @param array       $registered_styles Registered block styles.
+	 * @param string|null $expected_result   Expected variation name or null.
+	 */
+	public function test_get_variation_name_from_class( $class_name, $registered_styles, $expected_result ) {
+		$result = wp_get_variation_name_from_class( $class_name, $registered_styles );
+		$this->assertSame( $expected_result, $result );
+	}
+
+	/**
+	 * Data provider for test_get_variation_name_from_class.
+	 *
+	 * @return array
+	 */
+	public function data_get_variation_name_from_class() {
+		return array(
+			'empty class name'                             => array(
+				'class_name'        => '',
+				'registered_styles' => array(),
+				'expected_result'   => null,
+			),
+			'no matching registered styles'                => array(
+				'class_name'        => 'is-style-shadowed wp-block-button',
+				'registered_styles' => array(
+					array( 'name' => 'rounded' ),
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => null,
+			),
+			'single matching variation found'              => array(
+				'class_name'        => 'wp-block-button is-style-rounded',
+				'registered_styles' => array(
+					array( 'name' => 'rounded' ),
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => 'rounded',
+			),
+			'ignores default style only'                   => array(
+				'class_name'        => 'is-style-default wp-block-button',
+				'registered_styles' => array(
+					array( 'name' => 'default' ),
+					array( 'name' => 'rounded' ),
+				),
+				'expected_result'   => null,
+			),
+			'ignores default and returns next variation'   => array(
+				'class_name'        => 'is-style-default is-style-rounded wp-block-button',
+				'registered_styles' => array(
+					array( 'name' => 'default' ),
+					array( 'name' => 'rounded' ),
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => 'rounded',
+			),
+			'returns first matching variation when multiple present' => array(
+				'class_name'        => 'is-style-shadowed is-style-rounded',
+				'registered_styles' => array(
+					array( 'name' => 'rounded' ),
+					array( 'name' => 'outlined' ),
+					array( 'name' => 'shadowed' ),
+				),
+				'expected_result'   => 'shadowed',
+			),
+			'empty registered styles array'                => array(
+				'class_name'        => 'is-style-rounded',
+				'registered_styles' => array(),
+				'expected_result'   => null,
+			),
+			'registered styles with missing name property' => array(
+				'class_name'        => 'is-style-outlined wp-block-button',
+				'registered_styles' => array(
+					array( 'label' => 'Rounded' ),
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => 'outlined',
+			),
+		);
+	}
 }

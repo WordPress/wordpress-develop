@@ -11,12 +11,11 @@
  *
  * @since 7.0.0
  *
- * @param string $class_name        CSS class string for a block.
- * @param array  $registered_styles Currently registered block styles.
- *
+ * @param string                              $class_name        CSS class string for a block.
+ * @param array<string, array<string, mixed>> $registered_styles Currently registered block styles.
  * @return string|null The name of the first registered variation, or null if none found.
  */
-function wp_get_variation_name_from_class( $class_name, $registered_styles = array() ) {
+function wp_get_variation_name_from_class( string $class_name, array $registered_styles = array() ): ?string {
 	if ( empty( $class_name ) ) {
 		return null;
 	}
@@ -24,11 +23,11 @@ function wp_get_variation_name_from_class( $class_name, $registered_styles = arr
 	$registered_names = array_filter( array_column( $registered_styles, 'name' ) );
 
 	$prefix = 'is-style-';
-	$len    = strlen( $prefix );
+	$length = strlen( $prefix );
 
 	foreach ( explode( ' ', $class_name ) as $class ) {
 		if ( str_starts_with( $class, $prefix ) ) {
-			$variation = substr( $class, $len );
+			$variation = substr( $class, $length );
 			if ( 'default' !== $variation && in_array( $variation, $registered_names, true ) ) {
 				return $variation;
 			}
