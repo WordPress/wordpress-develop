@@ -198,7 +198,7 @@ else :
 		<?php
 		printf(
 			/* translators: %s: Documentation URL. */
-			__( 'Your theme determines how content is displayed in browsers. <a href="%s">Learn more about feeds</a>.' ),
+			__( 'Your theme determines how content is displayed in browsers. <a href="%s" onclick="javascript:return confirm(\'Are you sure you want to leave this page?\');">Learn more about feeds</a>.' ),
 			__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
 		);
 		?>

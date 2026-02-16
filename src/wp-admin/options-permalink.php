@@ -223,7 +223,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 printf(
 	/* translators: %s: Documentation URL. */
-	__( 'WordPress offers you the ability to create a custom URL structure for your permalinks and archives. Custom URL structures can improve the aesthetics, usability, and forward-compatibility of your links. A <a href="%s">number of tags are available</a>, and here are some examples to get you started.' ),
+	__( 'WordPress offers you the ability to create a custom URL structure for your permalinks and archives. Custom URL structures can improve the aesthetics, usability, and forward-compatibility of your links. A <a href="%s" onclick="javascript:return confirm(\'Are you sure you want to leave this page?\');">number of tags are available</a>, and here are some examples to get you started.' ),
 	__( 'https://wordpress.org/documentation/article/customize-permalinks/' )
 );
 ?>

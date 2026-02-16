@@ -34,7 +34,7 @@ global $hook_suffix;
 		<?php
 		$text = sprintf(
 			/* translators: %s: https://wordpress.org/ */
-			__( 'Thank you for creating with <a href="%s">WordPress</a>.' ),
+			__( 'Thank you for creating with <a href="%s" onclick="javascript:return confirm(\'Are you sure you want to leave this page?\');">WordPress</a>.' ),
 			esc_url( __( 'https://wordpress.org/' ) )
 		);
 
