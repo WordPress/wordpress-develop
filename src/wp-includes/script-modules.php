@@ -215,3 +215,12 @@ function wp_enqueue_block_editor_script_modules() {
 	 */
 	wp_enqueue_script_module( '@wordpress/latex-to-mathml/loader' );
 }
+
+/**
+ * Enqueues script modules required in the admin.
+ *
+ * @since 7.0.0
+ */
+function wp_enqueue_admin_script_modules() {
+	wp_enqueue_script_module( '@wordpress/core-abilities' );
+}
