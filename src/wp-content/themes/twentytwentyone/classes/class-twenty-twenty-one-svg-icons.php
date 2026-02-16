@@ -189,10 +189,9 @@ class Twenty_Twenty_One_SVG_Icons {
 		if ( array_key_exists( $icon, $arr ) ) {
 			$repl = sprintf( '<svg class="svg-icon" width="%d" height="%d" aria-hidden="true" role="img" focusable="false" ', $size, $size );
 
-			$svg = preg_replace( '/^<svg /', $repl, trim( $arr[ $icon ] ) ); // Add extra attributes to SVG code.
+			$svg = (string) preg_replace( '/^<svg /', $repl, trim( $arr[ $icon ] ) ); // Add extra attributes to SVG code.
 		}
 
-		// @phpstan-ignore-next-line.
 		return $svg;
 	}
 
