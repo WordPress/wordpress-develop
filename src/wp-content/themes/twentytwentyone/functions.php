@@ -28,8 +28,6 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 	 *
 	 * @since Twenty Twenty-One 1.0
 	 *
-	 * @global bool $is_IE
-	 *
 	 * @return void
 	 */
 	function twenty_twenty_one_setup() {
@@ -132,7 +130,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		$editor_stylesheet_path = './assets/css/style-editor.css';
 
 		// Note, the is_IE global variable is defined by WordPress and is used
-		// to detect if the current browser is Internet Explorer.
+		// to detect if the current browser is internet explorer.
 		global $is_IE;
 		if ( $is_IE ) {
 			$editor_stylesheet_path = './assets/css/ie-editor.css';
