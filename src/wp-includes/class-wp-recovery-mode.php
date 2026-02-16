@@ -462,7 +462,7 @@ class WP_Recovery_Mode {
 			require_once ABSPATH . WPINC . '/pluggable.php';
 		}
 
-		$url = network_home_url( $_SERVER['REQUEST_URI'] );
+		$url = wp_get_current_request_url();
 		wp_safe_redirect( $url );
 		exit;
 	}

@@ -13,7 +13,7 @@ require __DIR__ . '/wp-load.php';
 
 // Redirect to HTTPS login if forced to use SSL.
 if ( force_ssl_admin() && ! is_ssl() ) {
-	wp_safe_redirect( network_home_url( $_SERVER['REQUEST_URI'] ) );
+	wp_safe_redirect( set_url_scheme( wp_get_current_request_url(), 'https' ) );
 	exit;
 }
 

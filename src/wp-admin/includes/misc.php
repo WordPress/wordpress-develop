@@ -1391,7 +1391,7 @@ function wp_admin_canonical_url() {
 	}
 
 	// Ensure we're using an absolute URL.
-	$current_url  = network_home_url( $_SERVER['REQUEST_URI'] );
+	$current_url  = wp_get_current_request_url();
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
 
 	/**

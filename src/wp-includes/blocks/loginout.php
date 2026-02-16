@@ -17,7 +17,7 @@
 function render_block_core_loginout( $attributes ) {
 
 	// Build the redirect URL.
-	$current_url = network_home_url( $_SERVER['REQUEST_URI'] );
+	$current_url = wp_get_current_request_url();
 
 	$user_logged_in = is_user_logged_in();
 
