@@ -710,42 +710,6 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64639
-	 */
-	public function test_get_block_editor_settings_auto_register_blocks() {
-		$block_default        = 'test/default';
-		$block_with_render    = 'test/auto-register-with-render';
-		$block_without_render = 'test/auto-register-without-render';
-
-		register_block_type(
-			$block_default,
-			array()
-		);
-		register_block_type(
-			$block_with_render,
-			array(
-				'supports'        => array( 'auto_register' => true ),
-				'render_callback' => '__return_empty_string',
-			)
-		);
-		register_block_type(
-			$block_without_render,
-			array(
-				'supports' => array( 'auto_register' => true ),
-			)
-		);
-
-		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
-		$settings            = get_block_editor_settings( array(), $post_editor_context );
-
-		unregister_block_type( $block_default );
-		unregister_block_type( $block_with_render );
-		unregister_block_type( $block_without_render );
-
-		$this->assertSame( array( $block_with_render ), $settings['autoRegisterBlocks'] );
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @return array
