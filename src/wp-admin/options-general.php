@@ -249,8 +249,8 @@ if ( ! is_multisite() ) {
 <p class="description" id="home-description">
 		<?php
 		printf(
-			/* translators: %s: Documentation URL. */
-			__( 'Enter the same address here unless you <a href="%s" onclick="javascript:return confirm(\'%s\');">want your site home page to be different from your WordPress installation directory</a>.' ),
+			/* translators: 1: Documentation URL. 2: Confirmation message. */
+			__( 'Enter the same address here unless you <a href="%1$s" onclick="javascript:return confirm(\'%2$s\');">want your site home page to be different from your WordPress installation directory</a>.' ),
 			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' ),
 			/* translators: %s: confirmation message. */
 			esc_js( __( "Are you sure you want to leave this page?\n 'Cancel' to stay, 'OK' to leave." ) )

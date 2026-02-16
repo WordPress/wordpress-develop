@@ -33,10 +33,9 @@ global $hook_suffix;
 	<p id="footer-left" class="alignleft">
 		<?php
 		$text = sprintf(
-			/* translators: %s: https://wordpress.org/ */
-			__( 'Thank you for creating with <a href="%s" onclick="javascript:return confirm(\'%s\');">WordPress</a>.' ),
+			/* translators: 1: https://wordpress.org/, 2: confirmation message. */
+			__( 'Thank you for creating with <a href="%1$s" onclick="javascript:return confirm(\'%2$s\');">WordPress</a>.' ),
 			esc_url( __( 'https://wordpress.org/' ) ),
-			/* translators: %s: confirmation message. */
 			esc_js( __( "Are you sure you want to leave this page?\n 'Cancel' to stay, 'OK' to leave." ) )
 		);
 

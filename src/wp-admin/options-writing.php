@@ -219,8 +219,8 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 	<p><label for="ping_sites">
 		<?php
 		printf(
-			/* translators: %s: Documentation URL. */
-			__( 'When you publish a new post, WordPress automatically notifies the following site update services. For more about this, see the <a href="%s" onclick="javascript:return confirm(\'%s\');">Update Services</a> documentation article. Separate multiple service URLs with line breaks.' ),
+			/* translators: 1: Documentation URL. 2: Confirmation message. */
+			__( 'When you publish a new post, WordPress automatically notifies the following site update services. For more about this, see the <a href="%1$s" onclick="javascript:return confirm(\'%2$s\');">Update Services</a> documentation article. Separate multiple service URLs with line breaks.' ),
 			__( 'https://developer.wordpress.org/advanced-administration/wordpress/update-services/' ),
 			esc_js( __( "Are you sure you want to leave this page?\n 'Cancel' to stay, 'OK' to leave." ) )
 		);
