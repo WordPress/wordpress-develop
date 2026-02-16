@@ -33,11 +33,11 @@ npm run test:php:stan -- -vvv --debug
 If you are not using the Docker environment, you can run PHPStan via Composer directly:
 
 ```bash
-composer run analyse
+composer run phpstan
 
-composer run analyse -- --memory-limit=4G
-composer run analyse -- tests/phpstan/src/wp-includes/template.php
-composer run analyse -- -vvv --debug
+composer run phpstan -- --memory-limit=4G
+composer run phpstan -- tests/phpstan/src/wp-includes/template.php
+composer run phpstan -- -vvv --debug
 ```
 
 For available flags, see https://phpstan.org/user-guide/command-line-usage.
@@ -70,7 +70,7 @@ PHPStan errors can be ignored in the following ways:
 	npm run test:php:stan -- --generate-baseline=tests/phpstan/baseline.php
 
 	# or, with Composer directly:
-	composer run analyse -- --generate-baseline=tests/phpstan/baseline.php
+	composer run phpstan -- --generate-baseline=tests/phpstan/baseline.php
 	```
 
 	This will regenerate the baseline file with any new errors added to the existing ones. You can then commit the updated baseline file.
