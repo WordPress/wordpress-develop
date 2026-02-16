@@ -6277,11 +6277,11 @@ function get_page_children( $page_id, $pages ) {
  *
  * @since 2.0.0
  *
- * @param WP_Post[] $pages   Posts array (passed by reference).
+ * @param WP_Post[] $pages   Posts array.
  * @param int       $page_id Optional. Parent page ID. Default 0.
  * @return string[] Array of post names keyed by ID and arranged by hierarchy. Children immediately follow their parents.
  */
-function get_page_hierarchy( &$pages, $page_id = 0 ) {
+function get_page_hierarchy( $pages, $page_id = 0 ) {
 	if ( empty( $pages ) ) {
 		return array();
 	}
