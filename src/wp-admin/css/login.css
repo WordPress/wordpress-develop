@@ -360,12 +360,6 @@ p {
 	padding-right: 2.5rem;
 }
 
-.login form .input,
-.login input[type="text"],
-.login form input[type="checkbox"] {
-	background: #fff;
-}
-
 .js.login-action-resetpass input[type="text"],
 .js.login-action-resetpass input[type="password"],
 .js.login-action-rp input[type="text"],
