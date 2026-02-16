@@ -790,10 +790,10 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_get_variation_name_from_class correctly extracts variation names from class strings.
+	 * Tests that wp_get_block_style_variation_name_from_registered_style correctly extracts variation names from class strings.
 	 *
 	 * @ticket 64624
-	 * @covers ::wp_get_variation_name_from_class
+	 * @covers ::wp_get_block_style_variation_name_from_registered_style
 	 *
 	 * @dataProvider data_get_variation_name_from_class
 	 *
@@ -802,7 +802,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * @param string|null $expected_result   Expected variation name or null.
 	 */
 	public function test_get_variation_name_from_class( $class_name, $registered_styles, $expected_result ) {
-		$result = wp_get_variation_name_from_class( $class_name, $registered_styles );
+		$result = wp_get_block_style_variation_name_from_registered_style( $class_name, $registered_styles );
 		$this->assertSame( $expected_result, $result );
 	}
 

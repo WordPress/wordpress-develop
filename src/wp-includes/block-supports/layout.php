@@ -15,7 +15,7 @@
  * @param array<string, array<string, mixed>> $registered_styles Currently registered block styles.
  * @return string|null The name of the first registered variation, or null if none found.
  */
-function wp_get_variation_name_from_class( string $class_name, array $registered_styles = array() ): ?string {
+function wp_get_block_style_variation_name_from_registered_style( string $class_name, array $registered_styles = array() ): ?string {
 	if ( empty( $class_name ) ) {
 		return null;
 	}
@@ -898,7 +898,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		if ( ! empty( $block_class_name ) && str_contains( $block_class_name, 'is-style-' ) && ! empty( $block_name ) ) {
 			$styles_registry   = WP_Block_Styles_Registry::get_instance();
 			$registered_styles = $styles_registry->get_registered_styles_for_block( $block_name );
-			$variation_name    = wp_get_variation_name_from_class( $block_class_name, $registered_styles );
+			$variation_name    = wp_get_block_style_variation_name_from_registered_style( $block_class_name, $registered_styles );
 			if ( $variation_name ) {
 				$variation_block_gap_value = $global_styles['blocks'][ $block_name ]['variations'][ $variation_name ]['spacing']['blockGap'] ?? null;
 			}
