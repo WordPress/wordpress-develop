@@ -22,7 +22,7 @@ Additional flags supported by PHPStan can be passed by passing `--` followed by 
 # to increase the memory limit from the default 2G to 4G:
 npm run typecheck:php -- --memory-limit=4G
 
-# to analyse only a specific file:
+# to analyze only a specific file:
 npm run typecheck:php -- src/wp-includes/template.php
 
 # To scan with verbose debugging output:
@@ -80,4 +80,4 @@ PHPStan can be resource-intensive, especially on large codebases like WordPress.
 
 PHPStan caches analysis results to speed up subsequent runs. You can see information about the results cache by running `analyse` with the `-vv` or `-vvv` flag.
 
-Sometimes, due to the lack of type information in legacy code, PHPStan may still struggle to analyse certain parts of the codebase. In such cases, you can use the `--debug` flag to disable caching and see which files are causing issues.
+Sometimes, due to the lack of type information in legacy code, PHPStan may still struggle to analyze certain parts of the codebase. In such cases, you can use the `--debug` flag to disable caching and see which files are causing issues.
