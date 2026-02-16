@@ -3843,13 +3843,17 @@ function wp_get_current_request_url( $request_uri = null ) {
 	}
 
 	$home      = home_url( '/' );
-	$home_path = wp_parse_url( $home, PHP_URL_PATH ) ?: '/';
+	$home_path = wp_parse_url( $home, PHP_URL_PATH );
+
+	if ( ! $home_path ) {
+		$home_path = '/';
+	}
 
 	if ( str_starts_with( $request_uri, $home_path ) ) {
 		// Standard case: REQUEST_URI already includes the home path.
 		// Just replace scheme + host, keep the request URI as-is.
 		$parsed = wp_parse_url( $home );
-		$host   = $parsed['host'] ?? $_SERVER['HTTP_HOST'];
+		$host   = isset( $parsed['host'] ) ? $parsed['host'] : $_SERVER['HTTP_HOST'];
 		if ( isset( $parsed['port'] ) ) {
 			$host .= ':' . $parsed['port'];
 		}
