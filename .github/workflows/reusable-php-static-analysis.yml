@@ -80,8 +80,20 @@ jobs:
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
 
+      - name: Get Gutenberg ref
+        id: gutenberg-ref
+        run: echo "ref=$(node -e 'console.log(require("./package.json").gutenberg.ref)')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Gutenberg
+        uses: actions/cache@v4
+        with:
+          path: |
+            gutenberg
+            .gutenberg-hash
+          key: gutenberg-${{ steps.gutenberg-ref.outputs.ref }}-${{ hashFiles('tools/gutenberg/*') }}
+
       - name: Install npm dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build WordPress
         run: npm run build:dev
