@@ -33,7 +33,7 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 	 */
 	public function data_adds_class_to_content() {
 		return array(
-			'class is added to block content'           => array(
+			'class is added to block content'          => array(
 				'block_content'  => '<div class="wp-block-paragraph">Test content</div>',
 				'block'          => array(
 					'blockName' => 'core/paragraph',
@@ -43,7 +43,7 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 				),
 				'expected_class' => 'wp-custom-css-123abc',
 			),
-			'class is extracted from mixed class names'  => array(
+			'class is extracted from mixed class names' => array(
 				'block_content'  => '<p>Test content</p>',
 				'block'          => array(
 					'blockName' => 'core/paragraph',
