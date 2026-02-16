@@ -795,23 +795,23 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * @ticket 64624
 	 * @covers ::wp_get_block_style_variation_name_from_registered_style
 	 *
-	 * @dataProvider data_get_variation_name_from_class
+	 * @dataProvider data_get_block_style_variation_name_from_registered_style
 	 *
 	 * @param string      $class_name        CSS class string to test.
 	 * @param array       $registered_styles Registered block styles.
 	 * @param string|null $expected_result   Expected variation name or null.
 	 */
-	public function test_get_variation_name_from_class( $class_name, $registered_styles, $expected_result ) {
+	public function test_get_block_style_variation_name_from_registered_style( $class_name, $registered_styles, $expected_result ) {
 		$result = wp_get_block_style_variation_name_from_registered_style( $class_name, $registered_styles );
 		$this->assertSame( $expected_result, $result );
 	}
 
 	/**
-	 * Data provider for test_get_variation_name_from_class.
+	 * Data provider for test_get_block_style_variation_name_from_registered_style.
 	 *
 	 * @return array
 	 */
-	public function data_get_variation_name_from_class() {
+	public function data_get_block_style_variation_name_from_registered_style() {
 		return array(
 			'empty class name'                             => array(
 				'class_name'        => '',
