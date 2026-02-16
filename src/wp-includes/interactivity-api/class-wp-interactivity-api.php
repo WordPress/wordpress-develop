@@ -1314,6 +1314,14 @@ HTML;
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
+			// Initializes the `state.url` property from the server.
+			wp_interactivity_state(
+				'core/router',
+				array(
+					'url' => set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . wp_unslash( $_SERVER['REQUEST_URI'] ) ),
+				)
+			);
+
 			// Enqueues as an inline style.
 			wp_register_style( 'wp-interactivity-router-animations', false );
 			wp_add_inline_style( 'wp-interactivity-router-animations', $this->get_router_animation_styles() );
