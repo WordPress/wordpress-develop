@@ -1315,7 +1315,7 @@ HTML;
 			$this->has_processed_router_region = true;
 
 			// Initializes the `state.url` property from the server.
-			wp_interactivity_state(
+			$this->state(
 				'core/router',
 				array(
 					'url' => get_self_link(),
