@@ -101,12 +101,6 @@ parameters:
 	excludePaths:
 		analyseAndScan:
 			- ../../src/wp-admin/includes/noop.php
-			# JavaScript/CSS/Asset files.
-			- ../../src/wp-admin/css
-			- ../../src/wp-admin/images
-			# These are built from js/_enqueues.
-			- ../../src/wp-admin/js (?)
-			- ../../src/wp-includes/js (?)
 		analyse:
 			# These files are deprecated.
 			- ../../src/wp-admin/includes/deprecated.php
@@ -117,7 +111,6 @@ parameters:
 			# These files are sourced by wordpress/gutenberg in `tools/release/sync-stable-blocks.js`.
 			- ../../src/wp-includes/blocks
 			# Third-party libraries.
-			- ../../src/js/_enqueues/vendor
 			- ../../src/wp-admin/includes/class-ftp-pure.php
 			- ../../src/wp-admin/includes/class-ftp-sockets.php
 			- ../../src/wp-admin/includes/class-ftp.php
