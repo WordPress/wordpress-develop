@@ -60,7 +60,36 @@ parameters:
 
 	# What directories and files should be scanned.
 	paths:
-		- ../../src
+		- ../../src/wp-admin
+		- ../../src/wp-includes
+		- ../../src/wp-content/themes/twentyeleven
+		- ../../src/wp-content/themes/twentyfifteen
+		- ../../src/wp-content/themes/twentyfourteen
+		- ../../src/wp-content/themes/twentynineteen
+		- ../../src/wp-content/themes/twentyseventeen
+		- ../../src/wp-content/themes/twentysixteen
+		- ../../src/wp-content/themes/twentyten
+		- ../../src/wp-content/themes/twentythirteen
+		- ../../src/wp-content/themes/twentytwelve
+		- ../../src/wp-content/themes/twentytwenty
+		- ../../src/wp-content/themes/twentytwentyfive
+		- ../../src/wp-content/themes/twentytwentyfour
+		- ../../src/wp-content/themes/twentytwentyone
+		- ../../src/wp-content/themes/twentytwentythree
+		- ../../src/wp-content/themes/twentytwentytwo
+		- ../../src/index.php
+		- ../../src/wp-activate.php
+		- ../../src/wp-blog-header.php
+		- ../../src/wp-comments-post.php
+		- ../../src/wp-cron.php
+		- ../../src/wp-links-opml.php
+		- ../../src/wp-load.php
+		- ../../src/wp-login.php
+		- ../../src/wp-mail.php
+		- ../../src/wp-settings.php
+		- ../../src/wp-signup.php
+		- ../../src/wp-trackback.php
+		- ../../src/xmlrpc.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:
@@ -72,8 +101,6 @@ parameters:
 	excludePaths:
 		analyseAndScan:
 			- ../../src/wp-admin/includes/noop.php
-			# These files are not part of the WordPress Core codebase.
-			- ../../src/wp-content
 			# JavaScript/CSS/Asset files.
 			- ../../src/wp-admin/css
 			- ../../src/wp-admin/images
