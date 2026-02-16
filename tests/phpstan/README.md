@@ -23,11 +23,10 @@ Additional flags supported by PHPStan can be passed by passing `--` followed by 
 npm run typecheck:php -- --memory-limit=4G
 
 # to analyse only a specific file:
-npm run typecheck:php -- tests/phpstan/src/wp-includes/template.php
+npm run typecheck:php -- src/wp-includes/template.php
 
 # To scan with verbose debugging output:
 npm run typecheck:php -- -vvv --debug
-
 ```
 
 If you are not using the Docker environment, you can run PHPStan via Composer directly:
@@ -36,7 +35,7 @@ If you are not using the Docker environment, you can run PHPStan via Composer di
 composer run phpstan
 
 composer run phpstan -- --memory-limit=4G
-composer run phpstan -- tests/phpstan/src/wp-includes/template.php
+composer run phpstan -- src/wp-includes/template.php
 composer run phpstan -- -vvv --debug
 ```
 
