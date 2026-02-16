@@ -550,7 +550,9 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	 * Tests that images can be loaded and written over streams.
 	 */
 	public function test_streams() {
-		stream_wrapper_register( 'wptest', 'WP_Test_Stream' );
+		if ( ! in_array( 'wptest', stream_get_wrappers(), true ) ) {
+			stream_wrapper_register( 'wptest', 'WP_Test_Stream' );
+		}
 		WP_Test_Stream::$data = array(
 			'Tests_Image_Editor_Vips' => array(
 				'/read.jpg' => file_get_contents( DIR_TESTDATA . '/images/waffles.jpg' ),
