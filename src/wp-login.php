@@ -892,11 +892,21 @@ switch ( $action ) {
 			$user_login = wp_unslash( $_POST['user_login'] );
 		}
 
+		/**
+		 * Filters the label for the username or email address field on the lost password form.
+		 *
+		 * Default is 'Username or Email Address'.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $lostpasswordform_user_login_label The label for the username or email address field.
+		 */
+		$lostpasswordform_user_login_label = apply_filters( 'lostpasswordform_user_login_label', __( 'Username or Email Address' ) );
 		?>
 
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
 			<p>
-				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
+				<label for="user_login"><?php echo esc_html( $lostpasswordform_user_login_label ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<?php
@@ -1163,14 +1173,33 @@ switch ( $action ) {
 			$errors
 		);
 
+		/**
+		 * Filters the label for the username or email address field on the lost password form.
+		 *
+		 * Default is 'Username or Email Address'.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $lostpasswordform_user_login_label The label for the username or email address field.
+		 */
+		$registerform_labels = apply_filters(
+			'registerform_labels',
+			array(
+				'registerform_user_login_label' => __( 'Username' ),
+				'registerform_user_email_label' => __( 'Email' ),
+			)
+		);
+
+		$registerform_user_login_label = $registerform_labels['registerform_user_login_label'];
+		$registerform_user_email_label = $registerform_labels['registerform_user_email_label'];
 		?>
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
 			<p>
-				<label for="user_login"><?php _e( 'Username' ); ?></label>
+				<label for="user_login"><?php echo esc_html( $registerform_user_login_label ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<p>
-				<label for="user_email"><?php _e( 'Email' ); ?></label>
+				<label for="user_email"><?php echo esc_html( $registerform_user_email_label ); ?></label>
 				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( $user_email ); ?>" size="25" autocomplete="email" required="required" />
 			</p>
 			<?php
@@ -1514,11 +1543,22 @@ switch ( $action ) {
 		}
 
 		wp_enqueue_script( 'user-profile' );
+
+		/**
+		 * Filters the label for the username or email address field on the login form.
+		 *
+		 * Default is 'Username or Email Address'.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $loginform_user_login_label The label for the username or email address field.
+		 */
+		$loginform_user_login_label = apply_filters( 'loginform_user_login_label', __( 'Username or Email Address' ) );
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
 			<p>
-				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
+				<label for="user_login"><?php echo esc_html( $loginform_user_login_label ); ?></label>
 				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 
