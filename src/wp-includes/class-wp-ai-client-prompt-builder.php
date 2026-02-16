@@ -155,8 +155,14 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
-	 * @param mixed            $prompt   Optional initial prompt content.
+	 * @param ProviderRegistry                                                                 $registry The provider registry for finding suitable models.
+	 * @param string|MessagePart|Message|array|list<string|MessagePart|array>|list<Message>|null $prompt   Optional. Initial prompt content.
+	 *                                                                                                    A string for simple text prompts,
+	 *                                                                                                    a MessagePart or Message object for
+	 *                                                                                                    structured content, an array for a
+	 *                                                                                                    message array shape, or a list of
+	 *                                                                                                    parts or messages for multi-turn
+	 *                                                                                                    conversations. Default null.
 	 */
 	public function __construct( ProviderRegistry $registry, $prompt = null ) {
 		$this->builder = new PromptBuilder( $registry, $prompt );
