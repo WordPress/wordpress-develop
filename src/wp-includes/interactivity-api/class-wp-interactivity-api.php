@@ -453,7 +453,7 @@ final class WP_Interactivity_API {
 		$this->namespace_stack = null;
 		$this->context_stack   = null;
 
-		return null === $result ? $html : $result;
+		return $result ?? $html;
 	}
 
 	/**
@@ -1290,7 +1290,7 @@ CSS;
 		echo <<<HTML
 			<div
 				class="wp-interactivity-router-loading-bar"
-				data-wp-interactive="core/router"
+				data-wp-interactive="core/router/private"
 				data-wp-class--start-animation="state.navigation.hasStarted"
 				data-wp-class--finish-animation="state.navigation.hasFinished"
 			></div>
