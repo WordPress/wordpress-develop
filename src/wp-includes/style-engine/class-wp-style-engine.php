@@ -25,6 +25,8 @@
  * @since 6.4.0 Added support for background.backgroundImage.
  * @since 6.5.0 Added support for background.backgroundPosition,
  *              background.backgroundRepeat and dimensions.aspectRatio.
+ * @since 6.7.0 Added support for typography.writingMode.
+ * @since 7.0.0 Added support for typography.textIndent.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -50,30 +52,36 @@ final class WP_Style_Engine {
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
 		'background' => array(
-			'backgroundImage'    => array(
+			'backgroundImage'      => array(
 				'property_keys' => array(
 					'default' => 'background-image',
 				),
 				'value_func'    => array( self::class, 'get_url_or_value_css_declaration' ),
 				'path'          => array( 'background', 'backgroundImage' ),
 			),
-			'backgroundPosition' => array(
+			'backgroundPosition'   => array(
 				'property_keys' => array(
 					'default' => 'background-position',
 				),
 				'path'          => array( 'background', 'backgroundPosition' ),
 			),
-			'backgroundRepeat'   => array(
+			'backgroundRepeat'     => array(
 				'property_keys' => array(
 					'default' => 'background-repeat',
 				),
 				'path'          => array( 'background', 'backgroundRepeat' ),
 			),
-			'backgroundSize'     => array(
+			'backgroundSize'       => array(
 				'property_keys' => array(
 					'default' => 'background-size',
 				),
 				'path'          => array( 'background', 'backgroundSize' ),
+			),
+			'backgroundAttachment' => array(
+				'property_keys' => array(
+					'default' => 'background-attachment',
+				),
+				'path'          => array( 'background', 'backgroundAttachment' ),
 			),
 		),
 		'color'      => array(
@@ -135,6 +143,9 @@ final class WP_Style_Engine {
 					'individual' => 'border-%s-radius',
 				),
 				'path'          => array( 'border', 'radius' ),
+				'css_vars'      => array(
+					'border-radius' => '--wp--preset--border-radius--$slug',
+				),
 			),
 			'style'  => array(
 				'property_keys' => array(
@@ -200,13 +211,31 @@ final class WP_Style_Engine {
 					'has-aspect-ratio' => true,
 				),
 			),
+			'height'      => array(
+				'property_keys' => array(
+					'default' => 'height',
+				),
+				'path'          => array( 'dimensions', 'height' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
 			'minHeight'   => array(
 				'property_keys' => array(
 					'default' => 'min-height',
 				),
 				'path'          => array( 'dimensions', 'minHeight' ),
 				'css_vars'      => array(
-					'spacing' => '--wp--preset--spacing--$slug',
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
+			'width'       => array(
+				'property_keys' => array(
+					'default' => 'width',
+				),
+				'path'          => array( 'dimensions', 'width' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
 				),
 			),
 		),
@@ -287,6 +316,12 @@ final class WP_Style_Engine {
 				),
 				'path'          => array( 'typography', 'textDecoration' ),
 			),
+			'textIndent'     => array(
+				'property_keys' => array(
+					'default' => 'text-indent',
+				),
+				'path'          => array( 'typography', 'textIndent' ),
+			),
 			'textTransform'  => array(
 				'property_keys' => array(
 					'default' => 'text-transform',
@@ -298,6 +333,12 @@ final class WP_Style_Engine {
 					'default' => 'letter-spacing',
 				),
 				'path'          => array( 'typography', 'letterSpacing' ),
+			),
+			'writingMode'    => array(
+				'property_keys' => array(
+					'default' => 'writing-mode',
+				),
+				'path'          => array( 'typography', 'writingMode' ),
 			),
 		),
 	);
@@ -441,8 +482,15 @@ final class WP_Style_Engine {
 					continue;
 				}
 
-				$parsed_styles['classnames']   = array_merge( $parsed_styles['classnames'], static::get_classnames( $style_value, $style_definition ) );
-				$parsed_styles['declarations'] = array_merge( $parsed_styles['declarations'], static::get_css_declarations( $style_value, $style_definition, $options ) );
+				$classnames = static::get_classnames( $style_value, $style_definition );
+				if ( ! empty( $classnames ) ) {
+					$parsed_styles['classnames'] = array_merge( $parsed_styles['classnames'], $classnames );
+				}
+
+				$css_declarations = static::get_css_declarations( $style_value, $style_definition, $options );
+				if ( ! empty( $css_declarations ) ) {
+					$parsed_styles['declarations'] = array_merge( $parsed_styles['declarations'], $css_declarations );
+				}
 			}
 		}
 

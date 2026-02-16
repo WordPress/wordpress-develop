@@ -73,7 +73,7 @@ wp_admin_notice(
 
 			?>
 			<h3 class="health-check-accordion-heading">
-				<button aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-<?php echo esc_attr( $section ); ?>" type="button">
+				<button id="health-check-section-<?php echo esc_attr( $section ); ?>" aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-<?php echo esc_attr( $section ); ?>" type="button">
 					<span class="title">
 						<?php echo esc_html( $details['label'] ); ?>
 						<?php
@@ -108,7 +108,7 @@ wp_admin_notice(
 				}
 
 				?>
-				<table class="widefat striped health-check-table" role="presentation">
+				<table class="widefat striped health-check-table">
 					<tbody>
 					<?php
 
@@ -126,9 +126,9 @@ wp_admin_notice(
 						}
 
 						if ( in_array( $field_name, $sizes_fields, true ) ) {
-							printf( '<tr><td>%s</td><td class="%s">%s</td></tr>', esc_html( $field['label'] ), esc_attr( $field_name ), $values );
+							printf( '<tr><th scope="row">%s</th><td class="%s">%s</td></tr>', esc_html( $field['label'] ), esc_attr( $field_name ), $values );
 						} else {
-							printf( '<tr><td>%s</td><td>%s</td></tr>', esc_html( $field['label'] ), $values );
+							printf( '<tr><th scope="row">%s</th><td>%s</td></tr>', esc_html( $field['label'] ), $values );
 						}
 					}
 

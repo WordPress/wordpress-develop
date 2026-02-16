@@ -513,6 +513,67 @@ HTML
 	}
 
 	/**
+	 * Ensures that basic CDATA sections inside foreign content are detected.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_basic_cdata_in_foreign_content() {
+		$processor = new WP_HTML_Tag_Processor( '<svg><![CDATA[this is >&gt; real CDATA]]></svg>' );
+		$processor->next_token();
+
+		// Artificially change namespace; this should be done in the HTML Processor.
+		$processor->change_parsing_namespace( 'svg' );
+		$processor->next_token();
+
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			"Should have found a CDATA section but found {$processor->get_token_name()} instead."
+		);
+
+		$this->assertNull(
+			$processor->get_tag(),
+			'Should not have been able to query tag name on non-element token.'
+		);
+
+		$this->assertNull(
+			$processor->get_attribute( 'type' ),
+			'Should not have been able to query attributes on non-element token.'
+		);
+
+		$this->assertSame(
+			'this is >&gt; real CDATA',
+			$processor->get_modifiable_text(),
+			'Found incorrect modifiable text.'
+		);
+	}
+
+	/**
+	 * Ensures that empty CDATA sections inside foreign content are detected.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_empty_cdata_in_foreign_content() {
+		$processor = new WP_HTML_Tag_Processor( '<svg><![CDATA[]]></svg>' );
+		$processor->next_token();
+
+		// Artificially change namespace; this should be done in the HTML Processor.
+		$processor->change_parsing_namespace( 'svg' );
+		$processor->next_token();
+
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			"Should have found a CDATA section but found {$processor->get_token_name()} instead."
+		);
+
+		$this->assertEmpty(
+			$processor->get_modifiable_text(),
+			'Found non-empty modifiable text.'
+		);
+	}
+
+	/**
 	 * Ensures that normative Processing Instruction nodes are properly parsed.
 	 *
 	 * @ticket 60170

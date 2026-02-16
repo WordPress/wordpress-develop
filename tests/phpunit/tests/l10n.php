@@ -16,6 +16,17 @@ class Tests_L10n extends WP_UnitTestCase {
 	private $long_text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 
 	/**
+	 * Editor user ID.
+	 *
+	 * @var int $editor_id
+	 */
+	public static $editor_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
+
+	/**
 	 * @ticket 35961
 	 *
 	 * @covers ::_n_noop
@@ -464,7 +475,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => $this->long_text,
@@ -503,7 +514,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => $this->long_text,
@@ -542,7 +553,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => str_repeat( 'あ', 200 ),

@@ -113,13 +113,13 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param int $nth Retrieve the nth item on the stack, with 1 being
 	 *                 the top element, 2 being the second, etc...
-	 * @return string|null Name of the node on the stack at the given location,
-	 *                     or `null` if the location isn't on the stack.
+	 * @return WP_HTML_Token|null Name of the node on the stack at the given location,
+	 *                            or `null` if the location isn't on the stack.
 	 */
-	public function at( int $nth ): ?string {
+	public function at( int $nth ): ?WP_HTML_Token {
 		foreach ( $this->walk_down() as $item ) {
 			if ( 0 === --$nth ) {
-				return $item->node_name;
+				return $item;
 			}
 		}
 
@@ -242,18 +242,22 @@ class WP_HTML_Open_Elements {
 	 */
 	public function has_element_in_specific_scope( string $tag_name, $termination_list ): bool {
 		foreach ( $this->walk_up() as $node ) {
-			if ( $node->node_name === $tag_name ) {
+			$namespaced_name = 'html' === $node->namespace
+				? $node->node_name
+				: "{$node->namespace} {$node->node_name}";
+
+			if ( $namespaced_name === $tag_name ) {
 				return true;
 			}
 
 			if (
 				'(internal: H1 through H6 - do not use)' === $tag_name &&
-				in_array( $node->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
+				in_array( $namespaced_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
 			) {
 				return true;
 			}
 
-			if ( in_array( $node->node_name, $termination_list, true ) ) {
+			if ( in_array( $namespaced_name, $termination_list, true ) ) {
 				return false;
 			}
 		}
@@ -288,7 +292,7 @@ class WP_HTML_Open_Elements {
 	 * >   - SVG title
 	 *
 	 * @since 6.4.0
-	 * @since 6.7.0 Supports all required HTML elements.
+	 * @since 6.7.0 Full support.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-scope
 	 *
@@ -308,7 +312,17 @@ class WP_HTML_Open_Elements {
 				'MARQUEE',
 				'OBJECT',
 				'TEMPLATE',
-				// @todo: Support SVG and MathML nodes when support for foreign content is added.
+
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
 			)
 		);
 	}
@@ -349,7 +363,17 @@ class WP_HTML_Open_Elements {
 				'OL',
 				'TEMPLATE',
 				'UL',
-				// @todo: Support SVG and MathML nodes when support for foreign content is added.
+
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
 			)
 		);
 	}
@@ -386,7 +410,17 @@ class WP_HTML_Open_Elements {
 				'MARQUEE',
 				'OBJECT',
 				'TEMPLATE',
-				// @todo: Support SVG and MathML nodes when support for foreign content is added.
+
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
 			)
 		);
 	}
@@ -486,41 +520,36 @@ class WP_HTML_Open_Elements {
 			return false;
 		}
 
-		if ( 'context-node' === $item->bookmark_name ) {
-			$this->stack[] = $item;
-			return false;
-		}
-
 		$this->after_element_pop( $item );
 		return true;
 	}
 
 	/**
-	 * Pops nodes off of the stack of open elements until one with the given tag name has been popped.
+	 * Pops nodes off of the stack of open elements until an HTML tag with the given name has been popped.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @see WP_HTML_Open_Elements::pop
 	 *
-	 * @param string $tag_name Name of tag that needs to be popped off of the stack of open elements.
+	 * @param string $html_tag_name Name of tag that needs to be popped off of the stack of open elements.
 	 * @return bool Whether a tag of the given name was found and popped off of the stack of open elements.
 	 */
-	public function pop_until( string $tag_name ): bool {
+	public function pop_until( string $html_tag_name ): bool {
 		foreach ( $this->walk_up() as $item ) {
-			if ( 'context-node' === $item->bookmark_name ) {
-				return true;
-			}
-
 			$this->pop();
 
+			if ( 'html' !== $item->namespace ) {
+				continue;
+			}
+
 			if (
-				'(internal: H1 through H6 - do not use)' === $tag_name &&
+				'(internal: H1 through H6 - do not use)' === $html_tag_name &&
 				in_array( $item->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
 			) {
 				return true;
 			}
 
-			if ( $tag_name === $item->node_name ) {
+			if ( $html_tag_name === $item->node_name ) {
 				return true;
 			}
 		}
@@ -551,10 +580,6 @@ class WP_HTML_Open_Elements {
 	 * @return bool Whether the node was found and removed from the stack of open elements.
 	 */
 	public function remove_node( WP_HTML_Token $token ): bool {
-		if ( 'context-node' === $token->bookmark_name ) {
-			return false;
-		}
-
 		foreach ( $this->walk_up() as $position_from_end => $item ) {
 			if ( $token->bookmark_name !== $item->bookmark_name ) {
 				continue;
@@ -653,11 +678,15 @@ class WP_HTML_Open_Elements {
 	 * @param WP_HTML_Token $item Element that was added to the stack of open elements.
 	 */
 	public function after_element_push( WP_HTML_Token $item ): void {
+		$namespaced_name = 'html' === $item->namespace
+			? $item->node_name
+			: "{$item->namespace} {$item->node_name}";
+
 		/*
 		 * When adding support for new elements, expand this switch to trap
 		 * cases where the precalculated value needs to change.
 		 */
-		switch ( $item->node_name ) {
+		switch ( $namespaced_name ) {
 			case 'APPLET':
 			case 'BUTTON':
 			case 'CAPTION':
@@ -668,6 +697,15 @@ class WP_HTML_Open_Elements {
 			case 'MARQUEE':
 			case 'OBJECT':
 			case 'TEMPLATE':
+			case 'math MI':
+			case 'math MO':
+			case 'math MN':
+			case 'math MS':
+			case 'math MTEXT':
+			case 'math ANNOTATION-XML':
+			case 'svg FOREIGNOBJECT':
+			case 'svg DESC':
+			case 'svg TITLE':
 				$this->has_p_in_button_scope = false;
 				break;
 
@@ -677,7 +715,7 @@ class WP_HTML_Open_Elements {
 		}
 
 		if ( null !== $this->push_handler ) {
-			( $this->push_handler )( $item );
+			call_user_func( $this->push_handler, $item );
 		}
 	}
 
@@ -711,12 +749,21 @@ class WP_HTML_Open_Elements {
 			case 'MARQUEE':
 			case 'OBJECT':
 			case 'TEMPLATE':
+			case 'math MI':
+			case 'math MO':
+			case 'math MN':
+			case 'math MS':
+			case 'math MTEXT':
+			case 'math ANNOTATION-XML':
+			case 'svg FOREIGNOBJECT':
+			case 'svg DESC':
+			case 'svg TITLE':
 				$this->has_p_in_button_scope = $this->has_element_in_button_scope( 'P' );
 				break;
 		}
 
 		if ( null !== $this->pop_handler ) {
-			( $this->pop_handler )( $item );
+			call_user_func( $this->pop_handler, $item );
 		}
 	}
 

@@ -64,8 +64,8 @@ class Walker_Nav_Menu_Checklist extends Walker_Nav_Menu {
 	 * @since 5.9.0 Renamed `$item` to `$data_object` and `$id` to `$current_object_id`
 	 *              to match parent class for PHP 8 named parameter support.
 	 *
-	 * @global int        $_nav_menu_placeholder
-	 * @global int|string $nav_menu_selected_id
+	 * @global int        $_nav_menu_placeholder A placeholder for the nav menu item ID.
+	 * @global int|string $nav_menu_selected_id  The ID of the selected nav menu.
 	 *
 	 * @param string   $output            Used to append additional content (passed by reference).
 	 * @param WP_Post  $data_object       Menu item data object.
@@ -117,7 +117,7 @@ class Walker_Nav_Menu_Checklist extends Walker_Nav_Menu {
 		$output .= '<input type="hidden" class="menu-item-parent-id" name="menu-item[' . $possible_object_id . '][menu-item-parent-id]" value="' . esc_attr( $menu_item->menu_item_parent ) . '" />';
 		$output .= '<input type="hidden" class="menu-item-type" name="menu-item[' . $possible_object_id . '][menu-item-type]" value="' . esc_attr( $menu_item->type ) . '" />';
 		$output .= '<input type="hidden" class="menu-item-title" name="menu-item[' . $possible_object_id . '][menu-item-title]" value="' . esc_attr( $menu_item->title ) . '" />';
-		$output .= '<input type="hidden" class="menu-item-url" name="menu-item[' . $possible_object_id . '][menu-item-url]" value="' . esc_attr( $menu_item->url ) . '" />';
+		$output .= '<input type="hidden" class="menu-item-url" name="menu-item[' . $possible_object_id . '][menu-item-url]" value="' . esc_url( $menu_item->url ) . '" />';
 		$output .= '<input type="hidden" class="menu-item-target" name="menu-item[' . $possible_object_id . '][menu-item-target]" value="' . esc_attr( $menu_item->target ) . '" />';
 		$output .= '<input type="hidden" class="menu-item-attr-title" name="menu-item[' . $possible_object_id . '][menu-item-attr-title]" value="' . esc_attr( $menu_item->attr_title ) . '" />';
 		$output .= '<input type="hidden" class="menu-item-classes" name="menu-item[' . $possible_object_id . '][menu-item-classes]" value="' . esc_attr( implode( ' ', $menu_item->classes ) ) . '" />';

@@ -77,17 +77,17 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
+	// Notice fixing.
+	$original += array(
+		'host'   => '',
+		'path'   => '',
+		'query'  => '',
+		'scheme' => '',
+	);
+
 	$redirect     = $original;
 	$redirect_url = false;
 	$redirect_obj = false;
-
-	// Notice fixing.
-	if ( ! isset( $redirect['path'] ) ) {
-		$redirect['path'] = '';
-	}
-	if ( ! isset( $redirect['query'] ) ) {
-		$redirect['query'] = '';
-	}
 
 	/*
 	 * If the original URL ended with non-breaking spaces, they were almost
@@ -553,16 +553,17 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$attachment_id        = get_query_var( 'attachment_id' );
 		$attachment_post      = get_post( $attachment_id );
 		$attachment_parent_id = $attachment_post ? $attachment_post->post_parent : 0;
+		$attachment_url       = wp_get_attachment_url( $attachment_id );
 
-		$attachment_url = wp_get_attachment_url( $attachment_id );
 		if ( $attachment_url !== $redirect_url ) {
 			/*
-			* If an attachment is attached to a post, it inherits the parent post's status. Fetch the
-			* parent post to check its status later.
-			*/
+			 * If an attachment is attached to a post, it inherits the parent post's status.
+			 * Fetch the parent post to check its status later.
+			 */
 			if ( $attachment_parent_id ) {
 				$redirect_obj = get_post( $attachment_parent_id );
 			}
+
 			$redirect_url = $attachment_url;
 		}
 
@@ -613,6 +614,14 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	} else {
 		unset( $redirect['port'] );
 	}
+
+	// Notice prevention after new parse_url( $redirect_url ) calls
+	$redirect += array(
+		'host'   => '',
+		'path'   => '',
+		'query'  => '',
+		'scheme' => '',
+	);
 
 	// Trailing /index.php.
 	$redirect['path'] = preg_replace( '|/' . preg_quote( $wp_rewrite->index, '|' ) . '/*?$|', '/', $redirect['path'] );

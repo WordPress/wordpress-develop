@@ -137,8 +137,8 @@ class WP_Widget {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array $instance Current settings.
-	 * @return string Default return is 'noform'.
+	 * @param array $instance The settings for the particular instance of the widget.
+	 * @return string|void Default return is 'noform'.
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
@@ -447,7 +447,7 @@ class WP_Widget {
 				$new_instance = stripslashes_deep( $new_instance );
 				$this->_set( $number );
 
-				$old_instance = isset( $all_instances[ $number ] ) ? $all_instances[ $number ] : array();
+				$old_instance = $all_instances[ $number ] ?? array();
 
 				$was_cache_addition_suspended = wp_suspend_cache_addition();
 				if ( $this->is_preview() && ! $was_cache_addition_suspended ) {

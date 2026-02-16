@@ -649,6 +649,10 @@ html[lang="th"] .edit-post-visual-editor * {
 	border: 0 solid;
 }
 
+figure.wp-block-pullquote blockquote {
+	color: inherit;
+}
+
 .wp-block-pullquote.alignleft blockquote > .editor-rich-text p,
 .wp-block-pullquote.alignright blockquote > .editor-rich-text p {
 	font-size: 20px;
@@ -817,4 +821,13 @@ table.wp-block-table td:last-child {
 	list-style: none;
 	margin-left: 0;
 	margin-right: 0;
+}
+
+/* Search */
+
+.wp-block-search__button {
+	background-color: #222;
+	color: #fff;
+	font-weight: 800;
+	line-height: 1.5;
 }
