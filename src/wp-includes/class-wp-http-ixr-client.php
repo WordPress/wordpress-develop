@@ -23,8 +23,8 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 		if ( ! $path ) {
 			// Assume we have been given a URL instead.
 			$bits         = parse_url( $server );
-			$this->scheme = $bits['scheme'];
-			$this->server = $bits['host'];
+			$this->scheme = $bits['scheme'] ?? '';
+			$this->server = $bits['host'] ?? '';
 			$this->port   = $bits['port'] ?? $port;
 			$this->path   = ! empty( $bits['path'] ) ? $bits['path'] : '/';
 
