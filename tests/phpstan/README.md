@@ -57,7 +57,7 @@ PHPStan errors can be ignored in the following ways:
 
 - Using the `@phpstan-ignore {error-identifier} (Reason for ignoring)` annotation in the code itself. This should be used to suppress false positives with a specific line of code.
 
-- Adding the error pattern to the `ignoreErrors` section of the `phpstan.neon.dist` configuration file. This should be used handle conflicts with WordPress Coding Standards or similar project decisions, or to allowlist legacy code that is not worth refactoring solely to satisfy the tests.
+- Adding the error pattern to the `ignoreErrors` section of the `phpstan.neon.dist` configuration file. This should be used to handle conflicts with WordPress Coding Standards or similar project decisions, or to allowlist legacy code that is not worth refactoring solely to satisfy the tests.
 
 - Adding an error to the "tech debt" baseline. This should be used for code that needs to be addressed eventually - by fixing, refactoring, or ignoring via one of the above methods - but is not worth addressing right now.
 
