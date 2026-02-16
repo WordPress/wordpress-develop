@@ -35,8 +35,8 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		public function register( $wp_customize ) {
 
 			// Change site-title & description to postMessage.
-			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage'; // @phpstan-ignore-line. Assume that this setting exists.
-			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage'; // @phpstan-ignore-line. Assume that this setting exists.
+			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage'; // @phpstan-ignore property.nonObject (Assume that this setting exists.)
+			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage'; // @phpstan-ignore property.nonObject (Assume that this setting exists.)
 
 			// Add partial for blogname.
 			$wp_customize->selective_refresh->add_partial(
