@@ -13,7 +13,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 	 */
 	public function test_marks_attributes_with_auto_register_flag() {
 		$settings = array(
-			'supports'   => array( 'auto_register' => true ),
+			'supports'   => array( 'autoRegister' => true ),
 			'attributes' => array(
 				'title' => array( 'type' => 'string' ),
 				'count' => array( 'type' => 'integer' ),
