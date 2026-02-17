@@ -416,7 +416,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				'responses'       => array_fill(
 					0,
 					3,
-					array( 'x-cache' => 'shit' )
+					array( 'x-cache' => 'no-hit' )
 				),
 				'expected_status' => 'recommended',
 				'expected_label'  => $recommended_label,
