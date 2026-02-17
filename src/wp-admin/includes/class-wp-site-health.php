@@ -3462,7 +3462,6 @@ class WP_Site_Health {
 			'x-cache-disabled'       => static function ( $header_value ) {
 				return ( 'on' !== strtolower( $header_value ) );
 			},
-			'x-proxy-cache'          => $cache_hit_callback,
 
 			/**
 			 * CloudFlare.
@@ -3505,8 +3504,10 @@ class WP_Site_Health {
 			 * Nginx.
 			 *
 			 * @link https://blog.nginx.org/blog/nginx-caching-guide
+			 * @link https://www.inmotionhosting.com/support/website/nginx-cache-management/
 			 */
 			'x-cache-status'         => $cache_hit_callback,
+			'x-proxy-cache'          => $cache_hit_callback,
 
 			/**
 			 * Varnish Cache.
