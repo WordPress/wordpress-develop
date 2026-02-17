@@ -59,9 +59,14 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @param string $room   Room identifier.
 	 * @param mixed  $update Sync update.
+	 * @return bool True on success, false on failure.
 	 */
-	public function add_update( string $room, mixed $update ): void {
-		$post_id  = $this->get_storage_post_id();
+	public function add_update( string $room, $update ): bool {
+		$post_id = $this->get_storage_post_id();
+		if ( null === $post_id ) {
+			return false;
+		}
+
 		$meta_key = $this->get_room_meta_key( $room );
 
 		// Create an envelope and stamp each update to enable cursor-based filtering.
@@ -70,19 +75,25 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			'value'     => $update,
 		);
 
-		add_post_meta( $post_id, $meta_key, $envelope, false );
+		return (bool) add_post_meta( $post_id, $meta_key, $envelope, false );
 	}
 
 	/**
 	 * Retrieve all sync updates for a given room.
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param string $room Room identifier.
-	 * @return array<mixed> Array of sync updates.
+	 * @return array<int, array{ timestamp: int, value: mixed }> Sync updates.
 	 */
 	private function get_all_updates( string $room ): array {
 		$this->room_cursors[ $room ] = $this->get_time_marker() - 100; // Small buffer to ensure consistency.
 
-		$post_id  = $this->get_storage_post_id();
+		$post_id = $this->get_storage_post_id();
+		if ( null === $post_id ) {
+			return array();
+		}
+
 		$meta_key = $this->get_room_meta_key( $room );
 		$updates  = get_post_meta( $post_id, $meta_key, false );
 
@@ -104,7 +115,11 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return array<int, mixed> Awareness state.
 	 */
 	public function get_awareness_state( string $room ): array {
-		$post_id   = $this->get_storage_post_id();
+		$post_id = $this->get_storage_post_id();
+		if ( null === $post_id ) {
+			return array();
+		}
+
 		$meta_key  = $this->get_awareness_meta_key( $room );
 		$awareness = get_post_meta( $post_id, $meta_key, true );
 
@@ -122,12 +137,19 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @param string            $room      Room identifier.
 	 * @param array<int, mixed> $awareness Serializable awareness state.
+	 * @return bool True on success, false on failure.
 	 */
-	public function set_awareness_state( string $room, array $awareness ): void {
-		$post_id  = $this->get_storage_post_id();
+	public function set_awareness_state( string $room, array $awareness ): bool {
+		$post_id = $this->get_storage_post_id();
+		if ( null === $post_id ) {
+			return false;
+		}
+
 		$meta_key = $this->get_awareness_meta_key( $room );
 
+		// update_post_meta returns false if the value is the same as the existing value.
 		update_post_meta( $post_id, $meta_key, $awareness );
+		return true;
 	}
 
 	/**
@@ -262,37 +284,36 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	}
 
 	/**
-	 * Removes all sync updates for a given room.
-	 *
-	 * @param string $room Room identifier.
-	 */
-	private function remove_all_updates( string $room ): void {
-		$post_id  = $this->get_storage_post_id();
-		$meta_key = $this->get_room_meta_key( $room );
-
-		delete_post_meta( $post_id, $meta_key );
-	}
-
-	/**
 	 * Removes updates from a room that are older than the given cursor.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Remove updates with markers < this cursor.
+	 * @return bool True on success, false on failure.
 	 */
-	public function remove_updates_before_cursor( string $room, int $cursor ): void {
-		$all_updates = $this->get_all_updates( $room );
-		$this->remove_all_updates( $room );
+	public function remove_updates_before_cursor( string $room, int $cursor ): bool {
+		$post_id = $this->get_storage_post_id();
+		if ( null === $post_id ) {
+			return false;
+		}
 
-		$post_id  = $this->get_storage_post_id();
-		$meta_key = $this->get_room_meta_key( $room );
+		$all_updates = $this->get_all_updates( $room );
+		$meta_key    = $this->get_room_meta_key( $room );
+
+		// Remove all updates for the room and re-store only those that are newer than the cursor.
+		if ( ! delete_post_meta( $post_id, $meta_key ) ) {
+			return false;
+		}
 
 		// Re-store envelopes directly to avoid double-wrapping by add_update().
+		$add_result = true;
 		foreach ( $all_updates as $envelope ) {
-			if ( $envelope['timestamp'] >= $cursor ) {
-				add_post_meta( $post_id, $meta_key, $envelope, false );
+			if ( $add_result && $envelope['timestamp'] >= $cursor ) {
+				$add_result = (bool) add_post_meta( $post_id, $meta_key, $envelope, false );
 			}
 		}
+
+		return $add_result;
 	}
 }

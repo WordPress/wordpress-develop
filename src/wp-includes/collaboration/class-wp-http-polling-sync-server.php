@@ -230,13 +230,19 @@ class WP_HTTP_Polling_Sync_Server {
 
 			// Merge awareness state.
 			$merged_awareness = $this->process_awareness_update( $room, $client_id, $awareness );
+			if ( is_wp_error( $merged_awareness ) ) {
+				return $merged_awareness;
+			}
 
 			// The lowest client ID is nominated to perform compaction when needed.
 			$is_compactor = min( array_keys( $merged_awareness ) ) === $client_id;
 
 			// Process each update according to its type.
 			foreach ( $room_request['updates'] as $update ) {
-				$this->process_sync_update( $room, $client_id, $cursor, $update );
+				$result = $this->process_sync_update( $room, $client_id, $cursor, $update );
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
 			}
 
 			// Get updates for this client.
@@ -319,6 +325,7 @@ class WP_HTTP_Polling_Sync_Server {
 			);
 		}
 
+		// This action can fail, but it shouldn't fail the entire request.
 		$this->storage->set_awareness_state( $room, $updated_awareness );
 
 		// Convert to client_id => state map for response.
@@ -337,8 +344,9 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param int                  $client_id Client identifier.
 	 * @param int                  $cursor    Client cursor (marker of last seen update).
 	 * @param array<string, mixed> $update    Sync update with 'type' and 'data' fields.
+	 * @return true|WP_Error True on success, WP_Error on storage failure.
 	 */
-	private function process_sync_update( string $room, int $client_id, int $cursor, array $update ): void {
+	private function process_sync_update( string $room, int $client_id, int $cursor, array $update ) {
 		$data = $update['data'];
 		$type = $update['type'];
 
@@ -363,8 +371,15 @@ class WP_HTTP_Polling_Sync_Server {
 				}
 
 				if ( ! $has_newer_compaction ) {
-					$this->storage->remove_updates_before_cursor( $room, $cursor );
-					$this->add_update( $room, $client_id, $type, $data );
+					if ( ! $this->storage->remove_updates_before_cursor( $room, $cursor ) ) {
+						return new WP_Error(
+							'sync_storage_error',
+							__( 'Failed to remove updates during compaction.' ),
+							array( 'status' => 500 )
+						);
+					}
+
+					return $this->add_update( $room, $client_id, $type, $data );
 				}
 				break;
 
@@ -380,9 +395,15 @@ class WP_HTTP_Polling_Sync_Server {
 				 *
 				 * All updates are stored persistently.
 				 */
-				$this->add_update( $room, $client_id, $type, $data );
+				return $this->add_update( $room, $client_id, $type, $data );
 				break;
 		}
+
+		return new WP_Error(
+			'invalid_update_type',
+			__( 'Invalid sync update type.' ),
+			array( 'status' => 400 )
+		);
 	}
 
 	/**
@@ -392,15 +413,24 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param int    $client_id Client identifier.
 	 * @param string $type      Update type (sync_step1, sync_step2, update, compaction).
 	 * @param string $data      Base64-encoded update data.
+	 * @return bool|WP_Error True on success, WP_Error on storage failure.
 	 */
-	private function add_update( string $room, int $client_id, string $type, string $data ): void {
+	private function add_update( string $room, int $client_id, string $type, string $data ) {
 		$update = array(
 			'client_id' => $client_id,
 			'data'      => $data,
 			'type'      => $type,
 		);
 
-		$this->storage->add_update( $room, $update );
+		if ( ! $this->storage->add_update( $room, $update ) ) {
+			return new WP_Error(
+				'sync_storage_error',
+				__( 'Failed to store sync update.' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		return true;
 	}
 
 	/**

@@ -20,8 +20,9 @@ interface WP_Sync_Storage {
 	 *
 	 * @param string $room   Room identifier.
 	 * @param mixed  $update Serializable sync update, opaque to the storage implementation.
+	 * @return bool True on success, false on failure.
 	 */
-	public function add_update( string $room, $update ): void;
+	public function add_update( string $room, $update ): bool;
 
 	/**
 	 * Gets awareness state for a given room.
@@ -75,8 +76,9 @@ interface WP_Sync_Storage {
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Remove updates with markers < this cursor.
+	 * @return bool True on success, false on failure.
 	 */
-	public function remove_updates_before_cursor( string $room, int $cursor ): void;
+	public function remove_updates_before_cursor( string $room, int $cursor ): bool;
 
 	/**
 	 * Sets awareness state for a given room.
@@ -85,6 +87,7 @@ interface WP_Sync_Storage {
 	 *
 	 * @param string            $room      Room identifier.
 	 * @param array<int, mixed> $awareness Serializable awareness state.
+	 * @return bool True on success, false on failure.
 	 */
-	public function set_awareness_state( string $room, array $awareness ): void;
+	public function set_awareness_state( string $room, array $awareness ): bool;
 }
