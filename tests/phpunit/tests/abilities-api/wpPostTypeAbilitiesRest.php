@@ -172,6 +172,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		unregister_meta_key( 'post', 'c' );
 		unregister_meta_key( 'post', 'My.Key' );
 		unregister_meta_key( 'post', 'structured_object' );
+		unregister_meta_key( 'post', 'schema_constrained' );
 	}
 
 	/**
@@ -235,6 +236,20 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 				'type'              => 'object',
 				'single'            => true,
 				'show_in_abilities' => true,
+			)
+		);
+		register_meta(
+			'post',
+			'schema_constrained',
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_abilities' => array(
+					'schema' => array(
+						'type' => 'string',
+						'enum' => array( 'allowed' ),
+					),
+				),
 			)
 		);
 
@@ -720,6 +735,69 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 		// The 'x' meta key should NOT be present since it's not registered with show_in_abilities.
 		$this->assertArrayNotHasKey( 'x', (array) $data['meta'] );
+	}
+
+	/**
+	 * Tests that a schema-based `show_in_abilities` registration is accepted for meta queries.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_query_with_schema_based_registration_succeeds(): void {
+		update_post_meta( self::$post_ids[1], 'schema_constrained', 'allowed' );
+
+		$response = $this->dispatch_get_ability(
+			array(
+				'query'    => array(
+					'meta' => array(
+						'queries' => array(
+							array(
+								'key'     => 'schema_constrained',
+								'compare' => '=',
+								'value'   => 'allowed',
+							),
+						),
+					),
+				),
+				'per_page' => 100,
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data     = $response->get_data();
+		$post_ids = $this->get_response_post_ids( $data );
+
+		$this->assertContains( self::$post_ids[1], $post_ids );
+	}
+
+	/**
+	 * Tests that `show_in_abilities.schema` is enforced when meta is included in output.
+	 *
+	 * @ticket 64606
+	 */
+	public function test_meta_include_with_schema_invalid_value_fails_output_validation(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Post with invalid schema-constrained meta',
+				'post_status' => 'publish',
+			)
+		);
+		update_post_meta( $post_id, 'schema_constrained', 'blocked' );
+
+		$response = $this->dispatch_get_ability(
+			array(
+				'id'      => $post_id,
+				'include' => array( 'meta' => true ),
+			)
+		);
+
+		wp_delete_post( $post_id, true );
+
+		$this->assertSame( 500, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'ability_invalid_output', $data['code'] );
+		$this->assertStringContainsString( 'schema_constrained', $data['message'] );
+		$this->assertStringContainsString( 'output', $data['message'] );
 	}
 
 	/**

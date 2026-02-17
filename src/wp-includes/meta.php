@@ -1425,7 +1425,9 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *                                          support for custom fields for registered meta to be accessible via REST.
  *                                          When registering complex meta values this argument may optionally be an
  *                                          array with 'schema' or 'prepare_callback' keys instead of a boolean.
- *     @type bool       $show_in_abilities  Whether this meta key should be exposed through the Abilities API.
+ *     @type bool|array $show_in_abilities  Whether this meta key should be exposed through the Abilities API.
+ *                                          When registering complex meta values this argument may optionally be an
+ *                                          array with a 'schema' key instead of a boolean.
  *                                          Default false.
  *     @type bool       $revisions_enabled  Whether to enable revisions support for this meta_key. Can only be used when the
  *                                          object type is 'post'.

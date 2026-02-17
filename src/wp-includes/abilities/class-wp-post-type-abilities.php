@@ -821,6 +821,8 @@ class WP_Post_Type_Abilities {
 		);
 
 		if ( post_type_supports( $slug, 'custom-fields' ) ) {
+			$meta_properties = self::get_meta_value_schema_properties( $slug );
+
 			$properties['meta'] = array(
 				'type'                 => 'object',
 				'description'          => __( 'Public post meta key-value pairs. Only present when include.meta is true.' ),
@@ -828,6 +830,10 @@ class WP_Post_Type_Abilities {
 					'type' => array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' ),
 				),
 			);
+
+			if ( ! empty( $meta_properties ) ) {
+				$properties['meta']['properties'] = $meta_properties;
+			}
 		}
 
 		return array(
@@ -1218,13 +1224,9 @@ class WP_Post_Type_Abilities {
 		}
 
 		if ( ! empty( $include['meta'] ) && post_type_supports( $slug, 'custom-fields' ) ) {
-			$meta              = get_post_meta( $post->ID );
-			$public_meta       = array();
-			$allowed_meta_keys = self::get_allowed_meta_keys( $slug );
-			$registered_meta   = array_merge(
-				get_registered_meta_keys( 'post' ),
-				get_registered_meta_keys( 'post', $slug )
-			);
+			$meta         = get_post_meta( $post->ID );
+			$public_meta  = array();
+			$allowed_meta = self::get_allowed_meta( $slug );
 
 			foreach ( $meta as $key => $values ) {
 				// Skip protected meta keys.
@@ -1232,11 +1234,11 @@ class WP_Post_Type_Abilities {
 					continue;
 				}
 				// Only include meta keys that are explicitly allowed.
-				if ( ! in_array( $key, $allowed_meta_keys, true ) ) {
+				if ( ! isset( $allowed_meta[ $key ] ) ) {
 					continue;
 				}
 				// Respect the registered 'single' property for consistent behavior with get_post_meta().
-				$is_single           = ! empty( $registered_meta[ $key ]['single'] );
+				$is_single           = ! empty( $allowed_meta[ $key ]['single'] );
 				$public_meta[ $key ] = $is_single ? ( $values[0] ?? null ) : $values;
 			}
 
@@ -1498,19 +1500,124 @@ class WP_Post_Type_Abilities {
 	 * @return string[] List of allowed meta keys.
 	 */
 	private static function get_allowed_meta_keys( string $post_type_slug ): array {
-		$registered_meta = array_merge(
-			get_registered_meta_keys( 'post' ),
-			get_registered_meta_keys( 'post', $post_type_slug )
-		);
+		return array_keys( self::get_allowed_meta( $post_type_slug ) );
+	}
 
-		$allowed = array();
+	/**
+	 * Returns all registered post meta entries that are exposed through abilities for a post type.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $post_type_slug The post type slug.
+	 * @return array<string, array<string, mixed>> Allowed meta registration args keyed by meta key.
+	 */
+	private static function get_allowed_meta( string $post_type_slug ): array {
+		$registered_meta = self::get_registered_meta_for_post_type( $post_type_slug );
+		$allowed         = array();
+
 		foreach ( $registered_meta as $key => $args ) {
-			if ( ! empty( $args['show_in_abilities'] ) ) {
-				$allowed[] = $key;
+			if ( self::is_meta_enabled_in_abilities( $args ) ) {
+				$allowed[ $key ] = $args;
 			}
 		}
 
-		return array_unique( $allowed );
+		return $allowed;
+	}
+
+	/**
+	 * Returns all registered post meta entries for a post type, with subtype values overriding global ones.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $post_type_slug The post type slug.
+	 * @return array<string, array<string, mixed>> Registered meta args keyed by meta key.
+	 */
+	private static function get_registered_meta_for_post_type( string $post_type_slug ): array {
+		return array_merge(
+			get_registered_meta_keys( 'post' ),
+			get_registered_meta_keys( 'post', $post_type_slug )
+		);
+	}
+
+	/**
+	 * Determines whether a meta key is enabled for abilities.
+	 *
+	 * `show_in_abilities` can be either a boolean or an options array.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array<string, mixed> $args Meta registration args.
+	 * @return bool True if enabled for abilities, false otherwise.
+	 */
+	private static function is_meta_enabled_in_abilities( array $args ): bool {
+		return ! empty( $args['show_in_abilities'] );
+	}
+
+	/**
+	 * Builds keyed value schema properties for meta keys that provide `show_in_abilities.schema`.
+	 *
+	 * Keys without a schema continue using the generic additionalProperties fallback.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $post_type_slug The post type slug.
+	 * @return array<string, array<string, mixed>> Value schema properties keyed by meta key.
+	 */
+	private static function get_meta_value_schema_properties( string $post_type_slug ): array {
+		$properties = array();
+
+		foreach ( self::get_allowed_meta( $post_type_slug ) as $key => $args ) {
+			if (
+				! is_array( $args['show_in_abilities'] )
+				|| ! isset( $args['show_in_abilities']['schema'] )
+				|| ! is_array( $args['show_in_abilities']['schema'] )
+			) {
+				continue;
+			}
+
+			$properties[ $key ] = self::build_meta_value_schema( $args );
+		}
+
+		ksort( $properties );
+
+		return $properties;
+	}
+
+	/**
+	 * Builds the value schema for a single meta key.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array<string, mixed> $args Meta registration args.
+	 * @return array<string, mixed> JSON Schema for the meta value.
+	 */
+	private static function build_meta_value_schema( array $args ): array {
+		$schema = array(
+			'type' => ! empty( $args['type'] ) ? $args['type'] : 'string',
+		);
+
+		if ( ! empty( $args['label'] ) ) {
+			$schema['title'] = $args['label'];
+		}
+
+		if ( ! empty( $args['description'] ) ) {
+			$schema['description'] = $args['description'];
+		}
+
+		if ( array_key_exists( 'default', $args ) ) {
+			$schema['default'] = $args['default'];
+		}
+
+		$schema = array_merge( $schema, $args['show_in_abilities']['schema'] );
+
+		if ( empty( $args['single'] ) ) {
+			$schema = array(
+				'type'  => 'array',
+				'items' => $schema,
+			);
+		}
+
+		return $schema;
 	}
 
 	/**
