@@ -466,6 +466,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 * To delete a menu, the client can send false as the value.
 	 *
 	 * @since 4.3.0
+	 * @since 7.0.0 Return type updated from null|void to bool for compatibility with base class.
 	 *
 	 * @see wp_update_nav_menu_object()
 	 *
