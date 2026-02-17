@@ -414,4 +414,28 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'enum', $setting_schema );
 		$this->assertSame( array( 'open', 'closed' ), $setting_schema['enum'] );
 	}
+
+	/**
+	 * Tests that ability returns error when setting value violates schema enum.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_get_settings_returns_error_for_invalid_enum_value(): void {
+		// Set an invalid value for default_ping_status (violates enum: ['open', 'closed']).
+		update_option( 'default_ping_status', 'invalid_value' );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
+		$request->set_query_params(
+			array(
+				'input' => array(
+					'slugs' => array( 'default_ping_status' ),
+				),
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 500, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'ability_invalid_output', $data['code'] );
+	}
 }
