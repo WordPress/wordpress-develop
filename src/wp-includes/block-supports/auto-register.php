@@ -18,6 +18,7 @@
  * get auto-generated inspector controls. Attributes are excluded if they:
  * - Have a 'source' (HTML-derived, edited inline not via inspector)
  * - Have role 'local' (internal state, not user-configurable)
+ * - Have an unsupported type (only 'string', 'number', 'integer', 'boolean' are supported)
  * - Were added by block supports (added after this filter runs)
  *
  * @since 7.0.0
@@ -43,6 +44,11 @@ function wp_mark_auto_generate_control_attributes( array $args ): array {
 		}
 		// Skip internal attributes (not user-configurable).
 		if ( isset( $attr_schema['role'] ) && 'local' === $attr_schema['role'] ) {
+			continue;
+		}
+		// Skip unsupported types (only 'string', 'number', 'integer', 'boolean' are supported).
+		$type = isset( $attr_schema['type'] ) ? $attr_schema['type'] : null;
+		if ( ! in_array( $type, array( 'string', 'number', 'integer', 'boolean' ), true ) ) {
 			continue;
 		}
 		$args['attributes'][ $attr_key ]['autoGenerateControl'] = true;
