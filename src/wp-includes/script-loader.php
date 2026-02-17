@@ -4135,7 +4135,7 @@ function wp_html_custom_data_attribute_name( string $js_dataset_name ): ?string 
 }
 
 /**
- * Expose blocks with auto_register flag for ServerSideRender in the editor.
+ * Exposes blocks with auto_register flag for ServerSideRender in the editor.
  *
  * Detects blocks that have the auto_register flag set in their supports
  * and passes them to JavaScript for auto-registration with ServerSideRender.
