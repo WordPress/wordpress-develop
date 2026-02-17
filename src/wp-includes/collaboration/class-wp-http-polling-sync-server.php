@@ -27,7 +27,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @since 7.0.0
 	 * @var int
 	 */
-	const AWARENESS_TIMEOUT_IN_S = 30;
+	const AWARENESS_TIMEOUT = 30;
 
 	/**
 	 * Threshold used to signal clients to send a compaction update.
@@ -303,7 +303,7 @@ class WP_HTTP_Polling_Sync_Server {
 			}
 
 			// Remove entries that have expired.
-			if ( $current_time - $entry['updated_at'] >= self::AWARENESS_TIMEOUT_IN_S ) {
+			if ( $current_time - $entry['updated_at'] >= self::AWARENESS_TIMEOUT ) {
 				continue;
 			}
 
