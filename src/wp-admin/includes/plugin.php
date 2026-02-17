@@ -2210,7 +2210,7 @@ function user_can_access_admin_page() {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
 		$plugin_page, $_registered_pages, $admin_page_parent;
 
-	$parent = isset( $admin_page_parent ) ? $admin_page_parent : get_admin_page_parent();
+	$parent = $admin_page_parent ?? get_admin_page_parent();
 
 	if ( ! isset( $plugin_page ) && isset( $_wp_submenu_nopriv[ $parent ][ $pagenow ] ) ) {
 		return false;
