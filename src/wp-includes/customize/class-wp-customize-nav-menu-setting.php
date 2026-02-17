@@ -478,11 +478,11 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 *     @type int    $parent      The id of the parent term. Default 0.
 	 *     @type bool   $auto_add    Whether pages will auto_add to this menu. Default false.
 	 * }
-	 * @return null|void
+	 * @return bool Whether updated.
 	 */
 	protected function update( $value ) {
 		if ( $this->is_updated ) {
-			return;
+			return ( 'error' !== $this->update_status );
 		}
 
 		$this->is_updated = true;
@@ -582,6 +582,8 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 				$this->_widget_nav_menu_updates[ $nav_menu_widget_setting->id ] = $updated_widget_instance;
 			}
 		}
+
+		return ( 'error' !== $this->update_status );
 	}
 
 	/**
