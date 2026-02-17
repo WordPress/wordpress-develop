@@ -170,7 +170,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_page_cache_headers()
 	 * @covers ::check_for_page_caching()
 	 */
-	public function test_get_page_cache( array $responses, string $expected_status, string $expected_label, bool $good_basic_auth = false, bool $delay_the_response = false ) {
+	public function test_get_page_cache( array $responses, string $expected_status, string $expected_label, bool $has_basic_auth = false, bool $delay_the_response = false ) {
 		$expected_props = array(
 			'badge'  => array(
 				'label' => __( 'Performance' ),
@@ -181,7 +181,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			'label'  => $expected_label,
 		);
 
-		if ( $good_basic_auth ) {
+		if ( $has_basic_auth ) {
 			$_SERVER['PHP_AUTH_USER'] = 'admin';
 			$_SERVER['PHP_AUTH_PW']   = 'password';
 		}
@@ -198,7 +198,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function ( $response, $parsed_args ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold ) {
+			function ( $response, $parsed_args ) use ( &$responses, &$is_unauthorized, $has_basic_auth, $delay_the_response, $threshold ) {
 
 				$expected_response = array_shift( $responses );
 
@@ -217,7 +217,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 					);
 				}
 
-				if ( $good_basic_auth ) {
+				if ( $has_basic_auth ) {
 					$this->assertArrayHasKey(
 						'Authorization',
 						$parsed_args['headers']
@@ -282,13 +282,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status' => 'recommended',
 				'expected_label'  => $error_label,
-				'good_basic_auth' => true,
+				'has_basic_auth'  => true,
 			),
 			'no-cache-control'                       => array(
 				'responses'          => array_fill( 0, 3, array() ),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => false,
+				'has_basic_auth'     => false,
 				'delay_the_response' => true,
 			),
 			'no-cache'                               => array(
@@ -314,7 +314,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				'responses'          => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => false,
+				'has_basic_auth'     => false,
 				'delay_the_response' => true,
 			),
 			'age'                                    => array(
@@ -370,7 +370,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => false,
+				'has_basic_auth'     => false,
 				'delay_the_response' => true,
 			),
 			'cache-control-with-basic-auth'          => array(
@@ -381,7 +381,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
-				'good_basic_auth' => true,
+				'has_basic_auth'  => true,
 			),
 			'x-cache-enabled'                        => array(
 				'responses'       => array_fill(
@@ -400,7 +400,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => false,
+				'has_basic_auth'     => false,
 				'delay_the_response' => true,
 			),
 			'x-cache-disabled'                       => array(
