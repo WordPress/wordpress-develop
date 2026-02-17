@@ -3457,11 +3457,34 @@ class WP_Site_Health {
 
 			// Custom caching headers.
 			'x-cache-enabled'        => static function ( $header_value ) {
-				return 'true' === strtolower( $header_value );
+				return ( 'true' === strtolower( $header_value ) );
 			},
 			'x-cache-disabled'       => static function ( $header_value ) {
 				return ( 'on' !== strtolower( $header_value ) );
 			},
+			'x-cache-status'         => $cache_hit_callback, // See <https://blog.nginx.org/blog/nginx-caching-guide>.
+			'x-proxy-cache'          => $cache_hit_callback,
+
+			/**
+			 * CloudFlare.
+			 *
+			 * @link https://developers.cloudflare.com/cache/concepts/cache-responses/
+			 */
+			'cf-cache-status'        => $cache_hit_callback,
+
+			/**
+			 * Fastly.
+			 *
+			 * @link https://www.fastly.com/documentation/reference/http/http-headers/X-Cache/
+			 */
+			'x-cache'                => $cache_hit_callback,
+
+			/**
+			 * LightSpeed.
+			 *
+			 * @link https://docs.litespeedtech.com/lscache/devguide/controls/#x-litespeed-cache
+			 */
+			'x-litespeed-cache'      => $cache_hit_callback,
 
 			/**
 			 * OpenResty srcache-nginx-module.
@@ -3479,12 +3502,6 @@ class WP_Site_Health {
 			},
 			'x-srcache-fetch-status' => $cache_hit_callback,
 
-			// Generic caching proxies (Nginx, Varnish, Squid, Go, Fastly, LiteSpeed, etc.).
-			'x-cache'                => $cache_hit_callback,
-			'x-cache-status'         => $cache_hit_callback,
-			'x-litespeed-cache'      => $cache_hit_callback,
-			'x-proxy-cache'          => $cache_hit_callback,
-
 			/**
 			 * Varnish Cache.
 			 *
@@ -3496,9 +3513,6 @@ class WP_Site_Health {
 			'x-varnish'              => static function ( $header_value ) {
 				return (bool) preg_match( '/\d+ \d+/', $header_value );
 			},
-
-			// Cloudflare.
-			'cf-cache-status'        => $cache_hit_callback,
 		);
 
 		/**
