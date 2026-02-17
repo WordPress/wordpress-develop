@@ -3245,7 +3245,7 @@ function edit_form_image_editor( $post ) {
 			esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
 			'target="_blank"',
 			sprintf(
-				'<span class="screen-reader-text"> %s</span>',
+				'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			)
@@ -3362,7 +3362,7 @@ function attachment_submitbox_metadata() {
 
 	<div class="misc-pub-section misc-pub-attachment">
 		<label for="attachment_url"><?php _e( 'File URL:' ); ?></label>
-		<input type="text" class="widefat urlfield" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
+		<input type="text" class="widefat urlfield ltr" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
 		<span class="copy-to-clipboard-container">
 			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL to clipboard' ); ?></button>
 			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
