@@ -14,7 +14,7 @@
  *
  * @since 2.9.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param string   $id       An internal ID/name for the handler. Needs to be unique.
  * @param string   $regex    The regex that will be used to see if this handler should be used for a URL.
@@ -32,7 +32,7 @@ function wp_embed_register_handler( $id, $regex, $callback, $priority = 10 ) {
  *
  * @since 2.9.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param string $id       The handler ID that should be removed.
  * @param int    $priority Optional. The priority of the handler to be removed. Default 10.
@@ -73,7 +73,7 @@ function wp_embed_defaults( $url = '' ) {
 		$width = 500;
 	}
 
-	$height = min( ceil( $width * 1.5 ), 1000 );
+	$height = min( (int) ceil( $width * 1.5 ), 1000 );
 
 	/**
 	 * Filters the default array of embed dimensions.
@@ -202,7 +202,7 @@ function wp_maybe_load_embeds() {
 		return;
 	}
 
-	wp_embed_register_handler( 'youtube_embed_url', '#https?://(www.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
+	wp_embed_register_handler( 'youtube_embed_url', '#https?://(www\.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
 
 	/**
 	 * Filters the audio embed handler callback.
@@ -230,7 +230,7 @@ function wp_maybe_load_embeds() {
  *
  * @since 4.0.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param array  $matches The RegEx matches from the provided regex when calling
  *                        wp_embed_register_handler().
@@ -244,7 +244,7 @@ function wp_embed_handler_youtube( $matches, $attr, $url, $rawattr ) {
 	$embed = $wp_embed->autoembed( sprintf( 'https://youtube.com/watch?v=%s', urlencode( $matches[2] ) ) );
 
 	/**
-	 * Filters the YoutTube embed output.
+	 * Filters the YouTube embed output.
 	 *
 	 * @since 4.0.0
 	 *
@@ -331,15 +331,27 @@ function wp_oembed_register_route() {
  * Adds oEmbed discovery links in the head element of the website.
  *
  * @since 4.4.0
+ * @since 6.8.0 Output was adjusted to only embed if the post supports it.
+ * @since 6.9.0 Now runs first at `wp_head` priority 4, with a fallback to priority 10. This helps ensure the discovery links appear within the first 150KB.
  */
 function wp_oembed_add_discovery_links() {
+	if ( doing_action( 'wp_head' ) ) {
+		// For back-compat, short-circuit if a plugin has removed the action at the original priority.
+		if ( ! has_action( 'wp_head', 'wp_oembed_add_discovery_links', 10 ) ) {
+			return;
+		}
+
+		// Prevent running again at the original priority.
+		remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+	}
+
 	$output = '';
 
-	if ( is_singular() ) {
-		$output .= '<link rel="alternate" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+	if ( is_singular() && is_post_embeddable() ) {
+		$output .= '<link rel="alternate" title="' . _x( 'oEmbed (JSON)', 'oEmbed resource link name' ) . '" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
 
 		if ( class_exists( 'SimpleXMLElement' ) ) {
-			$output .= '<link rel="alternate" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+			$output .= '<link rel="alternate" title="' . _x( 'oEmbed (XML)', 'oEmbed resource link name' ) . '" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
 		}
 	}
 
@@ -401,7 +413,7 @@ function wp_maybe_enqueue_oembed_host_js( $html ) {
  *
  * @since 4.4.0
  *
- * @param int|WP_Post $post Optional. Post ID or object. Defaults to the current post.
+ * @param int|WP_Post|null $post Optional. Post ID or object. Defaults to the current post.
  * @return string|false The post embed URL on success, false if the post doesn't exist.
  */
 function get_post_embed_url( $post = null ) {
@@ -470,9 +482,9 @@ function get_oembed_endpoint_url( $permalink = '', $format = 'json' ) {
  *
  * @since 4.4.0
  *
- * @param int         $width  The width for the response.
- * @param int         $height The height for the response.
- * @param int|WP_Post $post   Optional. Post ID or object. Default is global `$post`.
+ * @param int              $width  The width for the response.
+ * @param int              $height The height for the response.
+ * @param int|WP_Post|null $post   Optional. Post ID or object. Default is global `$post`.
  * @return string|false Embed code on success, false if post doesn't exist.
  */
 function get_post_embed_html( $width, $height, $post = null ) {
@@ -510,13 +522,16 @@ function get_post_embed_html( $width, $height, $post = null ) {
 		esc_attr( $secret )
 	);
 
-	// Note that the script must be placed after the <blockquote> and <iframe> due to a regexp parsing issue in
-	// `wp_filter_oembed_result()`. Because of the regex pattern starts with `|(<blockquote>.*?</blockquote>)?.*|`
-	// wherein the <blockquote> is marked as being optional, if it is not at the beginning of the string then the group
-	// will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
-	// back to WordPress 4.4, so in order to not break older installs this script must come at the end.
+	/*
+	 * Note that the script must be placed after the <blockquote> and <iframe> due to a regexp parsing issue in
+	 * `wp_filter_oembed_result()`. Because of the regex pattern starts with `|(<blockquote>.*?</blockquote>)?.*|`
+	 * wherein the <blockquote> is marked as being optional, if it is not at the beginning of the string then the group
+	 * will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
+	 * back to WordPress 4.4, so in order to not break older installs this script must come at the end.
+	 */
+	$js_path = '/js/wp-embed' . wp_scripts_get_suffix() . '.js';
 	$output .= wp_get_inline_script_tag(
-		file_get_contents( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' )
+		trim( file_get_contents( ABSPATH . WPINC . $js_path ) ) . "\n//# sourceURL=" . esc_url_raw( includes_url( $js_path ) )
 	);
 
 	/**
@@ -536,11 +551,12 @@ function get_post_embed_html( $width, $height, $post = null ) {
  * Retrieves the oEmbed response data for a given post.
  *
  * @since 4.4.0
+ * @since 6.8.0 Output was adjusted to only embed if the post type supports it.
  *
  * @param WP_Post|int $post  Post ID or post object.
  * @param int         $width The requested width.
- * @return array|false Response data on success, false if post doesn't exist
- *                     or is not publicly viewable.
+ * @return array|false Response data on success, false if post doesn't exist,
+ *                     is not publicly viewable or post type is not embeddable.
  */
 function get_oembed_response_data( $post, $width ) {
 	$post  = get_post( $post );
@@ -551,6 +567,10 @@ function get_oembed_response_data( $post, $width ) {
 	}
 
 	if ( ! is_post_publicly_viewable( $post ) ) {
+		return false;
+	}
+
+	if ( ! is_post_embeddable( $post ) ) {
 		return false;
 	}
 
@@ -575,7 +595,7 @@ function get_oembed_response_data( $post, $width ) {
 	);
 
 	$width  = min( max( $min_max_width['min'], $width ), $min_max_width['max'] );
-	$height = max( ceil( $width / 16 * 9 ), 200 );
+	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
 	$data = array(
 		'version'       => '1.0',
@@ -625,12 +645,13 @@ function get_oembed_response_data_for_url( $url, $args ) {
 			wp_parse_url( $url ),
 			array(
 				'host' => '',
+				'port' => null,
 				'path' => '/',
 			)
 		);
 
 		$qv = array(
-			'domain'                 => $url_parts['host'],
+			'domain'                 => $url_parts['host'] . ( $url_parts['port'] ? ':' . $url_parts['port'] : '' ),
 			'path'                   => '/',
 			'update_site_meta_cache' => false,
 		);
@@ -672,7 +693,7 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		return false;
 	}
 
-	$width = isset( $args['width'] ) ? $args['width'] : 0;
+	$width = $args['width'] ?? 0;
 
 	$data = get_oembed_response_data( $post_id, $width );
 
@@ -718,7 +739,7 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 	}
 
 	if ( $thumbnail_id ) {
-		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 99999 ) );
+		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
 		$data['thumbnail_url']                                      = $thumbnail_url;
 		$data['thumbnail_width']                                    = $thumbnail_width;
 		$data['thumbnail_height']                                   = $thumbnail_height;
@@ -756,7 +777,7 @@ function wp_oembed_ensure_format( $format ) {
  * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
  * @param WP_REST_Request  $request Request used to generate the response.
  * @param WP_REST_Server   $server  Server instance.
- * @return true
+ * @return bool True if the request was served, false otherwise.
  */
 function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	$params = $request->get_params();
@@ -782,7 +803,7 @@ function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	// Bail if there's no XML.
 	if ( ! $result ) {
 		status_header( 501 );
-		return get_status_header_desc( 501 );
+		die( get_status_header_desc( 501 ) );
 	}
 
 	if ( ! headers_sent() ) {
@@ -834,10 +855,10 @@ function _oembed_create_xml( $data, $node = null ) {
  *
  * @since 5.2.0
  *
- * @param string $result The oEmbed HTML result.
- * @param object $data   A data object result from an oEmbed provider.
- * @param string $url    The URL of the content to be embedded.
- * @return string The filtered oEmbed result.
+ * @param string|false $result The oEmbed HTML result.
+ * @param object       $data   A data object result from an oEmbed provider.
+ * @param string       $url    The URL of the content to be embedded.
+ * @return string|false The filtered oEmbed result.
  */
 function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
 	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
@@ -901,10 +922,10 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
  *
  * @since 4.4.0
  *
- * @param string $result The oEmbed HTML result.
- * @param object $data   A data object result from an oEmbed provider.
- * @param string $url    The URL of the content to be embedded.
- * @return string The filtered and sanitized oEmbed result.
+ * @param string|false $result The oEmbed HTML result.
+ * @param object       $data   A data object result from an oEmbed provider.
+ * @param string       $url    The URL of the content to be embedded.
+ * @return string|false The filtered and sanitized oEmbed result.
  */
 function wp_filter_oembed_result( $result, $data, $url ) {
 	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
@@ -963,7 +984,7 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 
 	if ( ! empty( $content[1] ) ) {
 		// We have a blockquote to fall back on. Hide the iframe by default.
-		$html = str_replace( '<iframe', '<iframe style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', $html );
+		$html = str_replace( '<iframe', '<iframe style="position: absolute; visibility: hidden;"', $html );
 		$html = str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
 	}
 
@@ -1046,7 +1067,6 @@ function wp_embed_excerpt_attachment( $content ) {
  * @since 4.4.0
  */
 function enqueue_embed_scripts() {
-	wp_enqueue_style( 'wp-embed-template-ie' );
 
 	/**
 	 * Fires when scripts and styles are enqueued for the embed iframe.
@@ -1057,18 +1077,22 @@ function enqueue_embed_scripts() {
 }
 
 /**
- * Prints the CSS in the embed iframe header.
+ * Enqueues the CSS in the embed iframe header.
  *
- * @since 4.4.0
+ * @since 6.4.0
  */
-function print_embed_styles() {
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	$suffix    = SCRIPT_DEBUG ? '' : '.min';
-	?>
-	<style<?php echo $type_attr; ?>>
-		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
-	</style>
-	<?php
+function wp_enqueue_embed_styles() {
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	if ( ! has_action( 'embed_head', 'print_embed_styles' ) ) {
+		return;
+	}
+	remove_action( 'embed_head', 'print_embed_styles' );
+
+	$suffix = wp_scripts_get_suffix();
+	$handle = 'wp-embed-template';
+	wp_register_style( $handle, false );
+	wp_add_inline_style( $handle, file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ) );
+	wp_enqueue_style( $handle );
 }
 
 /**
@@ -1077,8 +1101,9 @@ function print_embed_styles() {
  * @since 4.4.0
  */
 function print_embed_scripts() {
+	$js_path = '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js';
 	wp_print_inline_script_tag(
-		file_get_contents( ABSPATH . WPINC . '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js' )
+		trim( file_get_contents( ABSPATH . WPINC . $js_path ) ) . "\n//# sourceURL=" . esc_url_raw( includes_url( $js_path ) )
 	);
 }
 
@@ -1092,7 +1117,13 @@ function print_embed_scripts() {
  * @return string The filtered content.
  */
 function _oembed_filter_feed_content( $content ) {
-	return str_replace( '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"', $content );
+	$p = new WP_HTML_Tag_Processor( $content );
+	while ( $p->next_tag( array( 'tag_name' => 'iframe' ) ) ) {
+		if ( $p->has_class( 'wp-embedded-content' ) ) {
+			$p->remove_attribute( 'style' );
+		}
+	}
+	return $p->get_updated_html();
 }
 
 /**

@@ -11,7 +11,7 @@ class Tests_Formatting_HumanTimeDiff extends WP_UnitTestCase {
 	/**
 	 * @group formatting
 	 * @ticket 38773
-	 * @dataProvider data_test_human_time_diff
+	 * @dataProvider data_human_time_diff
 	 */
 	public function test_human_time_diff( $expected, $stopdate, $message ) {
 		$startdate = new DateTime( '2016-01-01 12:00:00' );
@@ -19,7 +19,7 @@ class Tests_Formatting_HumanTimeDiff extends WP_UnitTestCase {
 	}
 
 	// Data for test_human_time_diff.
-	public function data_test_human_time_diff() {
+	public function data_human_time_diff() {
 		return array(
 			array(
 				'37 seconds',
@@ -27,7 +27,7 @@ class Tests_Formatting_HumanTimeDiff extends WP_UnitTestCase {
 				'Test a difference of 37 seconds.',
 			),
 			array(
-				'5 mins',
+				'5 minutes',
 				new DateTime( '2016-01-01 12:05:00' ),
 				'Test a difference of 5 minutes.',
 			),

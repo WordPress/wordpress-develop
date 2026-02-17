@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
@@ -15,11 +13,11 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$schema = array(
 			'type' => 'number',
 		);
-		$this->assertEquals( 1, rest_sanitize_value_from_schema( 1, $schema ) );
+		$this->assertSame( 1.0, rest_sanitize_value_from_schema( 1, $schema ) );
 		$this->assertSame( 1.10, rest_sanitize_value_from_schema( '1.10', $schema ) );
-		$this->assertEquals( 1, rest_sanitize_value_from_schema( '1abc', $schema ) );
-		$this->assertEquals( 0, rest_sanitize_value_from_schema( 'abc', $schema ) );
-		$this->assertEquals( 0, rest_sanitize_value_from_schema( array(), $schema ) );
+		$this->assertSame( 1.0, rest_sanitize_value_from_schema( '1abc', $schema ) );
+		$this->assertSame( 0.0, rest_sanitize_value_from_schema( 'abc', $schema ) );
+		$this->assertSame( 0.0, rest_sanitize_value_from_schema( array(), $schema ) );
 	}
 
 	public function test_type_integer() {

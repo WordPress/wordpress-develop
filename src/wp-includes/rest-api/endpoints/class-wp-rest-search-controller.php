@@ -142,17 +142,20 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 
 		$ids = $result[ WP_REST_Search_Handler::RESULT_IDS ];
 
-		$results = array();
+		$is_head_request = $request->is_method( 'HEAD' );
+		if ( ! $is_head_request ) {
+			$results = array();
 
-		foreach ( $ids as $id ) {
-			$data      = $this->prepare_item_for_response( $id, $request );
-			$results[] = $this->prepare_response_for_collection( $data );
+			foreach ( $ids as $id ) {
+				$data      = $this->prepare_item_for_response( $id, $request );
+				$results[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
 		$total     = (int) $result[ WP_REST_Search_Handler::RESULT_TOTAL ];
 		$page      = (int) $request['page'];
 		$per_page  = (int) $request['per_page'];
-		$max_pages = ceil( $total / $per_page );
+		$max_pages = (int) ceil( $total / $per_page );
 
 		if ( $page > $max_pages && $total > 0 ) {
 			return new WP_Error(
@@ -162,7 +165,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$response = rest_ensure_response( $results );
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $results );
 		$response->header( 'X-WP-Total', $total );
 		$response->header( 'X-WP-TotalPages', $max_pages );
 
@@ -195,6 +198,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$item_id = $item;
+
 		$handler = $this->get_search_handler( $request );
 		if ( is_wp_error( $handler ) ) {
 			return new WP_REST_Response();
@@ -360,7 +364,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 * @param string|array    $subtypes  One or more subtypes.
 	 * @param WP_REST_Request $request   Full details about the request.
 	 * @param string          $parameter Parameter name.
-	 * @return array|WP_Error List of valid subtypes, or WP_Error object on failure.
+	 * @return string[]|WP_Error List of valid subtypes, or WP_Error object on failure.
 	 */
 	public function sanitize_subtypes( $subtypes, $request, $parameter ) {
 		$subtypes = wp_parse_slug_list( $subtypes );
@@ -394,7 +398,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	protected function get_search_handler( $request ) {
 		$type = $request->get_param( self::PROP_TYPE );
 
-		if ( ! $type || ! isset( $this->search_handlers[ $type ] ) ) {
+		if ( ! $type || ! is_string( $type ) || ! isset( $this->search_handlers[ $type ] ) ) {
 			return new WP_Error(
 				'rest_search_invalid_type',
 				__( 'Invalid type parameter.' ),

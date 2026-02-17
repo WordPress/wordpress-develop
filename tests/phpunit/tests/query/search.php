@@ -280,7 +280,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 				'post_status'  => 'publish',
 				'post_title'   => '0',
 				'post_content' => 'this post contains zeroes',
-				'post_excerpt' => 'this post containts zeroes',
+				'post_excerpt' => 'this post contains zeroes',
 			)
 		);
 
@@ -408,7 +408,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Unfiltered search queries for attachment post types should not inlcude
+	 * Unfiltered search queries for attachment post types should not include
 	 * filenames to ensure the postmeta JOINs don't happen on the front end.
 	 *
 	 * @ticket 22744

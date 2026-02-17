@@ -82,4 +82,3 @@ $to        = 'To <wp.mail.testing+to@gmail.com>';
 $headers[] = "BCC: {$bcc}";
 wp_mail( '', $subject, $message, $headers );
 echo "Test emails sent!\n";
-

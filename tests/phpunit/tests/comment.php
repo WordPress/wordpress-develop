@@ -21,7 +21,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'role'       => 'author',
 				'user_login' => 'test_wp_user_get',
 				'user_pass'  => 'password',
-				'user_email' => 'test@test.com',
+				'user_email' => 'author@example.com',
 			)
 		);
 
@@ -60,7 +60,11 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 1, $result );
 
 		$comment = get_comment( $comments[0] );
-		$this->assertEquals( $comments[1], $comment->comment_parent );
+		/*
+		 * ::create_post_comments() returns comment IDs as integers,
+		 * but WP_Comment::$comment_parent is a string.
+		 */
+		$this->assertSame( (string) $comments[1], $comment->comment_parent );
 
 		$result = wp_update_comment(
 			array(
@@ -78,7 +82,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comments[0] );
-		$this->assertEquals( $post2->ID, $comment->comment_post_ID );
+		// WP_Post::$ID is an integer, but WP_Comment::$comment_post_ID is a string.
+		$this->assertSame( (string) $post2->ID, $comment->comment_post_ID );
 	}
 
 	public function test_update_comment_from_privileged_user_by_privileged_user() {
@@ -90,7 +95,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID'      => self::$post_id,
 				'comment_author'       => 'Author',
 				'comment_author_url'   => 'http://example.localhost/',
-				'comment_author_email' => 'test@test.com',
+				'comment_author_email' => 'author@example.com',
 				'user_id'              => $admin_id_1,
 				'comment_content'      => 'This is a comment',
 			)
@@ -103,7 +108,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'role'       => 'administrator',
 				'user_login' => 'test_wp_admin_get',
 				'user_pass'  => 'password',
-				'user_email' => 'testadmin@test.com',
+				'user_email' => 'testadmin@example.com',
 			)
 		);
 
@@ -116,14 +121,14 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
+		wp_set_current_user( 0 );
+
 		$comment          = get_comment( $comment_id );
 		$expected_content = is_multisite()
 			? 'new comment '
 			: 'new comment <img onerror=demo src=x>';
 
 		$this->assertSame( $expected_content, $comment->comment_content );
-
-		wp_set_current_user( 0 );
 	}
 
 	public function test_update_comment_from_unprivileged_user_by_privileged_user() {
@@ -134,7 +139,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID'      => self::$post_id,
 				'comment_author'       => 'Author',
 				'comment_author_url'   => 'http://example.localhost/',
-				'comment_author_email' => 'test@test.com',
+				'comment_author_email' => 'author@example.com',
 				'user_id'              => self::$user_id,
 				'comment_content'      => '<a href="http://example.localhost/something.html">click</a>',
 			)
@@ -147,7 +152,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'role'       => 'administrator',
 				'user_login' => 'test_wp_admin_get',
 				'user_pass'  => 'password',
-				'user_email' => 'testadmin@test.com',
+				'user_email' => 'testadmin@example.com',
 			)
 		);
 
@@ -160,9 +165,15 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
-		$comment = get_comment( $comment_id );
-		$this->assertEquals( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
 		wp_set_current_user( 0 );
+
+		$comment = get_comment( $comment_id );
+		$this->assertEqualHTML(
+			'<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>',
+			$comment->comment_content,
+			'<body>',
+			'Comment: ' . $comment->comment_content
+		);
 	}
 
 	/**
@@ -221,7 +232,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comment_id );
-		$this->assertEquals( 1, $comment->user_id );
+		$this->assertSame( '1', $comment->user_id );
 	}
 
 	/**
@@ -375,6 +386,430 @@ class Tests_Comment extends WP_UnitTestCase {
 		$found = get_approved_comments( 0 );
 
 		$this->assertSame( array(), $found );
+	}
+
+	/**
+	 * Tests that get_cancel_comment_reply_link() returns the expected value.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_get_cancel_comment_reply_link
+	 *
+	 * @covers ::get_cancel_comment_reply_link
+	 *
+	 * @param string        $text       Text to display for cancel reply link.
+	 *                                  If empty, defaults to 'Click here to cancel reply'.
+	 * @param string|int    $post       The post the comment thread is being displayed for.
+	 *                                  Accepts 'POST_ID', 'POST', or an integer post ID.
+	 * @param int|bool|null $replytocom A comment ID (int), whether to generate an approved (true) or unapproved (false) comment,
+	 *                                  or null not to create a comment.
+	 * @param string        $expected   The expected reply link.
+	 */
+	public function test_get_cancel_comment_reply_link( $text, $post, $replytocom, $expected ) {
+		if ( 'POST_ID' === $post ) {
+			$post = self::$post_id;
+		} elseif ( 'POST' === $post ) {
+			$post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		if ( null === $replytocom ) {
+			unset( $_GET['replytocom'] );
+		} else {
+			$_GET['replytocom'] = $this->create_comment_with_approval_status( $replytocom );
+		}
+
+		$this->assertSame( $expected, get_cancel_comment_reply_link( $text, $post ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_cancel_comment_reply_link() {
+		return array(
+			'text as empty string, a valid post ID and an approved comment'    => array(
+				'text'       => '',
+				'post'       => 'POST_ID',
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond">Click here to cancel reply.</a>',
+			),
+			'text as a custom string, a valid post ID and an approved comment' => array(
+				'text'       => 'Leave a reply!',
+				'post'       => 'POST_ID',
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond">Leave a reply!</a>',
+			),
+			'text as empty string, a valid WP_Post object and an approved comment' => array(
+				'text'       => '',
+				'post'       => 'POST',
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond">Click here to cancel reply.</a>',
+			),
+			'text as a custom string, a valid WP_Post object and an approved comment' => array(
+				'text'       => 'Leave a reply!',
+				'post'       => 'POST',
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond">Leave a reply!</a>',
+			),
+			'text as empty string, an invalid post and an approved comment'    => array(
+				'text'       => '',
+				'post'       => -99999,
+				'replytocom' => true,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond" style="display:none;">Click here to cancel reply.</a>',
+			),
+			'text as a custom string, a valid post, but no replytocom' => array(
+				'text'       => 'Leave a reply!',
+				'post'       => 'POST',
+				'replytocom' => null,
+				'expected'   => '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond" style="display:none;">Leave a reply!</a>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that comment_form_title() outputs the author of an approved comment.
+	 *
+	 * @ticket 53962
+	 *
+	 * @covers ::comment_form_title
+	 */
+	public function test_should_output_the_author_of_an_approved_comment() {
+		// Must be set for `comment_form_title()`.
+		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
+
+		$comment = get_comment( $_GET['replytocom'] );
+		comment_form_title( false, false, false, self::$post_id );
+
+		$this->assertInstanceOf(
+			'WP_Comment',
+			$comment,
+			'The comment is not an instance of WP_Comment.'
+		);
+
+		$this->assertObjectHasProperty(
+			'comment_author',
+			$comment,
+			'The comment object does not have a "comment_author" property.'
+		);
+
+		$this->assertIsString(
+			$comment->comment_author,
+			'The "comment_author" is not a string.'
+		);
+
+		$this->expectOutputString(
+			'Leave a Reply to ' . $comment->comment_author,
+			'The expected string was not output.'
+		);
+	}
+
+	/**
+	 * Tests that get_comment_id_fields() allows replying to an approved comment.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_should_allow_reply_to_an_approved_comment
+	 *
+	 * @covers ::get_comment_id_fields
+	 *
+	 * @param string $comment_post The post of the comment.
+	 *                             Accepts 'POST', 'NEW_POST', 'POST_ID' and 'NEW_POST_ID'.
+	 */
+	public function test_should_allow_reply_to_an_approved_comment( $comment_post ) {
+		// Must be set for `get_comment_id_fields()`.
+		$_GET['replytocom'] = $this->create_comment_with_approval_status( true );
+
+		if ( 'POST_ID' === $comment_post ) {
+			$comment_post = self::$post_id;
+		} elseif ( 'POST' === $comment_post ) {
+			$comment_post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='" . $_GET['replytocom'] . "' />\n";
+		$actual    = get_comment_id_fields( $comment_post );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_allow_reply_to_an_approved_comment() {
+		return array(
+			'a post ID'        => array( 'comment_post' => 'POST_ID' ),
+			'a WP_Post object' => array( 'comment_post' => 'POST' ),
+		);
+	}
+
+	/**
+	 * Tests that get_comment_id_fields() returns an empty string
+	 * when the post cannot be retrieved.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_non_existent_posts
+	 *
+	 * @covers ::get_comment_id_fields
+	 *
+	 * @param bool  $replytocom   Whether to create an approved (true) or unapproved (false) comment.
+	 * @param int   $comment_post The post of the comment.
+	 *
+	 */
+	public function test_should_return_empty_string( $replytocom, $comment_post ) {
+		if ( is_bool( $replytocom ) ) {
+			$replytocom = $this->create_comment_with_approval_status( $replytocom );
+		}
+
+		// Must be set for `get_comment_id_fields()`.
+		$_GET['replytocom'] = $replytocom;
+
+		$actual = get_comment_id_fields( $comment_post );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * Tests that comment_form_title() does not output the author.
+	 *
+	 * @ticket 53962
+	 *
+	 * @covers ::comment_form_title
+	 *
+	 * @dataProvider data_parent_comments
+	 * @dataProvider data_non_existent_posts
+	 *
+	 * @param bool   $replytocom   Whether to create an approved (true) or unapproved (false) comment.
+	 * @param string $comment_post The post of the comment.
+	 *                             Accepts 'POST', 'NEW_POST', 'POST_ID' and 'NEW_POST_ID'.
+	 */
+	public function test_should_not_output_the_author( $replytocom, $comment_post ) {
+		if ( is_bool( $replytocom ) ) {
+			$replytocom = $this->create_comment_with_approval_status( $replytocom );
+		}
+
+		// Must be set for `comment_form_title()`.
+		$_GET['replytocom'] = $replytocom;
+
+		if ( 'NEW_POST_ID' === $comment_post ) {
+			$comment_post = self::factory()->post->create();
+		} elseif ( 'NEW_POST' === $comment_post ) {
+			$comment_post = self::factory()->post->create_and_get();
+		} elseif ( 'POST_ID' === $comment_post ) {
+			$comment_post = self::$post_id;
+		} elseif ( 'POST' === $comment_post ) {
+			$comment_post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		$comment_post_id = $comment_post instanceof WP_Post ? $comment_post->ID : $comment_post;
+
+		get_comment( $_GET['replytocom'] );
+
+		comment_form_title( false, false, false, $comment_post_id );
+
+		$this->expectOutputString( 'Leave a Reply' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_existent_posts() {
+		return array(
+			'an unapproved comment and a non-existent post ID' => array(
+				'replytocom'   => false,
+				'comment_post' => -99999,
+			),
+			'an approved comment and a non-existent post ID' => array(
+				'replytocom'   => true,
+				'comment_post' => -99999,
+			),
+		);
+	}
+
+	/**
+	 * Tests that get_comment_id_fields() does not allow replies when
+	 * the comment does not have a parent post.
+	 *
+	 * @ticket 53962
+	 *
+	 * @covers ::get_comment_id_fields
+	 *
+	 * @dataProvider data_parent_comments
+	 *
+	 * @param mixed  $replytocom   Whether to create an approved (true) or unapproved (false) comment,
+	 *                             or an invalid comment ID.
+	 * @param string $comment_post The post of the comment.
+	 *                             Accepts 'POST', 'NEW_POST', 'POST_ID' and 'NEW_POST_ID'.
+	 */
+	public function test_should_not_allow_reply( $replytocom, $comment_post ) {
+		if ( is_bool( $replytocom ) ) {
+			$replytocom = $this->create_comment_with_approval_status( $replytocom );
+		}
+
+		// Must be set for `get_comment_id_fields()`.
+		$_GET['replytocom'] = $replytocom;
+
+		if ( 'NEW_POST_ID' === $comment_post ) {
+			$comment_post = self::factory()->post->create();
+		} elseif ( 'NEW_POST' === $comment_post ) {
+			$comment_post = self::factory()->post->create_and_get();
+		} elseif ( 'POST_ID' === $comment_post ) {
+			$comment_post = self::$post_id;
+		} elseif ( 'POST' === $comment_post ) {
+			$comment_post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		$comment_post_id = $comment_post instanceof WP_Post ? $comment_post->ID : $comment_post;
+
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . $comment_post_id . "' id='comment_post_ID' />\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
+		$actual    = get_comment_id_fields( $comment_post );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_parent_comments() {
+		return array(
+			'an unapproved parent comment (ID)'      => array(
+				'replytocom'   => false,
+				'comment_post' => 'POST_ID',
+			),
+			'an approved parent comment on another post (ID)' => array(
+				'replytocom'   => true,
+				'comment_post' => 'NEW_POST_ID',
+			),
+			'an unapproved parent comment on another post (ID)' => array(
+				'replytocom'   => false,
+				'comment_post' => 'NEW_POST_ID',
+			),
+			'a parent comment ID that cannot be cast to an integer' => array(
+				'replytocom'   => array( 'I cannot be cast to an integer.' ),
+				'comment_post' => 'POST_ID',
+			),
+			'an unapproved parent comment (WP_Post)' => array(
+				'replytocom'   => false,
+				'comment_post' => 'POST',
+			),
+			'an approved parent comment on another post (WP_Post)' => array(
+				'replytocom'   => true,
+				'comment_post' => 'NEW_POST',
+			),
+			'an unapproved parent comment on another post (WP_Post)' => array(
+				'replytocom'   => false,
+				'comment_post' => 'NEW_POST',
+			),
+			'a parent comment WP_Post that cannot be cast to an integer' => array(
+				'replytocom'   => array( 'I cannot be cast to an integer.' ),
+				'comment_post' => 'POST',
+			),
+		);
+	}
+
+	/**
+	 * Helper function to create a comment with an approval status.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param bool $approved Whether or not the comment is approved.
+	 * @return int The comment ID.
+	 */
+	public function create_comment_with_approval_status( $approved ) {
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => ( $approved ) ? '1' : '0',
+			)
+		);
+	}
+
+	/**
+	 * Tests that _get_comment_reply_id() returns the expected value.
+	 *
+	 * @ticket 53962
+	 *
+	 * @dataProvider data_get_comment_reply_id
+	 *
+	 * @covers ::_get_comment_reply_id
+	 *
+	 * @param int|bool|null $replytocom A comment ID (int), whether to generate an approved (true) or unapproved (false) comment,
+	 *                                  or null not to create a comment.
+	 * @param string|int    $post       The post the comment thread is being displayed for.
+	 *                                  Accepts 'POST_ID', 'POST', or an integer post ID.
+	 * @param int           $expected   The expected result.
+	 */
+	public function test_get_comment_reply_id( $replytocom, $post, $expected ) {
+		if ( false === $replytocom ) {
+			unset( $_GET['replytocom'] );
+		} else {
+			$_GET['replytocom'] = $this->create_comment_with_approval_status( (bool) $replytocom );
+		}
+
+		if ( 'POST_ID' === $post ) {
+			$post = self::$post_id;
+		} elseif ( 'POST' === $post ) {
+			$post = self::factory()->post->get_object_by_id( self::$post_id );
+		}
+
+		if ( 'replytocom' === $expected ) {
+			$expected = $_GET['replytocom'];
+		}
+
+		$this->assertSame( $expected, _get_comment_reply_id( $post ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_comment_reply_id() {
+		return array(
+			'no comment ID set ($_GET["replytocom"])'     => array(
+				'replytocom' => false,
+				'post'       => 0,
+				'expected'   => 0,
+			),
+			'a non-numeric comment ID'                    => array(
+				'replytocom' => 'three',
+				'post'       => 0,
+				'expected'   => 0,
+			),
+			'a non-existent comment ID'                   => array(
+				'replytocom' => -999999,
+				'post'       => 0,
+				'expected'   => 0,
+			),
+			'an unapproved comment'                       => array(
+				'replytocom' => false,
+				'post'       => 0,
+				'expected'   => 0,
+			),
+			'a post that does not match the parent'       => array(
+				'replytocom' => false,
+				'post'       => -999999,
+				'expected'   => 0,
+			),
+			'an approved comment and the correct post ID' => array(
+				'replytocom' => true,
+				'post'       => 'POST_ID',
+				'expected'   => 'replytocom',
+			),
+			'an approved comment and the correct WP_Post object' => array(
+				'replytocom' => true,
+				'post'       => 'POST',
+				'expected'   => 'replytocom',
+			),
+		);
 	}
 
 	/**
@@ -583,7 +1018,6 @@ class Tests_Comment extends WP_UnitTestCase {
 			),
 			$this->preprocess_comment_data
 		);
-
 	}
 
 	public function filter_preprocess_comment( $commentdata ) {
@@ -1016,10 +1450,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Post authors possibly notified when a comment is approved on their post.
 		wp_set_comment_status( $comment, 'approve' );
 
-		// Check to see if a notification email was sent to the post author `test@test.com`.
+		// Check to see if a notification email was sent to the post author `author@example.com`.
 		if ( isset( $GLOBALS['phpmailer']->mock_sent )
 			&& ! empty( $GLOBALS['phpmailer']->mock_sent )
-			&& 'test@test.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0]
+			&& 'author@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0]
 		) {
 			$email_sent_when_comment_approved = true;
 		} else {
@@ -1038,10 +1472,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 		wp_new_comment( $data );
 
-		// Check to see if a notification email was sent to the post author `test@test.com`.
+		// Check to see if a notification email was sent to the post author `author@example.com`.
 		if ( isset( $GLOBALS['phpmailer']->mock_sent ) &&
 			! empty( $GLOBALS['phpmailer']->mock_sent ) &&
-			'test@test.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] ) {
+			'author@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] ) {
 				$email_sent_when_comment_added = true;
 				reset_phpmailer_instance();
 		} else {
@@ -1137,250 +1571,16 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$lengths = wp_get_comment_fields_max_lengths();
 
+		$this->assertNotEmpty( $lengths );
+
 		foreach ( $lengths as $field => $length ) {
 			$this->assertSame( $expected[ $field ], $length );
 		}
 	}
 
 	/**
-	 * The `wp_comments_personal_data_eraser()` function should erase user's comments.
-	 *
-	 * @group privacy
-	 * @ticket 43442
-	 *
-	 * @covers ::wp_comments_personal_data_eraser
+	 * @covers ::wp_update_comment
 	 */
-	public function test_wp_comments_personal_data_eraser() {
-
-		$post_id = self::factory()->post->create();
-		$user_id = self::factory()->user->create();
-
-		$args       = array(
-			'user_id'              => $user_id,
-			'comment_post_ID'      => $post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_email' => 'personal@local.host',
-			'comment_author_url'   => 'https://local.host/',
-			'comment_author_IP'    => '192.168.0.1',
-			'comment_date'         => '2018-04-14 17:20:00',
-			'comment_agent'        => 'COMMENT_AGENT',
-			'comment_content'      => 'Comment Content',
-		);
-		$comment_id = self::factory()->comment->create( $args );
-
-		wp_comments_personal_data_eraser( $args['comment_author_email'] );
-
-		$comment = get_comment( $comment_id );
-
-		$actual = array(
-			'comment_ID'           => $comment->comment_ID,
-			'user_id'              => $comment->user_id,
-			'comment_author'       => $comment->comment_author,
-			'comment_author_email' => $comment->comment_author_email,
-			'comment_author_url'   => $comment->comment_author_url,
-			'comment_author_IP'    => $comment->comment_author_IP,
-			'comment_date'         => $comment->comment_date,
-			'comment_date_gmt'     => $comment->comment_date_gmt,
-			'comment_agent'        => $comment->comment_agent,
-			'comment_content'      => $comment->comment_content,
-		);
-
-		$expected = array(
-			'comment_ID'           => (string) $comment_id,
-			'user_id'              => '0', // Anonymized.
-			'comment_author'       => 'Anonymous', // Anonymized.
-			'comment_author_email' => '', // Anonymized.
-			'comment_author_url'   => '', // Anonymized.
-			'comment_author_IP'    => '192.168.0.0', // Anonymized.
-			'comment_date'         => '2018-04-14 17:20:00',
-			'comment_date_gmt'     => '2018-04-14 17:20:00',
-			'comment_agent'        => '', // Anonymized.
-			'comment_content'      => 'Comment Content',
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * Testing the `wp_comments_personal_data_eraser()` function's output on an empty first page.
-	 *
-	 * @group privacy
-	 * @ticket 43442
-	 *
-	 * @covers ::wp_comments_personal_data_eraser
-	 */
-	public function test_wp_comments_personal_data_eraser_empty_first_page_output() {
-
-		$actual   = wp_comments_personal_data_eraser( 'nocommentsfound@local.host' );
-		$expected = array(
-			'items_removed'  => false,
-			'items_retained' => false,
-			'messages'       => array(),
-			'done'           => true,
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * Testing the `wp_comments_personal_data_eraser()` function's output, for the non-empty first page.
-	 *
-	 * @group privacy
-	 * @ticket 43442
-	 *
-	 * @covers ::wp_comments_personal_data_eraser
-	 */
-	public function test_wp_comments_personal_data_eraser_non_empty_first_page_output() {
-
-		$post_id = self::factory()->post->create();
-		$args    = array(
-			'comment_post_ID'      => $post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_email' => 'personal@local.host',
-			'comment_author_url'   => 'https://local.host/',
-			'comment_author_IP'    => '192.168.0.1',
-			'comment_date'         => '2018-04-14 17:20:00',
-			'comment_agent'        => 'COMMENT_AGENT',
-			'comment_content'      => 'Comment Content',
-		);
-		self::factory()->comment->create( $args );
-
-		$actual   = wp_comments_personal_data_eraser( $args['comment_author_email'] );
-		$expected = array(
-			'items_removed'  => true,
-			'items_retained' => false,
-			'messages'       => array(),
-			'done'           => true,
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * Testing the `wp_comments_personal_data_eraser()` function's output, for an empty second page.
-	 *
-	 * @group privacy
-	 * @ticket 43442
-	 *
-	 * @covers ::wp_comments_personal_data_eraser
-	 */
-	public function test_wp_comments_personal_data_eraser_empty_second_page_output() {
-
-		$post_id = self::factory()->post->create();
-		$args    = array(
-			'comment_post_ID'      => $post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_email' => 'personal@local.host',
-			'comment_author_url'   => 'https://local.host/',
-			'comment_author_IP'    => '192.168.0.1',
-			'comment_date'         => '2018-04-14 17:20:00',
-			'comment_agent'        => 'COMMENT_AGENT',
-			'comment_content'      => 'Comment Content',
-		);
-		self::factory()->comment->create( $args );
-
-		$actual   = wp_comments_personal_data_eraser( $args['comment_author_email'], 2 );
-		$expected = array(
-			'items_removed'  => false,
-			'items_retained' => false,
-			'messages'       => array(),
-			'done'           => true,
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * Testing the `wp_anonymize_comment` filter, to prevent comment anonymization.
-	 *
-	 * @group privacy
-	 * @ticket 43442
-	 *
-	 * @covers ::wp_comments_personal_data_eraser
-	 */
-	public function test_wp_anonymize_comment_filter_to_prevent_comment_anonymization() {
-
-		$post_id    = self::factory()->post->create();
-		$args       = array(
-			'comment_post_ID'      => $post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_email' => 'personal@local.host',
-			'comment_author_url'   => 'https://local.host/',
-			'comment_author_IP'    => '192.168.0.1',
-			'comment_date'         => '2018-04-14 17:20:00',
-			'comment_agent'        => 'COMMENT_AGENT',
-			'comment_content'      => 'Comment Content',
-		);
-		$comment_id = self::factory()->comment->create( $args );
-
-		add_filter( 'wp_anonymize_comment', '__return_false' );
-		$actual = wp_comments_personal_data_eraser( $args['comment_author_email'] );
-		remove_filter( 'wp_anonymize_comment', '__return_false' );
-
-		$message = sprintf( 'Comment %d contains personal data but could not be anonymized.', $comment_id );
-
-		$expected = array(
-			'items_removed'  => false,
-			'items_retained' => true,
-			'messages'       => array( $message ),
-			'done'           => true,
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * Testing the `wp_anonymize_comment` filter, to prevent comment anonymization, with a custom message.
-	 *
-	 * @group privacy
-	 * @ticket 43442
-	 *
-	 * @covers ::wp_comments_personal_data_eraser
-	 */
-	public function test_wp_anonymize_comment_filter_to_prevent_comment_anonymization_with_custom_message() {
-
-		$post_id    = self::factory()->post->create();
-		$args       = array(
-			'comment_post_ID'      => $post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_email' => 'personal@local.host',
-			'comment_author_url'   => 'https://local.host/',
-			'comment_author_IP'    => '192.168.0.1',
-			'comment_date'         => '2018-04-14 17:20:00',
-			'comment_agent'        => 'COMMENT_AGENT',
-			'comment_content'      => 'Comment Content',
-		);
-		$comment_id = self::factory()->comment->create( $args );
-
-		add_filter( 'wp_anonymize_comment', array( $this, 'wp_anonymize_comment_custom_message' ), 10, 3 );
-		$actual = wp_comments_personal_data_eraser( $args['comment_author_email'] );
-		remove_filter( 'wp_anonymize_comment', array( $this, 'wp_anonymize_comment_custom_message' ) );
-
-		$message = sprintf( 'Some custom message for comment %d.', $comment_id );
-
-		$expected = array(
-			'items_removed'  => false,
-			'items_retained' => true,
-			'messages'       => array( $message ),
-			'done'           => true,
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * Callback for the `wp_anonymize_comment` filter.
-	 *
-	 * @param  bool|string $anonymize          Whether to apply the comment anonymization (bool).
-	 *                                         Custom prevention message (string). Default true.
-	 * @param  WP_Comment  $comment            WP_Comment object.
-	 * @param  array       $anonymized_comment Anonymized comment data.
-	 * @return string
-	 */
-	public function wp_anonymize_comment_custom_message( $anonymize, $comment, $anonymized_comment ) {
-		return sprintf( 'Some custom message for comment %d.', $comment->comment_ID );
-	}
-
 	public function test_update_should_invalidate_comment_cache() {
 		global $wpdb;
 
@@ -1474,133 +1674,242 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing the `wp_comments_personal_data_exporter()` function.
+	 * Tests that trashing a top-level note also trashes all direct child notes.
 	 *
-	 * @group privacy
-	 * @ticket 43440
-	 *
-	 * @covers ::wp_comments_personal_data_exporter
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 * @dataProvider data_comment_approved_statuses
 	 */
-	public function test_wp_comments_personal_data_exporter() {
-		$args = array(
-			'comment_post_ID'      => self::$post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_email' => 'personal@local.host',
-			'comment_author_url'   => 'https://local.host/',
-			'comment_author_IP'    => '192.168.0.1',
-			'comment_agent'        => 'SOME_AGENT',
-			'comment_date'         => '2018-03-28 20:05:00',
-			'comment_content'      => 'Comment',
+	public function test_wp_trash_comment_trashes_child_notes( $approved_status ) {
+		// Create a parent note (top-level, comment_parent=0).
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => $approved_status,
+			)
 		);
 
-		$comment_id = self::factory()->comment->create( $args );
+		// Create child notes under the parent.
+		$child_note_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
 
-		$actual   = wp_comments_personal_data_exporter( $args['comment_author_email'] );
-		$expected = $args;
+		$child_note_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
 
-		$this->assertTrue( $actual['done'] );
+		$child_note_3 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
 
-		// Number of exported comments.
-		$this->assertCount( 1, $actual['data'] );
+		// Trash the parent note.
+		wp_trash_comment( $parent_note );
 
-		// Number of exported comment properties.
-		$this->assertCount( 8, $actual['data'][0]['data'] );
+		// Verify parent note is trashed.
+		$this->assertSame( 'trash', get_comment( $parent_note )->comment_approved );
 
-		// Exported group.
-		$this->assertSame( 'comments', $actual['data'][0]['group_id'] );
-		$this->assertSame( 'Comments', $actual['data'][0]['group_label'] );
-
-		// Exported comment properties.
-		$this->assertSame( $expected['comment_author'], $actual['data'][0]['data'][0]['value'] );
-		$this->assertSame( $expected['comment_author_email'], $actual['data'][0]['data'][1]['value'] );
-		$this->assertSame( $expected['comment_author_url'], $actual['data'][0]['data'][2]['value'] );
-		$this->assertSame( $expected['comment_author_IP'], $actual['data'][0]['data'][3]['value'] );
-		$this->assertSame( $expected['comment_agent'], $actual['data'][0]['data'][4]['value'] );
-		$this->assertSame( $expected['comment_date'], $actual['data'][0]['data'][5]['value'] );
-		$this->assertSame( $expected['comment_content'], $actual['data'][0]['data'][6]['value'] );
-		$this->assertSame( esc_html( get_comment_link( $comment_id ) ), strip_tags( $actual['data'][0]['data'][7]['value'] ) );
+		// Verify all child notes are also trashed.
+		$this->assertSame( 'trash', get_comment( $child_note_1 )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $child_note_2 )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $child_note_3 )->comment_approved );
 	}
 
 	/**
-	 * Testing the `wp_comments_personal_data_exporter()` function for no comments found.
-	 *
-	 * @group privacy
-	 * @ticket 43440
-	 *
-	 * @covers ::wp_comments_personal_data_exporter
+	 * Data provider for test_wp_trash_comment_trashes_child_notes.
 	 */
-	public function test_wp_comments_personal_data_exporter_no_comments_found() {
-
-		$actual = wp_comments_personal_data_exporter( 'nocommentsfound@local.host' );
-
-		$expected = array(
-			'data' => array(),
-			'done' => true,
+	public function data_comment_approved_statuses() {
+		return array(
+			array( '1' ),
+			array( '0' ),
 		);
-
-		$this->assertSame( $expected, $actual );
 	}
 
 	/**
-	 * Testing the `wp_comments_personal_data_exporter()` function for an empty comment property.
+	 * Tests that trashing a regular comment does NOT trash its children.
 	 *
-	 * @group privacy
-	 * @ticket 43440
-	 *
-	 * @covers ::wp_comments_personal_data_exporter
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
 	 */
-	public function test_wp_comments_personal_data_exporter_empty_comment_prop() {
-		$args = array(
-			'comment_post_ID'      => self::$post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_email' => 'personal@local.host',
-			'comment_author_url'   => 'https://local.host/',
-			'comment_author_IP'    => '192.168.0.1',
-			'comment_date'         => '2018-03-28 20:05:00',
-			'comment_agent'        => '',
-			'comment_content'      => 'Comment',
+	public function test_wp_trash_comment_does_not_trash_child_comments() {
+		// Create a parent comment (default type='comment').
+		$parent_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
 		);
 
-		$c = self::factory()->comment->create( $args );
+		// Create child comments under the parent.
+		$child_comment_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
 
-		$actual = wp_comments_personal_data_exporter( $args['comment_author_email'] );
+		$child_comment_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
 
-		$this->assertTrue( $actual['done'] );
+		// Trash the parent comment.
+		wp_trash_comment( $parent_comment );
 
-		// Number of exported comments.
-		$this->assertCount( 1, $actual['data'] );
+		// Verify parent comment is trashed.
+		$this->assertSame( 'trash', get_comment( $parent_comment )->comment_approved );
 
-		// Number of exported comment properties.
-		$this->assertCount( 7, $actual['data'][0]['data'] );
+		// Verify child comments are NOT trashed (maintaining existing behavior).
+		$this->assertSame( '1', get_comment( $child_comment_1 )->comment_approved );
+		$this->assertSame( '1', get_comment( $child_comment_2 )->comment_approved );
 	}
 
 	/**
-	 * Testing the `wp_comments_personal_data_exporter()` function with an empty second page.
+	 * Tests that trashing a child note does not affect parent or siblings.
 	 *
-	 * @group privacy
-	 * @ticket 43440
-	 *
-	 * @covers ::wp_comments_personal_data_exporter
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
 	 */
-	public function test_wp_comments_personal_data_exporter_empty_second_page() {
-		$args = array(
-			'comment_post_ID'      => self::$post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_email' => 'personal@local.host',
-			'comment_author_url'   => 'https://local.host/',
-			'comment_author_IP'    => '192.168.0.1',
-			'comment_date'         => '2018-03-28 20:05:00',
-			'comment_agent'        => 'SOME_AGENT',
-			'comment_content'      => 'Comment',
+	public function test_wp_trash_comment_child_note_does_not_affect_parent_or_siblings() {
+		// Create a parent note.
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
 		);
 
-		$c = self::factory()->comment->create( $args );
+		// Create multiple child notes.
+		$child_note_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
 
-		$actual = wp_comments_personal_data_exporter( $args['comment_author_email'], 2 );
+		$child_note_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
 
-		$this->assertTrue( $actual['done'] );
+		$child_note_3 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
 
-		// Number of exported comments.
-		$this->assertCount( 0, $actual['data'] );
+		// Trash only one child note.
+		wp_trash_comment( $child_note_2 );
+
+		// Verify the parent note is still approved.
+		$this->assertSame( '1', get_comment( $parent_note )->comment_approved );
+
+		// Verify the trashed child is trashed.
+		$this->assertSame( 'trash', get_comment( $child_note_2 )->comment_approved );
+
+		// Verify sibling notes are still approved.
+		$this->assertSame( '1', get_comment( $child_note_1 )->comment_approved );
+		$this->assertSame( '1', get_comment( $child_note_3 )->comment_approved );
+	}
+
+	/**
+	 * Tests that only top-level notes trigger child deletion.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_only_top_level_notes_trigger_child_deletion() {
+		// Create a parent note.
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create a child note (not top-level, has comment_parent > 0).
+		$child_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create a sibling note (also not top-level).
+		$sibling_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Trash the child note (which has comment_parent > 0).
+		wp_trash_comment( $child_note );
+
+		// Verify the child note is trashed.
+		$this->assertSame( 'trash', get_comment( $child_note )->comment_approved );
+
+		// Verify the parent note is NOT trashed.
+		$this->assertSame( '1', get_comment( $parent_note )->comment_approved );
+
+		// Verify the sibling note is NOT trashed (no cascade since child is not top-level).
+		$this->assertSame( '1', get_comment( $sibling_note )->comment_approved );
+	}
+
+	/**
+	 * @ticket 61244
+	 *
+	 * @covers ::get_comment
+	 */
+	public function test_get_comment_filter() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( $comment_id, (int) $comment->comment_ID, 'Expected the same comment.' );
+
+		add_filter( 'get_comment', '__return_null' );
+		$this->assertNull( get_comment( $comment_id ), 'Expected get_comment() to return null when get_comment filter returns null.' );
 	}
 }

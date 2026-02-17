@@ -230,6 +230,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertCount( 1, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
+		$this->assertNotEmpty( $revisions );
+
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
@@ -736,7 +738,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 					)
 				);
 
-				$latest_revision_id++;
+				++$latest_revision_id;
 			}
 		}
 
@@ -784,7 +786,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 					)
 				);
 
-				$latest_revision_id++;
+				++$latest_revision_id;
 			}
 		}
 
@@ -865,5 +867,126 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertNull( wp_get_post_revisions_url( $post_id ) );
 
 		add_post_type_support( 'post', 'revisions' );
+	}
+
+	/**
+	 * Tests that wp_save_post_revision() respects the 'wp_save_post_revision_revisions_before_deletion' filter
+	 * when deleting revisions.
+	 *
+	 * This test should protect the original revision, send the rest to be checked against wp_revisions_to_keep(),
+	 * and result in two revisions: The latest revision, and the original.
+	 *
+	 * @ticket 57320
+	 *
+	 * @covers ::wp_save_post_revision
+	 */
+	public function test_wp_save_post_revision_should_respect_revisions_before_deletion_filter() {
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Test 57320' ) );
+
+		add_filter(
+			'wp_revisions_to_keep',
+			static function () {
+				return 1;
+			}
+		);
+
+		add_filter(
+			'wp_save_post_revision_revisions_before_deletion',
+			static function ( $revisions ) {
+				// Ignore the first revision and return the rest for deletion.
+				return array_slice( $revisions, 1 );
+			}
+		);
+
+		for ( $update = 1; $update < 4; ++$update ) {
+			wp_update_post(
+				array(
+					'ID'         => $post_id,
+					'post_title' => 'Test 57320 Update ' . $update,
+				)
+			);
+		}
+
+		$actual = wp_get_post_revisions( $post_id );
+
+		$this->assertCount(
+			2,
+			$actual,
+			'There should be two revisions.'
+		);
+
+		$first  = reset( $actual );
+		$second = next( $actual );
+
+		$this->assertSame(
+			'Test 57320 Update 3',
+			$first->post_title,
+			'The title of the first revision was incorrect.'
+		);
+
+		$this->assertSame(
+			'Test 57320 Update 1',
+			$second->post_title,
+			'The title of the second revision was incorrect.'
+		);
+	}
+
+	/**
+	 * @ticket 64314
+	 * @covers ::wp_save_post_revision
+	 */
+	public function test_wp_save_post_revision_with_array_post_meta() {
+		// This filter is true by default, but this is explicitly to test looking for differences among non-scalar fields.
+		add_filter( 'wp_save_post_revision_check_for_changes', '__return_true' );
+
+		$post_id  = self::factory()->post->create();
+		$meta_key = 'favorite_things';
+
+		// Ensure the post meta is saved with each revision.
+		add_filter(
+			'wp_post_revision_meta_keys',
+			static function ( $meta_keys ) use ( $meta_key ) {
+				$meta_keys[] = $meta_key;
+				return $meta_keys;
+			}
+		);
+
+		// Ensure the post meta are used when determining whether a revision should be saved.
+		add_filter(
+			'_wp_post_revision_fields',
+			static function ( $fields ) use ( $meta_key ) {
+				$fields[ $meta_key ] = 'Favorite Things';
+				return $fields;
+			}
+		);
+
+		// Set initial value.
+		$initial_favorites = array(
+			'raindrops on roses',
+			'whiskers on kittens',
+			'bright copper kettles',
+		);
+		update_post_meta( $post_id, $meta_key, $initial_favorites );
+
+		// Save the first revision.
+		$revision_id_1 = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $revision_id_1, 'Expected first revision to be created.' );
+		$this->assertCount( 1, wp_get_post_revisions( $post_id ), 'First revision should be created.' );
+		$this->assertSame( $initial_favorites, get_post_meta( $revision_id_1, $meta_key, true ), 'Expected first revision post meta to have the initial value.' );
+
+		// Save the second revision.
+		$updated_favorites = array_merge(
+			$initial_favorites,
+			array(
+				'warm woolen mittens',
+				'crisp apple strudels',
+				'brown paper packages tied up with strings',
+			)
+		);
+		update_post_meta( $post_id, $meta_key, $updated_favorites );
+		$revision_id_2 = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $revision_id_2, 'Expected second revision to be created.' );
+		$this->assertCount( 2, wp_get_post_revisions( $post_id ), 'Second revision should be created after array field change.' );
+		$this->assertSame( $updated_favorites, get_post_meta( $revision_id_2, $meta_key, true ), 'Expected second revision post meta to have the updated value.' );
 	}
 }

@@ -91,7 +91,7 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return string[] Array of HTML attributes.
+	 * @return string[] Array of HTML attribute values keyed by their name.
 	 */
 	public function apply_block_supports() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
@@ -103,8 +103,8 @@ class WP_Block_Supports {
 			return array();
 		}
 
-		$block_attributes = array_key_exists( 'attrs', self::$block_to_render )
-			? self::$block_to_render['attrs']
+		$block_attributes = array_key_exists( 'attrs', self::$block_to_render ) && is_array( self::$block_to_render['attrs'] )
+			? $block_type->prepare_attributes_for_render( self::$block_to_render['attrs'] )
 			: array();
 
 		$output = array();
@@ -142,7 +142,7 @@ class WP_Block_Supports {
 		$block_registry         = WP_Block_Type_Registry::get_instance();
 		$registered_block_types = $block_registry->get_all_registered();
 		foreach ( $registered_block_types as $block_type ) {
-			if ( ! property_exists( $block_type, 'supports' ) ) {
+			if ( ! ( $block_type instanceof WP_Block_Type ) ) {
 				continue;
 			}
 			if ( ! $block_type->attributes ) {
@@ -181,7 +181,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 
 	// This is hardcoded on purpose.
 	// We only support a fixed list of attributes.
-	$attributes_to_merge = array( 'style', 'class' );
+	$attributes_to_merge = array( 'style', 'class', 'id', 'aria-label' );
 	$attributes          = array();
 	foreach ( $attributes_to_merge as $attribute_name ) {
 		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {

@@ -89,7 +89,7 @@ final class WP_Screen {
 	 * have a `$parent_base` of 'edit'.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $parent_base;
 
@@ -99,7 +99,7 @@ final class WP_Screen {
 	 * Some `$parent_file` values are 'edit.php?post_type=page', 'edit.php', and 'options-general.php'.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $parent_file;
 
@@ -144,7 +144,7 @@ final class WP_Screen {
 	 * The accessible hidden headings and text associated with the screen, if any.
 	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var string[]
 	 */
 	private $_screen_reader_content = array();
 
@@ -175,8 +175,10 @@ final class WP_Screen {
 	/**
 	 * Stores the result of the public show_screen_options function.
 	 *
+	 * Set when calling {@see self::show_screen_options()} for the first time.
+	 *
 	 * @since 3.3.0
-	 * @var bool
+	 * @var ?bool
 	 */
 	private $_show_screen_options;
 
@@ -230,7 +232,7 @@ final class WP_Screen {
 			$post_type = $id;
 			$id        = 'post'; // Changes later. Ends up being $base.
 		} else {
-			if ( '.php' === substr( $id, -4 ) ) {
+			if ( str_ends_with( $id, '.php' ) ) {
 				$id = substr( $id, 0, -4 );
 			}
 
@@ -241,16 +243,16 @@ final class WP_Screen {
 		}
 
 		if ( ! $post_type && $hook_name ) {
-			if ( '-network' === substr( $id, -8 ) ) {
+			if ( str_ends_with( $id, '-network' ) ) {
 				$id       = substr( $id, 0, -8 );
 				$in_admin = 'network';
-			} elseif ( '-user' === substr( $id, -5 ) ) {
+			} elseif ( str_ends_with( $id, '-user' ) ) {
 				$id       = substr( $id, 0, -5 );
 				$in_admin = 'user';
 			}
 
 			$id = sanitize_key( $id );
-			if ( 'edit-comments' !== $id && 'edit-tags' !== $id && 'edit-' === substr( $id, 0, 5 ) ) {
+			if ( 'edit-comments' !== $id && 'edit-tags' !== $id && str_starts_with( $id, 'edit-' ) ) {
 				$maybe = substr( $id, 5 );
 				if ( taxonomy_exists( $maybe ) ) {
 					$id       = 'edit-tags';
@@ -545,17 +547,14 @@ final class WP_Screen {
 	 * @param string       $option Option name.
 	 * @param string|false $key    Optional. Specific array key for when the option is an array.
 	 *                             Default false.
-	 * @return string The option value if set, null otherwise.
+	 * @return ?string The option value if set, null otherwise.
 	 */
 	public function get_option( $option, $key = false ) {
 		if ( ! isset( $this->_options[ $option ] ) ) {
 			return null;
 		}
 		if ( $key ) {
-			if ( isset( $this->_options[ $option ][ $key ] ) ) {
-				return $this->_options[ $option ][ $key ];
-			}
-			return null;
+			return $this->_options[ $option ][ $key ] ?? null;
 		}
 		return $this->_options[ $option ];
 	}
@@ -598,7 +597,7 @@ final class WP_Screen {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Help Tab ID.
-	 * @return array Help tab arguments.
+	 * @return ?array Help tab arguments, or null if no help tabs added.
 	 */
 	public function get_help_tab( $id ) {
 		if ( ! isset( $this->_help_tabs[ $id ] ) ) {
@@ -721,7 +720,7 @@ final class WP_Screen {
 	 *
 	 * @see set_screen_reader_content() For more information on the array format.
 	 *
-	 * @return array An associative array of screen reader text strings.
+	 * @return string[] An associative array of screen reader text strings.
 	 */
 	public function get_screen_reader_content() {
 		return $this->_screen_reader_content;
@@ -733,7 +732,7 @@ final class WP_Screen {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Screen reader text array named key.
-	 * @return string Screen reader text string.
+	 * @return ?string Screen reader text string, or null if no text is associated with the key.
 	 */
 	public function get_screen_reader_text( $key ) {
 		if ( ! isset( $this->_screen_reader_content[ $key ] ) ) {
@@ -806,7 +805,7 @@ final class WP_Screen {
 			'get_current_screen()->add_help_tab(), get_current_screen()->remove_help_tab()'
 		);
 
-		$old_help = isset( self::$_old_compat_help[ $this->id ] ) ? self::$_old_compat_help[ $this->id ] : '';
+		$old_help = self::$_old_compat_help[ $this->id ] ?? '';
 
 		/**
 		 * Filters the legacy contextual help text.
@@ -949,8 +948,9 @@ final class WP_Screen {
 		if ( $this->get_option( 'layout_columns' ) ) {
 			$this->columns = (int) get_user_option( "screen_layout_$this->id" );
 
-			if ( ! $this->columns && $this->get_option( 'layout_columns', 'default' ) ) {
-				$this->columns = $this->get_option( 'layout_columns', 'default' );
+			$layout_columns = (int) $this->get_option( 'layout_columns', 'default' );
+			if ( ! $this->columns && $layout_columns ) {
+				$this->columns = $layout_columns;
 			}
 		}
 		$GLOBALS['screen_layout_columns'] = $this->columns; // Set the global for back-compat.
@@ -984,9 +984,11 @@ final class WP_Screen {
 	}
 
 	/**
-	 * @global array $wp_meta_boxes
+	 * @since 3.3.0
 	 *
-	 * @return bool
+	 * @global array $wp_meta_boxes Global meta box state.
+	 *
+	 * @return bool Whether to show the Screen Options tab for the current screen.
 	 */
 	public function show_screen_options() {
 		global $wp_meta_boxes;
@@ -1103,7 +1105,7 @@ final class WP_Screen {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @global array $wp_meta_boxes
+	 * @global array $wp_meta_boxes Global meta box state.
 	 */
 	public function render_meta_boxes_preferences() {
 		global $wp_meta_boxes;
@@ -1118,6 +1120,7 @@ final class WP_Screen {
 			<?php _e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ?>
 			<?php _e( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.' ); ?>
 		</p>
+		<div class="metabox-prefs-container">
 		<?php
 
 		meta_box_prefs( $this );
@@ -1137,6 +1140,7 @@ final class WP_Screen {
 			echo _x( 'Welcome', 'Welcome panel' ) . "</label>\n";
 		}
 		?>
+		</div>
 		</fieldset>
 		<?php
 	}
@@ -1250,7 +1254,7 @@ final class WP_Screen {
 		}
 
 		if ( 'edit_comments_per_page' === $option ) {
-			$comment_status = isset( $_REQUEST['comment_status'] ) ? $_REQUEST['comment_status'] : 'all';
+			$comment_status = $_REQUEST['comment_status'] ?? 'all';
 
 			/** This filter is documented in wp-admin/includes/class-wp-comments-list-table.php */
 			$per_page = apply_filters( 'comments_per_page', $per_page, $comment_status );
@@ -1277,7 +1281,7 @@ final class WP_Screen {
 			<?php if ( $per_page_label ) : ?>
 				<label for="<?php echo esc_attr( $option ); ?>"><?php echo $per_page_label; ?></label>
 				<input type="number" step="1" min="1" max="999" class="screen-per-page" name="wp_screen_options[value]"
-					id="<?php echo esc_attr( $option ); ?>" maxlength="3"
+					id="<?php echo esc_attr( $option ); ?>"
 					value="<?php echo esc_attr( $per_page ); ?>" />
 			<?php endif; ?>
 				<input type="hidden" name="wp_screen_options[option]" value="<?php echo esc_attr( $option ); ?>" />

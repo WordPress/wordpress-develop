@@ -1,72 +1,55 @@
-import {
-  visitAdminPage,
-  createNewPost,
-  trashAllPosts,
-  publishPost,
-} from "@wordpress/e2e-test-utils";
+/**
+ * WordPress dependencies
+ */
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-const POST_TITLE = "Test Title";
+const POST_TITLE = 'Test Title';
 
-describe("Empty Trash", () => {
-  async function createPost(title) {
-    // Create a Post
-    await createNewPost({ title });
-    await publishPost();
-  }
+test.describe( 'Empty Trash', () => {
+	test.beforeEach( async ( { requestUtils } ) => {
+		await requestUtils.deleteAllPosts();
+	});
 
-  afterEach(async () => {
-    await trashAllPosts();
-  });
+	test('Empty Trash', async ({ admin, editor, page }) => {
+		await admin.createNewPost( { title: POST_TITLE } );
+		await editor.publishPost();
 
-  it("Empty Trash", async () => {
-    await createPost(POST_TITLE);
+		await admin.visitAdminPage( '/edit.php' );
 
-    await visitAdminPage("/edit.php");
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
-    // Move post to trash
-    await page.hover(`[aria-label^="“${POST_TITLE}”"]`);
-    await page.click(`[aria-label='Move “${POST_TITLE}” to the Trash']`);
+		// Move post to trash
+		await listTable.getByRole( 'link', { name: `“${ POST_TITLE }” (Edit)` } ).hover();
+		await listTable.getByRole( 'link', { name: `Move “${POST_TITLE}” to the Trash` } ).click();
 
-    // Empty trash
-    const trashTab = await page.waitForXPath('//h2[text()="Filter posts list"]/following-sibling::ul//a[contains(text(), "Trash")]');
-    await Promise.all([
-      trashTab.click(),
-      page.waitForNavigation(),
-    ]);
-    const deleteAllButton = await page.waitForSelector('input[value="Empty Trash"]');
-    await Promise.all([
-      deleteAllButton.click(),
-      page.waitForNavigation(),
-    ]);
+		// Empty trash
+		await page.getByRole( 'link', { name: 'Trash' } ).click();
+		await page.getByRole( 'button', { name: 'Empty Trash' } ).first().click();
 
-    const messageElement = await page.waitForSelector("#message");
-    const message = await messageElement.evaluate((node) => node.innerText);
-    // Until we have `deleteAllPosts`, the number of posts being deleted could be dynamic.
-    expect(message).toMatch(/\d+ posts? permanently deleted\./);
-  });
+		await expect( page.locator( '#message' ) ).toContainText( '1 post permanently deleted.' );
+	} );
 
-  it("Restore trash post", async () => {
-    await createPost(POST_TITLE);
+	test('Restore trash post', async ( { admin, editor, page }) => {
+		await admin.createNewPost( { title: POST_TITLE } );
+		await editor.publishPost();
 
-    await visitAdminPage("/edit.php");
+		await admin.visitAdminPage( '/edit.php' );
 
-    // Move one post to trash.
-    await page.hover(`[aria-label^="“${POST_TITLE}”"]`);
-    await page.click(`[aria-label='Move “${POST_TITLE}” to the Trash']`);
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
-    // Remove post from trash.
-    const trashTab = await page.waitForXPath('//h2[text()="Filter posts list"]/following-sibling::ul//a[contains(text(), "Trash")]');
-    await Promise.all([
-      trashTab.click(),
-      page.waitForNavigation(),
-    ]);
-    const [postTitle] = await page.$x(`//*[text()="${POST_TITLE}"]`);
-    await postTitle.hover();
-    await page.click(`[aria-label="Restore “${POST_TITLE}” from the Trash"]`);
+		// Move post to trash
+		await listTable.getByRole( 'link', { name: `“${ POST_TITLE }” (Edit)` } ).hover();
+		await listTable.getByRole( 'link', { name: `Move “${POST_TITLE}” to the Trash` } ).click();
 
-    // Expect for success message for trashed post.
-    const messageElement = await page.waitForSelector("#message");
-    const message = await messageElement.evaluate((element) => element.innerText);
-    expect(message).toContain("1 post restored from the Trash.");
-  });
-});
+		await page.getByRole( 'link', { name: 'Trash' } ).click();
+
+		// Remove post from trash.
+		await listTable.getByRole( 'cell' ).filter( { hasText: POST_TITLE } ).hover();
+		await listTable.getByRole( 'link', { name: `Restore “${POST_TITLE}” from the Trash` } ).click();
+
+		// Expect for success message for restored post.
+		await expect( page.locator( '#message' ) ).toContainText( '1 post restored from the Trash.' );
+	} );
+} );

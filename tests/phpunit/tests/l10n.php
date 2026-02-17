@@ -16,6 +16,17 @@ class Tests_L10n extends WP_UnitTestCase {
 	private $long_text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 
 	/**
+	 * Editor user ID.
+	 *
+	 * @var int $editor_id
+	 */
+	public static $editor_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
+
+	/**
 	 * @ticket 35961
 	 *
 	 * @covers ::_n_noop
@@ -70,13 +81,25 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->assertEmpty( $array );
 
 		$array = get_available_languages( DIR_TESTDATA . '/languages/' );
-		$this->assertSame( array( 'de_DE', 'en_GB', 'es_ES', 'ja_JP' ), $array );
+		$this->assertEqualSets(
+			array(
+				'de_DE',
+				'en_GB',
+				'es_ES',
+				'ja_JP',
+				'de_CH',
+			),
+			$array
+		);
 	}
 
 	/**
 	 * @ticket 35284
+	 * @ticket 60554
 	 *
 	 * @covers ::wp_get_installed_translations
+	 * @covers ::wp_get_pomo_file_data
+	 * @covers ::wp_get_l10n_php_file_data
 	 */
 	public function test_wp_get_installed_translations_for_core() {
 		$installed_translations = wp_get_installed_translations( 'core' );
@@ -95,6 +118,12 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->assertSame( '2016-10-25 18:29+0200', $data_es_es['PO-Revision-Date'] );
 		$this->assertSame( 'Administration', $data_es_es['Project-Id-Version'] );
 		$this->assertSame( 'Poedit 1.8.10', $data_es_es['X-Generator'] );
+
+		$this->assertNotEmpty( $installed_translations['default']['de_CH'] );
+		$data_en_gb = $installed_translations['default']['de_CH'];
+		$this->assertSame( '2024-01-31 19:08:22+0000', $data_en_gb['PO-Revision-Date'] );
+		$this->assertSame( 'WordPress - 6.4.x - Development', $data_en_gb['Project-Id-Version'] );
+		$this->assertSame( 'GlotPress/4.0.0-beta.2', $data_en_gb['X-Generator'] );
 	}
 
 	/**
@@ -446,7 +475,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => $this->long_text,
@@ -485,7 +514,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => $this->long_text,
@@ -524,7 +553,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => str_repeat( 'あ', 200 ),

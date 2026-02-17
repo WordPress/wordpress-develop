@@ -12,6 +12,11 @@ require_once __DIR__ . '/admin.php';
 
 require_once ABSPATH . WPINC . '/http.php';
 
+/**
+ * @global int $wp_db_version WordPress database version.
+ */
+global $wp_db_version;
+
 // Used in the HTML title tag.
 $title       = __( 'Upgrade Network' );
 $parent_file = 'upgrade.php';
@@ -29,8 +34,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-updates-screen/">Documentation on Upgrade Network</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-updates-screen">Documentation on Upgrade Network</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -42,17 +47,13 @@ if ( ! current_user_can( 'upgrade_network' ) ) {
 echo '<div class="wrap">';
 echo '<h1>' . __( 'Upgrade Network' ) . '</h1>';
 
-$action = isset( $_GET['action'] ) ? $_GET['action'] : 'show';
+$action = $_GET['action'] ?? 'show';
 
 switch ( $action ) {
 	case 'upgrade':
 		$n = ( isset( $_GET['n'] ) ) ? (int) $_GET['n'] : 0;
 
 		if ( $n < 5 ) {
-			/**
-			 * @global int $wp_db_version WordPress database version.
-			 */
-			global $wp_db_version;
 			update_site_option( 'wpmu_upgrade_site', $wp_db_version );
 		}
 
@@ -123,7 +124,7 @@ switch ( $action ) {
 		}
 		echo '</ul>';
 		?><p><?php _e( 'If your browser does not start loading the next page automatically, click this link:' ); ?> <a class="button" href="upgrade.php?action=upgrade&amp;n=<?php echo ( $n + 5 ); ?>"><?php _e( 'Next Sites' ); ?></a></p>
-		<script type="text/javascript">
+		<script>
 		<!--
 		function nextpage() {
 			location.href = "upgrade.php?action=upgrade&n=<?php echo ( $n + 5 ); ?>";
@@ -135,7 +136,7 @@ switch ( $action ) {
 		break;
 	case 'show':
 	default:
-		if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $GLOBALS['wp_db_version'] ) :
+		if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $wp_db_version ) :
 			?>
 		<h2><?php _e( 'Database Update Required' ); ?></h2>
 		<p><?php _e( 'WordPress has been updated! Next and final step is to individually upgrade the sites in your network.' ); ?></p>

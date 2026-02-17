@@ -64,7 +64,6 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		// Check it is deleted.
 		$this->assertSame( '', get_post_meta( self::$post_id, 'unique', true ) );
 		$this->assertSame( array(), get_post_meta( self::$post_id, 'unique', false ) );
-
 	}
 
 	public function test_nonunique_postmeta() {
@@ -128,7 +127,6 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertSame( array( 'new' ), get_post_meta( self::$post_id, 'unique_update', false ) );
 		$this->assertSame( 'new', get_post_meta( self::$post_id, 'nonunique_update', true ) );
 		$this->assertSame( array( 'new', 'another new' ), get_post_meta( self::$post_id, 'nonunique_update', false ) );
-
 	}
 
 	public function test_delete_post_meta() {
@@ -145,7 +143,6 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 		// Check the other still exists.
 		$this->assertSame( 'value', get_post_meta( self::$post_id_2, 'unique_delete', true ) );
-
 	}
 
 	public function test_delete_post_meta_by_key() {
@@ -249,7 +246,6 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 		// Check it exists.
 		$this->assertEqualSets( $funky_meta, get_post_meta( self::$post_id, 'test_funky_post_meta', true ) );
-
 	}
 
 	/**

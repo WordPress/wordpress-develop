@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @group admin
  * @group site-health
  *
  * @coversDefaultClass WP_Site_Health
@@ -37,13 +38,11 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::__construct()
 	 */
 	public function test_mysql_recommended_version_matches_readme_html() {
-		// This test is designed to only run on trunk.
-		$this->skipOnAutomatedBranches();
-
 		$reflection          = new ReflectionClass( $this->instance );
 		$reflection_property = $reflection->getProperty( 'mysql_recommended_version' );
-		$reflection_property->setAccessible( true );
-
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
 		preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]*)#s', $readme, $matches );
@@ -56,12 +55,11 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::__construct()
 	 */
 	public function test_mariadb_recommended_version_matches_readme_html() {
-		// This test is designed to only run on trunk.
-		$this->skipOnAutomatedBranches();
-
 		$reflection          = new ReflectionClass( $this->instance );
 		$reflection_property = $reflection->getProperty( 'mariadb_recommended_version' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
@@ -202,7 +200,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function ( $r, $parsed_args ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold ) {
+			function ( $response, $parsed_args ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold ) {
 
 				$expected_response = array_shift( $responses );
 
@@ -421,7 +419,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		// Set thresholds so high they should never be exceeded.
 		add_filter(
 			'site_status_persistent_object_cache_thresholds',
-			function() {
+			static function () {
 				return array(
 					'alloptions_count' => PHP_INT_MAX,
 					'alloptions_bytes' => PHP_INT_MAX,
@@ -472,7 +470,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	public function test_object_cache_thresholds( $threshold, $count ) {
 		add_filter(
 			'site_status_persistent_object_cache_thresholds',
-			function ( $thresholds ) use ( $threshold, $count ) {
+			static function ( $thresholds ) use ( $threshold, $count ) {
 				return array_merge( $thresholds, array( $threshold => $count ) );
 			}
 		);
@@ -491,11 +489,146 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		return array(
 			array( 'comments_count', 0 ),
 			array( 'posts_count', 0 ),
-			array( 'terms_count', 1 ),
-			array( 'options_count', 100 ),
+			array( 'terms_count', 0 ),
+			array( 'options_count', 1 ),
 			array( 'users_count', 0 ),
-			array( 'alloptions_count', 100 ),
-			array( 'alloptions_bytes', 1000 ),
+			array( 'alloptions_count', 1 ),
+			array( 'alloptions_bytes', 10 ),
 		);
+	}
+
+	/**
+	 * Tests get_test_autoloaded_options() when autoloaded options less than warning size.
+	 *
+	 * @ticket 61276
+	 *
+	 * @covers ::get_test_autoloaded_options()
+	 */
+	public function test_wp_autoloaded_options_test_no_warning() {
+		$expected_label  = esc_html__( 'Autoloaded options are acceptable' );
+		$expected_status = 'good';
+
+		$result = $this->instance->get_test_autoloaded_options();
+		$this->assertSame( $expected_label, $result['label'], 'The label should indicate that autoloaded options are acceptable.' );
+		$this->assertSame( $expected_status, $result['status'], 'The status should be "good" when autoloaded options are acceptable.' );
+	}
+
+	/**
+	 * Tests get_test_autoloaded_options() when autoloaded options more than warning size.
+	 *
+	 * @ticket 61276
+	 *
+	 * @covers ::get_test_autoloaded_options()
+	 */
+	public function test_wp_autoloaded_options_test_warning() {
+		self::set_autoloaded_option( 800000 );
+
+		$expected_label  = esc_html__( 'Autoloaded options could affect performance' );
+		$expected_status = 'critical';
+
+		$result = $this->instance->get_test_autoloaded_options();
+		$this->assertSame( $expected_label, $result['label'], 'The label should indicate that autoloaded options could affect performance.' );
+		$this->assertSame( $expected_status, $result['status'], 'The status should be "critical" when autoloaded options could affect performance.' );
+	}
+
+	/**
+	 * Tests get_autoloaded_options_size().
+	 *
+	 * @ticket 61276
+	 *
+	 * @covers ::get_autoloaded_options_size()
+	 */
+	public function test_get_autoloaded_options_size() {
+		global $wpdb;
+
+		$autoload_values = wp_autoload_values_to_autoload();
+
+		$autoloaded_options_size = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				sprintf(
+					"SELECT SUM(LENGTH(option_value)) FROM $wpdb->options WHERE autoload IN (%s)",
+					implode( ',', array_fill( 0, count( $autoload_values ), '%s' ) )
+				),
+				$autoload_values
+			)
+		);
+		$this->assertSame( $autoloaded_options_size, $this->instance->get_autoloaded_options_size(), 'The size of autoloaded options should match the calculated size from the database.' );
+
+		// Add autoload option.
+		$test_option_string       = 'test';
+		$test_option_string_bytes = mb_strlen( $test_option_string, '8bit' );
+		self::set_autoloaded_option( $test_option_string_bytes );
+		$this->assertSame( $autoloaded_options_size + $test_option_string_bytes, $this->instance->get_autoloaded_options_size(), 'The size of autoloaded options should increase by the size of the newly added option.' );
+	}
+
+	/**
+	 * Sets a test autoloaded option.
+	 *
+	 * @param int $bytes bytes to load in options.
+	 */
+	public static function set_autoloaded_option( $bytes = 800000 ) {
+		$heavy_option_string = wp_generate_password( $bytes );
+
+		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
+		add_option( 'test_set_autoloaded_option', $heavy_option_string, '', true );
+	}
+
+	/**
+	 * Tests get_test_opcode_cache() return structure.
+	 *
+	 * @ticket 63697
+	 *
+	 * @covers ::get_test_opcode_cache()
+	 */
+	public function test_get_test_opcode_cache_return_structure() {
+		$result = $this->instance->get_test_opcode_cache();
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'label', $result );
+		$this->assertArrayHasKey( 'status', $result );
+		$this->assertArrayHasKey( 'badge', $result );
+		$this->assertArrayHasKey( 'description', $result );
+		$this->assertArrayHasKey( 'actions', $result );
+		$this->assertArrayHasKey( 'test', $result );
+
+		$this->assertSame( 'opcode_cache', $result['test'] );
+		$this->assertSame(
+			array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			$result['badge']
+		);
+		$this->assertContains( $result['status'], array( 'good', 'recommended' ), 'Status must be good or recommended.' );
+	}
+
+	/**
+	 * Tests get_test_opcode_cache() result when opcode cache is enabled or not.
+	 *
+	 * Covers: opcache enabled, disabled, not available, and opcache_get_status() returns false.
+	 *
+	 * @ticket 63697
+	 *
+	 * @covers ::get_test_opcode_cache()
+	 */
+	public function test_get_test_opcode_cache_result_by_environment() {
+		$result = $this->instance->get_test_opcode_cache();
+
+		$opcache_enabled = false;
+		if ( function_exists( 'opcache_get_status' ) ) {
+			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+			if ( $status && true === $status['opcache_enabled'] ) {
+				$opcache_enabled = true;
+			}
+		}
+
+		if ( $opcache_enabled ) {
+			$this->assertSame( 'good', $result['status'], 'When opcache is enabled, status should be "good".' );
+			$this->assertSame( __( 'Opcode cache is enabled' ), $result['label'] );
+		} else {
+			$this->assertSame( 'recommended', $result['status'] );
+			$this->assertSame( __( 'Opcode cache is not enabled' ), $result['label'] );
+			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
+		}
 	}
 }

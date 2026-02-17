@@ -5,7 +5,8 @@
  *
  * @since 5.3.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_array_slice_assoc
  */
 class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
@@ -28,7 +29,7 @@ class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
 	/**
 	 * Data provider for wp_array_slice_assoc().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_wp_array_slice_assoc_arrays() {
 		return array(

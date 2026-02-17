@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @group functions.php
+ * @group functions
+ *
  * @covers ::_wp_check_alternate_file_names
  */
 class Tests_Functions_WpCheckAlternateFileNames extends WP_UnitTestCase {

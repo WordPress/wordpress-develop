@@ -110,19 +110,19 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 					// Ignore whitespace.
 					case ' ':
 					case "\t":
-						$pos++;
+						++$pos;
 						break;
 
 					// Variable (n).
 					case 'n':
 						$output[] = array( 'var' );
-						$pos++;
+						++$pos;
 						break;
 
 					// Parentheses.
 					case '(':
 						$stack[] = $next;
-						$pos++;
+						++$pos;
 						break;
 
 					case ')':
@@ -144,7 +144,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 							throw new Exception( 'Mismatched parentheses' );
 						}
 
-						$pos++;
+						++$pos;
 						break;
 
 					// Operators.
@@ -189,7 +189,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 							$o2 = $stack[ $s_pos ];
 							if ( '?' !== $o2 ) {
 								$output[] = array( 'op', array_pop( $stack ) );
-								$s_pos--;
+								--$s_pos;
 								continue;
 							}
 
@@ -202,7 +202,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 						if ( ! $found ) {
 							throw new Exception( 'Missing starting "?" ternary operator' );
 						}
-						$pos++;
+						++$pos;
 						break;
 
 					// Default - number or invalid.
@@ -264,7 +264,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 			$total = count( $this->tokens );
 			while ( $i < $total ) {
 				$next = $this->tokens[ $i ];
-				$i++;
+				++$i;
 				if ( 'var' === $next[0] ) {
 					$stack[] = $n;
 					continue;
@@ -320,13 +320,13 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 					case '!=':
 						$v2      = array_pop( $stack );
 						$v1      = array_pop( $stack );
-						$stack[] = $v1 != $v2;
+						$stack[] = $v1 !== $v2;
 						break;
 
 					case '==':
 						$v2      = array_pop( $stack );
 						$v1      = array_pop( $stack );
-						$stack[] = $v1 == $v2;
+						$stack[] = $v1 === $v2;
 						break;
 
 					case '?:':

@@ -343,9 +343,9 @@ jQuery( function($) {
 		}
 	}).filter(':visible').find('.wp-tab-first').trigger( 'focus' );
 
-	// Set the heartbeat interval to 15 seconds if post lock dialogs are enabled.
+	// Set the heartbeat interval to 10 seconds if post lock dialogs are enabled.
 	if ( wp.heartbeat && $('#post-lock-dialog').length ) {
-		wp.heartbeat.interval( 15 );
+		wp.heartbeat.interval( 10 );
 	}
 
 	// The form is being submitted by the user.
@@ -434,25 +434,6 @@ jQuery( function($) {
 		$previewField.val('');
 	});
 
-	// This code is meant to allow tabbing from Title to Post content.
-	$('#title').on( 'keydown.editor-focus', function( event ) {
-		var editor;
-
-		if ( event.keyCode === 9 && ! event.ctrlKey && ! event.altKey && ! event.shiftKey ) {
-			editor = typeof tinymce != 'undefined' && tinymce.get('content');
-
-			if ( editor && ! editor.isHidden() ) {
-				editor.focus();
-			} else if ( $textarea.length ) {
-				$textarea.trigger( 'focus' );
-			} else {
-				return;
-			}
-
-			event.preventDefault();
-		}
-	});
-
 	// Auto save new posts after a title is typed.
 	if ( $( '#auto_draft' ).val() ) {
 		$( '#title' ).on( 'blur', function() {
@@ -511,7 +492,7 @@ jQuery( function($) {
 			// See https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event.
 			return __( 'The changes you made will be lost if you navigate away from this page.' );
 		}
-	}).on( 'unload.edit-post', function( event ) {
+	}).on( 'pagehide.edit-post', function( event ) {
 		if ( ! releaseLock ) {
 			return;
 		}
@@ -678,8 +659,10 @@ jQuery( function($) {
 			'li.popular-category > label input[type="checkbox"]',
 			function() {
 				var t = $(this), c = t.is(':checked'), id = t.val();
-				if ( id && t.parents('#taxonomy-'+taxonomy).length )
-					$('#in-' + taxonomy + '-' + id + ', #in-popular-' + taxonomy + '-' + id).prop( 'checked', c );
+				if ( id && t.parents('#taxonomy-'+taxonomy).length ) {
+					$('input#in-' + taxonomy + '-' + id + ', input[id^="in-' + taxonomy + '-' + id + '-"]').prop('checked', c);
+					$('input#in-popular-' + taxonomy + '-' + id).prop('checked', c);
+				}
 			}
 		);
 
@@ -789,7 +772,7 @@ jQuery( function($) {
 			}
 
 			// Determine what the publish should be depending on the date and post status.
-			if ( attemptedDate > currentDate && $('#original_post_status').val() != 'future' ) {
+			if ( attemptedDate > currentDate ) {
 				publishOn = __( 'Schedule for:' );
 				$('#publish').val( _x( 'Schedule', 'post action/button label' ) );
 			} else if ( attemptedDate <= currentDate && $('#original_post_status').val() != 'publish' ) {
@@ -889,7 +872,7 @@ jQuery( function($) {
 		});
 
 		// Set the selected visibility as current.
-		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
 			var visibilityLabel = '', selectedVisibility = $postVisibilitySelect.find('input:radio:checked').val();
 
 			$postVisibilitySelect.slideUp('fast');
@@ -945,7 +928,7 @@ jQuery( function($) {
 		});
 
 		// Save the changed timestamp.
-		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
 			if ( updateText() ) {
 				$timestampdiv.slideUp('fast');
 				$timestampdiv.siblings('a.edit-timestamp').show().trigger( 'focus' );
@@ -1173,7 +1156,7 @@ jQuery( function($) {
 		}
 
 		/**
-		 * When the dragging stopped make sure we return focus and do a sanity check on the height.
+		 * When the dragging stopped make sure we return focus and do a confidence check on the height.
 		 */
 		function endDrag() {
 			var height, toolbarHeight;
@@ -1198,7 +1181,7 @@ jQuery( function($) {
 
 			$document.off( '.wp-editor-resize' );
 
-			// Sanity check: normalize height to stay within acceptable ranges.
+			// Confidence check: normalize height to stay within acceptable ranges.
 			if ( height && height > 50 && height < 5000 ) {
 				setUserSetting( 'ed_size', height );
 			}
@@ -1303,8 +1286,6 @@ jQuery( function($) {
 
 		// Clear the selection and move focus back to the trigger.
 		event.clearSelection();
-		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.trigger( 'focus' );
 
 		// Show success visual feedback.
 		clearTimeout( copyAttachmentURLSuccessTimeout );

@@ -69,7 +69,6 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		$comments_number_text = ob_get_clean();
 
 		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 6 ), '6' ), $comments_number_text );
-
 	}
 
 	/**
@@ -93,7 +92,6 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		$this->go_to( $permalink );
 
 		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ), get_comments_number_text() );
-
 	}
 
 	/**
@@ -199,5 +197,4 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

@@ -120,7 +120,7 @@ class WP_Date_Query {
 	 *                                               or an array of years if `$compare` supports it. Default empty.
 	 *             @type int|int[]    $month         Optional. The two-digit month number. Accepts numbers 1-12 or an
 	 *                                               array of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|int[]    $week          Optional. The week number of the year. Accepts numbers 0-53 or an
+	 *             @type int|int[]    $week          Optional. The week number of the year. Accepts numbers 1-53 or an
 	 *                                               array of valid numbers if `$compare` supports it. Default empty.
 	 *             @type int|int[]    $dayofyear     Optional. The day number of the year. Accepts numbers 1-366 or an
 	 *                                               array of valid numbers if `$compare` supports it.
@@ -208,11 +208,7 @@ class WP_Date_Query {
 				continue;
 			}
 
-			if ( isset( $parent_query[ $dkey ] ) ) {
-				$queries[ $dkey ] = $parent_query[ $dkey ];
-			} else {
-				$queries[ $dkey ] = $dvalue;
-			}
+			$queries[ $dkey ] = $parent_query[ $dkey ] ?? $dvalue;
 		}
 
 		// Validate the dates passed in the query.
@@ -317,7 +313,7 @@ class WP_Date_Query {
 				$_year = $date_query['year'];
 			}
 
-			$max_days_of_year = gmdate( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
+			$max_days_of_year = (int) gmdate( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
 		} else {
 			// Otherwise we use the max of 366 (leap-year).
 			$max_days_of_year = 366;
@@ -482,19 +478,27 @@ class WP_Date_Query {
 		global $wpdb;
 
 		$valid_columns = array(
-			'post_date',
-			'post_date_gmt',
-			'post_modified',
-			'post_modified_gmt',
-			'comment_date',
-			'comment_date_gmt',
-			'user_registered',
-			'registered',
-			'last_updated',
+			'post_date',         // Part of $wpdb->posts.
+			'post_date_gmt',     // Part of $wpdb->posts.
+			'post_modified',     // Part of $wpdb->posts.
+			'post_modified_gmt', // Part of $wpdb->posts.
+			'comment_date',      // Part of $wpdb->comments.
+			'comment_date_gmt',  // Part of $wpdb->comments.
+			'user_registered',   // Part of $wpdb->users.
 		);
 
+		if ( is_multisite() ) {
+			$valid_columns = array_merge(
+				$valid_columns,
+				array(
+					'registered',   // Part of $wpdb->blogs.
+					'last_updated', // Part of $wpdb->blogs.
+				)
+			);
+		}
+
 		// Attempt to detect a table prefix.
-		if ( false === strpos( $column, '.' ) ) {
+		if ( ! str_contains( $column, '.' ) ) {
 			/**
 			 * Filters the list of valid date query columns.
 			 *
@@ -525,11 +529,14 @@ class WP_Date_Query {
 				$wpdb->users    => array(
 					'user_registered',
 				),
-				$wpdb->blogs    => array(
+			);
+
+			if ( is_multisite() ) {
+				$known_columns[ $wpdb->blogs ] = array(
 					'registered',
 					'last_updated',
-				),
-			);
+				);
+			}
 
 			// If it's a known column name, add the appropriate table prefix.
 			foreach ( $known_columns as $table_name => $table_columns ) {
@@ -685,11 +692,11 @@ class WP_Date_Query {
 	 * @since 3.7.0
 	 *
 	 * @param array $query Date query arguments.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	protected function get_sql_for_subquery( $query ) {
@@ -705,11 +712,11 @@ class WP_Date_Query {
 	 *
 	 * @param array $query        Date query clause.
 	 * @param array $parent_query Parent query of the current date query.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	protected function get_sql_for_clause( $query, $parent_query ) {
@@ -866,7 +873,7 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string|array $datetime       An array of parameters or a strotime() string.
+	 * @param string|array $datetime       An array of parameters or a strtotime() string.
 	 * @param bool         $default_to_max Whether to round up incomplete dates. Supported by values
 	 *                                     of $datetime that are arrays, or string values that are a
 	 *                                     subset of MySQL date format ('Y', 'Y-m', 'Y-m-d', 'Y-m-d H:i').
@@ -1057,7 +1064,7 @@ class WP_Date_Query {
 	 * @since 6.0.3
 	 *
 	 * @param string $relation Raw relation key from the query argument.
-	 * @return string Sanitized relation ('AND' or 'OR').
+	 * @return string Sanitized relation. Either 'AND' or 'OR'.
 	 */
 	public function sanitize_relation( $relation ) {
 		if ( 'OR' === strtoupper( $relation ) ) {

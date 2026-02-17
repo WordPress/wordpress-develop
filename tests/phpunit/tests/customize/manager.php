@@ -27,6 +27,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $admin_user_id;
 
 	/**
+	 * Second admin user ID.
+	 *
+	 * @var int
+	 */
+	protected static $other_admin_user_id;
+
+	/**
 	 * Subscriber user ID.
 	 *
 	 * @var int
@@ -46,8 +53,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$subscriber_user_id = $factory->user->create( array( 'role' => 'subscriber' ) );
-		self::$admin_user_id      = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$subscriber_user_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
+		self::$admin_user_id       = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$other_admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
 	/**
@@ -153,7 +161,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_constructor_deferred_changeset_uuid() {
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'admin' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$data = array(
 			'blogname' => array(
@@ -271,7 +279,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @ticket 41039
 	 */
 	public function test_fresh_site_flag_clearing() {
-		global $wp_customize, $wpdb;
+		global $wp_customize;
 
 		// Make sure fresh site flag is cleared when publishing a changeset.
 		update_option( 'fresh_site', '1' );
@@ -283,9 +291,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_load_alloptions();
 
 		// Make sure no DB write is done when publishing and a site is already non-fresh.
-		$query_count = $wpdb->num_queries;
+		$query_count = get_num_queries();
 		do_action( 'customize_save_after', $wp_customize );
-		$this->assertSame( $query_count, $wpdb->num_queries );
+		$this->assertSame( $query_count, get_num_queries() );
 	}
 
 	/**
@@ -764,7 +772,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		/*
 		 * Test that adding blogname starter content is ignored now that it is modified,
-		 * but updating a non-modified starter content blog description passes.
+		 * but updating a non-modified starter content site description passes.
 		 */
 		$previous_blogname        = $changeset_data['blogname']['value'];
 		$previous_blogdescription = $changeset_data['blogdescription']['value'];
@@ -1254,7 +1262,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_save_changeset_post_without_kses_corrupting_json() {
 		global $wp_customize;
-		$lesser_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$lesser_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = new WP_Customize_Manager(
@@ -1345,7 +1353,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// User saved as one who can bypass content_save_pre filter.
 		$this->assertStringContainsString( '<script>', get_option( 'custom_html_1' ) );
-		$this->assertStringContainsString( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.Misspelled
+		$this->assertStringContainsString( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText
 
 		// User saved as one who cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_2' ) );
@@ -1499,7 +1507,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_theme_support( 'custom-background' );
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = $this->create_test_manager( $uuid );
@@ -1714,7 +1722,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_theme_support( 'custom-background' );
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = $this->create_test_manager( $uuid );
@@ -1877,7 +1885,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$r = $wp_customize->save_changeset_post(
 			array(
 				'autosave' => true,
-				'user_id'  => self::factory()->user->create( array( 'role' => 'administrator' ) ),
+				'user_id'  => self::$other_admin_user_id,
 			)
 		);
 		$this->assertSame( 'illegal_autosave_with_non_current_user', $r->get_error_code() );
@@ -2148,6 +2156,45 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( 'trash', get_post_status( $post_id ) );
 		$this->assertSame( $args['post_name'], $post->post_name );
 		$this->assertSame( $args['post_content'], $post->post_content );
+	}
+
+	/**
+	 * Test that trash_changeset_post() passes the correct number of arguments to post trash hooks.
+	 *
+	 * @ticket 60183
+	 * @covers WP_Customize_Manager::trash_changeset_post
+	 */
+	public function test_trash_changeset_post_passes_all_arguments_to_trash_hooks() {
+		$args = array(
+			'post_type'    => 'customize_changeset',
+			'post_content' => wp_json_encode(
+				array(
+					'blogname' => array(
+						'value' => 'Test',
+					),
+				)
+			),
+			'post_name'    => wp_generate_uuid4(),
+			'post_status'  => 'draft',
+		);
+
+		$post_id = wp_insert_post( $args );
+
+		$manager = $this->create_test_manager( $args['post_name'] );
+
+		$pre_trash_post = new MockAction();
+		$wp_trash_post  = new MockAction();
+		$trashed_post   = new MockAction();
+
+		add_action( 'pre_trash_post', array( $pre_trash_post, 'action' ), 10, 3 );
+		add_action( 'wp_trash_post', array( $wp_trash_post, 'action' ), 10, 2 );
+		add_action( 'trashed_post', array( $trashed_post, 'action' ), 10, 2 );
+
+		$manager->trash_changeset_post( $post_id );
+
+		$this->assertCount( 3, $pre_trash_post->get_args()[0] );
+		$this->assertCount( 2, $wp_trash_post->get_args()[0] );
+		$this->assertCount( 2, $trashed_post->get_args()[0] );
 	}
 
 	/**
@@ -2970,7 +3017,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @see WP_Customize_Manager::set_return_url()
 	 */
 	public function test_return_url() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'author' ) ) );
+		wp_set_current_user( self::$subscriber_user_id );
 		$this->assertSame( home_url( '/' ), $this->manager->get_return_url() );
 
 		wp_set_current_user( self::$admin_user_id );
@@ -3135,8 +3182,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$manager = new WP_Customize_Manager( array( 'messenger_channel' => 'preview-0' ) );
 		ob_start();
 		$manager->remove_frameless_preview_messenger_channel();
-		$output = ob_get_clean();
-		$this->assertStringContainsString( '<script>', $output );
+		$processor = new WP_HTML_Tag_Processor( ob_get_clean() );
+		$this->assertTrue( $processor->next_tag( 'script' ), 'Failed to find expected SCRIPT element in output.' );
 	}
 
 	/**
@@ -3339,45 +3386,45 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$setting_id = 'dynamic';
 		$setting    = $manager->add_setting( $setting_id );
 		$this->assertSame( 'WP_Customize_Setting', get_class( $setting ) );
-		$this->assertObjectNotHasAttribute( 'custom', $setting );
+		$this->assertObjectNotHasProperty( 'custom', $setting );
 		$manager->remove_setting( $setting_id );
 
 		add_filter( 'customize_dynamic_setting_class', array( $this, 'return_dynamic_customize_setting_class' ), 10, 3 );
 		add_filter( 'customize_dynamic_setting_args', array( $this, 'return_dynamic_customize_setting_args' ), 10, 2 );
 		$setting = $manager->add_setting( $setting_id );
 		$this->assertSame( 'Test_Dynamic_Customize_Setting', get_class( $setting ) );
-		$this->assertObjectHasAttribute( 'custom', $setting );
+		$this->assertObjectHasProperty( 'custom', $setting );
 		$this->assertSame( 'foo', $setting->custom );
 	}
 
 	/**
-	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
+	 * Returns 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class'.
 	 *
-	 * @param string $class Setting class.
-	 * @param array  $args  Setting args.
-	 * @param string $id    Setting ID.
-	 * @return string       Setting class.
+	 * @param string $setting_class Setting class.
+	 * @param array  $setting_args  Setting args.
+	 * @param string $setting_id    Setting ID.
+	 * @return string Setting class.
 	 */
-	public function return_dynamic_customize_setting_class( $class, $id, $args ) {
-		unset( $args );
-		if ( 0 === strpos( $id, 'dynamic' ) ) {
-			$class = 'Test_Dynamic_Customize_Setting';
+	public function return_dynamic_customize_setting_class( $setting_class, $setting_id, $setting_args ) {
+		unset( $setting_args );
+		if ( 0 === strpos( $setting_id, 'dynamic' ) ) {
+			$setting_class = 'Test_Dynamic_Customize_Setting';
 		}
-		return $class;
+		return $setting_class;
 	}
 
 	/**
-	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
+	 * Returns 'foo' in 'customize_dynamic_setting_args'.
 	 *
-	 * @param array  $args Setting args.
-	 * @param string $id   Setting ID.
-	 * @return string      Setting args.
+	 * @param array  $setting_args Setting args.
+	 * @param string $setting_id   Setting ID.
+	 * @return array Setting args.
 	 */
-	public function return_dynamic_customize_setting_args( $args, $id ) {
-		if ( 0 === strpos( $id, 'dynamic' ) ) {
-			$args['custom'] = 'foo';
+	public function return_dynamic_customize_setting_args( $setting_args, $setting_id ) {
+		if ( 0 === strpos( $setting_id, 'dynamic' ) ) {
+			$setting_args['custom'] = 'foo';
 		}
-		return $args;
+		return $setting_args;
 	}
 
 	/**
@@ -3669,5 +3716,4 @@ class Test_Setting_Without_Applying_Validate_Filter extends WP_Customize_Setting
 		}
 		return true;
 	}
-
 }

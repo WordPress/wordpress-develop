@@ -6,6 +6,7 @@
  * @subpackage Twenty_Sixteen
  * @since Twenty Sixteen 1.0
  */
+
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -25,6 +26,7 @@
 				'after'       => '</div>',
 				'link_before' => '<span>',
 				'link_after'  => '</span>',
+				/* translators: Hidden accessibility text. */
 				'pagelink'    => '<span class="screen-reader-text">' . __( 'Page', 'twentysixteen' ) . ' </span>%',
 				'separator'   => '<span class="screen-reader-text">, </span>',
 			)

@@ -41,7 +41,7 @@ define( 'DB_NAME', 'youremptytestdbnamehere' );
 define( 'DB_USER', 'yourusernamehere' );
 define( 'DB_PASSWORD', 'yourpasswordhere' );
 define( 'DB_HOST', 'localhost' );
-define( 'DB_CHARSET', 'utf8' );
+define( 'DB_CHARSET', 'utf8mb4' );
 define( 'DB_COLLATE', '' );
 
 /**#@+

@@ -42,6 +42,10 @@ class getid3_apetag extends getid3_handler
 			$this->warning('Unable to check for APEtags because file is larger than '.round(PHP_INT_MAX / 1073741824).'GB');
 			return false;
 		}
+		if (PHP_INT_MAX == 2147483647) {
+			// https://github.com/JamesHeinrich/getID3/issues/439
+			$this->warning('APEtag flags may not be parsed correctly on 32-bit PHP');
+		}
 
 		$id3v1tagsize     = 128;
 		$apetagheadersize = 32;
@@ -267,7 +271,7 @@ class getid3_apetag extends getid3_handler
 				case 'cover art (publisher logo)':
 				case 'cover art (recording)':
 				case 'cover art (studio)':
-					// list of possible cover arts from http://taglib-sharp.sourcearchive.com/documentation/2.0.3.0-2/Ape_2Tag_8cs-source.html
+					// list of possible cover arts from https://github.com/mono/taglib-sharp/blob/taglib-sharp-2.0.3.2/src/TagLib/Ape/Tag.cs
 					if (is_array($thisfile_ape_items_current['data'])) {
 						$this->warning('APEtag "'.$item_key.'" should be flagged as Binary data, but was incorrectly flagged as UTF-8');
 						$thisfile_ape_items_current['data'] = implode("\x00", $thisfile_ape_items_current['data']);
@@ -332,7 +336,7 @@ class getid3_apetag extends getid3_handler
 							$info['ape']['comments']['picture'][] = $comments_picture_data;
 							unset($comments_picture_data);
 						}
-					} while (false);
+					} while (false); // @phpstan-ignore-line
 					break;
 
 				default:

@@ -10,33 +10,43 @@
 class Tests_Compat_mbStrlen extends WP_UnitTestCase {
 
 	/**
-	 * Test that mb_strlen() is always available (either from PHP or WP).
+	 * Test that the native mb_strlen() is available.
 	 */
 	public function test_mb_strlen_availability() {
-		$this->assertTrue( function_exists( 'mb_strlen' ) );
+		$this->assertTrue(
+			in_array( 'mb_strlen', get_defined_functions()['internal'], true ),
+			'Test runner should have `mbstring` extension active but doesn’t.'
+		);
 	}
 
 	/**
-	 * @dataProvider utf8_string_lengths
+	 * @dataProvider data_utf8_strings
 	 */
-	public function test_mb_strlen( $string, $expected_character_length ) {
-		$this->assertSame( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
+	public function test_mb_strlen( $input_string ) {
+		$this->assertSame(
+			mb_strlen( $input_string, 'UTF-8' ),
+			_mb_strlen( $input_string, 'UTF-8' )
+		);
 	}
 
 	/**
-	 * @dataProvider utf8_string_lengths
+	 * @dataProvider data_utf8_strings
 	 */
-	public function test_mb_strlen_via_regex( $string, $expected_character_length ) {
-		_wp_can_use_pcre_u( false );
-		$this->assertSame( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
-		_wp_can_use_pcre_u( 'reset' );
+	public function test_mb_strlen_via_regex( $input_string ) {
+		$this->assertSame(
+			mb_strlen( $input_string, 'UTF-8' ),
+			_mb_strlen( $input_string, 'UTF-8' )
+		);
 	}
 
 	/**
-	 * @dataProvider utf8_string_lengths
+	 * @dataProvider data_utf8_strings
 	 */
-	public function test_8bit_mb_strlen( $string, $expected_character_length, $expected_byte_length ) {
-		$this->assertSame( $expected_byte_length, _mb_strlen( $string, '8bit' ) );
+	public function test_8bit_mb_strlen( $input_string ) {
+		$this->assertSame(
+			mb_strlen( $input_string, '8bit' ),
+			_mb_strlen( $input_string, '8bit' )
+		);
 	}
 
 	/**
@@ -44,48 +54,16 @@ class Tests_Compat_mbStrlen extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function utf8_string_lengths() {
+	public function data_utf8_strings() {
 		return array(
-			array(
-				'string'                    => 'баба',
-				'expected_character_length' => 4,
-				'expected_byte_length'      => 8,
-			),
-			array(
-				'string'                    => 'баб',
-				'expected_character_length' => 3,
-				'expected_byte_length'      => 6,
-			),
-			array(
-				'string'                    => 'I am your б',
-				'expected_character_length' => 11,
-				'expected_byte_length'      => 12,
-			),
-			array(
-				'string'                    => '1111111111',
-				'expected_character_length' => 10,
-				'expected_byte_length'      => 10,
-			),
-			array(
-				'string'                    => '²²²²²²²²²²',
-				'expected_character_length' => 10,
-				'expected_byte_length'      => 20,
-			),
-			array(
-				'string'                    => '３３３３３３３３３３',
-				'expected_character_length' => 10,
-				'expected_byte_length'      => 30,
-			),
-			array(
-				'string'                    => '𝟜𝟜𝟜𝟜𝟜𝟜𝟜𝟜𝟜𝟜',
-				'expected_character_length' => 10,
-				'expected_byte_length'      => 40,
-			),
-			array(
-				'string'                    => '1²３𝟜1²３𝟜1²３𝟜',
-				'expected_character_length' => 12,
-				'expected_byte_length'      => 30,
-			),
+			array( 'баба' ),
+			array( 'баб' ),
+			array( 'I am your б' ),
+			array( '1111111111' ),
+			array( '²²²²²²²²²²' ),
+			array( '３３３３３３３３３３' ),
+			array( '𝟜𝟜𝟜𝟜𝟜𝟜𝟜𝟜𝟜𝟜' ),
+			array( '1²３𝟜1²３𝟜1²３𝟜' ),
 		);
 	}
 }

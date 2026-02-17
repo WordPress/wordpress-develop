@@ -64,7 +64,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Assign a tagline option.
 		update_option( 'blogdescription', 'Just another WordPress site' );
-
 	}
 
 	/**
@@ -247,7 +246,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			}
 			$cats = array_filter( $cats );
 			// Should be the same number of categories.
-			$this->assertSame( count( $cats ), count( $categories ) );
+			$this->assertCount( count( $cats ), $categories );
 
 			// ..with the same names.
 			foreach ( $cats as $id => $cat ) {
@@ -289,6 +288,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
+
+		$this->assertNotEmpty( $items );
 
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
@@ -487,7 +488,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 4575
 	 *
-	 * @dataProvider data_test_get_feed_build_date
+	 * @dataProvider data_get_feed_build_date
 	 */
 	public function test_get_feed_build_date( $url, $element ) {
 		$this->go_to( $url );
@@ -501,12 +502,11 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 
-	public function data_test_get_feed_build_date() {
+	public function data_get_feed_build_date() {
 		return array(
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),
 		);
-
 	}
 
 	/**
@@ -535,7 +535,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// The Last-Modified header should have the post's date when "withcomments" is not passed.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $last_week ) {
+			function ( $headers ) use ( $last_week ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $last_week ),
@@ -574,7 +574,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// The Last-Modified header should have the comment's date when "withcomments=1" is passed.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $yesterday ) {
+			function ( $headers ) use ( $yesterday ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $yesterday ),
@@ -617,7 +617,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// The Last-Modified header should have the date from today's post when it is the latest update.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $today ) {
+			function ( $headers ) use ( $today ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $today ),

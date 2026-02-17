@@ -31,6 +31,7 @@ if ( isset( $_GET['import'] ) && ! defined( 'WP_LOAD_IMPORTERS' ) ) {
 	define( 'WP_LOAD_IMPORTERS', true );
 }
 
+/** Load WordPress Bootstrap */
 require_once dirname( __DIR__ ) . '/wp-load.php';
 
 nocache_headers();
@@ -38,7 +39,7 @@ nocache_headers();
 if ( get_option( 'db_upgraded' ) ) {
 
 	flush_rewrite_rules();
-	update_option( 'db_upgraded', false );
+	update_option( 'db_upgraded', false, true );
 
 	/**
 	 * Fires on the next page load after a successful DB upgrade.
@@ -71,14 +72,15 @@ if ( get_option( 'db_upgraded' ) ) {
 	 * @param bool $do_mu_upgrade Whether to perform the Multisite upgrade routine. Default true.
 	 */
 	if ( apply_filters( 'do_mu_upgrade', true ) ) {
-		$c = get_blog_count();
+		$blog_count = get_blog_count();
 
 		/*
 		 * If there are 50 or fewer sites, run every time. Otherwise, throttle to reduce load:
 		 * attempt to do no more than threshold value, with some +/- allowed.
 		 */
-		if ( $c <= 50 || ( $c > 50 && mt_rand( 0, (int) ( $c / 50 ) ) === 1 ) ) {
+		if ( $blog_count <= 50 || ( $blog_count > 50 && mt_rand( 0, (int) ( $blog_count / 50 ) ) === 1 ) ) {
 			require_once ABSPATH . WPINC . '/http.php';
+
 			$response = wp_remote_get(
 				admin_url( 'upgrade.php?step=1' ),
 				array(
@@ -86,11 +88,14 @@ if ( get_option( 'db_upgraded' ) ) {
 					'httpversion' => '1.1',
 				)
 			);
+
 			/** This action is documented in wp-admin/network/upgrade.php */
 			do_action( 'after_mu_upgrade', $response );
+
 			unset( $response );
 		}
-		unset( $c );
+
+		unset( $blog_count );
 	}
 }
 
@@ -348,7 +353,7 @@ if ( isset( $plugin_page ) ) {
 	define( 'WP_IMPORTING', true );
 
 	/**
-	 * Whether to filter imported data through kses on import.
+	 * Filters whether to filter imported data through kses on import.
 	 *
 	 * Multisite uses this hook to filter all data through kses by default,
 	 * as a super administrator may be assisting an untrusted user.

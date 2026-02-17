@@ -340,4 +340,3 @@ msgstr[2] "бабаяга"',
 
 	// TODO: Add tests for bad files.
 }
-

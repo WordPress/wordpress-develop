@@ -107,7 +107,7 @@ function getMismatchedNonWordPressDependencies() {
 	const currentPackages = getWordPressPackages( currentPackageJSON );
 
 	const packageLock = readJSONFile( "package-lock.json" );
-	const versionConflicts = Object.entries( packageLock.dependencies )
+	const versionConflicts = Object.entries( packageLock.packages[''].dependencies )
 		.filter( ( [packageName] ) => currentPackages.includes( packageName ) )
 		.flatMap( ( [, { dependencies }] ) => Object.entries( dependencies || {} ) )
 		.filter( identity )
@@ -120,8 +120,8 @@ function getMismatchedNonWordPressDependencies() {
 	;
 
 	// Ensure that all the conflicts can be resolved with the same version
-	const unresolvableConflicts = Object.entries( groupBy( versionConflicts, ( [name] ) => name ) )
-		.map( ( [name, group] ) => [name, group.map( ( [, { required }] ) => required )] )
+	const unresolvableConflicts = Object.entries( groupBy( versionConflicts, ( {name} ) => name ) )
+		.map( ( [name, group] ) => [name, uniq( group.map( ( { required } ) => required ) )] )
 		.filter( ( [, group] ) => group.length > 1 );
 	if ( unresolvableConflicts.length > 0 ) {
 		console.error( "Can't resolve some conflicts automatically." );
