@@ -3453,6 +3453,7 @@ class WP_Site_Health {
 			},
 			'last-modified'          => null,
 			'etag'                   => null,
+			'via'                    => null,
 
 			// Custom caching headers.
 			'x-cache-enabled'        => static function ( $header_value ) {
@@ -3495,7 +3496,6 @@ class WP_Site_Health {
 			'x-varnish'              => static function ( $header_value ) {
 				return (bool) preg_match( '/\d+ \d+/', $header_value );
 			},
-			'via'                    => null,
 
 			// Cloudflare.
 			'cf-cache-status'        => $cache_hit_callback,
