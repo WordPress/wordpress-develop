@@ -1,3 +1,16 @@
+:root {
+	--font-size-small: 12px;
+    --font-size-xsmall: 9px;
+    --font-weight-bold: 600;
+    --font-weight-regular: 400;
+    --background-gray: #646970;
+    --background-highlight: #2271b1;
+    --background-error: #d63638;
+    --color-white: #fff;
+    --color-gray: #50575e;
+    --border-radius-small: 5px;
+}
+
 .response-links {
 	display: block;
 	margin-bottom: 1em;
@@ -8,15 +21,15 @@
 }
 
 .response-links a.comments-edit-item-link {
-	font-weight: 600;
+	font-weight: var(--font-weight-bold);
 }
 
 .response-links a.comments-view-item-link {
-	font-size: 12px;
+	font-size: var(--font-size-small);
 }
 
 .post-com-count-wrapper strong {
-	font-weight: 400;
+	font-weight: var(--font-weight-regular);
 }
 
 .comments-view-item-link {
@@ -42,7 +55,7 @@
 .column-response .post-com-count-approved,
 .column-comments .post-com-count-no-comments,
 .column-comments .post-com-count-approved {
-	margin-top: 5px;
+	margin-top: var(--border-radius-small);
 }
 
 .column-response .comment-count-no-comments,
@@ -54,9 +67,9 @@
 	padding: 0 8px;
 	min-width: 24px;
 	height: 2em;
-	border-radius: 5px;
-	background-color: #646970;
-	color: #fff;
+	border-radius: var(--border-radius-small);
+	background-color: var(--background-gray);
+	color: var(--color-white);
 	font-size: 11px;
 	line-height: 1.90909090;
 	text-align: center;
@@ -71,22 +84,22 @@
 	margin-left: 8px;
 	width: 0;
 	height: 0;
-	border-top: 5px solid #646970;
-	border-right: 5px solid transparent;
+	border-top: var(--border-radius-small) solid var(--background-gray);
+	border-right: var(--border-radius-small) solid transparent;
 }
 
 .column-response a.post-com-count-approved:hover .comment-count-approved,
 .column-response a.post-com-count-approved:focus .comment-count-approved,
 .column-comments a.post-com-count-approved:hover .comment-count-approved,
 .column-comments a.post-com-count-approved:focus .comment-count-approved {
-	background: #2271b1;
+	background: var(--background-highlight);
 }
 
 .column-response a.post-com-count-approved:hover:after,
 .column-response a.post-com-count-approved:focus:after,
 .column-comments a.post-com-count-approved:hover:after,
 .column-comments a.post-com-count-approved:focus:after {
-	border-top-color: #2271b1;
+	border-top-color: var(--background-highlight);
 }
 
 /* @todo: consider to use a single rule for these counters and the admin menu counters. */
@@ -97,11 +110,11 @@
 	padding: 0 5px;
 	min-width: 7px;
 	height: 17px;
-	border: 2px solid #fff;
+	border: 2px solid var(--color-white);
 	border-radius: 11px;
-	background: #d63638;
-	color: #fff;
-	font-size: 9px;
+	background: var(--background-error);
+	color: (var(--color-white));
+	font-size: var(--font-size-small);
 	line-height: 1.88888888;
 	text-align: center;
 }
@@ -131,7 +144,7 @@
 
 #submitted-on,
 .submitted-on {
-	color: #50575e;
+	color: var(--color-gray);
 }
 
 /* reply to comments */
@@ -168,7 +181,7 @@
 	padding: .2em 5px 0;
 	font-size: 13px;
 	line-height: 1.4;
-	font-weight: 600;
+	font-weight: var(--font-weight-bold);
 }
 
 #replyrow.inline-edit-row label {
@@ -223,7 +236,7 @@
 }
 
 #the-comment-list .unapproved th.check-column {
-	border-left: 4px solid #d63638;
+	border-left: 4px var(--background-error);
 }
 
 #the-comment-list .unapproved th.check-column input {
@@ -250,7 +263,7 @@
 
 #the-comment-list tr.unapproved + tr.approved th,
 #the-comment-list tr.unapproved + tr.approved td {
-	border-top: 1px solid rgba(0, 0, 0, 0.03);
+	border-top: 1px solid var(--background-error);
 }
 
 /* table vim shortcuts */
