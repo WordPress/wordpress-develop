@@ -3428,7 +3428,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Returns a mapping to response headers to an optional callback to verify if page cache is enabled or not.
+	 * Returns a mapping from response headers to an optional callback to verify if page cache is enabled or not.
 	 *
 	 * @since 6.1.0
 	 *
