@@ -302,7 +302,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param string                    $room             Room identifier.
 	 * @param int                       $client_id        Client identifier.
 	 * @param array<string, mixed>|null $awareness_update Awareness state sent by the client.
-	 * @return array<int, array<string, array<string, mixed>>> Updated awareness state for the room.
+	 * @return array<int, array<string, mixed>> Map of client ID to awareness state.
 	 */
 	private function process_awareness_update( string $room, int $client_id, ?array $awareness_update ): array {
 		$existing_awareness = $this->storage->get_awareness_state( $room );
@@ -456,7 +456,13 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param int    $client_id    Client identifier.
 	 * @param int    $cursor       Return updates after this cursor.
 	 * @param bool   $is_compactor True if this client is nominated to perform compaction.
-	 * @return array<string, mixed> Response data for this room.
+	 * @return array{
+	 *   compaction_request: array|null,
+	 *   end_cursor: int,
+	 *   room: string,
+	 *   total_updates: int,
+	 *   updates: array<int, array{data: string, type: string}>
+	 * } Response data for this room.
 	 */
 	private function get_updates( string $room, int $client_id, int $cursor, bool $is_compactor ): array {
 		$updates_after_cursor = $this->storage->get_updates_after_cursor( $room, $cursor );
