@@ -982,7 +982,6 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_User', $user );
 	}
 
-
 	/**
 	 * @ticket 61175
 	 * @covers ::wp_insert_user
