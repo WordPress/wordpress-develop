@@ -107,6 +107,7 @@ module.exports = function(grunt) {
 			'concat',
 			'copy',
 			'cssmin',
+			'imagemin',
 			'jshint',
 			'qunit',
 			'uglify',
