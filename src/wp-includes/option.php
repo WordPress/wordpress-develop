@@ -2768,20 +2768,17 @@ function register_initial_settings() {
 	);
 
 	if ( ! is_multisite() ) {
+		$uri_schema = array( 'format' => 'uri' );
 		register_setting(
 			'general',
 			'siteurl',
 			array(
 				'show_in_rest'      => array(
 					'name'   => 'url',
-					'schema' => array(
-						'format' => 'uri',
-					),
+					'schema' => $uri_schema,
 				),
 				'show_in_abilities' => array(
-					'schema' => array(
-						'format' => 'uri',
-					),
+					'schema' => $uri_schema,
 				),
 				'type'              => 'string',
 				'description'       => __( 'Site URL.' ),
@@ -2790,20 +2787,17 @@ function register_initial_settings() {
 	}
 
 	if ( ! is_multisite() ) {
+		$email_schema = array( 'format' => 'email' );
 		register_setting(
 			'general',
 			'admin_email',
 			array(
 				'show_in_rest'      => array(
 					'name'   => 'email',
-					'schema' => array(
-						'format' => 'email',
-					),
+					'schema' => $email_schema,
 				),
 				'show_in_abilities' => array(
-					'schema' => array(
-						'format' => 'email',
-					),
+					'schema' => $email_schema,
 				),
 				'type'              => 'string',
 				'description'       => __( 'This address is used for admin purposes, like new user notification.' ),
@@ -2953,19 +2947,17 @@ function register_initial_settings() {
 		)
 	);
 
+	$open_closed_enum_schema = array( 'enum' => array( 'open', 'closed' ) );
+
 	register_setting(
 		'discussion',
 		'default_ping_status',
 		array(
 			'show_in_rest'      => array(
-				'schema' => array(
-					'enum' => array( 'open', 'closed' ),
-				),
+				'schema' => $open_closed_enum_schema,
 			),
 			'show_in_abilities' => array(
-				'schema' => array(
-					'enum' => array( 'open', 'closed' ),
-				),
+				'schema' => $open_closed_enum_schema,
 			),
 			'type'              => 'string',
 			'description'       => __( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.' ),
@@ -2977,14 +2969,10 @@ function register_initial_settings() {
 		'default_comment_status',
 		array(
 			'show_in_rest'      => array(
-				'schema' => array(
-					'enum' => array( 'open', 'closed' ),
-				),
+				'schema' => $open_closed_enum_schema,
 			),
 			'show_in_abilities' => array(
-				'schema' => array(
-					'enum' => array( 'open', 'closed' ),
-				),
+				'schema' => $open_closed_enum_schema,
 			),
 			'type'              => 'string',
 			'label'             => __( 'Allow comments on new posts' ),
