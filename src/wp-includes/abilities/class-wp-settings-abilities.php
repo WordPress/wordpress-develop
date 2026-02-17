@@ -422,7 +422,7 @@ class WP_Settings_Abilities {
 
 				$sanitized_value = rest_sanitize_value_from_schema( $value, $schema );
 
-				if ( ! empty( $args['sanitize_callback'] ) && is_callable( $args['sanitize_callback'] ) ) {
+				if ( isset( $args['sanitize_callback'] ) && is_callable( $args['sanitize_callback'] ) ) {
 					$sanitized_value = call_user_func( $args['sanitize_callback'], $sanitized_value );
 				}
 
