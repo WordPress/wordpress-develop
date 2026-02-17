@@ -10,7 +10,7 @@
 if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 
 	/**
-	 * Generate CSS.
+	 * Generates CSS.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *
@@ -20,6 +20,7 @@ if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 	 * @param string $prefix   The CSS prefix.
 	 * @param string $suffix   The CSS suffix.
 	 * @param bool   $display  Print the styles.
+	 * @return string Generated CSS.
 	 */
 	function twentytwenty_generate_css( $selector, $style, $value, $prefix = '', $suffix = '', $display = true ) {
 
@@ -37,7 +38,7 @@ if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 
 		if ( $display ) {
 
-			echo $return; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;)
+			echo $return;
 
 		}
 
@@ -48,12 +49,13 @@ if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 
 	/**
-	 * Get CSS Built from Customizer Options.
-	 * Build CSS reflecting colors, fonts and other options set in the Customizer, and return them for output.
+	 * Gets CSS Built from Customizer Options.
+	 * Builds CSS reflecting colors, fonts and other options set in the Customizer, and returns them for output.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *
 	 * @param string $type Whether to return CSS for the "front-end", "block-editor", or "classic-editor".
+	 * @return string CSS styles built from Customizer options.
 	 */
 	function twentytwenty_get_customizer_css( $type = 'front-end' ) {
 
