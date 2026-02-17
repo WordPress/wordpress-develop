@@ -64,42 +64,44 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			)
 		);
 
-		$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
-		// Special case to set 'original_image' in attachment metadata.
-		$valid_image_sizes[] = 'original';
-		// Used for PDF thumbnails.
-		$valid_image_sizes[] = 'full';
+		if ( wp_is_client_side_media_processing_enabled() ) {
+			$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
+			// Special case to set 'original_image' in attachment metadata.
+			$valid_image_sizes[] = 'original';
+			// Used for PDF thumbnails.
+			$valid_image_sizes[] = 'full';
 
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\d]+)/sideload',
-			array(
+			register_rest_route(
+				$this->namespace,
+				'/' . $this->rest_base . '/(?P<id>[\d]+)/sideload',
 				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'sideload_item' ),
-					'permission_callback' => array( $this, 'sideload_item_permissions_check' ),
-					'args'                => array(
-						'id'             => array(
-							'description' => __( 'Unique identifier for the attachment.' ),
-							'type'        => 'integer',
-						),
-						'image_size'     => array(
-							'description' => __( 'Image size.' ),
-							'type'        => 'string',
-							'enum'        => $valid_image_sizes,
-							'required'    => true,
-						),
-						'convert_format' => array(
-							'type'        => 'boolean',
-							'default'     => true,
-							'description' => __( 'Whether to convert image formats.' ),
+					array(
+						'methods'             => WP_REST_Server::CREATABLE,
+						'callback'            => array( $this, 'sideload_item' ),
+						'permission_callback' => array( $this, 'sideload_item_permissions_check' ),
+						'args'                => array(
+							'id'             => array(
+								'description' => __( 'Unique identifier for the attachment.' ),
+								'type'        => 'integer',
+							),
+							'image_size'     => array(
+								'description' => __( 'Image size.' ),
+								'type'        => 'string',
+								'enum'        => $valid_image_sizes,
+								'required'    => true,
+							),
+							'convert_format' => array(
+								'type'        => 'boolean',
+								'default'     => true,
+								'description' => __( 'Whether to convert image formats.' ),
+							),
 						),
 					),
-				),
-				'allow_batch' => $this->allow_batch,
-				'schema'      => array( $this, 'get_public_item_schema' ),
-			)
-		);
+					'allow_batch' => $this->allow_batch,
+					'schema'      => array( $this, 'get_public_item_schema' ),
+				)
+			);
+		}
 	}
 
 	/**
@@ -116,7 +118,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
 		$args = parent::get_endpoint_args_for_item_schema( $method );
 
-		if ( WP_REST_Server::CREATABLE === $method ) {
+		if ( WP_REST_Server::CREATABLE === $method && wp_is_client_side_media_processing_enabled() ) {
 			$args['generate_sub_sizes'] = array(
 				'type'        => 'boolean',
 				'default'     => true,

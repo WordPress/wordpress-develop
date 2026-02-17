@@ -6361,6 +6361,27 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 }
 
 /**
+ * Checks whether client-side media processing is enabled.
+ *
+ * Client-side media processing uses the browser's capabilities to handle
+ * tasks like image resizing and compression before uploading to the server.
+ *
+ * @since 7.0.0
+ *
+ * @return bool Whether client-side media processing is enabled.
+ */
+function wp_is_client_side_media_processing_enabled() {
+	/**
+	 * Filters whether client-side media processing is enabled.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param bool $enabled Whether client-side media processing is enabled. Default true.
+	 */
+	return apply_filters( 'wp_client_side_media_processing_enabled', true );
+}
+
+/**
  * Enables cross-origin isolation in the block editor.
  *
  * Required for enabling SharedArrayBuffer for WebAssembly-based
