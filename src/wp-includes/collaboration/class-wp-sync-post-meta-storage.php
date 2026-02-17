@@ -27,6 +27,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	/**
 	 * Cache of cursors by room.
 	 *
+	 * @since 7.0.0
 	 * @var array<string, int>
 	 */
 	private array $room_cursors = array();
@@ -34,6 +35,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	/**
 	 * Cache of update counts by room.
 	 *
+	 * @since 7.0.0
 	 * @var array<string, int>
 	 */
 	private array $room_update_counts = array();
@@ -41,6 +43,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	/**
 	 * Singleton post ID for storing sync data.
 	 *
+	 * @since 7.0.0
 	 * @var int|null
 	 */
 	private static ?int $storage_post_id = null;
@@ -155,6 +158,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	/**
 	 * Gets the meta key for a room's awareness state.
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param string $room Room identifier.
 	 * @return string Meta key.
 	 */
@@ -181,6 +186,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	/**
 	 * Gets the meta key for a room's updates.
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param string $room Room identifier.
 	 * @return string Meta key.
 	 */
@@ -190,6 +197,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 
 	/**
 	 * Gets or creates the singleton post for storing sync data.
+	 *
+	 * @since 7.0.0
 	 *
 	 * @return int|null Post ID.
 	 */
@@ -233,6 +242,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 
 	/**
 	 * Gets the current time in milliseconds as a comparable time marker.
+	 *
+	 * @since 7.0.0
 	 *
 	 * @return int Current time in milliseconds.
 	 */

@@ -9,7 +9,7 @@
 /**
  * Injects the real-time collaboration setting into a global variable.
  *
- * @since 6.8.0
+ * @since 7.0.0
  *
  * @access private
  */

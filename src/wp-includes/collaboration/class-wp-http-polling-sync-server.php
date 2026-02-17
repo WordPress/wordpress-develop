@@ -297,6 +297,8 @@ class WP_HTTP_Polling_Sync_Server {
 	/**
 	 * Processes and stores an awareness update from a client.
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param string                    $room             Room identifier.
 	 * @param int                       $client_id        Client identifier.
 	 * @param array<string, mixed>|null $awareness_update Awareness state sent by the client.
@@ -344,6 +346,8 @@ class WP_HTTP_Polling_Sync_Server {
 
 	/**
 	 * Processes a sync update based on its type.
+	 *
+	 * @since 7.0.0
 	 *
 	 * @param string               $room      Room identifier.
 	 * @param int                  $client_id Client identifier.
@@ -414,6 +418,8 @@ class WP_HTTP_Polling_Sync_Server {
 	/**
 	 * Adds an update to a room's update list via storage.
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param string $room      Room identifier.
 	 * @param int    $client_id Client identifier.
 	 * @param string $type      Update type (sync_step1, sync_step2, update, compaction).
@@ -443,6 +449,8 @@ class WP_HTTP_Polling_Sync_Server {
 	 *
 	 * Delegates cursor-based retrieval to the storage layer, then applies
 	 * client-specific filtering and compaction logic.
+	 *
+	 * @since 7.0.0
 	 *
 	 * @param string $room         Room identifier.
 	 * @param int    $client_id    Client identifier.
