@@ -32,6 +32,7 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 	 * @global Custom_Image_Header $custom_image_header
 	 *
 	 * @param mixed $value The value to update.
+	 * @return bool Always returns true.
 	 */
 	public function update( $value ) {
 		global $custom_image_header;
@@ -58,5 +59,6 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 		} else {
 			$custom_image_header->set_header_image( $value );
 		}
+		return true;
 	}
 }
