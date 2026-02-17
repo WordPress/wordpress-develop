@@ -7,7 +7,7 @@
 class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 
 	/**
-	 * Tests that attributes are marked when auto_register is enabled.
+	 * Tests that attributes are marked when autoRegister is enabled.
 	 *
 	 * @ticket 64639
 	 */
@@ -27,7 +27,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that attributes are not marked without auto_register flag.
+	 * Tests that attributes are not marked without autoRegister flag.
 	 *
 	 * @ticket 64639
 	 */
@@ -50,7 +50,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 	 */
 	public function test_excludes_attributes_with_source() {
 		$settings = array(
-			'supports'   => array( 'auto_register' => true ),
+			'supports'   => array( 'autoRegister' => true ),
 			'attributes' => array(
 				'title'   => array( 'type' => 'string' ),
 				'content' => array(
@@ -77,7 +77,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 	 */
 	public function test_excludes_attributes_with_role_local() {
 		$settings = array(
-			'supports'   => array( 'auto_register' => true ),
+			'supports'   => array( 'autoRegister' => true ),
 			'attributes' => array(
 				'title' => array( 'type' => 'string' ),
 				'blob'  => array(
@@ -100,7 +100,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 	 */
 	public function test_handles_empty_attributes() {
 		$settings = array(
-			'supports' => array( 'auto_register' => true ),
+			'supports' => array( 'autoRegister' => true ),
 		);
 
 		$result = wp_mark_auto_generate_control_attributes( $settings );

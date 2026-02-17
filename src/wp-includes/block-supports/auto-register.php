@@ -31,7 +31,7 @@ function wp_mark_auto_generate_control_attributes( array $args ): array {
 		return $args;
 	}
 
-	$has_auto_register = ! empty( $args['supports']['auto_register'] );
+	$has_auto_register = ! empty( $args['supports']['autoRegister'] );
 	if ( ! $has_auto_register ) {
 		return $args;
 	}
