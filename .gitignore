@@ -87,7 +87,6 @@ wp-tests-config.php
 /src/wp-content/themes/twentynineteen/node_modules
 /src/wp-content/themes/twentytwentyone/node_modules
 /src/wp-content/themes/twentytwenty/node_modules
-/src/wp-content/themes/twentytwentyfive/node_modules
 
 # Operating system specific files
 .DS_Store
