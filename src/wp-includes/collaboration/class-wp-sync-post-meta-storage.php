@@ -275,9 +275,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		// Sort by timestamp to ensure order.
 		usort(
 			$updates,
-			function ( $a, $b ) {
-				return ( $a['timestamp'] ?? 0 ) <=> ( $b['timestamp'] ?? 0 );
-			}
+			fn ( $a, $b ) => $a['timestamp'] <=> $b['timestamp']
 		);
 
 		return wp_list_pluck( $updates, 'value' );
