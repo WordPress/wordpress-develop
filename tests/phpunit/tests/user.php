@@ -999,6 +999,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user = wp_insert_user( null );
 		restore_error_handler();
 
+		$this->assertCount( 1, $warnings, 'Expected one warning.' );
 		$this->assertWPError( $user );
 		$this->assertSame( 'empty_user_login', $user->get_error_code() );
 	}
