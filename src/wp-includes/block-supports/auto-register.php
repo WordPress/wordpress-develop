@@ -47,7 +47,7 @@ function wp_mark_auto_generate_control_attributes( array $args ): array {
 			continue;
 		}
 		// Skip unsupported types (only 'string', 'number', 'integer', 'boolean' are supported).
-		$type $attr_schema['type'] ?? null;
+		$type = $attr_schema['type'] ?? null;
 		if ( ! in_array( $type, array( 'string', 'number', 'integer', 'boolean' ), true ) ) {
 			continue;
 		}
