@@ -353,4 +353,65 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 
 		$this->assertSame( 'Test Site Name', $data['general']['blogname'] );
 	}
+
+	/**
+	 * Tests that settings with enum schema in show_in_abilities include it in output schema.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_get_settings_output_schema_includes_enum(): void {
+		$ability       = wp_get_ability( 'core/get-settings' );
+		$output_schema = $ability->get_output_schema();
+
+		// Check default_ping_status has enum.
+		$this->assertArrayHasKey( 'discussion', $output_schema['properties'] );
+		$this->assertArrayHasKey( 'default_ping_status', $output_schema['properties']['discussion']['properties'] );
+		$this->assertArrayHasKey( 'enum', $output_schema['properties']['discussion']['properties']['default_ping_status'] );
+		$this->assertSame( array( 'open', 'closed' ), $output_schema['properties']['discussion']['properties']['default_ping_status']['enum'] );
+
+		// Check default_comment_status has enum.
+		$this->assertArrayHasKey( 'default_comment_status', $output_schema['properties']['discussion']['properties'] );
+		$this->assertArrayHasKey( 'enum', $output_schema['properties']['discussion']['properties']['default_comment_status'] );
+		$this->assertSame( array( 'open', 'closed' ), $output_schema['properties']['discussion']['properties']['default_comment_status']['enum'] );
+	}
+
+	/**
+	 * Tests that boolean show_in_abilities (true) still works correctly.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_get_settings_boolean_show_in_abilities_still_works(): void {
+		$ability       = wp_get_ability( 'core/get-settings' );
+		$output_schema = $ability->get_output_schema();
+
+		// blogname uses show_in_abilities => true (boolean).
+		$this->assertArrayHasKey( 'general', $output_schema['properties'] );
+		$this->assertArrayHasKey( 'blogname', $output_schema['properties']['general']['properties'] );
+		$this->assertSame( 'string', $output_schema['properties']['general']['properties']['blogname']['type'] );
+	}
+
+	/**
+	 * Tests that custom show_in_abilities schema preserves base schema properties while adding custom ones.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_get_settings_output_schema_preserves_base_schema(): void {
+		$ability       = wp_get_ability( 'core/get-settings' );
+		$output_schema = $ability->get_output_schema();
+
+		// default_comment_status has show_in_abilities with schema but also has label and description.
+		$this->assertArrayHasKey( 'discussion', $output_schema['properties'] );
+		$this->assertArrayHasKey( 'default_comment_status', $output_schema['properties']['discussion']['properties'] );
+
+		$setting_schema = $output_schema['properties']['discussion']['properties']['default_comment_status'];
+
+		// Verify base schema properties are preserved.
+		$this->assertSame( 'string', $setting_schema['type'] );
+		$this->assertArrayHasKey( 'title', $setting_schema );
+		$this->assertArrayHasKey( 'description', $setting_schema );
+
+		// Verify custom schema property (enum) is merged.
+		$this->assertArrayHasKey( 'enum', $setting_schema );
+		$this->assertSame( array( 'open', 'closed' ), $setting_schema['enum'] );
+	}
 }

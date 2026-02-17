@@ -137,7 +137,7 @@ class WP_Settings_Abilities {
 	 *
 	 * Creates a JSON Schema that documents each setting group and its settings
 	 * with their types, titles, descriptions, defaults, and any additional
-	 * schema properties from show_in_rest.
+	 * schema properties from show_in_abilities.
 	 *
 	 * @since 7.0.0
 	 *
@@ -161,6 +161,11 @@ class WP_Settings_Abilities {
 				$setting_schema['description'] = $args['description'];
 			} elseif ( ! empty( $args['label'] ) ) {
 				$setting_schema['description'] = $args['label'];
+			}
+
+			// Merge custom schema from show_in_abilities if provided as an array.
+			if ( is_array( $args['show_in_abilities'] ) && ! empty( $args['show_in_abilities']['schema'] ) ) {
+				$setting_schema = array_merge( $setting_schema, $args['show_in_abilities']['schema'] );
 			}
 
 			if ( ! isset( $group_properties[ $group ] ) ) {

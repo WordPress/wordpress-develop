@@ -2778,7 +2778,11 @@ function register_initial_settings() {
 						'format' => 'uri',
 					),
 				),
-				'show_in_abilities' => true,
+				'show_in_abilities' => array(
+					'schema' => array(
+						'format' => 'uri',
+					),
+				),
 				'type'              => 'string',
 				'description'       => __( 'Site URL.' ),
 			)
@@ -2796,7 +2800,11 @@ function register_initial_settings() {
 						'format' => 'email',
 					),
 				),
-				'show_in_abilities' => true,
+				'show_in_abilities' => array(
+					'schema' => array(
+						'format' => 'email',
+					),
+				),
 				'type'              => 'string',
 				'description'       => __( 'This address is used for admin purposes, like new user notification.' ),
 			)
@@ -2954,7 +2962,11 @@ function register_initial_settings() {
 					'enum' => array( 'open', 'closed' ),
 				),
 			),
-			'show_in_abilities' => true,
+			'show_in_abilities' => array(
+				'schema' => array(
+					'enum' => array( 'open', 'closed' ),
+				),
+			),
 			'type'              => 'string',
 			'description'       => __( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.' ),
 		)
@@ -2969,7 +2981,11 @@ function register_initial_settings() {
 					'enum' => array( 'open', 'closed' ),
 				),
 			),
-			'show_in_abilities' => true,
+			'show_in_abilities' => array(
+				'schema' => array(
+					'enum' => array( 'open', 'closed' ),
+				),
+			),
 			'type'              => 'string',
 			'label'             => __( 'Allow comments on new posts' ),
 			'description'       => __( 'Allow people to submit comments on new posts.' ),
