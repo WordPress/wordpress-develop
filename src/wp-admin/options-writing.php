@@ -113,7 +113,7 @@ unset( $post_formats['standard'] );
 <th scope="row"><label for="enable_real_time_collaboration"><?php _e( 'Collaboration' ); ?></label></th>
 <td>
 	<input name="enable_real_time_collaboration" type="checkbox" id="enable_real_time_collaboration" value="1" <?php checked( '1', get_option( 'enable_real_time_collaboration' ) ); ?> />
-	<?php _e( 'Enable real-time collaboration' ); ?></label>
+	<label for="enable_real_time_collaboration"><?php _e( 'Enable real-time collaboration' ); ?></label>
 </td>
 </tr>
 <?php
