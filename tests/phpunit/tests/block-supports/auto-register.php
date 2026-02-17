@@ -118,10 +118,10 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 			'supports'   => array( 'autoRegister' => true ),
 			'attributes' => array(
 				// Supported types
-				'text'    => array( 'type' => 'string' ),
-				'price'   => array( 'type' => 'number' ),
-				'count'   => array( 'type' => 'integer' ),
-				'enabled' => array( 'type' => 'boolean' ),
+				'text'     => array( 'type' => 'string' ),
+				'price'    => array( 'type' => 'number' ),
+				'count'    => array( 'type' => 'integer' ),
+				'enabled'  => array( 'type' => 'boolean' ),
 				// Unsupported types
 				'metadata' => array( 'type' => 'object' ),
 				'items'    => array( 'type' => 'array' ),
