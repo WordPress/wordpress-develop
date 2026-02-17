@@ -3010,8 +3010,9 @@ function register_initial_settings() {
  *     @type bool|array $show_in_rest        Whether data associated with this setting should be included in the REST API.
  *                                           When registering complex settings, this argument may optionally be an
  *                                           array with a 'schema' key.
- *     @type bool       $show_in_abilities  Whether this setting should be exposed through the Abilities API.
- *                                           Default false.
+ *     @type bool|array $show_in_abilities  Whether this setting should be exposed through the Abilities API.
+ *                                           When registering complex settings, this argument may optionally be an
+ *                                           array with a 'schema' key. Default false.
  *     @type mixed      $default            Default value when calling `get_option()`.
  * }
  */
