@@ -11,7 +11,7 @@
  *
  * This filter runs during block type registration, before the WP_Block_Type
  * is instantiated. Block supports add their attributes AFTER the block type
- * is created (via WP_Block_Supports::register_attributes()), so any attributes
+ * is created (via {@see WP_Block_Supports::register_attributes()}), so any attributes
  * present at this stage are user-defined.
  *
  * The marker tells generateFieldsFromAttributes() which attributes should
