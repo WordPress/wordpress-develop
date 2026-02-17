@@ -7,13 +7,6 @@
 
 interface WP_Sync_Storage {
 	/**
-	 * Initializes the storage mechanism.
-	 *
-	 * @since 7.0.0
-	 */
-	public function init(): void;
-
-	/**
 	 * Adds a sync update to a given room.
 	 *
 	 * @since 7.0.0

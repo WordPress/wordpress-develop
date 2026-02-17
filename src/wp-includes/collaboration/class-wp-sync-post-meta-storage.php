@@ -49,13 +49,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	private static ?int $storage_post_id = null;
 
 	/**
-	 * Initializer.
-	 *
-	 * @since 7.0.0
-	 */
-	public function init(): void {}
-
-	/**
 	 * Adds a sync update to a given room.
 	 *
 	 * @since 7.0.0
