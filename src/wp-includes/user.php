@@ -2598,7 +2598,7 @@ function wp_insert_user( $userdata ) {
 	$meta = apply_filters( 'insert_user_meta', $meta, $user, $update, $userdata );
 
 	$custom_meta = array();
-	if ( ! empty( $userdata['meta_input'] ) && is_array( $userdata['meta_input'] ) ) {
+	if ( array_key_exists( 'meta_input', $userdata ) && is_array( $userdata['meta_input'] ) && ! empty( $userdata['meta_input'] ) ) {
 		$custom_meta = $userdata['meta_input'];
 	}
 
