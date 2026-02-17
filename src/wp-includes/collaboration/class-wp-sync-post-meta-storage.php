@@ -29,14 +29,14 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @var array<string, int>
 	 */
-	private $room_cursors = array();
+	private array $room_cursors = array();
 
 	/**
 	 * Cache of update counts by room.
 	 *
 	 * @var array<string, int>
 	 */
-	private $room_update_counts = array();
+	private array $room_update_counts = array();
 
 	/**
 	 * Singleton post ID for storing sync data.
@@ -215,7 +215,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return int Current time in milliseconds.
 	 */
 	private function get_time_marker(): int {
-		return floor( microtime( true ) * 1000 );
+		return (int) floor( microtime( true ) * 1000 );
 	}
 
 	/**
@@ -238,7 +238,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Return updates after this cursor.
-	 * @return array<mixed> Array of sync updates.
+	 * @return array Sync updates.
 	 */
 	public function get_updates_after_cursor( string $room, int $cursor ): array {
 		$all_updates = $this->get_all_updates( $room );

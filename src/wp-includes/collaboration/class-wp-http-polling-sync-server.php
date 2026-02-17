@@ -73,9 +73,8 @@ class WP_HTTP_Polling_Sync_Server {
 	 * Storage backend for sync updates.
 	 *
 	 * @since 7.0.0
-	 * @var WP_Sync_Storage
 	 */
-	private $storage;
+	private WP_Sync_Storage $storage;
 
 	/**
 	 * Constructor.
@@ -253,13 +252,15 @@ class WP_HTTP_Polling_Sync_Server {
 	/**
 	 * Checks if the current user can sync a specific entity type.
 	 *
-	 * @param string      $entity_kind The entity kind.
-	 * @param string      $entity_name The entity name.
-	 * @param string|null $object_id   The object ID (if applicable).
+	 * @since 7.0.0
+	 *
+	 * @param string      $entity_kind The entity kind, e.g. 'postType', 'taxonomy', 'root'.
+	 * @param string      $entity_name The entity name, e.g. 'post', 'category', 'site'.
+	 * @param string|null $object_id   The object ID / entity key for single entities, null for collections.
 	 * @return bool True if user has permission, otherwise false.
 	 */
 	private function can_user_sync_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
-		// Handle post type entities.
+		// Handle single post type entities with a defined object ID.
 		if ( 'postType' === $entity_kind && is_numeric( $object_id ) ) {
 			return current_user_can( 'edit_post', absint( $object_id ) );
 		}

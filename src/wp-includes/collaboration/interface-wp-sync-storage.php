@@ -21,7 +21,7 @@ interface WP_Sync_Storage {
 	 * @param string $room   Room identifier.
 	 * @param mixed  $update Serializable sync update, opaque to the storage implementation.
 	 */
-	public function add_update( string $room, mixed $update ): void;
+	public function add_update( string $room, $update ): void;
 
 	/**
 	 * Gets awareness state for a given room.
@@ -64,7 +64,7 @@ interface WP_Sync_Storage {
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Return updates after this cursor.
-	 * @return array<mixed> Array of sync updates.
+	 * @return array Sync updates.
 	 */
 	public function get_updates_after_cursor( string $room, int $cursor ): array;
 
