@@ -7,7 +7,7 @@
  */
 
 /**
- * Mark user-defined attributes for auto-generated inspector controls.
+ * Marks user-defined attributes for auto-generated inspector controls.
  *
  * This filter runs during block type registration, before the WP_Block_Type
  * is instantiated. Block supports add their attributes AFTER the block type
