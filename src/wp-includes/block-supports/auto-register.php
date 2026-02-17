@@ -52,4 +52,4 @@ function wp_mark_auto_generate_control_attributes( array $args ): array {
 }
 
 // Priority 5 to mark original attributes before other filters (priority 10+) might add their own.
-add_filter( 'register_block_type_args', 'wp_mark_auto_generate_control_attributes', 5, 1 );
+add_filter( 'register_block_type_args', 'wp_mark_auto_generate_control_attributes', 5 );
