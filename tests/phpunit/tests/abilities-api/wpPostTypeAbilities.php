@@ -3,7 +3,7 @@
 declare( strict_types=1 );
 
 /**
- * Tests for the post type get ability via the REST API.
+ * Tests for the post type get ability.
  *
  * @ticket 64606
  *
@@ -11,12 +11,7 @@ declare( strict_types=1 );
  *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase {
-
-	/**
-	 * REST API route for the post get ability.
-	 */
-	private const ROUTE = '/wp-abilities/v1/abilities/core/post-type/post/get/run';
+class Tests_Abilities_API_WpPostTypeAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Editor user ID.
@@ -290,17 +285,20 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	}
 
 	/**
-	 * Dispatches a GET request to the post type get ability endpoint.
+	 * Executes the post type get ability.
 	 *
 	 * @param array $input Input parameters for the ability.
-	 * @return WP_REST_Response The response.
+	 * @return mixed The ability output on success, or WP_Error on failure.
 	 */
-	private function dispatch_get_ability( array $input = array() ): WP_REST_Response {
-		$request = new WP_REST_Request( 'GET', self::ROUTE );
-		if ( ! empty( $input ) ) {
-			$request->set_query_params( array( 'input' => $input ) );
+	private function execute_get_ability( array $input = array() ) {
+		$ability = wp_get_ability( 'core/post-type/post/get' );
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+
+		if ( empty( $input ) ) {
+			return $ability->execute();
 		}
-		return rest_get_server()->dispatch( $request );
+
+		return $ability->execute( $input );
 	}
 
 	/**
@@ -319,31 +317,20 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	}
 
 	/**
-	 * Tests that the ability run route is registered.
+	 * Tests that the get ability is registered with expected metadata.
 	 *
 	 * @ticket 64606
 	 */
-	public function test_route_is_registered(): void {
-		$routes = rest_get_server()->get_routes();
-		// The route pattern covers all ability names including this one.
-		$this->assertArrayHasKey(
-			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+?)/run',
-			$routes
-		);
-	}
+	public function test_get_ability_is_registered_with_expected_metadata(): void {
+		$ability = wp_get_ability( 'core/post-type/post/get' );
 
-	/**
-	 * Tests that POST method is rejected for this readonly ability.
-	 *
-	 * @ticket 64606
-	 */
-	public function test_post_method_rejected(): void {
-		$request = new WP_REST_Request( 'POST', self::ROUTE );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array( 'input' => array() ) ) );
-		$response = rest_get_server()->dispatch( $request );
+		$this->assertInstanceOf( WP_Ability::class, $ability );
 
-		$this->assertSame( 405, $response->get_status() );
+		$annotations = $ability->get_meta_item( 'annotations', array() );
+		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
+		$this->assertTrue( $annotations['readonly'] ?? false );
+		$this->assertFalse( $annotations['destructive'] ?? true );
+		$this->assertTrue( $annotations['idempotent'] ?? false );
 	}
 
 	/**
@@ -352,11 +339,9 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_get_single_post_by_id(): void {
-		$response = $this->dispatch_get_ability( array( 'id' => self::$post_ids[1] ) );
+		$data = $this->execute_get_ability( array( 'id' => self::$post_ids[1] ) );
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertIsArray( $data );
 		$this->assertSame( self::$post_ids[1], $data['id'] );
 		$this->assertSame( 'post', $data['type'] );
 		$this->assertSame( 'publish', $data['status'] );
@@ -373,7 +358,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_get_single_post_with_meta_and_taxonomies(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'id'      => self::$post_ids[1],
 				'include' => array(
@@ -383,9 +368,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertIsArray( $data );
 
 		// Meta should contain the public meta keys.
 		$this->assertArrayHasKey( 'meta', $data );
@@ -404,14 +387,15 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	}
 
 	/**
-	 * Tests that requesting a non-existent post returns 404.
+	 * Tests that requesting a non-existent post returns a not found error.
 	 *
 	 * @ticket 64606
 	 */
 	public function test_get_single_post_not_found(): void {
-		$response = $this->dispatch_get_ability( array( 'id' => 999999 ) );
+		$result = $this->execute_get_ability( array( 'id' => 999999 ) );
 
-		$this->assertSame( 404, $response->get_status() );
+		$this->assertWPError( $result );
+		$this->assertSame( 'post_not_found', $result->get_error_code() );
 	}
 
 	/**
@@ -420,16 +404,14 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_query_returns_paginated_results(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'per_page' => 2,
 				'page'     => 1,
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'posts', $data );
 		$this->assertCount( 2, $data['posts'] );
 		$this->assertSame( 6, $data['total'] );
@@ -442,7 +424,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_meta_query_exists(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'include' => array( 'meta' => true ),
 				'query'   => array(
@@ -458,9 +440,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 		$post_ids = $this->get_response_post_ids( $data );
 
 		$this->assertSame( 1, $data['total'] );
@@ -475,7 +455,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_meta_query_nested_and_or(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'query' => array(
 					'meta' => array(
@@ -507,9 +487,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 		$post_ids = $this->get_response_post_ids( $data );
 
 		$this->assertSame( 2, $data['total'] );
@@ -525,7 +503,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_tax_query_nested_and_or(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'query' => array(
 					'tax' => array(
@@ -557,9 +535,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 		$post_ids = $this->get_response_post_ids( $data );
 
 		$this->assertSame( 2, $data['total'] );
@@ -576,7 +552,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_date_query_nested_and_or(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'per_page' => 100,
 				'query'    => array(
@@ -597,9 +573,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 		$post_ids = $this->get_response_post_ids( $data );
 
 		$this->assertSame( 5, $data['total'] );
@@ -619,9 +593,10 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	public function test_unauthenticated_query_published_posts_rejected(): void {
 		wp_set_current_user( 0 );
 
-		$response = $this->dispatch_get_ability( array() );
+		$result = $this->execute_get_ability( array() );
 
-		$this->assertContains( $response->get_status(), array( 401, 403 ) );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	/**
@@ -632,14 +607,14 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	public function test_unauthenticated_query_private_status_rejected(): void {
 		wp_set_current_user( 0 );
 
-		$response = $this->dispatch_get_ability(
+		$result = $this->execute_get_ability(
 			array(
 				'status' => array( 'private' ),
 			)
 		);
 
-		$this->assertContains( $response->get_status(), array( 401, 403 ) );
-		$this->assertSame( 'rest_ability_cannot_execute', $response->get_data()['code'] );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	/**
@@ -650,9 +625,10 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	public function test_unauthenticated_get_single_published_post_rejected(): void {
 		wp_set_current_user( 0 );
 
-		$response = $this->dispatch_get_ability( array( 'id' => self::$post_ids[1] ) );
+		$result = $this->execute_get_ability( array( 'id' => self::$post_ids[1] ) );
 
-		$this->assertContains( $response->get_status(), array( 401, 403 ) );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	/**
@@ -663,9 +639,10 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	public function test_unauthenticated_get_single_private_post_rejected(): void {
 		wp_set_current_user( 0 );
 
-		$response = $this->dispatch_get_ability( array( 'id' => self::$post_ids[7] ) );
+		$result = $this->execute_get_ability( array( 'id' => self::$post_ids[7] ) );
 
-		$this->assertContains( $response->get_status(), array( 401, 403 ) );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	/**
@@ -674,11 +651,9 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_authenticated_query_succeeds(): void {
-		$response = $this->dispatch_get_ability( array() );
+		$data = $this->execute_get_ability( array() );
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'posts', $data );
 		$this->assertGreaterThan( 0, $data['total'] );
 	}
@@ -689,7 +664,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_query_with_ordering(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'order'    => array(
 					'orderby'   => 'title',
@@ -699,9 +674,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data   = $response->get_data();
+		$this->assertIsArray( $data );
 		$titles = array_map(
 			static function ( $post ) {
 				return $post['title'];
@@ -721,16 +694,14 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 */
 	public function test_meta_only_includes_show_in_abilities_registered_keys(): void {
 		// Post 4 has meta key 'x' which is NOT registered with show_in_abilities.
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'id'      => self::$post_ids[4],
 				'include' => array( 'meta' => true ),
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'meta', $data );
 
 		// The 'x' meta key should NOT be present since it's not registered with show_in_abilities.
@@ -745,7 +716,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	public function test_meta_query_with_schema_based_registration_succeeds(): void {
 		update_post_meta( self::$post_ids[1], 'schema_constrained', 'allowed' );
 
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'query'    => array(
 					'meta' => array(
@@ -762,9 +733,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 		$post_ids = $this->get_response_post_ids( $data );
 
 		$this->assertContains( self::$post_ids[1], $post_ids );
@@ -784,7 +753,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		);
 		update_post_meta( $post_id, 'schema_constrained', 'blocked' );
 
-		$response = $this->dispatch_get_ability(
+		$result = $this->execute_get_ability(
 			array(
 				'id'      => $post_id,
 				'include' => array( 'meta' => true ),
@@ -793,11 +762,10 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 		wp_delete_post( $post_id, true );
 
-		$this->assertSame( 500, $response->get_status() );
-		$data = $response->get_data();
-		$this->assertSame( 'ability_invalid_output', $data['code'] );
-		$this->assertStringContainsString( 'schema_constrained', $data['message'] );
-		$this->assertStringContainsString( 'output', $data['message'] );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_output', $result->get_error_code() );
+		$this->assertStringContainsString( 'schema_constrained', $result->get_error_message() );
+		$this->assertStringContainsString( 'output', $result->get_error_message() );
 	}
 
 	/**
@@ -825,7 +793,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 
 		add_filter( 'get_post_metadata', $filter, 10, 5 );
 
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'id'      => self::$post_ids[1],
 				'include' => array( 'meta' => true ),
@@ -833,9 +801,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		);
 		remove_filter( 'get_post_metadata', $filter, 10 );
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'meta', $data );
 
 		$meta = (array) $data['meta'];
@@ -852,7 +818,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_meta_query_with_invalid_key_returns_error(): void {
-		$response = $this->dispatch_get_ability(
+		$result = $this->execute_get_ability(
 			array(
 				'query' => array(
 					'meta' => array(
@@ -867,11 +833,9 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 400, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertWPError( $result );
 		// Schema validation catches invalid meta keys.
-		$this->assertSame( 'ability_invalid_input', $data['code'] );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
 	/**
@@ -880,7 +844,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_meta_query_with_valid_key_succeeds(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'query' => array(
 					'meta' => array(
@@ -896,9 +860,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'posts', $data );
 	}
 
@@ -908,7 +870,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_meta_query_with_non_slug_registered_key_succeeds(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'query'    => array(
 					'meta' => array(
@@ -924,9 +886,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 		$post_ids = $this->get_response_post_ids( $data );
 
 		$this->assertSame( 1, $data['total'] );
@@ -963,7 +923,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 		update_post_meta( self::$post_ids[1], 'override_key', '1' );
 		$this->reregister_post_type_abilities();
 
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'query'    => array(
 					'meta' => array(
@@ -979,9 +939,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 		$post_ids = $this->get_response_post_ids( $data );
 
 		$this->assertSame( 1, $data['total'] );
@@ -994,7 +952,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_meta_query_deep_nested_invalid_clause_rejected(): void {
-		$response = $this->dispatch_get_ability(
+		$result = $this->execute_get_ability(
 			array(
 				'query' => array(
 					'meta' => array(
@@ -1018,8 +976,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
 	/**
@@ -1028,7 +986,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_meta_query_missing_queries_rejected(): void {
-		$response = $this->dispatch_get_ability(
+		$result = $this->execute_get_ability(
 			array(
 				'query' => array(
 					'meta' => array(
@@ -1038,8 +996,8 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
 	/**
@@ -1057,7 +1015,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$response = $this->dispatch_get_ability(
+		$result = $this->execute_get_ability(
 			array(
 				'query' => array(
 					'tax' => array(
@@ -1072,11 +1030,9 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 400, $response->get_status() );
-
-		$data = $response->get_data();
 		// Schema validation catches non-public taxonomies.
-		$this->assertSame( 'ability_invalid_input', $data['code'] );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 
 		// Clean up.
 		unregister_taxonomy( 'private_tax' );
@@ -1088,7 +1044,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 	 * @ticket 64606
 	 */
 	public function test_tax_query_with_public_taxonomy_succeeds(): void {
-		$response = $this->dispatch_get_ability(
+		$data = $this->execute_get_ability(
 			array(
 				'query' => array(
 					'tax' => array(
@@ -1104,9 +1060,7 @@ class Tests_Abilities_API_WpPostTypeAbilitiesRest extends WP_Test_REST_TestCase 
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'posts', $data );
 	}
 }
