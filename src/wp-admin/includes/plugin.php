@@ -2144,9 +2144,7 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 function admin_page_exists() {
 	global $admin_page_parent, $plugin_page, $_registered_pages;
 
-	if ( ! isset( $admin_page_parent ) ) {
-		$admin_page_parent = get_admin_page_parent();
-	}
+	$admin_page_parent ??= get_admin_page_parent();
 
 	if ( isset( $plugin_page ) ) {
 		$hookname = get_plugin_page_hookname( $plugin_page, $admin_page_parent );
