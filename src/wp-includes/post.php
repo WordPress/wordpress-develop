@@ -8669,7 +8669,7 @@ function wp_create_initial_post_meta() {
 		'post',
 		'_crdt_document',
 		array(
-			'auth_callback'     => function ( bool $_allowed, string $_meta_key, int $object_id, int $user_id ): bool {
+			'auth_callback'     => static function ( bool $_allowed, string $_meta_key, int $object_id, int $user_id ): bool {
 				return user_can( $user_id, 'edit_post', $object_id );
 			},
 			/*
