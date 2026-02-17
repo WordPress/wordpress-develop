@@ -95,6 +95,8 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 
 	/**
 	 * Tests that empty attributes are handled gracefully.
+	 *
+	 * @ticket 64639
 	 */
 	public function test_handles_empty_attributes() {
 		$settings = array(
