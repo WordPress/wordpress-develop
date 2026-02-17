@@ -227,7 +227,10 @@ class WP_HTTP_Polling_Sync_Server {
 			}
 
 			// The lowest client ID is nominated to perform compaction when needed.
-			$is_compactor = min( array_keys( $merged_awareness ) ) === $client_id;
+			$is_compactor = false;
+			if ( count( $merged_awareness ) > 0 ) {
+				$is_compactor = min( array_keys( $merged_awareness ) ) === $client_id;
+			}
 
 			// Process each update according to its type.
 			foreach ( $room_request['updates'] as $update ) {
