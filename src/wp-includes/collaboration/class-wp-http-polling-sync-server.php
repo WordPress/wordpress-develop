@@ -130,9 +130,9 @@ class WP_HTTP_Polling_Sync_Server {
 				'type'     => 'integer',
 			),
 			'room'      => array(
-				'required'          => true,
-				'type'              => 'string',
-				'pattern'           => '^[^/]+/[^/:]+(?::\\d+)?$',
+				'required' => true,
+				'type'     => 'string',
+				'pattern'  => '^[^/]+/[^/:]+(?::\\S+)?$',
 			),
 			'updates'   => array(
 				'items'    => $typed_update_args,
@@ -179,17 +179,9 @@ class WP_HTTP_Polling_Sync_Server {
 			$type_parts   = explode( '/', $room, 2 );
 			$object_parts = explode( ':', $type_parts[1] ?? '', 2 );
 
-			if ( 2 !== count( $type_parts ) ) {
-				return new WP_Error(
-					'invalid_room_format',
-					__( 'Invalid room format. Expected: entity_kind/entity_name or entity_kind/entity_name:id' ),
-					array( 'status' => 400 )
-				);
-			}
-
 			$entity_kind = $type_parts[0];
 			$entity_name = $object_parts[0];
-			$object_id   = $object_parts[1] ?? null;
+			$object_id   = isset( $object_parts[1] ) ? (int) $object_parts[1] : null;
 
 			if ( ! $this->can_user_sync_entity_type( $entity_kind, $entity_name, $object_id ) ) {
 				return new WP_Error(
@@ -275,6 +267,16 @@ class WP_HTTP_Polling_Sync_Server {
 		// provided, reject the request.
 		if ( null !== $object_id ) {
 			return false;
+		}
+
+		// For postType collections, check if the user can edit posts of this type.
+		if ( 'postType' === $entity_kind ) {
+			$post_type_object = get_post_type_object( $entity_name );
+			if ( ! isset( $post_type_object->cap->edit_posts ) ) {
+				return false;
+			}
+
+			return current_user_can( $post_type_object->cap->edit_posts );
 		}
 
 		// Collection syncing does not exchange entity data. It only signals if
