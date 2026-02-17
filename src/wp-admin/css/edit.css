@@ -5,6 +5,7 @@
 
 #poststuff #post-body {
 	padding: 0;
+	margin: 0 -4px;
 }
 
 #poststuff .postbox-container {
@@ -167,11 +168,14 @@ body.post-type-wp_navigation .inline-edit-status {
 
 /* Post Screen */
 
+.metabox-holder .postbox-container .meta-box-sortables {
+	padding: 4px;
+}
+
 /* Only highlight drop zones when dragging and only in the 2 columns layout. */
 .is-dragging-metaboxes .metabox-holder .postbox-container .meta-box-sortables {
-	outline: 3px dashed #646970;
-	/* Prevent margin on the child from collapsing with margin on the parent. */
-	display: flow-root;
+	border-radius: 8px;
+	background: rgb(var(--wp-admin-theme-color--rgb), 0.04);
 	/*
 	 * This min-height is meant to limit jumpiness while dragging. It's equivalent
 	 * to the minimum height of the sortable-placeholder which is given by the height
@@ -325,8 +329,9 @@ form#tags-filter {
 }
 
 #post-body .tagsdiv #newtag {
-	margin-right: 5px;
-	width: 16em;
+	margin-right: 0;
+	flex: 1;
+	min-width: 0;
 }
 
 #side-sortables input#post_password {
@@ -334,7 +339,8 @@ form#tags-filter {
 }
 
 #side-sortables .tagsdiv #newtag {
-	width: 68%;
+	flex: 1;
+	min-width: 0;
 }
 
 #post-status-info {
@@ -1323,7 +1329,7 @@ div.tabs-panel-inactive {
 }
 
 div.tabs-panel-active:focus {
-	box-shadow: inset 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -1423,6 +1429,9 @@ p.description code,
 
 #poststuff .tagsdiv .ajaxtag {
 	margin-top: 1em;
+	display: flex;
+	gap: 8px;
+	align-items: center;
 }
 
 #poststuff .tagsdiv .howto {
@@ -1434,7 +1443,8 @@ p.description code,
 }
 
 .tagsdiv .newtag {
-	width: 180px;
+	flex: 1;
+	min-width: 0;
 }
 
 .tagsdiv .the-tags {
@@ -1770,7 +1780,8 @@ table.links-table {
 	}
 
 	.is-dragging-metaboxes.post-type-attachment #post-body .meta-box-sortables {
-		outline: none;
+		border: none;
+		background: transparent;
 		min-height: 0;
 		margin-bottom: 0;
 	}
@@ -1927,9 +1938,10 @@ table.links-table {
 
 	/* Tags Metabox */
 	.tagsdiv .newtag {
-		width: 100%;
+		flex: 1;
+		min-width: 0;
 		height: auto;
-		margin-bottom: 15px;
+		margin-bottom: 0;
 	}
 
 	.tagchecklist {
