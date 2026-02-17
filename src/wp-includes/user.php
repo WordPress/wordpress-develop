@@ -2211,7 +2211,41 @@ function wp_insert_user( $userdata ) {
 		$userdata = $userdata->to_array();
 	} elseif ( $userdata instanceof Traversable ) {
 		$userdata = iterator_to_array( $userdata );
-	} elseif ( ! ( $userdata instanceof ArrayAccess ) ) {
+	} elseif ( $userdata instanceof ArrayAccess ) {
+		$userdata_obj = $userdata;
+		$userdata     = array();
+		foreach (
+			array(
+				'ID',
+				'user_pass',
+				'user_login',
+				'user_nicename',
+				'user_url',
+				'user_email',
+				'display_name',
+				'nickname',
+				'first_name',
+				'last_name',
+				'description',
+				'rich_editing',
+				'syntax_highlighting',
+				'comment_shortcuts',
+				'admin_color',
+				'use_ssl',
+				'user_registered',
+				'user_activation_key',
+				'spam',
+				'show_admin_bar_front',
+				'role',
+				'locale',
+				'meta_input',
+			) as $key
+		) {
+			if ( isset( $userdata_obj[ $key ] ) ) {
+				$userdata[ $key ] = $userdata_obj[ $key ];
+			}
+		}
+	} else {
 		$userdata = (array) $userdata;
 	}
 
