@@ -2209,6 +2209,10 @@ function wp_insert_user( $userdata ) {
 		$userdata = get_object_vars( $userdata );
 	} elseif ( $userdata instanceof WP_User ) {
 		$userdata = $userdata->to_array();
+	} elseif ( $userdata instanceof Traversable ) {
+		$userdata = iterator_to_array( $userdata );
+	} elseif ( ! ( $userdata instanceof ArrayAccess ) ) {
+		$userdata = (array) $userdata;
 	}
 
 	// Are we updating or creating?
@@ -2244,7 +2248,7 @@ function wp_insert_user( $userdata ) {
 		$user_pass = wp_hash_password( $userdata['user_pass'] );
 	}
 
-	$sanitized_user_login = sanitize_user( $userdata['user_login'], true );
+	$sanitized_user_login = sanitize_user( $userdata['user_login'] ?? '', true );
 
 	/**
 	 * Filters a username after it has been sanitized.
@@ -2560,7 +2564,7 @@ function wp_insert_user( $userdata ) {
 	$meta = apply_filters( 'insert_user_meta', $meta, $user, $update, $userdata );
 
 	$custom_meta = array();
-	if ( array_key_exists( 'meta_input', $userdata ) && is_array( $userdata['meta_input'] ) && ! empty( $userdata['meta_input'] ) ) {
+	if ( ! empty( $userdata['meta_input'] ) && is_array( $userdata['meta_input'] ) ) {
 		$custom_meta = $userdata['meta_input'];
 	}
 
