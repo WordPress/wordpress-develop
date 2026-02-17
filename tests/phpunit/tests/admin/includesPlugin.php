@@ -75,6 +75,69 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 14060
+	 *
+	 * @covers ::admin_page_exists
+	 */
+	public function test_admin_page_exists_returns_true_when_plugin_page_not_set() {
+		global $plugin_page, $admin_page_parent, $_registered_pages;
+
+		$previous_plugin_page = $plugin_page;
+		unset( $plugin_page );
+
+		$this->assertTrue( admin_page_exists() );
+
+		$plugin_page = $previous_plugin_page;
+	}
+
+	/**
+	 * @ticket 14060
+	 *
+	 * @covers ::admin_page_exists
+	 */
+	public function test_admin_page_exists_returns_true_when_plugin_page_registered() {
+		global $plugin_page, $admin_page_parent, $_registered_pages;
+
+		$previous_plugin_page       = $plugin_page ?? null;
+		$previous_admin_page_parent = $admin_page_parent ?? null;
+		$previous_registered_pages  = $_registered_pages;
+
+		$plugin_page               = 'admin-page-exists-test';
+		$admin_page_parent         = 'options-general.php';
+		$hookname                  = get_plugin_page_hookname( $plugin_page, $admin_page_parent );
+		$_registered_pages[ $hookname ] = true;
+
+		$this->assertTrue( admin_page_exists() );
+
+		$plugin_page       = $previous_plugin_page;
+		$admin_page_parent = $previous_admin_page_parent;
+		$_registered_pages = $previous_registered_pages;
+	}
+
+	/**
+	 * @ticket 14060
+	 *
+	 * @covers ::admin_page_exists
+	 */
+	public function test_admin_page_exists_returns_false_when_plugin_page_not_registered() {
+		global $plugin_page, $admin_page_parent, $_registered_pages;
+
+		$previous_plugin_page       = $plugin_page ?? null;
+		$previous_admin_page_parent = $admin_page_parent ?? null;
+		$previous_registered_pages  = $_registered_pages;
+
+		$plugin_page        = 'nonexistent-plugin-page-slug';
+		$admin_page_parent  = 'options-general.php';
+		$_registered_pages  = array();
+
+		$this->assertFalse( admin_page_exists() );
+
+		$plugin_page        = $previous_plugin_page;
+		$admin_page_parent  = $previous_admin_page_parent;
+		$_registered_pages  = $previous_registered_pages;
+	}
+
+	/**
 	 * Tests the position parameter.
 	 *
 	 * @ticket 39776
