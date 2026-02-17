@@ -3455,7 +3455,17 @@ class WP_Site_Health {
 			'etag'                   => null,
 			'via'                    => null,
 
-			// Custom caching headers.
+			/**
+			 * Custom caching headers.
+			 *
+			 * These do not seem to be actually used by any caching layers. There were first introduced in a Site Health
+			 * test in the AMP plugin. They were copied into the Performance Lab plugin's Site Health test before they
+			 * were merged into core.
+			 *
+			 * @link https://github.com/ampproject/amp-wp/pull/6849
+			 * @link https://github.com/WordPress/performance/pull/263
+			 * @link https://core.trac.wordpress.org/changeset/54043
+			 */
 			'x-cache-enabled'        => static function ( $header_value ) {
 				return ( 'true' === strtolower( $header_value ) );
 			},
