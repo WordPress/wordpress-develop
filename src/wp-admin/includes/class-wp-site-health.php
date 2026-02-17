@@ -3462,7 +3462,6 @@ class WP_Site_Health {
 			'x-cache-disabled'       => static function ( $header_value ) {
 				return ( 'on' !== strtolower( $header_value ) );
 			},
-			'x-cache-status'         => $cache_hit_callback, // See <https://blog.nginx.org/blog/nginx-caching-guide>.
 			'x-proxy-cache'          => $cache_hit_callback,
 
 			/**
@@ -3503,15 +3502,24 @@ class WP_Site_Health {
 			'x-srcache-fetch-status' => $cache_hit_callback,
 
 			/**
+			 * Nginx.
+			 *
+			 * @link https://blog.nginx.org/blog/nginx-caching-guide
+			 */
+			'x-cache-status'         => $cache_hit_callback,
+
+			/**
 			 * Varnish Cache.
 			 *
-			 * For a cache hit, it includes both the ID of the current request and the ID of the request
-			 * that populated the cache. For a miss, it only includes the current request ID.
+			 * A header with a single number indicates it was not cached. If there are two numbers (or more), then this
+			 * indicates the response was cached.
 			 *
 			 * @link https://vinyl-cache.org/docs/2.1/faq/http.html
+			 * @link https://www.fastly.com/documentation/reference/http/http-headers/X-Varnish/
+			 * @link https://www.linuxjournal.com/content/speed-your-web-site-varnish
 			 */
 			'x-varnish'              => static function ( $header_value ) {
-				return (bool) preg_match( '/\d+ \d+/', $header_value );
+				return 1 === preg_match( '/^\d+ \d+/', $header_value );
 			},
 		);
 
