@@ -453,7 +453,7 @@ final class WP_Interactivity_API {
 		$this->namespace_stack = null;
 		$this->context_stack   = null;
 
-		return null === $result ? $html : $result;
+		return $result ?? $html;
 	}
 
 	/**
@@ -1290,7 +1290,7 @@ CSS;
 		echo <<<HTML
 			<div
 				class="wp-interactivity-router-loading-bar"
-				data-wp-interactive="core/router"
+				data-wp-interactive="core/router/private"
 				data-wp-class--start-animation="state.navigation.hasStarted"
 				data-wp-class--finish-animation="state.navigation.hasFinished"
 			></div>
@@ -1313,6 +1313,14 @@ HTML;
 	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
+
+			// Initializes the `state.url` property from the server.
+			$this->state(
+				'core/router',
+				array(
+					'url' => get_self_link(),
+				)
+			);
 
 			// Enqueues as an inline style.
 			wp_register_style( 'wp-interactivity-router-animations', false );
