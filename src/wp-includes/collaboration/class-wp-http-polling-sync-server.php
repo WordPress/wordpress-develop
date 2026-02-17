@@ -289,7 +289,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param string                    $room             Room identifier.
 	 * @param int                       $client_id        Client identifier.
 	 * @param array<string, mixed>|null $awareness_update Awareness state sent by the client.
-	 * @return array<int, array<string, mixed>> Updated awareness state for the room.
+	 * @return array<int, array<string, array<string, mixed>>> Updated awareness state for the room.
 	 */
 	private function process_awareness_update( string $room, int $client_id, ?array $awareness_update ): array {
 		$existing_awareness = $this->storage->get_awareness_state( $room );
@@ -324,7 +324,7 @@ class WP_HTTP_Polling_Sync_Server {
 		// Convert to client_id => state map for response.
 		$response = array();
 		foreach ( $updated_awareness as $entry ) {
-			$response[ $entry['client_id'] ] = (object) $entry['state'];
+			$response[ $entry['client_id'] ] = $entry['state'];
 		}
 
 		return $response;
