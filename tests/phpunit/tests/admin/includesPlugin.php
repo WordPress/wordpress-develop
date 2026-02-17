@@ -102,9 +102,9 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$previous_admin_page_parent = $admin_page_parent ?? null;
 		$previous_registered_pages  = $_registered_pages;
 
-		$plugin_page               = 'admin-page-exists-test';
-		$admin_page_parent         = 'options-general.php';
-		$hookname                  = get_plugin_page_hookname( $plugin_page, $admin_page_parent );
+		$plugin_page                    = 'admin-page-exists-test';
+		$admin_page_parent              = 'options-general.php';
+		$hookname                       = get_plugin_page_hookname( $plugin_page, $admin_page_parent );
 		$_registered_pages[ $hookname ] = true;
 
 		$this->assertTrue( admin_page_exists() );
@@ -126,15 +126,15 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$previous_admin_page_parent = $admin_page_parent ?? null;
 		$previous_registered_pages  = $_registered_pages;
 
-		$plugin_page        = 'nonexistent-plugin-page-slug';
-		$admin_page_parent  = 'options-general.php';
-		$_registered_pages  = array();
+		$plugin_page       = 'nonexistent-plugin-page-slug';
+		$admin_page_parent = 'options-general.php';
+		$_registered_pages = array();
 
 		$this->assertFalse( admin_page_exists() );
 
-		$plugin_page        = $previous_plugin_page;
-		$admin_page_parent  = $previous_admin_page_parent;
-		$_registered_pages  = $previous_registered_pages;
+		$plugin_page       = $previous_plugin_page;
+		$admin_page_parent = $previous_admin_page_parent;
+		$_registered_pages = $previous_registered_pages;
 	}
 
 	/**
