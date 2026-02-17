@@ -3437,7 +3437,7 @@ class WP_Site_Health {
 	public function get_page_cache_headers(): array {
 
 		$cache_hit_callback = static function ( $header_value ) {
-			return 1 === preg_match( '/\bhit\b/i', $header_value );
+			return 1 === preg_match( '/(^| |,)HIT(,| |$)/i', $header_value );
 		};
 
 		$cache_headers = array(
