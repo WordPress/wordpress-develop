@@ -1861,18 +1861,17 @@ p.auto-update-status {
 	box-shadow: 0 0 0 transparent;
 }
 
-#screen-options-link-wrap,
-#contextual-help-link-wrap {
+.screen-meta-toggle {
 	float: left;
 	margin: 0 0 0 6px;
 }
 
-#screen-meta-links .screen-meta-toggle {
+.screen-meta-toggle {
 	position: relative;
 	top: 0;
 }
 
-#screen-meta-links .show-settings {
+.screen-meta-toggle .show-settings {
 	border: 1px solid #c3c4c7;
 	border-top: none;
 	height: auto;
@@ -1887,24 +1886,24 @@ p.auto-update-status {
 	transition: box-shadow 0.1s linear;
 }
 
-#screen-meta-links .show-settings:hover,
-#screen-meta-links .show-settings:active,
-#screen-meta-links .show-settings:focus {
+.screen-meta-toggle .show-settings:hover,
+.screen-meta-toggle .show-settings:active,
+.screen-meta-toggle .show-settings:focus {
 	color: #2c3338;
 }
 
-#screen-meta-links .show-settings:focus {
+.screen-meta-toggle .show-settings:focus {
 	border-color: #2271b1;
 	box-shadow: 0 0 0 1px #2271b1;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
 
-#screen-meta-links .show-settings:active {
+.screen-meta-toggle .show-settings:active {
 	transform: none;
 }
 
-#screen-meta-links .show-settings:after {
+.screen-meta-toggle .show-settings:after {
 	right: 0;
 	content: "\f140";
 	content: "\f140" / '';
@@ -1917,7 +1916,7 @@ p.auto-update-status {
 	text-decoration: none;
 }
 
-#screen-meta-links .screen-meta-active:after {
+.screen-meta-toggle .screen-meta-active:after {
 	content: "\f142";
 	content: "\f142" / '';
 }
