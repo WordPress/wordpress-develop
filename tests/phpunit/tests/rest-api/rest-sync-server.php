@@ -30,7 +30,9 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		// Reset storage post ID cache to ensure clean state after transaction rollback.
 		$reflection = new ReflectionProperty( 'WP_Sync_Post_Meta_Storage', 'storage_post_id' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 		$reflection->setValue( null, null );
 	}
 
