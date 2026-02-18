@@ -91,8 +91,8 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
-            'gutenberg'
-            '!gutenberg/node_modules'
+            gutenberg
+            !gutenberg/node_modules
           key: gutenberg-${{ steps.gutenberg-pinned-sha.outputs.sha }}-${{ hashFiles( 'tools/gutenberg/*', 'package*.json', 'Gruntfile.js' ) }}
 
       - name: Set up Node.js
