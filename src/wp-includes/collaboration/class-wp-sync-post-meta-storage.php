@@ -97,6 +97,14 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			$updates = array();
 		}
 
+		// Filter out any updates that don't have the expected structure.
+		$updates = array_filter(
+			$updates,
+			static function ( $update ): bool {
+				return isset( $update['timestamp'], $update['value'] ) && is_int( $update['timestamp'] );
+			}
+		);
+
 		$this->room_update_counts[ $room ] = count( $updates );
 
 		return $updates;
