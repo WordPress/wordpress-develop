@@ -6094,7 +6094,7 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 	 *
 	 * Can be used to attach custom error handlers even if WP_DEBUG is not truthy.
 	 *
-	 * @since 6.6.0
+	 * @since 7.0.0
 	 *
 	 * @param string $function_name The function that triggered the error.
 	 * @param string $message       The message explaining the error.
@@ -6103,9 +6103,9 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 	do_action( 'wp_trigger_error_always_run', $function_name, $message, $error_level );
 
 	/**
-	 * Filters whether to trigger an error
+	 * Filters whether to trigger an error.
 	 *
-	 * @since 6.6.0
+	 * @since 7.0.0
 	 *
 	 * @param bool   $trigger       Whether to trigger the error. Default true.
 	 * @param string $function_name The function that triggered the error.
