@@ -1187,25 +1187,70 @@ class WP_HTML_Tag_Processor {
 			return;
 		}
 
-		$seen = array();
+		return self::parse_class_list( $class, $this->compat_mode );
+	}
 
-		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
+	/**
+	 * Generator for a foreach loop to step through each class name for the matched tag.
+	 *
+	 * This generator function is designed to be used inside a "foreach" loop.
+	 *
+	 * Example:
+	 *
+	 *     $class_list = 'free &lt;egg&lt;\tlang-en';
+	 *     foreach ( WP_HTML_Tag_Processor::parse_class_list( $class_list ) as $class_name ) {
+	 *         echo "{$class_name} ";
+	 *     }
+	 *     // Outputs: "free <egg> lang-en "
+	 *
+	 * The default behavior is normative for HTML5 documents in “no-quirks” mode. For
+	 * rare documents with “quirks mode” DOCTYPE declarations, pass {@see self::QUIRKS_MODE}
+	 * as the compatibility mode for ASCII-case-insensitive comparison of class names. Use
+	 * this only when certain that the containing document is in no-quirks mode.
+	 *
+	 * Example:
+	 *
+	 *     $class_list = 'wide naRRow WIDE Wide narrow';
+	 *     $classes    = WP_HTML_Tag_Processor::parse_class_list( $class_list );
+	 *     $classes    = iterator_to_array( $classes );
+	 *     $classes  === array( 'wide', 'naRRow', 'WIDE', 'Wide', 'narrow' );
+	 *
+	 *     $class_list = 'wide WIDE Wide';
+	 *     $classes    = WP_HTML_Tag_Processor::parse_class_list( $class_list, WP_HTML_Tag_Processor::QUIRKS_MODE );
+	 *     $classes    = iterator_to_array( $classes );
+	 *     $classes  === array( 'wide', 'naRRow' );
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string      $class_list  Contains a full decoded HTML `class` attribute, or plain
+	 *                                 list of space-separated CSS class names.
+	 * @param string|null $compat_mode Optional. Specifies how to compare class names, whether
+	 *                                 byte-for-byte or ASCII-case-insensitively. Default is
+	 *                                 NO_QUIRKS_MODE, which compares byte for byte.
+	 * @return Generator Iterates over each unique CSS class name in the given input list in order.
+	 */
+	public static function parse_class_list( $class_list, $compat_mode = self::NO_QUIRKS_MODE ) {
+		if ( '' === $class_list || ! is_string( $class_list ) ) {
+			return;
+		}
 
-		$at = 0;
-		while ( $at < strlen( $class ) ) {
+		$seen      = array();
+		$is_quirks = self::QUIRKS_MODE === $compat_mode;
+		$at        = 0;
+		while ( $at < strlen( $class_list ) ) {
 			// Skip past any initial boundary characters.
-			$at += strspn( $class, " \t\f\r\n", $at );
-			if ( $at >= strlen( $class ) ) {
+			$at += strspn( $class_list, " \t\f\r\n", $at );
+			if ( $at >= strlen( $class_list ) ) {
 				return;
 			}
 
 			// Find the byte length until the next boundary.
-			$length = strcspn( $class, " \t\f\r\n", $at );
+			$length = strcspn( $class_list, " \t\f\r\n", $at );
 			if ( 0 === $length ) {
 				return;
 			}
 
-			$name = str_replace( "\x00", "\u{FFFD}", substr( $class, $at, $length ) );
+			$name = str_replace( "\x00", "\u{FFFD}", substr( $class_list, $at, $length ) );
 			if ( $is_quirks ) {
 				$name = strtolower( $name );
 			}

@@ -617,7 +617,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 
 		// 'classes' should be an array, as in wp_setup_nav_menu_item().
 		if ( isset( $item->classes ) && is_scalar( $item->classes ) ) {
-			$item->classes = explode( ' ', $item->classes );
+			$item->classes = iterator_to_array( WP_HTML_Tag_Processor::parse_class_list( $item->classes ) );
 		}
 
 		$item->ID    = $this->post_id;
