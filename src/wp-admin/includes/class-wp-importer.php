@@ -1,7 +1,12 @@
 <?php
 /**
  * WP_Importer base class
+ *
+ * @package WordPress
+ * @subpackage Importer
+ * @since 3.0.0
  */
+
 #[AllowDynamicProperties]
 class WP_Importer {
 	/**
@@ -274,7 +279,7 @@ class WP_Importer {
 	 * @since 3.0.0
 	 *
 	 * @global wpdb  $wpdb       WordPress database abstraction object.
-	 * @global int[] $wp_actions
+	 * @global int[] $wp_actions Stores the number of times each action was triggered.
 	 */
 	public function stop_the_insanity() {
 		global $wpdb, $wp_actions;
