@@ -16,6 +16,8 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Retrieves the pinned commit hash for the Gutenberg repository.
+  # - Configures caching for the /gutenberg directory.
   # - Sets up Node.js.
   # - Configures caching for Composer.
   # - Installs Composer dependencies.

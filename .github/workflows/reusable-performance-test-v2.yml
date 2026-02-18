@@ -77,7 +77,9 @@ jobs:
   # Performs the following steps:
   # - Configure environment variables.
   # - Checkout repository.
-  # - Set up Node.js.
+  # - Retrieves the pinned commit hash for the Gutenberg repository.
+  # - Configures caching for the /gutenberg directory.
+  # - Sets up Node.js.
   # - Log debug information.
   # - Install npm dependencies.
   # - Install Playwright browsers.

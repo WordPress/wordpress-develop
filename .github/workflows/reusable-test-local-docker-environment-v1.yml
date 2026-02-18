@@ -57,6 +57,8 @@ jobs:
   # Performs the following steps:
   # - Sets environment variables.
   # - Checks out the repository.
+  # - Retrieves the pinned commit hash for the Gutenberg repository.
+  # - Configures caching for the /gutenberg directory.
   # - Sets up Node.js.
   # - Sets up PHP.
   # - Installs Composer dependencies.

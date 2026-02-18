@@ -21,6 +21,8 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Retrieves the pinned commit hash for the Gutenberg repository.
+  # - Configures caching for the /gutenberg directory.
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
