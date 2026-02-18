@@ -39,7 +39,7 @@ const COPY_CONFIG = {
 	// PHP infrastructure files (to wp-includes/build/)
 	phpInfrastructure: {
 		destination: 'build',
-		files: [ 'routes.php', 'pages.php' ],
+		files: [ 'routes.php', 'pages.php', 'constants.php' ],
 		directories: [ 'pages', 'routes' ],
 	},
 
