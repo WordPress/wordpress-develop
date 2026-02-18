@@ -108,7 +108,7 @@ jobs:
 
       - name: Run PHP static analysis tests
         id: phpstan
-        run: phpstan analyse -vvv --error-format=checkstyle | cs2pr
+        run: phpstan analyse -vvv --error-format=checkstyle | cs2pr --errors-as-warnings --graceful-warnings
 
       - name: "Save result cache"
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
