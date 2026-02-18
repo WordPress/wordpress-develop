@@ -32,6 +32,8 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @ticket 64651
+	 *
 	 * @covers WP_REST_Icons_Controller::register_routes
 	 */
 	public function test_register_routes() {
@@ -48,6 +50,9 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Asserts that no icons can be created.
+	 * No controller method is executed; 404 is returned by route matching.
+	 *
+	 * @ticket 64651
 	 */
 	public function test_create_item() {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/icons' );
@@ -63,6 +68,9 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Asserts that no icons can be updated.
+	 * No controller method is executed; 404 is returned by route matching.
+	 *
+	 * @ticket 64651
 	 */
 	public function test_update_item() {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/icons/core/foo' );
@@ -77,6 +85,9 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Asserts that no icons can be deleted.
+	 * No controller method is executed; 404 is returned by route matching.
+	 *
+	 * @ticket 64651
 	 */
 	public function test_delete_item() {
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/icons/core/wordpress' );
@@ -88,6 +99,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item
+	 *
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item() {
@@ -102,6 +117,8 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @ticket 64651
+	 *
 	 * @covers WP_REST_Icons_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
@@ -121,6 +138,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item_schema
+	 *
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
@@ -128,6 +149,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that GET /wp/v2/icons returns a list of icons for users with edit_posts capability.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
 	 */
 	public function test_get_items_returns_icons_list() {
 		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
@@ -144,6 +169,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that GET /wp/v2/icons requires proper permissions.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items_permissions_check
 	 */
 	public function test_get_items_requires_edit_posts_capability() {
 		wp_set_current_user( self::$subscriber_id );
@@ -156,6 +185,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that administrators can access icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
 	 */
 	public function test_get_items_admin_has_access() {
 		wp_set_current_user( self::$admin_id );
@@ -168,6 +201,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that contributors can access icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
 	 */
 	public function test_get_items_contributor_has_access() {
 		wp_set_current_user( self::$contributor_id );
@@ -180,6 +217,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that GET /wp/v2/icons/core/arrow-left returns specific icon data.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item
 	 */
 	public function test_get_item_returns_specific_icon() {
 		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
@@ -212,6 +253,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that GET /wp/v2/icons/core/invalid returns 404 for non-existent icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item
 	 */
 	public function test_get_item_returns_404_for_invalid_icon() {
 		wp_set_current_user( self::$editor_id );
@@ -224,6 +269,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that GET /wp/v2/icons/?search=arrow returns filtered results.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
 	 */
 	public function test_get_items_search_filters_results() {
 		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
@@ -249,6 +298,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that search is case-insensitive.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
 	 */
 	public function test_get_items_search_case_insensitive() {
 		wp_set_current_user( self::$editor_id );
@@ -269,6 +322,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that search with no matches returns empty array.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
 	 */
 	public function test_get_items_search_no_matches() {
 		wp_set_current_user( self::$editor_id );
@@ -285,6 +342,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that _fields parameter filters response fields.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_get_items_fields_parameter() {
 		wp_set_current_user( self::$editor_id );
@@ -305,6 +366,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test permissions for getting a specific icon.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_requires_permissions() {
 		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
@@ -335,6 +400,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that unauthenticated users cannot access icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items_permissions_check
 	 */
 	public function test_get_items_requires_authentication() {
 		wp_set_current_user( 0 ); // No user
@@ -347,6 +416,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that unauthenticated users cannot access specific icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_requires_authentication() {
 		wp_set_current_user( 0 ); // No user
