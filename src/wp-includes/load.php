@@ -1001,7 +1001,7 @@ function wp_get_mu_plugins() {
 	 * @var string[] Array of absolute mu-plugin file paths to include.
 	 */
 	$mu_plugins = apply_filters( 'get_mu_plugins', $mu_plugins );
-	
+
 	return $mu_plugins;
 }
 
