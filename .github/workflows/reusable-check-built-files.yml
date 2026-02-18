@@ -45,7 +45,7 @@ jobs:
 
       - name: Retrieve the pinned Gutenberg SHA value
         id: gutenberg-pinned-sha
-        run: echo "sha=$(jq -r '.gutenberg.ref' package.json)" >> $GITHUB_OUTPUT
+        run: echo "sha=$(jq -r '.gutenberg.ref' package.json)" >> "$GITHUB_OUTPUT"
 
       - name: Configure caching for Gutenberg directory.
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
