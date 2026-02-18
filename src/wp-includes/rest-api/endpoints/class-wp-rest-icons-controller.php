@@ -52,7 +52,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'name' => array(
-						'description' => __( 'Icon name.', 'gutenberg' ),
+						'description' => __( 'Icon name.' ),
 						'type'        => 'string',
 					),
 				),
@@ -91,7 +91,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 
 		return new WP_Error(
 			'rest_cannot_view',
-			__( 'Sorry, you are not allowed to view the registered icons.', 'gutenberg' ),
+			__( 'Sorry, you are not allowed to view the registered icons.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
 	}
@@ -159,7 +159,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 				'rest_icon_not_found',
 				sprintf(
 					// translators: %s is the name of any user-provided name
-					__( 'Icon not found: "%s".', 'gutenberg' ),
+					__( 'Icon not found: "%s".' ),
 					$name
 				),
 				array( 'status' => 404 )
@@ -212,19 +212,19 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'name'    => array(
-					'description' => __( 'The icon name.', 'gutenberg' ),
+					'description' => __( 'The icon name.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'label'   => array(
-					'description' => __( 'The icon label.', 'gutenberg' ),
+					'description' => __( 'The icon label.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'content' => array(
-					'description' => __( 'The icon content (SVG markup).', 'gutenberg' ),
+					'description' => __( 'The icon content (SVG markup).' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),

@@ -41,7 +41,7 @@ class WP_Icons_Registry {
 		if ( ! is_readable( $manifest_path ) ) {
 			wp_trigger_error(
 				__METHOD__,
-				__( 'Core icon collection manifest is missing or unreadable.', 'gutenberg' )
+				__( 'Core icon collection manifest is missing or unreadable.' )
 			);
 			return;
 		}
@@ -51,7 +51,7 @@ class WP_Icons_Registry {
 		if ( empty( $collection ) ) {
 			wp_trigger_error(
 				__METHOD__,
-				__( 'Core icon collection manifest is empty or invalid.', 'gutenberg' )
+				__( 'Core icon collection manifest is empty or invalid.' )
 			);
 			return;
 		}
@@ -63,7 +63,7 @@ class WP_Icons_Registry {
 			) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Core icon collection manifest must provide valid a "filePath" for each icon.', 'gutenberg' ),
+					__( 'Core icon collection manifest must provide valid a "filePath" for each icon.' ),
 					'7.0.0'
 				);
 				return;
@@ -102,7 +102,7 @@ class WP_Icons_Registry {
 		if ( ! isset( $icon_name ) || ! is_string( $icon_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Icon name must be a string.', 'gutenberg' ),
+				__( 'Icon name must be a string.' ),
 				'7.0.0'
 			);
 			return false;
@@ -115,7 +115,7 @@ class WP_Icons_Registry {
 					__METHOD__,
 					sprintf(
 						// translators: %s is the name of any user-provided key
-						__( 'Invalid icon property: "%s".', 'gutenberg' ),
+						__( 'Invalid icon property: "%s".' ),
 						$key
 					),
 					'7.0.0'
@@ -127,7 +127,7 @@ class WP_Icons_Registry {
 		if ( ! isset( $icon_properties['label'] ) || ! is_string( $icon_properties['label'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Icon label must be a string.', 'gutenberg' ),
+				__( 'Icon label must be a string.' ),
 				'7.0.0'
 			);
 			return false;
@@ -139,7 +139,7 @@ class WP_Icons_Registry {
 		) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Icons must provide either `content` or `filePath`.', 'gutenberg' ),
+				__( 'Icons must provide either `content` or `filePath`.' ),
 				'7.0.0'
 			);
 			return false;
@@ -149,7 +149,7 @@ class WP_Icons_Registry {
 			if ( ! is_string( $icon_properties['content'] ) ) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Icon content must be a string.', 'gutenberg' ),
+					__( 'Icon content must be a string.' ),
 					'7.0.0'
 				);
 				return false;
@@ -159,7 +159,7 @@ class WP_Icons_Registry {
 			if ( empty( $sanitized_icon_content ) ) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Icon content does not contain valid SVG markup.', 'gutenberg' ),
+					__( 'Icon content does not contain valid SVG markup.' ),
 					'7.0.0'
 				);
 				return false;
@@ -230,7 +230,7 @@ class WP_Icons_Registry {
 			if ( empty( $content ) ) {
 				wp_trigger_error(
 					__METHOD__,
-					__( 'Icon content does not contain valid SVG markup.', 'gutenberg' )
+					__( 'Icon content does not contain valid SVG markup.' )
 				);
 				return null;
 			}
