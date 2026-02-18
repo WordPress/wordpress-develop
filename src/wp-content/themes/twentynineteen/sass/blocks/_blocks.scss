@@ -349,8 +349,8 @@
 		padding: $size__spacing-unit;
 	}
 
-	//! Verse
-	.wp-block-verse {
+	//! Poetry
+	.wp-block-poetry {
 		@include font-family( $font__body );
 		font-size: $font__size_base;
 		line-height: 1.8;
