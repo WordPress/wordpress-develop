@@ -28,11 +28,12 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 
 	/**
 	 * @since 3.4.0
+	 * @since 7.0.0 Return type updated from void to true for compatibility with base class.
 	 *
 	 * @global Custom_Image_Header $custom_image_header
 	 *
 	 * @param mixed $value The value to update.
-	 * @return bool Always returns true.
+	 * @return true Always returns true.
 	 */
 	public function update( $value ) {
 		global $custom_image_header;

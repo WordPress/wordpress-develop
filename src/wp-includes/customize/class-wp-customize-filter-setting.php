@@ -22,9 +22,10 @@ class WP_Customize_Filter_Setting extends WP_Customize_Setting {
 	 * Saves the value of the setting, using the related API.
 	 *
 	 * @since 3.4.0
+	 * @since 7.0.0 Return type updated from void to true for compatibility with base class.
 	 *
 	 * @param mixed $value The value to update.
-	 * @return bool Always returns true.
+	 * @return true Always returns true.
 	 */
 	public function update( $value ) {
 		return true;

@@ -884,6 +884,66 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper to create a user and add them to multiple blogs.
+	 *
+	 * @param int  $num_blogs          Number of additional blogs to create and add the user to.
+	 * @param bool $include_main_site  Whether to add the user to the main site as well.
+	 * @return array Array with 'user_id' and 'blogs' (array of blog IDs).
+	 */
+	private function create_user_with_blogs( $num_blogs = 1, $include_main_site = false ) {
+		$user_id = self::factory()->user->create();
+
+		$blogs = array();
+		if ( $include_main_site ) {
+			add_user_to_blog( get_main_site_id(), $user_id, 'administrator' );
+			$blogs[] = get_main_site_id();
+		}
+
+		for ( $i = 0; $i < $num_blogs; $i++ ) {
+			$blog_id = self::factory()->blog->create(
+				array(
+					'site_id' => get_current_network_id(),
+				)
+			);
+			add_user_to_blog( $blog_id, $user_id, 'administrator' );
+			$blogs[] = $blog_id;
+		}
+
+		return array(
+			'user_id' => $user_id,
+			'blogs'   => $blogs,
+		);
+	}
+
+	/**
+	 * @ticket 61146
+	 */
+	public function test_default_do_not_propagate_network_user_spam_to_blogs_on_multisite() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'This test is for multisite only.' );
+		}
+
+		$data    = $this->create_user_with_blogs( 2 );
+		$user_id = $data['user_id'];
+		$blogs   = $data['blogs'];
+
+		// Mark user spam in user record (this alone should not change blog spam states).
+		$u = wp_update_user(
+			array(
+				'ID'   => $user_id,
+				'spam' => '1',
+			)
+		);
+		$this->assertNotWPError( $u );
+		$user = get_userdata( $user_id );
+		$this->assertSame( '1', $user->spam );
+
+		foreach ( $blogs as $blog_id ) {
+			$this->assertNotSame( '1', get_blog_status( $blog_id, 'spam' ), "Blog {$blog_id} should not be marked spam by default." );
+		}
+	}
+
+	/**
 	 * @ticket 28315
 	 */
 	public function test_user_meta_error() {
