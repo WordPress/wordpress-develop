@@ -58,7 +58,7 @@ interface WP_Sync_Storage {
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Return updates after this cursor.
-	 * @return array Sync updates.
+	 * @return array<int, mixed> Sync updates.
 	 */
 	public function get_updates_after_cursor( string $room, int $cursor ): array;
 

@@ -190,7 +190,7 @@ class WP_HTTP_Polling_Sync_Server {
 
 			$entity_kind = $type_parts[0];
 			$entity_name = $object_parts[0];
-			$object_id   = isset( $object_parts[1] ) ? (int) $object_parts[1] : null;
+			$object_id   = $object_parts[1] ?? null;
 
 			if ( ! $this->can_user_sync_entity_type( $entity_kind, $entity_name, $object_id ) ) {
 				return new WP_Error(
@@ -411,7 +411,6 @@ class WP_HTTP_Polling_Sync_Server {
 				 * All updates are stored persistently.
 				 */
 				return $this->add_update( $room, $client_id, $type, $data );
-				break;
 		}
 
 		return new WP_Error(
@@ -430,7 +429,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param int    $client_id Client identifier.
 	 * @param string $type      Update type (sync_step1, sync_step2, update, compaction).
 	 * @param string $data      Base64-encoded update data.
-	 * @return bool|WP_Error True on success, WP_Error on storage failure.
+	 * @return true|WP_Error True on success, WP_Error on storage failure.
 	 */
 	private function add_update( string $room, int $client_id, string $type, string $data ) {
 		$update = array(
