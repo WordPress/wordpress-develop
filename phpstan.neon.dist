@@ -15,7 +15,9 @@ includes:
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
 	level: 0
-	reportUnmatchedIgnoredErrors: true
+
+	# Allow ignoring errors for stricter levels.
+	reportUnmatchedIgnoredErrors: false
 
 	ignoreErrors:
 		# Level 0:
