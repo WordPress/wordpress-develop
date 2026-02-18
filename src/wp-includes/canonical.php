@@ -984,9 +984,9 @@ function redirect_guess_404_permalink() {
 		if ( $strict_guess ) {
 			$query_args['name'] = get_query_var( 'name' );
 		} else {
-			$query_args['s']              = get_query_var( 'name' );
-			$query_args['search_columns'] = array( 'post_name' );
-			$query_args['starts_with']    = true;
+			$query_args['s']               = get_query_var( 'name' );
+			$query_args['search_columns']  = array( 'post_name' );
+			$query_args['search_position'] = 'start';
 		}
 
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.

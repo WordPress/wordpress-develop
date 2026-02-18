@@ -695,8 +695,8 @@ class WP_Query {
 	 *                                                   See WP_Date_Query::__construct().
 	 *     @type int             $day                    Day of the month. Default empty. Accepts numbers 1-31.
 	 *     @type bool            $exact                  Whether to search by exact keyword. Default false.
-	 *                                                   Cannot be used together with `$starts_with`.
-	 *     @type bool            $starts_with            Whether to search starts with keyword. Default false.
+	 *                                                   Cannot be used together with `$search_position`.
+	 *     @type bool            $search_position        Whether to search start, ends or is anywhere within keyword. Default anywhere.
 	 *                                                   Cannot be used together with `$exact`.
 	 *     @type string          $fields                 Post fields to query for. Accepts:
 	 *                                                   - '' Returns an array of complete post objects (`WP_Post[]`).
@@ -825,13 +825,13 @@ class WP_Query {
 		$query_vars               = &$this->query_vars;
 		$this->query_vars_changed = true;
 
-		if ( ! empty( $query_vars['exact'] ) && ! empty( $query_vars['starts_with'] ) ) {
+		if ( ! empty( $query_vars['exact'] ) && ! empty( $query_vars['search_position'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'The `exact` and `starts_with` query parameters are mutually exclusive and cannot be used together.' ),
+				__( 'The `exact` and `search_position` query parameters are mutually exclusive and cannot be used together.' ),
 				'7.0.0'
 			);
-			$query_vars['starts_with'] = false;
+			$query_vars['search_position'] = 'anywhere';
 		}
 
 		if ( ! empty( $query_vars['robots'] ) ) {
@@ -1476,8 +1476,13 @@ class WP_Query {
 		if ( ! empty( $query_vars['exact'] ) ) {
 			$start = '';
 			$end   = '';
-		} elseif ( ! empty( $query_vars['starts_with'] ) ) {
-			$start = '';
+		} elseif ( ! empty( $query_vars['search_position'] ) ) {
+			if ( 'start' === $query_vars['search_position'] ) {
+				$start = '';
+			}
+			if ( 'end' === $query_vars['search_position'] ) {
+				$end = '';
+			}
 		}
 
 		$searchand                          = '';
@@ -1991,6 +1996,10 @@ class WP_Query {
 			if ( ! isset( $query_vars['ignore_sticky_posts'] ) ) {
 				$query_vars['ignore_sticky_posts'] = $query_vars['caller_get_posts'];
 			}
+		}
+
+		if ( ! isset( $query_vars['search_position'] ) || ! in_array( $query_vars['search_position'], array( 'start', 'end', 'anywhere' ), true ) ) {
+			$query_vars['search_position'] = 'anywhere';
 		}
 
 		if ( ! isset( $query_vars['ignore_sticky_posts'] ) ) {
