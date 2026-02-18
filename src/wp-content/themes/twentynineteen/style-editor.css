@@ -1266,9 +1266,9 @@ figcaption,
   margin-left: 0;
 }
 
-/** === Verse === */
-.wp-block-verse,
-.wp-block-verse pre {
+/** === Poetry === */
+.wp-block-poetry,
+.wp-block-poetry pre {
   padding: 0;
 }
 
