@@ -269,7 +269,7 @@ class WP_HTTP_Polling_Sync_Server {
 	private function can_user_sync_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
 		// Handle single post type entities with a defined object ID.
 		if ( 'postType' === $entity_kind && is_numeric( $object_id ) ) {
-			return current_user_can( 'edit_post', absint( $object_id ) );
+			return current_user_can( 'edit_post', (int) $object_id );
 		}
 
 		// All of the remaining checks are for collections. If an object ID is
