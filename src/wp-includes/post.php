@@ -6271,7 +6271,13 @@ function get_page_children( $page_id, $pages ) {
 		$page_ids   = wp_list_pluck( $pages, 'ID' );
 
 		foreach ( $parent_ids as $parent_id ) {
-			if ( 0 !== $parent_id && ! in_array( $parent_id, $page_ids, true ) ) {
+			if ( 0 === $parent_id || in_array( $parent_id, $page_ids, true ) ) {
+				continue;
+			}
+
+			$parent_exists = (bool) get_post( $parent_id );
+
+			if ( $parent_exists && isset( $children[ $parent_id ] ) ) {
 				foreach ( $children[ $parent_id ] as $orphan ) {
 					$page_list[] = $orphan;
 					if ( isset( $children[ $orphan->ID ] ) ) {
