@@ -795,7 +795,7 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
 		extract( $wp_query->query_vars, EXTR_SKIP );
 	}
 
-	if ( isset( $s ) ) {
+	if ( isset( $s ) ) { // @phpstan-ignore isset.variable (It's extracted from query vars.)
 		$s = esc_attr( $s ); // @phpstan-ignore variable.undefined (It's extracted from query vars.)
 	}
 
