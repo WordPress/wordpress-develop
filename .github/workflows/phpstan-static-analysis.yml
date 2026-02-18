@@ -23,8 +23,8 @@ on:
       - 'tests/phpstan/base.neon'
       - 'tests/phpstan/baseline.php'
       # Confirm any changes to relevant workflow files.
-      - '.github/workflows/php-static-analysis.yml'
-      - '.github/workflows/reusable-php-static-analysis.yml'
+      - '.github/workflows/phpstan-static-analysis.yml'
+      - '.github/workflows/reusable-phpstan-static-analysis.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -42,7 +42,7 @@ jobs:
   # Runs PHPStan Static Analysis.
   phpstan:
     name: PHP static analysis
-    uses: ./.github/workflows/reusable-php-static-analysis.yml
+    uses: ./.github/workflows/reusable-phpstan-static-analysis.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
