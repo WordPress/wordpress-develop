@@ -8,7 +8,7 @@
  */
 
 /**
- * FIXME
+ * Core class used for interacting with registered icons.
  *
  * @since 7.0.0
  */
