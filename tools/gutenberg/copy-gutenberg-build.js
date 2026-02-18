@@ -847,6 +847,23 @@ function transformPHPContent( content ) {
 }
 
 /**
+ * Transform manifest.php to remove gutenberg text domain.
+ *
+ * @param {string} content - File content.
+ * @return {string} Transformed content.
+ */
+function transformManifestPHP( content ) {
+	// Remove 'gutenberg' text domain from _x() calls
+	// FROM: _x( '...', 'icon label', 'gutenberg' )
+	// TO:   _x( '...', 'icon label' )
+	const transformedContent = content.replace(
+		/_x\(\s*([^,]+),\s*([^,]+),\s*['"]gutenberg['"]\s*\)/g,
+		'_x( $1, $2 )'
+	);
+	return transformedContent;
+}
+
+/**
  * Main execution function.
  */
 async function main() {
@@ -1078,10 +1095,15 @@ async function main() {
 				throw new Error( `No files found matching '${ src }'` );
 			}
 			for ( const match of matches ) {
-				fs.copyFileSync(
-					match,
-					path.join( dest, path.basename( match ) )
-				);
+				const destPath = path.join( dest, path.basename( match ) );
+				// Apply transformation for manifest.php to remove gutenberg text domain
+				if ( path.basename( match ) === 'manifest.php' ) {
+					let content = fs.readFileSync( match, 'utf8' );
+					content = transformManifestPHP( content );
+					fs.writeFileSync( destPath, content );
+				} else {
+					fs.copyFileSync( match, destPath );
+				}
 			}
 		}
 	}
