@@ -120,7 +120,7 @@ jobs:
         # Test highest and lowest supported version of each major.
         php: [ '7.2', '7.4', '8.0', '8.4' ]
         db-type: [ 'mariadb' ]
-        db-version: [ '10.4', '10.6', '10.11', '11.2' ]
+        db-version: [ '10.6', '10.11' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
