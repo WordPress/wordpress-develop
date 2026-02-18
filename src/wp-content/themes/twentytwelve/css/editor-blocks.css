@@ -256,7 +256,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Poetry */
 
-.editor-block-list__block .wp-block-poetry pre {
+.editor-block-list__block .wp-block-verse pre {
 	font-size: 12px;
 }
 

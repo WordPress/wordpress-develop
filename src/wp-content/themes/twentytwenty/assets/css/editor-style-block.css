@@ -732,7 +732,7 @@ hr.wp-block-separator.is-style-dots::before {
 .editor-styles-wrapper .wp-block-freeform.block-library-rich-text__tinymce pre,
 .editor-styles-wrapper .wp-block-preformatted pre,
 .editor-styles-wrapper .wp-block-code .block-editor-plain-text,
-.editor-styles-wrapper .wp-block-poetry pre {
+.editor-styles-wrapper .wp-block-verse pre {
 	background: transparent;
 	color: inherit;
 	font-family: monospace;
@@ -926,8 +926,8 @@ hr.wp-block-separator.is-style-dots::before {
 
 /* Block: Poetry ------------------------------ */
 
-.editor-styles-wrapper .wp-block-poetry pre,
-.editor-styles-wrapper pre.wp-block-poetry {
+.editor-styles-wrapper .wp-block-verse pre,
+.editor-styles-wrapper pre.wp-block-verse {
 	font-size: 0.9em;
 }
 
