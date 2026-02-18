@@ -379,6 +379,43 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Ability with nested namespace (3 segments).
+		$this->register_test_ability(
+			'test/math/add',
+			array(
+				'label'               => 'Nested Add',
+				'description'         => 'Adds numbers with nested namespace',
+				'category'            => 'math',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'        => 'number',
+							'description' => 'First number',
+						),
+						'b' => array(
+							'type'        => 'number',
+							'description' => 'Second number',
+						),
+					),
+					'required'             => array( 'a', 'b' ),
+					'additionalProperties' => false,
+				),
+				'output_schema'       => array(
+					'type' => 'number',
+				),
+				'execute_callback'    => static function ( array $input ) {
+					return $input['a'] + $input['b'];
+				},
+				'permission_callback' => static function () {
+					return current_user_can( 'edit_posts' );
+				},
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -433,6 +470,31 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test executing an ability with a nested namespace (3 segments) via REST.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_execute_nested_namespace_ability(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/math/add/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 10,
+						'b' => 7,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 17, $response->get_data() );
+	}
+
+	/**
 	 * Test executing a read-only ability with GET.
 	 *
 	 * @ticket 64098
@@ -472,7 +534,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 'User successfully deleted!', $response->get_data() );
+		$this->assertSame( 'User successfully deleted!', $response->get_data() );
 	}
 
 	/**
@@ -630,7 +692,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 'Success: test data', $response->get_data() );
+		$this->assertSame( 'Success: test data', $response->get_data() );
 	}
 
 	/**
@@ -646,8 +708,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 404, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
-		$this->assertEquals( 'Ability not found.', $data['message'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'Ability not found.', $data['message'] );
 	}
 
 	/**
@@ -679,8 +741,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 500, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'test_error', $data['code'] );
-		$this->assertEquals( 'This is a test error', $data['message'] );
+		$this->assertSame( 'test_error', $data['code'] );
+		$this->assertSame( 'This is a test error', $data['message'] );
 	}
 
 	/**
@@ -698,7 +760,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 404, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 	}
 
 	/**
@@ -714,8 +776,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'schema', $data );
 		$schema = $data['schema'];
 
-		$this->assertEquals( 'ability-execution', $schema['title'] );
-		$this->assertEquals( 'object', $schema['type'] );
+		$this->assertSame( 'ability-execution', $schema['title'] );
+		$this->assertSame( 'object', $schema['type'] );
 		$this->assertArrayHasKey( 'properties', $schema );
 		$this->assertArrayHasKey( 'result', $schema['properties'] );
 	}
@@ -761,7 +823,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'nested', $data['level1']['level2']['value'] );
+		$this->assertSame( 'nested', $data['level1']['level2']['value'] );
 		$this->assertEquals( array( 1, 2, 3 ), $data['array'] );
 	}
 

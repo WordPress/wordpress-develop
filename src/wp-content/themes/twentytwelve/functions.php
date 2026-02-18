@@ -160,7 +160,7 @@ if ( ! function_exists( 'twentytwelve_get_font_url' ) ) :
 	 * @since Twenty Twelve 1.2
 	 * @since Twenty Twelve 3.9 Replaced Google URL with self-hosted font.
 	 *
-	 * @return string Font stylesheet or empty string if disabled.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentytwelve_get_font_url() {
 		$font_url = '';
@@ -212,10 +212,10 @@ function twentytwelve_scripts_styles() {
 	}
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20250715' );
+	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20251202' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20240812' );
+	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20251031' );
 
 	// Register the Internet Explorer specific stylesheet.
 	wp_register_style( 'twentytwelve-ie', false, array( 'twentytwelve-style' ) );
@@ -396,7 +396,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Twelve 3.7
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */

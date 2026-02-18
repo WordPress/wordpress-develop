@@ -436,6 +436,10 @@
 			}
 		}
 
+		&.has-text-color cite {
+			color: inherit;
+		}
+
 		&.is-style-solid-color {
 			background-color: $color__link;
 			padding-left: 0;
@@ -803,6 +807,16 @@
 				outline: thin dotted;
 				outline-offset: -4px;
 			}
+		}
+
+		&.aligncenter .wp-block-file__button {
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		&.alignright .wp-block-file__button {
+			margin-left: auto;
+			margin-right: 0;
 		}
 	}
 
