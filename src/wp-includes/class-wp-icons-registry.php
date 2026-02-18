@@ -32,6 +32,14 @@ class WP_Icons_Registry {
 	 * Constructor.
 	 *
 	 * WP_Icons_Registry is a singleton class, so keep this private.
+	 *
+	 * For 7.0, the Icons Registry is closed for third-party icon registry,
+	 * serving only a subset of core icons.
+	 *
+	 * These icons are defined in @wordpress/packages (Gutenberg repository) as
+	 * SVG files and as entries in a single manifest file. On init, the
+	 * registry is loaded with those icons in the manifest which are marked
+	 * `public`.
 	 */
 	private function __construct() {
 		$icons_directory = __DIR__ . '/icons/';
