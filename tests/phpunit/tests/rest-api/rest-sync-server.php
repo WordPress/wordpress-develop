@@ -285,7 +285,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'updates', $room_data );
 		$this->assertArrayHasKey( 'end_cursor', $room_data );
 		$this->assertArrayHasKey( 'total_updates', $room_data );
-		$this->assertArrayHasKey( 'compaction_request', $room_data );
+		$this->assertArrayHasKey( 'should_compact', $room_data );
 	}
 
 	public function test_sync_response_room_matches_request() {
@@ -534,6 +534,97 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$this->assertSame( 3, $data['rooms'][0]['total_updates'] );
+	}
+
+	/*
+	 * Compaction tests.
+	 */
+
+	public function test_sync_should_compact_is_false_below_threshold() {
+		wp_set_current_user( self::$editor_id );
+
+		$room   = $this->get_post_room();
+		$update = array(
+			'type' => 'update',
+			'data' => 'dGVzdA==',
+		);
+
+		// Client 1 sends a single update.
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertFalse( $data['rooms'][0]['should_compact'] );
+	}
+
+	public function test_sync_should_compact_is_true_above_threshold_for_compactor() {
+		wp_set_current_user( self::$editor_id );
+
+		$room    = $this->get_post_room();
+		$updates = array();
+		for ( $i = 0; $i < 51; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "update-$i" ),
+			);
+		}
+
+		// Client 1 sends enough updates to exceed the compaction threshold.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $updates ),
+			)
+		);
+
+		// Client 2 (lowest connected client) should be told to compact.
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['rooms'][0]['should_compact'] );
+	}
+
+	public function test_sync_should_compact_is_false_for_non_compactor() {
+		wp_set_current_user( self::$editor_id );
+
+		$room    = $this->get_post_room();
+		$updates = array();
+		for ( $i = 0; $i < 51; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "update-$i" ),
+			);
+		}
+
+		// Client 1 sends enough updates to exceed the compaction threshold.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $updates ),
+			)
+		);
+
+		// Connect client 2 (lower ID) so client 3 is not the compactor.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
+			)
+		);
+
+		// Client 3 (higher ID) should not be told to compact.
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertFalse( $data['rooms'][0]['should_compact'] );
 	}
 
 	/*

@@ -457,8 +457,8 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @param int    $cursor       Return updates after this cursor.
 	 * @param bool   $is_compactor True if this client is nominated to perform compaction.
 	 * @return array{
-	 *   compaction_request: array|null,
 	 *   end_cursor: int,
+	 *   should_compact: bool,
 	 *   room: string,
 	 *   total_updates: int,
 	 *   updates: array<int, array{data: string, type: string}>
@@ -481,18 +481,14 @@ class WP_HTTP_Polling_Sync_Server {
 			);
 		}
 
-		// Determine if this client should perform compaction.
-		$compaction_request = null;
-		if ( $is_compactor && $total_updates > self::COMPACTION_THRESHOLD ) {
-			$compaction_request = $updates_after_cursor;
-		}
+		$should_compact = $is_compactor && $total_updates > self::COMPACTION_THRESHOLD;
 
 		return array(
-			'compaction_request' => $compaction_request,
-			'end_cursor'         => $this->storage->get_cursor( $room ),
-			'room'               => $room,
-			'total_updates'      => $total_updates,
-			'updates'            => $typed_updates,
+			'end_cursor'     => $this->storage->get_cursor( $room ),
+			'room'           => $room,
+			'should_compact' => $should_compact,
+			'total_updates'  => $total_updates,
+			'updates'        => $typed_updates,
 		);
 	}
 }
