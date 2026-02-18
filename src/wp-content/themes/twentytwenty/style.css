@@ -2919,7 +2919,7 @@ h2.entry-title {
 .wp-block-quote,
 .wp-block-quote.is-large,
 .wp-block-quote.is-style-large,
-.wp-block-poetry,
+.wp-block-verse,
 .wp-block-video:not(.alignwide):not(.alignfull) {
 	margin-bottom: 3rem;
 	margin-top: 3rem;
@@ -5317,7 +5317,7 @@ a.to-the-top > * {
 	.wp-block-quote,
 	.wp-block-quote.is-large,
 	.wp-block-quote.is-style-large,
-	.wp-block-poetry,
+	.wp-block-verse,
 	.wp-block-video:not(.alignwide):not(.alignfull) {
 		margin-bottom: 4rem;
 		margin-top: 4rem;
