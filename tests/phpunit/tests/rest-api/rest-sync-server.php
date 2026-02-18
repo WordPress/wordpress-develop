@@ -14,6 +14,8 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		update_option( 'enable_real_time_collaboration', true );
+
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
@@ -23,6 +25,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
 		wp_delete_post( self::$post_id, true );
+		delete_option( 'enable_real_time_collaboration' );
 	}
 
 	public function set_up() {
@@ -579,10 +582,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		// Client 2 (lowest connected client) should be told to compact.
+		// Client 1 polls again. It is the lowest (only) client, so it is the compactor.
 		$response = $this->dispatch_sync(
 			array(
-				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ) ),
 			)
 		);
 
@@ -609,17 +612,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		// Connect client 2 (lower ID) so client 3 is not the compactor.
-		$this->dispatch_sync(
-			array(
-				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
-			)
-		);
-
-		// Client 3 (higher ID) should not be told to compact.
+		// Client 2 (higher ID than client 1) should not be the compactor.
 		$response = $this->dispatch_sync(
 			array(
-				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ) ),
+				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
 			)
 		);
 
