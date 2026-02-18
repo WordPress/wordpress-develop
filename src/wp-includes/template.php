@@ -796,7 +796,7 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
 	}
 
 	if ( isset( $s ) ) {
-		$s = esc_attr( $s );
+		$s = esc_attr( $s ); // @phpstan-ignore variable.undefined (It's extracted from query vars.)
 	}
 
 	/**
