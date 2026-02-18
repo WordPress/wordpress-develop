@@ -254,9 +254,9 @@ p.has-drop-cap:not(:focus)::first-letter {
 4.0 Blocks - Formatting
 --------------------------------------------------------------*/
 
-/* Verse */
+/* Poetry */
 
-.editor-block-list__block .wp-block-verse pre {
+.editor-block-list__block .wp-block-poetry pre {
 	font-size: 12px;
 }
 
