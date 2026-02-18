@@ -175,9 +175,9 @@ class WP_HTTP_Polling_Sync_Server {
 		// Minimum cap check. Is user logged in with a contributor role or higher?
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			return new WP_Error(
-				'forbidden',
+				'rest_cannot_edit',
 				__( 'You do not have permission to perform this action' ),
-				array( 'status' => 401 )
+				array( 'status' => rest_authorization_required_code() )
 			);
 		}
 
@@ -194,13 +194,13 @@ class WP_HTTP_Polling_Sync_Server {
 
 			if ( ! $this->can_user_sync_entity_type( $entity_kind, $entity_name, $object_id ) ) {
 				return new WP_Error(
-					'forbidden',
+					'rest_cannot_edit',
 					sprintf(
 						/* translators: %s: The room name encodes the current entity being synced. */
 						__( 'You do not have permission to sync this entity: %s.' ),
 						$room
 					),
-					array( 'status' => 401 )
+					array( 'status' => rest_authorization_required_code() )
 				);
 			}
 		}
@@ -388,7 +388,7 @@ class WP_HTTP_Polling_Sync_Server {
 				if ( ! $has_newer_compaction ) {
 					if ( ! $this->storage->remove_updates_before_cursor( $room, $cursor ) ) {
 						return new WP_Error(
-							'sync_storage_error',
+							'rest_sync_storage_error',
 							__( 'Failed to remove updates during compaction.' ),
 							array( 'status' => 500 )
 						);
@@ -414,7 +414,7 @@ class WP_HTTP_Polling_Sync_Server {
 		}
 
 		return new WP_Error(
-			'invalid_update_type',
+			'rest_invalid_update_type',
 			__( 'Invalid sync update type.' ),
 			array( 'status' => 400 )
 		);
@@ -440,7 +440,7 @@ class WP_HTTP_Polling_Sync_Server {
 
 		if ( ! $this->storage->add_update( $room, $update ) ) {
 			return new WP_Error(
-				'sync_storage_error',
+				'rest_sync_storage_error',
 				__( 'Failed to store sync update.' ),
 				array( 'status' => 500 )
 			);

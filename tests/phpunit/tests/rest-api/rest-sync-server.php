@@ -162,7 +162,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
 
-		$this->assertErrorResponse( 'forbidden', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 	}
 
 	public function test_sync_post_requires_edit_capability() {
@@ -170,7 +170,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
 
-		$this->assertErrorResponse( 'forbidden', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_sync_post_allowed_with_edit_capability() {
@@ -186,7 +186,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post' ) ) );
 
-		$this->assertErrorResponse( 'forbidden', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_sync_post_type_collection_allowed_with_edit_posts_capability() {
@@ -218,7 +218,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'unknown/entity' ) ) );
 
-		$this->assertErrorResponse( 'forbidden', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_sync_non_posttype_entity_with_object_id_rejected() {
@@ -226,7 +226,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'root/site:123' ) ) );
 
-		$this->assertErrorResponse( 'forbidden', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_sync_nonexistent_post_rejected() {
@@ -234,7 +234,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:999999' ) ) );
 
-		$this->assertErrorResponse( 'forbidden', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_sync_permission_checked_per_room() {
@@ -248,7 +248,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertErrorResponse( 'forbidden', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	/*
