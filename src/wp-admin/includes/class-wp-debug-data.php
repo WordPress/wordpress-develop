@@ -142,7 +142,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The debug data for the Info screen.
 	 */
 	private static function get_wp_core(): array {
 		// Save few function calls.
@@ -305,7 +305,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The drop-ins debug data.
 	 */
 	private static function get_wp_dropins(): array {
 		// Get a list of all drop-in replacements.
@@ -340,7 +340,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The server-related debug data.
 	 */
 	private static function get_wp_server(): array {
 		// Populate the server debug fields.
@@ -373,8 +373,8 @@ class WP_Debug_Data {
 		);
 		$fields['httpd_software']      = array(
 			'label' => __( 'Web server' ),
-			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
-			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
+			'value' => ! empty( $_SERVER['SERVER_SOFTWARE'] ) ? wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) : __( 'Unable to determine what web server software is used' ),
+			'debug' => ! empty( $_SERVER['SERVER_SOFTWARE'] ) ? wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) : 'unknown',
 		);
 		$fields['php_version']         = array(
 			'label' => __( 'PHP version' ),
@@ -471,6 +471,83 @@ class WP_Debug_Data {
 			'debug' => $imagick_loaded,
 		);
 
+		// Opcode Cache.
+		if ( function_exists( 'opcache_get_status' ) ) {
+			$opcache_status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+
+			if ( false === $opcache_status ) {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => __( 'Disabled by configuration' ),
+					'debug' => 'not available',
+				);
+			} else {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ),
+					'debug' => $opcache_status['opcache_enabled'],
+				);
+
+				if ( true === $opcache_status['opcache_enabled'] ) {
+					$fields['opcode_cache_memory_usage'] = array(
+						'label' => __( 'Opcode cache memory usage' ),
+						'value' => sprintf(
+							/* translators: 1: Used memory, 2: Total memory */
+							__( '%1$s of %2$s' ),
+							size_format( $opcache_status['memory_usage']['used_memory'] ),
+							size_format( $opcache_status['memory_usage']['free_memory'] + $opcache_status['memory_usage']['used_memory'] )
+						),
+						'debug' => sprintf(
+							'%s of %s',
+							$opcache_status['memory_usage']['used_memory'],
+							$opcache_status['memory_usage']['free_memory'] + $opcache_status['memory_usage']['used_memory']
+						),
+					);
+
+					if ( 0 !== $opcache_status['interned_strings_usage']['buffer_size'] ) {
+						$fields['opcode_cache_interned_strings_usage'] = array(
+							'label' => __( 'Opcode cache interned strings usage' ),
+							'value' => sprintf(
+								/* translators: 1: Percentage used, 2: Total memory, 3: Free memory */
+								__( '%1$s%% of %2$s (%3$s free)' ),
+								number_format_i18n( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
+								size_format( $opcache_status['interned_strings_usage']['buffer_size'] ),
+								size_format( $opcache_status['interned_strings_usage']['free_memory'] )
+							),
+							'debug' => sprintf(
+								'%s%% of %s (%s free)',
+								round( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
+								$opcache_status['interned_strings_usage']['buffer_size'],
+								$opcache_status['interned_strings_usage']['free_memory']
+							),
+						);
+					}
+
+					$fields['opcode_cache_hit_rate'] = array(
+						'label' => __( 'Opcode cache hit rate' ),
+						'value' => sprintf(
+							/* translators: %s: Hit rate percentage */
+							__( '%s%%' ),
+							number_format_i18n( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 )
+						),
+						'debug' => round( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 ),
+					);
+
+					$fields['opcode_cache_full'] = array(
+						'label' => __( 'Is the Opcode cache full?' ),
+						'value' => $opcache_status['cache_full'] ? __( 'Yes' ) : __( 'No' ),
+						'debug' => $opcache_status['cache_full'],
+					);
+				}
+			}
+		} else {
+			$fields['opcode_cache'] = array(
+				'label' => __( 'Opcode cache' ),
+				'value' => __( 'Disabled' ),
+				'debug' => 'not available',
+			);
+		}
+
 		// Pretty permalinks.
 		$pretty_permalinks_supported = got_url_rewrite();
 
@@ -505,12 +582,12 @@ class WP_Debug_Data {
 		}
 
 		// Check if a robots.txt file exists.
-		if ( is_file( ABSPATH . 'robots.txt' ) ) {
+		if ( is_file( get_home_path() . 'robots.txt' ) ) {
 			// If the file exists, turn debug info to true.
 			$robotstxt_debug = true;
 
 			/* translators: %s: robots.txt */
-			$robotstxt_string = sprintf( __( 'There is a static %s file in your installation folder. WordPress cannot dynamically serve one.' ), 'robots.txt' );
+			$robotstxt_string = sprintf( __( 'Your site is using a static %s file. WordPress cannot dynamically serve one.' ), 'robots.txt' );
 		} elseif ( got_url_rewrite() ) {
 			// No robots.txt file available and rewrite rules in place, turn debug info to false.
 			$robotstxt_debug = false;
@@ -522,7 +599,7 @@ class WP_Debug_Data {
 			$robotstxt_debug = true;
 
 			/* translators: %s: robots.txt */
-			$robotstxt_string = sprintf( __( 'WordPress cannot dynamically serve a %s file due to a lack of rewrite rule support' ), 'robots.txt' );
+			$robotstxt_string = sprintf( __( 'WordPress cannot dynamically serve a %s file due to a lack of rewrite rule support.' ), 'robots.txt' );
 
 		}
 
@@ -545,7 +622,7 @@ class WP_Debug_Data {
 		);
 		$fields['server-time'] = array(
 			'label' => __( 'Current Server time' ),
-			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
+			'value' => isset( $_SERVER['REQUEST_TIME'] ) ? wp_date( 'c', (int) $_SERVER['REQUEST_TIME'] ) : __( 'Unable to determine server time' ),
 		);
 
 		return array(
@@ -561,7 +638,7 @@ class WP_Debug_Data {
 	 * @since 6.7.0
 	 *
 	 * @throws ImagickException
-	 * @return array
+	 * @return array<string, string|array> The media handling debug data.
 	 */
 	private static function get_wp_media(): array {
 		// Spare few function calls.
@@ -773,7 +850,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The must-use plugins debug data.
 	 */
 	private static function get_wp_mu_plugins(): array {
 		// List must use plugins if there are any.
@@ -904,7 +981,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The active plugins debug data.
 	 */
 	private static function get_wp_plugins_active(): array {
 		return array(
@@ -919,7 +996,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The inactive plugins debug data.
 	 */
 	private static function get_wp_plugins_inactive(): array {
 		return array(
@@ -934,7 +1011,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, array<string, array<string, string>>> The raw plugin debug data for active and inactive plugins.
 	 */
 	private static function get_wp_plugins_raw_data(): array {
 		// List all available plugins.
@@ -1055,9 +1132,9 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @global array $_wp_theme_features
+	 * @global array<string, bool|array> $_wp_theme_features The theme features for the active theme.
 	 *
-	 * @return array
+	 * @return array<string, string|array> The active theme debug data.
 	 */
 	private static function get_wp_active_theme(): array {
 		global $_wp_theme_features;
@@ -1201,7 +1278,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The parent theme debug data.
 	 */
 	private static function get_wp_parent_theme(): array {
 		$theme_updates = get_theme_updates();
@@ -1313,7 +1390,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The inactive themes debug data.
 	 */
 	private static function get_wp_themes_inactive(): array {
 		$active_theme  = wp_get_theme();
@@ -1444,7 +1521,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The WordPress constants debug data.
 	 */
 	private static function get_wp_constants(): array {
 		// Check if WP_DEBUG_LOG is set.
@@ -1592,6 +1669,11 @@ class WP_Debug_Data {
 				'value' => $db_collate,
 				'debug' => $db_collate_debug,
 			),
+			'EMPTY_TRASH_DAYS'    => array(
+				'label' => 'EMPTY_TRASH_DAYS',
+				'value' => EMPTY_TRASH_DAYS ? EMPTY_TRASH_DAYS : __( 'Empty value' ),
+				'debug' => EMPTY_TRASH_DAYS,
+			),
 		);
 
 		return array(
@@ -1608,7 +1690,7 @@ class WP_Debug_Data {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return array
+	 * @return array<string, string|array> The database debug data.
 	 */
 	private static function get_wp_database(): array {
 		global $wpdb;
@@ -1690,7 +1772,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The debug data and other information for the Info screen.
 	 */
 	private static function get_wp_filesystem(): array {
 		$upload_dir                     = wp_upload_dir();

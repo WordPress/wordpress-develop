@@ -312,6 +312,78 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `get_the_block_template_html()` adds a skip link when a MAIN element is present.
+	 *
+	 * @ticket 64361
+	 * @covers ::get_the_block_template_html
+	 */
+	public function test_get_the_block_template_html_adds_skip_link_when_main_present() {
+		global $_wp_current_template_id, $_wp_current_template_content;
+
+		$_wp_current_template_id      = get_stylesheet() . '//index';
+		$_wp_current_template_content = '<main>Content</main>';
+
+		$processor = new WP_HTML_Tag_Processor( get_the_block_template_html() );
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'   => 'A',
+					'class_name' => 'skip-link',
+				)
+			),
+			'Expected skip link was not added to the block template HTML.'
+		);
+		$this->assertSame( 'wp-skip-link', $processor->get_attribute( 'id' ), 'Unexpected ID on skip link.' );
+		$this->assertTrue( $processor->has_class( 'screen-reader-text' ), 'Expected "screen-reader-text" class on skip link.' );
+	}
+
+	/**
+	 * Tests that `get_the_block_template_html()` does not add a skip link when the skip-link action is unhooked.
+	 *
+	 * @ticket 64361
+	 * @covers ::get_the_block_template_html
+	 *
+	 * @dataProvider data_provider_skip_link_actions
+	 */
+	public function test_get_the_block_template_html_does_not_add_skip_link_when_action_unhooked( string $action, string $callback ) {
+		global $_wp_current_template_id, $_wp_current_template_content;
+
+		$_wp_current_template_id      = get_stylesheet() . '//index';
+		$_wp_current_template_content = '<main>Content</main>';
+
+		remove_action( $action, $callback );
+
+		$processor = new WP_HTML_Tag_Processor( get_the_block_template_html() );
+		$this->assertFalse(
+			$processor->next_tag(
+				array(
+					'tag_name'   => 'A',
+					'class_name' => 'skip-link',
+				)
+			),
+			'Unexpected skip link was added to the block template HTML when the action was unhooked.'
+		);
+	}
+
+	/**
+	 * Data provider for test_get_the_block_template_html_does_not_add_skip_link_when_action_unhooked.
+	 *
+	 * @return array<string, array<string, string>>
+	 */
+	public function data_provider_skip_link_actions(): array {
+		return array(
+			'the_block_template_skip_link'        => array(
+				'action'   => 'wp_footer',
+				'callback' => 'the_block_template_skip_link',
+			),
+			'wp_enqueue_block_template_skip_link' => array(
+				'action'   => 'wp_enqueue_scripts',
+				'callback' => 'wp_enqueue_block_template_skip_link',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 58319
 	 *
 	 * @covers ::get_block_theme_folders
@@ -327,10 +399,14 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, get_block_theme_folders( $theme ), 'Incorrect block theme folders were retrieved.' );
 		$reflection = new ReflectionMethod( $wp_theme, 'cache_get' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 		$theme_cache  = $reflection->invoke( $wp_theme, 'theme' );
 		$cached_value = $theme_cache['block_template_folders'];
-		$reflection->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( false );
+		}
 
 		$this->assertSame( $expected, $cached_value, 'The cached value is incorrect.' );
 	}
@@ -472,6 +548,34 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertSame( 'Test Template', $template->title );
 
 		unregister_block_template( $template_name );
+	}
+
+	/**
+	 * Tests that unregister_block_template() returns a WP_Error when trying to unregister
+	 * a non-registered template, and that the error message includes the template name.
+	 *
+	 * @ticket 64072
+	 *
+	 * @covers ::unregister_block_template
+	 */
+	public function test_unregister_block_template_error_message_includes_template_name() {
+		$template_name = 'test-plugin//unregistered-template';
+
+		// Ensure template is not registered.
+		unregister_block_template( $template_name );
+
+		// Expect _doing_it_wrong() notice.
+		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::unregister' );
+
+		// Try to unregister again, should return WP_Error.
+		$error = unregister_block_template( $template_name );
+
+		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertStringContainsString(
+			$template_name,
+			$error->get_error_message(),
+			'Error message should include the template name.'
+		);
 	}
 
 	/**

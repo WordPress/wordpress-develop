@@ -154,7 +154,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		// Check updated only given values.
 		$updated_item = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid );
 		foreach ( $updated_item as $key => $update_value ) {
-			$expected_value = isset( $update[ $key ] ) ? $update[ $key ] : $original_item[ $key ];
+			$expected_value = $update[ $key ] ?? $original_item[ $key ];
 			$this->assertSame( $expected_value, $update_value );
 		}
 	}
