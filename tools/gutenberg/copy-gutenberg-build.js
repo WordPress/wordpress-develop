@@ -922,7 +922,7 @@ async function main() {
 
 	// Transform function to remove source map comments from all JS files
 	const removeSourceMaps = ( content ) => {
-		return content.replace( /\/\/# sourceMappingURL=.*$/m, '' ).trimEnd();
+		return content.replace( /\/\/# sourceMappingURL=.*$/gm, '' ).trimEnd();
 	};
 
 	if ( fs.existsSync( scriptsSrc ) ) {
