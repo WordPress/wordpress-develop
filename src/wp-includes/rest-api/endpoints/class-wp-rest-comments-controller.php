@@ -123,7 +123,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		$is_note          = 'note' === $request['type'];
+		$is_note          = in_array( $request['type'], array( 'note', 'reaction' ), true );
 		$is_edit_context  = 'edit' === $request['context'];
 		$protected_params = array( 'author', 'author_exclude', 'author_email', 'type', 'status' );
 		$forbidden_params = array();
@@ -437,8 +437,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
-		// Re-map edit context capabilities when requesting `note` type.
-		$edit_cap = 'note' === $comment->comment_type ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
+		// Re-map edit context capabilities when requesting `note` or `reaction` type.
+		$edit_cap = in_array( $comment->comment_type, array( 'note', 'reaction' ), true ) ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( ...$edit_cap ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
@@ -497,7 +497,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		$is_note = ! empty( $request['type'] ) && 'note' === $request['type'];
+		$is_note = ! empty( $request['type'] ) && in_array( $request['type'], array( 'note', 'reaction' ), true );
 
 		if ( ! is_user_logged_in() && $is_note ) {
 			return new WP_Error(
@@ -649,12 +649,63 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Do not allow comments to be created with a non-core type.
-		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array( 'comment', 'note' ), true ) ) {
+		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array( 'comment', 'note', 'reaction' ), true ) ) {
 			return new WP_Error(
 				'rest_invalid_comment_type',
 				__( 'Cannot create a comment with that type.' ),
 				array( 'status' => 400 )
 			);
+		}
+
+		// Validate reaction-specific constraints.
+		if ( ! empty( $request['type'] ) && 'reaction' === $request['type'] ) {
+			$valid_emojis = array( 'heart', 'celebration', 'smile', 'eyes', 'rocket' );
+
+			// Reaction content must be a valid emoji slug.
+			if ( empty( $request['content'] ) || ! in_array( $request['content'], $valid_emojis, true ) ) {
+				return new WP_Error(
+					'rest_reaction_invalid_emoji',
+					__( 'Reaction content must be a valid emoji slug.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			// Reaction parent must exist and be a note.
+			if ( empty( $request['parent'] ) ) {
+				return new WP_Error(
+					'rest_reaction_parent_required',
+					__( 'Reactions must have a parent note.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$parent_comment = get_comment( $request['parent'] );
+			if ( ! $parent_comment || 'note' !== $parent_comment->comment_type ) {
+				return new WP_Error(
+					'rest_reaction_invalid_parent',
+					__( 'Reactions can only be added to notes.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			// Enforce uniqueness: one emoji per user per note.
+			$existing = get_comments(
+				array(
+					'comment_type'   => 'reaction',
+					'comment_parent' => $request['parent'],
+					'user_id'        => get_current_user_id(),
+					'search'         => $request['content'],
+					'count'          => true,
+				)
+			);
+
+			if ( $existing > 0 ) {
+				return new WP_Error(
+					'rest_reaction_duplicate',
+					__( 'You have already added this reaction.' ),
+					array( 'status' => 409 )
+				);
+			}
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
@@ -735,9 +786,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Don't check for duplicates or flooding for notes.
+		// Don't check for duplicates or flooding for notes or reactions.
 		$prepared_comment['comment_approved'] =
-			'note' === $prepared_comment['comment_type'] ?
+			in_array( $prepared_comment['comment_type'], array( 'note', 'reaction' ), true ) ?
 			'1' :
 			wp_allow_comment( $prepared_comment, true );
 
@@ -1297,7 +1348,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Embedding children for notes requires `type` and `status` inheritance.
-		if ( isset( $links['children'] ) && 'note' === $comment->comment_type ) {
+		if ( isset( $links['children'] ) && in_array( $comment->comment_type, array( 'note', 'reaction' ), true ) ) {
 			$args = array(
 				'parent' => $comment->comment_ID,
 				'type'   => $comment->comment_type,
@@ -1911,7 +1962,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool Whether the comment can be read.
 	 */
 	protected function check_read_permission( $comment, $request ) {
-		if ( 'note' !== $comment->comment_type && ! empty( $comment->comment_post_ID ) ) {
+		if ( ! in_array( $comment->comment_type, array( 'note', 'reaction' ), true ) && ! empty( $comment->comment_post_ID ) ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( $post ) {
 				if ( $this->check_read_post_permission( $post, $request ) && 1 === (int) $comment->comment_approved ) {
@@ -2023,6 +2074,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			isset( $check['meta']['_wp_note_status'] ) &&
 			in_array( $check['meta']['_wp_note_status'], array( 'resolved', 'reopen' ), true )
 		) {
+			return true;
+		}
+
+		// Reactions always have content (the emoji slug), so allow them.
+		if ( isset( $check['comment_type'] ) && 'reaction' === $check['comment_type'] ) {
 			return true;
 		}
 
