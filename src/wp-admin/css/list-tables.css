@@ -538,7 +538,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 }
 
 .wp-list-table .toggle-row:focus:before {
-	box-shadow: 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -653,7 +653,8 @@ th.sorted a {
 
 th.sortable a:focus,
 th.sorted a:focus {
-	box-shadow: inset 0 0 0 2px #2271b1;
+	border-radius: 2px;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -668,6 +669,9 @@ th.sorted a span {
 	margin: 0 2px 0 0;
 	font-size: 13px;
 	text-align: center;
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
+	padding: 0 8px;
 }
 
 .tablenav .total-pages {
@@ -680,9 +684,8 @@ th.sorted a span {
 
 .tablenav {
 	clear: both;
-	height: 30px;
+	height: 32px;
 	margin: 6px 0 4px;
-	padding-top: 5px;
 	vertical-align: middle;
 }
 
@@ -704,12 +707,12 @@ th.sorted a span {
 .tablenav .tablenav-pages .tablenav-pages-navspan {
 	display: inline-block;
 	vertical-align: baseline;
-	min-width: 30px;
-	min-height: 30px;
+	min-width: 32px;
+	min-height: 32px;
 	margin: 0;
 	padding: 0 4px;
 	font-size: 16px;
-	line-height: 1.625; /* 26px */
+	line-height: 1.875; /* 30px for 32px height */
 	text-align: center;
 }
 
@@ -1421,11 +1424,11 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	content: "\f463";
 	content: "\f463" / '';
 	display: inline-block;
-	font: normal 20px/1 dashicons;
-	margin: -3px 5px 0 -2px;
+	font: normal 20px/1.9 dashicons; /* line-height 1.9 = 38px to match button */
+	margin: 0 5px 0 -2px;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	vertical-align: middle;
+	vertical-align: top;
 }
 
 .plugin-card .updating-message:before {
@@ -1487,9 +1490,11 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	margin: 0 8px 16px;
 	width: 48.5%;
 	width: calc( 50% - 8px );
-	background-color: #fff;
-	border: 1px solid #dcdcde;
+	background-color: #ffffff;
+	border: 1px solid rgb(0, 0, 0, 0.1);
+	border-radius: 8px;
 	box-sizing: border-box;
+	overflow: hidden;
 }
 
 .plugin-card:nth-child(odd) {
@@ -1553,7 +1558,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 
 .plugin-card-top {
 	position: relative;
-	padding: 20px 20px 10px;
+	padding: 16px;
 	min-height: 135px;
 }
 
@@ -1668,9 +1673,9 @@ div.action-links,
 
 .plugin-card-bottom {
 	clear: both;
-	padding: 12px 20px;
+	padding: 16px;
 	background-color: #f6f7f7;
-	border-top: 1px solid #dcdcde;
+	border-top: 1px solid rgb(0, 0, 0, 0.1);
 	overflow: hidden;
 }
 
