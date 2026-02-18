@@ -231,9 +231,6 @@ class WP_HTTP_Polling_Sync_Server {
 
 			// Merge awareness state.
 			$merged_awareness = $this->process_awareness_update( $room, $client_id, $awareness );
-			if ( is_wp_error( $merged_awareness ) ) {
-				return $merged_awareness;
-			}
 
 			// The lowest client ID is nominated to perform compaction when needed.
 			$is_compactor = false;
