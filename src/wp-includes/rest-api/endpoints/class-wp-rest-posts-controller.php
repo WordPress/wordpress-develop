@@ -1466,13 +1466,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Apply Block Hooks to content-like post types.
+		 * Applies Block Hooks to content-like post types.
 		 *
 		 * Content-like post types are those that support the editor and would benefit
 		 * from Block Hooks functionality. This replaces the individual post type filters
 		 * that were previously hardcoded in default-filters.php.
 		 *
-		 * @since 6.9.0
+		 * @since 7.0.0
 		 */
 		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
 
@@ -1482,7 +1482,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * Allows themes and plugins to add or remove post types that should
 		 * have Block Hooks functionality enabled in the REST API.
 		 *
-		 * @since 6.9.0
+		 * @since 7.0.0
 		 *
 		 * @param array  $content_like_post_types Array of post type names that support Block Hooks.
 		 * @param string $post_type               The current post type being processed.
@@ -2146,12 +2146,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Apply Block Hooks to content-like post types for REST response.
+		 * Applies Block Hooks to content-like post types for REST response.
 		 *
 		 * This replaces the individual post type filters that were previously hardcoded
 		 * in default-filters.php.
 		 *
-		 * @since 6.9.0
+		 * @since 7.0.0
 		 */
 		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
 
@@ -2161,7 +2161,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * Allows themes and plugins to add or remove post types that should
 		 * have Block Hooks functionality enabled in the REST API.
 		 *
-		 * @since 6.9.0
+		 * @since 7.0.0
 		 *
 		 * @param array   $content_like_post_types Array of post type names that support Block Hooks.
 		 * @param string  $post_type               The current post type being processed.
