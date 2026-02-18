@@ -87,6 +87,16 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the settings are valid, otherwise a WP_Error object.
 	 */
 	public function validate_font_family_settings( $value, $request ) {
+		// Check whether $value is a string, since it should be stringified JSON in the request.
+		if ( ! is_string( $value ) ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				/* translators: %s: Parameter name: "font_family_settings". */
+				sprintf( __( '%s parameter must be a valid JSON string.' ), 'font_family_settings' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$settings = json_decode( $value, true );
 
 		// Check settings string is valid JSON.
