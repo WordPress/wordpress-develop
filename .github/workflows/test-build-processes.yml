@@ -59,6 +59,7 @@ jobs:
         os: [ 'ubuntu-24.04' ]
         directory: [ 'src', 'build' ]
         test-certificates: [ true ]
+        check-gutenberg-functions: [ true ]
         include:
           # Only prepare artifacts for Playground once.
           - os: 'ubuntu-24.04'
@@ -69,6 +70,7 @@ jobs:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
       test-certificates: ${{ matrix.test-certificates && true || false }}
+      check-gutenberg-functions: ${{ matrix.check-gutenberg-functions || false }}
       save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 

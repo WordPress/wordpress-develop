@@ -26,6 +26,11 @@ on:
         required: false
         type: 'boolean'
         default: false
+      check-gutenberg-functions:
+        description: 'Whether to check for the presence of functions prefixed with gutenberg_.'
+        required: false
+        type: boolean
+        default: false
       save-build:
         description: 'Whether to save a ZIP of built WordPress as an artifact.'
         required: false
@@ -53,6 +58,9 @@ jobs:
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
+  # - Confirms that no PHP functions begin with `gutenberg_`.
+  # - Runs the Emoji precommit task.
+  # - Ensures that the Root Certificate files are correct.
   # - Builds WordPress to run from the desired location (src or build).
   # - Ensures version-controlled files are not modified or deleted.
   # - Creates a ZIP of the built WordPress files (when building to the build directory).
@@ -105,6 +113,10 @@ jobs:
 
       - name: Install npm Dependencies
         run: npm ci
+
+      - name: Check for PHP functions with the gutenberg_ prefix
+        if: ${{ inputs.check-gutenberg-functions }}
+        run: npm run grunt prevent-gutenberg-functions
 
       - name: Run Emoji precommit task
         if: ${{ inputs.test-emoji }}

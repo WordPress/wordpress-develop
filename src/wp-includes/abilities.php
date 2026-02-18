@@ -16,6 +16,10 @@ require_once __DIR__ . '/abilities/class-wp-settings-abilities.php';
  *
  * @since 6.9.0
  */
+
+function gutenberg_another_test(){
+
+}
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
 		'site',
