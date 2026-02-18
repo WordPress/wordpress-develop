@@ -283,8 +283,6 @@ module.exports = function(grunt) {
 						src: buildFiles.concat( [
 							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
-							'!wp-includes/certificates/cacert.pem*', // Exclude raw root certificate files that are combined into ca-bundle.crt.
-							'!wp-includes/certificates/legacy-1024bit.pem',
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
 							'!{wp-admin,wp-includes,wp-content/themes/twenty*,wp-content/plugins/akismet}/**/*.map', // The build doesn't need .map files.
@@ -582,7 +580,7 @@ module.exports = function(grunt) {
 			},
 			certificates: {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
-				dest: SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
+				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		sass: {
@@ -1006,16 +1004,6 @@ module.exports = function(grunt) {
 					WORKING_DIR + 'wp-includes/js/wp-emoji.min.js'
 				],
 				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-release.min.js'
-			},
-			certificates: {
-				options: {
-					separator: '\n\n'
-				},
-				src: [
-					SOURCE_DIR + 'wp-includes/certificates/legacy-1024bit.pem',
-					SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
-				],
-				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		patch:{
@@ -1824,13 +1812,12 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'build:certificates', [
-		'concat:certificates'
+		'copy:certificates'
 	] );
 
 	grunt.registerTask( 'certificates:upgrade', [
 		'certificates:upgrade-package',
-		'copy:certificates',
-		'build:certificates'
+		'copy:certificates'
 	] );
 
 	grunt.registerTask( 'build:files', [
