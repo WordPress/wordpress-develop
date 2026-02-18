@@ -245,6 +245,16 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 							   Richard Hamming wrote about people getting more done with their doors closed, but',
 			),
 
+			// @ticket #62037
+			'URL with brackets in path before the extension' => array(
+				'text'     => 'http://example-image(2).jpg',
+				'expected' => '<a href="http://example-image(2).jpg" rel="nofollow">http://example-image(2).jpg</a>',
+			),
+			'URL with brackets within path and with a extension' => array(
+				'text'     => 'http://example-(2)-image.jpg',
+				'expected' => '<a href="http://example-(2)-image.jpg" rel="nofollow">http://example-(2)-image.jpg</a>',
+			),
+
 			// @ticket 11211
 			// Test with real comments which were incorrectly linked.
 			'real world: example.com text (.org URL)'    => array(
@@ -256,8 +266,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 				'expected' => 'Example: WordPress, test (some text), I love example.com (<a href="http://example.com" rel="nofollow">http://example.com</a>), it is brilliant',
 			),
 			'real world: (URL)...'                       => array(
-				'text'     => 'Some text followed by a bracketed link with a trailing elipsis (http://example.com)...',
-				'expected' => 'Some text followed by a bracketed link with a trailing elipsis (<a href="http://example.com" rel="nofollow">http://example.com</a>)...',
+				'text'     => 'Some text followed by a bracketed link with a trailing ellipsis (http://example.com)...',
+				'expected' => 'Some text followed by a bracketed link with a trailing ellipsis (<a href="http://example.com" rel="nofollow">http://example.com</a>)...',
 			),
 			'real world: (here: URL)'                    => array(
 				'text'     => 'In his famous speech “You and Your research” (here: http://www.cs.virginia.edu/~robins/YouAndYourResearch.html) Richard Hamming wrote about people getting more done with their doors closed...',

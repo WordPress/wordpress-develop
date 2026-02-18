@@ -6,6 +6,7 @@
  * @covers ::get_comment_author_url_link
  */
 class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
+
 	protected static $comments = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {

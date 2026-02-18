@@ -38,6 +38,24 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests setting and getting a rules group.
+	 *
+	 * @ticket 61099
+	 *
+	 * @covers ::set_rules_group
+	 * @covers ::get_rules_group
+	 */
+	public function test_should_set_rules_group() {
+		$rule = new WP_Style_Engine_CSS_Rule( '.heres-johnny', array(), '@layer state' );
+
+		$this->assertSame( '@layer state', $rule->get_rules_group(), 'Return value of get_rules_group() does not match value passed to constructor.' );
+
+		$rule->set_rules_group( '@layer pony' );
+
+		$this->assertSame( '@layer pony', $rule->get_rules_group(), 'Return value of get_rules_group() does not match value passed to set_rules_group().' );
+	}
+
+	/**
 	 * Tests that declaration properties are deduplicated.
 	 *
 	 * @ticket 56467

@@ -205,7 +205,7 @@ Any changes to the directives between these markers will be overwritten.'
 
 		if ( ! $found_marker ) {
 			$pre_lines[] = $line;
-		} elseif ( $found_marker && $found_end_marker ) {
+		} elseif ( $found_end_marker ) {
 			$post_lines[] = $line;
 		} else {
 			$existing_lines[] = $line;
@@ -263,7 +263,7 @@ function save_mod_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -303,7 +303,7 @@ function iis7_save_url_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -492,6 +492,9 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
  * @since 4.9.0
  * @access private
  *
+ * @global string $file   Path to the file being edited.
+ * @global string $plugin Path to the plugin file relative to the plugins directory.
+ *
  * @param array|string $tree  List of file/folder paths, or filename.
  * @param string       $label Name of file or folder to print.
  * @param int          $level The aria-level for the current iteration.
@@ -556,7 +559,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 }
 
 /**
- * Flushes rewrite rules if siteurl, home or page_on_front changed.
+ * Flushes rewrite rules if `siteurl`, `home` or `page_on_front` changed.
  *
  * @since 2.1.0
  *
@@ -575,13 +578,12 @@ function update_home_siteurl( $old_value, $value ) {
 	}
 }
 
-
 /**
- * Resets global variables based on $_GET and $_POST.
+ * Resets global variables based on `$_GET` and `$_POST`.
  *
  * This function resets global variables based on the names passed
- * in the $vars array to the value of $_POST[$var] or $_GET[$var] or ''
- * if neither is defined.
+ * in the `$vars` array to the value of `$_POST[$var]` or `$_GET[$var]` or an
+ * empty string if neither is defined.
  *
  * @since 2.0.0
  *
@@ -626,7 +628,7 @@ function show_message( $message ) {
  * @since 2.8.0
  *
  * @param string $content
- * @return array
+ * @return string[] Array of function names.
  */
 function wp_doc_link_parse( $content ) {
 	if ( ! is_string( $content ) || empty( $content ) ) {
@@ -755,7 +757,7 @@ function set_screen_options() {
 				/**
 				 * Filters a screen option value before it is set.
 				 *
-				 * The filter can also be used to modify non-standard [items]_per_page
+				 * The filter can also be used to modify non-standard `[items]_per_page`
 				 * settings. See the parent function for a full list of standard options.
 				 *
 				 * Returning false from the filter will skip saving the current option.
@@ -817,7 +819,7 @@ function set_screen_options() {
  * @since 2.8.0
  *
  * @param string $filename The file path to the configuration file.
- * @return bool
+ * @return bool Whether the rule exists.
  */
 function iis7_rewrite_rule_exists( $filename ) {
 	if ( ! file_exists( $filename ) ) {
@@ -850,7 +852,7 @@ function iis7_rewrite_rule_exists( $filename ) {
  * @since 2.8.0
  *
  * @param string $filename Name of the configuration file.
- * @return bool
+ * @return bool Whether the rule was deleted.
  */
 function iis7_delete_rewrite_rule( $filename ) {
 	// If configuration file does not exist then rules also do not exist, so there is nothing to delete.
@@ -890,7 +892,7 @@ function iis7_delete_rewrite_rule( $filename ) {
  *
  * @param string $filename     The file path to the configuration file.
  * @param string $rewrite_rule The XML fragment with URL Rewrite rule.
- * @return bool
+ * @return bool Whether the rule was added.
  */
 function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	if ( ! class_exists( 'DOMDocument', false ) ) {
@@ -989,7 +991,7 @@ function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingCo
 }
 
 /**
- * Displays the default admin color scheme picker (Used in user-edit.php).
+ * Displays the default administration color scheme picker (Used in user-edit.php).
  *
  * @since 3.0.0
  *
@@ -1002,14 +1004,14 @@ function admin_color_scheme_picker( $user_id ) {
 
 	ksort( $_wp_admin_css_colors );
 
-	if ( isset( $_wp_admin_css_colors['fresh'] ) ) {
-		// Set Default ('fresh') and Light should go first.
+	if ( isset( $_wp_admin_css_colors['modern'] ) ) {
+		// Set Modern (new default), Classic ('fresh'), and Light first.
 		$_wp_admin_css_colors = array_filter(
 			array_merge(
 				array(
+					'modern' => '',
 					'fresh'  => '',
 					'light'  => '',
-					'modern' => '',
 				),
 				$_wp_admin_css_colors
 			)
@@ -1019,16 +1021,11 @@ function admin_color_scheme_picker( $user_id ) {
 	$current_color = get_user_option( 'admin_color', $user_id );
 
 	if ( empty( $current_color ) || ! isset( $_wp_admin_css_colors[ $current_color ] ) ) {
-		$current_color = 'fresh';
+		$current_color = 'modern';
 	}
 	?>
 	<fieldset id="color-picker" class="scheme-list">
-		<legend class="screen-reader-text"><span>
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Admin Color Scheme' );
-			?>
-		</span></legend>
+		<legend class="screen-reader-text"><span><?php _e( 'Administration Color Scheme' ); ?></span></legend>
 		<?php
 		wp_nonce_field( 'save-color-scheme', 'color-nonce', false );
 		foreach ( $_wp_admin_css_colors as $color => $color_info ) :
@@ -1059,6 +1056,8 @@ function admin_color_scheme_picker( $user_id ) {
 
 /**
  *
+ * @since 3.8.0
+ *
  * @global array $_wp_admin_css_colors
  */
 function wp_color_scheme_settings() {
@@ -1068,13 +1067,13 @@ function wp_color_scheme_settings() {
 
 	// It's possible to have a color scheme set that is no longer registered.
 	if ( empty( $_wp_admin_css_colors[ $color_scheme ] ) ) {
-		$color_scheme = 'fresh';
+		$color_scheme = 'modern';
 	}
 
 	if ( ! empty( $_wp_admin_css_colors[ $color_scheme ]->icon_colors ) ) {
 		$icon_colors = $_wp_admin_css_colors[ $color_scheme ]->icon_colors;
-	} elseif ( ! empty( $_wp_admin_css_colors['fresh']->icon_colors ) ) {
-		$icon_colors = $_wp_admin_css_colors['fresh']->icon_colors;
+	} elseif ( ! empty( $_wp_admin_css_colors['modern']->icon_colors ) ) {
+		$icon_colors = $_wp_admin_css_colors['modern']->icon_colors;
 	} else {
 		// Fall back to the default set of icon colors if the default scheme is missing.
 		$icon_colors = array(
@@ -1084,7 +1083,7 @@ function wp_color_scheme_settings() {
 		);
 	}
 
-	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
+	echo '<script>var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
 }
 
 /**
@@ -1305,7 +1304,7 @@ function wp_refresh_metabox_loader_nonces( $response, $data ) {
 }
 
 /**
- * Adds the latest Heartbeat and REST-API nonce to the Heartbeat response.
+ * Adds the latest Heartbeat and REST API nonce to the Heartbeat response.
  *
  * @since 5.0.0
  *
@@ -1399,11 +1398,11 @@ function wp_admin_canonical_url() {
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
 
 	/**
-	 * Filters the admin canonical url value.
+	 * Filters the admin canonical URL value.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $filtered_url The admin canonical url value.
+	 * @param string $filtered_url The admin canonical URL value.
 	 */
 	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
 	?>
@@ -1414,29 +1413,6 @@ function wp_admin_canonical_url() {
 		}
 	</script>
 	<?php
-}
-
-/**
- * Sends a referrer policy header so referrers are not sent externally from administration screens.
- *
- * @since 4.9.0
- */
-function wp_admin_headers() {
-	$policy = 'strict-origin-when-cross-origin';
-
-	/**
-	 * Filters the admin referrer policy header value.
-	 *
-	 * @since 4.9.0
-	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
-	 *
-	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
-	 *
-	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
-	 */
-	$policy = apply_filters( 'admin_referrer_policy', $policy );
-
-	header( sprintf( 'Referrer-Policy: %s', $policy ) );
 }
 
 /**
@@ -1478,15 +1454,15 @@ function update_option_new_admin_email( $old_value, $value ) {
 		'hash'     => $hash,
 		'newemail' => $value,
 	);
-	update_option( 'adminhash', $new_admin_email );
+	update_option( 'adminhash', $new_admin_email, false );
 
 	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
-		'Howdy ###USERNAME###,
+		'Howdy,
 
-Someone with administrator capabilities recently requested to have the
+A site administrator (###USERNAME###) recently requested to have the
 administration email address changed on this site:
 ###SITEURL###
 
@@ -1507,11 +1483,12 @@ All at ###SITENAME###
 	 * Filters the text of the email sent when a change of site admin email address is attempted.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 *  - ###USERNAME###  The current user's username.
-	 *  - ###ADMIN_URL### The link to click on to confirm the email change.
-	 *  - ###EMAIL###     The proposed new site admin email address.
-	 *  - ###SITENAME###  The name of the site.
-	 *  - ###SITEURL###   The URL to the site.
+	 *
+	 *  - `###USERNAME###`  The current user's username.
+	 *  - `###ADMIN_URL###` The link to click on to confirm the email change.
+	 *  - `###EMAIL###`     The proposed new site admin email address.
+	 *  - `###SITENAME###`  The name of the site.
+	 *  - `###SITEURL###`   The URL to the site.
 	 *
 	 * @since MU (3.0.0)
 	 * @since 4.9.0 This filter is no longer Multisite specific.
@@ -1647,8 +1624,8 @@ function wp_check_php_version() {
 
 	$response['is_lower_than_future_minimum'] = false;
 
-	// The minimum supported PHP version will be updated to 7.2. Check if the current version is lower.
-	if ( version_compare( $version, '7.2', '<' ) ) {
+	// The minimum supported PHP version will be updated to at least 8.0 in the future. Check if the current version is lower.
+	if ( version_compare( $version, '8.0', '<' ) ) {
 		$response['is_lower_than_future_minimum'] = true;
 
 		// Force showing of warnings.

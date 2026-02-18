@@ -209,7 +209,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$property = new ReflectionProperty( $editor, 'size' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue(
 			$editor,
 			array(
@@ -255,7 +257,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			'width'  => 100,
 		);
 		$property = new ReflectionProperty( $editor, 'size' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $editor, $size );
 
 		$this->assertSame( $size, $editor->get_size() );
@@ -278,7 +282,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			'width'  => 100,
 		);
 		$property = new ReflectionProperty( $editor, 'size' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $editor, $size );
 
 		$this->assertSame( '100x50', $editor->get_suffix() );
@@ -443,6 +449,15 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 				array(
 					'width'        => 80,
 					'height'       => 80,
+					'bit_depth'    => 8,
+					'num_channels' => 4,
+				),
+			),
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					'width'        => 199,
+					'height'       => 200,
 					'bit_depth'    => 8,
 					'num_channels' => 4,
 				),

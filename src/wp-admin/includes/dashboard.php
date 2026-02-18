@@ -309,17 +309,24 @@ function wp_dashboard_right_now() {
 		if ( $num_posts && $num_posts->publish ) {
 			if ( 'post' === $post_type ) {
 				/* translators: %s: Number of posts. */
-				$text = _n( '%s Post', '%s Posts', $num_posts->publish );
+				$text = _n( '%s Published post', '%s Published posts', $num_posts->publish );
 			} else {
 				/* translators: %s: Number of pages. */
-				$text = _n( '%s Page', '%s Pages', $num_posts->publish );
+				$text = _n( '%s Published page', '%s Published pages', $num_posts->publish );
 			}
 
 			$text             = sprintf( $text, number_format_i18n( $num_posts->publish ) );
 			$post_type_object = get_post_type_object( $post_type );
 
 			if ( $post_type_object && current_user_can( $post_type_object->cap->edit_posts ) ) {
-				printf( '<li class="%1$s-count"><a href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text );
+				$url = add_query_arg(
+					array(
+						'post_status' => 'publish',
+						'post_type'   => $post_type,
+					),
+					admin_url( 'edit.php' )
+				);
+				printf( '<li class="%1$s-count"><a href="%1$s">%2$s</a></li>', esc_url( $url ), esc_html( $text ) );
 			} else {
 				printf( '<li class="%1$s-count"><span>%2$s</span></li>', $post_type, $text );
 			}
@@ -726,18 +733,20 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			'view'      => '',
 		);
 
-		$del_nonce     = esc_html( '_wpnonce=' . wp_create_nonce( "delete-comment_$comment->comment_ID" ) );
-		$approve_nonce = esc_html( '_wpnonce=' . wp_create_nonce( "approve-comment_$comment->comment_ID" ) );
+		$approve_nonce = esc_html( '_wpnonce=' . wp_create_nonce( 'approve-comment_' . $comment->comment_ID ) );
+		$del_nonce     = esc_html( '_wpnonce=' . wp_create_nonce( 'delete-comment_' . $comment->comment_ID ) );
 
-		$approve_url   = esc_url( "comment.php?action=approvecomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$approve_nonce" );
-		$unapprove_url = esc_url( "comment.php?action=unapprovecomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$approve_nonce" );
-		$spam_url      = esc_url( "comment.php?action=spamcomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$del_nonce" );
-		$trash_url     = esc_url( "comment.php?action=trashcomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$del_nonce" );
-		$delete_url    = esc_url( "comment.php?action=deletecomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$del_nonce" );
+		$action_string = 'comment.php?action=%s&p=' . $comment->comment_post_ID . '&c=' . $comment->comment_ID . '&%s';
+
+		$approve_url   = sprintf( $action_string, 'approvecomment', $approve_nonce );
+		$unapprove_url = sprintf( $action_string, 'unapprovecomment', $approve_nonce );
+		$spam_url      = sprintf( $action_string, 'spamcomment', $del_nonce );
+		$trash_url     = sprintf( $action_string, 'trashcomment', $del_nonce );
+		$delete_url    = sprintf( $action_string, 'deletecomment', $del_nonce );
 
 		$actions['approve'] = sprintf(
 			'<a href="%s" data-wp-lists="%s" class="vim-a aria-button-if-js" aria-label="%s">%s</a>',
-			$approve_url,
+			esc_url( $approve_url ),
 			"dim:the-comment-list:comment-{$comment->comment_ID}:unapproved:e7e7d3:e7e7d3:new=approved",
 			esc_attr__( 'Approve this comment' ),
 			__( 'Approve' )
@@ -745,7 +754,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 
 		$actions['unapprove'] = sprintf(
 			'<a href="%s" data-wp-lists="%s" class="vim-u aria-button-if-js" aria-label="%s">%s</a>',
-			$unapprove_url,
+			esc_url( $unapprove_url ),
 			"dim:the-comment-list:comment-{$comment->comment_ID}:unapproved:e7e7d3:e7e7d3:new=unapproved",
 			esc_attr__( 'Unapprove this comment' ),
 			__( 'Unapprove' )
@@ -768,7 +777,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 
 		$actions['spam'] = sprintf(
 			'<a href="%s" data-wp-lists="%s" class="vim-s vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
-			$spam_url,
+			esc_url( $spam_url ),
 			"delete:the-comment-list:comment-{$comment->comment_ID}::spam=1",
 			esc_attr__( 'Mark this comment as spam' ),
 			/* translators: "Mark as spam" link. */
@@ -778,7 +787,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		if ( ! EMPTY_TRASH_DAYS ) {
 			$actions['delete'] = sprintf(
 				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
-				$delete_url,
+				esc_url( $delete_url ),
 				"delete:the-comment-list:comment-{$comment->comment_ID}::trash=1",
 				esc_attr__( 'Delete this comment permanently' ),
 				__( 'Delete Permanently' )
@@ -786,7 +795,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		} else {
 			$actions['trash'] = sprintf(
 				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
-				$trash_url,
+				esc_url( $trash_url ),
 				"delete:the-comment-list:comment-{$comment->comment_ID}::trash=1",
 				esc_attr__( 'Move this comment to the Trash' ),
 				_x( 'Trash', 'verb' )
@@ -800,17 +809,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			__( 'View' )
 		);
 
-		/**
-		 * Filters the action links displayed for each comment in the 'Recent Comments'
-		 * dashboard widget.
-		 *
-		 * @since 2.6.0
-		 *
-		 * @param string[]   $actions An array of comment actions. Default actions include:
-		 *                            'Approve', 'Unapprove', 'Edit', 'Reply', 'Spam',
-		 *                            'Delete', and 'Trash'.
-		 * @param WP_Comment $comment The comment object.
-		 */
+		/** This filter is documented in wp-admin/includes/class-wp-comments-list-table.php */
 		$actions = apply_filters( 'comment_row_actions', array_filter( $actions ), $comment );
 
 		$i = 0;
@@ -1022,16 +1021,19 @@ function wp_dashboard_recent_posts( $args ) {
 
 			$time = get_the_time( 'U' );
 
-			if ( gmdate( 'Y-m-d', $time ) === $today ) {
-				$relative = __( 'Today' );
+			if ( ! is_int( $time ) ) {
+				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+				$date = get_the_date( __( 'M jS Y' ) );
+			} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
+				$date = __( 'Today' );
 			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
-				$relative = __( 'Tomorrow' );
+				$date = __( 'Tomorrow' );
 			} elseif ( gmdate( 'Y', $time ) !== $year ) {
 				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS Y' ), $time );
+				$date = date_i18n( __( 'M jS Y' ), $time );
 			} else {
 				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS' ), $time );
+				$date = date_i18n( __( 'M jS' ), $time );
 			}
 
 			// Use the post edit link for those who can edit, the permalink otherwise.
@@ -1041,7 +1043,7 @@ function wp_dashboard_recent_posts( $args ) {
 			printf(
 				'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
 				/* translators: 1: Relative date, 2: Time. */
-				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $relative, get_the_time() ),
+				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $date, get_the_time() ),
 				$recent_post_link,
 				/* translators: %s: Post title. */
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
@@ -1082,8 +1084,11 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		$comments_query['status'] = 'approve';
 	}
 
-	while ( count( $comments ) < $total_items && $possible = get_comments( $comments_query ) ) {
-		if ( ! is_array( $possible ) ) {
+	$comments_count = 0;
+	do {
+		$possible = get_comments( $comments_query );
+
+		if ( empty( $possible ) || ! is_array( $possible ) ) {
 			break;
 		}
 
@@ -1096,16 +1101,17 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 				continue;
 			}
 
-			$comments[] = $comment;
+			$comments[]     = $comment;
+			$comments_count = count( $comments );
 
-			if ( count( $comments ) === $total_items ) {
+			if ( $comments_count === $total_items ) {
 				break 2;
 			}
 		}
 
 		$comments_query['offset'] += $comments_query['number'];
 		$comments_query['number']  = $total_items * 10;
-	}
+	} while ( $comments_count < $total_items );
 
 	if ( $comments ) {
 		echo '<div id="latest-comments" class="activity-block table-view-list">';
@@ -1287,7 +1293,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 			}
 		}
 
-		update_option( 'dashboard_widget_options', $widget_options );
+		update_option( 'dashboard_widget_options', $widget_options, false );
 
 		$locale    = get_user_locale();
 		$cache_key = 'dash_v2_' . md5( $widget_id . '_' . $locale );
@@ -1465,7 +1471,7 @@ function wp_print_community_events_templates() {
 							);
 						#>
 							{{ 'wordcamp' === event.type ? 'WordCamp' : titleCaseEventType }}
-							<span class="ce-separator"></span>
+							<span class="ce-separator" aria-hidden="true"></span>
 						<# } #>
 						<span class="event-city">{{ event.location.location }}</span>
 					</div>
@@ -1819,13 +1825,10 @@ function wp_check_browser_version() {
 	$response = get_site_transient( 'browser_' . $key );
 
 	if ( false === $response ) {
-		// Include an unmodified $wp_version.
-		require ABSPATH . WPINC . '/version.php';
-
 		$url     = 'http://api.wordpress.org/core/browse-happy/1.1/';
 		$options = array(
 			'body'       => array( 'useragent' => $_SERVER['HTTP_USER_AGENT'] ),
-			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
+			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),
 		);
 
 		if ( wp_http_supports( array( 'ssl' ) ) ) {
@@ -1923,7 +1926,7 @@ function wp_dashboard_php_nag() {
 	<p class="button-container">
 		<?php
 		printf(
-			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+			'<a class="button button-primary" href="%1$s" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
 			/* translators: Hidden accessibility text. */
@@ -2067,7 +2070,7 @@ function wp_dashboard_empty() {}
  * @since 5.9.0 Send users to the Site Editor if the active theme is block-based.
  */
 function wp_welcome_panel() {
-	list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+	list( $display_version ) = explode( '-', wp_get_wp_version() );
 	$can_customize           = current_user_can( 'customize' );
 	$is_block_theme          = wp_is_block_theme();
 	?>
@@ -2081,7 +2084,7 @@ function wp_welcome_panel() {
 			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
 			<?php
 				/* translators: %s: Current WordPress version. */
-				printf( __( 'Learn more about the %s version.' ), $display_version );
+				printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
 			?>
 			</a>
 		</p>
@@ -2126,7 +2129,7 @@ function wp_welcome_panel() {
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
-				<a href="<?php echo esc_url( admin_url( '/site-editor.php?path=%2Fwp_global_styles' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
+				<a href="<?php echo esc_url( add_query_arg( 'p', rawurlencode( '/styles' ), admin_url( 'site-editor.php' ) ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>

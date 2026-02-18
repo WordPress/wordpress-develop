@@ -107,7 +107,7 @@ function getMismatchedNonWordPressDependencies() {
 	const currentPackages = getWordPressPackages( currentPackageJSON );
 
 	const packageLock = readJSONFile( "package-lock.json" );
-	const versionConflicts = Object.entries( packageLock.dependencies )
+	const versionConflicts = Object.entries( packageLock.packages[''].dependencies )
 		.filter( ( [packageName] ) => currentPackages.includes( packageName ) )
 		.flatMap( ( [, { dependencies }] ) => Object.entries( dependencies || {} ) )
 		.filter( identity )

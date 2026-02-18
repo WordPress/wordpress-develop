@@ -40,7 +40,6 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
 	public function tear_down() {
@@ -53,7 +52,6 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::tear_down();
@@ -109,7 +107,7 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 
 		$actual = wp_render_dimensions_support( $wrapper, $block );
 
-		$this->assertEquals(
+		$this->assertSame(
 			$expected_wrapper,
 			$actual,
 			'Dimensions block wrapper markup should be correct'

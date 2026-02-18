@@ -4,7 +4,7 @@
  *
  * @covers ::wp_apply_border_support
  */
-class Test_Block_Supports_Border extends WP_UnitTestCase {
+class Tests_Block_Supports_Border extends WP_UnitTestCase {
 	/**
 	 * @var string|null
 	 */

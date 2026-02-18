@@ -61,7 +61,7 @@ class Tests_Post_WpGetAttachmentLink extends WP_UnitTestCase {
 		return array(
 			'no new attributes'                         => array(
 				'attributes' => array(),
-				'expected'   => "<a href='http://example.org/?attachment_id=ATTACHMENT_ID'>",
+				'expected'   => "<a href='http://" . WP_TESTS_DOMAIN . "/?attachment_id=ATTACHMENT_ID'>",
 			),
 			'one new attribute'                         => array(
 				'attributes' => array(

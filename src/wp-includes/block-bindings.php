@@ -75,19 +75,19 @@
  * @param array  $source_properties {
  *     The array of arguments that are used to register a source.
  *
- *     @type string   $label                   The label of the source.
- *     @type callback $get_value_callback      A callback executed when the source is processed during block rendering.
- *                                             The callback should have the following signature:
+ *     @type string   $label              The label of the source.
+ *     @type callable $get_value_callback A callback executed when the source is processed during block rendering.
+ *                                        The callback should have the following signature:
  *
- *                                             `function ($source_args, $block_instance,$attribute_name): mixed`
- *                                                 - @param array    $source_args    Array containing source arguments
- *                                                                                   used to look up the override value,
- *                                                                                   i.e. {"key": "foo"}.
- *                                                 - @param WP_Block $block_instance The block instance.
- *                                                 - @param string   $attribute_name The name of an attribute .
- *                                             The callback has a mixed return type; it may return a string to override
- *                                             the block's original value, null, false to remove an attribute, etc.
- *     @type array    $uses_context (optional) Array of values to add to block `uses_context` needed by the source.
+ *                                        `function( $source_args, $block_instance, $attribute_name ): mixed`
+ *                                            - @param array    $source_args    Array containing source arguments
+ *                                                                              used to look up the override value,
+ *                                                                              i.e. {"key": "foo"}.
+ *                                            - @param WP_Block $block_instance The block instance.
+ *                                            - @param string   $attribute_name The name of an attribute.
+ *                                        The callback has a mixed return type; it may return a string to override
+ *                                        the block's original value, null, false to remove an attribute, etc.
+ *     @type string[] $uses_context       Optional. Array of values to add to block `uses_context` needed by the source.
  * }
  * @return WP_Block_Bindings_Source|false Source when the registration was successful, or `false` on failure.
  */
@@ -128,4 +128,60 @@ function get_all_registered_block_bindings_sources() {
  */
 function get_block_bindings_source( string $source_name ) {
 	return WP_Block_Bindings_Registry::get_instance()->get_registered( $source_name );
+}
+
+/**
+ * Retrieves the list of block attributes supported by block bindings.
+ *
+ * @since 6.9.0
+ *
+ * @param string $block_type The block type whose supported attributes are being retrieved.
+ * @return array The list of block attributes that are supported by block bindings.
+ */
+function get_block_bindings_supported_attributes( $block_type ) {
+	$block_bindings_supported_attributes = array(
+		'core/paragraph'          => array( 'content' ),
+		'core/heading'            => array( 'content' ),
+		'core/image'              => array( 'id', 'url', 'title', 'alt', 'caption' ),
+		'core/button'             => array( 'url', 'text', 'linkTarget', 'rel' ),
+		'core/post-date'          => array( 'datetime' ),
+		'core/navigation-link'    => array( 'url' ),
+		'core/navigation-submenu' => array( 'url' ),
+	);
+
+	$supported_block_attributes =
+		isset( $block_type, $block_bindings_supported_attributes[ $block_type ] ) ?
+			$block_bindings_supported_attributes[ $block_type ] :
+			array();
+
+	/**
+	 * Filters the supported block attributes for block bindings.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string[] $supported_block_attributes The block's attributes that are supported by block bindings.
+	 * @param string   $block_type                 The block type whose attributes are being filtered.
+	 */
+	$supported_block_attributes = apply_filters(
+		'block_bindings_supported_attributes',
+		$supported_block_attributes,
+		$block_type
+	);
+
+	/**
+	 * Filters the supported block attributes for block bindings.
+	 *
+	 * The dynamic portion of the hook name, `$block_type`, refers to the block type
+	 * whose attributes are being filtered.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string[] $supported_block_attributes The block's attributes that are supported by block bindings.
+	 */
+	$supported_block_attributes = apply_filters(
+		"block_bindings_supported_attributes_{$block_type}",
+		$supported_block_attributes
+	);
+
+	return $supported_block_attributes;
 }

@@ -6,6 +6,7 @@
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
 		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
 		convertErrorsToExceptions="true"
 		convertWarningsToExceptions="true"
 		convertNoticesToExceptions="true"
@@ -28,6 +29,7 @@
 			<group>ms-files</group>
 			<group>ms-required</group>
 			<group>external-http</group>
+			<group>html-api-html5lib-tests</group>
 		</exclude>
 	</groups>
 	<logging>

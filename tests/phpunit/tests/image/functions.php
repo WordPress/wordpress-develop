@@ -237,6 +237,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jp2',
 			'test-image.psd',
 			'test-image-zip.tiff',
+			'test-image.heic',
 		);
 
 		return $this->text_array_to_dataprovider( $files );
@@ -359,7 +360,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$img  = imagecreatefromjpeg( DIR_TESTDATA . '/images/canola.jpg' );
 		$ret  = wp_save_image_file( $file, $img, 'image/jpeg', 1 );
 
-		imagedestroy( $img );
+		if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+			imagedestroy( $img );
+		}
+
 		unlink( $file );
 
 		$this->assertTrue( $ret, 'Image failed to save.' );
@@ -638,7 +642,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_with_url() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
+			'https://s.w.org/screenshots/3.9/dashboard.png',
 			0,
 			0,
 			100,
@@ -646,7 +650,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100,
 			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
+			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
 		);
 
 		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
@@ -687,7 +691,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
+			'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
 			0,
 			0,
 			100,

@@ -13,7 +13,7 @@
  * @since Twenty Twenty-One 1.0
  *
  * @param array $classes Classes for the body element.
- * @return array
+ * @return string[] Body classes with theme-specific additions.
  */
 function twenty_twenty_one_body_classes( $classes ) {
 
@@ -43,7 +43,7 @@ add_filter( 'body_class', 'twenty_twenty_one_body_classes' );
  * @since Twenty Twenty-One 1.0
  *
  * @param array $classes An array of CSS classes.
- * @return array
+ * @return string[] Post classes with 'entry' class added.
  */
 function twenty_twenty_one_post_classes( $classes ) {
 	$classes[] = 'entry';
@@ -53,7 +53,7 @@ function twenty_twenty_one_post_classes( $classes ) {
 add_filter( 'post_class', 'twenty_twenty_one_post_classes', 10, 3 );
 
 /**
- * Add a pingback url auto-discovery header for single posts, pages, or attachments.
+ * Adds a pingback url auto-discovery header for single posts, pages, or attachments.
  *
  * @since Twenty Twenty-One 1.0
  *
@@ -67,14 +67,21 @@ function twenty_twenty_one_pingback_header() {
 add_action( 'wp_head', 'twenty_twenty_one_pingback_header' );
 
 /**
- * Remove the `no-js` class from body if JS is supported.
+ * Removes the `no-js` class from body if JS is supported.
  *
  * @since Twenty Twenty-One 1.0
  *
  * @return void
  */
 function twenty_twenty_one_supports_js() {
-	echo '<script>document.body.classList.remove("no-js");</script>';
+	$js  = "document.body.classList.remove('no-js');";
+	$js .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
+
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+		wp_print_inline_script_tag( $js );
+	} else {
+		echo "<script>$js</script>\n";
+	}
 }
 add_action( 'wp_footer', 'twenty_twenty_one_supports_js' );
 
@@ -84,7 +91,7 @@ add_action( 'wp_footer', 'twenty_twenty_one_supports_js' );
  * @since Twenty Twenty-One 1.0
  *
  * @param array $defaults The form defaults.
- * @return array
+ * @return array Comment form defaults with adjusted textarea height.
  */
 function twenty_twenty_one_comment_form_defaults( $defaults ) {
 
@@ -193,7 +200,7 @@ add_filter( 'the_title', 'twenty_twenty_one_post_title' );
  * @param string $group The icon group.
  * @param string $icon  The icon.
  * @param int    $size  The icon size in pixels.
- * @return string
+ * @return string SVG code for the requested icon.
  */
 function twenty_twenty_one_get_icon_svg( $group, $icon, $size = 24 ) {
 	return Twenty_Twenty_One_SVG_Icons::get_svg( $group, $icon, $size );
@@ -205,7 +212,7 @@ function twenty_twenty_one_get_icon_svg( $group, $icon, $size = 24 ) {
  * @since Twenty Twenty-One 1.0
  *
  * @param string $calendar_output The generated HTML of the calendar.
- * @return string
+ * @return string Calendar HTML with SVG navigation arrows.
  */
 function twenty_twenty_one_change_calendar_nav_arrows( $calendar_output ) {
 	$calendar_output = str_replace( '&laquo; ', is_rtl() ? twenty_twenty_one_get_icon_svg( 'ui', 'arrow_right' ) : twenty_twenty_one_get_icon_svg( 'ui', 'arrow_left' ), $calendar_output );
@@ -215,14 +222,14 @@ function twenty_twenty_one_change_calendar_nav_arrows( $calendar_output ) {
 add_filter( 'get_calendar', 'twenty_twenty_one_change_calendar_nav_arrows' );
 
 /**
- * Get custom CSS.
+ * Gets custom CSS.
  *
  * Return CSS for non-latin language, if available, or null
  *
  * @since Twenty Twenty-One 1.0
  *
  * @param string $type Whether to return CSS for the "front-end", "block-editor", or "classic-editor".
- * @return string
+ * @return string CSS styles for non-Latin languages based on the site locale.
  */
 function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
 
@@ -328,22 +335,22 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
 
 	// Include file if function doesn't exist.
 	if ( ! function_exists( 'twenty_twenty_one_generate_css' ) ) {
-		require_once get_theme_file_path( 'inc/custom-css.php' ); // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
+		require_once get_theme_file_path( 'inc/custom-css.php' );
 	}
 
 	// Return the specified styles.
-	return twenty_twenty_one_generate_css( // @phpstan-ignore-line.
+	return twenty_twenty_one_generate_css(
 		implode( ',', $elements[ $type ] ),
 		'font-family',
 		implode( ',', $font_family[ $locale ] ),
-		null,
-		null,
+		'',
+		'',
 		false
 	);
 }
 
 /**
- * Print the first instance of a block in the content, and then break away.
+ * Prints the first instance of a block in the content, and then break away.
  *
  * @since Twenty Twenty-One 1.0
  *
@@ -398,7 +405,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 
 	if ( $blocks_content ) {
 		/** This filter is documented in wp-includes/post-template.php */
-		echo apply_filters( 'the_content', $blocks_content ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo apply_filters( 'the_content', $blocks_content );
 		return true;
 	}
 
@@ -406,7 +413,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 }
 
 /**
- * Retrieve protected post password form content.
+ * Retrieves protected post password form content.
  *
  * @since Twenty Twenty-One 1.0
  * @since Twenty Twenty-One 1.4 Corrected parameter name for `$output`,

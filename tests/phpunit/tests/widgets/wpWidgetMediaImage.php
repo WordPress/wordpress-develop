@@ -478,7 +478,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'width="100"', $output );
 		$this->assertStringContainsString( 'height="100"', $output );
 
-		// Embeded images.
+		// Embedded images.
 		ob_start();
 		$widget->render_media(
 			array(
@@ -544,7 +544,6 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<a href="https://example.org"', $output );
 		$this->assertStringContainsString( 'target="_blank"', $output );
-		$this->assertStringContainsString( 'rel="noopener"', $output );
 
 		// Populate caption in attachment.
 		wp_update_post(

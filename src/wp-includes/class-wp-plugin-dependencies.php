@@ -159,7 +159,7 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has active dependents.
 	 */
 	public static function has_active_dependents( $plugin_file ) {
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
 		foreach ( $dependents as $dependent ) {
@@ -200,11 +200,7 @@ class WP_Plugin_Dependencies {
 	 * @return array An array of dependency plugin slugs.
 	 */
 	public static function get_dependencies( $plugin_file ) {
-		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
-			return self::$dependencies[ $plugin_file ];
-		}
-
-		return array();
+		return self::$dependencies[ $plugin_file ] ?? array();
 	}
 
 	/**
@@ -235,7 +231,7 @@ class WP_Plugin_Dependencies {
 			return false;
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		foreach ( self::$dependencies[ $plugin_file ] as $dependency ) {
 			$dependency_filepath = self::get_dependency_filepath( $dependency );
@@ -354,12 +350,7 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function get_dependency_data( $slug ) {
 		$dependency_api_data = self::get_dependency_api_data();
-
-		if ( isset( $dependency_api_data[ $slug ] ) ) {
-			return $dependency_api_data[ $slug ];
-		}
-
-		return false;
+		return $dependency_api_data[ $slug ] ?? false;
 	}
 
 	/**
@@ -488,13 +479,14 @@ class WP_Plugin_Dependencies {
 			$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
 		}
 
+		self::initialize();
 		$dependencies = self::get_dependencies( $plugin_file );
 		if ( empty( $dependencies ) ) {
 			$status['message'] = __( 'The plugin has no required plugins.' );
 			wp_send_json_success( $status );
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$inactive_dependencies = array();
 		foreach ( $dependencies as $dependency ) {
@@ -543,7 +535,7 @@ class WP_Plugin_Dependencies {
 			return self::$plugins;
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		self::$plugins = get_plugins();
 
 		return self::$plugins;
@@ -553,8 +545,6 @@ class WP_Plugin_Dependencies {
 	 * Reads and stores dependency slugs from a plugin's 'Requires Plugins' header.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
 		self::$dependencies     = array();
