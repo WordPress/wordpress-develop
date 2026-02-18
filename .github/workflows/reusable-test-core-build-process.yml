@@ -75,6 +75,16 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      - name: Retrieve the pinned Gutenberg SHA value
+        id: gutenberg-pinned-ref
+        run: echo "ref=$(jq -r '.gutenberg.ref' package.json)" >> $GITHUB_OUTPUT
+
+      - name: Configure caching for Gutenberg directory.
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: 'gutenberg'
+          key: gutenberg-${{ steps.gutenberg-pinned-ref.outputs.ref }}
+
       # This date is used to ensure that the PHPCS cache is cleared at least once every week.
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: "Get last Monday's date"

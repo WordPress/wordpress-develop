@@ -41,6 +41,16 @@ jobs:
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
+      - name: Retrieve the pinned Gutenberg SHA value
+        id: gutenberg-pinned-ref
+        run: echo "ref=$(jq -r '.gutenberg.ref' package.json)" >> $GITHUB_OUTPUT
+
+      - name: Configure caching for Gutenberg directory.
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: 'gutenberg'
+          key: gutenberg-${{ steps.gutenberg-pinned-ref.outputs.ref }}
+
       - name: Set up Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
