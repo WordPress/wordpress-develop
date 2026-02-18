@@ -6528,3 +6528,44 @@ function wp_sanitize_script_attributes( $attributes ) {
 	}
 	return $attributes_string;
 }
+
+/**
+ * Sanitizes category data based on context.
+ *
+ * This function is deprecated, use {@see sanitize_term()} instead.
+ *
+ * @since 2.3.0
+ *
+ * @deprecated 7.0.0 Use sanitize_term().
+ *
+ * @param object|array $category Category data.
+ * @param string       $context  Optional. Default 'display'.
+ * @return object|array Same type as $category with sanitized data for safe use.
+ */
+function sanitize_category( $category, $context = 'display' ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'sanitize_term()' );
+
+	return sanitize_term( $category, 'category', $context );
+}
+
+/**
+ * Sanitizes data in single category key field.
+ *
+ *  This function is deprecated, use {@see sanitize_term_field()} instead.
+ *
+ * @since 2.3.0
+ *
+ * @param string $field Category key to sanitize.
+ * @param mixed $value Category value to sanitize.
+ * @param int    $cat_id  Category ID.
+ * @param string $context What filter to use, 'raw', 'display', etc.
+ *
+ * @return mixed Value after $value has been sanitized.
+ *@deprecated 7.0.0 Use sanitize_term_field().
+ *
+ */
+function sanitize_category_field( $field, $value, $cat_id, $context ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'sanitize_term_field()' );
+
+	return sanitize_term_field( $field, $value, $cat_id, 'category', $context );
+}
