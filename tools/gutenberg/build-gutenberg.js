@@ -141,14 +141,11 @@ async function main() {
 	const startTime = Date.now();
 
 	try {
-		// On Windows, shell mode is used and needs the argument wrapped in quotes
-		// On Unix, arguments are passed directly without shell parsing
-		const baseUrlArg =
-			process.platform === 'win32'
-				? '--base-url="includes_url( \'build/\' )"'
-				: "--base-url=includes_url( 'build/' )";
-
-		await exec( 'npm', [ 'run', 'build', '--', '--skip-types', baseUrlArg ], {
+		await exec( 'node', [
+			'bin/build.mjs',
+			'--skip-types',
+			"--base-url=includes_url( 'build/' )",
+		], {
 			cwd: gutenbergDir,
 		} );
 
