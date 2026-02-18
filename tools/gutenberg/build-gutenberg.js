@@ -141,12 +141,22 @@ async function main() {
 	const startTime = Date.now();
 
 	try {
+		// Invoke the build script directly with node instead of going through
+		// `npm run build --` to avoid shell argument mangling of the base-url
+		// value (which contains spaces, parentheses, and single quotes).
+		// The PATH is extended with node_modules/.bin so that bin commands
+		// like `wp-build` are found, matching what npm would normally provide.
+		const binPath = path.join( gutenbergDir, 'node_modules', '.bin' );
 		await exec( 'node', [
 			'bin/build.mjs',
 			'--skip-types',
 			"--base-url=includes_url( 'build/' )",
 		], {
 			cwd: gutenbergDir,
+			env: {
+				...process.env,
+				PATH: binPath + path.delimiter + process.env.PATH,
+			},
 		} );
 
 		const duration = Math.round( ( Date.now() - startTime ) / 1000 );
