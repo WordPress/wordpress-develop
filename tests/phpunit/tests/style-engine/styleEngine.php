@@ -14,14 +14,6 @@
  */
 class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
-	 * Cleans up stores after each test.
-	 */
-	public function tear_down() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-		parent::tear_down();
-	}
-
-	/**
 	 * Tests generating block styles and classnames based on various manifestations of the $block_styles argument.
 	 *
 	 * @ticket 56467
@@ -124,6 +116,23 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'margin'       => '111px',
 					),
 					'classnames'   => 'has-text-color has-texas-flood-color has-border-color has-cool-caramel-border-color',
+				),
+			),
+
+			'inline_valid_dimension_preset_style'          => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'width'  => 'var:preset|dimension|large',
+						'height' => 'var:preset|dimension|modestly-small',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'height:var(--wp--preset--dimension--modestly-small);width:var(--wp--preset--dimension--large);',
+					'declarations' => array(
+						'height' => 'var(--wp--preset--dimension--modestly-small)',
+						'width'  => 'var(--wp--preset--dimension--large)',
+					),
 				),
 			),
 

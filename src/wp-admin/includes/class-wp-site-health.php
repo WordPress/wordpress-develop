@@ -150,9 +150,9 @@ class WP_Site_Health {
 				if ( is_string( $test['test'] ) ) {
 					$health_check_js_variables['site_status']['async'][] = array(
 						'test'      => $test['test'],
-						'has_rest'  => ( isset( $test['has_rest'] ) ? $test['has_rest'] : false ),
+						'has_rest'  => $test['has_rest'] ?? false,
 						'completed' => false,
-						'headers'   => isset( $test['headers'] ) ? $test['headers'] : array(),
+						'headers'   => $test['headers'] ?? array(),
 					);
 				}
 			}
@@ -728,8 +728,8 @@ class WP_Site_Health {
 
 		$result = array(
 			'label'       => sprintf(
-				/* translators: %s: The recommended PHP version. */
-				__( 'Your site is running a recommended version of PHP (%s)' ),
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running PHP %s' ),
 				PHP_VERSION
 			),
 			'status'      => 'good',
@@ -739,11 +739,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				sprintf(
-					/* translators: %s: The minimum recommended PHP version. */
-					__( 'PHP is one of the programming languages used to build WordPress. Newer versions of PHP receive regular security updates and may increase your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
-					$response ? $response['recommended_version'] : ''
-				)
+				__( 'PHP is one of the programming languages used to build WordPress. Newer versions of PHP receive regular security updates and may increase your site&#8217;s performance.' )
 			),
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
@@ -755,8 +751,36 @@ class WP_Site_Health {
 			'test'        => 'php_version',
 		);
 
+		if ( ! $response ) {
+			$result['label'] = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Unable to determine the status of the current PHP version (%s)' ),
+				PHP_VERSION
+			);
+			$result['status']      = 'recommended';
+			$result['description'] = '<p><em>' . sprintf(
+				/* translators: %s is the URL to the Serve Happy docs page. */
+				__( 'Unable to access the WordPress.org API for <a href="%s">Serve Happy</a>.' ),
+				'https://codex.wordpress.org/WordPress.org_API#Serve_Happy'
+			) . '</em></p>' . $result['description'];
+			return $result;
+		}
+
+		$result['description'] .= '<p>' . sprintf(
+			/* translators: %s: The minimum recommended PHP version. */
+			__( 'The minimum recommended version of PHP is %s.' ),
+			$response['recommended_version']
+		) . '</p>';
+
 		// PHP is up to date.
-		if ( ! $response || version_compare( PHP_VERSION, $response['recommended_version'], '>=' ) ) {
+		if ( version_compare( PHP_VERSION, $response['recommended_version'], '>=' ) ) {
+			$result['label'] = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running a recommended version of PHP (%s)' ),
+				PHP_VERSION
+			);
+			$result['status'] = 'good';
+
 			return $result;
 		}
 
@@ -941,6 +965,7 @@ class WP_Site_Health {
 				'function' => 'mysqli_connect',
 				'required' => false,
 			),
+			// Sodium was introduced in PHP 7.2, but the extension may not be enabled.
 			'libsodium' => array(
 				'constant'            => 'SODIUM_LIBRARY_VERSION',
 				'required'            => false,
@@ -1028,10 +1053,10 @@ class WP_Site_Health {
 		$failures = array();
 
 		foreach ( $modules as $library => $module ) {
-			$extension_name = ( isset( $module['extension'] ) ? $module['extension'] : null );
-			$function_name  = ( isset( $module['function'] ) ? $module['function'] : null );
-			$constant_name  = ( isset( $module['constant'] ) ? $module['constant'] : null );
-			$class_name     = ( isset( $module['class'] ) ? $module['class'] : null );
+			$extension_name = $module['extension'] ?? null;
+			$function_name  = $module['function'] ?? null;
+			$constant_name  = $module['constant'] ?? null;
+			$class_name     = $module['class'] ?? null;
 
 			// If this module is a fallback for another function, check if that other function passed.
 			if ( isset( $module['fallback_for'] ) ) {
@@ -2731,6 +2756,52 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests if opcode cache is enabled and available.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return array<string, string|array<string, string>> The test result.
+	 */
+	public function get_test_opcode_cache(): array {
+		$opcode_cache_enabled = false;
+		if ( function_exists( 'opcache_get_status' ) ) {
+			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+			if ( $status && true === $status['opcache_enabled'] ) {
+				$opcode_cache_enabled = true;
+			}
+		}
+
+		$result = array(
+			'label'       => __( 'Opcode cache is enabled' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Opcode cache improves PHP performance by storing precompiled script bytecode in memory, reducing the need for PHP to load and parse scripts on each request.' )
+			),
+			'actions'     => sprintf(
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				esc_url( 'https://www.php.net/manual/en/book.opcache.php' ),
+				__( 'Learn more about OPcache.' ),
+				/* translators: Hidden accessibility text. */
+				__( '(opens in a new tab)' )
+			),
+			'test'        => 'opcode_cache',
+		);
+
+		if ( ! $opcode_cache_enabled ) {
+			$result['status']       = 'recommended';
+			$result['label']        = __( 'Opcode cache is not enabled' );
+			$result['description'] .= '<p>' . __( 'Enabling this cache can significantly improve the performance of your site.' ) . '</p>';
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Returns a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
@@ -2821,6 +2892,10 @@ class WP_Site_Health {
 				'search_engine_visibility'     => array(
 					'label' => __( 'Search Engine Visibility' ),
 					'test'  => 'search_engine_visibility',
+				),
+				'opcode_cache'                 => array(
+					'label' => __( 'Opcode cache' ),
+					'test'  => 'opcode_cache',
 				),
 			),
 			'async'  => array(
@@ -2999,7 +3074,7 @@ class WP_Site_Health {
 						'sig'      => $sig,
 						'args'     => $data['args'],
 						'schedule' => $data['schedule'],
-						'interval' => isset( $data['interval'] ) ? $data['interval'] : null,
+						'interval' => $data['interval'] ?? null,
 					);
 
 				}
@@ -3388,6 +3463,16 @@ class WP_Site_Health {
 			},
 			'x-srcache-store-status' => $cache_hit_callback,
 			'x-srcache-fetch-status' => $cache_hit_callback,
+
+			// Generic caching proxies (Nginx, Varnish, etc.)
+			'x-cache'                => $cache_hit_callback,
+			'x-cache-status'         => $cache_hit_callback,
+			'x-litespeed-cache'      => $cache_hit_callback,
+			'x-proxy-cache'          => $cache_hit_callback,
+			'via'                    => '',
+
+			// Cloudflare
+			'cf-cache-status'        => $cache_hit_callback,
 		);
 
 		/**

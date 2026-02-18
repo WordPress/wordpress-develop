@@ -886,8 +886,8 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
-	if ( $wp_current_db_version < 60717 ) {
-		upgrade_690();
+	if ( $wp_current_db_version < 61644 ) {
+		upgrade_700();
 	}
 
 	maybe_disable_link_manager();
@@ -2486,27 +2486,27 @@ function upgrade_682() {
 }
 
 /**
- * Executes changes made in WordPress 6.9.0.
+ * Executes changes made in WordPress 7.0.
  *
  * @ignore
- * @since 6.9.0
+ * @since 7.0.0
  *
- * @global int $wp_current_db_version The old (current) database version.
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
  */
-function upgrade_690() {
-	global $wp_current_db_version;
+function upgrade_700() {
+	global $wp_current_db_version, $wpdb;
 
-	if ( $wp_current_db_version < 60717 ) {
-		// Switch Hello Dolly from file to directory format. See #53323
-		$active_plugins = (array) get_option( 'active_plugins', array() );
-		$old_plugin     = 'hello.php';
-		$new_plugin     = 'hello-dolly/hello.php';
-		$key            = array_search( $old_plugin, $active_plugins, true );
-
-		if ( $key ) {
-			$active_plugins[ $key ] = $new_plugin;
-			update_option( 'active_plugins', $active_plugins );
-		}
+	// Migrate users with 'fresh' admin color to 'modern'.
+	if ( $wp_current_db_version < 61644 ) {
+		$wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'modern' ),
+			array(
+				'meta_key'   => 'admin_color',
+				'meta_value' => 'fresh',
+			)
+		);
 	}
 }
 
@@ -2860,7 +2860,7 @@ function get_alloptions_110() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $setting Option name.
- * @return mixed
+ * @return mixed Option value.
  */
 function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	global $wpdb;
@@ -3403,7 +3403,7 @@ function make_db_current_silent( $tables = 'all' ) {
  *
  * @param string $theme_name The name of the theme.
  * @param string $template   The directory name of the theme.
- * @return bool
+ * @return bool True on success, false on failure.
  */
 function make_site_theme_from_oldschool( $theme_name, $template ) {
 	$home_path   = get_home_path();

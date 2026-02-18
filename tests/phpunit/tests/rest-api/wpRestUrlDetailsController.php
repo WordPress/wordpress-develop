@@ -43,11 +43,15 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	/**
 	 * URL placeholder.
 	 *
+	 * Even though the request is being intercepted with a mocked response, it is not fully bypassing the network. The
+	 * REST API endpoint is validating the `url` parameter with `wp_http_validate_url()` which includes a call to
+	 * `gethostbyname()`. So the domain used in the placeholder URL must be valid to ensure it passes a validity check.
+	 *
 	 * @since 5.9.0
 	 *
 	 * @var string
 	 */
-	const URL_PLACEHOLDER = 'https://placeholder-site.com';
+	const URL_PLACEHOLDER = 'https://example.com';
 
 	/**
 	 * Array of request args.
@@ -129,9 +133,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		$this->assertSame(
 			array(
 				'title'       => 'Example Website — - with encoded content.',
-				'icon'        => 'https://placeholder-site.com/favicon.ico?querystringaddedfortesting',
+				'icon'        => 'https://example.com/favicon.ico?querystringaddedfortesting',
 				'description' => 'Example description text here. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.',
-				'image'       => 'https://placeholder-site.com/images/home/screen-themes.png?3',
+				'image'       => 'https://example.com/images/home/screen-themes.png?3',
 			),
 			$data
 		);
@@ -444,7 +448,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$this->assertSame( 418, $data['status'], 'Response "status" is not 418' );
 
-		$expected = 'Response for URL https://placeholder-site.com altered via rest_prepare_url_details filter';
+		$expected = 'Response for URL https://example.com altered via rest_prepare_url_details filter';
 		$this->assertSame( $expected, $data['response'], 'Response "response" is not "' . $expected . '"' );
 	}
 
