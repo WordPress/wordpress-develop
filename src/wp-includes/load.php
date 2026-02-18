@@ -998,7 +998,7 @@ function wp_get_mu_plugins() {
 	 *
 	 * @since x.y
 	 *
-	 * @var string[] Array of absolute mu-plugin files to include.
+	 * @var string[] Array of absolute mu-plugin file paths to include.
 	 */
 	$mu_plugins = apply_filters( 'get_mu_plugins', $mu_plugins );
 	
@@ -1059,7 +1059,7 @@ function wp_get_active_and_valid_plugins() {
 	 *
 	 * @since x.y
 	 *
-	 * @var string[] Array of absolute mu-plugin files to include.
+	 * @var string[] Array of absolute plugin file paths to include.
 	 */
 	$plugins = apply_filters( 'get_active_and_valid_plugins', $plugins );
 
@@ -1144,7 +1144,7 @@ function wp_get_active_and_valid_themes() {
 	 *
 	 * @since x.y
 	 *
-	 * @var string[] Array of absolute theme files to include.
+	 * @var string[] Array of absolute theme file paths to include.
 	 */
 	$themes = apply_filters( 'get_active_and_valid_themes', $themes );
 

@@ -58,7 +58,7 @@ function wp_get_active_network_plugins() {
 	 *
 	 * @since x.y
 	 *
-	 * @var string[] Array of absolute plugin files to include.
+	 * @var string[] Array of absolute plugin file paths to include.
 	 */
 	$plugins = apply_filters( 'wp_get_active_network_plugins', $plugins );
 
