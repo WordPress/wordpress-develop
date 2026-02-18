@@ -272,8 +272,8 @@ class WP_HTTP_Polling_Sync_Server {
 			return current_user_can( 'edit_post', (int) $object_id );
 		}
 
-		// All of the remaining checks are for collections. If an object ID is
-		// provided, reject the request.
+		// All the remaining checks are for collections. If an object ID is provided,
+		// reject the request.
 		if ( null !== $object_id ) {
 			return false;
 		}
@@ -355,10 +355,10 @@ class WP_HTTP_Polling_Sync_Server {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param string               $room      Room identifier.
-	 * @param int                  $client_id Client identifier.
-	 * @param int                  $cursor    Client cursor (marker of last seen update).
-	 * @param array<string, mixed> $update    Sync update with 'type' and 'data' fields.
+	 * @param string                            $room      Room identifier.
+	 * @param int                               $client_id Client identifier.
+	 * @param int                               $cursor    Client cursor (marker of last seen update).
+	 * @param array{data: string, type: string} $update    Sync update.
 	 * @return true|WP_Error True on success, WP_Error on storage failure.
 	 */
 	private function process_sync_update( string $room, int $client_id, int $cursor, array $update ) {
@@ -466,7 +466,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 *   should_compact: bool,
 	 *   room: string,
 	 *   total_updates: int,
-	 *   updates: array<int, array{data: string, type: string}>
+	 *   updates: array<int, array{data: string, type: string}>,
 	 * } Response data for this room.
 	 */
 	private function get_updates( string $room, int $client_id, int $cursor, bool $is_compactor ): array {

@@ -75,7 +75,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	}
 
 	/**
-	 * Retrieve all sync updates for a given room.
+	 * Retrieves all sync updates for a given room.
 	 *
 	 * @since 7.0.0
 	 *
@@ -208,7 +208,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return self::$storage_post_id;
 		}
 
-		// Try to find existing post.
+		// Try to find an existing post.
 		$posts = get_posts(
 			array(
 				'post_type'      => self::POST_TYPE,
@@ -225,7 +225,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return self::$storage_post_id;
 		}
 
-		// Create new post if none exists.
+		// Create new post since none exists.
 		$post_id = wp_insert_post(
 			array(
 				'post_type'   => self::POST_TYPE,

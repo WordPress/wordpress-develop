@@ -28,7 +28,7 @@ interface WP_Sync_Storage {
 	public function get_awareness_state( string $room ): array;
 
 	/**
-	 * Get the current cursor for a given room. This should return a monotonically
+	 * Gets the current cursor for a given room. This should return a monotonically
 	 * increasing integer that represents the last update that was returned for the
 	 * room during the current request. This allows clients to retrieve updates
 	 * after a specific cursor on subsequent requests.
