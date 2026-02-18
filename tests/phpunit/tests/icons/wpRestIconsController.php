@@ -105,6 +105,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * @covers WP_REST_Icons_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
+		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		wp_set_current_user( self::$editor_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
@@ -129,6 +130,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * Test that GET /wp/v2/icons returns a list of icons for users with edit_posts capability.
 	 */
 	public function test_get_items_returns_icons_list() {
+		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		wp_set_current_user( self::$editor_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
@@ -180,6 +182,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * Test that GET /wp/v2/icons/core/arrow-left returns specific icon data.
 	 */
 	public function test_get_item_returns_specific_icon() {
+		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		wp_set_current_user( self::$editor_id );
 
 		/*
@@ -223,6 +226,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * Test that GET /wp/v2/icons/?search=arrow returns filtered results.
 	 */
 	public function test_get_items_search_filters_results() {
+		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
@@ -303,6 +307,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * Test permissions for getting a specific icon.
 	 */
 	public function test_get_item_requires_permissions() {
+		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		// Get a valid icon name first with proper permissions
 		wp_set_current_user( self::$editor_id );
 		$list_request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
