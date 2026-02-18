@@ -176,7 +176,7 @@ class WP_HTTP_Polling_Sync_Server {
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			return new WP_Error(
 				'forbidden',
-				__( 'You do not have permission to perform this action', 'gutenberg' ),
+				__( 'You do not have permission to perform this action' ),
 				array( 'status' => 401 )
 			);
 		}
