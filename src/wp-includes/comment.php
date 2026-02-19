@@ -2877,8 +2877,9 @@ function wp_update_comment_count_now( $post_id ) {
 	if ( is_null( $new ) ) {
 		$comments       = get_comments(
 			array(
-				'post_id'      => $post_id,
-				'type__not_in' => array( 'note' ),
+				'post_id'                   => $post_id,
+				'type__not_in'              => array( 'note' ),
+				'update_comment_meta_cache' => false,
 			)
 		);
 		$comments_by_id = array();
