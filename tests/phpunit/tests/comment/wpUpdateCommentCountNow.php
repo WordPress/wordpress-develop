@@ -91,15 +91,11 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	 * Test case where a trashed parent comment causes its child comments to be excluded from the comment count.
 	 *
 	 * @ticket 36409
-	 *
-	 * @return void
 	 */
 	public function test_trashed_parent_comment_excludes_child_comments_from_count() {
 		$post_id = self::factory()->post->create();
 
-		/**
-		 * Create 2 parent comment, and 2 child comment for parent 1.
-		 */
+		// Create 2 parent comment, and 2 child comment for parent 1.
 		$parent_comment_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
@@ -148,15 +144,11 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	 * Test case for unapproved parent comment causing its child comments to be excluded from the comment count.
 	 *
 	 * @ticket 36409
-	 *
-	 * @return void
 	 */
 	public function test_unapproved_parent_comment_excludes_child_comments_from_count() {
 		$post_id = self::factory()->post->create();
 
-		/**
-		 * Create 2 parent comment, and 2 child comment for parent 1.
-		 */
+		// Create 2 parent comment, and 2 child comment for parent 1.
 		$parent_comment_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,

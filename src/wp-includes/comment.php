@@ -2875,28 +2875,24 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		/**
-		 * Get all the comments related to the post ID.
-		 */
-		$comments       = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_parent, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_type != 'note'", $post_id ) );
+		$comments       = get_comments(
+			array(
+				'post_id'      => $post_id,
+				'type__not_in' => array( 'note' ),
+			)
+		);
 		$comments_by_id = array();
 
-		/**
-		 * Create a lookup array by comment ID.
-		 */
+		// Create a lookup array by comment ID.
 		foreach ( $comments as $comment ) {
 			$comments_by_id[ $comment->comment_ID ] = $comment;
 		}
 
-		// Count for comment.
 		$comment_count = 0;
 
-		/**
-		 * Loop through each comment and check for approved comment.
-		 */
+		// Loop through each comment and check for approved comment.
 		foreach ( $comments as $comment ) {
 
-			// Proceed only if comment is approved for counting.
 			if ( '1' !== $comment->comment_approved ) {
 				continue;
 			}
@@ -2904,9 +2900,7 @@ function wp_update_comment_count_now( $post_id ) {
 			$parent_id      = (int) $comment->comment_parent;
 			$has_unapproved = false;
 
-			/**
-			 * Check until we get the parent id as 0.
-			 */
+			// Ensure all ancestor comments are approved.
 			while ( 0 !== $parent_id ) {
 				if ( ! isset( $comments_by_id[ $parent_id ] ) ) {
 					break;
