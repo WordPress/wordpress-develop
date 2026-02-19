@@ -95,9 +95,6 @@ parameters:
 	scanFiles:
 		- ../../wp-config-sample.php
 		- ../../src/wp-admin/includes/ms.php
-	scanDirectories:
-		- ../../src/wp-includes
-		- ../../src/wp-admin
 	excludePaths:
 		analyseAndScan:
 			- ../../src/wp-admin/includes/noop.php
