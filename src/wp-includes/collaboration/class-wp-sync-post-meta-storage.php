@@ -101,7 +101,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		$updates = array_filter(
 			$updates,
 			static function ( $update ): bool {
-				return isset( $update['timestamp'], $update['value'] ) && is_int( $update['timestamp'] );
+				return is_array( $update ) && isset( $update['timestamp'], $update['value'] ) && is_int( $update['timestamp'] );
 			}
 		);
 
@@ -131,7 +131,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return array();
 		}
 
-		return $awareness;
+		return array_values( $awareness );
 	}
 
 	/**
