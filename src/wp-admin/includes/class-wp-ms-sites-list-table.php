@@ -409,7 +409,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return array An array of sortable columns.
+	 * @return array<string, mixed> An array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 
