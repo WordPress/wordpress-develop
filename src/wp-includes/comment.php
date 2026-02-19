@@ -2903,6 +2903,7 @@ function wp_update_comment_count_now( $post_id ) {
 			// Ensure all ancestor comments are approved.
 			while ( 0 !== $parent_id ) {
 				if ( ! isset( $comments_by_id[ $parent_id ] ) ) {
+					$has_unapproved = true;
 					break;
 				}
 
