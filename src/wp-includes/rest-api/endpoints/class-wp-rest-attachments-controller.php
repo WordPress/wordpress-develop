@@ -115,7 +115,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *                       Default WP_REST_Server::CREATABLE.
 	 * @return array<string, array<string, mixed>> Endpoint arguments.
 	 */
-	public function get_endpoint_args_for_item_schema( string $method = WP_REST_Server::CREATABLE ): array {
+	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
 		$args = parent::get_endpoint_args_for_item_schema( $method );
 
 		if ( WP_REST_Server::CREATABLE === $method && wp_is_client_side_media_processing_enabled() ) {
