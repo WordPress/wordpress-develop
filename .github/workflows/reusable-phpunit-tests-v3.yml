@@ -131,13 +131,13 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -150,7 +150,7 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
+        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2.36.0
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
@@ -237,7 +237,7 @@ jobs:
 
       - name: Upload test coverage report to Codecov
         if: ${{ inputs.coverage-report }}
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}.xml
@@ -246,7 +246,7 @@ jobs:
 
       - name: Upload HTML coverage report as artifact
         if: ${{ inputs.coverage-report }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
           path: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
@@ -257,7 +257,7 @@ jobs:
 
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
