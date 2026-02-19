@@ -663,7 +663,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param array $site The site to get states for.
+	 * @param array<string, mixed> $site An array of site data.
 	 */
 	protected function site_states( $site ) {
 		$site_states = array();
