@@ -113,9 +113,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *                       The arguments for `CREATABLE` requests are
 	 *                       checked for required values and may fall-back to a given default.
 	 *                       Default WP_REST_Server::CREATABLE.
-	 * @return array Endpoint arguments.
+	 * @return array<string, array<string, mixed>> Endpoint arguments.
 	 */
-	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
+	public function get_endpoint_args_for_item_schema( string $method = WP_REST_Server::CREATABLE ): array {
 		$args = parent::get_endpoint_args_for_item_schema( $method );
 
 		if ( WP_REST_Server::CREATABLE === $method && wp_is_client_side_media_processing_enabled() ) {
@@ -1902,7 +1902,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param int $attachment_id Attachment ID.
 	 * @return string|null Attachment file name, or null if not found.
 	 */
-	protected function get_attachment_filename( $attachment_id ) {
+	protected function get_attachment_filename( $attachment_id ): ?string {
 		$path = wp_get_original_image_path( $attachment_id );
 
 		if ( $path ) {
@@ -1926,7 +1926,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param int $attachment_id Attachment ID.
 	 * @return int|null Attachment file size in bytes, or null if not available.
 	 */
-	protected function get_attachment_filesize( $attachment_id ) {
+	protected function get_attachment_filesize( $attachment_id ): ?int {
 		$meta = wp_get_attachment_metadata( $attachment_id );
 
 		if ( isset( $meta['filesize'] ) ) {
