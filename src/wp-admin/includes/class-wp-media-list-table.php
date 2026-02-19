@@ -22,6 +22,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @var array
 	 */
 	protected $comment_pending_count = array();
+
 	/**
 	 * Whether the list table is for detached media.
 	 *
