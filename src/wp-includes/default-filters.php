@@ -676,6 +676,7 @@ add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
 
 // Client-side media processing.
+add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
 // Cross-origin isolation for client-side media processing.
 add_action( 'load-post.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-post-new.php', 'wp_set_up_cross_origin_isolation' );

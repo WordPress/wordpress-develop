@@ -6382,6 +6382,19 @@ function wp_is_client_side_media_processing_enabled() {
 }
 
 /**
+ * Sets a global JS variable to indicate that client-side media processing is enabled.
+ *
+ * @since 7.0.0
+ */
+function wp_set_client_side_media_processing_flag() {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
+}
+
+/**
  * Enables cross-origin isolation in the block editor.
  *
  * Required for enabling SharedArrayBuffer for WebAssembly-based
