@@ -100,9 +100,7 @@ jobs:
       - name: Configure caching for Gutenberg directory.
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
-          path: |
-            gutenberg
-            !gutenberg/node_modules/**/
+          path: gutenberg
           key: gutenberg-${{ steps.gutenberg-pinned-sha.outputs.sha }}-${{ hashFiles( 'tools/gutenberg/*', 'package*.json', 'Gruntfile.js' ) }}
 
       - name: Set up Node.js
@@ -182,3 +180,6 @@ jobs:
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
+
+      - name: Clean up node_modules directory
+        run: rm -rf gutenberg/node_modules

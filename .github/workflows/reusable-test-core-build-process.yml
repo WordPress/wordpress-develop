@@ -84,9 +84,7 @@ jobs:
       - name: Configure caching for Gutenberg directory.
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
-          path: |
-            gutenberg
-            !gutenberg/node_modules/**/
+          path: gutenberg
           key: gutenberg-${{ steps.gutenberg-pinned-sha.outputs.sha }}-${{ hashFiles( 'tools/gutenberg/*', 'package*.json', 'Gruntfile.js' ) }}
 
       # This date is used to ensure that the PHPCS cache is cleared at least once every week.
@@ -170,3 +168,6 @@ jobs:
         with:
           name: pr-number
           path: pr-number/
+
+      - name: Clean up node_modules directory
+        run: rm -rf gutenberg/node_modules
