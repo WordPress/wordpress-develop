@@ -132,7 +132,7 @@ jobs:
         with:
           path: |
             gutenberg
-            !gutenberg/node_modules/
+            !gutenberg/node_modules/**/
           key: gutenberg-${{ steps.gutenberg-pinned-sha.outputs.sha }}-${{ hashFiles( 'tools/gutenberg/*', 'package*.json', 'Gruntfile.js' ) }}
 
       - name: Set up Node.js

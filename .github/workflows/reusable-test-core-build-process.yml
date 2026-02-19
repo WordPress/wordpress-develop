@@ -86,7 +86,7 @@ jobs:
         with:
           path: |
             gutenberg
-            !gutenberg/node_modules/
+            !gutenberg/node_modules/**/
           key: gutenberg-${{ steps.gutenberg-pinned-sha.outputs.sha }}-${{ hashFiles( 'tools/gutenberg/*', 'package*.json', 'Gruntfile.js' ) }}
 
       # This date is used to ensure that the PHPCS cache is cleared at least once every week.
