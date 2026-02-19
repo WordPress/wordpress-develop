@@ -113,16 +113,14 @@ class WP_AI_Client_Ability_Function_Resolver {
 	 * @return bool True if the message contains ability calls, false otherwise.
 	 */
 	public static function has_ability_calls( Message $message ): bool {
-		foreach ( $message->getParts() as $part ) {
-			if ( $part->getType()->isFunctionCall() ) {
-				$function_call = $part->getFunctionCall();
-				if ( $function_call instanceof FunctionCall && self::is_ability_call( $function_call ) ) {
-					return true;
-				}
+		return null !== array_find(
+			$message->getParts(),
+			static function ( MessagePart $part ): bool {
+				return $part->getType()->isFunctionCall()
+					&& $part->getFunctionCall() instanceof FunctionCall
+					&& self::is_ability_call( $part->getFunctionCall() );
 			}
-		}
-
-		return false;
+		);
 	}
 
 	/**
