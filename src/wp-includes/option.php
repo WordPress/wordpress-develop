@@ -2768,17 +2768,18 @@ function register_initial_settings() {
 	);
 
 	if ( ! is_multisite() ) {
+		$uri_schema = array( 'format' => 'uri' );
 		register_setting(
 			'general',
 			'siteurl',
 			array(
 				'show_in_rest'      => array(
 					'name'   => 'url',
-					'schema' => array(
-						'format' => 'uri',
-					),
+					'schema' => $uri_schema,
 				),
-				'show_in_abilities' => true,
+				'show_in_abilities' => array(
+					'schema' => $uri_schema,
+				),
 				'type'              => 'string',
 				'description'       => __( 'Site URL.' ),
 			)
@@ -2786,17 +2787,18 @@ function register_initial_settings() {
 	}
 
 	if ( ! is_multisite() ) {
+		$email_schema = array( 'format' => 'email' );
 		register_setting(
 			'general',
 			'admin_email',
 			array(
 				'show_in_rest'      => array(
 					'name'   => 'email',
-					'schema' => array(
-						'format' => 'email',
-					),
+					'schema' => $email_schema,
 				),
-				'show_in_abilities' => true,
+				'show_in_abilities' => array(
+					'schema' => $email_schema,
+				),
 				'type'              => 'string',
 				'description'       => __( 'This address is used for admin purposes, like new user notification.' ),
 			)
@@ -2945,16 +2947,18 @@ function register_initial_settings() {
 		)
 	);
 
+	$open_closed_enum_schema = array( 'enum' => array( 'open', 'closed' ) );
+
 	register_setting(
 		'discussion',
 		'default_ping_status',
 		array(
 			'show_in_rest'      => array(
-				'schema' => array(
-					'enum' => array( 'open', 'closed' ),
-				),
+				'schema' => $open_closed_enum_schema,
 			),
-			'show_in_abilities' => true,
+			'show_in_abilities' => array(
+				'schema' => $open_closed_enum_schema,
+			),
 			'type'              => 'string',
 			'description'       => __( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.' ),
 		)
@@ -2965,11 +2969,11 @@ function register_initial_settings() {
 		'default_comment_status',
 		array(
 			'show_in_rest'      => array(
-				'schema' => array(
-					'enum' => array( 'open', 'closed' ),
-				),
+				'schema' => $open_closed_enum_schema,
 			),
-			'show_in_abilities' => true,
+			'show_in_abilities' => array(
+				'schema' => $open_closed_enum_schema,
+			),
 			'type'              => 'string',
 			'label'             => __( 'Allow comments on new posts' ),
 			'description'       => __( 'Allow people to submit comments on new posts.' ),
@@ -3006,8 +3010,9 @@ function register_initial_settings() {
  *     @type bool|array $show_in_rest        Whether data associated with this setting should be included in the REST API.
  *                                           When registering complex settings, this argument may optionally be an
  *                                           array with a 'schema' key.
- *     @type bool       $show_in_abilities  Whether this setting should be exposed through the Abilities API.
- *                                           Default false.
+ *     @type bool|array $show_in_abilities  Whether this setting should be exposed through the Abilities API.
+ *                                           When registering complex settings, this argument may optionally be an
+ *                                           array with a 'schema' key. Default false.
  *     @type mixed      $default            Default value when calling `get_option()`.
  * }
  */
