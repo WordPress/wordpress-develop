@@ -70,6 +70,3 @@ jobs:
           name: wordpress-develop
           path: develop.zip
           if-no-files-found: error
-
-      - name: Clean up node_modules directory
-        run: rm -rf gutenberg/node_modules

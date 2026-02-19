@@ -120,6 +120,3 @@ jobs:
         with:
           name: pr-built-file-changes
           path: changes.diff
-
-      - name: Clean up node_modules directory
-        run: rm -rf gutenberg/node_modules

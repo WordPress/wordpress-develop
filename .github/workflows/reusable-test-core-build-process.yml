@@ -168,6 +168,3 @@ jobs:
         with:
           name: pr-number
           path: pr-number/
-
-      - name: Clean up node_modules directory
-        run: rm -rf gutenberg/node_modules
