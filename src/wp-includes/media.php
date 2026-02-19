@@ -6392,6 +6392,10 @@ function wp_is_client_side_media_processing_enabled() {
  * @link https://web.dev/coop-coep/
  */
 function wp_set_up_cross_origin_isolation() {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
 	$screen = get_current_screen();
 
 	if ( ! $screen ) {
@@ -6511,6 +6515,10 @@ function wp_add_crossorigin_attributes( string $html ): string {
  * @return string Filtered rewrite rules.
  */
 function wp_filter_mod_rewrite_rules_for_wasm( string $rules ): string {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return $rules;
+	}
+
 	$rules .= "\n# BEGIN WordPress client-side media processing\n" .
 				"AddType application/wasm wasm\n" .
 				"# END WordPress client-side media processing\n";
@@ -6527,6 +6535,10 @@ function wp_filter_mod_rewrite_rules_for_wasm( string $rules ): string {
  * @since 7.0.0
  */
 function wp_override_media_templates() {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
 	remove_action( 'admin_footer', 'wp_print_media_templates' );
 	add_action(
 		'admin_footer',
