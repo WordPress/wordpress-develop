@@ -25,6 +25,22 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	const POST_TYPE = 'wp_sync_storage';
 
 	/**
+	 * Meta key for awareness state.
+	 *
+	 * @since 7.0.0
+	 * @var string
+	 */
+	const AWARENESS_META_KEY = 'wp_sync_awareness';
+
+	/**
+	 * Meta key for sync updates.
+	 *
+	 * @since 7.0.0
+	 * @var string
+	 */
+	const SYNC_UPDATE_META_KEY = 'wp_sync_update';
+
+	/**
 	 * Cache of cursors by room.
 	 *
 	 * @since 7.0.0
@@ -63,15 +79,13 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		$meta_key = $this->get_room_meta_key();
-
 		// Create an envelope and stamp each update to enable cursor-based filtering.
 		$envelope = array(
 			'timestamp' => $this->get_time_marker(),
 			'value'     => $update,
 		);
 
-		return (bool) add_post_meta( $post_id, $meta_key, $envelope, false );
+		return (bool) add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $envelope, false );
 	}
 
 	/**
@@ -90,8 +104,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return array();
 		}
 
-		$meta_key = $this->get_room_meta_key();
-		$updates  = get_post_meta( $post_id, $meta_key, false );
+		$updates = get_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, false );
 
 		if ( ! is_array( $updates ) ) {
 			$updates = array();
@@ -124,8 +137,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return array();
 		}
 
-		$meta_key  = $this->get_awareness_meta_key();
-		$awareness = get_post_meta( $post_id, $meta_key, true );
+		$awareness = get_post_meta( $post_id, self::AWARENESS_META_KEY, true );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -149,22 +161,9 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		$meta_key = $this->get_awareness_meta_key();
-
 		// update_post_meta returns false if the value is the same as the existing value.
-		update_post_meta( $post_id, $meta_key, $awareness );
+		update_post_meta( $post_id, self::AWARENESS_META_KEY, $awareness );
 		return true;
-	}
-
-	/**
-	 * Gets the meta key for awareness state.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @return string Meta key.
-	 */
-	private function get_awareness_meta_key(): string {
-		return 'wp_sync_awareness';
 	}
 
 	/**
@@ -181,17 +180,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 */
 	public function get_cursor( string $room ): int {
 		return $this->room_cursors[ $room ] ?? 0;
-	}
-
-	/**
-	 * Gets the meta key for sync updates.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @return string Meta key.
-	 */
-	private function get_room_meta_key(): string {
-		return 'wp_sync_update';
 	}
 
 	/**
@@ -315,10 +303,9 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		}
 
 		$all_updates = $this->get_all_updates( $room );
-		$meta_key    = $this->get_room_meta_key();
 
 		// Remove all updates for the room and re-store only those that are newer than the cursor.
-		if ( ! delete_post_meta( $post_id, $meta_key ) ) {
+		if ( ! delete_post_meta( $post_id, self::SYNC_UPDATE_META_KEY ) ) {
 			return false;
 		}
 
@@ -326,7 +313,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		$add_result = true;
 		foreach ( $all_updates as $envelope ) {
 			if ( $add_result && $envelope['timestamp'] >= $cursor ) {
-				$add_result = (bool) add_post_meta( $post_id, $meta_key, $envelope, false );
+				$add_result = (bool) add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $envelope, false );
 			}
 		}
 
