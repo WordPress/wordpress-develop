@@ -74,11 +74,15 @@ class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFac
 	 * @return StreamInterface
 	 */
 	public function createStreamFromFile( string $filename, string $mode = 'r' ): StreamInterface {
-		$content = file_get_contents( $filename ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-
-		if ( false === $content ) {
-			$content = '';
+		if ( 'r' !== $mode && 'rb' !== $mode ) {
+			throw new \RuntimeException( 'Only read mode is supported for creating streams from files.' );
 		}
+
+		if ( ! is_readable( $filename ) ) {
+			throw new \RuntimeException( "Unable to open file: {$filename}" );
+		}
+
+		$content = file_get_contents( $filename ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 
 		return new WP_AI_Client_PSR7_Stream( $content );
 	}
@@ -95,7 +99,7 @@ class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFac
 		$content = stream_get_contents( $resource );
 
 		if ( false === $content ) {
-			$content = '';
+			throw new \RuntimeException( 'Unable to read from the provided resource.' );
 		}
 
 		return new WP_AI_Client_PSR7_Stream( $content );

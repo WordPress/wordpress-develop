@@ -142,6 +142,43 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test createStreamFromFile throws RuntimeException for non-read modes.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_create_stream_from_file_throws_for_write_mode() {
+		$this->expectException( RuntimeException::class );
+
+		$this->psr17->createStreamFromFile( 'irrelevant.txt', 'w' );
+	}
+
+	/**
+	 * Test createStreamFromFile throws RuntimeException for nonexistent file.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_create_stream_from_file_throws_for_nonexistent_file() {
+		$this->expectException( RuntimeException::class );
+
+		$this->psr17->createStreamFromFile( '/nonexistent/path/file.txt' );
+	}
+
+	/**
+	 * Test createStreamFromFile accepts binary read mode.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_create_stream_from_file_accepts_binary_read_mode() {
+		$tmp = wp_tempnam( 'psr17test' );
+		file_put_contents( $tmp, 'binary content' );
+
+		$stream = $this->psr17->createStreamFromFile( $tmp, 'rb' );
+		$this->assertSame( 'binary content', (string) $stream );
+
+		unlink( $tmp );
+	}
+
+	/**
 	 * Test createStreamFromResource reads resource content.
 	 *
 	 * @ticket TBD
