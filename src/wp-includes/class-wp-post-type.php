@@ -152,6 +152,7 @@ final class WP_Post_Type {
 	 *
 	 * Default is the value of $show_in_menu.
 	 *
+	 * @since 7.0.0
 	 * @var bool $at_a_glance
 	 */
 	public $at_a_glance = null;
