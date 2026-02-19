@@ -951,7 +951,7 @@ function do_enclose( $content, $post ) {
 
 			$headers = wp_get_http_headers( $url );
 			if ( $headers ) {
-				$len           = isset( $headers['Content-Length'] ) ? (int) $headers['Content-Length'] : 0;
+				$len           = (int) ( $headers['Content-Length'] ?? 0 );
 				$type          = $headers['Content-Type'] ?? '';
 				$allowed_types = array( 'video', 'audio' );
 
@@ -3970,7 +3970,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 		a:focus {
 			color: #043959;
-			box-shadow: 0 0 0 2px #2271b1;
+			box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 			outline: 2px solid transparent;
 		}
 		.button {

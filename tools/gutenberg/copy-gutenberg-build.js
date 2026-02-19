@@ -12,6 +12,7 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
 const json2php = require( 'json2php' );
+const glob = require( 'glob' );
 
 // Paths
 const rootDir = path.resolve( __dirname, '../..' );
@@ -39,7 +40,7 @@ const COPY_CONFIG = {
 	// PHP infrastructure files (to wp-includes/build/)
 	phpInfrastructure: {
 		destination: 'build',
-		files: [ 'routes.php', 'pages.php' ],
+		files: [ 'routes.php', 'pages.php', 'constants.php' ],
 		directories: [ 'pages', 'routes' ],
 	},
 
@@ -98,6 +99,18 @@ const COPY_CONFIG = {
 			{ from: 'theme-i18n.json', to: 'theme-i18n.json' },
 		],
 	},
+
+	// Specific files to copy to wp-includes/$destination
+	wpIncludes: [
+		{
+			files: [ 'packages/icons/src/manifest.php' ],
+			destination: 'icons',
+		},
+		{
+			files: [ 'packages/icons/src/library/*.svg' ],
+			destination: 'icons/library',
+		},
+	],
 };
 
 /**
@@ -258,6 +271,25 @@ function copyBlockAssets( config ) {
 				);
 				const content = fs.readFileSync( blockPhpSrc, 'utf8' );
 				fs.writeFileSync( phpDest, content );
+			}
+
+			// 4. Copy PHP subdirectories from packages (e.g., shared/helpers.php)
+			const blockPhpDir = path.join( phpSrc, blockName );
+			if ( fs.existsSync( blockPhpDir ) ) {
+				const rootIndex = path.join( blockPhpDir, 'index.php' );
+				fs.cpSync( blockPhpDir, blockDest, {
+					recursive: true,
+					filter: function hasPhpFiles( src ) {
+						const stat = fs.statSync( src );
+						if ( stat.isDirectory() ) {
+							return fs.readdirSync( src, { withFileTypes: true } ).some(
+								( entry ) => hasPhpFiles( path.join( src, entry.name ) )
+							);
+						}
+						// Copy PHP files, but skip root index.php (handled by step 3)
+						return src.endsWith( '.php' ) && src !== rootIndex;
+					},
+				} );
 			}
 		}
 
@@ -815,6 +847,23 @@ function transformPHPContent( content ) {
 }
 
 /**
+ * Transform manifest.php to remove gutenberg text domain.
+ *
+ * @param {string} content - File content.
+ * @return {string} Transformed content.
+ */
+function transformManifestPHP( content ) {
+	// Remove 'gutenberg' text domain from _x() calls
+	// FROM: _x( '...', 'icon label', 'gutenberg' )
+	// TO:   _x( '...', 'icon label' )
+	const transformedContent = content.replace(
+		/_x\(\s*([^,]+),\s*([^,]+),\s*['"]gutenberg['"]\s*\)/g,
+		'_x( $1, $2 )'
+	);
+	return transformedContent;
+}
+
+/**
  * Main execution function.
  */
 async function main() {
@@ -873,7 +922,7 @@ async function main() {
 
 	// Transform function to remove source map comments from all JS files
 	const removeSourceMaps = ( content ) => {
-		return content.replace( /\/\/# sourceMappingURL=.*$/m, '' ).trimEnd();
+		return content.replace( /\/\/# sourceMappingURL=.*$/gm, '' ).trimEnd();
 	};
 
 	if ( fs.existsSync( scriptsSrc ) ) {
@@ -963,10 +1012,7 @@ async function main() {
 						}
 					}
 				}
-			} else if (
-				entry.isFile() &&
-				entry.name.endsWith( '.js' )
-			) {
+			} else if ( entry.isFile() && entry.name.endsWith( '.js' ) ) {
 				// Copy root-level JS files
 				const dest = path.join( scriptsDest, entry.name );
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
@@ -1035,6 +1081,30 @@ async function main() {
 			console.log( `   ✅ ${ fileMap.to }` );
 		} else {
 			console.log( `   ⚠️  Not found: ${ fileMap.from }` );
+		}
+	}
+
+	// Copy remaining files to wp-includes
+	console.log( '\n📦 Copying remaining files to wp-includes...' );
+	for ( const fileMap of COPY_CONFIG.wpIncludes ) {
+		const dest = path.join( wpIncludesDir, fileMap.destination );
+		fs.mkdirSync( dest, { recursive: true } );
+		for ( const src of fileMap.files ) {
+			const matches = glob.sync( path.join( gutenbergDir, src ) );
+			if ( ! matches.length ) {
+				throw new Error( `No files found matching '${ src }'` );
+			}
+			for ( const match of matches ) {
+				const destPath = path.join( dest, path.basename( match ) );
+				// Apply transformation for manifest.php to remove gutenberg text domain
+				if ( path.basename( match ) === 'manifest.php' ) {
+					let content = fs.readFileSync( match, 'utf8' );
+					content = transformManifestPHP( content );
+					fs.writeFileSync( destPath, content );
+				} else {
+					fs.copyFileSync( match, destPath );
+				}
+			}
 		}
 	}
 
