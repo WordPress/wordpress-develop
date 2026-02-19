@@ -6392,6 +6392,22 @@ function wp_set_client_side_media_processing_flag() {
 	}
 
 	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
+
+	/*
+	 * Register the @wordpress/vips/worker script module as a dynamic dependency
+	 * of the wp-upload-media classic script. This ensures it is included in the
+	 * import map so that the dynamic import() in upload-media.js can resolve it.
+	 */
+	wp_scripts()->add_data(
+		'wp-upload-media',
+		'module_dependencies',
+		array(
+			array(
+				'id'     => '@wordpress/vips/worker',
+				'import' => 'dynamic',
+			),
+		)
+	);
 }
 
 /**
