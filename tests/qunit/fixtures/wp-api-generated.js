@@ -13618,6 +13618,7 @@ mockedApiResponse.MediaCollection = [
         "media_details": {},
         "post": null,
         "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg",
+        "trashable": false,
         "_links": {
             "self": [
                 {
@@ -13695,7 +13696,8 @@ mockedApiResponse.MediaModel = {
     "mime_type": "image/jpeg",
     "media_details": {},
     "post": null,
-    "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg"
+    "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg",
+    "trashable": false
 };
 
 mockedApiResponse.TypesCollection = {

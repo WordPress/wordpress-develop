@@ -990,6 +990,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$data['missing_image_sizes'] = array_keys( wp_get_missing_image_subsizes( $post->ID ) );
 		}
 
+		if ( in_array( 'trashable', $fields, true ) ) {
+			$data['trashable'] = ( defined( 'MEDIA_TRASH' ) && MEDIA_TRASH );
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		$data = $this->filter_response_by_context( $data, $context );
@@ -1156,6 +1160,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'type'        => 'array',
 			'items'       => array( 'type' => 'string' ),
 			'context'     => array( 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema['properties']['trashable'] = array(
+			'description' => __( 'Whether the attachment can be moved to the trash.' ),
+			'type'        => 'boolean',
+			'context'     => array( 'view', 'edit' ),
 			'readonly'    => true,
 		);
 
