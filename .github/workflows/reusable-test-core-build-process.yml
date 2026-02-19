@@ -122,6 +122,15 @@ jobs:
       - name: Ensure version-controlled files are not modified or deleted during building
         run: git diff --exit-code
 
+      - name: Verify Gutenberg constants.php
+        if: ${{ inputs.directory == 'build' }}
+        run: |
+          echo "--- Gutenberg build output ---"
+          cat gutenberg/build/constants.php 2>/dev/null || echo "File not found in gutenberg/build/"
+          echo ""
+          echo "--- WordPress wp-includes/build/constants.php ---"
+          cat ${{ inputs.directory }}/wp-includes/build/constants.php 2>/dev/null || echo "File not found in ${{ inputs.directory }}/wp-includes/build/"
+
       - name: Create ZIP of built files
         if: ${{ inputs.directory == 'build' && contains( inputs.os, 'ubuntu-' ) }}
         run: zip -r wordpress.zip build/.
