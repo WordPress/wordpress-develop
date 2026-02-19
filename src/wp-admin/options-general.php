@@ -310,7 +310,7 @@ if ( ! is_multisite() ) {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param array $roles_to_exclude Array of roles to exclude from the dropdown. Defaults to administrator and editor.
+	 * @param string[] $roles_to_exclude Array of roles to exclude from the dropdown. Defaults to administrator and editor.
 	 */
 	$excluded_roles = (array) apply_filters( 'default_role_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
 
