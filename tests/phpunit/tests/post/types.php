@@ -679,6 +679,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45035
+	 *
 	 * @covers ::register_post_type()
 	 */
 	public function test_register_post_type_at_a_glance_should_default_to_value_of_show_in_menu() {
