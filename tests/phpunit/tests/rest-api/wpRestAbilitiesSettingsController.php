@@ -45,6 +45,14 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		// Register initial settings first so abilities can build schemas.
 		register_initial_settings();
 
+		// Unregister any existing abilities/categories to avoid "already registered" notices.
+		foreach ( wp_get_abilities() as $ability ) {
+			wp_unregister_ability( $ability->get_name() );
+		}
+		foreach ( wp_get_ability_categories() as $ability_category ) {
+			wp_unregister_ability_category( $ability_category->get_slug() );
+		}
+
 		// Ensure core abilities are registered for these tests.
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
@@ -335,6 +343,8 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64605
 	 */
 	public function test_core_get_settings_returns_correct_values(): void {
+		$original_blogname = get_option( 'blogname' );
+
 		update_option( 'blogname', 'Test Site Name' );
 
 		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
@@ -352,5 +362,470 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertSame( 'Test Site Name', $data['general']['blogname'] );
+
+		// Restore original value.
+		update_option( 'blogname', $original_blogname );
+	}
+
+	/**
+	 * Tests that settings with enum schema in show_in_abilities include it in output schema.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_get_settings_output_schema_includes_enum(): void {
+		$ability       = wp_get_ability( 'core/get-settings' );
+		$output_schema = $ability->get_output_schema();
+
+		// Check default_ping_status has enum.
+		$this->assertArrayHasKey( 'discussion', $output_schema['properties'] );
+		$this->assertArrayHasKey( 'default_ping_status', $output_schema['properties']['discussion']['properties'] );
+		$this->assertArrayHasKey( 'enum', $output_schema['properties']['discussion']['properties']['default_ping_status'] );
+		$this->assertSame( array( 'open', 'closed' ), $output_schema['properties']['discussion']['properties']['default_ping_status']['enum'] );
+
+		// Check default_comment_status has enum.
+		$this->assertArrayHasKey( 'default_comment_status', $output_schema['properties']['discussion']['properties'] );
+		$this->assertArrayHasKey( 'enum', $output_schema['properties']['discussion']['properties']['default_comment_status'] );
+		$this->assertSame( array( 'open', 'closed' ), $output_schema['properties']['discussion']['properties']['default_comment_status']['enum'] );
+	}
+
+	/**
+	 * Tests that boolean show_in_abilities (true) still works correctly.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_get_settings_boolean_show_in_abilities_still_works(): void {
+		$ability       = wp_get_ability( 'core/get-settings' );
+		$output_schema = $ability->get_output_schema();
+
+		// blogname uses show_in_abilities => true (boolean).
+		$this->assertArrayHasKey( 'general', $output_schema['properties'] );
+		$this->assertArrayHasKey( 'blogname', $output_schema['properties']['general']['properties'] );
+		$this->assertSame( 'string', $output_schema['properties']['general']['properties']['blogname']['type'] );
+	}
+
+	/**
+	 * Tests that custom show_in_abilities schema preserves base schema properties while adding custom ones.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_get_settings_output_schema_preserves_base_schema(): void {
+		$ability       = wp_get_ability( 'core/get-settings' );
+		$output_schema = $ability->get_output_schema();
+
+		// default_comment_status has show_in_abilities with schema but also has label and description.
+		$this->assertArrayHasKey( 'discussion', $output_schema['properties'] );
+		$this->assertArrayHasKey( 'default_comment_status', $output_schema['properties']['discussion']['properties'] );
+
+		$setting_schema = $output_schema['properties']['discussion']['properties']['default_comment_status'];
+
+		// Verify base schema properties are preserved.
+		$this->assertSame( 'string', $setting_schema['type'] );
+		$this->assertArrayHasKey( 'title', $setting_schema );
+		$this->assertArrayHasKey( 'description', $setting_schema );
+
+		// Verify custom schema property (enum) is merged.
+		$this->assertArrayHasKey( 'enum', $setting_schema );
+		$this->assertSame( array( 'open', 'closed' ), $setting_schema['enum'] );
+	}
+
+	/**
+	 * Tests that ability returns error when setting value violates schema enum.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_get_settings_returns_error_for_invalid_enum_value(): void {
+		// Set an invalid value for default_ping_status (violates enum: ['open', 'closed']).
+		update_option( 'default_ping_status', 'invalid_value' );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
+		$request->set_query_params(
+			array(
+				'input' => array(
+					'slugs' => array( 'default_ping_status' ),
+				),
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 500, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'ability_invalid_output', $data['code'] );
+	}
+
+	/**
+	 * Tests that unauthenticated users cannot access the update-settings ability.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_requires_authentication(): void {
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(
+							'general' => array(
+								'blogname' => 'New Title',
+							),
+						),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 401, $response->get_status() );
+	}
+
+	/**
+	 * Tests that subscribers cannot access the update-settings ability.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_requires_manage_options_capability(): void {
+		wp_set_current_user( self::$subscriber_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(
+							'general' => array(
+								'blogname' => 'New Title',
+							),
+						),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+	}
+
+	/**
+	 * Tests that administrators can access the update-settings ability.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_allows_administrators(): void {
+		$original_blogname = get_option( 'blogname' );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(
+							'general' => array(
+								'blogname' => 'Admin Updated Title',
+							),
+						),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// Restore original value.
+		update_option( 'blogname', $original_blogname );
+	}
+
+	/**
+	 * Tests that the update-settings ability successfully updates settings.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_updates_settings_in_database(): void {
+		$original_title = get_option( 'blogname' );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(
+							'general' => array(
+								'blogname' => 'Updated Site Title',
+							),
+						),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Updated Site Title', get_option( 'blogname' ) );
+
+		// Restore original value.
+		update_option( 'blogname', $original_title );
+	}
+
+	/**
+	 * Tests that the update-settings ability returns grouped structure matching input.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_returns_grouped_structure(): void {
+		$original_blogname        = get_option( 'blogname' );
+		$original_blogdescription = get_option( 'blogdescription' );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(
+							'general' => array(
+								'blogname'        => 'Test Title',
+								'blogdescription' => 'Test Description',
+							),
+						),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayHasKey( 'updated_settings', $data );
+		$this->assertArrayHasKey( 'general', $data['updated_settings'] );
+		$this->assertArrayHasKey( 'blogname', $data['updated_settings']['general'] );
+		$this->assertArrayHasKey( 'blogdescription', $data['updated_settings']['general'] );
+		$this->assertSame( 'Test Title', $data['updated_settings']['general']['blogname'] );
+		$this->assertSame( 'Test Description', $data['updated_settings']['general']['blogdescription'] );
+
+		// Restore original values.
+		update_option( 'blogname', $original_blogname );
+		update_option( 'blogdescription', $original_blogdescription );
+	}
+
+	/**
+	 * Tests that the update-settings ability can update multiple groups.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_updates_multiple_groups(): void {
+		$original_blogname       = get_option( 'blogname' );
+		$original_posts_per_page = get_option( 'posts_per_page' );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(
+							'general' => array(
+								'blogname' => 'Multi Group Test',
+							),
+							'reading' => array(
+								'posts_per_page' => 15,
+							),
+						),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayHasKey( 'general', $data['updated_settings'] );
+		$this->assertArrayHasKey( 'reading', $data['updated_settings'] );
+		$this->assertSame( 'Multi Group Test', $data['updated_settings']['general']['blogname'] );
+		$this->assertSame( 15, $data['updated_settings']['reading']['posts_per_page'] );
+
+		// Restore original values.
+		update_option( 'blogname', $original_blogname );
+		update_option( 'posts_per_page', $original_posts_per_page );
+	}
+
+	/**
+	 * Tests that the update-settings ability requires POST method.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_requires_post_method(): void {
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 405, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'rest_ability_invalid_method', $data['code'] );
+	}
+
+	/**
+	 * Tests that the update-settings ability casts boolean values correctly.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_casts_boolean_values(): void {
+		$original_use_smilies = get_option( 'use_smilies' );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(
+							'writing' => array(
+								'use_smilies' => false,
+							),
+						),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayHasKey( 'writing', $data['updated_settings'] );
+		$this->assertArrayHasKey( 'use_smilies', $data['updated_settings']['writing'] );
+		$this->assertIsBool( $data['updated_settings']['writing']['use_smilies'] );
+		$this->assertFalse( $data['updated_settings']['writing']['use_smilies'] );
+
+		// Restore original value.
+		update_option( 'use_smilies', $original_use_smilies );
+	}
+
+	/**
+	 * Tests that the update-settings ability casts integer values correctly.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_casts_integer_values(): void {
+		$original_posts_per_page = get_option( 'posts_per_page' );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(
+							'reading' => array(
+								'posts_per_page' => 25,
+							),
+						),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayHasKey( 'reading', $data['updated_settings'] );
+		$this->assertArrayHasKey( 'posts_per_page', $data['updated_settings']['reading'] );
+		$this->assertIsInt( $data['updated_settings']['reading']['posts_per_page'] );
+		$this->assertSame( 25, $data['updated_settings']['reading']['posts_per_page'] );
+
+		// Restore original value.
+		update_option( 'posts_per_page', $original_posts_per_page );
+	}
+
+	/**
+	 * Tests that the update-settings ability returns empty objects when no settings provided.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_returns_empty_when_no_settings(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => array(),
+					),
+				)
+			)
+		);
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertEmpty( (array) $data['updated_settings'] );
+	}
+
+	/**
+	 * Tests the symmetry between get-settings and update-settings.
+	 *
+	 * @ticket 64616
+	 */
+	public function test_core_update_settings_symmetry_with_get_settings(): void {
+		$original_blogname        = get_option( 'blogname' );
+		$original_blogdescription = get_option( 'blogdescription' );
+
+		// First, get settings.
+		$get_request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/core/get-settings/run' );
+		$get_request->set_query_params(
+			array(
+				'input' => array(
+					'slugs' => array( 'blogname', 'blogdescription' ),
+				),
+			)
+		);
+		$get_response = $this->server->dispatch( $get_request );
+		$settings     = $get_response->get_data();
+
+		// Modify the settings.
+		$settings['general']['blogname']        = 'Symmetry Test Title';
+		$settings['general']['blogdescription'] = 'Symmetry Test Description';
+
+		// Update settings with the same structure.
+		$update_request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/update-settings/run' );
+		$update_request->set_header( 'Content-Type', 'application/json' );
+		$update_request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'settings' => $settings,
+					),
+				)
+			)
+		);
+		$update_response = $this->server->dispatch( $update_request );
+
+		$this->assertSame( 200, $update_response->get_status() );
+
+		$data = $update_response->get_data();
+
+		$this->assertSame( 'Symmetry Test Title', $data['updated_settings']['general']['blogname'] );
+		$this->assertSame( 'Symmetry Test Description', $data['updated_settings']['general']['blogdescription'] );
+
+		// Verify the values are actually in the database.
+		$this->assertSame( 'Symmetry Test Title', get_option( 'blogname' ) );
+		$this->assertSame( 'Symmetry Test Description', get_option( 'blogdescription' ) );
+
+		// Restore original values.
+		update_option( 'blogname', $original_blogname );
+		update_option( 'blogdescription', $original_blogdescription );
 	}
 }

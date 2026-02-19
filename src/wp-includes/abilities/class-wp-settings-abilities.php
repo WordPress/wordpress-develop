@@ -29,15 +29,15 @@ class WP_Settings_Abilities {
 	 * @since 7.0.0
 	 * @var string[]
 	 */
-	private static $available_groups;
+	private static array $available_groups;
 
 	/**
-	 * Dynamic output schema built from registered settings.
+	 * Schema for settings grouped by registration group.
 	 *
 	 * @since 7.0.0
-	 * @var array
+	 * @var array<string, mixed>
 	 */
-	private static $output_schema;
+	private static array $settings_schema;
 
 	/**
 	 * Available setting slugs with show_in_abilities enabled.
@@ -45,7 +45,7 @@ class WP_Settings_Abilities {
 	 * @since 7.0.0
 	 * @var string[]
 	 */
-	private static $available_slugs;
+	private static array $available_slugs;
 
 	/**
 	 * Registers all settings abilities.
@@ -57,6 +57,7 @@ class WP_Settings_Abilities {
 	public static function register(): void {
 		self::init();
 		self::register_get_settings();
+		self::register_update_settings();
 	}
 
 	/**
@@ -69,7 +70,7 @@ class WP_Settings_Abilities {
 	private static function init(): void {
 		self::$available_groups = self::get_available_groups();
 		self::$available_slugs  = self::get_available_slugs();
-		self::$output_schema    = self::build_output_schema();
+		self::$settings_schema  = self::build_settings_schema();
 	}
 
 	/**
@@ -121,29 +122,23 @@ class WP_Settings_Abilities {
 	 * @return string[] List of unique setting slugs.
 	 */
 	private static function get_available_slugs(): array {
-		$slugs = array();
-
-		foreach ( self::get_allowed_settings() as $option_name => $args ) {
-			$slugs[] = $option_name;
-		}
-
+		$slugs = array_keys( self::get_allowed_settings() );
 		sort( $slugs );
-
 		return $slugs;
 	}
 
 	/**
-	 * Builds a rich output schema from registered settings metadata.
+	 * Builds a schema for settings grouped by registration group.
 	 *
 	 * Creates a JSON Schema that documents each setting group and its settings
 	 * with their types, titles, descriptions, defaults, and any additional
-	 * schema properties from show_in_rest.
+	 * schema properties from show_in_abilities.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @return array JSON Schema for the output.
+	 * @return array<string, mixed> JSON Schema for settings.
 	 */
-	private static function build_output_schema(): array {
+	private static function build_settings_schema(): array {
 		$group_properties = array();
 
 		foreach ( self::get_allowed_settings() as $option_name => $args ) {
@@ -161,6 +156,11 @@ class WP_Settings_Abilities {
 				$setting_schema['description'] = $args['description'];
 			} elseif ( ! empty( $args['label'] ) ) {
 				$setting_schema['description'] = $args['label'];
+			}
+
+			// Merge custom schema from show_in_abilities if provided as an array.
+			if ( is_array( $args['show_in_abilities'] ) && ! empty( $args['show_in_abilities']['schema'] ) ) {
+				$setting_schema = array_merge( $setting_schema, $args['show_in_abilities']['schema'] );
 			}
 
 			if ( ! isset( $group_properties[ $group ] ) ) {
@@ -238,12 +238,60 @@ class WP_Settings_Abilities {
 						),
 					),
 				),
-				'output_schema'       => self::$output_schema,
+				'output_schema'       => self::$settings_schema,
 				'execute_callback'    => array( __CLASS__, 'execute_get_settings' ),
 				'permission_callback' => array( __CLASS__, 'check_manage_options' ),
 				'meta'                => array(
 					'annotations'  => array(
 						'readonly'    => true,
+						'destructive' => false,
+						'idempotent'  => true,
+					),
+					'show_in_rest' => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * Registers the core/update-settings ability.
+	 *
+	 * @since 7.0.0
+	 */
+	private static function register_update_settings(): void {
+		// Reuse settings schema with updated descriptions for input and output.
+		$input_settings_schema                = self::$settings_schema;
+		$input_settings_schema['description'] = __( 'Settings to update, grouped by registration group. Same structure as returned by core/get-settings.' );
+
+		$output_settings_schema                = self::$settings_schema;
+		$output_settings_schema['description'] = __( 'Settings that were successfully updated, grouped by registration group.' );
+
+		wp_register_ability(
+			'core/update-settings',
+			array(
+				'label'               => __( 'Update Settings' ),
+				'description'         => __( 'Updates registered WordPress settings. Only settings with show_in_abilities enabled can be modified.' ),
+				'category'            => 'site',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'required'             => array( 'settings' ),
+					'properties'           => array(
+						'settings' => $input_settings_schema,
+					),
+					'additionalProperties' => false,
+				),
+				'output_schema'       => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'updated_settings' => $output_settings_schema,
+					),
+					'additionalProperties' => false,
+				),
+				'execute_callback'    => array( __CLASS__, 'execute_update_settings' ),
+				'permission_callback' => array( __CLASS__, 'check_manage_options' ),
+				'meta'                => array(
+					'annotations'  => array(
+						'readonly'    => false,
 						'destructive' => false,
 						'idempotent'  => true,
 					),
@@ -313,6 +361,100 @@ class WP_Settings_Abilities {
 		ksort( $settings_by_group );
 
 		return $settings_by_group;
+	}
+
+	/**
+	 * Execute callback for core/update-settings ability.
+	 *
+	 * Updates registered settings that are exposed through the Abilities API.
+	 * Returns updated settings grouped by registration group.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array<string, mixed> $input {
+	 *     Input parameters.
+	 *
+	 *     @type array $settings Settings to update, grouped by registration group.
+	 * }
+	 * @return array<string, array<string, mixed>|object>|WP_Error Updated settings on success, WP_Error on failure.
+	 */
+	public static function execute_update_settings( $input = array() ): array {
+		$input = is_array( $input ) ? $input : array();
+
+		if ( empty( $input['settings'] ) || ! is_array( $input['settings'] ) ) {
+			return array(
+				'updated_settings' => (object) array(),
+			);
+		}
+
+		$grouped_settings = $input['settings'];
+		$allowed_settings = self::get_allowed_settings();
+
+		$updated_settings = array();
+
+		// Iterate through groups (general, reading, writing, etc.).
+		foreach ( $grouped_settings as $group => $settings ) {
+			if ( ! is_array( $settings ) ) {
+				continue;
+			}
+
+			// Iterate through settings within each group.
+			foreach ( $settings as $option_name => $value ) {
+				if ( ! isset( $allowed_settings[ $option_name ] ) ) {
+					continue;
+				}
+
+				$args = $allowed_settings[ $option_name ];
+
+				$setting_group = $args['group'] ?? 'general';
+				if ( $setting_group !== $group ) {
+					continue;
+				}
+
+				$setting_type = $args['type'] ?? 'string';
+
+				$schema = array(
+					'type' => $setting_type,
+				);
+				if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema'] ) ) {
+					$schema = array_merge( $schema, $args['show_in_rest']['schema'] );
+				}
+
+				$sanitized_value = rest_sanitize_value_from_schema( $value, $schema );
+
+				if ( isset( $args['sanitize_callback'] ) && is_callable( $args['sanitize_callback'] ) ) {
+					$sanitized_value = call_user_func( $args['sanitize_callback'], $sanitized_value );
+				}
+
+				$updated = update_option( $option_name, $sanitized_value );
+
+				// Cast values for comparison (handles type mismatches from database and REST sanitization).
+				$current_value   = self::cast_value( get_option( $option_name ), $setting_type );
+				$sanitized_value = self::cast_value( $sanitized_value, $setting_type );
+
+				if ( ! $updated && $current_value !== $sanitized_value ) {
+					return new WP_Error(
+						'rest_setting_update_failed',
+						sprintf(
+							/* translators: %s: Option name. */
+							__( 'Failed to update setting: %s.' ),
+							$option_name
+						),
+						array( 'status' => 500 )
+					);
+				}
+
+				if ( ! isset( $updated_settings[ $group ] ) ) {
+					$updated_settings[ $group ] = array();
+				}
+
+				$updated_settings[ $group ][ $option_name ] = $current_value;
+			}
+		}
+
+		return array(
+			'updated_settings' => ! empty( $updated_settings ) ? $updated_settings : (object) array(),
+		);
 	}
 
 	/**
