@@ -2003,8 +2003,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment_filename = get_attached_file( $attachment_id, true );
 		$attachment_filename = $attachment_filename ? wp_basename( $attachment_filename ) : null;
 
-		$filter_filename = function ( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number ) use ( $attachment_filename ) {
-			return $this->filter_wp_unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number, $attachment_filename );
+		$filter_filename = static function ( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number ) use ( $attachment_filename ) {
+			return self::filter_wp_unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number, $attachment_filename );
 		};
 
 		add_filter( 'wp_unique_filename', $filter_filename, 10, 6 );
@@ -2104,7 +2104,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param string|null   $attachment_filename      Original attachment file name.
 	 * @return string Filtered file name.
 	 */
-	private function filter_wp_unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number, $attachment_filename ) {
+	private static function filter_wp_unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number, $attachment_filename ) {
 		if ( empty( $number ) || ! $attachment_filename ) {
 			return $filename;
 		}
