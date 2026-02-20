@@ -404,7 +404,7 @@ class GenerativeAiResult extends AbstractDataTransferObject implements ResultInt
      * This method ensures that all nested objects (candidates, token usage, metadata)
      * are cloned to prevent modifications to the cloned result from affecting the original.
      *
-     * @since 0.4.1
+     * @since 0.4.2
      */
     public function __clone()
     {

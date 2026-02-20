@@ -55,6 +55,25 @@ class ProviderModelsMetadata extends AbstractDataTransferObject
         $this->models = $models;
     }
     /**
+     * Creates a deep clone of this metadata.
+     *
+     * Clones the provider metadata and all model metadata objects
+     * to ensure the cloned instance is independent of the original.
+     *
+     * @since 0.4.2
+     */
+    public function __clone()
+    {
+        // Clone provider metadata
+        $this->provider = clone $this->provider;
+        // Deep clone models array (ModelMetadata has __clone)
+        $clonedModels = [];
+        foreach ($this->models as $model) {
+            $clonedModels[] = clone $model;
+        }
+        $this->models = $clonedModels;
+    }
+    /**
      * Gets the provider metadata.
      *
      * @since 0.1.0

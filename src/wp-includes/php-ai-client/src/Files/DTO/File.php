@@ -391,7 +391,7 @@ class File extends AbstractDataTransferObject
      * This method ensures that the MimeType value object is cloned to prevent
      * any shared references between the original and cloned file.
      *
-     * @since 0.4.1
+     * @since 0.4.2
      */
     public function __clone()
     {

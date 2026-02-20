@@ -103,20 +103,18 @@ echo "==> Using temp directory: $TEMP_DIR"
 # ---------------------------------------------------------------------------
 
 if [ -n "$BRANCH" ]; then
-	echo "==> Cloning branch '$BRANCH' from $GITHUB_REPO..."
-	git clone --depth 1 --branch "$BRANCH" "$GITHUB_REPO" "$TEMP_DIR/package"
-	echo "==> Installing Composer dependencies..."
-	composer install --no-dev --no-interaction --working-dir="$TEMP_DIR/package"
-	VENDOR_DIR="$TEMP_DIR/package/vendor"
-	CLIENT_SRC="$TEMP_DIR/package/src"
+	REF="$BRANCH"
+	echo "==> Cloning branch '$REF' from $GITHUB_REPO..."
 else
-	echo "==> Fetching version '$VERSION' via Composer..."
-	mkdir -p "$TEMP_DIR/package"
-	composer init --no-interaction --name="temp/installer" --working-dir="$TEMP_DIR/package"
-	composer require "wordpress/php-ai-client:${VERSION}" --no-dev --no-interaction --working-dir="$TEMP_DIR/package"
-	VENDOR_DIR="$TEMP_DIR/package/vendor"
-	CLIENT_SRC="$VENDOR_DIR/wordpress/php-ai-client/src"
+	REF="$VERSION"
+	echo "==> Cloning tag '$REF' from $GITHUB_REPO..."
 fi
+
+git clone --depth 1 --branch "$REF" "$GITHUB_REPO" "$TEMP_DIR/package"
+echo "==> Installing Composer dependencies..."
+composer install --no-dev --no-interaction --working-dir="$TEMP_DIR/package"
+VENDOR_DIR="$TEMP_DIR/package/vendor"
+CLIENT_SRC="$TEMP_DIR/package/src"
 
 if [ ! -d "$VENDOR_DIR" ]; then
 	echo "Error: vendor directory not found at $VENDOR_DIR"
@@ -183,13 +181,7 @@ mkdir -p "$TARGET_DIR/src"
 mkdir -p "$TARGET_DIR/third-party"
 
 # Copy scoped AI client source.
-# If installed via branch, scoped source is at scoped/src/.
-# If installed via version, scoped source is at scoped/vendor/wordpress/php-ai-client/src/.
-if [ -n "$BRANCH" ]; then
-	cp -R "$SCOPED_DIR/src/." "$TARGET_DIR/src/"
-else
-	cp -R "$SCOPED_DIR/vendor/wordpress/php-ai-client/src/." "$TARGET_DIR/src/"
-fi
+cp -R "$SCOPED_DIR/src/." "$TARGET_DIR/src/"
 
 # Copy reorganized third-party dependencies.
 cp -R "$THIRD_PARTY_DIR/." "$TARGET_DIR/third-party/"
@@ -219,12 +211,6 @@ REMOVE_PATHS=(
 
 	# Mock strategy (not in default strategy list).
 	"Http/Discovery/Strategy/MockClientStrategy.php"
-
-	# Server-side PSR-7 interfaces (SDK is client-side only).
-	"Psr/Http/Message/ServerRequestInterface.php"
-	"Psr/Http/Message/ServerRequestFactoryInterface.php"
-	"Psr/Http/Message/UploadedFileInterface.php"
-	"Psr/Http/Message/UploadedFileFactoryInterface.php"
 
 	# PSR-14 interfaces not used by the event dispatcher.
 	"Psr/EventDispatcher/ListenerProviderInterface.php"

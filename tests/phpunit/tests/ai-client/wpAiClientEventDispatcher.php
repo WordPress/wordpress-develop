@@ -13,7 +13,7 @@ class Tests_AI_Client_EventDispatcher extends WP_UnitTestCase {
 	/**
 	 * Test that dispatch fires the appropriate action hook.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_dispatch_fires_action_hook() {
 		$dispatcher = new WP_AI_Client_Event_Dispatcher();
@@ -40,7 +40,7 @@ class Tests_AI_Client_EventDispatcher extends WP_UnitTestCase {
 	/**
 	 * Test that dispatch returns event without listeners.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_dispatch_returns_event_without_listeners() {
 		$dispatcher        = new WP_AI_Client_Event_Dispatcher();
