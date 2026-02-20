@@ -2508,6 +2508,26 @@ function upgrade_700() {
 			)
 		);
 	}
+
+	// Add composite index for meta_key and post_id on postmeta table.
+	if ( $wp_current_db_version < 61697 ) {
+		$max_index_length = 191;
+		// Check if the index already exists.
+		$index_exists = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(1) FROM INFORMATION_SCHEMA.STATISTICS
+				WHERE table_schema = %s
+				AND table_name = %s
+				AND index_name = 'meta_key_id'",
+				DB_NAME,
+				$wpdb->postmeta
+			)
+		);
+
+		if ( ! $index_exists ) {
+			$wpdb->query( "ALTER TABLE $wpdb->postmeta ADD INDEX meta_key_id (meta_key($max_index_length),post_id)" );
+		}
+	}
 }
 
 /**
