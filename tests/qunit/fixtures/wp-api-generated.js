@@ -22,13 +22,7 @@ mockedApiResponse.Schema = {
         "wp-block-editor/v1",
         "wp-abilities/v1"
     ],
-    "authentication": {
-        "application-passwords": {
-            "endpoints": {
-                "authorization": "http://example.org/wp-admin/authorize-application.php"
-            }
-        }
-    },
+    "authentication": [],
     "routes": {
         "/": {
             "namespace": "",
@@ -855,7 +849,14 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "sticky": {
@@ -1139,7 +1140,14 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "sticky": {
@@ -1578,7 +1586,14 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "sticky": {
@@ -2054,7 +2069,14 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "template": {
@@ -2310,7 +2332,14 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "template": {
@@ -2716,7 +2745,14 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "template": {
@@ -4932,7 +4968,24 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "wp_pattern_sync_status": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": "",
+                                    "enum": [
+                                        "partial",
+                                        "unsynced"
+                                    ]
+                                },
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "template": {
@@ -5141,7 +5194,24 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "wp_pattern_sync_status": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": "",
+                                    "enum": [
+                                        "partial",
+                                        "unsynced"
+                                    ]
+                                },
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "template": {
@@ -5505,7 +5575,24 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "wp_pattern_sync_status": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": "",
+                                    "enum": [
+                                        "partial",
+                                        "unsynced"
+                                    ]
+                                },
+                                "footnotes": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "",
+                                    "default": ""
+                                }
+                            },
                             "required": false
                         },
                         "template": {
@@ -9888,7 +9975,26 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "persisted_preferences": {
+                                    "type": "object",
+                                    "title": "",
+                                    "description": "",
+                                    "default": [],
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "properties": {
+                                        "_modified": {
+                                            "description": "The date and time the preferences were updated.",
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "readonly": false
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -10026,7 +10132,26 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "persisted_preferences": {
+                                    "type": "object",
+                                    "title": "",
+                                    "description": "",
+                                    "default": [],
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "properties": {
+                                        "_modified": {
+                                            "description": "The date and time the preferences were updated.",
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "readonly": false
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -10171,7 +10296,26 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "persisted_preferences": {
+                                    "type": "object",
+                                    "title": "",
+                                    "description": "",
+                                    "default": [],
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "properties": {
+                                        "_modified": {
+                                            "description": "The date and time the preferences were updated.",
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "readonly": false
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -10625,7 +10769,18 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "_wp_note_status": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "Note resolution status",
+                                    "default": "",
+                                    "enum": [
+                                        "resolved",
+                                        "reopen"
+                                    ]
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -10772,7 +10927,18 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "_wp_note_status": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "Note resolution status",
+                                    "default": "",
+                                    "enum": [
+                                        "resolved",
+                                        "reopen"
+                                    ]
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -12753,38 +12919,38 @@ mockedApiResponse.Schema = {
             ]
         }
     },
-    "image_sizes": [
-        {
-            "height": 150,
+    "image_sizes": {
+        "thumbnail": {
             "width": 150,
-            "name": "thumbnail"
+            "height": 150,
+            "crop": true
         },
-        {
-            "height": 300,
+        "medium": {
             "width": 300,
-            "name": "medium"
+            "height": 300,
+            "crop": false
         },
-        {
-            "height": 0,
+        "medium_large": {
             "width": 768,
-            "name": "medium_large"
+            "height": 0,
+            "crop": false
         },
-        {
-            "height": 1024,
+        "large": {
             "width": 1024,
-            "name": "large"
+            "height": 1024,
+            "crop": false
         },
-        {
-            "height": 1536,
+        "1536x1536": {
             "width": 1536,
-            "name": "1536x1536"
+            "height": 1536,
+            "crop": false
         },
-        {
-            "height": 2048,
+        "2048x2048": {
             "width": 2048,
-            "name": "2048x2048"
+            "height": 2048,
+            "crop": false
         }
-    ],
+    },
     "image_size_threshold": 2560,
     "image_output_formats": {},
     "jpeg_interlaced": false,
@@ -12971,7 +13137,8 @@ mockedApiResponse.PostsCollection = [
         "template": "",
         "format": "standard",
         "meta": {
-            "meta_key": "meta_value"
+            "meta_key": "meta_value",
+            "footnotes": ""
         },
         "categories": [
             1
@@ -13089,7 +13256,8 @@ mockedApiResponse.PostModel = {
     "template": "",
     "format": "standard",
     "meta": {
-        "meta_key": "meta_value"
+        "meta_key": "meta_value",
+        "footnotes": ""
     },
     "categories": [
         1
@@ -13129,7 +13297,8 @@ mockedApiResponse.postRevisions = [
             "rendered": ""
         },
         "meta": {
-            "meta_key": ""
+            "meta_key": "",
+            "footnotes": ""
         },
         "_links": {
             "parent": [
@@ -13161,7 +13330,8 @@ mockedApiResponse.postRevisions = [
             "rendered": "<p>REST API Client Fixture: Post</p>\n"
         },
         "meta": {
-            "meta_key": ""
+            "meta_key": "",
+            "footnotes": ""
         },
         "_links": {
             "parent": [
@@ -13195,7 +13365,8 @@ mockedApiResponse.revision = {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
     },
     "meta": {
-        "meta_key": ""
+        "meta_key": "",
+        "footnotes": ""
     }
 };
 
@@ -13222,7 +13393,8 @@ mockedApiResponse.postAutosaves = [
             "rendered": ""
         },
         "meta": {
-            "meta_key": ""
+            "meta_key": "",
+            "footnotes": ""
         },
         "_links": {
             "parent": [
@@ -13256,7 +13428,8 @@ mockedApiResponse.autosave = {
         "rendered": ""
     },
     "meta": {
-        "meta_key": ""
+        "meta_key": "",
+        "footnotes": ""
     }
 };
 
@@ -13293,7 +13466,8 @@ mockedApiResponse.PagesCollection = [
         "ping_status": "closed",
         "template": "",
         "meta": {
-            "meta_key": ""
+            "meta_key": "",
+            "footnotes": ""
         },
         "class_list": [
             "post-7",
@@ -13393,7 +13567,8 @@ mockedApiResponse.PageModel = {
     "ping_status": "closed",
     "template": "",
     "meta": {
-        "meta_key": ""
+        "meta_key": "",
+        "footnotes": ""
     },
     "class_list": [
         "post-7",
@@ -13427,7 +13602,8 @@ mockedApiResponse.pageRevisions = [
             "rendered": ""
         },
         "meta": {
-            "meta_key": ""
+            "meta_key": "",
+            "footnotes": ""
         },
         "_links": {
             "parent": [
@@ -13459,7 +13635,8 @@ mockedApiResponse.pageRevisions = [
             "rendered": "<p>REST API Client Fixture: Page</p>\n"
         },
         "meta": {
-            "meta_key": ""
+            "meta_key": "",
+            "footnotes": ""
         },
         "_links": {
             "parent": [
@@ -13493,7 +13670,8 @@ mockedApiResponse.pageRevision = {
         "rendered": "<p>REST API Client Fixture: Page</p>\n"
     },
     "meta": {
-        "meta_key": ""
+        "meta_key": "",
+        "footnotes": ""
     }
 };
 
@@ -13520,7 +13698,8 @@ mockedApiResponse.pageAutosaves = [
             "rendered": ""
         },
         "meta": {
-            "meta_key": ""
+            "meta_key": "",
+            "footnotes": ""
         },
         "_links": {
             "parent": [
@@ -13554,7 +13733,8 @@ mockedApiResponse.pageAutosave = {
         "rendered": ""
     },
     "meta": {
-        "meta_key": ""
+        "meta_key": "",
+        "footnotes": ""
     }
 };
 
@@ -14575,6 +14755,7 @@ mockedApiResponse.CommentsCollection = [
             "96": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
         },
         "meta": {
+            "_wp_note_status": null,
             "meta_key": "meta_value"
         },
         "_links": {
@@ -14629,6 +14810,7 @@ mockedApiResponse.CommentModel = {
         "96": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
     },
     "meta": {
+        "_wp_note_status": null,
         "meta_key": "meta_value"
     }
 };
