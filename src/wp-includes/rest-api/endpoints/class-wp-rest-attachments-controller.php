@@ -2005,7 +2005,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		/*
 		 * wp_unique_filename() will always add numeric suffix if the name looks like a sub-size to avoid conflicts.
-		 * See https://github.com/WordPress/wordpress-develop/blob/30954f7ac0840cfdad464928021d7f380940c347/src/wp-includes/functions.php#L2576-L2582
+		 * See /wp-includes/functions.php.
 		 * With the following filter we can work around this safeguard.
 		 */
 		$attachment_filename = get_attached_file( $attachment_id, true );
