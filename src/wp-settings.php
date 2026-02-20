@@ -299,12 +299,6 @@ require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-event-dispatcher.php';
 require ABSPATH . WPINC . '/class-wp-ai-client-ability-function-resolver.php';
 require ABSPATH . WPINC . '/class-wp-ai-client-prompt-builder.php';
 require ABSPATH . WPINC . '/ai-client.php';
-
-// WP AI Client - Initialization.
-WP_AI_Client_Discovery_Strategy::init();
-WordPress\AiClient\AiClient::setCache( new WP_AI_Client_Cache() );
-WordPress\AiClient\AiClient::setEventDispatcher( new WP_AI_Client_Event_Dispatcher() );
-
 require ABSPATH . WPINC . '/class-wp-icons-registry.php';
 require ABSPATH . WPINC . '/widgets.php';
 require ABSPATH . WPINC . '/class-wp-widget.php';
@@ -483,6 +477,11 @@ $GLOBALS['wp_embed'] = new WP_Embed();
  */
 $GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
 $GLOBALS['wp_textdomain_registry']->init();
+
+// WordPress AI Client initialization.
+WP_AI_Client_Discovery_Strategy::init();
+WordPress\AiClient\AiClient::setCache( new WP_AI_Client_Cache() );
+WordPress\AiClient\AiClient::setEventDispatcher( new WP_AI_Client_Event_Dispatcher() );
 
 // Load multisite-specific files.
 if ( is_multisite() ) {
