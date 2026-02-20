@@ -152,7 +152,7 @@ class ModelMetadata extends AbstractDataTransferObject
      * This method ensures that supported option objects are cloned to prevent
      * modifications to the cloned metadata from affecting the original.
      *
-     * @since 0.4.1
+     * @since 0.4.2
      */
     public function __clone()
     {

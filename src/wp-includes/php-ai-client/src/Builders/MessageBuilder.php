@@ -64,6 +64,24 @@ class MessageBuilder
         }
     }
     /**
+     * Creates a deep clone of this builder.
+     *
+     * Clones all MessagePart objects in the parts array to ensure
+     * the cloned builder is independent of the original.
+     *
+     * @since 0.4.2
+     */
+    public function __clone()
+    {
+        // Deep clone parts array (MessagePart has __clone)
+        $clonedParts = [];
+        foreach ($this->parts as $part) {
+            $clonedParts[] = clone $part;
+        }
+        $this->parts = $clonedParts;
+        // Note: $role is an enum value object and can be safely shared
+    }
+    /**
      * Sets the role of the message sender.
      *
      * @since 0.2.0

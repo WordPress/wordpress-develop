@@ -84,7 +84,7 @@ class BeforeGenerateResultEvent
      * modifications to the cloned event from affecting the original.
      * The model object is not cloned as it is a service object.
      *
-     * @since 0.4.1
+     * @since 0.4.2
      */
     public function __clone()
     {

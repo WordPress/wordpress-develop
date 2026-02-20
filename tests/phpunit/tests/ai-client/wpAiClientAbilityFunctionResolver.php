@@ -13,7 +13,10 @@ use WordPress\AiClient\Messages\DTO\UserMessage;
 use WordPress\AiClient\Tools\DTO\FunctionCall;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 
+require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-test-abilities-trait.php';
+
 class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
+	use WP_AI_Client_Test_Abilities_Trait;
 
 	/**
 	 * Set up before class.
@@ -21,107 +24,22 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		global $wp_current_filter;
+		self::register_test_abilities();
+	}
 
-		// Simulate the init hook for ability categories.
-		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+	/**
+	 * Tear down after class.
+	 */
+	public static function tear_down_after_class() {
+		self::unregister_test_abilities();
 
-		// Register test ability category.
-		wp_register_ability_category(
-			'wpaiclienttests',
-			array(
-				'label'       => 'WP AI Client Tests',
-				'description' => 'Test abilities for WP AI Client.',
-			)
-		);
-
-		array_pop( $wp_current_filter );
-
-		// Simulate the abilities init action.
-		$wp_current_filter[] = 'wp_abilities_api_init';
-
-		// Register test abilities.
-		wp_register_ability(
-			'wpaiclienttests/simple',
-			array(
-				'label'               => 'Simple Test Ability',
-				'description'         => 'A simple test ability with no parameters.',
-				'category'            => 'wpaiclienttests',
-				'execute_callback'    => static function () {
-					return array( 'success' => true );
-				},
-				'permission_callback' => static function () {
-					return true;
-				},
-			)
-		);
-
-		wp_register_ability(
-			'wpaiclienttests/with-params',
-			array(
-				'label'               => 'Test Ability With Parameters',
-				'description'         => 'A test ability that accepts parameters.',
-				'category'            => 'wpaiclienttests',
-				'input_schema'        => array(
-					'type'                 => 'object',
-					'properties'           => array(
-						'title' => array(
-							'type'        => 'string',
-							'description' => 'The title parameter.',
-							'required'    => true,
-						),
-					),
-					'additionalProperties' => false,
-				),
-				'execute_callback'    => static function ( array $input ) {
-					return array(
-						'success' => true,
-						'title'   => $input['title'],
-					);
-				},
-				'permission_callback' => static function () {
-					return true;
-				},
-			)
-		);
-
-		wp_register_ability(
-			'wpaiclienttests/returns-error',
-			array(
-				'label'               => 'Test Ability That Returns Error',
-				'description'         => 'A test ability that returns a WP_Error.',
-				'category'            => 'wpaiclienttests',
-				'execute_callback'    => static function () {
-					return new WP_Error( 'test_error', 'This is a test error message.' );
-				},
-				'permission_callback' => static function () {
-					return true;
-				},
-			)
-		);
-
-		wp_register_ability(
-			'wpaiclienttests/hyphen-test',
-			array(
-				'label'               => 'Test Ability With Hyphens',
-				'description'         => 'A test ability to verify hyphenated names.',
-				'category'            => 'wpaiclienttests',
-				'execute_callback'    => static function () {
-					return array( 'hyphenated' => true );
-				},
-				'permission_callback' => static function () {
-					return true;
-				},
-			)
-		);
-
-		array_pop( $wp_current_filter );
+		parent::tear_down_after_class();
 	}
 
 	/**
 	 * Test that is_ability_call returns true for a valid ability call.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_true_for_valid_ability() {
 		$call = new FunctionCall(
@@ -138,7 +56,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that is_ability_call returns true for a nested namespace.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_true_for_nested_namespace() {
 		$call = new FunctionCall(
@@ -155,7 +73,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that is_ability_call returns false for a non-ability call.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_false_for_non_ability() {
 		$call = new FunctionCall(
@@ -172,7 +90,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that is_ability_call returns false when name is null.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_false_when_name_is_null() {
 		$call = new FunctionCall(
@@ -189,7 +107,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that is_ability_call returns false for partial prefix.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_false_for_partial_prefix() {
 		$call = new FunctionCall(
@@ -206,7 +124,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that execute_ability returns error for non-ability call.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_ability_returns_error_for_non_ability_call() {
 		$call = new FunctionCall(
@@ -231,7 +149,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that execute_ability returns error when ability not found.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_ability_returns_error_when_ability_not_found() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
@@ -258,7 +176,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that execute_ability handles missing id.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_ability_handles_missing_id() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
@@ -278,7 +196,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that has_ability_calls returns true when ability call is present.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_returns_true_when_present() {
 		$call = new FunctionCall(
@@ -302,7 +220,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that has_ability_calls returns false when ability call is not present.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_returns_false_when_not_present() {
 		$call = new FunctionCall(
@@ -326,7 +244,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that has_ability_calls returns false for text-only message.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_returns_false_for_text_only() {
 		$message = new UserMessage(
@@ -343,7 +261,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that has_ability_calls returns true with mixed content.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_returns_true_with_mixed_content() {
 		$regular_call = new FunctionCall(
@@ -374,7 +292,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that has_ability_calls handles empty message.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_with_empty_message() {
 		$message = new ModelMessage( array() );
@@ -387,7 +305,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that execute_abilities handles empty message.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_with_empty_message() {
 		$message = new ModelMessage( array() );
@@ -401,7 +319,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that execute_abilities handles errors gracefully.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_handles_errors_gracefully() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
@@ -433,7 +351,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that execute_abilities returns a UserMessage.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_returns_user_message() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
@@ -458,7 +376,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that execute_abilities processes multiple calls.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_processes_multiple_calls() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
@@ -492,7 +410,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test that execute_abilities only processes function calls.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_only_processes_function_calls() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
@@ -522,7 +440,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test ability_name_to_function_name with simple name.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_ability_name_to_function_name_simple() {
 		$result = WP_AI_Client_Ability_Function_Resolver::ability_name_to_function_name( 'tec/create_event' );
@@ -533,7 +451,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test ability_name_to_function_name with nested namespace.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_ability_name_to_function_name_nested() {
 		$result = WP_AI_Client_Ability_Function_Resolver::ability_name_to_function_name( 'tec/v1/create_event' );
@@ -544,7 +462,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_ability with successful execution.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_ability_success() {
 		$call = new FunctionCall(
@@ -567,7 +485,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_ability with parameters.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_ability_with_parameters() {
 		$call = new FunctionCall(
@@ -592,7 +510,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_ability handles WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_ability_handles_wp_error() {
 		$call = new FunctionCall(
@@ -617,7 +535,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_abilities with successful execution.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_success() {
 		$call = new FunctionCall(
@@ -648,7 +566,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_abilities with multiple successful executions.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_multiple_success() {
 		$call1 = new FunctionCall(
@@ -694,7 +612,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_abilities with mixed text and ability calls.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_with_mixed_content() {
 		$call = new FunctionCall(
@@ -725,7 +643,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_abilities with ability that has parameters.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_execute_abilities_with_parameters() {
 		$call = new FunctionCall(

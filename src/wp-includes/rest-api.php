@@ -430,6 +430,17 @@ function create_initial_rest_routes() {
 	$ai_generate_controller->register_routes();
 	$ai_providers_controller = new WP_REST_AI_V1_Providers_Controller();
 	$ai_providers_controller->register_routes();
+
+	// Icons.
+	$icons_controller = new WP_REST_Icons_Controller();
+	$icons_controller->register_routes();
+
+	// Collaboration.
+	if ( get_option( 'enable_real_time_collaboration' ) ) {
+		$sync_storage = new WP_Sync_Post_Meta_Storage();
+		$sync_server  = new WP_HTTP_Polling_Sync_Server( $sync_storage );
+		$sync_server->register_routes();
+	}
 }
 
 /**

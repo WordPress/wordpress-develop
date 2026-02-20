@@ -89,6 +89,25 @@ class Request extends AbstractDataTransferObject
         $this->options = $options;
     }
     /**
+     * Creates a deep clone of this request.
+     *
+     * Clones the headers collection and request options to ensure
+     * the cloned request is independent of the original.
+     * The HTTP method enum is immutable and can be safely shared.
+     *
+     * @since 0.4.2
+     */
+    public function __clone()
+    {
+        // Clone headers collection
+        $this->headers = clone $this->headers;
+        // Clone request options if present (contains only primitives)
+        if ($this->options !== null) {
+            $this->options = clone $this->options;
+        }
+        // Note: $method is an immutable enum and can be safely shared
+    }
+    /**
      * Gets the HTTP method.
      *
      * @since 0.1.0

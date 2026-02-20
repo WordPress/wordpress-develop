@@ -31,13 +31,16 @@ use WordPress\AiClient\Results\DTO\Candidate;
 use WordPress\AiClient\Results\DTO\GenerativeAiResult;
 use WordPress\AiClient\Results\DTO\TokenUsage;
 use WordPress\AiClient\Results\Enums\FinishReasonEnum;
+use WordPress\AiClient\Builders\PromptBuilder;
 use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 
 require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-mock-model-creation-trait.php';
+require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-test-abilities-trait.php';
 
 class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	use WP_AI_Client_Mock_Model_Creation_Trait;
+	use WP_AI_Client_Test_Abilities_Trait;
 
 	/**
 	 * @var ProviderRegistry
@@ -118,6 +121,24 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Set up before class.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		self::register_test_abilities();
+	}
+
+	/**
+	 * Tear down after class.
+	 */
+	public static function tear_down_after_class() {
+		self::unregister_test_abilities();
+
+		parent::tear_down_after_class();
+	}
+
+	/**
 	 * Set up before each test.
 	 */
 	public function set_up() {
@@ -129,7 +150,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that WP_AI_Client_Prompt_Builder can be instantiated.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_instantiation() {
 		$registry       = AiClient::defaultRegistry();
@@ -141,7 +162,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that WP_AI_Client_Prompt_Builder can be instantiated with initial prompt content.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_instantiation_with_prompt() {
 		$registry       = AiClient::defaultRegistry();
@@ -153,7 +174,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the constructor sets the default request timeout.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_sets_default_request_timeout() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
@@ -168,7 +189,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the constructor allows overriding the default request timeout.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_allows_overriding_request_timeout() {
 		add_filter(
@@ -190,7 +211,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test method chaining with fluent methods.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_method_chaining_returns_decorator() {
 		$registry       = AiClient::defaultRegistry();
@@ -228,7 +249,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test complex method chaining scenario.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_complex_method_chaining() {
 		$registry       = AiClient::defaultRegistry();
@@ -248,7 +269,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that boolean-returning methods do not return the decorator.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_boolean_methods_return_boolean() {
 		$registry       = AiClient::defaultRegistry();
@@ -262,7 +283,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that calling a non-existent method returns WP_Error on termination.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_invalid_method_returns_wp_error() {
 		$registry       = AiClient::defaultRegistry();
@@ -282,7 +303,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the wrapped builder is properly configured with the registry.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_wrapped_builder_has_correct_registry() {
 		$registry       = AiClient::defaultRegistry();
@@ -302,7 +323,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test method chaining with with_history.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_method_chaining_with_history() {
 		$registry       = AiClient::defaultRegistry();
@@ -337,7 +358,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test method chaining with using_model_config.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_method_chaining_with_model_config() {
 		$registry       = AiClient::defaultRegistry();
@@ -353,7 +374,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests constructor with no prompt.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_no_prompt() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -365,7 +386,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests constructor with string prompt.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_string_prompt() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Hello, world!' );
@@ -381,7 +402,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests constructor with MessagePart prompt.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_message_part_prompt() {
 		$part    = new MessagePart( 'Test message' );
@@ -398,7 +419,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests constructor with Message prompt.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_message_prompt() {
 		$message = new UserMessage( array( new MessagePart( 'User message' ) ) );
@@ -414,7 +435,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests constructor with list of Messages.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_messages_list() {
 		$messages = array(
@@ -434,7 +455,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests constructor with MessageArrayShape.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_message_array_shape() {
 		$message_array = array(
@@ -459,7 +480,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withText method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_text() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -477,7 +498,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withText appends to existing user message.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_text_appends_to_existing_user_message() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Initial text' );
@@ -496,7 +517,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withFile method with base64 data.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_inline_file() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -518,7 +539,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withFile method with remote URL.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_remote_file() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -539,7 +560,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withFile with data URI.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_inline_file_data_uri() {
 		$builder  = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -560,7 +581,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withFile with URL without explicit MIME type.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_remote_file_without_mime_type() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -581,7 +602,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withFunctionResponse method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_function_response() {
 		$function_response = new FunctionResponse( 'func_id', 'func_name', array( 'result' => 'data' ) );
@@ -600,7 +621,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withMessageParts method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_message_parts() {
 		$part1 = new MessagePart( 'Part 1' );
@@ -626,7 +647,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests withHistory method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_history() {
 		$history = array(
@@ -652,7 +673,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModel method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model() {
 		$model_config = new ModelConfig();
@@ -672,7 +693,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests constructor with list of string parts.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_string_parts_list() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, array( 'Part 1', 'Part 2', 'Part 3' ) );
@@ -692,7 +713,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests constructor with mixed parts list.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_mixed_parts_list() {
 		$part1       = new MessagePart( 'Part 1' );
@@ -717,7 +738,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests full method chaining.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_method_chaining() {
 		$model = $this->createMock( ModelInterface::class );
@@ -761,7 +782,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelPreference skips unavailable model IDs and falls back.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_preference_skips_unavailable_model_id() {
 		$result            = $this->create_test_result( 'Fallback model result' );
@@ -799,7 +820,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelPreference falls back to discovery when no preferences available.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_preference_falls_back_to_discovery() {
 		$result                   = $this->create_test_result( 'Discovered model result' );
@@ -833,7 +854,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelPreference respects priority order when multiple preferred models are available.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_preference_respects_order_when_multiple_available() {
 		$result                 = $this->create_test_result( 'Second choice result' );
@@ -872,7 +893,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelPreference rejects invalid preference types, returning WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_preference_with_invalid_type_returns_wp_error() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -891,7 +912,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelPreference rejects malformed preference tuples, returning WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_preference_with_invalid_tuple_returns_wp_error() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -915,7 +936,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelPreference rejects empty preference identifiers, returning WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_preference_with_empty_identifier_returns_wp_error() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -934,7 +955,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelPreference rejects calls without preferences, returning WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_preference_without_arguments_returns_wp_error() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -953,7 +974,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelConfig method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_config() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -985,7 +1006,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingModelConfig with custom options.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_model_config_with_custom_options() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1022,7 +1043,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingProvider method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_provider() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1037,7 +1058,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingSystemInstruction method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_system_instruction() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1054,7 +1075,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingMaxTokens method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_max_tokens() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1071,7 +1092,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingTemperature method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_temperature() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1088,7 +1109,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingTopP method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_top_p() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1105,7 +1126,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingTopK method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_top_k() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1122,7 +1143,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingStopSequences method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_stop_sequences() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1141,7 +1162,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests usingCandidateCount method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_candidate_count() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1158,7 +1179,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests asOutputMimeType method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_output_mime() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1175,7 +1196,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests asOutputSchema method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_output_schema() {
 		$schema = array(
@@ -1199,7 +1220,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests asOutputModalities method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_output_modalities() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1222,7 +1243,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests asJsonResponse method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_as_json_response() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1239,7 +1260,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests asJsonResponse with schema.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_as_json_response_with_schema() {
 		$schema  = array( 'type' => 'array' );
@@ -1258,7 +1279,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests validateMessages with empty messages returns WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_validate_messages_empty_returns_wp_error() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1273,7 +1294,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests validateMessages with non-user first message returns WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_validate_messages_non_user_first_returns_wp_error() {
 		$builder = new WP_AI_Client_Prompt_Builder(
@@ -1294,7 +1315,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests validateMessages with non-user last message returns WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_validate_messages_non_user_last_returns_wp_error() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -1330,7 +1351,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * The SDK constructor throws immediately for empty strings, so the exception
 	 * is caught in the constructor and stored.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_parse_message_empty_string_returns_wp_error() {
 		// The empty string exception is thrown by the SDK's PromptBuilder constructor,
@@ -1348,7 +1369,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests parseMessage with empty array returns WP_Error on termination.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_parse_message_empty_array_returns_wp_error() {
 		try {
@@ -1363,7 +1384,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests parseMessage with invalid type returns WP_Error on termination.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_parse_message_invalid_type_returns_wp_error() {
 		try {
@@ -1378,7 +1399,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateResult with text output modality.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_result_with_text_modality() {
 		$result = $this->createMock( GenerativeAiResult::class );
@@ -1398,7 +1419,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateResult with image output modality.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_result_with_image_modality() {
 		$result = new GenerativeAiResult(
@@ -1430,7 +1451,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateResult with audio output modality.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_result_with_audio_modality() {
 		$result = new GenerativeAiResult(
@@ -1462,7 +1483,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateResult with multimodal output.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_result_with_multimodal_output() {
 		$result = new GenerativeAiResult(
@@ -1489,7 +1510,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateResult returns WP_Error when model does not support modality.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_result_returns_wp_error_for_unsupported_modality() {
 		$metadata = $this->createMock( ModelMetadata::class );
@@ -1511,7 +1532,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateResult returns WP_Error for unsupported output modality.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_result_returns_wp_error_for_unsupported_output_modality() {
 		$metadata = $this->createMock( ModelMetadata::class );
@@ -1534,7 +1555,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateTextResult method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_text_result() {
 		$result = new GenerativeAiResult(
@@ -1567,7 +1588,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateImageResult method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_image_result() {
 		$result = new GenerativeAiResult(
@@ -1605,7 +1626,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateText returns WP_Error when no candidates.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_text_returns_wp_error_when_no_candidates() {
 		$metadata = $this->createMock( ModelMetadata::class );
@@ -1629,7 +1650,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateText returns WP_Error when message has no parts.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_text_returns_wp_error_when_no_parts() {
 		$message   = new ModelMessage( array() );
@@ -1661,7 +1682,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateText returns WP_Error when part has no text.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_text_returns_wp_error_when_part_has_no_text() {
 		$file         = new File( 'https://example.com/image.jpg', 'image/jpeg' );
@@ -1695,7 +1716,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateTexts method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_texts() {
 		$candidates = array(
@@ -1745,7 +1766,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateTexts returns WP_Error when no text generated.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_texts_returns_wp_error_when_no_text_generated() {
 		$metadata = $this->createMock( ModelMetadata::class );
@@ -1769,7 +1790,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateImage method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_image() {
 		$file         = new File( 'https://example.com/generated.jpg', 'image/jpeg' );
@@ -1800,7 +1821,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateImage returns WP_Error when no image file.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_image_returns_wp_error_when_no_file() {
 		$message_part = new MessagePart( 'Text instead of image' );
@@ -1833,7 +1854,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateImages method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_images() {
 		$files = array(
@@ -1875,7 +1896,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests convertTextToSpeech method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_convert_text_to_speech() {
 		$file         = new File( 'https://example.com/audio.mp3', 'audio/mp3' );
@@ -1906,7 +1927,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests convertTextToSpeeches method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_convert_text_to_speeches() {
 		$files = array(
@@ -1948,7 +1969,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateSpeech method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_speech() {
 		$file         = new File( 'https://example.com/speech.mp3', 'audio/mp3' );
@@ -1979,7 +2000,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests generateSpeeches method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_speeches() {
 		$files = array(
@@ -2024,7 +2045,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests using_abilities with ability name string.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_ability_with_string() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -2043,7 +2064,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests using_abilities with WP_Ability object.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_ability_with_wp_ability_object() {
 		$ability = wp_get_ability( 'wpaiclienttests/with-params' );
@@ -2069,7 +2090,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests using_abilities with multiple abilities.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_ability_with_multiple_abilities() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -2093,7 +2114,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests using_abilities skips non-existent abilities.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
+	 *
+	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::using_abilities
 	 */
 	public function test_using_ability_skips_nonexistent_abilities() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
@@ -2118,7 +2141,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests using_abilities with empty arguments returns self.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_ability_with_no_arguments_returns_self() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -2134,7 +2157,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests using_abilities with mixed strings and WP_Ability objects.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_ability_with_mixed_types() {
 		$ability = wp_get_ability( 'wpaiclienttests/with-params' );
@@ -2158,7 +2181,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests using_abilities with hyphenated ability name.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_ability_with_hyphenated_name() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -2176,7 +2199,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests using_abilities can be chained with other methods.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_using_ability_method_chaining() {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
@@ -2204,7 +2227,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests that is_supported returns false when prevent prompt filter returns true.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_supported_returns_false_when_filter_prevents_prompt() {
 		add_filter( 'wp_ai_client_prevent_prompt', '__return_true' );
@@ -2217,7 +2240,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests that generate_result returns WP_Error when prevent prompt filter returns true.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generate_result_returns_wp_error_when_filter_prevents_prompt() {
 		add_filter( 'wp_ai_client_prevent_prompt', '__return_true' );
@@ -2234,7 +2257,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests that prevent prompt filter receives a clone of the builder instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_prevent_prompt_filter_receives_cloned_builder_instance() {
 		$captured_builder = null;
@@ -2267,7 +2290,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests that once in error state, subsequent fluent calls return the same instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_error_state_fluent_calls_return_same_instance() {
 		$registry       = AiClient::defaultRegistry();
@@ -2286,7 +2309,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests that support check methods return false when in error state.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_support_check_methods_return_false_in_error_state() {
 		$registry       = AiClient::defaultRegistry();
@@ -2302,7 +2325,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests that generating methods return WP_Error when in error state.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_generating_methods_return_wp_error_in_error_state() {
 		$registry       = AiClient::defaultRegistry();
@@ -2319,7 +2342,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests that exception in terminating method is caught and returned as WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_exception_in_terminating_method_caught_and_returned() {
 		$registry       = AiClient::defaultRegistry();
@@ -2339,7 +2362,56 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests that exception in chained method is caught and returned by the terminating method as WP_Error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
+	 */
+	/**
+	 * Tests that every public method on the SDK PromptBuilder has a resolvable snake_case equivalent.
+	 *
+	 * @ticket 64591
+	 *
+	 * @dataProvider data_sdk_public_methods
+	 *
+	 * @param string $snake_case The snake_case method name.
+	 * @param string $camel_case The original camelCase method name.
+	 */
+	public function test_snake_case_resolves_to_sdk_method( string $snake_case, string $camel_case ) {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
+
+		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$method     = $reflection->getMethod( 'get_builder_callable' );
+		self::set_accessible( $method );
+
+		$callable = $method->invoke( $builder, $snake_case );
+		$this->assertIsCallable( $callable, sprintf( 'snake_case method "%s" should resolve to SDK method "%s"', $snake_case, $camel_case ) );
+	}
+
+	/**
+	 * Data provider for test_snake_case_resolves_to_sdk_method.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_sdk_public_methods(): array {
+		$reflection = new ReflectionClass( PromptBuilder::class );
+		$data       = array();
+
+		foreach ( $reflection->getMethods( ReflectionMethod::IS_PUBLIC ) as $method ) {
+			if ( $method->isConstructor() || PromptBuilder::class !== $method->class || str_starts_with( $method->getName(), '__' ) ) {
+				continue;
+			}
+
+			$camel_case = $method->getName();
+			$snake_case = strtolower( preg_replace( '/[A-Z]/', '_$0', $camel_case ) );
+
+			$data[ $snake_case ] = array( $snake_case, $camel_case );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Tests that exception in chained method is caught and returned by the terminating method as WP_Error.
+	 *
+	 * @ticket 64591
 	 */
 	public function test_exception_in_chained_method_caught_and_returned_by_terminating_method() {
 		$registry       = AiClient::defaultRegistry();
