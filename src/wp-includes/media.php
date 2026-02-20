@@ -6584,9 +6584,21 @@ function wp_override_media_templates(): void {
 				if ( 'text/html' !== $script_processor->get_attribute( 'type' ) ) {
 					continue;
 				}
+				/*
+				 * Unlike wp_add_crossorigin_attributes(), this does not check whether
+				 * URLs are actually cross-origin. Media templates use Underscore.js
+				 * template expressions (e.g. {{ data.url }}) as placeholder URLs,
+				 * so actual URLs are not available at parse time.
+				 * The crossorigin attribute is added unconditionally to all relevant
+				 * media tags to ensure cross-origin isolation works regardless of
+				 * the final URL value at render time.
+				 */
 				$template_processor = new WP_HTML_Tag_Processor( $script_processor->get_modifiable_text() );
 				while ( $template_processor->next_tag() ) {
-					if ( in_array( $template_processor->get_tag(), array( 'AUDIO', 'IMG', 'VIDEO' ), true ) ) {
+					if (
+						in_array( $template_processor->get_tag(), array( 'AUDIO', 'IMG', 'VIDEO' ), true )
+						&& ! is_string( $template_processor->get_attribute( 'crossorigin' ) )
+					) {
 						$template_processor->set_attribute( 'crossorigin', 'anonymous' );
 					}
 				}
