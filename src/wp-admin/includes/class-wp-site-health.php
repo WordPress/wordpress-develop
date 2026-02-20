@@ -3473,7 +3473,7 @@ class WP_Site_Health {
 	 * @since 6.1.0
 	 *
 	 * @return array<string, ?callable> Mapping of page caching headers and their (optional) verification callbacks.
-	                                    A null value means a simple existence check is used for the header.
+	 *                                  A null value means a simple existence check is used for the header.
 	 */
 	public function get_page_cache_headers(): array {
 
