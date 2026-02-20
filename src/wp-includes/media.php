@@ -6479,19 +6479,19 @@ function wp_add_crossorigin_attributes( string $html ): string {
 	$processor = new WP_HTML_Tag_Processor( $html );
 
 	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin.
-	$tags = array(
-		'AUDIO'  => 'src',
-		'IMG'    => 'src',
-		'LINK'   => 'href',
-		'SCRIPT' => 'src',
-		'VIDEO'  => 'src',
-		'SOURCE' => 'src',
+	$cross_origin_tag_attributes = array(
+		'AUDIO'  => array( 'src' => false ),
+		'IMG'    => array( 'src' => false, 'srcset' => true ),
+		'LINK'   => array( 'href' => false ),
+		'SCRIPT' => array( 'src' => false ),
+		'VIDEO'  => array( 'src' => false ),
+		'SOURCE' => array( 'src' => false ),
 	);
 
 	while ( $processor->next_tag() ) {
 		$tag = $processor->get_tag();
 
-		if ( ! isset( $tags[ $tag ] ) ) {
+		if ( ! isset( $cross_origin_tag_attributes[ $tag ] ) ) {
 			continue;
 		}
 
@@ -6505,20 +6505,29 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 		$crossorigin = $processor->get_attribute( 'crossorigin' );
 
-		$url             = $processor->get_attribute( $tags[ $tag ] );
-		$is_cross_origin = is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' );
+		$is_cross_origin = false;
 
-		// For IMG tags, also check srcset for cross-origin URLs.
-		if ( ! $is_cross_origin && 'IMG' === $tag ) {
-			$srcset = $processor->get_attribute( 'srcset' );
-			if ( is_string( $srcset ) ) {
-				foreach ( explode( ',', $srcset ) as $candidate ) {
-					$candidate_url = strtok( trim( $candidate ), ' ' );
-					if ( is_string( $candidate_url ) && '' !== $candidate_url && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
-						$is_cross_origin = true;
-						break;
+		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr => $is_srcset ) {
+			if ( $is_srcset ) {
+				$srcset = $processor->get_attribute( $attr );
+				if ( is_string( $srcset ) ) {
+					foreach ( explode( ',', $srcset ) as $candidate ) {
+						$candidate_url = strtok( trim( $candidate ), ' ' );
+						if ( is_string( $candidate_url ) && '' !== $candidate_url && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
+							$is_cross_origin = true;
+							break;
+						}
 					}
 				}
+			} else {
+				$url = $processor->get_attribute( $attr );
+				if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
+					$is_cross_origin = true;
+				}
+			}
+
+			if ( $is_cross_origin ) {
+				break;
 			}
 		}
 
