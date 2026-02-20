@@ -72,7 +72,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * Gets the list of CSS classes for the table tag.
 	 *
-	 * @return array The list of CSS classes.
+	 * @return string[] The list of CSS classes.
 	 */
 	protected function get_table_classes() {
 		// @todo Remove and add CSS for .themes.
@@ -96,7 +96,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Prepares the themes list for display.
 	 *
 	 * @global string $status  The current theme status.
-	 * @global array  $totals  An array of theme counts for each status.
+	 * @global array<string, int> $totals An array of theme counts for each status.
 	 * @global int    $page    The current page number.
 	 * @global string $orderby The column to order the themes list by.
 	 * @global string $order   The order of the themes list (ASC or DESC).
@@ -303,8 +303,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @global string $orderby The column to order the themes list by.
 	 * @global string $order   The order of the themes list (ASC or DESC).
 	 *
-	 * @param array $theme_a The first theme to compare.
-	 * @param array $theme_b The second theme to compare.
+	 * @param array<string, mixed> $theme_a The first theme to compare.
+	 * @param array<string, mixed> $theme_b The second theme to compare.
 	 * @return int 0 if equal, -1 if the first is less than the second, 1 if more.
 	 */
 	public function _order_callback( $theme_a, $theme_b ) {
@@ -351,7 +351,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * Gets the list of sortable columns for the list table.
 	 *
-	 * @return array The list of sortable columns.
+	 * @return array<string, array<int, mixed>> An array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 		return array(
@@ -376,7 +376,10 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @global array  $totals An array of theme counts for each status.
 	 * @global string $status The current theme status.
 	 *
-	 * @return array The list of views.
+	 * @global array<string, int> $totals An array of theme counts for each status.
+	 * @global string             $status The current theme status.
+	 *
+	 * @return array<string, string> The list of views.
 	 */
 	protected function get_views() {
 		global $totals, $status;
@@ -474,7 +477,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @global string $status The current theme status.
 	 *
-	 * @return array The list of bulk actions.
+	 * @return array<string, string> The list of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		global $status;
@@ -710,8 +713,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @global string $status The current theme status.
-	 * @global array  $totals An array of theme counts for each status.
+	 * @global string             $status The current theme status.
+	 * @global array<string, int> $totals An array of theme counts for each status.
 	 *
 	 * @param WP_Theme $theme The current WP_Theme object.
 	 */
@@ -1002,8 +1005,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * Handles the output for a single table row.
 	 *
-	 * @global string $status The current theme status.
-	 * @global array  $totals An array of theme counts for each status.
+	 * @global string             $status The current theme status.
+	 * @global array<string, int> $totals An array of theme counts for each status.
 	 *
 	 * @param WP_Theme $theme The current WP_Theme object.
 	 */
