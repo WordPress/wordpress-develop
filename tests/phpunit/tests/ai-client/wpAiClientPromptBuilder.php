@@ -31,6 +31,7 @@ use WordPress\AiClient\Results\DTO\Candidate;
 use WordPress\AiClient\Results\DTO\GenerativeAiResult;
 use WordPress\AiClient\Results\DTO\TokenUsage;
 use WordPress\AiClient\Results\Enums\FinishReasonEnum;
+use WordPress\AiClient\Builders\PromptBuilder;
 use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 
@@ -2334,6 +2335,55 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertIsArray( $error_data );
 		$this->assertArrayHasKey( 'exception_class', $error_data );
 		$this->assertNotEmpty( $error_data['exception_class'] );
+	}
+
+	/**
+	 * Tests that exception in chained method is caught and returned by the terminating method as WP_Error.
+	 *
+	 * @ticket TBD
+	 */
+	/**
+	 * Tests that every public method on the SDK PromptBuilder has a resolvable snake_case equivalent.
+	 *
+	 * @ticket TBD
+	 *
+	 * @dataProvider data_sdk_public_methods
+	 *
+	 * @param string $snake_case The snake_case method name.
+	 * @param string $camel_case The original camelCase method name.
+	 */
+	public function test_snake_case_resolves_to_sdk_method( string $snake_case, string $camel_case ) {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
+
+		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$method     = $reflection->getMethod( 'get_builder_callable' );
+		self::set_accessible( $method );
+
+		$callable = $method->invoke( $builder, $snake_case );
+		$this->assertIsCallable( $callable, sprintf( 'snake_case method "%s" should resolve to SDK method "%s"', $snake_case, $camel_case ) );
+	}
+
+	/**
+	 * Data provider for test_snake_case_resolves_to_sdk_method.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_sdk_public_methods(): array {
+		$reflection = new ReflectionClass( PromptBuilder::class );
+		$data       = array();
+
+		foreach ( $reflection->getMethods( ReflectionMethod::IS_PUBLIC ) as $method ) {
+			if ( $method->isConstructor() || $method->class !== PromptBuilder::class ) {
+				continue;
+			}
+
+			$camel_case = $method->getName();
+			$snake_case = strtolower( preg_replace( '/[A-Z]/', '_$0', $camel_case ) );
+
+			$data[ $snake_case ] = array( $snake_case, $camel_case );
+		}
+
+		return $data;
 	}
 
 	/**
