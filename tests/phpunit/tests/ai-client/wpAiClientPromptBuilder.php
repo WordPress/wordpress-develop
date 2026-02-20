@@ -2115,6 +2115,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * Tests using_abilities skips non-existent abilities.
 	 *
 	 * @ticket 64591
+	 *
+	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::using_abilities
 	 */
 	public function test_using_ability_skips_nonexistent_abilities() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );

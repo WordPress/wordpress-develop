@@ -201,9 +201,23 @@ class WP_AI_Client_Prompt_Builder {
 
 		foreach ( $abilities as $ability ) {
 			if ( is_string( $ability ) ) {
-				$ability = wp_get_ability( $ability );
+				$ability_name = $ability;
+				$ability      = wp_get_ability( $ability );
+				if ( ! $ability ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: string value of the ability name. */
+							__( 'The ability %s was not found.' ),
+							'<code>' . esc_html( $ability_name ) . '</code>'
+						),
+						'7.0.0'
+					);
+					continue;
+				}
 			}
 
+			// This is only here as a sanity check, the method signature should ensure this already.
 			if ( ! $ability instanceof WP_Ability ) {
 				continue;
 			}
