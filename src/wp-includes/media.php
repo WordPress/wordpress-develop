@@ -6577,23 +6577,21 @@ function wp_override_media_templates() {
 			 * Extract each script block's content, process it separately,
 			 * then reassemble the full output.
 			 */
-			$html = (string) preg_replace_callback(
-				'#(<script\b[^>]*>)(.*?)(</script>)#s',
-				static function ( $matches ) {
-					$processor = new WP_HTML_Tag_Processor( $matches[2] );
-
-					while ( $processor->next_tag() ) {
-						if ( in_array( $processor->get_tag(), array( 'AUDIO', 'IMG', 'VIDEO' ), true ) ) {
-							$processor->set_attribute( 'crossorigin', 'anonymous' );
-						}
+			$script_processor = new WP_HTML_Tag_Processor( $html );
+			while ( $script_processor->next_tag( 'SCRIPT' ) ) {
+				if ( 'text/html' !== $script_processor->get_attribute( 'type' ) ) {
+					continue;
+				}
+				$template_processor = new WP_HTML_Tag_Processor( $script_processor->get_modifiable_text() );
+				while ( $template_processor->next_tag() ) {
+					if ( in_array( $template_processor->get_tag(), array( 'AUDIO', 'IMG', 'VIDEO' ), true ) ) {
+						$template_processor->set_attribute( 'crossorigin', 'anonymous' );
 					}
+				}
+				$script_processor->set_modifiable_text( $template_processor->get_updated_html() );
+			}
 
-					return $matches[1] . $processor->get_updated_html() . $matches[3];
-				},
-				$html
-			);
-
-			echo $html;
+			echo $script_processor->get_updated_html();
 		}
 	);
 }
