@@ -320,10 +320,12 @@ class WP_Styles extends WP_Dependencies {
 				$source_url = rawurlencode( "{$handle}-inline-css" );
 			}
 
-			$output[] = sprintf(
-				'/*# sourceURL=%s */',
-				$source_url
-			);
+			if ( SCRIPT_DEBUG ) {
+				$output[] = sprintf(
+					'/*# sourceURL=%s */',
+					$source_url
+				);
+			}
 		}
 
 		$output = implode( "\n", $output );

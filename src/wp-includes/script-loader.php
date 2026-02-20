@@ -2229,7 +2229,7 @@ function _print_scripts() {
 		if ( ! empty( $wp_scripts->print_code ) ) {
 			echo "\n<script>\n";
 			echo $wp_scripts->print_code;
-			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
+			echo SCRIPT_DEBUG ? sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) ) : '';
 			echo "</script>\n";
 		}
 
@@ -2434,7 +2434,7 @@ function _print_styles() {
 			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
 			$processor->next_tag();
 			$style_tag_contents = "\n{$wp_styles->print_code}\n"
-				. sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) );
+				. ( SCRIPT_DEBUG ? sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) ) : '' );
 			$processor->set_modifiable_text( $style_tag_contents );
 			echo "{$processor->get_updated_html()}\n";
 		}

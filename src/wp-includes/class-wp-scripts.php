@@ -233,7 +233,7 @@ class WP_Scripts extends WP_Dependencies {
 		 * The line-based sourceURL comments may break concatenated scripts
 		 * and do not make sense when multiple scripts are joined together.
 		 */
-		if ( ! $this->do_concat ) {
+		if ( ! $this->do_concat && SCRIPT_DEBUG ) {
 			$output .= sprintf(
 				"\n//# sourceURL=%s",
 				rawurlencode( "{$handle}-js-extra" )
@@ -362,7 +362,7 @@ class WP_Scripts extends WP_Dependencies {
 			 * Include the sourceURL comment here as it would be when printed directly.
 			 */
 			$source_url    = rawurlencode( "{$handle}-js-translations" );
-			$translations .= "\n//# sourceURL={$source_url}";
+			$translations .= SCRIPT_DEBUG ? "\n//# sourceURL={$source_url}" : '';
 			$translations  = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
@@ -569,10 +569,12 @@ class WP_Scripts extends WP_Dependencies {
 		 * Inline scripts prevent scripts from being concatenated, so
 		 * sourceURL comments are safe to print for inline scripts.
 		 */
-		$data[] = sprintf(
-			'//# sourceURL=%s',
-			rawurlencode( "{$handle}-js-{$position}" )
-		);
+		if ( SCRIPT_DEBUG ) {
+			$data[] = sprintf(
+				'//# sourceURL=%s',
+				rawurlencode( "{$handle}-js-{$position}" )
+			);
+		}
 
 		return trim( implode( "\n", $data ), "\n" );
 	}
@@ -756,7 +758,7 @@ JS;
 
 		if ( $display ) {
 			$source_url = rawurlencode( "{$handle}-js-translations" );
-			$output    .= "\n//# sourceURL={$source_url}";
+			$output    .= SCRIPT_DEBUG ? "\n//# sourceURL={$source_url}" : '';
 			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-translations" ) );
 		}
 

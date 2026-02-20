@@ -662,7 +662,7 @@ add_filter( 'walker_nav_menu_start_el', 'twentytwenty_nav_menu_social_icons', 10
  */
 function twentytwenty_no_js_class() {
 	$js  = "document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );";
-	$js .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
+	$js .= SCRIPT_DEBUG ? "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) : '';
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
 		wp_print_inline_script_tag( $js );

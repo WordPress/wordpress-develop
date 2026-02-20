@@ -367,7 +367,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	public function the_script() {
 		$path = 'assets/js/dark-mode-toggler.js';
 		$js   = rtrim( file_get_contents( trailingslashit( get_template_directory() ) . $path ) );
-		$js  .= "\n//# sourceURL=" . esc_url_raw( trailingslashit( get_template_directory_uri() ) . $path );
+		$js  .= SCRIPT_DEBUG ? "\n//# sourceURL=" . esc_url_raw( trailingslashit( get_template_directory_uri() ) . $path ) : '';
 		if ( function_exists( 'wp_print_inline_script_tag' ) ) {
 			wp_print_inline_script_tag( $js );
 		} else {

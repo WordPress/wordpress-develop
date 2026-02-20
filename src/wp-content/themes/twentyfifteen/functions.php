@@ -413,7 +413,7 @@ endif;
  */
 function twentyfifteen_javascript_detection() {
 	$js  = "(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);";
-	$js .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
+	$js .= SCRIPT_DEBUG ? "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) : '';
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
 		wp_print_inline_script_tag( $js );
