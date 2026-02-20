@@ -13,7 +13,10 @@ use WordPress\AiClient\Messages\DTO\UserMessage;
 use WordPress\AiClient\Tools\DTO\FunctionCall;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 
+require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-test-abilities-trait.php';
+
 class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
+	use WP_AI_Client_Test_Abilities_Trait;
 
 	/**
 	 * Set up before class.
@@ -21,101 +24,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		global $wp_current_filter;
-
-		// Simulate the init hook for ability categories.
-		$wp_current_filter[] = 'wp_abilities_api_categories_init';
-
-		// Register test ability category.
-		wp_register_ability_category(
-			'wpaiclienttests',
-			array(
-				'label'       => 'WP AI Client Tests',
-				'description' => 'Test abilities for WP AI Client.',
-			)
-		);
-
-		array_pop( $wp_current_filter );
-
-		// Simulate the abilities init action.
-		$wp_current_filter[] = 'wp_abilities_api_init';
-
-		// Register test abilities.
-		wp_register_ability(
-			'wpaiclienttests/simple',
-			array(
-				'label'               => 'Simple Test Ability',
-				'description'         => 'A simple test ability with no parameters.',
-				'category'            => 'wpaiclienttests',
-				'execute_callback'    => static function () {
-					return array( 'success' => true );
-				},
-				'permission_callback' => static function () {
-					return true;
-				},
-			)
-		);
-
-		wp_register_ability(
-			'wpaiclienttests/with-params',
-			array(
-				'label'               => 'Test Ability With Parameters',
-				'description'         => 'A test ability that accepts parameters.',
-				'category'            => 'wpaiclienttests',
-				'input_schema'        => array(
-					'type'                 => 'object',
-					'properties'           => array(
-						'title' => array(
-							'type'        => 'string',
-							'description' => 'The title parameter.',
-							'required'    => true,
-						),
-					),
-					'additionalProperties' => false,
-				),
-				'execute_callback'    => static function ( array $input ) {
-					return array(
-						'success' => true,
-						'title'   => $input['title'],
-					);
-				},
-				'permission_callback' => static function () {
-					return true;
-				},
-			)
-		);
-
-		wp_register_ability(
-			'wpaiclienttests/returns-error',
-			array(
-				'label'               => 'Test Ability That Returns Error',
-				'description'         => 'A test ability that returns a WP_Error.',
-				'category'            => 'wpaiclienttests',
-				'execute_callback'    => static function () {
-					return new WP_Error( 'test_error', 'This is a test error message.' );
-				},
-				'permission_callback' => static function () {
-					return true;
-				},
-			)
-		);
-
-		wp_register_ability(
-			'wpaiclienttests/hyphen-test',
-			array(
-				'label'               => 'Test Ability With Hyphens',
-				'description'         => 'A test ability to verify hyphenated names.',
-				'category'            => 'wpaiclienttests',
-				'execute_callback'    => static function () {
-					return array( 'hyphenated' => true );
-				},
-				'permission_callback' => static function () {
-					return true;
-				},
-			)
-		);
-
-		array_pop( $wp_current_filter );
+		self::register_test_abilities();
 	}
 
 	/**

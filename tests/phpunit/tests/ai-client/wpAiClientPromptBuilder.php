@@ -36,9 +36,11 @@ use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 
 require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-mock-model-creation-trait.php';
+require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-test-abilities-trait.php';
 
 class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	use WP_AI_Client_Mock_Model_Creation_Trait;
+	use WP_AI_Client_Test_Abilities_Trait;
 
 	/**
 	 * @var ProviderRegistry
@@ -116,6 +118,15 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 		return $config->getFunctionDeclarations();
+	}
+
+	/**
+	 * Set up before class.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		self::register_test_abilities();
 	}
 
 	/**
