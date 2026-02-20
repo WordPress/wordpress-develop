@@ -164,7 +164,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '3387314841fce4701703'
+    'version' => 'd4a7a4c45e27efc784fd'
   ),
   'core-abilities/index.min.js' => array(
     'dependencies' => array(
@@ -308,6 +308,6 @@
         'import' => 'static'
       )
     ),
-    'version' => '6d698085ae8b4172ba97'
+    'version' => 'fcc73952f871fd953358'
   )
 );
