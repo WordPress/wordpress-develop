@@ -62,7 +62,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 				$function_id,
 				$function_name,
 				array(
-					'error' => 'Not an ability function call',
+					'error' => __( 'Not an ability function call' ),
 					'code'  => 'invalid_ability_call',
 				)
 			);
@@ -76,7 +76,8 @@ class WP_AI_Client_Ability_Function_Resolver {
 				$function_id,
 				$function_name,
 				array(
-					'error' => sprintf( 'Ability "%s" not found', $ability_name ),
+					/* translators: %s: ability name */
+					'error' => sprintf( __( 'Ability "%s" not found' ), $ability_name ),
 					'code'  => 'ability_not_found',
 				)
 			);
