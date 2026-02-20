@@ -6482,9 +6482,9 @@ function wp_add_crossorigin_attributes( string $html ): string {
 	$cross_origin_tag_attributes = array(
 		'AUDIO'  => array( 'src' => false ),
 		'IMG'    => array( 'src' => false, 'srcset' => true ),
-		'LINK'   => array( 'href' => false ),
+		'LINK'   => array( 'href' => false, 'imagesrcset' => true ),
 		'SCRIPT' => array( 'src' => false ),
-		'VIDEO'  => array( 'src' => false ),
+		'VIDEO'  => array( 'src' => false, 'poster' => false ),
 		'SOURCE' => array( 'src' => false ),
 	);
 
