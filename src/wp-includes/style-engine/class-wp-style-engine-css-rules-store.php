@@ -13,6 +13,8 @@
  * Holds, sanitizes, processes, and prints CSS declarations for the style engine.
  *
  * @since 6.1.0
+ *
+ * @phpstan-consistent-constructor
  */
 #[AllowDynamicProperties]
 class WP_Style_Engine_CSS_Rules_Store {
@@ -56,7 +58,6 @@ class WP_Style_Engine_CSS_Rules_Store {
 			return;
 		}
 		if ( ! isset( static::$stores[ $store_name ] ) ) {
-			// @phpstan-ignore new.static (In PHPStan 2.x we can enforce with `@phpstan-consistent-constructor`)
 			static::$stores[ $store_name ] = new static();
 			// Set the store name.
 			static::$stores[ $store_name ]->set_name( $store_name );

@@ -2886,6 +2886,18 @@ function register_initial_settings() {
 	);
 
 	register_setting(
+		'writing',
+		'enable_real_time_collaboration',
+		array(
+			'type'              => 'boolean',
+			'description'       => __( 'Enable Real-Time Collaboration' ),
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => true,
+			'show_in_rest'      => true,
+		)
+	);
+
+	register_setting(
 		'reading',
 		'posts_per_page',
 		array(

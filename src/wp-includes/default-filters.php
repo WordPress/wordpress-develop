@@ -623,6 +623,7 @@ add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_block_directory_as
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_format_library_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_block_editor_script_modules' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_global_styles_css_custom_properties' );
+add_action( 'enqueue_block_editor_assets', '_wp_enqueue_auto_register_blocks' );
 add_action( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );
 add_action( 'customize_controls_print_styles', 'wp_resource_hints', 1 );
@@ -784,6 +785,9 @@ add_action( 'wp_head', 'wp_print_font_faces', 50 );
 add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
+
+// Collaboration.
+add_action( 'admin_init', 'wp_collaboration_inject_setting' );
 
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );

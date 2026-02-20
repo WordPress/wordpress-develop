@@ -5,8 +5,9 @@
 # https://phpstan.org/config-reference
 
 includes:
-	# The WordPress Core configuration file includes the base configuration for the WordPress codebase.
+	# The base configuration file for using PHPStan with the WordPress core codebase.
 	- tests/phpstan/base.neon
+
 	# The baseline file includes preexisting errors in the codebase that should be ignored.
 	# https://phpstan.org/user-guide/baseline
 
@@ -19,12 +20,13 @@ includes:
 	- tests/phpstan/baseline/level-6.php
 
 parameters:
+	# https://phpstan.org/user-guide/rule-levels
 	level: 6
 	reportUnmatchedIgnoredErrors: true
 
 	ignoreErrors:
 		# Level 0:
-		- # Inner functions arent supported by PHPstan.
+		- # Inner functions aren't supported by PHPStan.
 			message: '#Function wxr_[a-z_]+ not found#'
 			path: src/wp-admin/includes/export.php
 		-
