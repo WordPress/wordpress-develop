@@ -372,7 +372,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$this->assertSame( 0, (int) $index_exists_before, 'The meta_key_id index should not exist before upgrade.' );
 
 		// Simulate an old database version.
-		$original_db_version = $wp_current_db_version;
+		$original_db_version   = $wp_current_db_version;
 		$wp_current_db_version = 61696;
 
 		// Run the upgrade function.
