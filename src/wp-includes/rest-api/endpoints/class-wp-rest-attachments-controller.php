@@ -1910,7 +1910,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param int $attachment_id Attachment ID.
 	 * @return string|null Attachment file name, or null if not found.
 	 */
-	protected function get_attachment_filename( $attachment_id ): ?string {
+	protected function get_attachment_filename( int $attachment_id ): ?string {
 		$path = wp_get_original_image_path( $attachment_id );
 
 		if ( $path ) {
@@ -1934,7 +1934,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param int $attachment_id Attachment ID.
 	 * @return int|null Attachment file size in bytes, or null if not available.
 	 */
-	protected function get_attachment_filesize( $attachment_id ): ?int {
+	protected function get_attachment_filesize( int $attachment_id ): ?int {
 		$meta = wp_get_attachment_metadata( $attachment_id );
 
 		if ( isset( $meta['filesize'] ) ) {
@@ -2023,7 +2023,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		// Matches logic in media_handle_upload().
 		// The post date doesn't usually matter for pages, so don't backdate this upload.
-		if ( $parent_post && 'page' !== $parent_post->post_type && substr( $parent_post->post_date, 0, 4 ) > 0 ) {
+		if ( $parent_post && 'page' !== $parent_post->post_type && ! str_starts_with( $parent_post->post_date, '0000-00-00' ) ) {
 			$time = $parent_post->post_date;
 		}
 

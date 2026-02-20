@@ -6370,7 +6370,7 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
  *
  * @return bool Whether client-side media processing is enabled.
  */
-function wp_is_client_side_media_processing_enabled() {
+function wp_is_client_side_media_processing_enabled(): bool {
 	/**
 	 * Filters whether client-side media processing is enabled.
 	 *
@@ -6378,7 +6378,7 @@ function wp_is_client_side_media_processing_enabled() {
 	 *
 	 * @param bool $enabled Whether client-side media processing is enabled. Default true.
 	 */
-	return apply_filters( 'wp_client_side_media_processing_enabled', true );
+	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', true );
 }
 
 /**
@@ -6386,7 +6386,7 @@ function wp_is_client_side_media_processing_enabled() {
  *
  * @since 7.0.0
  */
-function wp_set_client_side_media_processing_flag() {
+function wp_set_client_side_media_processing_flag(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
 		return;
 	}
@@ -6415,7 +6415,7 @@ function wp_set_client_side_media_processing_flag() {
  *
  * @link https://web.dev/coop-coep/
  */
-function wp_set_up_cross_origin_isolation() {
+function wp_set_up_cross_origin_isolation(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
 		return;
 	}
@@ -6450,7 +6450,7 @@ function wp_set_up_cross_origin_isolation() {
  *
  * @global bool $is_safari
  */
-function wp_start_cross_origin_isolation_output_buffer() {
+function wp_start_cross_origin_isolation_output_buffer(): void {
 	global $is_safari;
 
 	$coep = $is_safari ? 'require-corp' : 'credentialless';
@@ -6505,7 +6505,7 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 		$crossorigin = $processor->get_attribute( 'crossorigin' );
 
-		$url            = $processor->get_attribute( $tags[ $tag ] );
+		$url             = $processor->get_attribute( $tags[ $tag ] );
 		$is_cross_origin = is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' );
 
 		// For IMG tags, also check srcset for cross-origin URLs.
@@ -6573,7 +6573,7 @@ function wp_filter_mod_rewrite_rules_for_wasm( string $rules ): string {
  *
  * @since 7.0.0
  */
-function wp_override_media_templates() {
+function wp_override_media_templates(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
 		return;
 	}

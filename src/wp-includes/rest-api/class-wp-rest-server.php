@@ -1371,15 +1371,10 @@ class WP_REST_Server {
 		// Add media processing settings for users who can upload files.
 		if ( wp_is_client_side_media_processing_enabled() && current_user_can( 'upload_files' ) ) {
 			// Image sizes keyed by name for client-side media processing.
-			$image_sizes = array();
+			$available['image_sizes'] = array();
 			foreach ( wp_get_registered_image_subsizes() as $name => $size ) {
-				$image_sizes[ $name ] = array(
-					'height' => (int) $size['height'],
-					'width'  => (int) $size['width'],
-					'crop'   => (bool) $size['crop'],
-				);
+				$available['image_sizes'][ $name ] = $size;
 			}
-			$available['image_sizes'] = (object) $image_sizes;
 
 			/** This filter is documented in wp-admin/includes/image.php */
 			$available['image_size_threshold'] = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
