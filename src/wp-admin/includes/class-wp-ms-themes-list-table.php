@@ -373,9 +373,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * Gets the list of views (statuses) for the list table.
 	 *
-	 * @global array  $totals An array of theme counts for each status.
-	 * @global string $status The current theme status.
-	 *
 	 * @global array<string, int> $totals An array of theme counts for each status.
 	 * @global string             $status The current theme status.
 	 *
