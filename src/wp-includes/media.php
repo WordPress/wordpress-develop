@@ -6505,9 +6505,24 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 		$crossorigin = $processor->get_attribute( 'crossorigin' );
 
-		$url = $processor->get_attribute( $tags[ $tag ] );
+		$url            = $processor->get_attribute( $tags[ $tag ] );
+		$is_cross_origin = is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' );
 
-		if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) && ! is_string( $crossorigin ) ) {
+		// For IMG tags, also check srcset for cross-origin URLs.
+		if ( ! $is_cross_origin && 'IMG' === $tag ) {
+			$srcset = $processor->get_attribute( 'srcset' );
+			if ( is_string( $srcset ) ) {
+				foreach ( explode( ',', $srcset ) as $candidate ) {
+					$candidate_url = strtok( trim( $candidate ), ' ' );
+					if ( is_string( $candidate_url ) && '' !== $candidate_url && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
+						$is_cross_origin = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if ( $is_cross_origin && ! is_string( $crossorigin ) ) {
 			if ( 'SOURCE' === $tag ) {
 				$sought = $processor->seek( 'audio-video-parent' );
 
