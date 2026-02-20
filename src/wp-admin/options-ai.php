@@ -19,7 +19,6 @@ $title       = __( 'AI Services Settings' );
 $parent_file = 'options-general.php';
 
 $credentials_manager = $GLOBALS['wp_ai_client_credentials_manager'];
-$credentials_manager->register_settings();
 
 $cloud_providers = $credentials_manager->get_all_cloud_providers_metadata();
 
