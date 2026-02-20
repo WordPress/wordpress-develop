@@ -3577,9 +3577,19 @@ class WP_Site_Health {
 		/**
 		 * Filters the list of cache headers supported by core.
 		 *
+		 * This list indicates how each of the specified headers will be checked to indicate if a page cache is enabled
+		 * or not. WordPress checks for each of the headers in the returned array. If the callback is provided, it will
+		 * be passed the value for the corresponding header and return a boolean value indicating if the header suggests
+		 * that a cache is active. If the value is `null` for the header, then WordPress will assume that a cache is
+		 * active if the header is present, regardless of its value.
+		 *
 		 * @since 6.1.0
 		 *
-		 * @param array<string, ?callable> $cache_headers Mapping of page caching headers and their (optional) verification callbacks.
+		 * @param array<string, ?callable> $cache_headers Mapping from cache-related HTTP headers to whether they
+		 *                                                indicate if a page cache is enabled for the site. `null`
+		 *                                                indicates caching in the presence of the header; a callback is
+		 *                                                provided the header’s value and should return `true` if it
+		 *                                                implies that a cache is active.
 		 */
 		return (array) apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
 	}
