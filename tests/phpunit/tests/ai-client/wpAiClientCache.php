@@ -153,6 +153,52 @@ class Tests_AI_Client_Cache extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that get returns a stored false value instead of the default.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_get_returns_stored_false() {
+		$this->cache->set( 'key_false', false );
+		$this->assertFalse( $this->cache->get( 'key_false', 'default' ) );
+	}
+
+	/**
+	 * Test that get returns a stored null value instead of the default.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_get_returns_stored_null() {
+		$this->cache->set( 'key_null', null );
+		$this->assertNull( $this->cache->get( 'key_null', 'default' ) );
+	}
+
+	/**
+	 * Test that getMultiple returns a stored false value instead of the default.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_get_multiple_returns_stored_false() {
+		$this->cache->set( 'key_false', false );
+
+		$result = $this->cache->getMultiple( array( 'key_false' ), 'default' );
+
+		$this->assertFalse( $result['key_false'] );
+	}
+
+	/**
+	 * Test that getMultiple returns a stored null value instead of the default.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_get_multiple_returns_stored_null() {
+		$this->cache->set( 'key_null', null );
+
+		$result = $this->cache->getMultiple( array( 'key_null' ), 'default' );
+
+		$this->assertNull( $result['key_null'] );
+	}
+
+	/**
 	 * Test set with integer TTL.
 	 *
 	 * @ticket TBD

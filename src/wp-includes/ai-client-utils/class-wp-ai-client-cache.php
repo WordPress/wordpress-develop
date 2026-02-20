@@ -113,7 +113,12 @@ class WP_AI_Client_Cache implements CacheInterface {
 		$result     = array();
 
 		foreach ( $keys_array as $key ) {
-			$result[ $key ] = isset( $values[ $key ] ) && false !== $values[ $key ] ? $values[ $key ] : $default_value;
+			if ( false === $values[ $key ] ) {
+				// Could be a stored false or a cache miss — disambiguate via get().
+				$result[ $key ] = $this->get( $key, $default_value );
+			} else {
+				$result[ $key ] = $values[ $key ];
+			}
 		}
 
 		return $result;
