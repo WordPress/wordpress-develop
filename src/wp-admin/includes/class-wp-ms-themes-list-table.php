@@ -95,12 +95,12 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	/**
 	 * Prepares the themes list for display.
 	 *
-	 * @global string $status  The current theme status.
-	 * @global array<string, int> $totals An array of theme counts for each status.
-	 * @global int    $page    The current page number.
-	 * @global string $orderby The column to order the themes list by.
-	 * @global string $order   The order of the themes list (ASC or DESC).
-	 * @global string $s       The search string.
+	 * @global string             $status  The current theme status.
+	 * @global array<string, int> $totals  An array of theme counts for each status.
+	 * @global int                $page    The current page number.
+	 * @global string             $orderby The column to order the themes list by.
+	 * @global string             $order   The order of the themes list (ASC or DESC).
+	 * @global string             $s       The search string.
 	 */
 	public function prepare_items() {
 		global $status, $totals, $page, $orderby, $order, $s;
