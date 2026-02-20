@@ -130,6 +130,7 @@
 		"test:coverage": "npm run test:php -- --coverage-html ./coverage/html/ --coverage-php ./coverage/php/report.php --coverage-text=./coverage/text/report.txt",
 		"test:e2e": "wp-scripts test-playwright --config tests/e2e/playwright.config.js",
 		"test:visual": "wp-scripts test-playwright --config tests/visual-regression/playwright.config.js",
+		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan",
 		"gutenberg:checkout": "node tools/gutenberg/checkout-gutenberg.js",
 		"gutenberg:build": "node tools/gutenberg/build-gutenberg.js",
 		"gutenberg:copy": "node tools/gutenberg/copy-gutenberg-build.js",

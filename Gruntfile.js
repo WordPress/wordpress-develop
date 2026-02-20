@@ -1560,6 +1560,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:php', [
+		'phpstan',
 		'phpunit'
 	] );
 
@@ -2000,6 +2001,18 @@ module.exports = function(grunt) {
 	);
 
 	grunt.registerTask( 'test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit'] );
+
+	grunt.registerTask( 'phpstan', 'Runs PHPStan on the entire codebase.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: [ 'phpstan' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
 
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
