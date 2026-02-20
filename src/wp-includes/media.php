@@ -6553,28 +6553,6 @@ function wp_add_crossorigin_attributes( string $html ): string {
 }
 
 /**
- * Filters the list of rewrite rules formatted for output to an .htaccess file.
- *
- * Adds support for serving WebAssembly files used by client-side media processing.
- *
- * @since 7.0.0
- *
- * @param string $rules mod_rewrite Rewrite rules formatted for .htaccess.
- * @return string Filtered rewrite rules.
- */
-function wp_filter_mod_rewrite_rules_for_wasm( string $rules ): string {
-	if ( ! wp_is_client_side_media_processing_enabled() ) {
-		return $rules;
-	}
-
-	$rules .= "\n# BEGIN WordPress client-side media processing\n" .
-				"AddType application/wasm wasm\n" .
-				"# END WordPress client-side media processing\n";
-
-	return $rules;
-}
-
-/**
  * Overrides templates from wp_print_media_templates with custom ones.
  *
  * Adds `crossorigin` attribute to all tags that could have assets
