@@ -2384,7 +2384,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$data       = array();
 
 		foreach ( $reflection->getMethods( ReflectionMethod::IS_PUBLIC ) as $method ) {
-			if ( $method->isConstructor() || $method->class !== PromptBuilder::class ) {
+			if ( $method->isConstructor() || PromptBuilder::class !== $method->class ) {
 				continue;
 			}
 
