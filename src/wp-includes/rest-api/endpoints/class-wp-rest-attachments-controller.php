@@ -292,11 +292,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$insert = $this->insert_attachment( $request );
 
 		if ( is_wp_error( $insert ) ) {
-			// Clean up filters on error.
-			remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
-			remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
-			remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
-			remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+			$this->remove_client_side_media_processing_filters();
 			return $insert;
 		}
 
@@ -314,6 +310,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$thumbnail_update = $this->handle_featured_media( $request['featured_media'], $attachment_id );
 
 			if ( is_wp_error( $thumbnail_update ) ) {
+				$this->remove_client_side_media_processing_filters();
 				return $thumbnail_update;
 			}
 		}
@@ -322,6 +319,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$meta_update = $this->meta->update_value( $request['meta'], $attachment_id );
 
 			if ( is_wp_error( $meta_update ) ) {
+				$this->remove_client_side_media_processing_filters();
 				return $meta_update;
 			}
 		}
@@ -330,12 +328,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
 
 		if ( is_wp_error( $fields_update ) ) {
+			$this->remove_client_side_media_processing_filters();
 			return $fields_update;
 		}
 
 		$terms_update = $this->handle_terms( $attachment_id, $request );
 
 		if ( is_wp_error( $terms_update ) ) {
+			$this->remove_client_side_media_processing_filters();
 			return $terms_update;
 		}
 
@@ -372,11 +372,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 
-		// Clean up filters.
-		remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
-		remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
-		remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
-		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+		$this->remove_client_side_media_processing_filters();
 
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
@@ -384,6 +380,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $attachment_id ) ) );
 
 		return $response;
+	}
+
+	/**
+	 * Removes filters added for client-side media processing.
+	 *
+	 * @since 7.0.0
+	 */
+	private function remove_client_side_media_processing_filters() {
+		remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
+		remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
+		remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
+		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 	}
 
 	/**
