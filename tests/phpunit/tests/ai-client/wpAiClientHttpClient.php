@@ -136,41 +136,6 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test X-Stream-* headers are excluded from WP args.
-	 *
-	 * @ticket 64591
-	 */
-	public function test_x_stream_headers_excluded() {
-		$captured_args = null;
-
-		add_filter(
-			'pre_http_request',
-			static function ( $preempt, $parsed_args ) use ( &$captured_args ) {
-				$captured_args = $parsed_args;
-				return array(
-					'response' => array(
-						'code'    => 200,
-						'message' => 'OK',
-					),
-					'headers'  => array(),
-					'body'     => '',
-				);
-			},
-			10,
-			2
-		);
-
-		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://api.example.com' );
-		$request = $request->withHeader( 'X-Stream-Something', 'value' );
-		$request = $request->withHeader( 'Accept', 'application/json' );
-
-		$this->client->sendRequest( $request );
-
-		$this->assertArrayNotHasKey( 'X-Stream-Something', $captured_args['headers'] );
-		$this->assertArrayHasKey( 'Accept', $captured_args['headers'] );
-	}
-
-	/**
 	 * Test empty body sends null.
 	 *
 	 * @ticket 64591
