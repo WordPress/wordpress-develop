@@ -41,7 +41,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test that the client implements ClientInterface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_implements_client_interface() {
 		$this->assertInstanceOf(
@@ -53,7 +53,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test that the client implements ClientWithOptionsInterface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_implements_client_with_options_interface() {
 		$this->assertInstanceOf(
@@ -65,7 +65,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test successful sendRequest maps status, body, and headers.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_send_request_success() {
 		add_filter(
@@ -95,7 +95,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test request method, headers, body, and httpversion are mapped to WP args.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_request_args_mapped() {
 		$captured_args = null;
@@ -138,7 +138,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test X-Stream-* headers are excluded from WP args.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_x_stream_headers_excluded() {
 		$captured_args = null;
@@ -173,7 +173,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test empty body sends null.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_empty_body_sends_null() {
 		$captured_args = null;
@@ -204,7 +204,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test WP_Error throws NetworkException.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_wp_error_throws_network_exception() {
 		add_filter(
@@ -223,7 +223,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test sendRequestWithOptions applies timeout.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_send_request_with_options_timeout() {
 		$captured_args = null;
@@ -257,7 +257,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test sendRequestWithOptions applies redirection.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_send_request_with_options_redirection() {
 		$captured_args = null;
@@ -291,7 +291,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test sendRequestWithOptions does not override defaults when options are null.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_send_request_with_options_null_uses_defaults() {
 		$args_with_options    = null;
@@ -340,7 +340,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test sendRequestWithOptions WP_Error throws NetworkException.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_send_request_with_options_wp_error_throws() {
 		add_filter(
@@ -360,7 +360,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test seekable body is rewound before sending.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_seekable_body_rewound() {
 		$captured_args = null;

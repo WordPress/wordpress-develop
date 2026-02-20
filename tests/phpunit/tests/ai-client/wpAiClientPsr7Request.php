@@ -10,7 +10,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test that the request implements the scoped PSR-7 RequestInterface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_implements_request_interface() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -23,7 +23,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test constructor with string URI.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_string_uri() {
 		$request = new WP_AI_Client_PSR7_Request( 'POST', 'https://example.com/path' );
@@ -35,7 +35,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test constructor with UriInterface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_constructor_with_uri_interface() {
 		$uri     = new WP_AI_Client_PSR7_Uri( 'https://example.com/path' );
@@ -47,7 +47,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test constructor auto-sets Host header from URI.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_auto_host_header_from_uri() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com/path' );
@@ -59,7 +59,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test constructor does not set Host header when host is empty.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_no_host_header_for_empty_host() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', '/relative-path' );
@@ -69,7 +69,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test default protocol version is 1.1.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_default_protocol_version() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -79,7 +79,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withProtocolVersion returns a new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_protocol_version() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -93,7 +93,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test hasHeader is case-insensitive.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_has_header_case_insensitive() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -106,7 +106,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test getHeader returns values case-insensitively.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_header() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -119,7 +119,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test getHeaderLine returns comma-separated values.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_header_line() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -131,7 +131,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test getHeaders preserves original case.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_headers_preserves_case() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -145,7 +145,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withHeader replaces existing header.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_header_replaces() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -159,7 +159,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withAddedHeader appends to existing header.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_added_header_appends() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -173,7 +173,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withAddedHeader creates new header if not present.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_added_header_creates() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -185,7 +185,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withoutHeader removes header case-insensitively.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_without_header() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -200,7 +200,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test default body is empty stream.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_default_body() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -210,7 +210,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withBody returns a new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_body() {
 		$request = new WP_AI_Client_PSR7_Request( 'POST', 'https://example.com' );
@@ -225,7 +225,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test request target derived from URI path and query.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_request_target_from_uri() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com/path?query=1' );
@@ -235,7 +235,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test request target defaults to / for empty path.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_request_target_defaults_to_slash() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -245,7 +245,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withRequestTarget overrides URI-derived target.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_request_target() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com/path' );
@@ -259,7 +259,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test getMethod returns the HTTP method.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_method() {
 		$request = new WP_AI_Client_PSR7_Request( 'DELETE', 'https://example.com' );
@@ -269,7 +269,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withMethod returns a new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_method() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -283,7 +283,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test getUri returns the URI instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_uri() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com/path' );
@@ -299,7 +299,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withUri updates the Host header.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_uri_updates_host() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -314,7 +314,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withUri with preserveHost keeps original Host header.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_uri_preserve_host() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://example.com' );
@@ -327,7 +327,7 @@ class Tests_AI_Client_PSR7_Request extends WP_UnitTestCase {
 	/**
 	 * Test withUri with preserveHost sets Host when original is empty.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_uri_preserve_host_sets_if_empty() {
 		$request = new WP_AI_Client_PSR7_Request( 'GET', '/relative' );

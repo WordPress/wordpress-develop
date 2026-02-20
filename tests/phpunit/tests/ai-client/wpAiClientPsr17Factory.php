@@ -25,7 +25,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test that the factory implements all four PSR-17 factory interfaces.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_implements_factory_interfaces() {
 		$this->assertInstanceOf(
@@ -49,7 +49,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createRequest returns RequestInterface with correct method and URI.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_request() {
 		$request = $this->psr17->createRequest( 'POST', 'https://example.com/api' );
@@ -65,7 +65,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createRequest accepts a UriInterface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_request_with_uri_interface() {
 		$uri     = $this->psr17->createUri( 'https://example.com/api' );
@@ -77,7 +77,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createResponse with default status code.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_response_default() {
 		$response = $this->psr17->createResponse();
@@ -92,7 +92,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createResponse with custom status code.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_response_custom() {
 		$response = $this->psr17->createResponse( 404, 'Not Found' );
@@ -104,7 +104,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createStream with content.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_stream() {
 		$stream = $this->psr17->createStream( 'test content' );
@@ -119,7 +119,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createStream with empty content.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_stream_empty() {
 		$stream = $this->psr17->createStream();
@@ -129,7 +129,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createStreamFromFile reads file content.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_stream_from_file() {
 		$tmp = wp_tempnam( 'psr17test' );
@@ -144,7 +144,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createStreamFromFile throws RuntimeException for non-read modes.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_stream_from_file_throws_for_write_mode() {
 		$this->expectException( RuntimeException::class );
@@ -155,7 +155,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createStreamFromFile throws RuntimeException for nonexistent file.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_stream_from_file_throws_for_nonexistent_file() {
 		$this->expectException( RuntimeException::class );
@@ -166,7 +166,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createStreamFromFile accepts binary read mode.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_stream_from_file_accepts_binary_read_mode() {
 		$tmp = wp_tempnam( 'psr17test' );
@@ -181,7 +181,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createStreamFromResource reads resource content.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_stream_from_resource() {
 		$resource = fopen( 'php://memory', 'r+' );
@@ -197,7 +197,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createUri parses a URI string.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_uri() {
 		$uri = $this->psr17->createUri( 'https://example.com/path?q=1' );
@@ -215,7 +215,7 @@ class Tests_AI_Client_PSR17_Factory extends WP_UnitTestCase {
 	/**
 	 * Test createUri with empty string.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_create_uri_empty() {
 		$uri = $this->psr17->createUri();

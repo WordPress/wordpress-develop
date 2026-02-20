@@ -10,7 +10,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test that the stream implements the scoped PSR-7 StreamInterface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_implements_stream_interface() {
 		$stream = new WP_AI_Client_PSR7_Stream();
@@ -23,7 +23,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test __toString returns the full content.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_to_string() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello world' );
@@ -33,7 +33,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test close is a no-op and does not error.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_close_noop() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'data' );
@@ -44,7 +44,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test detach returns null.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_detach_returns_null() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'data' );
@@ -54,7 +54,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test getSize returns the string length.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_size() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello' );
@@ -64,7 +64,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test getSize returns 0 for empty stream.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_size_empty() {
 		$stream = new WP_AI_Client_PSR7_Stream();
@@ -74,7 +74,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test tell returns 0 initially.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_tell_initial() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello' );
@@ -84,7 +84,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test tell advances after read.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_tell_after_read() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello' );
@@ -95,7 +95,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test eof returns false initially for non-empty stream.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_eof_false_initially() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello' );
@@ -105,7 +105,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test eof returns true at end of stream.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_eof_true_at_end() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hi' );
@@ -116,7 +116,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test eof returns true for empty stream.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_eof_true_for_empty() {
 		$stream = new WP_AI_Client_PSR7_Stream();
@@ -126,7 +126,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test isSeekable returns true.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_seekable() {
 		$stream = new WP_AI_Client_PSR7_Stream();
@@ -136,7 +136,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test seek with SEEK_SET.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_seek_set() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello world' );
@@ -148,7 +148,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test seek with SEEK_CUR.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_seek_cur() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello world' );
@@ -160,7 +160,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test seek with SEEK_END.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_seek_end() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello' );
@@ -172,7 +172,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test negative seek clamps to 0.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_seek_negative_clamps_to_zero() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello' );
@@ -183,7 +183,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test rewind resets offset to 0.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_rewind() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello' );
@@ -195,7 +195,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test isWritable returns true.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_writable() {
 		$stream = new WP_AI_Client_PSR7_Stream();
@@ -205,7 +205,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test write appends data and returns byte count.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_write() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello' );
@@ -218,7 +218,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test write advances offset.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_write_advances_offset() {
 		$stream = new WP_AI_Client_PSR7_Stream();
@@ -229,7 +229,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test isReadable returns true.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_is_readable() {
 		$stream = new WP_AI_Client_PSR7_Stream();
@@ -239,7 +239,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test read returns correct bytes and advances offset.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_read() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello world' );
@@ -252,7 +252,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test read at end of stream returns empty string.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_read_at_end_returns_empty() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hi' );
@@ -263,7 +263,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test getContents returns remaining data.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_contents() {
 		$stream = new WP_AI_Client_PSR7_Stream( 'hello world' );
@@ -274,7 +274,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test getMetadata returns empty array without key.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_metadata_no_key() {
 		$stream = new WP_AI_Client_PSR7_Stream();
@@ -284,7 +284,7 @@ class Tests_AI_Client_PSR7_Stream extends WP_UnitTestCase {
 	/**
 	 * Test getMetadata returns null for any key.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_metadata_with_key() {
 		$stream = new WP_AI_Client_PSR7_Stream();

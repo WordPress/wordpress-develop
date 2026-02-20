@@ -10,7 +10,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test that the URI implements the scoped PSR-7 UriInterface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_implements_uri_interface() {
 		$uri = new WP_AI_Client_PSR7_Uri();
@@ -23,7 +23,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test full URI parsing.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_full_uri_parsing() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://user:pass@example.com:8080/path?query=1#frag' );
@@ -40,7 +40,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test empty constructor produces empty URI.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_empty_constructor() {
 		$uri = new WP_AI_Client_PSR7_Uri();
@@ -57,7 +57,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test scheme is lowercased.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_scheme_lowercase() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'HTTPS://example.com' );
@@ -67,7 +67,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test authority with all parts.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_authority_with_all_parts() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://user:pass@example.com:8080/path' );
@@ -77,7 +77,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test authority without user info.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_authority_without_user() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com:8080/path' );
@@ -87,7 +87,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test authority without port.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_authority_without_port() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com/path' );
@@ -97,7 +97,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test authority is empty when host is empty.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_authority_empty_when_no_host() {
 		$uri = new WP_AI_Client_PSR7_Uri();
@@ -107,7 +107,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test user info with password.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_user_info_with_password() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://user:pass@example.com' );
@@ -117,7 +117,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test user info without password.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_user_info_without_password() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://user@example.com' );
@@ -127,7 +127,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test host is lowercased.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_host_lowercase() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://EXAMPLE.COM' );
@@ -137,7 +137,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test non-standard port is returned.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_non_standard_port_returned() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com:9090' );
@@ -147,7 +147,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test standard port for HTTP returns null.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_standard_http_port_returns_null() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'http://example.com:80' );
@@ -157,7 +157,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test standard port for HTTPS returns null.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_standard_https_port_returns_null() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com:443' );
@@ -167,7 +167,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test port is null when unset.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_port_null_when_unset() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com' );
@@ -177,7 +177,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withScheme returns new instance and lowercases.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_scheme() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'http://example.com' );
@@ -191,7 +191,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withUserInfo returns new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_user_info() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com' );
@@ -205,7 +205,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withUserInfo without password.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_user_info_without_password() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com' );
@@ -217,7 +217,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withHost returns new instance and lowercases.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_host() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com' );
@@ -231,7 +231,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withPort returns new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_port() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com' );
@@ -244,7 +244,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withPort null clears port.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_port_null() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com:8080' );
@@ -256,7 +256,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withPath returns new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_path() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com/old' );
@@ -270,7 +270,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withQuery returns new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_query() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com' );
@@ -283,7 +283,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test withFragment returns new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_fragment() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com' );
@@ -296,7 +296,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test __toString reconstructs the full URI.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_to_string_reconstruction() {
 		$original = 'https://user:pass@example.com:8080/path?query=1#frag';
@@ -307,7 +307,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test path gets leading slash when authority is present.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_path_slash_prepended_with_authority() {
 		$uri = new WP_AI_Client_PSR7_Uri( 'https://example.com' );
@@ -319,7 +319,7 @@ class Tests_AI_Client_PSR7_Uri extends WP_UnitTestCase {
 	/**
 	 * Test double-slash in path collapsed when no authority.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_double_slash_collapsed_without_authority() {
 		$uri = new WP_AI_Client_PSR7_Uri();

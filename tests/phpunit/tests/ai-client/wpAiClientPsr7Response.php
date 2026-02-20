@@ -10,7 +10,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test that the response implements the scoped PSR-7 ResponseInterface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_implements_response_interface() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -23,7 +23,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test default status code is 200.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_default_status_code() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -33,7 +33,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test custom status code and reason phrase.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_custom_status_and_reason() {
 		$response = new WP_AI_Client_PSR7_Response( 404, 'Not Found' );
@@ -44,7 +44,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test withStatus returns a new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_status() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -59,7 +59,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test withStatus clears reason phrase when not provided.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_status_clears_reason() {
 		$response = new WP_AI_Client_PSR7_Response( 200, 'OK' );
@@ -72,7 +72,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test default protocol version is 1.1.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_default_protocol_version() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -82,7 +82,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test withProtocolVersion returns a new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_protocol_version() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -96,7 +96,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test hasHeader is case-insensitive.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_has_header_case_insensitive() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -110,7 +110,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test getHeader returns values case-insensitively.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_header() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -123,7 +123,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test getHeaderLine returns comma-separated values.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_header_line() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -136,7 +136,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test getHeaders preserves original case.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_headers_preserves_case() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -150,7 +150,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test withHeader replaces existing header.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_header_replaces() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -163,7 +163,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test withAddedHeader appends to existing header.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_added_header_appends() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -177,7 +177,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test withAddedHeader creates new header if not present.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_added_header_creates() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -189,7 +189,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test withoutHeader removes header case-insensitively.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_without_header() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -204,7 +204,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test default body is empty stream.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_default_body() {
 		$response = new WP_AI_Client_PSR7_Response();
@@ -214,7 +214,7 @@ class Tests_AI_Client_PSR7_Response extends WP_UnitTestCase {
 	/**
 	 * Test withBody returns a new instance.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_with_body() {
 		$response = new WP_AI_Client_PSR7_Response();

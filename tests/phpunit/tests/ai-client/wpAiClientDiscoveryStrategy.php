@@ -35,7 +35,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 	/**
 	 * Test that the strategy implements DiscoveryStrategy interface.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_implements_discovery_strategy() {
 		$this->assertTrue(
@@ -50,7 +50,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 	/**
 	 * Test init prepends strategy to discovery.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_init_prepends_strategy() {
 		// Clear strategies to isolate test.
@@ -68,7 +68,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 	/**
 	 * Test getCandidates for ClientInterface returns a closure that creates WP_AI_Client_HTTP_Client.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_candidates_client_interface() {
 		$candidates = WP_AI_Client_Discovery_Strategy::getCandidates(
@@ -86,7 +86,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 	/**
 	 * Test getCandidates for RequestFactoryInterface returns PSR17 Factory class.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_candidates_request_factory() {
 		$candidates = WP_AI_Client_Discovery_Strategy::getCandidates(
@@ -100,7 +100,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 	/**
 	 * Test getCandidates for ResponseFactoryInterface returns PSR17 Factory class.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_candidates_response_factory() {
 		$candidates = WP_AI_Client_Discovery_Strategy::getCandidates(
@@ -114,7 +114,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 	/**
 	 * Test getCandidates for StreamFactoryInterface returns PSR17 Factory class.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_candidates_stream_factory() {
 		$candidates = WP_AI_Client_Discovery_Strategy::getCandidates(
@@ -128,7 +128,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 	/**
 	 * Test getCandidates for UriFactoryInterface returns PSR17 Factory class.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_candidates_uri_factory() {
 		$candidates = WP_AI_Client_Discovery_Strategy::getCandidates(
@@ -142,7 +142,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 	/**
 	 * Test getCandidates for unknown type returns empty array.
 	 *
-	 * @ticket TBD
+	 * @ticket 64591
 	 */
 	public function test_get_candidates_unknown_type() {
 		$candidates = WP_AI_Client_Discovery_Strategy::getCandidates( 'UnknownType' );
