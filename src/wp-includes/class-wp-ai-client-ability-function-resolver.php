@@ -172,7 +172,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 	 * @param string $function_name The function name to convert.
 	 * @return string The ability name.
 	 */
-	private static function function_name_to_ability_name( string $function_name ): string {
+	public static function function_name_to_ability_name( string $function_name ): string {
 		$without_prefix = substr( $function_name, strlen( self::ABILITY_PREFIX ) );
 
 		return str_replace( '__', '/', $without_prefix );
