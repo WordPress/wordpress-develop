@@ -65,6 +65,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Enqueues control related scripts/styles.
+	 *
+	 * @since 3.9.0
 	 */
 	public function enqueue() {
 		wp_enqueue_media();
@@ -96,6 +99,10 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Prepares the control.
+	 *
+	 * @since 3.9.0
+	 *
 	 * @global Custom_Image_Header $custom_image_header
 	 */
 	public function prepare_control() {
@@ -113,6 +120,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Prints header image template.
+	 *
+	 * @since 3.9.0
 	 */
 	public function print_header_image_template() {
 		?>
@@ -173,18 +183,16 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 			<img src="{{data.header.thumbnail_url}}" alt="{{data.header.alt_text || data.header.description}}" />
 
 				<# } #>
-			<# } else { #>
-
-			<div class="placeholder">
-				<?php _e( 'No image set' ); ?>
-			</div>
-
 			<# } #>
 		</script>
 		<?php
 	}
 
 	/**
+	 * Gets current image source.
+	 *
+	 * @since 3.9.0
+	 *
 	 * @return string|void
 	 */
 	public function get_current_image_src() {
@@ -196,6 +204,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Renders the control's content.
+	 *
+	 * @since 3.9.0
 	 */
 	public function render_content() {
 		$visibility = $this->get_current_image_src() ? '' : ' style="display:none" ';
@@ -246,7 +257,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 			<div class="actions">
 				<?php if ( current_user_can( 'upload_files' ) ) : ?>
 				<button type="button"<?php echo $visibility; ?> class="button remove" aria-label="<?php esc_attr_e( 'Hide header image' ); ?>"><?php _e( 'Hide image' ); ?></button>
-				<button type="button" class="button new" id="header_image-button" aria-label="<?php esc_attr_e( 'Add Header Image' ); ?>"><?php _e( 'Add Image' ); ?></button>
+				<button type="button" class="button new <?php echo ! $this->get_current_image_src() ? '' : 'customize-header-image-not-selected'; ?>" id="header_image-button" aria-label="<?php esc_attr_e( 'Add Header Image' ); ?>"><?php _e( 'Add Image' ); ?></button>
 				<?php endif; ?>
 			</div>
 			<div class="choices">

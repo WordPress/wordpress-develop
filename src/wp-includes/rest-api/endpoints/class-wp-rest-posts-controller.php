@@ -463,7 +463,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			foreach ( $query_result as $post ) {
-				if ( ! $this->check_read_permission( $post ) ) {
+				if ( 'edit' === $request['context'] ) {
+					$permission = $this->check_update_permission( $post );
+				} else {
+					$permission = $this->check_read_permission( $post );
+				}
+
+				if ( ! $permission ) {
 					continue;
 				}
 
@@ -477,14 +483,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', array( $this, 'check_password_required' ) );
 		}
 
-		$page        = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
+		$page        = (int) ( $query_args['paged'] ?? 0 );
 		$total_posts = $posts_query->found_posts;
 
 		if ( $total_posts < 1 && $page > 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count.
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $query_args['paged'] );
 
-			$count_query = new WP_Query();
+			$count_query                          = new WP_Query();
+			$query_args['fields']                 = 'ids';
+			$query_args['posts_per_page']         = 1;
+			$query_args['update_post_meta_cache'] = false;
+			$query_args['update_post_term_cache'] = false;
+
 			$count_query->query( $query_args );
 			$total_posts = $count_query->found_posts;
 		}
@@ -2006,7 +2017,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				add_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 
@@ -2026,7 +2037,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				remove_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 		}

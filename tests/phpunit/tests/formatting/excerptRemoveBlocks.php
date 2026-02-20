@@ -12,7 +12,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 
 	public $content = '
 <!-- wp:paragraph -->
-<p>paragraph</p>
+<p class="wp-block-paragraph">paragraph</p>
 <!-- /wp:paragraph -->
 <!-- wp:latest-posts {"postsToShow":3,"displayPostDate":true,"order":"asc","orderBy":"title"} /-->
 <!-- wp:spacer -->
@@ -25,7 +25,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 		<!-- wp:archives {"displayAsDropdown":false,"showPostCounts":false} /-->
 		
 		<!-- wp:paragraph -->
-		<p>paragraph inside column</p>
+		<p class="wp-block-paragraph">paragraph inside column</p>
 		<!-- /wp:paragraph -->
 	</div>
 	<!-- /wp:column -->
@@ -35,12 +35,12 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 
 	public $filtered_content = '
 
-<p>paragraph</p>
+<p class="wp-block-paragraph">paragraph</p>
 
 
 
 
-		<p>paragraph inside column</p>
+		<p class="wp-block-paragraph">paragraph inside column</p>
 		
 ';
 
