@@ -23,6 +23,7 @@ wp-tests-config.php
 /gutenberg
 /tests/phpunit/build
 /wp-cli.local.yml
+/phpstan.neon
 /jsdoc
 /composer.lock
 /vendor
@@ -37,6 +38,7 @@ wp-tests-config.php
 /src/wp-includes/css/*-rtl.css
 /src/wp-includes/blocks/*
 !/src/wp-includes/blocks/index.php
+/src/wp-includes/icons
 /src/wp-includes/build
 /src/wp-includes/theme.json
 /packagehash.txt

@@ -563,6 +563,9 @@ function populate_options( array $options = array() ) {
 
 		// 6.9.0
 		'wp_notes_notify'                 => 1,
+
+		// 7.0.0
+		'enable_real_time_collaboration'  => 0,
 	);
 
 	// 3.3.0
@@ -588,7 +591,7 @@ function populate_options( array $options = array() ) {
 	);
 
 	$keys             = "'" . implode( "', '", array_keys( $options ) ) . "'";
-	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 	$insert = '';
 
