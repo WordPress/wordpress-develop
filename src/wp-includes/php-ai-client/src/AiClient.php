@@ -84,7 +84,7 @@ class AiClient
     /**
      * @var string The version of the AI Client.
      */
-    public const VERSION = '0.4.1';
+    public const VERSION = '1.1.0';
     /**
      * @var ProviderRegistry|null The default provider registry instance.
      */

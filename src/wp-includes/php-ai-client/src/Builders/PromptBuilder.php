@@ -108,6 +108,32 @@ class PromptBuilder
         $this->messages[] = $userMessage;
     }
     /**
+     * Creates a deep clone of this builder.
+     *
+     * Clones all mutable state including messages, model configuration, and request options.
+     * Service objects (registry, model, event dispatcher) are intentionally NOT cloned
+     * as they are shared dependencies.
+     *
+     * @since 0.4.2
+     */
+    public function __clone()
+    {
+        // Deep clone messages array (Message has __clone)
+        $clonedMessages = [];
+        foreach ($this->messages as $message) {
+            $clonedMessages[] = clone $message;
+        }
+        $this->messages = $clonedMessages;
+        // Clone model config (ModelConfig has __clone)
+        $this->modelConfig = clone $this->modelConfig;
+        // Clone request options if set (contains only primitives)
+        if ($this->requestOptions !== null) {
+            $this->requestOptions = clone $this->requestOptions;
+        }
+        // Note: $registry, $model, and $eventDispatcher are service objects
+        // and are intentionally NOT cloned - they should be shared references.
+    }
+    /**
      * Adds text to the current message.
      *
      * @since 0.1.0
@@ -218,7 +244,9 @@ class PromptBuilder
      * @since 0.2.0
      *
      * @param string|ModelInterface|array{0:string,1:string} ...$preferredModels The preferred models as model IDs,
-     * model instances, or [model ID, provider ID] tuples.
+     * model instances, or [provider ID, model ID] tuples. For broader compatibility, it is recommended you specify
+     * only model IDs or model instances, as that will allow for different providers that expose the same model to be
+     * considered.
      * @return self
      *
      * @throws InvalidArgumentException When a preferred model has an invalid type or identifier.

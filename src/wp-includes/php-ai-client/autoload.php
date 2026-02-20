@@ -9,6 +9,7 @@
  * @subpackage AI
  * @since 7.0.0
  */
+
 spl_autoload_register(
 	static function ( $class_name ) {
 		// Namespace prefix for the AI client.

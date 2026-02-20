@@ -60,6 +60,19 @@ class Response extends AbstractDataTransferObject
         $this->body = $body;
     }
     /**
+     * Creates a deep clone of this response.
+     *
+     * Clones the headers collection to ensure the cloned
+     * response is independent of the original.
+     *
+     * @since 0.4.2
+     */
+    public function __clone()
+    {
+        // Clone headers collection
+        $this->headers = clone $this->headers;
+    }
+    /**
      * Gets the HTTP status code.
      *
      * @since 0.1.0

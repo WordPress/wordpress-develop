@@ -108,7 +108,7 @@ class Candidate extends AbstractDataTransferObject
      * This method ensures that the message object is cloned to prevent
      * modifications to the cloned candidate from affecting the original.
      *
-     * @since 0.4.1
+     * @since 0.4.2
      */
     public function __clone()
     {

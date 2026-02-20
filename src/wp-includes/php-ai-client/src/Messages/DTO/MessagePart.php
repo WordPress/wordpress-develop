@@ -225,7 +225,7 @@ class MessagePart extends AbstractDataTransferObject
      * This method ensures that nested objects (file, function call, function response)
      * are cloned to prevent modifications to the cloned part from affecting the original.
      *
-     * @since 0.4.1
+     * @since 0.4.2
      */
     public function __clone()
     {

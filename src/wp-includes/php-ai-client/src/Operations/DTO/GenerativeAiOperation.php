@@ -54,6 +54,23 @@ class GenerativeAiOperation extends AbstractDataTransferObject implements Operat
         $this->result = $result;
     }
     /**
+     * Creates a deep clone of this operation.
+     *
+     * Clones the result object if present to ensure the cloned
+     * operation is independent of the original.
+     * The state enum is immutable and can be safely shared.
+     *
+     * @since 0.4.2
+     */
+    public function __clone()
+    {
+        // Clone the result if present (GenerativeAiResult has __clone)
+        if ($this->result !== null) {
+            $this->result = clone $this->result;
+        }
+        // Note: $state is an immutable enum and can be safely shared
+    }
+    /**
      * {@inheritDoc}
      *
      * @since 0.1.0
