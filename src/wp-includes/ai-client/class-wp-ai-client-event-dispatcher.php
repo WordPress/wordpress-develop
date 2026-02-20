@@ -16,6 +16,8 @@ use WordPress\AiClientDependencies\Psr\EventDispatcher\EventDispatcherInterface;
  * into AI client lifecycle events.
  *
  * @since 7.0.0
+ * @internal Intended only to wire up the PHP AI Client SDK to WordPress's hook system.
+ * @access private
  */
 class WP_AI_Client_Event_Dispatcher implements EventDispatcherInterface {
 

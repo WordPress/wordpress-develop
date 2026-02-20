@@ -23,6 +23,8 @@ use WordPress\AiClientDependencies\Psr\Http\Message\UriInterface;
  * WP AI Client PSR-7 implementations.
  *
  * @since 7.0.0
+ * @internal
+ * @access private
  */
 class WP_AI_Client_PSR17_Factory implements RequestFactoryInterface, ResponseFactoryInterface, StreamFactoryInterface, UriFactoryInterface {
 

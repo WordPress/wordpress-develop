@@ -18,6 +18,8 @@ use WordPress\AiClientDependencies\Psr\Http\Message\UriInterface;
  * HTTP transport layer.
  *
  * @since 7.0.0
+ * @internal
+ * @access private
  */
 class WP_AI_Client_PSR7_Request implements RequestInterface {
 

@@ -23,6 +23,8 @@ use WordPress\AiClient\Providers\Http\Exception\NetworkException;
  * for the AI Client SDK.
  *
  * @since 7.0.0
+ * @internal Intended only to wire up the PHP AI Client SDK to WordPress's HTTP client.
+ * @access private
  */
 class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInterface {
 

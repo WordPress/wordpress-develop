@@ -18,6 +18,8 @@ use WordPress\AiClientDependencies\Psr\Http\Client\ClientInterface;
  * so the AI Client SDK can find and use it automatically.
  *
  * @since 7.0.0
+ * @internal Intended only to register WordPress's HTTP client so that the PHP AI Client SDK can use it.
+ * @access private
  */
 class WP_AI_Client_Discovery_Strategy implements DiscoveryStrategy {
 

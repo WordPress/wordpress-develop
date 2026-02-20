@@ -16,6 +16,8 @@ use WordPress\AiClientDependencies\Psr\Http\Message\StreamInterface;
  * layer without requiring PHP stream resources.
  *
  * @since 7.0.0
+ * @internal
+ * @access private
  */
 class WP_AI_Client_PSR7_Stream implements StreamInterface {
 

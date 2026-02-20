@@ -16,6 +16,8 @@ use WordPress\AiClientDependencies\Psr\SimpleCache\CacheInterface;
  * enabling the AI client to leverage WordPress caching infrastructure.
  *
  * @since 7.0.0
+ * @internal Intended only to wire up the PHP AI Client SDK to WordPress's caching system.
+ * @access private
  */
 class WP_AI_Client_Cache implements CacheInterface {
 

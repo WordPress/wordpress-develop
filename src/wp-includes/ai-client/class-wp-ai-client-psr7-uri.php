@@ -15,6 +15,8 @@ use WordPress\AiClientDependencies\Psr\Http\Message\UriInterface;
  * Wraps PHP's parse_url() components into an immutable UriInterface value object.
  *
  * @since 7.0.0
+ * @internal
+ * @access private
  */
 class WP_AI_Client_PSR7_Uri implements UriInterface {
 
