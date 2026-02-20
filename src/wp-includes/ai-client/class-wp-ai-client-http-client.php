@@ -69,7 +69,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 		$args = $this->prepare_wp_args( $request );
 		$url  = (string) $request->getUri();
 
-		$response = wp_remote_request( $url, $args );
+		$response = wp_safe_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			$message = sprintf(
@@ -100,7 +100,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 		$args = $this->prepare_wp_args( $request, $options );
 		$url  = (string) $request->getUri();
 
-		$response = wp_remote_request( $url, $args );
+		$response = wp_safe_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			$message = sprintf(
