@@ -116,4 +116,21 @@ trait WP_AI_Client_Test_Abilities_Trait {
 
 		array_pop( $wp_current_filter );
 	}
+
+	/**
+	 * Unregisters test ability category and abilities.
+	 *
+	 * Safe to call multiple times; skips unregistration if already done.
+	 * Must be called from tear_down_after_class() before parent::tear_down_after_class().
+	 */
+	private static function unregister_test_abilities() {
+		// Unregister test abilities.
+		wp_unregister_ability( 'wpaiclienttests/simple' );
+		wp_unregister_ability( 'wpaiclienttests/with-params' );
+		wp_unregister_ability( 'wpaiclienttests/returns-error' );
+		wp_unregister_ability( 'wpaiclienttests/hyphen-test' );
+
+		// Unregister test ability category.
+		wp_unregister_ability_category( 'wpaiclienttests' );
+	}
 }

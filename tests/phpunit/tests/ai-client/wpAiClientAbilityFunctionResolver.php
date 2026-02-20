@@ -28,6 +28,15 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after class.
+	 */
+	public static function tear_down_after_class() {
+		self::unregister_test_abilities();
+
+		parent::tear_down_after_class();
+	}
+
+	/**
 	 * Test that is_ability_call returns true for a valid ability call.
 	 *
 	 * @ticket 64591

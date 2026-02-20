@@ -130,6 +130,15 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after class.
+	 */
+	public static function tear_down_after_class() {
+		self::unregister_test_abilities();
+
+		parent::tear_down_after_class();
+	}
+
+	/**
 	 * Set up before each test.
 	 */
 	public function set_up() {
