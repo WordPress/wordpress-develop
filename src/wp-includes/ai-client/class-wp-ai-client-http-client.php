@@ -162,7 +162,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 		$headers = array();
 
 		foreach ( $request->getHeaders() as $name => $values ) {
-			if ( strpos( $name, 'X-Stream' ) === 0 ) {
+			if ( str_starts_with( $name, 'X-Stream' ) ) {
 				continue;
 			}
 
