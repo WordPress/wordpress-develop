@@ -6401,12 +6401,7 @@ function wp_set_client_side_media_processing_flag() {
 	wp_scripts()->add_data(
 		'wp-upload-media',
 		'module_dependencies',
-		array(
-			array(
-				'id'     => '@wordpress/vips/worker',
-				'import' => 'dynamic',
-			),
-		)
+		array( '@wordpress/vips/worker' )
 	);
 }
 
