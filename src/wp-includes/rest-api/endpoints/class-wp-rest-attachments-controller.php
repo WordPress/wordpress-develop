@@ -1936,7 +1936,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$original_path = wp_get_original_image_path( $attachment_id );
 		$attached_file = $original_path ? $original_path : get_attached_file( $attachment_id );
 
-		if ( is_string( $attached_file ) && file_exists( $attached_file ) ) {
+		if ( is_string( $attached_file ) && is_readable( $attached_file ) ) {
 			return wp_filesize( $attached_file );
 		}
 
