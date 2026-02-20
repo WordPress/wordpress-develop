@@ -716,4 +716,29 @@ HTML;
 			'Should have preserved the leading newline in the content.'
 		);
 	}
+
+	/**
+	 * Ensures that the special newline is inserted even when seeking to the associated
+	 * text node, especially when seeking back to it.
+	 *
+	 * @ticket 64609
+	 */
+	public function test_modifiable_text_special_newline_after_reverse_seek() {
+		$processor = new WP_HTML_Tag_Processor( '<pre>blah</pre><div><pre class="target">Replace Me!</pre><pre>blah</pre></div><img>' );
+
+		$processor->next_tag( array( 'class_name' => 'target' ) );
+		$processor->next_token();
+		$processor->set_bookmark( 'text' );
+
+		$processor->next_tag( 'IMG' );
+		$processor->seek( 'text' );
+
+		$processor->set_modifiable_text( "\nNewline" );
+
+		$this->assertSame(
+			"<pre>blah</pre><div><pre class=\"target\">\n\nNewline</pre><pre>blah</pre></div><img>",
+			$processor->get_updated_html(),
+			'Should insert a protective newline before the first text node in a PRE element.'
+		);
+	}
 }
