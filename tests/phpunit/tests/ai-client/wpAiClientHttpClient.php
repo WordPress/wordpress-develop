@@ -15,6 +15,13 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	private $client;
 
 	/**
+	 * PSR-17 factory instance.
+	 *
+	 * @var WordPress\AiClientDependencies\Nyholm\Psr7\Factory\Psr17Factory
+	 */
+	private $psr17_factory;
+
+	/**
 	 * Captured URL from the last intercepted HTTP request.
 	 *
 	 * @var string
@@ -34,8 +41,8 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$psr17_factory = new WP_AI_Client_PSR17_Factory();
-		$this->client  = new WP_AI_Client_HTTP_Client( $psr17_factory, $psr17_factory );
+		$this->psr17_factory = new WordPress\AiClientDependencies\Nyholm\Psr7\Factory\Psr17Factory();
+		$this->client        = new WP_AI_Client_HTTP_Client( $this->psr17_factory, $this->psr17_factory );
 	}
 
 	/**
@@ -84,7 +91,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 			}
 		);
 
-		$request  = new WP_AI_Client_PSR7_Request( 'GET', 'https://api.example.com/test' );
+		$request  = $this->psr17_factory->createRequest( 'GET', 'https://api.example.com/test' );
 		$response = $this->client->sendRequest( $request );
 
 		$this->assertSame( 200, $response->getStatusCode() );
@@ -119,8 +126,8 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 			3
 		);
 
-		$body    = new WP_AI_Client_PSR7_Stream( '{"key":"value"}' );
-		$request = new WP_AI_Client_PSR7_Request( 'POST', 'https://api.example.com/data' );
+		$body    = $this->psr17_factory->createStream( '{"key":"value"}' );
+		$request = $this->psr17_factory->createRequest( 'POST', 'https://api.example.com/data' );
 		$request = $request->withBody( $body );
 		$request = $request->withHeader( 'Content-Type', 'application/json' );
 		$request = $request->withProtocolVersion( '2.0' );
@@ -160,7 +167,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 			2
 		);
 
-		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://api.example.com' );
+		$request = $this->psr17_factory->createRequest( 'GET', 'https://api.example.com' );
 		$this->client->sendRequest( $request );
 
 		$this->assertNull( $captured_args['body'] );
@@ -179,7 +186,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 			}
 		);
 
-		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://api.example.com' );
+		$request = $this->psr17_factory->createRequest( 'GET', 'https://api.example.com' );
 
 		$this->expectException( WordPress\AiClient\Providers\Http\Exception\NetworkException::class );
 		$this->client->sendRequest( $request );
@@ -213,7 +220,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 		$options = new WordPress\AiClient\Providers\Http\DTO\RequestOptions();
 		$options->setTimeout( 30.0 );
 
-		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://api.example.com' );
+		$request = $this->psr17_factory->createRequest( 'GET', 'https://api.example.com' );
 		$this->client->sendRequestWithOptions( $request, $options );
 
 		$this->assertSame( 30.0, $captured_args['timeout'] );
@@ -247,7 +254,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 		$options = new WordPress\AiClient\Providers\Http\DTO\RequestOptions();
 		$options->setMaxRedirects( 5 );
 
-		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://api.example.com' );
+		$request = $this->psr17_factory->createRequest( 'GET', 'https://api.example.com' );
 		$this->client->sendRequestWithOptions( $request, $options );
 
 		$this->assertSame( 5, $captured_args['redirection'] );
@@ -283,7 +290,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 			2
 		);
 
-		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://api.example.com' );
+		$request = $this->psr17_factory->createRequest( 'GET', 'https://api.example.com' );
 
 		// First request: null options should use WordPress defaults.
 		$options = new WordPress\AiClient\Providers\Http\DTO\RequestOptions();
@@ -316,7 +323,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 		);
 
 		$options = new WordPress\AiClient\Providers\Http\DTO\RequestOptions();
-		$request = new WP_AI_Client_PSR7_Request( 'GET', 'https://api.example.com' );
+		$request = $this->psr17_factory->createRequest( 'GET', 'https://api.example.com' );
 
 		$this->expectException( WordPress\AiClient\Providers\Http\Exception\NetworkException::class );
 		$this->client->sendRequestWithOptions( $request, $options );
@@ -347,10 +354,10 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 			2
 		);
 
-		$body = new WP_AI_Client_PSR7_Stream( 'test body' );
+		$body = $this->psr17_factory->createStream( 'test body' );
 		$body->read( 4 ); // Advance offset past "test".
 
-		$request = new WP_AI_Client_PSR7_Request( 'POST', 'https://api.example.com' );
+		$request = $this->psr17_factory->createRequest( 'POST', 'https://api.example.com' );
 		$request = $request->withBody( $body );
 
 		$this->client->sendRequest( $request );

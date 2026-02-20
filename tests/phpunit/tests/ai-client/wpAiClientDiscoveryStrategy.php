@@ -94,7 +94,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 		);
 
 		$this->assertCount( 1, $candidates );
-		$this->assertSame( WP_AI_Client_PSR17_Factory::class, $candidates[0]['class'] );
+		$this->assertSame( WordPress\AiClientDependencies\Nyholm\Psr7\Factory\Psr17Factory::class, $candidates[0]['class'] );
 	}
 
 	/**
@@ -108,7 +108,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 		);
 
 		$this->assertCount( 1, $candidates );
-		$this->assertSame( WP_AI_Client_PSR17_Factory::class, $candidates[0]['class'] );
+		$this->assertSame( WordPress\AiClientDependencies\Nyholm\Psr7\Factory\Psr17Factory::class, $candidates[0]['class'] );
 	}
 
 	/**
@@ -122,7 +122,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 		);
 
 		$this->assertCount( 1, $candidates );
-		$this->assertSame( WP_AI_Client_PSR17_Factory::class, $candidates[0]['class'] );
+		$this->assertSame( WordPress\AiClientDependencies\Nyholm\Psr7\Factory\Psr17Factory::class, $candidates[0]['class'] );
 	}
 
 	/**
@@ -136,7 +136,7 @@ class Tests_AI_Client_Discovery_Strategy extends WP_UnitTestCase {
 		);
 
 		$this->assertCount( 1, $candidates );
-		$this->assertSame( WP_AI_Client_PSR17_Factory::class, $candidates[0]['class'] );
+		$this->assertSame( WordPress\AiClientDependencies\Nyholm\Psr7\Factory\Psr17Factory::class, $candidates[0]['class'] );
 	}
 
 	/**
