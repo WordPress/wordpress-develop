@@ -10,7 +10,6 @@ includes:
 
 	# The baseline file includes preexisting errors in the codebase that should be ignored.
 	# https://phpstan.org/user-guide/baseline
-
 	- tests/phpstan/baseline.php # level 0.
 	- tests/phpstan/baseline/level-1.php
 	- tests/phpstan/baseline/level-2.php
