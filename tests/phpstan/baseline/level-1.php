@@ -56,6 +56,72 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/themes.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Constant HEADER_IMAGE_HEIGHT not found\\.$#',
+	'identifier' => 'constant.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
+	'identifier' => 'constant.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Constant HEADER_TEXTCOLOR not found\\.$#',
+	'identifier' => 'constant.notFound',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
+	'identifier' => 'constant.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/header.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
+	'identifier' => 'constant.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/showcase.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentyseventeen_edit_link invoked with 1 parameter, 0 required\\.$#',
+	'identifier' => 'arguments.count',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page-panels.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentyseventeen_edit_link invoked with 1 parameter, 0 required\\.$#',
+	'identifier' => 'arguments.count',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentyseventeen_edit_link invoked with 1 parameter, 0 required\\.$#',
+	'identifier' => 'arguments.count',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Constant HEADER_IMAGE_HEIGHT not found\\.$#',
+	'identifier' => 'constant.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
+	'identifier' => 'constant.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
+	'identifier' => 'constant.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/header.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Variable \\$addl_path in empty\\(\\) always exists and is always falsy\\.$#',
 	'identifier' => 'empty.variable',
 	'count' => 1,
@@ -90,12 +156,6 @@ $ignoreErrors[] = [
 	'identifier' => 'empty.variable',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Variable \\$modes_str in empty\\(\\) always exists and is not falsy\\.$#',
-	'identifier' => 'empty.variable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Variable \\$deprecated in empty\\(\\) always exists and is always falsy\\.$#',

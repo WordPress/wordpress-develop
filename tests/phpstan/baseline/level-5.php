@@ -728,6 +728,390 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/users.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/content-image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/content-single.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$comment of function get_comment_link expects int\\|WP_Comment\\|null, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function next_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function previous_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$screen of function add_contextual_help expects string, WP_Screen\\|null given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/inc/theme-options.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$args of function register_setting expects array, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/inc/theme-options.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$deps of function wp_enqueue_style expects array\\<string\\>, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/inc/theme-options.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/inc/widgets.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, int\\<1, max\\> given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/showcase.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$instance of function the_widget expects array, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/showcase.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/author-bio.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function next_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function previous_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$number of function _n expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function next_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function previous_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/inc/widgets.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/inc/widgets.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$deps of function wp_enqueue_style expects array\\<string\\>, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$num of function dechex expects int, float given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 6,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/inc/helper-functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$post of function get_post expects int\\|WP_Post\\|null, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/inc/helper-functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$user_id of function get_userdata expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/inc/helper-functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/template-parts/post/author-bio.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/inc/color-patterns.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, \\(float\\|int\\) given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page-panels.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, \\(float\\|int\\) given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function next_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function previous_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/template-parts/biography.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$comment of function get_comment_link expects int\\|WP_Comment\\|null, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$wp_head_callback of function add_custom_image_header expects callable\\(\\)\\: mixed, \'\' given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/loop-attachment.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function next_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/loop-attachment.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function previous_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/loop-attachment.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/loop-single.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/author-bio.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function next_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function previous_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/content.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function next_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$size of function previous_image_link expects array\\<int\\>\\|string, false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#4 \\$prefix of function twentytwenty_generate_css expects string, null given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/classes/class-twentytwenty-non-latin-languages.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#5 \\$suffix of function twentytwenty_generate_css expects string, null given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/classes/class-twentytwenty-non-latin-languages.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$deps of function wp_enqueue_style expects array\\<string\\>, null given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/template-parts/entry-author-bio.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, int\\|false given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/inc/template-functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/template-parts/post/author-bio.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$size of function get_avatar expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/template-parts/post/author-bio.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$userid of function count_user_posts expects int, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -980,6 +1364,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$node of static method WP_Theme_JSON\\:\\:process_pseudo_selectors\\(\\) expects array, object given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$styles of static method WP_Theme_JSON\\:\\:compute_style_properties\\(\\) expects array, object given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 2,
@@ -987,24 +1377,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$data of method WP_Theme\\:\\:cache_add\\(\\) expects array\\|string, int given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#3 \\$translate of method WP_Theme\\:\\:display\\(\\) expects bool, string given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#3 \\$translate of method WP_Theme\\:\\:markup_header\\(\\) expects string, bool given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#4 \\$expire of function wp_cache_add expects int, bool given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
@@ -1184,6 +1556,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/feed.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$message of class WP_Error constructor expects string, list\\<string\\> given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/feed.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$number of function zeroise expects int, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -1260,6 +1638,12 @@ $ignoreErrors[] = [
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/general-template.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$name of method WP_HTML_Tag_Processor\\:\\:set_bookmark\\(\\) expects string, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-processor.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$blog_id of function get_admin_url expects int\\|null, string given\\.$#',
@@ -1496,12 +1880,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$comment_id of function wp_new_comment_notify_postauthor expects int, string given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$comment_id of function wp_trash_comment expects int\\|WP_Comment, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -1527,18 +1905,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$object_id of method WP_REST_Meta_Fields\\:\\:update_value\\(\\) expects int, string given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$value of method WP_HTTP_Response\\:\\:header\\(\\) expects string, array\\|int given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$value of method WP_HTTP_Response\\:\\:header\\(\\) expects string, int given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
@@ -1710,6 +2076,12 @@ $ignoreErrors[] = [
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/theme-templates.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$string of function mb_strlen expects string, int\\<2, max\\> given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#3 \\$control_callback of function wp_register_widget_control expects callable\\(\\)\\: mixed, \'\' given\\.$#',

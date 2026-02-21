@@ -48,9 +48,3 @@ parameters:
 		# Level 2:
 		- # Callable-strings are used as callables in WordPress.
 			message: '#Default value of the parameter .* is incompatible with type callable.*#'
-
-		# Level 6:
-		- # WPCS syntax for iterable types is not supported.
-			identifier: missingType.iterableValue
-		- # Too noisy until `void` return types are allowed.
-			identifier: missingType.return

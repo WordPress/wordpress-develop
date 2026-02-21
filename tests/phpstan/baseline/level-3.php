@@ -50,30 +50,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-post-comments-list-table.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method WP_Screen\\:\\:get_help_tab\\(\\) should return array but returns null\\.$#',
-	'identifier' => 'return.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-screen.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_Screen\\:\\:get_option\\(\\) should return string but returns null\\.$#',
-	'identifier' => 'return.type',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-screen.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_Screen\\:\\:get_screen_reader_text\\(\\) should return string but returns null\\.$#',
-	'identifier' => 'return.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-screen.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Screen\\:\\:\\$columns \\(int\\) does not accept string\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-screen.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Offset \'preview\' does not exist on array\\{activate\\: non\\-falsy\\-string\\}\\.$#',
 	'identifier' => 'offsetAccess.notFound',
 	'count' => 1,
@@ -98,12 +74,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function wp_create_category\\(\\) should return int\\|WP_Error but returns string\\.$#',
-	'identifier' => 'return.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/taxonomy.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Function convert_to_screen\\(\\) should return WP_Screen but returns object\\{id\\: string, base\\: string\\}&stdClass\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
@@ -120,6 +90,18 @@ $ignoreErrors[] = [
 	'identifier' => 'offsetAccess.nonOffsetAccessible',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/update-core.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentytwenty_get_color_for_area\\(\\) should return string but returns false\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentytwenty_generate_css\\(\\) should return string but empty return statement found\\.$#',
+	'identifier' => 'return.empty',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/inc/custom-css.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Property WP_Block_Template\\:\\:\\$author \\(int\\|null\\) does not accept string\\.$#',
@@ -170,13 +152,13 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method WP_Block_Processor\\:\\:extract_block\\(\\) should return array\\<array\\>\\|null but returns array\\<string, array\\|string\\|null\\>\\.$#',
+	'message' => '#^Method WP_Block_Processor\\:\\:extract_full_block_and_advance\\(\\) should return array\\<array\\>\\|null but returns array\\<string, array\\|string\\|null\\>\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method WP_Block_Processor\\:\\:extract_block\\(\\) should return array\\<array\\>\\|null but returns array\\<string, list\\<string\\|null\\>\\|string\\|null\\>\\.$#',
+	'message' => '#^Method WP_Block_Processor\\:\\:extract_full_block_and_advance\\(\\) should return array\\<array\\>\\|null but returns array\\<string, list\\<string\\|null\\>\\|string\\|null\\>\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
@@ -260,12 +242,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-setting.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Dependencies\\:\\:\\$all_queued_deps \\(array\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-dependencies.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^WpOrg\\\\Requests\\\\Cookie\\\\Jar does not accept WpOrg\\\\Requests\\\\Cookie\\.$#',
 	'identifier' => 'offsetAssign.valueType',
 	'count' => 2,
@@ -314,7 +290,7 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Query\\:\\:\\$queried_object_id \\(int\\) does not accept null\\.$#',
+	'message' => '#^Property WP_Query\\:\\:\\$posts \\(array\\<int\\|WP_Post\\>\\|null\\) does not accept array\\<int, stdClass\\>\\.$#',
 	'identifier' => 'assign.propertyType',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
@@ -324,6 +300,12 @@ $ignoreErrors[] = [
 	'identifier' => 'assign.propertyType',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$stored_results by\\-ref type of method WP_Scripts\\:\\:get_highest_fetchpriority_with_dependents\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\> given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-scripts.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Property WP_Site_Query\\:\\:\\$date_query \\(WP_Date_Query\\) does not accept default value of type false\\.$#',
@@ -336,12 +318,6 @@ $ignoreErrors[] = [
 	'identifier' => 'property.defaultValue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-site-query.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_Speculation_Rules\\:\\:jsonSerialize\\(\\) should return array\\<string, array\\<string, mixed\\>\\> but returns array\\<string, list\\<mixed\\>\\>\\.$#',
-	'identifier' => 'return.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-speculation-rules.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter &\\$query by\\-ref type of method WP_Tax_Query\\:\\:clean_query\\(\\) expects array, WP_Error given\\.$#',
@@ -422,72 +398,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json-resolver.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$block_template_folders \\(array\\<string\\>\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$block_theme \\(bool\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$errors \\(WP_Error\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$headers_sanitized \\(array\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$name_translated \\(string\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$parent \\(WP_Theme\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$template \\(string\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$textdomain_loaded \\(bool\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$theme_root_uri \\(string\\) does not accept null\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Static property WP_Theme\\:\\:\\$cache_expiration \\(bool\\) does not accept default value of type int\\.$#',
-	'identifier' => 'property.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Static property WP_Theme\\:\\:\\$cache_expiration \\(bool\\) does not accept int\\<min, \\-1\\>\\|int\\<1, max\\>\\.$#',
-	'identifier' => 'assign.propertyType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter &\\$matched_token_byte_length by\\-ref type of method WP_Token_Map\\:\\:read_token\\(\\) expects int\\|null, \\(float\\|int\\) given\\.$#',
 	'identifier' => 'parameterByRef.type',
 	'count' => 1,
@@ -542,12 +452,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Return type \\(void\\|null\\) of method WP_Customize_Nav_Menu_Item_Setting\\:\\:update\\(\\) should be compatible with return type \\(bool\\) of method WP_Customize_Setting\\:\\:update\\(\\)$#',
-	'identifier' => 'method.childReturnType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Method WP_Customize_Nav_Menu_Setting\\:\\:filter_wp_get_nav_menu_object\\(\\) should return object\\|null but returns false\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
@@ -556,12 +460,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^PHPDoc type array of property WP_Customize_Nav_Menu_Setting\\:\\:\\$default is not covariant with PHPDoc type string of overridden property WP_Customize_Setting\\:\\:\\$default\\.$#',
 	'identifier' => 'property.phpDocType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Return type \\(void\\|null\\) of method WP_Customize_Nav_Menu_Setting\\:\\:update\\(\\) should be compatible with return type \\(bool\\) of method WP_Customize_Setting\\:\\:update\\(\\)$#',
-	'identifier' => 'method.childReturnType',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php',
 ];
@@ -576,12 +474,6 @@ $ignoreErrors[] = [
 	'identifier' => 'offsetAccess.notFound',
 	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/fonts.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_HTML_Decoder\\:\\:read_character_reference\\(\\) should return string\\|false but returns null\\.$#',
-	'identifier' => 'return.type',
-	'count' => 7,
-	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-decoder.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Property WP_HTML_Tag_Processor\\:\\:\\$is_closing_tag \\(bool\\) does not accept null\\.$#',
@@ -612,24 +504,6 @@ $ignoreErrors[] = [
 	'identifier' => 'assign.propertyType',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/l10n/class-wp-translation-file.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function get_edit_post_link\\(\\) should return string\\|null but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 3,
-	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function get_edit_term_link\\(\\) should return string\\|null but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function get_preview_post_link\\(\\) should return string\\|null but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function update_meta_cache\\(\\) should return array\\|false but returns bool\\.$#',
@@ -768,6 +642,18 @@ $ignoreErrors[] = [
 	'identifier' => 'return.empty',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/theme.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function _wp_get_current_user\\(\\) should return WP_User but returns array\\|float\\|int\\|string\\|false\\|null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 3,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function _wp_get_current_user\\(\\) should return WP_User but returns null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Static property WP_Widget_Media\\:\\:\\$l10n_defaults \\(array\\<string\\>\\) does not accept array\\<string, array\\|string\\>\\.$#',

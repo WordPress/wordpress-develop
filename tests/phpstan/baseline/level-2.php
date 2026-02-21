@@ -2,12 +2,6 @@
 
 $ignoreErrors = [];
 $ignoreErrors[] = [
-	'message' => '#^PHPDoc tag @var does not specify variable name\\.$#',
-	'identifier' => 'varTag.noVariable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/_index.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Cannot call method inline_edit\\(\\) on WP_List_Table\\|false\\.$#',
 	'identifier' => 'method.nonObject',
 	'count' => 1,
@@ -530,6 +524,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/media.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Part \\$form_fields\\[\'_final\'\\] \\(non\\-empty\\-array\\<string, mixed\\>\\) of encapsed string cannot be cast to string\\.$#',
+	'identifier' => 'encapsedStringPart.nonString',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/media.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Method WP_List_Table\\:\\:display\\(\\) invoked with 1 parameter, 0 required\\.$#',
 	'identifier' => 'arguments.count',
 	'count' => 1,
@@ -606,12 +606,6 @@ $ignoreErrors[] = [
 	'identifier' => 'property.nonObject',
 	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin-install.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Binary operation "\\*" between string and 1\\.0E\\-5 results in an error\\.$#',
-	'identifier' => 'binaryOp.invalid',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Access to private property WP_Block_Type\\:\\:\\$uses_context\\.$#',
@@ -704,10 +698,106 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/user-edit.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @param has invalid value \\(int The height and width avatar dimension in pixels\\. Default 60\\.\\)\\: Unexpected token "The", expected variable at offset 135 on line 6$#',
+	'identifier' => 'phpDoc.parseError',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @param has invalid value \\(int The height and width avatar dimensions in pixels\\. Default 65\\.\\)\\: Unexpected token "The", expected variable at offset 121 on line 6$#',
+	'identifier' => 'phpDoc.parseError',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/content-status.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @param has invalid value \\(int The width for the image attachment size in pixels\\. Default 848\\.\\)\\: Unexpected token "The", expected variable at offset 270 on line 8$#',
+	'identifier' => 'phpDoc.parseError',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/image.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @param has invalid value \\(string The default tag description\\.\\)\\: Unexpected token "The", expected variable at offset 139 on line 6$#',
+	'identifier' => 'phpDoc.parseError',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Post\\:\\:\\$description\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Post\\:\\:\\$classes\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/inc/icon-functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Post\\:\\:\\$url\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/inc/icon-functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Post\\:\\:\\$classes\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/inc/template-functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Post\\:\\:\\$classes\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/inc/icon-functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Binary operation "/" between string and 2 results in an error\\.$#',
+	'identifier' => 'binaryOp.invalid',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Post\\:\\:\\$classes\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Post\\:\\:\\$url\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/inc/template-tags.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @param has invalid value \\(string The list of classes\\. Default empty string\\.\\)\\: Unexpected token "The", expected variable at offset 116 on line 6$#',
+	'identifier' => 'phpDoc.parseError',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Post\\:\\:\\$url\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/inc/menu-functions.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^PHPDoc tag @var does not specify variable name\\.$#',
 	'identifier' => 'varTag.noVariable',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-cron.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\$prompt of function wp_ai_client_prompt\\(\\) has invalid type Message\\.$#',
+	'identifier' => 'class.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/ai-client.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\$prompt of function wp_ai_client_prompt\\(\\) has invalid type MessagePart\\.$#',
+	'identifier' => 'class.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/ai-client.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Access to an undefined property WP_Post_Type\\:\\:\\$capabilities\\.$#',
@@ -762,12 +852,6 @@ $ignoreErrors[] = [
 	'identifier' => 'property.nonObject',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-manager.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Binary operation "/" between string and 255 results in an error\\.$#',
-	'identifier' => 'binaryOp.invalid',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-duotone.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^PHPDoc tag @param for parameter \\$type contains unresolvable type\\.$#',
@@ -932,6 +1016,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Unsafe call to private method WP_Theme_JSON\\:\\:process_pseudo_selectors\\(\\) through static\\:\\:\\.$#',
+	'identifier' => 'staticClassAccess.privateMethod',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Unsafe call to private method WP_Theme_JSON\\:\\:remove_indirect_properties\\(\\) through static\\:\\:\\.$#',
 	'identifier' => 'staticClassAccess.privateMethod',
 	'count' => 2,
@@ -947,6 +1037,12 @@ $ignoreErrors[] = [
 	'message' => '#^Unsafe call to private method WP_Theme_JSON\\:\\:unwrap_shared_block_style_variations\\(\\) through static\\:\\:\\.$#',
 	'identifier' => 'staticClassAccess.privateMethod',
 	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unsafe call to private method WP_Theme_JSON\\:\\:update_paragraph_text_indent_selector\\(\\) through static\\:\\:\\.$#',
+	'identifier' => 'staticClassAccess.privateMethod',
+	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
 ];
 $ignoreErrors[] = [
@@ -1052,6 +1148,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/functions.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @phpstan\\-return has invalid value \\(\\( \\$args\\[\'exit\'\\] is false \\? void \\: never \\)\\)\\: Unexpected token "\\[", expected type \\("is"\\) at offset 3167 on line 50$#',
+	'identifier' => 'phpDoc.parseError',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/functions.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^PHPDoc tag @var does not specify variable name\\.$#',
 	'identifier' => 'varTag.noVariable',
 	'count' => 1,
@@ -1110,6 +1212,12 @@ $ignoreErrors[] = [
 	'identifier' => 'property.private',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-block-types-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @param references unknown parameter\\: \\$_request$#',
+	'identifier' => 'parameter.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-icons-controller.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$auto_add on WP_Term\\|false\\.$#',
@@ -1176,6 +1284,12 @@ $ignoreErrors[] = [
 	'identifier' => 'property.nonObject',
 	'count' => 4,
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_list_users\\(\\) should return string\\|null but return statement is missing\\.$#',
+	'identifier' => 'return.missing',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^PHPDoc tag @var does not specify variable name\\.$#',

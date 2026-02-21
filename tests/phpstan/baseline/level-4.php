@@ -170,6 +170,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/post.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Right side of && is always true\\.$#',
+	'identifier' => 'booleanAnd.rightAlwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/schema.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Function delete_theme\\(\\) never returns null so it can be removed from the return type\\.$#',
 	'identifier' => 'return.unusedType',
 	'count' => 1,
@@ -180,6 +186,12 @@ $ignoreErrors[] = [
 	'identifier' => 'booleanNot.alwaysFalse',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/theme.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function get_preferred_from_update_core\\(\\) never returns array so it can be removed from the return type\\.$#',
+	'identifier' => 'return.unusedType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/update.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^If condition is always false\\.$#',
@@ -206,12 +218,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/nav-menus.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'identifier' => 'deadCode.unreachable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/network/sites.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Strict comparison using \\=\\=\\= between \'update\\-selected\' and mixed~\\(\'activate\'\\|\'activate\\-selected\'\\|\'deactivate\'\\|\'deactivate\\-selected\'\\|\'delete\\-selected\'\\|\'disable\\-auto\\-update\'\\|\'disable\\-auto\\-update\\-selected\'\\|\'enable\\-auto\\-update\'\\|\'enable\\-auto\\-update\\-selected\'\\|\'error_scrape\'\\|\'resume\'\\|\'update\\-selected\'\\) will always evaluate to false\\.$#',
 	'identifier' => 'identical.alwaysFalse',
 	'count' => 1,
@@ -230,6 +236,660 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/themes.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/category.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/category.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Manager\\:\\:\\$selective_refresh \\(WP_Customize_Selective_Refresh\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/inc/theme-options.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/inc/widgets.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/inc/widgets.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/showcase.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/showcase.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyeleven/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Manager\\:\\:\\$selective_refresh \\(WP_Customize_Selective_Refresh\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/inc/customizer.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfifteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/category.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/category.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Manager\\:\\:\\$selective_refresh \\(WP_Customize_Selective_Refresh\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/inc/customizer.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/inc/widgets.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/inc/widgets.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/taxonomy-post_format.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyfourteen/taxonomy-post_format.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^If condition is always true\\.$#',
+	'identifier' => 'if.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/comments.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Right side of && is always true\\.$#',
+	'identifier' => 'booleanAnd.rightAlwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/header.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Manager\\:\\:\\$selective_refresh \\(WP_Customize_Selective_Refresh\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/inc/customizer.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^If condition is always true\\.$#',
+	'identifier' => 'if.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentynineteen/template-parts/footer/footer-widgets.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/front-page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page-panels.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page-panels.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Manager\\:\\:\\$selective_refresh \\(WP_Customize_Selective_Refresh\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/inc/customizer.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentysixteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/loop-attachment.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/loop-page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentyten/loop-single.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/category.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/category.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Manager\\:\\:\\$selective_refresh \\(WP_Customize_Selective_Refresh\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/taxonomy-post_format.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentythirteen/taxonomy-post_format.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/author.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/category.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/category.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Manager\\:\\:\\$selective_refresh \\(WP_Customize_Selective_Refresh\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwelve/tag.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^If condition is always true\\.$#',
+	'identifier' => 'if.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/singular.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^If condition is always true\\.$#',
+	'identifier' => 'if.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/template-parts/modal-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/templates/template-cover.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/archive.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/index.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/search.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^While loop condition is always true\\.$#',
+	'identifier' => 'while.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwentyone/search.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Property WP_Block_Type\\:\\:\\$editor_style_handles \\(array\\<string\\>\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
@@ -244,7 +904,7 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Strict comparison using \\!\\=\\= between null and string will always evaluate to true\\.$#',
 	'identifier' => 'notIdentical.alwaysTrue',
-	'count' => 2,
+	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/block-supports/layout.php',
 ];
 $ignoreErrors[] = [
@@ -260,6 +920,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/block-supports/position.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Right side of && is always true\\.$#',
+	'identifier' => 'booleanAnd.rightAlwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-supports/typography.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Left side of && is always true\\.$#',
 	'identifier' => 'booleanAnd.leftAlwaysTrue',
 	'count' => 1,
@@ -270,6 +936,12 @@ $ignoreErrors[] = [
 	'identifier' => 'while.alwaysTrue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/block-template.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Block_Type\\:\\:\\$render_callback \\(callable\\) in empty\\(\\) is not falsy\\.$#',
+	'identifier' => 'empty.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Left side of && is always true\\.$#',
@@ -290,15 +962,9 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-bindings-registry.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Block_Bindings_Registry\\:\\:\\$supported_blocks is never read, only written\\.$#',
-	'identifier' => 'property.onlyWritten',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-bindings-registry.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^If condition is always false\\.$#',
 	'identifier' => 'if.alwaysFalse',
-	'count' => 1,
+	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
 ];
 $ignoreErrors[] = [
@@ -416,48 +1082,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-widgets.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Dependencies\\:\\:\\$all_queued_deps \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-dependencies.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'identifier' => 'deadCode.unreachable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-dependencies.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Static property WP_Duotone\\:\\:\\$global_styles_block_names \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-duotone.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Static property WP_Duotone\\:\\:\\$global_styles_block_names is never written, only read\\.$#',
-	'identifier' => 'property.onlyRead',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-duotone.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Static property WP_Duotone\\:\\:\\$global_styles_presets \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-duotone.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Static property WP_Duotone\\:\\:\\$global_styles_presets is never written, only read\\.$#',
-	'identifier' => 'property.onlyRead',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-duotone.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'identifier' => 'deadCode.unreachable',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-duotone.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Property WP_Http_Cookie\\:\\:\\$domain \\(string\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
@@ -470,14 +1094,14 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-http-cookie.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Http_Cookie\\:\\:\\$path \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
+	'message' => '#^Property WP_Http_Cookie\\:\\:\\$path \\(string\\) on left side of \\?\\? is not nullable\\.$#',
+	'identifier' => 'nullCoalesce.property',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-http-cookie.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Http_Cookie\\:\\:\\$port \\(int\\|string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
+	'message' => '#^Property WP_Http_Cookie\\:\\:\\$port \\(int\\|string\\) on left side of \\?\\? is not nullable\\.$#',
+	'identifier' => 'nullCoalesce.property',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-http-cookie.php',
 ];
@@ -512,33 +1136,15 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-image-editor.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Property WP_Locale\\:\\:\\$word_count_type \\(string\\) on left side of \\?\\? is not nullable\\.$#',
+	'identifier' => 'nullCoalesce.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-locale.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Property WP_Post\\:\\:\\$ID \\(int\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Query\\:\\:\\$queried_object_id \\(int\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 4,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Query\\:\\:\\$query \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Query\\:\\:\\$stopwords \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'identifier' => 'deadCode.unreachable',
-	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
 ];
 $ignoreErrors[] = [
@@ -548,51 +1154,9 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-recovery-mode-cookie-service.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Rewrite\\:\\:\\$author_structure \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Rewrite\\:\\:\\$comment_feed_structure \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Rewrite\\:\\:\\$date_structure \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Rewrite\\:\\:\\$feed_structure \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Rewrite\\:\\:\\$page_structure \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Rewrite\\:\\:\\$search_structure \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Strict comparison using \\!\\=\\= between null and int\\|string will always evaluate to true\\.$#',
 	'identifier' => 'notIdentical.alwaysTrue',
 	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'identifier' => 'deadCode.unreachable',
-	'count' => 6,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
 ];
 $ignoreErrors[] = [
@@ -602,64 +1166,10 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-script-modules.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property _WP_Dependency\\:\\:\\$translations_path \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-scripts.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Comparison operation "\\<\\=" between 0 and int\\<0, max\\>\\|false is always true\\.$#',
 	'identifier' => 'smallerOrEqual.alwaysTrue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_Theme\\:\\:parent\\(\\) never returns false so it can be removed from the return type\\.$#',
-	'identifier' => 'return.unusedType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$block_template_folders \\(array\\<string\\>\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$block_theme \\(bool\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$headers_sanitized \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$name_translated \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$parent \\(WP_Theme\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$textdomain_loaded \\(bool\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Theme\\:\\:\\$theme_root_uri \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Static method WP_Theme\\:\\:_check_headers_property_has_correct_type\\(\\) is unused\\.$#',
@@ -671,12 +1181,6 @@ $ignoreErrors[] = [
 	'message' => '#^Static property WP_Theme\\:\\:\\$persistently_cache \\(bool\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'identifier' => 'deadCode.unreachable',
-	'count' => 4,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme.php',
 ];
 $ignoreErrors[] = [
@@ -728,18 +1232,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/compat-utf8.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Instanceof between mixed and ResourceBundle will always evaluate to false\\.$#',
-	'identifier' => 'instanceof.alwaysFalse',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/compat.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Instanceof between mixed and SimpleXMLElement will always evaluate to false\\.$#',
-	'identifier' => 'instanceof.alwaysFalse',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/compat.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Property WP_Customize_Manager\\:\\:\\$nav_menus \\(WP_Customize_Nav_Menus\\) in empty\\(\\) is not falsy\\.$#',
 	'identifier' => 'empty.property',
 	'count' => 1,
@@ -774,6 +1266,18 @@ $ignoreErrors[] = [
 	'identifier' => 'function.alreadyNarrowedType',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/feed.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Comparison operation "\\>\\=" between int\\<70400, 80500\\> and 70300 is always true\\.$#',
+	'identifier' => 'greaterOrEqual.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/fonts/class-wp-font-utils.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Comparison operation "\\>\\=" between int\\<70400, 80500\\> and 70400 is always true\\.$#',
+	'identifier' => 'greaterOrEqual.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/fonts/class-wp-font-utils.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Comparison operation "\\>\\=" between int\\<2592000, 31535999\\> and 2592000 is always true\\.$#',
@@ -864,6 +1368,30 @@ $ignoreErrors[] = [
 	'identifier' => 'deadCode.unreachable',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-doctype-info.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^If condition is always true\\.$#',
+	'identifier' => 'if.alwaysTrue',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Left side of && is always true\\.$#',
+	'identifier' => 'booleanAnd.leftAlwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_HTML_Processor\\:\\:bookmark_token\\(\\) never returns false so it can be removed from the return type\\.$#',
+	'identifier' => 'return.unusedType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 17,
+	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-processor.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Method WP_HTML_Tag_Processor\\:\\:skip_rawtext\\(\\) is unused\\.$#',
@@ -982,7 +1510,7 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Right side of && is always true\\.$#',
 	'identifier' => 'booleanAnd.rightAlwaysTrue',
-	'count' => 1,
+	'count' => 3,
 	'path' => __DIR__ . '/../../../src/wp-includes/l10n.php',
 ];
 $ignoreErrors[] = [
@@ -1018,6 +1546,12 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Offset 2 on array\\{string, non\\-empty\\-string, non\\-empty\\-string\\} in isset\\(\\) always exists and is not nullable\\.$#',
 	'identifier' => 'isset.offset',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Strict comparison using \\!\\=\\= between \'\' and non\\-empty\\-string will always evaluate to true\\.$#',
+	'identifier' => 'notIdentical.alwaysTrue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
 ];
@@ -1064,12 +1598,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Strict comparison using \\!\\=\\= between null and int will always evaluate to true\\.$#',
-	'identifier' => 'notIdentical.alwaysTrue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Strict comparison using \\=\\=\\= between 3000000000 and 2147483647 will always evaluate to false\\.$#',
 	'identifier' => 'identical.alwaysFalse',
 	'count' => 1,
@@ -1090,7 +1618,13 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Offset mixed on array\\{\\} in isset\\(\\) does not exist\\.$#',
 	'identifier' => 'isset.offset',
-	'count' => 2,
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Offset mixed on array\\{\\} on left side of \\?\\? does not exist\\.$#',
+	'identifier' => 'nullCoalesce.offset',
+	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api.php',
 ];
 $ignoreErrors[] = [
@@ -1160,6 +1694,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^If condition is always false\\.$#',
+	'identifier' => 'if.alwaysFalse',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/template.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^While loop condition is always true\\.$#',
 	'identifier' => 'while.alwaysTrue',
 	'count' => 1,
@@ -1172,16 +1712,28 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/theme.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Property WP_Site\\:\\:\\$domain \\(string\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_User\\:\\:\\$ID \\(int\\) on left side of \\?\\? is not nullable\\.$#',
+	'identifier' => 'nullCoalesce.property',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Right side of && is always true\\.$#',
+	'identifier' => 'booleanAnd.rightAlwaysTrue',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^If condition is always false\\.$#',
 	'identifier' => 'if.alwaysFalse',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-login.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Call to method WP_Theme\\:\\:load_textdomain\\(\\) on a separate line has no effect\\.$#',
-	'identifier' => 'method.resultUnused',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-settings.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function validate_another_blog_signup\\(\\) never returns null so it can be removed from the return type\\.$#',
