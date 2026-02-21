@@ -473,7 +473,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 }
 
 .menu-item-textbox {
-	width: 180px;
+	width: 100%;
 }
 
 .nav-menus-php .howto span {
