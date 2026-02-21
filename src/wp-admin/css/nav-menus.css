@@ -376,7 +376,6 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 
 /* Add Menu Item Boxes */
 .postbox .howto input,
-.customlinkdiv .menu-item-textbox,
 .customlinkdiv .error-message {
 	width: 180px;
 	float: right;
@@ -477,7 +476,6 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	width: 180px;
 }
 
-.customlinkdiv label,
 .nav-menus-php .howto span {
 	float: left;
 	margin-top: 6px;
