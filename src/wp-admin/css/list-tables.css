@@ -1044,6 +1044,7 @@ tr.inline-edit-row td {
 	display: block;
 	float: left;
 	width: 6em;
+	line-height: 2.5;
 }
 
 #posts-filter fieldset.inline-edit-date legend {
