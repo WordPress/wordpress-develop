@@ -493,7 +493,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 
 		<div class="inside">
 		<label for="author-email"><?php _e( 'Email' ); ?></label>
-		<input type="text" name="newcomment_author_email" size="50" value="" id="author-email" />
+		<input type="text" name="newcomment_author_email" size="50" class="code" value="" id="author-email" />
 		</div>
 
 		<div class="inside">
@@ -967,13 +967,18 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
  * Prints out option HTML elements for role selectors.
  *
  * @since 2.1.0
+ * @since 7.0.0 Added $editable_roles parameter.
  *
- * @param string $selected Slug for the role that should be already selected.
+ * @param string $selected       Slug for the role that should be already selected.
+ * @param array  $editable_roles Array of roles to include in the dropdown. Defaults to all
+ *                               roles the current user is allowed to edit.
  */
-function wp_dropdown_roles( $selected = '' ) {
+function wp_dropdown_roles( $selected = '', $editable_roles = null ) {
 	$r = '';
 
-	$editable_roles = array_reverse( get_editable_roles() );
+	if ( null === $editable_roles ) {
+		$editable_roles = array_reverse( get_editable_roles() );
+	}
 
 	foreach ( $editable_roles as $role => $details ) {
 		$name = translate_user_role( $details['name'] );
@@ -1616,7 +1621,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  *
  * @param string   $id       Slug-name to identify the section. Used in the 'id' attribute of tags.
  * @param string   $title    Formatted title of the section. Shown as the heading for the section.
- * @param callable $callback Function that echos out any content at the top of the section (between heading and fields).
+ * @param callable $callback Function that displays any content at the top of the section (between heading and fields).
  * @param string   $page     The slug-name of the settings page on which to show the section. Built-in pages include
  *                           'general', 'reading', 'writing', 'discussion', 'media', etc. Create your own using
  *                           add_options_page();
@@ -1751,9 +1756,10 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
  * to output all the sections and fields that were added to that $page with
  * add_settings_section() and add_settings_field()
  *
+ * @since 2.7.0
+ *
  * @global array $wp_settings_sections Storage array of all settings sections added to admin pages.
  * @global array $wp_settings_fields Storage array of settings fields and info about their pages/sections.
- * @since 2.7.0
  *
  * @param string $page The slug name of the page whose settings sections you want to output.
  */
@@ -1800,9 +1806,9 @@ function do_settings_sections( $page ) {
  * a specific section. Should normally be called by do_settings_sections()
  * rather than directly.
  *
- * @global array $wp_settings_fields Storage array of settings fields and their pages/sections.
- *
  * @since 2.7.0
+ *
+ * @global array $wp_settings_fields Storage array of settings fields and their pages/sections.
  *
  * @param string $page Slug title of the admin page whose settings fields you want to show.
  * @param string $section Slug title of the settings section whose fields you want to show.
@@ -2137,7 +2143,7 @@ function iframe_header( $title = '', $deprecated = false ) {
 	<?php
 	wp_enqueue_style( 'colors' );
 	?>
-<script type="text/javascript">
+<script>
 addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
@@ -2171,6 +2177,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	do_action( 'admin_head' );
 
 	$admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
+	$admin_body_class .= ' admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' );
 
 	if ( is_rtl() ) {
 		$admin_body_class .= ' rtl';
@@ -2186,7 +2193,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 	?>
 <body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo esc_attr( $admin_body_classes ); ?>">
-<script type="text/javascript">
+<script>
 (function(){
 var c = document.body.className;
 c = c.replace(/no-js/, 'js');
@@ -2225,7 +2232,7 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
+<script>if(typeof wpOnload==='function')wpOnload();</script>
 </body>
 </html>
 	<?php
@@ -2245,30 +2252,44 @@ function iframe_footer() {
  * @return string Post states string.
  */
 function _post_states( $post, $display = true ) {
-	$post_states        = get_post_states( $post );
-	$post_states_string = '';
+	$post_states      = get_post_states( $post );
+	$post_states_html = '';
 
 	if ( ! empty( $post_states ) ) {
 		$state_count = count( $post_states );
+		$separator   = wp_get_list_item_separator();
 
 		$i = 0;
 
-		$post_states_string .= ' &mdash; ';
+		$post_states_html .= ' &mdash; ';
 
 		foreach ( $post_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? ', ' : '';
+			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$post_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
+			$post_states_html .= "<span class='post-state'>{$state}{$suffix}</span>";
 		}
 	}
 
+	/**
+	 * Filters the HTML string of post states.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string                 $post_states_html All relevant post states combined into an HTML string for display.
+	 *                                                 E.g. `&mdash; <span class='post-state'>Draft, </span><span class='post-state'>Sticky</span>`.
+	 * @param array<string, string>  $post_states      A mapping of post state slugs to translated post state labels.
+	 *                                                 E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
+	 * @param WP_Post                $post             The current post object.
+	 */
+	$post_states_html = apply_filters( 'post_states_html', $post_states_html, $post_states, $post );
+
 	if ( $display ) {
-		echo $post_states_string;
+		echo $post_states_html;
 	}
 
-	return $post_states_string;
+	return $post_states_html;
 }
 
 /**
@@ -2281,12 +2302,11 @@ function _post_states( $post, $display = true ) {
  */
 function get_post_states( $post ) {
 	$post_states = array();
-
-	if ( isset( $_REQUEST['post_status'] ) ) {
-		$post_status = $_REQUEST['post_status'];
-	} else {
-		$post_status = '';
+	if ( ! $post instanceof WP_Post ) {
+		return $post_states;
 	}
+
+	$post_status = $_REQUEST['post_status'] ?? '';
 
 	if ( ! empty( $post->post_password ) ) {
 		$post_states['protected'] = _x( 'Password protected', 'post status' );
@@ -2341,8 +2361,9 @@ function get_post_states( $post ) {
 	 *              are used within the filter, their existence should be checked
 	 *              with `function_exists()` before being used.
 	 *
-	 * @param string[] $post_states An array of post display states.
-	 * @param WP_Post  $post        The current post object.
+	 * @param array<string, string>  $post_states A mapping of post state slugs to translated post state labels.
+	 *                                            E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
+	 * @param WP_Post                $post        The current post object.
 	 */
 	return apply_filters( 'display_post_states', $post_states, $post );
 }
@@ -2364,6 +2385,7 @@ function _media_states( $post, $display = true ) {
 
 	if ( ! empty( $media_states ) ) {
 		$state_count = count( $media_states );
+		$separator   = wp_get_list_item_separator();
 
 		$i = 0;
 
@@ -2372,9 +2394,9 @@ function _media_states( $post, $display = true ) {
 		foreach ( $media_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? ', ' : '';
+			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$media_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
+			$media_states_string .= "<span class='post-state'>{$state}{$suffix}</span>";
 		}
 	}
 
@@ -2478,8 +2500,8 @@ function get_media_states( $post ) {
  */
 function compression_test() {
 	?>
-	<script type="text/javascript">
-	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ) ); ?>;
+	<script>
+	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	var testCompression = {
 		get : function(test) {
 			var x;
@@ -2631,9 +2653,9 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 /**
  * Prints out the beginning of the admin HTML header.
  *
- * @global bool $is_IE
- *
  * @since 3.3.0
+ *
+ * @global bool $is_IE
  */
 function _wp_admin_html_begin() {
 	global $is_IE;

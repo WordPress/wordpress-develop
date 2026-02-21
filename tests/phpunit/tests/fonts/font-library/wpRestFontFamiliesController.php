@@ -28,7 +28,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		'name'       => 'Open Sans',
 		'slug'       => 'open-sans',
 		'fontFamily' => '"Open Sans", sans-serif',
-		'preview'    => 'https://s.w.org/images/fonts/16.7/previews/open-sans/open-sans-400-normal.svg',
+		'preview'    => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
 	);
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -48,7 +48,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 				'name'       => 'Open Sans',
 				'slug'       => 'open-sans',
 				'fontFamily' => '"Open Sans", sans-serif',
-				'preview'    => 'https://s.w.org/images/fonts/16.7/previews/open-sans/open-sans-400-normal.svg',
+				'preview'    => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
 			)
 		);
 		self::$font_family_id2 = self::create_font_family_post(
@@ -665,7 +665,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 					'name'       => 'Open Sans',
 					'slug'       => 'open-sans',
 					'fontFamily' => '"Open Sans", sans-serif',
-					'preview'    => 'https://s.w.org/images/fonts/16.7/previews/open-sans/open-sans-400-normal.svg',
+					'preview'    => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
 				)
 			)
 		);
@@ -682,7 +682,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$settings = array(
 			'name'       => 'Open Sans',
 			'fontFamily' => 'Open Sans, "Noto Sans", sans-serif',
-			'preview'    => 'https://s.w.org/images/fonts/16.9/previews/open-sans/open-sans-400-normal.svg',
+			'preview'    => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
 		);
 
 		$font_family_id = self::create_font_family_post( array( 'slug' => 'open-sans-2' ) );
@@ -738,7 +738,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		return array(
 			array( array( 'name' => 'Opened Sans' ) ),
 			array( array( 'fontFamily' => '"Opened Sans", sans-serif' ) ),
-			array( array( 'preview' => 'https://s.w.org/images/fonts/16.7/previews/opened-sans/opened-sans-400-normal.svg' ) ),
+			array( array( 'preview' => 'https://s.w.org/images/fonts/wp-7.0/previews/opened-sans/opened-sans-400-normal.svg' ) ),
 			// Empty preview is allowed.
 			array( array( 'preview' => '' ) ),
 		);
@@ -1048,9 +1048,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 			$expected = rest_url( 'wp/v2/font-families/' . $post->ID . '/font-faces/' . $font_face_ids[ $index ] );
 			$this->assertSame( $expected, $link['href'], 'The links for a font faces URL from the response data should match the REST endpoint.' );
 
-			$embeddable = isset( $link['attributes']['embeddable'] )
-				? $link['attributes']['embeddable']
-				: $link['embeddable'];
+			$embeddable = $link['attributes']['embeddable'] ?? $link['embeddable'];
 			$this->assertTrue( $embeddable, 'The embeddable should be true.' );
 		}
 	}
