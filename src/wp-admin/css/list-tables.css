@@ -1019,7 +1019,7 @@ tr.inline-edit-row td {
 .inline-edit-row fieldset label,
 .inline-edit-row fieldset span.inline-edit-categories-label {
 	display: block;
-	padding: .2em 0;
+	margin: .2em 0;
 	line-height: 2.5;
 }
 
