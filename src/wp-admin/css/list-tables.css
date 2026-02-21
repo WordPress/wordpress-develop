@@ -1043,8 +1043,10 @@ tr.inline-edit-row td {
 .inline-edit-row fieldset.inline-edit-date legend {
 	display: block;
 	float: left;
-	width: 6em;
-	line-height: 2.5;
+	min-width: 6em;
+	line-height: 3;
+	padding-right: 4px;
+	box-sizing: border-box;
 }
 
 #posts-filter fieldset.inline-edit-date legend {
