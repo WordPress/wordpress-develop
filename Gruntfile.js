@@ -341,8 +341,15 @@ module.exports = function(grunt) {
 						expand: true,
 						cwd: SOURCE_DIR + 'js/_enqueues/lib/codemirror/',
 						src: [
-							'fakejshint.js',
 							'htmlhint-kses.js',
+						],
+						dest: WORKING_DIR + 'wp-includes/js/codemirror/'
+					},
+					{
+						expand: true,
+						cwd: SOURCE_DIR + 'js/_enqueues/deprecated/',
+						src: [
+							'fakejshint.js',
 						],
 						dest: WORKING_DIR + 'wp-includes/js/codemirror/'
 					}
