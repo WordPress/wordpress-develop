@@ -797,7 +797,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @global string             $s      URL-encoded search term.
 	 * @global array<string, int> $totals Count of plugins for each status group.
 	 *
-	 * @param array<int, mixed> $item The current item. An array containing the plugin file path and plugin data.
+	 * @param array{string, array<string, mixed>} $item The current item. An array containing the plugin file path and plugin data.
 	 */
 	public function single_row( $item ) {
 		global $status, $page, $s, $totals;
