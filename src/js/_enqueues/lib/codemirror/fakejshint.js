@@ -1,5 +1,13 @@
-// JSHINT has some GPL Compatability issues, so we are faking it out and using esprima for validation
-// Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed
+/**
+ * JSHINT has some GPL Compatability issues, so we are faking it out and using esprima for validation
+ * Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed.
+ * This is now deprecated in favor of Espree.
+ *
+ * @since 4.9.3
+ * @deprecated 7.0.0
+ * @output wp-includes/js/codemirror/fakejshint.js
+ * @see https://core.trac.wordpress.org/ticket/42850
+ */
 
 /* jshint -W057 */
 var fakeJSHINT = new function() {
