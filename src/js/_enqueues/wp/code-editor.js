@@ -4,17 +4,17 @@
 
 /* eslint-env es2020 */
 
-if ( 'undefined' === typeof wp ) {
+if ( 'undefined' === typeof window.wp ) {
 	/**
 	 * @namespace wp
 	 */
 	window.wp = {};
 }
-if ( 'undefined' === typeof wp.codeEditor ) {
+if ( 'undefined' === typeof window.wp.codeEditor ) {
 	/**
 	 * @namespace wp.codeEditor
 	 */
-	wp.codeEditor = {};
+	window.wp.codeEditor = {};
 }
 
 /**
@@ -143,9 +143,8 @@ if ( 'undefined' === typeof wp.codeEditor ) {
  *   codeEditor: WpCodeEditor,
  *   CodeMirror: typeof import('codemirror'),
  * }} wp - WordPress namespace.
- * @param {_.UnderscoreStatic} _ - Underscore.
  */
-( function( $, wp, _ ) {
+( function( $, wp ) {
 	'use strict';
 
 	/**
@@ -504,4 +503,4 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 		return instance;
 	};
 
-})( jQuery, wp, _ );
+})( jQuery, window.wp );
