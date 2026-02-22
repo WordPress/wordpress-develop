@@ -411,18 +411,21 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the Sender field in the SMTP envelope is set by Core.
+	 * Test that the Sender field in the SMTP envelope is not set by Core.
 	 *
-	 * A missing Sender field can lead to messages failing DMARC SPF checks.
+	 * Correctly setting the Sender requires knowledge that is not available
+	 * to Core. An incorrect value will often lead to messages being rejected
+	 * by the receiving MTA, so it's the admin's responsibility to
+	 * set it correctly.
 	 *
-	 * @ticket 49687
+	 * @ticket 37736
 	 */
-	public function test_wp_mail_sender_set() {
-		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should have been set.' );
+	public function test_wp_mail_sender_not_set() {
+		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should not have been set.' );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertSame( 'wordpress@example.org', $mailer->Sender );
+		$this->assertSame( '', $mailer->Sender );
 	}
 
 	/**
@@ -446,6 +449,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			'message'                  => 'Test Message',
 			'headers'                  => array(),
 			'attachments'              => array(),
+			'embeds'                   => array(),
 			'phpmailer_exception_code' => 2,
 		);
 
@@ -665,12 +669,12 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		wp_mail( WP_TESTS_EMAIL, 'Looong line testing', $content );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( 'quoted-printable', $mailer->Encoding );
+		$this->assertSame( 'quoted-printable', $mailer->Encoding );
 
 		wp_mail( WP_TESTS_EMAIL, 'A follow up short email', 'Short email' );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( '7bit', $mailer->Encoding );
+		$this->assertSame( '7bit', $mailer->Encoding );
 	}
 
 	/**

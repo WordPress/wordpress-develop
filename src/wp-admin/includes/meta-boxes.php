@@ -215,7 +215,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 					<?php endif; ?>
 
 					<input type="radio" name="visibility" id="visibility-radio-password" value="password" <?php checked( $visibility, 'password' ); ?> /> <label for="visibility-radio-password" class="selectit"><?php _e( 'Password protected' ); ?></label><br />
-					<span id="password-span"><label for="post_password"><?php _e( 'Password:' ); ?></label> <input type="text" name="post_password" id="post_password" value="<?php echo esc_attr( $post->post_password ); ?>"  maxlength="255" /><br /></span>
+					<span id="password-span"><label for="post_password"><?php _e( 'Password:' ); ?></label> <input type="text" name="post_password" id="post_password" class="ltr" value="<?php echo esc_attr( $post->post_password ); ?>"  maxlength="255" /><br /></span>
 
 					<input type="radio" name="visibility" id="visibility-radio-private" value="private" <?php checked( $visibility, 'private' ); ?> /> <label for="visibility-radio-private" class="selectit"><?php _e( 'Private' ); ?></label><br />
 
@@ -914,7 +914,7 @@ function post_comment_meta_box( $post ) {
 		$hidden = get_hidden_meta_boxes( get_current_screen() );
 		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
 			?>
-			<script type="text/javascript">jQuery(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
+			<script>jQuery(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
 			<?php
 		}
 
@@ -1265,7 +1265,7 @@ function xfn_check( $xfn_relationship, $xfn_value = '', $deprecated = '' ) {
 		_deprecated_argument( __FUNCTION__, '2.5.0' ); // Never implemented.
 	}
 
-	$link_rel  = isset( $link->link_rel ) ? $link->link_rel : '';
+	$link_rel  = $link->link_rel ?? '';
 	$link_rels = preg_split( '/\s+/', $link_rel );
 
 	// Mark the specified value as checked if it matches the current link's relationship.
@@ -1454,7 +1454,7 @@ function link_advanced_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"><label for="link_notes"><?php _e( 'Notes' ); ?></label></th>
-		<td><textarea name="link_notes" id="link_notes" rows="10"><?php echo ( isset( $link->link_notes ) ? $link->link_notes : '' ); // textarea_escaped ?></textarea></td>
+		<td><textarea name="link_notes" id="link_notes" rows="10"><?php echo $link->link_notes ?? ''; // textarea_escaped ?></textarea></td>
 	</tr>
 	<tr>
 		<th scope="row"><label for="link_rating"><?php _e( 'Rating' ); ?></label></th>

@@ -1896,4 +1896,20 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Verify the sibling note is NOT trashed (no cascade since child is not top-level).
 		$this->assertSame( '1', get_comment( $sibling_note )->comment_approved );
 	}
+
+	/**
+	 * @ticket 61244
+	 *
+	 * @covers ::get_comment
+	 */
+	public function test_get_comment_filter() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( $comment_id, (int) $comment->comment_ID, 'Expected the same comment.' );
+
+		add_filter( 'get_comment', '__return_null' );
+		$this->assertNull( get_comment( $comment_id ), 'Expected get_comment() to return null when get_comment filter returns null.' );
+	}
 }
