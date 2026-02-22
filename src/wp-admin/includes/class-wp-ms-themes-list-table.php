@@ -267,7 +267,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Helper to filter themes by search term.
+	 * Filters a theme by the search term.
 	 *
 	 * @param WP_Theme $theme The WP_Theme object to check.
 	 * @return bool True if the theme matches the search term, false otherwise.
