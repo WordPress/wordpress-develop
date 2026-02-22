@@ -1,6 +1,7 @@
 // JSHINT has some GPL Compatability issues, so we are faking it out and using esprima for validation
 // Based on https://github.com/jquery/esprima/blob/gh-pages/demo/validate.js which is MIT licensed
 
+/* jshint -W057 */
 var fakeJSHINT = new function() {
 	var syntax, errors;
 	var that = this;
