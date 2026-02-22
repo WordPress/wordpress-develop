@@ -134,16 +134,16 @@ if ( 'undefined' === typeof wp.codeEditor ) {
 /**
  * @typedef {object} WpCodeEditor
  * @property {CodeEditorSettings} defaultSettings - Default settings.
- * @property {(textarea: string|jQuery|Element, settings?: CodeEditorSettings) => CodeEditorInstance} initialize - Initialize.
+ * @property {(textarea: string|JQuery|Element, settings?: CodeEditorSettings) => CodeEditorInstance} initialize - Initialize.
  */
 
 /**
- * @param {jQuery} $ - jQuery.
+ * @param {JQueryStatic} $ - jQuery.
  * @param {Object & {
  *   codeEditor: WpCodeEditor,
  *   CodeMirror: typeof import('codemirror'),
  * }} wp - WordPress namespace.
- * @param {import('underscore').UnderscoreStatic} _ - Underscore.
+ * @param {_.UnderscoreStatic} _ - Underscore.
  */
 ( function( $, wp, _ ) {
 	'use strict';
