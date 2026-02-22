@@ -2556,7 +2556,6 @@ function _wp_upload_dir( $time = null ) {
 function wp_unique_filename( $dir, $filename, $unique_filename_callback = null ) {
 	// Sanitize the file name before we begin processing.
 	$filename = sanitize_file_name( $filename );
-	$ext2     = null;
 
 	// Initialize vars used in the wp_unique_filename filter.
 	$number        = '';
@@ -3765,6 +3764,9 @@ function wp_nonce_ays( $action ) {
  *                                  is a WP_Error.
  *     @type bool   $exit           Whether to exit the process after completion. Default true.
  * }
+ * @return never|void Returns void if `$args['exit']` is false, otherwise exits.
+ *
+ * @phpstan-return ( $args['exit'] is false ? void : never )
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
 	global $wp_query;
