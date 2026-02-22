@@ -11756,6 +11756,90 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/font-library/page.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Function wp_get_site_editor_v2_wp_admin_menu_items\\(\\) return type has no value type specified in iterable type array\\.$#',
+	'identifier' => 'missingType.iterableValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page-wp-admin.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_get_site_editor_v2_wp_admin_routes\\(\\) return type has no value type specified in iterable type array\\.$#',
+	'identifier' => 'missingType.iterableValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page-wp-admin.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_register_site_editor_v2_wp_admin_menu_item\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page-wp-admin.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_register_site_editor_v2_wp_admin_route\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page-wp-admin.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_site_editor_v2_wp_admin_enqueue_scripts\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page-wp-admin.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_site_editor_v2_wp_admin_preload_data\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page-wp-admin.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_site_editor_v2_wp_admin_render_page\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page-wp-admin.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_get_site_editor_v2_menu_items\\(\\) return type has no value type specified in iterable type array\\.$#',
+	'identifier' => 'missingType.iterableValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_get_site_editor_v2_routes\\(\\) return type has no value type specified in iterable type array\\.$#',
+	'identifier' => 'missingType.iterableValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_register_site_editor_v2_menu_item\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_register_site_editor_v2_route\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_site_editor_v2_intercept_render\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_site_editor_v2_preload_data\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_site_editor_v2_render_page\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/pages/site-editor-v2/page.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Function wp_get_site_editor_wp_admin_menu_items\\(\\) return type has no value type specified in iterable type array\\.$#',
 	'identifier' => 'missingType.iterableValue',
 	'count' => 1,
@@ -11865,6 +11949,18 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function wp_register_site_editor_page_routes\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/routes.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_register_site_editor_v2_page_routes\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/build/routes.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_register_site_editor_v2_wp_admin_page_routes\\(\\) has no return type specified\\.$#',
 	'identifier' => 'missingType.return',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/build/routes.php',
