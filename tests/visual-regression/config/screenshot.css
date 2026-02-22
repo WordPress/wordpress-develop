@@ -1,0 +1,75 @@
+/*
+ * Global stylesheet applied during screenshot capture.
+ *
+ * Hides volatile elements that change between environments or runs,
+ * preventing false positives in visual regression comparisons.
+ * Applied via Playwright's stylePath config option.
+ *
+ * See: https://playwright.dev/docs/test-snapshots#stylepath
+ */
+
+/*
+ * Uses `visibility: hidden` instead of `display: none` to preserve
+ * each element's layout space. Collapsing elements with `display: none`
+ * would shift surrounding content and cause false positives elsewhere.
+ */
+
+/* WordPress version/update nag in the admin footer. */
+#footer-upgrade {
+	visibility: hidden !important;
+}
+
+/* Admin bar user-specific content (Howdy, gravatar). */
+#wp-admin-bar-root-default {
+	visibility: hidden !important;
+}
+
+/* Gutenberg plugin menu item — not present in all environments. */
+#toplevel_page_gutenberg {
+	visibility: hidden !important;
+}
+
+/* Gravatar images — external service, different per environment. */
+.avatar {
+	visibility: hidden !important;
+}
+
+/* Date columns in list tables — relative timestamps shift between runs. */
+.column-date {
+	visibility: hidden !important;
+}
+
+/* Dashboard widgets with dynamic counts and activity. */
+#dashboard_right_now .inside,
+#dashboard_activity .inside {
+	visibility: hidden !important;
+}
+
+/* Update-related timestamps. */
+.update-last-checked {
+	visibility: hidden !important;
+}
+
+/*
+ * Admin notices — various nags (PHP deprecation, updates, etc.).
+ * `.error:not(#error)` excludes the `<div id="error">` database error
+ * container from wpdb (wp-includes/class-wpdb.php) as a defensive measure.
+ */
+.notice,
+.update-nag,
+.updated,
+.error:not(#error),
+#message {
+	visibility: hidden !important;
+}
+
+/* General Settings — live date/time preview changes on every run. */
+#local-time,
+.example {
+	visibility: hidden !important;
+}
+
+/* Users list table — post counts vary based on test data. */
+.column-posts {
+	visibility: hidden !important;
+}
