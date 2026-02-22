@@ -298,7 +298,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 	// Not used by any core columns.
 	/**
-	 * Helper to sort themes by a specific field.
+	 * Compares the order of two themes by a specific field.
 	 *
 	 * @global string $orderby The column to order the themes list by.
 	 * @global string $order   The order of the themes list (ASC or DESC).
