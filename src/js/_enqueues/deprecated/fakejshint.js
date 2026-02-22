@@ -10,7 +10,7 @@
  * @see https://core.trac.wordpress.org/ticket/64558
  */
 
-/* jshint -W057 */
+/* jshint -W057, -W058 */
 var fakeJSHINT = new function() {
 	var syntax, errors;
 	var that = this;
