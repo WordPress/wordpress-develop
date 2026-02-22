@@ -255,12 +255,12 @@ run_phpstan() {
 
   if [[ $exit_code -ne 0 ]]; then
     echo "Error: PHPStan failed at level ${level} with exit code ${exit_code}" >&2
-    exit 1
+    return 1
   fi
 
   if [[ ! -f "$baseline_file" ]]; then
     echo "Error: Baseline file was not created at ${baseline_file}" >&2
-    exit 1
+    return 1
   fi
 
   echo "Successfully generated: ${baseline_file}"
@@ -272,15 +272,24 @@ cleanup_temp_files() {
 trap cleanup_temp_files EXIT INT TERM
 
 # Main loop
+FAILED_LEVELS=""
 if [[ "$GENERATE" == "true" ]]; then
   for level in $(seq $LEVEL_START $LEVEL_END); do
     config=$(generate_temp_config $level)
-    run_phpstan $level "$config"
+    if ! run_phpstan $level "$config"; then
+      FAILED_LEVELS="$FAILED_LEVELS $level"
+    fi
     rm -f "$config"
   done
 fi
 
 capture_after_counts
 display_summary_table
+
+if [[ -n "$FAILED_LEVELS" ]]; then
+  echo "" >&2
+  echo "Error: Generation failed for levels:$FAILED_LEVELS" >&2
+  exit 1
+fi
 
 exit 0
