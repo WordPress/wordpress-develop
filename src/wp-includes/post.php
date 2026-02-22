@@ -2828,8 +2828,8 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|false Array of post meta values keyed by meta key, or false on failure.
- *                     Returns an empty array if the post has no custom fields.
+ * @return array<string, mixed>|false Array of post meta values keyed by meta key, or false on failure.
+ *                                    Returns an empty array if the post has no custom fields.
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
