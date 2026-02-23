@@ -54,7 +54,7 @@ if ( isset($_GET['multiple-headers']) ) {
 
 if ( isset( $_GET['post-redirect-to-method'] ) ) {
 	$method = $_SERVER['REQUEST_METHOD'];
-	$response_code = isset( $_GET['response_code'] ) ? $_GET['response_code'] : 301;
+	$response_code = $_GET['response_code'] ?? 301;
 
 	if ( 'POST' == $method && ! isset( $_GET['redirection-performed'] ) ) {
 		header( "Location: $url?post-redirect-to-method=1&redirection-performed=1", true, $response_code );
@@ -123,8 +123,8 @@ if ( isset( $_GET['cookie-test'] ) ) {
 }
 
 
-$rt = isset($_GET['rt']) ? $_GET['rt'] : 5;
-$r = isset($_GET['r']) ? $_GET['r'] : 0;
+$rt = $_GET['rt'] ?? 5;
+$r = $_GET['r'] ?? 0;
 
 if ( $r < $rt ) {
 	$code = isset($_GET['code']) ? (int)$_GET['code'] : 302;

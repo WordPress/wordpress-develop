@@ -30,7 +30,7 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 		// If `$id` matches the current user, there is nothing to do.
 		if ( isset( $current_user )
 		&& ( $current_user instanceof WP_User )
-		&& ( $id === $current_user->ID )
+		&& ( (int) $id === $current_user->ID )
 		&& ( null !== $id )
 		) {
 			return $current_user;
@@ -446,7 +446,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$from_name = apply_filters( 'wp_mail_from_name', $from_name );
 
 		try {
-			$phpmailer->setFrom( $from_email, $from_name );
+			$phpmailer->setFrom( $from_email, $from_name, false );
 		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
@@ -1722,7 +1722,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		 * @param string[] $hosts An array of allowed host names.
 		 * @param string   $host  The host name of the redirect destination; empty string if not set.
 		 */
-		$allowed_hosts = (array) apply_filters( 'allowed_redirect_hosts', array( $wpp['host'] ), isset( $lp['host'] ) ? $lp['host'] : '' );
+		$allowed_hosts = (array) apply_filters( 'allowed_redirect_hosts', array( $wpp['host'] ), $lp['host'] ?? '' );
 
 		if ( isset( $lp['host'] ) && ( ! in_array( $lp['host'], $allowed_hosts, true ) && strtolower( $wpp['host'] ) !== $lp['host'] ) ) {
 			$location = $fallback_url;
@@ -2777,11 +2777,10 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		 * - `PASSWORD_ARGON2ID`
 		 * - `PASSWORD_DEFAULT`
 		 *
-		 * The values of the algorithm constants are strings in PHP 7.4+ and integers in PHP 7.3 and earlier.
-		 *
 		 * @since 6.8.0
+		 * @since 7.0.0 The `$algorithm` parameter is now always a string.
 		 *
-		 * @param string|int $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
+		 * @param string $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
 		 */
 		$algorithm = apply_filters( 'wp_hash_password_algorithm', PASSWORD_BCRYPT );
 
@@ -2791,14 +2790,13 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		 * The default hashing algorithm is bcrypt, but this can be changed via the {@see 'wp_hash_password_algorithm'}
 		 * filter. You must ensure that the options are appropriate for the algorithm in use.
 		 *
-		 * The values of the algorithm constants are strings in PHP 7.4+ and integers in PHP 7.3 and earlier.
-		 *
 		 * @since 6.8.0
+		 * @since 7.0.0 The `$algorithm` parameter is now always a string.
 		 *
-		 * @param array      $options   Array of options to pass to the password hashing functions.
-		 *                              By default this is an empty array which means the default
-		 *                              options will be used.
-		 * @param string|int $algorithm The hashing algorithm in use.
+		 * @param array  $options   Array of options to pass to the password hashing functions.
+		 *                          By default this is an empty array which means the default
+		 *                          options will be used.
+		 * @param string $algorithm The hashing algorithm in use.
 		 */
 		$options = apply_filters( 'wp_hash_password_options', array(), $algorithm );
 

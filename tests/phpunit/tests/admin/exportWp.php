@@ -323,4 +323,155 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		$comment_tags = $xml_obj->xpath( '//wp:comment' );
 		$this->assertCount( $comment_count, $comment_tags, 'Export should include all comments when not filtered.' );
 	}
+
+	/**
+	 * Tests that export handles posts with NULL postmeta values without fatal errors.
+	 *
+	 * @ticket 64347
+	 */
+	public function test_export_with_null_postmeta_values() {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Test Post with NULL Meta',
+				'post_content' => 'Test content',
+				'post_type'    => 'post',
+			)
+		);
+
+		// Add multiple types of postmeta values.
+		add_post_meta( $post_id, 'string_meta', 'normal string' );
+		add_post_meta( $post_id, 'numeric_string_meta', 123 );
+		add_post_meta( $post_id, 'empty_string_meta', '' );
+		add_post_meta(
+			$post_id,
+			'array_meta',
+			array(
+				'key' => 'value',
+			)
+		);
+
+		// Directly insert NULL and non-string values into postmeta.
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $post_id,
+				'meta_key'   => 'null_meta',
+				'meta_value' => null,
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'post',
+			)
+		);
+
+		$this->assertNotFalse( $xml, 'Export should not fail with NULL postmeta values' );
+		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
+
+		// Post should be present in export.
+		$found_post = false;
+		foreach ( $xml->channel->item as $item ) {
+			$wp_item = $item->children( 'wp', true );
+			if ( (int) $wp_item->post_id === $post_id ) {
+				$found_post = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $found_post, 'Post with NULL metadata should be included in export' );
+	}
+
+	/**
+	 * Tests that export handles comments with NULL values without fatal errors.
+	 *
+	 * @ticket 64347
+	 */
+	public function test_export_with_null_comment_values() {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title' => 'Test Post for Comments',
+				'post_type'  => 'post',
+			)
+		);
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_content' => 'Test comment',
+			)
+		);
+
+		// Insert NULL comment meta.
+		$wpdb->insert(
+			$wpdb->commentmeta,
+			array(
+				'comment_id' => $comment_id,
+				'meta_key'   => 'null_comment_meta',
+				'meta_value' => null,
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'post',
+			)
+		);
+
+		$this->assertNotFalse( $xml, 'Export should not fail with NULL comment meta values' );
+		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
+	}
+
+	/**
+	 * Tests that export handles term meta with NULL values without fatal errors.
+	 *
+	 * @ticket 64347
+	 */
+	public function test_export_with_null_term_meta_values() {
+		global $wpdb;
+
+		// Create term.
+		$term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Test Category',
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Test Post with Category',
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_set_object_terms( $post_id, $term, 'category' );
+
+		// Insert NULL term meta.
+		$wpdb->insert(
+			$wpdb->termmeta,
+			array(
+				'term_id'    => $term,
+				'meta_key'   => 'null_term_meta',
+				'meta_value' => null,
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'all',
+			)
+		);
+
+		$this->assertNotFalse( $xml, 'Export should not fail with NULL term meta values' );
+		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
+	}
 }

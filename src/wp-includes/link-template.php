@@ -94,7 +94,7 @@ function permalink_anchor( $mode = 'id' ) {
  *
  * @since 5.7.0
  *
- * @param WP_Post|int|null $post   Optional. Post ID or post object. Defaults to global $post.
+ * @param int|WP_Post|null $post   Optional. Post ID or post object. Defaults to global $post.
  * @param bool|null        $sample Optional. Whether to force consideration based on sample links.
  *                                 If omitted, a sample link is generated if a post object is passed
  *                                 with the filter property set to 'sample'.
@@ -110,7 +110,7 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 		$sample = true;
 	} else {
 		$post   = get_post( $post );
-		$sample = null !== $sample ? $sample : false;
+		$sample = $sample ?? false;
 	}
 
 	if ( ! $post ) {
@@ -2438,7 +2438,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 	$request = remove_query_arg( 'paged' );
 
 	$home_root = parse_url( home_url() );
-	$home_root = ( isset( $home_root['path'] ) ) ? $home_root['path'] : '';
+	$home_root = $home_root['path'] ?? '';
 	$home_root = preg_quote( $home_root, '|' );
 
 	$request = preg_replace( '|^' . $home_root . '|i', '', $request );

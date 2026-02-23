@@ -359,9 +359,8 @@ function create_initial_post_types() {
 
 	$template_edit_link = 'site-editor.php?' . build_query(
 		array(
-			'postType' => '%s',
-			'postId'   => '%s',
-			'canvas'   => 'edit',
+			'p'      => '/%s/%s',
+			'canvas' => 'edit',
 		)
 	);
 
@@ -531,9 +530,8 @@ function create_initial_post_types() {
 
 	$navigation_post_edit_link = 'site-editor.php?' . build_query(
 		array(
-			'postId'   => '%s',
-			'postType' => 'wp_navigation',
-			'canvas'   => 'edit',
+			'p'      => '/wp_navigation/%s',
+			'canvas' => 'edit',
 		)
 	);
 
@@ -559,6 +557,7 @@ function create_initial_post_types() {
 				'filter_items_list'     => __( 'Filter Navigation Menu list' ),
 				'items_list_navigation' => __( 'Navigation Menus list navigation' ),
 				'items_list'            => __( 'Navigation Menus list' ),
+				'item_updated'          => __( 'Navigation Menu updated.' ),
 			),
 			'description'           => __( 'Navigation menus that can be inserted into your site.' ),
 			'public'                => false,
@@ -657,6 +656,41 @@ function create_initial_post_types() {
 			'supports'              => array( 'title' ),
 		)
 	);
+
+	if ( get_option( 'enable_real_time_collaboration' ) ) {
+		register_post_type(
+			'wp_sync_storage',
+			array(
+				'labels'             => array(
+					'name'          => __( 'Sync Updates' ),
+					'singular_name' => __( 'Sync Update' ),
+				),
+				'public'             => false,
+				'_builtin'           => true, /* internal use only. don't use this when registering your own post type. */
+				'hierarchical'       => false,
+				'capabilities'       => array(
+					'read'                   => 'do_not_allow',
+					'read_private_posts'     => 'do_not_allow',
+					'create_posts'           => 'do_not_allow',
+					'publish_posts'          => 'do_not_allow',
+					'edit_posts'             => 'do_not_allow',
+					'edit_others_posts'      => 'do_not_allow',
+					'edit_published_posts'   => 'do_not_allow',
+					'delete_posts'           => 'do_not_allow',
+					'delete_others_posts'    => 'do_not_allow',
+					'delete_published_posts' => 'do_not_allow',
+				),
+				'map_meta_cap'       => false,
+				'publicly_queryable' => false,
+				'query_var'          => false,
+				'rewrite'            => false,
+				'show_in_menu'       => false,
+				'show_in_rest'       => false,
+				'show_ui'            => false,
+				'supports'           => array( 'custom-fields' ),
+			)
+		);
+	}
 
 	register_post_status(
 		'publish',
@@ -1224,7 +1258,7 @@ function get_post_field( $field, $post = null, $context = 'display' ) {
  *
  * @since 2.0.0
  *
- * @param int|WP_Post $post Optional. Post ID or post object. Defaults to global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
  * @return string|false The mime type on success, false on failure.
  */
 function get_post_mime_type( $post = null ) {
@@ -1799,15 +1833,17 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                        session. Each item should be an array containing block name and
  *                                                        optional attributes. Default empty array.
  *     @type string|false $template_lock                  Whether the block template should be locked if $template is set.
- *                                                        * If set to 'all', the user is unable to insert new blocks,
- *                                                          move existing blocks and delete blocks.
- *                                                       * If set to 'insert', the user is able to move existing blocks
- *                                                         but is unable to insert new blocks and delete blocks.
- *                                                         Default false.
- *     @type bool         $_builtin                     FOR INTERNAL USE ONLY! True if this post type is a native or
- *                                                      "built-in" post_type. Default false.
- *     @type string       $_edit_link                   FOR INTERNAL USE ONLY! URL segment to use for edit link of
- *                                                      this post type. Default 'post.php?post=%d'.
+ *                                                          * If set to 'all', the user is unable to insert new blocks,
+ *                                                            move existing blocks and delete blocks.
+ *                                                          * If set to 'insert', the user is able to move existing blocks
+ *                                                            but is unable to insert new blocks and delete blocks.
+ *                                                          * If set to 'contentOnly', the user is only able to edit the content
+ *                                                            of existing blocks.
+ *                                                        Default false.
+ *     @type bool         $_builtin                       FOR INTERNAL USE ONLY! True if this post type is a native or
+ *                                                        "built-in" post_type. Default false.
+ *     @type string       $_edit_link                     FOR INTERNAL USE ONLY! URL segment to use for edit link of
+ *                                                        this post type. Default 'post.php?post=%d'.
  * }
  * @return WP_Post_Type|WP_Error The registered post type object on success,
  *                               WP_Error object on failure.
@@ -2201,10 +2237,7 @@ function _get_custom_object_labels( $data_object, $nohier_vs_hier_defaults ) {
 	}
 
 	if ( ! isset( $data_object->labels['name_admin_bar'] ) ) {
-		$data_object->labels['name_admin_bar'] =
-			isset( $data_object->labels['singular_name'] )
-			? $data_object->labels['singular_name']
-			: $data_object->name;
+		$data_object->labels['name_admin_bar'] = $data_object->labels['singular_name'] ?? $data_object->name;
 	}
 
 	if ( ! isset( $data_object->labels['menu_name'] ) && isset( $data_object->labels['name'] ) ) {
@@ -2325,12 +2358,7 @@ function remove_post_type_support( $post_type, $feature ) {
  */
 function get_all_post_type_supports( $post_type ) {
 	global $_wp_post_type_features;
-
-	if ( isset( $_wp_post_type_features[ $post_type ] ) ) {
-		return $_wp_post_type_features[ $post_type ];
-	}
-
-	return array();
+	return $_wp_post_type_features[ $post_type ] ?? array();
 }
 
 /**
@@ -2800,9 +2828,11 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return mixed An array of values.
- *               False for an invalid `$post_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing post ID is passed.
+ * @return array<string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
+ *                                                 Post meta values will always be strings, even for values which would
+ *                                                 otherwise be retrieved individually as arrays or objects via
+ *                                                 {@see get_post_meta()}. An empty array is returned if the post has
+ *                                                 no post meta.
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
@@ -2856,7 +2886,7 @@ function get_post_custom_values( $key = '', $post_id = 0 ) {
 
 	$custom = get_post_custom( $post_id );
 
-	return isset( $custom[ $key ] ) ? $custom[ $key ] : null;
+	return $custom[ $key ] ?? null;
 }
 
 /**
@@ -4730,11 +4760,11 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 	// These variables are needed by compact() later.
 	$post_content_filtered = $postarr['post_content_filtered'];
-	$post_author           = isset( $postarr['post_author'] ) ? $postarr['post_author'] : $user_id;
+	$post_author           = $postarr['post_author'] ?? $user_id;
 	$ping_status           = empty( $postarr['ping_status'] ) ? get_default_comment_status( $post_type, 'pingback' ) : $postarr['ping_status'];
 	$to_ping               = isset( $postarr['to_ping'] ) ? sanitize_trackback_urls( $postarr['to_ping'] ) : '';
-	$pinged                = isset( $postarr['pinged'] ) ? $postarr['pinged'] : '';
-	$import_id             = isset( $postarr['import_id'] ) ? $postarr['import_id'] : 0;
+	$pinged                = $postarr['pinged'] ?? '';
+	$import_id             = $postarr['import_id'] ?? 0;
 
 	/*
 	 * The 'wp_insert_post_parent' filter expects all variables to be present.
@@ -4746,7 +4776,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$menu_order = 0;
 	}
 
-	$post_password = isset( $postarr['post_password'] ) ? $postarr['post_password'] : '';
+	$post_password = $postarr['post_password'] ?? '';
 	if ( 'private' === $post_status ) {
 		$post_password = '';
 	}
@@ -4815,7 +4845,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	$post_name = wp_unique_post_slug( $post_name, $post_id, $post_status, $post_type, $post_parent );
 
 	// Don't unslash.
-	$post_mime_type = isset( $postarr['post_mime_type'] ) ? $postarr['post_mime_type'] : '';
+	$post_mime_type = $postarr['post_mime_type'] ?? '';
 
 	// Expected_slashed (everything!).
 	$data = compact(
@@ -8618,6 +8648,7 @@ function use_block_editor_for_post_type( $post_type ) {
  * Registers any additional post meta fields.
  *
  * @since 6.3.0 Adds `wp_pattern_sync_status` meta field to the wp_block post type so an unsynced option can be added.
+ * @since 7.0.0 Adds `_crdt_document` meta field to post types so that CRDT documents can be persisted.
  *
  * @link https://github.com/WordPress/gutenberg/pull/51144
  */
@@ -8637,4 +8668,30 @@ function wp_create_initial_post_meta() {
 			),
 		)
 	);
+
+	if ( get_option( 'enable_real_time_collaboration' ) ) {
+		register_meta(
+			'post',
+			'_crdt_document',
+			array(
+				'auth_callback'     => static function ( bool $_allowed, string $_meta_key, int $object_id, int $user_id ): bool {
+					return user_can( $user_id, 'edit_post', $object_id );
+				},
+				/*
+				 * Revisions must be disabled because we always want to preserve
+				 * the latest persisted CRDT document, even when a revision is restored.
+				 * This ensures that we can continue to apply updates to a shared document
+				 * and peers can simply merge the restored revision like any other incoming
+				 * update.
+				 *
+				 * If we want to persist CRDT documents alongside revisions in the
+				 * future, we should do so in a separate meta key.
+				 */
+				'revisions_enabled' => false,
+				'show_in_rest'      => true,
+				'single'            => true,
+				'type'              => 'string',
+			)
+		);
+	}
 }

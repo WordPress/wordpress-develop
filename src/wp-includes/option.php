@@ -547,10 +547,7 @@ function wp_set_options_autoload( array $options, $autoload ) {
  */
 function wp_set_option_autoload( $option, $autoload ) {
 	$result = wp_set_option_autoload_values( array( $option => $autoload ) );
-	if ( isset( $result[ $option ] ) ) {
-		return $result[ $option ];
-	}
-	return false;
+	return $result[ $option ] ?? false;
 }
 
 /**
@@ -1755,7 +1752,7 @@ function wp_user_settings() {
 function get_user_setting( $name, $default_value = false ) {
 	$all_user_settings = get_all_user_settings();
 
-	return isset( $all_user_settings[ $name ] ) ? $all_user_settings[ $name ] : $default_value;
+	return $all_user_settings[ $name ] ?? $default_value;
 }
 
 /**
@@ -2885,6 +2882,18 @@ function register_initial_settings() {
 			'show_in_rest' => true,
 			'type'         => 'string',
 			'description'  => __( 'Default post format.' ),
+		)
+	);
+
+	register_setting(
+		'writing',
+		'enable_real_time_collaboration',
+		array(
+			'type'              => 'boolean',
+			'description'       => __( 'Enable Real-Time Collaboration' ),
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => false,
+			'show_in_rest'      => true,
 		)
 	);
 

@@ -708,7 +708,7 @@ class WP_Customize_Setting {
 			 */
 			do_action( "customize_update_{$this->type}", $value, $this );
 
-			return has_action( "customize_update_{$this->type}" );
+			return (bool) has_action( "customize_update_{$this->type}" );
 		}
 	}
 
@@ -941,7 +941,7 @@ class WP_Customize_Setting {
 	 */
 	final protected function multidimensional_get( $root, $keys, $default_value = null ) {
 		if ( empty( $keys ) ) { // If there are no keys, test the root.
-			return isset( $root ) ? $root : $default_value;
+			return $root ?? $default_value;
 		}
 
 		$result = $this->multidimensional( $root, $keys );
