@@ -79,9 +79,9 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		$meta_id = add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false );
-
-		return (bool) $meta_id;
+		return $this->with_suspended_posts_last_changed_update(
+			fn() => (bool) add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false )
+		);
 	}
 
 	/**
@@ -123,7 +123,10 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		}
 
 		// update_post_meta returns false if the value is the same as the existing value.
-		update_post_meta( $post_id, wp_slash( self::AWARENESS_META_KEY ), wp_slash( $awareness ) );
+		$this->with_suspended_posts_last_changed_update(
+			fn() => update_post_meta( $post_id, self::AWARENESS_META_KEY, wp_slash( $awareness ) )
+		);
+
 		return true;
 	}
 
@@ -298,5 +301,35 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Invokes the provided callback while the suspending setting the posts last_changed cache key.
+	 *
+	 * @since 7.0.0
+	 * @see wp_cache_set_posts_last_changed()
+	 *
+	 * @template T
+	 * @param Closure(): T $callback Callback.
+	 * @return T Return value from the callback.
+	 */
+	private function with_suspended_posts_last_changed_update( Closure $callback ) {
+		$priorities = array(
+			'added_post_meta'   => has_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' ),
+			'updated_post_meta' => has_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' ),
+			'deleted_post_meta' => has_action( 'deleted_post_meta', 'wp_cache_set_posts_last_changed' ),
+		);
+		foreach ( $priorities as $action => $priority ) {
+			if ( false !== $priority ) {
+				remove_action( $action, 'wp_cache_set_posts_last_changed', $priority );
+			}
+		}
+		$return_value = $callback();
+		foreach ( $priorities as $action => $priority ) {
+			if ( false !== $priority ) {
+				add_action( $action, 'wp_cache_set_posts_last_changed', $priority );
+			}
+		}
+		return $return_value;
 	}
 }
