@@ -6,7 +6,7 @@
  * This script downloads a pre-built Gutenberg zip artifact from the GitHub
  * Container Registry and extracts it into the ./gutenberg directory.
  *
- * The artifact is identified by the "gutenberg.ref" value in the root
+ * The artifact is identified by the "gutenberg.sha" value in the root
  * package.json, which is used as the OCI image tag for the gutenberg-build
  * package on GHCR.
  *
@@ -72,25 +72,25 @@ function exec( command, args, options = {} ) {
 async function main() {
 	console.log( '🔍 Checking Gutenberg configuration...' );
 
-	// Read Gutenberg ref from package.json.
-	let ref;
+	// Read Gutenberg SHA from package.json.
+	let sha;
 	try {
 		const packageJson = JSON.parse(
 			fs.readFileSync( packageJsonPath, 'utf8' )
 		);
-		ref = packageJson.gutenberg?.ref;
+		sha = packageJson.gutenberg?.sha;
 
-		if ( ! ref ) {
-			throw new Error( 'Missing "gutenberg.ref" in package.json' );
+		if ( ! sha ) {
+			throw new Error( 'Missing "gutenberg.sha" in package.json' );
 		}
 
-		console.log( `   Reference: ${ ref }` );
+		console.log( `   SHA: ${ sha }` );
 	} catch ( error ) {
 		console.error( '❌ Error reading package.json:', error.message );
 		process.exit( 1 );
 	}
 
-	const zipName = `gutenberg-${ ref }.zip`;
+	const zipName = `gutenberg-${ sha }.zip`;
 	const zipPath = path.join( rootDir, zipName );
 
 	// Step 1: Get an anonymous GHCR token for pulling.
@@ -113,7 +113,7 @@ async function main() {
 	}
 
 	// Step 2: Get the manifest to find the blob digest.
-	console.log( `\n📋 Fetching manifest for ${ ref }...` );
+	console.log( `\n📋 Fetching manifest for ${ sha }...` );
 	let digest;
 	try {
 		const manifestJson = await exec( 'curl', [
@@ -121,7 +121,7 @@ async function main() {
 			'--fail',
 			'--header', `Authorization: Bearer ${ token }`,
 			'--header', 'Accept: application/vnd.oci.image.manifest.v1+json',
-			`https://ghcr.io/v2/${ GHCR_REPO }/manifests/${ ref }`,
+			`https://ghcr.io/v2/${ GHCR_REPO }/manifests/${ sha }`,
 		], { captureOutput: true } );
 		const manifest = JSON.parse( manifestJson );
 		digest = manifest?.layers?.[ 0 ]?.digest;
