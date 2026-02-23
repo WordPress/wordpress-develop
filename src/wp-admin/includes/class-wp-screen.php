@@ -757,7 +757,7 @@ final class WP_Screen {
 	 *                                      Default 'Items list'.
 	 * }
 	 */
-	public function set_screen_reader_content( $content = array() ) {
+	public function set_screen_reader_content( $content = array() ): void {
 		$defaults = array(
 			'heading_views'      => __( 'Filter items list' ),
 			'heading_pagination' => __( 'Items list navigation' ),
@@ -773,7 +773,7 @@ final class WP_Screen {
 	 *
 	 * @since 4.4.0
 	 */
-	public function remove_screen_reader_content() {
+	public function remove_screen_reader_content(): void {
 		$this->_screen_reader_content = array();
 	}
 
