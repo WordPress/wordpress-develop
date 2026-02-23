@@ -2,14 +2,27 @@
 # generate-baselines.sh
 # Generate PHPStan baseline files for each level
 
-set -e
+# Determine MAX_LEVEL from configuration files
+MAX_LEVEL=""
+if [[ -f "phpstan.neon" ]]; then
+  MAX_LEVEL=$(sed -n 's/^[[:space:]]*level:[[:space:]]*\([0-9]\+\)/\1/p' "phpstan.neon" | head -n 1)
+fi
 
-MAX_LEVEL=6  # Change this when adding new levels
+if [[ -z "$MAX_LEVEL" ]] && [[ -f "phpstan.neon.dist" ]]; then
+  MAX_LEVEL=$(sed -n 's/^[[:space:]]*level:[[:space:]]*\([0-9]\+\)/\1/p' "phpstan.neon.dist" | head -n 1)
+fi
+
+MAX_LEVEL=${MAX_LEVEL:-0}
+
+if (( MAX_LEVEL == 0 )); then
+  echo "Notice: Maximum level is 0. No per-level baselines to generate for levels 1 and above."
+  exit 0
+fi
 
 LEVEL_START=""
 LEVEL_END=""
-declare -A BEFORE_COUNTS
-declare -A AFTER_COUNTS
+declare -a BEFORE_COUNTS
+declare -a AFTER_COUNTS
 
 usage() {
   cat <<EOF

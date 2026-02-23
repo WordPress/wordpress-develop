@@ -89,7 +89,7 @@ Sometimes, due to the lack of type information in legacy code, PHPStan may still
 
 The `generate-baselines.sh` script is a helper tool to generate per-level baseline files for triaging PHPStan errors. It iterates through the specified levels, generates a baseline for each level, and outputs a summary of the results.
 
-The process relies on iteration, and assumes that the baseline for the previous level has been freshly generated to capture any new/remediated errors on that level before generating the next level's baseline.
+The process relies on iteration, and assumes that the baseline for the previous level has been freshly generated to capture any new/remediated errors on that level before generating the next level's baseline. The maximum level is automatically determined from the `level` parameter in `phpstan.neon` (or `phpstan.neon.dist`).
 
 ### Usage
 
@@ -98,8 +98,7 @@ To run the script, use the following command:
 ```bash
 bash tests/phpstan/generate-baselines.sh --all # to generate baselines for all levels
 bash tests/phpstan/generate-baselines.sh --start=1 --end=3 # to generate baselines for levels 1 to 3
-bash tests/phpstan/generate-baselines.sh --level=6 # to generate a baseline for level 2 only. ASSUMES that the baseline for level 1 has been freshly generated.
+bash tests/phpstan/generate-baselines.sh --level=6 # to generate a baseline for level 6 only. ASSUMES that the baseline for the previous level has been freshly generated.
 bash tests/phpstan/generate-baselines.sh --summary-only # to only output the summary of results for the existing baselines, without regenerating them.
 
 ```
-To change the max level, update the `MAX_LEVEL` variable at the top of the script, alongside any changes to the root `phpstan.neon.dist` file to add the new level.
