@@ -42,6 +42,7 @@ if ( is_network_admin() ) {
 }
 
 // Create list of page plugin hook names.
+global $menu, $submenu, $compat;
 foreach ( $menu as $menu_page ) {
 	$pos = strpos( $menu_page[2], '?' );
 
