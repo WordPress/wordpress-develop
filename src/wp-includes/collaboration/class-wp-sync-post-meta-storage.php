@@ -332,8 +332,9 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @since 7.0.0
 	 * @see wp_cache_set_posts_last_changed()
 	 *
-	 * @param Closure $callback Callback
-	 * @return mixed Return value from the callback.
+	 * @template T
+	 * @param Closure(): T $callback Callback.
+	 * @return T Return value from the callback.
 	 */
 	private function with_suspended_posts_last_changed_update( Closure $callback ) {
 		$priorities = array(
