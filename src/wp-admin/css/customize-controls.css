@@ -273,7 +273,7 @@ body.trashing #publish-settings {
 	margin: 0;
 	position: absolute;
 	top: 50%;
-	transform: translateY(-50%);
+	transform: translateY(-50%) !important;
 	right: 0;
 }
 
