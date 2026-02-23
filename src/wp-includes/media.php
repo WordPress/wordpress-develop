@@ -4870,7 +4870,7 @@ function wp_enqueue_media( $args = array() ) {
 	 * Allows overriding the list of months displayed in the media library.
 	 *
 	 * By default, if this filter does not return an array,
-	 * {@see get_media_library_months_with_files()} will run a query to determine
+	 * {@see wp_get_media_library_months_with_files()} will run a query to determine
 	 * the months that have media items. The result is stored in a transient
 	 * and automatically invalidated when attachments are created, updated,
 	 * or deleted.
@@ -4886,7 +4886,7 @@ function wp_enqueue_media( $args = array() ) {
 	if ( ! is_array( $months ) ) {
 		$months = get_transient( 'media_library_months_with_files' );
 		if ( false === $months ) {
-			$months = get_media_library_months_with_files();
+			$months = wp_get_media_library_months_with_files();
 			set_transient( 'media_library_months_with_files', $months );
 		}
 	}
@@ -5159,7 +5159,7 @@ function wp_enqueue_media( $args = array() ) {
  *
  * @return stdClass[] Array of objects with `month` and `year` properties.
  */
-function get_media_library_months_with_files(): array {
+function wp_get_media_library_months_with_files(): array {
 	global $wpdb;
 	return $wpdb->get_results(
 		$wpdb->prepare(
