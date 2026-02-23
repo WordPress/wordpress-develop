@@ -95,6 +95,12 @@ async function main( force ) {
 		process.exit( 1 );
 	}
 
+	// Skip download if the gutenberg directory already exists and --force is not set.
+	if ( ! force && fs.existsSync( gutenbergDir ) ) {
+		console.log( '\n✅ The gutenberg directory already exists. Use --force to re-download.' );
+		return;
+	}
+
 	const zipName = `gutenberg-${ sha }.zip`;
 	const zipPath = path.join( rootDir, zipName );
 
@@ -180,7 +186,8 @@ async function main( force ) {
 }
 
 // Run main function
-main().catch( ( error ) => {
+const force = process.argv.includes( '--force' );
+main( force ).catch( ( error ) => {
 	console.error( '❌ Unexpected error:', error );
 	process.exit( 1 );
 } );
