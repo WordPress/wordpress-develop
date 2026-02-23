@@ -161,13 +161,12 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the settings are valid, otherwise a WP_Error object.
 	 */
 	public function validate_create_font_face_settings( $value, $request ) {
-		// Check whether $value is a string, since it should be stringified JSON in the request.
-		if ( ! is_string( $value ) ) {
-			return new WP_Error(
-				'rest_invalid_param',
-				__( 'font_face_settings parameter must be a valid JSON string.' ),
-				array( 'status' => 400 )
-			);
+		// Enforce JSON Schema validity for field before applying custom validation logic.
+		$args     = $this->get_create_params();
+		$validity = rest_validate_value_from_schema( $value, $args['font_face_settings'], 'font_face_settings' );
+
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
 		}
 
 		$settings = json_decode( $value, true );

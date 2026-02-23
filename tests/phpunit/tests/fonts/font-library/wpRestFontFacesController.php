@@ -781,7 +781,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400, 'The response should return an error for "rest_invalid_param" with 400 status.' );
-		$expected_message = 'font_face_settings parameter must be a valid JSON string.';
+		$expected_message = 'font_face_settings is not of type string.';
 		$message          = $response->as_error()->get_all_error_data()[0]['params']['font_face_settings'];
 		$this->assertSame( $expected_message, $message, 'The response error message should match.' );
 	}
