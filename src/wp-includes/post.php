@@ -2832,7 +2832,7 @@ function unregister_post_meta( $post_type, $meta_key ) {
  *                                                 Post meta values will always be strings, even for values which would
  *                                                 otherwise be retrieved individually as arrays or objects via
  *                                                 {@see get_post_meta()}. An empty array is returned if the post has
- *                                                 no custom fields.
+ *                                                 no post meta.
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
