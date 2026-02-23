@@ -96,93 +96,116 @@ async function main( force ) {
 	}
 
 	// Skip download if the gutenberg directory already exists and --force is not set.
+	let downloaded = false;
 	if ( ! force && fs.existsSync( gutenbergDir ) ) {
-		console.log( '\n✅ The gutenberg directory already exists. Use --force to re-download.' );
-		return;
-	}
+		console.log( '\nℹ️  The `gutenberg` directory already exists. Use `npm run grunt gutenberg-download -- --force` to download a fresh copy.' );
+	} else {
+		downloaded = true;
+		const zipName = `gutenberg-${ sha }.zip`;
+		const zipPath = path.join( rootDir, zipName );
 
-	const zipName = `gutenberg-${ sha }.zip`;
-	const zipPath = path.join( rootDir, zipName );
-
-	// Step 1: Get an anonymous GHCR token for pulling.
-	console.log( '\n🔑 Fetching GHCR token...' );
-	let token;
-	try {
-		const tokenJson = await exec( 'curl', [
-			'--silent',
-			'--fail',
-			`https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io`,
-		], { captureOutput: true } );
-		token = JSON.parse( tokenJson ).token;
-		if ( ! token ) {
-			throw new Error( 'No token in response' );
+		// Step 1: Get an anonymous GHCR token for pulling.
+		console.log( '\n🔑 Fetching GHCR token...' );
+		let token;
+		try {
+			const tokenJson = await exec( 'curl', [
+				'--silent',
+				'--fail',
+				`https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io`,
+			], { captureOutput: true } );
+			token = JSON.parse( tokenJson ).token;
+			if ( ! token ) {
+				throw new Error( 'No token in response' );
+			}
+			console.log( '✅ Token acquired' );
+		} catch ( error ) {
+			console.error( '❌ Failed to fetch token:', error.message );
+			process.exit( 1 );
 		}
-		console.log( '✅ Token acquired' );
-	} catch ( error ) {
-		console.error( '❌ Failed to fetch token:', error.message );
-		process.exit( 1 );
-	}
 
-	// Step 2: Get the manifest to find the blob digest.
-	console.log( `\n📋 Fetching manifest for ${ sha }...` );
-	let digest;
-	try {
-		const manifestJson = await exec( 'curl', [
-			'--silent',
-			'--fail',
-			'--header', `Authorization: Bearer ${ token }`,
-			'--header', 'Accept: application/vnd.oci.image.manifest.v1+json',
-			`https://ghcr.io/v2/${ ghcrRepo }/manifests/${ sha }`,
-		], { captureOutput: true } );
-		const manifest = JSON.parse( manifestJson );
-		digest = manifest?.layers?.[ 0 ]?.digest;
-		if ( ! digest ) {
-			throw new Error( 'No layer digest found in manifest' );
+		// Step 2: Get the manifest to find the blob digest.
+		console.log( `\n📋 Fetching manifest for ${ sha }...` );
+		let digest;
+		try {
+			const manifestJson = await exec( 'curl', [
+				'--silent',
+				'--fail',
+				'--header', `Authorization: Bearer ${ token }`,
+				'--header', 'Accept: application/vnd.oci.image.manifest.v1+json',
+				`https://ghcr.io/v2/${ ghcrRepo }/manifests/${ sha }`,
+			], { captureOutput: true } );
+			const manifest = JSON.parse( manifestJson );
+			digest = manifest?.layers?.[ 0 ]?.digest;
+			if ( ! digest ) {
+				throw new Error( 'No layer digest found in manifest' );
+			}
+			console.log( `✅ Blob digest: ${ digest }` );
+		} catch ( error ) {
+			console.error( '❌ Failed to fetch manifest:', error.message );
+			process.exit( 1 );
 		}
-		console.log( `✅ Blob digest: ${ digest }` );
-	} catch ( error ) {
-		console.error( '❌ Failed to fetch manifest:', error.message );
-		process.exit( 1 );
+
+		// Step 3: Download the blob (the zip file).
+		console.log( `\n📥 Downloading ${ zipName }...` );
+		try {
+			await exec( 'curl', [
+				'--fail',
+				'--location',
+				'--header', `Authorization: Bearer ${ token }`,
+				'--output', zipPath,
+				`https://ghcr.io/v2/${ ghcrRepo }/blobs/${ digest }`,
+			] );
+			console.log( '✅ Download complete' );
+		} catch ( error ) {
+			console.error( '❌ Download failed:', error.message );
+			process.exit( 1 );
+		}
+
+		// Remove existing gutenberg directory so the unzip is clean.
+		if ( fs.existsSync( gutenbergDir ) ) {
+			console.log( '\n🗑️  Removing existing gutenberg directory...' );
+			fs.rmSync( gutenbergDir, { recursive: true, force: true } );
+		}
+
+		fs.mkdirSync( gutenbergDir, { recursive: true } );
+
+		// Extract the zip into ./gutenberg.
+		console.log( `\n📦 Extracting ${ zipName } into ./gutenberg...` );
+		try {
+			await exec( 'unzip', [ '-q', zipPath, '-d', gutenbergDir ] );
+			console.log( '✅ Extraction complete' );
+		} catch ( error ) {
+			console.error( '❌ Extraction failed:', error.message );
+			process.exit( 1 );
+		}
+
+		// Clean up the zip file.
+		fs.rmSync( zipPath );
 	}
 
-	// Step 3: Download the blob (the zip file).
-	console.log( `\n📥 Downloading ${ zipName }...` );
+	// Verify the downloaded version matches the expected SHA.
+	console.log( '\n🔍 Verifying Gutenberg version...' );
+	const hashFilePath = path.join( gutenbergDir, '.gutenberg-hash' );
 	try {
-		await exec( 'curl', [
-			'--fail',
-			'--location',
-			'--header', `Authorization: Bearer ${ token }`,
-			'--output', zipPath,
-			`https://ghcr.io/v2/${ ghcrRepo }/blobs/${ digest }`,
-		] );
-		console.log( '✅ Download complete' );
+		const installedHash = fs.readFileSync( hashFilePath, 'utf8' ).trim();
+		if ( installedHash !== sha ) {
+			throw new Error(
+				`SHA mismatch: expected ${ sha } but found ${ installedHash }. Run \`npm run grunt gutenberg-download -- --force\` to download the correct version.`
+			);
+		}
+		console.log( '✅ Version verified' );
 	} catch ( error ) {
-		console.error( '❌ Download failed:', error.message );
+		if ( error.code === 'ENOENT' ) {
+			console.error( `❌ ${ hashFilePath } not found. The downloaded artifact may be malformed.` );
+		} else {
+			console.error( `❌ ${ error.message }` );
+		}
 		process.exit( 1 );
 	}
 
-	// Remove existing gutenberg directory so the unzip is clean.
-	if ( fs.existsSync( gutenbergDir ) ) {
-		console.log( '\n🗑️  Removing existing gutenberg directory...' );
-		fs.rmSync( gutenbergDir, { recursive: true, force: true } );
+	if ( downloaded ) {
+		console.log( '\n✅ Gutenberg download complete!' );
 	}
-
-	fs.mkdirSync( gutenbergDir, { recursive: true } );
-
-	// Extract the zip into ./gutenberg.
-	console.log( `\n📦 Extracting ${ zipName } into ./gutenberg...` );
-	try {
-		await exec( 'unzip', [ '-q', zipPath, '-d', gutenbergDir ] );
-		console.log( '✅ Extraction complete' );
-	} catch ( error ) {
-		console.error( '❌ Extraction failed:', error.message );
-		process.exit( 1 );
-	}
-
-	// Clean up the zip file.
-	fs.rmSync( zipPath );
-
-	console.log( '\n✅ Gutenberg download complete!' );
 }
 
 // Run main function
