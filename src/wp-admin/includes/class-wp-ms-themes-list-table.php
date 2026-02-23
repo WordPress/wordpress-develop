@@ -303,8 +303,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @global string $orderby The column to order the themes list by.
 	 * @global string $order   The order of the themes list (ASC or DESC).
 	 *
-	 * @param array<string, mixed> $theme_a The first theme to compare.
-	 * @param array<string, mixed> $theme_b The second theme to compare.
+	 * @param WP_Theme $theme_a The first theme to compare.
+	 * @param WP_Theme $theme_b The second theme to compare.
 	 * @return int 0 if equal, -1 if the first is less than the second, 1 if more.
 	 */
 	public function _order_callback( $theme_a, $theme_b ) {
