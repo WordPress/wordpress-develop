@@ -6,7 +6,7 @@
  * This script downloads a pre-built Gutenberg zip artifact from the GitHub
  * Container Registry and extracts it into the ./gutenberg directory.
  *
- * The artifact is identified by the "gutenberg.ref" SHA in the root
+ * The artifact is identified by the "gutenberg.ref" value in the root
  * package.json, which is used as the OCI image tag for the gutenberg-build
  * package on GHCR.
  *

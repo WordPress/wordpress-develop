@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"ref": "f4d8a5803aa2fbe26e7d9af4d17e80a622b7bab8"
+		"ref": "e0c5fc81de25a4f837c063ca2c2db32d74698a49"
 	},
 	"engines": {
 		"node": ">=20.10.0",
@@ -111,7 +111,7 @@
 		"wicg-inert": "3.1.3"
 	},
 	"scripts": {
-		"postinstall": "npm run gutenberg:sync && npm run gutenberg:copy -- --dev",
+		"postinstall": "npm run gutenberg:download && npm run gutenberg:copy -- --dev",
 		"build": "grunt build",
 		"build:dev": "grunt build --dev",
 		"dev": "grunt watch --dev",
@@ -137,9 +137,8 @@
 		"test:e2e": "wp-scripts test-playwright --config tests/e2e/playwright.config.js",
 		"test:visual": "wp-scripts test-playwright --config tests/visual-regression/playwright.config.js",
 		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan",
-		"gutenberg:checkout": "node tools/gutenberg/checkout-gutenberg.js",
+		"gutenberg:download": "node tools/gutenberg/download-gutenberg.js",
 		"gutenberg:copy": "node tools/gutenberg/copy-gutenberg-build.js",
-		"gutenberg:sync": "node tools/gutenberg/sync-gutenberg.js",
 		"vendor:copy": "node tools/vendors/copy-vendors.js",
 		"sync-gutenberg-packages": "grunt sync-gutenberg-packages",
 		"postsync-gutenberg-packages": "grunt wp-packages:sync-stable-blocks && grunt build --dev && grunt build"
