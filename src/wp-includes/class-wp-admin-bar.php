@@ -193,7 +193,7 @@ class WP_Admin_Bar {
 	 * @since 3.3.0
 	 *
 	 * @param string $id
-	 * @return object|void Node.
+	 * @return object|null Node.
 	 */
 	final public function get_node( $id ) {
 		$node = $this->_get_node( $id );
@@ -206,11 +206,11 @@ class WP_Admin_Bar {
 	 * @since 3.3.0
 	 *
 	 * @param string $id
-	 * @return object|void
+	 * @return object|null
 	 */
 	final protected function _get_node( $id ) {
 		if ( $this->bound ) {
-			return;
+			return null;
 		}
 
 		if ( empty( $id ) ) {
@@ -225,12 +225,12 @@ class WP_Admin_Bar {
 	/**
 	 * @since 3.3.0
 	 *
-	 * @return array|void
+	 * @return array|null
 	 */
 	final public function get_nodes() {
 		$nodes = $this->_get_nodes();
 		if ( ! $nodes ) {
-			return;
+			return null;
 		}
 
 		foreach ( $nodes as &$node ) {
@@ -242,11 +242,11 @@ class WP_Admin_Bar {
 	/**
 	 * @since 3.3.0
 	 *
-	 * @return array|void
+	 * @return array|null
 	 */
 	final protected function _get_nodes() {
 		if ( $this->bound ) {
-			return;
+			return null;
 		}
 
 		return $this->nodes;
@@ -307,11 +307,11 @@ class WP_Admin_Bar {
 	/**
 	 * @since 3.3.0
 	 *
-	 * @return object|void
+	 * @return object|null
 	 */
 	final protected function _bind() {
 		if ( $this->bound ) {
-			return;
+			return null;
 		}
 
 		/*

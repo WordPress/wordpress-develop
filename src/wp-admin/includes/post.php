@@ -982,7 +982,7 @@ function wp_write_post() {
  *
  * @since 2.0.0
  *
- * @return int|void Post ID on success, void on failure.
+ * @return int Post ID on success. Dies on failure.
  */
 function write_post() {
 	$result = wp_write_post();

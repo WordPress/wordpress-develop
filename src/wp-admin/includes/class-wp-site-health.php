@@ -167,7 +167,7 @@ class WP_Site_Health {
 	 * @since 5.4.0
 	 *
 	 * @param callable $callback
-	 * @return mixed|void
+	 * @return mixed
 	 */
 	private function perform_test( $callback ) {
 		/**
