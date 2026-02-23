@@ -20,7 +20,9 @@
 			"jquery",
 			"codemirror",
 			"underscore",
-			"htmlhint"
+			"htmlhint",
+			"codemirror/addon/lint/lint",
+			"codemirror/addon/hint/show-hint"
 		]
 	},
 	"include": [
