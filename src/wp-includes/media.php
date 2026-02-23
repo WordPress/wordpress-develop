@@ -5157,7 +5157,7 @@ function wp_enqueue_media( $args = array() ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @return stdClass[] Array of objects with `month` and `year` properties.
+ * @return array<int, object{year: string, month: string}> Array of objects with `month` and `year` properties.
  */
 function wp_get_media_library_months_with_files(): array {
 	global $wpdb;
