@@ -70,6 +70,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$valid_image_sizes[] = 'original';
 			// Used for PDF thumbnails.
 			$valid_image_sizes[] = 'full';
+			// Client-side big image threshold: sideload the scaled version.
+			$valid_image_sizes[] = 'scaled';
 
 			register_rest_route(
 				$this->namespace,
@@ -2053,6 +2055,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( 'original' === $image_size ) {
 			$metadata['original_image'] = wp_basename( $path );
+		} elseif ( 'scaled' === $image_size ) {
+			// The current attached file is the original; record it as original_image.
+			$current_file = get_attached_file( $attachment_id, true );
+			$metadata['original_image'] = wp_basename( $current_file );
+
+			// Update the attached file to point to the scaled version.
+			update_attached_file( $attachment_id, $path );
+
+			$size = wp_getimagesize( $path );
+
+			$metadata['width']    = $size ? $size[0] : 0;
+			$metadata['height']   = $size ? $size[1] : 0;
+			$metadata['filesize'] = wp_filesize( $path );
+			$metadata['file']     = _wp_relative_upload_path( $path );
 		} else {
 			$metadata['sizes'] = $metadata['sizes'] ?? array();
 
@@ -2123,7 +2139,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$matches = array();
-		if ( preg_match( '/(.*)(-\d+x\d+)-' . $number . '$/', $name, $matches ) ) {
+		if ( preg_match( '/(.*)(-\d+x\d+|-scaled)-' . $number . '$/', $name, $matches ) ) {
 			$filename_without_suffix = $matches[1] . $matches[2] . ".$ext";
 			if ( $matches[1] === $orig_name && ! file_exists( "$dir/$filename_without_suffix" ) ) {
 				return $filename_without_suffix;
