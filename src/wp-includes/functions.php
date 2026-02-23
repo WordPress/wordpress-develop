@@ -2994,7 +2994,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
  * @since 2.5.0
  *
  * @param string $ext The extension to search.
- * @return string|void The file type, example: audio, video, document, spreadsheet, etc.
+ * @return string|null The file type, example: audio, video, document, spreadsheet, etc. Null if not found.
  */
 function wp_ext2type( $ext ) {
 	$ext = strtolower( $ext );
@@ -3005,6 +3005,8 @@ function wp_ext2type( $ext ) {
 			return $type;
 		}
 	}
+
+	return null;
 }
 
 /**
@@ -8553,7 +8555,7 @@ function wp_get_default_update_php_url() {
  * @param string $after   Markup to output after the annotation. Default `</p>`.
  * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
  *
- * @return string|void
+ * @return string|null The markup if `$display` is false, null otherwise.
  */
 function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
 	$annotation = wp_get_update_php_annotation();
@@ -8565,6 +8567,8 @@ function wp_update_php_annotation( $before = '<p class="description">', $after =
 			return $before . $annotation . $after;
 		}
 	}
+
+	return null;
 }
 
 /**

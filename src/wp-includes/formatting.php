@@ -6226,13 +6226,13 @@ function url_shorten( $url, $length = 35 ) {
 /**
  * Sanitizes a hex color.
  *
- * Returns either '', a 3 or 6 digit hex color (with #), or nothing.
+ * Returns either '', a 3 or 6 digit hex color (with #), or null.
  * For sanitizing values without a #, see sanitize_hex_color_no_hash().
  *
  * @since 3.4.0
  *
  * @param string $color
- * @return string|void
+ * @return string|null
  */
 function sanitize_hex_color( $color ) {
 	if ( '' === $color ) {
@@ -6243,6 +6243,8 @@ function sanitize_hex_color( $color ) {
 	if ( preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ) {
 		return $color;
 	}
+
+	return null;
 }
 
 /**
