@@ -988,9 +988,9 @@ function write_post() {
 	$result = wp_write_post();
 	if ( is_wp_error( $result ) ) {
 		wp_die( $result->get_error_message() );
-	} else {
-		return $result;
 	}
+
+	return $result;
 }
 
 //
