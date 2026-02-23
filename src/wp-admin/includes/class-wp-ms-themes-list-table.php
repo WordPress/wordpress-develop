@@ -319,7 +319,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Displays the message to be displayed when there are no items to list.
+	 * Displays the message when there are no items to list.
 	 */
 	public function no_items() {
 		if ( $this->has_items ) {
