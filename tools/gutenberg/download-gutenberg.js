@@ -8,7 +8,7 @@
  *
  * The artifact is identified by the "gutenberg.sha" value in the root
  * package.json, which is used as the OCI image tag for the gutenberg-build
- * package on GHCR.
+ * package on GitHub Container Registry.
  *
  * @package WordPress
  */
@@ -21,9 +21,6 @@ const path = require( 'path' );
 const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 const packageJsonPath = path.join( rootDir, 'package.json' );
-
-// GHCR configuration
-const GHCR_REPO = 'desrosj/gutenberg/gutenberg-build';
 
 /**
  * Execute a command, streaming stdio directly so progress is visible.
@@ -68,23 +65,31 @@ function exec( command, args, options = {} ) {
 
 /**
  * Main execution function.
+ *
+ * @param {boolean} force - Whether to force a fresh download even if the gutenberg directory exists.
  */
-async function main() {
+async function main( force ) {
 	console.log( '🔍 Checking Gutenberg configuration...' );
 
-	// Read Gutenberg SHA from package.json.
-	let sha;
+	// Read Gutenberg configuration from package.json.
+	let sha, ghcrRepo;
 	try {
 		const packageJson = JSON.parse(
 			fs.readFileSync( packageJsonPath, 'utf8' )
 		);
 		sha = packageJson.gutenberg?.sha;
+		ghcrRepo = packageJson.gutenberg?.ghcrRepo;
 
 		if ( ! sha ) {
 			throw new Error( 'Missing "gutenberg.sha" in package.json' );
 		}
 
+		if ( ! ghcrRepo ) {
+			throw new Error( 'Missing "gutenberg.ghcrRepo" in package.json' );
+		}
+
 		console.log( `   SHA: ${ sha }` );
+		console.log( `   GHCR repository: ${ ghcrRepo }` );
 	} catch ( error ) {
 		console.error( '❌ Error reading package.json:', error.message );
 		process.exit( 1 );
@@ -100,7 +105,7 @@ async function main() {
 		const tokenJson = await exec( 'curl', [
 			'--silent',
 			'--fail',
-			`https://ghcr.io/token?scope=repository:${ GHCR_REPO }:pull&service=ghcr.io`,
+			`https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io`,
 		], { captureOutput: true } );
 		token = JSON.parse( tokenJson ).token;
 		if ( ! token ) {
@@ -121,7 +126,7 @@ async function main() {
 			'--fail',
 			'--header', `Authorization: Bearer ${ token }`,
 			'--header', 'Accept: application/vnd.oci.image.manifest.v1+json',
-			`https://ghcr.io/v2/${ GHCR_REPO }/manifests/${ sha }`,
+			`https://ghcr.io/v2/${ ghcrRepo }/manifests/${ sha }`,
 		], { captureOutput: true } );
 		const manifest = JSON.parse( manifestJson );
 		digest = manifest?.layers?.[ 0 ]?.digest;
@@ -142,7 +147,7 @@ async function main() {
 			'--location',
 			'--header', `Authorization: Bearer ${ token }`,
 			'--output', zipPath,
-			`https://ghcr.io/v2/${ GHCR_REPO }/blobs/${ digest }`,
+			`https://ghcr.io/v2/${ ghcrRepo }/blobs/${ digest }`,
 		] );
 		console.log( '✅ Download complete' );
 	} catch ( error ) {

@@ -1475,11 +1475,15 @@ module.exports = function(grunt) {
 	} );
 
 	// Gutenberg integration tasks.
-	grunt.registerTask( 'gutenberg-download', 'Downloads the Gutenberg build artifact.', function() {
+	grunt.registerTask( 'gutenberg-download', 'Downloads the built Gutenberg artifact.', function() {
 		const done = this.async();
+		const args = [ 'tools/gutenberg/download-gutenberg.js' ];
+		if ( grunt.option( 'force' ) ) {
+			args.push( '--force' );
+		}
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/download-gutenberg.js' ],
+			args,
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
