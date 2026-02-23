@@ -9,6 +9,9 @@
  * contains dynamic content not already covered by screenshot.css, add a
  * `masks` array of CSS selectors for those elements.
  *
+ * Tests are grouped by `section` (matching the admin menu) so the HTML
+ * report shows collapsible groups instead of a flat list.
+ *
  * @see tests/visual-regression/config/screenshot.css for globally hidden elements.
  * @see tests/visual-regression/playwright.config.js for snapshot settings.
  */
@@ -63,10 +66,24 @@ async function waitForPageReady( page ) {
 			}, 10000 );
 		} );
 	} );
+
+	// Blur any focused element to prevent non-deterministic focus-ring
+	// diffs. Some admin pages auto-focus an input on load (e.g. Tags
+	// focuses the Name field); whether the focus ring is captured depends
+	// on timing, so removing it makes screenshots stable.
+	await page.evaluate( () => {
+		if (
+			document.activeElement &&
+			document.activeElement !== document.body
+		) {
+			document.activeElement.blur();
+		}
+	} );
 }
 
 /**
  * @typedef  {Object}   PageEntry
+ * @property {string}   section               Admin menu section (used as the describe group name).
  * @property {string}   name                  Display name used as the test title and snapshot filename.
  * @property {string}   path                  Admin-relative URL path (e.g. '/edit.php').
  * @property {string | ( data: * ) => string} [query] Query string appended to path.
@@ -87,14 +104,21 @@ async function waitForPageReady( page ) {
 const pages = [
 	// -- Dashboard --
 	{
+		section: 'Dashboard',
 		name: 'Dashboard',
 		path: '/index.php',
 		masks: [
 			// Health status varies by environment and installed plugins.
 			'#dashboard_site_health',
+			// Welcome panel references recent posts — content changes when
+			// parallel workers create/delete test data.
+			'#welcome-panel',
+			// Quick Draft shows recent draft titles which may vary.
+			'#dashboard_quick_press .inside',
 		],
 	},
 	{
+		section: 'Dashboard',
 		name: 'Updates',
 		path: '/update-core.php',
 		masks: [
@@ -105,22 +129,35 @@ const pages = [
 	},
 
 	// -- Posts --
-	{ name: 'All Posts',    path: '/edit.php' },
 	{
-		name: 'Add New Post',
-		path: '/post-new.php',
+		section: 'Posts',
+		name: 'All Posts',
+		path: '/edit.php',
 		masks: [
-			// Editor content area — empty state markup varies.
-			'#wp-content-editor-container',
+			// Row count and content vary when parallel workers create test posts.
+			'.wp-list-table',
+			'.subsubsub',
+			'.displaying-num',
 		],
 	},
 	{
+		section: 'Posts',
+		name: 'Add New Post',
+		path: '/post-new.php',
+		masks: [
+			// Block editor canvas — content, cursor position, and block
+			// selection state vary between runs.
+			'.editor-visual-editor',
+		],
+	},
+	{
+		section: 'Posts',
 		name: 'Edit Post',
 		path: '/post.php',
 		query: ( data ) => `post=${ data.id }&action=edit`,
 		masks: [
-			// Editor content area — markup varies.
-			'#wp-content-editor-container',
+			// Block editor canvas — content and selection state vary.
+			'.editor-visual-editor',
 		],
 		setup: async ( requestUtils ) =>
 			await requestUtils.rest( {
@@ -140,31 +177,43 @@ const pages = [
 				params: { force: true },
 			} ),
 	},
-	{ name: 'Categories',   path: '/edit-tags.php', query: 'taxonomy=category' },
-	{ name: 'Tags',         path: '/edit-tags.php', query: 'taxonomy=post_tag' },
+	{ section: 'Posts', name: 'Categories', path: '/edit-tags.php', query: 'taxonomy=category' },
+	{
+		section: 'Posts',
+		name: 'Tags',
+		path: '/edit-tags.php',
+		query: 'taxonomy=post_tag',
+		masks: [
+			// Tag list content can shift due to notice presence/absence
+			// and focus-state timing on form inputs.
+			'.wp-list-table',
+		],
+	},
 
 	// -- Media --
-	{ name: 'Media Library', path: '/upload.php' },
-	{ name: 'Add Media',    path: '/media-new.php' },
+	{ section: 'Media', name: 'Media Library', path: '/upload.php' },
+	{ section: 'Media', name: 'Add Media',    path: '/media-new.php' },
 
 	// -- Pages --
-	{ name: 'All Pages',    path: '/edit.php', query: 'post_type=page' },
+	{ section: 'Pages', name: 'All Pages', path: '/edit.php', query: 'post_type=page' },
 	{
+		section: 'Pages',
 		name: 'Add New Page',
 		path: '/post-new.php',
 		query: 'post_type=page',
 		masks: [
-			// Editor content area — empty state markup varies.
-			'#wp-content-editor-container',
+			// Block editor canvas — content and block state vary.
+			'.editor-visual-editor',
 		],
 	},
 	{
+		section: 'Pages',
 		name: 'Edit Page',
 		path: '/post.php',
 		query: ( data ) => `post=${ data.id }&action=edit`,
 		masks: [
-			// Editor content area — markup varies.
-			'#wp-content-editor-container',
+			// Block editor canvas — content and selection state vary.
+			'.editor-visual-editor',
 		],
 		setup: async ( requestUtils ) =>
 			await requestUtils.rest( {
@@ -185,10 +234,11 @@ const pages = [
 	},
 
 	// -- Comments --
-	{ name: 'Comments',     path: '/edit-comments.php' },
+	{ section: 'Comments', name: 'Comments', path: '/edit-comments.php' },
 
 	// -- Appearance --
 	{
+		section: 'Appearance',
 		name: 'Themes',
 		path: '/themes.php',
 		masks: [
@@ -196,12 +246,13 @@ const pages = [
 			'.theme-screenshot img',
 		],
 	},
-	{ name: 'Widgets',      path: '/widgets.php' },
-	{ name: 'Menus',        path: '/nav-menus.php' },
-	{ name: 'Theme File Editor', path: '/theme-editor.php', masks: [ '#newcontent' ] },
+	{ section: 'Appearance', name: 'Widgets',           path: '/widgets.php' },
+	{ section: 'Appearance', name: 'Menus',             path: '/nav-menus.php' },
+	{ section: 'Appearance', name: 'Theme File Editor', path: '/theme-editor.php', masks: [ '#newcontent' ] },
 
 	// -- Plugins --
 	{
+		section: 'Plugins',
 		name: 'Plugins',
 		path: '/plugins.php',
 		masks: [
@@ -210,6 +261,7 @@ const pages = [
 		],
 	},
 	{
+		section: 'Plugins',
 		name: 'Add New Plugin',
 		path: '/plugin-install.php',
 		masks: [
@@ -220,11 +272,12 @@ const pages = [
 			'.plugin-card',
 		],
 	},
-	{ name: 'Plugin File Editor', path: '/plugin-editor.php', masks: [ '#newcontent' ] },
+	{ section: 'Plugins', name: 'Plugin File Editor', path: '/plugin-editor.php', masks: [ '#newcontent' ] },
 
 	// -- Users --
-	{ name: 'All Users',    path: '/users.php' },
+	{ section: 'Users', name: 'All Users', path: '/users.php' },
 	{
+		section: 'Users',
 		name: 'Add User',
 		path: '/user-new.php',
 		masks: [
@@ -232,15 +285,16 @@ const pages = [
 			'.password-input-wrapper',
 		],
 	},
-	{ name: 'Your Profile', path: '/profile.php' },
+	{ section: 'Users', name: 'Your Profile', path: '/profile.php' },
 
 	// -- Tools --
-	{ name: 'Available Tools',      path: '/tools.php' },
-	{ name: 'Import',               path: '/import.php' },
-	{ name: 'Export',               path: '/export.php' },
-	{ name: 'Export Personal Data', path: '/export-personal-data.php' },
-	{ name: 'Erase Personal Data',  path: '/erase-personal-data.php' },
+	{ section: 'Tools', name: 'Available Tools',      path: '/tools.php' },
+	{ section: 'Tools', name: 'Import',               path: '/import.php' },
+	{ section: 'Tools', name: 'Export',               path: '/export.php' },
+	{ section: 'Tools', name: 'Export Personal Data', path: '/export-personal-data.php' },
+	{ section: 'Tools', name: 'Erase Personal Data',  path: '/erase-personal-data.php' },
 	{
+		section: 'Tools',
 		name: 'Site Health',
 		path: '/site-health.php',
 		masks: [
@@ -253,6 +307,7 @@ const pages = [
 
 	// -- Settings --
 	{
+		section: 'Settings',
 		name: 'General Settings',
 		path: '/options-general.php',
 		masks: [
@@ -261,64 +316,93 @@ const pages = [
 			'.timezone-info',
 		],
 	},
-	{ name: 'Writing Settings',    path: '/options-writing.php' },
-	{ name: 'Reading Settings',    path: '/options-reading.php' },
-	{ name: 'Discussion Settings', path: '/options-discussion.php' },
-	{ name: 'Media Settings',      path: '/options-media.php' },
-	{ name: 'Permalink Settings',  path: '/options-permalink.php' },
-	{ name: 'Privacy Settings',    path: '/options-privacy.php' },
+	{ section: 'Settings', name: 'Writing Settings',    path: '/options-writing.php' },
+	{ section: 'Settings', name: 'Reading Settings',    path: '/options-reading.php' },
+	{ section: 'Settings', name: 'Discussion Settings', path: '/options-discussion.php' },
+	{ section: 'Settings', name: 'Media Settings',      path: '/options-media.php' },
+	{ section: 'Settings', name: 'Permalink Settings',  path: '/options-permalink.php' },
+	{ section: 'Settings', name: 'Privacy Settings',    path: '/options-privacy.php' },
 ];
 
+// Group pages by section for nested test.describe blocks.
+// Uses insertion order so the report mirrors the admin menu.
+const sections = pages.reduce( ( acc, entry ) => {
+	if ( ! acc[ entry.section ] ) {
+		acc[ entry.section ] = [];
+	}
+	acc[ entry.section ].push( entry );
+	return acc;
+}, /** @type {Record<string, PageEntry[]>} */ ( {} ) );
+
 test.describe( 'Admin Visual Snapshots', () => {
-	for ( const { name, path, query, masks, setup, teardown } of pages ) {
-		test( name, async ( { admin, page, requestUtils } ) => {
-			const data = setup
-				? await setup( requestUtils )
-				: undefined;
+	for ( const [ sectionName, sectionPages ] of Object.entries( sections ) ) {
+		test.describe( sectionName, () => {
+			for ( const {
+				name,
+				path,
+				query,
+				masks,
+				setup,
+				teardown,
+			} of sectionPages ) {
+				test( name, async ( { admin, page, requestUtils } ) => {
+					const data = setup
+						? await setup( requestUtils )
+						: undefined;
 
-			try {
-				const resolvedQuery =
-					typeof query === 'function' ? query( data ) : query;
+					try {
+						const resolvedQuery =
+							typeof query === 'function'
+								? query( data )
+								: query;
 
-				await admin.visitAdminPage( path, resolvedQuery );
-				await waitForPageReady( page );
+						await admin.visitAdminPage( path, resolvedQuery );
+						await waitForPageReady( page );
 
-				let screenshotOptions = {};
-				if ( Array.isArray( masks ) ) {
-					const locators = masks.map( ( s ) => page.locator( s ) );
-
-					// Warn when a mask selector matches nothing — the volatile
-					// element may have been removed or renamed, causing false diffs.
-					for ( let i = 0; i < locators.length; i++ ) {
-						const count = await locators[ i ].count();
-						if ( count === 0 ) {
-							// eslint-disable-next-line no-console
-							console.warn(
-								`[${ name }] mask selector "${ masks[ i ] }" matched 0 elements`
+						let screenshotOptions = {};
+						if ( Array.isArray( masks ) ) {
+							const locators = masks.map( ( s ) =>
+								page.locator( s )
 							);
+
+							// Warn when a mask selector matches nothing — the volatile
+							// element may have been removed or renamed, causing false diffs.
+							for ( let i = 0; i < locators.length; i++ ) {
+								const count =
+									await locators[ i ].count();
+								if ( count === 0 ) {
+									// eslint-disable-next-line no-console
+									console.warn(
+										`[${ name }] mask selector "${ masks[ i ] }" matched 0 elements`
+									);
+								}
+							}
+
+							screenshotOptions = { mask: locators };
+						}
+
+						await expect( page ).toHaveScreenshot(
+							`${ name }.png`,
+							screenshotOptions
+						);
+					} finally {
+						if ( teardown ) {
+							try {
+								await teardown(
+									requestUtils,
+									data
+								);
+							} catch ( err ) {
+								// Log but don't mask the original assertion failure.
+								// eslint-disable-next-line no-console
+								console.error(
+									`[${ name }] teardown failed:`,
+									err.message
+								);
+							}
 						}
 					}
-
-					screenshotOptions = { mask: locators };
-				}
-
-				await expect( page ).toHaveScreenshot(
-					`${ name }.png`,
-					screenshotOptions
-				);
-			} finally {
-				if ( teardown ) {
-					try {
-						await teardown( requestUtils, data );
-					} catch ( err ) {
-						// Log but don't mask the original assertion failure.
-						// eslint-disable-next-line no-console
-						console.error(
-							`[${ name }] teardown failed:`,
-							err.message
-						);
-					}
-				}
+				} );
 			}
 		} );
 	}

@@ -54,13 +54,31 @@
  * Admin notices — various nags (PHP deprecation, updates, etc.).
  * `.error:not(#error)` excludes the `<div id="error">` database error
  * container from wpdb (wp-includes/class-wpdb.php) as a defensive measure.
+ *
+ * Uses `display: none` (not `visibility: hidden`) because notices may or
+ * may not exist in the DOM between runs. If a notice is present in one run
+ * but absent in another, `visibility: hidden` would reserve space only in
+ * the first run, shifting all content below and causing a false diff.
+ * Collapsing them entirely normalises the layout regardless.
  */
 .notice,
 .update-nag,
 .updated,
 .error:not(#error),
 #message {
-	visibility: hidden !important;
+	display: none !important;
+}
+
+/*
+ * Block editor modals (welcome guide, preference panels).
+ * The welcome guide appears on first visit and sets a user preference on
+ * dismissal. Between test runs the preference state is non-deterministic,
+ * so hide the modal entirely. `display: none` is safe here — modals are
+ * overlays and do not participate in the underlying page layout.
+ */
+.components-modal__screen-overlay,
+.components-modal__frame {
+	display: none !important;
 }
 
 /* General Settings — live date/time preview changes on every run. */
