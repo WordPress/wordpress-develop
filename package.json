@@ -138,7 +138,6 @@
 		"test:visual": "wp-scripts test-playwright --config tests/visual-regression/playwright.config.js",
 		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan",
 		"gutenberg:checkout": "node tools/gutenberg/checkout-gutenberg.js",
-		"gutenberg:build": "node tools/gutenberg/build-gutenberg.js",
 		"gutenberg:copy": "node tools/gutenberg/copy-gutenberg-build.js",
 		"gutenberg:sync": "node tools/gutenberg/sync-gutenberg.js",
 		"vendor:copy": "node tools/vendors/copy-vendors.js",

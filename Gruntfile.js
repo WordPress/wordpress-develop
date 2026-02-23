@@ -1486,34 +1486,12 @@ module.exports = function(grunt) {
 		} );
 	} );
 
-	grunt.registerTask( 'gutenberg-build', 'Builds the Gutenberg repository.', function() {
-		const done = this.async();
-		grunt.util.spawn( {
-			cmd: 'node',
-			args: [ 'tools/gutenberg/build-gutenberg.js' ],
-			opts: { stdio: 'inherit' }
-		}, function( error ) {
-			done( ! error );
-		} );
-	} );
-
 	grunt.registerTask( 'gutenberg-copy', 'Copies Gutenberg build output to WordPress Core.', function() {
 		const done = this.async();
 		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
 		grunt.util.spawn( {
 			cmd: 'node',
 			args: [ 'tools/gutenberg/copy-gutenberg-build.js', `--build-dir=${ buildDir }` ],
-			opts: { stdio: 'inherit' }
-		}, function( error ) {
-			done( ! error );
-		} );
-	} );
-
-	grunt.registerTask( 'gutenberg-sync', 'Syncs Gutenberg checkout and build if ref has changed.', function() {
-		const done = this.async();
-		grunt.util.spawn( {
-			cmd: 'node',
-			args: [ 'tools/gutenberg/sync-gutenberg.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
