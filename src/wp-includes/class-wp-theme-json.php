@@ -4267,7 +4267,7 @@ class WP_Theme_JSON {
 	 *                   generated in the constructor and merge methods instead
 	 *                   of manually after instantiation.
 	 *
-	 * @return null|void
+	 * @return null
 	 */
 	public function set_spacing_sizes() {
 		_deprecated_function( __METHOD__, '6.6.0' );

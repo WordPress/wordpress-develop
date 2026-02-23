@@ -6232,7 +6232,7 @@ function url_shorten( $url, $length = 35 ) {
  * @since 3.4.0
  *
  * @param string $color
- * @return string|void
+ * @return string|null
  */
 function sanitize_hex_color( $color ) {
 	if ( '' === $color ) {
