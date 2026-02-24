@@ -1575,7 +1575,7 @@ div.error.notice-alt {
 
 .notice-info {
 	border-left-color: #3858e9;
-	background-color: transparent;
+	background-color: #fff;
 }
 
 .notice-info.notice-alt {
