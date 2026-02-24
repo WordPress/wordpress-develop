@@ -132,7 +132,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Outputs the message when no users are found.
+	 * Message to be displayed when there are no items.
 	 *
 	 * @since 3.1.0
 	 */
