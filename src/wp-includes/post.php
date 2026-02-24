@@ -7792,7 +7792,7 @@ function clean_post_cache( $post ) {
 	}
 
 	if ( 'attachment' === $post->post_type ) {
-		delete_transient( 'media_library_months_with_files' );
+		delete_transient( 'wp_media_library_attachment_months' );
 	}
 
 	wp_cache_set_posts_last_changed();

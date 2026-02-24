@@ -4884,10 +4884,10 @@ function wp_enqueue_media( $args = array() ) {
 	 */
 	$months = apply_filters( 'media_library_months_with_files', null );
 	if ( ! is_array( $months ) ) {
-		$months = get_transient( 'media_library_months_with_files' );
+		$months = get_transient( 'wp_media_library_attachment_months' );
 		if ( false === $months ) {
 			$months = wp_get_media_library_attachment_months();
-			set_transient( 'media_library_months_with_files', $months );
+			set_transient( 'wp_media_library_attachment_months', $months );
 		}
 	}
 
@@ -5156,11 +5156,10 @@ function wp_enqueue_media( $args = array() ) {
  * Example:
  *
  *     $months = wp_get_media_library_attachment_months();
- *     // Returns e.g.:
- *     // array(
- *     //     (object) array( 'year' => '2025', 'month' => '2' ),
- *     //     (object) array( 'year' => '2024', 'month' => '11' ),
- *     // )
+ *     $months === array(
+ *         (object) array( 'year' => '2025', 'month' => '2' ),
+ *         (object) array( 'year' => '2024', 'month' => '11' ),
+ *     );
  *
  * @since tbd
  *
