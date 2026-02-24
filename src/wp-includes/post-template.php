@@ -118,8 +118,8 @@ function the_title_attribute( $args = '' ) {
 function get_the_title( $post = 0 ) {
 	$post = get_post( $post );
 
-	$post_title = isset( $post->post_title ) ? $post->post_title : '';
-	$post_id    = isset( $post->ID ) ? $post->ID : 0;
+	$post_title = $post->post_title ?? '';
+	$post_id    = $post->ID ?? 0;
 
 	if ( ! is_admin() ) {
 		if ( ! empty( $post->post_password ) ) {
@@ -191,7 +191,7 @@ function the_guid( $post = 0 ) {
 	$post = get_post( $post );
 
 	$post_guid = isset( $post->guid ) ? get_the_guid( $post ) : '';
-	$post_id   = isset( $post->ID ) ? $post->ID : 0;
+	$post_id   = $post->ID ?? 0;
 
 	/**
 	 * Filters the escaped Global Unique Identifier (guid) of the post.
@@ -221,8 +221,8 @@ function the_guid( $post = 0 ) {
 function get_the_guid( $post = 0 ) {
 	$post = get_post( $post );
 
-	$post_guid = isset( $post->guid ) ? $post->guid : '';
-	$post_id   = isset( $post->ID ) ? $post->ID : 0;
+	$post_guid = $post->guid ?? '';
+	$post_id   = $post->ID ?? 0;
 
 	/**
 	 * Filters the Global Unique Identifier (guid) of the post.
@@ -407,7 +407,7 @@ function the_excerpt() {
  * @since 0.71
  * @since 4.5.0 Introduced the `$post` parameter.
  *
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Post excerpt.
  */
 function get_the_excerpt( $post = null ) {
@@ -458,9 +458,9 @@ function has_excerpt( $post = 0 ) {
  *
  * @since 2.7.0
  *
- * @param string|string[] $css_class Optional. One or more classes to add to the class list.
- *                                   Default empty.
- * @param int|WP_Post     $post      Optional. Post ID or post object. Defaults to the global `$post`.
+ * @param string|string[]  $css_class Optional. One or more classes to add to the class list.
+ *                                    Default empty.
+ * @param int|WP_Post|null $post      Optional. Post ID or post object. Defaults to the global `$post`.
  */
 function post_class( $css_class = '', $post = null ) {
 	// Separates classes with a single space, collates classes for post DIV.
@@ -486,9 +486,9 @@ function post_class( $css_class = '', $post = null ) {
  * @since 2.7.0
  * @since 4.2.0 Custom taxonomy class names were added.
  *
- * @param string|string[] $css_class Optional. Space-separated string or array of class names
- *                                   to add to the class list. Default empty.
- * @param int|WP_Post     $post      Optional. Post ID or post object.
+ * @param string|string[]  $css_class Optional. Space-separated string or array of class names
+ *                                    to add to the class list. Default empty.
+ * @param int|WP_Post|null $post      Optional. Post ID or post object.
  * @return string[] Array of class names.
  */
 function get_post_class( $css_class = '', $post = null ) {
@@ -606,7 +606,10 @@ function get_post_class( $css_class = '', $post = null ) {
 	 */
 	$classes = apply_filters( 'post_class', $classes, $css_class, $post->ID );
 
-	return array_unique( $classes );
+	$classes = array_unique( $classes );
+	$classes = array_values( $classes );
+
+	return $classes;
 }
 
 /**
@@ -1771,7 +1774,7 @@ function prepend_attachment( $content ) {
  * @since 1.0.0
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
- * @return string HTML content for password form for password protected post.
+ * @return string HTML content for password form for password-protected post.
  */
 function get_the_password_form( $post = 0 ) {
 	$post                  = get_post( $post );
@@ -1786,7 +1789,7 @@ function get_the_password_form( $post = 0 ) {
 	if ( ! empty( $post->ID ) && wp_get_raw_referer() === get_permalink( $post->ID ) && isset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] ) ) {
 		/**
 		 * Filters the invalid password message shown on password-protected posts.
-		 * The filter is only applied if the post is password protected.
+		 * The filter is only applied if the post is password-protected.
 		 *
 		 * @since 6.8.0
 		 *
@@ -1807,7 +1810,7 @@ function get_the_password_form( $post = 0 ) {
 	}
 
 	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form' . $class . '" method="post">' . $redirect_field . $invalid_password_html . '
-	<p>' . __( 'This content is password protected. To view it please enter your password below:' ) . '</p>
+	<p>' . __( 'This content is password-protected. To view it, please enter the password below.' ) . '</p>
 	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> <input type="submit" name="Submit" value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
 	';
 
@@ -1880,7 +1883,7 @@ function is_page_template( $template = '' ) {
  * @since 3.4.0
  * @since 4.7.0 Now works with any post type, not just pages.
  *
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string|false Page template filename. Returns an empty string when the default page template
  *                      is in use. Returns false if the post does not exist.
  */

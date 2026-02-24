@@ -308,12 +308,16 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$total_revisions = $revisions_query->found_posts;
 
 			if ( $total_revisions < 1 ) {
-				// Out-of-bounds, run the query again without LIMIT for total count.
+				// Out-of-bounds, run the query without pagination/offset to get the total count.
 				unset( $query_args['paged'], $query_args['offset'] );
 
-				$count_query = new WP_Query();
-				$count_query->query( $query_args );
+				$count_query                          = new WP_Query();
+				$query_args['fields']                 = 'ids';
+				$query_args['posts_per_page']         = 1;
+				$query_args['update_post_meta_cache'] = false;
+				$query_args['update_post_term_cache'] = false;
 
+				$count_query->query( $query_args );
 				$total_revisions = $count_query->found_posts;
 			}
 
@@ -355,7 +359,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 			$response = rest_ensure_response( $response );
 		} else {
-			$response = new WP_REST_Response();
+			$response = new WP_REST_Response( array() );
 		}
 
 		$response->header( 'X-WP-Total', (int) $total_revisions );
@@ -591,7 +595,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		// Don't prepare the response body for HEAD requests.
 		if ( $request->is_method( 'HEAD' ) ) {
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php */
-			return apply_filters( 'rest_prepare_revision', new WP_REST_Response(), $post, $request );
+			return apply_filters( 'rest_prepare_revision', new WP_REST_Response( array() ), $post, $request );
 		}
 
 		$fields = $this->get_fields_for_response( $request );

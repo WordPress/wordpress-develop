@@ -463,7 +463,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			foreach ( $query_result as $post ) {
-				if ( ! $this->check_read_permission( $post ) ) {
+				if ( 'edit' === $request['context'] ) {
+					$permission = $this->check_update_permission( $post );
+				} else {
+					$permission = $this->check_read_permission( $post );
+				}
+
+				if ( ! $permission ) {
 					continue;
 				}
 
@@ -477,14 +483,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', array( $this, 'check_password_required' ) );
 		}
 
-		$page        = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
+		$page        = (int) ( $query_args['paged'] ?? 0 );
 		$total_posts = $posts_query->found_posts;
 
 		if ( $total_posts < 1 && $page > 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count.
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $query_args['paged'] );
 
-			$count_query = new WP_Query();
+			$count_query                          = new WP_Query();
+			$query_args['fields']                 = 'ids';
+			$query_args['posts_per_page']         = 1;
+			$query_args['update_post_meta_cache'] = false;
+			$query_args['update_post_term_cache'] = false;
+
 			$count_query->query( $query_args );
 			$total_posts = $count_query->found_posts;
 		}
@@ -499,7 +510,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$response = $is_head_request ? new WP_REST_Response() : rest_ensure_response( $posts );
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $posts );
 
 		$response->header( 'X-WP-Total', (int) $total_posts );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -1466,6 +1477,35 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
+		 * Applies Block Hooks to content-like post types.
+		 *
+		 * Content-like post types are those that support the editor and would benefit
+		 * from Block Hooks functionality. This replaces the individual post type filters
+		 * that were previously hardcoded in default-filters.php.
+		 *
+		 * @since 7.0.0
+		 */
+		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+		/**
+		 * Filters which post types should have Block Hooks applied.
+		 *
+		 * Allows themes and plugins to add or remove post types that should
+		 * have Block Hooks functionality enabled in the REST API.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param array  $content_like_post_types Array of post type names that support Block Hooks.
+		 * @param string $post_type               The current post type being processed.
+		 * @param object $prepared_post           The prepared post object.
+		 */
+		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $prepared_post );
+
+		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+			$prepared_post = update_ignored_hooked_blocks_postmeta( $prepared_post );
+		}
+
+		/**
 		 * Filters a post before it is inserted via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
@@ -1847,7 +1887,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Don't prepare the response body for HEAD requests.
 		if ( $request->is_method( 'HEAD' ) ) {
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
-			return apply_filters( "rest_prepare_{$this->post_type}", new WP_REST_Response(), $post, $request );
+			return apply_filters( "rest_prepare_{$this->post_type}", new WP_REST_Response( array() ), $post, $request );
 		}
 
 		$fields = $this->get_fields_for_response( $request );
@@ -1977,7 +2017,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				add_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 
@@ -1997,7 +2037,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				remove_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 		}
@@ -2114,6 +2154,34 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$response->add_link( $rel, $self );
 				}
 			}
+		}
+
+		/**
+		 * Applies Block Hooks to content-like post types for REST response.
+		 *
+		 * This replaces the individual post type filters that were previously hardcoded
+		 * in default-filters.php.
+		 *
+		 * @since 7.0.0
+		 */
+		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+		/**
+		 * Filters which post types should have Block Hooks applied.
+		 *
+		 * Allows themes and plugins to add or remove post types that should
+		 * have Block Hooks functionality enabled in the REST API.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param array   $content_like_post_types Array of post type names that support Block Hooks.
+		 * @param string  $post_type               The current post type being processed.
+		 * @param WP_Post $post                    The post object.
+		 */
+		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $post );
+
+		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+			$response = insert_hooked_blocks_into_rest_response( $response, $post );
 		}
 
 		/**
@@ -3075,7 +3143,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_params['ignore_sticky'] = array(
 				'description' => __( 'Whether to ignore sticky posts or not.' ),
 				'type'        => 'boolean',
-				'default'     => false,
+				'default'     => true,
 			);
 		}
 

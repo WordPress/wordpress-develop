@@ -2577,7 +2577,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			rest_api_loaded();
 		} catch ( WPDieException $e ) {
 			$this->assertStringContainsString(
-				'The rest route parameter must be a string.',
+				'The REST route parameter must be a string.',
 				$e->getMessage()
 			);
 			throw $e; // Re-throw to satisfy expectException

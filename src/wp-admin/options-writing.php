@@ -67,14 +67,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <table class="form-table" role="presentation">
 <?php if ( get_site_option( 'initial_db_version' ) < 32453 ) : ?>
+	<?php $formatting_title = __( 'Formatting' ); ?>
 <tr>
-<th scope="row"><?php _e( 'Formatting' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: Hidden accessibility text. */
-	_e( 'Formatting' );
-	?>
-</span></legend>
+<th scope="row"><?php echo $formatting_title; ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo $formatting_title; ?></span></legend>
 <label for="use_smilies">
 <input name="use_smilies" type="checkbox" id="use_smilies" value="1" <?php checked( '1', get_option( 'use_smilies' ) ); ?> />
 	<?php _e( 'Convert emoticons like <code>:-)</code> and <code>:-P</code> to graphics on display' ); ?></label><br />
@@ -111,6 +107,13 @@ unset( $post_formats['standard'] );
 		<option<?php selected( get_option( 'default_post_format' ), $format_slug ); ?> value="<?php echo esc_attr( $format_slug ); ?>"><?php echo esc_html( $format_name ); ?></option>
 <?php endforeach; ?>
 	</select>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="wp_enable_real_time_collaboration"><?php _e( 'Collaboration' ); ?></label></th>
+<td>
+	<input name="wp_enable_real_time_collaboration" type="checkbox" id="wp_enable_real_time_collaboration" value="1" <?php checked( '1', get_option( 'wp_enable_real_time_collaboration' ) ); ?> />
+	<label for="wp_enable_real_time_collaboration"><?php _e( 'Enable real-time collaboration' ); ?></label>
 </td>
 </tr>
 <?php

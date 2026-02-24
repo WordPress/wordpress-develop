@@ -175,8 +175,10 @@ final class WP_Screen {
 	/**
 	 * Stores the result of the public show_screen_options function.
 	 *
+	 * Set when calling {@see self::show_screen_options()} for the first time.
+	 *
 	 * @since 3.3.0
-	 * @var bool
+	 * @var ?bool
 	 */
 	private $_show_screen_options;
 
@@ -545,17 +547,14 @@ final class WP_Screen {
 	 * @param string       $option Option name.
 	 * @param string|false $key    Optional. Specific array key for when the option is an array.
 	 *                             Default false.
-	 * @return string The option value if set, null otherwise.
+	 * @return ?string The option value if set, null otherwise.
 	 */
 	public function get_option( $option, $key = false ) {
 		if ( ! isset( $this->_options[ $option ] ) ) {
 			return null;
 		}
 		if ( $key ) {
-			if ( isset( $this->_options[ $option ][ $key ] ) ) {
-				return $this->_options[ $option ][ $key ];
-			}
-			return null;
+			return $this->_options[ $option ][ $key ] ?? null;
 		}
 		return $this->_options[ $option ];
 	}
@@ -598,7 +597,7 @@ final class WP_Screen {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Help Tab ID.
-	 * @return array Help tab arguments.
+	 * @return ?array Help tab arguments, or null if no help tabs added.
 	 */
 	public function get_help_tab( $id ) {
 		if ( ! isset( $this->_help_tabs[ $id ] ) ) {
@@ -733,7 +732,7 @@ final class WP_Screen {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Screen reader text array named key.
-	 * @return string Screen reader text string.
+	 * @return ?string Screen reader text string, or null if no text is associated with the key.
 	 */
 	public function get_screen_reader_text( $key ) {
 		if ( ! isset( $this->_screen_reader_content[ $key ] ) ) {
@@ -806,7 +805,7 @@ final class WP_Screen {
 			'get_current_screen()->add_help_tab(), get_current_screen()->remove_help_tab()'
 		);
 
-		$old_help = isset( self::$_old_compat_help[ $this->id ] ) ? self::$_old_compat_help[ $this->id ] : '';
+		$old_help = self::$_old_compat_help[ $this->id ] ?? '';
 
 		/**
 		 * Filters the legacy contextual help text.
@@ -949,8 +948,9 @@ final class WP_Screen {
 		if ( $this->get_option( 'layout_columns' ) ) {
 			$this->columns = (int) get_user_option( "screen_layout_$this->id" );
 
-			if ( ! $this->columns && $this->get_option( 'layout_columns', 'default' ) ) {
-				$this->columns = $this->get_option( 'layout_columns', 'default' );
+			$layout_columns = (int) $this->get_option( 'layout_columns', 'default' );
+			if ( ! $this->columns && $layout_columns ) {
+				$this->columns = $layout_columns;
 			}
 		}
 		$GLOBALS['screen_layout_columns'] = $this->columns; // Set the global for back-compat.
@@ -984,9 +984,11 @@ final class WP_Screen {
 	}
 
 	/**
+	 * @since 3.3.0
+	 *
 	 * @global array $wp_meta_boxes Global meta box state.
 	 *
-	 * @return bool
+	 * @return bool Whether to show the Screen Options tab for the current screen.
 	 */
 	public function show_screen_options() {
 		global $wp_meta_boxes;
@@ -1003,7 +1005,7 @@ final class WP_Screen {
 
 		if ( 'post' === $this->base ) {
 			$expand                 = '<fieldset class="editor-expand hidden"><legend>' . __( 'Additional settings' ) . '</legend><label for="editor-expand-toggle">';
-			$expand                .= '<input type="checkbox" id="editor-expand-toggle" ' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . ' />';
+			$expand                .= '<input type="checkbox" id="editor-expand-toggle"' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . ' />';
 			$expand                .= __( 'Enable full-height editor and distraction-free functionality.' ) . '</label></fieldset>';
 			$this->_screen_settings = $expand;
 		}
@@ -1134,7 +1136,7 @@ final class WP_Screen {
 				}
 			}
 			echo '<label for="wp_welcome_panel-hide">';
-			echo '<input type="checkbox" id="wp_welcome_panel-hide" ' . checked( (bool) $welcome_checked, true, false ) . ' />';
+			echo '<input type="checkbox" id="wp_welcome_panel-hide"' . checked( (bool) $welcome_checked, true, false ) . ' />';
 			echo _x( 'Welcome', 'Welcome panel' ) . "</label>\n";
 		}
 		?>
@@ -1183,7 +1185,7 @@ final class WP_Screen {
 
 			$id = "$column-hide";
 			echo '<label>';
-			echo '<input class="hide-column-tog" name="' . $id . '" type="checkbox" id="' . $id . '" value="' . $column . '" ' . checked( ! in_array( $column, $hidden, true ), true, false ) . ' />';
+			echo '<input class="hide-column-tog" name="' . $id . '" type="checkbox" id="' . $id . '" value="' . $column . '"' . checked( ! in_array( $column, $hidden, true ), true, false ) . ' />';
 			echo "$title</label>\n";
 		}
 		?>
@@ -1252,7 +1254,7 @@ final class WP_Screen {
 		}
 
 		if ( 'edit_comments_per_page' === $option ) {
-			$comment_status = isset( $_REQUEST['comment_status'] ) ? $_REQUEST['comment_status'] : 'all';
+			$comment_status = $_REQUEST['comment_status'] ?? 'all';
 
 			/** This filter is documented in wp-admin/includes/class-wp-comments-list-table.php */
 			$per_page = apply_filters( 'comments_per_page', $per_page, $comment_status );

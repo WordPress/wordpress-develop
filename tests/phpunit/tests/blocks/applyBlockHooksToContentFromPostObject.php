@@ -88,6 +88,17 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 				),
 			)
 		);
+
+		register_block_type(
+			'tests/hooked-block-after-post-content',
+			array(
+				'block_hooks' => array(
+					'core/post-content' => 'after',
+				),
+			)
+		);
+
+		register_block_type( 'tests/dynamically-hooked-block-before-post-content' );
 	}
 
 	/**
@@ -100,6 +111,8 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 
 		$registry->unregister( 'tests/hooked-block' );
 		$registry->unregister( 'tests/hooked-block-first-child' );
+		$registry->unregister( 'tests/hooked-block-after-post-content' );
+		$registry->unregister( 'tests/dynamically-hooked-block-before-post-content' );
 	}
 
 	/**
@@ -127,6 +140,33 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 			self::$post_with_ignored_hooked_block,
 			'insert_hooked_blocks'
 		);
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 63287
+	 */
+	public function test_apply_block_hooks_to_content_from_post_object_does_not_insert_hooked_block_before_container_block() {
+		$filter = function ( $hooked_block_types, $relative_position, $anchor_block_type ) {
+			if ( 'core/post-content' === $anchor_block_type && 'before' === $relative_position ) {
+				$hooked_block_types[] = 'tests/dynamically-hooked-block-before-post-content';
+			}
+
+			return $hooked_block_types;
+		};
+
+		$expected = '<!-- wp:tests/hooked-block-first-child /-->' .
+			self::$post->post_content .
+			'<!-- wp:tests/hooked-block /-->';
+
+		add_filter( 'hooked_block_types', $filter, 10, 3 );
+		$actual = apply_block_hooks_to_content_from_post_object(
+			self::$post->post_content,
+			self::$post,
+			'insert_hooked_blocks'
+		);
+		remove_filter( 'hooked_block_types', $filter, 10 );
+
 		$this->assertSame( $expected, $actual );
 	}
 

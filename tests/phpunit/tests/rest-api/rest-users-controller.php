@@ -254,7 +254,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		if ( 'HEAD' === $method ) {
-			$this->assertNull( $response->get_data(), 'Expected null response data for HEAD request, but received non-null data.' );
+			$this->assertSame( array(), $response->get_data(), 'Expected null response data for HEAD request, but received non-null data.' );
 			return null;
 		}
 
@@ -307,6 +307,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$users    = $response->get_data();
 
 		$rest_post_types = array_values( get_post_types( array( 'show_in_rest' => true ), 'names' ) );
+
+		$this->assertNotEmpty( $users );
 
 		foreach ( $users as $user ) {
 			$this->assertNotEmpty( count_user_posts( $user['id'], $rest_post_types ) );
@@ -1311,7 +1313,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $author_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	/**
@@ -3251,7 +3253,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		if ( 'HEAD' !== $method ) {
 			return null;
 		}
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
@@ -3272,7 +3274,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertSame( 200, $response->get_status() );
 		if ( $is_head_request ) {
-			$this->assertNull( $response->get_data() );
+			$this->assertSame( array(), $response->get_data() );
 		} else {
 			$this->assertNotEmpty( $response->get_data() );
 		}
@@ -3300,10 +3302,43 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		global $wpdb;
 		$users_table = preg_quote( $wpdb->users, '/' );
-		$pattern     = '/SELECT SQL_CALC_FOUND_ROWS wptests_users.ID\n\s+FROM\s+' . $users_table . '/is';
+		$pattern     = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $users_table . '\.ID\n\s+FROM\s+' . $users_table . '/is';
 
 		// Assert that the SQL query only fetches the id column.
 		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		$user_id = self::factory()->user->create();
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'HEAD', sprintf( $path, $user_id ) );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/users/%d' ),
+			'get_items request' => array( '/wp/v2/users' ),
+		);
 	}
 
 	protected function check_user_data( $user, $data, $context, $links ) {
@@ -3326,9 +3361,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertSame( $user->user_login, $data['username'] );
 			$this->assertSame( $user->roles, $data['roles'] );
 			$this->assertSame( get_user_locale( $user ), $data['locale'] );
-		}
-
-		if ( 'edit' !== $context ) {
+		} else {
 			$this->assertArrayNotHasKey( 'roles', $data );
 			$this->assertArrayNotHasKey( 'capabilities', $data );
 			$this->assertArrayNotHasKey( 'registered_date', $data );

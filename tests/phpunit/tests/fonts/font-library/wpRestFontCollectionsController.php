@@ -108,7 +108,7 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 			return null;
 		}
 
-		$this->assertNull( $content, 'The response should be empty.' );
+		$this->assertSame( array(), $content, 'The response should be empty.' );
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'X-WP-Total', $headers, 'The "X-WP-Total" header should be present in the response.' );
 		// Includes non-valid collections.
@@ -172,7 +172,7 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 		if ( 'HEAD' !== $method ) {
 			return null;
 		}
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**

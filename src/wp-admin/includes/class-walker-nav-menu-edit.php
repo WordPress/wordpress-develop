@@ -49,7 +49,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 * @since 5.9.0 Renamed `$item` to `$data_object` and `$id` to `$current_object_id`
 	 *              to match parent class for PHP 8 named parameter support.
 	 *
-	 * @global int $_wp_nav_menu_max_depth
+	 * @global int $_wp_nav_menu_max_depth The maximum depth of the nav menu.
 	 *
 	 * @param string   $output            Used to append additional content (passed by reference).
 	 * @param WP_Post  $data_object       Menu item data object.
@@ -196,7 +196,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					<p class="field-url description description-wide">
 						<label for="edit-menu-item-url-<?php echo $item_id; ?>">
 							<?php _e( 'URL' ); ?><br />
-							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->url ); ?>" />
+							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_url( $menu_item->url ); ?>" />
 						</label>
 					</p>
 				<?php endif; ?>
