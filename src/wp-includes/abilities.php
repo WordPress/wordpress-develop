@@ -13,8 +13,6 @@ declare( strict_types = 1 );
  * Registers the core ability categories.
  *
  * @since 6.9.0
- *
- * @return void
  */
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
@@ -39,7 +37,7 @@ function wp_register_core_ability_categories(): void {
  *
  * @since 6.9.0
  *
- * @return void
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 function wp_register_core_abilities(): void {
 	$category_site = 'site';
@@ -220,7 +218,6 @@ function wp_register_core_abilities(): void {
 					'db_server_info' => array(
 						'type'        => 'string',
 						'description' => __( 'The database server vendor and version string reported by the driver.' ),
-						'examples'    => array( '8.0.34', '10.11.6-MariaDB' ),
 					),
 					'wp_version'     => array(
 						'type'        => 'string',

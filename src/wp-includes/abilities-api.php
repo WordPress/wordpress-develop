@@ -132,7 +132,8 @@ declare( strict_types = 1 );
  *
  * Ability names must follow these rules:
  *
- *  - Include a namespace prefix (e.g., `my-plugin/my-ability`).
+ *  - Contain 2 to 4 segments separated by forward slashes
+ *    (e.g., `my-plugin/my-ability`, `my-plugin/resource/find`, `my-plugin/resource/sub/find`).
  *  - Use only lowercase alphanumeric characters, dashes, and forward slashes.
  *  - Use descriptive, action-oriented names (e.g., `process-payment`, `generate-report`).
  *
@@ -225,9 +226,8 @@ declare( strict_types = 1 );
  * @see wp_register_ability_category()
  * @see wp_unregister_ability()
  *
- * @param string               $name The name of the ability. Must be a namespaced string containing
- *                                   a prefix, e.g., `my-plugin/my-ability`. Can only contain lowercase
- *                                   alphanumeric characters, dashes, and forward slashes.
+ * @param string               $name The name of the ability. Must be the fully-namespaced
+ *                                   string identifier, e.g. `my-plugin/my-ability` or `my-plugin/resource/my-ability`.
  * @param array<string, mixed> $args {
  *     An associative array of arguments for configuring the ability.
  *
@@ -276,7 +276,7 @@ declare( strict_types = 1 );
  * @return WP_Ability|null The registered ability instance on success, `null` on failure.
  */
 function wp_register_ability( string $name, array $args ): ?WP_Ability {
-	if ( ! did_action( 'wp_abilities_api_init' ) ) {
+	if ( ! doing_action( 'wp_abilities_api_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -318,7 +318,7 @@ function wp_register_ability( string $name, array $args ): ?WP_Ability {
  * @see wp_register_ability()
  *
  * @param string $name The name of the ability to unregister, including namespace prefix
- *                     (e.g., 'my-plugin/my-ability').
+ *                     (e.g., 'my-plugin/my-ability' or 'my-plugin/resource/find').
  * @return WP_Ability|null The unregistered ability instance on success, `null` on failure.
  */
 function wp_unregister_ability( string $name ): ?WP_Ability {
@@ -351,7 +351,7 @@ function wp_unregister_ability( string $name ): ?WP_Ability {
  * @see wp_get_ability()
  *
  * @param string $name The name of the ability to check, including namespace prefix
- *                     (e.g., 'my-plugin/my-ability').
+ *                     (e.g., 'my-plugin/my-ability' or 'my-plugin/resource/find').
  * @return bool `true` if the ability is registered, `false` otherwise.
  */
 function wp_has_ability( string $name ): bool {
@@ -383,7 +383,7 @@ function wp_has_ability( string $name ): bool {
  * @see wp_has_ability()
  *
  * @param string $name The name of the ability, including namespace prefix
- *                     (e.g., 'my-plugin/my-ability').
+ *                     (e.g., 'my-plugin/my-ability' or 'my-plugin/resource/find').
  * @return WP_Ability|null The registered ability instance, or `null` if not registered.
  */
 function wp_get_ability( string $name ): ?WP_Ability {
@@ -465,7 +465,7 @@ function wp_get_abilities(): array {
  * @return WP_Ability_Category|null The registered ability category instance on success, `null` on failure.
  */
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
-	if ( ! did_action( 'wp_abilities_api_categories_init' ) ) {
+	if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(

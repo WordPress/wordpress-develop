@@ -304,7 +304,28 @@ if ( ! is_multisite() ) {
 <tr>
 <th scope="row"><label for="default_role"><?php _e( 'New User Default Role' ); ?></label></th>
 <td>
-<select name="default_role" id="default_role"><?php wp_dropdown_roles( get_option( 'default_role' ) ); ?></select>
+	<?php
+	/**
+	 * Filters the roles to be excluded from the default_role option.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string[] $roles_to_exclude Array of roles to exclude from the dropdown.
+	 *                                   Defaults to administrator and editor.
+	 */
+	$excluded_roles = (array) apply_filters( 'default_role_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
+
+	$editable_roles = array_reverse( get_editable_roles() );
+
+	$selected = get_option( 'default_role' );
+
+	foreach ( $editable_roles as $role => $details ) {
+		if ( in_array( $role, $excluded_roles, true ) && $role !== $selected ) {
+			unset( $editable_roles[ $role ] );
+		}
+	}
+	?>
+	<select name="default_role" id="default_role"><?php wp_dropdown_roles( $selected, $editable_roles ); ?></select>
 </td>
 </tr>
 
@@ -445,7 +466,8 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 				__( 'Standard time begins on: %s.' );
 			printf(
 				$message,
-				'<code>' . wp_date( __( 'F j, Y' ) . ' ' . __( 'g:i a' ), $transitions[1]['ts'] ) . '</code>'
+				/* translators: Localized date and time format, see https://www.php.net/manual/datetime.format.php */
+				'<code>' . wp_date( __( 'F j, Y g:i a' ), $transitions[1]['ts'] ) . '</code>'
 			);
 		} else {
 			_e( 'This timezone does not observe daylight saving time.' );
@@ -479,20 +501,11 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 
 foreach ( $date_formats as $format ) {
 	echo "\t<label><input type='radio' name='date_format' value='" . esc_attr( $format ) . "'";
-
 	if ( get_option( 'date_format' ) === $format ) { // checked() uses "==" rather than "===".
 		echo " checked='checked'";
 		$custom = false;
 	}
-
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span>' .
-		'<code>' . esc_html( $format ) . '</code>';
-
-	if ( __( 'F j, Y' ) === $format ) {
-		echo ' ' . __( '(Site language default)' );
-	}
-
-	echo "</label><br />\n";
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
 }
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
@@ -533,20 +546,11 @@ foreach ( $date_formats as $format ) {
 
 foreach ( $time_formats as $format ) {
 	echo "\t<label><input type='radio' name='time_format' value='" . esc_attr( $format ) . "'";
-
 	if ( get_option( 'time_format' ) === $format ) { // checked() uses "==" rather than "===".
 		echo " checked='checked'";
 		$custom = false;
 	}
-
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span>' .
-		'<code>' . esc_html( $format ) . '</code>';
-
-	if ( __( 'g:i a' ) === $format ) {
-		echo ' ' . __( '(Site language default)' );
-	}
-
-	echo "</label><br />\n";
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
 }
 
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';

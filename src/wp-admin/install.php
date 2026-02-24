@@ -15,7 +15,7 @@ if ( false ) {
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>Error: PHP is not running</title>
 </head>
-<body class="wp-core-ui">
+<body class="wp-core-ui admin-color-modern">
 	<h1>Error: PHP is not running</h1>
 	<p>WordPress requires that your web server is running PHP. Your server does not have PHP installed, or PHP is turned off.</p>
 </body>
@@ -52,7 +52,7 @@ $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : 0;
  *
  * @since 2.5.0
  *
- * @param string $body_classes
+ * @param string $body_classes Class attribute values for the body tag.
  */
 function display_header( $body_classes = '' ) {
 	header( 'Content-Type: text/html; charset=utf-8' );
@@ -72,7 +72,7 @@ function display_header( $body_classes = '' ) {
 	<title><?php _e( 'WordPress &rsaquo; Installation' ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
-<body class="wp-core-ui<?php echo $body_classes; ?>">
+<body class="wp-core-ui admin-color-modern<?php echo $body_classes; ?>">
 <p id="logo"><?php _e( 'WordPress' ); ?></p>
 
 	<?php
@@ -85,7 +85,7 @@ function display_header( $body_classes = '' ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|null $error
+ * @param string|null $error Error message to display, if any.
  */
 function display_setup_form( $error = null ) {
 	global $wpdb;
@@ -342,6 +342,7 @@ if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
 /**
  * @global string    $wp_local_package Locale code of the package.
  * @global WP_Locale $wp_locale        WordPress date and time locale object.
+ * @global wpdb      $wpdb             WordPress database abstraction object.
  */
 $language = '';
 if ( ! empty( $_REQUEST['language'] ) ) {
@@ -470,13 +471,13 @@ switch ( $step ) {
 
 if ( ! wp_is_mobile() ) {
 	?>
-<script type="text/javascript">var t = document.getElementById('weblog_title'); if (t){ t.focus(); }</script>
+<script>var t = document.getElementById('weblog_title'); if (t){ t.focus(); }</script>
 	<?php
 }
 
 wp_print_scripts( $scripts_to_print );
 ?>
-<script type="text/javascript">
+<script>
 jQuery( function( $ ) {
 	$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
 } );

@@ -1,9 +1,8 @@
 /* jshint node:true */
-/* jshint esversion: 6 */
+/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
-var json2php = require( 'json2php' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -59,6 +58,22 @@ module.exports = function(grunt) {
 			'!wp-includes/assets/script-modules-packages.min.php',
 		],
 
+		// All workflow files that should be deleted from non-default branches.
+		workflowFiles = [
+			// Reusable workflows should be called from `trunk` within branches.
+			'.github/workflows/reusable-*.yml',
+			// These workflows are only intended to run from `trunk`.
+			'.github/workflows/commit-built-file-changes.yml',
+			'.github/workflows/failed-workflow.yml',
+			'.github/workflows/install-testing.yml',
+			'.github/workflows/test-and-zip-default-themes.yml',
+			'.github/workflows/install-testing.yml',
+			'.github/workflows/slack-notifications.yml',
+			'.github/workflows/test-coverage.yml',
+			'.github/workflows/test-old-branches.yml',
+			'.github/workflows/upgrade-testing.yml'
+		],
+
 		// Prepend `dir` to `file`, and keep `!` in place.
 		setFilePath = function( dir, file ) {
 			if ( '!' === file.charAt( 0 ) ) {
@@ -92,6 +107,7 @@ module.exports = function(grunt) {
 			'concat',
 			'copy',
 			'cssmin',
+			'imagemin',
 			'jshint',
 			'qunit',
 			'uglify',
@@ -160,6 +176,17 @@ module.exports = function(grunt) {
 				banner: BANNER_TEXT,
 				linebreak: true
 			},
+			codemirror: {
+				options: {
+					linebreak: false,
+					banner: require( './tools/webpack/codemirror-banner' )
+				},
+				files: {
+					src: [
+						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css'
+					]
+				}
+			},
 			files: {
 				src: [
 					WORKING_DIR + 'wp-admin/css/*.min.css',
@@ -216,7 +243,18 @@ module.exports = function(grunt) {
 				cwd: WORKING_DIR,
 				src: []
 			},
-			qunit: ['tests/qunit/compiled.html']
+			qunit: ['tests/qunit/compiled.html'],
+
+			// This is only meant to run within a numbered branch after branching has occurred.
+			workflows: {
+				filter: function() {
+					var allowedTasks = [ 'post-branching', 'clean:workflows' ];
+					return allowedTasks.some( function( task ) {
+						return grunt.cli.tasks.indexOf( task ) !== -1;
+					} );
+				},
+				src: workflowFiles
+			},
 		},
 		file_append: {
 			// grunt-file-append supports only strings for input and output.
@@ -245,11 +283,9 @@ module.exports = function(grunt) {
 						src: buildFiles.concat( [
 							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
-							'!wp-includes/certificates/cacert.pem*', // Exclude raw root certificate files that are combined into ca-bundle.crt.
-							'!wp-includes/certificates/legacy-1024bit.pem',
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
-							'!**/*.map', // The build doesn't need .map files.
+							'!{wp-admin,wp-includes,wp-content/themes/twenty*,wp-content/plugins/akismet}/**/*.map', // The build doesn't need .map files.
 							'!index.php', '!wp-admin/index.php',
 							'!_index.php', '!wp-admin/_index.php'
 						] ),
@@ -282,6 +318,33 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.color.min.js' ]: [ './node_modules/jquery-color/dist/jquery.color.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
+					}
+				]
+			},
+			'codemirror': {
+				options: {
+					process: function( content, srcpath ) {
+						if ( srcpath.includes( 'htmlhint.min.js' ) ) {
+							return content + '\nif ( window.HTMLHint && window.HTMLHint.HTMLHint ) { window.HTMLHint = window.HTMLHint.HTMLHint; }';
+						}
+						return content;
+					}
+				},
+				files: [
+					{
+						[ WORKING_DIR + 'wp-includes/js/codemirror/csslint.js' ]: [ './node_modules/csslint/dist/csslint.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/esprima.js' ]: [ './node_modules/esprima/dist/esprima.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/htmlhint.js' ]: [ './node_modules/htmlhint/dist/htmlhint.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/jsonlint.js' ]: [ './node_modules/jsonlint/web/jsonlint.js' ],
+					},
+					{
+						expand: true,
+						cwd: SOURCE_DIR + 'js/_enqueues/vendor/codemirror/',
+						src: [
+							'fakejshint.js',
+							'htmlhint-kses.js',
+						],
+						dest: WORKING_DIR + 'wp-includes/js/codemirror/'
 					}
 				]
 			},
@@ -517,7 +580,7 @@ module.exports = function(grunt) {
 			},
 			certificates: {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
-				dest: SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
+				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		sass: {
@@ -535,6 +598,22 @@ module.exports = function(grunt) {
 		cssmin: {
 			options: {
 				compatibility: 'ie11'
+			},
+			codemirror: {
+				files: {
+					[ WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css' ]: [
+						'node_modules/codemirror/lib/codemirror.css',
+						'node_modules/codemirror/addon/hint/show-hint.css',
+						'node_modules/codemirror/addon/lint/lint.css',
+						'node_modules/codemirror/addon/dialog/dialog.css',
+						'node_modules/codemirror/addon/display/fullscreen.css',
+						'node_modules/codemirror/addon/fold/foldgutter.css',
+						'node_modules/codemirror/addon/merge/merge.css',
+						'node_modules/codemirror/addon/scroll/simplescrollbars.css',
+						'node_modules/codemirror/addon/search/matchesonscrollbar.css',
+						'node_modules/codemirror/addon/tern/tern.css'
+					]
+				}
 			},
 			core: {
 				expand: true,
@@ -845,7 +924,7 @@ module.exports = function(grunt) {
 					'wp-includes/js/tinymce/plugins/wp*/plugin.js',
 
 					// Exceptions.
-					'!**/*.min.js',
+					'!{wp-admin,wp-includes}/**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
 					'!wp-includes/js/wp-emoji-loader.js', // This is a module. See the emoji-loader task below.
@@ -895,7 +974,8 @@ module.exports = function(grunt) {
 		webpack: {
 			prod: webpackConfig( { environment: 'production', buildTarget: WORKING_DIR } ),
 			dev: webpackConfig( { environment: 'development', buildTarget: WORKING_DIR } ),
-			watch: webpackConfig( { environment: 'development', watch: true } )
+			watch: webpackConfig( { environment: 'development', watch: true } ),
+			codemirror: require( './tools/webpack/codemirror.config.js' )( { buildTarget: WORKING_DIR } ),
 		},
 		concat: {
 			tinymce: {
@@ -924,16 +1004,6 @@ module.exports = function(grunt) {
 					WORKING_DIR + 'wp-includes/js/wp-emoji.min.js'
 				],
 				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-release.min.js'
-			},
-			certificates: {
-				options: {
-					separator: '\n\n'
-				},
-				src: [
-					SOURCE_DIR + 'wp-includes/certificates/legacy-1024bit.pem',
-					SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
-				],
-				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		patch:{
@@ -1159,7 +1229,7 @@ module.exports = function(grunt) {
 								}
 
 								// Fetch a list of the files that Twemoji supplies.
-								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v16.0.1:assets/svg") {... on Tree {entries {name}}}}}';
+								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "gh-pages:v/17.0.2/svg") {... on Tree {entries {name}}}}}';
 								files = spawn( 'gh', [ 'api', 'graphql', '-f', query] );
 
 								if ( 0 !== files.status ) {
@@ -1252,6 +1322,14 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/js/dist/commands.js',
 						],
 						dest: BUILD_DIR + 'wp-includes/js/dist/'
+					},
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/dist/vendor/**/*.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/dist/vendor/'
 					}
 				]
 			}
@@ -1265,7 +1343,9 @@ module.exports = function(grunt) {
 					SOURCE_DIR + '**',
 					'!' + SOURCE_DIR + 'js/**/*.js',
 					// Ignore version control directories.
-					'!' + SOURCE_DIR + '**/.{svn,git}/**'
+					'!' + SOURCE_DIR + '**/.{svn,git}/**',
+					// Ignore third-party plugins.
+					'!' + SOURCE_DIR + 'wp-content/plugins/**'
 				],
 				tasks: ['clean:dynamic', 'copy:dynamic'],
 				options: {
@@ -1387,6 +1467,64 @@ module.exports = function(grunt) {
 		grunt.task.run( 'wp-packages:refresh-deps' );
 	} );
 
+	// Gutenberg integration tasks.
+	grunt.registerTask( 'gutenberg-checkout', 'Checks out the Gutenberg repository.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/checkout-gutenberg.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-build', 'Builds the Gutenberg repository.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/build-gutenberg.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-copy', 'Copies Gutenberg build output to WordPress Core.', function() {
+		const done = this.async();
+		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/copy-gutenberg-build.js', `--build-dir=${ buildDir }` ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-sync', 'Syncs Gutenberg checkout and build if ref has changed.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/sync-gutenberg.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'copy-vendor-scripts', 'Copies vendor scripts from node_modules to wp-includes/js/dist/vendor/.', function() {
+		const done = this.async();
+		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/vendors/copy-vendors.js', `--build-dir=${ buildDir }` ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
 	grunt.renameTask( 'watch', '_watch' );
 
 	grunt.registerTask( 'watch', function() {
@@ -1422,6 +1560,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:php', [
+		'phpstan',
 		'phpunit'
 	] );
 
@@ -1542,23 +1681,6 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	grunt.registerTask( 'copy:block-json', 'Copies block.json file contents to block-json.php.', function() {
-		var blocks = {};
-		grunt.file.recurse( SOURCE_DIR + 'wp-includes/blocks', function( abspath, rootdir, subdir, filename ) {
-			if ( /^block\.json$/.test( filename ) ) {
-				blocks[ subdir ] = grunt.file.readJSON( abspath );
-			}
-		} );
-		grunt.file.write(
-			SOURCE_DIR + 'wp-includes/blocks/blocks-json.php',
-			'<?php return ' + json2php.make( {
-				linebreak: '\n',
-				indent: '  ',
-				shortArraySyntax: false
-			} )( blocks ) + ';'
-		);
-	} );
-
 	grunt.registerTask( 'copy:js', [
 		'copy:npm-packages',
 		'copy:vendor-js',
@@ -1573,6 +1695,13 @@ module.exports = function(grunt) {
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment'
+	] );
+
+	grunt.registerTask( 'build:codemirror', [
+		'webpack:codemirror',
+		'cssmin:codemirror',
+		'usebanner:codemirror',
+		'copy:codemirror'
 	] );
 
 	grunt.registerTask( 'build:webpack', [
@@ -1602,7 +1731,7 @@ module.exports = function(grunt) {
 		'cssmin:rtl',
 		'cssmin:colors',
 		'cssmin:themes',
-		'usebanner'
+		'usebanner:files'
 	] );
 
 	grunt.registerTask( 'certificates:upgrade-package', 'Upgrades the package responsible for supplying the certificate authority certificate store bundled with WordPress.', function() {
@@ -1684,19 +1813,17 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'build:certificates', [
-		'concat:certificates'
+		'copy:certificates'
 	] );
 
 	grunt.registerTask( 'certificates:upgrade', [
 		'certificates:upgrade-package',
-		'copy:certificates',
-		'build:certificates'
+		'copy:certificates'
 	] );
 
 	grunt.registerTask( 'build:files', [
 		'clean:files',
 		'copy:files',
-		'copy:block-json',
 		'copy:version',
 	] );
 
@@ -1706,6 +1833,11 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'replace:workflow-references-remote-to-local', [
 		'copy:workflow-references-remote-to-local',
+	]);
+
+	grunt.registerTask( 'post-branching', [
+		'clean:workflows',
+		'replace:workflow-references-local-to-remote'
 	]);
 
 	/**
@@ -1785,9 +1917,6 @@ module.exports = function(grunt) {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
 			'build/wp-includes/js/dist/data.js',
-			// We have a problem where Yjs is being bundled in core-data.
-			// Ignoring this file until we find a solution.
-			'build/wp-includes/js/dist/core-data.js',
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
@@ -1824,6 +1953,10 @@ module.exports = function(grunt) {
 			grunt.task.run( [
 				'build:js',
 				'build:css',
+				'build:codemirror',
+				'gutenberg-sync',
+				'gutenberg-copy',
+				'copy-vendor-scripts',
 				'build:certificates'
 			] );
 		} else {
@@ -1832,6 +1965,10 @@ module.exports = function(grunt) {
 				'build:files',
 				'build:js',
 				'build:css',
+				'build:codemirror',
+				'gutenberg-sync',
+				'gutenberg-copy',
+				'copy-vendor-scripts',
 				'replace:source-maps',
 				'verify:build'
 			] );
@@ -1864,6 +2001,18 @@ module.exports = function(grunt) {
 	);
 
 	grunt.registerTask( 'test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit'] );
+
+	grunt.registerTask( 'phpstan', 'Runs PHPStan on the entire codebase.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: [ 'phpstan' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
 
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
