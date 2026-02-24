@@ -322,10 +322,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global array  $tabs The tabs shown on the Add Plugins screen.
-	 * @global string $tab  The current active tab.
+	 * @global string[] $tabs The tabs shown on the Add Plugins screen.
+	 * @global string   $tab  The current active tab.
 	 *
-	 * @return array Array of view links.
+	 * @return string[] Array of view links keyed by their ID.
 	 */
 	protected function get_views() {
 		global $tabs, $tab;
@@ -467,7 +467,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return array Array of column titles.
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		return array();
