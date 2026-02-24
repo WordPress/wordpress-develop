@@ -27,7 +27,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Constructor.
 	 *
-	 * @since 3.1.0
+	 * @since 3.2.0
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
