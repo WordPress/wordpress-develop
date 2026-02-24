@@ -81,7 +81,7 @@ class WP_List_Table {
 	/**
 	 * Stores the value returned by ::get_column_info().
 	 *
-	 * @since 4.1.0
+	 * @since 4.2.0
 	 *
 	 * @var array<int, array|string>|null
 	 */
@@ -90,7 +90,7 @@ class WP_List_Table {
 	/**
 	 * List of private properties made readable for backward compatibility.
 	 *
-	 * @since 4.0.0
+	 * @since 4.2.0
 	 *
 	 * @var string[]
 	 */
@@ -99,7 +99,7 @@ class WP_List_Table {
 	/**
 	 * List of private/protected methods made readable for backward compatibility.
 	 *
-	 * @since 4.0.0
+	 * @since 4.2.0
 	 *
 	 * @var string[]
 	 */
@@ -1751,7 +1751,7 @@ class WP_List_Table {
 	/**
 	 * Handles an unknown column.
 	 *
-	 * @since 3.1.0
+	 * @since 4.2.0
 	 *
 	 * @param object|array $item        The current item.
 	 * @param string       $column_name Name of the column.
@@ -1761,7 +1761,7 @@ class WP_List_Table {
 	/**
 	 * Handles the checkbox column output.
 	 *
-	 * @since 3.1.0
+	 * @since 4.2.0
 	 *
 	 * @param object|array $item The current item.
 	 */
