@@ -279,7 +279,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	}
 
 	/**
-	 * Removes all callbacks from the current filter.
+	 * Removes all callbacks registered on the filter hook.
 	 *
 	 * @since 4.7.0
 	 *
