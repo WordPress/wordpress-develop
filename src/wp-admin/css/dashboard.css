@@ -231,7 +231,7 @@
 
 .welcome-panel .welcome-panel-close:before {
 	position: absolute;
-	top: 6px;
+	top: 8px;
 	left: 0;
 	transition: all .1s ease-in-out;
 	content: '\f335';
