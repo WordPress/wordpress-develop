@@ -1632,7 +1632,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			if ( $show_compat_warning && ! empty( $compat_message ) ) {
 				printf(
 					'<tr class="plugin-update-tr%s" id="%s" data-slug="%s" data-plugin="%s"><td colspan="%s" class="plugin-update colspanchange">',
-					$is_active ? ' active' : ' inactive',
+					esc_attr( $is_active ? 'active' : 'inactive' ),
 					esc_attr( $plugin_slug . '-compat-warning' ),
 					esc_attr( $plugin_slug ),
 					esc_attr( $plugin_file ),
