@@ -5521,7 +5521,7 @@ function dead_db() {
 	}
 
 	// Otherwise, be terse.
-	wp_die( '<h1>' . __( 'Error establishing a database connection' ) . '</h1>', __( 'Database Error' ) ); // @phpstan-ignore return.never (wp_die() always exits by default.)
+	wp_die( '<h1>' . __( 'Error establishing a database connection' ) . '</h1>', __( 'Database Error' ) );
 }
 
 /**
