@@ -128,7 +128,7 @@ class WP_List_Table {
 	 * The child class should call this constructor from its own constructor to override
 	 * the default $args.
 	 *
-	 * @since 3.1.0
+	 * @since 4.0.0
 	 *
 	 * @param array|string $args {
 	 *     Array or string of arguments.
