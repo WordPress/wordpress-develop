@@ -4870,7 +4870,7 @@ function wp_enqueue_media( $args = array() ) {
 	 * Allows overriding the list of months displayed in the media library.
 	 *
 	 * By default, if this filter does not return an array,
-	 * {@see wp_get_media_library_months_with_files()} will run a query to determine
+	 * {@see wp_get_media_library_attachment_months()} will run a query to determine
 	 * the months that have media items. The result is stored in a transient
 	 * and automatically invalidated when attachments are created, updated,
 	 * or deleted.
@@ -4886,7 +4886,7 @@ function wp_enqueue_media( $args = array() ) {
 	if ( ! is_array( $months ) ) {
 		$months = get_transient( 'media_library_months_with_files' );
 		if ( false === $months ) {
-			$months = wp_get_media_library_months_with_files();
+			$months = wp_get_media_library_attachment_months();
 			set_transient( 'media_library_months_with_files', $months );
 		}
 	}
@@ -5151,15 +5151,24 @@ function wp_enqueue_media( $args = array() ) {
 }
 
 /**
- * Retrieves the months that have media items.
+ * Retrieves the months that have media library attachments.
+ *
+ * Example:
+ *
+ *     $months = wp_get_media_library_attachment_months();
+ *     // Returns e.g.:
+ *     // array(
+ *     //     (object) array( 'year' => '2025', 'month' => '2' ),
+ *     //     (object) array( 'year' => '2024', 'month' => '11' ),
+ *     // )
  *
  * @since tbd
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @return array<int, object{year: string, month: string}> Array of objects with `month` and `year` properties.
+ * @return array<int, object{year: string, month: string}> Months with associated attachment post dates.
  */
-function wp_get_media_library_months_with_files(): array {
+function wp_get_media_library_attachment_months(): array {
 	global $wpdb;
 	return $wpdb->get_results(
 		$wpdb->prepare(
