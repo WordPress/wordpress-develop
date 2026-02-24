@@ -275,7 +275,7 @@ body.trashing #publish-settings {
 	top: 50%;
 	transform: translateY(-50%) !important;
 	right: 0;
-	background: #fff;
+	background: #fff !important;
 }
 
 .preview-link-wrapper {
