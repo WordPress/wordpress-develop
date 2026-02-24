@@ -114,7 +114,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Gets the list of bulk actions for the users list table.
+	 * Gets the available bulk actions for the users list table.
 	 *
 	 * @since 3.1.0
 	 *
