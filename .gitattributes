@@ -1,0 +1,5 @@
+/src/wp-includes/assets/script-loader-packages.min.php binary
+/src/wp-includes/assets/script-modules-packages.min.php binary
+/src/wp-includes/icons/** binary
+/src/wp-includes/blocks/*/view.asset.php binary
+/src/wp-includes/blocks/*/view.min.asset.php binary
