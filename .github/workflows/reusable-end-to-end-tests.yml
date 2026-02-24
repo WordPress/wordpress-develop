@@ -124,16 +124,18 @@ jobs:
       - name: Install WordPress
         env:
           LOCAL_SCRIPT_DEBUG: ${{ inputs.LOCAL_SCRIPT_DEBUG }}
-        run: npm run env:install
-
-      - name: Install Gutenberg
-        if: ${{ inputs.install-gutenberg }}
         run: |
-          npm run env:cli -- plugin install gutenberg \
-          ${{ inputs.gutenberg-version && '--version="${GUTENBERG_VERSION}"' || '' }} \
-          --path="/var/www/${LOCAL_DIR}"
-        env:
-          GUTENBERG_VERSION: ${{ inputs.gutenberg-version }}
+          npm run env:install
+          npm run build:dev
+
+#      - name: Install Gutenberg
+#        if: ${{ inputs.install-gutenberg }}
+#        run: |
+#          npm run env:cli -- plugin install gutenberg \
+#          ${{ inputs.gutenberg-version && '--version="${GUTENBERG_VERSION}"' || '' }} \
+#          --path="/var/www/${LOCAL_DIR}"
+#        env:
+#          GUTENBERG_VERSION: ${{ inputs.gutenberg-version }}
 
       - name: Install additional languages
         run: |
