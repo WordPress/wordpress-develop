@@ -127,14 +127,16 @@ async function main( force ) {
 		console.log( `\n📋 Fetching manifest for ${ sha }...` );
 		let digest;
 		try {
-			const manifestJson = await exec( 'curl', [
-				'--silent',
-				'--fail',
-				'--header', `Authorization: Bearer ${ token }`,
-				'--header', 'Accept: application/vnd.oci.image.manifest.v1+json',
-				`https://ghcr.io/v2/${ ghcrRepo }/manifests/${ sha }`,
-			], { captureOutput: true } );
-			const manifest = JSON.parse( manifestJson );
+			const response = await fetch( `https://ghcr.io/v2/${ ghcrRepo }/manifests/${ sha }`, {
+				headers: {
+					Authorization: `Bearer ${ token }`,
+					Accept: 'application/vnd.oci.image.manifest.v1+json',
+				},
+			} );
+			if ( ! response.ok ) {
+				throw new Error( `Failed to fetch manifest: ${ response.status } ${ response.statusText }` );
+			}
+			const manifest = await response.json();
 			digest = manifest?.layers?.[ 0 ]?.digest;
 			if ( ! digest ) {
 				throw new Error( 'No layer digest found in manifest' );
@@ -148,13 +150,16 @@ async function main( force ) {
 		// Step 3: Download the blob (the zip file).
 		console.log( `\n📥 Downloading ${ zipName }...` );
 		try {
-			await exec( 'curl', [
-				'--fail',
-				'--location',
-				'--header', `Authorization: Bearer ${ token }`,
-				'--output', zipPath,
-				`https://ghcr.io/v2/${ ghcrRepo }/blobs/${ digest }`,
-			] );
+			const response = await fetch( `https://ghcr.io/v2/${ ghcrRepo }/blobs/${ digest }`, {
+				headers: {
+					Authorization: `Bearer ${ token }`,
+				},
+			} );
+			if ( ! response.ok ) {
+				throw new Error( `Failed to download blob: ${ response.status } ${ response.statusText }` );
+			}
+			const buffer = await response.arrayBuffer();
+			fs.writeFileSync( zipPath, Buffer.from( buffer ) );
 			console.log( '✅ Download complete' );
 		} catch ( error ) {
 			console.error( '❌ Download failed:', error.message );

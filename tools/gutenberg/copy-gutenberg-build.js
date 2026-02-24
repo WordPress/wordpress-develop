@@ -18,7 +18,6 @@ const glob = require( 'glob' );
 const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 const gutenbergBuildDir = path.join( gutenbergDir, 'build' );
-const gutenbergPackagesDir = path.join( gutenbergDir, 'packages' );
 
 // Determine build target from command line argument (--dev or --build-dir)
 // Default to 'src' for development
@@ -80,14 +79,14 @@ const COPY_CONFIG = {
 				name: 'block-library',
 				scripts: 'scripts/block-library',
 				styles: 'styles/block-library',
-				php: 'block-library/src',
+				php: 'scripts/block-library',
 			},
 			{
 				// Widget blocks
 				name: 'widgets',
 				scripts: 'scripts/widgets/blocks',
 				styles: 'styles/widgets',
-				php: 'widgets/src/blocks',
+				php: 'scripts/widgets/blocks',
 			},
 		],
 	},
@@ -222,7 +221,7 @@ function copyBlockAssets( config ) {
 	for ( const source of config.sources ) {
 		const scriptsSrc = path.join( gutenbergBuildDir, source.scripts );
 		const stylesSrc = path.join( gutenbergBuildDir, source.styles );
-		const phpSrc = path.join( gutenbergPackagesDir, source.php );
+		const phpSrc = source.php;
 
 		if ( ! fs.existsSync( scriptsSrc ) ) {
 			continue;
@@ -256,7 +255,7 @@ function copyBlockAssets( config ) {
 					blockDest,
 					{
 						recursive: true,
-						// Skip PHP, copied from packages
+						// Skip PHP, copied from build in steps 3 & 4
 						filter: f => ! f.endsWith( '.php' ),
 					}
 				);
@@ -276,7 +275,7 @@ function copyBlockAssets( config ) {
 				}
 			}
 
-			// 3. Copy PHP from packages
+			// 3. Copy PHP from build
 			const blockPhpSrc = path.join( phpSrc, blockName, 'index.php' );
 			if ( fs.existsSync( blockPhpSrc ) ) {
 				const phpDest = path.join(
@@ -284,11 +283,10 @@ function copyBlockAssets( config ) {
 					config.destination,
 					`${ blockName }.php`
 				);
-				const content = fs.readFileSync( blockPhpSrc, 'utf8' );
-				fs.writeFileSync( phpDest, content );
+				fs.copyFileSync( blockPhpSrc, phpDest );
 			}
 
-			// 4. Copy PHP subdirectories from packages (e.g., shared/helpers.php)
+			// 4. Copy PHP subdirectories from build (e.g., navigation-link/shared/*.php)
 			const blockPhpDir = path.join( phpSrc, blockName );
 			if ( fs.existsSync( blockPhpDir ) ) {
 				const rootIndex = path.join( blockPhpDir, 'index.php' );
