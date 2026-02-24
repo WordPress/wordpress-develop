@@ -1643,9 +1643,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$details_link = '';
 
 				if ( current_user_can( 'install_plugins' ) ) {
-					$details_url = network_admin_url(
-						'plugin-install.php?tab=plugin-information&plugin=' . $plugin_data['slug'] .
-						'&TB_iframe=true&width=600&height=550'
+					$details_url = add_query_arg(
+						network_admin_url( 'plugin-install.php' ),
+						array(
+							'tab'       => 'plugin-information',
+							'plugin'    => urlencode( $plugin_data['slug'] ),
+							'TB_iframe' => 'true',
+							'width'     => 600,
+							'height'    => 550,
+						)
 					);
 
 					$details_link = sprintf(
