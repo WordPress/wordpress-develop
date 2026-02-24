@@ -200,8 +200,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$current_theme = wp_get_theme();
 		$status        = $request['status'];
 
-		if ( 'active' === $status ) {
-			$themes[] = $this->prepare_item_for_response( $current_theme, $request );
+		if ( array( 'active' ) === $status ) {
+			$prepared = $this->prepare_item_for_response( $current_theme, $request );
+			$themes[] = $this->prepare_response_for_collection( $prepared );
 		} else {
 			$active_themes = wp_get_themes();
 
