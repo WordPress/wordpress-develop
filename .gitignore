@@ -48,3 +48,4 @@ wp-tests-config.php
 *.orig
 *.patch
 *.diff
+.svn
