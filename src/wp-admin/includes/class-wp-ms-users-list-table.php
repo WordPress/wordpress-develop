@@ -118,7 +118,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return array Array of bulk action labels keyed by their action name.
+	 * @return array<string, string|array<string, string>> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		$actions = array();
