@@ -1264,7 +1264,7 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
-		ini_set( 'error_log', $this->temp_filename() ); // phpcs:ignore WordPress.PHP.IniSet.log_errors_Blacklisted, WordPress.PHP.IniSet.Risky
+		ini_set( 'error_log', $this->temp_filename() );
 		foreach ( $ini_config_options as $config => $option ) {
 			ini_set( $config, $option );
 		}

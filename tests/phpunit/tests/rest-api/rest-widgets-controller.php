@@ -406,7 +406,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 					'id'       => 'block-1',
 					'id_base'  => 'block',
 					'sidebar'  => 'sidebar-1',
-					'rendered' => '<p>Block test</p>',
+					'rendered' => '<p class="wp-block-paragraph">Block test</p>',
 				),
 				array(
 					'id'       => 'rss-1',
