@@ -108,12 +108,12 @@ async function main( force ) {
 		console.log( '\n🔑 Fetching GHCR token...' );
 		let token;
 		try {
-			const tokenJson = await exec( 'curl', [
-				'--silent',
-				'--fail',
-				`https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io`,
-			], { captureOutput: true } );
-			token = JSON.parse( tokenJson ).token;
+			const response = await fetch( `https://ghcr.io/token?scope=repository:${ghcrRepo}:pull&service=ghcr.io` );
+			if ( ! response.ok ) {
+			    throw new Error( `Failed to fetch token: ${response.status} ${response.statusText}` );
+			}
+			const data = await response.json();
+			token = data.token;
 			if ( ! token ) {
 				throw new Error( 'No token in response' );
 			}
@@ -208,7 +208,7 @@ async function main( force ) {
 	}
 }
 
-// Run main function
+// Run main function.
 const force = process.argv.includes( '--force' );
 main( force ).catch( ( error ) => {
 	console.error( '❌ Unexpected error:', error );
