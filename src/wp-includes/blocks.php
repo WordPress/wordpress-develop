@@ -3059,7 +3059,7 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
  * @param WP_Block $block Block instance.
  * @return array<string, mixed> Query vars suitable for get_terms() or wp_count_terms().
  */
-function build_terms_query_vars_from_block( $block ) {
+function build_terms_query_vars_from_block( WP_Block $block ): array {
 	$query = $block->context['termQuery'];
 
 	$query_vars = array(
