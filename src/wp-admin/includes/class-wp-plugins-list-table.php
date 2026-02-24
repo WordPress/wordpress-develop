@@ -89,13 +89,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global string                              $status  Current plugin status filter slug.
-	 * @global array<string, array<string, mixed>> $plugins Array of plugin data arrays grouped by status.
-	 * @global array<string, int>                  $totals  Count of plugins for each status group.
-	 * @global int                                 $page    Current page number.
-	 * @global string                              $orderby Column name to sort by.
-	 * @global string                              $order   Sort direction, 'ASC' or 'DESC'.
-	 * @global string                              $s       URL-encoded search term.
+	 * @global string                                             $status  Current plugin status filter slug.
+	 * @global array<string, array<string, array<string, mixed>>> $plugins Array of plugin data arrays grouped by status.
+	 * @global array<string, int>                                 $totals  Count of plugins for each status group.
+	 * @global int                                                $page    Current page number.
+	 * @global string                                             $orderby Column name to sort by.
+	 * @global string                                             $order   Sort direction, 'ASC' or 'DESC'.
+	 * @global string                                             $s       URL-encoded search term.
 	 */
 	public function prepare_items() {
 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
@@ -431,7 +431,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global array<string, array<string, mixed>> $plugins Array of plugin data arrays grouped by status.
+	 * @global array<string, array<string, array<string, mixed>>> $plugins Array of plugin data arrays grouped by status.
 	 */
 	public function no_items() {
 		global $plugins;
