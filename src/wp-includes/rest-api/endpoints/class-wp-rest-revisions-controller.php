@@ -298,8 +298,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			}
 
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
-			$args       = apply_filters( 'rest_revision_query', $args, $request );
-			$args       = is_array( $args ) ? $args : array();
+			$args = apply_filters( 'rest_revision_query', $args, $request );
+			if ( ! is_array( $args ) ) {
+				$args = array();
+			}
 			$query_args = $this->prepare_items_query( $args, $request );
 
 			$revisions_query = new WP_Query();
