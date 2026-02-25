@@ -11138,7 +11138,7 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
-                        "enable_real_time_collaboration": {
+                        "wp_enable_real_time_collaboration": {
                             "title": "",
                             "description": "Enable Real-Time Collaboration",
                             "type": "boolean",
@@ -14646,7 +14646,7 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
-    "enable_real_time_collaboration": false,
+    "wp_enable_real_time_collaboration": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,
