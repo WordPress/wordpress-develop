@@ -269,6 +269,7 @@ function _cleanup_image_add_caption( $matches ) {
  * @since 2.5.0
  *
  * @param string $html
+ * @return never
  */
 function media_send_to_editor( $html ) {
 	?>
