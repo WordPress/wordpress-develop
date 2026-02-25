@@ -1211,8 +1211,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return array Items query arguments.
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
-		$query_args    = array();
-		$prepared_args = $prepared_args ?? array();
+		$query_args = array();
+		if ( is_array( ! $prepared_args ) ) {
+			$prepared_args = array();
+		}
 
 		foreach ( $prepared_args as $key => $value ) {
 			/**
