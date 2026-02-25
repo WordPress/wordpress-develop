@@ -213,6 +213,156 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 				'expected_wrapper'    => '<div>Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
+			'background image with attachment id and repeat falls back to CSS' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-rules-are-output',
+				'background_settings' => array(
+					'backgroundImage' => true,
+				),
+				'background_style'    => array(
+					'backgroundImage'  => array(
+						'id'  => 99999,
+						'url' => 'https://example.com/image.jpg',
+					),
+					'backgroundRepeat' => 'repeat',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&apos;https://example.com/image.jpg&apos;);background-repeat:repeat;background-size:cover;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background image with attachment id and fixed attachment falls back to CSS' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-rules-are-output',
+				'background_settings' => array(
+					'backgroundImage' => true,
+				),
+				'background_style'    => array(
+					'backgroundImage'      => array(
+						'id'  => 99999,
+						'url' => 'https://example.com/image.jpg',
+					),
+					'backgroundSize'       => 'cover',
+					'backgroundAttachment' => 'fixed',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;background-attachment:fixed;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
 		);
+	}
+
+	/**
+	 * Tests that a background image with backgroundRepeat:'no-repeat' still injects
+	 * an img element (no-repeat is compatible with object-fit; only tiled/repeat
+	 * values require CSS background-image).
+	 *
+	 * @covers ::wp_render_background_support
+	 */
+	public function test_background_img_element_is_injected_with_no_repeat() {
+		switch_theme( 'block-theme-child-with-fluid-typography' );
+		$this->test_block_name = 'test/background-img-element-no-repeat';
+
+		$attachment_id = self::factory()->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			0,
+			array( 'post_mime_type' => 'image/jpeg' )
+		);
+
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 2,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'background' => array(
+						'backgroundImage' => true,
+					),
+				),
+			)
+		);
+
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => array(
+				'style' => array(
+					'background' => array(
+						'backgroundImage'  => array(
+							'id'  => $attachment_id,
+							'url' => wp_get_attachment_url( $attachment_id ),
+						),
+						'backgroundSize'   => 'contain',
+						'backgroundRepeat' => 'no-repeat',
+					),
+				),
+			),
+		);
+
+		$actual = wp_render_background_support( '<div>Content</div>', $block );
+
+		$this->assertStringContainsString( '<img', $actual, 'no-repeat with contain should still inject an img element.' );
+		$this->assertStringNotContainsString( 'background-image:', $actual, 'Output should not contain background-image CSS.' );
+		$this->assertStringContainsString( 'has-background', $actual, 'Wrapper should have has-background class.' );
+		$this->assertStringContainsString( 'position:relative', $actual, 'Wrapper should have position:relative style.' );
+
+		wp_delete_attachment( $attachment_id, true );
+	}
+
+	/**
+	 * Tests that a background image with an attachment ID injects an img element.
+	 *
+	 * @covers ::wp_render_background_support
+	 */
+	public function test_background_img_element_is_injected() {
+		switch_theme( 'block-theme-child-with-fluid-typography' );
+		$this->test_block_name = 'test/background-img-element';
+
+		$attachment_id = self::factory()->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			0,
+			array( 'post_mime_type' => 'image/jpeg' )
+		);
+
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 2,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'background' => array(
+						'backgroundImage' => true,
+					),
+				),
+			)
+		);
+
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => array(
+				'style' => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'id'  => $attachment_id,
+							'url' => wp_get_attachment_url( $attachment_id ),
+						),
+						'backgroundSize'  => 'cover',
+					),
+				),
+			),
+		);
+
+		$actual = wp_render_background_support( '<div>Content</div>', $block );
+
+		$this->assertStringContainsString( '<img', $actual, 'Output should contain an img element.' );
+		$this->assertStringNotContainsString( 'background-image:', $actual, 'Output should not contain background-image CSS.' );
+		$this->assertStringContainsString( 'has-background', $actual, 'Wrapper should have has-background class.' );
+		$this->assertStringContainsString( 'position:relative', $actual, 'Wrapper should have position:relative style.' );
+
+		wp_delete_attachment( $attachment_id, true );
 	}
 }
