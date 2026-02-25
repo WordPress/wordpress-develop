@@ -254,6 +254,8 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 * an img element (no-repeat is compatible with object-fit; only tiled/repeat
 	 * values require CSS background-image).
 	 *
+	 * @ticket 64725
+	 *
 	 * @covers ::wp_render_background_support
 	 */
 	public function test_background_img_element_is_injected_with_no_repeat() {
@@ -311,6 +313,8 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 
 	/**
 	 * Tests that a background image with an attachment ID injects an img element.
+	 *
+	 * @ticket 64725
 	 *
 	 * @covers ::wp_render_background_support
 	 */
