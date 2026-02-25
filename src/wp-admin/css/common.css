@@ -1579,7 +1579,7 @@ div.error.notice-alt {
 }
 
 .notice-info.notice-alt {
-	background-color: transparent;
+	background-color: #fff;
 }
 
 #plugin-information-footer .update-now:not(.button-disabled):before {
