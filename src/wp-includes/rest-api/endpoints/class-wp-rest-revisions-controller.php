@@ -552,7 +552,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
-		if ( is_array( ! $prepared_args ) ) {
+		if ( ! is_array( $prepared_args ) ) {
 			$prepared_args = array();
 		}
 
