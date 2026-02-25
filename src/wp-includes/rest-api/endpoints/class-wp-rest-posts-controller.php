@@ -442,6 +442,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request $request The REST API request.
 		 */
 		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		$args       = is_array( $args ) ? $args : array();
 		$query_args = $this->prepare_items_query( $args, $request );
 
 		$posts_query  = new WP_Query();
