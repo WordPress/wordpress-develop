@@ -239,7 +239,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_supports',
 		);
 		$this->assertIsArray( $data );
-		$this->assertNotEmpty( $data );
+		$this->assertCount( 1, $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 
 		$this->assertEquals( array( 'rest-api' ), wp_list_pluck( $data, 'stylesheet' ) );
