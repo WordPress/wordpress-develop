@@ -25,7 +25,6 @@ jQuery( function($) {
 			event.preventDefault();
 			$('#category-tabs a').removeAttr( 'aria-selected' ).attr( 'tabindex', '-1' );
 			$(this).attr( 'aria-selected', 'true' ).removeAttr( 'tabindex' );
-			$(this).attr( 'aria-selected', 'true' );
 			$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
 			$('.tabs-panel').hide();
 			$(t).show();
