@@ -47,6 +47,7 @@ jobs:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+      php-version: '8.2'
       install-gutenberg: false
       install-playwright: false
 
