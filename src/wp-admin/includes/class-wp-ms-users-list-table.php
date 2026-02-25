@@ -118,7 +118,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return array<string, string|array<string, string>> An associative array of bulk actions.
+	 * @return array<string, string> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		$actions = array();
@@ -213,7 +213,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return string[] Array of column titles keyed by their column name.
+	 * @return array<string, string> Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$users_columns = array(
@@ -230,7 +230,8 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		 * @since MU (3.0.0)
 		 *
 		 * @param string[] $users_columns An array of user columns. Default 'cb', 'username',
-		 *                                'name', 'email', 'registered', 'blogs'.
+		 * @param array<string, string> $users_columns An array of user columns. Default 'cb', 'username',
+		 *                                             'name', 'email', 'registered', 'blogs'.
 		 */
 		return apply_filters( 'wpmu_users_columns', $users_columns );
 	}
