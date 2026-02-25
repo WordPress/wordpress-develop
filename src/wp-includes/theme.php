@@ -1628,6 +1628,7 @@ function unregister_default_headers( $header ) {
 
 	if ( is_array( $header ) ) {
 		array_map( 'unregister_default_headers', $header );
+		return null;
 	} elseif ( isset( $_wp_default_headers[ $header ] ) ) {
 		unset( $_wp_default_headers[ $header ] );
 		return true;
