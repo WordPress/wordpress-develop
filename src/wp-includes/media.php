@@ -5161,7 +5161,7 @@ function wp_get_media_library_attachment_months(): array {
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/31071
 	 *
-	 * @param stdClass[]|null $months An array of objects with `month` and `year`
+	 * @param stdClass[]|null $months An array of objects with `year` and `month`
 	 *                                properties, or `null` for default behavior.
 	 */
 	$months = apply_filters( 'media_library_months_with_files', null );
