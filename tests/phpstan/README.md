@@ -81,24 +81,3 @@ PHPStan can be resource-intensive, especially on large codebases like WordPress.
 PHPStan caches analysis results to speed up subsequent runs. You can see information about the results cache by running `analyse` with the `-vv` or `-vvv` flag.
 
 Sometimes, due to the lack of type information in legacy code, PHPStan may still struggle to analyze certain parts of the codebase. In such cases, you can use the `--debug` flag to disable caching and see which files are causing issues.
-
-## Triage - using `generate-baselines.sh`
-
-> [!IMPORTANT]
-> This tool is internal to the branch and is not intended for wordpress-core. Use at your own discretion.
-
-The `generate-baselines.sh` script is a helper tool to generate per-level baseline files for triaging PHPStan errors. It iterates through the specified levels, generates a baseline for each level, and outputs a summary of the results.
-
-The process relies on iteration, and assumes that the baseline for the previous level has been freshly generated to capture any new/remediated errors on that level before generating the next level's baseline. The maximum level is automatically determined from the `level` parameter in `phpstan.neon` (or `phpstan.neon.dist`).
-
-### Usage
-
-To run the script, use the following command:
-
-```bash
-bash tests/phpstan/generate-baselines.sh --all # to generate baselines for all levels
-bash tests/phpstan/generate-baselines.sh --start=1 --end=3 # to generate baselines for levels 1 to 3
-bash tests/phpstan/generate-baselines.sh --level=6 # to generate a baseline for level 6 only. ASSUMES that the baseline for the previous level has been freshly generated.
-bash tests/phpstan/generate-baselines.sh --summary-only # to only output the summary of results for the existing baselines, without regenerating them.
-
-```
