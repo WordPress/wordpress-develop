@@ -47,6 +47,19 @@ module.exports = function(grunt) {
 			'wp-includes/js/',
 		],
 
+		// All files copied from the Gutenberg repository.
+		gutenbergFiles = [
+			'wp-includes/assets',
+			'wp-includes/build',
+			// This is redundant given the next line, but included for clarity.
+			'wp-includes/script-modules',
+			'wp-includes/js/dist',
+			'wp-includes/css/dist',
+			'wp-includes/blocks',
+			'!wp-includes/blocks/index.php',
+			'wp-includes/icons',
+		],
+
 		// All files built by Webpack, in /src or /build.
 		// Webpack now only builds Core-specific media files and development scripts.
 		// Blocks, packages, script modules, and vendors come from the Gutenberg build.
@@ -233,6 +246,11 @@ module.exports = function(grunt) {
 			'webpack-assets': webpackFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
+
+			// Clean files built by the tools/gutenberg scripts.
+			gutenberg: gutenbergFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
+			}),
 			dynamic: {
 				dot: true,
 				expand: true,
