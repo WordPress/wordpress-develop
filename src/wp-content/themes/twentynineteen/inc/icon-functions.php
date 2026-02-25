@@ -109,6 +109,7 @@ function twentynineteen_add_dropdown_icons( $item_output, $item, $depth, $args )
 
 		$item_output .= sprintf(
 			'<button class="submenu-expand" tabindex="-1" aria-label="%s">%s</button>',
+			/* translators: %s: Parent menu item name. */
 			esc_attr( sprintf( __( 'Expand child menu for %s', 'twentynineteen' ), $item->title ) ),
 			$icon
 		);
