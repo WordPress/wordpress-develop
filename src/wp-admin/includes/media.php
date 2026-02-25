@@ -857,7 +857,7 @@ function media_upload_form_handler() {
 		 */
 		$html = apply_filters( 'media_send_to_editor', $html, $send_id, $attachment );
 
-		return media_send_to_editor( $html );
+		media_send_to_editor( $html );
 	}
 
 	return $errors;
