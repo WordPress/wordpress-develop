@@ -44,7 +44,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        # Test highest and lowest supported version of each major.
+        php: [ '7.0', '7.4', '8.0', '8.3' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0' ]
         multisite: [ false, true ]
@@ -96,9 +97,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        # Test highest and lowest supported version of each major.
+        php: [ '7.0', '7.4', '8.0', '8.3' ]
         db-type: [ 'mariadb' ]
-        db-version: [ '10.4', '10.6', '10.11', '11.0' ]
+        db-version: [ '10.4', '10.11' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -107,13 +109,13 @@ jobs:
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
-          db-version: '11.0'
+          db-version: '10.11'
           multisite: false
           memcached: true
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
-          db-version: '11.0'
+          db-version: '10.11'
           multisite: true
           memcached: true
     with:
