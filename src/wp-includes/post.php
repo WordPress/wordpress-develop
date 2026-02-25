@@ -6309,10 +6309,10 @@ function get_page_hierarchy( $pages, $page_id = 0 ) {
  * @see _page_traverse_name()
  *
  * @param int      $page_id  Page ID.
- * @param array    $children Parent-children relations (passed by reference).
+ * @param array    $children Parent-children relations.
  * @param string[] $result   Array of page names keyed by ID (passed by reference).
  */
-function _page_traverse_name( $page_id, &$children, &$result ) {
+function _page_traverse_name( $page_id, $children, &$result ) {
 	if ( isset( $children[ $page_id ] ) ) {
 		foreach ( (array) $children[ $page_id ] as $child ) {
 			$result[ $child->ID ] = $child->post_name;
@@ -7678,9 +7678,9 @@ function _get_last_post_time( $timezone, $field, $post_type = 'any' ) {
  *
  * @since 1.5.1
  *
- * @param WP_Post[] $posts Array of post objects (passed by reference).
+ * @param WP_Post[] $posts Array of post objects.
  */
-function update_post_cache( &$posts ) {
+function update_post_cache( $posts ) {
 	if ( ! $posts ) {
 		return;
 	}
@@ -7762,12 +7762,12 @@ function clean_post_cache( $post ) {
  *
  * @since 1.5.0
  *
- * @param WP_Post[] $posts             Array of post objects (passed by reference).
+ * @param WP_Post[] $posts             Array of post objects.
  * @param string    $post_type         Optional. Post type. Default 'post'.
  * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
  * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
-function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = true, $update_meta_cache = true ) {
+function update_post_caches( $posts, $post_type = 'post', $update_term_cache = true, $update_meta_cache = true ) {
 	// No point in doing all this work if we didn't match any posts.
 	if ( ! $posts ) {
 		return;
