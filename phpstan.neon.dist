@@ -40,5 +40,6 @@ parameters:
 			message: '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
 
 		# Level 2:
-		- # Callable-strings are used as callables in WordPress.
-			message: '#Default value of the parameter .* is incompatible with type callable.*#'
+		- # Default values for callable-strings are often empty strings instead of null in WordPress.
+			message: '#^Default value of the parameter \#\d+ \$\w+ \(''''\) of (function|method) (\w+::)?\w+\(\) is incompatible with type callable\(\): mixed\.$#'
+			identifier: parameter.defaultValue
