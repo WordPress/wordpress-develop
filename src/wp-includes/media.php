@@ -4866,30 +4866,7 @@ function wp_enqueue_media( $args = array() ) {
 		);
 	}
 
-	/**
-	 * Allows overriding the list of months displayed in the media library.
-	 *
-	 * By default, if this filter does not return an array,
-	 * {@see wp_get_media_library_attachment_months()} will run a query to determine
-	 * the months that have media items. The result is stored in a transient
-	 * and automatically invalidated when attachments are created, updated,
-	 * or deleted.
-	 *
-	 * @since 4.7.4
-	 *
-	 * @link https://core.trac.wordpress.org/ticket/31071
-	 *
-	 * @param stdClass[]|null $months An array of objects with `month` and `year`
-	 *                                properties, or `null` for default behavior.
-	 */
-	$months = apply_filters( 'media_library_months_with_files', null );
-	if ( ! is_array( $months ) ) {
-		$months = get_transient( 'wp_media_library_attachment_months' );
-		if ( false === $months ) {
-			$months = wp_get_media_library_attachment_months();
-			set_transient( 'wp_media_library_attachment_months', $months );
-		}
-	}
+	$months = wp_get_media_library_attachment_months();
 
 	foreach ( $months as $month_year ) {
 		$month_year->text = sprintf(
@@ -5153,6 +5130,9 @@ function wp_enqueue_media( $args = array() ) {
 /**
  * Retrieves the months that have media library attachments.
  *
+ * Results are cached in a transient and automatically invalidated when
+ * attachments are created, updated, or deleted.
+ *
  * Example:
  *
  *     $months = wp_get_media_library_attachment_months();
@@ -5170,7 +5150,31 @@ function wp_enqueue_media( $args = array() ) {
 function wp_get_media_library_attachment_months(): array {
 	global $wpdb;
 
-	$results = $wpdb->get_results(
+	/**
+	 * Allows overriding the list of months displayed in the media library.
+	 *
+	 * Returning an array from this filter will bypass both the transient cache
+	 * and the database query.
+	 *
+	 * @since 4.7.4
+	 * @since tbd Moved to {@see wp_get_media_library_attachment_months()}.
+	 *
+	 * @link https://core.trac.wordpress.org/ticket/31071
+	 *
+	 * @param stdClass[]|null $months An array of objects with `month` and `year`
+	 *                                properties, or `null` for default behavior.
+	 */
+	$months = apply_filters( 'media_library_months_with_files', null );
+	if ( is_array( $months ) ) {
+		return $months;
+	}
+
+	$months = get_transient( 'wp_media_library_attachment_months' );
+	if ( false !== $months ) {
+		return $months;
+	}
+
+	$months = $wpdb->get_results(
 		$wpdb->prepare(
 			"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
 				FROM $wpdb->posts
@@ -5180,12 +5184,14 @@ function wp_get_media_library_attachment_months(): array {
 		)
 	);
 
-	foreach ( $results as $row ) {
+	foreach ( $months as $row ) {
 		$row->year  = (int) $row->year;
 		$row->month = (int) $row->month;
 	}
 
-	return $results;
+	set_transient( 'wp_media_library_attachment_months', $months, WEEK_IN_SECONDS );
+
+	return $months;
 }
 
 /**
