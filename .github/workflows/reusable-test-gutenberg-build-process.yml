@@ -97,4 +97,4 @@ jobs:
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
       - name: Ensure version-controlled files are not modified or deleted during building
-        run: git diff --exit-code
+        run: npm run diff:non-generated

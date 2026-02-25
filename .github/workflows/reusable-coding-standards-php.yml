@@ -105,4 +105,4 @@ jobs:
         run: phpcbf
 
       - name: Ensure version-controlled files are not modified during the tests
-        run: git diff --exit-code
+        run: npm run diff:non-generated

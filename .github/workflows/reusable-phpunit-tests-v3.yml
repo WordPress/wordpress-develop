@@ -253,7 +253,7 @@ jobs:
           overwrite: true
 
       - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
+        run: npm run diff:non-generated
 
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}

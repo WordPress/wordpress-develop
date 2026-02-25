@@ -120,7 +120,7 @@ jobs:
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
 
       - name: Ensure version-controlled files are not modified or deleted during building
-        run: git diff --exit-code
+        run: npm run diff:non-generated
 
       - name: Create ZIP of built files
         if: ${{ inputs.directory == 'build' && contains( inputs.os, 'ubuntu-' ) }}
@@ -130,7 +130,7 @@ jobs:
         run: npm run grunt ${{ inputs.directory == 'src' && 'clean -- --dev' || 'clean' }}
 
       - name: Ensure version-controlled files are not modified or deleted during cleaning
-        run: git diff --exit-code
+        run: npm run diff:non-generated
 
       - name: Upload ZIP as a GitHub Actions artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

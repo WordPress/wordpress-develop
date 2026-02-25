@@ -209,4 +209,4 @@ jobs:
         run: LOCAL_PHP_XDEBUG=true npm run "test:${PHPUNIT_SCRIPT}" -- -v --group xdebug --exclude-group __fakegroup__
 
       - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
+        run: npm run diff:non-generated
