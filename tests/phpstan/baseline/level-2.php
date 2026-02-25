@@ -364,7 +364,7 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Access to an undefined property WP_Theme\\:\\:\\$version\\.$#',
 	'identifier' => 'property.notFound',
-	'count' => 6,
+	'count' => 5,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-debug-data.php',
 ];
 $ignoreErrors[] = [

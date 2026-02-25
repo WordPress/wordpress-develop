@@ -2852,18 +2852,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method WP_MS_Themes_List_Table\\:\\:_order_callback\\(\\) has parameter \\$theme_a with no value type specified in iterable type array\\.$#',
-	'identifier' => 'missingType.iterableValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_MS_Themes_List_Table\\:\\:_order_callback\\(\\) has parameter \\$theme_b with no value type specified in iterable type array\\.$#',
-	'identifier' => 'missingType.iterableValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Method WP_MS_Themes_List_Table\\:\\:column_autoupdates\\(\\) has no return type specified\\.$#',
 	'identifier' => 'missingType.return',
 	'count' => 1,
@@ -2896,30 +2884,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Method WP_MS_Themes_List_Table\\:\\:display_rows\\(\\) has no return type specified\\.$#',
 	'identifier' => 'missingType.return',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_MS_Themes_List_Table\\:\\:get_bulk_actions\\(\\) return type has no value type specified in iterable type array\\.$#',
-	'identifier' => 'missingType.iterableValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_MS_Themes_List_Table\\:\\:get_sortable_columns\\(\\) return type has no value type specified in iterable type array\\.$#',
-	'identifier' => 'missingType.iterableValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_MS_Themes_List_Table\\:\\:get_table_classes\\(\\) return type has no value type specified in iterable type array\\.$#',
-	'identifier' => 'missingType.iterableValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_MS_Themes_List_Table\\:\\:get_views\\(\\) return type has no value type specified in iterable type array\\.$#',
-	'identifier' => 'missingType.iterableValue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
 ];

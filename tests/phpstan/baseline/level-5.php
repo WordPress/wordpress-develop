@@ -236,12 +236,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ftpext.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$callback of function uasort expects callable\\(WP_Theme, WP_Theme\\)\\: int, array\\{\\$this\\(WP_MS_Themes_List_Table\\), \'_order_callback\'\\} given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,

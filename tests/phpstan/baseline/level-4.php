@@ -116,12 +116,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/file.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function WP_Filesystem\\(\\) never returns null so it can be removed from the return type\\.$#',
-	'identifier' => 'return.unusedType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/file.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always true\\.$#',
 	'identifier' => 'booleanNot.alwaysTrue',
 	'count' => 1,
@@ -158,12 +152,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function delete_plugins\\(\\) never returns null so it can be removed from the return type\\.$#',
-	'identifier' => 'return.unusedType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Property WP_Taxonomy\\:\\:\\$meta_box_sanitize_cb \\(callable\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
@@ -174,12 +162,6 @@ $ignoreErrors[] = [
 	'identifier' => 'booleanAnd.rightAlwaysTrue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/schema.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function delete_theme\\(\\) never returns null so it can be removed from the return type\\.$#',
-	'identifier' => 'return.unusedType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/theme.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always false\\.$#',

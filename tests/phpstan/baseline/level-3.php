@@ -56,34 +56,16 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-themes-list-table.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function WP_Filesystem\\(\\) should return bool\\|null but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/file.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Function wp_get_nav_menu_to_edit\\(\\) should return string\\|WP_Error\\|null but returns WP_Term\\|false\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/nav-menu.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function delete_plugins\\(\\) should return bool\\|WP_Error\\|null but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Function convert_to_screen\\(\\) should return WP_Screen but returns object\\{id\\: string, base\\: string\\}&stdClass\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/template.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function delete_theme\\(\\) should return bool\\|WP_Error\\|null but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/theme.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Cannot access offset \'new_version\' on bool\\.$#',
@@ -114,12 +96,6 @@ $ignoreErrors[] = [
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function get_category_by_path\\(\\) should return array\\|WP_Error\\|WP_Term\\|null but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/category.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#3 \\$args \\(stdClass\\) of method Walker_Nav_Menu\\:\\:end_lvl\\(\\) should be compatible with parameter \\$args \\(array\\) of method Walker\\:\\:end_lvl\\(\\)$#',
@@ -270,12 +246,6 @@ $ignoreErrors[] = [
 	'identifier' => 'foreach.nonIterable',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-post-type.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method WP_Query\\:\\:setup_postdata\\(\\) should return true but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Property WP_Query\\:\\:\\$date_query \\(WP_Date_Query\\) does not accept default value of type false\\.$#',
@@ -636,12 +606,6 @@ $ignoreErrors[] = [
 	'identifier' => 'assign.propertyType',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function _remove_theme_support\\(\\) should return bool but empty return statement found\\.$#',
-	'identifier' => 'return.empty',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/theme.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function _wp_get_current_user\\(\\) should return WP_User but returns array\\|float\\|int\\|string\\|false\\|null\\.$#',
