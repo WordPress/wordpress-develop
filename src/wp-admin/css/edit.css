@@ -78,7 +78,7 @@
 
 #titlewrap .skiplink {
 	background: #fff;
-	line-height: 2.30769231;  /* 30px for 32px min-height */
+	line-height: 2.30769231; /* 30px for 32px min-height */
 	min-height: 32px;
 	right: 4px;
 }
