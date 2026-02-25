@@ -109,6 +109,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		if ( ! is_array( $awareness ) ) {
 			return array();
 		}
+
+		return array_values( $awareness );
 	}
 
 	/**
