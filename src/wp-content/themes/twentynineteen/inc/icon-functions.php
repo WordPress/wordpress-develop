@@ -81,6 +81,7 @@ function twentynineteen_add_dropdown_icons( $item_output, $item, $depth, $args )
 		// @todo Only do this for nested submenus? If on a first-level submenu, then really the link could be "#" since the desire is to remove the target entirely.
 		$link = sprintf(
 			'<button class="menu-item-link-return" tabindex="-1" aria-label="%s">%s',
+			/* translators: %s: Parent menu item name. */
 			esc_attr( sprintf( __( 'Return to %s', 'twentynineteen' ), $item->title ) ),
 			twentynineteen_get_icon_svg( 'chevron_left', 24 )
 		);
