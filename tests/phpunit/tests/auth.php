@@ -1519,6 +1519,9 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 38744
 	 */
 	public function test_wp_signon_using_email_with_an_apostrophe() {
+		if ( ! function_exists( 'mb_str_split' ) ) {
+			$this->markTestSkipped( 'PHP 7.2/3 lacks mb_str_split' );
+		}
 		$user_args = array(
 			'user_email' => "mail\'@example.com",
 			'user_pass'  => 'password',

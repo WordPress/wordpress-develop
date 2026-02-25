@@ -87,6 +87,12 @@ foreach ( array(
 	add_filter( $filter, 'wp_filter_kses' );
 }
 
+// Usernames: Allow if the database can store them. This might be a
+// setting instead, so that a site can restrict its own users to ASCII.
+if ( 'utf8mb4' !== $wpdb->charset ) {
+	add_filter( 'sanitize_user', 'wp_ascii_without_controls' );
+}
+
 // Display URL.
 foreach ( array( 'user_url', 'link_url', 'link_image', 'link_rss', 'comment_url', 'post_guid' ) as $filter ) {
 	if ( is_admin() ) {

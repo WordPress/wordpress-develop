@@ -2146,15 +2146,14 @@ function sanitize_file_name( $filename ) {
 function sanitize_user( $username, $strict = false ) {
 	$raw_username = $username;
 	$username     = wp_strip_all_tags( $username );
-	$username     = remove_accents( $username );
 	// Remove percent-encoded characters.
-	$username = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '', $username );
+	$username = urldecode( $username );
 	// Remove HTML entities.
 	$username = preg_replace( '/&.+?;/', '', $username );
 
-	// If strict, reduce to ASCII for max portability.
+	// If strict, remove reduce to letters and numbers.
 	if ( $strict ) {
-		$username = preg_replace( '|[^a-z0-9 _.\-@]|i', '', $username );
+		$username = preg_replace( '|[^a-z0-9 _.\-@\p{Ll}\p{Lu}\p{Lo}\p{N}]|iu', '', $username );
 	}
 
 	$username = trim( $username );
@@ -2172,6 +2171,20 @@ function sanitize_user( $username, $strict = false ) {
 	 */
 	return apply_filters( 'sanitize_user', $username, $raw_username, $strict );
 }
+
+
+/**
+ * Returns a string with all controls and all non-ASCII bytes removed.
+ *
+ * @since 7.0.0
+ *
+ * @param string $input The string to be sanitized.
+ * @return string The modified string.
+ */
+function wp_ascii_without_controls( $input ) {
+	return preg_replace( '/[\x00-\x19\x7F-\xFF]/', '', $input );
+}
+
 
 /**
  * Sanitizes a string key.
@@ -3572,7 +3585,7 @@ function is_email( $email, $deprecated = false ) {
 	 * LOCAL PART
 	 * Test for invalid characters.
 	 */
-	if ( ! preg_match( '/^[a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]+$/', $local ) ) {
+	if ( ! ( preg_match( '/^[a-zA-Z0-9\x80-\xff!#$%&\'*+\/=?^_`{|}~\.-]+$/', $local ) && preg_match( '/^\X+$/', $local ) ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'local_invalid_chars' );
 	}
@@ -3610,7 +3623,7 @@ function is_email( $email, $deprecated = false ) {
 		}
 
 		// Test for invalid characters.
-		if ( ! preg_match( '/^[a-z0-9-]+$/i', $sub ) ) {
+		if ( ! ( preg_match( '/^[a-z0-9\x80-\xff-]+$/i', $sub ) && preg_match( '/^\X+$/', $sub ) ) ) {
 			/** This filter is documented in wp-includes/formatting.php */
 			return apply_filters( 'is_email', false, $email, 'sub_invalid_chars' );
 		}
@@ -3786,7 +3799,7 @@ function sanitize_email( $email ) {
 	 * LOCAL PART
 	 * Test for invalid characters.
 	 */
-	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]/', '', $local );
+	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.\x80-\xff-]/', '', $local );
 	if ( '' === $local ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'local_invalid_chars' );
@@ -3827,7 +3840,7 @@ function sanitize_email( $email ) {
 		$sub = trim( $sub, " \t\n\r\0\x0B-" );
 
 		// Test for invalid characters.
-		$sub = preg_replace( '/[^a-z0-9-]+/i', '', $sub );
+		$sub = preg_replace( '/[^a-z0-9\x80-\xff-]+/i', '', $sub );
 
 		// If there's anything left, add it to the valid subs.
 		if ( '' !== $sub ) {
