@@ -229,7 +229,7 @@ function the_author_meta( $field = '', $user_id = false ) {
  * the author's name.
  *
  * @since 3.0.0
- * @since 6.8.0 Added `$use_title_attr` parameter.
+ * @since 7.0.0 Added `$use_title_attr` parameter.
  *
  * @global WP_User $authordata The current author's data.
  *
@@ -278,7 +278,7 @@ function get_the_author_link( $use_title_attr = true ) {
  * @link https://developer.wordpress.org/reference/functions/the_author_link/
  *
  * @since 2.1.0
- * @since 6.8.0 Added `$use_title_attr` parameter.
+ * @since 7.0.0 Added `$use_title_attr` parameter.
  *
  * @param bool $use_title_attr Optional. Whether to add a title attribute.
  *                             Default true.
@@ -318,6 +318,7 @@ function the_author_posts() {
  * Returns an HTML-formatted link using get_author_posts_url().
  *
  * @since 4.4.0
+ * @since 7.0.0 Removed title attribute.
  *
  * @global WP_User $authordata The current author's data.
  *
@@ -330,20 +331,27 @@ function get_the_author_posts_link() {
 		return '';
 	}
 
+	$author = get_the_author();
+	/* translators: %s: Author's display name. */
+	$title  = sprintf( __( 'Posts by %s' ), $author );
+
 	$link = sprintf(
 		'<a href="%1$s" rel="author">%2$s</a>',
 		esc_url( get_author_posts_url( $authordata->ID, $authordata->user_nicename ) ),
-		get_the_author()
+		$author
 	);
 
 	/**
 	 * Filters the link to the author page of the author of the current post.
 	 *
 	 * @since 2.9.0
+	 * @since 7.0.0 Added `$author` and `$title` parameters.
 	 *
-	 * @param string $link HTML link.
+	 * @param string $link   HTML link.
+	 * @param string $author Author's display name.
+	 * @param string $title  Text originally used for a title attribute.
 	 */
-	return apply_filters( 'the_author_posts_link', $link );
+	return apply_filters( 'the_author_posts_link', $link, $author, $title );
 }
 
 /**
