@@ -201,6 +201,51 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Test retrieving a collection of active themes.
+	 *
+	 * @ticket 64719
+	 */
+	public function test_get_items_active() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', 'active' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$fields = array(
+			'_links',
+			'author',
+			'author_uri',
+			'description',
+			'is_block_theme',
+			'name',
+			'requires_php',
+			'requires_wp',
+			'screenshot',
+			'status',
+			'stylesheet',
+			'stylesheet_uri',
+			'tags',
+			'template',
+			'template_uri',
+			'textdomain',
+			'theme_uri',
+			'version',
+			'default_template_part_areas',
+			'default_template_types',
+			'theme_supports',
+		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
+		$this->assertSameSets( $fields, array_keys( $data[0] ) );
+
+		$this->assertEquals( array( 'rest-api' ), wp_list_pluck( $data, 'stylesheet' ) );
+	}
+
+	/**
 	 * Test retrieving a collection of inactive themes.
 	 *
 	 * @ticket 50152
