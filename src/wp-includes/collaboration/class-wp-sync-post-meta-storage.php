@@ -109,8 +109,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		if ( ! is_array( $awareness ) ) {
 			return array();
 		}
-
-		return array_values( $awareness );
 	}
 
 	/**
@@ -284,7 +282,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 
 		$updates = array();
 		foreach ( $rows as $row ) {
-			$update    = maybe_unserialize( $row->meta_value );
+			$update = maybe_unserialize( $row->meta_value );
 			$updates[] = $update;
 		}
 

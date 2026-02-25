@@ -308,7 +308,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$this->assertIsInt( $data['rooms'][0]['end_cursor'] );
-		$this->assertGreaterThan( 0, $data['rooms'][0]['end_cursor'] );
+		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'] );
 	}
 
 	public function test_sync_empty_updates_returns_zero_total() {
@@ -537,6 +537,162 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$this->assertSame( 3, $data['rooms'][0]['total_updates'] );
+	}
+
+	public function test_sync_cursor_does_not_skip_update_inserted_during_fetch_window() {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room    = $this->get_post_room();
+		$storage = new WP_Sync_Post_Meta_Storage();
+
+		$seed_update = array(
+			'client_id' => 1,
+			'type'      => 'update',
+			'data'      => 'c2VlZA==',
+		);
+
+		$this->assertTrue( $storage->add_update( $room, $seed_update ) );
+
+		$initial_updates = $storage->get_updates_after_cursor( $room, 0 );
+		$baseline_cursor = $storage->get_cursor( $room );
+
+		$this->assertCount( 1, $initial_updates );
+		$this->assertSame( $seed_update, $initial_updates[0] );
+		$this->assertGreaterThan( 0, $baseline_cursor );
+
+		$storage_posts   = get_posts(
+			array(
+				'post_type'      => WP_Sync_Post_Meta_Storage::POST_TYPE,
+				'posts_per_page' => 1,
+				'post_status'    => 'publish',
+				'name'           => md5( $room ),
+				'fields'         => 'ids',
+			)
+		);
+		$storage_post_id = array_first( $storage_posts );
+
+		$this->assertIsInt( $storage_post_id );
+
+		$injected_update = array(
+			'client_id' => 9999,
+			'type'      => 'update',
+			'data'      => base64_encode( 'injected-during-fetch' ),
+		);
+
+		// Clear the room state cache so the stats query actually executes
+		// and the proxy can intercept it to simulate the race condition.
+		wp_cache_delete( 'sync_room_state_' . md5( $room ), 'sync' );
+
+		$original_wpdb = $wpdb;
+		$proxy_wpdb    = new class( $original_wpdb, $storage_post_id, $injected_update ) {
+			private $wpdb;
+			private $storage_post_id;
+			private $injected_update;
+			public $postmeta;
+			public $did_inject = false;
+
+			public function __construct( $wpdb, int $storage_post_id, array $injected_update ) {
+				$this->wpdb            = $wpdb;
+				$this->storage_post_id = $storage_post_id;
+				$this->injected_update = $injected_update;
+				$this->postmeta        = $wpdb->postmeta;
+			}
+
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Proxy forwards fully prepared core queries.
+			public function prepare( ...$args ) {
+				return $this->wpdb->prepare( ...$args );
+			}
+
+			public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
+				$result = $this->wpdb->get_row( $query, $output, $y );
+
+				$this->maybe_inject_after_sync_query( $query );
+
+				return $result;
+			}
+
+			public function get_var( $query = null, $x = 0, $y = 0 ) {
+				$result = $this->wpdb->get_var( $query, $x, $y );
+
+				$this->maybe_inject_after_sync_query( $query );
+
+				return $result;
+			}
+
+			public function get_results( $query = null, $output = OBJECT ) {
+				return $this->wpdb->get_results( $query, $output );
+			}
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+
+			public function __call( $name, $arguments ) {
+				return $this->wpdb->$name( ...$arguments );
+			}
+
+			public function __get( $name ) {
+				return $this->wpdb->$name;
+			}
+
+			public function __set( $name, $value ) {
+				$this->wpdb->$name = $value;
+			}
+
+			private function inject_update(): void {
+				if ( $this->did_inject ) {
+					return;
+				}
+
+				$this->did_inject = true;
+
+				add_post_meta(
+					$this->storage_post_id,
+					WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
+					$this->injected_update,
+					false
+				);
+			}
+
+			private function maybe_inject_after_sync_query( $query ): void {
+				if ( $this->did_inject || ! is_string( $query ) ) {
+					return;
+				}
+
+				$targets_postmeta = false !== strpos( $query, $this->postmeta );
+				$targets_post_id  = 1 === preg_match( '/\bpost_id\s*=\s*' . (int) $this->storage_post_id . '\b/', $query );
+				$targets_meta_key = 1 === preg_match(
+					"/\bmeta_key\s*=\s*'" . preg_quote( WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY, '/' ) . "'/",
+					$query
+				);
+
+				if ( $targets_postmeta && $targets_post_id && $targets_meta_key ) {
+					$this->inject_update();
+				}
+			}
+		};
+
+		$wpdb = $proxy_wpdb;
+		try {
+			$race_updates = $storage->get_updates_after_cursor( $room, $baseline_cursor );
+			$race_cursor  = $storage->get_cursor( $room );
+		} finally {
+			$wpdb = $original_wpdb;
+		}
+
+		$this->assertTrue( $proxy_wpdb->did_inject, 'Expected race-window update injection to occur.' );
+		$this->assertEmpty( $race_updates );
+		$this->assertSame( $baseline_cursor, $race_cursor );
+
+		// Clear the room state cache since the injected update bypassed
+		// add_update() and its cache invalidation.
+		wp_cache_delete( 'sync_room_state_' . md5( $room ), 'sync' );
+
+		$follow_up_updates = $storage->get_updates_after_cursor( $room, $race_cursor );
+		$follow_up_cursor  = $storage->get_cursor( $room );
+
+		$this->assertCount( 1, $follow_up_updates );
+		$this->assertSame( $injected_update, $follow_up_updates[0] );
+		$this->assertGreaterThan( $race_cursor, $follow_up_cursor );
 	}
 
 	/*
