@@ -110,6 +110,7 @@
 		"build": "grunt build",
 		"build:dev": "grunt build --dev",
 		"dev": "grunt watch --dev",
+		"diff:non-generated": "sh ./tools/diff-non-generated.sh",
 		"test": "grunt test",
 		"watch": "grunt watch",
 		"grunt": "grunt",
