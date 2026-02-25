@@ -45,8 +45,6 @@ module.exports = function(grunt) {
 		jsFiles = [
 			'wp-admin/js/',
 			'wp-includes/js/',
-			'wp-includes/blocks/**/*.js',
-			'wp-includes/blocks/**/*.js.map',
 		],
 
 		// All files built by Webpack, in /src or /build.
