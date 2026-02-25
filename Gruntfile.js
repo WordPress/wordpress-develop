@@ -48,12 +48,12 @@ module.exports = function(grunt) {
 		],
 
 		// All files built by Webpack, in /src or /build.
+		// Webpack now only builds Core-specific media files and development scripts.
+		// Blocks, packages, script modules, and vendors come from the Gutenberg build.
 		webpackFiles = [
-			'wp-includes/assets/*',
-			'wp-includes/css/dist',
-			'wp-includes/blocks/**/*.css',
-			'!wp-includes/assets/script-loader-packages.min.php',
-			'!wp-includes/assets/script-modules-packages.min.php',
+			'wp-includes/js/media-*.js',
+			'wp-includes/js/media-*.min.js',
+			'wp-includes/js/dist/development',
 		],
 
 		// All workflow files that should be deleted from non-default branches.
@@ -228,6 +228,8 @@ module.exports = function(grunt) {
 			js: jsFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
+
+			// Clean files built by Webpack.
 			'webpack-assets': webpackFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
