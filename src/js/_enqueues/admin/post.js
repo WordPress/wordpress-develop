@@ -568,6 +568,9 @@ jQuery( function($) {
 		// @todo Move to jQuery 1.3+, support for multiple hierarchical taxonomies, see wp-lists.js.
 		$('a', '#' + taxonomy + '-tabs').on( 'click keyup keydown', function( event ) {
 			var t = $(this).attr('href');
+			if ( event.type === 'keydown' && event.key === ' ' ) {
+				event.preventDefault();
+			}
 			if ( ( event.type === 'keyup' && event.key === ' ' ) || ( event.type === 'keydown' && event.key === 'Enter' ) || event.type === 'click' ) {
 				event.preventDefault();
 				$('#' + taxonomy + '-tabs a').removeAttr( 'aria-selected' ).attr( 'tabindex', '-1' );

@@ -21,6 +21,9 @@ jQuery( function($) {
 	 */
 	$('#category-tabs a').on( 'click keyup keydown', function( event ){
 		var t = $(this).attr('href');
+		if ( event.type === 'keydown' && event.key === ' ' ) {
+			event.preventDefault();
+		}
 		if ( ( event.type === 'keyup' && event.key === ' ' ) || ( event.type === 'keydown' && event.key === 'Enter' ) || event.type === 'click' ) {
 			event.preventDefault();
 			$('#category-tabs a').removeAttr( 'aria-selected' ).attr( 'tabindex', '-1' );
