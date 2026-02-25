@@ -129,13 +129,13 @@ jobs:
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
-          db-version: '11.2'
+          db-version: '10.11'
           multisite: false
           memcached: true
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
-          db-version: '11.2'
+          db-version: '10.11'
           multisite: true
           memcached: true
     with:
