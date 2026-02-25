@@ -2474,13 +2474,16 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment = get_comment( $comment_id );
 	$is_note = ( $comment && 'note' === $comment->comment_type );
 
-	$maybe_notify = $is_note ? get_option( 'wp_notes_notify', 1 ) : get_option( 'comments_notify' );
-
 	// By default, only notify for approved comments and notes.
 	if (
 		! isset( $comment->comment_approved ) ||
-		( '1' !== $comment->comment_approved && ! $is_note ) ) {
-			$maybe_notify = false;
+		( '1' !== $comment->comment_approved && ! $is_note )
+	) {
+		$maybe_notify = false;
+	} else if ( $is_note ) {
+		$maybe_notify = get_option( 'wp_notes_notify', 1 );
+	} else {
+		$maybe_notify = get_option( 'comments_notify' );
 	}
 
 	/**
@@ -2489,7 +2492,7 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	 * all notes and for approved comments.
 	 *
 	 * @since 4.4.0
-	 * @since 6.9.0 Comment approval status is checked before this filter. 
+	 * @since 6.9.0 Comment approval status is checked before this filter.
 	 *
 	 * @param bool $maybe_notify Whether to notify the post author about the new comment.
 	 * @param int  $comment_id   The ID of the comment for the notification.
