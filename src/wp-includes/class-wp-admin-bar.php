@@ -200,6 +200,7 @@ class WP_Admin_Bar {
 		if ( $node ) {
 			return clone $node;
 		}
+		return null;
 	}
 
 	/**

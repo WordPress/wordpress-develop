@@ -734,7 +734,7 @@ function wp_tempnam( $filename = '', $dir = '' ) {
  * @param string   $file          File the user is attempting to edit.
  * @param string[] $allowed_files Optional. Array of allowed files to edit.
  *                                `$file` must match an entry exactly.
- * @return string|null Returns the file name on success, dies on failure.
+ * @return string|never Returns the file name on success, dies on failure.
  */
 function validate_file_to_edit( $file, $allowed_files = array() ) {
 	$code = validate_file( $file, $allowed_files );

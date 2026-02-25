@@ -736,7 +736,7 @@ function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
  *
  * @since 2.5.0
  *
- * @return null|array Array of error messages keyed by attachment ID, null on success.
+ * @return null|array|never Array of error messages keyed by attachment ID, null on success, or exit.
  */
 function media_upload_form_handler() {
 	check_admin_referer( 'media-form' );
@@ -959,7 +959,7 @@ function wp_media_upload_handler() {
 			$html = apply_filters( 'image_send_to_editor_url', $html, sanitize_url( $src ), $alt, $align );
 		}
 
-		return media_send_to_editor( $html );
+		media_send_to_editor( $html );
 	}
 
 	if ( isset( $_POST['save'] ) ) {
