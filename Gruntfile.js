@@ -55,7 +55,7 @@ module.exports = function(grunt) {
 			'wp-includes/script-modules',
 			'wp-includes/js/dist',
 			'wp-includes/css/dist',
-			'wp-includes/blocks',
+			'wp-includes/blocks/**/*',
 			'!wp-includes/blocks/index.php',
 			'wp-includes/icons',
 		],
