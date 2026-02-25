@@ -145,10 +145,13 @@ function wp_render_background_support( $block_content, $block ) {
 			$modified_content = $tags->get_updated_html();
 
 			// Insert the img as the first child of the wrapper element.
-			$open_tag_pattern = sprintf( '/^(\s*<%s[^>]*>)/i', preg_quote( $tag_name, '/' ) );
-			if ( 1 === preg_match( $open_tag_pattern, $modified_content, $matches, PREG_OFFSET_CAPTURE ) ) {
-				$insert_at        = $matches[0][1] + strlen( $matches[0][0] );
-				$modified_content = substr( $modified_content, 0, $insert_at ) . $img_html . substr( $modified_content, $insert_at );
+			// Find the end of the opening tag by locating the first '>'. The
+			// WP_HTML_Tag_Processor guarantees attribute values are properly
+			// escaped, so the first raw '>' is always the closing bracket of
+			// the opening wrapper tag.
+			$close_bracket = strpos( $modified_content, '>' );
+			if ( false !== $close_bracket ) {
+				$modified_content = substr( $modified_content, 0, $close_bracket + 1 ) . $img_html . substr( $modified_content, $close_bracket + 1 );
 			}
 
 			return $modified_content;
