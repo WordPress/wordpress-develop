@@ -751,6 +751,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
 			// wp_die( __('Sorry, cannot call files with their real path.' ));
 
 		case 3:
+		default:
 			wp_die( __( 'Sorry, that file cannot be edited.' ) );
 	}
 }
