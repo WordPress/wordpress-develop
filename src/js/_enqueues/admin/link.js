@@ -41,10 +41,10 @@ jQuery( function($) {
 			let next = $(this).parent('li').next();
 			let prev = $(this).parent('li').prev();
 			if ( next.length > 0 ) {
-				next.find('a').removeAttr( 'tabindex')
+				next.find('a').removeAttr( 'tabindex');
 				next.find('a').trigger( 'focus' );
 			} else {
-				prev.find('a').removeAttr( 'tabindex')
+				prev.find('a').removeAttr( 'tabindex');
 				prev.find('a').trigger( 'focus' );
 			}
 		}
