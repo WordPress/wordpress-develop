@@ -47,6 +47,7 @@
 				<directory suffix=".php">src/wp-includes/IXR</directory>
 				<directory suffix=".php">src/wp-includes/PHPMailer</directory>
 				<directory suffix=".php">src/wp-includes/Requests</directory>
+				<directory suffix=".php">src/wp-includes/php-ai-client</directory>
 				<directory suffix=".php">src/wp-includes/SimplePie</directory>
 				<directory suffix=".php">src/wp-includes/sodium_compat</directory>
 				<directory suffix=".php">src/wp-includes/Text</directory>

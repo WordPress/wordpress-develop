@@ -280,7 +280,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 			'dimensions' => array(
 				'aspectRatio' => true,
+				'height'      => true,
 				'minHeight'   => true,
+				'width'       => true,
 			),
 			'position'   => array(
 				'sticky' => true,
@@ -319,7 +321,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'dimensions' => array(
 						'aspectRatio' => true,
+						'height'      => true,
 						'minHeight'   => true,
+						'width'       => true,
 					),
 					'position'   => array(
 						'sticky' => true,
@@ -420,6 +424,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 						),
 					),
+					'dimensions' => array(
+						'dimensionSizes' => array(
+							array(
+								'name' => 'Small',
+								'slug' => 'small',
+								'size' => '100px',
+							),
+							array(
+								'name' => 'Large',
+								'slug' => 'large',
+								'size' => '200px',
+							),
+						),
+					),
 					'color'      => array(
 						'text'      => 'value',
 						'palette'   => array(
@@ -510,6 +528,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 							'dimensions' => array(
 								'minHeight' => '50vh',
+								'height'    => '500px',
+								'width'     => 'var:preset|dimension|large',
 							),
 							'elements'   => array(
 								'link' => array(
@@ -559,6 +579,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/post-excerpt' => array(
 							'typography' => array(
 								'textColumns' => 2,
+								'textIndent'  => '2em',
 							),
 						),
 						'core/image'        => array(
@@ -586,8 +607,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$variables = ':root{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--font-size--small: 14px;--wp--preset--font-size--big: 41px;--wp--preset--font-family--arial: Arial, serif;--wp--preset--border-radius--small: 2px;--wp--preset--border-radius--medium: 4px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
-		$styles    = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}:root :where(.wp-element-button, .wp-block-button__link){box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}:root :where(.wp-block-cover){min-height: unset;aspect-ratio: 16/9;border-radius: var(--wp--preset--border-radius--small);}:root :where(.wp-block-group){background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;min-height: 50vh;padding: 24px;}:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: #111;}:root :where(.wp-block-heading){color: #123456;}:root :where(.wp-block-heading a:where(:not(.wp-element-button))){background-color: #333;color: #111;font-size: 60px;}:root :where(.wp-block-media-text){text-align: center;}:root :where(.wp-block-post-date){color: #123456;}:root :where(.wp-block-post-date a:where(:not(.wp-element-button))){background-color: #777;color: #555;}:root :where(.wp-block-post-excerpt){column-count: 2;}:root :where(.wp-block-image){margin-bottom: 30px;}:root :where(.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder){border-top-left-radius: 10px;border-bottom-right-radius: 1em;}:root :where(.wp-block-image img, .wp-block-image .components-placeholder){filter: var(--wp--preset--duotone--custom-duotone);}';
+		$variables = ':root{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--font-size--small: 14px;--wp--preset--font-size--big: 41px;--wp--preset--font-family--arial: Arial, serif;--wp--preset--border-radius--small: 2px;--wp--preset--border-radius--medium: 4px;--wp--preset--dimension--small: 100px;--wp--preset--dimension--large: 200px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
+		$styles    = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}:root :where(.wp-element-button, .wp-block-button__link){box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}:root :where(.wp-block-cover){min-height: unset;aspect-ratio: 16/9;border-radius: var(--wp--preset--border-radius--small);}:root :where(.wp-block-group){background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;min-height: 50vh;padding: 24px;height: 500px;width: var(--wp--preset--dimension--large);}:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: #111;}:root :where(.wp-block-heading){color: #123456;}:root :where(.wp-block-heading a:where(:not(.wp-element-button))){background-color: #333;color: #111;font-size: 60px;}:root :where(.wp-block-media-text){text-align: center;}:root :where(.wp-block-post-date){color: #123456;}:root :where(.wp-block-post-date a:where(:not(.wp-element-button))){background-color: #777;color: #555;}:root :where(.wp-block-post-excerpt){column-count: 2;text-indent: 2em;}:root :where(.wp-block-image){margin-bottom: 30px;}:root :where(.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder){border-top-left-radius: 10px;border-bottom-right-radius: 1em;}:root :where(.wp-block-image img, .wp-block-image .components-placeholder){filter: var(--wp--preset--duotone--custom-duotone);}';
 		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-custom-gradient-gradient-background{background: var(--wp--preset--gradient--custom-gradient) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-big-font-size{font-size: var(--wp--preset--font-size--big) !important;}.has-arial-font-family{font-family: var(--wp--preset--font-family--arial) !important;}';
 		$all       = $variables . $styles . $presets;
 
@@ -6069,8 +6090,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58588
 	 * @ticket 60613
 	 *
-	 * @covers WP_Theme_JSON_Gutenberg::resolve_variables
-	 * @covers WP_Theme_JSON_Gutenberg::convert_variables_to_value
+	 * @covers WP_Theme_JSON::resolve_variables
+	 * @covers WP_Theme_JSON::convert_variables_to_value
 	 */
 	public function test_resolve_variables() {
 		$primary_color   = '#9DFF20';
@@ -6692,5 +6713,345 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$actual = $defaults->get_raw_data();
 
 		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Test that block pseudo selectors are processed correctly.
+	 */
+	public function test_block_pseudo_selectors_are_processed() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'  => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover' => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							':focus' => array(
+								'color' => array(
+									'text'       => 'red',
+									'background' => 'yellow',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link:focus){background-color: yellow;color: red;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * Test that block pseudo selectors are processed correctly within variations.
+	 */
+	public function test_block_variation_pseudo_selectors_are_processed() {
+		register_block_style(
+			'core/button',
+			array(
+				'name'  => 'outline',
+				'label' => 'Outline',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'      => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							'variations' => array(
+								'outline' => array(
+									'color'  => array(
+										'text'       => 'currentColor',
+										'background' => 'transparent',
+									),
+									'border' => array(
+										'color' => 'currentColor',
+										'width' => '1px',
+										'style' => 'solid',
+									),
+									':hover' => array(
+										'color' => array(
+											'text'       => 'white',
+											'background' => 'red',
+										),
+									),
+									':focus' => array(
+										'color' => array(
+											'text'       => 'black',
+											'background' => 'yellow',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link){background-color: transparent;border-color: currentColor;border-width: 1px;border-style: solid;color: currentColor;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:hover){background-color: red;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:focus){background-color: yellow;color: black;}';
+		$actual   = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+
+		unregister_block_style( 'core/button', 'outline' );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Test that non-whitelisted pseudo selectors are ignored for blocks.
+	 */
+	public function test_block_pseudo_selectors_ignores_non_whitelisted() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'     => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover'    => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							':levitate' => array(
+								'color' => array(
+									'text'       => 'yellow',
+									'background' => 'black',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+		$this->assertStringNotContainsString( '.wp-block-button .wp-block-button__link:levitate{', $theme_json->get_stylesheet( array( 'styles' ) ) );
+	}
+
+	/**
+	 * Test that blocks without pseudo selector support ignore pseudo selectors.
+	 */
+	public function test_blocks_without_pseudo_support_ignore_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color'  => array(
+								'text' => 'black',
+							),
+							':hover' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(p){color: black;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+		$this->assertStringNotContainsString( 'p:hover{', $theme_json->get_stylesheet( array( 'styles' ) ) );
+	}
+
+	/**
+	 * Test that block pseudo selectors work with elements within blocks.
+	 */
+	public function test_block_pseudo_selectors_with_elements() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'    => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover'   => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							'elements' => array(
+								'button' => array(
+									'color'  => array(
+										'text' => 'green',
+									),
+									':hover' => array(
+										'color' => array(
+											'text' => 'orange',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button,.wp-block-button .wp-block-button__link  .wp-block-button__link){color: green;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button:hover,.wp-block-button .wp-block-button__link  .wp-block-button__link:hover){color: orange;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_boolean_values_when_schema_expects_boolean() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'lightbox' => array(
+						'enabled'      => true,
+						'allowEditing' => false,
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertTrue( $settings['lightbox']['enabled'], 'Enabled should be true' );
+		$this->assertFalse( $settings['lightbox']['allowEditing'], 'Allow editing should be false' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_removes_non_boolean_values_when_schema_expects_boolean() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'lightbox' => array(
+						'enabled'      => 'not-a-boolean',
+						'allowEditing' => 123,
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertArrayNotHasKey( 'enabled', $settings['lightbox'] ?? array(), 'Enabled should be removed' );
+		$this->assertArrayNotHasKey( 'allowEditing', $settings['lightbox'] ?? array(), 'Allow editing should be removed' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_boolean_values_in_block_settings() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'lightbox' => array(
+								'enabled'      => true,
+								'allowEditing' => false,
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertTrue( $settings['blocks']['core/image']['lightbox']['enabled'], 'Enabled should be true' );
+		$this->assertFalse( $settings['blocks']['core/image']['lightbox']['allowEditing'], 'Allow editing should be false' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_removes_non_boolean_values_in_block_settings() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'lightbox' => array(
+								'enabled'      => 'string-value',
+								'allowEditing' => array( 'not', 'a', 'boolean' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$lightbox = $settings['blocks']['core/image']['lightbox'] ?? array();
+		$this->assertArrayNotHasKey( 'enabled', $lightbox, 'Enabled should be removed' );
+		$this->assertArrayNotHasKey( 'allowEditing', $lightbox, 'Allow editing should be removed' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_null_schema_behavior() {
+		// Test that settings with null in schema (no type validation) still accept any type.
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'appearanceTools' => 'string-value', // null in schema, should accept any type.
+					'custom'          => array( 'nested' => 'value' ), // null in schema, should accept any type.
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertSame( 'string-value', $settings['appearanceTools'], 'Appearance tools should be string value' );
+		$this->assertSame( array( 'nested' => 'value' ), $settings['custom'], 'Custom should be array value' );
 	}
 }
