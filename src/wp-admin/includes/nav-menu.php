@@ -379,7 +379,7 @@ function wp_nav_menu_item_link_meta_box() {
 			/>
 		</p>
 
-		<p class="button-controls wp-clearfix">
+		<p class="button-controls button-controls-customlinkdiv wp-clearfix">
 			<span class="add-to-menu">
 				<input id="submit-customlinkdiv" name="add-custom-menu-item"
 					type="submit"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
