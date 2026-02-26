@@ -186,6 +186,14 @@ CREATE TABLE $wpdb->posts (
 	KEY post_parent (post_parent),
 	KEY post_author (post_author),
 	KEY type_status_author (post_type,post_status,post_author)
+) $charset_collate;
+CREATE TABLE $wpdb->sync_updates (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	room_hash char(32) NOT NULL,
+	update_value longtext NOT NULL,
+	created_at datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY  (id),
+	KEY room_hash (room_hash,id)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.

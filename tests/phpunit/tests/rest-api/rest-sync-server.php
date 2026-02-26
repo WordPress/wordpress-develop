@@ -31,12 +31,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	public function set_up() {
 		parent::set_up();
 
-		// Reset storage post ID cache to ensure clean state after transaction rollback.
-		$reflection = new ReflectionProperty( 'WP_Sync_Post_Meta_Storage', 'storage_post_ids' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$reflection->setAccessible( true );
-		}
-		$reflection->setValue( null, array() );
+		// Uses DELETE (not TRUNCATE) to preserve transaction rollback support
+		// in the test suite. TRUNCATE implicitly commits the transaction.
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->sync_updates}" );
 	}
 
 	/**
@@ -301,14 +299,18 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( $room, $data['rooms'][0]['room'] );
 	}
 
-	public function test_sync_end_cursor_is_positive_integer() {
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_end_cursor_is_non_negative_integer() {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$data = $response->get_data();
 		$this->assertIsInt( $data['rooms'][0]['end_cursor'] );
-		$this->assertGreaterThan( 0, $data['rooms'][0]['end_cursor'] );
+		// Cursor is 0 for an empty room (no rows in the table yet).
+		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'] );
 	}
 
 	public function test_sync_empty_updates_returns_zero_total() {
@@ -756,5 +758,272 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		// Room 2 should have no updates.
 		$this->assertEmpty( $data['rooms'][1]['updates'] );
+	}
+
+	/*
+	 * Cursor tests.
+	 */
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_empty_room_cursor_is_zero() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+
+		$data = $response->get_data();
+		$this->assertSame( 0, $data['rooms'][0]['end_cursor'] );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_cursor_advances_monotonically() {
+		wp_set_current_user( self::$editor_id );
+
+		$room   = $this->get_post_room();
+		$update = array(
+			'type' => 'update',
+			'data' => 'dGVzdA==',
+		);
+
+		// First request.
+		$response1 = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
+			)
+		);
+		$cursor1   = $response1->get_data()['rooms'][0]['end_cursor'];
+
+		// Second request with more updates.
+		$response2 = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, $cursor1, array( 'user' => 'c2' ), array( $update ) ),
+			)
+		);
+		$cursor2   = $response2->get_data()['rooms'][0]['end_cursor'];
+
+		$this->assertGreaterThan( $cursor1, $cursor2, 'Cursor should advance monotonically with new updates.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_cursor_prevents_re_delivery() {
+		wp_set_current_user( self::$editor_id );
+
+		$room   = $this->get_post_room();
+		$update = array(
+			'type' => 'update',
+			'data' => base64_encode( 'first-batch' ),
+		);
+
+		// Client 1 sends an update.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
+			)
+		);
+
+		// Client 2 fetches updates and gets a cursor.
+		$response1 = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
+			)
+		);
+		$data1     = $response1->get_data();
+		$cursor1   = $data1['rooms'][0]['end_cursor'];
+
+		$this->assertNotEmpty( $data1['rooms'][0]['updates'], 'First poll should return updates.' );
+
+		// Client 2 polls again using the cursor from the first poll, with no new updates.
+		$response2 = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, $cursor1, array( 'user' => 'c2' ) ),
+			)
+		);
+		$data2     = $response2->get_data();
+
+		$this->assertEmpty( $data2['rooms'][0]['updates'], 'Second poll with cursor should not re-deliver updates.' );
+	}
+
+	/*
+	 * Cache thrashing tests.
+	 */
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_operations_do_not_affect_posts_last_changed() {
+		wp_set_current_user( self::$editor_id );
+
+		// Prime the posts last changed cache.
+		wp_cache_set_posts_last_changed();
+		$last_changed_before = wp_cache_get_last_changed( 'posts' );
+
+		$room   = $this->get_post_room();
+		$update = array(
+			'type' => 'update',
+			'data' => 'dGVzdA==',
+		);
+
+		// Perform several sync operations.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
+			)
+		);
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ), array( $update ) ),
+			)
+		);
+
+		$last_changed_after = wp_cache_get_last_changed( 'posts' );
+
+		$this->assertSame( $last_changed_before, $last_changed_after, 'Sync operations should not invalidate the posts last changed cache.' );
+	}
+
+	/*
+	 * Race condition tests.
+	 */
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_compaction_does_not_lose_concurrent_updates() {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 1 sends an initial batch of updates.
+		$initial_updates = array();
+		for ( $i = 0; $i < 5; $i++ ) {
+			$initial_updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "initial-$i" ),
+			);
+		}
+
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $initial_updates ),
+			)
+		);
+
+		$data   = $response->get_data();
+		$cursor = $data['rooms'][0]['end_cursor'];
+
+		// Client 2 sends a new update (simulating a concurrent write).
+		$concurrent_update = array(
+			'type' => 'update',
+			'data' => base64_encode( 'concurrent' ),
+		);
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ), array( $concurrent_update ) ),
+			)
+		);
+
+		// Client 1 sends a compaction update using its cursor.
+		$compaction_update = array(
+			'type' => 'compaction',
+			'data' => base64_encode( 'compacted-state' ),
+		);
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, $cursor, array( 'user' => 'c1' ), array( $compaction_update ) ),
+			)
+		);
+
+		// Client 3 requests all updates from the beginning.
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ) ),
+			)
+		);
+
+		$data         = $response->get_data();
+		$room_updates = $data['rooms'][0]['updates'];
+		$update_data  = wp_list_pluck( $room_updates, 'data' );
+
+		// The concurrent update must not be lost.
+		$this->assertContains( base64_encode( 'concurrent' ), $update_data, 'Concurrent update should not be lost during compaction.' );
+
+		// The compaction update should be present.
+		$this->assertContains( base64_encode( 'compacted-state' ), $update_data, 'Compaction update should be present.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_compaction_reduces_total_updates() {
+		wp_set_current_user( self::$editor_id );
+
+		$room    = $this->get_post_room();
+		$updates = array();
+		for ( $i = 0; $i < 10; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "update-$i" ),
+			);
+		}
+
+		// Client 1 sends 10 updates.
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $updates ),
+			)
+		);
+
+		$data   = $response->get_data();
+		$cursor = $data['rooms'][0]['end_cursor'];
+
+		// Client 1 sends a compaction to replace the 10 updates.
+		$compaction = array(
+			'type' => 'compaction',
+			'data' => base64_encode( 'compacted' ),
+		);
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, $cursor, array( 'user' => 'c1' ), array( $compaction ) ),
+			)
+		);
+
+		// Client 2 checks the state.
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertLessThan( 10, $data['rooms'][0]['total_updates'], 'Compaction should reduce the total update count.' );
+	}
+
+	/*
+	 * Storage filter tests.
+	 */
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_storage_filter_is_applied() {
+		$filter_called = false;
+
+		add_filter(
+			'wp_sync_storage',
+			static function ( $storage ) use ( &$filter_called ) {
+				$filter_called = true;
+				return $storage;
+			}
+		);
+
+		// Re-trigger route registration to invoke the filter.
+		$server = rest_get_server();
+		do_action( 'rest_api_init', $server );
+
+		$this->assertTrue( $filter_called, 'The wp_sync_storage filter should be applied during route registration.' );
 	}
 }

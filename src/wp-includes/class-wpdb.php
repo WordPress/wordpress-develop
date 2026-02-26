@@ -299,6 +299,7 @@ class wpdb {
 		'term_relationships',
 		'termmeta',
 		'commentmeta',
+		'sync_updates',
 	);
 
 	/**
@@ -403,6 +404,15 @@ class wpdb {
 	 * @var string
 	 */
 	public $posts;
+
+	/**
+	 * WordPress Sync Updates table.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @var string
+	 */
+	public $sync_updates;
 
 	/**
 	 * WordPress Terms table.

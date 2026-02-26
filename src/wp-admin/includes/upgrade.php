@@ -886,7 +886,7 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
-	if ( $wp_current_db_version < 61644 ) {
+	if ( $wp_current_db_version < 61697 ) {
 		upgrade_700();
 	}
 
@@ -2506,6 +2506,16 @@ function upgrade_700() {
 				'meta_key'   => 'admin_color',
 				'meta_value' => 'fresh',
 			)
+		);
+	}
+
+	// Clean up orphaned wp_sync_storage posts from the beta1 post-meta storage approach.
+	if ( $wp_current_db_version < 61697 ) {
+		$wpdb->delete( $wpdb->postmeta, array( 'meta_key' => 'wp_sync_update' ) );
+		$wpdb->delete( $wpdb->postmeta, array( 'meta_key' => 'wp_sync_awareness' ) );
+		$wpdb->delete(
+			$wpdb->posts,
+			array( 'post_type' => 'wp_sync_storage' )
 		);
 	}
 }
