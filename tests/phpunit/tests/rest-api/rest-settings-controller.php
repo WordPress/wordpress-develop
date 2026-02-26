@@ -123,7 +123,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			// Connectors API keys are registered in _wp_register_default_connector_settings() in wp-includes/connectors.php.
 			'connectors_anthropic_api_key',
 			'connectors_gemini_api_key',
-			'connectors_openai_api_key'
+			'connectors_openai_api_key',
 		);
 
 		if ( ! is_multisite() ) {
