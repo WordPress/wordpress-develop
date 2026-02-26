@@ -65,6 +65,15 @@ function _wp_connectors_is_api_key_valid( string $key, string $provider_id ): ?b
 		$registry = AiClient::defaultRegistry();
 
 		if ( ! $registry->hasProvider( $provider_id ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: AI provider ID. */
+					__( 'The provider "%s" is not registered in the AI client registry.' ),
+					$provider_id
+				),
+				'7.0.0'
+			);
 			return null;
 		}
 
@@ -74,7 +83,8 @@ function _wp_connectors_is_api_key_valid( string $key, string $provider_id ): ?b
 		);
 
 		return $registry->isProviderConfigured( $provider_id );
-	} catch ( \Error $e ) {
+	} catch ( Exception $e ) {
+		wp_trigger_error( __FUNCTION__, $e->getMessage() );
 		return null;
 	}
 }
@@ -87,21 +97,34 @@ function _wp_connectors_is_api_key_valid( string $key, string $provider_id ): ?b
  *
  * @param string $key         The API key.
  * @param string $provider_id The WP AI client provider ID.
+ * @return bool True if the key was set successfully, false otherwise.
  */
-function _wp_connectors_set_provider_api_key( string $key, string $provider_id ): void {
+function _wp_connectors_set_provider_api_key( string $key, string $provider_id ): bool {
 	try {
 		$registry = AiClient::defaultRegistry();
 
 		if ( ! $registry->hasProvider( $provider_id ) ) {
-			return;
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: AI provider ID. */
+					__( 'The provider "%s" is not registered in the AI client registry.' ),
+					$provider_id
+				),
+				'7.0.0'
+			);
+			return false;
 		}
 
 		$registry->setProviderRequestAuthentication(
 			$provider_id,
 			new ApiKeyRequestAuthentication( $key )
 		);
-	} catch ( \Error $e ) {
-		// WP AI Client not available.
+
+		return true;
+	} catch ( Exception $e ) {
+		wp_trigger_error( __FUNCTION__, $e->getMessage() );
+		return false;
 	}
 }
 
