@@ -59,20 +59,20 @@ class Mock_Connectors_Test_Model_Metadata_Directory implements ModelMetadataDire
 	/**
 	 * Checks if a model exists.
 	 *
-	 * @param string $modelId The model ID.
+	 * @param string $model_id The model ID.
 	 * @return bool Always false.
 	 */
-	public function hasModelMetadata( string $modelId ): bool {
+	public function hasModelMetadata( string $model_id ): bool {
 		return false;
 	}
 
 	/**
 	 * Gets model metadata.
 	 *
-	 * @param string $modelId The model ID.
+	 * @param string $model_id The model ID.
 	 * @throws \InvalidArgumentException Always, as no models are available.
 	 */
-	public function getModelMetadata( string $modelId ): ModelMetadata {
+	public function getModelMetadata( string $model_id ): ModelMetadata {
 		throw new \InvalidArgumentException( 'No models available.' );
 	}
 }
@@ -125,13 +125,13 @@ class Mock_Connectors_Test_Provider extends AbstractProvider {
 	/**
 	 * Creates a model instance.
 	 *
-	 * @param ModelMetadata    $modelMetadata    The model metadata.
-	 * @param ProviderMetadata $providerMetadata The provider metadata.
+	 * @param ModelMetadata    $model_metadata    The model metadata.
+	 * @param ProviderMetadata $provider_metadata The provider metadata.
 	 * @throws \RuntimeException Always, as model creation is not needed for these tests.
 	 */
 	protected static function createModel(
-		ModelMetadata $modelMetadata,
-		ProviderMetadata $providerMetadata
+		ModelMetadata $model_metadata,
+		ProviderMetadata $provider_metadata
 	): ModelInterface {
 		throw new \RuntimeException( 'Not implemented.' );
 	}

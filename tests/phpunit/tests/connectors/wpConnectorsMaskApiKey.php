@@ -33,12 +33,12 @@ class Tests_Connectors_WpConnectorsMaskApiKey extends WP_UnitTestCase {
 		$bullet = "\u{2022}";
 
 		return array(
-			'empty string'                    => array( '', '' ),
-			'1 char'                          => array( 'a', 'a' ),
-			'4 chars (boundary)'              => array( 'abcd', 'abcd' ),
-			'5 chars (1 bullet + last 4)'     => array( 'abcde', $bullet . 'bcde' ),
-			'20 chars (cap at 16 bullets)'    => array( '12345678901234567890', str_repeat( $bullet, 16 ) . '7890' ),
-			'30 chars (cap at 16 bullets)'    => array( str_repeat( 'x', 30 ), str_repeat( $bullet, 16 ) . 'xxxx' ),
+			'empty string'                 => array( '', '' ),
+			'1 char'                       => array( 'a', 'a' ),
+			'4 chars (boundary)'           => array( 'abcd', 'abcd' ),
+			'5 chars (1 bullet + last 4)'  => array( 'abcde', $bullet . 'bcde' ),
+			'20 chars (cap at 16 bullets)' => array( '12345678901234567890', str_repeat( $bullet, 16 ) . '7890' ),
+			'30 chars (cap at 16 bullets)' => array( str_repeat( 'x', 30 ), str_repeat( $bullet, 16 ) . 'xxxx' ),
 		);
 	}
 }
