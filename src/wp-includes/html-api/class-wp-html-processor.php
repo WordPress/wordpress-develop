@@ -991,6 +991,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
+	 *
 	 * @see self::PROCESS_NEXT_NODE
 	 * @see self::REPROCESS_CURRENT_NODE
 	 *
@@ -1040,9 +1042,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$token_name            = $this->get_token_name();
 
 		if ( self::REPROCESS_CURRENT_NODE !== $node_to_process ) {
-			$bookmark_name = $this->bookmark_token();
-			if ( false === $bookmark_name ) {
-				return false;
+			try {
+				$bookmark_name = $this->bookmark_token();
+			} catch ( Exception $e ) {
+				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+					return false;
+				}
+				throw $e;
 			}
 
 			$this->state->current_token = new WP_HTML_Token(
@@ -1156,6 +1162,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * otherwise might involve messier calling and return conventions.
 			 */
 			return false;
+		} catch ( Exception $e ) {
+			if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+				return false;
+			}
+			// Rethrow any other exceptions for higher-level handling.
+			throw $e;
 		}
 	}
 
@@ -1631,9 +1643,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Switch the insertion mode to "before head", then reprocess the token.
 		 */
 		before_html_anything_else:
-		if ( ! $this->insert_virtual_node( 'HTML' ) ) {
-			return false;
-		}
+		$this->insert_virtual_node( 'HTML' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -1730,11 +1740,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Insert an HTML element for a "head" start tag token with no attributes.
 		 */
 		before_head_anything_else:
-		$head_element = $this->insert_virtual_node( 'HEAD' );
-		if ( ! $head_element ) {
-			return false;
-		}
-		$this->state->head_element   = $head_element;
+		$this->state->head_element   = $this->insert_virtual_node( 'HEAD' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -2203,9 +2209,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Insert an HTML element for a "body" start tag token with no attributes.
 		 */
 		after_head_anything_else:
-		if ( ! $this->insert_virtual_node( 'BODY' ) ) {
-			return false;
-		}
+		$this->insert_virtual_node( 'BODY' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -3357,9 +3361,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Insert an HTML element for a "colgroup" start tag token with no attributes,
 				 * > then switch the insertion mode to "in column group".
 				 */
-				if ( ! $this->insert_virtual_node( 'COLGROUP' ) ) {
-					return false;
-				}
+				$this->insert_virtual_node( 'COLGROUP' );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
@@ -3385,9 +3387,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Insert an HTML element for a "tbody" start tag token with no attributes,
 				 * > then switch the insertion mode to "in table body".
 				 */
-				if ( ! $this->insert_virtual_node( 'TBODY' ) ) {
-					return false;
-				}
+				$this->insert_virtual_node( 'TBODY' );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
@@ -3742,9 +3742,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TD':
 				// @todo Indicate a parse error once it's possible.
 				$this->state->stack_of_open_elements->clear_to_table_body_context();
-				if ( ! $this->insert_virtual_node( 'TR' ) ) {
-					return false;
-				}
+				$this->insert_virtual_node( 'TR' );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
@@ -5145,12 +5143,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.4.0
 	 * @since 6.5.0 Renamed from bookmark_tag() to bookmark_token().
 	 *
+	 * @throws Exception When unable to allocate requested bookmark.
+	 *
 	 * @return string|false Name of created bookmark, or false if unable to create.
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
 			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
-			return false;
+			throw new Exception( 'could not allocate bookmark' );
 		}
 
 		return "{$this->bookmark_counter}";
@@ -6330,17 +6330,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.7.0
 	 *
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
+	 *
 	 * @param string      $token_name    Name of token to create and insert into the stack of open elements.
 	 * @param string|null $bookmark_name Optional. Name to give bookmark for created virtual node.
 	 *                                   Defaults to auto-creating a bookmark name.
-	 * @return WP_HTML_Token|false Newly-created virtual token or false on failure.
+	 * @return WP_HTML_Token Newly-created virtual token.
 	 */
-	private function insert_virtual_node( $token_name, $bookmark_name = null ) {
+	private function insert_virtual_node( $token_name, $bookmark_name = null ): WP_HTML_Token {
 		$here = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 		$name = $bookmark_name ?? $this->bookmark_token();
-		if ( false === $name ) {
-			return false;
-		}
 
 		$this->bookmarks[ $name ] = new WP_HTML_Span( $here->start, 0 );
 
