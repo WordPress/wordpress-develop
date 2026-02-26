@@ -779,6 +779,136 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertFalse( $data['rooms'][0]['should_compact'] );
 	}
 
+	public function test_sync_compaction_does_not_delete_update_inserted_during_delete() {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room    = $this->get_post_room();
+		$storage = new WP_Sync_Post_Meta_Storage();
+
+		// Seed three updates so there's something to compact.
+		for ( $i = 1; $i <= 3; $i++ ) {
+			$this->assertTrue(
+				$storage->add_update(
+					$room,
+					array(
+						'client_id' => $i,
+						'type'      => 'update',
+						'data'      => base64_encode( "seed-$i" ),
+					)
+				)
+			);
+		}
+
+		// Capture the cursor after all seeds are in place.
+		$storage->get_updates_after_cursor( $room, 0 );
+		$compaction_cursor = $storage->get_cursor( $room );
+		$this->assertGreaterThan( 0, $compaction_cursor );
+
+		$storage_posts   = get_posts(
+			array(
+				'post_type'      => WP_Sync_Post_Meta_Storage::POST_TYPE,
+				'posts_per_page' => 1,
+				'post_status'    => 'publish',
+				'name'           => md5( $room ),
+				'fields'         => 'ids',
+			)
+		);
+		$storage_post_id = array_first( $storage_posts );
+		$this->assertIsInt( $storage_post_id );
+
+		$concurrent_update = array(
+			'client_id' => 9999,
+			'type'      => 'update',
+			'data'      => base64_encode( 'arrived-during-compaction' ),
+		);
+
+		$original_wpdb = $wpdb;
+		$proxy_wpdb    = new class( $original_wpdb, $storage_post_id, $concurrent_update ) {
+			private $wpdb;
+			private $storage_post_id;
+			private $concurrent_update;
+			public $did_inject = false;
+
+			public function __construct( $wpdb, int $storage_post_id, array $concurrent_update ) {
+				$this->wpdb              = $wpdb;
+				$this->storage_post_id   = $storage_post_id;
+				$this->concurrent_update = $concurrent_update;
+			}
+
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Proxy forwards fully prepared core queries.
+			public function prepare( ...$args ) {
+				return $this->wpdb->prepare( ...$args );
+			}
+
+			public function query( $query ) {
+				$result = $this->wpdb->query( $query );
+
+				// After the DELETE executes, inject a concurrent update via
+				// raw SQL through the real $wpdb to avoid metadata cache
+				// interactions while the proxy is active.
+				if ( ! $this->did_inject
+					&& is_string( $query )
+					&& 0 === strpos( $query, "DELETE FROM {$this->wpdb->postmeta}" )
+					&& false !== strpos( $query, "post_id = {$this->storage_post_id}" )
+				) {
+					$this->did_inject = true;
+					$this->wpdb->insert(
+						$this->wpdb->postmeta,
+						array(
+							'post_id'    => $this->storage_post_id,
+							'meta_key'   => WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
+							'meta_value' => maybe_serialize( $this->concurrent_update ),
+						),
+						array( '%d', '%s', '%s' )
+					);
+				}
+
+				return $result;
+			}
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+
+			public function __call( $name, $arguments ) {
+				return $this->wpdb->$name( ...$arguments );
+			}
+
+			public function __get( $name ) {
+				return $this->wpdb->$name;
+			}
+
+			public function __set( $name, $value ) {
+				$this->wpdb->$name = $value;
+			}
+		};
+
+		// Run compaction through the proxy so the concurrent update
+		// is injected immediately after the DELETE executes.
+		$wpdb = $proxy_wpdb;
+		try {
+			$result = $storage->remove_updates_before_cursor( $room, $compaction_cursor );
+		} finally {
+			$wpdb = $original_wpdb;
+		}
+
+		$this->assertTrue( $result );
+		$this->assertTrue( $proxy_wpdb->did_inject, 'Expected concurrent update injection to occur.' );
+
+		// Clear caches since the injection bypassed add_update().
+		wp_cache_delete( $storage_post_id, 'post_meta' );
+		wp_cache_delete( 'sync_room_state_' . md5( $room ), 'sync' );
+
+		// The concurrent update must survive the compaction delete.
+		$updates = $storage->get_updates_after_cursor( $room, 0 );
+
+		$update_data = wp_list_pluck( $updates, 'data' );
+		$this->assertContains(
+			$concurrent_update['data'],
+			$update_data,
+			'Concurrent update should survive compaction.'
+		);
+	}
+
 	/*
 	 * Awareness tests.
 	 */
