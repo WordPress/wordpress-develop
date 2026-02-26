@@ -90,45 +90,6 @@ function _wp_connectors_is_api_key_valid( string $key, string $provider_id ): ?b
 }
 
 /**
- * Sets API key authentication for a provider in the WP AI Client registry.
- *
- * @since 7.0.0
- * @access private
- *
- * @param string $key         The API key.
- * @param string $provider_id The WP AI client provider ID.
- * @return bool True if the key was set successfully, false otherwise.
- */
-function _wp_connectors_set_provider_api_key( string $key, string $provider_id ): bool {
-	try {
-		$registry = AiClient::defaultRegistry();
-
-		if ( ! $registry->hasProvider( $provider_id ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: AI provider ID. */
-					__( 'The provider "%s" is not registered in the AI client registry.' ),
-					$provider_id
-				),
-				'7.0.0'
-			);
-			return false;
-		}
-
-		$registry->setProviderRequestAuthentication(
-			$provider_id,
-			new ApiKeyRequestAuthentication( $key )
-		);
-
-		return true;
-	} catch ( Exception $e ) {
-		wp_trigger_error( __FUNCTION__, $e->getMessage() );
-		return false;
-	}
-}
-
-/**
  * Retrieves the real (unmasked) value of a connector API key.
  *
  * Temporarily removes the masking filter, reads the option, then re-adds it.
@@ -299,12 +260,21 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 	if ( ! class_exists( '\WordPress\AiClient\AiClient' ) ) {
 		return;
 	}
+	try {
+		$registry = AiClient::defaultRegistry();
+		foreach ( _wp_connectors_get_provider_settings() as $setting_name => $config ) {
+			$api_key = _wp_connectors_get_real_api_key( $setting_name, $config['mask'] );
+			if ( '' === $api_key || ! $registry->hasProvider( $config['provider'] ) ) {
+				continue;
+			}
 
-	foreach ( _wp_connectors_get_provider_settings() as $setting_name => $config ) {
-		$api_key = _wp_connectors_get_real_api_key( $setting_name, $config['mask'] );
-		if ( '' !== $api_key ) {
-			_wp_connectors_set_provider_api_key( $api_key, $config['provider'] );
+			$registry->setProviderRequestAuthentication(
+				$config['provider'],
+				new ApiKeyRequestAuthentication( $api_key )
+			);
 		}
+	} catch ( Exception $e ) {
+			wp_trigger_error( __FUNCTION__, $e->getMessage() );
 	}
 }
 add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client' );
