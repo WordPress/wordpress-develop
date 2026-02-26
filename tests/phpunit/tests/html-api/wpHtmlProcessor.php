@@ -1125,7 +1125,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		 *               └─TD (real)
 		 *                 └─…
 		 */
-		$html_table_td      = str_repeat( '<table><td>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
+		$html_table_td = str_repeat( '<table><td>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
 
 		// Offset 0
 		$processor = WP_HTML_Processor::create_fragment( $html_table_td );
