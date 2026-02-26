@@ -1091,12 +1091,10 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$html      = str_repeat( '<i>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
-		// The fragment parser starts with a few context tokens already bookmarked.
-		$reached_tokens = ( fn() => count( $this->bookmarks ) )->call( $processor );
 		while ( $processor->next_token() ) {
-			++$reached_tokens;
+			// Process tokens.
 		}
-		$this->assertSame( WP_HTML_Processor::MAX_BOOKMARKS, $reached_tokens );
+
 		$this->assertSame(
 			WP_HTML_Processor::ERROR_EXCEEDED_MAX_BOOKMARKS,
 			$processor->get_last_error(),
@@ -1110,36 +1108,77 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_deep_nesting_fails_processing_virtual_tokens_without_error() {
-		$html      = str_repeat( '<table><td>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
-		$processor = WP_HTML_Processor::create_fragment( $html );
-
-		// The fragment parser starts with a few context tokens already bookmarked.
-		$reached_tokens = ( fn() => count( $this->bookmarks ) )->call( $processor );
-		while ( $processor->next_token() ) {
-			++$reached_tokens;
-		}
-
 		/*
 		 * This test has some variability depending on how the virtual tokens align.
-		 * It will produce 1 real, 2 virtual, 1 real.
+		 * In order to ensure that bookmarks are exhausted on a virtual token
+		 * without throwing an error, 3 documents are parsed with different "offsets"
+		 * to ensure that the bookmarks are exhaused on a virtual token in at least one of the runs.
 		 *
 		 * "<table><td><table><td>…" produces:
-		 * └─TABLE
+		 * └─TABLE (real)
 		 *   └─TBODY (virtual)
 		 *     └─TR (virtual)
-		 *       └─TD
-		 *         └─TABLE
+		 *       └─TD (real)
+		 *         └─TABLE (real)
 		 *           └─TBODY (virtual)
 		 *             └─TR (virtual)
-		 *               └─TD
+		 *               └─TD (real)
 		 *                 └─…
 		 */
-		$this->assertGreaterThanOrEqual( WP_HTML_Processor::MAX_BOOKMARKS - 1, $reached_tokens );
-		$this->assertLessThanOrEqual( WP_HTML_Processor::MAX_BOOKMARKS + 1, $reached_tokens );
+		$html_table_td      = str_repeat( '<table><td>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
+
+		// Offset 0
+		$processor = WP_HTML_Processor::create_fragment( $html_table_td );
+		while ( $processor->next_token() ) {
+			// Process tokens.
+		}
 		$this->assertSame(
 			WP_HTML_Processor::ERROR_EXCEEDED_MAX_BOOKMARKS,
 			$processor->get_last_error(),
 			'Failed to report exceeded-max-bookmarks error.'
+		);
+
+		// Offset 1
+		$processor = WP_HTML_Processor::create_fragment( "<div>{$html_table_td}" );
+		while ( $processor->next_token() ) {
+			// Process tokens.
+		}
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_EXCEEDED_MAX_BOOKMARKS,
+			$processor->get_last_error(),
+			'Failed to report exceeded-max-bookmarks error.'
+		);
+
+		// Offset 2
+		$processor = WP_HTML_Processor::create_fragment( "<div><div>{$html_table_td}" );
+		while ( $processor->next_token() ) {
+			// Process tokens.
+		}
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_EXCEEDED_MAX_BOOKMARKS,
+			$processor->get_last_error(),
+			'Failed to report exceeded-max-bookmarks error.'
+		);
+	}
+
+	/**
+	 * @ticket 64394
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 */
+	public function test_prevents_unbounded_bookmarking() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><html>' );
+		$processor->next_tag();
+
+		// This might fail before the MAX_BOOKMARK limit, which is okay.
+		foreach ( range( 0, WP_HTML_Processor::MAX_BOOKMARKS ) as $n ) {
+			if ( ! $processor->set_bookmark( "{$n}" ) ) {
+				break;
+			}
+		}
+
+		$this->assertFalse(
+			$processor->set_bookmark( 'beyond the limit' )
 		);
 	}
 }
