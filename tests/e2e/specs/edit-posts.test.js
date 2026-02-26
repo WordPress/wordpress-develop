@@ -53,7 +53,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Click the post title (edit) link
-		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).click();
+		await listTable.getByRole( 'link', { name: title, exact: true } ).click();
 
 		// Wait for the editor iframe to load, and switch to it as the active content frame.
 		await page
@@ -84,7 +84,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// // Focus on the post title link.
-		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
+		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
 		await pageUtils.pressKeys( 'Tab', { times: 2 } )
@@ -122,7 +122,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Focus on the post title link.
-		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
+		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
 
 		// Tab to the Trash button and press Enter to delete the post.
 		await pageUtils.pressKeys( 'Tab', { times: 3 } )

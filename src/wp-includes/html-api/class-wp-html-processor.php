@@ -139,6 +139,7 @@
  *
  * @see WP_HTML_Tag_Processor
  * @see https://html.spec.whatwg.org/
+ * @phpstan-consistent-constructor
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
@@ -583,6 +584,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $message Explains support is missing in order to parse the current node.
+	 * @return never
 	 */
 	private function bail( string $message ) {
 		$here  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
@@ -1414,6 +1416,32 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$html .= '>';
+
+		/*
+		 * The HTML parser strips a leading newline immediately after the start
+		 * tag of TEXTAREA, PRE, and LISTING elements. When serializing, prepend
+		 * a leading newline to ensure the semantic HTML content is preserved.
+		 *
+		 * For example, `<pre>\n\nX</pre>` must not become `<pre>\nX</pre>` because its content
+		 * has changed. However, `<pre>X</pre>` and `<pre>\nX</pre>` are _equivalent_.
+		 *
+		 * > A start tag whose tag name is "textarea"
+		 * >   …
+		 * >   If the next token is a U+000A LINE FEED (LF) character token, then ignore
+		 * >   that token and move on to the next one. (Newlines at the start of textarea
+		 * >   elements are ignored as an authoring convenience.)
+		 *
+		 * > A start tag whose tag name is one of: "pre", "listing"
+		 * >   …
+		 * >   If the next token is a U+000A LINE FEED (LF) character token, then ignore
+		 * >   that token and move on to the next one. (Newlines at the start of pre blocks
+		 * >   are ignored as an authoring convenience.)
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html
+		 */
+		if ( 'TEXTAREA' === $tag_name || 'PRE' === $tag_name || 'LISTING' === $tag_name ) {
+			$html .= "\n";
+		}
 
 		// Flush out self-contained elements.
 		if ( $in_html && in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
