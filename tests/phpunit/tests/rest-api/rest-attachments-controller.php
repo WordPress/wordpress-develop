@@ -3234,7 +3234,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_body( file_get_contents( self::$test_file ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 401 );
 	}
 
 	/**
