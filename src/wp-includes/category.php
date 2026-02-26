@@ -249,34 +249,6 @@ function cat_is_ancestor_of( $cat1, $cat2 ) {
 	return term_is_ancestor_of( $cat1, $cat2, 'category' );
 }
 
-/**
- * Sanitizes category data based on context.
- *
- * @since 2.3.0
- *
- * @param object|array $category Category data.
- * @param string       $context  Optional. Default 'display'.
- * @return object|array Same type as $category with sanitized data for safe use.
- */
-function sanitize_category( $category, $context = 'display' ) {
-	return sanitize_term( $category, 'category', $context );
-}
-
-/**
- * Sanitizes data in single category key field.
- *
- * @since 2.3.0
- *
- * @param string $field   Category key to sanitize.
- * @param mixed  $value   Category value to sanitize.
- * @param int    $cat_id  Category ID.
- * @param string $context What filter to use, 'raw', 'display', etc.
- * @return mixed Value after $value has been sanitized.
- */
-function sanitize_category_field( $field, $value, $cat_id, $context ) {
-	return sanitize_term_field( $field, $value, $cat_id, 'category', $context );
-}
-
 /* Tags */
 
 /**

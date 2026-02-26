@@ -986,9 +986,11 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	if ( $term instanceof WP_Term ) {
 		$_term = $term;
 	} elseif ( is_object( $term ) ) {
-		if ( empty( $term->filter ) || 'raw' === $term->filter ) {
+		if ( empty( $term->filter ) ) {
 			$_term = sanitize_term( $term, $taxonomy, 'raw' );
 			$_term = new WP_Term( $_term );
+		} elseif ( 'raw' === $term->filter ) {
+			$_term = new WP_Term( $term );
 		} else {
 			$_term = WP_Term::get_instance( $term->term_id );
 		}
@@ -1714,32 +1716,42 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
  * @param array|object $term     The term to check.
  * @param string       $taxonomy The taxonomy name to use.
  * @param string       $context  Optional. Context in which to sanitize the term.
- *                               Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                               Accepts 'edit', 'db', 'display', 'rss',
  *                               'attribute', or 'js'. Default 'display'.
  * @return array|object Term with all fields sanitized.
  */
 function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 	$fields = array( 'term_id', 'name', 'description', 'slug', 'count', 'parent', 'term_group', 'term_taxonomy_id', 'object_id' );
 
-	$do_object = is_object( $term );
-
-	$term_id = $do_object ? $term->term_id : ( $term['term_id'] ?? 0 );
-
-	foreach ( (array) $fields as $field ) {
-		if ( $do_object ) {
+	if ( is_object( $term ) ) {
+		// Check if term already filtered for this context.
+		if ( isset( $term->filter ) && $context === $term->filter ) {
+			return $term;
+		}
+		if ( ! isset( $term->term_id ) ) {
+			$term->term_id = 0;
+		}
+		foreach ( (array) $fields as $field ) {
 			if ( isset( $term->$field ) ) {
-				$term->$field = sanitize_term_field( $field, $term->$field, $term_id, $taxonomy, $context );
-			}
-		} else {
-			if ( isset( $term[ $field ] ) ) {
-				$term[ $field ] = sanitize_term_field( $field, $term[ $field ], $term_id, $taxonomy, $context );
+
+				$term->$field = sanitize_term_field( $field, $term->$field, $term->term_id, $taxonomy, $context );
 			}
 		}
-	}
-
-	if ( $do_object ) {
 		$term->filter = $context;
-	} else {
+	} elseif ( is_array( $term ) ) {
+		// Check if term already filtered for this context.
+		if ( isset( $term['filter'] ) && $context === $term['filter'] ) {
+			return $term;
+		}
+		if ( ! isset( $term['term_id'] ) ) {
+			$term['term_id'] = 0;
+		}
+		foreach ( (array) $fields as $field ) {
+			if ( isset( $term[ $field ] ) ) {
+				$term[ $field ] = sanitize_term_field( $field, $term[ $field ], $term['term_id'], $taxonomy, $context );
+			}
+		}
+
 		$term['filter'] = $context;
 	}
 
@@ -1815,6 +1827,10 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 
 		if ( 'description' === $field ) {
 			$value = esc_html( $value ); // textarea_escaped
+		} elseif ( 'slug' === $field ) {
+			$value = sanitize_title( $value );
+		} elseif ( in_array( $field, $int_fields, true ) ) {
+			$value = (int) $value;
 		} else {
 			$value = esc_attr( $value );
 		}
@@ -1882,6 +1898,10 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 		 * @param mixed $value Value of the taxonomy field.
 		 */
 		$value = apply_filters( "{$taxonomy}_{$field}_rss", $value );
+
+		if ( 'slug' === $field ) {
+			$value = sanitize_title( $value );
+		}
 	} else {
 		// Use display filters by default.
 
@@ -1912,6 +1932,10 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 		 * @param string $context Context to retrieve the taxonomy field value.
 		 */
 		$value = apply_filters( "{$taxonomy}_{$field}", $value, $term_id, $context );
+
+		if ( 'slug' === $field ) {
+			$value = sanitize_title( $value );
+		}
 	}
 
 	if ( 'attribute' === $context ) {
@@ -1922,7 +1946,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 
 	// Restore the type for integer fields after esc_attr().
 	if ( in_array( $field, $int_fields, true ) ) {
-		$value = (int) $value;
+		$value = absint( $value );
 	}
 
 	return $value;
