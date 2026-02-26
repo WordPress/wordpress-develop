@@ -2058,6 +2058,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		} elseif ( 'scaled' === $image_size ) {
 			// The current attached file is the original; record it as original_image.
 			$current_file = get_attached_file( $attachment_id, true );
+
+			if ( ! $current_file ) {
+				return new WP_Error(
+					'rest_sideload_no_attached_file',
+					__( 'Unable to retrieve the attached file for this attachment.' ),
+					array( 'status' => 400 )
+				);
+			}
+
 			$metadata['original_image'] = wp_basename( $current_file );
 
 			// Update the attached file to point to the scaled version.
