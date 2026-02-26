@@ -244,8 +244,9 @@ function get_the_author_link( $use_title_attr = true ) {
 
 		$author_url          = get_the_author_meta( 'url' );
 		$author_display_name = get_the_author();
+
 		/* translators: %s: Author's display name. */
-		$author_title        = sprintf( __( 'Visit %s&#8217;s website' ), $author_display_name );
+		$author_title = sprintf( __( 'Visit %s&#8217;s website' ), $author_display_name );
 
 		$link = sprintf(
 			'<a href="%1$s"%2$s rel="author external">%3$s</a>',
