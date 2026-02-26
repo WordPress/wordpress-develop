@@ -3770,6 +3770,17 @@ class WP_HTML_Tag_Processor {
 	 */
 	public function set_modifiable_text( string $plaintext_content ): bool {
 		if ( self::STATE_TEXT_NODE === $this->parser_state ) {
+			/*
+			 * HTML ignores a single leading newline in this context. If a leading newline
+			 * is intended, preserve it by adding an extra newline.
+			 */
+			if (
+				$this->skip_newline_at === $this->text_starts_at &&
+				1 === strspn( $plaintext_content, "\n\r", 0, 1 )
+			) {
+				$plaintext_content = "\n{$plaintext_content}";
+			}
+
 			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 				$this->text_starts_at,
 				$this->text_length,
@@ -3876,6 +3887,17 @@ class WP_HTML_Tag_Processor {
 					},
 					$plaintext_content
 				);
+
+				/*
+				 * HTML ignores a single leading newline in this context. If a leading newline
+				 * is intended, preserve it by adding an extra newline.
+				 */
+				if (
+					'TEXTAREA' === $this->get_tag() &&
+					1 === strspn( $plaintext_content, "\n\r", 0, 1 )
+				) {
+					$plaintext_content = "\n{$plaintext_content}";
+				}
 
 				/*
 				 * These don't _need_ to be escaped, but since they are decoded it's
