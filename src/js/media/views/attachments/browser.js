@@ -1,5 +1,6 @@
 var View = wp.media.View,
 	mediaTrash = wp.media.view.settings.mediaTrash,
+	showMonths = wp.media.view.settings.showMonths,
 	l10n = wp.media.view.l10n,
 	$ = jQuery,
 	AttachmentsBrowser,
@@ -240,19 +241,21 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority: -90
 			}).render() );
 
-			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
-				value: l10n.filterByDate,
-				attributes: {
-					'for': 'media-attachment-date-filters'
-				},
-				priority: -75
-			}).render() );
-			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
-				controller: this.controller,
-				model:      this.collection.props,
-				priority: -75
-			}).render() );
+			if ( showMonths ) {
+				// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
+				this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
+					value: l10n.filterByDate,
+					attributes: {
+						'for': 'media-attachment-date-filters'
+					},
+					priority: -75
+				}).render() );
+				this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
+					controller: this.controller,
+					model:      this.collection.props,
+					priority: -75
+				}).render() );
+			}
 
 			// BulkSelection is a <div> with subviews, including screen reader text.
 			this.toolbar.set( 'selectModeToggleButton', new wp.media.view.SelectModeToggleButton({
@@ -361,7 +364,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				}).render() );
 			}
 
-		} else if ( this.options.date ) {
+		} else if ( showMonths && this.options.date ) {
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
 			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
 				value: l10n.filterByDate,
