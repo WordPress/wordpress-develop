@@ -120,6 +120,10 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'default_comment_status',
 			'site_icon', // Registered in wp-includes/blocks/site-logo.php
 			'wp_enable_real_time_collaboration',
+			// Connectors API keys are registered in _wp_register_default_connector_settings() in wp-includes/connectors.php.
+			'connectors_ai_anthropic_api_key',
+			'connectors_ai_google_api_key',
+			'connectors_ai_openai_api_key',
 		);
 
 		if ( ! is_multisite() ) {
