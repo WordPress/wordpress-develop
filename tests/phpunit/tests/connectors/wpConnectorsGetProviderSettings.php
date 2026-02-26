@@ -13,9 +13,9 @@ class Tests_Connectors_WpConnectorsGetProviderSettings extends WP_UnitTestCase {
 	public function test_returns_expected_provider_keys() {
 		$settings = _wp_connectors_get_provider_settings();
 
-		$this->assertArrayHasKey( 'connectors_gemini_api_key', $settings );
-		$this->assertArrayHasKey( 'connectors_openai_api_key', $settings );
-		$this->assertArrayHasKey( 'connectors_anthropic_api_key', $settings );
+		$this->assertArrayHasKey( 'connectors_ai_google_api_key', $settings );
+		$this->assertArrayHasKey( 'connectors_ai_openai_api_key', $settings );
+		$this->assertArrayHasKey( 'connectors_ai_anthropic_api_key', $settings );
 		$this->assertCount( 3, $settings );
 	}
 
@@ -39,8 +39,8 @@ class Tests_Connectors_WpConnectorsGetProviderSettings extends WP_UnitTestCase {
 	public function test_provider_values_match_expected() {
 		$settings = _wp_connectors_get_provider_settings();
 
-		$this->assertSame( 'google', $settings['connectors_gemini_api_key']['provider'] );
-		$this->assertSame( 'openai', $settings['connectors_openai_api_key']['provider'] );
-		$this->assertSame( 'anthropic', $settings['connectors_anthropic_api_key']['provider'] );
+		$this->assertSame( 'google', $settings['connectors_ai_google_api_key']['provider'] );
+		$this->assertSame( 'openai', $settings['connectors_ai_openai_api_key']['provider'] );
+		$this->assertSame( 'anthropic', $settings['connectors_ai_anthropic_api_key']['provider'] );
 	}
 }

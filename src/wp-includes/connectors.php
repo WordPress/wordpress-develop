@@ -158,22 +158,19 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
 function _wp_connectors_get_provider_settings(): array {
 	$providers = array(
 		'google'    => array(
-			'slug' => 'gemini',
-			'name' => 'Gemini',
+			'name' => 'Google',
 		),
 		'openai'    => array(
-			'slug' => 'openai',
 			'name' => 'OpenAI',
 		),
 		'anthropic' => array(
-			'slug' => 'anthropic',
 			'name' => 'Anthropic',
 		),
 	);
 
 	$provider_settings = array();
 	foreach ( $providers as $provider => $data ) {
-		$setting_name = "connectors_{$data['slug']}_api_key";
+		$setting_name = "connectors_ai_{$provider}_api_key";
 
 		$provider_settings[ $setting_name ] = array(
 			'provider'    => $provider,
