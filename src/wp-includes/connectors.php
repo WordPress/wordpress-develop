@@ -148,114 +148,6 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
 }
 
 /**
- * Masks the Gemini API key on read.
- *
- * @since 7.0.0
- * @access private
- *
- * @param string $value The raw option value.
- * @return string Masked key or empty string.
- */
-function _wp_connectors_mask_gemini_api_key( string $value ): string {
-	if ( '' === $value ) {
-		return $value;
-	}
-
-	return _wp_connectors_mask_api_key( $value );
-}
-
-/**
- * Sanitizes and validates the Gemini API key before saving.
- *
- * @since 7.0.0
- * @access private
- *
- * @param string $value The new value.
- * @return string The sanitized value, or empty string if the key is not valid.
- */
-function _wp_connectors_sanitize_gemini_api_key( string $value ): string {
-	$value = sanitize_text_field( $value );
-	if ( '' === $value ) {
-		return $value;
-	}
-
-	$valid = _wp_connectors_is_api_key_valid( $value, 'google' );
-	return true === $valid ? $value : '';
-}
-
-/**
- * Masks the OpenAI API key on read.
- *
- * @since 7.0.0
- * @access private
- *
- * @param string $value The raw option value.
- * @return string Masked key or empty string.
- */
-function _wp_connectors_mask_openai_api_key( string $value ): string {
-	if ( '' === $value ) {
-		return $value;
-	}
-
-	return _wp_connectors_mask_api_key( $value );
-}
-
-/**
- * Sanitizes and validates the OpenAI API key before saving.
- *
- * @since 7.0.0
- * @access private
- *
- * @param string $value The new value.
- * @return string The sanitized value, or empty string if the key is not valid.
- */
-function _wp_connectors_sanitize_openai_api_key( string $value ): string {
-	$value = sanitize_text_field( $value );
-	if ( '' === $value ) {
-		return $value;
-	}
-
-	$valid = _wp_connectors_is_api_key_valid( $value, 'openai' );
-	return true === $valid ? $value : '';
-}
-
-/**
- * Masks the Anthropic API key on read.
- *
- * @since 7.0.0
- * @access private
- *
- * @param string $value The raw option value.
- * @return string Masked key or empty string.
- */
-function _wp_connectors_mask_anthropic_api_key( string $value ): string {
-	if ( '' === $value ) {
-		return $value;
-	}
-
-	return _wp_connectors_mask_api_key( $value );
-}
-
-/**
- * Sanitizes and validates the Anthropic API key before saving.
- *
- * @since 7.0.0
- * @access private
- *
- * @param string $value The new value.
- * @return string The sanitized value, or empty string if the key is not valid.
- */
-function _wp_connectors_sanitize_anthropic_api_key( string $value ): string {
-	$value = sanitize_text_field( $value );
-	if ( '' === $value ) {
-		return $value;
-	}
-
-	$valid = _wp_connectors_is_api_key_valid( $value, 'anthropic' );
-	return true === $valid ? $value : '';
-}
-
-/**
  * Gets the provider connectors.
  *
  * @since 7.0.0
@@ -264,23 +156,29 @@ function _wp_connectors_sanitize_anthropic_api_key( string $value ): string {
  * @return array<string, array{provider: string, mask: callable, sanitize: callable}> Connectors.
  */
 function _wp_connectors_get_connectors(): array {
-	return array(
-		'connectors_gemini_api_key'    => array(
-			'provider' => 'google',
-			'mask'     => '_wp_connectors_mask_gemini_api_key',
-			'sanitize' => '_wp_connectors_sanitize_gemini_api_key',
-		),
-		'connectors_openai_api_key'    => array(
-			'provider' => 'openai',
-			'mask'     => '_wp_connectors_mask_openai_api_key',
-			'sanitize' => '_wp_connectors_sanitize_openai_api_key',
-		),
-		'connectors_anthropic_api_key' => array(
-			'provider' => 'anthropic',
-			'mask'     => '_wp_connectors_mask_anthropic_api_key',
-			'sanitize' => '_wp_connectors_sanitize_anthropic_api_key',
-		),
+	$providers = array(
+		'google'    => 'connectors_gemini_api_key',
+		'openai'    => 'connectors_openai_api_key',
+		'anthropic' => 'connectors_anthropic_api_key',
 	);
+
+	$connectors = array();
+	foreach ( $providers as $provider => $option_name ) {
+		$connectors[ $option_name ] = array(
+			'provider' => $provider,
+			'mask'     => '_wp_connectors_mask_api_key',
+			'sanitize' => static function ( string $value ) use ( $provider ): string {
+				$value = sanitize_text_field( $value );
+				if ( '' === $value ) {
+					return $value;
+				}
+
+				$valid = _wp_connectors_is_api_key_valid( $value, $provider );
+				return true === $valid ? $value : '';
+			},
+		);
+	}
+	return $connectors;
 }
 
 /**
