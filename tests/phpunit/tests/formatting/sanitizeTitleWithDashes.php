@@ -182,6 +182,14 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64284
+	 */
+	public function test_replaces_url_encoded_multiply_sign() {
+		$this->assertSame( 'x', sanitize_title_with_dashes( '%c3%97', '', 'save' ), 'URL-encoded multiplication sign (lowercase %c3%97) should be replaced with x in save context' );
+		$this->assertSame( 'x', sanitize_title_with_dashes( '%C3%97', '', 'save' ), 'URL-encoded multiplication sign (uppercase %C3%97) should be replaced with x in save context' );
+	}
+
+	/**
 	 * @ticket 20772
 	 */
 	public function test_replaces_standalone_diacritic() {
