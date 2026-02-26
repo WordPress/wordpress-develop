@@ -2292,6 +2292,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$times_replacements = array( '×', '&times;', '&#215;' );
 	if ( 'save' === $context ) {
 		$times_replacements[] = '%c3%97';
+		$times_replacements[] = '%C3%97';
 	}
 	$title = str_replace( $times_replacements, 'x', $title );
 
