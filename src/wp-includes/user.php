@@ -894,7 +894,7 @@ function get_users( $args = array() ) {
  *                                 'display_name', 'post_count', 'ID', 'meta_value', 'user_login'. Default 'name'.
  *     @type string $order         Sorting direction for $orderby. Accepts 'ASC', 'DESC'. Default 'ASC'.
  *     @type int    $number        Maximum users to return or display. Default empty (all users).
- *     @type bool   $exclude_admin Whether to exclude the 'admin' account, if it exists. Default false.
+ *     @type bool   $exclude_admin Whether to exclude the 'admin' account, if it exists. Default true.
  *     @type bool   $show_fullname Whether to show the user's full name. Default false.
  *     @type string $feed          If not empty, show a link to the user's feed and use this text as the alt
  *                                 parameter of the link. Default empty.
@@ -2209,6 +2209,44 @@ function wp_insert_user( $userdata ) {
 		$userdata = get_object_vars( $userdata );
 	} elseif ( $userdata instanceof WP_User ) {
 		$userdata = $userdata->to_array();
+	} elseif ( $userdata instanceof Traversable ) {
+		$userdata = iterator_to_array( $userdata );
+	} elseif ( $userdata instanceof ArrayAccess ) {
+		$userdata_obj = $userdata;
+		$userdata     = array();
+		foreach (
+			array(
+				'ID',
+				'user_pass',
+				'user_login',
+				'user_nicename',
+				'user_url',
+				'user_email',
+				'display_name',
+				'nickname',
+				'first_name',
+				'last_name',
+				'description',
+				'rich_editing',
+				'syntax_highlighting',
+				'comment_shortcuts',
+				'admin_color',
+				'use_ssl',
+				'user_registered',
+				'user_activation_key',
+				'spam',
+				'show_admin_bar_front',
+				'role',
+				'locale',
+				'meta_input',
+			) as $key
+		) {
+			if ( isset( $userdata_obj[ $key ] ) ) {
+				$userdata[ $key ] = $userdata_obj[ $key ];
+			}
+		}
+	} else {
+		$userdata = (array) $userdata;
 	}
 
 	// Are we updating or creating?
@@ -2244,7 +2282,7 @@ function wp_insert_user( $userdata ) {
 		$user_pass = wp_hash_password( $userdata['user_pass'] );
 	}
 
-	$sanitized_user_login = sanitize_user( $userdata['user_login'], true );
+	$sanitized_user_login = sanitize_user( $userdata['user_login'] ?? '', true );
 
 	/**
 	 * Filters a username after it has been sanitized.
