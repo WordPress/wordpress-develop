@@ -11064,6 +11064,24 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "connectors_gemini_api_key": {
+                            "title": "",
+                            "description": "",
+                            "type": "string",
+                            "required": false
+                        },
+                        "connectors_openai_api_key": {
+                            "title": "",
+                            "description": "",
+                            "type": "string",
+                            "required": false
+                        },
+                        "connectors_anthropic_api_key": {
+                            "title": "",
+                            "description": "",
+                            "type": "string",
+                            "required": false
+                        },
                         "title": {
                             "title": "Title",
                             "description": "Site title.",
@@ -14634,6 +14652,9 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
+    "connectors_gemini_api_key": "",
+    "connectors_openai_api_key": "",
+    "connectors_anthropic_api_key": "",
     "title": "Test Blog",
     "description": "",
     "url": "http://example.org",
