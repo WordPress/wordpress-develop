@@ -164,7 +164,18 @@
         'import' => 'static'
       )
     ),
-    'version' => 'd4a7a4c45e27efc784fd'
+    'version' => '4c5f43f6950193300099'
+  ),
+  'connectors/index.min.js' => array(
+    'dependencies' => array(
+      'react-jsx-runtime',
+      'wp-components',
+      'wp-data',
+      'wp-element',
+      'wp-i18n',
+      'wp-private-apis'
+    ),
+    'version' => '00a04c7280e7ad762a10'
   ),
   'core-abilities/index.min.js' => array(
     'dependencies' => array(
