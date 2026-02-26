@@ -3703,7 +3703,8 @@ mockedApiResponse.Schema = {
                                 "1536x1536",
                                 "2048x2048",
                                 "original",
-                                "full"
+                                "full",
+                                "scaled"
                             ],
                             "required": true
                         },
