@@ -609,15 +609,6 @@ body.trashing #publish-settings {
 	background: transparent;
 }
 
-#customize-controls .control-section:hover > .accordion-section-title,
-#customize-controls .control-section .accordion-section-title button:hover,
-#customize-controls .control-section.open .accordion-section-title,
-#customize-controls .control-section .accordion-section-title button:focus {
-	color: #2271b1;
-	background: #f6f7f7;
-	border-left-color: #2271b1;
-}
-
 #accordion-section-themes + .control-section {
 	border-top: 1px solid #dcdcde;
 }
