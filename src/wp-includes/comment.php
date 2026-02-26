@@ -2472,13 +2472,13 @@ function wp_new_comment_notify_moderator( $comment_id ) {
  */
 function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment = get_comment( $comment_id );
+	if ( ! ( $comment instanceof WP_Comment ) ) {
+		return false;
+	}
 	$is_note = ( $comment && 'note' === $comment->comment_type );
 
 	// By default, only notify for approved comments and notes.
-	if (
-		! isset( $comment->comment_approved ) ||
-		( '1' !== $comment->comment_approved && ! $is_note )
-	) {
+	if ( '1' !== $comment->comment_approved && ! $is_note ) {
 		$maybe_notify = false;
 	} else if ( $is_note ) {
 		$maybe_notify = get_option( 'wp_notes_notify', 1 );
