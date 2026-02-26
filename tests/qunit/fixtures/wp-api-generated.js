@@ -11065,20 +11065,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "connectors_gemini_api_key": {
-                            "title": "",
-                            "description": "",
+                            "title": "Gemini API Key",
+                            "description": "API key for the Gemini AI provider.",
                             "type": "string",
                             "required": false
                         },
                         "connectors_openai_api_key": {
-                            "title": "",
-                            "description": "",
+                            "title": "OpenAI API Key",
+                            "description": "API key for the OpenAI AI provider.",
                             "type": "string",
                             "required": false
                         },
                         "connectors_anthropic_api_key": {
-                            "title": "",
-                            "description": "",
+                            "title": "Anthropic API Key",
+                            "description": "API key for the Anthropic AI provider.",
                             "type": "string",
                             "required": false
                         },

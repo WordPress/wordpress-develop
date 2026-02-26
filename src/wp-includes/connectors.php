@@ -148,26 +148,47 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
 }
 
 /**
- * Gets the provider connectors.
+ * Gets the registered connector provider settings.
  *
  * @since 7.0.0
  * @access private
  *
- * @return array<string, array{provider: string, mask: callable, sanitize: callable}> Connectors.
+ * @return array<string, array{provider: string, label: string, description: string, mask: callable, sanitize: callable}> Provider settings keyed by setting name.
  */
-function _wp_connectors_get_connectors(): array {
+function _wp_connectors_get_provider_settings(): array {
 	$providers = array(
-		'google'    => 'connectors_gemini_api_key',
-		'openai'    => 'connectors_openai_api_key',
-		'anthropic' => 'connectors_anthropic_api_key',
+		'google'    => array(
+			'slug' => 'gemini',
+			'name' => 'Gemini',
+		),
+		'openai'    => array(
+			'slug' => 'openai',
+			'name' => 'OpenAI',
+		),
+		'anthropic' => array(
+			'slug' => 'anthropic',
+			'name' => 'Anthropic',
+		),
 	);
 
-	$connectors = array();
-	foreach ( $providers as $provider => $option_name ) {
-		$connectors[ $option_name ] = array(
-			'provider' => $provider,
-			'mask'     => '_wp_connectors_mask_api_key',
-			'sanitize' => static function ( string $value ) use ( $provider ): string {
+	$provider_settings = array();
+	foreach ( $providers as $provider => $data ) {
+		$setting_name = "connectors_{$data['slug']}_api_key";
+
+		$provider_settings[ $setting_name ] = array(
+			'provider'    => $provider,
+			'label'       => sprintf(
+				/* translators: %s: AI provider name. */
+				__( '%s API Key' ),
+				$data['name']
+			),
+			'description' => sprintf(
+				/* translators: %s: AI provider name. */
+				__( 'API key for the %s AI provider.' ),
+				$data['name']
+			),
+			'mask'        => '_wp_connectors_mask_api_key',
+			'sanitize'    => static function ( string $value ) use ( $provider ): string {
 				$value = sanitize_text_field( $value );
 				if ( '' === $value ) {
 					return $value;
@@ -178,7 +199,7 @@ function _wp_connectors_get_connectors(): array {
 			},
 		);
 	}
-	return $connectors;
+	return $provider_settings;
 }
 
 /**
@@ -222,18 +243,18 @@ function _wp_connectors_validate_keys_in_rest( WP_REST_Response $response, WP_RE
 		return $response;
 	}
 
-	foreach ( _wp_connectors_get_connectors() as $option_name => $config ) {
-		if ( ! in_array( $option_name, $requested, true ) ) {
+	foreach ( _wp_connectors_get_provider_settings() as $setting_name => $config ) {
+		if ( ! in_array( $setting_name, $requested, true ) ) {
 			continue;
 		}
 
-		$real_key = _wp_connectors_get_real_api_key( $option_name, $config['mask'] );
+		$real_key = _wp_connectors_get_real_api_key( $setting_name, $config['mask'] );
 		if ( '' === $real_key ) {
 			continue;
 		}
 
 		if ( true !== _wp_connectors_is_api_key_valid( $real_key, $config['provider'] ) ) {
-			$data[ $option_name ] = 'invalid_key';
+			$data[ $setting_name ] = 'invalid_key';
 		}
 	}
 
@@ -253,18 +274,20 @@ function _wp_register_default_connector_settings(): void {
 		return;
 	}
 
-	foreach ( _wp_connectors_get_connectors() as $option_name => $config ) {
+	foreach ( _wp_connectors_get_provider_settings() as $setting_name => $config ) {
 		register_setting(
 			'connectors',
-			$option_name,
+			$setting_name,
 			array(
 				'type'              => 'string',
+				'label'             => $config['label'],
+				'description'       => $config['description'],
 				'default'           => '',
 				'show_in_rest'      => true,
 				'sanitize_callback' => $config['sanitize'],
 			)
 		);
-		add_filter( "option_{$option_name}", $config['mask'] );
+		add_filter( "option_{$setting_name}", $config['mask'] );
 	}
 }
 add_action( 'init', '_wp_register_default_connector_settings' );
@@ -280,8 +303,8 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 		return;
 	}
 
-	foreach ( _wp_connectors_get_connectors() as $option_name => $config ) {
-		$api_key = _wp_connectors_get_real_api_key( $option_name, $config['mask'] );
+	foreach ( _wp_connectors_get_provider_settings() as $setting_name => $config ) {
+		$api_key = _wp_connectors_get_real_api_key( $setting_name, $config['mask'] );
 		if ( '' !== $api_key ) {
 			_wp_connectors_set_provider_api_key( $api_key, $config['provider'] );
 		}
