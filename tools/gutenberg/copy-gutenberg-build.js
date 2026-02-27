@@ -276,18 +276,19 @@ function copyBlockAssets( config ) {
 			}
 
 			// 3. Copy PHP from build
-			const blockPhpSrc = path.join( phpSrc, blockName, 'index.php' );
+			const blockPhpSrc = path.join( phpSrc, `${ blockName }.php` );
 			if ( fs.existsSync( blockPhpSrc ) ) {
 				const phpDest = path.join(
 					wpIncludesDir,
 					config.destination,
+					blockName,
 					`${ blockName }.php`
 				);
 				fs.copyFileSync( blockPhpSrc, phpDest );
 			}
 
 			// 4. Copy PHP subdirectories from build (e.g., navigation-link/shared/*.php)
-			const blockPhpDir = path.join( phpSrc, blockName );
+			const blockPhpDir = path.join( gutenbergBuildDir, phpSrc, blockName );
 			if ( fs.existsSync( blockPhpDir ) ) {
 				const rootIndex = path.join( blockPhpDir, 'index.php' );
 				fs.cpSync( blockPhpDir, blockDest, {
