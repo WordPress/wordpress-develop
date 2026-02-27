@@ -5203,7 +5203,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     $processor->get_tag() === null;
 	 *
 	 * @since 6.4.0
-	 * @ignore
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
@@ -5241,7 +5240,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * but only if the self-closing flag is present in the syntax.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @return bool Whether the currently matched tag contains the self-closing flag.
 	 */
@@ -5266,7 +5264,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * of the document without matching a token.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @return string|null Name of the matched token.
 	 */
@@ -5295,7 +5292,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *  - `#funky-comment` when matched on a funky comment.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @return string|null What kind of token is matched, or null.
 	 */
@@ -5338,7 +5334,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     $p->get_attribute( 'class' ) === null;
 	 *
 	 * @since 6.6.0 Subclassed for HTML Processor.
-	 * @ignore
 	 *
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
@@ -5374,7 +5369,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
-	 * @ignore
 	 *
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
@@ -5388,7 +5382,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Remove an attribute from the currently-matched tag.
 	 *
 	 * @since 6.6.0 Subclassed for HTML Processor.
-	 * @ignore
 	 *
 	 * @param string $name The attribute name to remove.
 	 * @return bool Whether an attribute was removed.
@@ -5417,7 +5410,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     $p->get_attribute_names_with_prefix( 'data-' ) === null;
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 	 *
@@ -5432,7 +5424,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Adds a new class name to the currently matched tag.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @param string $class_name The class name to add.
 	 * @return bool Whether the class was set to be added.
@@ -5445,7 +5436,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Removes a class name from the currently matched tag.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @param string $class_name The class name to remove.
 	 * @return bool Whether the class was set to be removed.
@@ -5458,7 +5448,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Returns if a matched tag contains the given ASCII case-insensitive class name.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @todo When reconstructing active formatting elements with attributes, find a way
 	 *       to indicate if the virtually-reconstructed formatting elements contain the
@@ -5486,7 +5475,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     // Outputs: "free <egg> lang-en "
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 */
 	public function class_list() {
 		return $this->is_virtual() ? null : parent::class_list();
@@ -5509,7 +5497,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * have an empty string (e.g. a comment with no contents).
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @return string
 	 */
@@ -5533,7 +5520,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see self::COMMENT_AS_PI_NODE_LOOKALIKE
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @ignore
 	 *
 	 * @return string|null
 	 */
@@ -5548,7 +5534,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * performance overhead it requires.
 	 *
 	 * @since 6.4.0
-	 * @ignore
 	 *
 	 * @param string $bookmark_name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
@@ -5570,7 +5555,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
 	 * @since 6.4.0
-	 * @ignore
 	 *
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
@@ -5787,7 +5771,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * the original HTML and cannot be used as bookmarks.
 	 *
 	 * @since 6.4.0
-	 * @ignore
 	 *
 	 * @param string $bookmark_name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
@@ -5808,7 +5791,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Checks whether a bookmark with the given name exists.
 	 *
 	 * @since 6.5.0
-	 * @ignore
 	 *
 	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
 	 * @return bool Whether that bookmark exists.
