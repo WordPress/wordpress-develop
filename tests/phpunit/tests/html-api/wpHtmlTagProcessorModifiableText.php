@@ -40,6 +40,47 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that `set_modifiable_text()` returns false for elements that share
+	 * tag names with HTML atomic elements when parsed in a non-HTML namespace.
+	 *
+	 * @ticket 64751
+	 * @dataProvider data_set_modifiable_text_fails_for_non_html_namespace_elements
+	 */
+	public function test_set_modifiable_text_fails_for_non_html_namespace_elements(
+		string $html,
+		string $expected_tag
+	) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->change_parsing_namespace( 'svg' );
+		$processor->next_token();
+		$this->assertSame( $expected_tag, $processor->get_tag(), 'Failed to find target tag.' );
+		$this->assertSame( 'svg', $processor->get_namespace() );
+		$this->assertFalse(
+			$processor->set_modifiable_text( 'test' ),
+			"set_modifiable_text() should return false for svg:{$expected_tag}."
+		);
+		$this->assertSame(
+			$html,
+			$processor->get_updated_html(),
+			'HTML should be unchanged after rejected set_modifiable_text().'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_set_modifiable_text_fails_for_non_html_namespace_elements() {
+		return array(
+			'SVG TEXTAREA' => array( '<textarea></textarea>', 'TEXTAREA' ),
+			'SVG TITLE'    => array( '<title></title>', 'TITLE' ),
+			'SVG STYLE'    => array( '<style></style>', 'STYLE' ),
+			'SVG SCRIPT'   => array( '<script></script>', 'SCRIPT' ),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
