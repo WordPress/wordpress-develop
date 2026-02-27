@@ -1026,8 +1026,43 @@ function wp_normalize_escaped_html_text( string $context, string $text ): string
 			continue;
 		}
 
-		// Some characters are best left visible to the human mind.
-		$should_unhide = 1 === strspn( $character_reference, ',%()0123456789:[]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{}' );
+		// Some characters are best left visible to the human mind (as well as to downstream parsing code).
+		$default_to_unhide = '0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+
+		/**
+		 * Selects which US-ASCII characters to enforce rendering as the byte itself
+		 * rather than as any HTML character reference.
+		 *
+		 * Must be single-byte US-ASCII characters only. The default value unhides
+		 * digits, letters, and the colon character. Set to empty string to prevent
+		 * unhiding altogether.
+		 *
+		 * If non-US-ASCII characters are in the results or the result isn’t a string
+		 * then the default set of characters will be unhidden instead.
+		 *
+		 * @since {WP_VERSION}
+		 *
+		 * @Param string $unhidden_ascii These characters will be represented in HTML as themselves, not as
+		 *                               any character references. E.g. 'a' as 'a' and not as '&#x61;'.
+		 */
+		$unhidden_ascii = apply_filters( 'always_raw_escaped_html_ascii', $default_to_unhide );
+		if ( $unhidden_ascii !== $default_to_unhide ) {
+			$all_ascii_chars = (
+				"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" .
+				"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
+				" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f"
+			);
+
+			$is_all_ascii = (
+				is_string( $unhidden_ascii ) &&
+				strlen( $unhidden_ascii ) === strspn( $unhidden_ascii, $all_ascii_chars )
+			);
+
+			if ( ! $is_all_ascii ) {
+				$unhidden_ascii = $default_to_unhide;
+			}
+		}
+		$should_unhide = 1 === strspn( $character_reference, $unhidden_ascii );
 		if ( $should_unhide ) {
 			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . $character_reference;
 			$at           = $next_character_reference_at + $token_length;
@@ -1076,7 +1111,9 @@ function wp_normalize_escaped_html_text( string $context, string $text ): string
 		 * numeric character references may contain upper or lowercase hex values and may
 		 * contain unlimited preceding zeros.
 		 */
-		$is_hex        = 'x' === $text[ $next_character_reference_at + 2 ] || 'X' === $text[ $next_character_reference_at + 2 ];
+		$is_small_hex  = 'x' === $text[ $next_character_reference_at + 2 ];
+		$is_big_hex    = 'X' === $text[ $next_character_reference_at + 2 ];
+		$is_hex        = $is_small_hex || $is_big_hex;
 		$digits_at     = $next_character_reference_at + ( $is_hex ? 3 : 2 );
 		$leading_zeros = '0' === $text[ $digits_at ] ? strspn( $text, '0', $digits_at ) : 0;
 
@@ -1086,21 +1123,24 @@ function wp_normalize_escaped_html_text( string $context, string $text ): string
 			continue;
 		}
 
-		$digits = substr( $text, $digits_at + $leading_zeros, $next_character_reference_at + $token_length - $digits_at - $leading_zeros - ( $needs_semicolon ? 0 : 1 ) );
+		$nonzero_at   = $digits_at + $leading_zeros;
+		$digit_length = $next_character_reference_at + $token_length - $digits_at - $leading_zeros - ( $needs_semicolon ? 0 : 1 );
 		if ( $is_hex ) {
-			$lower_digits = strtolower( $digits );
+			$all_uppercase = strspn( $text, '0123456789ABCDEF', $nonzero_at, $digit_length ) === $digit_length;
 
 			// Nothing to do for already-normalized hexadecimal numeric character references.
-			if ( $lower_digits === $digits && ! $needs_semicolon && 0 === $leading_zeros ) {
+			if ( $is_small_hex && $all_uppercase && ! $needs_semicolon && 0 === $leading_zeros ) {
 				$at = $next_character_reference_at + $token_length;
 				continue;
 			}
 
-			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . "&#x{$lower_digits};";
+			$digits       = strtoupper( substr( $text, $nonzero_at, $digit_length ) );
+			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . "&#x{$digits};";
 			$at           = $next_character_reference_at + $token_length;
 			$was_at       = $at;
 			continue;
 		} else {
+			$digits       = substr( $text, $nonzero_at, $digit_length );
 			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . "&#{$digits};";
 			$at           = $next_character_reference_at + $token_length;
 			$was_at       = $at;
