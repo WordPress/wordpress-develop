@@ -11066,8 +11066,8 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "connectors_ai_google_api_key": {
-                            "title": "Google API Key",
-                            "description": "API key for the Google AI provider.",
+                            "title": "Gemini API Key",
+                            "description": "API key for the Gemini AI provider.",
                             "type": "string",
                             "required": false
                         },
@@ -11078,8 +11078,8 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "connectors_ai_anthropic_api_key": {
-                            "title": "Anthropic API Key",
-                            "description": "API key for the Anthropic AI provider.",
+                            "title": "Claude API Key",
+                            "description": "API key for the Claude AI provider.",
                             "type": "string",
                             "required": false
                         },
@@ -11217,6 +11217,12 @@ mockedApiResponse.Schema = {
                             "title": "Icon",
                             "description": "Site icon.",
                             "type": "integer",
+                            "required": false
+                        },
+                        "connectors_ai_mock_connectors_test_api_key": {
+                            "title": "Mock Connectors Test API Key",
+                            "description": "API key for the Mock Connectors Test AI provider.",
+                            "type": "string",
                             "required": false
                         }
                     }
@@ -14676,5 +14682,6 @@ mockedApiResponse.settings = {
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,
-    "site_icon": 0
+    "site_icon": 0,
+    "connectors_ai_mock_connectors_test_api_key": ""
 };
