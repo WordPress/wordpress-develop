@@ -1044,7 +1044,12 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 			$wpdb->sync_updates,
 			array(
 				'room'         => $this->get_post_room(),
-				'update_value' => wp_json_encode( array( 'type' => 'update', 'data' => $label ) ),
+				'update_value' => wp_json_encode(
+					array(
+						'type' => 'update',
+						'data' => $label,
+					)
+				),
 				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
 			),
 			array( '%s', '%s', '%s' )
