@@ -520,6 +520,10 @@
 
 .community-events-form {
 	margin: 15px 0 5px;
+	display: flex;
+    gap: 5px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .community-events-form .regular-text {
