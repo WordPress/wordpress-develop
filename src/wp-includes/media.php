@@ -5148,9 +5148,6 @@ function wp_enqueue_media( $args = array() ) {
 /**
  * Retrieves the months that have media library attachments.
  *
- * Results are cached in a transient and automatically invalidated when
- * attachments are created, updated, or deleted.
- *
  * Example:
  *
  *     $months = wp_get_media_library_attachment_months();
