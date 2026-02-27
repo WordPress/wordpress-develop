@@ -678,7 +678,7 @@ HTML;
 		string $html,
 		string $parsing_namespace,
 		string $expected_tag
-	) {
+	): void {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->change_parsing_namespace( $parsing_namespace );
 		$processor->next_token();
@@ -697,9 +697,9 @@ HTML;
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: string, 2: string}>
 	 */
-	public static function data_set_modifiable_fails_non_atomic_tags() {
+	public static function data_set_modifiable_fails_non_atomic_tags(): array {
 		return array(
 			// Plain HTML tags.
 			'html DIV'                   => array( '<div>', 'html', 'DIV' ),

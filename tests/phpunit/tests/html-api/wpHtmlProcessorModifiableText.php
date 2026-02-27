@@ -82,8 +82,9 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 		string $html,
 		string $expected_namespace,
 		string $expected_tag
-	) {
+	): void {
 		$processor = WP_HTML_Processor::create_fragment( $html );
+		$this->assertInstanceOf( WP_HTML_Tag_Processor::class, $processor );
 		while ( $processor->next_tag() && $expected_tag !== $processor->get_tag() ) {
 			continue;
 		}
@@ -102,6 +103,8 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 
 	/**
 	 * Data provider.
+	 * 
+	 * @return array<string, array{0: string, 1: string, 2: string}>
 	 */
 	public static function data_set_modifiable_fails_non_atomic_tags(): array {
 		return array(
