@@ -70,8 +70,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that `set_modifiable_text()` returns false for elements that share
-	 * not sepcial "atomic" elements.
+	 * Ensures that `set_modifiable_text()` returns false for elements that are not special "atomic" elements.
 	 *
 	 * This includes atomic-like foreign elements (`<svg><textarea>`) as well as arbitrary HTML
 	 * elements (`<div>`).
