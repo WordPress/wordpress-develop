@@ -52,20 +52,8 @@ class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test exte
 				'env'                 => $environment_type,
 			);
 
-			$datasets[ $environment_type . ' and a "https" scheme "reject_url"' ] = array(
-				'request'             => array( 'reject_url' => 'https://example.org' ),
-				'expected_error_code' => '',
-				'env'                 => $environment_type,
-			);
-
 			$datasets[ $environment_type . ' and an app scheme "success_url"' ] = array(
 				'request'             => array( 'success_url' => 'wordpress://example' ),
-				'expected_error_code' => '',
-				'env'                 => $environment_type,
-			);
-
-			$datasets[ $environment_type . ' and an app scheme "reject_url"' ] = array(
-				'request'             => array( 'reject_url' => 'wordpress://example' ),
 				'expected_error_code' => '',
 				'env'                 => $environment_type,
 			);

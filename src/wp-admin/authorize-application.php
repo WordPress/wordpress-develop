@@ -17,17 +17,12 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 	check_admin_referer( 'authorize_application_password' );
 
 	$success_url = $_POST['success_url'];
-	$reject_url  = $_POST['reject_url'];
 	$app_name    = $_POST['app_name'];
 	$app_id      = $_POST['app_id'];
 	$redirect    = '';
 
 	if ( isset( $_POST['reject'] ) ) {
-		if ( $reject_url ) {
-			$redirect = $reject_url;
-		} else {
-			$redirect = admin_url();
-		}
+		$redirect = admin_url();
 	} elseif ( isset( $_POST['approve'] ) ) {
 		$created = WP_Application_Passwords::create_new_application_password(
 			get_current_user_id(),
@@ -69,17 +64,9 @@ $app_name    = ! empty( $_REQUEST['app_name'] ) ? $_REQUEST['app_name'] : '';
 $app_id      = ! empty( $_REQUEST['app_id'] ) ? $_REQUEST['app_id'] : '';
 $success_url = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : null;
 
-if ( ! empty( $_REQUEST['reject_url'] ) ) {
-	$reject_url = $_REQUEST['reject_url'];
-} elseif ( $success_url ) {
-	$reject_url = add_query_arg( 'success', 'false', $success_url );
-} else {
-	$reject_url = null;
-}
-
 $user = wp_get_current_user();
 
-$request  = compact( 'app_name', 'app_id', 'success_url', 'reject_url' );
+$request  = compact( 'app_name', 'app_id', 'success_url' );
 $is_valid = wp_is_authorize_application_password_request_valid( $request, $user );
 
 if ( is_wp_error( $is_valid ) ) {
@@ -96,7 +83,7 @@ if ( wp_is_site_protected_by_basic_auth( 'front' ) ) {
 		array(
 			'response'  => 501,
 			'link_text' => __( 'Go Back' ),
-			'link_url'  => $reject_url ? add_query_arg( 'error', 'disabled', $reject_url ) : admin_url(),
+			'link_url'  => admin_url(),
 		)
 	);
 }
@@ -114,7 +101,7 @@ if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
 		array(
 			'response'  => 501,
 			'link_text' => __( 'Go Back' ),
-			'link_url'  => $reject_url ? add_query_arg( 'error', 'disabled', $reject_url ) : admin_url(),
+			'link_url'  => admin_url(),
 		)
 	);
 }
@@ -131,10 +118,9 @@ wp_localize_script(
 	'auth-app',
 	'authApp',
 	array(
-		'site_url'   => site_url(),
-		'user_login' => $user->user_login,
-		'success'    => $success_url,
-		'reject'     => $reject_url ? $reject_url : admin_url(),
+		'site_url'    => site_url(),
+		'user_login'  => $user->user_login,
+		'success'     => $success_url,
 		'successHost' => $success_host,
 	)
 );
@@ -203,7 +189,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<input type="hidden" name="action" value="authorize_application_password" />
 				<input type="hidden" name="app_id" value="<?php echo esc_attr( $app_id ); ?>" />
 				<input type="hidden" name="success_url" value="<?php echo esc_url( $success_url ); ?>" />
-				<input type="hidden" name="reject_url" value="<?php echo esc_url( $reject_url ); ?>" />
 
 				<?php if ( $app_name ) : ?>
 					<p>
@@ -305,7 +290,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				 *
 				 *     @type string $app_name    The suggested name of the application.
 				 *     @type string $success_url The URL the user will be redirected to after approving the application.
-				 *     @type string $reject_url  The URL the user will be redirected to after rejecting the application.
 				 * }
 				 * @param WP_User $user The user authorizing the application.
 				 */
@@ -326,25 +310,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					__( 'No, I do not approve of this connection' ),
 					'secondary',
 					'reject',
-					false,
-					array(
-						'aria-describedby' => 'description-reject',
-					)
+					false
 				);
 				?>
-				<p class="description" id="description-reject">
-					<?php
-					if ( $reject_url ) {
-						printf(
-							/* translators: %s: The URL the user is being redirected to. */
-							__( 'You will be sent to %s' ),
-							'<strong><code>' . esc_html( $reject_url ) . '</code></strong>'
-						);
-					} else {
-						_e( 'You will be returned to the WordPress Dashboard, and no changes will be made.' );
-					}
-					?>
-				</p>
 			</form>
 		<?php endif; ?>
 	</div>

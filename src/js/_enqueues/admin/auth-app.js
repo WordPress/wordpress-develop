@@ -11,8 +11,7 @@
 		$form = $appNameField.closest( 'form' ),
 		context = {
 			userLogin: authApp.user_login,
-			successUrl: authApp.success,
-			rejectUrl: authApp.reject
+			successUrl: authApp.success
 		};
 
 	// If redirecting to an external site, gate the approve button behind the confirmation checkbox.
@@ -61,12 +60,12 @@
 		 * Filters the request data used to Authorize an Application Password request.
 		 *
 		 * @since 5.6.0
+		 * @since x.y.z A reject URL is no longer supported or used.
 		 *
 		 * @param {Object} request            The request data.
 		 * @param {Object} context            Context about the Application Password request.
 		 * @param {string} context.userLogin  The user's login username.
 		 * @param {string} context.successUrl The URL the user will be redirected to after approving the request.
-		 * @param {string} context.rejectUrl  The URL the user will be redirected to after rejecting the request.
 		 */
 		request = wp.hooks.applyFilters( 'wp_application_passwords_approve_app_request', request, context );
 
@@ -187,16 +186,22 @@
 		 * Fires when an Authorize Application Password request has been rejected by the user.
 		 *
 		 * @since 5.6.0
+		 * @since x.y.z A reject URL is no longer supported or used.
 		 *
 		 * @param {Object} context            Context about the Application Password request.
 		 * @param {string} context.userLogin  The user's login username.
 		 * @param {string} context.successUrl The URL the user will be redirected to after approving the request.
-		 * @param {string} context.rejectUrl  The URL the user will be redirected to after rejecting the request.
 		 */
 		wp.hooks.doAction( 'wp_application_passwords_reject_app', context );
 
-		// @todo: Make a better way to do this so it feels like less of a semi-open redirect.
-		window.location = authApp.reject;
+		var $notice = $( '<div></div>' )
+			.attr( 'role', 'alert' )
+			.attr( 'tabindex', -1 )
+			.addClass( 'notice notice-info' )
+			.append( $( '<p></p>' ).text( wp.i18n.__( 'You have not approved this connection. No data has been shared with the application.' ) ) );
+
+		$form.replaceWith( $notice );
+		$notice.trigger( 'focus' );
 	} );
 
 	$form.on( 'submit', function( e ) {
