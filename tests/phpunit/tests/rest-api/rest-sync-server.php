@@ -1026,4 +1026,132 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertTrue( $filter_called, 'The wp_sync_storage filter should be applied during route registration.' );
 	}
+
+	/*
+	 * Cron cleanup tests.
+	 */
+
+	/**
+	 * Inserts a row directly into the sync_updates table with a given age.
+	 *
+	 * @param int    $age_in_seconds How old the row should be.
+	 * @param string $label          A label stored in the update_value for identification.
+	 */
+	private function insert_sync_row( $age_in_seconds, $label = 'test' ) {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->sync_updates,
+			array(
+				'room'         => $this->get_post_room(),
+				'update_value' => wp_json_encode( array( 'type' => 'update', 'data' => $label ) ),
+				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
+			),
+			array( '%s', '%s', '%s' )
+		);
+	}
+
+	/**
+	 * Returns the number of rows in the sync_updates table.
+	 *
+	 * @return int Row count.
+	 */
+	private function get_sync_row_count() {
+		global $wpdb;
+
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->sync_updates}" );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_cron_cleanup_deletes_old_rows() {
+		$this->insert_sync_row( 8 * DAY_IN_SECONDS );
+
+		$this->assertSame( 1, $this->get_sync_row_count() );
+
+		wp_delete_old_sync_updates();
+
+		$this->assertSame( 0, $this->get_sync_row_count() );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_cron_cleanup_preserves_recent_rows() {
+		$this->insert_sync_row( DAY_IN_SECONDS );
+
+		wp_delete_old_sync_updates();
+
+		$this->assertSame( 1, $this->get_sync_row_count() );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_cron_cleanup_boundary_at_exactly_seven_days() {
+		$this->insert_sync_row( WEEK_IN_SECONDS + 1, 'expired' );
+		$this->insert_sync_row( WEEK_IN_SECONDS - 1, 'just-inside' );
+
+		wp_delete_old_sync_updates();
+
+		global $wpdb;
+		$remaining = $wpdb->get_col( "SELECT update_value FROM {$wpdb->sync_updates}" );
+
+		$this->assertCount( 1, $remaining, 'Only the row within the 7-day window should remain.' );
+		$this->assertStringContainsString( 'just-inside', $remaining[0], 'The surviving row should be the one inside the window.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_cron_cleanup_selectively_deletes_mixed_rows() {
+		// 3 expired rows.
+		$this->insert_sync_row( 10 * DAY_IN_SECONDS );
+		$this->insert_sync_row( 10 * DAY_IN_SECONDS );
+		$this->insert_sync_row( 10 * DAY_IN_SECONDS );
+
+		// 2 recent rows.
+		$this->insert_sync_row( HOUR_IN_SECONDS );
+		$this->insert_sync_row( HOUR_IN_SECONDS );
+
+		$this->assertSame( 5, $this->get_sync_row_count() );
+
+		wp_delete_old_sync_updates();
+
+		$this->assertSame( 2, $this->get_sync_row_count(), 'Only the 2 recent rows should survive cleanup.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_cron_cleanup_hook_is_registered() {
+		$this->assertSame(
+			10,
+			has_action( 'wp_delete_old_sync_updates', 'wp_delete_old_sync_updates' ),
+			'The wp_delete_old_sync_updates action should be hooked in default-filters.php.'
+		);
+	}
+
+	/*
+	 * Route registration guard tests.
+	 */
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_routes_not_registered_when_db_version_is_old() {
+		update_option( 'db_version', 61697 );
+
+		// Reset the global REST server so rest_get_server() builds a fresh instance.
+		$GLOBALS['wp_rest_server'] = null;
+
+		$server = rest_get_server();
+		$routes = $server->get_routes();
+
+		$this->assertArrayNotHasKey( '/wp-sync/v1/updates', $routes, 'Sync routes should not be registered when db_version is below 61698.' );
+
+		// Reset again so subsequent tests get a server with the correct db_version.
+		$GLOBALS['wp_rest_server'] = null;
+	}
 }
