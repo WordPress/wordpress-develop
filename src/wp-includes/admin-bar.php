@@ -951,20 +951,23 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 
 	$is_apple_os    = (bool) preg_match( '/Macintosh|Mac OS X|Mac_PowerPC/i', $_SERVER['HTTP_USER_AGENT'] ?? '' );
 	$shortcut_label = $is_apple_os
-		? _x( '⌘K', 'keyboard shortcut to open the command palette', 'gutenberg' )
-		: _x( 'Ctrl+K', 'keyboard shortcut to open the command palette', 'gutenberg' );
+		? _x( '⌘K', 'keyboard shortcut to open the command palette' )
+		: _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' );
 	$title          = sprintf(
 		'<span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
 		$shortcut_label,
 		/* translators: Hidden accessibility text. */
-		__( 'Open command palette', 'gutenberg' ),
+		__( 'Open command palette' ),
 	);
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'command-palette',
 			'title' => $title,
 			'href'  => '#',
-			'meta'  => array( 'class' => 'hide-if-no-js' ),
+			'meta'  => array(
+				'class'   => 'hide-if-no-js',
+				'onclick' => 'if ( window.wp && wp.data && wp.data.dispatch ) { var store = wp.data.dispatch( "core/commands" ); if ( store && typeof store.open === "function" ) { store.open(); } } return false;',
+			),
 		)
 	);
 }
