@@ -37,9 +37,9 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		self::$draft_post   = $factory->post->create_and_get( array( 'post_status' => 'draft' ) );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		remove_filter( 'query', array( $this, '_block_comments' ) );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -219,7 +219,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 			$this->fail();
 		} catch ( WPAjaxDieStopException $e ) {
 			$wpdb->suppress_errors( false );
-			$this->assertContains( '1', $e->getMessage() );
+			$this->assertStringContainsString( '1', $e->getMessage() );
 		}
 	}
 
@@ -264,7 +264,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Blocks comments from being saved on 'pre_comment_approved', by returning WP_Error.
 	 */
-	function _pre_comment_approved_filter( $approved, $commentdata ) {
+	public function _pre_comment_approved_filter( $approved, $commentdata ) {
 		return new WP_Error( 'comment_wrong', 'pre_comment_approved filter fails for new comment.', 403 );
 	}
 }

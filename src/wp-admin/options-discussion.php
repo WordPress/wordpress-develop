@@ -12,6 +12,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Discussion Settings' );
 $parent_file = 'options-general.php';
 
@@ -57,7 +58,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <input name="default_comment_status" type="checkbox" id="default_comment_status" value="open" <?php checked( 'open', get_option( 'default_comment_status' ) ); ?> />
 <?php _e( 'Allow people to submit comments on new posts' ); ?></label>
 <br />
-<p class="description"><?php echo '(' . __( 'These settings may be overridden for individual posts.' ) . ')'; ?></p>
+<p class="description"><?php _e( 'Individual posts may override these settings. Changes here will only be applied to new posts.' ); ?></p>
 </fieldset></td>
 </tr>
 <tr>
@@ -108,7 +109,7 @@ $maxdeep = (int) apply_filters( 'thread_comments_depth_max', 10 );
 $thread_comments_depth = '</label> <label for="thread_comments_depth"><select name="thread_comments_depth" id="thread_comments_depth">';
 for ( $i = 2; $i <= $maxdeep; $i++ ) {
 	$thread_comments_depth .= "<option value='" . esc_attr( $i ) . "'";
-	if ( get_option( 'thread_comments_depth' ) == $i ) {
+	if ( (int) get_option( 'thread_comments_depth' ) === $i ) {
 		$thread_comments_depth .= " selected='selected'";
 	}
 	$thread_comments_depth .= ">$i</option>";
@@ -255,7 +256,7 @@ $ratings = array(
 	'X'  => __( 'X &#8212; Even more mature than above' ),
 );
 foreach ( $ratings as $key => $rating ) :
-	$selected = ( get_option( 'avatar_rating' ) == $key ) ? 'checked="checked"' : '';
+	$selected = ( get_option( 'avatar_rating' ) === $key ) ? 'checked="checked"' : '';
 	echo "\n\t<label><input type='radio' name='avatar_rating' value='" . esc_attr( $key ) . "' $selected/> $rating</label><br />";
 endforeach;
 ?>
@@ -298,7 +299,7 @@ $avatar_list     = '';
 add_filter( 'pre_option_show_avatars', '__return_true', 100 );
 
 foreach ( $avatar_defaults as $default_key => $default_name ) {
-	$selected     = ( $default == $default_key ) ? 'checked="checked" ' : '';
+	$selected     = ( $default === $default_key ) ? 'checked="checked" ' : '';
 	$avatar_list .= "\n\t<label><input type='radio' name='avatar_default' id='avatar_{$default_key}' value='" . esc_attr( $default_key ) . "' {$selected}/> ";
 	$avatar_list .= get_avatar( $user_email, 32, $default_key, '', array( 'force_default' => true ) );
 	$avatar_list .= ' ' . $default_name . '</label>';

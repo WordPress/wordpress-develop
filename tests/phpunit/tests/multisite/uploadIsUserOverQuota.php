@@ -10,21 +10,11 @@ if ( is_multisite() ) :
 	 *
 	 * @group multisite
 	 */
-	class Tests_Multisite_Upload_Is_User_Over_Quota extends WP_UnitTestCase {
-		protected $suppress = false;
+	class Tests_Multisite_UploadIsUserOverQuota extends WP_UnitTestCase {
 
-		public function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-
+		public function set_up() {
+			parent::set_up();
 			update_site_option( 'upload_space_check_disabled', false );
-		}
-
-		public function tearDown() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
 		}
 
 		public function test_upload_is_user_over_quota_allowed_0_used_5() {

@@ -11,10 +11,10 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 
 	// These test cases are run against the test handler in WP_Canonical.
 
-	public function setUp() {
+	public function set_up() {
 		global $wp_rewrite;
 
-		parent::setUp();
+		parent::set_up();
 
 		$wp_rewrite->init();
 		$wp_rewrite->set_permalink_structure( '' );
@@ -24,11 +24,11 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 	/**
 	 * @dataProvider data
 	 */
-	function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
+	public function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	function data() {
+	public function data() {
 		/*
 		 * Test URL.
 		 * [0]: Test URL.

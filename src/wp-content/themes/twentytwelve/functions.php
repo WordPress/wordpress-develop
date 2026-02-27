@@ -133,6 +133,11 @@ add_action( 'after_setup_theme', 'twentytwelve_setup' );
 require get_template_directory() . '/inc/custom-header.php';
 
 /**
+ * Add block patterns.
+ */
+require get_template_directory() . '/inc/block-patterns.php';
+
+/**
  * Return the Google font stylesheet URL if available.
  *
  * The use of Open Sans by default is localized. For languages that use
@@ -389,7 +394,7 @@ if ( ! function_exists( 'twentytwelve_content_nav' ) ) :
 		global $wp_query;
 
 		if ( $wp_query->max_num_pages > 1 ) : ?>
-			<nav id="<?php echo esc_attr( $html_id ); ?>" class="navigation" role="navigation">
+			<nav id="<?php echo esc_attr( $html_id ); ?>" class="navigation">
 				<h3 class="assistive-text"><?php _e( 'Post navigation', 'twentytwelve' ); ?></h3>
 				<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentytwelve' ) ); ?></div>
 				<div class="nav-next"><?php previous_posts_link( __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentytwelve' ) ); ?></div>

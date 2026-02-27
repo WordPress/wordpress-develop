@@ -24,8 +24,8 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 		wp_delete_term( self::$c2->term_id, 'wptests_tax' );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 	}
 

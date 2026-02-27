@@ -62,8 +62,8 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		self::$tag_ids         = $factory->term->create_many( 5 );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		self::register_taxonomies();
 	}
 
@@ -104,7 +104,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change      Expected change.
 	 * }
 	 */
-	function data_term_count_changes_for_post_statuses() {
+	public function data_term_count_changes_for_post_statuses() {
 		return array(
 			// 0. Published post
 			array( 'publish', 1 ),
@@ -146,7 +146,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	function data_term_counts_incremented_on_publish() {
+	public function data_term_counts_incremented_on_publish() {
 		return array(
 			// 0. Published post
 			array( 'publish', 0 ),
@@ -169,7 +169,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 * @param string $new_post_status      Post status after update.
 	 * @param int    $change               Expected change upon publish.
 	 */
-	function test_term_count_transitions_update_term_counts( $original_post_status, $new_post_status, $change ) {
+	public function test_term_count_transitions_update_term_counts( $original_post_status, $new_post_status, $change ) {
 		$post_id    = self::$post_ids[ $original_post_status ];
 		$term_count = get_term( get_option( 'default_category' ) )->count;
 
@@ -193,7 +193,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	function data_term_count_transitions_update_term_counts() {
+	public function data_term_count_transitions_update_term_counts() {
 		return array(
 			// 0. Draft -> published post
 			array( 'draft', 'publish', 1 ),
@@ -224,7 +224,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		);
 	}
 
-	function add_custom_status_to_counted_statuses( $statuses ) {
+	public function add_custom_status_to_counted_statuses( $statuses ) {
 		array_push( $statuses, 'custom' );
 		return $statuses;
 	}
@@ -269,7 +269,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change      Expected change.
 	 * }
 	 */
-	function data_term_count_changes_for_update_post_term_count_statuses_filter() {
+	public function data_term_count_changes_for_update_post_term_count_statuses_filter() {
 		return array(
 			// 0. Published post
 			array( 'publish', 2 ),
@@ -319,7 +319,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change      Expected change.
 	 * }
 	 */
-	function data_term_count_changes_for_post_statuses_with_attachments() {
+	public function data_term_count_changes_for_post_statuses_with_attachments() {
 		return array(
 			// 0. Published post
 			array( 'publish', 2 ),
@@ -370,7 +370,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	function data_term_counts_incremented_on_publish_with_attachments() {
+	public function data_term_counts_incremented_on_publish_with_attachments() {
 		return array(
 			// 0. Published post
 			array( 'publish', 0 ),
@@ -393,7 +393,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 * @param string $new_post_status      Post status after update.
 	 * @param int    $change               Expected change upon publish.
 	 */
-	function test_term_count_transitions_update_term_counts_with_attachments( $original_post_status, $new_post_status, $change ) {
+	public function test_term_count_transitions_update_term_counts_with_attachments( $original_post_status, $new_post_status, $change ) {
 		$post_id = self::$post_ids[ $original_post_status ];
 		wp_add_object_terms( $post_id, self::$attachment_term, 'wp_test_tax_counts' );
 		$attachment_id = self::factory()->attachment->create_object(
@@ -426,7 +426,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	function data_term_count_transitions_update_term_counts_with_attachments() {
+	public function data_term_count_transitions_update_term_counts_with_attachments() {
 		return array(
 			// 0. Draft -> published post
 			array( 'draft', 'publish', 2 ),
@@ -494,7 +494,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	function data_term_counts_incremented_on_publish_with_untermed_attachments() {
+	public function data_term_counts_incremented_on_publish_with_untermed_attachments() {
 		return array(
 			// 0. Published post
 			array( 'publish', 0 ),
@@ -517,7 +517,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 * @param string $new_post_status      Post status after update.
 	 * @param int    $change               Expected change upon publish.
 	 */
-	function test_term_count_transitions_update_term_counts_with_untermed_attachments( $original_post_status, $new_post_status, $change ) {
+	public function test_term_count_transitions_update_term_counts_with_untermed_attachments( $original_post_status, $new_post_status, $change ) {
 		$post_id = self::$post_ids[ $original_post_status ];
 		wp_add_object_terms( $post_id, self::$attachment_term, 'wp_test_tax_counts' );
 		$attachment_id = self::factory()->attachment->create_object(
@@ -549,7 +549,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	function data_term_count_transitions_update_term_counts_with_untermed_attachments() {
+	public function data_term_count_transitions_update_term_counts_with_untermed_attachments() {
 		return array(
 			// 0. Draft -> published post
 			array( 'draft', 'publish', 1 ),

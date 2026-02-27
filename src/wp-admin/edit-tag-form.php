@@ -51,7 +51,7 @@ wp_reset_vars( array( 'wp_http_referer' ) );
 
 $wp_http_referer = remove_query_arg( array( 'action', 'message', 'tag_ID' ), $wp_http_referer );
 
-/** Also used by Edit Tags */
+// Also used by Edit Tags.
 require_once ABSPATH . 'wp-admin/includes/edit-tag-messages.php';
 
 /**
@@ -111,9 +111,9 @@ if ( $message ) {
 do_action( "{$taxonomy}_term_edit_form_tag" );
 ?>
 >
-<input type="hidden" name="action" value="editedtag"/>
-<input type="hidden" name="tag_ID" value="<?php echo esc_attr( $tag_ID ); ?>"/>
-<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>"/>
+<input type="hidden" name="action" value="editedtag" />
+<input type="hidden" name="tag_ID" value="<?php echo esc_attr( $tag_ID ); ?>" />
+<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>" />
 <?php
 wp_original_referer_field( true, 'previous' );
 wp_nonce_field( 'update-tag_' . $tag_ID );
@@ -300,7 +300,7 @@ do_action( "{$taxonomy}_edit_form", $tag, $taxonomy );
 
 	<?php if ( current_user_can( 'delete_term', $tag->term_id ) ) : ?>
 		<span id="delete-link">
-			<a class="delete" href="<?php echo admin_url( wp_nonce_url( "edit-tags.php?action=delete&taxonomy=$taxonomy&tag_ID=$tag->term_id", 'delete-tag_' . $tag->term_id ) ); ?>"><?php _e( 'Delete' ); ?></a>
+			<a class="delete" href="<?php echo esc_url( admin_url( wp_nonce_url( "edit-tags.php?action=delete&taxonomy=$taxonomy&tag_ID=$tag->term_id", 'delete-tag_' . $tag->term_id ) ) ); ?>"><?php _e( 'Delete' ); ?></a>
 		</span>
 	<?php endif; ?>
 

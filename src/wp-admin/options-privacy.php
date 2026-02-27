@@ -14,13 +14,13 @@ if ( ! current_user_can( 'manage_privacy_options' ) ) {
 }
 
 if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
-	require_once( dirname( __FILE__ ) . '/privacy-policy-guide.php' );
+	require_once dirname( __FILE__ ) . '/privacy-policy-guide.php';
 	return;
 }
 
 add_filter(
 	'admin_body_class',
-	function( $body_class ) {
+	static function( $body_class ) {
 		$body_class .= ' privacy-settings ';
 
 		return $body_class;

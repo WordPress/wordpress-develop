@@ -210,7 +210,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		$bytes_written = fwrite( $temphandle, $contents );
 
-		if ( false === $bytes_written || strlen( $contents ) != $bytes_written ) {
+		if ( false === $bytes_written || strlen( $contents ) !== $bytes_written ) {
 			fclose( $temphandle );
 			unlink( $tempfile );
 
@@ -609,7 +609,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 *
 	 *     @type string $name        Name of the file or directory.
 	 *     @type string $perms       *nix representation of permissions.
-	 *     @type int    $permsn      Octal representation of permissions.
+	 *     @type string $permsn      Octal representation of permissions.
 	 *     @type string $owner       Owner name or ID.
 	 *     @type int    $size        Size of file in bytes.
 	 *     @type int    $lastmodunix Last modified unix timestamp.
@@ -650,7 +650,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 				continue;
 			}
 
-			if ( $limit_file && $struc['name'] != $limit_file ) {
+			if ( $limit_file && $struc['name'] !== $limit_file ) {
 				continue;
 			}
 

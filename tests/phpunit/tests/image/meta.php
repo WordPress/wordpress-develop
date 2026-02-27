@@ -6,10 +6,29 @@
  * @group upload
  * @requires extension gd
  * @requires extension exif
+ *
+ * @covers ::wp_read_image_metadata
  */
 class Tests_Image_Meta extends WP_UnitTestCase {
 
-	function test_exif_d70() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+		stream_wrapper_register( 'testimagemeta', 'WP_Test_Stream' );
+
+		WP_Test_Stream::$data = array(
+			'wp_read_image_metadata' => array(
+				'/image1.jpg' => file_get_contents( DIR_TESTDATA . '/images/test-image-upside-down.jpg' ),
+				'/image2.jpg' => file_get_contents( DIR_TESTDATA . '/images/2004-07-22-DSC_0007.jpg' ),
+				'/image3.jpg' => file_get_contents( DIR_TESTDATA . '/images/33772.jpg' ),
+			),
+		);
+	}
+
+	public static function wpTearDownAfterClass() {
+		stream_wrapper_unregister( 'testimagemeta' );
+	}
+
+	public function test_exif_d70() {
 		// Exif from a Nikon D70.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0008.jpg' );
 
@@ -25,7 +44,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', $out['title'] );
 	}
 
-	function test_exif_d70_mf() {
+	public function test_exif_d70_mf() {
 		// Exif from a Nikon D70 - manual focus lens, so some data is unavailable.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG' );
 
@@ -42,7 +61,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// $this->assertSame( array( 'Flowers' ), $out['keywords'] );
 	}
 
-	function test_exif_d70_iptc() {
+	public function test_exif_d70_iptc() {
 		// Exif from a Nikon D70 with IPTC data added later.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0007.jpg' );
 
@@ -58,7 +77,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'IPTC Headline', $out['title'] );
 	}
 
-	function test_exif_fuji() {
+	public function test_exif_fuji() {
 		// Exif from a Fuji FinePix S5600 (thanks Mark).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/a2-small.jpg' );
 
@@ -78,7 +97,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 6571
 	 */
-	function test_exif_error() {
+	public function test_exif_error() {
 		// https://core.trac.wordpress.org/ticket/6571
 		// This triggers a warning mesage when reading the Exif block.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/waffles.jpg' );
@@ -95,7 +114,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', $out['title'] );
 	}
 
-	function test_exif_no_data() {
+	public function test_exif_no_data() {
 		// No Exif data in this image (from burningwell.org).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/canola.jpg' );
 
@@ -114,7 +133,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 9417
 	 */
-	function test_utf8_iptc_tags() {
+	public function test_utf8_iptc_tags() {
 		// Trilingual UTF-8 text in the ITPC caption-abstract field.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/test-image-iptc.jpg' );
 
@@ -150,4 +169,74 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( array( 'beach', 'baywatch', 'LA', 'sunset' ), $out['keywords'] );
 	}
 
+	/**
+	 * @dataProvider data_stream
+	 *
+	 * @ticket 52826
+	 * @ticket 52922
+	 *
+	 * @param string Stream's URI.
+	 * @param array  Expected metadata.
+	 */
+	public function test_stream( $file, $expected ) {
+		$actual = wp_read_image_metadata( $file );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	public function data_stream() {
+		return array(
+			'Orientation only metadata'                => array(
+				'file'     => 'testimagemeta://wp_read_image_metadata/image1.jpg',
+				'metadata' => array(
+					'aperture'          => '0',
+					'credit'            => '',
+					'camera'            => '',
+					'caption'           => '',
+					'created_timestamp' => '0',
+					'copyright'         => '',
+					'focal_length'      => '0',
+					'iso'               => '0',
+					'shutter_speed'     => '0',
+					'title'             => '',
+					'orientation'       => '3',
+					'keywords'          => array(),
+				),
+			),
+			'Exif from a Nikon D70 with IPTC data added later' => array(
+				'file'     => 'testimagemeta://wp_read_image_metadata/image2.jpg',
+				'metadata' => array(
+					'aperture'          => '6.3',
+					'credit'            => 'IPTC Creator',
+					'camera'            => 'NIKON D70',
+					'caption'           => 'IPTC Caption',
+					'created_timestamp' => '1090516475',
+					'copyright'         => 'IPTC Copyright',
+					'focal_length'      => '18',
+					'iso'               => '200',
+					'shutter_speed'     => '0.04',
+					'title'             => 'IPTC Headline',
+					'orientation'       => '0',
+					'keywords'          => array(),
+				),
+			),
+			'Exif from a DMC-LX2 camera with keywords' => array(
+				'file'     => 'testimagemeta://wp_read_image_metadata/image3.jpg',
+				'metadata' => array(
+					'aperture'          => '8',
+					'credit'            => 'Photoshop Author',
+					'camera'            => 'DMC-LX2',
+					'caption'           => 'Photoshop Description',
+					'created_timestamp' => '1306315327',
+					'copyright'         => 'Photoshop Copyrright Notice',
+					'focal_length'      => '6.3',
+					'iso'               => '100',
+					'shutter_speed'     => '0.0025',
+					'title'             => 'Photoshop Document Ttitle',
+					'orientation'       => '1',
+					'keywords'          => array( 'beach', 'baywatch', 'LA', 'sunset' ),
+				),
+			),
+		);
+	}
 }

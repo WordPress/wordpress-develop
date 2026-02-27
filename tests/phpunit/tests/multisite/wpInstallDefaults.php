@@ -8,7 +8,7 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Install_Defaults extends WP_UnitTestCase {
+	class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 		/**
 		 * @ticket 40036
 		 */

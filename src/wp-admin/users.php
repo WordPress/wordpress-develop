@@ -20,8 +20,10 @@ if ( ! current_user_can( 'list_users' ) ) {
 
 $wp_list_table = _get_list_table( 'WP_Users_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
-$title         = __( 'Users' );
-$parent_file   = 'users.php';
+
+// Used in the HTML title tag.
+$title       = __( 'Users' );
+$parent_file = 'users.php';
 
 add_screen_option( 'per_page' );
 
@@ -617,9 +619,9 @@ switch ( $wp_list_table->current_action() ) {
 		<?php
 		if ( current_user_can( 'create_users' ) ) {
 			?>
-	<a href="<?php echo admin_url( 'user-new.php' ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'user' ); ?></a>
+	<a href="<?php echo esc_url( admin_url( 'user-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'user' ); ?></a>
 <?php } elseif ( is_multisite() && current_user_can( 'promote_users' ) ) { ?>
-	<a href="<?php echo admin_url( 'user-new.php' ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add Existing', 'user' ); ?></a>
+	<a href="<?php echo esc_url( admin_url( 'user-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add Existing', 'user' ); ?></a>
 			<?php
 }
 
@@ -649,7 +651,7 @@ if ( strlen( $usersearch ) ) {
 		<?php $wp_list_table->display(); ?>
 </form>
 
-<div class="clear" /></div>
+<div class="clear"></div>
 </div>
 		<?php
 		break;

@@ -161,7 +161,7 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 	private function force_wp_is_using_https( $enabled ) {
 		$scheme = $enabled ? 'https' : 'http';
 
-		$replace_scheme = function( $url ) use ( $scheme ) {
+		$replace_scheme = static function( $url ) use ( $scheme ) {
 			return str_replace( array( 'http://', 'https://' ), $scheme . '://', $url );
 		};
 
@@ -172,7 +172,7 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 	private function force_option( $option, $value ) {
 		add_filter(
 			"option_$option",
-			function() use ( $value ) {
+			static function() use ( $value ) {
 				return $value;
 			}
 		);

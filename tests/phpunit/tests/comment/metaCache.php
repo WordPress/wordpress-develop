@@ -233,7 +233,7 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'comment' );
 
-		$this->assertInternalType( 'integer', add_metadata( 'comment', $comment_id, 'foo', 'bar' ) );
+		$this->assertIsInt( add_metadata( 'comment', $comment_id, 'foo', 'bar' ) );
 		$this->assertNotFalse( wp_cache_get_last_changed( 'comment' ) );
 	}
 
@@ -245,7 +245,7 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'comment' );
 
-		$this->assertInternalType( 'integer', update_metadata( 'comment', $comment_id, 'foo', 'bar' ) );
+		$this->assertIsInt( update_metadata( 'comment', $comment_id, 'foo', 'bar' ) );
 		$this->assertNotFalse( wp_cache_get_last_changed( 'comment' ) );
 	}
 

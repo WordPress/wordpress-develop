@@ -226,9 +226,14 @@ class Plugin_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'plugin' => $plugin,
-					'type'   => 'plugin',
-					'action' => 'update',
+					'plugin'      => $plugin,
+					'type'        => 'plugin',
+					'action'      => 'update',
+					'temp_backup' => array(
+						'slug' => dirname( $plugin ),
+						'src'  => WP_PLUGIN_DIR,
+						'dir'  => 'plugins',
+					),
 				),
 			)
 		);
@@ -342,12 +347,17 @@ class Plugin_Upgrader extends WP_Upgrader {
 					'clear_working'     => true,
 					'is_multi'          => true,
 					'hook_extra'        => array(
-						'plugin' => $plugin,
+						'plugin'      => $plugin,
+						'temp_backup' => array(
+							'slug' => dirname( $plugin ),
+							'src'  => WP_PLUGIN_DIR,
+							'dir'  => 'plugins',
+						),
 					),
 				)
 			);
 
-			$results[ $plugin ] = $this->result;
+			$results[ $plugin ] = $result;
 
 			// Prevent credentials auth screen from displaying multiple times.
 			if ( false === $result ) {

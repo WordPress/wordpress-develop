@@ -6,8 +6,8 @@
  * @group query
  */
 class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();

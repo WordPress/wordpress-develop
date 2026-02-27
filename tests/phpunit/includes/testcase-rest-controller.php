@@ -4,8 +4,8 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 
 	protected $server;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		add_filter( 'rest_url', array( $this, 'filter_rest_url_for_leading_slash' ), 10, 2 );
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
@@ -13,12 +13,12 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		remove_filter( 'rest_url', array( $this, 'test_rest_url_for_leading_slash' ), 10, 2 );
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	abstract public function test_register_routes();

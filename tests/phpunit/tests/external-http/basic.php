@@ -9,7 +9,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_response_code
 	 * @covers ::wp_remote_retrieve_body
 	 */
-	function test_readme() {
+	public function test_readme() {
 		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
 

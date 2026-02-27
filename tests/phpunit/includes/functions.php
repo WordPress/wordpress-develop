@@ -7,10 +7,10 @@ require_once __DIR__ . '/class-basic-object.php';
  * @return double The version number.
  */
 function tests_get_phpunit_version() {
-	if ( class_exists( 'PHPUnit_Runner_Version' ) ) {
-		$version = PHPUnit_Runner_Version::id();
-	} elseif ( class_exists( 'PHPUnit\Runner\Version' ) ) {
+	if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
 		$version = PHPUnit\Runner\Version::id();
+	} elseif ( class_exists( 'PHPUnit_Runner_Version' ) ) {
+		$version = PHPUnit_Runner_Version::id();
 	} else {
 		$version = 0;
 	}
@@ -306,14 +306,36 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_block' );
 	remove_action( 'init', 'register_block_core_calendar' );
 	remove_action( 'init', 'register_block_core_categories' );
+	remove_action( 'init', 'register_block_core_file' );
+	remove_action( 'init', 'register_block_core_loginout' );
 	remove_action( 'init', 'register_block_core_latest_comments' );
 	remove_action( 'init', 'register_block_core_latest_posts' );
+	remove_action( 'init', 'register_block_core_page_list' );
+	remove_action( 'init', 'register_block_core_post_author' );
+	remove_action( 'init', 'register_block_core_post_content' );
+	remove_action( 'init', 'register_block_core_post_date' );
+	remove_action( 'init', 'register_block_core_post_excerpt' );
+	remove_action( 'init', 'register_block_core_post_featured_image' );
+	remove_action( 'init', 'register_block_core_post_terms' );
+	remove_action( 'init', 'register_block_core_post_title' );
+	remove_action( 'init', 'register_block_core_query' );
+	remove_action( 'init', 'register_block_core_post_template' );
+	remove_action( 'init', 'gutenberg_register_legacy_query_loop_block' );
+	remove_action( 'init', 'register_block_core_query_pagination' );
+	remove_action( 'init', 'register_block_core_query_pagination_next' );
+	remove_action( 'init', 'register_block_core_query_pagination_numbers' );
+	remove_action( 'init', 'register_block_core_query_pagination_previous' );
+	remove_action( 'init', 'register_block_core_query_title' );
 	remove_action( 'init', 'register_block_core_rss' );
 	remove_action( 'init', 'register_block_core_search' );
 	remove_action( 'init', 'register_block_core_shortcode' );
+	remove_action( 'init', 'register_block_core_site_tagline' );
+	remove_action( 'init', 'register_block_core_site_logo' );
+	remove_action( 'init', 'register_block_core_site_title' );
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+	remove_action( 'init', 'register_block_core_legacy_widget' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

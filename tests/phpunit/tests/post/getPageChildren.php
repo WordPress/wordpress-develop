@@ -18,8 +18,8 @@ class Tests_Post_GetPageChildren extends WP_UnitTestCase {
 	 * ---- pages[8]
 	 * - pages[5]
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Mock page objects.
 		$this->pages = array(

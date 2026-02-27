@@ -8,8 +8,8 @@
  */
 class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$wp_sitemaps = new WP_Sitemaps();
 		$wp_sitemaps->init();
 	}

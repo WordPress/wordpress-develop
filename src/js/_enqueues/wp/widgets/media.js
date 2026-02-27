@@ -551,13 +551,13 @@ wp.mediaWidgets = ( function( $ ) {
 			// Update the title.
 			control.$el.on( 'input change', '.title', function updateTitle() {
 				control.model.set({
-					title: $.trim( $( this ).val() )
+					title: $( this ).val().trim()
 				});
 			});
 
 			// Update link_url attribute.
 			control.$el.on( 'input change', '.link', function updateLinkUrl() {
-				var linkUrl = $.trim( $( this ).val() ), linkType = 'custom';
+				var linkUrl = $( this ).val().trim(), linkType = 'custom';
 				if ( control.selectedAttachment.get( 'linkUrl' ) === linkUrl || control.selectedAttachment.get( 'link' ) === linkUrl ) {
 					linkType = 'post';
 				} else if ( control.selectedAttachment.get( 'url' ) === linkUrl ) {
@@ -1212,7 +1212,7 @@ wp.mediaWidgets = ( function( $ ) {
 			return;
 		}
 
-		idBase = widgetForm.find( '> .widget-control-actions > .id_base' ).val();
+		idBase = widgetForm.find( '.id_base' ).val();
 
 		ControlConstructor = component.controlConstructors[ idBase ];
 		if ( ! ControlConstructor ) {

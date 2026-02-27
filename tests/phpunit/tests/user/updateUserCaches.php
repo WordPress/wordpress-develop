@@ -64,7 +64,7 @@ class Tests_User_UpdateUserCaches extends WP_UnitTestCase {
 		update_user_caches( $user_object );
 
 		$cached = wp_cache_get( $u, 'users' );
-		$this->assertFalse( $cached instanceof WP_User );
+		$this->assertNotInstanceOf( 'WP_User', $cached );
 		$this->assertEquals( $raw_userdata, $cached );
 	}
 }

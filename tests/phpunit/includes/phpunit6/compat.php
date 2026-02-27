@@ -11,11 +11,12 @@ if ( class_exists( 'PHPUnit\Runner\Version' ) && version_compare( PHPUnit\Runner
 	class_alias( 'PHPUnit\Framework\Test', 'PHPUnit_Framework_Test' );
 	class_alias( 'PHPUnit\Framework\Warning', 'PHPUnit_Framework_Warning' );
 	class_alias( 'PHPUnit\Framework\AssertionFailedError', 'PHPUnit_Framework_AssertionFailedError' );
-	class_alias( 'PHPUnit\Framework\Constraint\IsEqual', 'PHPUnit_Framework_Constraint_IsEqual' );
 	class_alias( 'PHPUnit\Framework\TestSuite', 'PHPUnit_Framework_TestSuite' );
 	class_alias( 'PHPUnit\Framework\TestListener', 'PHPUnit_Framework_TestListener' );
 	class_alias( 'PHPUnit\Util\GlobalState', 'PHPUnit_Util_GlobalState' );
-	class_alias( 'PHPUnit\Util\Getopt', 'PHPUnit_Util_Getopt' );
+	if ( class_exists( 'PHPUnit\Util\Getopt' ) ) {
+		class_alias( 'PHPUnit\Util\Getopt', 'PHPUnit_Util_Getopt' );
+	}
 
 	class PHPUnit_Util_Test {
 

@@ -18,6 +18,7 @@ if ( ! current_user_can( 'edit_themes' ) ) {
 	wp_die( '<p>' . __( 'Sorry, you are not allowed to edit templates for this site.' ) . '</p>' );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Edit Themes' );
 $parent_file = 'themes.php';
 
@@ -342,10 +343,12 @@ if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
 
 	$excluded_referer_basenames = array( 'theme-editor.php', 'wp-login.php' );
 
-	if ( $referer && ! in_array( basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
-		$return_url = $referer;
-	} else {
-		$return_url = admin_url( '/' );
+	$return_url = admin_url( '/' );
+	if ( $referer ) {
+		$referer_path = parse_url( $referer, PHP_URL_PATH );
+		if ( is_string( $referer_path ) && ! in_array( basename( $referer_path ), $excluded_referer_basenames, true ) ) {
+			$return_url = $referer;
+		}
 	}
 	?>
 	<div id="file-editor-warning" class="notification-dialog-wrap file-editor-warning hide-if-no-js hidden">
@@ -356,7 +359,7 @@ if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
 					<h1><?php _e( 'Heads up!' ); ?></h1>
 					<p>
 						<?php
-						_e( 'You appear to be making direct edits to your theme in the WordPress dashboard. We recommend that you don&#8217;t! Editing your theme directly could break your site and your changes may be lost in future updates.' );
+						_e( 'You appear to be making direct edits to your theme in the WordPress dashboard. It is not recommended! Editing your theme directly could break your site and your changes may be lost in future updates.' );
 						?>
 					</p>
 						<?php

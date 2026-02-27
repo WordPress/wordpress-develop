@@ -25,7 +25,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		);
 
 		// Test to see if it returns the default with the category ID.
-		$this->assertContains( 'value="' . $cat_id . '"', $dropdown_default );
+		$this->assertStringContainsString( 'value="' . $cat_id . '"', $dropdown_default );
 	}
 
 	/**
@@ -50,7 +50,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		);
 
 		// Test to see if it returns the default with the category ID.
-		$this->assertContains( 'value="' . $cat_id . '"', $found );
+		$this->assertStringContainsString( 'value="' . $cat_id . '"', $found );
 	}
 
 	/**
@@ -75,7 +75,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		);
 
 		// Test to see if it returns the default with the category slug.
-		$this->assertContains( 'value="test_category"', $found );
+		$this->assertStringContainsString( 'value="test_category"', $found );
 	}
 
 	/**
@@ -100,7 +100,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		);
 
 		// Test to see if it returns the default with the category slug.
-		$this->assertContains( 'value="' . $cat_id . '"', $found );
+		$this->assertStringContainsString( 'value="' . $cat_id . '"', $found );
 	}
 
 	/**
@@ -130,7 +130,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'value="test_category_2" selected="selected"', $found );
+		$this->assertStringContainsString( 'value="test_category_2" selected="selected"', $found );
 	}
 
 	/**
@@ -148,11 +148,11 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "value='0' selected='selected'", $found );
+		$this->assertStringContainsString( "value='0' selected='selected'", $found );
 
 		foreach ( $cats as $cat ) {
 			$_cat = get_term( $cat, 'category' );
-			$this->assertNotContains( 'value="' . $_cat->slug . '" selected="selected"', $found );
+			$this->assertStringNotContainsString( 'value="' . $_cat->slug . '" selected="selected"', $found );
 		}
 	}
 
@@ -172,11 +172,11 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "value='0' selected='selected'", $found );
+		$this->assertStringContainsString( "value='0' selected='selected'", $found );
 
 		foreach ( $cats as $cat ) {
 			$_cat = get_term( $cat, 'category' );
-			$this->assertNotContains( 'value="' . $_cat->slug . '" selected="selected"', $found );
+			$this->assertStringNotContainsString( 'value="' . $_cat->slug . '" selected="selected"', $found );
 		}
 	}
 
@@ -202,7 +202,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		$dropdown_categories = wp_dropdown_categories( $args );
 
 		// Test to see if it contains the "required" attribute.
-		$this->assertRegExp( '/<select[^>]+required/', $dropdown_categories );
+		$this->assertMatchesRegularExpression( '/<select[^>]+required/', $dropdown_categories );
 	}
 
 	/**
@@ -227,7 +227,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		$dropdown_categories = wp_dropdown_categories( $args );
 
 		// Test to see if it contains the "required" attribute.
-		$this->assertNotRegExp( '/<select[^>]+required/', $dropdown_categories );
+		$this->assertDoesNotMatchRegularExpression( '/<select[^>]+required/', $dropdown_categories );
 	}
 
 	/**
@@ -251,6 +251,6 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		$dropdown_categories = wp_dropdown_categories( $args );
 
 		// Test to see if it contains the "required" attribute.
-		$this->assertNotRegExp( '/<select[^>]+required/', $dropdown_categories );
+		$this->assertDoesNotMatchRegularExpression( '/<select[^>]+required/', $dropdown_categories );
 	}
 }

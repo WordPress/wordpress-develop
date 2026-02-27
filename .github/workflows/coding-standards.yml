@@ -32,6 +32,14 @@ on:
       - 'phpcs.xml.dist'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   # Runs PHP coding standards checks.
@@ -47,7 +55,7 @@ jobs:
   # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS on the full codebase with warnings suppressed.
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
-  # - todo: Configure Slack notifications for failing scans.
+  # - Ensures version-controlled files are not modified or deleted.
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
@@ -86,6 +94,9 @@ jobs:
       - name: Check test suite files for warnings
         run: phpcs tests -q --report=checkstyle | cs2pr
 
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
   # Runs the JavaScript coding standards checks.
   #
   # JSHint violations are not currently reported inline with annotations.
@@ -94,11 +105,10 @@ jobs:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
   # - Installs NodeJS 14.
-  # - Sets up caching for NPM.
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Run the WordPress JSHint checks.
-  # - todo: Configure Slack notifications for failing tests.
+  # - Ensures version-controlled files are not modified or deleted.
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
@@ -118,18 +128,10 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
+        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
         with:
           node-version: 14
-
-      - name: Cache NodeJS modules
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
-        env:
-          cache-name: cache-node-modules
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
 
       - name: Log debug information
         run: |
@@ -141,3 +143,19 @@ jobs:
 
       - name: Run JSHint
         run: npm run grunt jshint
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    needs: [ phpcs, jshint ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.phpcs.result == 'success' && needs.jshint.result == 'success' && 'success' || ( needs.phpcs.result == 'cancelled' || needs.jshint.result == 'cancelled' ) && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
