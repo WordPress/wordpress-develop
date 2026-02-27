@@ -499,7 +499,7 @@
 }
 
 .community-events .spinner {
-	margin: 5px 2px 0;
+	margin: 0 2px 0;
 }
 
 .community-events-errors[aria-hidden="true"],
