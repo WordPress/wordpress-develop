@@ -42,8 +42,8 @@
 			return;
 		}
 
-		if ( 0 === name.length ) {
-			$appNameField.trigger( 'focus' );
+		if ( ! $form[ 0 ].checkValidity() ) {
+			$form[ 0 ].reportValidity();
 			return;
 		}
 
