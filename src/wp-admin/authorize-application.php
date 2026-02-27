@@ -243,13 +243,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<?php if ( $success_url ) : ?>
 					<div class="auth-app-warning">
-						<p><strong><?php
+						<p><strong>
+						<?php
 						if ( $is_custom_scheme ) {
 							_e( 'Your username and a new application password will be sent to an external app:' );
 						} else {
 							_e( 'Your username and a new application password will be sent to an external site:' );
 						}
-						?></strong></p>
+						?>
+						</strong></p>
 						<p class="auth-app-host"><?php echo esc_html( $success_host_display ); ?></p>
 						<p class="auth-app-caution"><?php _e( 'Only proceed if you initiated this request.' ); ?></p>
 					</div>
