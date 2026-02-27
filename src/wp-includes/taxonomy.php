@@ -256,7 +256,7 @@ function create_initial_taxonomies() {
 			'show_ui'            => true,
 			'_builtin'           => true,
 			'show_in_nav_menus'  => false,
-			'show_in_rest'       => true,
+			'show_in_rest'       => false,
 			'show_admin_column'  => true,
 			'show_tagcloud'      => false,
 		)
