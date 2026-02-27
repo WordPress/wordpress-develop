@@ -3808,13 +3808,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		/*
-		 * The rest of this function handles modifiable text for special "atomic" HTML elements:
-		 *
-		 * - SCRIPT
-		 * - STYLE
-		 * - TEXTAREA
-		 * - TITLE
-		 *
+		 * The rest of this function handles modifiable text for special "atomic" HTML elements.
 		 * Only tags in the HTML namespace should be processed.
 		 */
 		if (
