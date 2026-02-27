@@ -735,6 +735,13 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 		);
 	}
 
+	if ( null !== wp_parse_url( $url, PHP_URL_USER ) ) {
+		return new WP_Error(
+			'invalid_redirect_url_format',
+			__( 'Credentials are not allowed in the URL.' )
+		);
+	}
+
 	if ( 'http' === $scheme && ! $is_local ) {
 		return new WP_Error(
 			'invalid_redirect_scheme',
