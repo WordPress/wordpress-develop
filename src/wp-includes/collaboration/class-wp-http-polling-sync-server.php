@@ -130,9 +130,10 @@ class WP_HTTP_Polling_Sync_Server {
 				'type'     => 'integer',
 			),
 			'room'      => array(
-				'required' => true,
-				'type'     => 'string',
-				'pattern'  => '^[^/]+/[^/:]+(?::\\S+)?$',
+				'required'  => true,
+				'type'      => 'string',
+				'pattern'   => '^[^/]+/[^/:]+(?::\\S+)?$',
+				'maxLength' => 255, // The size of the wp_sync_updates.room column.
 			),
 			'updates'   => array(
 				'items'    => $typed_update_args,
