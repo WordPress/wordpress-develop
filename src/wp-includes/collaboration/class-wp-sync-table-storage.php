@@ -49,7 +49,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		$result = $wpdb->insert(
 			$wpdb->sync_updates,
 			array(
-				'room_hash'    => md5( $room ),
+				'room'         => $room,
 				'update_value' => wp_json_encode( $update ),
 				'created_at'   => current_time( 'mysql', true ),
 			),
@@ -71,7 +71,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	 * @return array<int, mixed> Awareness state.
 	 */
 	public function get_awareness_state( string $room ): array {
-		$awareness = get_transient( 'sync_awareness_' . md5( $room ) );
+		$awareness = get_transient( 'sync_awareness_' . $room );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -125,13 +125,11 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	public function get_updates_after_cursor( string $room, int $cursor ): array {
 		global $wpdb;
 
-		$room_hash = md5( $room );
-
 		// Snapshot the current max ID for this room to define a stable upper bound.
 		$max_id = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->sync_updates} WHERE room_hash = %s",
-				$room_hash
+				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->sync_updates} WHERE room = %s",
+				$room
 			)
 		);
 
@@ -146,8 +144,8 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		// Bounded by max_id to stay consistent with the snapshot window above.
 		$this->room_update_counts[ $room ] = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->sync_updates} WHERE room_hash = %s AND id <= %d",
-				$room_hash,
+				"SELECT COUNT(*) FROM {$wpdb->sync_updates} WHERE room = %s AND id <= %d",
+				$room,
 				$max_id
 			)
 		);
@@ -155,8 +153,8 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		// Fetch updates after the cursor up to the snapshot boundary.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT update_value FROM {$wpdb->sync_updates} WHERE room_hash = %s AND id > %d AND id <= %d ORDER BY id ASC",
-				$room_hash,
+				"SELECT update_value FROM {$wpdb->sync_updates} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
+				$room,
 				$cursor,
 				$max_id
 			)
@@ -193,8 +191,8 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->sync_updates} WHERE room_hash = %s AND id < %d",
-				md5( $room ),
+				"DELETE FROM {$wpdb->sync_updates} WHERE room = %s AND id < %d",
+				$room,
 				$cursor
 			)
 		);
@@ -216,6 +214,6 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	public function set_awareness_state( string $room, array $awareness ): bool {
 		// Awareness is high-frequency, short-lived data (cursor positions, selections)
 		// that doesn't need cursor-based history. Transients avoid row churn in the table.
-		return set_transient( 'sync_awareness_' . md5( $room ), $awareness, MINUTE_IN_SECONDS );
+		return set_transient( 'sync_awareness_' . $room, $awareness, MINUTE_IN_SECONDS );
 	}
 }

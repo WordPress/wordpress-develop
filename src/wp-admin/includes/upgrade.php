@@ -886,7 +886,7 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
-	if ( $wp_current_db_version < 61697 ) {
+	if ( $wp_current_db_version < 61698 ) {
 		upgrade_700();
 	}
 

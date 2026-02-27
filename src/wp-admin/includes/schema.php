@@ -189,11 +189,11 @@ CREATE TABLE $wpdb->posts (
 ) $charset_collate;
 CREATE TABLE $wpdb->sync_updates (
 	id bigint(20) unsigned NOT NULL auto_increment,
-	room_hash char(32) NOT NULL,
+	room varchar(255) NOT NULL,
 	update_value longtext NOT NULL,
 	created_at datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
-	KEY room_hash (room_hash,id)
+	KEY room (room,id)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.

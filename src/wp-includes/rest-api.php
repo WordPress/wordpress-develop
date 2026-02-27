@@ -430,7 +430,7 @@ function create_initial_rest_routes() {
 	$icons_controller->register_routes();
 
 	// Collaboration.
-	if ( get_option( 'wp_enable_real_time_collaboration' ) && get_option( 'db_version' ) >= 61697 ) {
+	if ( get_option( 'wp_enable_real_time_collaboration' ) && get_option( 'db_version' ) >= 61698 ) {
 		$sync_storage = new WP_Sync_Table_Storage();
 
 		/**
