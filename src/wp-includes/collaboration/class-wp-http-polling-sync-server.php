@@ -198,7 +198,7 @@ class WP_HTTP_Polling_Sync_Server {
 					sprintf(
 						/* translators: %s: The room name encodes the current entity being synced. */
 						__( 'You do not have permission to sync this entity: %s.' ),
-						$room
+						esc_html( $room )
 					),
 					array( 'status' => rest_authorization_required_code() )
 				);
