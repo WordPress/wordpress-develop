@@ -115,6 +115,15 @@
 	</rule>
 
 	<!--
+		Temporarily excluded while waiting for #53465.
+		The default value of the $flags parameter for htmlspecialchars(), htmlentities(),
+		html_entity_decode(), and htmlspecialchars_decode() changed in PHP 8.1.
+	-->
+	<rule ref="PHPCompatibility.ParameterValues.NewHTMLEntitiesFlagsDefault.NotSet">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
+	<!--
 		The #[\SensitiveParameter] attribute is used intentionally.
 		It is silently ignored on PHP < 8.0 and active on 8.0+.
 		See https://core.trac.wordpress.org/ticket/57304.
