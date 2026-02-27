@@ -947,8 +947,6 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.5.0
 	 * @ignore
 	 *
-	 * @access private
-	 *
 	 * @return bool Whether a token was parsed.
 	 */
 	private function base_class_next_token(): bool {

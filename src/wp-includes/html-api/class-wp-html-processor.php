@@ -793,8 +793,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.2 Added for internal support.
 	 * @ignore
 	 *
-	 * @access private
-	 *
 	 * @return bool
 	 */
 	private function next_visitable_token(): bool {
