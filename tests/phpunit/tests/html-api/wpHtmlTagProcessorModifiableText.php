@@ -40,47 +40,6 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that `set_modifiable_text()` returns false for elements that share
-	 * tag names with HTML atomic elements when parsed in a non-HTML namespace.
-	 *
-	 * @ticket 64751
-	 * @dataProvider data_set_modifiable_text_fails_for_non_html_namespace_elements
-	 */
-	public function test_set_modifiable_text_fails_for_non_html_namespace_elements(
-		string $html,
-		string $expected_tag
-	) {
-		$processor = new WP_HTML_Tag_Processor( $html );
-		$processor->change_parsing_namespace( 'svg' );
-		$processor->next_token();
-		$this->assertSame( $expected_tag, $processor->get_tag(), 'Failed to find target tag.' );
-		$this->assertSame( 'svg', $processor->get_namespace() );
-		$this->assertFalse(
-			$processor->set_modifiable_text( 'test' ),
-			"set_modifiable_text() should return false for svg:{$expected_tag}."
-		);
-		$this->assertSame(
-			$html,
-			$processor->get_updated_html(),
-			'HTML should be unchanged after rejected set_modifiable_text().'
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_set_modifiable_text_fails_for_non_html_namespace_elements() {
-		return array(
-			'SVG TEXTAREA' => array( '<textarea></textarea>', 'TEXTAREA' ),
-			'SVG TITLE'    => array( '<title></title>', 'TITLE' ),
-			'SVG STYLE'    => array( '<style></style>', 'STYLE' ),
-			'SVG SCRIPT'   => array( '<script></script>', 'SCRIPT' ),
-		);
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @return array[]
@@ -705,4 +664,62 @@ HTML;
 			'Should have preserved the leading newline in the content.'
 		);
 	}
+
+	/**
+	 * Ensures that `set_modifiable_text()` returns false for elements that are
+	 * not special "atomic" elements.
+	 *
+	 * This includes atomic-like foreign elements as well as non-atomic foreign elements.
+	 *
+	 * @ticket 64751
+	 * @dataProvider data_set_modifiable_fails_non_atomic_tags
+	 */
+	public function test_set_modifiable_fails_non_atomic_tags(
+		string $html,
+		string $parsing_namespace,
+		string $expected_tag
+	) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->change_parsing_namespace( $parsing_namespace );
+		$processor->next_token();
+		$this->assertSame( $expected_tag, $processor->get_tag(), 'Failed to find target tag.' );
+		$this->assertFalse(
+			$processor->set_modifiable_text( 'test' ),
+			"set_modifiable_text() should return false for {$parsing_namespace}:{$expected_tag}."
+		);
+		$this->assertSame(
+			$html,
+			$processor->get_updated_html(),
+			'HTML should be unchanged after rejected set_modifiable_text().'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_set_modifiable_fails_non_atomic_tags() {
+		return array(
+			// Plain HTML tags.
+			'html DIV'                   => array( '<div>', 'html', 'DIV' ),
+
+			// Foreign elements with non-atomic tags.
+			'svg PATH'                   => array( '<path></path>', 'svg', 'PATH' ),
+			'svg PATH (self-closing)'    => array( '<path />', 'svg', 'PATH' ),
+			'math MTEXT'                 => array( '<mtext></mtext>', 'math', 'MTEXT' ),
+			'math MSPACE (self-closing)' => array( '<mspace />', 'math', 'MSPACE' ),
+
+			// Foreign elements with atomic-like tags.
+			'svg TEXTAREA'               => array( '<textarea></textarea>', 'svg', 'TEXTAREA' ),
+			'svg TITLE'                  => array( '<title></title>', 'svg', 'TITLE' ),
+			'svg STYLE'                  => array( '<style></style>', 'svg', 'STYLE' ),
+			'svg SCRIPT'                 => array( '<script></script>', 'svg', 'SCRIPT' ),
+			'math TEXTAREA'              => array( '<textarea></textarea>', 'math', 'TEXTAREA' ),
+			'math TITLE'                 => array( '<title></title>', 'math', 'TITLE' ),
+			'math STYLE'                 => array( '<style></style>', 'math', 'STYLE' ),
+			'math SCRIPT'                => array( '<script></script>', 'math', 'SCRIPT' ),
+		);
+	}
+
 }
