@@ -767,7 +767,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_empty_room_cursor_is_zero() {
+	public function test_sync_empty_room_cursor_is_zero(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
@@ -779,7 +779,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_cursor_advances_monotonically() {
+	public function test_sync_cursor_advances_monotonically(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -810,7 +810,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_cursor_prevents_re_delivery() {
+	public function test_sync_cursor_prevents_re_delivery(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -855,7 +855,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_operations_do_not_affect_posts_last_changed() {
+	public function test_sync_operations_do_not_affect_posts_last_changed(): void {
 		wp_set_current_user( self::$editor_id );
 
 		// Prime the posts last changed cache.
@@ -892,7 +892,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_compaction_does_not_lose_concurrent_updates() {
+	public function test_sync_compaction_does_not_lose_concurrent_updates(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room = $this->get_post_room();
@@ -958,7 +958,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_compaction_reduces_total_updates() {
+	public function test_sync_compaction_reduces_total_updates(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room    = $this->get_post_room();
@@ -1009,13 +1009,13 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_storage_filter_is_applied() {
-		$filter_called = false;
+	public function test_sync_storage_filter_is_applied(): void {
+		$filtered_storage = null;
 
 		add_filter(
 			'wp_sync_storage',
-			static function ( $storage ) use ( &$filter_called ) {
-				$filter_called = true;
+			static function ( WP_Sync_Storage $storage ) use ( &$filtered_storage ): WP_Sync_Storage {
+				$filtered_storage = $storage;
 				return $storage;
 			}
 		);
@@ -1024,7 +1024,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$server = rest_get_server();
 		do_action( 'rest_api_init', $server );
 
-		$this->assertTrue( $filter_called, 'The wp_sync_storage filter should be applied during route registration.' );
+		$this->assertInstanceOf( WP_Sync_Storage::class, $filtered_storage, 'The wp_sync_storage filter should be applied during route registration.' );
 	}
 
 	/*
@@ -1034,10 +1034,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Inserts a row directly into the sync_updates table with a given age.
 	 *
-	 * @param int    $age_in_seconds How old the row should be.
-	 * @param string $label          A label stored in the update_value for identification.
+	 * @param positive-int $age_in_seconds How old the row should be.
+	 * @param string       $label          A label stored in the update_value for identification.
 	 */
-	private function insert_sync_row( $age_in_seconds, $label = 'test' ) {
+	private function insert_sync_row( int $age_in_seconds, string $label = 'test' ): void {
 		global $wpdb;
 
 		$wpdb->insert(
@@ -1059,9 +1059,9 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Returns the number of rows in the sync_updates table.
 	 *
-	 * @return int Row count.
+	 * @return positive-int Row count.
 	 */
-	private function get_sync_row_count() {
+	private function get_sync_row_count(): int {
 		global $wpdb;
 
 		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->sync_updates}" );
@@ -1070,7 +1070,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_cron_cleanup_deletes_old_rows() {
+	public function test_cron_cleanup_deletes_old_rows(): void {
 		$this->insert_sync_row( 8 * DAY_IN_SECONDS );
 
 		$this->assertSame( 1, $this->get_sync_row_count() );
@@ -1083,7 +1083,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_cron_cleanup_preserves_recent_rows() {
+	public function test_cron_cleanup_preserves_recent_rows(): void {
 		$this->insert_sync_row( DAY_IN_SECONDS );
 
 		wp_delete_old_sync_updates();
@@ -1094,7 +1094,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_cron_cleanup_boundary_at_exactly_seven_days() {
+	public function test_cron_cleanup_boundary_at_exactly_seven_days(): void {
 		$this->insert_sync_row( WEEK_IN_SECONDS + 1, 'expired' );
 		$this->insert_sync_row( WEEK_IN_SECONDS - 1, 'just-inside' );
 
@@ -1110,7 +1110,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_cron_cleanup_selectively_deletes_mixed_rows() {
+	public function test_cron_cleanup_selectively_deletes_mixed_rows(): void {
 		// 3 expired rows.
 		$this->insert_sync_row( 10 * DAY_IN_SECONDS );
 		$this->insert_sync_row( 10 * DAY_IN_SECONDS );
@@ -1130,7 +1130,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_cron_cleanup_hook_is_registered() {
+	public function test_cron_cleanup_hook_is_registered(): void {
 		$this->assertSame(
 			10,
 			has_action( 'wp_delete_old_sync_updates', 'wp_delete_old_sync_updates' ),
@@ -1145,7 +1145,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_routes_not_registered_when_db_version_is_old() {
+	public function test_sync_routes_not_registered_when_db_version_is_old(): void {
 		update_option( 'db_version', 61697 );
 
 		// Reset the global REST server so rest_get_server() builds a fresh instance.
