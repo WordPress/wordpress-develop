@@ -2508,16 +2508,6 @@ function upgrade_700() {
 			)
 		);
 	}
-
-	// Clean up orphaned wp_sync_storage posts from the beta1 post-meta storage approach.
-	if ( $wp_current_db_version < 61697 ) {
-		$wpdb->delete( $wpdb->postmeta, array( 'meta_key' => 'wp_sync_update' ) );
-		$wpdb->delete( $wpdb->postmeta, array( 'meta_key' => 'wp_sync_awareness' ) );
-		$wpdb->delete(
-			$wpdb->posts,
-			array( 'post_type' => 'wp_sync_storage' )
-		);
-	}
 }
 
 /**
