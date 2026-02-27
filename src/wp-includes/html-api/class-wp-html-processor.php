@@ -471,7 +471,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-parsing-algorithm
 	 *
 	 * @since 6.8.0
-	 * @ignore
 	 *
 	 * @param string $html Input HTML fragment to process.
 	 * @return static|null The created processor if successful, otherwise null.
