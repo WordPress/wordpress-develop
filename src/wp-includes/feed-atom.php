@@ -5,6 +5,11 @@
  * @package WordPress
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 header( 'Content-Type: ' . feed_content_type( 'atom' ) . '; charset=' . get_option( 'blog_charset' ), true );
 $more = 1;
 
@@ -17,7 +22,6 @@ do_action( 'rss_tag_pre', 'atom' );
 	xmlns="http://www.w3.org/2005/Atom"
 	xmlns:thr="http://purl.org/syndication/thread/1.0"
 	xml:lang="<?php bloginfo_rss( 'language' ); ?>"
-	xml:base="<?php bloginfo_rss( 'url' ); ?>/wp-atom.php"
 	<?php
 	/**
 	 * Fires at end of the Atom feed root to add namespaces.

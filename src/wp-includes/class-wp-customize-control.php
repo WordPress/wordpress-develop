@@ -7,11 +7,17 @@
  * @since 3.4.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Customize Control class.
  *
  * @since 3.4.0
  */
+#[AllowDynamicProperties]
 class WP_Customize_Control {
 
 	/**
@@ -118,7 +124,7 @@ class WP_Customize_Control {
 	/**
 	 * List of custom input attributes for control output, where attribute names are the keys and values are the values.
 	 *
-	 * Not used for 'checkbox', 'radio', 'select', 'textarea', or 'dropdown-pages' control types.
+	 * Not used for 'checkbox', 'radio', 'select', or 'dropdown-pages' control types.
 	 *
 	 * @since 4.0.0
 	 * @var array
@@ -167,7 +173,7 @@ class WP_Customize_Control {
 	 *
 	 * Supplied `$args` override class property defaults.
 	 *
-	 * If `$args['settings']` is not defined, use the $id as the setting ID.
+	 * If `$args['settings']` is not defined, use the `$id` as the setting ID.
 	 *
 	 * @since 3.4.0
 	 *
@@ -195,8 +201,8 @@ class WP_Customize_Control {
 	 *                                                 Default empty array.
 	 *     @type array                $input_attrs     List of custom input attributes for control output, where
 	 *                                                 attribute names are the keys and values are the values. Not
-	 *                                                 used for 'checkbox', 'radio', 'select', 'textarea', or
-	 *                                                 'dropdown-pages' control types. Default empty array.
+	 *                                                 used for 'checkbox', 'radio', 'select', or 'dropdown-pages'
+	 *                                                 control types. Default empty array.
 	 *     @type bool                 $allow_addition  Show UI for adding new content, currently only used for the
 	 *                                                 dropdown-pages control. Default false.
 	 *     @type array                $json            Deprecated. Use WP_Customize_Control::json() instead.
@@ -241,14 +247,14 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Enqueue control related scripts/styles.
+	 * Enqueues control related scripts/styles.
 	 *
 	 * @since 3.4.0
 	 */
 	public function enqueue() {}
 
 	/**
-	 * Check whether control is active to current Customizer preview.
+	 * Checks whether control is active to current Customizer preview.
 	 *
 	 * @since 4.0.0
 	 *
@@ -286,7 +292,7 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Fetch a setting's value.
+	 * Fetches a setting's value.
 	 * Grabs the main setting by default.
 	 *
 	 * @since 3.4.0
@@ -301,7 +307,7 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Refresh the parameters passed to the JavaScript via JSON.
+	 * Refreshes the parameters passed to the JavaScript via JSON.
 	 *
 	 * @since 3.4.0
 	 */
@@ -326,7 +332,7 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Get the data to export to the client via JSON.
+	 * Gets the data to export to the client via JSON.
 	 *
 	 * @since 4.1.0
 	 *
@@ -369,7 +375,7 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Get the control's content for insertion into the Customizer pane.
+	 * Gets the control's content for insertion into the Customizer pane.
 	 *
 	 * @since 4.1.0
 	 *
@@ -382,7 +388,7 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Check capabilities and render the control.
+	 * Checks capabilities and render the control.
 	 *
 	 * @since 3.4.0
 	 * @uses WP_Customize_Control::render()
@@ -431,14 +437,15 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Get the data link attribute for a setting.
+	 * Gets the data link attribute for a setting.
 	 *
 	 * @since 3.4.0
 	 * @since 4.9.0 Return a `data-customize-setting-key-link` attribute if a setting is not registered for the supplied setting key.
 	 *
 	 * @param string $setting_key
-	 * @return string Data link parameter, a `data-customize-setting-link` attribute if the `$setting_key` refers to a pre-registered setting,
-	 *                and a `data-customize-setting-key-link` attribute if the setting is not yet registered.
+	 * @return string Data link parameter, a `data-customize-setting-link` attribute if the `$setting_key` refers
+	 *                to a pre-registered setting, and a `data-customize-setting-key-link` attribute if the setting
+	 *                is not yet registered.
 	 */
 	public function get_link( $setting_key = 'default' ) {
 		if ( isset( $this->settings[ $setting_key ] ) && $this->settings[ $setting_key ] instanceof WP_Customize_Setting ) {
@@ -449,19 +456,19 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Render the data link attribute for the control's input element.
+	 * Renders the data link attribute for the control's input element.
 	 *
 	 * @since 3.4.0
 	 * @uses WP_Customize_Control::get_link()
 	 *
-	 * @param string $setting_key
+	 * @param string $setting_key Default 'default'.
 	 */
 	public function link( $setting_key = 'default' ) {
 		echo $this->get_link( $setting_key );
 	}
 
 	/**
-	 * Render the custom attributes for the control's input element.
+	 * Renders the custom attributes for the control's input element.
 	 *
 	 * @since 4.0.0
 	 */
@@ -472,7 +479,7 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Render the control's content.
+	 * Renders the control's content.
 	 *
 	 * Allows the content to be overridden without having to rewrite the wrapper in `$this::render()`.
 	 *
@@ -552,13 +559,16 @@ class WP_Customize_Control {
 				<select id="<?php echo esc_attr( $input_id ); ?>" <?php echo $describedby_attr; ?> <?php $this->link(); ?>>
 					<?php
 					foreach ( $this->choices as $value => $label ) {
-						echo '<option value="' . esc_attr( $value ) . '"' . selected( $this->value(), $value, false ) . '>' . $label . '</option>';
+						echo '<option value="' . esc_attr( $value ) . '"' . selected( $this->value(), $value, false ) . '>' . esc_html( $label ) . '</option>';
 					}
 					?>
 				</select>
 				<?php
 				break;
 			case 'textarea':
+				if ( ! array_key_exists( 'rows', $this->input_attrs ) ) {
+					$this->input_attrs['rows'] = 5;
+				}
 				?>
 				<?php if ( ! empty( $this->label ) ) : ?>
 					<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $this->label ); ?></label>
@@ -568,7 +578,6 @@ class WP_Customize_Control {
 				<?php endif; ?>
 				<textarea
 					id="<?php echo esc_attr( $input_id ); ?>"
-					rows="5"
 					<?php echo $describedby_attr; ?>
 					<?php $this->input_attrs(); ?>
 					<?php $this->link(); ?>
@@ -606,8 +615,11 @@ class WP_Customize_Control {
 				// Hackily add in the data link parameter.
 				$dropdown = str_replace( '<select', '<select ' . $this->get_link() . ' id="' . esc_attr( $input_id ) . '" ' . $describedby_attr, $dropdown );
 
-				// Even more hacikly add auto-draft page stubs.
-				// @todo Eventually this should be removed in favor of the pages being injected into the underlying get_pages() call. See <https://github.com/xwp/wp-customize-posts/pull/250>.
+				/*
+				 * Even more hackily add auto-draft page stubs.
+				 * @todo Eventually this should be removed in favor of the pages being injected into the underlying get_pages() call.
+				 * See <https://github.com/xwp/wp-customize-posts/pull/250>.
+				 */
 				$nav_menus_created_posts_setting = $this->manager->get_setting( 'nav_menus_created_posts' );
 				if ( $nav_menus_created_posts_setting && current_user_can( 'publish_pages' ) ) {
 					$auto_draft_page_options = '';
@@ -627,14 +639,18 @@ class WP_Customize_Control {
 				<?php if ( $this->allow_addition && current_user_can( 'publish_pages' ) && current_user_can( 'edit_theme_options' ) ) : // Currently tied to menus functionality. ?>
 					<button type="button" class="button-link add-new-toggle">
 						<?php
-						/* translators: %s: Add New Page label. */
+						/* translators: %s: Add Page label. */
 						printf( __( '+ %s' ), get_post_type_object( 'page' )->labels->add_new_item );
 						?>
 					</button>
-					<div class="new-content-item">
-						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><span class="screen-reader-text"><?php _e( 'New page title' ); ?></span></label>
-						<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
-						<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
+					<div class="new-content-item-wrapper">
+						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><?php _e( 'New page title' ); ?></label>
+						<div class="new-content-item">
+							<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input form-required">
+							<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
+						</div>
+						<span id="create-input-<?php echo esc_attr( $this->id ); ?>-error" class="create-item-error error-message" style="display: none;"><?php _e( 'Please enter a page title' ); ?></span>
+
 					</div>
 				<?php endif; ?>
 				<?php
@@ -663,7 +679,7 @@ class WP_Customize_Control {
 	}
 
 	/**
-	 * Render the control's JS template.
+	 * Renders the control's JS template.
 	 *
 	 * This function is only run for control types that have been registered with
 	 * WP_Customize_Manager::register_control_type().
@@ -692,7 +708,6 @@ class WP_Customize_Control {
 	 * @since 4.1.0
 	 */
 	protected function content_template() {}
-
 }
 
 /**

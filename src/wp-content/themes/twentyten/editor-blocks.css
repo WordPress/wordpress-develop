@@ -149,7 +149,7 @@ Description: Used to style blocks in the editor.
 
 /* Caption styles */
 
-[class^="wp-block-"] figcaption {
+[class^="wp-block-"]:not(.wp-block-gallery) > figcaption {
 	color: #777;
 	font-family: "Helvetica Neue", Arial, Helvetica, "Nimbus Sans L", sans-serif;
 }
@@ -261,8 +261,14 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Pullquote */
 
+.wp-block-pullquote {
+	font-size: 1em;
+}
+
+.wp-block-pullquote blockquote > p.rich-text,
 .wp-block-pullquote blockquote > .editor-rich-text p {
 	font-size: 1.5em;
+	line-height: 1.3;
 }
 
 .wp-block-pullquote .wp-block-pullquote__citation {
@@ -286,6 +292,14 @@ p.has-drop-cap:not(:focus)::first-letter {
 .editor-block-list__block .wp-block-table tr td {
 	padding-bottom: 0;
 	padding-top: 0;
+}
+
+.wp-block-table[style*="font-size"] *,
+.wp-block-table[class*="-font-size"] *,
+.wp-block-calendar[style*="font-size"] *,
+.wp-block-calendar[class*="-font-size"] * {
+	font-size: inherit;
+	line-height: 1.5;
 }
 
 /*--------------------------------------------------------------
@@ -366,4 +380,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 :root .editor-styles-wrapper .has-white-background-color,
 :root .editor-styles-wrapper .has-white-background-color:visited {
 	background-color: #fff;
+}
+
+/* Inserter Icon */
+
+.editor-styles-wrapper .block-editor-inserter path {
+	color: #fff;
 }

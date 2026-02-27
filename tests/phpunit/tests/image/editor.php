@@ -105,9 +105,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		// Ensure wp_editor_set_quality filter applies if it exists before editor instantiation.
 		$this->assertSame( 100, $editor->get_quality() );
-
-		// Clean up.
-		remove_filter( 'wp_editor_set_quality', $func_100_percent );
 	}
 
 	/**
@@ -119,18 +116,25 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/test-image.png' );
 		$editor->set_mime_type( 'image/png' ); // Ensure mime-specific filters act properly.
 
+		// Quality setting for the source image. For PNG the fallback default of 82 is used.
+		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
+
 		// Set conversions for uploaded images.
 		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
 
 		// Quality setting for the source image. For PNG the fallback default of 82 is used.
 		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
 
-		// Quality should change to the output format's value.
-		// A PNG image will be converted to WEBP whose quialty should be 86.
+		// When saving, quality should change to the output format's value.
+		// A PNG image will be converted to WebP whose quality should be 86.
 		$editor->save();
-		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WEBP. Quality setting for it should be 86.' );
+		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WebP. Quality setting for it should be 86.' );
 
-		// Removing PNG to WEBP conversion on save. Quality setting should reset to the default.
+		// Saving again should not change the quality.
+		$editor->save();
+		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WebP. Quality setting for it should be 86.' );
+
+		// Removing PNG to WebP conversion on save. Quality setting should reset to the default.
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
 		$editor->save();
 		$this->assertSame( 82, $editor->get_quality(), 'After removing image conversion quality setting should reset to the default of 82.' );
@@ -149,9 +153,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertSame( 56, $editor->get_quality(), 'Filtered default quality for JPEG is 56.' );
 
 		// Quality should change to the output format's value as filtered above.
-		// A JPEG image will be converted to WEBP whose quialty should be 42.
+		// A JPEG image will be converted to WebP whose quialty should be 42.
 		$editor->save();
-		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WEBP. Filtered WEBP quality shoild be 42.' );
+		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WEBP. Filtered WEBP quality should be 42.' );
 
 		// After removing the conversion the quality setting should reset to the filtered value for the original image type, JPEG.
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
@@ -161,8 +165,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			$editor->get_quality(),
 			'After removing image conversion the quality setting should reset to the filtered value for JPEG, 56.'
 		);
-
-		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality' ) );
 	}
 
 	/**
@@ -207,7 +209,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$property = new ReflectionProperty( $editor, 'size' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue(
 			$editor,
 			array(
@@ -253,7 +257,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			'width'  => 100,
 		);
 		$property = new ReflectionProperty( $editor, 'size' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $editor, $size );
 
 		$this->assertSame( $size, $editor->get_size() );
@@ -276,7 +282,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			'width'  => 100,
 		);
 		$property = new ReflectionProperty( $editor, 'size' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $editor, $size );
 
 		$this->assertSame( '100x50', $editor->get_suffix() );
@@ -286,24 +294,18 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test wp_get_webp_info.
 	 *
 	 * @ticket 35725
-	 * @dataProvider _test_wp_get_webp_info
+	 * @dataProvider data_wp_get_webp_info
 	 *
 	 */
 	public function test_wp_get_webp_info( $file, $expected ) {
-		$editor = wp_get_image_editor( $file );
-
-		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
-			$this->markTestSkipped( sprintf( 'No WebP support in the editor engine %s on this system.', $this->editor_engine ) );
-		}
-
 		$file_data = wp_get_webp_info( $file );
-		$this->assertSame( $file_data, $expected );
+		$this->assertSame( $expected, $file_data );
 	}
 
 	/**
 	 * Data provider for test_wp_get_webp_info().
 	 */
-	public function _test_wp_get_webp_info() {
+	public function data_wp_get_webp_info() {
 		return array(
 			// Standard JPEG.
 			array(
@@ -362,4 +364,113 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Test wp_get_avif_info.
+	 *
+	 * @ticket 51228
+	 *
+	 * @dataProvider data_wp_get_avif_info
+	 *
+	 * @param string $file     The path to the AVIF file for testing.
+	 * @param array  $expected The expected AVIF file information.
+	 */
+	public function test_wp_get_avif_info( $file, $expected ) {
+		$file_data = wp_get_avif_info( $file );
+		$this->assertSame( $expected, $file_data );
+	}
+
+	/**
+	 * Data provider for test_wp_get_avif_info().
+	 */
+	public function data_wp_get_avif_info() {
+		return array(
+			// Standard JPEG.
+			array(
+				DIR_TESTDATA . '/images/test-image.jpg',
+				array(
+					'width'        => false,
+					'height'       => false,
+					'bit_depth'    => false,
+					'num_channels' => false,
+				),
+			),
+			// Standard GIF.
+			array(
+				DIR_TESTDATA . '/images/test-image.gif',
+				array(
+					'width'        => false,
+					'height'       => false,
+					'bit_depth'    => false,
+					'num_channels' => false,
+				),
+			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				array(
+					'width'        => 150,
+					'height'       => 150,
+					'bit_depth'    => 8,
+					'num_channels' => 4,
+				),
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				array(
+					'width'        => 400,
+					'height'       => 400,
+					'bit_depth'    => 8,
+					'num_channels' => 3,
+				),
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				array(
+					'width'        => 400,
+					'height'       => 400,
+					'bit_depth'    => 8,
+					'num_channels' => 3,
+				),
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				array(
+					'width'        => 128,
+					'height'       => 128,
+					'bit_depth'    => 12,
+					'num_channels' => 4,
+				),
+			),
+			array(
+				DIR_TESTDATA . '/images/color_grid_alpha_nogrid.avif',
+				array(
+					'width'        => 80,
+					'height'       => 80,
+					'bit_depth'    => 8,
+					'num_channels' => 4,
+				),
+			),
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					'width'        => 199,
+					'height'       => 200,
+					'bit_depth'    => 8,
+					'num_channels' => 4,
+				),
+			),
+			array(
+				DIR_TESTDATA . '/images/colors_hdr_p3.avif',
+				array(
+					'width'        => 200,
+					'height'       => 200,
+					'bit_depth'    => 10,
+					'num_channels' => 3,
+				),
+			),
+		);
+	}
 }

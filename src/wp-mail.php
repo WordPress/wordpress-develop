@@ -17,7 +17,7 @@ if ( ! apply_filters( 'enable_post_by_email_configuration', true ) ) {
 
 $mailserver_url = get_option( 'mailserver_url' );
 
-if ( 'mail.example.com' === $mailserver_url || empty( $mailserver_url ) ) {
+if ( empty( $mailserver_url ) || 'mail.example.com' === $mailserver_url ) {
 	wp_die( __( 'This action has been disabled by the administrator.' ), 403 );
 }
 
@@ -39,12 +39,20 @@ if ( ! defined( 'WP_MAIL_INTERVAL' ) ) {
 $last_checked = get_transient( 'mailserver_last_checked' );
 
 if ( $last_checked ) {
-	wp_die( __( 'Slow down cowboy, no need to check for new mails so often!' ) );
+	wp_die(
+		sprintf(
+			// translators: %s human readable rate limit.
+			__( 'Email checks are rate limited to once every %s.' ),
+			human_time_diff( time() - WP_MAIL_INTERVAL, time() )
+		),
+		__( 'Slow down, no need to check for new mails so often!' ),
+		429
+	);
 }
 
 set_transient( 'mailserver_last_checked', true, WP_MAIL_INTERVAL );
 
-$time_difference = get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+$time_difference = (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 
 $phone_delim = '::';
 
@@ -62,8 +70,11 @@ if ( false === $count ) {
 
 if ( 0 === $count ) {
 	$pop3->quit();
-	wp_die( __( 'There doesn&#8217;t seem to be any new mail.' ) );
+	wp_die( __( 'There does not seem to be any new mail.' ) );
 }
+
+// Always run as an unauthenticated user.
+wp_set_current_user( 0 );
 
 for ( $i = 1; $i <= $count; $i++ ) {
 
@@ -104,7 +115,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				$content_transfer_encoding = explode( ';', $content_transfer_encoding );
 				$content_transfer_encoding = $content_transfer_encoding[0];
 			}
-			if ( ( 'multipart/alternative' === $content_type ) && ( false !== strpos( $line, 'boundary="' ) ) && ( '' === $boundary ) ) {
+			if ( 'multipart/alternative' === $content_type && str_contains( $line, 'boundary="' ) && '' === $boundary ) {
 				$boundary = trim( $line );
 				$boundary = explode( '"', $boundary );
 				$boundary = $boundary[1];
@@ -134,8 +145,6 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				}
 				$author = sanitize_email( $author );
 				if ( is_email( $author ) ) {
-					/* translators: %s: Post author email address. */
-					echo '<p>' . sprintf( __( 'Author is %s' ), $author ) . '</p>';
 					$userdata = get_user_by( 'email', $author );
 					if ( ! empty( $userdata ) ) {
 						$post_author  = $userdata->ID;
@@ -146,7 +155,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 			if ( preg_match( '/Date: /i', $line ) ) { // Of the form '20 Mar 2002 20:32:37 +0100'.
 				$ddate = str_replace( 'Date: ', '', trim( $line ) );
-				// Remove parenthesised timezone string if it exists, as this confuses strtotime().
+				// Remove parenthesized timezone string if it exists, as this confuses strtotime().
 				$ddate           = preg_replace( '!\s*\(.+\)\s*$!', '', $ddate );
 				$ddate_timestamp = strtotime( $ddate );
 				$post_date       = gmdate( 'Y-m-d H:i:s', $ddate_timestamp + $time_difference );
@@ -170,7 +179,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		$content = explode( '--' . $boundary, $content );
 		$content = $content[2];
 
-		// Match case-insensitive content-transfer-encoding.
+		// Match case-insensitive Content-Transfer-Encoding.
 		if ( preg_match( '/Content-Transfer-Encoding: quoted-printable/i', $content, $delim ) ) {
 			$content = explode( $delim[0], $content );
 			$content = $content[1];
@@ -230,7 +239,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		echo "\n" . $post_ID->get_error_message();
 	}
 
-	// We couldn't post, for whatever reason. Better move forward to the next email.
+	// The post wasn't inserted or updated, for whatever reason. Better move forward to the next email.
 	if ( empty( $post_ID ) ) {
 		continue;
 	}

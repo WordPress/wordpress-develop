@@ -1,0 +1,9 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"name": "tests/hooked-block-error",
+	"description": "A block that throws an error because it tries to hook a block to itself.",
+	"blockHooks": {
+		"tests/hooked-block-error": "before",
+		"tests/other-block": "after"
+	}
+}

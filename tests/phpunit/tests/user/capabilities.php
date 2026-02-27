@@ -30,6 +30,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 */
 	protected static $block_id;
 
+	/**
+	 * Temporary storage for roles for tests using filter callbacks.
+	 *
+	 * Used in the `test_wp_roles_init_action()` method.
+	 *
+	 * @var array
+	 */
+	private $role_test_wp_roles_init;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$users       = array(
 			'anonymous'     => new WP_User( 0 ),
@@ -57,7 +66,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		parent::set_up();
 		// Keep track of users we create.
 		$this->flush_roles();
+	}
 
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->role_test_wp_roles_init );
+
+		parent::tear_down();
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -164,7 +181,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'subscriber'              => array( 'subscriber' ),
 
 		);
-
 	}
 
 	private function _getMultiSitePrimitiveCaps() {
@@ -247,7 +263,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'subscriber'              => array( 'subscriber' ),
 
 		);
-
 	}
 
 	private function _getSingleSiteMetaCaps() {
@@ -435,12 +450,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertSame( array(), $diff, "User with {$role} role has capabilities that aren't being tested" );
 
 		}
-
 	}
 
 	/**
 	 * Test the tests. The administrator role has all primitive capabilities, therefore the
-	 * primitive capabilitity tests can be tested by checking that the list of tested
+	 * primitive capability tests can be tested by checking that the list of tested
 	 * capabilities matches those of the administrator role.
 	 *
 	 * @group capTestTests
@@ -556,7 +570,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$expected['read_app_password'],
 			$expected['edit_app_password'],
 			$expected['delete_app_passwords'],
-			$expected['delete_app_password']
+			$expected['delete_app_password'],
+			$expected['edit_block_binding']
 		);
 
 		$expected = array_keys( $expected );
@@ -729,7 +744,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		update_option( 'link_manager_enabled', '0' );
 		$this->assertSame( '0', get_option( 'link_manager_enabled' ) );
-
 	}
 
 	/**
@@ -743,7 +757,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertFalse( $user->has_cap( 'unfiltered_upload' ), "User with the {$role} role should not have the unfiltered_upload capability" );
 			$this->assertFalse( user_can( $user, 'unfiltered_upload' ), "User with the {$role} role should not have the unfiltered_upload capability" );
 		}
-
 	}
 
 	/**
@@ -899,7 +912,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user->remove_role( 'contributor' );
 		// User should have one role now.
 		$this->assertSame( array( 'subscriber' ), $user->roles );
-
 	}
 
 	/**
@@ -981,7 +993,30 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Change the capabilites associated with a role and make sure the change
+	 * Test add_role with implied capabilities grant successfully grants capabilities.
+	 *
+	 * @ticket 43421
+	 */
+	public function test_add_role_with_single_level_capabilities() {
+		$role_name = 'janitor';
+		add_role(
+			$role_name,
+			'Janitor',
+			array(
+				'foo',
+			)
+		);
+		$this->flush_roles();
+
+		// Assign a user to that role.
+		$id   = self::factory()->user->create( array( 'role' => $role_name ) );
+		$user = new WP_User( $id );
+
+		$this->assertTrue( $user->has_cap( 'foo' ) );
+	}
+
+	/**
+	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
 	public function test_role_add_cap() {
@@ -1019,11 +1054,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		remove_role( $role_name );
 		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
-
 	}
 
 	/**
-	 * Change the capabilites associated with a role and make sure the change
+	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
 	public function test_role_remove_cap() {
@@ -1064,7 +1098,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		remove_role( $role_name );
 		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
-
 	}
 
 	/**
@@ -1103,7 +1136,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				$this->assertFalse( $user_1->has_cap( $cap ), "User should not have the {$cap} capability" );
 			}
 		}
-
 	}
 
 	/**
@@ -1135,7 +1167,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Check the removed cap on both users.
 		$this->assertFalse( $user_1->has_cap( 'publish_posts' ) );
 		$this->assertFalse( $user_2->has_cap( 'publish_posts' ) );
-
 	}
 
 	/**
@@ -1199,7 +1230,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// User level should be empty.
 		$this->assertEmpty( $user->user_level );
-
 	}
 
 	/**
@@ -1296,13 +1326,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function authorless_post_statuses() {
-		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
-	}
-
 	/**
 	 * @ticket 27020
-	 * @dataProvider authorless_post_statuses
+	 * @dataProvider data_authorless_post
 	 */
 	public function test_authorless_post( $status ) {
 		// Make a post without an author.
@@ -1329,6 +1355,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( $contributor->has_cap( 'edit_post', $post ) );
 		$this->assertFalse( $contributor->has_cap( 'delete_post', $post ) );
 		$this->assertSame( 'publish' === $status, $contributor->has_cap( 'read_post', $post ) );
+	}
+
+	public function data_authorless_post() {
+		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
 	}
 
 	/**
@@ -1529,7 +1559,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				"Role: {$role}"
 			);
 		}
-
 	}
 
 	public function dataTaxonomies() {
@@ -1595,6 +1624,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$editor = self::$users['editor'];
 
+		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
 		foreach ( $caps as $cap ) {
 			// `null` represents a non-existent term ID.
 			$this->assertFalse( user_can( $editor->ID, $cap, null ) );
@@ -1623,40 +1653,116 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user = self::$users['administrator'];
 		$caps = $user->caps;
 		$this->assertNotEmpty( $user->caps );
+
 		$user->set_role( 'administrator' );
 		$this->assertNotEmpty( $user->caps );
 		$this->assertSame( $caps, $user->caps );
 	}
 
-	public function test_current_user_can_for_blog() {
+	/**
+	 * @ticket 54164
+	 */
+	public function test_set_role_fires_remove_user_role_and_add_user_role_hooks() {
+		$user = self::$users['administrator'];
+
+		$remove_user_role = new MockAction();
+		$add_user_role    = new MockAction();
+		add_action( 'remove_user_role', array( $remove_user_role, 'action' ) );
+		add_action( 'add_user_role', array( $add_user_role, 'action' ) );
+
+		$user->set_role( 'editor' );
+		$user->set_role( 'administrator' );
+		$this->assertSame( 2, $remove_user_role->get_call_count() );
+		$this->assertSame( 2, $add_user_role->get_call_count() );
+	}
+
+	/**
+	 * @group can_for_site
+	 */
+	public function test_current_user_can_for_site() {
 		global $wpdb;
 
 		$user    = self::$users['administrator'];
 		$old_uid = get_current_user_id();
 		wp_set_current_user( $user->ID );
 
-		$this->assertTrue( current_user_can_for_blog( get_current_blog_id(), 'edit_posts' ) );
-		$this->assertFalse( current_user_can_for_blog( get_current_blog_id(), 'foo_the_bar' ) );
+		$this->assertTrue( current_user_can_for_site( get_current_blog_id(), 'edit_posts' ) );
+		$this->assertFalse( current_user_can_for_site( get_current_blog_id(), 'foo_the_bar' ) );
+
 		if ( ! is_multisite() ) {
-			$this->assertTrue( current_user_can_for_blog( 12345, 'edit_posts' ) );
+			$this->assertTrue( current_user_can_for_site( 12345, 'edit_posts' ) );
+			$this->assertFalse( current_user_can_for_site( 12345, 'foo_the_bar' ) );
 			return;
 		}
 
 		$suppress = $wpdb->suppress_errors();
-		$this->assertFalse( current_user_can_for_blog( 12345, 'edit_posts' ) );
+		$this->assertFalse( current_user_can_for_site( 12345, 'edit_posts' ) );
 		$wpdb->suppress_errors( $suppress );
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
-		$this->assertTrue( current_user_can_for_blog( $blog_id, 'edit_posts' ) );
-		$this->assertFalse( current_user_can_for_blog( $blog_id, 'foo_the_bar' ) );
+
+		$this->assertNotWPError( $blog_id );
+		$this->assertTrue( current_user_can_for_site( $blog_id, 'edit_posts' ) );
+		$this->assertFalse( current_user_can_for_site( $blog_id, 'foo_the_bar' ) );
+
+		$another_blog_id = self::factory()->blog->create( array( 'user_id' => self::$users['author']->ID ) );
+
+		$this->assertNotWPError( $another_blog_id );
+
+		// Verify the user doesn't have a capability
+		$this->assertFalse( current_user_can_for_site( $another_blog_id, 'edit_posts' ) );
+
+		// Add the current user to the site
+		add_user_to_blog( $another_blog_id, $user->ID, 'author' );
+
+		// Verify they now have the capability
+		$this->assertTrue( current_user_can_for_site( $another_blog_id, 'edit_posts' ) );
 
 		wp_set_current_user( $old_uid );
 	}
 
 	/**
+	 * @group can_for_site
+	 */
+	public function test_user_can_for_site() {
+		$user = self::$users['editor'];
+
+		$this->assertTrue( user_can_for_site( $user->ID, get_current_blog_id(), 'edit_posts' ) );
+		$this->assertFalse( user_can_for_site( $user->ID, get_current_blog_id(), 'foo_the_bar' ) );
+
+		if ( ! is_multisite() ) {
+			$this->assertTrue( user_can_for_site( $user->ID, 12345, 'edit_posts' ) );
+			$this->assertFalse( user_can_for_site( $user->ID, 12345, 'foo_the_bar' ) );
+			return;
+		}
+
+		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
+
+		$this->assertNotWPError( $blog_id );
+		$this->assertTrue( user_can_for_site( $user->ID, $blog_id, 'edit_posts' ) );
+		$this->assertFalse( user_can_for_site( $user->ID, $blog_id, 'foo_the_bar' ) );
+
+		$author = self::$users['author'];
+
+		// Verify another user doesn't have a capability
+		$this->assertFalse( is_user_member_of_blog( $author->ID, $blog_id ) );
+		$this->assertFalse( user_can_for_site( $author->ID, $blog_id, 'edit_posts' ) );
+
+		// Add the author to the site
+		add_user_to_blog( $blog_id, $author->ID, 'author' );
+
+		// Verify they now have the capability
+		$this->assertTrue( is_user_member_of_blog( $author->ID, $blog_id ) );
+		$this->assertTrue( user_can_for_site( $author->ID, $blog_id, 'edit_posts' ) );
+
+		// Verify the user doesn't have a capability for a non-existent site
+		$this->assertFalse( user_can_for_site( $user->ID, -1, 'edit_posts' ) );
+	}
+
+	/**
 	 * @group ms-required
 	 */
-	public function test_borked_current_user_can_for_blog() {
+	public function test_borked_current_user_can_for_site() {
 		$orig_blog_id = get_current_blog_id();
 		$blog_id      = self::factory()->blog->create();
 
@@ -1664,13 +1770,13 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		add_action( 'switch_blog', array( $this, 'nullify_current_user_and_keep_nullifying_user' ) );
 
-		current_user_can_for_blog( $blog_id, 'edit_posts' );
+		current_user_can_for_site( $blog_id, 'edit_posts' );
 
 		$this->assertSame( $orig_blog_id, get_current_blog_id() );
 	}
 
 	public function nullify_current_user() {
-		// Prevents fatal errors in ::tearDown()'s and other uses of restore_current_blog().
+		// Prevents fatal errors in ::tear_down()'s and other uses of restore_current_blog().
 		$function_stack = wp_debug_backtrace_summary( null, 0, false );
 		if ( in_array( 'restore_current_blog', $function_stack, true ) ) {
 			return;
@@ -1724,11 +1830,47 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( current_user_can( 'edit_user', $other_user->ID ) );
 	}
 
-	public function test_user_can_edit_self() {
-		foreach ( self::$users as $role => $user ) {
-			wp_set_current_user( $user->ID );
-			$this->assertTrue( current_user_can( 'edit_user', $user->ID ), "User with role {$role} should have the capability to edit their own profile" );
+	/**
+	 * Test if a user can edit their own profile based on their role.
+	 *
+	 * @ticket 63684
+	 *
+	 * @dataProvider data_user_can_edit_self
+	 *
+	 * @param string $role          The role of the user.
+	 * @param bool   $can_edit_self Whether the user can edit their own profile.
+	 */
+	public function test_user_can_edit_self( $role, $can_edit_self = true ) {
+		$user = self::$users[ $role ];
+		wp_set_current_user( $user->ID );
+
+		if ( $can_edit_self ) {
+			$this->assertTrue(
+				current_user_can( 'edit_user', $user->ID ),
+				"User with role '{$role}' should have the capability to edit their own profile"
+			);
+		} else {
+			$this->assertFalse(
+				current_user_can( 'edit_user', $user->ID ),
+				"User with role '{$role}' should not have the capability to edit their own profile"
+			);
 		}
+	}
+
+	/**
+	 * Data provider for test_user_can_edit_self.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public static function data_user_can_edit_self() {
+		return array(
+			'anonymous'     => array( 'anonymous', false ),
+			'administrator' => array( 'administrator', true ),
+			'editor'        => array( 'editor', true ),
+			'author'        => array( 'author', true ),
+			'contributor'   => array( 'contributor', true ),
+			'subscriber'    => array( 'subscriber', true ),
+		);
 	}
 
 	public function test_only_admins_and_super_admins_can_remove_users() {
@@ -1791,7 +1933,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$contributor = self::$users['contributor'];
 
 		// Give them a scheduled post.
-		$post = $this->factory->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $contributor->ID,
 				'post_status' => 'future',
@@ -1813,7 +1955,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Ensure contributor can't edit, un-trash, or delete the post.
 		$this->assertFalse( user_can( $contributor->ID, 'edit_post', $post->ID ) );
 		$this->assertFalse( user_can( $contributor->ID, 'delete_post', $post->ID ) );
-
 	}
 
 	/**
@@ -1944,7 +2085,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( user_can( $contributor->ID, 'edit_post', $author_post->ID ) );
 
 		_unregister_post_type( 'page_capability' );
-
 	}
 
 	public function test_non_logged_in_users_have_no_capabilities() {
@@ -1974,16 +2114,13 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		wp_logout();
 
 		$this->assertSame( 0, get_current_user_id() );
-
 	}
 
-
-	protected $_role_test_wp_roles_role;
 	/**
 	 * @ticket 23016
 	 */
 	public function test_wp_roles_init_action() {
-		$this->_role_test_wp_roles_init = array(
+		$this->role_test_wp_roles_init = array(
 			'role' => 'test_wp_roles_init',
 			'info' => array(
 				'name'         => 'Test WP Roles Init',
@@ -1996,16 +2133,16 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		remove_action( 'wp_roles_init', array( $this, '_hook_wp_roles_init' ) );
 
-		$expected = new WP_Role( $this->_role_test_wp_roles_init['role'], $this->_role_test_wp_roles_init['info']['capabilities'] );
+		$expected = new WP_Role( $this->role_test_wp_roles_init['role'], $this->role_test_wp_roles_init['info']['capabilities'] );
 
-		$role = $wp_roles->get_role( $this->_role_test_wp_roles_init['role'] );
+		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
 		$this->assertEquals( $expected, $role );
-		$this->assertContains( $this->_role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
+		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}
 
 	public function _hook_wp_roles_init( $wp_roles ) {
-		$wp_roles->add_role( $this->_role_test_wp_roles_init['role'], $this->_role_test_wp_roles_init['info']['name'], $this->_role_test_wp_roles_init['info']['capabilities'] );
+		$wp_roles->add_role( $this->role_test_wp_roles_init['role'], $this->role_test_wp_roles_init['info']['name'], $this->role_test_wp_roles_init['info']['capabilities'] );
 	}
 
 	/**
@@ -2356,5 +2493,104 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Test `edit_block_binding` meta capability is properly mapped.
+	 *
+	 * @ticket 61945
+	 */
+	public function test_edit_block_binding_caps_are_mapped_correctly() {
+		$author = self::$users['administrator'];
+		$post   = self::factory()->post->create_and_get(
+			array(
+				'post_author' => $author->ID,
+				'post_type'   => 'post',
+			)
+		);
+
+		foreach ( self::$users as $role => $user ) {
+			// It should map to `edit_{post_type}` if editing a post.
+			$this->assertSame(
+				user_can( $user->ID, 'edit_post', $post->ID ),
+				user_can(
+					$user->ID,
+					'edit_block_binding',
+					new WP_Block_Editor_Context(
+						array(
+							'post' => $post,
+							'name' => 'core/edit-post',
+						)
+					)
+				),
+				"Role: {$role} in post editing"
+			);
+			// It should map to `edit_theme_options` if editing a template.
+			$this->assertSame(
+				user_can( $user->ID, 'edit_theme_options' ),
+				user_can(
+					$user->ID,
+					'edit_block_binding',
+					new WP_Block_Editor_Context(
+						array(
+							'post' => null,
+							'name' => 'core/edit-site',
+						)
+					)
+				),
+				"Role: {$role} in template editing"
+			);
+		}
+	}
+
+	/**
+	 * Ensure that caps are updated correctly when using `update_option()` to save roles.
+	 *
+	 * Compares the efficiency and accuracy of updating role capabilities when `WP_Roles`
+	 * uses the database vs when the updates are done via `update_option()`.
+	 *
+	 * This method of updating roles is used in `populate_roles()` to reduce the number of
+	 * queries by approximately 300.
+	 *
+	 * @ticket 37687
+	 */
+	public function test_role_capabilities_updated_correctly_via_update_option() {
+		global $wp_roles;
+		$emcee_role = 'emcee';
+		$wp_roles->add_role( $emcee_role, 'Emcee', array( 'level_1' => true ) );
+		$this->flush_roles();
+
+		$expected_caps = array(
+			'level_1'             => true,
+			'attend_kit_kat_klub' => true,
+			'win_tony_award'      => true,
+		);
+
+		$start_queries = get_num_queries();
+		$wp_roles->add_cap( $emcee_role, 'attend_kit_kat_klub' );
+		$wp_roles->add_cap( $emcee_role, 'win_tony_award' );
+		$emcee_queries = get_num_queries() - $start_queries;
+		$this->flush_roles();
+		$emcee_caps = $wp_roles->get_role( $emcee_role )->capabilities;
+
+		$wp_roles->use_db = false;
+		$sally_role       = 'sally';
+		$wp_roles->add_role( $sally_role, 'Sally Bowles', array( 'level_1' => true ) );
+		$start_queries = get_num_queries();
+		$wp_roles->add_cap( $sally_role, 'attend_kit_kat_klub' );
+		$wp_roles->add_cap( $sally_role, 'win_tony_award' );
+
+		update_option( $wp_roles->role_key, $wp_roles->roles, true );
+		$sally_queries    = get_num_queries() - $start_queries;
+		$wp_roles->use_db = true;
+
+		// Restore the default value.
+		$this->flush_roles();
+		$sally_caps = $wp_roles->get_role( $sally_role )->capabilities;
+
+		$this->assertSameSetsWithIndex( $expected_caps, $emcee_caps, 'Emcee role should include the three expected capabilities.' );
+		$this->assertSameSetsWithIndex( $expected_caps, $sally_caps, 'Sally role should include the three expected capabilities.' );
+		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
+		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
 	}
 }

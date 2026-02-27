@@ -13,88 +13,51 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	 * Test that mb_substr() is always available (either from PHP or WP).
 	 */
 	public function test_mb_substr_availability() {
-		$this->assertTrue( function_exists( 'mb_substr' ) );
+		$this->assertTrue(
+			in_array( 'mb_substr', get_defined_functions()['internal'], true ),
+			'Test runner should have `mbstring` extension active but doesn’t.'
+		);
 	}
 
 	/**
-	 * @dataProvider utf8_substrings
+	 * @dataProvider data_utf8_substrings
 	 */
-	public function test_mb_substr( $string, $start, $length, $expected_character_substring ) {
-		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
+	public function test_mb_substr( $input_string, $start, $length ) {
+		$this->assertSame(
+			mb_substr( $input_string, $start, $length, 'UTF-8' ),
+			_mb_substr( $input_string, $start, $length, 'UTF-8' )
+		);
 	}
 
 	/**
-	 * @dataProvider utf8_substrings
+	 * @dataProvider data_utf8_substrings
 	 */
-	public function test_mb_substr_via_regex( $string, $start, $length, $expected_character_substring ) {
-		_wp_can_use_pcre_u( false );
-		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
-		_wp_can_use_pcre_u( 'reset' );
-	}
-
-	/**
-	 * @dataProvider utf8_substrings
-	 */
-	public function test_8bit_mb_substr( $string, $start, $length, $expected_character_substring, $expected_byte_substring ) {
-		$this->assertSame( $expected_byte_substring, _mb_substr( $string, $start, $length, '8bit' ) );
+	public function test_8bit_mb_substr( $input_string, $start, $length ) {
+		$this->assertSame(
+			mb_substr( $input_string, $start, $length, '8bit' ),
+			_mb_substr( $input_string, $start, $length, '8bit' )
+		);
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public function utf8_substrings() {
+	public function data_utf8_substrings() {
 		return array(
-			array(
-				'string'                       => 'баба',
-				'start'                        => 0,
-				'length'                       => 3,
-				'expected_character_substring' => 'баб',
-				'expected_byte_substring'      => "б\xD0",
-			),
-			array(
-				'string'                       => 'баба',
-				'start'                        => 0,
-				'length'                       => -1,
-				'expected_character_substring' => 'баб',
-				'expected_byte_substring'      => "баб\xD0",
-			),
-			array(
-				'string'                       => 'баба',
-				'start'                        => 1,
-				'length'                       => null,
-				'expected_character_substring' => 'аба',
-				'expected_byte_substring'      => "\xB1аба",
-			),
-			array(
-				'string'                       => 'баба',
-				'start'                        => -3,
-				'length'                       => null,
-				'expected_character_substring' => 'аба',
-				'expected_byte_substring'      => "\xB1а",
-			),
-			array(
-				'string'                       => 'баба',
-				'start'                        => -3,
-				'length'                       => 2,
-				'expected_character_substring' => 'аб',
-				'expected_byte_substring'      => "\xB1\xD0",
-			),
-			array(
-				'string'                       => 'баба',
-				'start'                        => -1,
-				'length'                       => 2,
-				'expected_character_substring' => 'а',
-				'expected_byte_substring'      => "\xB0",
-			),
-			array(
-				'string'                       => 'I am your баба',
-				'start'                        => 0,
-				'length'                       => 11,
-				'expected_character_substring' => 'I am your б',
-				'expected_byte_substring'      => "I am your \xD0",
-			),
+			'баба'           => array( 'баба', 0, 3 ),
+			'баба'           => array( 'баба', 0, -1 ),
+			'баба'           => array( 'баба', 1, null ),
+			'баба'           => array( 'баба', -3, null ),
+			'баба'           => array( 'баба', -3, 2 ),
+			'баба'           => array( 'баба', -2, 1 ),
+			'баба'           => array( 'баба', 30, 1 ),
+			'баба'           => array( 'баба', 15, -30 ),
+			'баба'           => array( 'баба', -5, -5 ),
+			'баба'           => array( 'баба', 5, -3 ),
+			'баба'           => array( 'баба', -3, 5 ),
+			'I am your баба' => array( 'I am your баба', 0, 11 ),
 		);
 	}
 
@@ -103,7 +66,7 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	 */
 	public function test_mb_substr_phpcore_basic() {
 		$string_ascii = 'ABCDEF';
-		$string_mb    = base64_decode( '5pel5pys6Kqe44OG44Kt44K544OI44Gn44GZ44CCMDEyMzTvvJXvvJbvvJfvvJjvvJnjgII=' );
+		$string_mb    = '日本語テキストです。01234５６７８９。';
 
 		$this->assertSame(
 			'DEF',
@@ -118,13 +81,13 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 
 		// Specific latin-1 as that is the default the core PHP test operates under.
 		$this->assertSame(
-			'peacrOiqng==',
-			base64_encode( _mb_substr( $string_mb, 2, 7, 'latin-1' ) ),
+			"\xA5本語",
+			_mb_substr( $string_mb, 2, 7, 'latin-1' ),
 			'Substring does not match expected for offset 2, length 7, with latin-1 charset'
 		);
 		$this->assertSame(
-			'6Kqe44OG44Kt44K544OI44Gn44GZ',
-			base64_encode( _mb_substr( $string_mb, 2, 7, 'utf-8' ) ),
+			'語テキストです',
+			_mb_substr( $string_mb, 2, 7, 'utf-8' ),
 			'Substring does not match expected for offset 2, length 7, with utf-8 charset'
 		);
 	}

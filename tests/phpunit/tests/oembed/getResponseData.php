@@ -12,6 +12,24 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
+	private function normalize_secret_attribute( $data ) {
+		if ( is_array( $data ) ) {
+			$html = $data['html'];
+		} else {
+			$html = $data;
+		}
+
+		$html = preg_replace( '/secret=("?)\w+\1/', 'secret=__SECRET__', $html );
+
+		if ( is_array( $data ) ) {
+			$data['html'] = $html;
+		} else {
+			$data = $html;
+		}
+
+		return $data;
+	}
+
 	public function test_get_oembed_response_data_non_existent_post() {
 		$this->assertFalse( get_oembed_response_data( 0, 100 ) );
 	}
@@ -36,9 +54,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 				'type'          => 'rich',
 				'width'         => 400,
 				'height'        => 225,
-				'html'          => get_post_embed_html( 400, 225, $post ),
+				'html'          => $this->normalize_secret_attribute( get_post_embed_html( 400, 225, $post ) ),
 			),
-			$data
+			$this->normalize_secret_attribute( $data )
 		);
 	}
 
@@ -72,9 +90,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 				'type'          => 'rich',
 				'width'         => 400,
 				'height'        => 225,
-				'html'          => get_post_embed_html( 400, 225, $post ),
+				'html'          => $this->normalize_secret_attribute( get_post_embed_html( 400, 225, $post ) ),
 			),
-			$data
+			$this->normalize_secret_attribute( $data )
 		);
 	}
 
@@ -230,7 +248,27 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'thumbnail_url', $data );
 		$this->assertArrayHasKey( 'thumbnail_width', $data );
 		$this->assertArrayHasKey( 'thumbnail_height', $data );
-		$this->assertTrue( 400 >= $data['thumbnail_width'] );
+		$this->assertLessThanOrEqual( 400, $data['thumbnail_width'] );
+	}
+
+	/**
+	 * @ticket 62094
+	 */
+	public function test_get_oembed_response_data_has_correct_thumbnail_size() {
+		$post = self::factory()->post->create_and_get();
+
+		/* Use a large image as post thumbnail */
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/33772.jpg' );
+		set_post_thumbnail( $post, $attachment_id );
+
+		/* Get the image, sized for 400x??? pixels display */
+		$image = wp_get_attachment_image_src( $attachment_id, array( 400, 0 ) );
+
+		/* Get the oembed data array for a 400 pixels wide embed */
+		$data = get_oembed_response_data( $post, 400 );
+
+		/* Make sure the embed references the small image, not the full-size one. */
+		$this->assertSame( $image[0], $data['thumbnail_url'] );
 	}
 
 	public function test_get_oembed_response_data_for_attachment() {
@@ -249,6 +287,6 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'thumbnail_url', $data );
 		$this->assertArrayHasKey( 'thumbnail_width', $data );
 		$this->assertArrayHasKey( 'thumbnail_height', $data );
-		$this->assertTrue( 400 >= $data['thumbnail_width'] );
+		$this->assertLessThanOrEqual( 400, $data['thumbnail_width'] );
 	}
 }

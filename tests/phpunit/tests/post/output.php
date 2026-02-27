@@ -98,7 +98,7 @@ Graf by itself:
 
   [paragraph foo="bar"]another graf with whitespace[/paragraph]
 
-An [paragraph]inline graf[/paragraph], this doesn't make much sense.
+An [paragraph]inline graf[/paragraph], this does not make much sense.
 
 A graf with a single EOL first:
 [paragraph]blah[/paragraph]
@@ -112,7 +112,7 @@ EOF;
   <p class='graf'>another graf with whitespace</p>
 
 <p>An <p class='graf'>inline graf</p>
-, this doesn&#8217;t make much sense.</p>
+, this does not make much sense.</p>
 <p>A graf with a single EOL first:<br />
 <p class='graf'>blah</p>
 </p>
@@ -202,13 +202,13 @@ EOF;
 
 		$expected_without_teaser = <<<EOF
 <span id="more-{$post_id}"></span>
-<p>Second block.</p>
+<p class="wp-block-paragraph">Second block.</p>
 EOF;
 
 		$expected_with_teaser = <<<EOF
-<p>Teaser part.</p>
+<p class="wp-block-paragraph">Teaser part.</p>
 <span id="more-{$post_id}"></span>
-<p>Second block.</p>
+<p class="wp-block-paragraph">Second block.</p>
 EOF;
 
 		$this->go_to( get_permalink( $post_id ) );
@@ -253,7 +253,7 @@ EOF;
 		$expected = <<<EOF
 <span id="more-{$post_id}"></span>
 <!--noteaser-->
-<p>Second block.</p>
+<p class="wp-block-paragraph">Second block.</p>
 EOF;
 
 		$this->go_to( get_permalink( $post_id ) );

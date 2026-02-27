@@ -3,7 +3,8 @@
 /**
  * Tests for wp_convert_hr_to_bytes().
  *
- * @group load.php
+ * @group load
+ *
  * @covers ::wp_convert_hr_to_bytes
  */
 class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {

@@ -1,6 +1,7 @@
 /* Center image block by default in the editor */
 
-.wp-block-image > div {
+.wp-block-image,
+.wp-block-image > div:not(.components-placeholder) {
 	text-align: center;
 }
 
@@ -17,4 +18,16 @@
 
 .wp-block-image.is-style-twentytwentyone-image-frame img {
 	padding: var(--global--spacing-unit);
+}
+
+.wp-block[data-align="left"] > .wp-block-image {
+
+	/*rtl:ignore*/
+	margin-left: 0;
+}
+
+.wp-block[data-align="right"] > .wp-block-image {
+
+	/*rtl:ignore*/
+	margin-right: 0;
 }

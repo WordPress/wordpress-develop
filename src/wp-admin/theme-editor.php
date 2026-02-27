@@ -1,6 +1,6 @@
 <?php
 /**
- * Theme editor administration panel.
+ * Theme file editor administration panel.
  *
  * @package WordPress
  * @subpackage Administration
@@ -27,9 +27,9 @@ get_current_screen()->add_help_tab(
 		'id'      => 'overview',
 		'title'   => __( 'Overview' ),
 		'content' =>
-				'<p>' . __( 'You can use the theme editor to edit the individual CSS and PHP files which make up your theme.' ) . '</p>' .
+				'<p>' . __( 'You can use the theme file editor to edit the individual CSS and PHP files which make up your theme.' ) . '</p>' .
 				'<p>' . __( 'Begin by choosing a theme to edit from the dropdown menu and clicking the Select button. A list then appears of the theme&#8217;s template files. Clicking once on any file name causes the file to appear in the large Editor box.' ) . '</p>' .
-				'<p>' . __( 'For PHP files, you can use the Documentation dropdown to select from functions recognized in that file. Look Up takes you to a web page with reference material about that particular function.' ) . '</p>' .
+				'<p>' . __( 'For PHP files, you can use the documentation dropdown to select from functions recognized in that file. Look Up takes you to a web page with reference material about that particular function.' ) . '</p>' .
 				'<p id="editor-keyboard-trap-help-1">' . __( 'When using a keyboard to navigate:' ) . '</p>' .
 				'<ul>' .
 				'<li id="editor-keyboard-trap-help-2">' . __( 'In the editing area, the Tab key enters a tab character.' ) . '</li>' .
@@ -50,13 +50,16 @@ get_current_screen()->add_help_tab(
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://developer.wordpress.org/themes/">Documentation on Theme Development</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/using-themes/">Documentation on Using Themes</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/editing-files/">Documentation on Editing Files</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/appearance-theme-file-editor-screen/">Documentation on Editing Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/wordpress/edit-files/">Documentation on Editing Files</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://developer.wordpress.org/themes/basics/template-tags/">Documentation on Template Tags</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
-wp_reset_vars( array( 'action', 'error', 'file', 'theme' ) );
+$action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
+$theme  = ! empty( $_REQUEST['theme'] ) ? sanitize_text_field( $_REQUEST['theme'] ) : '';
+$file   = ! empty( $_REQUEST['file'] ) ? sanitize_text_field( $_REQUEST['file'] ) : '';
+$error  = ! empty( $_REQUEST['error'] );
 
 if ( $theme ) {
 	$stylesheet = $theme;
@@ -118,9 +121,11 @@ $edit_error     = null;
 $posted_content = null;
 
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
-	$r = wp_edit_theme_plugin_file( wp_unslash( $_POST ) );
-	if ( is_wp_error( $r ) ) {
-		$edit_error = $r;
+	$edit_result = wp_edit_theme_plugin_file( wp_unslash( $_POST ) );
+
+	if ( is_wp_error( $edit_result ) ) {
+		$edit_error = $edit_result;
+
 		if ( check_ajax_referer( 'edit-theme_' . $stylesheet . '_' . $relative_file, 'nonce', false ) && isset( $_POST['newcontent'] ) ) {
 			$posted_content = wp_unslash( $_POST['newcontent'] );
 		}
@@ -143,7 +148,7 @@ $settings = array(
 	'codeEditor' => wp_enqueue_code_editor( compact( 'file' ) ),
 );
 wp_enqueue_script( 'wp-theme-plugin-editor' );
-wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'jQuery( function( $ ) { wp.themePluginEditor.init( $( "#template" ), %s ); } )', wp_json_encode( $settings ) ) );
+wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'jQuery( function( $ ) { wp.themePluginEditor.init( $( "#template" ), %s ); } )', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) );
 wp_add_inline_script( 'wp-theme-plugin-editor', 'wp.themePluginEditor.themeOrPlugin = "theme";' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -161,65 +166,126 @@ if ( ! empty( $posted_content ) ) {
 	$f       = fopen( $file, 'r' );
 	$content = fread( $f, filesize( $file ) );
 
-	if ( '.php' === substr( $file, strrpos( $file, '.' ) ) ) {
+	if ( str_ends_with( $file, '.php' ) ) {
 		$functions = wp_doc_link_parse( $content );
 
-		$docs_select  = '<select name="docs-list" id="docs-list">';
-		$docs_select .= '<option value="">' . esc_attr__( 'Function Name&hellip;' ) . '</option>';
-		foreach ( $functions as $function ) {
-			$docs_select .= '<option value="' . esc_attr( urlencode( $function ) ) . '">' . htmlspecialchars( $function ) . '()</option>';
+		if ( ! empty( $functions ) ) {
+			$docs_select  = '<select name="docs-list" id="docs-list">';
+			$docs_select .= '<option value="">' . esc_html__( 'Function Name&hellip;' ) . '</option>';
+
+			foreach ( $functions as $function ) {
+				$docs_select .= '<option value="' . esc_attr( $function ) . '">' . esc_html( $function ) . '()</option>';
+			}
+
+			$docs_select .= '</select>';
 		}
-		$docs_select .= '</select>';
 	}
 
 	$content = esc_textarea( $content );
 }
 
-$file_description = get_file_description( $relative_file );
-$file_show        = array_search( $file, array_filter( $allowed_files ), true );
-$description      = esc_html( $file_description );
-if ( $file_description !== $file_show ) {
-	$description .= ' <span>(' . esc_html( $file_show ) . ')</span>';
-}
+$file_show = array_search( $file, array_filter( $allowed_files ), true );
 ?>
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
 
-<?php if ( isset( $_GET['a'] ) ) : ?>
-	<div id="message" class="updated notice is-dismissible">
-		<p><?php _e( 'File edited successfully.' ); ?></p>
-	</div>
-<?php elseif ( is_wp_error( $edit_error ) ) : ?>
-	<div id="message" class="notice notice-error">
-		<p><?php _e( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ); ?></p>
-		<pre><?php echo esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ); ?></pre>
-	</div>
-<?php endif; ?>
+<?php
+if ( isset( $_GET['a'] ) ) {
+	wp_admin_notice(
+		__( 'File edited successfully.' ),
+		array(
+			'id'                 => 'message',
+			'dismissible'        => true,
+			'additional_classes' => array( 'updated' ),
+		)
+	);
+} elseif ( is_wp_error( $edit_error ) ) {
+	$error_code = esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() );
+	$message    = '<p>' . __( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ) . '</p>
+	<pre>' . $error_code . '</pre>';
+	wp_admin_notice(
+		$message,
+		array(
+			'type' => 'error',
+			'id'   => 'message',
+		)
+	);
+}
 
-<?php if ( preg_match( '/\.css$/', $file ) ) : ?>
-	<div id="message" class="notice-info notice">
-		<p><strong><?php _e( 'Did you know?' ); ?></strong></p>
-		<p>
-			<?php
-			printf(
-				/* translators: %s: Link to Custom CSS section in the Customizer. */
-				__( 'There&#8217;s no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
-				esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
-			);
-			?>
-		</p>
-	</div>
-<?php endif; ?>
+if ( preg_match( '/\.css$/', $file ) ) {
+	if ( ! wp_is_block_theme() && current_user_can( 'customize' ) ) {
+		$message = '<p><strong>' . __( 'Did you know?' ) . '</strong></p><p>' . sprintf(
+			/* translators: %s: Link to add custom CSS section in either the Customizer (classic themes) or Site Editor (block themes). */
+			__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
+			esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
+		) . '</p>';
+		wp_admin_notice(
+			$message,
+			array(
+				'type' => 'info',
+				'id'   => 'message',
+			)
+		);
+	} elseif ( wp_is_block_theme() && current_user_can( 'edit_theme_options' ) ) {
+		$site_editor_url = admin_url(
+			add_query_arg(
+				urlencode_deep(
+					array(
+						'p'       => '/styles',
+						'section' => '/css',
+					)
+				),
+				'site-editor.php'
+			)
+		);
+
+		$message = '<p><strong>' . __( 'Did you know?' ) . '</strong></p><p>' . sprintf(
+			/* translators: %s: Link to add custom CSS section in either the Customizer (classic themes) or Site Editor (block themes). */
+			__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
+			esc_url( $site_editor_url )
+		) . '</p>';
+		wp_admin_notice(
+			$message,
+			array(
+				'type' => 'info',
+				'id'   => 'message',
+			)
+		);
+	}
+	if ( file_exists( preg_replace( '/\.css$/', '.min.css', $file ) ) ) {
+		$message = '<p><strong>' . __( 'There is a minified version of this stylesheet.' ) . '</strong></p><p>' .
+			__( 'It is likely that this unminified stylesheet will not be served to visitors.' ) . '</p>';
+		wp_admin_notice(
+			$message,
+			array(
+				'type' => 'warning',
+				'id'   => 'wp-css-min-warning',
+			)
+		);
+	}
+}
+?>
 
 <div class="fileedit-sub">
 <div class="alignleft">
 <h2>
 	<?php
-	echo $theme->display( 'Name' );
-	if ( $description ) {
-		echo ': ' . $description;}
+	if ( wp_get_theme()->get( 'Name' ) === $theme->display( 'Name' ) ) {
+		/* translators: %s: Theme name. */
+		printf( __( 'Editing %s (active)' ), '<strong>' . $theme->display( 'Name' ) . '</strong>' );
+	} else {
+		/* translators: %s: Theme name. */
+		printf( __( 'Editing %s (inactive)' ), '<strong>' . $theme->display( 'Name' ) . '</strong>' );
+	}
 	?>
 </h2>
+<?php
+printf(
+	/* translators: %s: File path. */
+	' <span><strong>' . __( 'File: %s' ) . '</strong></span>',
+	esc_html( $file_show )
+);
+?>
 </div>
 <div class="alignright">
 	<form action="theme-editor.php" method="get">
@@ -244,7 +310,12 @@ if ( $file_description !== $file_show ) {
 
 <?php
 if ( $theme->errors() ) {
-	echo '<div class="error"><p><strong>' . __( 'This theme is broken.' ) . '</strong> ' . $theme->errors()->get_error_message() . '</p></div>';
+	wp_admin_notice(
+		'<strong>' . __( 'This theme is broken.' ) . '</strong> ' . $theme->errors()->get_error_message(),
+		array(
+			'additional_classes' => array( 'error' ),
+		)
+	);
 }
 ?>
 
@@ -276,7 +347,12 @@ if ( $theme->errors() ) {
 
 <?php
 if ( $error ) :
-	echo '<div class="error"><p>' . __( 'File does not exist! Please double check the name and try again.' ) . '</p></div>';
+	wp_admin_notice(
+		__( 'File does not exist! Please double check the name and try again.' ),
+		array(
+			'additional_classes' => array( 'error' ),
+		)
+	);
 else :
 	?>
 	<form name="template" id="template" action="theme-editor.php" method="post">
@@ -293,39 +369,48 @@ else :
 			<div id="documentation" class="hide-if-no-js">
 				<label for="docs-list"><?php _e( 'Documentation:' ); ?></label>
 				<?php echo $docs_select; ?>
-				<input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="if ( '' != jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" />
+				<input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="if ( '' !== jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" />
 			</div>
 		<?php endif; ?>
 
 		<div>
 			<div class="editor-notices">
-				<?php if ( is_child_theme() && $theme->get_stylesheet() === get_template() ) : ?>
-					<div class="notice notice-warning inline">
-						<p>
-							<?php if ( is_writable( $file ) ) : ?>
-								<strong><?php _e( 'Caution:' ); ?></strong>
-							<?php endif; ?>
-							<?php _e( 'This is a file in your current parent theme.' ); ?>
-						</p>
-					</div>
-				<?php endif; ?>
+				<?php
+				if ( is_child_theme() && $theme->get_stylesheet() === get_template() ) :
+					$message  = ( is_writable( $file ) ) ? '<strong>' . __( 'Caution:' ) . '</strong> ' : '';
+					$message .= __( 'This is a file in your current parent theme.' );
+					wp_admin_notice(
+						$message,
+						array(
+							'type'               => 'warning',
+							'additional_classes' => array( 'inline' ),
+						)
+					);
+				endif;
+				?>
 			</div>
-			<?php if ( is_writable( $file ) ) : ?>
+			<?php
+			if ( is_writable( $file ) ) {
+				?>
 				<p class="submit">
 					<?php submit_button( __( 'Update File' ), 'primary', 'submit', false ); ?>
 					<span class="spinner"></span>
 				</p>
-			<?php else : ?>
+				<?php
+			} else {
+				?>
 				<p>
 					<?php
 					printf(
 						/* translators: %s: Documentation URL. */
 						__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
-						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
+						__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' )
 					);
 					?>
 				</p>
-			<?php endif; ?>
+				<?php
+			}
+			?>
 		</div>
 
 		<?php wp_print_file_editor_templates(); ?>
@@ -337,7 +422,7 @@ endif; // End if $error.
 </div>
 <?php
 $dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
-if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
+if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) {
 	// Get a back URL.
 	$referer = wp_get_referer();
 
@@ -383,6 +468,6 @@ if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
 		</div>
 	</div>
 	<?php
-endif; // Editor warning notice.
+} // Editor warning notice.
 
 require_once ABSPATH . 'wp-admin/admin-footer.php';

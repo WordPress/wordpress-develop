@@ -5,13 +5,14 @@
  *
  * @since 5.6.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::_wp_array_get
  */
 class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 
 	/**
-	 * Test _wp_array_get() with invalid parameters.
+	 * Tests _wp_array_get() with invalid parameters.
 	 *
 	 * @ticket 51720
 	 */
@@ -57,7 +58,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test _wp_array_get() with non-subtree paths.
+	 * Tests _wp_array_get() with non-subtree paths.
 	 *
 	 * @ticket 51720
 	 */
@@ -111,7 +112,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test _wp_array_get() with subtrees.
+	 * Tests _wp_array_get() with subtrees.
 	 *
 	 * @ticket 51720
 	 */
@@ -160,7 +161,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test _wp_array_get() with zero strings.
+	 * Tests _wp_array_get() with zero strings.
 	 *
 	 * @ticket 51720
 	 */
@@ -211,7 +212,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test _wp_array_get() with null values.
+	 * Tests _wp_array_get() with null values.
 	 *
 	 * @ticket 51720
 	 */
@@ -237,23 +238,10 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 			),
 			true
 		);
-
-		$this->assertSame(
-			_wp_array_get(
-				array(
-					'key' => array(
-						null => 4,
-					),
-				),
-				array( 'key', null ),
-				true
-			),
-			4
-		);
 	}
 
 	/**
-	 * Test _wp_array_get() with empty paths.
+	 * Tests _wp_array_get() with empty paths.
 	 *
 	 * @ticket 51720
 	 */

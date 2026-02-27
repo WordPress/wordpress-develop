@@ -5,21 +5,15 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.8.0
- */
-
-/**
- * Class Tests_Admin_wpCommunityEvents.
  *
  * @group admin
  * @group community-events
- *
- * @since 4.8.0
  */
 class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
+
 	/**
 	 * An instance of the class to test.
 	 *
-	 * @access private
 	 * @since 4.8.0
 	 *
 	 * @var WP_Community_Events
@@ -305,7 +299,9 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	 */
 	public function test_trim_expired_events() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
-		$trim_events->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$trim_events->setAccessible( true );
+		}
 
 		$events = $this->get_valid_events();
 
@@ -334,7 +330,9 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	 */
 	public function test_trim_events_pin_wordcamp() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
-		$trim_events->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$trim_events->setAccessible( true );
+		}
 
 		$actual = $trim_events->invoke( $this->instance, $this->_events_with_unpinned_wordcamp() );
 
@@ -439,7 +437,9 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	 */
 	public function test_trim_events_dont_pin_multiple_wordcamps() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
-		$trim_events->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$trim_events->setAccessible( true );
+		}
 
 		$actual = $trim_events->invoke( $this->instance, $this->_events_with_multiple_wordcamps() );
 

@@ -2,8 +2,9 @@
 
 /**
  * @group formatting
- * @covers ::excerpt_remove_blocks
  * @ticket 46133
+ *
+ * @covers ::excerpt_remove_blocks
  */
 class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 
@@ -11,7 +12,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 
 	public $content = '
 <!-- wp:paragraph -->
-<p>paragraph</p>
+<p class="wp-block-paragraph">paragraph</p>
 <!-- /wp:paragraph -->
 <!-- wp:latest-posts {"postsToShow":3,"displayPostDate":true,"order":"asc","orderBy":"title"} /-->
 <!-- wp:spacer -->
@@ -24,7 +25,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 		<!-- wp:archives {"displayAsDropdown":false,"showPostCounts":false} /-->
 		
 		<!-- wp:paragraph -->
-		<p>paragraph inside column</p>
+		<p class="wp-block-paragraph">paragraph inside column</p>
 		<!-- /wp:paragraph -->
 	</div>
 	<!-- /wp:column -->
@@ -34,12 +35,12 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 
 	public $filtered_content = '
 
-<p>paragraph</p>
+<p class="wp-block-paragraph">paragraph</p>
 
 
 
 
-		<p>paragraph inside column</p>
+		<p class="wp-block-paragraph">paragraph inside column</p>
 		
 ';
 
@@ -61,7 +62,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		self::$post_id = $this->factory()->post->create(
+		self::$post_id = self::factory()->post->create(
 			array(
 				'post_excerpt' => '', // Empty excerpt, so it has to be generated.
 				'post_content' => '<!-- wp:core/fake /-->',
@@ -116,6 +117,8 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 * `the_content` gets applied, just like shortcodes.
 	 *
 	 * @ticket 46133
+	 *
+	 * @covers ::do_blocks
 	 */
 	public function test_excerpt_infinite_loop() {
 		$query = new WP_Query(

@@ -13,7 +13,7 @@ class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 	 * @requires function xdebug_get_headers
 	 */
 	public function test_rest_pre_serve_request_headers() {
-		$post = $this->factory()->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'Hello World',
 			)

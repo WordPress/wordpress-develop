@@ -1019,7 +1019,9 @@ window.commentReply = {
 		}
 
 		setTimeout(function() {
-			var rtop, rbottom, scrollTop, vp, scrollBottom;
+			var rtop, rbottom, scrollTop, vp, scrollBottom,
+				isComposing = false,
+				isContextMenuOpen = false;
 
 			rtop = $('#replyrow').offset().top;
 			rbottom = rtop + $('#replyrow').height();
@@ -1032,10 +1034,28 @@ window.commentReply = {
 			else if ( rtop - 20 < scrollTop )
 				window.scroll(0, rtop - 35);
 
-			$('#replycontent').trigger( 'focus' ).on( 'keyup', function(e){
-				if ( e.which == 27 )
-					commentReply.revert(); // Close on Escape.
-			});
+			$( '#replycontent' )
+				.trigger( 'focus' )
+				.on( 'contextmenu keydown', function ( e ) {
+					// Check if the context menu is open and set state.
+					if ( e.type === 'contextmenu' ) {
+						isContextMenuOpen = true;
+					}
+
+					// Update the context menu state if the Escape key is pressed.
+					if ( e.type === 'keydown' && e.which === 27 && isContextMenuOpen ) {
+						isContextMenuOpen = false;
+					}
+				} )
+				.on( 'keyup', function( e ) {
+					// Close on Escape unless Input Method Editors (IMEs) are in use or the context menu is open.
+					if ( e.which === 27 && ! isComposing && ! isContextMenuOpen ) {
+						commentReply.revert();
+					}
+				} )
+				.on( 'compositionstart', function() {
+					isComposing = true;
+				} );
 		}, 600);
 
 		return false;
@@ -1180,6 +1200,7 @@ window.commentReply = {
 		if ( er ) {
 			$errorNotice.removeClass( 'hidden' );
 			$error.html( er );
+			wp.a11y.speak( er );
 		}
 	},
 
@@ -1217,7 +1238,7 @@ window.commentReply = {
 	discardCommentChanges: function() {
 		var editRow = $( '#replyrow' );
 
-		if  ( this.originalContent === $( '#replycontent', editRow ).val() ) {
+		if  ( '' === $( '#replycontent', editRow ).val() || this.originalContent === $( '#replycontent', editRow ).val() ) {
 			return true;
 		}
 

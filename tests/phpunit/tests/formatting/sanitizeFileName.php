@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_file_name
  */
 class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	public function test_munges_extensions() {
@@ -33,13 +35,17 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	 * Test that spaces are correctly replaced with dashes.
 	 *
 	 * @ticket 16330
+	 * @ticket 62995
 	 */
 	public function test_replaces_spaces() {
 		$urls = array(
-			'unencoded space.png'  => 'unencoded-space.png',
-			'encoded-space.jpg'    => 'encoded-space.jpg',
-			'plus+space.jpg'       => 'plusspace.jpg',
-			'multi %20 +space.png' => 'multi-20-space.png',
+			'unencoded space.png'                         => 'unencoded-space.png',
+			'encoded-space.jpg'                           => 'encoded-space.jpg',
+			'plus+space.jpg'                              => 'plusspace.jpg',
+			'multi %20 +space.png'                        => 'multi-20-space.png',
+			"Screenshot 2025-02-19 at 2.17.33\u{202F}PM.png" => 'Screenshot-2025-02-19-at-2.17.33-PM.png',
+			"Filename with non-breaking\u{00A0}space.txt" => 'Filename-with-non-breaking-space.txt',
+			"Filename with thin\u{2009}space.txt"         => 'Filename-with-thin-space.txt',
 		);
 
 		foreach ( $urls as $test => $expected ) {
@@ -91,6 +97,55 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 			array( urldecode( '%B1myfile' ), 'myfile' ),
 			array( 'demo bar.png', 'demo-bar.png' ),
 			array( 'demo' . json_decode( '"\u00a0"' ) . 'bar.png', 'demo-bar.png' ),
+		);
+	}
+
+	/**
+	 * Tests that sanitize_file_name() replaces consecutive periods
+	 * with a single period.
+	 *
+	 * @ticket 57242
+	 *
+	 * @dataProvider data_sanitize_file_name_should_replace_consecutive_periods_with_a_single_period
+	 *
+	 * @param string $filename A filename with consecutive periods.
+	 * @param string $expected The expected filename after sanitization.
+	 */
+	public function test_sanitize_file_name_should_replace_consecutive_periods_with_a_single_period( $filename, $expected ) {
+		$this->assertSame( $expected, sanitize_file_name( $filename ) );
+	}
+
+	/**
+	 * Data provider for test_sanitize_file_name_should_replace_consecutive_periods_with_a_single_period().
+	 *
+	 * @return array[]
+	 */
+	public function data_sanitize_file_name_should_replace_consecutive_periods_with_a_single_period() {
+		return array(
+			'consecutive periods at the start'         => array(
+				'filename' => '...filename.png',
+				'expected' => 'filename.png',
+			),
+			'consecutive periods in the middle'        => array(
+				'filename' => 'file.......name.png',
+				'expected' => 'file.name_.png',
+			),
+			'consecutive periods before the extension' => array(
+				'filename' => 'filename....png',
+				'expected' => 'filename.png',
+			),
+			'consecutive periods after the extension'  => array(
+				'filename' => 'filename.png...',
+				'expected' => 'filename.png',
+			),
+			'consecutive periods at the start, middle, before, after the extension' => array(
+				'filename' => '.....file....name...png......',
+				'expected' => 'file.name_.png',
+			),
+			'consecutive periods and no extension'     => array(
+				'filename' => 'filename...',
+				'expected' => 'filename',
+			),
 		);
 	}
 }

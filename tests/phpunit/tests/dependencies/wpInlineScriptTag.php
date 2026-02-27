@@ -8,7 +8,21 @@
  * @covers ::wp_get_inline_script_tag
  * @covers ::wp_print_inline_script_tag
  */
-class Tests_Functions_wpInlineScriptTag extends WP_UnitTestCase {
+class Tests_Dependencies_wpInlineScriptTag extends WP_UnitTestCase {
+
+	private $original_theme_features = array();
+
+	public function set_up() {
+		global $_wp_theme_features;
+		parent::set_up();
+		$this->original_theme_features = $_wp_theme_features;
+	}
+
+	public function tear_down() {
+		global $_wp_theme_features;
+		$_wp_theme_features = $this->original_theme_features;
+		parent::tear_down();
+	}
 
 	private $event_handler = <<<'JS'
 document.addEventListener( 'DOMContentLoaded', function () {
@@ -20,22 +34,6 @@ document.addEventListener( 'DOMContentLoaded', function () {
 JS;
 
 	public function get_inline_script_tag_type_set() {
-		add_theme_support( 'html5', array( 'script' ) );
-
-		$this->assertSame(
-			'<script type="application/javascript" nomodule>' . "\n{$this->event_handler}\n</script>\n",
-			wp_get_inline_script_tag(
-				$this->event_handler,
-				array(
-					'type'     => 'application/javascript',
-					'async'    => false,
-					'nomodule' => true,
-				)
-			)
-		);
-
-		remove_theme_support( 'html5' );
-
 		$this->assertSame(
 			'<script type="application/javascript" nomodule>' . "\n{$this->event_handler}\n</script>\n",
 			wp_get_inline_script_tag(
@@ -50,8 +48,6 @@ JS;
 	}
 
 	public function test_get_inline_script_tag_type_not_set() {
-		add_theme_support( 'html5', array( 'script' ) );
-
 		$this->assertSame(
 			"<script nomodule>\n{$this->event_handler}\n</script>\n",
 			wp_get_inline_script_tag(
@@ -62,19 +58,13 @@ JS;
 				)
 			)
 		);
-
-		remove_theme_support( 'html5' );
 	}
 
 	public function test_get_inline_script_tag_unescaped_src() {
-		add_theme_support( 'html5', array( 'script' ) );
-
 		$this->assertSame(
 			"<script>\n{$this->event_handler}\n</script>\n",
 			wp_get_inline_script_tag( $this->event_handler )
 		);
-
-		remove_theme_support( 'html5' );
 	}
 
 	public function test_print_script_tag_prints_get_inline_script_tag() {
@@ -87,8 +77,6 @@ JS;
 				return $attributes;
 			}
 		);
-
-		add_theme_support( 'html5', array( 'script' ) );
 
 		$attributes = array(
 			'id'       => 'utils-js-before',
@@ -105,18 +93,94 @@ JS;
 				)
 			)
 		);
+	}
 
-		remove_theme_support( 'html5' );
+	/**
+	 * Test the behavior of generated script tag attributes passed different values and types of values.
+	 *
+	 * @ticket 64500
+	 */
+	public function test_script_tag_attribute_value_types() {
+		$expected = <<<'HTML'
+<script
+	true
+	null
+	empty-string=""
+	0-string="0"
+	1-string="1"
+	0-numeric="0"
+	1-numeric="1"
+>
+"script data";
+</script>
 
-		$this->assertSame(
-			wp_get_inline_script_tag( $this->event_handler, $attributes ),
-			get_echo(
-				'wp_print_inline_script_tag',
+HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_inline_script_tag(
+				'"script data";',
 				array(
-					$this->event_handler,
-					$attributes,
+					'true'         => true,
+					'false'        => false,
+					'null'         => null,
+					'empty-string' => '',
+					'0-string'     => '0',
+					'1-string'     => '1',
+					'0-numeric'    => 0,
+					'1-numeric'    => 1,
 				)
-			)
+			),
 		);
+	}
+
+	/**
+	 * Test the behavior of generated script tag repeated attributes.
+	 *
+	 * HTML will ignore case-insensitive repeated attributes. Ensure that the handling of input
+	 * attributes aligns with expectations.
+	 *
+	 * @ticket 64500
+	 */
+	public function test_script_tag_repeat_attributes() {
+		$expected = <<<'HTML'
+<script test="test-a">
+"script data";
+</script>
+
+HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_inline_script_tag(
+				'"script data";',
+				array(
+					'test' => 'test-a',
+					'tesT' => 'tesT-b',
+					'teST' => 'teST-c',
+					'tEST' => 'tEST-d',
+					'TEST' => 'TEST-e',
+				)
+			),
+		);
+	}
+
+	/**
+	 * Test failure conditions setting inline script tag contents.
+	 *
+	 * @ticket 64500
+	 */
+	public function test_script_tag_dangerous_unescapeable_contents() {
+		$this->setExpectedIncorrectUsage( 'wp_get_inline_script_tag' );
+		/*
+		 * </script> cannot be printed inside a script tag
+		 * the `example/example` type is an unknown type with no known escaping rules.
+		 * The only choice is to abort.
+		 */
+		$result = wp_get_inline_script_tag(
+			'</script>',
+			array( 'type' => 'example/example' )
+		);
+		$this->assertSame( '', $result );
 	}
 }

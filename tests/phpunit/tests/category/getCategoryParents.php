@@ -2,6 +2,9 @@
 
 /**
  * @group taxonomy
+ * @group category
+ *
+ * @covers ::get_category_parents
  */
 class Tests_Category_GetCategoryParents extends WP_UnitTestCase {
 	protected $c1;

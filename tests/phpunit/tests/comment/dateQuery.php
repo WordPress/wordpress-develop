@@ -12,6 +12,8 @@
  * @group comment
  * @group date
  * @group datequery
+ *
+ * @covers ::get_comments
  */
 class Tests_Comment_DateQuery extends WP_UnitTestCase {
 

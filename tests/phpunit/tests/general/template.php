@@ -10,6 +10,7 @@
 require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 
 class Tests_General_Template extends WP_UnitTestCase {
+
 	protected $wp_site_icon;
 	public $site_icon_id;
 	public $site_icon_url;
@@ -17,9 +18,83 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public $custom_logo_id;
 	public $custom_logo_url;
 
+	/**
+	 * Blog page used by aria tests.
+	 *
+	 * @var int
+	 */
+	public static $blog_page_id;
+
+	/**
+	 * Home page used by aria tests.
+	 *
+	 * @var int
+	 */
+	public static $home_page_id;
+
+	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * ID of the author user.
+	 *
+	 * @var int
+	 */
+	public static $author_id;
+
+	/**
+	 * Set up the shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$author_id        = $factory->user->create( array( 'role' => 'author' ) );
+
+		/*
+		 * Declare theme support for custom logo.
+		 *
+		 * This ensures that the `site_logo` option gets deleted in
+		 * _delete_site_logo_on_remove_theme_mods(), which in turn
+		 * prevents the `core/site-logo` block filters from affecting
+		 * the custom logo tests.
+		 *
+		 * Alternatively, these filters can be removed instead:
+		 *
+		 *     remove_filter( 'theme_mod_custom_logo', '_override_custom_logo_theme_mod' );
+		 *     remove_filter( 'pre_set_theme_mod_custom_logo', '_sync_custom_logo_to_site_logo' );
+		 */
+		add_theme_support( 'custom-logo' );
+
+		self::$blog_page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Blog',
+				'page_name'  => 'blog',
+			)
+		);
+
+		self::$home_page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Home',
+				'page_name'  => 'home',
+			)
+		);
+	}
+
+	public static function wpTearDownAfterClass() {
+		remove_theme_support( 'custom-logo' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 
+		switch_theme( 'default' );
 		$this->wp_site_icon = new WP_Site_Icon();
 	}
 
@@ -38,13 +113,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_get_site_icon_url() {
-		$this->assertEmpty( get_site_icon_url() );
+		$this->assertEmpty( get_site_icon_url(), 'Site icon URL should not be set initially.' );
 
 		$this->set_site_icon();
-		$this->assertSame( $this->site_icon_url, get_site_icon_url() );
+		$this->assertSame( $this->site_icon_url, get_site_icon_url(), 'Site icon URL should be set.' );
 
 		$this->remove_site_icon();
-		$this->assertEmpty( get_site_icon_url() );
+		$this->assertEmpty( get_site_icon_url(), 'Site icon URL should not be set after removal.' );
 	}
 
 	/**
@@ -67,13 +142,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_has_site_icon() {
-		$this->assertFalse( has_site_icon() );
+		$this->assertFalse( has_site_icon(), 'Site icon should not be set initially.' );
 
 		$this->set_site_icon();
-		$this->assertTrue( has_site_icon() );
+		$this->assertTrue( has_site_icon(), 'Site icon should be set.' );
 
 		$this->remove_site_icon();
-		$this->assertFalse( has_site_icon() );
+		$this->assertFalse( has_site_icon(), 'Site icon should not be set after removal.' );
 	}
 
 	/**
@@ -83,7 +158,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_site_icon
 	 */
 	public function test_has_site_icon_returns_true_when_called_for_other_site_with_site_icon_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 		$this->set_site_icon();
 		restore_current_blog();
@@ -98,7 +173,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_site_icon
 	 */
 	public function test_has_site_icon_returns_false_when_called_for_other_site_without_site_icon_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 
 		$this->assertFalse( has_site_icon( $blog_id ) );
 	}
@@ -159,7 +234,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_wp_site_icon_empty() {
 		global $wp_customize;
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
@@ -177,7 +252,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_wp_site_icon_dirty() {
 		global $wp_customize;
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
@@ -261,13 +336,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.5.0
 	 */
 	public function test_has_custom_logo() {
-		$this->assertFalse( has_custom_logo() );
+		$this->assertFalse( has_custom_logo(), 'Custom logo should not be set initially.' );
 
 		$this->set_custom_logo();
-		$this->assertTrue( has_custom_logo() );
+		$this->assertTrue( has_custom_logo(), 'Custom logo should be set.' );
 
 		$this->remove_custom_logo();
-		$this->assertFalse( has_custom_logo() );
+		$this->assertFalse( has_custom_logo(), 'Custom logo should not be set after removal.' );
 	}
 
 	/**
@@ -277,7 +352,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_returns_true_when_called_for_other_site_with_custom_logo_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 		$this->set_custom_logo();
 		restore_current_blog();
@@ -292,7 +367,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_returns_false_when_called_for_other_site_without_custom_logo_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 
 		$this->assertFalse( has_custom_logo( $blog_id ) );
 	}
@@ -304,15 +379,15 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.5.0
 	 */
 	public function test_get_custom_logo() {
-		$this->assertEmpty( get_custom_logo() );
+		$this->assertEmpty( get_custom_logo(), 'Custom logo should not be set initially.' );
 
 		$this->set_custom_logo();
 		$custom_logo = get_custom_logo();
-		$this->assertNotEmpty( $custom_logo );
-		$this->assertIsString( $custom_logo );
+		$this->assertNotEmpty( $custom_logo, 'Custom logo markup should not be empty.' );
+		$this->assertIsString( $custom_logo, 'Custom logo markup should be a string.' );
 
 		$this->remove_custom_logo();
-		$this->assertEmpty( get_custom_logo() );
+		$this->assertEmpty( get_custom_logo(), 'Custom logo should not be set after removal.' );
 	}
 
 	/**
@@ -322,7 +397,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_custom_logo
 	 */
 	public function test_get_custom_logo_returns_logo_when_called_for_other_site_with_custom_logo_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
 		$this->set_custom_logo();
@@ -402,7 +477,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Sets a site icon in options for testing.
+	 * Sets a custom logo in options for testing.
 	 *
 	 * @since 4.5.0
 	 */
@@ -415,7 +490,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the site icon from options.
+	 * Removes the custom logo from options.
 	 *
 	 * @since 4.5.0
 	 */
@@ -445,7 +520,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_site_icon_url
 	 */
 	public function test_get_site_icon_url_preserves_switched_state() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
 		$expected = $GLOBALS['_wp_switched_stack'];
@@ -465,7 +540,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_preserves_switched_state() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
 		$expected = $GLOBALS['_wp_switched_stack'];
@@ -485,7 +560,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_custom_logo
 	 */
 	public function test_get_custom_logo_preserves_switched_state() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
 		$expected = $GLOBALS['_wp_switched_stack'];
@@ -497,6 +572,139 @@ class Tests_General_Template extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$this->assertSame( $expected, $result );
+	}
+
+	/**
+	 * Test the aria attribute for the custom logo on the front page set to the blog.
+	 *
+	 * @ticket 62879
+	 *
+	 * @covers ::get_custom_logo
+	 *
+	 * @dataProvider data_get_custom_logo_aria_current_attribute_blog_front_page
+	 *
+	 * @param string $url                The URL to visit.
+	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
+	 */
+	public function test_get_custom_logo_aria_current_attribute_blog_front_page( $url, $attribute_expected ) {
+		// Set the custom logo.
+		$this->set_custom_logo();
+		$this->go_to( $url );
+
+		$this->assertNotEmpty( get_custom_logo(), 'Custom logo is expected to be set' );
+
+		if ( $attribute_expected ) {
+			$this->assertStringContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		} else {
+			$this->assertStringNotContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		}
+	}
+
+	/**
+	 * Data provider for the test_get_custom_logo_aria_current_attribute_blog_front_page.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_custom_logo_aria_current_attribute_blog_front_page() {
+		return array(
+			'Front page'  => array( home_url(), true ),
+			'Blog post'   => array( home_url( '/?p=1' ), false ),
+			'Sample page' => array( home_url( '/?page_id=2' ), false ),
+		);
+	}
+
+	/**
+	 * Test the aria attribute for the custom logo on the front page set to the blog.
+	 *
+	 * @ticket 62879
+	 *
+	 * @covers ::get_custom_logo
+	 *
+	 * @dataProvider data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined
+	 * @param string $url                The URL to visit.
+	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
+	 */
+	public function test_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined( $url, $attribute_expected ) {
+		// Set up pretty permalinks.
+		update_option( 'permalink_structure', '/%postname%/' );
+
+		// Set posts to show on a static page.
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', self::$blog_page_id );
+
+		// Set the custom logo.
+		$this->set_custom_logo();
+		$this->go_to( $url );
+
+		$this->assertNotEmpty( get_custom_logo(), 'Custom logo is expected to be set' );
+
+		if ( $attribute_expected ) {
+			$this->assertStringContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		} else {
+			$this->assertStringNotContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		}
+	}
+
+	/**
+	 * Data provider for the test_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
+		return array(
+			'Front page'  => array( home_url(), true ),
+			'Blog index'  => array( home_url( '/blog/' ), true ),
+			'Blog post'   => array( home_url( '/?p=1' ), false ),
+			'Sample page' => array( home_url( '/?page_id=2' ), false ),
+		);
+	}
+
+	/**
+	 * Test the aria attribute for the custom logo on the front page set to the blog.
+	 *
+	 * @ticket 62879
+	 *
+	 * @covers ::get_custom_logo
+	 *
+	 * @dataProvider data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined
+	 *
+	 * @param string $url                The URL to visit.
+	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
+	 */
+	public function test_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined( $url, $attribute_expected ) {
+		// Set up pretty permalinks.
+		update_option( 'permalink_structure', '/%postname%/' );
+
+		// Set posts to show on a static page, show static page on front.
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', self::$blog_page_id );
+		update_option( 'page_on_front', self::$home_page_id );
+
+		// Set the custom logo.
+		$this->set_custom_logo();
+		$this->go_to( $url );
+
+		$this->assertNotEmpty( get_custom_logo(), 'Custom logo is expected to be set' );
+
+		if ( $attribute_expected ) {
+			$this->assertStringContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		} else {
+			$this->assertStringNotContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		}
+	}
+
+	/**
+	 * Data provider for the test_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
+		return array(
+			'Front page'  => array( home_url(), true ),
+			'Blog index'  => array( home_url( '/blog/' ), true ),
+			'Blog post'   => array( home_url( '/?p=1' ), false ),
+			'Sample page' => array( home_url( '/?page_id=2' ), false ),
+		);
 	}
 
 	/**
@@ -577,18 +785,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_the_archive_title
 	 */
 	public function test_get_the_archive_title_is_correct_for_author_queries() {
-		$user_with_posts    = $this->factory()->user->create_and_get(
-			array(
-				'role' => 'author',
-			)
-		);
-		$user_with_no_posts = $this->factory()->user->create_and_get(
-			array(
-				'role' => 'author',
-			)
-		);
+		$user_with_posts    = get_user_by( 'id', self::$administrator_id );
+		$user_with_no_posts = get_user_by( 'id', self::$author_id );
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_author' => $user_with_posts->ID,
 			)

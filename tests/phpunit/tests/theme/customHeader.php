@@ -8,6 +8,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 	protected static $header_video_id;
 
+	private $customize_manager = null;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post = self::factory()->post->create(
 			array(
@@ -81,6 +83,59 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$this->assertFalse( $image );
 	}
 
+	/**
+	 * Tests the "get_header_image" filter.
+	 *
+	 * @ticket 56180
+	 *
+	 * @covers ::get_header_image
+	 *
+	 * @dataProvider data_filter_header_image
+	 *
+	 * @param mixed  $header_image The header image.
+	 * @param string $expected     The expected return value from get_header_image().
+	 */
+	public function test_filter_header_image( $header_image, $expected ) {
+		add_filter(
+			'get_header_image',
+			static function () use ( $header_image ) {
+				return $header_image;
+			}
+		);
+
+		$this->assertSame( $expected, get_header_image() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_filter_header_image() {
+		return array(
+			'an image url'         => array(
+				'header_image' => 'http://example.org/image.png',
+				'expected'     => 'http://example.org/image.png',
+			),
+			'an empty string'      => array(
+				'header_image' => '',
+				'expected'     => '',
+			),
+			'a string with spaces' => array(
+				'header_image' => ' ',
+				'expected'     => '',
+			),
+			'null'                 => array(
+				'header_image' => null,
+				'expected'     => false,
+			),
+			'false'                => array(
+				'header_image' => false,
+				'expected'     => false,
+			),
+		);
+	}
+
 	public function test_get_header_image_tag_without_registered_default_image() {
 		$this->add_theme_support();
 		$html = get_header_image_tag();
@@ -117,6 +172,82 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$html = get_header_image_tag();
 		$this->assertStringStartsWith( '<img ', $html );
 		$this->assertStringContainsString( sprintf( 'src="%s"', $custom ), $html );
+	}
+
+	/**
+	 * Tests default values of performance attributes for "get_header_image_tag".
+	 *
+	 * @ticket 58680
+	 */
+	public function test_get_header_image_tag_with_default_performance_attributes() {
+		$this->add_theme_support(
+			array(
+				'default-image' => 'http://localhost/default-header.jpg',
+				'width'         => 60,
+				'height'        => 60,
+			)
+		);
+
+		add_filter(
+			'wp_min_priority_img_pixels',
+			static function () {
+				return 2500; // 50*50=2500
+			}
+		);
+
+		wp_high_priority_element_flag( true );
+
+		$html = get_header_image_tag();
+		$this->assertStringNotContainsString( ' loading="lazy"', $html );
+		$this->assertStringContainsString( ' fetchpriority="high"', $html );
+		$this->assertStringContainsString( ' decoding="async"', $html );
+	}
+
+	/**
+	 * Tests custom values of performance attributes for "get_header_image_tag".
+	 *
+	 * @ticket 58680
+	 */
+	public function test_get_header_image_tag_with_custom_performance_attributes() {
+		$this->add_theme_support(
+			array(
+				'default-image' => 'http://localhost/default-header.jpg',
+				'width'         => 500,
+				'height'        => 500,
+			)
+		);
+
+		$html = get_header_image_tag(
+			array(
+				'fetchpriority' => '',
+				'decoding'      => '',
+			)
+		);
+		$this->assertStringNotContainsString( ' fetchpriority="high"', $html );
+		$this->assertStringNotContainsString( ' decoding="async"', $html );
+	}
+
+	/**
+	 * Tests custom lazy loading for "get_header_image_tag".
+	 *
+	 * @ticket 58680
+	 */
+	public function test_get_header_image_tag_with_custom_lazy_loading() {
+		$this->add_theme_support(
+			array(
+				'default-image' => 'http://localhost/default-header.jpg',
+				'width'         => 500,
+				'height'        => 500,
+			)
+		);
+
+		$html = get_header_image_tag(
+			array(
+				'loading' => 'lazy',
+			)
+		);
+		$this->assertStringNotContainsString( ' fetchpriority="high"', $html );
+		$this->assertStringContainsString( ' loading="lazy"', $html );
 	}
 
 	public function test_get_custom_header_markup_without_registered_default_image() {
@@ -373,7 +504,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	private function set_customize_previewing( $value ) {
 		$class    = new ReflectionClass( 'WP_Customize_Manager' );
 		$property = $class->getProperty( 'previewing' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $this->customize_manager, $value );
 	}
 }

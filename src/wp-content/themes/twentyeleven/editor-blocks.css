@@ -162,12 +162,14 @@ Description: Used to style blocks in the editor.
 
 /* Captions */
 
-[class^="wp-block-"] figcaption {
+[class^="wp-block-"] figcaption,
+[class*=" wp-block-"] figcaption {
 	font-family: Georgia, serif;
 	font-size: 12px;
 }
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption {
 	color: #666;
 	margin-bottom: 1.625em;
 	max-width: 96%;
@@ -177,7 +179,8 @@ Description: Used to style blocks in the editor.
 	text-align: left;
 }
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption:before {
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption:before,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption:before {
 	color: #666;
 	content: '\2014';
 	font-size: 14px;
@@ -189,13 +192,15 @@ Description: Used to style blocks in the editor.
 	top: 0;
 }
 
-.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption,
+.rtl [class*=" wp-block-"]:not(.wp-block-gallery) figcaption {
 	padding-left: 0;
 	padding-right: 40px;
 	text-align: right;
 }
 
-.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption:before {
+.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption:before,
+.rtl [class*=" wp-block-"]:not(.wp-block-gallery) figcaption:before {
 	left: 0;
 	margin-left: 5px;
 	margin-right: 0;
@@ -297,6 +302,18 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-size: 16px;
 }
 
+.wp-block-quote[style*="font-weight"] blockquote,
+.wp-block-quote[style*="font-weight"] p,
+.wp-block-quote[style*="font-weight"] cite {
+	font-weight: inherit;
+}
+
+.wp-block-quote[style*="font-style"] blockquote,
+.wp-block-quote[style*="font-style"] p,
+.wp-block-quote[style*="font-style"] cite {
+	font-style: inherit;
+}
+
 /* Cover */
 
 .edit-post-visual-editor .editor-block-list__block .wp-block-cover-image p.wp-block-cover-image-text,
@@ -316,9 +333,9 @@ p.has-drop-cap:not(:focus)::first-letter {
 	border: none;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
-	-webkit-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	-moz-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 	color: #eee;
 	cursor: pointer;
 	font-size: 15px;
@@ -353,11 +370,32 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-size: 20px;
 }
 
+.wp-block-pullquote[style*="font-weight"] blockquote,
+.wp-block-pullquote[style*="font-weight"] p,
+.wp-block-pullquote[style*="font-weight"] cite {
+	font-weight: inherit;
+}
+
+.wp-block-pullquote[style*="font-style"] blockquote,
+.wp-block-pullquote[style*="font-style"] p,
+.wp-block-pullquote[style*="font-style"] cite {
+	font-style: inherit;
+}
+
 /* Table */
 
-.editor-block-list__block .wp-block-table th,
-.editor-block-list__block .wp-block-table td {
-	padding: 0;
+.editor-styles-wrapper .wp-block-table th,
+.editor-styles-wrapper .wp-block-table td {
+	padding: 6px 10px 6px 0;
+}
+
+.rtl .editor-styles-wrapper .wp-block-table th,
+.rtl .editor-styles-wrapper .wp-block-table td {
+	padding: 6px 0 6px 10px;
+}
+
+.wp-block-table .has-text-color th {
+	color: currentColor;
 }
 
 .wp-block-table__cell-content {
@@ -371,12 +409,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-align: right;
 }
 
-/* Verse */
-
-.editor-styles-wrapper .wp-block-verse {
-	font-family: inherit;
-}
-
 
 /*--------------------------------------------------------------
 5.0 Blocks - Layout Elements
@@ -385,9 +417,9 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Buttons */
 
 .wp-block-button .wp-block-button__link {
-	-webkit-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	-moz-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 	cursor: pointer;
 	font-size: 15px;
 	line-height: 24px;
@@ -415,8 +447,17 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Media & Text */
 
+.wp-block-media-text *:first-child {
+	margin-top: 0;
+}
+
 .wp-block-media-text *:last-child {
 	margin-bottom: 0;
+}
+
+.wp-block-media-text .wp-block-media-text__content {
+	padding-top: 1.5em;
+	padding-bottom: 1.5em;
 }
 
 /*--------------------------------------------------------------

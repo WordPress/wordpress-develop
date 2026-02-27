@@ -14,10 +14,11 @@
  *
  * @property string $page_template
  *
- * @property-read int[]  $ancestors
- * @property-read int    $post_category
- * @property-read string $tag_input
+ * @property-read int[]    $ancestors
+ * @property-read int[]    $post_category
+ * @property-read string[] $tags_input
  */
+#[AllowDynamicProperties]
 final class WP_Post {
 
 	/**
@@ -36,7 +37,7 @@ final class WP_Post {
 	 * @since 3.5.0
 	 * @var string
 	 */
-	public $post_author = 0;
+	public $post_author = '0';
 
 	/**
 	 * The post's local publication time.
@@ -206,7 +207,7 @@ final class WP_Post {
 	 * @since 3.5.0
 	 * @var string
 	 */
-	public $comment_count = 0;
+	public $comment_count = '0';
 
 	/**
 	 * Stores the post object's sanitization level.
@@ -232,7 +233,7 @@ final class WP_Post {
 		global $wpdb;
 
 		$post_id = (int) $post_id;
-		if ( ! $post_id ) {
+		if ( $post_id <= 0 ) {
 			return false;
 		}
 
@@ -247,7 +248,7 @@ final class WP_Post {
 
 			$_post = sanitize_post( $_post, 'raw' );
 			wp_cache_add( $_post->ID, $_post, 'posts' );
-		} elseif ( empty( $_post->filter ) ) {
+		} elseif ( empty( $_post->filter ) || 'raw' !== $_post->filter ) {
 			$_post = sanitize_post( $_post, 'raw' );
 		}
 

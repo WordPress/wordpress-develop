@@ -14,7 +14,7 @@
 		container.find( '.menu-item-has-children > a' ).after( '<button class="dropdown-toggle" aria-expanded="false">' + screenReaderText.expand + '</button>' );
 
 		// Toggle buttons and submenu items with active children menu items.
-		container.find( '.current-menu-ancestor > button' ).addClass( 'toggle-on' );
+		container.find( '.current-menu-ancestor > button' ).addClass( 'toggle-on' ).attr( 'aria-expanded', 'true' );
 		container.find( '.current-menu-ancestor > .sub-menu' ).addClass( 'toggled-on' );
 
 		container.find( '.dropdown-toggle' ).on( 'click', function( e ) {
@@ -22,11 +22,28 @@
 			e.preventDefault();
 			_this.toggleClass( 'toggle-on' );
 			_this.next( '.children, .sub-menu' ).toggleClass( 'toggled-on' );
-			_this.attr( 'aria-expanded', _this.attr( 'aria-expanded' ) === 'false' ? 'true' : 'false' );
+			_this.attr( 'aria-expanded', _this.hasClass( 'toggle-on' ) ? 'true' : 'false' );
 			_this.html( _this.html() === screenReaderText.expand ? screenReaderText.collapse : screenReaderText.expand );
 		} );
 	}
 	initMainNavigation( $( '.main-navigation' ) );
+
+	// Add unique ID to each .sub-menu and aria-controls to parent links
+	function addUniqueIDToSubMenus() {
+		var subMenus = document.querySelectorAll( '.main-navigation .sub-menu' );
+		subMenus.forEach( function( subMenu, index ) {
+			var parentLi = subMenu.closest( 'li.menu-item-has-children' );
+			subMenu.id = 'sub-menu-' + (index + 1);
+			if ( parentLi ) {
+				var parentLink = parentLi.querySelector( 'button' );
+				if ( parentLink ) {
+					parentLink.setAttribute( 'aria-controls', subMenu.id );
+				}
+			}
+		} );
+	}
+
+	addUniqueIDToSubMenus();
 
 	// Re-initialize the main navigation when it is updated, persisting any existing submenu expanded states.
 	$( document ).on( 'customize-preview-menu-refreshed', function( e, params ) {
@@ -75,7 +92,7 @@
 	} )();
 
 	/**
-	 * Add or remove ARIA attributes.
+	 * Adds or removes ARIA attributes.
 	 *
 	 * Uses jQuery's width() function to determine the size of the window and add
 	 * the default ARIA attributes for the menu toggle if it's visible.
@@ -99,9 +116,9 @@
 		var windowPos = $window.scrollTop(),
 			windowHeight = $window.height(),
 			sidebarHeight = $sidebar.height(),
-			bodyHeight = $body.height();
+			pageHeight = $( '#page' ).height();
 
-		if( 955 < $window.width() && bodyHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
+		if ( 955 < $window.width() && pageHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
 			$sidebar.css({
 				position: 'fixed',
 				bottom: sidebarHeight > windowHeight ? 0 : 'auto'
@@ -111,7 +128,7 @@
 		}
 	}
 
-	$( document ).ready( function() {
+	$( function() {
 		$body          = $( document.body );
 		$window        = $( window );
 		$sidebar       = $( '#sidebar' ).first();

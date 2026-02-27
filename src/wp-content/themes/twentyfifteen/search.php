@@ -18,7 +18,7 @@ get_header(); ?>
 				<h1 class="page-title">
 				<?php
 				/* translators: %s: Search query. */
-				printf( __( 'Search Results for: %s', 'twentyfifteen' ), get_search_query() );
+				printf( __( 'Search Results for: %s', 'twentyfifteen' ), esc_html( get_search_query( false ) ) );
 				?>
 				</h1>
 			</header><!-- .page-header -->
@@ -45,6 +45,7 @@ get_header(); ?>
 				array(
 					'prev_text'          => __( 'Previous page', 'twentyfifteen' ),
 					'next_text'          => __( 'Next page', 'twentyfifteen' ),
+					/* translators: Hidden accessibility text. */
 					'before_page_number' => '<span class="meta-nav screen-reader-text">' . __( 'Page', 'twentyfifteen' ) . ' </span>',
 				)
 			);

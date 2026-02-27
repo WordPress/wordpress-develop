@@ -3,25 +3,31 @@
 /**
  * Test wp_list_filter().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_list_filter
  */
 class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_test_wp_list_filter
+	 * @dataProvider data_wp_list_filter
 	 *
-	 * @param array  $list     An array of objects to filter.
-	 * @param array  $args     An array of key => value arguments to match
-	 *                         against each object.
-	 * @param string $operator The logical operation to perform.
-	 * @param array  $expected Expected result.
+	 * @param array  $input_list An array of objects to filter.
+	 * @param array  $args       An array of key => value arguments to match
+	 *                           against each object.
+	 * @param string $operator   The logical operation to perform.
+	 * @param array  $expected   Expected result.
 	 */
-	public function test_wp_list_filter( $list, $args, $operator, $expected ) {
-		$this->assertEqualSetsWithIndex( $expected, wp_list_filter( $list, $args, $operator ) );
+	public function test_wp_list_filter( $input_list, $args, $operator, $expected ) {
+		$this->assertEqualSetsWithIndex( $expected, wp_list_filter( $input_list, $args, $operator ) );
 	}
 
-	public function data_test_wp_list_filter() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_list_filter() {
 		return array(
 			'string instead of array'  => array(
 				'foo',
@@ -207,6 +213,20 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 						'123'   => '456',
 						'lorem' => 'ipsum',
 						'key'   => 'bar',
+					),
+				),
+			),
+			'string to int comparison' => array(
+				array(
+					(object) array(
+						'foo' => '1',
+					),
+				),
+				array( 'foo' => 1 ),
+				'AND',
+				array(
+					0 => (object) array(
+						'foo' => '1',
 					),
 				),
 			),

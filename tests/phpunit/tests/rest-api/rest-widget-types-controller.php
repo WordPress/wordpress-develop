@@ -5,16 +5,12 @@
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
- */
-
-/**
- * Tests for WP_REST_Widget_Types_Controller.
  *
- * @since 5.8.0
+ * @covers WP_REST_Widget_Types_Controller
  *
  * @see WP_TEST_REST_Controller_Testcase
  * @group restapi
- * @covers WP_REST_Widget_Types_Controller
+ * @group widgets
  */
 class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -118,11 +114,22 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertGreaterThan( 1, count( $data ) );
-		$endpoint = new WP_REST_Widget_Types_Controller;
+		$endpoint = new WP_REST_Widget_Types_Controller();
 		foreach ( $data as $item ) {
 			$widget_type = $endpoint->get_widget( $item['name'] );
 			$this->check_widget_type_object( $widget_type, $item, $item['_links'] );
 		}
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_widget_types_data() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/widget-types' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
@@ -165,7 +172,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$data         = $response->get_data();
 		$text_widgets = array_filter(
 			$data,
-			static function( $widget ) {
+			static function ( $widget ) {
 				return 'text' === $widget['id'];
 			}
 		);
@@ -180,9 +187,90 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_set_current_user( self::$admin_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/widget-types/' . $widget_name );
 		$response    = rest_get_server()->dispatch( $request );
-		$endpoint    = new WP_REST_Widget_Types_Controller;
+		$endpoint    = new WP_REST_Widget_Types_Controller();
 		$widget_type = $endpoint->get_widget( $widget_name );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_should_allow_adding_headers_via_filter( $method ) {
+		$widget_name = 'calendar';
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( $method, '/wp/v2/widget-types/' . $widget_name );
+
+		$hook_name = 'rest_prepare_widget_type';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$header_filter = new class() {
+			public static function add_custom_header( $response ) {
+				$response->header( 'X-Test-Header', 'Test' );
+
+				return $response;
+			}
+		};
+		add_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+		remove_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The "' . $hook_name . '" filter was not called when it should be for GET/HEAD requests.' );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-Test-Header', $headers, 'The "X-Test-Header" header should be present in the response.' );
+		$this->assertSame( 'Test', $headers['X-Test-Header'], 'The "X-Test-Header" header value should be equal to "Test".' );
+		if ( 'HEAD' !== $method ) {
+			return null;
+		}
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'HEAD', $path );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/widget-types/calendar' ),
+			'get_items request' => array( '/wp/v2/widget-types' ),
+		);
 	}
 
 	/**
@@ -193,23 +281,27 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_register_sidebar_widget(
 			$widget_id,
 			'WP legacy widget',
-			static function() {}
+			static function () {}
 		);
 		wp_set_current_user( self::$admin_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/widget-types/' . $widget_id );
 		$response    = rest_get_server()->dispatch( $request );
-		$endpoint    = new WP_REST_Widget_Types_Controller;
+		$endpoint    = new WP_REST_Widget_Types_Controller();
 		$widget_type = $endpoint->get_widget( $widget_id );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 41683
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_widget_invalid_name() {
+	public function test_get_widget_invalid_name( $method ) {
 		$widget_type = 'fake';
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types/' . $widget_type );
+		$request  = new WP_REST_Request( $method, '/wp/v2/widget-types/' . $widget_type );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_widget_type_invalid', $response, 404 );
@@ -224,7 +316,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_register_sidebar_widget(
 			$widget_id,
 			'&#8216;Legacy &#8209; Archive &#8209; Widget&#8217;',
-			static function() {},
+			static function () {},
 			array(
 				'description' => '&#8220;A great &amp; interesting archive of your site&#8217;s posts!&#8221;',
 			)
@@ -255,41 +347,57 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 41683
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_wrong_permission() {
+	public function test_get_items_wrong_permission( $method ) {
 		wp_set_current_user( self::$subscriber_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/widget-types' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 403 );
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 41683
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_item_wrong_permission() {
+	public function test_get_item_wrong_permission( $method ) {
 		wp_set_current_user( self::$subscriber_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types/calendar' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/widget-types/calendar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 403 );
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 41683
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_no_permission() {
+	public function test_get_items_no_permission( $method ) {
 		wp_set_current_user( 0 );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/widget-types' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 401 );
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 41683
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_item_no_permission() {
+	public function test_get_item_no_permission( $method ) {
 		wp_set_current_user( 0 );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types/calendar' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/widget-types/calendar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 401 );
 	}
@@ -298,9 +406,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	 * @ticket 41683
 	 */
 	public function test_prepare_item() {
-		$endpoint    = new WP_REST_Widget_Types_Controller;
+		$endpoint    = new WP_REST_Widget_Types_Controller();
 		$widget_type = $endpoint->get_widget( 'calendar' );
-		$request     = new WP_REST_Request;
+		$request     = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $widget_type, $request );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
@@ -366,7 +474,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			array(
 				'encoded' => base64_encode( serialize( array() ) ),
 				'hash'    => wp_hash( serialize( array() ) ),
-				'raw'     => new stdClass,
+				'raw'     => new stdClass(),
 			),
 			$data['instance']
 		);
@@ -402,7 +510,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			array(
 				'encoded' => base64_encode( serialize( array() ) ),
 				'hash'    => wp_hash( serialize( array() ) ),
-				'raw'     => new stdClass,
+				'raw'     => new stdClass(),
 			),
 			$data['instance']
 		);
@@ -531,17 +639,29 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * The test_create_item() method does not exist for widget types.
+	 * The create_item() method does not exist for widget types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_create_item() {}
+	public function test_create_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
-	 * The test_update_item() method does not exist for widget types.
+	 * The update_item() method does not exist for widget types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_update_item() {}
+	public function test_update_item() {
+		// Controller does not implement update_item().
+	}
 
 	/**
-	 * The test_delete_item() method does not exist for widget types.
+	 * The delete_item() method does not exist for widget types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		// Controller does not implement delete_item().
+	}
 }
