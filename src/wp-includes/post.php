@@ -7791,10 +7791,6 @@ function clean_post_cache( $post ) {
 		do_action( 'clean_page_cache', $post->ID );
 	}
 
-	if ( 'attachment' === $post->post_type ) {
-		delete_transient( 'wp_media_library_attachment_months' );
-	}
-
 	wp_cache_set_posts_last_changed();
 }
 
