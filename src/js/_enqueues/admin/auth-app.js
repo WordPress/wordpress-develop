@@ -2,7 +2,7 @@
  * @output wp-admin/js/auth-app.js
  */
 
-/* global authApp */
+/* global authApp, ClipboardJS */
 
 ( function( $, authApp ) {
 	var $appNameField = $( '#app_name' ),
@@ -116,15 +116,33 @@
 						$( '<p></p>' )
 							.addClass( 'application-password-display' )
 							.append( '<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="" />' )
+							.append( ' <button type="button" class="button copy-button">' + wp.i18n.__( 'Copy' ) + '</button>' )
+							.append( '<span class="success hidden" aria-hidden="true"> ' + wp.i18n.__( 'Copied!' ) + '</span>' )
 					)
 					.append( '<p>' + wp.i18n.__( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ) + '</p>' );
 
 				// We're using .text() to write the variables to avoid any chance of XSS.
 				$( 'strong', $notice ).text( response.name );
 				$( 'input', $notice ).val( response.password );
+				$( '.copy-button', $notice ).attr( 'data-clipboard-text', response.password );
 
 				$form.replaceWith( $notice );
 				$notice.trigger( 'focus' );
+
+				// Initialize clipboard functionality for the copy button.
+				var clipboard = new ClipboardJS( '.copy-button' );
+				clipboard.on( 'success', function( e ) {
+					var $successElement = $( '.success', $( e.trigger ).parent() );
+
+					e.clearSelection();
+					$successElement.removeClass( 'hidden' );
+
+					setTimeout( function() {
+						$successElement.addClass( 'hidden' );
+					}, 3000 );
+
+					wp.a11y.speak( wp.i18n.__( 'Application password has been copied to your clipboard.' ) );
+				} );
 			}
 		} ).fail( function( jqXHR, textStatus, errorThrown ) {
 			var errorMessage = errorThrown,

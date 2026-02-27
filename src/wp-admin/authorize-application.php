@@ -171,6 +171,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</p>
 			<p class="application-password-display">
 				<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="' . esc_attr( WP_Application_Passwords::chunk_password( $new_password ) ) . '" />
+				<button type="button" class="button copy-button" data-clipboard-text="' . esc_attr( WP_Application_Passwords::chunk_password( $new_password ) ) . '">' . esc_html__( 'Copy' ) . '</button>
+				<span class="success hidden" aria-hidden="true">' . esc_html__( 'Copied!' ) . '</span>
 			</p>
 			<p>' . __( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ) . '</p>';
 			$args = array(
