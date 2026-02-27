@@ -71,7 +71,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	 * @return array<int, mixed> Awareness state.
 	 */
 	public function get_awareness_state( string $room ): array {
-		$awareness = get_transient( 'sync_awareness_' . $room );
+		$awareness = get_transient( $this->get_awareness_transient_key( $room ) );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -211,9 +211,25 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	 * @param array<int, mixed> $awareness Serializable awareness state.
 	 * @return bool True on success, false on failure.
 	 */
+	/**
+	 * Returns the transient key used to store awareness state for a room.
+	 *
+	 * The room name is hashed with md5 to guarantee the key stays within
+	 * the 172-character limit imposed by the wp_options option_name column
+	 * (varchar 191 minus the 19-character `_transient_timeout_` prefix).
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $room Room identifier.
+	 * @return string Transient key.
+	 */
+	private function get_awareness_transient_key( string $room ): string {
+		return 'sync_awareness_' . md5( $room );
+	}
+
 	public function set_awareness_state( string $room, array $awareness ): bool {
 		// Awareness is high-frequency, short-lived data (cursor positions, selections)
 		// that doesn't need cursor-based history. Transients avoid row churn in the table.
-		return set_transient( 'sync_awareness_' . $room, $awareness, MINUTE_IN_SECONDS );
+		return set_transient( $this->get_awareness_transient_key( $room ), $awareness, MINUTE_IN_SECONDS );
 	}
 }
