@@ -38,7 +38,7 @@ class Tests_Formatting_NormalizeEscapedHtmlText extends WP_UnitTestCase {
 			array( 'data', 'spec > guess', 'spec &gt; guess' ),
 			array( 'data', 'art & copy', 'art &amp; copy' ),
 			array( 'data', '&#x1F170', '&#x1F170;' ),
-			array( 'data', '&#x1F170 ', '&#x1f170; ' ),
+			array( 'data', '&#x1F170 ', '&#x1F170; ' ),
 
 			// The “ambiguous ampersand” has different rules in the attribute value and data states.
 			array( 'attribute', '&notmyproblem', '&amp;notmyproblem' ),
@@ -48,7 +48,7 @@ class Tests_Formatting_NormalizeEscapedHtmlText extends WP_UnitTestCase {
 			array( 'attribute', 'eat &#x000033; apples', 'eat 3 apples' ),
 			array( 'data', 'eat &#x000033; apples', 'eat 3 apples' ),
 			array( 'data', '<&#x00073;cr&#0105pt&gt;', '&lt;script&gt;' ),
-			array( 'attribute', '&#x6a;avascript&#58alert&#40;&#x0000007b"test&quot;&#125;&#41;', 'javascript:alert&#40;&#x7b;&quot;test&quot;&#125;&#41;' ),
+			array( 'attribute', '&#x6a;avascript&#58alert&#40;&#x0000007b"test&quot;&#125;&#41;', 'javascript:alert&#40;&#x7B;&quot;test&quot;&#125;&#41;' ),
 
 			// Syntax characters should be represented uniformly.
 			array( 'attribute', '&#X3CIMG&#00062', '&lt;IMG&gt;' ),
