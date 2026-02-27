@@ -35,4 +35,36 @@ class Tests_Media_wpGetMediaLibraryAttachmentMonths extends WP_UnitTestCase {
 		$this->assertSame( '2024', $months[1]->year );
 		$this->assertSame( '11', $months[1]->month );
 	}
+
+	/**
+	 * Tests that the filter overrides the query result.
+	 *
+	 * @ticket 63279
+	 */
+	public function test_filter_overrides_result() {
+		self::factory()->post->create(
+			array(
+				'post_type' => 'attachment',
+				'post_date' => '2025-06-01 00:00:00',
+			)
+		);
+
+		$override = array(
+			(object) array(
+				'year'  => '2020',
+				'month' => '1',
+			),
+		);
+
+		add_filter(
+			'media_library_months_with_files',
+			static function () use ( $override ) {
+				return $override;
+			}
+		);
+
+		$months = wp_get_media_library_attachment_months();
+
+		$this->assertSame( $override, $months );
+	}
 }

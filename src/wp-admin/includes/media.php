@@ -2852,11 +2852,7 @@ function media_upload_library_form( $errors ) {
 
 	<div class="alignleft actions">
 		<?php
-		/** This filter is documented in wp-includes/media.php */
-		$months = apply_filters( 'media_library_months_with_files', null );
-		if ( ! is_array( $months ) ) {
-			$months = wp_get_media_library_attachment_months();
-		}
+		$months = wp_get_media_library_attachment_months();
 
 		$month_count    = count( $months );
 		$selected_month = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
