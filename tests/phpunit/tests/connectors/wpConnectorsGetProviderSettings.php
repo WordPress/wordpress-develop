@@ -54,7 +54,7 @@ class Tests_Connectors_WpConnectorsGetProviderSettings extends WP_UnitTestCase {
 	 */
 	public function test_each_setting_has_required_fields() {
 		$providers     = _wp_connectors_get_provider_settings();
-		$required_keys = array( 'label', 'description', 'mask', 'sanitize' );
+		$required_keys = array( 'label', 'description', 'sanitize' );
 
 		foreach ( $providers as $provider_id => $provider_data ) {
 			foreach ( $provider_data['settings'] as $setting_name => $config ) {

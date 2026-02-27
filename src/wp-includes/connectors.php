@@ -131,7 +131,6 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
  *
  *                 @type string   $label       The setting label.
  *                 @type string   $description The setting description.
- *                 @type callable $mask        Callback to mask the stored value.
  *                 @type callable $sanitize    Callback to sanitize the input value.
  *             }
  *         }
@@ -168,11 +167,26 @@ function _wp_connectors_get_provider_settings(): array {
 			continue;
 		}
 
-		$providers[ $provider_id ] = array(
-			'name'            => $provider_metadata->getName(),
-			'description'     => '', // TODO: Retrieve description from provider metadata when available.
-			'credentials_url' => $provider_metadata->getCredentialsUrl(),
+		$registry_data = array_filter(
+			array(
+				'name'            => $provider_metadata->getName(),
+				'credentials_url' => $provider_metadata->getCredentialsUrl(),
+			)
 		);
+
+		if ( isset( $providers[ $provider_id ] ) ) {
+			// Merge non-empty registry data over hardcoded fallbacks.
+			$providers[ $provider_id ] = array_merge( $providers[ $provider_id ], $registry_data );
+		} else {
+			$providers[ $provider_id ] = array_merge(
+				array(
+					'name'            => '',
+					'description'     => '',
+					'credentials_url' => null,
+				),
+				$registry_data
+			);
+		}
 	}
 
 	$provider_settings = array();
@@ -195,8 +209,7 @@ function _wp_connectors_get_provider_settings(): array {
 						__( 'API key for the %s AI provider.' ),
 						$data['name']
 					),
-					'mask'        => '_wp_connectors_mask_api_key',
-					'sanitize'    => static function ( string $value ) use ( $provider ): string {
+					'sanitize' => static function ( string $value ) use ( $provider ): string {
 						$value = sanitize_text_field( $value );
 						if ( '' === $value ) {
 							return $value;
@@ -259,7 +272,7 @@ function _wp_connectors_validate_keys_in_rest( WP_REST_Response $response, WP_RE
 				continue;
 			}
 
-			$real_key = _wp_connectors_get_real_api_key( $setting_name, $config['mask'] );
+			$real_key = _wp_connectors_get_real_api_key( $setting_name, '_wp_connectors_mask_api_key' );
 			if ( '' === $real_key ) {
 				continue;
 			}
@@ -300,7 +313,7 @@ function _wp_register_default_connector_settings(): void {
 					'sanitize_callback' => $config['sanitize'],
 				)
 			);
-			add_filter( "option_{$setting_name}", $config['mask'] );
+			add_filter( "option_{$setting_name}", '_wp_connectors_mask_api_key' );
 		}
 	}
 }
@@ -320,7 +333,7 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 		$registry = AiClient::defaultRegistry();
 		foreach ( _wp_connectors_get_provider_settings() as $provider => $provider_data ) {
 			foreach ( $provider_data['settings'] as $setting_name => $config ) {
-				$api_key = _wp_connectors_get_real_api_key( $setting_name, $config['mask'] );
+				$api_key = _wp_connectors_get_real_api_key( $setting_name, '_wp_connectors_mask_api_key' );
 				if ( '' === $api_key || ! $registry->hasProvider( $provider ) ) {
 					continue;
 				}
