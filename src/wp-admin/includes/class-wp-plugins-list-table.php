@@ -31,10 +31,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
-	 * @global string $status
-	 * @global int    $page
+	 * @global string $status The current status filter.
+	 * @global int    $page   The current page number.
 	 *
-	 * @param array $args An associative array of arguments.
+	 * @param array<string, mixed> $args An associative array of arguments.
 	 */
 	public function __construct( $args = array() ) {
 		global $status, $page;
@@ -63,27 +63,33 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * Gets a list of CSS classes for the WP_List_Table table tag.
+	 *
+	 * @return array<string, string> Array of CSS classes for the table tag.
 	 */
 	protected function get_table_classes() {
 		return array( 'widefat', $this->_args['plural'] );
 	}
 
 	/**
-	 * @return bool
+	 * Checks the current user's permissions.
+	 *
+	 * @return bool True if the user can activate plugins, false otherwise.
 	 */
 	public function ajax_user_can() {
 		return current_user_can( 'activate_plugins' );
 	}
 
 	/**
-	 * @global string $status
-	 * @global array  $plugins
-	 * @global array  $totals
-	 * @global int    $page
-	 * @global string $orderby
-	 * @global string $order
-	 * @global string $s
+	 * Prepares the list of items for displaying.
+	 *
+	 * @global string                      $status  The current plugin status filter.
+	 * @global array<string, array<string, mixed>> $plugins Array of plugins grouped by status.
+	 * @global array<string, int>          $totals  Array of plugin counts by status.
+	 * @global int                         $page    The current page number.
+	 * @global string                      $orderby The field to order the plugins by.
+	 * @global string                      $order   The sort order (ASC or DESC).
+	 * @global string                      $s       URL encoded search term.
 	 */
 	public function prepare_items() {
 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
@@ -364,10 +370,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Callback to search within the list of plugins.
+	 *
 	 * @global string $s URL encoded search term.
 	 *
-	 * @param array $plugin
-	 * @return bool
+	 * @param array<string, string> $plugin Plugin data.
+	 * @return bool True if the search term matches the plugin data, false otherwise.
 	 */
 	public function _search_callback( $plugin ) {
 		global $s;
@@ -382,11 +390,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $orderby
-	 * @global string $order
-	 * @param array $plugin_a
-	 * @param array $plugin_b
-	 * @return int
+	 * Callback to sort the list of plugins.
+	 *
+	 * @global string $orderby The field to order the plugins by.
+	 * @global string $order   The sort order (ASC or DESC).
+	 * @param array<string, mixed> $plugin_a The first plugin parameter.
+	 * @param array<string, mixed> $plugin_b The second plugin parameter.
+	 * @return int A sort weight (-1, 0, or 1).
 	 */
 	public function _order_callback( $plugin_a, $plugin_b ) {
 		global $orderby, $order;
@@ -406,7 +416,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global array $plugins
+	 * Outputs the message to be displayed when there are no items.
+	 *
+	 * @global array<string, array<string, mixed>> $plugins Array of plugins grouped by status.
 	 */
 	public function no_items() {
 		global $plugins;
@@ -459,9 +471,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
+	 * Gets a list of columns.
 	 *
-	 * @return string[] Array of column titles keyed by their column name.
+	 * @global string $status The current plugin status filter.
+	 *
+	 * @return array<string, string> Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		global $status;
@@ -480,16 +494,20 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * Gets a list of sortable columns.
+	 *
+	 * @return array<string, string|array<string, bool>> Array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 		return array();
 	}
 
 	/**
-	 * @global array $totals
-	 * @global string $status
-	 * @return array
+	 * Gets the list of views available on this table.
+	 *
+	 * @global array<string, int> $totals Array of plugin counts by status.
+	 * @global string             $status The current plugin status filter.
+	 * @return array<string, string> Array of HTML links to views on this table.
 	 */
 	protected function get_views() {
 		global $totals, $status;
@@ -616,8 +634,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
-	 * @return array
+	 * Gets the list of bulk actions to display.
+	 *
+	 * @global string $status The current plugin status filter.
+	 * @return array<string, string> Array of bulk action labels keyed by their action.
 	 */
 	protected function get_bulk_actions() {
 		global $status;
@@ -655,8 +675,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
-	 * @param string $which
+	 * Displays the bulk actions dropdown.
+	 *
+	 * @global string $status The current plugin status filter.
+	 * @param string $which  The location of the bulk actions: 'top' or 'bottom'.
 	 */
 	public function bulk_actions( $which = '' ) {
 		global $status;
@@ -669,8 +691,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
-	 * @param string $which
+	 * Outputs extra controls to be displayed between bulk actions and pagination.
+	 *
+	 * @global string $status The current plugin status filter.
+	 * @param string $which  The location of the extra table nav markup: 'top' or 'bottom'.
 	 */
 	protected function extra_tablenav( $which ) {
 		global $status;
@@ -700,7 +724,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return string
+	 * Gets the current action selected from the bulk actions dropdown.
+	 *
+	 * @return string|false The action name or false if no action was selected.
 	 */
 	public function current_action() {
 		if ( isset( $_POST['clear-recent-list'] ) ) {
@@ -715,7 +741,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global string $status
+	 * @global string $status The current plugin status filter.
 	 */
 	public function display_rows() {
 		global $status;
@@ -730,12 +756,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
-	 * @global int $page
-	 * @global string $s
-	 * @global array $totals
+	 * Generates a single row for the list table.
 	 *
-	 * @param array $item
+	 * @global string             $status The current plugin status filter.
+	 * @global int                $page   The current page number.
+	 * @global string             $s      URL encoded search term.
+	 * @global array<string, int> $totals Array of plugin counts by status.
+	 *
+	 * @param array<string, mixed> $item Array containing plugin file and plugin data.
 	 */
 	public function single_row( $item ) {
 		global $status, $page, $s, $totals;
