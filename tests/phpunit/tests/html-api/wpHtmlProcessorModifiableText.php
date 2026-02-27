@@ -71,12 +71,15 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 
 	/**
 	 * Ensures that `set_modifiable_text()` returns false for elements that share
-	 * tag names with HTML atomic elements but are in non-HTML namespaces.
+	 * not sepcial "atomic" elements.
+	 *
+	 * This includes atomic-like foreign elements (`<svg><textarea>`) as well as arbitrary HTML
+	 * elements (`<div>`).
 	 *
 	 * @ticket 64751
-	 * @dataProvider data_set_modifiable_text_fails_for_non_html_namespace_elements
+	 * @dataProvider data_set_modifiable_fails_non_atomic_tags
 	 */
-	public function test_set_modifiable_text_fails_for_non_html_namespace_elements(
+	public function test_set_modifiable_fails_non_atomic_tags(
 		string $html,
 		string $expected_namespace,
 		string $expected_tag
@@ -101,12 +104,26 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 */
-	public static function data_set_modifiable_text_fails_for_non_html_namespace_elements(): array {
+	public static function data_set_modifiable_fails_non_atomic_tags(): array {
 		return array(
-			'SVG TEXTAREA' => array( '<svg><textarea></textarea></svg>', 'svg', 'TEXTAREA' ),
-			'SVG TITLE'    => array( '<svg><title></title></svg>', 'svg', 'TITLE' ),
-			'SVG STYLE'    => array( '<svg><style></style></svg>', 'svg', 'STYLE' ),
-			'SVG SCRIPT'   => array( '<svg><script></script></svg>', 'svg', 'SCRIPT' ),
+			// Plain HTML tags.
+			'html DIV'                   => array( '<div>', 'html', 'DIV' ),
+
+			// Foreign elements with non-atomic tags.
+			'svg PATH'                   => array( '<svg><path></path></svg>', 'svg', 'PATH' ),
+			'svg PATH (self-closing)'    => array( '<svg><path /></svg>', 'svg', 'PATH' ),
+			'math MTEXT'                 => array( '<math><mtext></mtext></math>', 'math', 'MTEXT' ),
+			'math MSPACE (self-closing)' => array( '<math><mspace /></math>', 'math', 'MSPACE' ),
+
+			// Foreign elements with atomic-like tags.
+			'svg TEXTAREA'               => array( '<svg><textarea></textarea></svg>', 'svg', 'TEXTAREA' ),
+			'svg TITLE'                  => array( '<svg><title></title></svg>', 'svg', 'TITLE' ),
+			'svg STYLE'                  => array( '<svg><style></style></svg>', 'svg', 'STYLE' ),
+			'svg SCRIPT'                 => array( '<svg><script></script></svg>', 'svg', 'SCRIPT' ),
+			'math TEXTAREA'              => array( '<math><textarea></textarea></math>', 'math', 'TEXTAREA' ),
+			'math TITLE'                 => array( '<math><title></title></math>', 'math', 'TITLE' ),
+			'math STYLE'                 => array( '<math><style></style></math>', 'math', 'STYLE' ),
+			'math SCRIPT'                => array( '<math><script></script></math>', 'math', 'SCRIPT' ),
 		);
 	}
 }
