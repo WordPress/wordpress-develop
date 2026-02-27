@@ -4866,7 +4866,25 @@ function wp_enqueue_media( $args = array() ) {
 		);
 	}
 
-	$months = wp_get_media_library_attachment_months();
+	/**
+	 * Allows overriding the list of months displayed in the media library.
+	 *
+	 * By default (if this filter does not return an array), a query will be
+	 * run to determine the months that have media items.  This query can be
+	 * expensive for large media libraries, so it may be desirable for sites to
+	 * override this behavior.
+	 *
+	 * @since 4.7.4
+	 *
+	 * @link https://core.trac.wordpress.org/ticket/31071
+	 *
+	 * @param stdClass[]|null $months An array of objects with `month` and `year`
+	 *                                properties, or `null` for default behavior.
+	 */
+	$months = apply_filters( 'media_library_months_with_files', null );
+	if ( ! is_array( $months ) ) {
+		$months = wp_get_media_library_attachment_months();
+	}
 
 	foreach ( $months as $month_year ) {
 		$month_year->text = sprintf(
@@ -5130,6 +5148,9 @@ function wp_enqueue_media( $args = array() ) {
 /**
  * Retrieves the months that have media library attachments.
  *
+ * Results are cached in a transient and automatically invalidated when
+ * attachments are created, updated, or deleted.
+ *
  * Example:
  *
  *     $months = wp_get_media_library_attachment_months();
@@ -5146,26 +5167,6 @@ function wp_enqueue_media( $args = array() ) {
  */
 function wp_get_media_library_attachment_months(): array {
 	global $wpdb;
-
-	/**
-	 * Allows overriding the list of months displayed in the media library.
-	 *
-	 * By default (if this filter does not return an array), a query will be
-	 * run to determine the months that have media items.  This query can be
-	 * expensive for large media libraries, so it may be desirable for sites to
-	 * override this behavior.
-	 *
-	 * @since 4.7.4
-	 *
-	 * @link https://core.trac.wordpress.org/ticket/31071
-	 *
-	 * @param array<int, object{year: string, month: string}>|null $months An array of objects with `month` and `year`
-	 *                                properties, or `null` for default behavior.
-	 */
-	$months = apply_filters( 'media_library_months_with_files', null );
-	if ( is_array( $months ) ) {
-		return $months;
-	}
 
 	return $wpdb->get_results(
 		$wpdb->prepare(
