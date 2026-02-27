@@ -708,7 +708,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
 	 */
-	private $attributes = array();
+	protected $attributes = array();
 
 	/**
 	 * Tracks spans of duplicate attributes on a given tag, used for removing
@@ -3053,23 +3053,37 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string $attribute_name Which attribute to adjust.
+	 * @param string       $attribute_name Which attribute name to adjust.
 	 *
-	 * @return string|null
+	 * @return string|null The qualified attribute name or null if not on matched tag.
 	 */
 	public function get_qualified_attribute_name( $attribute_name ): ?string {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
 			return null;
 		}
+		$namespace = $this->get_namespace();
+		return self::lookup_qualified_attribute_name( $namespace, $attribute_name );
+	}
 
-		$namespace  = $this->get_namespace();
+	/**
+	 * Returns the adjusted attribute name for a given attribute, taking into
+	 * account the provided namespace.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string  $ns             The namespace to use: 'html', 'svg', or 'math'.
+	 * @param string  $attribute_name Which attribute to adjust.
+	 *
+	 * @return string The qualified attribute name.
+	 */
+	final protected static function lookup_qualified_attribute_name( string $ns, string $attribute_name ): string {
 		$lower_name = strtolower( $attribute_name );
 
-		if ( 'math' === $namespace && 'definitionurl' === $lower_name ) {
+		if ( 'math' === $ns && 'definitionurl' === $lower_name ) {
 			return 'definitionURL';
 		}
 
-		if ( 'svg' === $this->get_namespace() ) {
+		if ( 'svg' === $ns ) {
 			switch ( $lower_name ) {
 				case 'attributename':
 					return 'attributeName';
@@ -3247,7 +3261,7 @@ class WP_HTML_Tag_Processor {
 			}
 		}
 
-		if ( 'html' !== $namespace ) {
+		if ( 'html' !== $ns ) {
 			switch ( $lower_name ) {
 				case 'xlink:actuate':
 					return 'xlink actuate';
