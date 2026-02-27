@@ -1352,9 +1352,11 @@ $( function() {
 
 		var errorMessage = __( 'Please select at least one item to perform this action on.' );
 		addAdminNotice( {
-			id: 'no-items-selected',
+			id: value !== '-1' ? 'no-items-selected' : 'no-bulk-action-selected',
 			type: 'error',
-			message: errorMessage,
+			message: value !== '-1'
+				? __( 'Please select at least one item to perform this action on.' )
+				: __( 'Please select a bulk action before clicking Apply.' ),
 			dismissible: true,
 		} );
 
