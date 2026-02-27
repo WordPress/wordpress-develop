@@ -113,6 +113,11 @@ if ( ! wp_next_scheduled( 'delete_expired_transients' ) && ! wp_installing() ) {
 	wp_schedule_event( time(), 'daily', 'delete_expired_transients' );
 }
 
+// Schedule sync updates cleanup.
+if ( ! wp_next_scheduled( 'wp_delete_old_sync_updates' ) && ! wp_installing() ) {
+	wp_schedule_event( time(), 'daily', 'wp_delete_old_sync_updates' );
+}
+
 set_screen_options();
 
 $date_format = __( 'F j, Y' );
