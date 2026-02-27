@@ -636,4 +636,32 @@ HTML;
 			$decoded_json_from_html
 		);
 	}
+
+	/**
+	 * TEXTAREA elements ignore the first newline in their content.
+	 * Setting the modifiable text with a leading newline should ensure that the leading newline
+	 * is present in the resulting element.
+	 *
+	 * @ticket 64609
+	 */
+	public function test_modifiable_text_special_textarea() {
+		$processor = new WP_HTML_Tag_Processor( '<textarea></textarea>' );
+		$processor->next_token();
+		$processor->set_modifiable_text( "\nAFTER NEWLINE" );
+		$this->assertSame(
+			"\nAFTER NEWLINE",
+			$processor->get_modifiable_text(),
+			'Should have preserved the leading newline in the content.'
+		);
+		$this->assertEqualHTML(
+			<<<'HTML'
+			<textarea>
+
+			AFTER NEWLINE</textarea>
+			HTML,
+			$processor->get_updated_html(),
+			'<body>',
+			'Should have preserved the leading newline in the content.'
+		);
+	}
 }
