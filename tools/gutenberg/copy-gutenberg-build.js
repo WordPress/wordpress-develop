@@ -221,7 +221,7 @@ function copyBlockAssets( config ) {
 	for ( const source of config.sources ) {
 		const scriptsSrc = path.join( gutenbergBuildDir, source.scripts );
 		const stylesSrc = path.join( gutenbergBuildDir, source.styles );
-		const phpSrc = source.php;
+		const phpSrc = path.join( gutenbergBuildDir, source.php );
 
 		if ( ! fs.existsSync( scriptsSrc ) ) {
 			continue;
@@ -277,18 +277,17 @@ function copyBlockAssets( config ) {
 
 			// 3. Copy PHP from build
 			const blockPhpSrc = path.join( phpSrc, `${ blockName }.php` );
+			const phpDest = path.join(
+				wpIncludesDir,
+				config.destination,
+				`${ blockName }.php`
+			);
 			if ( fs.existsSync( blockPhpSrc ) ) {
-				const phpDest = path.join(
-					wpIncludesDir,
-					config.destination,
-					blockName,
-					`${ blockName }.php`
-				);
 				fs.copyFileSync( blockPhpSrc, phpDest );
 			}
 
 			// 4. Copy PHP subdirectories from build (e.g., navigation-link/shared/*.php)
-			const blockPhpDir = path.join( gutenbergBuildDir, phpSrc, blockName );
+			const blockPhpDir = path.join( phpSrc, blockName );
 			if ( fs.existsSync( blockPhpDir ) ) {
 				const rootIndex = path.join( blockPhpDir, 'index.php' );
 				fs.cpSync( blockPhpDir, blockDest, {

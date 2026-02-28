@@ -53,7 +53,6 @@ module.exports = function(grunt) {
 		webpackFiles = [
 			'wp-includes/assets/*',
 			'wp-includes/css/dist',
-			'wp-includes/blocks/**/*.css',
 			'!wp-includes/assets/script-loader-packages.min.php',
 			'!wp-includes/assets/script-modules-packages.min.php',
 		],
