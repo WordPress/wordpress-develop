@@ -122,7 +122,7 @@ class WP_Block_Type {
 	 *
 	 * @since 5.8.0
 	 * @since 6.5.0 Only accessible through magic getter. null by default.
-	 * @var array[]|null
+	 * @var array<string, mixed>|null
 	 */
 	private $variations = null;
 
@@ -358,8 +358,8 @@ class WP_Block_Type {
 	 *
 	 * @param string $name Deprecated property name.
 	 *
-	 * @return string|string[]|null The value read from the new property if the first item in the array provided,
-	 *                              null when value not found or when unknown property name provided.
+	 * @return string|string[]|array<string, mixed>|null The value read from the new property if the first item in the array provided,
+	 *                                                   null when value not found or when unknown property name provided.
 	 */
 	public function __get( $name ) {
 		if ( 'variations' === $name ) {
@@ -595,7 +595,7 @@ class WP_Block_Type {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array[]
+	 * @return array<string, mixed> Variations.
 	 */
 	public function get_variations() {
 		if ( ! isset( $this->variations ) ) {
@@ -610,8 +610,8 @@ class WP_Block_Type {
 		 *
 		 * @since 6.5.0
 		 *
-		 * @param array         $variations Array of registered variations for a block type.
-		 * @param WP_Block_Type $block_type The full block type object.
+		 * @param array<string, mixed> $variations Array of registered variations for a block type.
+		 * @param WP_Block_Type        $block_type The full block type object.
 		 */
 		return apply_filters( 'get_block_type_variations', $this->variations, $this );
 	}

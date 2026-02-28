@@ -29,7 +29,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var array
+	 * @var array<string, string>
 	 */
 	protected static $plugin_dirnames;
 
@@ -71,7 +71,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var array
+	 * @var array<string, array<string, mixed>>
 	 */
 	protected static $dependency_api_data;
 
@@ -295,7 +295,7 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 *
 	 * @param string $plugin_file The dependent plugin's filepath, relative to the plugins directory.
-	 * @return array An array of dependency names.
+	 * @return array<string, string> An array of dependency names.
 	 */
 	public static function get_dependency_names( $plugin_file ) {
 		$dependency_api_data = self::get_dependency_api_data();
@@ -346,7 +346,7 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 *
 	 * @param string $slug The dependency's slug.
-	 * @return array|false The dependency's API data on success, otherwise false.
+	 * @return array<string, mixed>|false The dependency's API data on success, otherwise false.
 	 */
 	public static function get_dependency_data( $slug ) {
 		$dependency_api_data = self::get_dependency_api_data();
@@ -643,7 +643,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @global string $pagenow The filename of the current screen.
 	 *
-	 * @return array|null An array of dependency API data, or null on early exit.
+	 * @return array<string, array<string, mixed>>|null An array of dependency API data, or null on early exit.
 	 */
 	protected static function get_dependency_api_data() {
 		global $pagenow;
@@ -727,7 +727,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array An array of plugin directory names.
+	 * @return array<string, string> An array of plugin directory names.
 	 */
 	protected static function get_plugin_dirnames() {
 		if ( is_array( self::$plugin_dirnames ) ) {
