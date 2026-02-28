@@ -15,15 +15,17 @@
 
 const { spawn } = require( 'child_process' );
 const fs = require( 'fs' );
+const { pipeline } = require( 'stream/promises' );
 const path = require( 'path' );
 
 // Paths
 const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
-const packageJsonPath = path.join( rootDir, 'package.json' );
 
 /**
- * Execute a command, streaming stdio directly so progress is visible.
+ * Execute a command. By default, stdio is inherited so progress is visible in
+ * the terminal. When `options.captureOutput` is true, stdout is piped and the
+ * promise resolves with the captured stdout once the process exits.
  *
  * @param {string}   command - Command to execute.
  * @param {string[]} args    - Command arguments.
@@ -74,9 +76,7 @@ async function main( force ) {
 	// Read Gutenberg configuration from package.json.
 	let sha, ghcrRepo;
 	try {
-		const packageJson = JSON.parse(
-			fs.readFileSync( packageJsonPath, 'utf8' )
-		);
+		const packageJson = require( path.join( rootDir, 'package.json' ) );
 		sha = packageJson.gutenberg?.sha;
 		ghcrRepo = packageJson.gutenberg?.ghcrRepo;
 
@@ -158,8 +158,7 @@ async function main( force ) {
 			if ( ! response.ok ) {
 				throw new Error( `Failed to download blob: ${ response.status } ${ response.statusText }` );
 			}
-			const buffer = await response.arrayBuffer();
-			fs.writeFileSync( zipPath, Buffer.from( buffer ) );
+			await pipeline( response.body, fs.createWriteStream( zipPath ) );
 			console.log( '✅ Download complete' );
 		} catch ( error ) {
 			console.error( '❌ Download failed:', error.message );
