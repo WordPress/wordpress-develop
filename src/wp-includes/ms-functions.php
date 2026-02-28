@@ -40,7 +40,7 @@ function get_sitestats() {
  * @since MU (3.0.0)
  *
  * @param int $user_id The unique ID of the user
- * @return WP_Site|null The blog object
+ * @return WP_Site|null|false The blog object
  */
 function get_active_blog_for_user( $user_id ) {
 	$blogs = get_blogs_of_user( $user_id );
