@@ -103,7 +103,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 
 	/**
 	 * Data provider.
-	 * 
+	 *
 	 * @return array<string, array{0: string, 1: string, 2: string}>
 	 */
 	public static function data_set_modifiable_fails_non_atomic_tags(): array {
