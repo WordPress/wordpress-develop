@@ -161,10 +161,10 @@ class WP_Recovery_Mode {
 	 * @since 5.2.0
 	 *
 	 * @param array<string, mixed> $error Error details from `error_get_last()`.
-	 * @return true|WP_Error|null|never True if the error was handled and headers have already been sent.
-	 *                                  Or the request will exit to try and catch multiple errors at once.
-	 *                                  WP_Error if an error occurred preventing it from being handled.
-	 *                                  Never if the redirect is protected.
+	 * @return true|WP_Error|never True if the error was handled and headers have already been sent.
+	 *                             Or the request will exit to try and catch multiple errors at once.
+	 *                             WP_Error if an error occurred preventing it from being handled.
+	 *                             Never if the redirect is protected.
 	 */
 	public function handle_error( array $error ) {
 

@@ -4218,7 +4218,7 @@ function wp_untrash_post( $post_id = 0 ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
- * @return mixed|null False on failure.
+ * @return int|false|null int if the comments were successfully deleted, false on failure and null if the post or comment did not exist.
  */
 function wp_trash_post_comments( $post = null ) {
 	global $wpdb;
