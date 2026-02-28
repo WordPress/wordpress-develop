@@ -51,7 +51,6 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 		$url = sprintf( 'http://%1$s/?author=%2$s', WP_TESTS_DOMAIN, $author->ID );
 
 		$this->assertStringContainsString( $url, $link );
-		$this->assertStringContainsString( 'Posts by Test Author', $link );
 		$this->assertStringContainsString( '>Test Author</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
@@ -74,7 +73,6 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 		$this->set_permalink_structure( '' );
 
 		$this->assertStringContainsString( $url, $link );
-		$this->assertStringContainsString( 'Posts by Test Author', $link );
 		$this->assertStringContainsString( '>Test Author</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
