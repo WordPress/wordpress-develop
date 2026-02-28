@@ -8554,7 +8554,7 @@ function wp_get_default_update_php_url() {
  * @param string $after   Markup to output after the annotation. Default `</p>`.
  * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
  *
- * @return string|null
+ * @return string|null Update PHP page annotation if available and $display is false, null otherwise.
  */
 function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
 	$annotation = wp_get_update_php_annotation();
