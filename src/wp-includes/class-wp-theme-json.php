@@ -4314,6 +4314,7 @@ class WP_Theme_JSON {
 		}
 
 		_wp_array_set( $this->theme_json, array( 'settings', 'spacing', 'spacingSizes', 'default' ), $spacing_sizes );
+		return null;
 	}
 
 	/**

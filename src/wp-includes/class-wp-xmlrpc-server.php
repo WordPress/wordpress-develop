@@ -368,6 +368,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				$v = wp_slash( $v );
 			}
 		}
+		return null;
 	}
 
 	/**

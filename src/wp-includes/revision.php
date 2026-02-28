@@ -209,7 +209,7 @@ function wp_save_post_revision( $post_id ) {
 
 			// Don't save revision if post unchanged.
 			if ( ! $post_has_changed ) {
-				return;
+				return null;
 			}
 		}
 	}

@@ -6243,6 +6243,7 @@ function sanitize_hex_color( $color ) {
 	if ( preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ) {
 		return $color;
 	}
+	return null;
 }
 
 /**

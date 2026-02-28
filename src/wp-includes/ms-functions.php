@@ -2290,6 +2290,7 @@ function add_existing_user_to_blog( $details = false ) {
 
 		return $result;
 	}
+	return null;
 }
 
 /**

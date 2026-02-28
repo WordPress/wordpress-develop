@@ -3005,6 +3005,7 @@ function wp_ext2type( $ext ) {
 			return $type;
 		}
 	}
+	return null;
 }
 
 /**
@@ -8565,6 +8566,7 @@ function wp_update_php_annotation( $before = '<p class="description">', $after =
 			return $before . $annotation . $after;
 		}
 	}
+	return null;
 }
 
 /**

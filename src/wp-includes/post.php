@@ -2865,6 +2865,7 @@ function get_post_custom_keys( $post_id = 0 ) {
 	if ( $keys ) {
 		return $keys;
 	}
+	return null;
 }
 
 /**
@@ -4333,6 +4334,8 @@ function wp_untrash_post_comments( $post = null ) {
 	 * @param int $post_id Post ID.
 	 */
 	do_action( 'untrashed_post_comments', $post_id );
+
+	return null;
 }
 
 /**
