@@ -1159,8 +1159,10 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 			$_post = new WP_Post( $_post );
 		} elseif ( 'raw' === $post->filter ) {
 			$_post = new WP_Post( $post );
-		} else {
+		} elseif ( isset( $post->ID ) ) {
 			$_post = WP_Post::get_instance( $post->ID );
+		} else {
+			$_post = null;
 		}
 	} else {
 		$_post = WP_Post::get_instance( $post );
