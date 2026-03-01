@@ -23,7 +23,7 @@ function add_link() {
  * @since 2.0.0
  *
  * @param int $link_id Optional. ID of the link to edit. Default 0.
- * @return int 0 on failure. The link ID on success.
+ * @return int|never The link ID on success. 0 on failure. Exits when unauthorized.
  */
 function edit_link( $link_id = 0 ) {
 	if ( ! current_user_can( 'manage_links' ) ) {
