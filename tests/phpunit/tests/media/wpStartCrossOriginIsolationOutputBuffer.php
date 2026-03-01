@@ -1,0 +1,117 @@
+<?php
+
+/**
+ * Tests for the `wp_start_cross_origin_isolation_output_buffer()` function.
+ *
+ * @group media
+ * @covers ::wp_start_cross_origin_isolation_output_buffer
+ */
+class Tests_Media_wpStartCrossOriginIsolationOutputBuffer extends WP_UnitTestCase {
+
+	/**
+	 * Original HTTP_USER_AGENT value.
+	 *
+	 * @var string|null
+	 */
+	private $original_user_agent;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : null;
+	}
+
+	public function tear_down() {
+		if ( null === $this->original_user_agent ) {
+			unset( $_SERVER['HTTP_USER_AGENT'] );
+		} else {
+			$_SERVER['HTTP_USER_AGENT'] = $this->original_user_agent;
+		}
+
+		// Clean up any output buffers started during tests.
+		while ( ob_get_level() > 1 ) {
+			ob_end_clean();
+		}
+
+		remove_all_filters( 'wp_use_document_isolation_policy' );
+
+		parent::tear_down();
+	}
+
+	public function test_starts_output_buffer_for_chrome_137() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		$level_before = ob_get_level();
+		wp_start_cross_origin_isolation_output_buffer();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before + 1, $level_after, 'Output buffer should be started for Chrome 137.' );
+
+		ob_end_clean();
+	}
+
+	public function test_does_not_start_output_buffer_for_chrome_136() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
+
+		$level_before = ob_get_level();
+		wp_start_cross_origin_isolation_output_buffer();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Chrome < 137.' );
+	}
+
+	public function test_does_not_start_output_buffer_for_firefox() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
+
+		$level_before = ob_get_level();
+		wp_start_cross_origin_isolation_output_buffer();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Firefox.' );
+	}
+
+	public function test_does_not_start_output_buffer_for_safari() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15';
+
+		$level_before = ob_get_level();
+		wp_start_cross_origin_isolation_output_buffer();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Safari.' );
+	}
+
+	public function test_filter_can_force_enable_dip() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
+		add_filter( 'wp_use_document_isolation_policy', '__return_true' );
+
+		$level_before = ob_get_level();
+		wp_start_cross_origin_isolation_output_buffer();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before + 1, $level_after, 'Filter should force-enable output buffer.' );
+
+		ob_end_clean();
+	}
+
+	public function test_filter_can_force_disable_dip() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+		add_filter( 'wp_use_document_isolation_policy', '__return_false' );
+
+		$level_before = ob_get_level();
+		wp_start_cross_origin_isolation_output_buffer();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before, $level_after, 'Filter should disable output buffer.' );
+	}
+
+	public function test_output_buffer_adds_crossorigin_attributes() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<img src="https://external.example.com/image.jpg" />';
+
+		// Flush the output buffer to trigger the callback.
+		$output = ob_get_flush();
+
+		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
+	}
+}
