@@ -37,6 +37,10 @@ class Tests_Media_wpStartCrossOriginIsolationOutputBuffer extends WP_UnitTestCas
 		parent::tear_down();
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
 	public function test_starts_output_buffer_for_chrome_137() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
 
@@ -79,6 +83,10 @@ class Tests_Media_wpStartCrossOriginIsolationOutputBuffer extends WP_UnitTestCas
 		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Safari.' );
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
 	public function test_filter_can_force_enable_dip() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
 		add_filter( 'wp_use_document_isolation_policy', '__return_true' );
@@ -103,6 +111,10 @@ class Tests_Media_wpStartCrossOriginIsolationOutputBuffer extends WP_UnitTestCas
 		$this->assertSame( $level_before, $level_after, 'Filter should disable output buffer.' );
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
 	public function test_output_buffer_adds_crossorigin_attributes() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
 
