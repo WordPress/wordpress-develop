@@ -2077,6 +2077,17 @@ function _filter_block_content_callback( $matches ) {
 function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() ) {
 	$block['attrs'] = filter_block_kses_value( $block['attrs'], $allowed_html, $allowed_protocols, $block );
 
+	// Per-block custom CSS (attrs.style.css) may contain & and > as valid
+	// CSS selectors. wp_kses() entity-encodes these because it treats the
+	// value as HTML. Decode them after KSES has already stripped any
+	// dangerous HTML tags, so the CSS round-trips correctly through
+	// serialize_block_attributes().
+	if ( isset( $block['attrs']['style']['css'] ) ) {
+		$block['attrs']['style']['css'] = undo_block_custom_css_kses_entities(
+			$block['attrs']['style']['css']
+		);
+	}
+
 	if ( is_array( $block['innerBlocks'] ) ) {
 		foreach ( $block['innerBlocks'] as $i => $inner_block ) {
 			$block['innerBlocks'][ $i ] = filter_block_kses( $inner_block, $allowed_html, $allowed_protocols );
@@ -2122,6 +2133,40 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
 	}
 
 	return $value;
+}
+
+/**
+ * Decodes HTML entities in per-block custom CSS that were incorrectly
+ * introduced by wp_kses() during the block KSES filtering pipeline.
+ *
+ * Per-block custom CSS (stored in attrs.style.css) may contain & and >
+ * as valid CSS selectors (nesting and child combinator). When wp_kses()
+ * processes this CSS string as if it were HTML, it entity-encodes these
+ * characters (&amp;, &gt;). If the block is then re-serialized via
+ * serialize_block_attributes(), the entity's ampersand is escaped again
+ * (\u0026amp;), producing a double-encoded value that corrupts the CSS
+ * on subsequent editor loads.
+ *
+ * This reverses only the specific named entities that wp_kses() may
+ * introduce, intentionally narrower than wp_specialchars_decode() to
+ * avoid decoding numeric/hex references that KSES intentionally preserved.
+ *
+ * @since 6.9.0
+ *
+ * @param string $value Per-block custom CSS string potentially containing
+ *                      KSES-introduced entities.
+ * @return string CSS string with KSES-introduced entities decoded.
+ */
+function undo_block_custom_css_kses_entities( $value ) {
+	if ( ! is_string( $value ) || false === strpos( $value, '&' ) ) {
+		return $value;
+	}
+
+	return str_replace(
+		array( '&amp;', '&gt;', '&quot;', '&#039;' ),
+		array( '&', '>', '"', "'" ),
+		$value
+	);
 }
 
 /**
