@@ -704,7 +704,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_ability rejects ability not in allowed list.
 	 *
-	 * @ticket 64591
+	 * @ticket 64769
 	 */
 	public function test_execute_ability_rejects_ability_not_in_allowed_list() {
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
@@ -728,7 +728,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_ability rejects all abilities when constructed with no abilities.
 	 *
-	 * @ticket 64591
+	 * @ticket 64769
 	 */
 	public function test_execute_ability_rejects_all_when_no_abilities_specified() {
 		$resolver = new WP_AI_Client_Ability_Function_Resolver();
@@ -750,7 +750,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test execute_abilities filters by allowed list.
 	 *
-	 * @ticket 64591
+	 * @ticket 64769
 	 */
 	public function test_execute_abilities_filters_by_allowed_list() {
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
@@ -790,7 +790,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test constructor accepts WP_Ability objects.
 	 *
-	 * @ticket 64591
+	 * @ticket 64769
 	 */
 	public function test_constructor_accepts_wp_ability_objects() {
 		$ability  = wp_get_ability( 'wpaiclienttests/simple' );
@@ -811,7 +811,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	/**
 	 * Test constructor accepts mixed WP_Ability objects and strings.
 	 *
-	 * @ticket 64591
+	 * @ticket 64769
 	 */
 	public function test_constructor_accepts_mixed_ability_types() {
 		$ability  = wp_get_ability( 'wpaiclienttests/simple' );
