@@ -3343,4 +3343,62 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$basename = wp_basename( $new_file );
 		$this->assertMatchesRegularExpression( '/canola-scaled-\d+\.jpg$/', $basename, 'Scaled filename should have numeric suffix when file conflicts with a different attachment.' );
 	}
+
+	/**
+	 * Tests that sideloading an oversized image for a registered size is rejected.
+	 *
+	 * @ticket 63
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_item_rejects_oversized_dimensions() {
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// canola.jpg is 640x480, which exceeds the default thumbnail size (150x150).
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-150x150.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'Oversized image should be rejected.' );
+		$this->assertSame( 'rest_upload_dimension_mismatch', $response->get_data()['code'], 'Error code should be rest_upload_dimension_mismatch.' );
+	}
+
+	/**
+	 * Tests that sideloading a correctly sized image for a registered size succeeds.
+	 *
+	 * @ticket 63
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_item_accepts_valid_dimensions() {
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// test-image.jpg is 50x50, which fits within the default thumbnail size (150x150).
+		$test_image = DIR_TESTDATA . '/images/test-image.jpg';
+		$request    = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-50x50.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( file_get_contents( $test_image ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Valid-sized image should be accepted.' );
+	}
 }
