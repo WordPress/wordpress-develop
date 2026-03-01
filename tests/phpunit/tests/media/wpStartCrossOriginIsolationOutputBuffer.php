@@ -118,11 +118,15 @@ class Tests_Media_wpStartCrossOriginIsolationOutputBuffer extends WP_UnitTestCas
 	public function test_output_buffer_adds_crossorigin_attributes() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
 
+		// Start an outer buffer to capture the callback-processed output.
+		ob_start();
+
 		wp_start_cross_origin_isolation_output_buffer();
 		echo '<img src="https://external.example.com/image.jpg" />';
 
-		// Flush the output buffer to trigger the callback.
-		$output = ob_get_flush();
+		// Flush the inner buffer to trigger the callback, sending processed output to the outer buffer.
+		ob_end_flush();
+		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
 	}
