@@ -6393,6 +6393,18 @@ function wp_set_client_side_media_processing_flag(): void {
 
 	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
 
+	$chrome_version = wp_get_chrome_major_version();
+
+	/** This filter is documented in wp-includes/media.php */
+	$use_dip = apply_filters(
+		'wp_use_document_isolation_policy',
+		null !== $chrome_version && $chrome_version >= 137
+	);
+
+	if ( $use_dip ) {
+		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true', 'before' );
+	}
+
 	/*
 	 * Register the @wordpress/vips/worker script module as a dynamic dependency
 	 * of the wp-upload-media classic script. This ensures it is included in the
@@ -6403,6 +6415,25 @@ function wp_set_client_side_media_processing_flag(): void {
 		'module_dependencies',
 		array( '@wordpress/vips/worker' )
 	);
+}
+
+/**
+ * Returns the major Chrome/Chromium version from the current request's User-Agent.
+ *
+ * Matches all Chromium-based browsers (Chrome, Edge, Opera, Brave).
+ *
+ * @since 7.0.0
+ *
+ * @return int|null The major Chrome version, or null if not a Chromium browser.
+ */
+function wp_get_chrome_major_version(): ?int {
+	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+		return null;
+	}
+	if ( preg_match( '/Chrome\/(\d+)/', $_SERVER['HTTP_USER_AGENT'], $matches ) ) {
+		return (int) $matches[1];
+	}
+	return null;
 }
 
 /**
@@ -6430,6 +6461,14 @@ function wp_set_up_cross_origin_isolation(): void {
 		return;
 	}
 
+	// Skip when a third-party page builder (e.g. Elementor) overrides the
+	// block editor. DIP isolates the document into its own agent cluster,
+	// which blocks same-origin iframe access that these editors rely on.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
+		return;
+	}
+
 	// Cross-origin isolation is not needed if users can't upload files anyway.
 	if ( ! current_user_can( 'upload_files' ) ) {
 		return;
@@ -6441,24 +6480,41 @@ function wp_set_up_cross_origin_isolation(): void {
 /**
  * Starts an output buffer to send cross-origin isolation headers.
  *
- * Sends headers and uses an output buffer to add crossorigin="anonymous"
- * attributes where needed.
+ * Uses Document-Isolation-Policy on Chrome 137+ to provide per-document
+ * cross-origin isolation without breaking third-party iframes. Non-DIP
+ * browsers skip isolation entirely to avoid CORS failures from COEP/COOP.
  *
  * @since 7.0.0
  *
  * @link https://web.dev/coop-coep/
- *
- * @global bool $is_safari
+ * @link https://github.com/nicolo-ribaudo/iframe-coi-dip-proposal
  */
 function wp_start_cross_origin_isolation_output_buffer(): void {
-	global $is_safari;
+	$chrome_version = wp_get_chrome_major_version();
 
-	$coep = $is_safari ? 'require-corp' : 'credentialless';
+	/**
+	 * Filters whether to use Document-Isolation-Policy instead of COEP/COOP.
+	 *
+	 * Document-Isolation-Policy provides per-document cross-origin isolation
+	 * without affecting other iframes on the page, avoiding breakage of plugins
+	 * like Elementor whose iframes lose credentials/DOM access with COEP.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param bool $use_dip Whether DIP is supported and should be used.
+	 */
+	$use_dip = apply_filters(
+		'wp_use_document_isolation_policy',
+		null !== $chrome_version && $chrome_version >= 137
+	);
+
+	if ( ! $use_dip ) {
+		return;
+	}
 
 	ob_start(
-		static function ( string $output ) use ( $coep ): string {
-			header( 'Cross-Origin-Opener-Policy: same-origin' );
-			header( "Cross-Origin-Embedder-Policy: $coep" );
+		static function ( string $output ): string {
+			header( 'Document-Isolation-Policy: isolate-and-credentialless' );
 
 			return wp_add_crossorigin_attributes( $output );
 		}
