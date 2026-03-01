@@ -6391,8 +6391,6 @@ function wp_set_client_side_media_processing_flag(): void {
 		return;
 	}
 
-	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
-
 	$chrome_version = wp_get_chrome_major_version();
 
 	/** This filter is documented in wp-includes/media.php */
@@ -6401,9 +6399,16 @@ function wp_set_client_side_media_processing_flag(): void {
 		null !== $chrome_version && $chrome_version >= 137
 	);
 
-	if ( $use_dip ) {
-		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true', 'before' );
+	// Client-side media processing requires cross-origin isolation via
+	// Document-Isolation-Policy. Skip the feature entirely on browsers
+	// that do not support DIP, since without isolation SharedArrayBuffer
+	// (needed by wasm-vips) is unavailable.
+	if ( ! $use_dip ) {
+		return;
 	}
+
+	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
+	wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true', 'before' );
 
 	/*
 	 * Register the @wordpress/vips/worker script module as a dynamic dependency
