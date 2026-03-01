@@ -42,13 +42,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_true_for_valid_ability() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'tec/create_event' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__tec__create_event',
 			array()
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::is_ability_call( $call );
+		$result = $resolver->is_ability_call( $call );
 
 		$this->assertTrue( $result );
 	}
@@ -59,13 +60,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_true_for_nested_namespace() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'tec/v1/create_event' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__tec__v1__create_event',
 			array()
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::is_ability_call( $call );
+		$result = $resolver->is_ability_call( $call );
 
 		$this->assertTrue( $result );
 	}
@@ -76,13 +78,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_false_for_non_ability() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$call     = new FunctionCall(
 			'test-id',
 			'regular_function',
 			array()
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::is_ability_call( $call );
+		$result = $resolver->is_ability_call( $call );
 
 		$this->assertFalse( $result );
 	}
@@ -93,13 +96,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_false_when_name_is_null() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$call     = new FunctionCall(
 			'test-id',
 			null,
 			array()
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::is_ability_call( $call );
+		$result = $resolver->is_ability_call( $call );
 
 		$this->assertFalse( $result );
 	}
@@ -110,13 +114,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_is_ability_call_returns_false_for_partial_prefix() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab_single_underscore',
 			array()
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::is_ability_call( $call );
+		$result = $resolver->is_ability_call( $call );
 
 		$this->assertFalse( $result );
 	}
@@ -127,13 +132,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_ability_returns_error_for_non_ability_call() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$call     = new FunctionCall(
 			'test-id',
 			'regular_function',
 			array()
 		);
 
-		$response = WP_AI_Client_Ability_Function_Resolver::execute_ability( $call );
+		$response = $resolver->execute_ability( $call );
 
 		$this->assertInstanceOf( FunctionResponse::class, $response );
 		$this->assertSame( 'test-id', $response->getId() );
@@ -154,13 +160,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	public function test_execute_ability_returns_error_when_ability_not_found() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__nonexistent__ability',
 			array()
 		);
 
-		$response = WP_AI_Client_Ability_Function_Resolver::execute_ability( $call );
+		$response = $resolver->execute_ability( $call );
 
 		$this->assertInstanceOf( FunctionResponse::class, $response );
 		$this->assertSame( 'test-id', $response->getId() );
@@ -181,13 +188,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	public function test_execute_ability_handles_missing_id() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
+		$call     = new FunctionCall(
 			null,
 			'wpab__nonexistent__ability',
 			array()
 		);
 
-		$response = WP_AI_Client_Ability_Function_Resolver::execute_ability( $call );
+		$response = $resolver->execute_ability( $call );
 
 		$this->assertInstanceOf( FunctionResponse::class, $response );
 		$this->assertSame( 'unknown', $response->getId() );
@@ -199,7 +207,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_returns_true_when_present() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'tec/create_event' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__tec__create_event',
 			array()
@@ -212,7 +221,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::has_ability_calls( $message );
+		$result = $resolver->has_ability_calls( $message );
 
 		$this->assertTrue( $result );
 	}
@@ -223,7 +232,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_returns_false_when_not_present() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$call     = new FunctionCall(
 			'test-id',
 			'regular_function',
 			array()
@@ -236,7 +246,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::has_ability_calls( $message );
+		$result = $resolver->has_ability_calls( $message );
 
 		$this->assertFalse( $result );
 	}
@@ -247,13 +257,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_returns_false_for_text_only() {
-		$message = new UserMessage(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$message  = new UserMessage(
 			array(
 				new MessagePart( 'Just some text' ),
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::has_ability_calls( $message );
+		$result = $resolver->has_ability_calls( $message );
 
 		$this->assertFalse( $result );
 	}
@@ -264,6 +275,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_returns_true_with_mixed_content() {
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'tec/create_event' );
+
 		$regular_call = new FunctionCall(
 			'regular-id',
 			'regular_function',
@@ -284,7 +297,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::has_ability_calls( $message );
+		$result = $resolver->has_ability_calls( $message );
 
 		$this->assertTrue( $result );
 	}
@@ -295,9 +308,10 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_has_ability_calls_with_empty_message() {
-		$message = new ModelMessage( array() );
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$message  = new ModelMessage( array() );
 
-		$result = WP_AI_Client_Ability_Function_Resolver::has_ability_calls( $message );
+		$result = $resolver->has_ability_calls( $message );
 
 		$this->assertFalse( $result );
 	}
@@ -308,9 +322,10 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_with_empty_message() {
-		$message = new ModelMessage( array() );
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$message  = new ModelMessage( array() );
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 		$this->assertCount( 0, $result->getParts() );
@@ -324,7 +339,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	public function test_execute_abilities_handles_errors_gracefully() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__nonexistent__ability',
 			array()
@@ -336,7 +352,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 		$parts = $result->getParts();
@@ -356,7 +372,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	public function test_execute_abilities_returns_user_message() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__nonexistent__ability',
 			array()
@@ -368,7 +385,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 	}
@@ -380,6 +397,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 */
 	public function test_execute_abilities_processes_multiple_calls() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
+
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability1', 'nonexistent/ability2' );
 
 		$call1 = new FunctionCall(
 			'call-1',
@@ -400,7 +419,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 		$parts = $result->getParts();
@@ -415,7 +434,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	public function test_execute_abilities_only_processes_function_calls() {
 		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__nonexistent__ability',
 			array()
@@ -429,7 +449,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 		$parts = $result->getParts();
@@ -465,13 +485,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_ability_success() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__wpaiclienttests__simple',
 			array()
 		);
 
-		$response = WP_AI_Client_Ability_Function_Resolver::execute_ability( $call );
+		$response = $resolver->execute_ability( $call );
 
 		$this->assertInstanceOf( FunctionResponse::class, $response );
 		$this->assertSame( 'test-id', $response->getId() );
@@ -488,13 +509,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_ability_with_parameters() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/with-params' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__wpaiclienttests__with-params',
 			array( 'title' => 'Test Title' )
 		);
 
-		$response = WP_AI_Client_Ability_Function_Resolver::execute_ability( $call );
+		$response = $resolver->execute_ability( $call );
 
 		$this->assertInstanceOf( FunctionResponse::class, $response );
 		$this->assertSame( 'test-id', $response->getId() );
@@ -513,13 +535,14 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_ability_handles_wp_error() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/returns-error' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__wpaiclienttests__returns-error',
 			array()
 		);
 
-		$response = WP_AI_Client_Ability_Function_Resolver::execute_ability( $call );
+		$response = $resolver->execute_ability( $call );
 
 		$this->assertInstanceOf( FunctionResponse::class, $response );
 		$this->assertSame( 'test-id', $response->getId() );
@@ -538,7 +561,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_success() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__wpaiclienttests__simple',
 			array()
@@ -550,7 +574,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 		$parts = $result->getParts();
@@ -569,6 +593,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_multiple_success() {
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple', 'wpaiclienttests/hyphen-test' );
+
 		$call1 = new FunctionCall(
 			'call-1',
 			'wpab__wpaiclienttests__simple',
@@ -588,7 +614,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 		$parts = $result->getParts();
@@ -615,7 +641,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_with_mixed_content() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__wpaiclienttests__simple',
 			array()
@@ -629,7 +656,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 		$parts = $result->getParts();
@@ -646,7 +673,8 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_with_parameters() {
-		$call = new FunctionCall(
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/with-params' );
+		$call     = new FunctionCall(
 			'test-id',
 			'wpab__wpaiclienttests__with-params',
 			array( 'title' => 'Integration Test' )
@@ -658,7 +686,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 			)
 		);
 
-		$result = WP_AI_Client_Ability_Function_Resolver::execute_abilities( $message );
+		$result = $resolver->execute_abilities( $message );
 
 		$this->assertInstanceOf( UserMessage::class, $result );
 		$parts = $result->getParts();
@@ -671,5 +699,138 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 		$this->assertTrue( $data['success'] );
 		$this->assertArrayHasKey( 'title', $data );
 		$this->assertSame( 'Integration Test', $data['title'] );
+	}
+
+	/**
+	 * Test execute_ability rejects ability not in allowed list.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_execute_ability_rejects_ability_not_in_allowed_list() {
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+		$call     = new FunctionCall(
+			'test-id',
+			'wpab__wpaiclienttests__with-params',
+			array( 'title' => 'Test' )
+		);
+
+		$response = $resolver->execute_ability( $call );
+
+		$this->assertInstanceOf( FunctionResponse::class, $response );
+		$data = $response->getResponse();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'error', $data );
+		$this->assertStringContainsString( 'not specified in the allowed abilities list', $data['error'] );
+		$this->assertArrayHasKey( 'code', $data );
+		$this->assertSame( 'ability_not_allowed', $data['code'] );
+	}
+
+	/**
+	 * Test execute_ability rejects all abilities when constructed with no abilities.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_execute_ability_rejects_all_when_no_abilities_specified() {
+		$resolver = new WP_AI_Client_Ability_Function_Resolver();
+		$call     = new FunctionCall(
+			'test-id',
+			'wpab__wpaiclienttests__simple',
+			array()
+		);
+
+		$response = $resolver->execute_ability( $call );
+
+		$this->assertInstanceOf( FunctionResponse::class, $response );
+		$data = $response->getResponse();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'code', $data );
+		$this->assertSame( 'ability_not_allowed', $data['code'] );
+	}
+
+	/**
+	 * Test execute_abilities filters by allowed list.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_execute_abilities_filters_by_allowed_list() {
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+
+		$call1 = new FunctionCall(
+			'call-1',
+			'wpab__wpaiclienttests__simple',
+			array()
+		);
+
+		$call2 = new FunctionCall(
+			'call-2',
+			'wpab__wpaiclienttests__with-params',
+			array( 'title' => 'Test' )
+		);
+
+		$message = new ModelMessage(
+			array(
+				new MessagePart( $call1 ),
+				new MessagePart( $call2 ),
+			)
+		);
+
+		$result = $resolver->execute_abilities( $message );
+
+		$parts = $result->getParts();
+		$this->assertCount( 2, $parts );
+
+		$response1_data = $parts[0]->getFunctionResponse()->getResponse();
+		$this->assertArrayHasKey( 'success', $response1_data );
+		$this->assertTrue( $response1_data['success'] );
+
+		$response2_data = $parts[1]->getFunctionResponse()->getResponse();
+		$this->assertSame( 'ability_not_allowed', $response2_data['code'] );
+	}
+
+	/**
+	 * Test constructor accepts WP_Ability objects.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_constructor_accepts_wp_ability_objects() {
+		$ability  = wp_get_ability( 'wpaiclienttests/simple' );
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( $ability );
+		$call     = new FunctionCall(
+			'test-id',
+			'wpab__wpaiclienttests__simple',
+			array()
+		);
+
+		$response = $resolver->execute_ability( $call );
+
+		$data = $response->getResponse();
+		$this->assertArrayHasKey( 'success', $data );
+		$this->assertTrue( $data['success'] );
+	}
+
+	/**
+	 * Test constructor accepts mixed WP_Ability objects and strings.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_constructor_accepts_mixed_ability_types() {
+		$ability  = wp_get_ability( 'wpaiclienttests/simple' );
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( $ability, 'wpaiclienttests/with-params' );
+
+		$call1     = new FunctionCall(
+			'call-1',
+			'wpab__wpaiclienttests__simple',
+			array()
+		);
+		$response1 = $resolver->execute_ability( $call1 );
+		$this->assertArrayHasKey( 'success', $response1->getResponse() );
+
+		$call2     = new FunctionCall(
+			'call-2',
+			'wpab__wpaiclienttests__with-params',
+			array( 'title' => 'Test' )
+		);
+		$response2 = $resolver->execute_ability( $call2 );
+		$this->assertArrayHasKey( 'success', $response2->getResponse() );
 	}
 }
