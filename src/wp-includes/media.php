@@ -6393,6 +6393,18 @@ function wp_set_client_side_media_processing_flag(): void {
 
 	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
 
+	$chrome_version = wp_get_chrome_major_version();
+
+	/** This filter is documented in src/wp-includes/media.php */
+	$use_dip = apply_filters(
+		'wp_use_document_isolation_policy',
+		null !== $chrome_version && $chrome_version >= 137
+	);
+
+	if ( $use_dip ) {
+		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true', 'before' );
+	}
+
 	/*
 	 * Register the @wordpress/vips/worker script module as a dynamic dependency
 	 * of the wp-upload-media classic script. This ensures it is included in the
