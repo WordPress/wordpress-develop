@@ -2151,7 +2151,7 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
  * introduce, intentionally narrower than wp_specialchars_decode() to
  * avoid decoding numeric/hex references that KSES intentionally preserved.
  *
- * @since 6.9.0
+ * @since 7.0
  *
  * @param string $value Per-block custom CSS string potentially containing
  *                      KSES-introduced entities.
