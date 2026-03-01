@@ -227,13 +227,17 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 *
 	 * Differences in the structure can also trigger failure by causing PHP notices/warnings.
 	 *
-	 * @group external-http
 	 * @ticket 28121
 	 */
 	public function test_get_theme_featured_list_api() {
+		delete_site_transient( 'wporg_theme_feature_list' );
+		add_filter( 'pre_http_request', array( $this, 'mock_theme_featured_list_api_response' ), 10, 3 );
+
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$featured_list_api = get_theme_feature_list( true );
 		$this->assertNonEmptyMultidimensionalArray( $featured_list_api );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_theme_featured_list_api_response' ), 10 );
 	}
 
 	/**
@@ -247,5 +251,36 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	public function test_get_theme_featured_list_hardcoded() {
 		$featured_list_hardcoded = get_theme_feature_list( false );
 		$this->assertNonEmptyMultidimensionalArray( $featured_list_hardcoded );
+	}
+
+	/**
+	 * Mocks the WordPress.org Themes API response for the feature list endpoint.
+	 *
+	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request.
+	 * @param array                $parsed_args HTTP request arguments.
+	 * @param string               $url         The request URL.
+	 * @return false|array|WP_Error
+	 */
+	public function mock_theme_featured_list_api_response( $response, $parsed_args, $url ) {
+		if ( ! str_contains( $url, 'api.wordpress.org/themes/info/1.2/' ) ) {
+			return $response;
+		}
+
+		return array(
+			'headers'  => array(),
+			'body'     => wp_json_encode(
+				array(
+					'Subject'  => array( 'blog', 'news' ),
+					'Features' => array( 'custom-background', 'custom-colors' ),
+					'Layout'   => array( 'one-column', 'two-columns' ),
+				)
+			),
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
 	}
 }
