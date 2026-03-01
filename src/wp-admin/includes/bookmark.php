@@ -295,7 +295,7 @@ function wp_set_link_cats( $link_id = 0, $link_categories = array() ) {
  * @since 2.0.0
  *
  * @param array $linkdata Link data to update. See wp_insert_link() for accepted arguments.
- * @return int 0 on failure. The updated link ID on success.
+ * @return int The updated link ID on success. 0 on failure.
  */
 function wp_update_link( $linkdata ) {
 	$link_id = (int) $linkdata['link_id'];
