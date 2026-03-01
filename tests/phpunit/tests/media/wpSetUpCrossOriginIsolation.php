@@ -47,7 +47,7 @@ class Tests_Media_wpSetUpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	public function test_skips_for_third_party_editor_action() {
-		$_GET['action'] = 'elementor';
+		$_GET['action'] = 'third_party_editor';
 
 		$level_before = ob_get_level();
 		wp_set_up_cross_origin_isolation();

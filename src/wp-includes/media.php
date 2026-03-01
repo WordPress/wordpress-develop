@@ -6391,24 +6391,7 @@ function wp_set_client_side_media_processing_flag(): void {
 		return;
 	}
 
-	$chrome_version = wp_get_chrome_major_version();
-
-	/** This filter is documented in wp-includes/media.php */
-	$use_dip = apply_filters(
-		'wp_use_document_isolation_policy',
-		null !== $chrome_version && $chrome_version >= 137
-	);
-
-	// Client-side media processing requires cross-origin isolation via
-	// Document-Isolation-Policy. Skip the feature entirely on browsers
-	// that do not support DIP, since without isolation SharedArrayBuffer
-	// (needed by wasm-vips) is unavailable.
-	if ( ! $use_dip ) {
-		return;
-	}
-
 	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
-	wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true', 'before' );
 
 	/*
 	 * Register the @wordpress/vips/worker script module as a dynamic dependency
@@ -6445,11 +6428,10 @@ function wp_get_chrome_major_version(): ?int {
  * Enables cross-origin isolation in the block editor.
  *
  * Required for enabling SharedArrayBuffer for WebAssembly-based
- * media processing in the editor.
+ * media processing in the editor. Uses Document-Isolation-Policy
+ * on supported browsers (Chrome 137+).
  *
  * @since 7.0.0
- *
- * @link https://web.dev/coop-coep/
  */
 function wp_set_up_cross_origin_isolation(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
@@ -6466,8 +6448,8 @@ function wp_set_up_cross_origin_isolation(): void {
 		return;
 	}
 
-	// Skip when a third-party page builder (e.g. Elementor) overrides the
-	// block editor. DIP isolates the document into its own agent cluster,
+	// Skip when a third-party page builder overrides the block editor.
+	// DIP isolates the document into its own agent cluster,
 	// which blocks same-origin iframe access that these editors rely on.
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
@@ -6483,26 +6465,21 @@ function wp_set_up_cross_origin_isolation(): void {
 }
 
 /**
- * Starts an output buffer to send cross-origin isolation headers.
+ * Sends the Document-Isolation-Policy header for cross-origin isolation.
  *
- * Uses Document-Isolation-Policy on Chrome 137+ to provide per-document
- * cross-origin isolation without breaking third-party iframes. Non-DIP
- * browsers skip isolation entirely to avoid CORS failures from COEP/COOP.
+ * Uses an output buffer to add crossorigin="anonymous" where needed.
  *
  * @since 7.0.0
- *
- * @link https://web.dev/coop-coep/
- * @link https://github.com/nicolo-ribaudo/iframe-coi-dip-proposal
  */
 function wp_start_cross_origin_isolation_output_buffer(): void {
 	$chrome_version = wp_get_chrome_major_version();
 
 	/**
-	 * Filters whether to use Document-Isolation-Policy instead of COEP/COOP.
+	 * Filters whether to use Document-Isolation-Policy for cross-origin isolation.
 	 *
 	 * Document-Isolation-Policy provides per-document cross-origin isolation
 	 * without affecting other iframes on the page, avoiding breakage of plugins
-	 * like Elementor whose iframes lose credentials/DOM access with COEP.
+	 * whose iframes lose credentials/DOM access.
 	 *
 	 * @since 7.0.0
 	 *
