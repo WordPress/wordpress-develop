@@ -630,6 +630,36 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 /**
+ * Command Palette
+ */
+#wpadminbar #wp-admin-bar-command-palette {
+	padding: 4px 0;
+}
+
+#wpadminbar #wp-admin-bar-command-palette .ab-item {
+	width: 200px;
+	background: #757575;
+	height: 24px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-radius: 2px;
+}
+
+#wpadminbar #wp-admin-bar-command-palette .ab-label kbd {
+	background: transparent;
+}
+
+#wpadminbar #wp-admin-bar-command-palette .ab-icon {
+	transform: scaleX(-1);
+}
+
+#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
+	content: "\f179";
+	content: "\f179" / '';
+}
+
+/**
  * Search
  */
 
