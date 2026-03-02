@@ -6395,13 +6395,7 @@ function wp_set_client_side_media_processing_flag(): void {
 
 	$chrome_version = wp_get_chrome_major_version();
 
-	/** This filter is documented in src/wp-includes/media.php */
-	$use_dip = apply_filters(
-		'wp_use_document_isolation_policy',
-		null !== $chrome_version && $chrome_version >= 137
-	);
-
-	if ( $use_dip ) {
+	if ( null !== $chrome_version && $chrome_version >= 137 ) {
 		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true', 'before' );
 	}
 
@@ -6486,23 +6480,7 @@ function wp_set_up_cross_origin_isolation(): void {
 function wp_start_cross_origin_isolation_output_buffer(): void {
 	$chrome_version = wp_get_chrome_major_version();
 
-	/**
-	 * Filters whether to use Document-Isolation-Policy for cross-origin isolation.
-	 *
-	 * Document-Isolation-Policy provides per-document cross-origin isolation
-	 * without affecting other iframes on the page, avoiding breakage of plugins
-	 * whose iframes lose credentials/DOM access.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param bool $use_dip Whether DIP is supported and should be used.
-	 */
-	$use_dip = apply_filters(
-		'wp_use_document_isolation_policy',
-		null !== $chrome_version && $chrome_version >= 137
-	);
-
-	if ( ! $use_dip ) {
+	if ( null === $chrome_version || $chrome_version < 137 ) {
 		return;
 	}
 

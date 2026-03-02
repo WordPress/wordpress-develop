@@ -32,8 +32,6 @@ class Tests_Media_wpStartCrossOriginIsolationOutputBuffer extends WP_UnitTestCas
 			ob_end_clean();
 		}
 
-		remove_all_filters( 'wp_use_document_isolation_policy' );
-
 		parent::tear_down();
 	}
 
@@ -81,34 +79,6 @@ class Tests_Media_wpStartCrossOriginIsolationOutputBuffer extends WP_UnitTestCas
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Safari.' );
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
-	public function test_filter_can_force_enable_dip() {
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
-		add_filter( 'wp_use_document_isolation_policy', '__return_true' );
-
-		$level_before = ob_get_level();
-		wp_start_cross_origin_isolation_output_buffer();
-		$level_after = ob_get_level();
-
-		$this->assertSame( $level_before + 1, $level_after, 'Filter should force-enable output buffer.' );
-
-		ob_end_clean();
-	}
-
-	public function test_filter_can_force_disable_dip() {
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
-		add_filter( 'wp_use_document_isolation_policy', '__return_false' );
-
-		$level_before = ob_get_level();
-		wp_start_cross_origin_isolation_output_buffer();
-		$level_after = ob_get_level();
-
-		$this->assertSame( $level_before, $level_after, 'Filter should disable output buffer.' );
 	}
 
 	/**
