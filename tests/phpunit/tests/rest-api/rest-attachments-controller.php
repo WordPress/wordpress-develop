@@ -3158,7 +3158,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Tests sideloading a scaled image for an existing attachment.
 	 *
-	 * @ticket 63
+	 * @ticket 64737
 	 * @requires function imagejpeg
 	 */
 	public function test_sideload_scaled_image() {
@@ -3210,7 +3210,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Tests that sideloading scaled image requires authentication.
 	 *
-	 * @ticket 63
+	 * @ticket 64737
 	 * @requires function imagejpeg
 	 */
 	public function test_sideload_scaled_image_requires_auth() {
@@ -3240,7 +3240,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Tests that the sideload endpoint includes 'scaled' in the image_size enum.
 	 *
-	 * @ticket 63
+	 * @ticket 64737
 	 */
 	public function test_sideload_route_includes_scaled_enum() {
 		$server = rest_get_server();
@@ -3259,7 +3259,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Tests the filter_wp_unique_filename method handles the -scaled suffix.
 	 *
-	 * @ticket 63
+	 * @ticket 64737
 	 * @requires function imagejpeg
 	 */
 	public function test_sideload_scaled_unique_filename() {
