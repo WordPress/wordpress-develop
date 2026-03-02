@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace WordPress\AiClient\Providers\Models\DTO;
 
 use WordPress\AiClient\Common\AbstractDataTransferObject;
+use WordPress\AiClient\Common\AbstractEnum;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
 /**
@@ -78,19 +79,62 @@ class SupportedOption extends AbstractDataTransferObject
         }
         // If the value is an array, consider it a set (i.e. order doesn't matter).
         if (is_array($value)) {
-            sort($value);
+            $normalizedValue = self::normalizeArrayForComparison($value);
             foreach ($this->supportedValues as $supportedValue) {
                 if (!is_array($supportedValue)) {
                     continue;
                 }
-                sort($supportedValue);
-                if ($value === $supportedValue) {
+                $normalizedSupported = self::normalizeArrayForComparison($supportedValue);
+                if ($normalizedValue === $normalizedSupported) {
                     return \true;
                 }
             }
             return \false;
         }
-        return in_array($value, $this->supportedValues, \true);
+        $normalizedValue = self::normalizeValue($value);
+        foreach ($this->supportedValues as $supportedValue) {
+            if (self::normalizeValue($supportedValue) === $normalizedValue) {
+                return \true;
+            }
+        }
+        return \false;
+    }
+    /**
+     * Normalizes an AbstractEnum instance to its string value.
+     *
+     * This ensures comparisons work correctly even after deserialization
+     * (e.g. Redis/Memcached object cache), where AbstractEnum singletons
+     * are reconstructed as separate instances.
+     *
+     * @since 1.2.1
+     *
+     * @param mixed $value The value to normalize.
+     * @return mixed The normalized value.
+     */
+    private static function normalizeValue($value)
+    {
+        if ($value instanceof AbstractEnum) {
+            return $value->value;
+        }
+        return $value;
+    }
+    /**
+     * Normalizes and sorts an array for comparison.
+     *
+     * Maps each element through normalizeValue() and sorts the result,
+     * ensuring consistent comparison regardless of element order or
+     * AbstractEnum instance identity.
+     *
+     * @since 1.2.1
+     *
+     * @param array<mixed> $items The array to normalize.
+     * @return array<mixed> The normalized, sorted array.
+     */
+    private static function normalizeArrayForComparison(array $items): array
+    {
+        $normalized = array_map([self::class, 'normalizeValue'], $items);
+        sort($normalized);
+        return $normalized;
     }
     /**
      * Gets the supported values for this option.
