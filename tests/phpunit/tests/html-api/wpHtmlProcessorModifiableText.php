@@ -24,7 +24,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 * @param string $set_text         Text to set.
 	 * @param string $expected_html    Expected HTML output.
 	 */
-	public function test_modifiable_text_special_textarea( string $set_text, string $expected_html ) {
+	public function test_modifiable_text_special_textarea( string $set_text, string $expected_html ): void {
 		$processor = WP_HTML_Processor::create_fragment( '<textarea></textarea>' );
 		$processor->next_token();
 		$processor->set_modifiable_text( $set_text );
@@ -50,9 +50,9 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public static function data_modifiable_text_special_textarea() {
+	public static function data_modifiable_text_special_textarea(): array {
 		return array(
 			'Leading newline'                   => array(
 				"\nAFTER NEWLINE",

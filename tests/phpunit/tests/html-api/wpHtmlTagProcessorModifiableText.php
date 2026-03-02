@@ -644,7 +644,7 @@ HTML;
 	 *
 	 * @ticket 64609
 	 */
-	public function test_modifiable_text_special_textarea() {
+	public function test_modifiable_text_special_textarea(): void {
 		$processor = new WP_HTML_Tag_Processor( '<textarea></textarea>' );
 		$processor->next_token();
 		$processor->set_modifiable_text( "\nAFTER NEWLINE" );
