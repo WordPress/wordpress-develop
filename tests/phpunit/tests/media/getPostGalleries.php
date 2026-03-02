@@ -1103,10 +1103,10 @@ BLOB;
 	 */
 	public function data_empty_gallery_shortcode() {
 		return array(
-			'[gallery]'         => array( '[gallery]' ),
-			'[gallery ids]'     => array( '[gallery ids]' ),
-			'[gallery ids=""]'  => array( '[gallery ids=""]' ),
-			"[gallery ids='']"  => array( "[gallery ids='']" ),
+			'[gallery]'        => array( '[gallery]' ),
+			'[gallery ids]'    => array( '[gallery ids]' ),
+			'[gallery ids=""]' => array( '[gallery ids=""]' ),
+			"[gallery ids='']" => array( "[gallery ids='']" ),
 		);
 	}
 }
