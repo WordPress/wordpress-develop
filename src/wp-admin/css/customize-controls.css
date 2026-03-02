@@ -2422,6 +2422,11 @@ p.customize-section-description {
 	background: #fff;
 }
 
+.wp-customizer .theme-overlay .theme-header .close:focus:before,
+.wp-customizer .theme-overlay .theme-header .close:hover:before {
+	color: var(--wp-admin-theme-color);
+}
+
 .wp-customizer .theme-overlay .theme-header button.disabled,
 .wp-customizer .theme-overlay .theme-header button.disabled:hover,
 .wp-customizer .theme-overlay .theme-header button.disabled:focus {
