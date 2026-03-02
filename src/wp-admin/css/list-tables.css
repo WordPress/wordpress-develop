@@ -1018,7 +1018,9 @@ tr.inline-edit-row td {
 
 .inline-edit-row fieldset label,
 .inline-edit-row fieldset span.inline-edit-categories-label {
-	display: block;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
 	margin: .2em 0;
 	line-height: 2.5;
 }
