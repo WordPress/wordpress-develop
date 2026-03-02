@@ -536,7 +536,7 @@
 }
 
 .community-events li.event-none {
-	border-left: 4px solid #72aee6;
+	border-left: 4px solid var(--wp-admin-theme-color);
 }
 
 #dashboard-widgets .community-events li.event-none a {
@@ -562,7 +562,7 @@
 }
 
 .community-events ul {
-	background-color: #f6f7f7;
+	background-color: rgba(var(--wp-admin-theme-color--rgb),.08);
 	padding-left: 0;
 	padding-right: 0;
 	padding-bottom: 0;
