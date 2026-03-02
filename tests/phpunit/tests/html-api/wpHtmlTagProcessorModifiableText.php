@@ -677,15 +677,14 @@ HTML;
 	public function test_set_modifiable_fails_non_atomic_tags(
 		string $html,
 		string $parsing_namespace,
-		string $expected_tag
+		string $target_tag
 	): void {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->change_parsing_namespace( $parsing_namespace );
-		$processor->next_token();
-		$this->assertSame( $expected_tag, $processor->get_tag(), 'Failed to find target tag.' );
+		$this->assertTrue( $processor->next_tag( $target_tag ), 'Failed to find target tag.' );
 		$this->assertFalse(
 			$processor->set_modifiable_text( 'test' ),
-			"set_modifiable_text() should return false for {$parsing_namespace}:{$expected_tag}."
+			"set_modifiable_text() should return false for {$parsing_namespace}:{$target_tag}."
 		);
 		$this->assertSame(
 			$html,

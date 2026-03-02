@@ -81,18 +81,15 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	public function test_set_modifiable_fails_non_atomic_tags(
 		string $html,
 		string $expected_namespace,
-		string $expected_tag
+		string $target_tag
 	): void {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		$this->assertInstanceOf( WP_HTML_Tag_Processor::class, $processor );
-		while ( $processor->next_tag() && $expected_tag !== $processor->get_tag() ) {
-			continue;
-		}
-		$this->assertSame( $expected_tag, $processor->get_tag(), 'Failed to find target tag.' );
+		$this->assertTrue( $processor->next_tag( $target_tag ), 'Failed to find target tag.' );
 		$this->assertSame( $expected_namespace, $processor->get_namespace(), 'Unexpected namespace.' );
 		$this->assertFalse(
 			$processor->set_modifiable_text( 'test' ),
-			"set_modifiable_text() should return false for {$expected_namespace}:{$expected_tag}."
+			"set_modifiable_text() should return false for {$expected_namespace}:{$target_tag}."
 		);
 		$this->assertSame(
 			$html,
