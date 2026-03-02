@@ -767,8 +767,12 @@ function parsePHPArray( phpArrayContent ) {
 		} else {
 			currentPart += char;
 			if ( ! inString ) {
-				if ( char === '(' ) depth++;
-				if ( char === ')' ) depth--;
+				if ( char === '(' ) {
+					depth++;
+				}
+				if ( char === ')' ) {
+					depth--;
+				}
 			}
 		}
 	}

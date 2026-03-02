@@ -17,6 +17,7 @@ const { spawn } = require( 'child_process' );
 const fs = require( 'fs' );
 const { pipeline } = require( 'stream/promises' );
 const path = require( 'path' );
+const zlib = require( 'zlib' );
 const { rootDir, gutenbergDir, readGutenbergConfig, verifyGutenbergVersion } = require( './utils' );
 
 /**
