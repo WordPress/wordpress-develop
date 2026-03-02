@@ -1054,9 +1054,6 @@ tr.inline-edit-row td {
 .quick-edit-row-post fieldset.inline-edit-col-right label span.title {
 	width: auto;
 	padding-right: 0.5em;
-}
-
-.inline-edit-row fieldset.inline-edit-col-right label span.title {
 	min-width: 5rem;
 }
 
