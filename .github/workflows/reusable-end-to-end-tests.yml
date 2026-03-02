@@ -100,7 +100,7 @@ jobs:
 
       - name: Install Playwright browsers
         if: ${{ inputs.install-playwright }}
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
       - name: Build WordPress
         run: npm run build
