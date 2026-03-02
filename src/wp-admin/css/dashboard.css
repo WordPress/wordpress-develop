@@ -140,8 +140,7 @@
 	position: relative;
 	overflow: auto;
 	margin: 16px 0;
-	background-color: #c3c4c7;
-	border: 1px solid rgb(0, 0, 0, 0.1);
+	border: 1px solid #c3c4c7;
 	border-radius: 8px;
 	font-size: 14px;
 	line-height: 1.3;
@@ -259,6 +258,7 @@
 }
 
 .welcome-panel-content {
+	background-color: #151515;
 	min-height: 400px;
 	display: flex;
 	flex-direction: column;
