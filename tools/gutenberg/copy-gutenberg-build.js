@@ -167,6 +167,21 @@ function copyDirectory( src, dest, transform = null, options = {} ) {
 
 			copyDirectory( srcPath, destPath, transform, options );
 		} else {
+			// Skip source map files (.map) — these are not useful in Core
+			// and the sourceMappingURL references are already stripped from JS files.
+			if ( /\.map$/.test( entry.name ) ) {
+				continue;
+			}
+
+			// Skip non-minified VIPS files — they are ~10MB of inlined WASM
+			// with no debugging value over the minified versions.
+			if (
+				srcPath.includes( '/vips/' ) &&
+				/(?<!\.min)\.js$/.test( entry.name )
+			) {
+				continue;
+			}
+
 			// Skip PHP files if excludePHP is true
 			if ( options.excludePHP && /\.php$/.test( entry.name ) ) {
 				continue;
