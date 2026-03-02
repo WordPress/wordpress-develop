@@ -185,7 +185,7 @@ function _wp_connectors_get_connector_settings(): array {
 		}
 
 		$name        = $provider_metadata->getName();
-		$description = method_exists( $provider_metadata, 'getDescription' ) ? $provider_metadata->getDescription() : null;
+		$description = $provider_metadata->getDescription();
 
 		if ( isset( $connectors[ $connector_id ] ) ) {
 			// Override fields with non-empty registry values.
