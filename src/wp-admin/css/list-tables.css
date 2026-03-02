@@ -1021,7 +1021,6 @@ tr.inline-edit-row td {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 6px;
 	margin: .2em 0;
 	line-height: 2.5;
 }
@@ -1044,6 +1043,9 @@ tr.inline-edit-row td {
 
 .inline-edit-row fieldset label span.title,
 .inline-edit-row fieldset.inline-edit-date legend {
+	display: block;
+	float: left;
+	width: 6em;
 	line-height: 2.5;
 }
 
@@ -1051,14 +1053,15 @@ tr.inline-edit-row td {
 	padding: 0;
 }
 
+.inline-edit-row fieldset label span.input-text-wrap,
+.inline-edit-row fieldset .timestamp-wrap {
+	display: block;
+	margin-left: 6em;
+}
+
 .quick-edit-row-post fieldset.inline-edit-col-right label span.title {
 	width: auto;
 	padding-right: 0.5em;
-	min-width: 5rem;
-}
-
-.quick-edit-row-post fieldset.inline-edit-col-left label span.title {
-	flex-grow: 1;
 }
 
 .inline-edit-row .inline-edit-or {
