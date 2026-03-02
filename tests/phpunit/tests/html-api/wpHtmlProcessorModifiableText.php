@@ -83,7 +83,7 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 		string $target_tag
 	): void {
 		$processor = WP_HTML_Processor::create_fragment( $html );
-		$this->assertInstanceOf( WP_HTML_Tag_Processor::class, $processor );
+		$this->assertNotNull( $processor, 'Failed to create a processor.' );
 		$this->assertTrue( $processor->next_tag( $target_tag ), 'Failed to find target tag.' );
 		$this->assertFalse(
 			$processor->set_modifiable_text( 'test' ),
