@@ -95,6 +95,7 @@ wp-tests-config.php
 
 # Minified files in bundled themes
 /src/wp-content/themes/twentytwentyone/*.min.css
+/src/wp-content/themes/twentytwentyone/assets/css/*.min.css
 /src/wp-content/themes/twentytwentytwo/*.min.css
 /src/wp-content/themes/twentytwentyfive/*.min.css
 
