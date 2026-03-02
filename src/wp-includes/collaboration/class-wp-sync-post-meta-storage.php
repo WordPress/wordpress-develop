@@ -123,6 +123,10 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		return $updates;
 	}
 
+	public function get_awareness_cache_key( $post_id ) {
+		return self::AWARENESS_META_KEY . '_' . $post_id;
+	}
+
 	/**
 	 * Gets awareness state for a given room.
 	 *
@@ -137,7 +141,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return array();
 		}
 
-		$awareness = get_post_meta( $post_id, self::AWARENESS_META_KEY, true );
+		$awareness = get_transient( $this->get_awareness_cache_key( $post_id ) );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -161,8 +165,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		// update_post_meta returns false if the value is the same as the existing value.
-		update_post_meta( $post_id, self::AWARENESS_META_KEY, $awareness );
+		set_transient( $this->get_awareness_cache_key( $post_id ), $awareness, HOUR_IN_SECONDS );
 		return true;
 	}
 
