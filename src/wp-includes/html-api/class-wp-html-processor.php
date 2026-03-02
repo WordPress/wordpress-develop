@@ -139,6 +139,7 @@
  *
  * @see WP_HTML_Tag_Processor
  * @see https://html.spec.whatwg.org/
+ * @phpstan-consistent-constructor
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
@@ -148,10 +149,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * so this class constant from the Tag Processor is overwritten.
 	 *
 	 * @since 6.4.0
+	 * @since 7.0.0 Increased from 100 to 10,000
 	 *
 	 * @var int
 	 */
-	const MAX_BOOKMARKS = 100;
+	const MAX_BOOKMARKS = 10_000;
 
 	/**
 	 * Holds the working state of the parser, including the stack of
@@ -297,6 +299,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
+		if ( ! is_string( $html ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The HTML parameter must be a string.' ),
+				'6.9.0'
+			);
+			return null;
+		}
+
 		$context_processor = static::create_full_parser( "<!DOCTYPE html>{$context}", $encoding );
 		if ( null === $context_processor ) {
 			return null;
@@ -337,6 +348,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public static function create_full_parser( $html, $known_definite_encoding = 'UTF-8' ) {
 		if ( 'UTF-8' !== $known_definite_encoding ) {
+			return null;
+		}
+		if ( ! is_string( $html ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The HTML parameter must be a string.' ),
+				'6.9.0'
+			);
 			return null;
 		}
 
@@ -566,6 +585,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $message Explains support is missing in order to parse the current node.
+	 * @return never
 	 */
 	private function bail( string $message ) {
 		$here  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
@@ -1023,8 +1043,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$token_name            = $this->get_token_name();
 
 		if ( self::REPROCESS_CURRENT_NODE !== $node_to_process ) {
+			try {
+				$bookmark_name = $this->bookmark_token();
+			} catch ( Exception $e ) {
+				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+					return false;
+				}
+				throw $e;
+			}
+
 			$this->state->current_token = new WP_HTML_Token(
-				$this->bookmark_token(),
+				$bookmark_name,
 				$token_name,
 				$this->has_self_closing_flag(),
 				$this->release_internal_bookmark_on_destruct
@@ -1134,6 +1163,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * otherwise might involve messier calling and return conventions.
 			 */
 			return false;
+		} catch ( Exception $e ) {
+			if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+				return false;
+			}
+			// Rethrow any other exceptions for higher-level handling.
+			throw $e;
 		}
 	}
 
@@ -1304,10 +1339,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see static::serialize()
 	 *
 	 * @since 6.7.0
+	 * @since 6.9.0 Converted from protected to public method.
 	 *
 	 * @return string Serialization of token, or empty string if no serialization exists.
 	 */
-	protected function serialize_token(): string {
+	public function serialize_token(): string {
 		$html       = '';
 		$token_type = $this->get_token_type();
 
@@ -1394,6 +1430,32 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$html .= '>';
 
+		/*
+		 * The HTML parser strips a leading newline immediately after the start
+		 * tag of TEXTAREA, PRE, and LISTING elements. When serializing, prepend
+		 * a leading newline to ensure the semantic HTML content is preserved.
+		 *
+		 * For example, `<pre>\n\nX</pre>` must not become `<pre>\nX</pre>` because its content
+		 * has changed. However, `<pre>X</pre>` and `<pre>\nX</pre>` are _equivalent_.
+		 *
+		 * > A start tag whose tag name is "textarea"
+		 * >   …
+		 * >   If the next token is a U+000A LINE FEED (LF) character token, then ignore
+		 * >   that token and move on to the next one. (Newlines at the start of textarea
+		 * >   elements are ignored as an authoring convenience.)
+		 *
+		 * > A start tag whose tag name is one of: "pre", "listing"
+		 * >   …
+		 * >   If the next token is a U+000A LINE FEED (LF) character token, then ignore
+		 * >   that token and move on to the next one. (Newlines at the start of pre blocks
+		 * >   are ignored as an authoring convenience.)
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html
+		 */
+		if ( 'TEXTAREA' === $tag_name || 'PRE' === $tag_name || 'LISTING' === $tag_name ) {
+			$html .= "\n";
+		}
+
 		// Flush out self-contained elements.
 		if ( $in_html && in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
 			$text = $this->get_modifiable_text();
@@ -1469,7 +1531,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				$doctype = $this->get_doctype_info();
-				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
+				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatibility_mode ) {
 					$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 				}
 
@@ -1760,6 +1822,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+META':
 				$this->insert_html_element( $this->state->current_token );
 
+				// All following conditions depend on "tentative" encoding confidence.
+				if ( 'tentative' !== $this->state->encoding_confidence ) {
+					return true;
+				}
+
 				/*
 				 * > If the active speculative HTML parser is null, then:
 				 * >   - If the element has a charset attribute, and getting an encoding from
@@ -1767,7 +1834,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * >     tentative, then change the encoding to the resulting encoding.
 				 */
 				$charset = $this->get_attribute( 'charset' );
-				if ( is_string( $charset ) && 'tentative' === $this->state->encoding_confidence ) {
+				if ( is_string( $charset ) ) {
 					$this->bail( 'Cannot yet process META tags with charset to determine encoding.' );
 				}
 
@@ -1784,8 +1851,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if (
 					is_string( $http_equiv ) &&
 					is_string( $content ) &&
-					0 === strcasecmp( $http_equiv, 'Content-Type' ) &&
-					'tentative' === $this->state->encoding_confidence
+					0 === strcasecmp( $http_equiv, 'Content-Type' )
 				) {
 					$this->bail( 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' );
 				}
@@ -5268,13 +5334,30 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
-	 * For boolean attributes special handling is provided:
+	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
+	 * The HTML API will encode the strings appropriately so that the browser will interpret them
+	 * as the intended value.
+	 *
+	 * Example:
+	 *
+	 *     // Renders “Eggs & Milk” in a browser, encoded as `<abbr title="Eggs &amp; Milk">`.
+	 *     $processor->set_attribute( 'title', 'Eggs & Milk' );
+	 *
+	 *     // Renders “Eggs &amp; Milk” in a browser, encoded as `<abbr title="Eggs &amp;amp; Milk">`.
+	 *     $processor->set_attribute( 'title', 'Eggs &amp; Milk' );
+	 *
+	 *     // Renders `true` as `<abbr title>`.
+	 *     $processor->set_attribute( 'title', true );
+	 *
+	 *     // Renders without the attribute for `false` as `<abbr>`.
+	 *     $processor->set_attribute( 'title', false );
+	 *
+	 * Special handling is provided for boolean attribute values:
 	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
 	 *  - When `false` is passed, the attribute gets removed if it existed before.
 	 *
-	 * For string attributes, the value is escaped using the `esc_attr` function.
-	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 *
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
@@ -6247,6 +6330,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Inserts a virtual element on the stack of open elements.
 	 *
 	 * @since 6.7.0
+	 *
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
 	 * @param string      $token_name    Name of token to create and insert into the stack of open elements.
 	 * @param string|null $bookmark_name Optional. Name to give bookmark for created virtual node.

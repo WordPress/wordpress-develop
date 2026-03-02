@@ -298,7 +298,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			}
 
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
-			$args       = apply_filters( 'rest_revision_query', $args, $request );
+			$args = apply_filters( 'rest_revision_query', $args, $request );
+			if ( ! is_array( $args ) ) {
+				$args = array();
+			}
 			$query_args = $this->prepare_items_query( $args, $request );
 
 			$revisions_query = new WP_Query();
@@ -308,12 +311,16 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$total_revisions = $revisions_query->found_posts;
 
 			if ( $total_revisions < 1 ) {
-				// Out-of-bounds, run the query again without LIMIT for total count.
+				// Out-of-bounds, run the query without pagination/offset to get the total count.
 				unset( $query_args['paged'], $query_args['offset'] );
 
-				$count_query = new WP_Query();
-				$count_query->query( $query_args );
+				$count_query                          = new WP_Query();
+				$query_args['fields']                 = 'ids';
+				$query_args['posts_per_page']         = 1;
+				$query_args['update_post_meta_cache'] = false;
+				$query_args['update_post_term_cache'] = false;
 
+				$count_query->query( $query_args );
 				$total_revisions = $count_query->found_posts;
 			}
 
@@ -545,6 +552,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
+		if ( ! is_array( $prepared_args ) ) {
+			$prepared_args = array();
+		}
 
 		foreach ( $prepared_args as $key => $value ) {
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */

@@ -48,7 +48,7 @@ class Core_Upgrader extends WP_Upgrader {
 	 * @since 2.8.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem                WordPress filesystem subclass.
-	 * @global callable           $_wp_filesystem_direct_method
+	 * @global callable           $_wp_filesystem_direct_method Filesystem direct method callback.
 	 *
 	 * @param object $current Response object for whether WordPress is current.
 	 * @param array  $args {
@@ -403,7 +403,7 @@ class Core_Upgrader extends WP_Upgrader {
 	public function check_files() {
 		global $wp_version, $wp_local_package;
 
-		$checksums = get_core_checksums( $wp_version, isset( $wp_local_package ) ? $wp_local_package : 'en_US' );
+		$checksums = get_core_checksums( $wp_version, $wp_local_package ?? 'en_US' );
 
 		if ( ! is_array( $checksums ) ) {
 			return false;
