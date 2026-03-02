@@ -1079,42 +1079,38 @@ BLOB;
 	}
 
 	/**
-	 * Tests that get_post_galleries() returns galleries without 'id' key
-	 * when given a malformed [gallery] shortcode.
+	 * Tests that get_post_galleries() returns galleries without 'id' key for empty or malformed [gallery] shortcode.
 	 *
-	 * This ensures awareness of potential issues when using wp_list_pluck()
-	 * on the returned array, as a missing 'id' will trigger a warning.
+	 * @dataProvider data_empty_gallery_shortcode
 	 *
 	 * @ticket 63577
+	 *
+	 * @param string $post_content The post content containing the gallery shortcode.
 	 */
-	public function test_get_post_galleries_with_empty_gallery_shortcode() {
-		// Create a post with a malformed [gallery] shortcode
-		$post_id = self::factory()->post->create(
-			array(
-				'post_content' => '[gallery]', // or '[gallery ids]', '[gallery ids=""]'
-			)
-		);
-
-		// Get galleries from the post content
+	public function test_get_post_galleries_with_empty_gallery_shortcode( $post_content ) {
+		$post_id   = self::factory()->post->create( array( 'post_content' => $post_content ) );
 		$galleries = get_post_galleries( $post_id, false );
 
-		// Basic checks
-		$this->assertIsArray( $galleries );
 		$this->assertCount( 1, $galleries );
+		$this->assertArrayHasKey( 'ids', $galleries[0] );
 
-		$gallery = $galleries[0];
+		$this->assertSame( '', $galleries[0]['ids'] );
+		$this->assertArrayNotHasKey( 'id', $galleries[0] );
 
-		// Ensure 'ids' exists but is empty
-		$this->assertArrayHasKey( 'ids', $gallery );
-		$this->assertSame( '', $gallery['ids'] );
+		$this->assertSame( array( null ), wp_list_pluck( $galleries, 'id' ) );
+	}
 
-		// Confirm 'id' key is missing, which would trigger the warning
-		$this->assertArrayNotHasKey( 'id', $gallery );
-
-		// Suppress warning to test behavior
-		$ids = wp_list_pluck( $galleries, 'id' );
-
-		// Should return an array with null values
-		$this->assertSame( array( null ), $ids );
+	/**
+	 * Data provider for test_get_post_galleries_with_empty_gallery_shortcode().
+	 *
+	 * @return array
+	 */
+	public function data_empty_gallery_shortcode() {
+		return array(
+			'[gallery]'         => array( '[gallery]' ),
+			'[gallery ids]'     => array( '[gallery ids]' ),
+			'[gallery ids=""]'  => array( '[gallery ids=""]' ),
+			"[gallery ids='']"  => array( "[gallery ids='']" ),
+		);
 	}
 }
