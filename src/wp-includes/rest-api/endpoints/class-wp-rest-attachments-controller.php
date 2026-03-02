@@ -1980,6 +1980,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if valid, WP_Error if invalid.
 	 */
 	private function validate_image_dimensions( int $width, int $height, string $image_size, int $attachment_id ) {
+		// All image sizes require positive dimensions.
+		if ( $width <= 0 || $height <= 0 ) {
+			return new WP_Error(
+				'rest_upload_invalid_dimensions',
+				__( 'Uploaded image must have positive dimensions.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		// 'original' size: should match original attachment dimensions.
 		if ( 'original' === $image_size ) {
 			$metadata = wp_get_attachment_metadata( $attachment_id, true );
@@ -1991,12 +2000,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					return new WP_Error(
 						'rest_upload_dimension_mismatch',
 						sprintf(
-							/* translators: 1: Expected width, 2: expected height, 3: actual width, 4: actual height. */
-							__( 'Uploaded image dimensions (%3$dx%4$d) do not match original image dimensions (%1$dx%2$d).' ),
-							$expected_width,
-							$expected_height,
+							/* translators: 1: Actual width, 2: actual height, 3: expected width, 4: expected height. */
+							__( 'Uploaded image dimensions (%1$dx%2$d) do not match original image dimensions (%3$dx%4$d).' ),
 							$width,
-							$height
+							$height,
+							$expected_width,
+							$expected_height
 						),
 						array( 'status' => 400 )
 					);
@@ -2005,15 +2014,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return true;
 		}
 
-		// 'full' size (PDF thumbnails) and 'scaled': dimensions must be positive.
+		// 'full' size (PDF thumbnails) and 'scaled': no further constraints.
 		if ( 'full' === $image_size || 'scaled' === $image_size ) {
-			if ( $width <= 0 || $height <= 0 ) {
-				return new WP_Error(
-					'rest_upload_invalid_dimensions',
-					__( 'Uploaded image must have positive dimensions.' ),
-					array( 'status' => 400 )
-				);
-			}
 			return true;
 		}
 
@@ -2031,15 +2033,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$size_data  = $registered_sizes[ $image_size ];
 		$max_width  = (int) $size_data['width'];
 		$max_height = (int) $size_data['height'];
-
-		// Dimensions must be positive.
-		if ( $width <= 0 || $height <= 0 ) {
-			return new WP_Error(
-				'rest_upload_invalid_dimensions',
-				__( 'Uploaded image must have positive dimensions.' ),
-				array( 'status' => 400 )
-			);
-		}
 
 		// Validate dimensions don't exceed the registered size maximums.
 		// Allow 1px tolerance for rounding differences.
