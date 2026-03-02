@@ -2188,9 +2188,9 @@
 	 * @param {Event} event Event interface.
 	 */
 	wp.updates.keydown = function( event ) {
-		if ( 27 === event.keyCode ) {
+		if ( 'Escape' === event.key ) {
 			wp.updates.requestForCredentialsModalCancel();
-		} else if ( 9 === event.keyCode ) {
+		} else if ( 'Tab' === event.key ) {
 
 			// #upgrade button must always be the last focus-able element in the dialog.
 			if ( 'upgrade' === event.target.id && ! event.shiftKey ) {

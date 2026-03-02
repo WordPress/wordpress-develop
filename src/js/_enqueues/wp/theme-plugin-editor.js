@@ -551,19 +551,6 @@ wp.themePluginEditor = (function( $ ) {
 
 				elem = elem.nextElementSibling;
 			}
-
-			this.keyCode = Object.freeze({
-				RETURN: 13,
-				SPACE: 32,
-				PAGEUP: 33,
-				PAGEDOWN: 34,
-				END: 35,
-				HOME: 36,
-				LEFT: 37,
-				UP: 38,
-				RIGHT: 39,
-				DOWN: 40
-			});
 		};
 
 		TreeitemLink.prototype.init = function () {
@@ -630,7 +617,7 @@ wp.themePluginEditor = (function( $ ) {
 			}
 
 			if (event.shift) {
-				if (event.keyCode == this.keyCode.SPACE || event.keyCode == this.keyCode.RETURN) {
+				if (event.key == ' ' || event.key == 'Enter') {
 					event.stopPropagation();
 					this.stopDefaultClick = true;
 				}
@@ -641,9 +628,9 @@ wp.themePluginEditor = (function( $ ) {
 				}
 			}
 			else {
-				switch (event.keyCode) {
-					case this.keyCode.SPACE:
-					case this.keyCode.RETURN:
+				switch (event.key) {
+					case ' ':
+					case 'Enter':
 						if (this.isExpandable) {
 							if (this.isExpanded()) {
 								this.tree.collapseTreeitem(this);
@@ -659,17 +646,17 @@ wp.themePluginEditor = (function( $ ) {
 						}
 						break;
 
-					case this.keyCode.UP:
+					case 'ArrowUp':
 						this.tree.setFocusToPreviousItem(this);
 						flag = true;
 						break;
 
-					case this.keyCode.DOWN:
+					case 'ArrowDown':
 						this.tree.setFocusToNextItem(this);
 						flag = true;
 						break;
 
-					case this.keyCode.RIGHT:
+					case 'ArrowRight':
 						if (this.isExpandable) {
 							if (this.isExpanded()) {
 								this.tree.setFocusToNextItem(this);
@@ -681,7 +668,7 @@ wp.themePluginEditor = (function( $ ) {
 						flag = true;
 						break;
 
-					case this.keyCode.LEFT:
+					case 'ArrowLeft':
 						if (this.isExpandable && this.isExpanded()) {
 							this.tree.collapseTreeitem(this);
 							flag = true;
@@ -694,12 +681,12 @@ wp.themePluginEditor = (function( $ ) {
 						}
 						break;
 
-					case this.keyCode.HOME:
+					case 'Home':
 						this.tree.setFocusToFirstItem();
 						flag = true;
 						break;
 
-					case this.keyCode.END:
+					case 'End':
 						this.tree.setFocusToLastItem();
 						flag = true;
 						break;

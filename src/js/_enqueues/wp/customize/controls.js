@@ -1778,17 +1778,17 @@
 				}
 
 				// Pressing the right arrow key fires a theme:next event.
-				if ( 39 === event.keyCode ) {
+				if ( 'ArrowRight' === event.key ) {
 					section.nextTheme();
 				}
 
 				// Pressing the left arrow key fires a theme:previous event.
-				if ( 37 === event.keyCode ) {
+				if ( 'ArrowLeft' === event.key ) {
 					section.previousTheme();
 				}
 
 				// Pressing the escape key fires a theme:collapse event.
-				if ( 27 === event.keyCode ) {
+				if ( 'Escape' === event.key ) {
 					if ( section.$body.hasClass( 'modal-open' ) ) {
 
 						// Escape from the details modal.
@@ -2637,7 +2637,7 @@
 
 				// Return if it's not the tab key
 				// When navigating with prev/next focus is already handled.
-				if ( 9 !== event.keyCode ) {
+				if ( 'Tab' !== event.key ) {
 					return;
 				}
 
@@ -5488,8 +5488,7 @@
 
 			// Prevent collapsing section when hitting Esc to tab out of editor.
 			control.editor.codemirror.on( 'keydown', function onKeydown( codemirror, event ) {
-				var escKeyCode = 27;
-				if ( escKeyCode === event.keyCode ) {
+				if ( 'Escape' === event.key ) {
 					event.stopPropagation();
 				}
 			});
@@ -5571,9 +5570,9 @@
 			} );
 
 			$textarea.on( 'keydown', function onKeydown( event ) {
-				var selectionStart, selectionEnd, value, tabKeyCode = 9, escKeyCode = 27;
+				var selectionStart, selectionEnd, value;
 
-				if ( escKeyCode === event.keyCode ) {
+				if ( 'Escape' === event.key ) {
 					if ( ! $textarea.data( 'next-tab-blurs' ) ) {
 						$textarea.data( 'next-tab-blurs', true );
 						event.stopPropagation(); // Prevent collapsing the section.
@@ -5582,7 +5581,7 @@
 				}
 
 				// Short-circuit if tab key is not being pressed or if a modifier key *is* being pressed.
-				if ( tabKeyCode !== event.keyCode || event.ctrlKey || event.altKey || event.shiftKey ) {
+				if ( 'Tab' !== event.key || event.ctrlKey || event.altKey || event.shiftKey ) {
 					return;
 				}
 

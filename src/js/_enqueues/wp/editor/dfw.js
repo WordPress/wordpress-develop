@@ -1166,14 +1166,14 @@
 		 */
 		function fadeOut( event ) {
 			var isMac,
-				key = event && event.keyCode;
+				key = event && event.key;
 
 			if ( window.navigator.platform ) {
 				isMac = ( window.navigator.platform.indexOf( 'Mac' ) > -1 );
 			}
 
 			// Fade in and returns on Escape and keyboard shortcut Alt+Shift+W and Ctrl+Opt+W.
-			if ( key === 27 || ( key === 87 && event.altKey && ( ( ! isMac && event.shiftKey ) || ( isMac && event.ctrlKey ) ) ) ) {
+			if ( key === 'Escape' || ( key === 'w' && event.altKey && ( ( ! isMac && event.shiftKey ) || ( isMac && event.ctrlKey ) ) ) ) {
 				fadeIn( event );
 				return;
 			}
@@ -1181,15 +1181,15 @@
 			// Return if any of the following keys or combinations of keys is pressed.
 			if ( event && ( event.metaKey || ( event.ctrlKey && ! event.altKey ) || ( event.altKey && event.shiftKey ) || ( key && (
 				// Special keys ( tab, ctrl, alt, esc, arrow keys... ).
-				( key <= 47 && key !== 8 && key !== 13 && key !== 32 && key !== 46 ) ||
+				( ['Tab', 'Control', 'Alt', 'Shift', 'Escape', 'CapsLock', 'NumLock', 'ScrollLock', 'Pause', 'Insert', 'Home', 'End', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PrintScreen'].includes(key) ) ||
 				// Windows keys.
-				( key >= 91 && key <= 93 ) ||
+				( ['Meta', 'OS', 'ContextMenu'].includes(key) ) ||
 				// F keys.
-				( key >= 112 && key <= 135 ) ||
-				// Num Lock, Scroll Lock, OEM.
-				( key >= 144 && key <= 150 ) ||
+				( /^F([1-9]|1[0-9]|2[0-4])$/.test(key) ) ||
 				// OEM or non-printable.
-				key >= 224
+				key.startsWith('Dead') ||
+				key === 'Unidentified' ||
+				key.length > 1 && !['Enter', 'Backspace', 'Delete', ' '].includes(key)
 			) ) ) ) {
 				return;
 			}
@@ -1446,7 +1446,7 @@
 		 * @return {void}
 		 */
 		function toggleViaKeyboard( event ) {
-			if ( event.altKey && event.shiftKey && 87 === event.keyCode ) {
+			if ( event.altKey && event.shiftKey && 'w' === event.key ) {
 				toggle();
 			}
 		}
