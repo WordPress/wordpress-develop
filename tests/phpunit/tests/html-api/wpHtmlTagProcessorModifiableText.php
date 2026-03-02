@@ -721,5 +721,4 @@ HTML;
 			'math SCRIPT'                => array( '<script></script>', 'math', 'SCRIPT' ),
 		);
 	}
-
 }
