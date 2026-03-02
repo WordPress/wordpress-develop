@@ -258,11 +258,14 @@
 }
 
 .welcome-panel-content {
-	background-color: #151515;
 	min-height: 400px;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
+}
+
+.welcome-panel-header-wrap {
+	background-color: #151515;
 }
 
 .welcome-panel-header {
