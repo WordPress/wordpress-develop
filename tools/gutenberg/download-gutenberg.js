@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Checkout Gutenberg Repository Script
+ * Download Gutenberg Repository Script.
  *
  * This script downloads a pre-built Gutenberg zip artifact from the GitHub
  * Container Registry and extracts it into the ./gutenberg directory.
@@ -17,10 +17,7 @@ const { spawn } = require( 'child_process' );
 const fs = require( 'fs' );
 const { pipeline } = require( 'stream/promises' );
 const path = require( 'path' );
-
-// Paths
-const rootDir = path.resolve( __dirname, '../..' );
-const gutenbergDir = path.join( rootDir, 'gutenberg' );
+const { rootDir, gutenbergDir, readGutenbergConfig, verifyGutenbergVersion } = require( './gutenberg-utils' );
 
 /**
  * Execute a command. By default, stdio is inherited so progress is visible in
@@ -73,21 +70,15 @@ function exec( command, args, options = {} ) {
 async function main( force ) {
 	console.log( '🔍 Checking Gutenberg configuration...' );
 
-	// Read Gutenberg configuration from package.json.
+	/*
+	 * Read Gutenberg configuration from package.json.
+	 *
+	 * Note: ghcr stands for GitHub Container Registry where wordpress-develop ready builds of the Gutenberg plugin
+	 * are published on every repository push event.
+	 */
 	let sha, ghcrRepo;
 	try {
-		const packageJson = require( path.join( rootDir, 'package.json' ) );
-		sha = packageJson.gutenberg?.sha;
-		ghcrRepo = packageJson.gutenberg?.ghcrRepo;
-
-		if ( ! sha ) {
-			throw new Error( 'Missing "gutenberg.sha" in package.json' );
-		}
-
-		if ( ! ghcrRepo ) {
-			throw new Error( 'Missing "gutenberg.ghcrRepo" in package.json' );
-		}
-
+		( { sha, ghcrRepo } = readGutenbergConfig() );
 		console.log( `   SHA: ${ sha }` );
 		console.log( `   GHCR repository: ${ ghcrRepo }` );
 	} catch ( error ) {
@@ -188,24 +179,7 @@ async function main( force ) {
 	}
 
 	// Verify the downloaded version matches the expected SHA.
-	console.log( '\n🔍 Verifying Gutenberg version...' );
-	const hashFilePath = path.join( gutenbergDir, '.gutenberg-hash' );
-	try {
-		const installedHash = fs.readFileSync( hashFilePath, 'utf8' ).trim();
-		if ( installedHash !== sha ) {
-			throw new Error(
-				`SHA mismatch: expected ${ sha } but found ${ installedHash }. Run \`npm run grunt gutenberg-download -- --force\` to download the correct version.`
-			);
-		}
-		console.log( '✅ Version verified' );
-	} catch ( error ) {
-		if ( error.code === 'ENOENT' ) {
-			console.error( `❌ ${ hashFilePath } not found. The downloaded artifact may be malformed.` );
-		} else {
-			console.error( `❌ ${ error.message }` );
-		}
-		process.exit( 1 );
-	}
+	verifyGutenbergVersion();
 
 	if ( downloaded ) {
 		console.log( '\n✅ Gutenberg download complete!' );

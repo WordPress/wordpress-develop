@@ -1474,6 +1474,17 @@ module.exports = function(grunt) {
 	} );
 
 	// Gutenberg integration tasks.
+	grunt.registerTask( 'gutenberg:verify', 'Verifies the installed Gutenberg version matches the expected SHA.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/gutenberg-utils.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
 	grunt.registerTask( 'gutenberg-download', 'Downloads the built Gutenberg artifact.', function() {
 		const done = this.async();
 		const args = [ 'tools/gutenberg/download-gutenberg.js' ];
@@ -1940,22 +1951,22 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
+				'gutenberg:verify',
 				'build:js',
 				'build:css',
 				'build:codemirror',
-				'gutenberg-download',
 				'gutenberg-copy',
 				'copy-vendor-scripts',
 				'build:certificates'
 			] );
 		} else {
 			grunt.task.run( [
+				'gutenberg:verify',
 				'build:certificates',
 				'build:files',
 				'build:js',
 				'build:css',
 				'build:codemirror',
-				'gutenberg-download',
 				'gutenberg-copy',
 				'copy-vendor-scripts',
 				'replace:source-maps',
