@@ -1575,11 +1575,11 @@ div.error.notice-alt {
 
 .notice-info {
 	border-left-color: #3858e9;
-	background-color: transparent;
+	background-color: #fff;
 }
 
 .notice-info.notice-alt {
-	background-color: transparent;
+	background-color: #fff;
 }
 
 #plugin-information-footer .update-now:not(.button-disabled):before {
@@ -2245,7 +2245,7 @@ html.wp-toolbar {
 
 .postbox .handle-order-higher,
 .postbox .handle-order-lower {
-	color: #787c82;
+	color: #646970;
 	width: 1.62rem;
 }
 
@@ -3659,7 +3659,7 @@ img {
 .postbox .handlediv.button-link,
 .item-edit,
 .toggle-indicator {
-	color: #787c82;
+	color: #646970;
 }
 
 .widget-action {
