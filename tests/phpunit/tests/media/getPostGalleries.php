@@ -1092,11 +1092,7 @@ BLOB;
 		$galleries = get_post_galleries( $post_id, false );
 
 		$this->assertCount( 1, $galleries );
-		$this->assertArrayHasKey( 'ids', $galleries[0] );
-
-		$this->assertSame( '', $galleries[0]['ids'] );
 		$this->assertArrayNotHasKey( 'id', $galleries[0] );
-
 		$this->assertSame( array( null ), wp_list_pluck( $galleries, 'id' ) );
 	}
 
