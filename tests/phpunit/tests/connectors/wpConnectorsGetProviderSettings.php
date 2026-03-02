@@ -3,10 +3,10 @@
 require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-mock-provider-trait.php';
 
 /**
- * Tests for _wp_connectors_get_provider_settings().
+ * Tests for _wp_connectors_get_connector_settings().
  *
  * @group connectors
- * @covers ::_wp_connectors_get_provider_settings
+ * @covers ::_wp_connectors_get_connector_settings
  */
 class Tests_Connectors_WpConnectorsGetProviderSettings extends WP_UnitTestCase {
 
@@ -23,70 +23,88 @@ class Tests_Connectors_WpConnectorsGetProviderSettings extends WP_UnitTestCase {
 	/**
 	 * @ticket 64730
 	 */
-	public function test_returns_expected_provider_keys() {
-		$providers = _wp_connectors_get_provider_settings();
+	public function test_returns_expected_connector_keys() {
+		$connectors = _wp_connectors_get_connector_settings();
 
-		$this->assertArrayHasKey( 'google', $providers );
-		$this->assertArrayHasKey( 'openai', $providers );
-		$this->assertArrayHasKey( 'anthropic', $providers );
-		$this->assertArrayHasKey( 'mock_connectors_test', $providers );
-		$this->assertCount( 4, $providers );
+		$this->assertArrayHasKey( 'google', $connectors );
+		$this->assertArrayHasKey( 'openai', $connectors );
+		$this->assertArrayHasKey( 'anthropic', $connectors );
+		$this->assertArrayHasKey( 'mock_connectors_test', $connectors );
+		$this->assertCount( 4, $connectors );
 	}
 
 	/**
 	 * @ticket 64730
 	 */
-	public function test_each_provider_has_required_fields() {
-		$providers = _wp_connectors_get_provider_settings();
+	public function test_each_connector_has_required_fields() {
+		$connectors = _wp_connectors_get_connector_settings();
 
-		foreach ( $providers as $provider_id => $provider_data ) {
-			$this->assertArrayHasKey( 'name', $provider_data, "Provider '{$provider_id}' is missing 'name'." );
-			$this->assertArrayHasKey( 'description', $provider_data, "Provider '{$provider_id}' is missing 'description'." );
-			$this->assertIsString( $provider_data['description'], "Provider '{$provider_id}' description should be a string." );
-			$this->assertArrayHasKey( 'credentials_url', $provider_data, "Provider '{$provider_id}' is missing 'credentials_url'." );
-			$this->assertArrayHasKey( 'settings', $provider_data, "Provider '{$provider_id}' is missing 'settings'." );
-			$this->assertIsArray( $provider_data['settings'], "Provider '{$provider_id}' settings should be an array." );
+		$this->assertNotEmpty( $connectors, 'Connector settings should not be empty.' );
+
+		foreach ( $connectors as $connector_id => $connector_data ) {
+			$this->assertArrayHasKey( 'name', $connector_data, "Connector '{$connector_id}' is missing 'name'." );
+			$this->assertIsString( $connector_data['name'], "Connector '{$connector_id}' name should be a string." );
+			$this->assertNotEmpty( $connector_data['name'], "Connector '{$connector_id}' name should not be empty." );
+			$this->assertArrayHasKey( 'description', $connector_data, "Connector '{$connector_id}' is missing 'description'." );
+			$this->assertIsString( $connector_data['description'], "Connector '{$connector_id}' description should be a string." );
+			$this->assertArrayHasKey( 'type', $connector_data, "Connector '{$connector_id}' is missing 'type'." );
+			$this->assertContains( $connector_data['type'], array( 'ai_provider' ), "Connector '{$connector_id}' has unexpected type '{$connector_data['type']}'." );
+			$this->assertArrayHasKey( 'authentication', $connector_data, "Connector '{$connector_id}' is missing 'authentication'." );
+			$this->assertIsArray( $connector_data['authentication'], "Connector '{$connector_id}' authentication should be an array." );
+			$this->assertArrayHasKey( 'method', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'method'." );
+			$this->assertContains( $connector_data['authentication']['method'], array( 'api_key', 'none' ), "Connector '{$connector_id}' has unexpected authentication method." );
 		}
 	}
 
 	/**
 	 * @ticket 64730
 	 */
-	public function test_each_setting_has_required_fields() {
-		$providers     = _wp_connectors_get_provider_settings();
-		$required_keys = array( 'label', 'description', 'sanitize' );
+	public function test_api_key_connectors_have_setting_name_and_credentials_url() {
+		$connectors    = _wp_connectors_get_connector_settings();
+		$api_key_count = 0;
 
-		foreach ( $providers as $provider_id => $provider_data ) {
-			foreach ( $provider_data['settings'] as $setting_name => $config ) {
-				foreach ( $required_keys as $key ) {
-					$this->assertArrayHasKey( $key, $config, "Setting '{$setting_name}' for provider '{$provider_id}' is missing '{$key}'." );
-				}
+		foreach ( $connectors as $connector_id => $connector_data ) {
+			if ( 'api_key' !== $connector_data['authentication']['method'] ) {
+				continue;
 			}
+
+			++$api_key_count;
+
+			$this->assertArrayHasKey( 'setting_name', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'setting_name'." );
+			$this->assertSame(
+				"connectors_ai_{$connector_id}_api_key",
+				$connector_data['authentication']['setting_name'],
+				"Connector '{$connector_id}' setting_name does not match expected format."
+			);
+			$this->assertArrayHasKey( 'credentials_url', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'credentials_url'." );
 		}
+
+		$this->assertGreaterThan( 0, $api_key_count, 'At least one connector should use api_key authentication.' );
 	}
 
 	/**
 	 * @ticket 64730
 	 */
-	public function test_provider_names_match_expected() {
-		$providers = _wp_connectors_get_provider_settings();
+	public function test_featured_provider_names_match_expected() {
+		$connectors = _wp_connectors_get_connector_settings();
 
-		$this->assertSame( 'Gemini', $providers['google']['name'] );
-		$this->assertSame( 'OpenAI', $providers['openai']['name'] );
-		$this->assertSame( 'Claude', $providers['anthropic']['name'] );
+		$this->assertSame( 'Gemini', $connectors['google']['name'] );
+		$this->assertSame( 'OpenAI', $connectors['openai']['name'] );
+		$this->assertSame( 'Claude', $connectors['anthropic']['name'] );
 	}
 
 	/**
 	 * @ticket 64730
 	 */
 	public function test_includes_registered_provider_from_registry() {
-		$providers = _wp_connectors_get_provider_settings();
+		$connectors = _wp_connectors_get_connector_settings();
+		$mock       = $connectors['mock_connectors_test'];
 
-		$this->assertArrayHasKey( 'mock_connectors_test', $providers );
-		$this->assertSame( 'Mock Connectors Test', $providers['mock_connectors_test']['name'] );
-		$this->assertSame( '', $providers['mock_connectors_test']['description'] );
-		$this->assertNull( $providers['mock_connectors_test']['credentials_url'] );
-		$this->assertArrayHasKey( 'connectors_ai_mock_connectors_test_api_key', $providers['mock_connectors_test']['settings'] );
-		$this->assertSame( 'Mock Connectors Test API Key', $providers['mock_connectors_test']['settings']['connectors_ai_mock_connectors_test_api_key']['label'] );
+		$this->assertSame( 'Mock Connectors Test', $mock['name'] );
+		$this->assertSame( '', $mock['description'] );
+		$this->assertSame( 'ai_provider', $mock['type'] );
+		$this->assertSame( 'api_key', $mock['authentication']['method'] );
+		$this->assertNull( $mock['authentication']['credentials_url'] );
+		$this->assertSame( 'connectors_ai_mock_connectors_test_api_key', $mock['authentication']['setting_name'] );
 	}
 }

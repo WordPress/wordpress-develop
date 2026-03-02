@@ -109,120 +109,115 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
 }
 
 /**
- * Gets the registered connector provider settings.
+ * Gets the registered connector settings.
  *
  * @since 7.0.0
  * @access private
  *
  * @return array {
- *     Provider settings keyed by provider ID.
+ *     Connector settings keyed by connector ID.
  *
  *     @type array ...$0 {
- *         Data for a single provider.
+ *         Data for a single connector.
  *
- *         @type string      $name            The provider's display name.
- *         @type string      $description     The provider's description.
- *         @type string|null $credentials_url URL where users can obtain API credentials.
- *         @type array       $settings        {
- *             Settings keyed by setting name.
+ *         @type string $name           The connector's display name.
+ *         @type string $description    The connector's description.
+ *         @type string $type           The connector type: 'ai_provider'.
+ *         @type array  $authentication {
+ *             Authentication configuration. When method is 'api_key', includes
+ *             credentials_url and setting_name. When 'none', only method is present.
  *
- *             @type array ...$0 {
- *                 Data for a single setting.
- *
- *                 @type string   $label       The setting label.
- *                 @type string   $description The setting description.
- *                 @type callable $sanitize    Callback to sanitize the input value.
- *             }
+ *             @type string      $method          The authentication method: 'api_key' or 'none'.
+ *             @type string|null $credentials_url Optional. URL where users can obtain API credentials.
+ *             @type string      $setting_name    Optional. The setting name for the API key.
  *         }
  *     }
  * }
  */
-function _wp_connectors_get_provider_settings(): array {
-	$providers = array(
+function _wp_connectors_get_connector_settings(): array {
+	$connectors = array(
 		'google'    => array(
-			'name'            => 'Gemini',
-			'description'     => __( 'Content generation, translation, and vision with Google\'s Gemini.' ),
-			'credentials_url' => 'https://aistudio.google.com/',
+			'name'           => 'Gemini',
+			'description'    => __( 'Content generation, translation, and vision with Google\'s Gemini.' ),
+			'type'           => 'ai_provider',
+			'authentication' => array(
+				'method'          => 'api_key',
+				'credentials_url' => 'https://aistudio.google.com/api-keys',
+			),
 		),
 		'openai'    => array(
-			'name'            => 'OpenAI',
-			'description'     => __( 'Text, image, and code generation with GPT and DALL-E.' ),
-			'credentials_url' => 'https://platform.openai.com/',
+			'name'           => 'OpenAI',
+			'description'    => __( 'Text, image, and code generation with GPT and DALL-E.' ),
+			'type'           => 'ai_provider',
+			'authentication' => array(
+				'method'          => 'api_key',
+				'credentials_url' => 'https://platform.openai.com/api-keys',
+			),
 		),
 		'anthropic' => array(
-			'name'            => 'Claude',
-			'description'     => __( 'Writing, research, and analysis with Claude.' ),
-			'credentials_url' => 'https://console.anthropic.com/',
+			'name'           => 'Claude',
+			'description'    => __( 'Writing, research, and analysis with Claude.' ),
+			'type'           => 'ai_provider',
+			'authentication' => array(
+				'method'          => 'api_key',
+				'credentials_url' => 'https://platform.claude.com/settings/keys',
+			),
 		),
 	);
 
 	$registry = AiClient::defaultRegistry();
 
-	foreach ( $registry->getRegisteredProviderIds() as $provider_id ) {
-		$provider_class_name = $registry->getProviderClassName( $provider_id );
+	foreach ( $registry->getRegisteredProviderIds() as $connector_id ) {
+		$provider_class_name = $registry->getProviderClassName( $connector_id );
 		$provider_metadata   = $provider_class_name::metadata();
 
 		$auth_method = $provider_metadata->getAuthenticationMethod();
-		if ( null === $auth_method || ! $auth_method->isApiKey() ) {
-			continue;
+		$is_api_key  = null !== $auth_method && $auth_method->isApiKey();
+
+		if ( $is_api_key ) {
+			$credentials_url = $provider_metadata->getCredentialsUrl();
+			$authentication  = array(
+				'method'          => 'api_key',
+				'credentials_url' => $credentials_url ? $credentials_url : null,
+			);
+		} else {
+			$authentication = array( 'method' => 'none' );
 		}
 
-		$registry_data = array_filter(
-			array(
-				'name'            => $provider_metadata->getName(),
-				'credentials_url' => $provider_metadata->getCredentialsUrl(),
-			)
-		);
+		$name        = $provider_metadata->getName();
+		$description = method_exists( $provider_metadata, 'getDescription' ) ? $provider_metadata->getDescription() : null;
 
-		if ( isset( $providers[ $provider_id ] ) ) {
-			// Merge non-empty registry data over hardcoded fallbacks.
-			$providers[ $provider_id ] = array_merge( $providers[ $provider_id ], $registry_data );
+		if ( isset( $connectors[ $connector_id ] ) ) {
+			// Override fields with non-empty registry values.
+			if ( $name ) {
+				$connectors[ $connector_id ]['name'] = $name;
+			}
+			if ( $description ) {
+				$connectors[ $connector_id ]['description'] = $description;
+			}
+			// Always update auth method; keep existing credentials_url as fallback.
+			$connectors[ $connector_id ]['authentication']['method'] = $authentication['method'];
+			if ( ! empty( $authentication['credentials_url'] ) ) {
+				$connectors[ $connector_id ]['authentication']['credentials_url'] = $authentication['credentials_url'];
+			}
 		} else {
-			$providers[ $provider_id ] = array_merge(
-				array(
-					'name'            => '',
-					'description'     => '',
-					'credentials_url' => null,
-				),
-				$registry_data
+			$connectors[ $connector_id ] = array(
+				'name'           => $name ? $name : ucwords( $connector_id ),
+				'description'    => $description ? $description : '',
+				'type'           => 'ai_provider',
+				'authentication' => $authentication,
 			);
 		}
 	}
 
-	$provider_settings = array();
-	foreach ( $providers as $provider => $data ) {
-		$setting_name = "connectors_ai_{$provider}_api_key";
-
-		$provider_settings[ $provider ] = array(
-			'name'            => $data['name'],
-			'description'     => $data['description'],
-			'credentials_url' => $data['credentials_url'],
-			'settings'        => array(
-				$setting_name => array(
-					'label'       => sprintf(
-						/* translators: %s: AI provider name. */
-						__( '%s API Key' ),
-						$data['name']
-					),
-					'description' => sprintf(
-						/* translators: %s: AI provider name. */
-						__( 'API key for the %s AI provider.' ),
-						$data['name']
-					),
-					'sanitize' => static function ( string $value ) use ( $provider ): string {
-						$value = sanitize_text_field( $value );
-						if ( '' === $value ) {
-							return $value;
-						}
-
-						$valid = _wp_connectors_is_api_key_valid( $value, $provider );
-						return true === $valid ? $value : '';
-					},
-				),
-			),
-		);
+	// Add setting_name for connectors that use API key authentication.
+	foreach ( $connectors as $connector_id => $connector ) {
+		if ( 'api_key' === $connector['authentication']['method'] ) {
+			$connectors[ $connector_id ]['authentication']['setting_name'] = "connectors_ai_{$connector_id}_api_key";
+		}
 	}
-	return $provider_settings;
+
+	return $connectors;
 }
 
 /**
@@ -246,10 +241,6 @@ function _wp_connectors_validate_keys_in_rest( WP_REST_Response $response, WP_RE
 		return $response;
 	}
 
-	if ( ! class_exists( '\WordPress\AiClient\AiClient' ) ) {
-		return $response;
-	}
-
 	$fields = $request->get_param( '_fields' );
 	if ( ! $fields ) {
 		return $response;
@@ -266,20 +257,24 @@ function _wp_connectors_validate_keys_in_rest( WP_REST_Response $response, WP_RE
 		return $response;
 	}
 
-	foreach ( _wp_connectors_get_provider_settings() as $provider => $provider_data ) {
-		foreach ( $provider_data['settings'] as $setting_name => $config ) {
-			if ( ! in_array( $setting_name, $requested, true ) ) {
-				continue;
-			}
+	foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
+		$auth = $connector_data['authentication'];
+		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+			continue;
+		}
 
-			$real_key = _wp_connectors_get_real_api_key( $setting_name, '_wp_connectors_mask_api_key' );
-			if ( '' === $real_key ) {
-				continue;
-			}
+		$setting_name = $auth['setting_name'];
+		if ( ! in_array( $setting_name, $requested, true ) ) {
+			continue;
+		}
 
-			if ( true !== _wp_connectors_is_api_key_valid( $real_key, $provider ) ) {
-				$data[ $setting_name ] = 'invalid_key';
-			}
+		$real_key = _wp_connectors_get_real_api_key( $setting_name, '_wp_connectors_mask_api_key' );
+		if ( '' === $real_key ) {
+			continue;
+		}
+
+		if ( true !== _wp_connectors_is_api_key_valid( $real_key, $connector_id ) ) {
+			$data[ $setting_name ] = 'invalid_key';
 		}
 	}
 
@@ -295,26 +290,42 @@ add_filter( 'rest_post_dispatch', '_wp_connectors_validate_keys_in_rest', 10, 3 
  * @access private
  */
 function _wp_register_default_connector_settings(): void {
-	if ( ! class_exists( '\WordPress\AiClient\AiClient' ) ) {
-		return;
-	}
-
-	foreach ( _wp_connectors_get_provider_settings() as $provider_data ) {
-		foreach ( $provider_data['settings'] as $setting_name => $config ) {
-			register_setting(
-				'connectors',
-				$setting_name,
-				array(
-					'type'              => 'string',
-					'label'             => $config['label'],
-					'description'       => $config['description'],
-					'default'           => '',
-					'show_in_rest'      => true,
-					'sanitize_callback' => $config['sanitize'],
-				)
-			);
-			add_filter( "option_{$setting_name}", '_wp_connectors_mask_api_key' );
+	foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
+		$auth = $connector_data['authentication'];
+		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+			continue;
 		}
+
+		$setting_name = $auth['setting_name'];
+		register_setting(
+			'connectors',
+			$setting_name,
+			array(
+				'type'              => 'string',
+				'label'             => sprintf(
+					/* translators: %s: AI provider name. */
+					__( '%s API Key' ),
+					$connector_data['name']
+				),
+				'description'       => sprintf(
+					/* translators: %s: AI provider name. */
+					__( 'API key for the %s AI provider.' ),
+					$connector_data['name']
+				),
+				'default'           => '',
+				'show_in_rest'      => true,
+				'sanitize_callback' => static function ( string $value ) use ( $connector_id ): string {
+					$value = sanitize_text_field( $value );
+					if ( '' === $value ) {
+						return $value;
+					}
+
+					$valid = _wp_connectors_is_api_key_valid( $value, $connector_id );
+					return true === $valid ? $value : '';
+				},
+			)
+		);
+		add_filter( "option_{$setting_name}", '_wp_connectors_mask_api_key' );
 	}
 }
 add_action( 'init', '_wp_register_default_connector_settings' );
@@ -326,26 +337,62 @@ add_action( 'init', '_wp_register_default_connector_settings' );
  * @access private
  */
 function _wp_connectors_pass_default_keys_to_ai_client(): void {
-	if ( ! class_exists( '\WordPress\AiClient\AiClient' ) ) {
-		return;
-	}
 	try {
 		$registry = AiClient::defaultRegistry();
-		foreach ( _wp_connectors_get_provider_settings() as $provider => $provider_data ) {
-			foreach ( $provider_data['settings'] as $setting_name => $config ) {
-				$api_key = _wp_connectors_get_real_api_key( $setting_name, '_wp_connectors_mask_api_key' );
-				if ( '' === $api_key || ! $registry->hasProvider( $provider ) ) {
-					continue;
-				}
-
-				$registry->setProviderRequestAuthentication(
-					$provider,
-					new ApiKeyRequestAuthentication( $api_key )
-				);
+		foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
+			if ( 'ai_provider' !== $connector_data['type'] ) {
+				continue;
 			}
+
+			$auth = $connector_data['authentication'];
+			if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+				continue;
+			}
+
+			$api_key = _wp_connectors_get_real_api_key( $auth['setting_name'], '_wp_connectors_mask_api_key' );
+			if ( '' === $api_key || ! $registry->hasProvider( $connector_id ) ) {
+				continue;
+			}
+
+			$registry->setProviderRequestAuthentication(
+				$connector_id,
+				new ApiKeyRequestAuthentication( $api_key )
+			);
 		}
 	} catch ( Exception $e ) {
 			wp_trigger_error( __FUNCTION__, $e->getMessage() );
 	}
 }
 add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client' );
+
+/**
+ * Exposes connector settings to the connectors-wp-admin script module.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @param array $data Existing script module data.
+ * @return array Script module data with connectors added.
+ */
+function _wp_connectors_get_connector_script_module_data( array $data ): array {
+	$connectors = array();
+	foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
+		$auth     = $connector_data['authentication'];
+		$auth_out = array( 'method' => $auth['method'] );
+
+		if ( 'api_key' === $auth['method'] ) {
+			$auth_out['settingName']    = $auth['setting_name'] ?? '';
+			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
+		}
+
+		$connectors[ $connector_id ] = array(
+			'name'           => $connector_data['name'],
+			'description'    => $connector_data['description'],
+			'type'           => $connector_data['type'],
+			'authentication' => $auth_out,
+		);
+	}
+	$data['connectors'] = $connectors;
+	return $data;
+}
+add_filter( 'script_module_data_connectors-wp-admin', '_wp_connectors_get_connector_script_module_data' );
