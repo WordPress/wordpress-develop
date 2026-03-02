@@ -17,7 +17,7 @@ const { spawn } = require( 'child_process' );
 const fs = require( 'fs' );
 const { pipeline } = require( 'stream/promises' );
 const path = require( 'path' );
-const { rootDir, gutenbergDir, readGutenbergConfig, verifyGutenbergVersion } = require( './gutenberg-utils' );
+const { rootDir, gutenbergDir, readGutenbergConfig, verifyGutenbergVersion } = require( './utils' );
 
 /**
  * Execute a command. By default, stdio is inherited so progress is visible in

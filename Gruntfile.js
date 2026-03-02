@@ -1478,7 +1478,7 @@ module.exports = function(grunt) {
 		const done = this.async();
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/gutenberg-utils.js' ],
+			args: [ 'tools/gutenberg/utils.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
@@ -1487,7 +1487,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'gutenberg:download', 'Downloads the built Gutenberg artifact.', function() {
 		const done = this.async();
-		const args = [ 'tools/gutenberg/download-gutenberg.js' ];
+		const args = [ 'tools/gutenberg/download.js' ];
 		if ( grunt.option( 'force' ) ) {
 			args.push( '--force' );
 		}
@@ -1505,7 +1505,7 @@ module.exports = function(grunt) {
 		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/copy-gutenberg-build.js', `--build-dir=${ buildDir }` ],
+			args: [ 'tools/gutenberg/copy.js', `--build-dir=${ buildDir }` ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
