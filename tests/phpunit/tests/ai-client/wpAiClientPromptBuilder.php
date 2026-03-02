@@ -8,7 +8,6 @@
 
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Files\DTO\File;
-use WordPress\AiClient\Files\Enums\FileTypeEnum;
 use WordPress\AiClient\Messages\DTO\Message;
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Messages\DTO\ModelMessage;

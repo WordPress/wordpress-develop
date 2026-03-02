@@ -40,7 +40,7 @@
 
 #dashboard-widgets-wrap {
 	overflow: hidden;
-	margin: 0 -4px;
+	margin: 0 -8px;
 }
 
 #dashboard-widgets .postbox {
@@ -59,8 +59,8 @@
 	display: flow-root; /* avoid margin collapsing between parent and first/last child elements */
 	/* Required min-height to make the jQuery UI Sortable drop zone work. */
 	min-height: 0;
-	margin-right: 8px;
-	padding: 4px;
+	margin: 0 8px 20px;
+	padding: 0;
 }
 
 #dashboard-widgets .meta-box-sortables:not(:empty) {
@@ -140,7 +140,7 @@
 	position: relative;
 	overflow: auto;
 	margin: 16px 0;
-	background-color: #151515;
+	background-color: #c3c4c7;
 	border: 1px solid rgb(0, 0, 0, 0.1);
 	border-radius: 8px;
 	font-size: 14px;
@@ -219,10 +219,12 @@
 }
 
 .welcome-panel .welcome-panel-close {
+	display: flex;
+	align-items: center;
 	position: absolute;
 	top: 10px;
 	right: 10px;
-	padding: 10px 15px 10px 24px;
+	padding: 10px 15px;
 	font-size: 13px;
 	line-height: 1.23076923; /* Chrome rounding, needs to be 16px equivalent */
 	text-decoration: none;
@@ -230,9 +232,6 @@
 }
 
 .welcome-panel .welcome-panel-close:before {
-	position: absolute;
-	top: 8px;
-	left: 0;
 	transition: all .1s ease-in-out;
 	content: '\f335';
 	font-size: 24px;
@@ -500,9 +499,7 @@
 }
 
 .community-events .spinner {
-	float: none;
-	margin: 5px 2px 0;
-	vertical-align: top;
+	margin: 0 2px 0;
 }
 
 .community-events-errors[aria-hidden="true"],
@@ -521,13 +518,15 @@
 
 .community-events-form {
 	margin: 15px 0 5px;
+	display: flex;
+    gap: 5px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .community-events-form .regular-text {
 	width: 40%;
-	height: 29px;
 	margin: 0;
-	vertical-align: top;
 }
 
 .community-events li.event-none {
@@ -539,10 +538,7 @@
 }
 
 .community-events-form label {
-	display: inline-block;
-	vertical-align: top;
 	line-height: 2.15384615;
-	height: 28px;
 }
 
 .community-events .activity-block > p {
@@ -554,17 +550,8 @@
 	vertical-align: middle;
 }
 
-#community-events-submit {
-	margin-left: 3px;
-	margin-right: 3px;
-}
-
 /* Needs higher specificity than #dashboard-widgets .button-link */
 #dashboard-widgets .community-events-cancel.button-link {
-	vertical-align: top;
-	/* Same properties as the submit button for cross-browsers alignment. */
-	line-height: 2;
-	height: 28px;
 	text-decoration: underline;
 }
 
@@ -638,7 +625,7 @@
 	margin-bottom: 0;
 	padding: 12px;
 	border-top: 1px solid #f0f0f1;
-	color: #dcdcde;
+	color: #646970;
 }
 
 /* Safari 10 + VoiceOver specific: without this, the hidden text gets read out before the link. */
@@ -719,14 +706,6 @@ body #dashboard-widgets .postbox form .submit {
 	width: 50%;
 	float: left;
 	margin-bottom: 10px;
-}
-
-#dashboard_right_now .inside {
-	padding: 0;
-}
-
-#dashboard_right_now .main {
-	padding: 16px 16px 11px;
 }
 
 #dashboard_right_now .main p {
@@ -971,7 +950,7 @@ body #dashboard-widgets .postbox form .submit {
 }
 
 .activity-block .subsubsub li {
-	color: #dcdcde;
+	color: #646970;
 }
 
 /* Dashboard activity widget - Comments */
@@ -1463,14 +1442,8 @@ a.rsswidget {
 		vertical-align: baseline;
 	}
 
-	.community-events-form .regular-text {
-		height: 32px;
-	}
-
 	#community-events-submit {
 		margin-bottom: 0;
-		/* Override .wp-core-ui .button */
-		vertical-align: top;
 	}
 
 	.community-events-form label,
@@ -1478,13 +1451,8 @@ a.rsswidget {
 		/* Same properties as the submit button for cross-browsers alignment. */
 		font-size: 14px;
 		line-height: normal;
-		height: auto;
 		padding: 6px 0;
 		border: 1px solid transparent;
-	}
-
-	.community-events .spinner {
-		margin-top: 7px;
 	}
 }
 
