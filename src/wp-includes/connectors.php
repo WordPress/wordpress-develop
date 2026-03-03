@@ -60,7 +60,7 @@ function _wp_connectors_mask_api_key( string $key ): string {
  * @param string $provider_id The WP AI client provider ID.
  * @return bool|null True if valid, false if invalid, null if unable to determine.
  */
-function _wp_connectors_is_api_key_valid( string $key, string $provider_id ): ?bool {
+function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ): ?bool {
 	try {
 		$registry = AiClient::defaultRegistry();
 
@@ -122,7 +122,10 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
  *
  *         @type string $name           The connector's display name.
  *         @type string $description    The connector's description.
- *         @type string $type           The connector type: 'ai_provider'.
+ *         @type string $type           The connector type. Currently, only 'ai_provider' is supported.
+ *         @type array  $plugin         Optional. Plugin data for install/activate UI.
+ *             @type string $slug       The WordPress.org plugin slug.
+ *         }
  *         @type array  $authentication {
  *             Authentication configuration. When method is 'api_key', includes
  *             credentials_url and setting_name. When 'none', only method is present.
@@ -137,9 +140,12 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
 function _wp_connectors_get_connector_settings(): array {
 	$connectors = array(
 		'google'    => array(
-			'name'           => 'Gemini',
-			'description'    => __( 'Content generation, translation, and vision with Google\'s Gemini.' ),
+			'name'           => 'Google',
+			'description'    => __( 'Text and image generation with Gemini and Imagen.' ),
 			'type'           => 'ai_provider',
+			'plugin'         => array(
+				'slug' => 'ai-provider-for-google',
+			),
 			'authentication' => array(
 				'method'          => 'api_key',
 				'credentials_url' => 'https://aistudio.google.com/api-keys',
@@ -147,17 +153,23 @@ function _wp_connectors_get_connector_settings(): array {
 		),
 		'openai'    => array(
 			'name'           => 'OpenAI',
-			'description'    => __( 'Text, image, and code generation with GPT and DALL-E.' ),
+			'description'    => __( 'Text and image generation with GPT and Dall-E.' ),
 			'type'           => 'ai_provider',
+			'plugin'         => array(
+				'slug' => 'ai-provider-for-openai',
+			),
 			'authentication' => array(
 				'method'          => 'api_key',
 				'credentials_url' => 'https://platform.openai.com/api-keys',
 			),
 		),
 		'anthropic' => array(
-			'name'           => 'Claude',
-			'description'    => __( 'Writing, research, and analysis with Claude.' ),
+			'name'           => 'Anthropic',
+			'description'    => __( 'Text generation with Claude.' ),
 			'type'           => 'ai_provider',
+			'plugin'         => array(
+				'slug' => 'ai-provider-for-anthropic',
+			),
 			'authentication' => array(
 				'method'          => 'api_key',
 				'credentials_url' => 'https://platform.claude.com/settings/keys',
@@ -259,7 +271,7 @@ function _wp_connectors_validate_keys_in_rest( WP_REST_Response $response, WP_RE
 
 	foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+		if ( 'ai_provider' !== $connector_data['type'] ||'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
 
@@ -273,7 +285,7 @@ function _wp_connectors_validate_keys_in_rest( WP_REST_Response $response, WP_RE
 			continue;
 		}
 
-		if ( true !== _wp_connectors_is_api_key_valid( $real_key, $connector_id ) ) {
+		if ( true !== _wp_connectors_is_ai_api_key_valid( $real_key, $connector_id ) ) {
 			$data[ $setting_name ] = 'invalid_key';
 		}
 	}
@@ -320,7 +332,7 @@ function _wp_register_default_connector_settings(): void {
 						return $value;
 					}
 
-					$valid = _wp_connectors_is_api_key_valid( $value, $connector_id );
+					$valid = _wp_connectors_is_ai_api_key_valid( $value, $connector_id );
 					return true === $valid ? $value : '';
 				},
 			)
@@ -385,12 +397,18 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
 		}
 
-		$connectors[ $connector_id ] = array(
+		$connector_out = array(
 			'name'           => $connector_data['name'],
 			'description'    => $connector_data['description'],
 			'type'           => $connector_data['type'],
 			'authentication' => $auth_out,
 		);
+
+		if ( ! empty( $connector_data['plugin'] ) ) {
+			$connector_out['plugin'] = $connector_data['plugin'];
+		}
+
+		$connectors[ $connector_id ] = $connector_out;
 	}
 	$data['connectors'] = $connectors;
 	return $data;

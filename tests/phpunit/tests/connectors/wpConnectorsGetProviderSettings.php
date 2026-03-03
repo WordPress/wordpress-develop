@@ -88,9 +88,9 @@ class Tests_Connectors_WpConnectorsGetProviderSettings extends WP_UnitTestCase {
 	public function test_featured_provider_names_match_expected() {
 		$connectors = _wp_connectors_get_connector_settings();
 
-		$this->assertSame( 'Gemini', $connectors['google']['name'] );
+		$this->assertSame( 'Google', $connectors['google']['name'] );
 		$this->assertSame( 'OpenAI', $connectors['openai']['name'] );
-		$this->assertSame( 'Claude', $connectors['anthropic']['name'] );
+		$this->assertSame( 'Anthropic', $connectors['anthropic']['name'] );
 	}
 
 	/**
