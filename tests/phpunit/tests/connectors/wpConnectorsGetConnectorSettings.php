@@ -21,6 +21,14 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	}
 
 	/**
+	 * Unregisters the mock provider setting added by `init`.
+	 */
+	public static function tear_down_after_class() {
+		self::unregister_mock_connector_setting();
+		parent::tear_down_after_class();
+	}
+
+	/**
 	 * @ticket 64730
 	 */
 	public function test_returns_expected_connector_keys() {

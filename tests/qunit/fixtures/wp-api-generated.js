@@ -11218,12 +11218,6 @@ mockedApiResponse.Schema = {
                             "description": "Site icon.",
                             "type": "integer",
                             "required": false
-                        },
-                        "connectors_ai_mock_connectors_test_api_key": {
-                            "title": "Mock Connectors Test API Key",
-                            "description": "API key for the Mock Connectors Test AI provider.",
-                            "type": "string",
-                            "required": false
                         }
                     }
                 }
@@ -14682,6 +14676,5 @@ mockedApiResponse.settings = {
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,
-    "site_icon": 0,
-    "connectors_ai_mock_connectors_test_api_key": ""
+    "site_icon": 0
 };
