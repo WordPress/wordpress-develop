@@ -3290,4 +3290,56 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$basename = wp_basename( $new_file );
 		$this->assertMatchesRegularExpression( '/canola-scaled\.jpg$/', $basename, 'Scaled filename should not have numeric suffix appended.' );
 	}
+
+	/**
+	 * Tests that sideloading a scaled image for a different attachment retains the numeric suffix
+	 * when a file with the same name already exists on disk.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_unique_filename_conflict() {
+		wp_set_current_user( self::$author_id );
+
+		// Create the first attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response        = rest_get_server()->dispatch( $request );
+		$attachment_id_a = $response->get_data()['id'];
+
+		// Sideload a scaled image for attachment A, creating canola-scaled.jpg on disk.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_a}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'First sideload should succeed.' );
+
+		// Create a second, different attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=other.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response        = rest_get_server()->dispatch( $request );
+		$attachment_id_b = $response->get_data()['id'];
+
+		// Sideload scaled for attachment B using the same filename that already exists on disk.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_b}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Second sideload should succeed.' );
+
+		// The filename should have a numeric suffix since the base name does not match this attachment.
+		$new_file = get_attached_file( $attachment_id_b, true );
+		$basename = wp_basename( $new_file );
+		$this->assertMatchesRegularExpression( '/canola-scaled-\d+\.jpg$/', $basename, 'Scaled filename should have numeric suffix when file conflicts with a different attachment.' );
+	}
 }
