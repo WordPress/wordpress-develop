@@ -2063,7 +2063,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				return new WP_Error(
 					'rest_sideload_no_attached_file',
 					__( 'Unable to retrieve the attached file for this attachment.' ),
-					array( 'status' => 400 )
+					array( 'status' => 404 )
 				);
 			}
 
