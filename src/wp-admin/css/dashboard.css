@@ -574,15 +574,15 @@
 	color: #2c3338;
 }
 .community-events li:first-child {
-	border-top: 1px solid #f0f0f1;
+	border-top: 1px solid #e9e9ed;
 }
 
 .community-events li ~ li {
-	border-top: 1px solid #f0f0f1;
+	border-top: 1px solid #e9e9ed;
 }
 
 .community-events .activity-block.last {
-	border-bottom: 1px solid #f0f0f1;
+	border-bottom: 1px solid #e9e9ed;
 	padding-top: 0;
 	margin-top: -1px;
 }
