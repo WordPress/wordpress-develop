@@ -165,9 +165,7 @@ class WP_List_Util {
 			 */
 			foreach ( $this->output as $key => $value ) {
 				if ( is_object( $value ) ) {
-					if ( property_exists( $value, $field ) ) {
-						$newlist[ $key ] = $value->$field;
-					}
+					$newlist[ $key ] = $value->$field ?? null;
 				} elseif ( is_array( $value ) ) {
 					$newlist[ $key ] = $value[ $field ];
 				} else {
