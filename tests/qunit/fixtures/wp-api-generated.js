@@ -11066,8 +11066,8 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "connectors_ai_google_api_key": {
-                            "title": "Gemini API Key",
-                            "description": "API key for the Gemini AI provider.",
+                            "title": "Google API Key",
+                            "description": "API key for the Google AI provider.",
                             "type": "string",
                             "required": false
                         },
@@ -11078,8 +11078,8 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "connectors_ai_anthropic_api_key": {
-                            "title": "Claude API Key",
-                            "description": "API key for the Claude AI provider.",
+                            "title": "Anthropic API Key",
+                            "description": "API key for the Anthropic AI provider.",
                             "type": "string",
                             "required": false
                         },
