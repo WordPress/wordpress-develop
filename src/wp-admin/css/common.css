@@ -812,10 +812,10 @@ img.emoji {
 	content: "\f153";
 	content: "\f153" / '';
 	display: block;
-	font: normal 20px/24px dashicons;
-	height: 24px;
+	font: normal 20px/1 dashicons;
+	height: 1em;
 	text-align: center;
-	width: 24px;
+	width: 1em;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -2245,7 +2245,7 @@ html.wp-toolbar {
 
 .postbox .handle-order-higher,
 .postbox .handle-order-lower {
-	color: #787c82;
+	color: #646970;
 	width: 1.62rem;
 }
 
@@ -3659,7 +3659,7 @@ img {
 .postbox .handlediv.button-link,
 .item-edit,
 .toggle-indicator {
-	color: #787c82;
+	color: #646970;
 }
 
 .widget-action {
