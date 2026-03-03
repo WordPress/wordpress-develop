@@ -167,7 +167,7 @@ class WP_List_Util {
 				if ( is_object( $value ) ) {
 					$newlist[ $key ] = $value->$field ?? null;
 				} elseif ( is_array( $value ) ) {
-					$newlist[ $key ] = $value[ $field ];
+					$newlist[ $key ] = $value[ $field ] ?? null;
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
