@@ -1892,6 +1892,53 @@ class WP_Block_Processor {
 	}
 
 	/**
+	 * Returns an indicator for how to replace the attributes in the given block,
+	 * including byte offsets for the replacement and full serialization of attributes.
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @param array|null $new_attributes Serialize these attributes into the block.
+	 * @return WP_HTML_Text_Replacement|null
+	 */
+	public function get_attribute_replacement( $new_attributes ): ?WP_HTML_Text_Replacement {
+		if ( self::MATCHED !== $this->state || ! in_array( $this->type, array( self::OPENER, self::CLOSER ), true ) ) {
+			return null;
+		}
+
+		if ( null === $new_attributes ) {
+			if ( 0 === $this->json_length ) {
+				return null;
+			}
+
+			$whitespace_length = strspn( $this->source_text, " \t\f\r\n", $this->json_at + $this->json_length + 1 );
+			return new WP_HTML_Text_Replacement(
+				$this->json_at,
+				$this->json_length + $whitespace_length,
+				''
+			);
+		}
+
+		$encoded_attributes = wp_json_encode( $new_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		$encoded_attributes = strtr(
+			$encoded_attributes,
+			array(
+				'\\\\' => '\u005c',
+				'--'   => '\u002d\u002d',
+				'<'    => '\u003c',
+				'>'    => '\u003e',
+				'&'    => '\u0026',
+				'\\"'  => '\u0022',
+			)
+		);
+
+		return new WP_HTML_Text_Replacement(
+			$this->json_at,
+			$this->json_length,
+			$encoded_attributes
+		);
+	}
+
+	/**
 	 * Returns the span representing the currently-matched delimiter, if matched, otherwise `null`.
 	 *
 	 * Example:
