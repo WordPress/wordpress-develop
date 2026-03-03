@@ -225,6 +225,9 @@ for path in "${REMOVE_PATHS[@]}"; do
 	rm -rf "$TARGET_DIR/third-party/$path"
 done
 
+# Remove polyfills.php — WordPress Core already provides these functions in compat.php.
+rm -f "$TARGET_DIR/src/polyfills.php"
+
 # ---------------------------------------------------------------------------
 # Generate autoload.php
 # ---------------------------------------------------------------------------
