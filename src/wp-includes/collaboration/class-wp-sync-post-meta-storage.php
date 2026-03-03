@@ -179,6 +179,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
+		// set_transient() can return false if the value is the same as the existing value, which is considered a success regardless.
 		set_transient( $this->get_awareness_transient_key( $post_id ), $awareness, HOUR_IN_SECONDS );
 		return true;
 	}
