@@ -25,12 +25,12 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	const POST_TYPE = 'wp_sync_storage';
 
 	/**
-	 * Meta key for awareness state.
+	 * Transient prefix for awareness state.
 	 *
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const AWARENESS_META_KEY = 'wp_sync_awareness';
+	const AWARENESS_TRANSIENT_PREFIX = 'wp_sync_awareness';
 
 	/**
 	 * Meta key for sync updates.
@@ -124,7 +124,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	}
 
 	public function get_awareness_cache_key( $post_id ) {
-		return self::AWARENESS_META_KEY . '_' . $post_id;
+		return self::AWARENESS_TRANSIENT_PREFIX . '_' . $post_id;
 	}
 
 	/**
