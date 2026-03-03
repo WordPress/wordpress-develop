@@ -2144,7 +2144,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return string Filtered file name.
 	 */
 	private static function filter_wp_unique_filename( $filename, $dir, $number, $attachment_filename ) {
-		if ( empty( $number ) || ! $attachment_filename ) {
+		if ( ! is_int( $number ) || ! $attachment_filename ) {
 			return $filename;
 		}
 
@@ -2157,7 +2157,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$matches = array();
-		if ( preg_match( '/(.*)(-\d+x\d+|-scaled)-' . (int) $number . '$/', $name, $matches ) ) {
+		if ( preg_match( '/(.*)(-\d+x\d+|-scaled)-' . $number . '$/', $name, $matches ) ) {
 			$filename_without_suffix = $matches[1] . $matches[2] . ".$ext";
 			if ( $matches[1] === $orig_name && ! file_exists( "$dir/$filename_without_suffix" ) ) {
 				return $filename_without_suffix;
