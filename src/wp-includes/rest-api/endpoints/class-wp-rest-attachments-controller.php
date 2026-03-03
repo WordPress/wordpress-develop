@@ -70,8 +70,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$valid_image_sizes[] = 'original';
 			// Used for PDF thumbnails.
 			$valid_image_sizes[] = 'full';
-			// Client-side big image threshold: sideload the scaled version.
-			$valid_image_sizes[] = 'scaled';
 
 			register_rest_route(
 				$this->namespace,
