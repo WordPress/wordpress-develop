@@ -340,7 +340,7 @@ function _wp_register_default_connector_settings(): void {
 		add_filter( "option_{$setting_name}", '_wp_connectors_mask_api_key' );
 	}
 }
-add_action( 'init', '_wp_register_default_connector_settings' );
+add_action( 'init', '_wp_register_default_connector_settings', 20 );
 
 /**
  * Passes stored connector API keys to the WP AI client.
@@ -375,7 +375,7 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 			wp_trigger_error( __FUNCTION__, $e->getMessage() );
 	}
 }
-add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client' );
+add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
 
 /**
  * Exposes connector settings to the connectors-wp-admin script module.
