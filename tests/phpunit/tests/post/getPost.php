@@ -76,9 +76,12 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 			$this->assertIsArray( $post );
 			$this->assertArrayHasKey( 'ID', $post );
 			$this->assertSame( $expected_id_val, $post['ID'] );
+			$this->assertArrayHasKey( 'filter', $post );
+			$this->assertSame( $filter, $post['filter'] );
 		} elseif ( ARRAY_N === $output ) {
 			$this->assertIsArray( $post );
 			$this->assertContains( $expected_id_val, $post );
+			$this->assertContains( $filter, $post );
 		} else {
 			$this->assertInstanceOf( WP_Post::class, $post );
 
@@ -87,9 +90,6 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 			}
 
 			$this->assertSame( $expected_id_val, $post->ID );
-		}
-
-		if ( $post instanceof WP_Post ) {
 			$this->assertSame( $filter, $post->filter );
 		}
 	}
