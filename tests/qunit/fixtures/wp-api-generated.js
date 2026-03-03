@@ -11064,6 +11064,24 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "connectors_ai_google_api_key": {
+                            "title": "Google API Key",
+                            "description": "API key for the Google AI provider.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "connectors_ai_openai_api_key": {
+                            "title": "OpenAI API Key",
+                            "description": "API key for the OpenAI AI provider.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "connectors_ai_anthropic_api_key": {
+                            "title": "Anthropic API Key",
+                            "description": "API key for the Anthropic AI provider.",
+                            "type": "string",
+                            "required": false
+                        },
                         "title": {
                             "title": "Title",
                             "description": "Site title.",
@@ -11138,7 +11156,7 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
-                        "enable_real_time_collaboration": {
+                        "wp_enable_real_time_collaboration": {
                             "title": "",
                             "description": "Enable Real-Time Collaboration",
                             "type": "boolean",
@@ -14634,6 +14652,9 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
+    "connectors_ai_google_api_key": "",
+    "connectors_ai_openai_api_key": "",
+    "connectors_ai_anthropic_api_key": "",
     "title": "Test Blog",
     "description": "",
     "url": "http://example.org",
@@ -14646,7 +14667,7 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
-    "enable_real_time_collaboration": false,
+    "wp_enable_real_time_collaboration": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,
