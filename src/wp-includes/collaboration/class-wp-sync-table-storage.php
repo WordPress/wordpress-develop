@@ -50,11 +50,13 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		$result = $wpdb->insert(
 			$wpdb->sync_updates,
 			array(
-				'room'         => $room,
-				'update_value' => wp_json_encode( $update ),
-				'created_at'   => current_time( 'mysql', true ),
+				'room'       => $room,
+				'client_id'  => $update['client_id'],
+				'type'       => $update['type'],
+				'data'       => $update['data'],
+				'created_at' => current_time( 'mysql', true ),
 			),
-			array( '%s', '%s', '%s' )
+			array( '%s', '%d', '%s', '%s', '%s' )
 		);
 
 		return false !== $result;
@@ -154,7 +156,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		// Fetch updates after the cursor up to the snapshot boundary.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT update_value FROM {$wpdb->sync_updates} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
+				"SELECT client_id, type, data FROM {$wpdb->sync_updates} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
 				$room,
 				$cursor,
 				$max_id
@@ -167,7 +169,11 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 
 		$updates = array();
 		foreach ( $rows as $row ) {
-			$updates[] = json_decode( $row->update_value, true );
+			$updates[] = array(
+				'client_id' => (int) $row->client_id,
+				'type'      => $row->type,
+				'data'      => $row->data,
+			);
 		}
 
 		return $updates;

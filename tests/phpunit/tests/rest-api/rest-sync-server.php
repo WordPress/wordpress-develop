@@ -1035,7 +1035,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 * Inserts a row directly into the sync_updates table with a given age.
 	 *
 	 * @param positive-int $age_in_seconds How old the row should be.
-	 * @param string       $label          A label stored in the update_value for identification.
+	 * @param string       $label          A label stored in the data column for identification.
 	 */
 	private function insert_sync_row( int $age_in_seconds, string $label = 'test' ): void {
 		global $wpdb;
@@ -1043,16 +1043,13 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$wpdb->insert(
 			$wpdb->sync_updates,
 			array(
-				'room'         => $this->get_post_room(),
-				'update_value' => wp_json_encode(
-					array(
-						'type' => 'update',
-						'data' => $label,
-					)
-				),
-				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
+				'room'       => $this->get_post_room(),
+				'client_id'  => 0,
+				'type'       => 'update',
+				'data'       => $label,
+				'created_at' => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
 			),
-			array( '%s', '%s', '%s' )
+			array( '%s', '%d', '%s', '%s', '%s' )
 		);
 	}
 
@@ -1101,10 +1098,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		wp_delete_old_sync_updates();
 
 		global $wpdb;
-		$remaining = $wpdb->get_col( "SELECT update_value FROM {$wpdb->sync_updates}" );
+		$remaining = $wpdb->get_col( "SELECT data FROM {$wpdb->sync_updates}" );
 
 		$this->assertCount( 1, $remaining, 'Only the row within the 7-day window should remain.' );
-		$this->assertStringContainsString( 'just-inside', $remaining[0], 'The surviving row should be the one inside the window.' );
+		$this->assertSame( 'just-inside', $remaining[0], 'The surviving row should be the one inside the window.' );
 	}
 
 	/**
