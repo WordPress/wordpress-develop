@@ -3202,6 +3202,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'height', $metadata, 'Metadata should contain height.' );
 		$this->assertArrayHasKey( 'filesize', $metadata, 'Metadata should contain filesize.' );
 		$this->assertArrayHasKey( 'file', $metadata, 'Metadata should contain file.' );
+		$this->assertStringContainsString( 'scaled', $metadata['file'], 'Metadata file should reference the scaled version.' );
 		$this->assertGreaterThan( 0, $metadata['width'], 'Width should be positive.' );
 		$this->assertGreaterThan( 0, $metadata['height'], 'Height should be positive.' );
 		$this->assertGreaterThan( 0, $metadata['filesize'], 'Filesize should be positive.' );
