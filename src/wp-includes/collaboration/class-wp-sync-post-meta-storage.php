@@ -123,7 +123,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		return $updates;
 	}
 
-	public function get_awareness_cache_key( $post_id ) {
+	public function get_awareness_transient_key( $post_id ) {
 		$cache_key = self::AWARENESS_TRANSIENT_PREFIX . '_' . $post_id;
 		if ( strlen( $cache_key ) <= 172 ) {
 			// Safe length for a transient key.
@@ -147,7 +147,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return array();
 		}
 
-		$awareness = get_transient( $this->get_awareness_cache_key( $post_id ) );
+		$awareness = get_transient( $this->get_awareness_transient_key( $post_id ) );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -171,7 +171,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		set_transient( $this->get_awareness_cache_key( $post_id ), $awareness, HOUR_IN_SECONDS );
+		set_transient( $this->get_awareness_transient_key( $post_id ), $awareness, HOUR_IN_SECONDS );
 		return true;
 	}
 
