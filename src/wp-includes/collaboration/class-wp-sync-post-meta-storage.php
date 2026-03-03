@@ -124,7 +124,13 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	}
 
 	public function get_awareness_cache_key( $post_id ) {
-		return self::AWARENESS_TRANSIENT_PREFIX . '_' . $post_id;
+		$cache_key = self::AWARENESS_TRANSIENT_PREFIX . '_' . $post_id;
+		if ( strlen( $cache_key ) <= 172 ) {
+			// Safe length for a transient key.
+			return $cache_key;
+		}
+		// If the cache key is too long, hash it to ensure it fits within limits.
+		return md5( $cache_key );
 	}
 
 	/**
