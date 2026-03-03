@@ -5583,6 +5583,34 @@ function wp_validate_css_for_style_element( $css ) {
 		$at += 1 + strcspn( $css, '<', $at + 1 )
 	) {
 		$remaining_strlen = $length - $at;
+		/**
+		 * Custom CSS text is expected to render inside an HTML STYLE element.
+		 * A STYLE closing tag must not appear within the CSS text because it
+		 * would close the element prematurely.
+		 *
+		 * The text must also *not* end with a partial closing tag (e.g., `<`,
+		 * `</`, … `</style`) because subsequent styles which are concatenated
+		 * could complete it, forming a valid `</style>` tag.
+		 *
+		 * Example:
+		 *
+		 *     $style_a = 'p { font-weight: bold; </sty';
+		 *     $style_b = 'le> gotcha!';
+		 *     $combined = "{$style_a}{$style_b}";
+		 *
+		 *     $style_a = 'p { font-weight: bold; </style';
+		 *     $style_b = 'p > b { color: red; }';
+		 *     $combined = "{$style_a}\n{$style_b}";
+		 *
+		 * Note how in the second example, both of the style contents are benign
+		 * when analyzed on their own. The first style was likely the result of
+		 * improper truncation, while the second is perfectly sound. It was only
+		 * through concatenation that these two styles combined to form content
+		 * that would have broken out of the containing STYLE element, thus
+		 * corrupting the page and potentially introducing security issues.
+		 *
+		 * @link https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-name-state
+		 */
 		$possible_style_close_tag = 0 === substr_compare(
 			$css,
 			'</style',
