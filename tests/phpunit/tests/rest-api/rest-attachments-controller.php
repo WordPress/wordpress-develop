@@ -3253,8 +3253,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$endpoint = $route[0];
 		$args     = $endpoint['args'];
 
-		$this->assertArrayHasKey( 'image_size', $args, 'Route should have image_size arg.' );
-		$this->assertContains( 'scaled', $args['image_size']['enum'], 'image_size enum should include scaled.' );
+		$param_name = 'image_size';
+		$this->assertArrayHasKey( $param_name, $args, 'Route should have image_size arg.' );
+		$this->assertContains( 'scaled', $args[ $param_name ]['enum'], 'image_size enum should include scaled.' );
 	}
 
 	/**
