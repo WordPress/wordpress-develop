@@ -364,9 +364,7 @@ class WP_oEmbed {
 			return false;
 		}
 
-		$data = $this->fetch( $provider, $url, $args );
-
-		return $data;
+		return $this->fetch( $provider, $url, $args );
 	}
 
 	/**
