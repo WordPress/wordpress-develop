@@ -330,4 +330,16 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
+
+	/**
+	 * @covers WP_Posts_List_Table::print_column_headers
+	 */
+	public function test_sortable_columns_set_comments_descending_by_default() {
+		ob_start();
+		$this->table->print_column_headers();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '?orderby=comment_count&#038;order=desc', $output, 'Mismatch of the default link ordering for comments column. Should be desc.' );
+		$this->assertMatchesRegularExpression( '/column-comments[^"\\n]*sortable asc/', $output, 'Mismatch of CSS classes for the comments column.' );
+	}
 }

@@ -219,8 +219,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 			'name'        => array( 'name', false, _x( 'Name', 'term name' ), $name_orderby_text, 'asc' ),
 			'description' => array( 'description', false, __( 'Description' ), __( 'Table ordered by Description.' ) ),
 			'slug'        => array( 'slug', false, __( 'Slug' ), __( 'Table ordered by Slug.' ) ),
-			'posts'       => array( 'count', false, _x( 'Count', 'Number/count of items' ), __( 'Table ordered by Posts Count.' ) ),
-			'links'       => array( 'count', false, __( 'Links' ), __( 'Table ordered by Links.' ) ),
+			'posts'       => array( 'count', true, _x( 'Count', 'Number/count of items' ), __( 'Table ordered by Posts Count.' ) ),
+			'links'       => array( 'count', true, __( 'Links' ), __( 'Table ordered by Links.' ) ),
 		);
 	}
 

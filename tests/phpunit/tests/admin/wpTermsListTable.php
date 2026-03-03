@@ -87,4 +87,16 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Delete', $actions, 'Delete action should be displayed to the admin.' );
 		$this->assertStringContainsString( admin_url( 'term.php' ), $actions, 'Edit term link should be displayed to the admin.' );
 	}
+
+	/**
+	 * @covers WP_Terms_List_Table::print_column_headers
+	 */
+	public function test_sortable_columns_set_count_columns_descending_by_default() {
+		ob_start();
+		$this->terms_list_table->print_column_headers();
+		$category_output = ob_get_clean();
+
+		$this->assertStringContainsString( '?orderby=count&#038;order=desc', $category_output, 'Mismatch of the default link ordering for posts count column. Should be desc.' );
+		$this->assertStringContainsString( 'column-posts sortable asc', $category_output, 'Mismatch of CSS classes for the posts count column.' );
+	}
 }

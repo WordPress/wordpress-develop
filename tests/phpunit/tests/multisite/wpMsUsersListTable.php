@@ -104,4 +104,16 @@ class Tests_Multisite_wpMsUsersListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
+
+	/**
+	 * @covers WP_MS_Users_List_Table::print_column_headers
+	 */
+	public function test_sortable_columns_set_registered_descending_by_default() {
+		ob_start();
+		$this->table->print_column_headers();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '?orderby=id&#038;order=desc', $output, 'Mismatch of the default link ordering for registered column. Should be desc.' );
+		$this->assertStringContainsString( 'column-registered sortable asc', $output, 'Mismatch of CSS classes for the registered column.' );
+	}
 }
