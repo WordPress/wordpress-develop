@@ -406,7 +406,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param {string|jQuery|Element} textarea - The HTML id, jQuery object, or DOM Element for the textarea that is used for the editor.
+	 * @param {string|JQuery<HTMLElement>|HTMLElement} textarea - The HTML id, jQuery object, or DOM Element for the textarea that is used for the editor.
 	 * @param {CodeEditorSettings}    [settings] - Settings to override defaults.
 	 *
 	 * @return {CodeEditorInstance} Instance.
