@@ -51,6 +51,14 @@ export const THIRD_USER = {
 const BASE_URL = process.env.WP_BASE_URL || 'http://localhost:8889';
 
 /**
+ * Default timeout (ms) for sync-related assertions.
+ *
+ * @since 7.0.0
+ * @type {number}
+ */
+export const SYNC_TIMEOUT = 10_000;
+
+/**
  * Manages multi-user collaborative editing sessions for E2E tests.
  *
  * Handles browser context creation, user login, editor navigation,
@@ -260,7 +268,7 @@ export default class CollaborationUtils {
 				( response ) =>
 					response.url().includes( 'wp-sync' ) &&
 					response.status() === 200,
-				{ timeout: 10000 }
+				{ timeout: SYNC_TIMEOUT }
 			);
 		}
 	}
@@ -329,6 +337,95 @@ export default class CollaborationUtils {
 			);
 		}
 		return this._thirdEditor;
+	}
+
+	/**
+	 * Create a draft post and open a collaborative session on it.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param {Object} options Options forwarded to `requestUtils.createPost()`.
+	 * @return {Object} The created post object.
+	 */
+	async createCollaborativePost( options = {} ) {
+		const post = await this.requestUtils.createPost( {
+			status: 'draft',
+			date_gmt: new Date().toISOString(),
+			...options,
+		} );
+		await this.openCollaborativeSession( post.id );
+		return post;
+	}
+
+	/**
+	 * Insert a block on a secondary page via `page.evaluate()`.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param {import('@playwright/test').Page} page       The page to insert on.
+	 * @param {string}                          blockName  Block name, e.g. 'core/paragraph'.
+	 * @param {Object}                          attributes Block attributes.
+	 */
+	async insertBlockViaEvaluate( page, blockName, attributes ) {
+		await page.evaluate(
+			( { name, attrs } ) => {
+				const block = window.wp.blocks.createBlock( name, attrs );
+				window.wp.data
+					.dispatch( 'core/block-editor' )
+					.insertBlock( block );
+			},
+			{ name: blockName, attrs: attributes }
+		);
+	}
+
+	/**
+	 * Assert that an editor contains (or does not contain) blocks with
+	 * the given content strings.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param {Editor}   ed       Editor instance to check.
+	 * @param {string[]} expected Content strings that must be present.
+	 * @param {Object}   options
+	 * @param {string[]} options.not     Content strings that must NOT be present.
+	 * @param {number}   options.timeout Assertion timeout in ms.
+	 */
+	async assertEditorHasContent(
+		ed,
+		expected,
+		{ not: notExpected = [], timeout = SYNC_TIMEOUT } = {}
+	) {
+		await expect( async () => {
+			const blocks = await ed.getBlocks();
+			const contents = blocks.map( ( b ) => b.attributes.content );
+			for ( const item of expected ) {
+				expect( contents ).toContain( item );
+			}
+			for ( const item of notExpected ) {
+				expect( contents ).not.toContain( item );
+			}
+		} ).toPass( { timeout } );
+	}
+
+	/**
+	 * Assert content across all open editors (primary + collaborators).
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param {string[]} expected Content strings that must be present.
+	 * @param {Object}   options  Options forwarded to `assertEditorHasContent()`.
+	 */
+	async assertAllEditorsHaveContent( expected, options = {} ) {
+		const editors = [ this.editor ];
+		if ( this._secondEditor ) {
+			editors.push( this._secondEditor );
+		}
+		if ( this._thirdEditor ) {
+			editors.push( this._thirdEditor );
+		}
+		for ( const ed of editors ) {
+			await this.assertEditorHasContent( ed, expected, options );
+		}
 	}
 
 	/**

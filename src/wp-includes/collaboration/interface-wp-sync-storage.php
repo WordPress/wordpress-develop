@@ -57,8 +57,7 @@ interface WP_Sync_Storage {
 	public function get_update_count( string $room ): int;
 
 	/**
-	 * Retrieves sync updates from a room for a given client and cursor. Updates
-	 * from the specified client should be excluded.
+	 * Retrieves sync updates from a room after the given cursor.
 	 *
 	 * @since 7.0.0
 	 *

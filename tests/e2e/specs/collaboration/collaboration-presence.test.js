@@ -11,54 +11,48 @@
 /**
  * Internal dependencies
  */
-import { test, expect } from './fixtures';
+import { test, expect, SYNC_TIMEOUT } from './fixtures';
 
 test.describe( 'Collaboration - Presence', () => {
 	test( 'All 3 collaborator avatars are visible', async ( {
 		collaborationUtils,
-		requestUtils,
 		page,
 	} ) => {
-		const post = await requestUtils.createPost( {
+		await collaborationUtils.createCollaborativePost( {
 			title: 'Presence Test - 3 Users',
-			status: 'draft',
-			date_gmt: new Date().toISOString(),
 		} );
-		await collaborationUtils.openCollaborativeSession( post.id );
 
 		const { page2, page3 } = collaborationUtils;
 
 		// Each user sees the collaborators list button (indicates others are present).
 		await expect(
 			page.getByRole( 'button', { name: /Collaborators list/ } )
-		).toBeVisible( { timeout: 10000 } );
+		).toBeVisible( { timeout: SYNC_TIMEOUT } );
 
 		await expect(
 			page2.getByRole( 'button', { name: /Collaborators list/ } )
-		).toBeVisible( { timeout: 10000 } );
+		).toBeVisible( { timeout: SYNC_TIMEOUT } );
 
 		await expect(
 			page3.getByRole( 'button', { name: /Collaborators list/ } )
-		).toBeVisible( { timeout: 10000 } );
+		).toBeVisible( { timeout: SYNC_TIMEOUT } );
 	} );
 
 	test( 'Collaborator names appear in popover', async ( {
 		collaborationUtils,
-		requestUtils,
 		page,
 	} ) => {
-		const post = await requestUtils.createPost( {
+		await collaborationUtils.createCollaborativePost( {
 			title: 'Presence Test - Names',
-			status: 'draft',
-			date_gmt: new Date().toISOString(),
 		} );
-		await collaborationUtils.openCollaborativeSession( post.id );
 
 		// User A opens the collaborators popover.
 		const presenceButton = page.getByRole( 'button', {
 			name: /Collaborators list/,
 		} );
-		await expect( presenceButton ).toBeVisible( { timeout: 10000 } );
+		await expect( presenceButton ).toBeVisible( {
+			timeout: SYNC_TIMEOUT,
+		} );
 		await presenceButton.click();
 
 		// The popover should list both collaborators by name.
@@ -73,22 +67,16 @@ test.describe( 'Collaboration - Presence', () => {
 
 	test( 'User C leaves, A and B see updated presence', async ( {
 		collaborationUtils,
-		requestUtils,
 		page,
 	} ) => {
-		const post = await requestUtils.createPost( {
+		await collaborationUtils.createCollaborativePost( {
 			title: 'Presence Test - Leave',
-			status: 'draft',
-			date_gmt: new Date().toISOString(),
 		} );
-		await collaborationUtils.openCollaborativeSession( post.id );
-
-		const { page2 } = collaborationUtils;
 
 		// Verify all 3 users see the collaborators button initially.
 		await expect(
 			page.getByRole( 'button', { name: /Collaborators list/ } )
-		).toBeVisible( { timeout: 10000 } );
+		).toBeVisible( { timeout: SYNC_TIMEOUT } );
 
 		// Close User C's context to simulate leaving.
 		await collaborationUtils.page3.close();

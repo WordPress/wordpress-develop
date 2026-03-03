@@ -17,7 +17,8 @@ export { expect } from '@wordpress/e2e-test-utils-playwright';
 /**
  * Internal dependencies
  */
-import CollaborationUtils, { SECOND_USER, THIRD_USER } from './collaboration-utils';
+import CollaborationUtils, { SECOND_USER, THIRD_USER, SYNC_TIMEOUT } from './collaboration-utils';
+export { SYNC_TIMEOUT };
 
 export const test = base.extend( {
 	collaborationUtils: async (
