@@ -23,7 +23,8 @@
 			"codemirror/addon/hint/show-hint"
 		]
 	},
-	"include": [
+	"include": [],
+	"files": [
 		"src/js/_enqueues/wp/code-editor.js",
 		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
 		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js"
