@@ -14,6 +14,9 @@
 		"skipLibCheck": true,
 		"isolatedModules": true,
 		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": false,
+		"resolveJsonModule": false,
+
 		"lib": [ "es2020", "dom" ],
 		"typeRoots": [ "./typings", "./node_modules/@types" ],
 		"types": [
