@@ -6,7 +6,6 @@
  * @covers WP_AI_Client_Ability_Function_Resolver
  */
 
-use WordPress\AiClient\Messages\DTO\Message;
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Messages\DTO\ModelMessage;
 use WordPress\AiClient\Messages\DTO\UserMessage;
