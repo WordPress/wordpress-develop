@@ -3,6 +3,7 @@
  * WP_HTTP_Polling_Sync_Server class
  *
  * @package WordPress
+ * @since 7.0.0
  */
 
 /**
@@ -73,6 +74,7 @@ class WP_HTTP_Polling_Sync_Server {
 	 * Storage backend for sync updates.
 	 *
 	 * @since 7.0.0
+	 * @var WP_Sync_Storage
 	 */
 	private WP_Sync_Storage $storage;
 

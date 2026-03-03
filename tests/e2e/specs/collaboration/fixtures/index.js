@@ -1,4 +1,14 @@
 /**
+ * Collaboration E2E test fixtures.
+ *
+ * Extends the base Playwright test with a `collaborationUtils` fixture
+ * that provisions three users and enables real-time collaboration.
+ *
+ * @package WordPress
+ * @since 7.0.0
+ */
+
+/**
  * WordPress dependencies
  */
 import { test as base } from '@wordpress/e2e-test-utils-playwright';

@@ -3,6 +3,7 @@
  * WP_Sync_Table_Storage class
  *
  * @package WordPress
+ * @since 7.0.0
  */
 
 /**
@@ -201,17 +202,6 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	}
 
 	/**
-	 * Sets awareness state for a given room.
-	 *
-	 * Awareness is ephemeral and stored as a transient with a short timeout.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param string            $room      Room identifier.
-	 * @param array<int, mixed> $awareness Serializable awareness state.
-	 * @return bool True on success, false on failure.
-	 */
-	/**
 	 * Returns the transient key used to store awareness state for a room.
 	 *
 	 * The room name is hashed with md5 to guarantee the key stays within
@@ -227,6 +217,17 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		return 'sync_awareness_' . md5( $room );
 	}
 
+	/**
+	 * Sets awareness state for a given room.
+	 *
+	 * Awareness is ephemeral and stored as a transient with a short timeout.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string            $room      Room identifier.
+	 * @param array<int, mixed> $awareness Serializable awareness state.
+	 * @return bool True on success, false on failure.
+	 */
 	public function set_awareness_state( string $room, array $awareness ): bool {
 		// Awareness is high-frequency, short-lived data (cursor positions, selections)
 		// that doesn't need cursor-based history. Transients avoid row churn in the table.

@@ -1,4 +1,14 @@
 /**
+ * Tests for collaborative editing presence (awareness).
+ *
+ * Verifies that collaborator avatars, names, and leave events
+ * propagate correctly between three concurrent users.
+ *
+ * @package WordPress
+ * @since 7.0.0
+ */
+
+/**
  * Internal dependencies
  */
 import { test, expect } from './fixtures';

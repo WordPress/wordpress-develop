@@ -1,4 +1,15 @@
 /**
+ * Tests for collaborative editing sync (CRDT document replication).
+ *
+ * Verifies that block insertions, deletions, edits, title changes,
+ * and late-join state transfer propagate correctly between three
+ * concurrent users.
+ *
+ * @package WordPress
+ * @since 7.0.0
+ */
+
+/**
  * Internal dependencies
  */
 import { test, expect } from './fixtures';

@@ -1,4 +1,14 @@
 /**
+ * Collaboration E2E test utilities.
+ *
+ * Provides helpers for setting up multi-user collaborative editing
+ * sessions, managing browser contexts, and waiting for sync cycles.
+ *
+ * @package WordPress
+ * @since 7.0.0
+ */
+
+/**
  * External dependencies
  */
 import { expect } from '@playwright/test';
@@ -8,6 +18,12 @@ import { expect } from '@playwright/test';
  */
 import { Editor } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * Credentials for the second collaborator user.
+ *
+ * @since 7.0.0
+ * @type {Object}
+ */
 export const SECOND_USER = {
 	username: 'collaborator',
 	email: 'collaborator@example.com',
@@ -17,6 +33,12 @@ export const SECOND_USER = {
 	roles: [ 'editor' ],
 };
 
+/**
+ * Credentials for the third collaborator user.
+ *
+ * @since 7.0.0
+ * @type {Object}
+ */
 export const THIRD_USER = {
 	username: 'collaborator2',
 	email: 'collaborator2@example.com',
@@ -28,6 +50,14 @@ export const THIRD_USER = {
 
 const BASE_URL = process.env.WP_BASE_URL || 'http://localhost:8889';
 
+/**
+ * Manages multi-user collaborative editing sessions for E2E tests.
+ *
+ * Handles browser context creation, user login, editor navigation,
+ * and sync-cycle waiting for up to three concurrent users.
+ *
+ * @since 7.0.0
+ */
 export default class CollaborationUtils {
 	constructor( { admin, editor, requestUtils, page } ) {
 		this.admin = admin;

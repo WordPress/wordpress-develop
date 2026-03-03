@@ -1,4 +1,14 @@
 /**
+ * Tests for collaborative editing undo/redo.
+ *
+ * Verifies that undo and redo operations affect only the originating
+ * user's changes while preserving other collaborators' edits.
+ *
+ * @package WordPress
+ * @since 7.0.0
+ */
+
+/**
  * Internal dependencies
  */
 import { test, expect } from './fixtures';

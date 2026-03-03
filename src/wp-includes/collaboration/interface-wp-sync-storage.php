@@ -3,8 +3,14 @@
  * WP_Sync_Storage interface
  *
  * @package WordPress
+ * @since 7.0.0
  */
 
+/**
+ * Interface for sync storage backends used by the collaborative editing server.
+ *
+ * @since 7.0.0
+ */
 interface WP_Sync_Storage {
 	/**
 	 * Adds a sync update to a given room.
