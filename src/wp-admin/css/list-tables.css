@@ -1082,7 +1082,7 @@ tr.inline-edit-row td {
 }
 
 .inline-edit-row select,
-.inline-edit-row input:not([type=checkbox],[type=radio],[type=submit]) {
+.inline-edit-row input:where(:not([type=checkbox],[type=radio],[type=submit],[type=button])) {
 	line-height: 2.14285714;
 	min-height: 32px;
 	padding: 0 24px 0 8px;
