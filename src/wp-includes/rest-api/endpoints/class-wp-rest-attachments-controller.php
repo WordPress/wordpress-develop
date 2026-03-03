@@ -2069,6 +2069,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			$metadata['original_image'] = wp_basename( $current_file );
 
+			// Validate the scaled image before updating the attached file.
+			$size     = wp_getimagesize( $path );
+			$filesize = wp_filesize( $path );
+
+			if ( ! $size || ! $filesize ) {
+				return new WP_Error(
+					'rest_sideload_invalid_image',
+					__( 'Unable to read the scaled image file.' ),
+					array( 'status' => 500 )
+				);
+			}
+
 			// Update the attached file to point to the scaled version.
 			if (
 				get_post_meta( $attachment_id, '_wp_attached_file', true ) !== $path &&
@@ -2081,11 +2093,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				);
 			}
 
-			$size = wp_getimagesize( $path );
-
-			$metadata['width']    = $size ? $size[0] : 0;
-			$metadata['height']   = $size ? $size[1] : 0;
-			$metadata['filesize'] = wp_filesize( $path );
+			$metadata['width']    = $size[0];
+			$metadata['height']   = $size[1];
+			$metadata['filesize'] = $filesize;
 			$metadata['file']     = _wp_relative_upload_path( $path );
 		} else {
 			$metadata['sizes'] = $metadata['sizes'] ?? array();
