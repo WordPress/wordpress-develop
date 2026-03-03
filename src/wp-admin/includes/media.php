@@ -319,6 +319,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$title   = sanitize_text_field( $name );
 	$content = '';
 	$excerpt = '';
+	$alt     = '';
 
 	if ( preg_match( '#^audio#', $type ) ) {
 		$meta = wp_read_audio_metadata( $file );
@@ -399,6 +400,10 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 			if ( trim( $image_meta['caption'] ) ) {
 				$excerpt = $image_meta['caption'];
 			}
+
+			if ( trim( $image_meta['alt'] ) ) {
+				$alt = $image_meta['alt'];
+			}
 		}
 	}
 
@@ -420,6 +425,10 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 
 	// Save the data.
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
+
+	if ( trim( $alt ) ) {
+		update_post_meta( $attachment_id, '_wp_attachment_image_alt', $alt );
+	}
 
 	if ( ! is_wp_error( $attachment_id ) ) {
 		/*
