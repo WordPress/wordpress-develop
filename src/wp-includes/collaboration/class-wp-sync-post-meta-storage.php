@@ -123,6 +123,14 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		return $updates;
 	}
 
+	/**
+	 * Gets the transient key for awareness state for a given post ID.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param int $post_id Post ID.
+	 * @return string Transient key for awareness state.
+	 */
 	public function get_awareness_transient_key( $post_id ) {
 		$cache_key = self::AWARENESS_TRANSIENT_PREFIX . '_' . $post_id;
 		if ( strlen( $cache_key ) <= 172 ) {
