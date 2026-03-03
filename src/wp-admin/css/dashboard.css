@@ -1428,6 +1428,7 @@ a.rsswidget {
 	}
 
 	.welcome-panel .welcome-panel-close::before {
+		position: absolute;
 		top: 5px;
 		left: -35px;
 	}
