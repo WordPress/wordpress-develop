@@ -103,8 +103,10 @@ async function main( force ) {
 
 		fs.mkdirSync( gutenbergDir, { recursive: true } );
 
-		// Step 3: Stream the blob directly through gunzip into tar, writing
-		// into ./gutenberg with no temporary file on disk.
+		/*
+		 * Step 3: Stream the blob directly through gunzip into tar, writing
+		 * into ./gutenberg with no temporary file on disk.
+		 */
 		console.log( `\n📥 Downloading and extracting artifact...` );
 		try {
 			const response = await fetch( `https://ghcr.io/v2/${ ghcrRepo }/blobs/${ digest }`, {
@@ -116,8 +118,10 @@ async function main( force ) {
 				throw new Error( `Failed to download blob: ${ response.status } ${ response.statusText }` );
 			}
 
-			// Spawn tar to read from stdin and extract into gutenbergDir.
-			// `tar` is available on macOS, Linux, and Windows 10+.
+			/*
+			 * Spawn tar to read from stdin and extract into gutenbergDir.
+			 * `tar` is available on macOS, Linux, and Windows 10+.
+			 */
 			const tar = spawn( 'tar', [ '-x', '-C', gutenbergDir ], {
 				stdio: [ 'pipe', 'inherit', 'inherit' ],
 			} );
@@ -133,9 +137,11 @@ async function main( force ) {
 				tar.on( 'error', reject );
 			} );
 
-			// Pipe: fetch body → gunzip → tar stdin.
-			// Decompressing in Node keeps the pipeline error handling
-			// consistent and means tar only sees plain tar data on stdin.
+			/*
+			 * Pipe: fetch body → gunzip → tar stdin.
+			 * Decompressing in Node keeps the pipeline error handling
+			 * consistent and means tar only sees plain tar data on stdin.
+			 */
 			await pipeline(
 				response.body,
 				zlib.createGunzip(),

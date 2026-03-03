@@ -19,8 +19,10 @@ const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 const gutenbergBuildDir = path.join( gutenbergDir, 'build' );
 
-// Determine build target from command line argument (--dev or --build-dir)
-// Default to 'src' for development
+/*
+ * Determine build target from command line argument (--dev or --build-dir).
+ * Default to 'src' for development.
+ */
 const args = process.argv.slice( 2 );
 const buildDirArg = args.find( ( arg ) => arg.startsWith( '--build-dir=' ) );
 const buildTarget = buildDirArg
@@ -69,8 +71,10 @@ const COPY_CONFIG = {
 		copyAll: true,
 	},
 
-	// Blocks (to wp-includes/blocks/)
-	// Unified configuration for all block types
+	/*
+	 * Blocks (to wp-includes/blocks/).
+	 * Unified configuration for all block types.
+	 */
 	blocks: {
 		destination: 'blocks',
 		sources: [
@@ -847,10 +851,12 @@ function parsePHPArray( phpArrayContent ) {
 function transformPHPContent( content ) {
 	let transformed = content;
 
-	// Fix boot module asset file path for Core's different directory structure
-	// FROM: __DIR__ . '/../../modules/boot/index.min.asset.php'
-	// TO:   ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'
-	// This is needed because Core copies modules to a different location than the plugin structure
+	/*
+	 * Fix boot module asset file path for Core's different directory structure.
+	 * FROM: __DIR__ . '/../../modules/boot/index.min.asset.php'
+	 * TO:   ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'
+	 * This is needed because Core copies modules to a different location than the plugin structure.
+	 */
 	transformed = transformed.replace(
 		/__DIR__\s*\.\s*['"]\/\.\.\/\.\.\/modules\/boot\/index\.min\.asset\.php['"]/g,
 		"ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'"
@@ -866,9 +872,11 @@ function transformPHPContent( content ) {
  * @return {string} Transformed content.
  */
 function transformManifestPHP( content ) {
-	// Remove 'gutenberg' text domain from _x() calls
-	// FROM: _x( '...', 'icon label', 'gutenberg' )
-	// TO:   _x( '...', 'icon label' )
+	/*
+	 * Remove 'gutenberg' text domain from _x() calls.
+	 * FROM: _x( '...', 'icon label', 'gutenberg' )
+	 * TO:   _x( '...', 'icon label' )
+	 */
 	const transformedContent = content.replace(
 		/_x\(\s*([^,]+),\s*([^,]+),\s*['"]gutenberg['"]\s*\)/g,
 		'_x( $1, $2 )'
@@ -933,9 +941,11 @@ async function main() {
 	const scriptsSrc = path.join( gutenbergBuildDir, scriptsConfig.source );
 	const scriptsDest = path.join( wpIncludesDir, scriptsConfig.destination );
 
-	// Transform function to remove source map comments from all JS files.
-	// Only match actual source map comments at the start of a line (possibly
-	// with whitespace), not occurrences inside string literals.
+	/*
+	 * Transform function to remove source map comments from all JS files.
+	 * Only match actual source map comments at the start of a line (possibly
+	 * with whitespace), not occurrences inside string literals.
+	 */
 	const removeSourceMaps = ( content ) => {
 		return content.replace( /^\s*\/\/# sourceMappingURL=.*$/gm, '' ).trimEnd();
 	};
@@ -953,8 +963,10 @@ async function main() {
 					scriptsConfig.directoryRenames &&
 					scriptsConfig.directoryRenames[ entry.name ]
 				) {
-					// Copy special directories with rename (vendors/ → vendor/)
-					// Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules)
+					/*
+					 * Copy special directories with rename (vendors/ → vendor/).
+					 * Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules).
+					 */
 					const destName =
 						scriptsConfig.directoryRenames[ entry.name ];
 					const dest = path.join( scriptsDest, destName );
@@ -992,8 +1004,10 @@ async function main() {
 						);
 					}
 				} else {
-					// Flatten package structure: package-name/index.js → package-name.js
-					// This matches Core's expected file structure
+					/*
+					 * Flatten package structure: package-name/index.js → package-name.js.
+					 * This matches Core's expected file structure.
+					 */
 					const packageFiles = fs.readdirSync( src );
 
 					for ( const file of packageFiles ) {
