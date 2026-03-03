@@ -284,7 +284,7 @@ p {
 
 .login h1 a {
 	background-image: url(../images/w-logo-gray.png?ver=20260302);
-	background-image: none, url(../images/wordpress-logo.svg?ver=20131107);
+	background-image: none, url(../images/wordpress-logo-gray.svg?ver=20131107);
 	background-size: 84px;
 	background-position: center top;
 	background-repeat: no-repeat;
