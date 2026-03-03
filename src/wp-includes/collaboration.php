@@ -29,7 +29,7 @@ function wp_is_collaboration_enabled() {
  * @access private
  */
 function wp_collaboration_inject_setting() {
-	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
+	if ( wp_is_collaboration_enabled() ) {
 		wp_add_inline_script(
 			'wp-core-data',
 			'window._wpCollaborationEnabled = true;',
@@ -47,6 +47,10 @@ function wp_collaboration_inject_setting() {
  * @since 7.0.0
  */
 function wp_delete_old_sync_updates() {
+	if ( ! wp_is_collaboration_enabled() ) {
+		return;
+	}
+
 	global $wpdb;
 
 	$wpdb->query(
