@@ -1,4 +1,5 @@
 {
+	"$schema": "https://json.schemastore.org/tsconfig",
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
@@ -12,10 +13,7 @@
 		"skipLibCheck": true,
 		"isolatedModules": true,
 		"allowSyntheticDefaultImports": true,
-		"lib": [
-			"es2020",
-			"dom"
-		],
+		"lib": [ "es2020", "dom" ],
 		"typeRoots": [ "./typings", "./node_modules/@types" ],
 		"types": [
 			"wp-globals",
