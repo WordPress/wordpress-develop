@@ -3247,9 +3247,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$server = rest_get_server();
 		$routes = $server->get_routes();
 
-		$this->assertArrayHasKey( '/wp/v2/media/(?P<id>[\d]+)/sideload', $routes, 'Sideload route should exist.' );
+		$endpoint = '/wp/v2/media/(?P<id>[\d]+)/sideload';
+		$this->assertArrayHasKey( $endpoint, $routes, 'Sideload route should exist.' );
 
-		$route    = $routes['/wp/v2/media/(?P<id>[\d]+)/sideload'];
+		$route    = $routes[ $endpoint ];
 		$endpoint = $route[0];
 		$args     = $endpoint['args'];
 
