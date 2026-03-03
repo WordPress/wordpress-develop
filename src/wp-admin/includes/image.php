@@ -1089,7 +1089,7 @@ function wp_get_image_alttext( $file ) {
 	$img_contents = file_get_contents( $file );
 	// Find the start and end positions of the XMP metadata.
 	$xmp_start = strpos( $img_contents, '<x:xmpmeta' );
-	$xmp_end   = strpos( $img_contents, '</x:xmpmeta>');
+	$xmp_end   = strpos( $img_contents, '</x:xmpmeta>' );
 
 	if ( ! $xmp_start || ! $xmp_end ) {
 		// No XMP metadata found.
@@ -1132,10 +1132,10 @@ function wp_get_image_alttext( $file ) {
 		// Evaluate in that order, stopping when we have a match.
 		$value = $xpath->evaluate( "string( rdf:Alt/rdf:li[ @xml:lang = '{$locale}' ] )", $node );
 		if ( ! $value ) {
-				$value = $xpath->evaluate( 'string( rdf:Alt/rdf:li[ @xml:lang = "' . substr( $locale, 0, 2 ) . '" ] )', $node );
-				if ( ! $value ) {
-						$value = $xpath->evaluate( 'string( rdf:Alt/rdf:li[ @xml:lang = "x-default" ] )', $node );
-				}
+			$value = $xpath->evaluate( 'string( rdf:Alt/rdf:li[ @xml:lang = "' . substr( $locale, 0, 2 ) . '" ] )', $node );
+			if ( ! $value ) {
+				$value = $xpath->evaluate( 'string( rdf:Alt/rdf:li[ @xml:lang = "x-default" ] )', $node );
+			}
 		}
 	}
 
