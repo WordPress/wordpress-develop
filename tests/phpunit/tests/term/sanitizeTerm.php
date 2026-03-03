@@ -48,7 +48,7 @@ class Tests_Term_SanitizeTerm extends WP_UnitTestCase {
 	 * }>
 	 */
 	public function data_sanitize_term(): array {
-		$description = 'Test <script>document.write("Hello")</script> Description';
+		$description = 'Test <script>console.log("Hello")</script> Description';
 
 		return array(
 			'Object with term_id, edit context'    => array(

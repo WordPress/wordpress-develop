@@ -19,7 +19,7 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 		global $wpdb;
 		$wpdb->update(
 			$wpdb->posts,
-			array( 'post_title' => 'Test <script>document.write("Hello, World!")</script> Title' ),
+			array( 'post_title' => 'Test <script>console.log("Hello, World!")</script> Title' ),
 			array( 'ID' => self::$post_id )
 		);
 		clean_post_cache( self::$post_id );
@@ -111,7 +111,6 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 		$this->assertSame( $filter, $post->filter );
 	}
 
-
 	/**
 	 * Data provider for test_get_post_sanitization.
 	 *
@@ -124,23 +123,23 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 		return array(
 			'Raw filter'       => array(
 				'filter'   => 'raw',
-				'expected' => 'Test <script>document.write("Hello, World!")</script> Title',
+				'expected' => 'Test <script>console.log("Hello, World!")</script> Title',
 			),
 			'Edit filter'      => array(
 				'filter'   => 'edit',
-				'expected' => 'Test &lt;script&gt;document.write(&quot;Hello, World!&quot;)&lt;/script&gt; Title',
+				'expected' => 'Test &lt;script&gt;console.log(&quot;Hello, World!&quot;)&lt;/script&gt; Title',
 			),
 			'Display filter'   => array(
 				'filter'   => 'display',
-				'expected' => 'Test <script>document.write("Hello, World!")</script> Title',
+				'expected' => 'Test <script>console.log("Hello, World!")</script> Title',
 			),
 			'Attribute filter' => array(
 				'filter'   => 'attribute',
-				'expected' => 'Test &lt;script&gt;document.write(&quot;Hello, World!&quot;)&lt;/script&gt; Title',
+				'expected' => 'Test &lt;script&gt;console.log(&quot;Hello, World!&quot;)&lt;/script&gt; Title',
 			),
 			'JS filter'        => array(
 				'filter'   => 'js',
-				'expected' => 'Test &lt;script&gt;document.write(&quot;Hello, World!&quot;)&lt;/script&gt; Title',
+				'expected' => 'Test &lt;script&gt;console.log(&quot;Hello, World!&quot;)&lt;/script&gt; Title',
 			),
 		);
 	}
