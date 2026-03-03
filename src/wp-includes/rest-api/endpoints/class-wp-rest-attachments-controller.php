@@ -2151,7 +2151,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$size = wp_getimagesize( $path );
 
 		// Validate dimensions match expected size.
-		if ( $size ) {
+		if ( is_array( $size ) ) {
 			$validation = $this->validate_image_dimensions( $size[0], $size[1], $image_size, $attachment_id );
 			if ( is_wp_error( $validation ) ) {
 				// Clean up the uploaded file.
