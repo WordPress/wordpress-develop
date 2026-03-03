@@ -1,0 +1,112 @@
+##
+# A reusable workflow that runs JavaScript Type Checking.
+##
+name: JavaScript Type Checking
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs JavaScript type checking.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Sets up PHP.
+  # - Logs debug information.
+  # - Installs Composer dependencies.
+  # - Make Composer packages available globally.
+  # - Installs npm dependencies.
+  # - Build WordPress.
+  # - Configures caching for TypeScript build info.
+  # - Runs JavaScript type checking.
+  # - Saves the TypeScript build info.
+  # - Ensures version-controlled files are not modified or deleted.
+  typecheck:
+    name: Run JavaScript type checking
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@20529878ed81ef8e78ddf08b480401e6101a850f # v2.35.3
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: none
+
+      # This date is used to ensure that the Composer cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          composer --version
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@3cf229dc2919194e9e36783941438d17239e8520 # v3.1.1
+        with:
+          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
+
+      - name: Make Composer packages available globally
+        run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
+
+      - name: Install npm dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build WordPress
+        run: npm run build:dev
+
+      - name: Cache TypeScript build info
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            *.tsbuildinfo
+          key: "ts-build-info-${{ github.run_id }}"
+          restore-keys: |
+            ts-build-info-
+
+      - name: Run JavaScript type checking
+        run: npm run typecheck:js
+
+      - name: "Save result cache"
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        if: ${{ !cancelled() }}
+        with:
+          path: |
+            *.tsbuildinfo
+          key: "ts-build-info-${{ github.run_id }}"
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
