@@ -18,9 +18,7 @@ class Tests_Admin_wpLinksListTable extends WP_UnitTestCase {
 	 * @covers WP_Links_List_Table::print_column_headers
 	 */
 	public function test_sortable_columns_set_rating_descending_by_default() {
-		ob_start();
-		$this->table->print_column_headers();
-		$output = ob_get_clean();
+		$output = get_echo( array( $this->table, 'print_column_headers' ) );
 
 		$this->assertStringContainsString( '?orderby=rating&#038;order=desc', $output, 'Mismatch of the default link ordering for rating column. Should be desc.' );
 		$this->assertStringContainsString( 'column-rating sortable asc', $output, 'Mismatch of CSS classes for the rating column.' );

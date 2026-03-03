@@ -483,9 +483,18 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * @covers WP_Media_List_Table::print_column_headers
 	 */
 	public function test_sortable_columns_set_comments_descending_by_default() {
-		ob_start();
-		self::$list_table->print_column_headers();
-		$output = ob_get_clean();
+		$attachment_pages_enabled = get_option( 'wp_attachment_pages_enabled' );
+
+		add_post_type_support( 'attachment', 'comments' );
+		update_option( 'wp_attachment_pages_enabled', 1 );
+
+		$output = get_echo( array( self::$list_table, 'print_column_headers' ) );
+
+		if ( false === $attachment_pages_enabled ) {
+			delete_option( 'wp_attachment_pages_enabled' );
+		} else {
+			update_option( 'wp_attachment_pages_enabled', $attachment_pages_enabled );
+		}
 
 		$this->assertStringContainsString( '?orderby=comment_count&#038;order=desc', $output, 'Mismatch of the default link ordering for comments column. Should be desc.' );
 		$this->assertMatchesRegularExpression( '/column-comments[^"\\n]*sortable asc/', $output, 'Mismatch of CSS classes for the comments column.' );
