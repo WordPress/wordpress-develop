@@ -41,6 +41,27 @@ class Walker_Comment extends Walker {
 	);
 
 	/**
+	 * Parses arguments with defaults.
+	 *
+	 * @since unreleased
+	 *
+	 * @param array $args Arguments to parse.
+	 * @return array Parsed arguments.
+	 */
+	protected function get_args( array $args ): array {
+		return array_merge(
+			array(
+				'style'       => 'ul',
+				'avatar_size' => 32,
+				'format'      => 'xhtml',
+				'short_ping'  => false,
+				'max_depth'   => '',
+			),
+			$args
+		);
+	}
+
+	/**
 	 * Starts the list before the elements are added.
 	 *
 	 * @since 2.7.0
@@ -53,12 +74,7 @@ class Walker_Comment extends Walker {
 	 * @param array  $args   Optional. Uses 'style' argument for type of HTML list. Default empty array.
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'style' => 'ul',
-			)
-		);
+		$args = $this->get_args( $args );
 
 		$GLOBALS['comment_depth'] = $depth + 1;
 
@@ -89,12 +105,7 @@ class Walker_Comment extends Walker {
 	 *                       Default empty array.
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'style' => 'ul',
-			)
-		);
+		$args = $this->get_args( $args );
 
 		$GLOBALS['comment_depth'] = $depth + 1;
 
@@ -185,13 +196,7 @@ class Walker_Comment extends Walker {
 	 * @param int        $current_object_id Optional. ID of the current comment. Default 0.
 	 */
 	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'short_ping' => false,
-				'format'     => 'xhtml',
-			)
-		);
+		$args = $this->get_args( $args );
 
 		// Restores the more descriptive, specific name for use within this method.
 		$comment = $data_object;
@@ -245,12 +250,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args        Optional. An array of arguments. Default empty array.
 	 */
 	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'style' => 'ul',
-			)
-		);
+		$args = $this->get_args( $args );
 
 		if ( ! empty( $args['end-callback'] ) ) {
 			ob_start();
@@ -282,12 +282,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function ping( $comment, $depth, $args ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'style' => 'ul',
-			)
-		);
+		$args = $this->get_args( $args );
 
 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
 		?>
@@ -333,14 +328,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function comment( $comment, $depth, $args ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'style'       => 'ul',
-				'avatar_size' => 32,
-				'max_depth'   => '',
-			)
-		);
+		$args = $this->get_args( $args );
 
 		if ( 'div' === $args['style'] ) {
 			$tag       = 'div';
@@ -452,14 +440,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function html5_comment( $comment, $depth, $args ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'style'       => 'ul',
-				'avatar_size' => 32,
-				'max_depth'   => '',
-			)
-		);
+		$args = $this->get_args( $args );
 
 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
 
