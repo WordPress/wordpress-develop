@@ -3,7 +3,7 @@
 /**
  * Download Gutenberg Repository Script.
  *
- * This script downloads a pre-built Gutenberg zip artifact from the GitHub
+ * This script downloads a pre-built Gutenberg tar.gz artifact from the GitHub
  * Container Registry and extracts it into the ./gutenberg directory.
  *
  * The artifact is identified by the "gutenberg.sha" value in the root
@@ -15,53 +15,11 @@
 
 const { spawn } = require( 'child_process' );
 const fs = require( 'fs' );
+const { Writable } = require( 'stream' );
 const { pipeline } = require( 'stream/promises' );
 const path = require( 'path' );
 const zlib = require( 'zlib' );
 const { rootDir, gutenbergDir, readGutenbergConfig, verifyGutenbergVersion } = require( './utils' );
-
-/**
- * Execute a command. By default, stdio is inherited so progress is visible in
- * the terminal. When `options.captureOutput` is true, stdout is piped and the
- * promise resolves with the captured stdout once the process exits.
- *
- * @param {string}   command - Command to execute.
- * @param {string[]} args    - Command arguments.
- * @param {Object}   options - Spawn options.
- * @return {Promise<string>} Promise that resolves with stdout when command completes successfully.
- */
-function exec( command, args, options = {} ) {
-	return new Promise( ( resolve, reject ) => {
-		let stdout = '';
-
-		const child = spawn( command, args, {
-			cwd: options.cwd || rootDir,
-			stdio: options.captureOutput ? [ 'ignore', 'pipe', 'inherit' ] : 'inherit',
-			shell: process.platform === 'win32',
-			...options,
-		} );
-
-		if ( options.captureOutput && child.stdout ) {
-			child.stdout.on( 'data', ( data ) => {
-				stdout += data.toString();
-			} );
-		}
-
-		child.on( 'close', ( code ) => {
-			if ( code !== 0 ) {
-				reject(
-					new Error(
-						`${ command } ${ args.join( ' ' ) } failed with code ${ code }`
-					)
-				);
-			} else {
-				resolve( stdout.trim() );
-			}
-		} );
-
-		child.on( 'error', reject );
-	} );
-}
 
 /**
  * Main execution function.
@@ -90,19 +48,17 @@ async function main( force ) {
 	// Skip download if the gutenberg directory already exists and --force is not set.
 	let downloaded = false;
 	if ( ! force && fs.existsSync( gutenbergDir ) ) {
-		console.log( '\nℹ️  The `gutenberg` directory already exists. Use `npm run grunt gutenberg-download -- --force` to download a fresh copy.' );
+		console.log( '\nℹ️  The `gutenberg` directory already exists. Use `npm run grunt gutenberg:download -- --force` to download a fresh copy.' );
 	} else {
 		downloaded = true;
-		const zipName = `gutenberg-${ sha }.zip`;
-		const zipPath = path.join( rootDir, zipName );
 
 		// Step 1: Get an anonymous GHCR token for pulling.
 		console.log( '\n🔑 Fetching GHCR token...' );
 		let token;
 		try {
-			const response = await fetch( `https://ghcr.io/token?scope=repository:${ghcrRepo}:pull&service=ghcr.io` );
+			const response = await fetch( `https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io` );
 			if ( ! response.ok ) {
-			    throw new Error( `Failed to fetch token: ${response.status} ${response.statusText}` );
+				throw new Error( `Failed to fetch token: ${ response.status } ${ response.statusText }` );
 			}
 			const data = await response.json();
 			token = data.token;
@@ -139,8 +95,17 @@ async function main( force ) {
 			process.exit( 1 );
 		}
 
-		// Step 3: Download the blob (the zip file).
-		console.log( `\n📥 Downloading ${ zipName }...` );
+		// Remove existing gutenberg directory so the extraction is clean.
+		if ( fs.existsSync( gutenbergDir ) ) {
+			console.log( '\n🗑️  Removing existing gutenberg directory...' );
+			fs.rmSync( gutenbergDir, { recursive: true, force: true } );
+		}
+
+		fs.mkdirSync( gutenbergDir, { recursive: true } );
+
+		// Step 3: Stream the blob directly through gunzip into tar, writing
+		// into ./gutenberg with no temporary file on disk.
+		console.log( `\n📥 Downloading and extracting artifact...` );
 		try {
 			const response = await fetch( `https://ghcr.io/v2/${ ghcrRepo }/blobs/${ digest }`, {
 				headers: {
@@ -150,33 +115,40 @@ async function main( force ) {
 			if ( ! response.ok ) {
 				throw new Error( `Failed to download blob: ${ response.status } ${ response.statusText }` );
 			}
-			await pipeline( response.body, fs.createWriteStream( zipPath ) );
-			console.log( '✅ Download complete' );
+
+			// Spawn tar to read from stdin and extract into gutenbergDir.
+			// `tar` is available on macOS, Linux, and Windows 10+.
+			const tar = spawn( 'tar', [ '-x', '-C', gutenbergDir ], {
+				stdio: [ 'pipe', 'inherit', 'inherit' ],
+			} );
+
+			const tarDone = new Promise( ( resolve, reject ) => {
+				tar.on( 'close', ( code ) => {
+					if ( code !== 0 ) {
+						reject( new Error( `tar exited with code ${ code }` ) );
+					} else {
+						resolve();
+					}
+				} );
+				tar.on( 'error', reject );
+			} );
+
+			// Pipe: fetch body → gunzip → tar stdin.
+			// Decompressing in Node keeps the pipeline error handling
+			// consistent and means tar only sees plain tar data on stdin.
+			await pipeline(
+				response.body,
+				zlib.createGunzip(),
+				Writable.toWeb( tar.stdin ),
+			);
+
+			await tarDone;
+
+			console.log( '✅ Download and extraction complete' );
 		} catch ( error ) {
-			console.error( '❌ Download failed:', error.message );
+			console.error( '❌ Download/extraction failed:', error.message );
 			process.exit( 1 );
 		}
-
-		// Remove existing gutenberg directory so the unzip is clean.
-		if ( fs.existsSync( gutenbergDir ) ) {
-			console.log( '\n🗑️  Removing existing gutenberg directory...' );
-			fs.rmSync( gutenbergDir, { recursive: true, force: true } );
-		}
-
-		fs.mkdirSync( gutenbergDir, { recursive: true } );
-
-		// Extract the zip into ./gutenberg.
-		console.log( `\n📦 Extracting ${ zipName } into ./gutenberg...` );
-		try {
-			await exec( 'unzip', [ '-q', zipPath, '-d', gutenbergDir ] );
-			console.log( '✅ Extraction complete' );
-		} catch ( error ) {
-			console.error( '❌ Extraction failed:', error.message );
-			process.exit( 1 );
-		}
-
-		// Clean up the zip file.
-		fs.rmSync( zipPath );
 	}
 
 	// Verify the downloaded version matches the expected SHA.
