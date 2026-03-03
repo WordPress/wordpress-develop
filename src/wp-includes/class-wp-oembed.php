@@ -366,10 +366,6 @@ class WP_oEmbed {
 
 		$data = $this->fetch( $provider, $url, $args );
 
-		if ( false === $data ) {
-			return false;
-		}
-
 		return $data;
 	}
 
