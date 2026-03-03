@@ -570,7 +570,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete( $wpdb->signups, array( 'user_email' => $user_email ) );
 		} else {
-			$errors->add( 'user_email', __( 'That email address has already been used. Please check your inbox for an activation email. It will become available in a couple of days if you do nothing.' ) );
+			$errors->add( 'user_email', __( 'That email address is pending activation and is not available for new registration. If you made a previous attempt with this email address, please check your inbox for an activation email. If left unconfirmed, it will become available in a couple of days.' ) );
 		}
 	}
 
@@ -730,7 +730,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	 * unless it's the user's own username.
 	 */
 	if ( username_exists( $blogname ) ) {
-		if ( ! is_object( $user ) || ( is_object( $user ) && $user->user_login !== $blogname ) ) {
+		if ( ! $user instanceof WP_User || $user->user_login !== $blogname ) {
 			$errors->add( 'blogname', __( 'Sorry, that site is reserved!' ) );
 		}
 	}

@@ -13,7 +13,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * Fake block type registry.
 	 *
-	 * @var WP_Block_Type_Registry
+	 * @var WP_Block_Type_Registry|null
 	 */
 	private $registry = null;
 
@@ -23,6 +23,11 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		global $wp_styles, $wp_scripts, $wp_script_modules;
+		$wp_styles         = null;
+		$wp_scripts        = null;
+		$wp_script_modules = null;
+
 		$this->registry = new WP_Block_Type_Registry();
 	}
 
@@ -31,6 +36,11 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		$this->registry = null;
+
+		global $wp_styles, $wp_scripts, $wp_script_modules;
+		$wp_styles         = null;
+		$wp_scripts        = null;
+		$wp_script_modules = null;
 
 		parent::tear_down();
 	}
@@ -353,6 +363,370 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for test_render_enqueues_scripts_and_styles.
+	 *
+	 * @return array
+	 */
+	public function data_provider_test_render_enqueues_scripts_and_styles(): array {
+		$block_markup = <<<'HTML'
+<!-- wp:static -->
+<div class="static">
+<!-- wp:static-child -->
+<div class="static-child">First child</div>
+<!-- /wp:static-child -->
+<!-- wp:dynamic /-->
+<!-- wp:static-child -->
+<div class="static-child">Last child</div>
+<!-- /wp:static-child -->
+</div>
+<!-- /wp:static -->
+HTML;
+
+		// TODO: Add case where a dynamic block renders other blocks?
+		return array(
+			'all_printed'                             => array(
+				'set_up'                  => null,
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+<p class="dynamic">Hello World!</p>
+
+<div class="static-child">Last child</div>
+
+</div>
+
+HTML
+				,
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'all_printed_with_extra_asset_via_filter' => array(
+				'set_up'                  => static function () {
+					add_filter(
+						'render_block_core/dynamic',
+						static function ( $content ) {
+							wp_enqueue_style( 'dynamic-extra', home_url( '/dynamic-extra.css' ), array(), null );
+							$processor = new WP_HTML_Tag_Processor( $content );
+							if ( $processor->next_tag() ) {
+								$processor->add_class( 'filtered' );
+								$content = $processor->get_updated_html();
+							}
+							return $content;
+						}
+					);
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+<p class="dynamic filtered">Hello World!</p>
+
+<div class="static-child">Last child</div>
+
+</div>
+
+HTML
+				,
+				'expected_styles'         => array( 'static-view-style', 'dynamic-extra', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'dynamic_hidden_assets_omitted'           => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/dynamic', '__return_empty_string' );
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+
+
+<div class="static-child">Last child</div>
+
+</div>
+
+HTML
+				,
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module' ),
+			),
+			'dynamic_hidden_assets_included'          => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/dynamic', '__return_empty_string' );
+					add_filter(
+						'enqueue_empty_block_content_assets',
+						static function ( $enqueue, $block_name ) {
+							if ( 'core/dynamic' === $block_name ) {
+								$enqueue = true;
+							}
+							return $enqueue;
+						},
+						10,
+						2
+					);
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+
+
+<div class="static-child">Last child</div>
+
+</div>
+
+HTML
+				,
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'static_hidden_assets_omitted'            => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/static', '__return_empty_string' );
+					add_filter(
+						'render_block_core/dynamic',
+						static function ( $content ) {
+							wp_enqueue_style( 'dynamic-extra', home_url( '/dynamic-extra.css' ), array(), null );
+							return $content;
+						}
+					);
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '',
+				'expected_styles'         => array(),
+				'expected_scripts'        => array(),
+				'expected_script_modules' => array(),
+			),
+			'static_child_hidden_assets_omitted'      => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/static-child', '__return_empty_string' );
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<p class="dynamic">Hello World!</p>
+
+</div>
+
+HTML
+				,
+				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'last_static_child_hidden_assets_omitted' => array(
+				'set_up'                  => static function () {
+					add_filter(
+						'render_block_core/static-child',
+						static function ( $content ) {
+							if ( str_contains( $content, 'Last child' ) ) {
+								$content = '';
+							}
+							return $content;
+						},
+						10,
+						3
+					);
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+<p class="dynamic">Hello World!</p>
+
+</div>
+
+HTML
+				,
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'all_hidden_assets_omitted'               => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block', '__return_empty_string' );
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '',
+				'expected_styles'         => array(),
+				'expected_scripts'        => array(),
+				'expected_script_modules' => array(),
+			),
+			'all_hidden_assets_included'              => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block', '__return_empty_string' );
+					add_filter( 'enqueue_empty_block_content_assets', '__return_true' );
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '',
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'admin_bar_assets_enqueued_in_block'      => array(
+				'set_up'                  => static function () {
+					wp_enqueue_script( 'admin-bar' );
+					wp_enqueue_style( 'admin-bar' );
+
+					add_filter(
+						'render_block_core/static',
+						static function ( $content ) {
+							$processor = new WP_HTML_Tag_Processor( $content );
+							$processor->next_tag();
+							$processor->add_class( wp_script_is( 'admin-bar', 'enqueued' ) ? 'yes-admin-bar-script-enqueued' : 'not-admin-bar-script-enqueued' );
+							$processor->add_class( wp_style_is( 'admin-bar', 'enqueued' ) ? 'yes-admin-bar-style-enqueued' : 'not-admin-bar-style-enqueued' );
+							return $processor->get_updated_html();
+						},
+						10,
+						3
+					);
+				},
+				'block_markup'            => '<!-- wp:static --><div class="static"></div><!-- /wp:static -->',
+				'expected_rendered_block' =>
+					'<div class="static yes-admin-bar-script-enqueued yes-admin-bar-style-enqueued"></div>',
+				'expected_styles'         => array( 'static-view-style', 'admin-bar' ),
+				'expected_scripts'        => array( 'static-view-script', 'admin-bar' ),
+				'expected_script_modules' => array( 'static-view-script-module' ),
+			),
+			'enqueues_in_wp_head_block'               => array(
+				'set_up'                  => static function () {
+					remove_all_actions( 'wp_head' );
+					remove_all_actions( 'wp_enqueue_scripts' );
+
+					add_action( 'wp_head', 'wp_enqueue_scripts', 1 );
+					add_action( 'wp_head', 'wp_print_styles', 8 );
+					add_action( 'wp_head', 'wp_print_head_scripts', 9 );
+					remove_action( 'wp_print_styles', 'print_emoji_styles' );
+
+					add_action(
+						'wp_enqueue_scripts',
+						static function () {
+							wp_enqueue_script( 'for-footer', '/footer.js', array(), null, array( 'in_footer' => true ) );
+						}
+					);
+					add_action(
+						'wp_head',
+						static function () {
+							wp_enqueue_style( 'for-footer', '/footer.css', array(), null );
+						},
+						10000
+					);
+				},
+				'block_markup'            => '<!-- wp:wp-head /-->',
+				'expected_rendered_block' => '',
+				'expected_styles'         => array( 'for-footer' ),
+				'expected_scripts'        => array( 'for-footer' ),
+				'expected_script_modules' => array(),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 63676
+	 * @covers WP_Block::render()
+	 *
+	 * @dataProvider data_provider_test_render_enqueues_scripts_and_styles
+	 *
+	 * @param Closure|null $set_up
+	 * @param string       $block_markup
+	 * @param string[]     $expected_styles
+	 * @param string[]     $expected_scripts
+	 * @param string[]     $expected_script_modules
+	 */
+	public function test_render_enqueues_scripts_and_styles( ?Closure $set_up, string $block_markup, string $expected_rendered_block, array $expected_styles, array $expected_scripts, array $expected_script_modules ) {
+		if ( $set_up instanceof Closure ) {
+			$set_up();
+		}
+
+		$this->registry->register(
+			'core/wp-head',
+			array(
+				'render_callback' => static function () {
+					return get_echo( 'wp_head' );
+				},
+			)
+		);
+
+		wp_register_style( 'static-view-style', home_url( '/static-view-style.css' ) );
+		wp_register_script( 'static-view-script', home_url( '/static-view-script.js' ) );
+		wp_register_script_module( 'static-view-script-module', home_url( '/static-view-script-module.js' ) );
+		$this->registry->register(
+			'core/static',
+			array(
+				'view_style_handles'     => array( 'static-view-style' ),
+				'view_script_handles'    => array( 'static-view-script' ),
+				'view_script_module_ids' => array( 'static-view-script-module' ),
+			)
+		);
+
+		wp_register_style( 'static-child-view-style', home_url( '/static-child-view-style.css' ) );
+		wp_register_script( 'static-child-view-script', home_url( '/static-child-view-script.js' ) );
+		wp_register_script_module( 'static-child-view-script-module', home_url( '/static-child-view-script-module.js' ) );
+		$this->registry->register(
+			'core/static-child',
+			array(
+				'view_style_handles'     => array( 'static-child-view-style' ),
+				'view_script_handles'    => array( 'static-child-view-script' ),
+				'view_script_module_ids' => array( 'static-child-view-script-module' ),
+			)
+		);
+
+		wp_register_style( 'dynamic-view-style', home_url( '/dynamic-view-style.css' ) );
+		wp_register_script( 'dynamic-view-script', home_url( '/dynamic-view-script.js' ) );
+		wp_register_script_module( 'dynamic-view-script-module', home_url( '/dynamic-view-script-module.js' ) );
+		$this->registry->register(
+			'core/dynamic',
+			array(
+				'render_callback'        => static function () {
+					return '<p class="dynamic">Hello World!</p>';
+				},
+				'view_style_handles'     => array( 'dynamic-view-style' ),
+				'view_script_handles'    => array( 'dynamic-view-script' ),
+				'view_script_module_ids' => array( 'dynamic-view-script-module' ),
+			)
+		);
+
+		// TODO: Why not use do_blocks() instead?
+		$parsed_blocks  = parse_blocks( $block_markup );
+		$parsed_block   = $parsed_blocks[0];
+		$context        = array();
+		$block          = new WP_Block( $parsed_block, $context, $this->registry );
+		$rendered_block = $block->render();
+
+		$this->assertSameSets( $expected_styles, wp_styles()->queue, 'Enqueued styles do not meet expectations' );
+		$this->assertSameSets( $expected_scripts, wp_scripts()->queue, 'Enqueued scripts do not meet expectations' );
+		$this->assertSameSets( $expected_script_modules, wp_script_modules()->get_queue(), 'Enqueued script modules do not meet expectations' );
+
+		$this->assertEqualHTML(
+			$expected_rendered_block,
+			$rendered_block,
+			'<body>',
+			'Rendered block does not contain expected HTML.'
+		);
+	}
+
+	/**
 	 * @ticket 49927
 	 */
 	public function test_passes_attributes_to_render_callback() {
@@ -458,6 +832,102 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					),
 				),
 				'post_parent__in' => array( 1, 2 ),
+			),
+			$query
+		);
+	}
+
+	/**
+	 * @ticket 64416
+	 */
+	public function test_build_query_vars_from_query_block_tax_query_old_format() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'taxQuery' => array(
+					'category' => array( 1, 2, 3 ),
+					'post_tag' => array( 10, 20 ),
+				),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 1, 2, 3 ),
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 10, 20 ),
+						'include_children' => false,
+					),
+				),
+			),
+			$query
+		);
+	}
+
+	/**
+	 * @ticket 64416
+	 */
+	public function test_build_query_vars_from_query_block_tax_query_include_exclude() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'taxQuery' => array(
+					'include' => array(
+						'category' => array( 1, 2, 3 ),
+					),
+					'exclude' => array(
+						'post_tag' => array( 15 ),
+					),
+				),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 1, 2, 3 ),
+						'operator'         => 'IN',
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 15 ),
+						'operator'         => 'NOT IN',
+						'include_children' => false,
+					),
+				),
 			),
 			$query
 		);
