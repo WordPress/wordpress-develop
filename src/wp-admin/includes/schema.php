@@ -193,7 +193,8 @@ CREATE TABLE $wpdb->sync_updates (
 	update_value longtext NOT NULL,
 	created_at datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
-	KEY room (room,id)
+	KEY room (room,id),
+	KEY created_at (created_at)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.
