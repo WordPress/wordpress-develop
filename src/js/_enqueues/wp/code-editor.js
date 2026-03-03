@@ -83,7 +83,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  * @property {boolean} [undef] - Whether to prohibit undefined variables.
  * @property {boolean} [unused] - Whether to prohibit unused variables.
  * @property {boolean} [browser] - Whether to enable browser globals.
- * @property {Object<string, boolean>} [globals] - Global variables.
+ * @property {Record<string, boolean>} [globals] - Global variables.
  */
 
 /**
