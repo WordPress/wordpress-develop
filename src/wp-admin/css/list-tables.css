@@ -1085,7 +1085,11 @@ tr.inline-edit-row td {
 .inline-edit-row input:where(:not([type=checkbox],[type=radio],[type=submit],[type=button])) {
 	line-height: 2.14285714;
 	min-height: 32px;
-	padding: 0 24px 0 8px;
+	padding: 0 8px 0 8px;
+}
+
+.inline-edit-row select {
+	padding-right: 24px;
 }
 
 #wpbody-content .bulk-edit-row fieldset .inline-edit-group label {
