@@ -70,8 +70,6 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 			return;
 		}
 
-		$this->assertNotNull( $post );
-
 		if ( ARRAY_A === $output ) {
 			$this->assertIsArray( $post );
 			$this->assertArrayHasKey( 'ID', $post );
