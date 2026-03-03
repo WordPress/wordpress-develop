@@ -2075,7 +2075,19 @@ function _filter_block_content_callback( $matches ) {
  * @return array The filtered and sanitized block object result.
  */
 function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() ) {
+	// Per-block custom CSS is not HTML; skip KSES and sanitize with strip_tags + validation instead.
+	$block_custom_css = null;
+	if ( isset( $block['attrs']['style']['css'] ) && is_string( $block['attrs']['style']['css'] ) ) {
+		$block_custom_css = $block['attrs']['style']['css'];
+		$block['attrs']['style']['css'] = '';
+	}
+
 	$block['attrs'] = filter_block_kses_value( $block['attrs'], $allowed_html, $allowed_protocols, $block );
+
+	if ( null !== $block_custom_css ) {
+		$css = wp_strip_all_tags( $block_custom_css );
+		$block['attrs']['style']['css'] = is_wp_error( wp_validate_css_for_style_element( $css ) ) ? '' : $css;
+	}
 
 	if ( is_array( $block['innerBlocks'] ) ) {
 		foreach ( $block['innerBlocks'] as $i => $inner_block ) {
@@ -2092,6 +2104,7 @@ function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() 
  *
  * @since 5.3.1
  * @since 6.5.5 Added the `$block_context` parameter.
+ * @since 7.0.0 Per-block custom CSS (attrs.style.css) is no longer passed here; see filter_block_kses().
  *
  * @param string[]|string $value             The attribute value to filter.
  * @param array[]|string  $allowed_html      An array of allowed HTML elements and attributes,

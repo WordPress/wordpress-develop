@@ -5558,6 +5558,69 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 }
 
 /**
+ * Validates that CSS is safe to output inside an HTML STYLE element.
+ *
+ * Rejects CSS that contains `</style>` or a partial closing tag (e.g. `</sty`,
+ * `</style`) that could become a full closing tag when concatenated with other
+ * styles, which would break out of the STYLE element and risk XSS.
+ *
+ * Used by the Global Styles REST API, the Customizer custom CSS setting, and
+ * per-block custom CSS so all CSS-in-style-element flows share the same rules.
+ *
+ * @since 7.0.0
+ *
+ * @see WP_REST_Global_Styles_Controller::validate_custom_css()
+ * @see WP_Customize_Custom_CSS_Setting::validate()
+ *
+ * @param string $css CSS to validate.
+ * @return true|WP_Error True if the CSS is safe for a STYLE element, otherwise WP_Error.
+ */
+function wp_validate_css_for_style_element( $css ) {
+	$length = strlen( $css );
+	for (
+		$at = strcspn( $css, '<' );
+		$at < $length;
+		$at += 1 + strcspn( $css, '<', $at + 1 )
+	) {
+		$remaining_strlen = $length - $at;
+		$possible_style_close_tag = 0 === substr_compare(
+			$css,
+			'</style',
+			$at,
+			min( 7, $remaining_strlen ),
+			true
+		);
+		if ( $possible_style_close_tag ) {
+			if ( $remaining_strlen < 8 ) {
+				return new WP_Error(
+					'rest_custom_css_illegal_markup',
+					sprintf(
+						/* translators: %s is the CSS that was provided. */
+						__( 'The CSS must not end in "%s".' ),
+						esc_html( substr( $css, $at ) )
+					),
+					array( 'status' => 400 )
+				);
+			}
+
+			if ( 1 === strspn( $css, " \t\f\r\n/>", $at + 7, 1 ) ) {
+				return new WP_Error(
+					'rest_custom_css_illegal_markup',
+					sprintf(
+						/* translators: %s is the CSS that was provided. */
+						__( 'The CSS must not contain "%s".' ),
+						esc_html( substr( $css, $at, 8 ) )
+					),
+					array( 'status' => 400 )
+				);
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
  * Sanitizes a string from user input or from the database.
  *
  * - Checks for invalid UTF-8,

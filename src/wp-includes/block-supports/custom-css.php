@@ -26,8 +26,8 @@ function wp_render_custom_css_support_styles( $parsed_block ) {
 		return $parsed_block;
 	}
 
-	// Validate CSS doesn't contain HTML markup (same validation as global styles REST API).
-	if ( preg_match( '#</?\w+#', $custom_css ) ) {
+	// Validate CSS is safe for a STYLE element (same rules as global styles and Customizer).
+	if ( is_wp_error( wp_validate_css_for_style_element( $custom_css ) ) ) {
 		return $parsed_block;
 	}
 
