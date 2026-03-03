@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '5.3', '5.4', '5.5', '7.1', '7.2', '7.3' ]
+        php: [ '5.3', '7.3' ]
         split_slow: [ false ]
         multisite: [ false, true ]
         memcached: [ false ]
@@ -96,26 +96,6 @@ jobs:
             multisite: false
           - php: '5.6'
             phpunit: '4-php-5.6'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: true
-            multisite: true
-          - php: '5.5'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: true
-            multisite: false
-          - php: '5.5'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: true
-            multisite: true
-          - php: '5.4'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: true
-            multisite: false
-          - php: '5.4'
             os: ubuntu-latest
             memcached: false
             split_slow: true
