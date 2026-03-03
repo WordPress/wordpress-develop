@@ -271,7 +271,7 @@ function _wp_connectors_validate_keys_in_rest( WP_REST_Response $response, WP_RE
 
 	foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'ai_provider' !== $connector_data['type'] ||'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+		if ( 'ai_provider' !== $connector_data['type'] || 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
 
