@@ -106,6 +106,73 @@ JS;
 	}
 
 	/**
+	 * Tests that scripts trigger _doing_it_wrong for unrecognized keys in the $args array.
+	 *
+	 * @ticket 63486
+	 *
+	 * @covers ::wp_register_script
+	 * @covers ::wp_enqueue_script
+	 * @covers ::_wp_scripts_add_args_data
+	 *
+	 * @dataProvider data_unrecognized_keys_in_args
+	 *
+	 * @param string $function_name Function name to call.
+	 * @param array  $args          Arguments to pass to the function.
+	 * @param string $expected_msg  Expected error message substring.
+	 */
+	public function test_unrecognized_keys_in_args( string $function_name, array $args, string $expected_msg ) {
+		$this->setExpectedIncorrectUsage( $function_name );
+
+		call_user_func_array( $function_name, $args );
+
+		$this->assertStringContainsString(
+			$expected_msg,
+			$this->caught_doing_it_wrong[ $function_name ]
+		);
+	}
+
+	/**
+	 * Data provider for test_unrecognized_keys_in_args.
+	 *
+	 * @return array<string, array{function_name: string, args: array, expected_msg: string}>
+	 */
+	public function data_unrecognized_keys_in_args(): array {
+		return array(
+			'register_script' => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array(
+					'unrecognized-key-register',
+					'/script.js',
+					array(),
+					null,
+					array(
+						'unrecognized_key' => 'value',
+						'another_bad_key'  => 'value',
+					),
+				),
+				'expected_msg'  => 'Unrecognized key(s) in the $args param: unrecognized_key, another_bad_key. Supported keys: strategy, in_footer, fetchpriority, module_dependencies',
+			),
+			'enqueue_script'  => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array(
+					'unrecognized-key-enqueue',
+					'/script.js',
+					array(),
+					null,
+					array(
+						'strategy'            => 'defer',
+						'in_footer'           => true,
+						'fetchpriority'       => 'high',
+						'module_dependencies' => array( 'foo' ),
+						'invalid_key'         => 'bar',
+					),
+				),
+				'expected_msg'  => 'Unrecognized key(s) in the $args param: invalid_key. Supported keys: strategy, in_footer, fetchpriority, module_dependencies',
+			),
+		);
+	}
+
+	/**
 	 * Test versioning
 	 *
 	 * @ticket 11315
@@ -1275,6 +1342,58 @@ HTML
 	public function test_invalid_fetchpriority_on_alias() {
 		wp_register_script( 'alias', false, array(), null, array( 'fetchpriority' => 'low' ) );
 		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['alias']->extra );
+	}
+
+	/**
+	 * Tests validation of module_dependencies in WP_Scripts::add_data().
+	 *
+	 * @ticket 61500
+	 *
+	 * @covers WP_Scripts::add_data
+	 *
+	 * @dataProvider data_add_data_module_dependencies_validation
+	 *
+	 * @param mixed      $data     Data to add.
+	 * @param string     $message  Expected error message.
+	 * @param bool       $expected Expected return value.
+	 * @param array|null $stored   Expected stored value.
+	 */
+	public function test_add_data_module_dependencies_validation( $data, string $message, bool $expected, ?array $stored ) {
+		wp_register_script( 'test-script', '/test.js' );
+
+		$expected_incorrect_usage = 'WP_Scripts::add_data';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		$this->assertSame( $expected, wp_scripts()->add_data( 'test-script', 'module_dependencies', $data ) );
+		$this->assertStringContainsString( $message, $this->caught_doing_it_wrong[ $expected_incorrect_usage ] );
+
+		if ( null === $stored ) {
+			$this->assertFalse( wp_scripts()->get_data( 'test-script', 'module_dependencies' ) );
+		} else {
+			$this->assertSame( $stored, wp_scripts()->get_data( 'test-script', 'module_dependencies' ) );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{data: mixed, message: string, expected: bool, stored: array<string|array<string, string>>|null}>
+	 */
+	public function data_add_data_module_dependencies_validation(): array {
+		return array(
+			'non-array' => array(
+				'data'     => 'not-an-array',
+				'message'  => 'The value for "module_dependencies" must be an array',
+				'expected' => false,
+				'stored'   => null,
+			),
+			'bad-items' => array(
+				'data'     => array( 'valid', 123, true, array(), array( 'id' => 'valid2' ) ),
+				'message'  => 'has one or more of its script module dependencies ("module_dependencies") which are invalid',
+				'expected' => true,
+				'stored'   => array( 'valid', array( 'id' => 'valid2' ) ),
+			),
+		);
 	}
 
 	/**
@@ -3039,14 +3158,13 @@ HTML;
 				'curly',
 				'eqeqeq',
 				'eqnull',
-				'es3',
+				'esversion',
 				'expr',
 				'immed',
+				'module',
 				'noarg',
 				'nonbsp',
-				'onevar',
 				'quotmark',
-				'trailing',
 				'undef',
 				'unused',
 				'browser',
@@ -3123,14 +3241,13 @@ HTML;
 				'curly',
 				'eqeqeq',
 				'eqnull',
-				'es3',
+				'esversion',
 				'expr',
 				'immed',
+				'module',
 				'noarg',
 				'nonbsp',
-				'onevar',
 				'quotmark',
-				'trailing',
 				'undef',
 				'unused',
 				'browser',
@@ -3221,14 +3338,13 @@ HTML;
 				'curly',
 				'eqeqeq',
 				'eqnull',
-				'es3',
+				'esversion',
 				'expr',
 				'immed',
+				'module',
 				'noarg',
 				'nonbsp',
-				'onevar',
 				'quotmark',
-				'trailing',
 				'undef',
 				'unused',
 				'browser',
@@ -3316,14 +3432,13 @@ HTML;
 				'curly',
 				'eqeqeq',
 				'eqnull',
-				'es3',
+				'esversion',
 				'expr',
 				'immed',
+				'module',
 				'noarg',
 				'nonbsp',
-				'onevar',
 				'quotmark',
-				'trailing',
 				'undef',
 				'unused',
 				'browser',
@@ -3838,14 +3953,19 @@ HTML;
 		return array(
 			'backbone'                         => array( 'backbone' ),
 			'clipboard'                        => array( 'clipboard' ),
+			'codemirror'                       => array( 'codemirror', 'wp-codemirror' ),
 			'core-js-url-browser'              => array( 'core-js-url-browser', 'wp-polyfill-url' ),
+			'csslint'                          => array( 'csslint' ),
 			'element-closest'                  => array( 'element-closest', 'wp-polyfill-element-closest' ),
+			'esprima'                          => array( 'esprima' ),
 			'formdata-polyfill'                => array( 'formdata-polyfill', 'wp-polyfill-formdata' ),
 			'imagesloaded'                     => array( 'imagesloaded' ),
 			'jquery-color'                     => array( 'jquery-color' ),
 			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
 			'jquery-form'                      => array( 'jquery-form' ),
 			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'htmlhint'                         => array( 'htmlhint' ),
+			'jsonlint'                         => array( 'jsonlint' ),
 			'lodash'                           => array( 'lodash' ),
 			'masonry'                          => array( 'masonry-layout', 'masonry' ),
 			'moment'                           => array( 'moment' ),
@@ -3896,7 +4016,7 @@ HTML;
 		);
 
 		// Exclude packages that are not registered in WordPress.
-		$exclude                   = array( 'react-is', 'json2php' );
+		$exclude                   = array( 'react-is', 'json2php', 'espree' );
 		$package_json_dependencies = array_diff( $package_json_dependencies, $exclude );
 
 		/*
