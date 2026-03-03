@@ -697,6 +697,31 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( array( 'cursor' => 'updated' ), $awareness[1] );
 	}
 
+	public function test_sync_awareness_client_id_cannot_be_used_by_another_user() {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Editor establishes awareness with client_id 1.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor' ) ),
+			)
+		);
+
+		// A different user tries to use the same client_id.
+		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_2 );
+
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Impostor' ) ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
 	/*
 	 * Multiple rooms tests.
 	 */
