@@ -504,6 +504,28 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 'update', $room_updates[0]['type'] );
 	}
 
+	/**
+	 * @ticket 64696
+	 */
+	public function test_sync_storage_round_trip_preserves_all_columns() {
+		$storage = new WP_Sync_Table_Storage();
+		$room    = $this->get_post_room();
+		$update  = array(
+			'client_id' => 42,
+			'type'      => 'update',
+			'data'      => 'cm91bmQgdHJpcA==',
+		);
+
+		$storage->add_update( $room, $update );
+
+		$updates = $storage->get_updates_after_cursor( $room, 0 );
+
+		$this->assertCount( 1, $updates );
+		$this->assertSame( 42, $updates[0]['client_id'] );
+		$this->assertSame( 'update', $updates[0]['type'] );
+		$this->assertSame( 'cm91bmQgdHJpcA==', $updates[0]['data'] );
+	}
+
 	public function test_sync_total_updates_increments() {
 		wp_set_current_user( self::$editor_id );
 
