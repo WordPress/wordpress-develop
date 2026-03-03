@@ -2070,7 +2070,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$metadata['original_image'] = wp_basename( $current_file );
 
 			// Update the attached file to point to the scaled version.
-			update_attached_file( $attachment_id, $path );
+			if (
+				get_post_meta( $attachment_id, '_wp_attached_file', true ) !== $path &&
+				! update_attached_file( $attachment_id, $path )
+			) {
+				return new WP_Error(
+					'rest_sideload_update_attached_file_failed',
+					__( 'Unable to update the attached file for this attachment.' ),
+					array( 'status' => 500 )
+				);
+			}
 
 			$size = wp_getimagesize( $path );
 
