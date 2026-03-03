@@ -154,7 +154,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
@@ -253,7 +253,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			$actual,
 			'Execution should fail due to no permissions'
 		);
-		$this->assertEquals( 'ability_invalid_permissions', $actual->get_error_code() );
+		$this->assertSame( 'ability_invalid_permissions', $actual->get_error_code() );
 	}
 
 	/**
@@ -450,7 +450,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
@@ -496,7 +496,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
@@ -559,7 +559,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
@@ -615,7 +615,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );

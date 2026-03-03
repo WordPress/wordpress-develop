@@ -233,7 +233,7 @@ final class WP_Theme implements ArrayAccess {
 	 * By default the bucket is not cached, so this value is useless.
 	 *
 	 * @since 3.4.0
-	 * @var bool
+	 * @var int
 	 */
 	private static $cache_expiration = 1800;
 
@@ -515,7 +515,7 @@ final class WP_Theme implements ArrayAccess {
 				return;
 			}
 			// Set the parent. Pass the current instance so we can do the checks above and assess errors.
-			$this->parent = new WP_Theme( $this->template, isset( $theme_root_template ) ? $theme_root_template : $this->theme_root, $this );
+			$this->parent = new WP_Theme( $this->template, $theme_root_template ?? $this->theme_root, $this );
 		}
 
 		if ( wp_paused_themes()->get( $this->stylesheet ) && ( ! is_wp_error( $this->errors ) || ! isset( $this->errors->errors['theme_paused'] ) ) ) {
@@ -776,7 +776,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @return WP_Theme|false Parent theme, or false if the active theme is not a child theme.
 	 */
 	public function parent() {
-		return isset( $this->parent ) ? $this->parent : false;
+		return $this->parent ?? false;
 	}
 
 	/**
@@ -866,6 +866,14 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param string $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
 	 * @return string|array|false String or array (for Tags header) on success, false on failure.
+	 *
+	 * @phpstan-return (
+	 *     $header is 'Tags'
+	 *         ? string[]|false
+	 *         : ( $header is 'Name'|'ThemeURI'|'Description'|'Author'|'AuthorURI'|'Version'|'Template'|'Status'|'TextDomain'|'DomainPath'|'RequiresWP'|'RequiresPHP'|'UpdateURI'
+	 *             ? string|false
+	 *             : false )
+	 * )
 	 */
 	public function get( $header ) {
 		if ( ! isset( $this->headers[ $header ] ) ) {
@@ -1002,7 +1010,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param string       $header    Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
 	 * @param string|array $value     Value to mark up. An array for Tags header, string otherwise.
-	 * @param string       $translate Whether the header has been translated.
+	 * @param bool         $translate Whether the header has been translated.
 	 * @return string Value, marked up.
 	 */
 	private function markup_header( $header, $value, $translate ) {
@@ -1397,7 +1405,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$post_templates = $this->get_post_templates();
-		$post_templates = isset( $post_templates[ $post_type ] ) ? $post_templates[ $post_type ] : array();
+		$post_templates = $post_templates[ $post_type ] ?? array();
 
 		/**
 		 * Filters list of page templates for a theme.

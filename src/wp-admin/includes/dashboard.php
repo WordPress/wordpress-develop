@@ -309,17 +309,24 @@ function wp_dashboard_right_now() {
 		if ( $num_posts && $num_posts->publish ) {
 			if ( 'post' === $post_type ) {
 				/* translators: %s: Number of posts. */
-				$text = _n( '%s Post', '%s Posts', $num_posts->publish );
+				$text = _n( '%s Published post', '%s Published posts', $num_posts->publish );
 			} else {
 				/* translators: %s: Number of pages. */
-				$text = _n( '%s Page', '%s Pages', $num_posts->publish );
+				$text = _n( '%s Published page', '%s Published pages', $num_posts->publish );
 			}
 
 			$text             = sprintf( $text, number_format_i18n( $num_posts->publish ) );
 			$post_type_object = get_post_type_object( $post_type );
 
 			if ( $post_type_object && current_user_can( $post_type_object->cap->edit_posts ) ) {
-				printf( '<li class="%1$s-count"><a href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text );
+				$url = add_query_arg(
+					array(
+						'post_status' => 'publish',
+						'post_type'   => $post_type,
+					),
+					admin_url( 'edit.php' )
+				);
+				printf( '<li class="%1$s-count"><a href="%2$s">%3$s</a></li>', $post_type, esc_url( $url ), esc_html( $text ) );
 			} else {
 				printf( '<li class="%1$s-count"><span>%2$s</span></li>', $post_type, $text );
 			}
@@ -1014,16 +1021,19 @@ function wp_dashboard_recent_posts( $args ) {
 
 			$time = get_the_time( 'U' );
 
-			if ( gmdate( 'Y-m-d', $time ) === $today ) {
-				$relative = __( 'Today' );
+			if ( ! is_int( $time ) ) {
+				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+				$date = get_the_date( __( 'M jS Y' ) );
+			} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
+				$date = __( 'Today' );
 			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
-				$relative = __( 'Tomorrow' );
+				$date = __( 'Tomorrow' );
 			} elseif ( gmdate( 'Y', $time ) !== $year ) {
 				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS Y' ), $time );
+				$date = date_i18n( __( 'M jS Y' ), $time );
 			} else {
 				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS' ), $time );
+				$date = date_i18n( __( 'M jS' ), $time );
 			}
 
 			// Use the post edit link for those who can edit, the permalink otherwise.
@@ -1033,7 +1043,7 @@ function wp_dashboard_recent_posts( $args ) {
 			printf(
 				'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
 				/* translators: 1: Relative date, 2: Time. */
-				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $relative, get_the_time() ),
+				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $date, get_the_time() ),
 				$recent_post_link,
 				/* translators: %s: Post title. */
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
@@ -2065,19 +2075,21 @@ function wp_welcome_panel() {
 	$is_block_theme          = wp_is_block_theme();
 	?>
 	<div class="welcome-panel-content">
-	<div class="welcome-panel-header">
-		<div class="welcome-panel-header-image">
-			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
+	<div class="welcome-panel-header-wrap">
+		<div class="welcome-panel-header">
+			<div class="welcome-panel-header-image">
+				<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
+			</div>
+			<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
+			<p>
+				<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
+				<?php
+					/* translators: %s: Current WordPress version. */
+					printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
+				?>
+				</a>
+			</p>
 		</div>
-		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
-		<p>
-			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
-			<?php
-				/* translators: %s: Current WordPress version. */
-				printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
-			?>
-			</a>
-		</p>
 	</div>
 	<div class="welcome-panel-column-container">
 		<div class="welcome-panel-column">
@@ -2119,7 +2131,7 @@ function wp_welcome_panel() {
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
-				<a href="<?php echo esc_url( admin_url( '/site-editor.php?path=%2Fwp_global_styles' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
+				<a href="<?php echo esc_url( add_query_arg( 'p', rawurlencode( '/styles' ), admin_url( 'site-editor.php' ) ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>

@@ -166,7 +166,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	 */
 	$login_header_text = apply_filters( 'login_headertext', $login_header_text );
 
-	$classes = array( 'login-action-' . $action, 'wp-core-ui' );
+	$classes = array( 'login-action-' . $action, 'wp-core-ui', 'admin-color-modern' );
 
 	if ( is_rtl() ) {
 		$classes[] = 'rtl';
@@ -176,7 +176,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 		$classes[] = 'interim-login';
 
 		?>
-		<style type="text/css">html{background-color: transparent;}</style>
+		<style>html{background-color: transparent;}</style>
 		<?php
 
 		if ( 'success' === $interim_login ) {
@@ -184,7 +184,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 		}
 	}
 
-	$classes[] = ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_locale() ) ) );
+	$classes[] = 'locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_locale() ) ) );
 
 	/**
 	 * Filters the login page body classes.
@@ -397,13 +397,13 @@ function login_footer( $input_id = '' ) {
 					);
 
 					/**
-					 * Filters default arguments for the Languages select input on the login screen.
+					 * Filters default arguments for the Language select input on the login screen.
 					 *
 					 * The arguments get passed to the wp_dropdown_languages() function.
 					 *
 					 * @since 5.9.0
 					 *
-					 * @param array $args Arguments for the Languages select input on the login screen.
+					 * @param array $args Arguments for the Language select input on the login screen.
 					 */
 					wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
 					?>
@@ -897,7 +897,7 @@ switch ( $action ) {
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+				<input type="text" name="user_login" id="user_login" class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<?php
 
@@ -1000,7 +1000,6 @@ switch ( $action ) {
 
 		if ( ( ! $errors->has_errors() ) && isset( $_POST['pass1'] ) && ! empty( $_POST['pass1'] ) ) {
 			reset_password( $user, $_POST['pass1'] );
-			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 			login_header(
 				__( 'Password Reset' ),
 				wp_get_admin_notice(
@@ -1040,7 +1039,7 @@ switch ( $action ) {
 				</p>
 
 				<div class="wp-pwd">
-					<input type="password" name="pass1" id="pass1" class="input password-input" size="24" value="" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" aria-describedby="pass-strength-result" />
+					<input type="password" name="pass1" id="pass1" class="input password-input ltr" size="24" value="" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" aria-describedby="pass-strength-result" />
 
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
@@ -1168,7 +1167,7 @@ switch ( $action ) {
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
 			<p>
 				<label for="user_login"><?php _e( 'Username' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+				<input type="text" name="user_login" id="user_login" class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<p>
 				<label for="user_email"><?php _e( 'Email' ); ?></label>
@@ -1462,10 +1461,10 @@ switch ( $action ) {
 
 				if ( ! empty( $query['app_name'] ) ) {
 					/* translators: 1: Website name, 2: Application name. */
-					$message = sprintf( 'Please log in to %1$s to authorize %2$s to connect to your account.', get_bloginfo( 'name', 'display' ), '<strong>' . esc_html( $query['app_name'] ) . '</strong>' );
+					$message = sprintf( __( 'Please log in to %1$s to authorize %2$s to connect to your account.' ), get_bloginfo( 'name', 'display' ), '<strong>' . esc_html( $query['app_name'] ) . '</strong>' );
 				} else {
 					/* translators: %s: Website name. */
-					$message = sprintf( 'Please log in to %s to proceed with authorization.', get_bloginfo( 'name', 'display' ) );
+					$message = sprintf( __( 'Please log in to %s to proceed with authorization.' ), get_bloginfo( 'name', 'display' ) );
 				}
 
 				$errors->add( 'authorize_application', $message, 'message' );
@@ -1485,6 +1484,14 @@ switch ( $action ) {
 		// Clear any stale cookies.
 		if ( $reauth ) {
 			wp_clear_auth_cookie();
+		}
+
+		// Obtain user from password reset cookie flow before clearing the cookie.
+		$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
+		if ( isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
+			$user_login      = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
+			list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
+			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 		}
 
 		login_header( __( 'Log In' ), '', $errors );
@@ -1512,13 +1519,13 @@ switch ( $action ) {
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 
 			<div class="user-pass-wrap">
 				<label for="user_pass"><?php _e( 'Password' ); ?></label>
 				<div class="wp-pwd">
-					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input" value="" size="20" autocomplete="current-password" spellcheck="false" required="required" />
+					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input ltr" value="" size="20" autocomplete="current-password" spellcheck="false" required="required" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>
