@@ -53,7 +53,7 @@ class Walker_Comment extends Walker {
 			array(
 				'style'       => 'ul',
 				'avatar_size' => 32,
-				'format'      => 'xhtml',
+				'format'      => current_theme_supports( 'html5', 'comment-list' ) ? 'html5' : 'xhtml',
 				'short_ping'  => false,
 				'max_depth'   => '',
 			),
