@@ -167,9 +167,9 @@ class WP_AI_Client_Prompt_Builder {
 	public function __construct( ProviderRegistry $registry, $prompt = null ) {
 		try {
 			$this->builder = new PromptBuilder( $registry, $prompt );
-		} catch ( \Exception $e ) {
+		} catch ( Exception $e ) {
 			$this->builder = new PromptBuilder( $registry );
-			$this->error   = new \WP_Error(
+			$this->error   = new WP_Error(
 				'prompt_builder_error',
 				$e->getMessage(),
 				array(
