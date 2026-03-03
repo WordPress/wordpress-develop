@@ -253,9 +253,13 @@ body.js .theme-browser.search-loading {
 }
 
 .theme-browser .theme.active .theme-actions {
-	background: rgba(44, 51, 56, 0.7);
+	background: transparent;
 	border-left: none;
 	opacity: 1;
+}
+
+.theme-browser .theme.active .theme-actions .button-primary {
+	border-color: #fff;
 }
 
 .theme-id-container {
