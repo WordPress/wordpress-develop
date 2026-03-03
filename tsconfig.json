@@ -16,11 +16,9 @@
 			"es2020",
 			"dom"
 		],
+		"typeRoots": [ "./typings", "./node_modules/@types" ],
 		"types": [
-			"jquery",
-			"codemirror",
-			"underscore",
-			"htmlhint",
+			"wp-globals",
 			"codemirror/addon/lint/lint",
 			"codemirror/addon/hint/show-hint"
 		]
@@ -28,7 +26,6 @@
 	"include": [
 		"src/js/_enqueues/wp/code-editor.js",
 		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
-		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js",
-		"typings/**/*.d.ts"
+		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js"
 	]
 }
