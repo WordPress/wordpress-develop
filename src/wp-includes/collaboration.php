@@ -7,6 +7,21 @@
  */
 
 /**
+ * Checks whether real-time collaboration is enabled.
+ *
+ * The feature requires both the site option and the database schema
+ * introduced in db_version 61698.
+ *
+ * @since 7.0.0
+ *
+ * @return bool True if collaboration is enabled, false otherwise.
+ */
+function wp_is_collaboration_enabled() {
+	return get_option( 'wp_enable_real_time_collaboration' )
+		&& get_option( 'db_version' ) >= 61698;
+}
+
+/**
  * Injects the real-time collaboration setting into a global variable.
  *
  * @since 7.0.0
