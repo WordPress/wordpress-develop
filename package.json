@@ -120,7 +120,7 @@
 		"grunt": "grunt",
 		"lint:jsdoc": "wp-scripts lint-js",
 		"lint:jsdoc:fix": "wp-scripts lint-js --fix",
-		"typecheck:js": "tsc",
+		"typecheck:js": "tsc --build",
 		"env:start": "node ./tools/local-env/scripts/start.js && node ./tools/local-env/scripts/docker.js run -T --rm php composer update -W",
 		"env:stop": "node ./tools/local-env/scripts/docker.js down",
 		"env:restart": "npm run env:stop && npm run env:start",
