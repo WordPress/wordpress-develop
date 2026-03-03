@@ -419,6 +419,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 			$textarea = $( textarea );
 		}
 
+		window.console.log( settings.doesNotExist );
+
 		/** @type {CodeEditorSettings} */
 		const instanceSettings = $.extend( true, {}, wp.codeEditor.defaultSettings, settings );
 
