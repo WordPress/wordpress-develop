@@ -8,7 +8,7 @@ require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-mock-provider-trait
  * @group connectors
  * @covers ::_wp_connectors_get_connector_settings
  */
-class Tests_Connectors_WpConnectorsGetProviderSettings extends WP_UnitTestCase {
+class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase {
 
 	use WP_AI_Client_Mock_Provider_Trait;
 
