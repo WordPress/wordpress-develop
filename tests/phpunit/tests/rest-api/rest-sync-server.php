@@ -656,13 +656,28 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		// Client 3 sends a stale compaction at cursor 0. The server should find
 		// client 2's compaction in the updates after cursor 0 and silently discard
 		// this one.
-		$response = $this->dispatch_sync(
+		$stale_compaction = array(
+			'type' => 'compaction',
+			'data' => 'c3RhbGU=',
+		);
+		$response         = $this->dispatch_sync(
 			array(
-				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ), array( $compaction ) ),
+				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ), array( $stale_compaction ) ),
 			)
 		);
 
 		$this->assertSame( 200, $response->get_status() );
+
+		// Verify the newer compaction is preserved and the stale one was not stored.
+		$response    = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 4, 0, array( 'user' => 'c4' ) ),
+			)
+		);
+		$update_data = wp_list_pluck( $response->get_data()['rooms'][0]['updates'], 'data' );
+
+		$this->assertContains( 'Y29tcGFjdGVk', $update_data, 'The newer compaction should be preserved.' );
+		$this->assertNotContains( 'c3RhbGU=', $update_data, 'The stale compaction should not be stored.' );
 	}
 
 	/*
