@@ -1691,13 +1691,33 @@ class Tests_Template extends WP_UnitTestCase {
 					'BODY' => array(),
 				),
 				'assert'            => function ( string $buffer, string $filtered_buffer ) {
-					$block_separator_inline_style_start_tag = "<link rel='stylesheet' id='wp-block-separator-css'";
-					$block_separator_custom_style           = '.wp-block-separator{ outline:solid 1px lime; }';
-					$this->assertStringContainsString( $block_separator_inline_style_start_tag, $filtered_buffer );
-					$this->assertStringContainsString( $block_separator_custom_style, $filtered_buffer );
-					$block_separator_inline_style_position = strpos( $filtered_buffer, $block_separator_inline_style_start_tag );
-					$block_separator_custom_style_position = strpos( $filtered_buffer, $block_separator_custom_style );
-					$this->assertTrue( $block_separator_custom_style_position > $block_separator_inline_style_position, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
+					$block_separator_core_style_span = null;
+					$block_separator_custom_style_span = null;
+					$processor = new class( $filtered_buffer ) extends WP_HTML_Tag_Processor {
+						public function get_span(): WP_HTML_Span {
+							$this->set_bookmark( 'here' );
+							return $this->bookmarks['here'];
+						}
+					};
+					while ( $processor->next_tag() ) {
+						if (
+							$processor->get_tag() === 'LINK' &&
+							$processor->get_attribute( 'rel' ) === 'stylesheet' &&
+							$processor->get_attribute( 'id' ) === 'wp-block-separator-css'
+						) {
+							$block_separator_core_style_span = $processor->get_span();
+						} elseif (
+							$processor->get_tag() === 'STYLE' &&
+							$processor->get_attribute( 'id' ) === 'wp-block-library-inline-css-extra' &&
+							str_contains( $processor->get_modifiable_text(), '.wp-block-separator{ outline:solid 1px lime; }' )
+						) {
+							$block_separator_custom_style_span = $processor->get_span();
+						}
+					}
+
+					$this->assertInstanceOf( WP_HTML_Span::class, $block_separator_core_style_span, 'Expected the block separator core style to be present.' );
+					$this->assertInstanceOf( WP_HTML_Span::class, $block_separator_custom_style_span, 'Expected the block separator custom style to be present.' );
+					$this->assertGreaterThan( $block_separator_core_style_span->start, $block_separator_custom_style_span->start, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
 				},
 			),
 
