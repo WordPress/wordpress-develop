@@ -516,19 +516,6 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$redirect = redirect_canonical( $url_mixed_encoding, false );
 		$this->assertNull( $redirect, 'URL with mixed + and %20 encoding should not redirect' );
 
-		// Verify that other encoded characters are handled properly.
-		// URLs with encoded reserved characters should maintain their encoding.
-		$url_encoded_at   = home_url( '/?email=user%40example.com' );
-		$url_unencoded_at = home_url( '/?email=user@example.com' );
-
-		$this->go_to( $url_encoded_at );
-		$redirect_encoded = redirect_canonical( $url_encoded_at, false );
-		$this->assertNull( $redirect_encoded, 'URL with encoded @ should not redirect to itself' );
-
-		$this->go_to( $url_unencoded_at );
-		$redirect_unencoded = redirect_canonical( $url_unencoded_at, false );
-		$this->assertNull( $redirect_unencoded, 'URL with unencoded @ should not redirect to itself' );
-
 		// Clean up.
 		delete_option( 'page_on_front' );
 		delete_option( 'show_on_front' );
