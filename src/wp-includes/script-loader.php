@@ -4011,8 +4011,8 @@ function wp_hoist_late_printed_styles(): void {
 
 				/*
 				 * The placeholder CSS comment was added to the inline style in order to force an inline STYLE tag to
-				 * be printed. Now that the inline style has been located and the placeholder comment was be removed, if
-				 * there is no CSS left in the STYLE tag after removal, then remove the STYLE entirely.
+				 * be printed. Now that the inline style has been located and the placeholder comment has been removed, if
+				 * there is no CSS left in the STYLE tag after removal, then remove the STYLE tag entirely.
 				 */
 				if ( '' === trim( $css_text ) ) {
 					$processor->remove();
