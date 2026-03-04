@@ -50,36 +50,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../src/wp-admin/themes.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Constant HEADER_IMAGE_HEIGHT not found\\.$#',
-	'identifier' => 'constant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-content/themes/twentyeleven/functions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
-	'identifier' => 'constant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-content/themes/twentyeleven/functions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Constant HEADER_TEXTCOLOR not found\\.$#',
-	'identifier' => 'constant.notFound',
-	'count' => 2,
-	'path' => __DIR__ . '/../../src/wp-content/themes/twentyeleven/functions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
-	'identifier' => 'constant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-content/themes/twentyeleven/header.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
-	'identifier' => 'constant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-content/themes/twentyeleven/showcase.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Function twentyseventeen_edit_link invoked with 1 parameter, 0 required\\.$#',
 	'identifier' => 'arguments.count',
 	'count' => 1,
@@ -96,24 +66,6 @@ $ignoreErrors[] = [
 	'identifier' => 'arguments.count',
 	'count' => 1,
 	'path' => __DIR__ . '/../../src/wp-content/themes/twentyseventeen/template-parts/page/content-page.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Constant HEADER_IMAGE_HEIGHT not found\\.$#',
-	'identifier' => 'constant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-content/themes/twentyten/functions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
-	'identifier' => 'constant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-content/themes/twentyten/functions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Constant HEADER_IMAGE_WIDTH not found\\.$#',
-	'identifier' => 'constant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-content/themes/twentyten/header.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function wp_cache_switch_to_blog_fallback invoked with 1 parameter, 0 required\\.$#',

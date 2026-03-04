@@ -93,3 +93,12 @@ define( 'FS_CONNECT_TIMEOUT', 1 );
 define( 'FS_TIMEOUT', 1 );
 define( 'FS_CHMOD_DIR', 1 );
 define( 'FS_CHMOD_FILE', 1 );
+
+// Theme constants referenced in add_theme_support().
+define( 'NO_HEADER_TEXT', false );
+define( 'HEADER_IMAGE_WIDTH', 0 );
+define( 'HEADER_IMAGE_HEIGHT', 0 );
+define( 'HEADER_TEXTCOLOR', '' );
+define( 'HEADER_IMAGE', '' );
+define( 'BACKGROUND_COLOR', '' );
+define( 'BACKGROUND_IMAGE', '' );
