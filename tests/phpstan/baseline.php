@@ -2,30 +2,6 @@
 
 $ignoreErrors = [];
 $ignoreErrors[] = [
-	'message' => '#^Call to function compact\\(\\) contains possibly undefined variable \\$comment_author\\.$#',
-	'identifier' => 'variable.undefined',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-admin/includes/ajax-actions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Call to function compact\\(\\) contains possibly undefined variable \\$comment_author_email\\.$#',
-	'identifier' => 'variable.undefined',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-admin/includes/ajax-actions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Call to function compact\\(\\) contains possibly undefined variable \\$comment_author_url\\.$#',
-	'identifier' => 'variable.undefined',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-admin/includes/ajax-actions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Call to function compact\\(\\) contains possibly undefined variable \\$user_id\\.$#',
-	'identifier' => 'variable.undefined',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-admin/includes/ajax-actions.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Variable \\$_POST in isset\\(\\) always exists and is not nullable\\.$#',
 	'identifier' => 'isset.variable',
 	'count' => 1,
