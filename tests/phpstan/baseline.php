@@ -32,12 +32,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../src/wp-admin/includes/class-custom-image-header.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Constructor of class WP_Filesystem_Direct has an unused parameter \\$arg\\.$#',
-	'identifier' => 'constructor.unusedParameter',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-admin/includes/class-wp-filesystem-direct.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Variable \\$class in empty\\(\\) always exists and is always falsy\\.$#',
 	'identifier' => 'empty.variable',
 	'count' => 1,

@@ -19,10 +19,8 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * Constructor.
 	 *
 	 * @since 2.5.0
-	 *
-	 * @param mixed $arg Not used.
 	 */
-	public function __construct( $arg ) {
+	public function __construct() {
 		$this->method = 'direct';
 		$this->errors = new WP_Error();
 	}
