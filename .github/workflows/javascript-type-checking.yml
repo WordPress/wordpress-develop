@@ -48,7 +48,7 @@ jobs:
     uses: ./.github/workflows/reusable-javascript-type-checking-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   slack-notifications:
     name: Slack Notifications
