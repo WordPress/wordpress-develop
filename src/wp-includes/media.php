@@ -6435,7 +6435,7 @@ function wp_get_chrome_major_version(): ?int {
  *
  * Required for enabling SharedArrayBuffer for WebAssembly-based
  * media processing in the editor. Uses Document-Isolation-Policy
- * on supported browsers (Chrome 137+).
+ * on supported browsers (Chromium 137+).
  *
  * @since 7.0.0
  */
