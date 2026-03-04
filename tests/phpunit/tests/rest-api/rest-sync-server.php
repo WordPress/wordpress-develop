@@ -504,28 +504,6 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 'update', $room_updates[0]['type'] );
 	}
 
-	/**
-	 * @ticket 64696
-	 */
-	public function test_sync_storage_round_trip_preserves_all_columns() {
-		$storage = new WP_Sync_Table_Storage();
-		$room    = $this->get_post_room();
-		$update  = array(
-			'client_id' => 42,
-			'type'      => 'update',
-			'data'      => 'cm91bmQgdHJpcA==',
-		);
-
-		$storage->add_update( $room, $update );
-
-		$updates = $storage->get_updates_after_cursor( $room, 0 );
-
-		$this->assertCount( 1, $updates );
-		$this->assertSame( 42, $updates[0]['client_id'] );
-		$this->assertSame( 'update', $updates[0]['type'] );
-		$this->assertSame( 'cm91bmQgdHJpcA==', $updates[0]['data'] );
-	}
-
 	public function test_sync_total_updates_increments() {
 		wp_set_current_user( self::$editor_id );
 
@@ -1057,7 +1035,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 * Inserts a row directly into the sync_updates table with a given age.
 	 *
 	 * @param positive-int $age_in_seconds How old the row should be.
-	 * @param string       $label          A label stored in the data column for identification.
+	 * @param string       $label          A label stored in the update_value for identification.
 	 */
 	private function insert_sync_row( int $age_in_seconds, string $label = 'test' ): void {
 		global $wpdb;
@@ -1065,13 +1043,16 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$wpdb->insert(
 			$wpdb->sync_updates,
 			array(
-				'room'       => $this->get_post_room(),
-				'client_id'  => 0,
-				'type'       => 'update',
-				'data'       => $label,
-				'created_at' => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
+				'room'         => $this->get_post_room(),
+				'update_value' => wp_json_encode(
+					array(
+						'type' => 'update',
+						'data' => $label,
+					)
+				),
+				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
 			),
-			array( '%s', '%d', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s' )
 		);
 	}
 
@@ -1120,10 +1101,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		wp_delete_old_sync_updates();
 
 		global $wpdb;
-		$remaining = $wpdb->get_col( "SELECT data FROM {$wpdb->sync_updates}" );
+		$remaining = $wpdb->get_col( "SELECT update_value FROM {$wpdb->sync_updates}" );
 
 		$this->assertCount( 1, $remaining, 'Only the row within the 7-day window should remain.' );
-		$this->assertSame( 'just-inside', $remaining[0], 'The surviving row should be the one inside the window.' );
+		$this->assertStringContainsString( 'just-inside', $remaining[0], 'The surviving row should be the one inside the window.' );
 	}
 
 	/**

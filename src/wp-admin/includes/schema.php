@@ -190,9 +190,7 @@ CREATE TABLE $wpdb->posts (
 CREATE TABLE $wpdb->sync_updates (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	room varchar(255) NOT NULL,
-	client_id bigint(20) unsigned NOT NULL default 0,
-	type varchar(10) NOT NULL default '',
-	data longtext NOT NULL,
+	update_value longtext NOT NULL,
 	created_at datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
 	KEY room (room,id),
