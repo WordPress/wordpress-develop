@@ -2762,6 +2762,16 @@ function wp_should_load_block_assets_on_demand() {
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
 	if ( wp_should_load_block_assets_on_demand() ) {
+		/**
+		 * Add placeholder for where block styles would historically get enqueued in a classic theme when block assets
+		 * are not loaded on demand. This happens right after {@see wp_common_block_scripts_and_styles()} is called
+		 * at which time wp-block-library is enqueued.
+		 */
+		if ( ! wp_is_block_theme() && has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+			wp_register_style( 'wp-block-styles-placeholder', false );
+			wp_add_inline_style( 'wp-block-styles-placeholder', ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the block styles printed at wp_footer." }' );
+			wp_enqueue_style( 'wp-block-styles-placeholder' );
+		}
 		return;
 	}
 
@@ -3916,11 +3926,19 @@ function wp_hoist_late_printed_styles(): void {
 					'STYLE' === $processor->get_tag() &&
 					'wp-global-styles-placeholder-inline-css' === $processor->get_attribute( 'id' )
 				) {
+					/** This is added in {@see wp_enqueue_global_styles()} */
 					$processor->set_bookmark( 'wp_global_styles_placeholder' );
+				} elseif (
+					'STYLE' === $processor->get_tag() &&
+					'wp-block-styles-placeholder-inline-css' === $processor->get_attribute( 'id' )
+				) {
+					/** This is added in {@see wp_enqueue_registered_block_scripts_and_styles()} */
+					$processor->set_bookmark( 'wp_block_styles_placeholder' );
 				} elseif (
 					'STYLE' === $processor->get_tag() &&
 					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
+					/** This is added here in {@see wp_hoist_late_printed_styles()} */
 					$processor->set_bookmark( 'wp_block_library' );
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
 					$processor->set_bookmark( 'head_end' );
@@ -3934,10 +3952,6 @@ function wp_hoist_late_printed_styles(): void {
 						}
 					} elseif ( preg_match( '/^(.+)-css$/', $id, $matches ) ) {
 						$handle = $matches[1];
-					}
-
-					if ( 'classic-theme-styles' === $handle ) {
-						$processor->set_bookmark( 'classic_theme_styles' );
 					}
 
 					if ( $handle && in_array( $handle, $style_handles_at_enqueue_block_assets, true ) ) {
@@ -4023,23 +4037,19 @@ function wp_hoist_late_printed_styles(): void {
 					$inserted_after .= "{$style_processor->get_updated_html()}\n";
 				}
 
-				// If the classic-theme-styles is absent, then the third-party block styles cannot be inserted after it, so they get inserted here.
-				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
-					if ( '' !== $printed_other_block_styles ) {
-						$inserted_after .= $printed_other_block_styles;
-					}
-					$printed_other_block_styles = '';
-				}
-
 				if ( '' !== $inserted_after ) {
 					$processor->insert_after( "\n" . $inserted_after );
 				}
 			}
 
 			// Insert third-party block styles right after the classic-theme-styles.
-			if ( '' !== $printed_other_block_styles && $processor->has_bookmark( 'classic_theme_styles' ) ) {
-				$processor->seek( 'classic_theme_styles' );
-				$processor->insert_after( "\n" . $printed_other_block_styles );
+			if ( $processor->has_bookmark( 'wp_block_styles_placeholder' ) ) {
+				$processor->seek( 'wp_block_styles_placeholder' );
+				if ( '' !== $printed_other_block_styles ) {
+					$processor->replace( "\n" . $printed_other_block_styles );
+				} else {
+					$processor->remove();
+				}
 				$printed_other_block_styles = '';
 			}
 
