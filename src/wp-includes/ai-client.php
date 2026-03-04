@@ -16,7 +16,7 @@ use WordPress\AiClient\AiClient;
  */
 function wp_supports_ai(): bool {
 	// Constant check gives a hard short-circuit for environments that cannot be overridden with a filter, such as wp-config.php settings or hosting provider configurations.
-	if ( defined( 'WP_DISABLE_AI' ) && WP_DISABLE_AI ) {
+	if ( defined( 'WP_AI_SUPPORT' ) && ! WP_AI_SUPPORT ) {
 		return false;
 	}
 
