@@ -69,7 +69,6 @@ input[type="url"],
 input[type="week"] {
 	padding: 0 12px;
 	/* inherits font size 14px */
-	line-height: 2.71428571; /* 38px for 40px min-height */
 	min-height: 40px;
 }
 
