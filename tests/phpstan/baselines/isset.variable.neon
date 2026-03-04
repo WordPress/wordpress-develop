@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Variable \$_POST in isset\(\) always exists and is not nullable\.$#'
-			identifier: isset.variable
-			count: 1
-			path: ../../../src/wp-admin/includes/class-custom-image-header.php
-		-
 			message: '#^Variable \$stylesheet in isset\(\) always exists and is not nullable\.$#'
 			identifier: isset.variable
 			count: 1
