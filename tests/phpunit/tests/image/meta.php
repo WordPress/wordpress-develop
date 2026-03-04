@@ -200,6 +200,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => '',
 					'orientation'       => '3',
 					'keywords'          => array(),
+					'alt'               => '',
 				),
 			),
 			'Exif from a Nikon D70 with IPTC data added later' => array(
@@ -217,6 +218,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'IPTC Headline',
 					'orientation'       => '0',
 					'keywords'          => array(),
+					'alt'               => '',
 				),
 			),
 			'Exif from a DMC-LX2 camera with keywords' => array(
@@ -234,6 +236,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'Photoshop Document Ttitle',
 					'orientation'       => '1',
 					'keywords'          => array( 'beach', 'baywatch', 'LA', 'sunset' ),
+					'alt'               => '',
 				),
 			),
 		);

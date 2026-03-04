@@ -1115,6 +1115,7 @@ function wp_get_image_alttext( $file ) {
 	$xpath->registerNamespace( 'rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#' );
 	$xpath->registerNamespace( 'Iptc4xmpCore', 'http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/' );
 
+	$value     = '';
 	$node_list = $xpath->query( '/x:xmpmeta/rdf:RDF/rdf:Description/Iptc4xmpCore:AltTextAccessibility' );
 	if ( $node_list && $node_list->count() ) {
 
