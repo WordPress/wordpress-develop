@@ -1208,6 +1208,37 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 }
 
 /**
+ * Adds a link to open the command palette.
+ *
+ * @since 7.0.0
+ *
+ * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+ */
+function wp_admin_bar_command_palette_menu( $wp_admin_bar ) {
+	if ( ! is_admin() || ! current_user_can( 'edit_posts' ) ) {
+		return;
+	}
+
+	$title = '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Open command palette' ) .
+	'</span>';
+
+	$wp_admin_bar->add_node(
+		array(
+			'parent' => 'top-secondary',
+			'id'     => 'command-palette',
+			'title'  => $title,
+			'href'   => '#',
+			'meta'   => array(
+				'class'   => 'hide-if-no-js',
+				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
+			),
+		)
+	);
+}
+
+/**
  * Adds a link to exit recovery mode when Recovery Mode is active.
  *
  * @since 5.2.0
