@@ -1956,6 +1956,8 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_hoist_late_printed_styles
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
+	 *
+	 * @param string[] $expected_styles
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, string $content, int $inline_size_limit, array $expected_styles, ?Closure $assert = null ): void {
 		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
@@ -2080,6 +2082,7 @@ class Tests_Template extends WP_UnitTestCase {
 			'BODY' => array(),
 		);
 		$processor    = WP_HTML_Processor::create_full_parser( $filtered_buffer );
+		$this->assertInstanceOf( WP_HTML_Processor::class, $processor );
 		while ( $processor->next_tag() ) {
 			$group = in_array( 'HEAD', $processor->get_breadcrumbs(), true ) ? 'HEAD' : 'BODY';
 			if (
