@@ -38,6 +38,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	 */
 	public static function setLanguage( $langcode = 'en', $lang_path = '' ) {
 		static::$language = array(
+			/* translators: SMTP authentication error message. */
 			'authenticate'         => __( 'SMTP Error: Could not authenticate.' ),
 			'buggy_php'            => sprintf(
 				/* translators: 1: mail.add_x_header. 2: php.ini */
@@ -45,8 +46,11 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 				'mail.add_x_header',
 				'php.ini'
 			),
+			/* translators: SMTP connection error message. */
 			'connect_host'         => __( 'SMTP Error: Could not connect to SMTP host.' ),
+			/* translators: SMTP data transmission error message. */
 			'data_not_accepted'    => __( 'SMTP Error: Data not accepted.' ),
+			/* translators: Email message body is empty. */
 			'empty_message'        => __( 'Message body empty' ),
 			/* translators: There is a space after the colon. */
 			'encoding'             => __( 'Unknown encoding: ' ),
@@ -79,6 +83,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 			'smtp_code'            => __( 'SMTP code: ' ),
 			/* translators: There is a space after the colon. */
 			'smtp_code_ex'         => __( 'Additional SMTP info: ' ),
+			/* translators: connect() is a PHP function name and should not be translated. */
 			'smtp_connect_failed'  => __( 'SMTP connect() failed.' ),
 			/* translators: There is a space after the colon. */
 			'smtp_detail'          => __( 'Detail: ' ),
@@ -86,7 +91,9 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 			'smtp_error'           => __( 'SMTP server error: ' ),
 			/* translators: There is a space after the colon. */
 			'variable_set'         => __( 'Cannot set or reset variable: ' ),
+			/* translators: SMTPUTF8 is a protocol extension name and should not be translated. */
 			'no_smtputf8'          => __( 'Server does not support SMTPUTF8 needed to send to Unicode addresses' ),
+			/* translators: PHP IMAP is a PHP extension name. RFC822 is an email standard name. Both should not be translated. */
 			'imap_recommended'     => __( 'Using simplified address parser is not recommended. Install the PHP IMAP extension for full RFC822 parsing.' ),
 			/* translators: %s: $useimap */
 			'deprecated_argument'  => sprintf( __( 'Argument %s is deprecated' ), '$useimap' ),
