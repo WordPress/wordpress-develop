@@ -1214,7 +1214,7 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
-function wp_admin_bar_command_palette_menu( $wp_admin_bar ) {
+function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	if ( ! is_admin() || ! current_user_can( 'edit_posts' ) ) {
 		return;
 	}
