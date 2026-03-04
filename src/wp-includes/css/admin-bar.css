@@ -699,6 +699,24 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 /**
+ * Command Palette
+ */
+#wpadminbar #wp-admin-bar-command-palette .ab-item {
+	padding-right: 4px;
+}
+
+#wpadminbar #wp-admin-bar-command-palette .ab-icon {
+	margin: 0;
+}
+
+#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
+	content: "\f179";
+	content: "\f179" / '';
+	top: 2px;
+	left: -2px;
+}
+
+/**
  * Customize support classes
  */
 .no-customize-support .hide-if-no-customize,
