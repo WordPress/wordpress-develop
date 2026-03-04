@@ -2265,6 +2265,7 @@ html.wp-toolbar {
 
 .sortable-placeholder {
 	border: 1px dashed #c3c4c7;
+	border-radius: 8px;
 	margin-bottom: 20px;
 }
 
