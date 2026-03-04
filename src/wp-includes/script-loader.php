@@ -3721,7 +3721,7 @@ function wp_load_classic_theme_block_styles_on_demand() {
  * @see wp_load_classic_theme_block_styles_on_demand()
  * @see _wp_footer_scripts()
  */
-function wp_hoist_late_printed_styles() {
+function wp_hoist_late_printed_styles(): void {
 	// Skip the embed template on-demand styles aren't relevant, and there is no wp_head action.
 	if ( is_embed() ) {
 		return;
@@ -3798,7 +3798,7 @@ function wp_hoist_late_printed_styles() {
 		if ( count( $enqueued_core_block_styles ) > 0 ) {
 			ob_start();
 			wp_styles()->do_items( $enqueued_core_block_styles );
-			$printed_core_block_styles = ob_get_clean();
+			$printed_core_block_styles = (string) ob_get_clean();
 		}
 
 		// Non-core block styles get printed after the classic-theme-styles stylesheet.
@@ -3806,14 +3806,14 @@ function wp_hoist_late_printed_styles() {
 		if ( count( $enqueued_other_block_styles ) > 0 ) {
 			ob_start();
 			wp_styles()->do_items( $enqueued_other_block_styles );
-			$printed_other_block_styles = ob_get_clean();
+			$printed_other_block_styles = (string) ob_get_clean();
 		}
 
 		// Capture the global-styles so that it can be printed separately after classic-theme-styles and other styles enqueued at enqueue_block_assets.
 		if ( wp_style_is( 'global-styles' ) ) {
 			ob_start();
 			wp_styles()->do_items( array( 'global-styles' ) );
-			$printed_global_styles = ob_get_clean();
+			$printed_global_styles = (string) ob_get_clean();
 		}
 
 		/*
@@ -3823,7 +3823,7 @@ function wp_hoist_late_printed_styles() {
 		 */
 		ob_start();
 		wp_styles()->do_footer_items();
-		$printed_late_styles = ob_get_clean();
+		$printed_late_styles = (string) ob_get_clean();
 	};
 
 	/*
@@ -3874,7 +3874,7 @@ function wp_hoist_late_printed_styles() {
 				 *
 				 * @param string $text Text to insert.
 				 */
-				public function insert_before( string $text ) {
+				public function insert_before( string $text ): void {
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $this->get_span()->start, 0, $text );
 				}
 
@@ -3883,7 +3883,7 @@ function wp_hoist_late_printed_styles() {
 				 *
 				 * @param string $text Text to insert.
 				 */
-				public function insert_after( string $text ) {
+				public function insert_after( string $text ): void {
 					$span = $this->get_span();
 
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start + $span->length, 0, $text );
@@ -3892,7 +3892,7 @@ function wp_hoist_late_printed_styles() {
 				/**
 				 * Removes the current token.
 				 */
-				public function remove() {
+				public function remove(): void {
 					$span = $this->get_span();
 
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
@@ -3903,7 +3903,7 @@ function wp_hoist_late_printed_styles() {
 				 *
 				 * @param string $text Text to replace with.
 				 */
-				public function replace( string $text ) {
+				public function replace( string $text ): void {
 					$span = $this->get_span();
 
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, $text );
@@ -3926,7 +3926,7 @@ function wp_hoist_late_printed_styles() {
 					$processor->set_bookmark( 'head_end' );
 					break;
 				} elseif ( ( 'STYLE' === $processor->get_tag() || 'LINK' === $processor->get_tag() ) && $processor->get_attribute( 'id' ) ) {
-					$id     = $processor->get_attribute( 'id' );
+					$id     = (string) $processor->get_attribute( 'id' );
 					$handle = null;
 					if ( 'STYLE' === $processor->get_tag() ) {
 						if ( preg_match( '/^(.+)-inline-css$/', $id, $matches ) ) {
