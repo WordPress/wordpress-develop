@@ -3801,7 +3801,7 @@ function wp_hoist_late_printed_styles(): void {
 		}
 
 		/*
-		 * First print all styles related to blocks which should be inserted right after the wp-block-library stylesheet
+		 * First print all styles related to core blocks which should be inserted right after the wp-block-library stylesheet
 		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
 		 */
 		$enqueued_core_block_styles = array_values( array_intersect( $all_core_block_style_handles, wp_styles()->queue ) );
@@ -3811,7 +3811,7 @@ function wp_hoist_late_printed_styles(): void {
 			$printed_core_block_styles = (string) ob_get_clean();
 		}
 
-		// Non-core block styles get printed after the classic-theme-styles stylesheet.
+		// Capture non-core block styles so they can get printed at the point where wp_enqueue_registered_block_scripts_and_styles() runs.
 		$enqueued_other_block_styles = array_values( array_intersect( $all_other_block_style_handles, wp_styles()->queue ) );
 		if ( count( $enqueued_other_block_styles ) > 0 ) {
 			ob_start();
@@ -3819,7 +3819,7 @@ function wp_hoist_late_printed_styles(): void {
 			$printed_other_block_styles = (string) ob_get_clean();
 		}
 
-		// Capture the global-styles so that it can be printed separately after classic-theme-styles and other styles enqueued at enqueue_block_assets.
+		// Capture the global-styles so that it can be printed at the point where wp_enqueue_global_styles() runs.
 		if ( wp_style_is( 'global-styles' ) ) {
 			ob_start();
 			wp_styles()->do_items( array( 'global-styles' ) );
@@ -4042,7 +4042,7 @@ function wp_hoist_late_printed_styles(): void {
 				}
 			}
 
-			// Insert third-party block styles right after the classic-theme-styles.
+			// Insert block styles at the point where wp_enqueue_registered_block_scripts_and_styles() normally enqueues styles.
 			if ( $processor->has_bookmark( 'wp_block_styles_placeholder' ) ) {
 				$processor->seek( 'wp_block_styles_placeholder' );
 				if ( '' !== $printed_other_block_styles ) {
