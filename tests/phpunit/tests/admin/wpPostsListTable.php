@@ -338,6 +338,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$output = get_echo( array( $this->table, 'print_column_headers' ) );
 
 		$this->assertStringContainsString( '?orderby=comment_count&#038;order=desc', $output, 'Mismatch of the default link ordering for comments column. Should be desc.' );
-		$this->assertMatchesRegularExpression( '/column-comments[^"\\n]*sortable asc/', $output, 'Mismatch of CSS classes for the comments column.' );
+		$this->assertStringContainsString( 'column-comments num sortable asc', $output, 'Mismatch of CSS classes for the comments column.' );
 	}
 }
