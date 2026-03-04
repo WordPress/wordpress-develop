@@ -1080,8 +1080,9 @@ function wp_read_image_metadata( $file ) {
 /**
  * Get the alt text from image meta data.
  *
- * @param string $file File path to the image.
+ * @since x.x.x
  *
+ * @param string $file File path to the image.
  * @return string Embedded alternative text.
  */
 function wp_get_image_alttext( $file ) {
