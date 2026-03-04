@@ -425,7 +425,6 @@ foreach ( (array) $options as $option ) :
 		}
 	} elseif ( str_starts_with( $option->option_name, 'connectors_' )
 		&& str_ends_with( $option->option_name, '_api_key' )
-		&& function_exists( '_wp_connectors_mask_api_key' )
 	) {
 		// Mask connector API keys and prevent updates from this screen.
 		$value    = _wp_connectors_mask_api_key( $option->option_value );
