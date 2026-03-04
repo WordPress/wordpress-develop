@@ -43,7 +43,7 @@
 		removeClass( adminBar, 'nojs' );
 
 		// Hide command palette if not supported.
-		if ( adminBarCommandPalette && ( ! wp.data || ! wp.data.dispatch( "core/commands" ) ) ) {
+		if ( adminBarCommandPalette && ( ! wp.data || ! wp.data.dispatch( 'core/commands' ) ) ) {
 			addClass( adminBarCommandPalette, 'hidden' );
 		}
 
