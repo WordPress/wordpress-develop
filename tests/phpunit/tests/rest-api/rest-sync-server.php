@@ -14,7 +14,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		update_option( 'wp_enable_real_time_collaboration', true );
+		add_filter( 'pre_option_wp_disable_real_time_collaboration', '__return_false' );
 
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
@@ -25,7 +25,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
 		wp_delete_post( self::$post_id, true );
-		delete_option( 'wp_enable_real_time_collaboration' );
+		remove_filter( 'pre_option_wp_disable_real_time_collaboration', '__return_false' );
 	}
 
 	public function set_up() {
