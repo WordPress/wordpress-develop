@@ -16,6 +16,8 @@ on:
     paths:
       # This workflow only scans JavaScript files.
       - '**.js'
+      - '**.ts'
+      - '**.tsx'
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       - '.nvmrc'
