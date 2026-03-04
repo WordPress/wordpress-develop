@@ -19,6 +19,7 @@
 			allMenuItems,
 			adminBarLogout,
 			adminBarSearchForm,
+			adminBarCommandPalette,
 			shortlink,
 			skipLink,
 			mobileEvent,
@@ -33,12 +34,18 @@
 		allMenuItems = adminBar.querySelectorAll( '.ab-item' );
 		adminBarLogout = document.querySelector( '#wp-admin-bar-logout a' );
 		adminBarSearchForm = document.getElementById( 'adminbarsearch' );
+		adminBarCommandPalette = document.getElementById( 'wp-admin-bar-command-palette' );
 		shortlink = document.getElementById( 'wp-admin-bar-get-shortlink' );
 		skipLink = adminBar.querySelector( '.screen-reader-shortcut' );
 		mobileEvent = /Mobile\/.+Safari/.test( navigator.userAgent ) ? 'touchstart' : 'click';
 
 		// Remove nojs class after the DOM is loaded.
 		removeClass( adminBar, 'nojs' );
+
+		// Hide command palette if not supported.
+		if ( adminBarCommandPalette && ( ! wp.data || ! wp.data.dispatch( "core/commands" ) ) ) {
+			addClass( adminBarCommandPalette, 'hidden' );
+		}
 
 		if ( 'ontouchstart' in window ) {
 			// Remove hover class when the user touches outside the menu items.
