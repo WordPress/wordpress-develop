@@ -167,7 +167,10 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 
 		$updates = array();
 		foreach ( $rows as $row ) {
-			$updates[] = json_decode( $row->update_value, true );
+			$decoded = json_decode( $row->update_value, true );
+			if ( is_array( $decoded ) ) {
+				$updates[] = $decoded;
+			}
 		}
 
 		return $updates;
