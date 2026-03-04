@@ -4029,7 +4029,7 @@ function wp_hoist_late_printed_styles(): void {
 				 * the combined block library stylesheet was used. The pattern here is checking to see if it is not just
 				 * a sourceURL comment after the placeholder above is removed.
 				 */
-				if ( ! preg_match( ':^\s*/\*# sourceURL=\S+? \*/\s*$:s', $extra_inline_styles ) ) {
+				if ( ! preg_match( ':^\s*(/\*# sourceURL=\S+? \*/\s*)?$:s', $extra_inline_styles ) ) {
 					$style_processor = new WP_HTML_Tag_Processor( '<style></style>' );
 					$style_processor->next_tag();
 					$style_processor->set_attribute( 'id', 'wp-block-library-inline-css-extra' );
