@@ -43,7 +43,9 @@ class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 		// Check the $error prop is a real WP_Error with the expected message.
 		$reflection = new ReflectionClass( $builder );
 		$error_prop = $reflection->getProperty( 'error' );
-		$error_prop->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$error_prop->setAccessible( true );
+		}
 		$error = $error_prop->getValue( $builder );
 
 		$this->assertInstanceOf( WP_Error::class, $error );
