@@ -115,12 +115,24 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
  *     }
  * }
  */
-function _wp_connectors_get_provider_settings(): array {
+function _wp_connectors_get_connector_settings(): array {
 	if ( ! wp_supports_ai() ) {
 		return array();
 	}
 
-	$providers = array(
+	$connectors = array(
+		'anthropic' => array(
+			'name'           => 'Anthropic',
+			'description'    => __( 'Text generation with Claude.' ),
+			'type'           => 'ai_provider',
+			'plugin'         => array(
+				'slug' => 'ai-provider-for-anthropic',
+			),
+			'authentication' => array(
+				'method'          => 'api_key',
+				'credentials_url' => 'https://platform.claude.com/settings/keys',
+			),
+		),
 		'google'    => array(
 			'name'           => 'Google',
 			'description'    => __( 'Text and image generation with Gemini and Imagen.' ),
