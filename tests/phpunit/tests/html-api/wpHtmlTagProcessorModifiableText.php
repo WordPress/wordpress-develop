@@ -644,7 +644,7 @@ HTML;
 	 *
 	 * @ticket 64609
 	 */
-	public function test_modifiable_text_special_textarea() {
+	public function test_modifiable_text_special_textarea(): void {
 		$processor = new WP_HTML_Tag_Processor( '<textarea></textarea>' );
 		$processor->next_token();
 		$processor->set_modifiable_text( "\nAFTER NEWLINE" );
@@ -662,6 +662,62 @@ HTML;
 			$processor->get_updated_html(),
 			'<body>',
 			'Should have preserved the leading newline in the content.'
+		);
+	}
+
+	/**
+	 * Ensures that `set_modifiable_text()` returns false for elements that are
+	 * not special "atomic" elements.
+	 *
+	 * This includes atomic-like foreign elements as well as non-atomic foreign elements.
+	 *
+	 * @ticket 64751
+	 * @dataProvider data_set_modifiable_fails_non_atomic_tags
+	 */
+	public function test_set_modifiable_fails_non_atomic_tags(
+		string $html,
+		string $parsing_namespace,
+		string $target_tag
+	): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->change_parsing_namespace( $parsing_namespace );
+		$this->assertTrue( $processor->next_tag( $target_tag ), 'Failed to find target tag.' );
+		$this->assertFalse(
+			$processor->set_modifiable_text( 'test' ),
+			"set_modifiable_text() should return false for {$parsing_namespace}:{$target_tag}."
+		);
+		$this->assertSame(
+			$html,
+			$processor->get_updated_html(),
+			'HTML should be unchanged after rejected set_modifiable_text().'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string}>
+	 */
+	public static function data_set_modifiable_fails_non_atomic_tags(): array {
+		return array(
+			// Plain HTML tags.
+			'html DIV'                   => array( '<div>', 'html', 'DIV' ),
+
+			// Foreign elements with non-atomic tags.
+			'svg PATH'                   => array( '<path></path>', 'svg', 'PATH' ),
+			'svg PATH (self-closing)'    => array( '<path />', 'svg', 'PATH' ),
+			'math MTEXT'                 => array( '<mtext></mtext>', 'math', 'MTEXT' ),
+			'math MSPACE (self-closing)' => array( '<mspace />', 'math', 'MSPACE' ),
+
+			// Foreign elements with atomic-like tags.
+			'svg TEXTAREA'               => array( '<textarea></textarea>', 'svg', 'TEXTAREA' ),
+			'svg TITLE'                  => array( '<title></title>', 'svg', 'TITLE' ),
+			'svg STYLE'                  => array( '<style></style>', 'svg', 'STYLE' ),
+			'svg SCRIPT'                 => array( '<script></script>', 'svg', 'SCRIPT' ),
+			'math TEXTAREA'              => array( '<textarea></textarea>', 'math', 'TEXTAREA' ),
+			'math TITLE'                 => array( '<title></title>', 'math', 'TITLE' ),
+			'math STYLE'                 => array( '<style></style>', 'math', 'STYLE' ),
+			'math SCRIPT'                => array( '<script></script>', 'math', 'SCRIPT' ),
 		);
 	}
 }
