@@ -34,3 +34,8 @@ parameters:
 			identifier: function.inner
 			path: src/wp-includes/canonical.php
 			count: 1
+
+		# Level 1:
+		- # These are too noisy at the moment.
+			identifier: variable.undefined
+			message: '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
