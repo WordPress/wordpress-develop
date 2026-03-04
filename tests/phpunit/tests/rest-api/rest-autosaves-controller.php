@@ -570,7 +570,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	public function test_rest_autosave_draft_post_same_author() {
-		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_false' );
+		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_zero' ); // Zero as false doesn't work for pre-flight options.
 
 		wp_set_current_user( self::$editor_id );
 
@@ -746,7 +746,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	public function test_update_item_draft_page_with_parent() {
-		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_false' );
+		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_zero' ); // Zero as false doesn't work for pre-flight options.
 
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$child_draft_page_id . '/autosaves' );
