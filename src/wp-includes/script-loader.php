@@ -4010,9 +4010,10 @@ function wp_hoist_late_printed_styles(): void {
 				$printed_core_block_styles = '';
 
 				/*
-				 * Add a new inline style for any user styles added wp_add_inline_style( 'wp-block-library', '...' ).
+				 * Add a new inline style for any user styles added via wp_add_inline_style( 'wp-block-library', '...' ).
 				 * This must be added here after $printed_core_block_styles to preserve the original CSS cascade when
-				 * the combined block library stylesheet was used.
+				 * the combined block library stylesheet was used. The pattern here is checking to see if it is not just
+				 * a sourceURL comment after the placeholder above is removed.
 				 */
 				if ( ! preg_match( ':^\s*/\*# sourceURL=\S+? \*/\s*$:s', $extra_inline_styles ) ) {
 					$style_processor = new WP_HTML_Tag_Processor( '<style></style>' );
