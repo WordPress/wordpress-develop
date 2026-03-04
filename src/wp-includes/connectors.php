@@ -139,6 +139,18 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
  */
 function _wp_connectors_get_connector_settings(): array {
 	$connectors = array(
+		'anthropic' => array(
+			'name'           => 'Anthropic',
+			'description'    => __( 'Text generation with Claude.' ),
+			'type'           => 'ai_provider',
+			'plugin'         => array(
+				'slug' => 'ai-provider-for-anthropic',
+			),
+			'authentication' => array(
+				'method'          => 'api_key',
+				'credentials_url' => 'https://platform.claude.com/settings/keys',
+			),
+		),
 		'google'    => array(
 			'name'           => 'Google',
 			'description'    => __( 'Text and image generation with Gemini and Imagen.' ),
@@ -161,18 +173,6 @@ function _wp_connectors_get_connector_settings(): array {
 			'authentication' => array(
 				'method'          => 'api_key',
 				'credentials_url' => 'https://platform.openai.com/api-keys',
-			),
-		),
-		'anthropic' => array(
-			'name'           => 'Anthropic',
-			'description'    => __( 'Text generation with Claude.' ),
-			'type'           => 'ai_provider',
-			'plugin'         => array(
-				'slug' => 'ai-provider-for-anthropic',
-			),
-			'authentication' => array(
-				'method'          => 'api_key',
-				'credentials_url' => 'https://platform.claude.com/settings/keys',
 			),
 		),
 	);
@@ -221,6 +221,8 @@ function _wp_connectors_get_connector_settings(): array {
 			);
 		}
 	}
+
+	ksort( $connectors );
 
 	// Add setting_name for connectors that use API key authentication.
 	foreach ( $connectors as $connector_id => $connector ) {
@@ -304,7 +306,7 @@ add_filter( 'rest_post_dispatch', '_wp_connectors_validate_keys_in_rest', 10, 3 
 function _wp_register_default_connector_settings(): void {
 	foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+		if ( 'ai_provider' !== $connector_data['type'] || 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
 
