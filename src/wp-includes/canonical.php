@@ -9,6 +9,52 @@
  * @since 2.3.0
  */
 
+/*
+ * Avoid redirects when URLs differ only in query string space encoding ('+' vs '%20').
+ * Normalizing only the query portion prevents us from collapsing semantically
+ * distinct URLs that differ in how reserved characters (like '/') are encoded
+ * in paths or parameter values.
+ *
+ * Converts '+' to '%20' only in the query string so that URLs that differ
+ * solely by space encoding in their query are treated as equivalent.
+ *
+ * @param string $url The URL to normalize.
+ *
+ * @return string The URL with normalized query string space encoding.
+ */
+function _wp_normalize_query_space_encoding( $url ) {
+
+	// If there is no query string, return the URL as-is.
+	$qpos = strpos( $url, '?' );
+	if ( false === $qpos ) {
+		return $url;
+	}
+
+	/**
+	 * Split the URL into three parts:
+	 * - the base (up to and including '?'),
+	 * - the query string (between '?' and '#'),
+	 * - the fragment (from '#' to the end).
+	 *
+	 * This allows us to normalize the query string without affecting the path or fragment,
+	 * which may have their own encoding that should be preserved.
+	 */
+	$hashpos = strpos( $url, '#', $qpos );
+	if ( false === $hashpos ) {
+		$base     = substr( $url, 0, $qpos + 1 );
+		$query    = substr( $url, $qpos + 1 );
+		$fragment = '';
+	} else {
+		$base     = substr( $url, 0, $qpos + 1 );
+		$query    = substr( $url, $qpos + 1, $hashpos - ( $qpos + 1 ) );
+		$fragment = substr( $url, $hashpos );
+	}
+
+	$normalized_query = str_replace( '+', '%20', $query );
+
+	return $base . $normalized_query . $fragment;
+}
+
 /**
  * Redirects incoming links to the proper URL based on the site url.
  *
@@ -774,22 +820,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	/*
-	 * Avoid redirects when URLs differ only in query string encoding.
-	 * Per RFC 3986, certain characters can be represented in multiple equivalent ways:
-	 * - Spaces: '+' vs '%20' (e.g., ?name=John+Doe vs ?name=John%20Doe)
-	 * - Unreserved chars unnecessarily encoded: '~' vs '%7E', '-' vs '%2D', '_' vs '%5F', '.' vs '%2E'
-	 * - Reserved chars in values: '/' vs '%2F', ':' vs '%3A', '@' vs '%40'
-	 *
-	 * Example problematic scenarios:
-	 * - UTM params: ?utm_content=Hello+World vs ?utm_content=Hello%20World
-	 * - Encoded paths: ?redirect=/path/to/page vs ?redirect=%2Fpath%2Fto%2Fpage
-	 * - Email params: ?email=user@example.com vs ?email=user%40example.com
-	 *
-	 * Redirecting between these variants provides no SEO or functional benefit
-	 * while potentially causing caching issues and breaking analytics.
-	 */
-	if ( urldecode( $redirect_url ) === urldecode( $requested_url ) ) {
+	$normalized_redirect_url  = _wp_normalize_query_space_encoding( $redirect_url );
+	$normalized_requested_url = _wp_normalize_query_space_encoding( $requested_url );
+
+	if ( $normalized_redirect_url === $normalized_requested_url ) {
 		return;
 	}
 
