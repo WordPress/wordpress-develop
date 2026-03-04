@@ -518,8 +518,8 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		// Verify that other encoded characters are handled properly.
 		// URLs with encoded reserved characters should maintain their encoding.
-		$url_encoded_at    = home_url( '/?email=user%40example.com' );
-		$url_unencoded_at  = home_url( '/?email=user@example.com' );
+		$url_encoded_at   = home_url( '/?email=user%40example.com' );
+		$url_unencoded_at = home_url( '/?email=user@example.com' );
 
 		$this->go_to( $url_encoded_at );
 		$redirect_encoded = redirect_canonical( $url_encoded_at, false );
