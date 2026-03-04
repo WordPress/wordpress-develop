@@ -3988,7 +3988,7 @@ function wp_hoist_late_printed_styles(): void {
 
 				/*
 				 * Split the block library inline style by the placeholder to identify the original inlined CSS, which
-				 * is likely would be common.css, followed by any inline styles which had been added by the theme or
+				 * likely would be common.css, followed by any inline styles which had been added by the theme or
 				 * plugins via `wp_add_inline_style( 'wp-block-library', '...' )`. The separate block styles loaded on
 				 * demand will get inserted after the inlined common.css and before the extra inline styles added by the
 				 * user.
