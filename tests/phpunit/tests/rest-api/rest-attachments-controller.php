@@ -3154,4 +3154,193 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// Verify that the data is an array (not an object).
 		$this->assertIsArray( $captured_data, 'Data passed to wp_insert_attachment should be an array' );
 	}
+
+	/**
+	 * Tests sideloading a scaled image for an existing attachment.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_image() {
+		wp_set_current_user( self::$author_id );
+
+		// First, create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$data          = $response->get_data();
+		$attachment_id = $data['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$original_file = get_attached_file( $attachment_id, true );
+
+		// Sideload a "scaled" version of the image.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading scaled image should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		// The original file should now be recorded as original_image.
+		$this->assertArrayHasKey( 'original_image', $metadata, 'Metadata should contain original_image.' );
+		$this->assertSame( wp_basename( $original_file ), $metadata['original_image'], 'original_image should be the basename of the original attached file.' );
+
+		// The attached file should now point to the scaled version.
+		$new_file = get_attached_file( $attachment_id, true );
+		$this->assertStringContainsString( 'scaled', wp_basename( $new_file ), 'Attached file should now be the scaled version.' );
+
+		// Metadata should have width, height, filesize, and file updated.
+		$this->assertArrayHasKey( 'width', $metadata, 'Metadata should contain width.' );
+		$this->assertArrayHasKey( 'height', $metadata, 'Metadata should contain height.' );
+		$this->assertArrayHasKey( 'filesize', $metadata, 'Metadata should contain filesize.' );
+		$this->assertArrayHasKey( 'file', $metadata, 'Metadata should contain file.' );
+		$this->assertStringContainsString( 'scaled', $metadata['file'], 'Metadata file should reference the scaled version.' );
+		$this->assertGreaterThan( 0, $metadata['width'], 'Width should be positive.' );
+		$this->assertGreaterThan( 0, $metadata['height'], 'Height should be positive.' );
+		$this->assertGreaterThan( 0, $metadata['filesize'], 'Filesize should be positive.' );
+	}
+
+	/**
+	 * Tests that sideloading scaled image requires authentication.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_image_requires_auth() {
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Try sideloading without authentication.
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 401 );
+	}
+
+	/**
+	 * Tests that the sideload endpoint includes 'scaled' in the image_size enum.
+	 *
+	 * @ticket 64737
+	 */
+	public function test_sideload_route_includes_scaled_enum() {
+		$server = rest_get_server();
+		$routes = $server->get_routes();
+
+		$endpoint = '/wp/v2/media/(?P<id>[\d]+)/sideload';
+		$this->assertArrayHasKey( $endpoint, $routes, 'Sideload route should exist.' );
+
+		$route    = $routes[ $endpoint ];
+		$endpoint = $route[0];
+		$args     = $endpoint['args'];
+
+		$param_name = 'image_size';
+		$this->assertArrayHasKey( $param_name, $args, 'Route should have image_size arg.' );
+		$this->assertContains( 'scaled', $args[ $param_name ]['enum'], 'image_size enum should include scaled.' );
+	}
+
+	/**
+	 * Tests the filter_wp_unique_filename method handles the -scaled suffix.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_unique_filename() {
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Sideload with the -scaled suffix.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading scaled image should succeed.' );
+
+		// The filename should retain the -scaled suffix without numeric disambiguation.
+		$new_file = get_attached_file( $attachment_id, true );
+		$basename = wp_basename( $new_file );
+		$this->assertMatchesRegularExpression( '/canola-scaled\.jpg$/', $basename, 'Scaled filename should not have numeric suffix appended.' );
+	}
+
+	/**
+	 * Tests that sideloading a scaled image for a different attachment retains the numeric suffix
+	 * when a file with the same name already exists on disk.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_unique_filename_conflict() {
+		wp_set_current_user( self::$author_id );
+
+		// Create the first attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response        = rest_get_server()->dispatch( $request );
+		$attachment_id_a = $response->get_data()['id'];
+
+		// Sideload a scaled image for attachment A, creating canola-scaled.jpg on disk.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_a}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'First sideload should succeed.' );
+
+		// Create a second, different attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=other.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response        = rest_get_server()->dispatch( $request );
+		$attachment_id_b = $response->get_data()['id'];
+
+		// Sideload scaled for attachment B using the same filename that already exists on disk.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_b}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Second sideload should succeed.' );
+
+		// The filename should have a numeric suffix since the base name does not match this attachment.
+		$new_file = get_attached_file( $attachment_id_b, true );
+		$basename = wp_basename( $new_file );
+		$this->assertMatchesRegularExpression( '/canola-scaled-\d+\.jpg$/', $basename, 'Scaled filename should have numeric suffix when file conflicts with a different attachment.' );
+	}
 }
