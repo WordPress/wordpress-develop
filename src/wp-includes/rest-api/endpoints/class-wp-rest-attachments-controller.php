@@ -2083,7 +2083,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			// Update the attached file to point to the scaled version.
 			if (
-				get_post_meta( $attachment_id, '_wp_attached_file', true ) !== $path &&
+				get_attached_file( $attachment_id, true ) !== $path &&
 				! update_attached_file( $attachment_id, $path )
 			) {
 				return new WP_Error(
