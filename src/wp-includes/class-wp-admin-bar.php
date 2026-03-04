@@ -651,6 +651,7 @@ class WP_Admin_Bar {
 		add_action( 'admin_bar_menu', 'wp_admin_bar_my_account_item', 9991 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_recovery_mode_menu', 9992 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_search_menu', 9999 );
+		add_action( 'admin_bar_menu', 'wp_admin_bar_command_palette_menu', 9999 );
 
 		// Site-related.
 		add_action( 'admin_bar_menu', 'wp_admin_bar_sidebar_toggle', 0 );
