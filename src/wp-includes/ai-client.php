@@ -10,6 +10,27 @@
 use WordPress\AiClient\AiClient;
 
 /**
+ * Returns whether AI features are supported in the current environment.
+ *
+ * @since 7.0.0
+ */
+function wp_supports_ai(): bool {
+	// Constant check gives a hard short-circuit for environments that cannot be overridden with a filter, such as wp-config.php settings or hosting provider configurations.
+	if ( defined( 'WP_DISABLE_AI' ) && WP_DISABLE_AI ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether the current request should use AI.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param bool $is_enabled Whether the current request should use AI. Default true.
+	 */
+	return (bool) apply_filters( 'wp_supports_ai', true );
+}
+
+/**
  * Creates a new AI prompt builder using the default provider registry.
  *
  * This is the main entry point for generating AI content in WordPress. It returns

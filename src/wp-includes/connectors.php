@@ -17,7 +17,7 @@ use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
  * @access private
  */
 function _wp_connectors_add_settings_menu_item(): void {
-	if ( ! class_exists( '\WordPress\AiClient\AiClient' ) || ! function_exists( 'wp_connectors_wp_admin_render_page' ) ) {
+	if ( ! wp_supports_ai() || ! class_exists( '\WordPress\AiClient\AiClient' ) || ! function_exists( 'wp_connectors_wp_admin_render_page' ) ) {
 		return;
 	}
 
@@ -117,6 +117,10 @@ function _wp_connectors_get_real_api_key( string $option_name, callable $mask_ca
  * @return array<string, array{provider: string, label: string, description: string, mask: callable, sanitize: callable}> Provider settings keyed by setting name.
  */
 function _wp_connectors_get_provider_settings(): array {
+	if ( ! wp_supports_ai() ) {
+		return array();
+	}
+
 	$providers = array(
 		'google'    => array(
 			'name' => 'Google',

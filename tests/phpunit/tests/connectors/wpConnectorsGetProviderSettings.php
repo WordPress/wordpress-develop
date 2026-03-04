@@ -43,4 +43,16 @@ class Tests_Connectors_WpConnectorsGetProviderSettings extends WP_UnitTestCase {
 		$this->assertSame( 'openai', $settings['connectors_ai_openai_api_key']['provider'] );
 		$this->assertSame( 'anthropic', $settings['connectors_ai_anthropic_api_key']['provider'] );
 	}
+
+	/**
+	 * Tests providers return an empty array when AI is not supported
+	 */
+	public function test_returns_empty_array_when_ai_not_supported() {
+		// Temporarily disable AI support for this test.
+		add_filter( 'wp_supports_ai', '__return_false' );
+
+		$settings = _wp_connectors_get_provider_settings();
+		$this->assertIsArray( $settings );
+		$this->assertEmpty( $settings );
+	}
 }
