@@ -1086,7 +1086,7 @@ function wp_read_image_metadata( $file ) {
  * @return string Embedded alternative text.
  */
 function wp_get_image_alttext( $file ) {
-
+	$alt_text     = '';
 	$img_contents = file_get_contents( $file );
 	// Find the start and end positions of the XMP metadata.
 	$xmp_start = strpos( $img_contents, '<x:xmpmeta' );
@@ -1094,7 +1094,7 @@ function wp_get_image_alttext( $file ) {
 
 	if ( ! $xmp_start || ! $xmp_end ) {
 		// No XMP metadata found.
-		return '';
+		return $alt_text;
 	}
 
 	// Extract the XMP metadata from the JPEG contents
@@ -1104,7 +1104,7 @@ function wp_get_image_alttext( $file ) {
 	$doc = new DOMDocument();
 	if ( false === $doc->loadXML( $xmp_data ) ) {
 		// Invalid XML in metadata.
-		return '';
+		return $alt_text;
 	}
 
 	// Instantiate an XPath object, used to extract portions of the XMP.
@@ -1115,7 +1115,6 @@ function wp_get_image_alttext( $file ) {
 	$xpath->registerNamespace( 'rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#' );
 	$xpath->registerNamespace( 'Iptc4xmpCore', 'http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/' );
 
-	$value     = '';
 	$node_list = $xpath->query( '/x:xmpmeta/rdf:RDF/rdf:Description/Iptc4xmpCore:AltTextAccessibility' );
 	if ( $node_list && $node_list->count() ) {
 
@@ -1132,16 +1131,16 @@ function wp_get_image_alttext( $file ) {
 		// 3. there is an rdf:li with an "x-default" lang.
 		//
 		// Evaluate in that order, stopping when we have a match.
-		$value = $xpath->evaluate( "string( rdf:Alt/rdf:li[ @xml:lang = '{$locale}' ] )", $node );
-		if ( ! $value ) {
-			$value = $xpath->evaluate( 'string( rdf:Alt/rdf:li[ @xml:lang = "' . substr( $locale, 0, 2 ) . '" ] )', $node );
-			if ( ! $value ) {
-				$value = $xpath->evaluate( 'string( rdf:Alt/rdf:li[ @xml:lang = "x-default" ] )', $node );
+		$alt_text = $xpath->evaluate( "string( rdf:Alt/rdf:li[ @xml:lang = '{$locale}' ] )", $node );
+		if ( ! $alt_text ) {
+			$alt_text = $xpath->evaluate( 'string( rdf:Alt/rdf:li[ @xml:lang = "' . substr( $locale, 0, 2 ) . '" ] )', $node );
+			if ( ! $alt_text ) {
+				$alt_text = $xpath->evaluate( 'string( rdf:Alt/rdf:li[ @xml:lang = "x-default" ] )', $node );
 			}
 		}
 	}
 
-	return $value;
+	return $alt_text;
 }
 
 /**
