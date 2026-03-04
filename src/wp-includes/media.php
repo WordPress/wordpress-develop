@@ -6393,9 +6393,9 @@ function wp_set_client_side_media_processing_flag(): void {
 
 	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
 
-	$chrome_version = wp_get_chrome_major_version();
+	$chromium_version = wp_get_chromium_major_version();
 
-	if ( null !== $chrome_version && $chrome_version >= 137 ) {
+	if ( null !== $chromium_version && $chromium_version >= 137 ) {
 		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true', 'before' );
 	}
 
@@ -6420,7 +6420,7 @@ function wp_set_client_side_media_processing_flag(): void {
  *
  * @return int|null The major Chrome version, or null if not a Chromium browser.
  */
-function wp_get_chrome_major_version(): ?int {
+function wp_get_chromium_major_version(): ?int {
 	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
 		return null;
 	}
@@ -6478,9 +6478,9 @@ function wp_set_up_cross_origin_isolation(): void {
  * @since 7.0.0
  */
 function wp_start_cross_origin_isolation_output_buffer(): void {
-	$chrome_version = wp_get_chrome_major_version();
+	$chromium_version = wp_get_chromium_major_version();
 
-	if ( null === $chrome_version || $chrome_version < 137 ) {
+	if ( null === $chromium_version || $chromium_version < 137 ) {
 		return;
 	}
 
