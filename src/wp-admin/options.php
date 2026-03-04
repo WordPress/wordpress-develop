@@ -415,17 +415,14 @@ foreach ( (array) $options as $option ) :
 	}
 
 	if ( is_serialized( $option->option_value ) ) {
-		if ( is_serialized_string( $option->option_value ) ) {
-			// This is a serialized string, so we should display it.
-			$value               = maybe_unserialize( $option->option_value );
-			$options_to_update[] = $option->option_name;
-		} else {
-			$value    = 'SERIALIZED DATA';
-			$disabled = true;
-		}
+		$value               = maybe_unserialize( $option->option_value );
+		$disabled            = true;
+		$options_to_update[] = $option->option_name;
+		$is_serialized       = true;
 	} else {
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
+		$is_serialized       = false;
 	}
 
 	$class = 'all-options';
@@ -439,11 +436,35 @@ foreach ( (array) $options as $option ) :
 <tr>
 	<th scope="row"><label for="<?php echo $name; ?>"><?php echo esc_html( $option->option_name ); ?></label></th>
 <td>
-	<?php if ( str_contains( $value, "\n" ) ) : ?>
-		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
-	<?php else : ?>
-		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />
-	<?php endif; ?></td>
+	<?php if ( $is_serialized && ( is_array( $value ) || is_object( $value ) ) ) : ?>
+	<button
+		type="button"
+		class="toggle-serialized button button-secondary"
+		data-target="opt-<?php echo esc_attr( $name ); ?>">
+		Show (SERIALIZED DATA)
+	</button>
+
+	<pre
+		id="opt-<?php echo esc_attr( $name ); ?>"
+		style="display:none; margin-top:8px; max-height:300px; overflow:auto; background:#f6f7f7; padding:10px;">
+<?php echo esc_html( print_r( $value, true ) ); ?>
+	</pre>
+
+<?php elseif ( str_contains( (string) $value, "\n" ) ) : ?>
+	<textarea
+		class="<?php echo $class; ?>"
+		disabled="disabled"
+		cols="30"
+		rows="5"><?php echo esc_textarea( $value ); ?></textarea>
+
+<?php else : ?>
+	<input
+		class="regular-text <?php echo $class; ?>"
+		type="text"
+		value="<?php echo esc_attr( $value ); ?>"
+		disabled="disabled" />
+<?php endif; ?>
+
 </tr>
 <?php endforeach; ?>
 </table>
@@ -454,6 +475,25 @@ foreach ( (array) $options as $option ) :
 
 </form>
 </div>
+
+<script>
+document.addEventListener('click', function (e) {
+	if (!e.target.classList.contains('toggle-serialized')) {
+		return;
+	}
+
+	const targetId = e.target.getAttribute('data-target');
+	const el = document.getElementById(targetId);
+
+	if (!el) {
+		return;
+	}
+
+	const open = el.style.display === 'block';
+	el.style.display = open ? 'none' : 'block';
+	e.target.textContent = open ? 'Show' : 'Hide';
+});
+</script>
 
 <?php
 require_once ABSPATH . 'wp-admin/admin-footer.php';
