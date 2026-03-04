@@ -130,6 +130,16 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63895
+	 */
+	public function test_iptc_alt() {
+		// Image tests alt text from the IPTC photo metadata standard 2025.1.
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
+
+		$this->assertSame( 'This is the Alt Text description to support accessibility in 2025.1', $out['alt'], 'Alt text does not match source.' );
+	}
+
+	/**
 	 * @ticket 9417
 	 */
 	public function test_utf8_iptc_tags() {
