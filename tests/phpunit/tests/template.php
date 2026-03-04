@@ -1483,7 +1483,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *     content: string,
 	 *     inline_size_limit: int,
 	 *     expected_styles: array{ HEAD: string[], BODY: string[] },
-	 *     assert?: Closure( string, string, array{ HEAD: string[], BODY: string[] } ): void,
+	 *     assert?: Closure( string, string ): void,
 	 * }>
 	 */
 	public function data_wp_hoist_late_printed_styles(): array {
@@ -2120,7 +2120,7 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		if ( $assert ) {
-			$assert( $buffer, $filtered_buffer, $found_subset_styles );
+			$assert( $buffer, $filtered_buffer );
 		}
 	}
 
