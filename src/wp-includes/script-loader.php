@@ -4015,7 +4015,11 @@ function wp_hoist_late_printed_styles() {
 				 * the combined block library stylesheet was used.
 				 */
 				if ( ! preg_match( ':^\s*/\*# sourceURL=\S+? \*/\s*$:s', $extra_inline_styles ) ) {
-					$inserted_after .= "<style id='wp-block-library-inline-css-extra'>$extra_inline_styles</style>\n";
+					$style_processor = new WP_HTML_Tag_Processor( '<style></style>' );
+					$style_processor->next_tag();
+					$style_processor->set_attribute( 'id', 'wp-block-library-inline-css-extra' );
+					$style_processor->set_modifiable_text( $extra_inline_styles );
+					$inserted_after .= "{$style_processor->get_updated_html()}\n";
 				}
 
 				// If the classic-theme-styles is absent, then the third-party block styles cannot be inserted after it, so they get inserted here.
