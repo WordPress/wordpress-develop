@@ -61,12 +61,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Dispatches a collaboration request with the given rooms.
 	 *
-	 * @param array  $rooms     Array of room request data.
-	 * @param string $namespace REST namespace to use. Defaults to the primary namespace.
+	 * @param array  $rooms      Array of room request data.
+	 * @param string $_namespace REST namespace to use. Defaults to the primary namespace.
 	 * @return WP_REST_Response Response object.
 	 */
-	private function dispatch_collaboration( $rooms, $namespace = 'wp-collaboration/v1' ) {
-		$request = new WP_REST_Request( 'POST', '/' . $namespace . '/updates' );
+	private function dispatch_collaboration( $rooms, $_namespace = 'wp-collaboration/v1' ) {
+		$request = new WP_REST_Request( 'POST', '/' . $_namespace . '/updates' );
 		$request->set_body_params( array( 'rooms' => $rooms ) );
 		return rest_get_server()->dispatch( $request );
 	}
