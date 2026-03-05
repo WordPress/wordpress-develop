@@ -153,12 +153,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div>Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString( 'wp-block-hidden-mobile', $result, 'Block should have the visibility class for the mobile breakpoint.' );
+		$this->assertStringContainsString( 'is-block-hidden-on-mobile', $result, 'Block should have the visibility class for the mobile breakpoint.' );
 
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
-			'@media (width <= 480px){.wp-block-hidden-mobile{display:none !important;}}',
+			'@media (width <= 480px){.is-block-hidden-on-mobile{display:none !important;}}',
 			$actual_stylesheet,
 			'CSS should contain mobile visibility rule'
 		);
@@ -189,12 +189,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div class="existing-class">Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString( 'class="existing-class wp-block-hidden-tablet"', $result, 'Block should have the existing class and the visibility class for the tablet breakpoint in the class attribute.' );
+		$this->assertStringContainsString( 'class="existing-class is-block-hidden-on-tablet"', $result, 'Block should have the existing class and the visibility class for the tablet breakpoint in the class attribute.' );
 
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
-			'@media (480px < width <= 782px){.wp-block-hidden-tablet{display:none !important;}}',
+			'@media (480px < width <= 782px){.is-block-hidden-on-tablet{display:none !important;}}',
 			$actual_stylesheet,
 			'CSS should contain tablet visibility rule'
 		);
@@ -225,12 +225,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div>Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString( 'class="wp-block-hidden-desktop"', $result, 'Block should have the visibility class for the desktop breakpoint in the class attribute.' );
+		$this->assertStringContainsString( 'class="is-block-hidden-on-desktop"', $result, 'Block should have the visibility class for the desktop breakpoint in the class attribute.' );
 
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
-			'@media (width > 782px){.wp-block-hidden-desktop{display:none !important;}}',
+			'@media (width > 782px){.is-block-hidden-on-desktop{display:none !important;}}',
 			$actual_stylesheet,
 			'CSS should contain desktop visibility rule'
 		);
@@ -263,7 +263,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertStringContainsString(
-			'class="wp-block-hidden-desktop wp-block-hidden-mobile"',
+			'class="is-block-hidden-on-desktop is-block-hidden-on-mobile"',
 			$result,
 			'Block should have both visibility classes in the class attribute'
 		);
@@ -271,7 +271,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
-			'@media (width > 782px){.wp-block-hidden-desktop{display:none !important;}}@media (width <= 480px){.wp-block-hidden-mobile{display:none !important;}}',
+			'@media (width > 782px){.is-block-hidden-on-desktop{display:none !important;}}@media (width <= 480px){.is-block-hidden-on-mobile{display:none !important;}}',
 			$actual_stylesheet,
 			'CSS should contain desktop and mobile visibility rules'
 		);
@@ -334,7 +334,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div>Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertSame( '<div class="wp-block-hidden-desktop wp-block-hidden-mobile wp-block-hidden-tablet">Test content</div>', $result, 'Block content should have the visibility classes for all viewport sizes in the class attribute.' );
+		$this->assertSame( '<div class="is-block-hidden-on-desktop is-block-hidden-on-mobile is-block-hidden-on-tablet">Test content</div>', $result, 'Block content should have the visibility classes for all viewport sizes in the class attribute.' );
 	}
 
 	/*
@@ -389,7 +389,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertStringContainsString(
-			'class="wp-block-hidden-mobile"',
+			'class="is-block-hidden-on-mobile"',
 			$result,
 			'Block should have the visibility class for the mobile breakpoint in the class attribute'
 		);
