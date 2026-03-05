@@ -6396,7 +6396,7 @@ function wp_set_client_side_media_processing_flag(): void {
 	$chromium_version = wp_get_chromium_major_version();
 
 	if ( null !== $chromium_version && $chromium_version >= 137 ) {
-		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true', 'before' );
+		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
 	}
 
 	/*
