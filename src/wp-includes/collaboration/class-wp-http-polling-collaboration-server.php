@@ -24,6 +24,10 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Deprecated REST API namespace.
 	 *
+	 * Retained for backward compatibility with the Gutenberg plugin, which
+	 * still registers requests under the `wp-sync/v1` namespace during its
+	 * transition to `wp-collaboration/v1`.
+	 *
 	 * @since 7.0.0
 	 * @var string
 	 */
@@ -176,7 +180,8 @@ class WP_HTTP_Polling_Collaboration_Server {
 			$route_args
 		);
 
-		// Deprecated alias for backward compatibility.
+		// Deprecated alias kept for the Gutenberg plugin, which still uses the
+		// wp-sync/v1 namespace during its transition to wp-collaboration/v1.
 		register_rest_route(
 			self::DEPRECATED_REST_NAMESPACE,
 			'/updates',
@@ -301,6 +306,9 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * Handles a request to the deprecated wp-sync/v1 route.
 	 *
 	 * Delegates to handle_request() and adds a deprecation header.
+	 * This route exists for backward compatibility with the Gutenberg plugin,
+	 * which still uses the wp-sync/v1 namespace during its transition to
+	 * wp-collaboration/v1.
 	 *
 	 * @since 7.0.0
 	 *

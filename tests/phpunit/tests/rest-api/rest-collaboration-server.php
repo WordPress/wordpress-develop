@@ -1219,9 +1219,16 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 	/*
 	 * Deprecated route tests.
+	 *
+	 * The wp-sync/v1 namespace is retained as a deprecated alias for
+	 * backward compatibility with the Gutenberg plugin, which still
+	 * uses it during its transition to wp-collaboration/v1.
 	 */
 
 	/**
+	 * Verifies the deprecated wp-sync/v1 route includes a deprecation header
+	 * so Gutenberg plugin consumers are informed of the namespace change.
+	 *
 	 * @ticket 64696
 	 */
 	public function test_deprecated_sync_route_returns_deprecation_header(): void {
@@ -1240,6 +1247,9 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * Verifies the deprecated wp-sync/v1 route still processes requests
+	 * correctly, ensuring Gutenberg plugin compatibility during the transition.
+	 *
 	 * @ticket 64696
 	 */
 	public function test_deprecated_sync_route_functions_correctly(): void {
