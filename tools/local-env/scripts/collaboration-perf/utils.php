@@ -1,6 +1,6 @@
 <?php
 /**
- * Shared statistics, formatting, seeding, and cleanup utilities for sync storage benchmarks.
+ * Shared statistics, formatting, seeding, and cleanup utilities for collaboration storage benchmarks.
  *
  * PHP equivalents of the functions in tests/performance/utils.js
  * (median, standardDeviation, medianAbsoluteDeviation).
@@ -14,7 +14,7 @@
  * @param float[] $arr Array of numbers.
  * @return float Median value.
  */
-function sync_perf_median( array $arr ): float {
+function collaboration_perf_median( array $arr ): float {
 	sort( $arr );
 	$count = count( $arr );
 	$mid   = (int) floor( $count / 2 );
@@ -29,7 +29,7 @@ function sync_perf_median( array $arr ): float {
  * @param float[] $arr Array of numbers.
  * @return float Standard deviation.
  */
-function sync_perf_sd( array $arr ): float {
+function collaboration_perf_sd( array $arr ): float {
 	$count  = count( $arr );
 	$mean   = array_sum( $arr ) / $count;
 	$sum_sq = 0.0;
@@ -45,10 +45,10 @@ function sync_perf_sd( array $arr ): float {
  * @param float[] $arr Array of numbers.
  * @return float Median absolute deviation.
  */
-function sync_perf_mad( array $arr ): float {
-	$med        = sync_perf_median( $arr );
+function collaboration_perf_mad( array $arr ): float {
+	$med        = collaboration_perf_median( $arr );
 	$deviations = array_map( fn( $v ) => abs( $v - $med ), $arr );
-	return sync_perf_median( $deviations );
+	return collaboration_perf_median( $deviations );
 }
 
 /**
@@ -57,7 +57,7 @@ function sync_perf_mad( array $arr ): float {
  * @param float[] $arr Array of numbers.
  * @return float 95th percentile value.
  */
-function sync_perf_p95( array $arr ): float {
+function collaboration_perf_p95( array $arr ): float {
 	sort( $arr );
 	$index = (int) ceil( 0.95 * count( $arr ) ) - 1;
 	return $arr[ max( 0, $index ) ];
@@ -69,12 +69,12 @@ function sync_perf_p95( array $arr ): float {
  * @param float[] $times Array of durations in milliseconds.
  * @return array{ median: float, p95: float, sd: float, mad: float }
  */
-function sync_perf_compute_stats( array $times ): array {
+function collaboration_perf_compute_stats( array $times ): array {
 	return array(
-		'median' => sync_perf_median( $times ),
-		'p95'    => sync_perf_p95( $times ),
-		'sd'     => sync_perf_sd( $times ),
-		'mad'    => sync_perf_mad( $times ),
+		'median' => collaboration_perf_median( $times ),
+		'p95'    => collaboration_perf_p95( $times ),
+		'sd'     => collaboration_perf_sd( $times ),
+		'mad'    => collaboration_perf_mad( $times ),
 	);
 }
 
@@ -86,7 +86,7 @@ function sync_perf_compute_stats( array $times ): array {
  * @param int      $warmup  Number of warm-up iterations (discarded).
  * @return array{ median: float, p95: float, sd: float, mad: float }
  */
-function sync_perf_stats( callable $callback, int $measured, int $warmup = 5 ): array {
+function collaboration_perf_stats( callable $callback, int $measured, int $warmup = 5 ): array {
 	for ( $i = 0; $i < $warmup; $i++ ) {
 		$callback();
 	}
@@ -98,7 +98,7 @@ function sync_perf_stats( callable $callback, int $measured, int $warmup = 5 ): 
 		$times[] = ( microtime( true ) - $start ) * 1000;
 	}
 
-	return sync_perf_compute_stats( $times );
+	return collaboration_perf_compute_stats( $times );
 }
 
 /**
@@ -107,7 +107,7 @@ function sync_perf_stats( callable $callback, int $measured, int $warmup = 5 ): 
  * @param string $sql The query to explain.
  * @return array EXPLAIN result rows.
  */
-function sync_perf_explain( string $sql ): array {
+function collaboration_perf_explain( string $sql ): array {
 	global $wpdb;
 	return $wpdb->get_results( "EXPLAIN {$sql}", ARRAY_A );
 }
@@ -118,7 +118,7 @@ function sync_perf_explain( string $sql ): array {
  * @param float $value Duration in milliseconds.
  * @return string Formatted value, e.g. "0.04 ms".
  */
-function sync_perf_format_ms( float $value ): string {
+function collaboration_perf_format_ms( float $value ): string {
 	return sprintf( '%.2f ms', $value );
 }
 
@@ -128,7 +128,7 @@ function sync_perf_format_ms( float $value ): string {
  * @param array $row Single EXPLAIN result row (associative array).
  * @return string Prose summary.
  */
-function sync_perf_explain_access( array $row ): string {
+function collaboration_perf_explain_access( array $row ): string {
 	$extra       = $row['Extra'] ?? $row['extra'] ?? '';
 	$index       = $row['key'] ?? $row['Key'] ?? null;
 	$access_type = $row['type'] ?? $row['Type'] ?? null;
@@ -147,7 +147,7 @@ function sync_perf_explain_access( array $row ): string {
  * @param int $total_rows Total rows to insert.
  * @param int $rooms      Number of rooms to distribute across.
  */
-function sync_perf_seed_table( int $total_rows, int $rooms ): void {
+function collaboration_perf_seed_table( int $total_rows, int $rooms ): void {
 	global $wpdb;
 
 	$wpdb->query( "TRUNCATE TABLE {$wpdb->collaboration}" );
@@ -196,10 +196,10 @@ function sync_perf_seed_table( int $total_rows, int $rooms ): void {
  * @param int    $rooms       Number of rooms.
  * @return array[] EXPLAIN entries with label, sql, and access summary.
  */
-function sync_perf_collect_explains( string $target_room, int $scale, int $rooms ): array {
+function collaboration_perf_collect_explains( string $target_room, int $scale, int $rooms ): array {
 	global $wpdb;
 
-	sync_perf_seed_table( $scale, $rooms );
+	collaboration_perf_seed_table( $scale, $rooms );
 	$wpdb->query( "ANALYZE TABLE {$wpdb->collaboration}" );
 
 	$table_max_id = (int) $wpdb->get_var( $wpdb->prepare(
@@ -238,11 +238,11 @@ function sync_perf_collect_explains( string $target_room, int $scale, int $rooms
 	$explains = array();
 	foreach ( $queries as $query ) {
 		$prepared = $wpdb->prepare( $query['sql'], ...$query['args'] );
-		$rows     = sync_perf_explain( $prepared );
+		$rows     = collaboration_perf_explain( $prepared );
 
 		$explains[] = array(
 			'Query'  => $query['label'],
-			'Access' => ! empty( $rows ) ? sync_perf_explain_access( $rows[0] ) : 'No EXPLAIN output',
+			'Access' => ! empty( $rows ) ? collaboration_perf_explain_access( $rows[0] ) : 'No EXPLAIN output',
 		);
 	}
 
@@ -257,7 +257,7 @@ function sync_perf_collect_explains( string $target_room, int $scale, int $rooms
  * @param int   $rooms      Rooms per scale.
  * @return array[] Rows with 'Rows per room', 'Median', 'P95', 'STD', 'MAD' keys.
  */
-function sync_perf_build_section_rows( array $op_results, array $scales, int $rooms ): array {
+function collaboration_perf_build_section_rows( array $op_results, array $scales, int $rooms ): array {
 	$rows = array();
 
 	foreach ( $scales as $scale ) {
@@ -266,10 +266,10 @@ function sync_perf_build_section_rows( array $op_results, array $scales, int $ro
 
 		$rows[] = array(
 			'Rows per room' => number_format( $per_room ),
-			'Median'        => sync_perf_format_ms( $stats['median'] ),
-			'P95'           => sync_perf_format_ms( $stats['p95'] ),
-			'STD'           => sync_perf_format_ms( $stats['sd'] ),
-			'MAD'           => sync_perf_format_ms( $stats['mad'] ),
+			'Median'        => collaboration_perf_format_ms( $stats['median'] ),
+			'P95'           => collaboration_perf_format_ms( $stats['p95'] ),
+			'STD'           => collaboration_perf_format_ms( $stats['sd'] ),
+			'MAD'           => collaboration_perf_format_ms( $stats['mad'] ),
 		);
 	}
 
@@ -280,18 +280,18 @@ function sync_perf_build_section_rows( array $op_results, array $scales, int $ro
  * Prints all benchmark results using WP-CLI formatting.
  *
  * @param array  $results      Benchmark results keyed by operation/scale.
- * @param array  $explain_data Return value from sync_perf_collect_explains().
+ * @param array  $explain_data Return value from collaboration_perf_collect_explains().
  * @param array  $config       Benchmark configuration.
  * @param int[]  $scales       Scale values.
  */
-function sync_perf_print_output( array $results, array $explain_data, array $config, array $scales ): void {
+function collaboration_perf_print_output( array $results, array $explain_data, array $config, array $scales ): void {
 	global $wp_version, $wpdb;
 
 	$fields    = array( 'Rows per room', 'Median', 'P95', 'STD', 'MAD' );
 	$separator = str_repeat( '─', 60 );
 
 	WP_CLI::log( '' );
-	WP_CLI::log( WP_CLI::colorize( '%_Sync Storage Performance%n' ) );
+	WP_CLI::log( WP_CLI::colorize( '%_Collaboration Storage Performance%n' ) );
 	WP_CLI::log( sprintf(
 		'WordPress %s, MySQL %s, PHP %s, Docker (local dev)',
 		$wp_version,
@@ -330,7 +330,7 @@ function sync_perf_print_output( array $results, array $explain_data, array $con
 		WP_CLI::log( $section['desc'] );
 		WP_CLI::log( '' );
 
-		$rows = sync_perf_build_section_rows( $results[ $op_key ], $scales, $config['rooms'] );
+		$rows = collaboration_perf_build_section_rows( $results[ $op_key ], $scales, $config['rooms'] );
 		WP_CLI\Utils\format_items( 'table', $rows, $fields );
 	}
 

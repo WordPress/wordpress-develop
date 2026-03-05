@@ -52,7 +52,7 @@ if ( ! $has_table ) {
 $results = array();
 
 WP_CLI::log( '' );
-WP_CLI::log( WP_CLI::colorize( '%_Sync Storage Performance Benchmark%n' ) );
+WP_CLI::log( WP_CLI::colorize( '%_Collaboration Storage Performance Benchmark%n' ) );
 WP_CLI::log( "Backend:      WP_Collaboration_Table_Storage" );
 WP_CLI::log( "Iterations:   {$measured_iterations} measured + {$warmup_iterations} warm-up" );
 WP_CLI::log( "Compaction:   {$compaction_iterations} measured (re-seed each)" );
@@ -64,7 +64,7 @@ foreach ( $scales as $scale ) {
 	WP_CLI::log( "Scale: {$label} total rows ({$per_room} per room)" );
 
 	WP_CLI::log( '  Seeding table...' );
-	sync_perf_seed_table( $scale, $rooms_per_scale );
+	collaboration_perf_seed_table( $scale, $rooms_per_scale );
 
 	$primer            = new WP_Collaboration_Table_Storage();
 	$primer->get_updates_after_cursor( $target_room, 0 );
@@ -72,7 +72,7 @@ foreach ( $scales as $scale ) {
 
 	// Idle poll.
 	WP_CLI::log( '  Idle poll...' );
-	$results['idle_poll'][ $scale ] = sync_perf_stats(
+	$results['idle_poll'][ $scale ] = collaboration_perf_stats(
 		function () use ( $target_room, $table_idle_cursor ) {
 			$s = new WP_Collaboration_Table_Storage();
 			$s->get_updates_after_cursor( $target_room, $table_idle_cursor );
@@ -83,7 +83,7 @@ foreach ( $scales as $scale ) {
 
 	// Catch-up poll.
 	WP_CLI::log( '  Catch-up poll...' );
-	$results['catchup_poll'][ $scale ] = sync_perf_stats(
+	$results['catchup_poll'][ $scale ] = collaboration_perf_stats(
 		function () use ( $target_room ) {
 			$s = new WP_Collaboration_Table_Storage();
 			$s->get_updates_after_cursor( $target_room, 0 );
@@ -97,7 +97,7 @@ foreach ( $scales as $scale ) {
 	$compaction_times = array();
 
 	for ( $ci = 0; $ci < $compaction_iterations; $ci++ ) {
-		sync_perf_seed_table( $scale, $rooms_per_scale );
+		collaboration_perf_seed_table( $scale, $rooms_per_scale );
 
 		$compaction_cursor_id = (int) $wpdb->get_var( $wpdb->prepare(
 			"SELECT id FROM {$wpdb->collaboration} WHERE room = %s ORDER BY id ASC LIMIT 1 OFFSET %d",
@@ -111,7 +111,7 @@ foreach ( $scales as $scale ) {
 		$compaction_times[] = ( microtime( true ) - $start ) * 1000;
 	}
 
-	$results['compaction'][ $scale ] = sync_perf_compute_stats( $compaction_times );
+	$results['compaction'][ $scale ] = collaboration_perf_compute_stats( $compaction_times );
 }
 
 // ============================================================
@@ -119,7 +119,7 @@ foreach ( $scales as $scale ) {
 // ============================================================
 
 WP_CLI::log( 'Collecting EXPLAIN analysis...' );
-$explain_data = sync_perf_collect_explains( $target_room, end( $scales ), $rooms_per_scale );
+$explain_data = collaboration_perf_collect_explains( $target_room, end( $scales ), $rooms_per_scale );
 
 // ============================================================
 // Cleanup
@@ -131,4 +131,4 @@ $wpdb->query( "TRUNCATE TABLE {$wpdb->collaboration}" );
 // Output
 // ============================================================
 
-sync_perf_print_output( $results, $explain_data, $config, $scales );
+collaboration_perf_print_output( $results, $explain_data, $config, $scales );
