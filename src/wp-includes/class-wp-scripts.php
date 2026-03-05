@@ -424,7 +424,7 @@ class WP_Scripts extends WP_Dependencies {
 			$added_ver = 'ver=' . rawurlencode( (string) $obj->ver );
 		}
 
-		$added_args = isset( $this->args[ $handle ] ) ? (string) $this->args[ $handle ] : '';
+		$added_args = (string) ( $this->args[ $handle ] ?? '' );
 
 		if ( $added_ver || $added_args ) {
 			$fragment = strstr( $src, '#' );
