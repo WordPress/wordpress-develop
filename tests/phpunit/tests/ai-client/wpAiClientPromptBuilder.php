@@ -1347,22 +1347,15 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Tests parseMessage with empty string returns WP_Error on termination.
 	 *
-	 * The SDK constructor throws immediately for empty strings, so the exception
-	 * is caught in the constructor and stored.
-	 *
 	 * @ticket 64591
 	 */
 	public function test_parse_message_empty_string_returns_wp_error() {
-		// The empty string exception is thrown by the SDK's PromptBuilder constructor,
-		// which happens before our __call() error handling. We must catch it manually.
-		try {
-			$builder = new WP_AI_Client_Prompt_Builder( $this->registry, '   ' );
-			// If we get here, the SDK didn't throw. Test would need adjusting.
-			$result = $builder->generate_result();
-			$this->assertWPError( $result );
-		} catch ( InvalidArgumentException $e ) {
-			$this->assertStringContainsString( 'Cannot create a message from an empty string', $e->getMessage() );
-		}
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, '   ' );
+		$result  = $builder->generate_result();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertStringContainsString( 'Cannot create a message from an empty string', $result->get_error_message() );
 	}
 
 	/**
@@ -1371,13 +1364,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_parse_message_empty_array_returns_wp_error() {
-		try {
-			$builder = new WP_AI_Client_Prompt_Builder( $this->registry, array() );
-			$result  = $builder->generate_result();
-			$this->assertWPError( $result );
-		} catch ( InvalidArgumentException $e ) {
-			$this->assertStringContainsString( 'Cannot create a message from an empty array', $e->getMessage() );
-		}
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, array() );
+		$result  = $builder->generate_result();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertStringContainsString( 'Cannot create a message from an empty array', $result->get_error_message() );
 	}
 
 	/**
@@ -1386,13 +1378,31 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_parse_message_invalid_type_returns_wp_error() {
-		try {
-			$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 123 );
-			$result  = $builder->generate_result();
-			$this->assertWPError( $result );
-		} catch ( InvalidArgumentException $e ) {
-			$this->assertStringContainsString( 'Input must be a string, MessagePart, MessagePartArrayShape', $e->getMessage() );
-		}
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 123 );
+		$result  = $builder->generate_result();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertStringContainsString( 'Input must be a string, MessagePart, MessagePartArrayShape', $result->get_error_message() );
+	}
+
+	/**
+	 * Tests that wp_ai_client_prompt() with an empty string does not throw.
+	 *
+	 * Constructor exceptions are caught and surfaced as WP_Error from
+	 * generating methods, consistent with the __call() wrapping behavior.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_wp_ai_client_prompt_empty_string_returns_wp_error() {
+		$builder = wp_ai_client_prompt( '   ' );
+
+		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $builder );
+
+		$result = $builder->generate_text();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
 	}
 
 	/**
