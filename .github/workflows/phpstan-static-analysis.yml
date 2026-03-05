@@ -24,7 +24,7 @@ on:
       - 'tests/phpstan/baseline.php'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpstan-static-analysis.yml'
-      - '.github/workflows/reusable-phpstan-static-analysis.yml'
+      - '.github/workflows/reusable-phpstan-static-analysis-v1.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -42,10 +42,10 @@ jobs:
   # Runs PHPStan Static Analysis.
   phpstan:
     name: PHP static analysis
-    uses: ./.github/workflows/reusable-phpstan-static-analysis.yml
+    uses: ./.github/workflows/reusable-phpstan-static-analysis-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   slack-notifications:
     name: Slack Notifications
