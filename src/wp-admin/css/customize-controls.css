@@ -613,9 +613,9 @@ body.trashing #publish-settings {
 #customize-controls .control-section .accordion-section-title button:hover,
 #customize-controls .control-section.open .accordion-section-title,
 #customize-controls .control-section .accordion-section-title button:focus {
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	background: #f6f7f7;
-	border-left-color: #2271b1;
+	border-left-color: var(--wp-admin-theme-color, #3858e9);
 }
 
 #accordion-section-themes + .control-section {
@@ -1747,6 +1747,9 @@ p.customize-section-description {
 .theme-browser .theme.active .theme-actions,
 .wp-customizer .theme-browser .theme .theme-actions {
 	padding: 9px 15px;
+}
+
+.theme-browser .theme:not(.active) .theme-actions {
 	box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -1902,6 +1905,11 @@ p.customize-section-description {
 
 .in-themes-panel.wp-full-overlay .wp-full-overlay-sidebar-content {
 	bottom: 0;
+}
+
+.themes-filter-bar .feature-filter-toggle {
+	min-height: 32px;
+	line-height: 2.30769231;
 }
 
 .themes-filter-bar .feature-filter-toggle:before {
