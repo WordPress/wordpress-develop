@@ -217,7 +217,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	 * @return string Transient key.
 	 */
 	private function get_awareness_transient_key( string $room ): string {
-		return 'sync_awareness_' . md5( $room );
+		return 'collaboration_awareness_' . md5( $room );
 	}
 
 	/**
