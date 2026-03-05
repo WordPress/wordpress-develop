@@ -1556,6 +1556,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'precommit:js', [
 		'webpack:prod',
 		'jshint:corejs',
+		'typecheck:js',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment',
@@ -2008,6 +2009,18 @@ module.exports = function(grunt) {
 	);
 
 	grunt.registerTask( 'test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit'] );
+
+	grunt.registerTask( 'typecheck:js', 'Runs TypeScript type checking.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'npm',
+			args: [ 'run', 'typecheck:js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
 
 	grunt.registerTask( 'phpstan', 'Runs PHPStan on the entire codebase.', function() {
 		var done = this.async();
