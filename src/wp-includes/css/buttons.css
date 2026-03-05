@@ -314,7 +314,7 @@ TABLE OF CONTENTS:
 .wp-core-ui .button-primary.disabled {
 	color: #949494 !important;
 	background: #f0f0f0 !important;
-	border-color: #f0f0f0 !important;
+	border-color: #dddddd !important;
 	box-shadow: none !important;
 	text-shadow: none !important;
 	cursor: default;
