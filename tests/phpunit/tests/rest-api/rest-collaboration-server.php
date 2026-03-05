@@ -1,13 +1,13 @@
 <?php
 /**
- * Tests for the WP_HTTP_Polling_Sync_Server REST endpoint.
+ * Tests for the WP_HTTP_Polling_Collaboration_Server REST endpoint.
  *
  * @package WordPress
  * @subpackage REST API
  *
  * @group restapi
  */
-class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
+class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase {
 
 	protected static $editor_id;
 	protected static $subscriber_id;
@@ -31,11 +31,11 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		// Uses DELETE (not TRUNCATE) to preserve transaction rollback support
 		// in the test suite. TRUNCATE implicitly commits the transaction.
 		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->sync_updates}" );
+		$wpdb->query( "DELETE FROM {$wpdb->collaboration}" );
 	}
 
 	/**
-	 * Builds a room request array for the sync endpoint.
+	 * Builds a room request array for the collaboration endpoint.
 	 *
 	 * @param string $room      Room identifier.
 	 * @param int    $client_id Client ID.
@@ -59,13 +59,14 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Dispatches a sync request with the given rooms.
+	 * Dispatches a collaboration request with the given rooms.
 	 *
-	 * @param array $rooms Array of room request data.
+	 * @param array  $rooms     Array of room request data.
+	 * @param string $namespace REST namespace to use. Defaults to the primary namespace.
 	 * @return WP_REST_Response Response object.
 	 */
-	private function dispatch_sync( $rooms ) {
-		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+	private function dispatch_sync( $rooms, $namespace = 'wp-collaboration/v1' ) {
+		$request = new WP_REST_Request( 'POST', '/' . $namespace . '/updates' );
 		$request->set_body_params( array( 'rooms' => $rooms ) );
 		return rest_get_server()->dispatch( $request );
 	}
@@ -82,34 +83,35 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/*
 	 * Required abstract method implementations.
 	 *
-	 * The sync endpoint is a single POST endpoint, not a standard CRUD controller.
+	 * The collaboration endpoint is a single POST endpoint, not a standard CRUD controller.
 	 * Methods that don't apply are stubbed with @doesNotPerformAssertions.
 	 */
 
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
-		$this->assertArrayHasKey( '/wp-sync/v1/updates', $routes );
+		$this->assertArrayHasKey( '/wp-collaboration/v1/updates', $routes );
+		$this->assertArrayHasKey( '/wp-sync/v1/updates', $routes, 'Deprecated wp-sync/v1 route should still be registered.' );
 	}
 
 	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
-		// Not applicable for sync endpoint.
+		// Not applicable for collaboration endpoint.
 	}
 
 	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
-		// Not applicable for sync endpoint.
+		// Not applicable for collaboration endpoint.
 	}
 
 	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item() {
-		// Not applicable for sync endpoint.
+		// Not applicable for collaboration endpoint.
 	}
 
 	public function test_create_item() {
@@ -124,28 +126,28 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 * @doesNotPerformAssertions
 	 */
 	public function test_update_item() {
-		// Not applicable for sync endpoint.
+		// Not applicable for collaboration endpoint.
 	}
 
 	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_delete_item() {
-		// Not applicable for sync endpoint.
+		// Not applicable for collaboration endpoint.
 	}
 
 	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
-		// Not applicable for sync endpoint.
+		// Not applicable for collaboration endpoint.
 	}
 
 	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
-		// Not applicable for sync endpoint.
+		// Not applicable for collaboration endpoint.
 	}
 
 	/*
@@ -1086,16 +1088,16 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 */
 
 	/**
-	 * Inserts a row directly into the sync_updates table with a given age.
+	 * Inserts a row directly into the collaboration table with a given age.
 	 *
 	 * @param positive-int $age_in_seconds How old the row should be.
 	 * @param string       $label          A label stored in the update_value for identification.
 	 */
-	private function insert_sync_row( int $age_in_seconds, string $label = 'test' ): void {
+	private function insert_collaboration_row( int $age_in_seconds, string $label = 'test' ): void {
 		global $wpdb;
 
 		$wpdb->insert(
-			$wpdb->sync_updates,
+			$wpdb->collaboration,
 			array(
 				'room'         => $this->get_post_room(),
 				'update_value' => wp_json_encode(
@@ -1111,51 +1113,51 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Returns the number of rows in the sync_updates table.
+	 * Returns the number of rows in the collaboration table.
 	 *
 	 * @return positive-int Row count.
 	 */
-	private function get_sync_row_count(): int {
+	private function get_collaboration_row_count(): int {
 		global $wpdb;
 
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->sync_updates}" );
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->collaboration}" );
 	}
 
 	/**
 	 * @ticket 64696
 	 */
 	public function test_cron_cleanup_deletes_old_rows(): void {
-		$this->insert_sync_row( 8 * DAY_IN_SECONDS );
+		$this->insert_collaboration_row( 8 * DAY_IN_SECONDS );
 
-		$this->assertSame( 1, $this->get_sync_row_count() );
+		$this->assertSame( 1, $this->get_collaboration_row_count() );
 
-		wp_delete_old_sync_updates();
+		wp_delete_old_collaboration_data();
 
-		$this->assertSame( 0, $this->get_sync_row_count() );
+		$this->assertSame( 0, $this->get_collaboration_row_count() );
 	}
 
 	/**
 	 * @ticket 64696
 	 */
 	public function test_cron_cleanup_preserves_recent_rows(): void {
-		$this->insert_sync_row( DAY_IN_SECONDS );
+		$this->insert_collaboration_row( DAY_IN_SECONDS );
 
-		wp_delete_old_sync_updates();
+		wp_delete_old_collaboration_data();
 
-		$this->assertSame( 1, $this->get_sync_row_count() );
+		$this->assertSame( 1, $this->get_collaboration_row_count() );
 	}
 
 	/**
 	 * @ticket 64696
 	 */
 	public function test_cron_cleanup_boundary_at_exactly_seven_days(): void {
-		$this->insert_sync_row( WEEK_IN_SECONDS + 1, 'expired' );
-		$this->insert_sync_row( WEEK_IN_SECONDS - 1, 'just-inside' );
+		$this->insert_collaboration_row( WEEK_IN_SECONDS + 1, 'expired' );
+		$this->insert_collaboration_row( WEEK_IN_SECONDS - 1, 'just-inside' );
 
-		wp_delete_old_sync_updates();
+		wp_delete_old_collaboration_data();
 
 		global $wpdb;
-		$remaining = $wpdb->get_col( "SELECT update_value FROM {$wpdb->sync_updates}" );
+		$remaining = $wpdb->get_col( "SELECT update_value FROM {$wpdb->collaboration}" );
 
 		$this->assertCount( 1, $remaining, 'Only the row within the 7-day window should remain.' );
 		$this->assertStringContainsString( 'just-inside', $remaining[0], 'The surviving row should be the one inside the window.' );
@@ -1166,19 +1168,19 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_cron_cleanup_selectively_deletes_mixed_rows(): void {
 		// 3 expired rows.
-		$this->insert_sync_row( 10 * DAY_IN_SECONDS );
-		$this->insert_sync_row( 10 * DAY_IN_SECONDS );
-		$this->insert_sync_row( 10 * DAY_IN_SECONDS );
+		$this->insert_collaboration_row( 10 * DAY_IN_SECONDS );
+		$this->insert_collaboration_row( 10 * DAY_IN_SECONDS );
+		$this->insert_collaboration_row( 10 * DAY_IN_SECONDS );
 
 		// 2 recent rows.
-		$this->insert_sync_row( HOUR_IN_SECONDS );
-		$this->insert_sync_row( HOUR_IN_SECONDS );
+		$this->insert_collaboration_row( HOUR_IN_SECONDS );
+		$this->insert_collaboration_row( HOUR_IN_SECONDS );
 
-		$this->assertSame( 5, $this->get_sync_row_count() );
+		$this->assertSame( 5, $this->get_collaboration_row_count() );
 
-		wp_delete_old_sync_updates();
+		wp_delete_old_collaboration_data();
 
-		$this->assertSame( 2, $this->get_sync_row_count(), 'Only the 2 recent rows should survive cleanup.' );
+		$this->assertSame( 2, $this->get_collaboration_row_count(), 'Only the 2 recent rows should survive cleanup.' );
 	}
 
 	/**
@@ -1187,8 +1189,8 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	public function test_cron_cleanup_hook_is_registered(): void {
 		$this->assertSame(
 			10,
-			has_action( 'wp_delete_old_sync_updates', 'wp_delete_old_sync_updates' ),
-			'The wp_delete_old_sync_updates action should be hooked in default-filters.php.'
+			has_action( 'wp_delete_old_collaboration_data', 'wp_delete_old_collaboration_data' ),
+			'The wp_delete_old_collaboration_data action should be hooked in default-filters.php.'
 		);
 	}
 
@@ -1208,9 +1210,63 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$server = rest_get_server();
 		$routes = $server->get_routes();
 
-		$this->assertArrayNotHasKey( '/wp-sync/v1/updates', $routes, 'Sync routes should not be registered when db_version is below 61698.' );
+		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61698.' );
+		$this->assertArrayNotHasKey( '/wp-sync/v1/updates', $routes, 'Deprecated sync routes should not be registered when db_version is below 61698.' );
 
 		// Reset again so subsequent tests get a server with the correct db_version.
 		$GLOBALS['wp_rest_server'] = null;
+	}
+
+	/*
+	 * Deprecated route tests.
+	 */
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_deprecated_sync_route_returns_deprecation_header(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync(
+			array( $this->build_room( $this->get_post_room() ) ),
+			'wp-sync/v1'
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			'wp-sync/v1 is deprecated, use wp-collaboration/v1',
+			$response->get_headers()['X-WP-Deprecated']
+		);
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_deprecated_sync_route_functions_correctly(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room   = $this->get_post_room();
+		$update = array(
+			'type' => 'update',
+			'data' => 'dGVzdA==',
+		);
+
+		// Send update via deprecated route.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
+			),
+			'wp-sync/v1'
+		);
+
+		// Retrieve via primary route.
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0 ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertNotEmpty( $data['rooms'][0]['updates'], 'Updates sent via deprecated route should be retrievable via primary route.' );
 	}
 }
