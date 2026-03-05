@@ -701,10 +701,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 /**
  * Command Palette
  */
-#wpadminbar #wp-admin-bar-command-palette .ab-item {
-	padding-right: 4px;
-}
-
 #wpadminbar #wp-admin-bar-command-palette .ab-icon {
 	margin: 0;
 }
@@ -892,7 +888,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-site-editor > .ab-item,
 	#wpadminbar #wp-admin-bar-customize > .ab-item,
 	#wpadminbar #wp-admin-bar-edit > .ab-item,
-	#wpadminbar #wp-admin-bar-my-account > .ab-item {
+	#wpadminbar #wp-admin-bar-my-account > .ab-item,
+	#wpadminbar #wp-admin-bar-command-palette > .ab-item {
 		text-indent: 100%;
 		white-space: nowrap;
 		overflow: hidden;
@@ -914,7 +911,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-site-name > .ab-item:before,
 	#wpadminbar #wp-admin-bar-site-editor > .ab-item:before,
 	#wpadminbar #wp-admin-bar-customize > .ab-item:before,
-	#wpadminbar #wp-admin-bar-my-account > .ab-item:before {
+	#wpadminbar #wp-admin-bar-my-account > .ab-item:before,
+	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
 		display: block;
 		text-indent: 0;
 		font: normal 32px/1 dashicons;
@@ -923,6 +921,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 		text-align: center;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
+	}
+
+	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
+		left: 0;
 	}
 
 	#wpadminbar #wp-admin-bar-appearance {
@@ -1062,7 +1064,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-comments,
 	#wpadminbar #wp-admin-bar-new-content,
 	#wpadminbar #wp-admin-bar-edit,
-	#wpadminbar #wp-admin-bar-my-account {
+	#wpadminbar #wp-admin-bar-my-account,
+	#wpadminbar li#wp-admin-bar-command-palette {
 		position: static;
 	}
 
