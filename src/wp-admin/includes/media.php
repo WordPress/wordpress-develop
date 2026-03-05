@@ -486,6 +486,7 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 	$file    = $file['file'];
 	$title   = preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
 	$content = '';
+	$alt     = '';
 
 	// Use image exif/iptc data for title and caption defaults if possible.
 	$image_meta = wp_read_image_metadata( $file );

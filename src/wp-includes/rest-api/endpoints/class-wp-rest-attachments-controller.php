@@ -437,6 +437,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$url  = $file['url'];
 		$type = $file['type'];
 		$file = $file['file'];
+		$alt  = '';
 
 		// Include image functions to get access to wp_read_image_metadata().
 		require_once ABSPATH . 'wp-admin/includes/image.php';
