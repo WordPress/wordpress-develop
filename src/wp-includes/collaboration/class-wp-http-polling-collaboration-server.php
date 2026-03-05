@@ -1,6 +1,6 @@
 <?php
 /**
- * WP_HTTP_Polling_Sync_Server class
+ * WP_HTTP_Polling_Collaboration_Server class
  *
  * @package WordPress
  * @since 7.0.0
@@ -12,14 +12,22 @@
  * @since 7.0.0
  * @access private
  */
-class WP_HTTP_Polling_Sync_Server {
+class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * REST API namespace.
 	 *
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const REST_NAMESPACE = 'wp-sync/v1';
+	const REST_NAMESPACE = 'wp-collaboration/v1';
+
+	/**
+	 * Deprecated REST API namespace.
+	 *
+	 * @since 7.0.0
+	 * @var string
+	 */
+	const DEPRECATED_REST_NAMESPACE = 'wp-sync/v1';
 
 	/**
 	 * Awareness timeout in seconds. Clients that haven't updated
@@ -71,21 +79,21 @@ class WP_HTTP_Polling_Sync_Server {
 	const UPDATE_TYPE_UPDATE = 'update';
 
 	/**
-	 * Storage backend for sync updates.
+	 * Storage backend for collaboration updates.
 	 *
 	 * @since 7.0.0
-	 * @var WP_Sync_Storage
+	 * @var WP_Collaboration_Storage
 	 */
-	private WP_Sync_Storage $storage;
+	private WP_Collaboration_Storage $storage;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param WP_Sync_Storage $storage Storage backend for sync updates.
+	 * @param WP_Collaboration_Storage $storage Storage backend for collaboration updates.
 	 */
-	public function __construct( WP_Sync_Storage $storage ) {
+	public function __construct( WP_Collaboration_Storage $storage ) {
 		$this->storage = $storage;
 	}
 
@@ -135,7 +143,7 @@ class WP_HTTP_Polling_Sync_Server {
 				'required'  => true,
 				'type'      => 'string',
 				'pattern'   => '^[^/]+/[^/:]+(?::\\S+)?$',
-				'maxLength' => 255, // The size of the wp_sync_updates.room column.
+				'maxLength' => 255, // The size of the wp_collaboration.room column.
 			),
 			'updates'   => array(
 				'items'    => $typed_update_args,
@@ -145,23 +153,38 @@ class WP_HTTP_Polling_Sync_Server {
 			),
 		);
 
+		$route_args = array(
+			'methods'             => array( WP_REST_Server::CREATABLE ),
+			'callback'            => array( $this, 'handle_request' ),
+			'permission_callback' => array( $this, 'check_permissions' ),
+			'args'                => array(
+				'rooms' => array(
+					'items'    => array(
+						'properties' => $room_args,
+						'type'       => 'object',
+					),
+					'required' => true,
+					'type'     => 'array',
+				),
+			),
+		);
+
+		// Primary route.
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/updates',
+			$route_args
+		);
+
+		// Deprecated alias for backward compatibility.
+		register_rest_route(
+			self::DEPRECATED_REST_NAMESPACE,
+			'/updates',
 			array(
 				'methods'             => array( WP_REST_Server::CREATABLE ),
-				'callback'            => array( $this, 'handle_request' ),
+				'callback'            => array( $this, 'handle_deprecated_request' ),
 				'permission_callback' => array( $this, 'check_permissions' ),
-				'args'                => array(
-					'rooms' => array(
-						'items'    => array(
-							'properties' => $room_args,
-							'type'       => 'object',
-						),
-						'required' => true,
-						'type'     => 'array',
-					),
-				),
+				'args'                => $route_args['args'],
 			)
 		);
 	}
@@ -227,7 +250,7 @@ class WP_HTTP_Polling_Sync_Server {
 	}
 
 	/**
-	 * Handles request: stores sync updates and awareness data, and returns
+	 * Handles request: stores updates and awareness data, and returns
 	 * updates the client is missing.
 	 *
 	 * @since 7.0.0
@@ -272,6 +295,26 @@ class WP_HTTP_Polling_Sync_Server {
 		}
 
 		return new WP_REST_Response( $response, 200 );
+	}
+
+	/**
+	 * Handles a request to the deprecated wp-sync/v1 route.
+	 *
+	 * Delegates to handle_request() and adds a deprecation header.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_REST_Request $request The REST request.
+	 * @return WP_REST_Response|WP_Error Response object or error.
+	 */
+	public function handle_deprecated_request( WP_REST_Request $request ) {
+		$result = $this->handle_request( $request );
+
+		if ( $result instanceof WP_REST_Response ) {
+			$result->header( 'X-WP-Deprecated', 'wp-sync/v1 is deprecated, use wp-collaboration/v1' );
+		}
+
+		return $result;
 	}
 
 	/**
@@ -483,7 +526,7 @@ class WP_HTTP_Polling_Sync_Server {
 	}
 
 	/**
-	 * Gets sync updates for a specific client from a room after a given cursor.
+	 * Gets updates for a specific client from a room after a given cursor.
 	 *
 	 * Delegates cursor-based retrieval to the storage layer, then applies
 	 * client-specific filtering and compaction logic.
