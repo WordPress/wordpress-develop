@@ -3343,4 +3343,87 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$basename = wp_basename( $new_file );
 		$this->assertMatchesRegularExpression( '/canola-scaled-\d+\.jpg$/', $basename, 'Scaled filename should have numeric suffix when file conflicts with a different attachment.' );
 	}
+
+	/**
+	 * Tests that the finalize endpoint triggers wp_generate_attachment_metadata.
+	 *
+	 * @ticket 62243
+	 * @requires function imagejpeg
+	 */
+	public function test_finalize_item() {
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Track whether wp_generate_attachment_metadata filter fires.
+		$filter_called = false;
+		$filter_context = null;
+		add_filter(
+			'wp_generate_attachment_metadata',
+			function ( $metadata, $id, $context ) use ( &$filter_called, &$filter_context ) {
+				$filter_called  = true;
+				$filter_context = $context;
+				return $metadata;
+			},
+			10,
+			3
+		);
+
+		// Call the finalize endpoint.
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize endpoint should return 200.' );
+		$this->assertTrue( $filter_called, 'wp_generate_attachment_metadata filter should have been called.' );
+		$this->assertSame( 'update', $filter_context, 'Filter context should be "update".' );
+	}
+
+	/**
+	 * Tests that the finalize endpoint requires authentication.
+	 *
+	 * @ticket 62243
+	 * @requires function imagejpeg
+	 */
+	public function test_finalize_item_requires_auth() {
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Try finalizing without authentication.
+		wp_set_current_user( 0 );
+
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 401 );
+	}
+
+	/**
+	 * Tests that the finalize endpoint returns error for invalid attachment ID.
+	 *
+	 * @ticket 62243
+	 */
+	public function test_finalize_item_invalid_id() {
+		wp_set_current_user( self::$author_id );
+
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/media/999999/finalize' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
 }
