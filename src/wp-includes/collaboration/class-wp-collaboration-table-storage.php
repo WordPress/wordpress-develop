@@ -1,22 +1,22 @@
 <?php
 /**
- * WP_Sync_Table_Storage class
+ * WP_Collaboration_Table_Storage class
  *
  * @package WordPress
  * @since 7.0.0
  */
 
 /**
- * Core class that provides an interface for storing and retrieving sync
+ * Core class that provides an interface for storing and retrieving
  * updates and awareness data during a collaborative session.
  *
- * Data is stored in the dedicated `sync_updates` database table.
+ * Data is stored in the dedicated `collaboration` database table.
  *
  * @since 7.0.0
  *
  * @access private
  */
-class WP_Sync_Table_Storage implements WP_Sync_Storage {
+class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	/**
 	 * Cache of cursors by room.
 	 *
@@ -34,21 +34,21 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	private array $room_update_counts = array();
 
 	/**
-	 * Adds a sync update to a given room.
+	 * Adds an update to a given room.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $room   Room identifier.
-	 * @param mixed  $update Sync update.
+	 * @param mixed  $update Update data.
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_update( string $room, $update ): bool {
 		global $wpdb;
 
 		$result = $wpdb->insert(
-			$wpdb->sync_updates,
+			$wpdb->collaboration,
 			array(
 				'room'         => $room,
 				'update_value' => wp_json_encode( $update ),
@@ -64,7 +64,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	 * Gets awareness state for a given room.
 	 *
 	 * Awareness is ephemeral and stored as a transient rather than
-	 * in the sync_updates table.
+	 * in the collaboration table.
 	 *
 	 * @since 7.0.0
 	 *
@@ -109,7 +109,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	}
 
 	/**
-	 * Retrieves sync updates from a room after a given cursor.
+	 * Retrieves updates from a room after a given cursor.
 	 *
 	 * Uses a snapshot approach: captures MAX(id) first, then fetches rows
 	 * WHERE id > cursor AND id <= max_id. Updates arriving after the snapshot
@@ -121,7 +121,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Return updates after this cursor.
-	 * @return array<int, mixed> Sync updates.
+	 * @return array<int, mixed> Updates.
 	 */
 	public function get_updates_after_cursor( string $room, int $cursor ): array {
 		global $wpdb;
@@ -129,7 +129,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		// Snapshot the current max ID for this room to define a stable upper bound.
 		$max_id = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->sync_updates} WHERE room = %s",
+				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->collaboration} WHERE room = %s",
 				$room
 			)
 		);
@@ -145,7 +145,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		// Bounded by max_id to stay consistent with the snapshot window above.
 		$this->room_update_counts[ $room ] = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->sync_updates} WHERE room = %s AND id <= %d",
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND id <= %d",
 				$room,
 				$max_id
 			)
@@ -154,7 +154,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 		// Fetch updates after the cursor up to the snapshot boundary.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT update_value FROM {$wpdb->sync_updates} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
+				"SELECT update_value FROM {$wpdb->collaboration} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
 				$room,
 				$cursor,
 				$max_id
@@ -195,7 +195,7 @@ class WP_Sync_Table_Storage implements WP_Sync_Storage {
 
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->sync_updates} WHERE room = %s AND id < %d",
+				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND id < %d",
 				$room,
 				$cursor
 			)

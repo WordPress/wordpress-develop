@@ -1,24 +1,24 @@
 <?php
 /**
- * WP_Sync_Storage interface
+ * WP_Collaboration_Storage interface
  *
  * @package WordPress
  * @since 7.0.0
  */
 
 /**
- * Interface for sync storage backends used by the collaborative editing server.
+ * Interface for collaboration storage backends used by the collaborative editing server.
  *
  * @since 7.0.0
  */
-interface WP_Sync_Storage {
+interface WP_Collaboration_Storage {
 	/**
-	 * Adds a sync update to a given room.
+	 * Adds a collaboration update to a given room.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @param string $room   Room identifier.
-	 * @param mixed  $update Serializable sync update, opaque to the storage implementation.
+	 * @param mixed  $update Serializable update, opaque to the storage implementation.
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_update( string $room, $update ): bool;
@@ -57,13 +57,13 @@ interface WP_Sync_Storage {
 	public function get_update_count( string $room ): int;
 
 	/**
-	 * Retrieves sync updates from a room after the given cursor.
+	 * Retrieves updates from a room after the given cursor.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Return updates after this cursor.
-	 * @return array<int, mixed> Sync updates.
+	 * @return array<int, mixed> Updates.
 	 */
 	public function get_updates_after_cursor( string $room, int $cursor ): array;
 

@@ -299,7 +299,7 @@ class wpdb {
 		'term_relationships',
 		'termmeta',
 		'commentmeta',
-		'sync_updates',
+		'collaboration',
 	);
 
 	/**
@@ -406,13 +406,13 @@ class wpdb {
 	public $posts;
 
 	/**
-	 * WordPress Sync Updates table.
+	 * WordPress Collaboration table.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @var string
 	 */
-	public $sync_updates;
+	public $collaboration;
 
 	/**
 	 * WordPress Terms table.

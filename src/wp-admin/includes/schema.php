@@ -187,7 +187,7 @@ CREATE TABLE $wpdb->posts (
 	KEY post_author (post_author),
 	KEY type_status_author (post_type,post_status,post_author)
 ) $charset_collate;
-CREATE TABLE $wpdb->sync_updates (
+CREATE TABLE $wpdb->collaboration (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	room varchar(255) NOT NULL,
 	update_value longtext NOT NULL,
