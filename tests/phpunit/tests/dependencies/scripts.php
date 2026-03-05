@@ -4199,12 +4199,12 @@ HTML;
 	 *
 	 * @dataProvider data_duplicate_query_vars_and_fragments_preserved_in_scripts
 	 *
-	 * @param string      $src          The script's source URL.
-	 * @param string|null $ver          The script's version.
-	 * @param string      $expected_url The expected URL.
-	 * @param string      $handle       Optional. The script's registered handle. Default 'test-script'.
+	 * @param string           $src          The script's source URL.
+	 * @param string|bool|null $ver          The script's version.
+	 * @param string           $expected_url The expected URL.
+	 * @param string           $handle       Optional. The script's registered handle. Default 'test-script'.
 	 */
-	public function test_duplicate_query_vars_and_fragments_preserved_in_scripts( string $src, ?string $ver, string $expected_url, string $handle = 'test-script' ): void {
+	public function test_duplicate_query_vars_and_fragments_preserved_in_scripts( string $src, $ver, string $expected_url, string $handle = 'test-script' ): void {
 		wp_enqueue_script( $handle, $src, array(), $ver );
 		$output    = get_echo( 'wp_print_scripts' );
 		$processor = new WP_HTML_Tag_Processor( $output );
@@ -4216,32 +4216,39 @@ HTML;
 	/**
 	 * Data provider for test_duplicate_query_vars_and_fragments_preserved_in_scripts.
 	 *
-	 * @return array<string, array{src: string, ver: string|null, expected_url: string, handle?: string}> Data provider.
+	 * @return array<string, array{src: string, ver: string|bool|null, expected_url: string, handle?: string}> Data provider.
 	 */
 	public function data_duplicate_query_vars_and_fragments_preserved_in_scripts(): array {
+		$ver = get_bloginfo( 'version' );
+
 		return array(
-			'duplicate query vars'               => array(
+			'duplicate query vars'                => array(
 				'src'          => 'https://example.com/script.js?arg=1&arg=2',
 				'ver'          => '1.0',
 				'expected_url' => 'https://example.com/script.js?arg=1&arg=2&ver=1.0',
 			),
-			'duplicate query vars, null version' => array(
+			'duplicate query vars, null version'  => array(
 				'src'          => 'https://example.com/script.js?arg=1&arg=2',
 				'ver'          => null,
 				'expected_url' => 'https://example.com/script.js?arg=1&arg=2',
 			),
-			'duplicate query vars in handle'     => array(
+			'duplicate query vars, false version' => array(
+				'src'          => 'https://example.com/script.js?arg=1&arg=2',
+				'ver'          => false,
+				'expected_url' => "https://example.com/script.js?arg=1&arg=2&ver=$ver",
+			),
+			'duplicate query vars in handle'      => array(
 				'src'          => 'https://example.com/test-script.js',
 				'ver'          => '1.0',
 				'expected_url' => 'https://example.com/test-script.js?ver=1.0&a=1&a=2',
 				'handle'       => 'test-script?a=1&a=2',
 			),
-			'duplicate query vars and fragments' => array(
+			'duplicate query vars and fragments'  => array(
 				'src'          => 'https://example.com/script.js?arg=1&arg=2#anchor',
 				'ver'          => '1.0',
 				'expected_url' => 'https://example.com/script.js?arg=1&arg=2&ver=1.0#anchor',
 			),
-			'zero query var in handle'           => array(
+			'zero query var in handle'            => array(
 				'src'          => 'https://example.com/test-script.js',
 				'ver'          => '1.0',
 				'expected_url' => 'https://example.com/test-script.js?ver=1.0&0',
