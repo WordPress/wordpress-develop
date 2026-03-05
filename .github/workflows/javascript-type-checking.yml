@@ -27,7 +27,7 @@ on:
       - 'typings/**'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/javascript-type-checking.yml'
-      - '.github/workflows/reusable-javascript-type-checking.yml'
+      - '.github/workflows/reusable-javascript-type-checking-v1.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -45,10 +45,10 @@ jobs:
   # Runs JavaScript type checking.
   typecheck:
     name: JavaScript type checking
-    uses: ./.github/workflows/reusable-javascript-type-checking.yml
+    uses: ./.github/workflows/reusable-javascript-type-checking-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   slack-notifications:
     name: Slack Notifications
