@@ -113,12 +113,12 @@ if ( ! wp_next_scheduled( 'delete_expired_transients' ) && ! wp_installing() ) {
 	wp_schedule_event( time(), 'daily', 'delete_expired_transients' );
 }
 
-// Schedule sync updates cleanup.
+// Schedule collaboration data cleanup.
 if ( wp_is_collaboration_enabled()
-	&& ! wp_next_scheduled( 'wp_delete_old_sync_updates' )
+	&& ! wp_next_scheduled( 'wp_delete_old_collaboration_data' )
 	&& ! wp_installing()
 ) {
-	wp_schedule_event( time(), 'daily', 'wp_delete_old_sync_updates' );
+	wp_schedule_event( time(), 'daily', 'wp_delete_old_collaboration_data' );
 }
 
 set_screen_options();

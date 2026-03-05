@@ -39,14 +39,14 @@ function wp_collaboration_inject_setting() {
 }
 
 /**
- * Deletes sync updates older than 7 days from the wp_sync_updates table.
+ * Deletes collaboration data older than 7 days from the collaboration table.
  *
  * Rows left behind by abandoned collaborative editing sessions are cleaned up
  * to prevent unbounded table growth.
  *
  * @since 7.0.0
  */
-function wp_delete_old_sync_updates() {
+function wp_delete_old_collaboration_data() {
 	if ( ! wp_is_collaboration_enabled() ) {
 		return;
 	}
@@ -55,7 +55,7 @@ function wp_delete_old_sync_updates() {
 
 	$wpdb->query(
 		$wpdb->prepare(
-			"DELETE FROM {$wpdb->sync_updates} WHERE created_at < %s",
+			"DELETE FROM {$wpdb->collaboration} WHERE created_at < %s",
 			gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
 		)
 	);
