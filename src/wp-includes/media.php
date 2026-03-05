@@ -6424,7 +6424,7 @@ function wp_get_chromium_major_version(): ?int {
 	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
 		return null;
 	}
-	if ( preg_match( '/Chrome\/(\d+)/', $_SERVER['HTTP_USER_AGENT'], $matches ) ) {
+	if ( preg_match( '#Chrome/(\d+)#', $_SERVER['HTTP_USER_AGENT'], $matches ) ) {
 		return (int) $matches[1];
 	}
 	return null;
