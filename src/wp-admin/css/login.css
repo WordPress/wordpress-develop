@@ -221,14 +221,6 @@ p {
 	margin-bottom: 6px;
 }
 
-.login .admin-email-confirm-form .submit {
-	text-align: center;
-}
-
-.admin-email__later {
-	text-align: left;
-}
-
 .login form p.admin-email__details {
 	margin: 1.1em 0;
 }
@@ -241,14 +233,20 @@ p {
 	text-align: left;
 }
 
-.admin-email__actions div {
+.admin-email__actions-primary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5em;
+	align-items: center;
 	padding-top: 1.5em;
+}
+
+.admin-email__actions-secondary {
+	padding-top: 1em;
 }
 
 .login .admin-email__actions .button-primary {
 	float: none;
-	margin-left: 0.25em;
-	margin-right: 0.25em;
 }
 
 #login form p {
