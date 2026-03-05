@@ -452,6 +452,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( empty( $request['caption'] ) && trim( $image_meta['caption'] ) ) {
 				$request['caption'] = $image_meta['caption'];
 			}
+
+			if ( empty( $request['alt'] ) && trim( $image_meta['alt'] ) ) {
+				$alt = $image_meta['alt'];
+			}
 		}
 
 		$attachment = $this->prepare_item_for_database( $request );
@@ -476,6 +480,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		// $post_parent is inherited from $attachment['post_parent'].
 		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true, false );
+
+		if ( trim( $alt ) ) {
+			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+		}
 
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
