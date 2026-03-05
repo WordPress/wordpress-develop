@@ -14,3 +14,8 @@ $highlight-color: #3858e9;
 
 	$custom-welcome-panel: "false"
 );
+
+// Override the command palette background color for this scheme
+#wpadminbar #wp-admin-bar-command-palette-trigger .ab-item {
+	background: #3c434a;
+}

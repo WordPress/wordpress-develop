@@ -485,6 +485,11 @@ ul#adminmenu > li.current > a.current:after {
 	color: variables.$menu-icon;
 }
 
+/* Admin Bar: Command Palette */
+
+#wpadminbar #wp-admin-bar-command-palette-trigger .ab-item {
+	background: variables.$menu-submenu-background;
+}
 
 /* Admin Bar: search */
 

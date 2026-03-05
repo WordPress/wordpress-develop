@@ -374,8 +374,22 @@ html:lang(he-il) .rtl #wpadminbar * {
 	color: #000;
 }
 
+#wpadminbar .quicklinks {
+	display: flex;
+	align-items: center;
+}
+
+#wpadminbar #wp-admin-bar-root-default {
+	flex: 1 1 0;
+	min-width: fit-content;
+}
+
 #wpadminbar .ab-top-secondary {
 	float: right;
+	flex: 1 1 0;
+	min-width: fit-content;
+	display: flex;
+	justify-content: flex-end;
 }
 
 #wpadminbar ul li:last-child,
@@ -626,6 +640,37 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 /**
+ * Command Palette
+ */
+#wpadminbar .ab-command-palette {
+	flex: 0 0 auto;
+	padding: 4px 0;
+}
+
+#wpadminbar #wp-admin-bar-command-palette-trigger .ab-item {
+	width: 200px;
+	background: #757575;
+	height: 24px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-radius: 2px;
+}
+
+#wpadminbar #wp-admin-bar-command-palette-trigger .ab-label kbd {
+	background: transparent;
+}
+
+#wpadminbar #wp-admin-bar-command-palette-trigger .ab-icon {
+	transform: scaleX(-1);
+}
+
+#wpadminbar #wp-admin-bar-command-palette-trigger .ab-icon:before {
+	content: "\f179";
+	content: "\f179" / '';
+}
+
+/**
  * Search
  */
 
@@ -692,19 +737,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 #wpadminbar #adminbarsearch .adminbar-button {
 	display: none;
-}
-
-/**
- * Command Palette
- */
-#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
-	content: "\f179";
-	content: "\f179" / '';
-	top: 3px;
-}
-
-#wpadminbar #wp-admin-bar-command-palette kbd {
-	background: transparent;
 }
 
 /**
@@ -906,7 +938,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-site-editor > .ab-item:before,
 	#wpadminbar #wp-admin-bar-customize > .ab-item:before,
 	#wpadminbar #wp-admin-bar-my-account > .ab-item:before,
-	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
+	#wpadminbar #wp-admin-bar-command-palette-trigger .ab-icon:before {
 		display: block;
 		text-indent: 0;
 		font: normal 32px/1 dashicons;
@@ -951,12 +983,12 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 	/* Comments and Command Palette */
 	#wpadminbar #wp-admin-bar-comments .ab-icon,
-	#wpadminbar #wp-admin-bar-command-palette .ab-icon {
+	#wpadminbar #wp-admin-bar-command-palette-trigger .ab-icon {
 		margin: 0;
 	}
 
 	#wpadminbar #wp-admin-bar-comments .ab-icon:before,
-	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
+	#wpadminbar #wp-admin-bar-command-palette-trigger .ab-icon:before {
 		display: block;
 		font-size: 34px;
 		height: 46px;
@@ -1026,7 +1058,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar li#wp-admin-bar-edit,
 	#wpadminbar li#wp-admin-bar-comments,
 	#wpadminbar li#wp-admin-bar-my-account,
-	#wpadminbar li#wp-admin-bar-command-palette {
+	#wpadminbar li#wp-admin-bar-command-palette-trigger {
 		display: block;
 	}
 
@@ -1058,7 +1090,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-new-content,
 	#wpadminbar #wp-admin-bar-edit,
 	#wpadminbar #wp-admin-bar-my-account,
-	#wpadminbar #wp-admin-bar-command-palette {
+	#wpadminbar #wp-admin-bar-command-palette-trigger {
 		position: static;
 	}
 
