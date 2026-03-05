@@ -960,13 +960,21 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		/* translators: Hidden accessibility text. */
 		__( 'Open command palette' ),
 	);
+	$wp_admin_bar->add_group(
+		array(
+			'id'   => 'command-palette',
+			'meta' => array(
+				'class' => 'ab-command-palette hide-if-no-js',
+			),
+		)
+	);
 	$wp_admin_bar->add_node(
 		array(
-			'id'    => 'command-palette',
-			'title' => $icon . $title,
-			'href'  => '#',
-			'meta'  => array(
-				'class'   => 'hide-if-no-js',
+			'parent' => 'command-palette',
+			'id'     => 'command-palette-trigger',
+			'title'  => $icon . $title,
+			'href'   => '#',
+			'meta'   => array(
 				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
 			),
 		)
