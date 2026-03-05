@@ -37,6 +37,9 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * @ticket 64766
+	 */
 	public function test_returns_early_when_client_side_processing_disabled() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
 
@@ -48,6 +51,9 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		$this->assertSame( $level_before, $level_after );
 	}
 
+	/**
+	 * @ticket 64766
+	 */
 	public function test_returns_early_when_no_screen() {
 		// No screen is set, so it should return early.
 		$level_before = ob_get_level();
@@ -58,6 +64,8 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64766
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -73,6 +81,9 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		ob_end_clean();
 	}
 
+	/**
+	 * @ticket 64766
+	 */
 	public function test_does_not_start_output_buffer_for_chrome_136() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 
@@ -83,6 +94,9 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Chrome < 137.' );
 	}
 
+	/**
+	 * @ticket 64766
+	 */
 	public function test_does_not_start_output_buffer_for_firefox() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
 
@@ -93,6 +107,9 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Firefox.' );
 	}
 
+	/**
+	 * @ticket 64766
+	 */
 	public function test_does_not_start_output_buffer_for_safari() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15';
 
@@ -104,6 +121,8 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64766
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
