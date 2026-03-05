@@ -316,9 +316,16 @@ add_filter( 'rest_post_dispatch', '_wp_connectors_validate_keys_in_rest', 10, 3 
  * @access private
  */
 function _wp_register_default_connector_settings(): void {
+	$registry = AiClient::defaultRegistry();
+
 	foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
 		if ( 'ai_provider' !== $connector_data['type'] || 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+			continue;
+		}
+
+		// Skip registering the setting if the provider is not in the registry.
+		if ( ! $registry->hasProvider( $connector_id ) ) {
 			continue;
 		}
 
@@ -375,8 +382,12 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 				continue;
 			}
 
+			if ( ! $registry->hasProvider( $connector_id ) ) {
+				continue;
+			}
+
 			$api_key = _wp_connectors_get_real_api_key( $auth['setting_name'], '_wp_connectors_mask_api_key' );
-			if ( '' === $api_key || ! $registry->hasProvider( $connector_id ) ) {
+			if ( '' === $api_key ) {
 				continue;
 			}
 
