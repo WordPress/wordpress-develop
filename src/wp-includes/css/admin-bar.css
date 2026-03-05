@@ -712,6 +712,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	left: -2px;
 }
 
+#wpadminbar #wp-admin-bar-command-palette kbd {
+	background: transparent;
+}
+
 /**
  * Customize support classes
  */
