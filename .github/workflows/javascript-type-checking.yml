@@ -1,7 +1,7 @@
-name: PHPStan Static Analysis
+name: JavaScript Type Checking
 
 on:
-  # PHPStan testing was introduced in 7.0.0.
+  # JavaScript type checking was introduced in 7.0.0.
   push:
     branches:
       - trunk
@@ -14,17 +14,20 @@ on:
       - trunk
       - '[7-9].[0-9]'
     paths:
-      # This workflow only scans PHP files.
-      - '**.php'
-      # These files configure Composer. Changes could affect the outcome.
-      - 'composer.*'
-      # These files configure PHPStan. Changes could affect the outcome.
-      - 'phpstan.neon.dist'
-      - 'tests/phpstan/base.neon'
-      - 'tests/phpstan/baseline.php'
+      # This workflow only scans JavaScript files.
+      - '**.js'
+      - '**.ts'
+      - '**.tsx'
+      # These files configure npm. Changes could affect the outcome.
+      - 'package*.json'
+      - '.nvmrc'
+      # This file configures TypeScript. Changes could affect the outcome.
+      - 'tsconfig.json'
+      # This directory contains TypeScript definitions. Changes could affect the outcome.
+      - 'typings/**'
       # Confirm any changes to relevant workflow files.
-      - '.github/workflows/phpstan-static-analysis.yml'
-      - '.github/workflows/reusable-phpstan-static-analysis.yml'
+      - '.github/workflows/javascript-type-checking.yml'
+      - '.github/workflows/reusable-javascript-type-checking.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -39,10 +42,10 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Runs PHPStan Static Analysis.
-  phpstan:
-    name: PHP static analysis
-    uses: ./.github/workflows/reusable-phpstan-static-analysis.yml
+  # Runs JavaScript type checking.
+  typecheck:
+    name: JavaScript type checking
+    uses: ./.github/workflows/reusable-javascript-type-checking.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
@@ -53,7 +56,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ phpstan ]
+    needs: [ typecheck ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
