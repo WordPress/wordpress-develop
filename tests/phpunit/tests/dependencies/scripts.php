@@ -4193,78 +4193,61 @@ HTML;
 	}
 
 	/**
-	 * Tests that duplicate query vars are preserved in scripts.
-	 *
-	 * @ticket 64372
-	 */
-	public function test_duplicate_query_vars_preserved_in_scripts() {
-		$url = 'https://example.com/script.js?arg=1&arg=2';
-		wp_enqueue_script( 'duplicate-args-script', $url, array(), '1.0' );
-
-		$output    = get_echo( 'wp_print_scripts' );
-		$processor = new WP_HTML_Tag_Processor( $output );
-
-		$this->assertTrue( $processor->next_tag( 'script' ) );
-		$this->assertSame( 'https://example.com/script.js?arg=1&arg=2&ver=1.0', $processor->get_attribute( 'src' ) );
-	}
-
-	/**
-	 * Tests that duplicate query vars are preserved in scripts when version is null.
-	 *
-	 * @ticket 64372
-	 */
-	public function test_duplicate_query_vars_preserved_in_scripts_null_version() {
-		$url = 'https://example.com/script.js?arg=1&arg=2';
-		wp_enqueue_script( 'duplicate-args-script', $url, array(), null );
-
-		$output    = get_echo( 'wp_print_scripts' );
-		$processor = new WP_HTML_Tag_Processor( $output );
-
-		$this->assertTrue( $processor->next_tag( 'script' ) );
-		$this->assertSame( 'https://example.com/script.js?arg=1&arg=2', $processor->get_attribute( 'src' ) );
-	}
-
-	/**
-	 * Tests that duplicate query vars in handle args are preserved in scripts.
-	 *
-	 * @ticket 64372
-	 */
-	public function test_duplicate_query_vars_preserved_in_handle_args_scripts() {
-		wp_enqueue_script( 'test-script?a=1&a=2', 'https://example.com/test-script.js', array(), '1.0' );
-		$output    = get_echo( 'wp_print_scripts' );
-		$processor = new WP_HTML_Tag_Processor( $output );
-
-		$this->assertTrue( $processor->next_tag( 'script' ) );
-		$this->assertSame( 'https://example.com/test-script.js?ver=1.0&a=1&a=2', $processor->get_attribute( 'src' ) );
-	}
-
-	/**
 	 * Tests that duplicate query vars and fragments are preserved in scripts.
 	 *
 	 * @ticket 64372
+	 *
+	 * @dataProvider data_duplicate_query_vars_and_fragments_preserved_in_scripts
+	 *
+	 * @param string      $src          The script's source URL.
+	 * @param string|null $ver          The script's version.
+	 * @param string      $expected_url The expected URL.
+	 * @param string      $handle       Optional. The script's registered handle. Default 'test-script'.
 	 */
-	public function test_duplicate_query_vars_and_fragments_preserved_in_scripts() {
-		$url = 'https://example.com/script.js?arg=1&arg=2#anchor';
-		wp_enqueue_script( 'test-fragment', $url, array(), '1.0' );
+	public function test_duplicate_query_vars_and_fragments_preserved_in_scripts( string $src, ?string $ver, string $expected_url, string $handle = 'test-script' ): void {
+		wp_enqueue_script( $handle, $src, array(), $ver );
 		$output    = get_echo( 'wp_print_scripts' );
 		$processor = new WP_HTML_Tag_Processor( $output );
 
 		$this->assertTrue( $processor->next_tag( 'script' ) );
-		$this->assertSame( 'https://example.com/script.js?arg=1&arg=2&ver=1.0#anchor', $processor->get_attribute( 'src' ) );
+		$this->assertSame( $expected_url, $processor->get_attribute( 'src' ) );
 	}
 
 	/**
-	 * Tests that '0' as a query arg in a handle is preserved in scripts.
+	 * Data provider for test_duplicate_query_vars_and_fragments_preserved_in_scripts.
 	 *
-	 * @ticket 64372
+	 * @return array<string, array{src: string, ver: string|null, expected_url: string, handle?: string}> Data provider.
 	 */
-	public function test_zero_query_var_preserved_in_handle_args_scripts() {
-		wp_enqueue_script( 'test-script?0', 'https://example.com/test-script.js', array(), '1.0' );
-		$output    = get_echo( 'wp_print_scripts' );
-		$processor = new WP_HTML_Tag_Processor( $output );
-
-		$this->assertTrue( $processor->next_tag( 'script' ) );
-		$this->assertSame( 'https://example.com/test-script.js?ver=1.0&0', $processor->get_attribute( 'src' ) );
+	public function data_duplicate_query_vars_and_fragments_preserved_in_scripts(): array {
+		return array(
+			'duplicate query vars'               => array(
+				'src'          => 'https://example.com/script.js?arg=1&arg=2',
+				'ver'          => '1.0',
+				'expected_url' => 'https://example.com/script.js?arg=1&arg=2&ver=1.0',
+			),
+			'duplicate query vars, null version' => array(
+				'src'          => 'https://example.com/script.js?arg=1&arg=2',
+				'ver'          => null,
+				'expected_url' => 'https://example.com/script.js?arg=1&arg=2',
+			),
+			'duplicate query vars in handle'     => array(
+				'src'          => 'https://example.com/test-script.js',
+				'ver'          => '1.0',
+				'expected_url' => 'https://example.com/test-script.js?ver=1.0&a=1&a=2',
+				'handle'       => 'test-script?a=1&a=2',
+			),
+			'duplicate query vars and fragments' => array(
+				'src'          => 'https://example.com/script.js?arg=1&arg=2#anchor',
+				'ver'          => '1.0',
+				'expected_url' => 'https://example.com/script.js?arg=1&arg=2&ver=1.0#anchor',
+			),
+			'zero query var in handle'           => array(
+				'src'          => 'https://example.com/test-script.js',
+				'ver'          => '1.0',
+				'expected_url' => 'https://example.com/test-script.js?ver=1.0&0',
+				'handle'       => 'test-script?0',
+			),
+		);
 	}
 
 	/**
