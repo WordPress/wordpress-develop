@@ -1,73 +1,25 @@
 <?php
 /**
- * Proves that post meta compaction loses sync data under concurrent reads.
+ * Proves that post meta compaction loses sync data.
  *
- * Scenario: Two editors are collaborating on a post. 10 sync updates exist.
- * Compaction keeps the 2 newest (20%), discards the 8 oldest (80%).
- * (Production triggers compaction at 50 updates with the same 80/20 ratio.)
- *
- * After compaction, both editors should still see the 2 newest updates.
+ * Compaction triggers at 50 updates, keeping the newest 20% (10) and
+ * discarding the oldest 80% (40).
  *
  * Table compaction does this:
- *   1. DELETE WHERE id < cutoff — removes only the 8 oldest rows.
+ *   1. DELETE WHERE id < cutoff — removes only the 40 oldest rows.
  *
- * The 2 newest rows are never deleted and always readable. There is no step 2.
+ * The 10 newest rows are never deleted, never absent. There is no step 2.
  *
  * Post meta compaction (beta 1) does this:
- *   1. delete_post_meta() — removes ALL 10 updates in one call.
- *   2. add_post_meta() — re-inserts the 2 newest updates one at a time.
+ *   1. delete_post_meta() — removes ALL 50 updates in one call.
+ *   2. add_post_meta() — re-inserts the 10 newest updates one at a time.
  *
  * Between step 1 and step 2, every update is gone from the database.
- * If a second editor polls for updates between those two calls, they
- * receive nothing — even though 2 updates should still exist.
+ * Any read during this window returns nothing — even though 10 updates
+ * should still exist.
  *
  * Usage:
  *   npm run test:performance:sync:prove
- *
- * Expected output:
- *   Sync Compaction Data Integrity Test
- *   Run: 2026-03-05 19:42:13 UTC
- *
- *   Scenario: Two editors collaborating on the same post.
- *   10 sync updates exist. Compaction keeps the 2 newest, discards the 8 oldest.
- *
- *   Expected: both editors should still see the 2 newest updates.
- *
- *   ────────────────────────────────────────────────────────────
- *   Table (proposed)
- *   ────────────────────────────────────────────────────────────
- *
- *     DELETE WHERE id < cutoff removes only the 8 oldest.
- *     The 2 newest are never touched.
- *
- *     Second editor sees: 2 of 2 expected updates — OK
- *
- *   ────────────────────────────────────────────────────────────
- *   Post Meta (current beta 1)
- *   ────────────────────────────────────────────────────────────
- *
- *     delete_post_meta() removes all 10 updates,
- *     then add_post_meta() re-inserts the 2 newest, one at a time.
- *
- *     Second editor sees: 0 of 2 expected updates — DATA LOSS
- *
- *   ────────────────────────────────────────────────────────────
- *   Data loss window at scale
- *   ────────────────────────────────────────────────────────────
- *
- *     Time from delete_post_meta() to last add_post_meta().
- *     All updates are missing during this window.
- *
- *     +---------------------+---------------+
- *     | Updates (keep 20%)  | Post Meta gap |
- *     +---------------------+---------------+
- *     | 10 (keep 2)         | ~3 ms         |
- *     | 50 (keep 10)        | ~18 ms        |
- *     | 200 (keep 40)       | ~85 ms        |
- *     | 500 (keep 100)      | ~210 ms       |
- *     +---------------------+---------------+
- *
- *     Table: no gap at any scale. Kept rows are never removed.
  *
  * @package WordPress
  */
@@ -75,12 +27,12 @@
 global $wpdb;
 
 $room    = 'postType/post:proof';
-$total   = 10;
+$total   = 50;
 $discard = (int) ( $total * 0.8 ); // 80% — matches production compaction ratio.
 $keep    = $total - $discard;       // 20% — the newest updates that should remain.
 
 // =====================================================================
-// Setup: 10 sync updates exist in both backends.
+// Setup: 50 sync updates exist in both backends.
 // =====================================================================
 
 // Table backend.
@@ -114,8 +66,8 @@ for ( $i = 0; $i < $total; $i++ ) {
 //
 //   DELETE FROM wp_sync_updates WHERE room = %s AND id < %d
 //
-// One query. Only the 8 oldest rows are removed. The 2 newest rows
-// are never deleted, never absent, always readable by other editors.
+// One query. Only the 40 oldest rows are removed. The 10 newest rows
+// are never deleted, never absent, always readable.
 // There is no step 2.
 // =====================================================================
 
@@ -128,7 +80,7 @@ $cursor = (int) $wpdb->get_var( $wpdb->prepare(
 $table = new WP_Sync_Table_Storage();
 $table->remove_updates_before_cursor( $room, $cursor );
 
-// *** Read immediately after — what a second editor's poll would see. ***
+// *** Read immediately after compaction. ***
 $reader        = new WP_Sync_Table_Storage();
 $table_visible = $reader->get_updates_after_cursor( $room, 0 );
 $table_count   = count( $table_visible );
@@ -153,7 +105,7 @@ $table_count   = count( $table_visible );
 // Step 1 of 2: delete ALL updates (this is the production code path).
 delete_post_meta( $post_id, 'wp_sync_update' );
 
-// *** Read between step 1 and step 2 — what a second editor's poll would see. ***
+// *** Read between step 1 and step 2. ***
 wp_cache_delete( $post_id, 'post_meta' );
 $meta_visible = get_post_meta( $post_id, 'wp_sync_update', false );
 $meta_count   = count( array_filter( $meta_visible, 'is_array' ) );
@@ -170,7 +122,7 @@ $meta_count   = count( array_filter( $meta_visible, 'is_array' ) );
 // Table compaction has no gap. The kept rows are never removed.
 // =====================================================================
 
-$gap_scales  = array( 10, 50, 200, 500 );
+$gap_scales  = array( 50, 200, 500, 1000 );
 $gap_results = array();
 $progress    = WP_CLI\Utils\make_progress_bar( 'Measuring data loss window at scale', count( $gap_scales ) );
 
@@ -231,8 +183,8 @@ WP_CLI::log( '' );
 WP_CLI::log( WP_CLI::colorize( '%_Sync Compaction Data Integrity Test%n' ) );
 WP_CLI::log( 'Run: ' . gmdate( 'Y-m-d H:i:s' ) . ' UTC' );
 WP_CLI::log( '' );
-WP_CLI::log( "{$total} sync updates, {$keep} editors. Compaction keeps {$keep} newest, discards {$discard} oldest." );
-WP_CLI::log( WP_CLI::colorize( "%_Expected: {$keep} newest updates remain visible to all editors.%n" ) );
+WP_CLI::log( "Compaction triggers at {$total} updates. Keeps {$keep} newest, discards {$discard} oldest." );
+WP_CLI::log( WP_CLI::colorize( "%_Expected: {$keep} newest updates remain visible after compaction.%n" ) );
 
 WP_CLI::log( '' );
 WP_CLI::log( $separator );
@@ -240,7 +192,7 @@ WP_CLI::log( WP_CLI::colorize( '%_Table (proposed)%n' ) );
 WP_CLI::log( $separator );
 WP_CLI::log( "  DELETE WHERE id < cutoff — only the {$discard} oldest removed." );
 WP_CLI::log( '' );
-WP_CLI::log( '  Second editor polls after the DELETE:' );
+WP_CLI::log( '  Read immediately after compaction:' );
 $table_verdict = $table_count >= $keep
 	? WP_CLI::colorize( "  %G→ {$table_count} of {$keep} visible — OK%n" )
 	: WP_CLI::colorize( "  %R→ {$table_count} of {$keep} visible — UNEXPECTED%n" );
@@ -252,7 +204,7 @@ WP_CLI::log( WP_CLI::colorize( '%_Post Meta (current beta 1)%n' ) );
 WP_CLI::log( $separator );
 WP_CLI::log( "  delete_post_meta() removes all {$total}, then add_post_meta() re-inserts {$keep}." );
 WP_CLI::log( '' );
-WP_CLI::log( '  Second editor polls between delete and re-insert:' );
+WP_CLI::log( '  Read between delete and re-insert:' );
 $meta_verdict = 0 === $meta_count
 	? WP_CLI::colorize( "  %R→ {$meta_count} of {$keep} visible — DATA LOSS%n" )
 	: WP_CLI::colorize( "  %G→ {$meta_count} of {$keep} visible — OK%n" );
