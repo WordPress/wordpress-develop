@@ -19,7 +19,7 @@
  * should still exist.
  *
  * Usage:
- *   npm run test:performance:sync:prove
+ *   npm run env:cli -- eval-file tools/local-env/scripts/collaboration-perf/DO_NOT_RELEASE_prove-data-loss.php
  *
  * @package WordPress
  */
@@ -36,9 +36,9 @@ $keep    = $total - $discard;       // 20% — the newest updates that should re
 // =====================================================================
 
 // Table backend.
-$wpdb->query( "TRUNCATE TABLE {$wpdb->sync_updates}" );
+$wpdb->query( "TRUNCATE TABLE {$wpdb->collaboration}" );
 for ( $i = 0; $i < $total; $i++ ) {
-	$s = new WP_Sync_Table_Storage();
+	$s = new WP_Collaboration_Table_Storage();
 	$s->add_update( $room, array( 'edit' => $i ) );
 }
 
@@ -62,9 +62,9 @@ for ( $i = 0; $i < $total; $i++ ) {
 // Table compaction — the correct behavior.
 //
 // This is the exact code path from:
-// WP_Sync_Table_Storage::remove_updates_before_cursor()
+// WP_Collaboration_Table_Storage::remove_updates_before_cursor()
 //
-//   DELETE FROM wp_sync_updates WHERE room = %s AND id < %d
+//   DELETE FROM wp_collaboration WHERE room = %s AND id < %d
 //
 // One query. Only the 40 oldest rows are removed. The 10 newest rows
 // are never deleted, never absent, always readable.
@@ -73,15 +73,15 @@ for ( $i = 0; $i < $total; $i++ ) {
 
 // Cursor that keeps the $keep newest rows.
 $cursor = (int) $wpdb->get_var( $wpdb->prepare(
-	"SELECT id FROM {$wpdb->sync_updates} WHERE room = %s ORDER BY id DESC LIMIT 1 OFFSET %d",
+	"SELECT id FROM {$wpdb->collaboration} WHERE room = %s ORDER BY id DESC LIMIT 1 OFFSET %d",
 	$room,
 	$keep - 1
 ) );
-$table = new WP_Sync_Table_Storage();
+$table = new WP_Collaboration_Table_Storage();
 $table->remove_updates_before_cursor( $room, $cursor );
 
 // *** Read immediately after compaction. ***
-$reader        = new WP_Sync_Table_Storage();
+$reader        = new WP_Collaboration_Table_Storage();
 $table_visible = $reader->get_updates_after_cursor( $room, 0 );
 $table_count   = count( $table_visible );
 
@@ -231,4 +231,4 @@ WP_CLI::log( WP_CLI::colorize( '  %GTable: no gap at any scale.%n' ) );
 
 // Cleanup.
 wp_delete_post( $post_id, true );
-$wpdb->query( "TRUNCATE TABLE {$wpdb->sync_updates}" );
+$wpdb->query( "TRUNCATE TABLE {$wpdb->collaboration}" );

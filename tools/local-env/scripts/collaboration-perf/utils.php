@@ -142,7 +142,7 @@ function sync_perf_explain_access( array $row ): string {
 }
 
 /**
- * Seeds the wp_sync_updates table via bulk INSERT.
+ * Seeds the wp_collaboration table via bulk INSERT.
  *
  * @param int $total_rows Total rows to insert.
  * @param int $rooms      Number of rooms to distribute across.
@@ -150,7 +150,7 @@ function sync_perf_explain_access( array $row ): string {
 function sync_perf_seed_table( int $total_rows, int $rooms ): void {
 	global $wpdb;
 
-	$wpdb->query( "TRUNCATE TABLE {$wpdb->sync_updates}" );
+	$wpdb->query( "TRUNCATE TABLE {$wpdb->collaboration}" );
 
 	$rows_per_room = (int) ceil( $total_rows / $rooms );
 	$batch_size    = 500;
@@ -177,7 +177,7 @@ function sync_perf_seed_table( int $total_rows, int $rooms ): void {
 			}
 
 			$wpdb->query(
-				"INSERT INTO {$wpdb->sync_updates} (room, update_value, created_at) VALUES " . implode( ',', $values )
+				"INSERT INTO {$wpdb->collaboration} (room, update_value, created_at) VALUES " . implode( ',', $values )
 			);
 
 			$inserted += $chunk;
@@ -200,37 +200,37 @@ function sync_perf_collect_explains( string $target_room, int $scale, int $rooms
 	global $wpdb;
 
 	sync_perf_seed_table( $scale, $rooms );
-	$wpdb->query( "ANALYZE TABLE {$wpdb->sync_updates}" );
+	$wpdb->query( "ANALYZE TABLE {$wpdb->collaboration}" );
 
 	$table_max_id = (int) $wpdb->get_var( $wpdb->prepare(
-		"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->sync_updates} WHERE room = %s",
+		"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->collaboration} WHERE room = %s",
 		$target_room
 	) );
 
 	$queries = array(
 		array(
 			'label' => 'Idle poll (MAX cursor)',
-			'sql'   => "SELECT COALESCE(MAX(id), 0) FROM {$wpdb->sync_updates} WHERE room = %s",
+			'sql'   => "SELECT COALESCE(MAX(id), 0) FROM {$wpdb->collaboration} WHERE room = %s",
 			'args'  => array( $target_room ),
 		),
 		array(
 			'label' => 'Idle poll (COUNT)',
-			'sql'   => "SELECT COUNT(*) FROM {$wpdb->sync_updates} WHERE room = %s AND id <= %d",
+			'sql'   => "SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND id <= %d",
 			'args'  => array( $target_room, $table_max_id ),
 		),
 		array(
 			'label' => 'Catch-up poll (SELECT)',
-			'sql'   => "SELECT update_value FROM {$wpdb->sync_updates} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
+			'sql'   => "SELECT update_value FROM {$wpdb->collaboration} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
 			'args'  => array( $target_room, 0, $table_max_id ),
 		),
 		array(
 			'label' => 'Compaction (DELETE)',
-			'sql'   => "DELETE FROM {$wpdb->sync_updates} WHERE room = %s AND id < %d",
+			'sql'   => "DELETE FROM {$wpdb->collaboration} WHERE room = %s AND id < %d",
 			'args'  => array( $target_room, $table_max_id ),
 		),
 		array(
 			'label' => 'LIKE prefix scan',
-			'sql'   => "SELECT id, room FROM {$wpdb->sync_updates} WHERE room LIKE %s ORDER BY room, id ASC",
+			'sql'   => "SELECT id, room FROM {$wpdb->collaboration} WHERE room LIKE %s ORDER BY room, id ASC",
 			'args'  => array( 'postType/post:%' ),
 		),
 	);

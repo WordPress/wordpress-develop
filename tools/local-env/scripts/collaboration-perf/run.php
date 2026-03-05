@@ -1,12 +1,12 @@
 <?php
 /**
- * Performance benchmark for WP_Sync_Table_Storage at scale.
+ * Performance benchmark for WP_Collaboration_Table_Storage at scale.
  *
  * Measures idle poll, catch-up poll, and compaction at 100, 1,000, 10,000,
  * and 100,000 rows to verify that queries hold up under load.
  *
  * Usage:
- *   npm run test:performance:sync
+ *   npm run test:performance:collaboration
  *
  * @package WordPress
  */
@@ -38,7 +38,7 @@ $config = array(
 // Preflight check
 // ============================================================
 
-$table_name = $wpdb->prefix . 'sync_updates';
+$table_name = $wpdb->prefix . 'collaboration';
 $has_table  = (bool) $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
 
 if ( ! $has_table ) {
@@ -53,7 +53,7 @@ $results = array();
 
 WP_CLI::log( '' );
 WP_CLI::log( WP_CLI::colorize( '%_Sync Storage Performance Benchmark%n' ) );
-WP_CLI::log( "Backend:      WP_Sync_Table_Storage" );
+WP_CLI::log( "Backend:      WP_Collaboration_Table_Storage" );
 WP_CLI::log( "Iterations:   {$measured_iterations} measured + {$warmup_iterations} warm-up" );
 WP_CLI::log( "Compaction:   {$compaction_iterations} measured (re-seed each)" );
 WP_CLI::log( '' );
@@ -66,7 +66,7 @@ foreach ( $scales as $scale ) {
 	WP_CLI::log( '  Seeding table...' );
 	sync_perf_seed_table( $scale, $rooms_per_scale );
 
-	$primer            = new WP_Sync_Table_Storage();
+	$primer            = new WP_Collaboration_Table_Storage();
 	$primer->get_updates_after_cursor( $target_room, 0 );
 	$table_idle_cursor = $primer->get_cursor( $target_room );
 
@@ -74,7 +74,7 @@ foreach ( $scales as $scale ) {
 	WP_CLI::log( '  Idle poll...' );
 	$results['idle_poll'][ $scale ] = sync_perf_stats(
 		function () use ( $target_room, $table_idle_cursor ) {
-			$s = new WP_Sync_Table_Storage();
+			$s = new WP_Collaboration_Table_Storage();
 			$s->get_updates_after_cursor( $target_room, $table_idle_cursor );
 		},
 		$measured_iterations,
@@ -85,7 +85,7 @@ foreach ( $scales as $scale ) {
 	WP_CLI::log( '  Catch-up poll...' );
 	$results['catchup_poll'][ $scale ] = sync_perf_stats(
 		function () use ( $target_room ) {
-			$s = new WP_Sync_Table_Storage();
+			$s = new WP_Collaboration_Table_Storage();
 			$s->get_updates_after_cursor( $target_room, 0 );
 		},
 		$measured_iterations,
@@ -100,12 +100,12 @@ foreach ( $scales as $scale ) {
 		sync_perf_seed_table( $scale, $rooms_per_scale );
 
 		$compaction_cursor_id = (int) $wpdb->get_var( $wpdb->prepare(
-			"SELECT id FROM {$wpdb->sync_updates} WHERE room = %s ORDER BY id ASC LIMIT 1 OFFSET %d",
+			"SELECT id FROM {$wpdb->collaboration} WHERE room = %s ORDER BY id ASC LIMIT 1 OFFSET %d",
 			$target_room,
 			max( 0, (int) floor( $per_room * $compaction_delete_ratio ) )
 		) );
 
-		$s     = new WP_Sync_Table_Storage();
+		$s     = new WP_Collaboration_Table_Storage();
 		$start = microtime( true );
 		$s->remove_updates_before_cursor( $target_room, $compaction_cursor_id );
 		$compaction_times[] = ( microtime( true ) - $start ) * 1000;
@@ -125,7 +125,7 @@ $explain_data = sync_perf_collect_explains( $target_room, end( $scales ), $rooms
 // Cleanup
 // ============================================================
 
-$wpdb->query( "TRUNCATE TABLE {$wpdb->sync_updates}" );
+$wpdb->query( "TRUNCATE TABLE {$wpdb->collaboration}" );
 
 // ============================================================
 // Output
