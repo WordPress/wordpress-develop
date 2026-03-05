@@ -64,6 +64,10 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * This test must run in a separate process because the output buffer
+	 * callback sends HTTP headers via header(), which would fail in the
+	 * main PHPUnit process where output has already started.
+	 *
 	 * @ticket 64766
 	 *
 	 * @runInSeparateProcess
@@ -121,6 +125,10 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * This test must run in a separate process because the output buffer
+	 * callback sends HTTP headers via header(), which would fail in the
+	 * main PHPUnit process where output has already started.
+	 *
 	 * @ticket 64766
 	 *
 	 * @runInSeparateProcess
