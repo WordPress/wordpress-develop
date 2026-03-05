@@ -441,7 +441,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param array           $args    Array of arguments for WP_Query.
 		 * @param WP_REST_Request $request The REST API request.
 		 */
-		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		$args = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		if ( ! is_array( $args ) ) {
+			$args = array();
+		}
 		$query_args = $this->prepare_items_query( $args, $request );
 
 		$posts_query  = new WP_Query();
@@ -1211,6 +1214,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
+		if ( ! is_array( $prepared_args ) ) {
+			$prepared_args = array();
+		}
 
 		foreach ( $prepared_args as $key => $value ) {
 			/**
@@ -1474,6 +1480,35 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['template'] ) ) {
 			// Force template to null so that it can be handled exclusively by the REST controller.
 			$prepared_post->page_template = null;
+		}
+
+		/**
+		 * Applies Block Hooks to content-like post types.
+		 *
+		 * Content-like post types are those that support the editor and would benefit
+		 * from Block Hooks functionality. This replaces the individual post type filters
+		 * that were previously hardcoded in default-filters.php.
+		 *
+		 * @since 7.0.0
+		 */
+		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+		/**
+		 * Filters which post types should have Block Hooks applied.
+		 *
+		 * Allows themes and plugins to add or remove post types that should
+		 * have Block Hooks functionality enabled in the REST API.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param array  $content_like_post_types Array of post type names that support Block Hooks.
+		 * @param string $post_type               The current post type being processed.
+		 * @param object $prepared_post           The prepared post object.
+		 */
+		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $prepared_post );
+
+		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+			$prepared_post = update_ignored_hooked_blocks_postmeta( $prepared_post );
 		}
 
 		/**
@@ -2125,6 +2160,34 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$response->add_link( $rel, $self );
 				}
 			}
+		}
+
+		/**
+		 * Applies Block Hooks to content-like post types for REST response.
+		 *
+		 * This replaces the individual post type filters that were previously hardcoded
+		 * in default-filters.php.
+		 *
+		 * @since 7.0.0
+		 */
+		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+		/**
+		 * Filters which post types should have Block Hooks applied.
+		 *
+		 * Allows themes and plugins to add or remove post types that should
+		 * have Block Hooks functionality enabled in the REST API.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param array   $content_like_post_types Array of post type names that support Block Hooks.
+		 * @param string  $post_type               The current post type being processed.
+		 * @param WP_Post $post                    The post object.
+		 */
+		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $post );
+
+		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+			$response = insert_hooked_blocks_into_rest_response( $response, $post );
 		}
 
 		/**

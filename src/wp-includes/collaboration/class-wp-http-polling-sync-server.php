@@ -122,7 +122,7 @@ class WP_HTTP_Polling_Sync_Server {
 			),
 			'awareness' => array(
 				'required' => true,
-				'type'     => 'object',
+				'type'     => array( 'object', 'null' ),
 			),
 			'client_id' => array(
 				'minimum'  => 1,
@@ -276,6 +276,11 @@ class WP_HTTP_Polling_Sync_Server {
 		if ( 'taxonomy' === $entity_kind && is_numeric( $object_id ) ) {
 			$taxonomy = get_taxonomy( $entity_name );
 			return isset( $taxonomy->cap->assign_terms ) && current_user_can( $taxonomy->cap->assign_terms );
+		}
+
+		// Handle single comment entities with a defined object ID.
+		if ( 'root' === $entity_kind && 'comment' === $entity_name && is_numeric( $object_id ) ) {
+			return current_user_can( 'edit_comment', (int) $object_id );
 		}
 
 		// All the remaining checks are for collections. If an object ID is provided,
