@@ -64,10 +64,10 @@ function sync_perf_p95( array $arr ): float {
 }
 
 /**
- * Computes median, P95, standard deviation, MAD, and preserves raw times.
+ * Computes median, P95, standard deviation, and MAD.
  *
  * @param float[] $times Array of durations in milliseconds.
- * @return array{ median: float, p95: float, sd: float, mad: float, times: float[] }
+ * @return array{ median: float, p95: float, sd: float, mad: float }
  */
 function sync_perf_compute_stats( array $times ): array {
 	return array(
@@ -75,36 +75,27 @@ function sync_perf_compute_stats( array $times ): array {
 		'p95'    => sync_perf_p95( $times ),
 		'sd'     => sync_perf_sd( $times ),
 		'mad'    => sync_perf_mad( $times ),
-		'times'  => $times,
 	);
 }
 
 /**
  * Runs warm-up iterations, then measures $measured iterations of $callback.
  *
- * @param callable      $callback Function to benchmark.
- * @param int           $measured Number of measured iterations.
- * @param int           $warmup  Number of warm-up iterations (discarded).
- * @param callable|null $setup   Optional function called before each iteration (not timed).
- * @return array{ median: float, p95: float, sd: float, mad: float, times: float[] }
+ * @param callable $callback Function to benchmark.
+ * @param int      $measured Number of measured iterations.
+ * @param int      $warmup  Number of warm-up iterations (discarded).
+ * @return array{ median: float, p95: float, sd: float, mad: float }
  */
-function sync_perf_stats( callable $callback, int $measured, int $warmup = 5, ?callable $setup = null ): array {
+function sync_perf_stats( callable $callback, int $measured, int $warmup = 5 ): array {
 	for ( $i = 0; $i < $warmup; $i++ ) {
-		if ( $setup ) {
-			$setup();
-		}
 		$callback();
 	}
 
 	$times = array();
 	for ( $i = 0; $i < $measured; $i++ ) {
-		if ( $setup ) {
-			$setup();
-		}
 		$start   = microtime( true );
 		$callback();
-		$end     = microtime( true );
-		$times[] = ( $end - $start ) * 1000;
+		$times[] = ( microtime( true ) - $start ) * 1000;
 	}
 
 	return sync_perf_compute_stats( $times );
@@ -292,101 +283,65 @@ function sync_perf_build_section_rows( array $op_results, array $scales, int $ro
  * @param array  $explain_data Return value from sync_perf_collect_explains().
  * @param array  $config       Benchmark configuration.
  * @param int[]  $scales       Scale values.
- * @param string $format       Output format (table, json, csv, yaml).
  */
-function sync_perf_print_output( array $results, array $explain_data, array $config, array $scales, string $format ): void {
+function sync_perf_print_output( array $results, array $explain_data, array $config, array $scales ): void {
 	global $wp_version, $wpdb;
 
-	$fields = array( 'Rows per room', 'Median', 'P95', 'STD', 'MAD' );
+	$fields    = array( 'Rows per room', 'Median', 'P95', 'STD', 'MAD' );
+	$separator = str_repeat( '─', 60 );
 
-	if ( 'table' === $format ) {
-		$separator = str_repeat( '─', 60 );
+	WP_CLI::log( '' );
+	WP_CLI::log( WP_CLI::colorize( '%_Sync Storage Performance%n' ) );
+	WP_CLI::log( sprintf(
+		'WordPress %s, MySQL %s, PHP %s, Docker (local dev)',
+		$wp_version,
+		$wpdb->db_version(),
+		phpversion()
+	) );
+	WP_CLI::log( sprintf(
+		'%d measured iterations (%d warm-up discarded), fresh instance per iteration',
+		$config['measured_iterations'],
+		$config['warmup_iterations']
+	) );
 
-		WP_CLI::log( '' );
-		WP_CLI::log( WP_CLI::colorize( '%_Sync Storage Performance%n' ) );
-		WP_CLI::log( sprintf(
-			'WordPress %s, MySQL %s, PHP %s, Docker (local dev)',
-			$wp_version,
-			$wpdb->db_version(),
-			phpversion()
-		) );
-		WP_CLI::log( sprintf(
-			'%d measured iterations (%d warm-up discarded), fresh instance per iteration',
-			$config['measured_iterations'],
-			$config['warmup_iterations']
-		) );
-
-		$sections = array(
-			'idle_poll'    => array(
-				'title' => 'Idle Poll',
-				'desc'  => 'Checks for new updates when none exist. Called every second per open editor tab.',
+	$sections = array(
+		'idle_poll'    => array(
+			'title' => 'Idle Poll',
+			'desc'  => 'Checks for new updates when none exist. Called every second per open editor tab.',
+		),
+		'catchup_poll' => array(
+			'title' => 'Catch-up Poll',
+			'desc'  => 'Fetches all updates from cursor 0. Called when an editor opens or reconnects.',
+		),
+		'compaction'   => array(
+			'title' => 'Compaction',
+			'desc'  => sprintf(
+				'Removes old updates. Deletes ~80%% of rows (%d measured iterations, re-seeded each).',
+				$config['compaction_iterations']
 			),
-			'catchup_poll' => array(
-				'title' => 'Catch-up Poll',
-				'desc'  => 'Fetches all updates from cursor 0. Called when an editor opens or reconnects.',
-			),
-			'compaction'   => array(
-				'title' => 'Compaction',
-				'desc'  => sprintf(
-					'Removes old updates. Deletes ~80%% of rows (%d measured iterations, re-seeded each).',
-					$config['compaction_iterations']
-				),
-			),
-		);
+		),
+	);
 
-		foreach ( $sections as $op_key => $section ) {
-			WP_CLI::log( '' );
-			WP_CLI::log( $separator );
-			WP_CLI::log( WP_CLI::colorize( "%_{$section['title']}%n" ) );
-			WP_CLI::log( $separator );
-			WP_CLI::log( $section['desc'] );
-			WP_CLI::log( '' );
-
-			$rows = sync_perf_build_section_rows( $results[ $op_key ], $scales, $config['rooms'] );
-			WP_CLI\Utils\format_items( 'table', $rows, $fields );
-		}
-
+	foreach ( $sections as $op_key => $section ) {
 		WP_CLI::log( '' );
 		WP_CLI::log( $separator );
-		WP_CLI::log( WP_CLI::colorize( '%_MySQL EXPLAIN Analysis%n' ) );
+		WP_CLI::log( WP_CLI::colorize( "%_{$section['title']}%n" ) );
 		WP_CLI::log( $separator );
+		WP_CLI::log( $section['desc'] );
 		WP_CLI::log( '' );
 
-		WP_CLI\Utils\format_items( 'table', $explain_data, array( 'Query', 'Access' ) );
-
-		WP_CLI::log( '' );
-		WP_CLI::success( 'Benchmark complete.' );
-	} else {
-		$json_data = array(
-			'environment' => array(
-				'wordpress' => $wp_version,
-				'mysql'     => $wpdb->db_version(),
-				'php'       => phpversion(),
-			),
-			'config'      => array(
-				'measured_iterations'   => $config['measured_iterations'],
-				'warmup_iterations'     => $config['warmup_iterations'],
-				'compaction_iterations' => $config['compaction_iterations'],
-				'rooms'                 => $config['rooms'],
-				'scales'                => $scales,
-			),
-			'results'     => array(),
-			'explain'     => $explain_data,
-		);
-
-		foreach ( array( 'idle_poll', 'catchup_poll', 'compaction' ) as $op ) {
-			foreach ( $scales as $scale ) {
-				$stats = $results[ $op ][ $scale ];
-				$json_data['results'][ $op ][ $scale ] = array(
-					'median' => $stats['median'],
-					'p95'    => $stats['p95'],
-					'sd'     => $stats['sd'],
-					'mad'    => $stats['mad'],
-					'times'  => $stats['times'],
-				);
-			}
-		}
-
-		WP_CLI\Utils\format_items( $format, array( $json_data ), array_keys( $json_data ) );
+		$rows = sync_perf_build_section_rows( $results[ $op_key ], $scales, $config['rooms'] );
+		WP_CLI\Utils\format_items( 'table', $rows, $fields );
 	}
+
+	WP_CLI::log( '' );
+	WP_CLI::log( $separator );
+	WP_CLI::log( WP_CLI::colorize( '%_MySQL EXPLAIN Analysis%n' ) );
+	WP_CLI::log( $separator );
+	WP_CLI::log( '' );
+
+	WP_CLI\Utils\format_items( 'table', $explain_data, array( 'Query', 'Access' ) );
+
+	WP_CLI::log( '' );
+	WP_CLI::success( 'Benchmark complete.' );
 }

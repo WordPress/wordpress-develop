@@ -7,7 +7,6 @@
  *
  * Usage:
  *   npm run test:performance:sync
- *   npm run test:performance:sync -- --format=json
  *
  * @package WordPress
  */
@@ -28,21 +27,10 @@ $compaction_iterations   = 10;
 $compaction_delete_ratio = 0.8;
 $target_room             = 'postType/post:1';
 
-// Parse --format flag from WP-CLI args.
-$format = 'table';
-if ( ! empty( $args ) ) {
-	foreach ( $args as $arg ) {
-		if ( 0 === strpos( $arg, '--format=' ) ) {
-			$format = substr( $arg, 9 );
-		}
-	}
-}
-
 $config = array(
 	'measured_iterations'     => $measured_iterations,
 	'warmup_iterations'       => $warmup_iterations,
 	'compaction_iterations'   => $compaction_iterations,
-	'compaction_delete_ratio' => $compaction_delete_ratio,
 	'rooms'                   => $rooms_per_scale,
 );
 
@@ -143,4 +131,4 @@ $wpdb->query( "TRUNCATE TABLE {$wpdb->sync_updates}" );
 // Output
 // ============================================================
 
-sync_perf_print_output( $results, $explain_data, $config, $scales, $format );
+sync_perf_print_output( $results, $explain_data, $config, $scales );
