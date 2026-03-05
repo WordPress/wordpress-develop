@@ -21,6 +21,7 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1",
         "wp-abilities/v1",
+        "wp-collaboration/v1",
         "wp-sync/v1"
     ],
     "authentication": {
@@ -12772,6 +12773,115 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp-collaboration/v1": {
+            "namespace": "wp-collaboration/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "default": "wp-collaboration/v1",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-collaboration/v1"
+                    }
+                ]
+            }
+        },
+        "/wp-collaboration/v1/updates": {
+            "namespace": "wp-collaboration/v1",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "rooms": {
+                            "items": {
+                                "properties": {
+                                    "after": {
+                                        "minimum": 0,
+                                        "required": true,
+                                        "type": "integer"
+                                    },
+                                    "awareness": {
+                                        "required": true,
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ]
+                                    },
+                                    "client_id": {
+                                        "minimum": 1,
+                                        "required": true,
+                                        "type": "integer"
+                                    },
+                                    "room": {
+                                        "required": true,
+                                        "type": "string",
+                                        "pattern": "^[^/]+/[^/:]+(?::\\S+)?$",
+                                        "maxLength": 255
+                                    },
+                                    "updates": {
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "type": "string",
+                                                    "required": true
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "required": true,
+                                                    "enum": [
+                                                        "compaction",
+                                                        "sync_step1",
+                                                        "sync_step2",
+                                                        "update"
+                                                    ]
+                                                }
+                                            },
+                                            "required": true,
+                                            "type": "object"
+                                        },
+                                        "minItems": 0,
+                                        "required": true,
+                                        "type": "array"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-collaboration/v1/updates"
+                    }
+                ]
+            }
+        },
         "/wp-sync/v1": {
             "namespace": "wp-sync/v1",
             "methods": [
@@ -12836,7 +12946,8 @@ mockedApiResponse.Schema = {
                                     "room": {
                                         "required": true,
                                         "type": "string",
-                                        "pattern": "^[^/]+/[^/:]+(?::\\S+)?$"
+                                        "pattern": "^[^/]+/[^/:]+(?::\\S+)?$",
+                                        "maxLength": 255
                                     },
                                     "updates": {
                                         "items": {
