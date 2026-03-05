@@ -51,7 +51,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	const COMPACTION_THRESHOLD = 50;
 
 	/**
-	 * Sync update type: compaction.
+	 * Collaboration update type: compaction.
 	 *
 	 * @since 7.0.0
 	 * @var string
@@ -59,7 +59,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	const UPDATE_TYPE_COMPACTION = 'compaction';
 
 	/**
-	 * Sync update type: sync step 1.
+	 * Collaboration update type: sync step 1.
 	 *
 	 * @since 7.0.0
 	 * @var string
@@ -67,7 +67,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	const UPDATE_TYPE_SYNC_STEP1 = 'sync_step1';
 
 	/**
-	 * Sync update type: sync step 2.
+	 * Collaboration update type: sync step 2.
 	 *
 	 * @since 7.0.0
 	 * @var string
@@ -75,7 +75,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	const UPDATE_TYPE_SYNC_STEP2 = 'sync_step2';
 
 	/**
-	 * Sync update type: regular update.
+	 * Collaboration update type: regular update.
 	 *
 	 * @since 7.0.0
 	 * @var string
@@ -238,7 +238,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 			$entity_name = $object_parts[0];
 			$object_id   = $object_parts[1] ?? null;
 
-			if ( ! $this->can_user_sync_entity_type( $entity_kind, $entity_name, $object_id ) ) {
+			if ( ! $this->can_user_collaborate_on_entity_type( $entity_kind, $entity_name, $object_id ) ) {
 				return new WP_Error(
 					'rest_cannot_edit',
 					sprintf(
@@ -286,7 +286,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 
 			// Process each update according to its type.
 			foreach ( $room_request['updates'] as $update ) {
-				$result = $this->process_sync_update( $room, $client_id, $cursor, $update );
+				$result = $this->process_collaboration_update( $room, $client_id, $cursor, $update );
 				if ( is_wp_error( $result ) ) {
 					return $result;
 				}
@@ -326,7 +326,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	}
 
 	/**
-	 * Checks if the current user can sync a specific entity type.
+	 * Checks if the current user can collaborate on a specific entity type.
 	 *
 	 * @since 7.0.0
 	 *
@@ -335,7 +335,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * @param string|null $object_id   The object ID / entity key for single entities, null for collections.
 	 * @return bool True if user has permission, otherwise false.
 	 */
-	private function can_user_sync_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
+	private function can_user_collaborate_on_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
 		// Handle single post type entities with a defined object ID.
 		if ( 'postType' === $entity_kind && is_numeric( $object_id ) ) {
 			return current_user_can( 'edit_post', (int) $object_id );
@@ -432,17 +432,17 @@ class WP_HTTP_Polling_Collaboration_Server {
 	}
 
 	/**
-	 * Processes a sync update based on its type.
+	 * Processes a collaboration update based on its type.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @param string                            $room      Room identifier.
 	 * @param int                               $client_id Client identifier.
 	 * @param int                               $cursor    Client cursor (marker of last seen update).
-	 * @param array{data: string, type: string} $update    Sync update.
+	 * @param array{data: string, type: string} $update    Collaboration update.
 	 * @return true|WP_Error True on success, WP_Error on storage failure.
 	 */
-	private function process_sync_update( string $room, int $client_id, int $cursor, array $update ) {
+	private function process_collaboration_update( string $room, int $client_id, int $cursor, array $update ) {
 		$data = $update['data'];
 		$type = $update['type'];
 
@@ -469,7 +469,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 				if ( ! $has_newer_compaction ) {
 					if ( ! $this->storage->remove_updates_before_cursor( $room, $cursor ) ) {
 						return new WP_Error(
-							'rest_sync_storage_error',
+							'rest_collaboration_storage_error',
 							__( 'Failed to remove updates during compaction.' ),
 							array( 'status' => 500 )
 						);
@@ -499,7 +499,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 
 		return new WP_Error(
 			'rest_invalid_update_type',
-			__( 'Invalid sync update type.' ),
+			__( 'Invalid collaboration update type.' ),
 			array( 'status' => 400 )
 		);
 	}
@@ -524,8 +524,8 @@ class WP_HTTP_Polling_Collaboration_Server {
 
 		if ( ! $this->storage->add_update( $room, $update ) ) {
 			return new WP_Error(
-				'rest_sync_storage_error',
-				__( 'Failed to store sync update.' ),
+				'rest_collaboration_storage_error',
+				__( 'Failed to store collaboration update.' ),
 				array( 'status' => 500 )
 			);
 		}
