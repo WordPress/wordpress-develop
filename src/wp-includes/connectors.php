@@ -212,10 +212,27 @@ function _wp_connectors_get_connector_settings(): array {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param array $connectors Connector settings keyed by connector ID.
-	 *                          Each entry is an array with keys: name, description,
-	 *                          type, authentication (with method, and optionally
-	 *                          credentials_url), and optionally plugin.
+	 * @param array $connectors {
+	 *     Connector settings keyed by connector ID.
+	 *
+	 *     @type array ...$0 {
+	 *         Data for a single connector.
+	 *
+	 *         @type string $name           The connector's display name.
+	 *         @type string $description    The connector's description.
+	 *         @type string $type           The connector type. Currently, only 'ai_provider' is supported.
+	 *         @type array  $plugin         Optional. Plugin data for install/activate UI.
+	 *             @type string $slug       The WordPress.org plugin slug.
+	 *         }
+	 *         @type array  $authentication {
+	 *             Authentication configuration. When method is 'api_key', includes
+	 *             credentials_url. When 'none', only method is present.
+	 *
+	 *             @type string      $method          The authentication method: 'api_key' or 'none'.
+	 *             @type string|null $credentials_url Optional. URL where users can obtain API credentials.
+	 *         }
+	 *     }
+	 * }
 	 */
 	$connectors = apply_filters( 'wp_connectors_settings', $connectors );
 
