@@ -416,16 +416,16 @@ class WP_Styles extends WP_Dependencies {
 
 		$added_args = (string) ( $this->args[ $handle ] ?? '' );
 
-		if ( $ver_to_add || $added_args ) {
+		if ( '' !== $ver_to_add || '' !== $added_args ) {
 			$fragment = strstr( $src, '#' );
 			if ( false !== $fragment ) {
 				$src = substr( $src, 0, -strlen( $fragment ) );
 			}
 
-			if ( $ver_to_add ) {
+			if ( '' !== $ver_to_add ) {
 				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
 			}
-			if ( $added_args ) {
+			if ( '' !== $added_args ) {
 				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_args;
 			}
 

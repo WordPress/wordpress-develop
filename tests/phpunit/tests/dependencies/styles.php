@@ -1023,6 +1023,20 @@ HTML;
 	}
 
 	/**
+	 * Tests that '0' as a query arg in a handle is preserved in styles.
+	 *
+	 * @ticket 64372
+	 */
+	public function test_zero_query_var_preserved_in_handle_args_styles() {
+		wp_enqueue_style( 'test-style?0', 'https://example.com/test-style.css', array(), '1.0' );
+		$output    = get_echo( 'wp_print_styles' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'https://example.com/test-style.css?ver=1.0&0', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
 	 * Data provider for:
 	 * - test_varying_versions_added_to_handle_args_enqueued_styles
 	 * - test_varying_versions_added_to_handle_args_registered_then_enqueued_styles

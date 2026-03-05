@@ -4254,6 +4254,20 @@ HTML;
 	}
 
 	/**
+	 * Tests that '0' as a query arg in a handle is preserved in scripts.
+	 *
+	 * @ticket 64372
+	 */
+	public function test_zero_query_var_preserved_in_handle_args_scripts() {
+		wp_enqueue_script( 'test-script?0', 'https://example.com/test-script.js', array(), '1.0' );
+		$output    = get_echo( 'wp_print_scripts' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'script' ) );
+		$this->assertSame( 'https://example.com/test-script.js?ver=1.0&0', $processor->get_attribute( 'src' ) );
+	}
+
+	/**
 	 * Data provider for:
 	 * - test_varying_versions_added_to_handle_args_enqueued_scripts
 	 * - test_varying_versions_added_to_handle_args_registered_then_enqueued_scripts
