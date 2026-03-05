@@ -28,22 +28,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	public function set_up() {
 		parent::set_up();
 
-<<<<<<< feature/sync-updates-table
 		// Uses DELETE (not TRUNCATE) to preserve transaction rollback support
 		// in the test suite. TRUNCATE implicitly commits the transaction.
 		global $wpdb;
 		$wpdb->query( "DELETE FROM {$wpdb->sync_updates}" );
-=======
-		// Enable option for tests.
-		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_true' );
-
-		// Reset storage post ID cache to ensure clean state after transaction rollback.
-		$reflection = new ReflectionProperty( 'WP_Sync_Post_Meta_Storage', 'storage_post_ids' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$reflection->setAccessible( true );
-		}
-		$reflection->setValue( null, array() );
->>>>>>> trunk
 	}
 
 	/**
@@ -1091,31 +1079,6 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$this->assertLessThan( 10, $data['rooms'][0]['total_updates'], 'Compaction should reduce the total update count.' );
-	}
-
-	/*
-	 * Storage filter tests.
-	 */
-
-	/**
-	 * @ticket 64696
-	 */
-	public function test_sync_storage_filter_is_applied(): void {
-		$filtered_storage = null;
-
-		add_filter(
-			'wp_sync_storage',
-			static function ( WP_Sync_Storage $storage ) use ( &$filtered_storage ): WP_Sync_Storage {
-				$filtered_storage = $storage;
-				return $storage;
-			}
-		);
-
-		// Re-trigger route registration to invoke the filter.
-		$server = rest_get_server();
-		do_action( 'rest_api_init', $server );
-
-		$this->assertInstanceOf( WP_Sync_Storage::class, $filtered_storage, 'The wp_sync_storage filter should be applied during route registration.' );
 	}
 
 	/*
