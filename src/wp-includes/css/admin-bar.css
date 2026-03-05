@@ -1033,7 +1033,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar li#wp-admin-bar-new-content,
 	#wpadminbar li#wp-admin-bar-edit,
 	#wpadminbar li#wp-admin-bar-comments,
-	#wpadminbar li#wp-admin-bar-my-account {
+	#wpadminbar li#wp-admin-bar-my-account,
+	#wpadminbar li#wp-admin-bar-command-palette {
 		display: block;
 	}
 
@@ -1065,7 +1066,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-new-content,
 	#wpadminbar #wp-admin-bar-edit,
 	#wpadminbar #wp-admin-bar-my-account,
-	#wpadminbar li#wp-admin-bar-command-palette {
+	#wpadminbar #wp-admin-bar-command-palette {
 		position: static;
 	}
 
