@@ -124,12 +124,16 @@ $meta_count   = count( array_filter( $meta_visible, 'is_array' ) );
 
 $gap_scales  = array( 50, 200, 500, 1000 );
 $gap_results = array();
-$progress    = WP_CLI\Utils\make_progress_bar( 'Measuring data loss window at scale', count( $gap_scales ) );
+
+WP_CLI::log( '' );
+WP_CLI::log( 'Measuring data loss window at scale...' );
 
 foreach ( $gap_scales as $gap_total ) {
 	$gap_discard = (int) ( $gap_total * 0.8 );
 	$gap_keep    = $gap_total - $gap_discard;
 	$gap_room    = "postType/post:gap-{$gap_total}";
+
+	WP_CLI::log( "  Scale: {$gap_total} updates (keep {$gap_keep})" );
 
 	// Seed post meta for this scale.
 	$gap_post_id = wp_insert_post( array(
@@ -168,10 +172,7 @@ foreach ( $gap_scales as $gap_total ) {
 
 	// Cleanup this scale.
 	wp_delete_post( $gap_post_id, true );
-	$progress->tick();
 }
-
-$progress->finish();
 
 // =====================================================================
 // Results.
