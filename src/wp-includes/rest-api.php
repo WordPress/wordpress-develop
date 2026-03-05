@@ -432,17 +432,7 @@ function create_initial_rest_routes() {
 	// Collaboration.
 	if ( wp_is_collaboration_enabled() ) {
 		$sync_storage = new WP_Sync_Table_Storage();
-
-		/**
-		 * Filters the sync storage backend used for real-time collaboration.
-		 *
-		 * @since 7.0.0
-		 *
-		 * @param WP_Sync_Storage $sync_storage Storage backend instance.
-		 */
-		$sync_storage = apply_filters( 'wp_sync_storage', $sync_storage );
-
-		$sync_server = new WP_HTTP_Polling_Sync_Server( $sync_storage );
+		$sync_server  = new WP_HTTP_Polling_Sync_Server( $sync_storage );
 		$sync_server->register_routes();
 	}
 }
