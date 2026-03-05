@@ -407,23 +407,23 @@ class WP_Styles extends WP_Dependencies {
 			$src = $this->base_url . $src;
 		}
 
-		$added_ver = '';
+		$ver_to_add = '';
 		if ( empty( $ver ) && null !== $ver && is_string( $this->default_version ) ) {
-			$added_ver = 'ver=' . rawurlencode( $this->default_version );
+			$ver_to_add = $this->default_version;
 		} elseif ( is_scalar( $ver ) ) {
-			$added_ver = 'ver=' . rawurlencode( (string) $ver );
+			$ver_to_add = (string) $ver;
 		}
 
 		$added_args = (string) ( $this->args[ $handle ] ?? '' );
 
-		if ( $added_ver || $added_args ) {
+		if ( '' !== $ver_to_add || $added_args ) {
 			$fragment = strstr( $src, '#' );
 			if ( false !== $fragment ) {
 				$src = substr( $src, 0, -strlen( $fragment ) );
 			}
 
-			if ( $added_ver ) {
-				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_ver;
+			if ( '' !== $ver_to_add ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
 			}
 			if ( $added_args ) {
 				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_args;
