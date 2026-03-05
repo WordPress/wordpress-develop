@@ -962,6 +962,67 @@ HTML;
 	}
 
 	/**
+	 * Tests that duplicate query vars are preserved in styles.
+	 *
+	 * @ticket 64372
+	 */
+	public function test_duplicate_query_vars_preserved_in_styles() {
+		$url = 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap';
+		wp_enqueue_style( 'fonts-source-google', $url, array(), '1.0' );
+
+		$output    = get_echo( 'wp_print_styles' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap&ver=1.0', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * Tests that duplicate query vars are preserved in styles when version is null.
+	 *
+	 * @ticket 64372
+	 */
+	public function test_duplicate_query_vars_preserved_in_styles_null_version() {
+		$url = 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap';
+		wp_enqueue_style( 'fonts-source-google', $url, array(), null );
+
+		$output    = get_echo( 'wp_print_styles' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * Tests that duplicate query vars in handle args are preserved in styles.
+	 *
+	 * @ticket 64372
+	 */
+	public function test_duplicate_query_vars_preserved_in_handle_args_styles() {
+		wp_enqueue_style( 'test-style?a=1&a=2', 'https://example.com/test-style.css', array(), '1.0' );
+		$output    = get_echo( 'wp_print_styles' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'https://example.com/test-style.css?ver=1.0&a=1&a=2', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * Tests that duplicate query vars and fragments are preserved in styles.
+	 *
+	 * @ticket 64372
+	 */
+	public function test_duplicate_query_vars_and_fragments_preserved_in_styles() {
+		$url = 'https://example.com/style.css?arg=1&arg=2#anchor';
+		wp_enqueue_style( 'test-fragment', $url, array(), '1.0' );
+		$output    = get_echo( 'wp_print_styles' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'https://example.com/style.css?arg=1&arg=2&ver=1.0#anchor', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
 	 * Data provider for:
 	 * - test_varying_versions_added_to_handle_args_enqueued_styles
 	 * - test_varying_versions_added_to_handle_args_registered_then_enqueued_styles

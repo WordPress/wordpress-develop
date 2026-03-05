@@ -417,19 +417,32 @@ class WP_Scripts extends WP_Dependencies {
 			$src = $this->base_url . $src;
 		}
 
-		$query_args = array();
+		$added_ver = '';
 		if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $this->default_version ) ) {
-			$query_args['ver'] = $this->default_version;
+			$added_ver = 'ver=' . rawurlencode( $this->default_version );
 		} elseif ( is_scalar( $obj->ver ) ) {
-			$query_args['ver'] = (string) $obj->ver;
+			$added_ver = 'ver=' . rawurlencode( (string) $obj->ver );
 		}
-		if ( isset( $this->args[ $handle ] ) ) {
-			parse_str( $this->args[ $handle ], $parsed_args );
-			if ( $parsed_args ) {
-				$query_args = array_merge( $query_args, $parsed_args );
+
+		$added_args = isset( $this->args[ $handle ] ) ? (string) $this->args[ $handle ] : '';
+
+		if ( $added_ver || $added_args ) {
+			$fragment = strstr( $src, '#' );
+			if ( false !== $fragment ) {
+				$src = substr( $src, 0, -strlen( $fragment ) );
+			}
+
+			if ( $added_ver ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_ver;
+			}
+			if ( $added_args ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_args;
+			}
+
+			if ( false !== $fragment ) {
+				$src .= $fragment;
 			}
 		}
-		$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
 		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
