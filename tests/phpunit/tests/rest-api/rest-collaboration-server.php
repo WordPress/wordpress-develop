@@ -65,7 +65,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @param string $namespace REST namespace to use. Defaults to the primary namespace.
 	 * @return WP_REST_Response Response object.
 	 */
-	private function dispatch_sync( $rooms, $namespace = 'wp-collaboration/v1' ) {
+	private function dispatch_collaboration( $rooms, $namespace = 'wp-collaboration/v1' ) {
 		$request = new WP_REST_Request( 'POST', '/' . $namespace . '/updates' );
 		$request->set_body_params( array( 'rooms' => $rooms ) );
 		return rest_get_server()->dispatch( $request );
@@ -117,7 +117,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$this->assertSame( 200, $response->get_status() );
 	}
@@ -154,91 +154,91 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Permission tests.
 	 */
 
-	public function test_sync_requires_authentication() {
+	public function test_collaboration_requires_authentication() {
 		wp_set_current_user( 0 );
 
-		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 	}
 
-	public function test_sync_post_requires_edit_capability() {
+	public function test_collaboration_post_requires_edit_capability() {
 		wp_set_current_user( self::$subscriber_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
-	public function test_sync_post_allowed_with_edit_capability() {
+	public function test_collaboration_post_allowed_with_edit_capability() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$this->assertSame( 200, $response->get_status() );
 	}
 
-	public function test_sync_post_type_collection_requires_edit_posts_capability() {
+	public function test_collaboration_post_type_collection_requires_edit_posts_capability() {
 		wp_set_current_user( self::$subscriber_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'postType/post' ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
-	public function test_sync_post_type_collection_allowed_with_edit_posts_capability() {
+	public function test_collaboration_post_type_collection_allowed_with_edit_posts_capability() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'postType/post' ) ) );
 
 		$this->assertSame( 200, $response->get_status() );
 	}
 
-	public function test_sync_root_collection_allowed() {
+	public function test_collaboration_root_collection_allowed() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( 'root/site' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'root/site' ) ) );
 
 		$this->assertSame( 200, $response->get_status() );
 	}
 
-	public function test_sync_taxonomy_collection_allowed() {
+	public function test_collaboration_taxonomy_collection_allowed() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'taxonomy/category' ) ) );
 
 		$this->assertSame( 200, $response->get_status() );
 	}
 
-	public function test_sync_unknown_collection_kind_rejected() {
+	public function test_collaboration_unknown_collection_kind_rejected() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( 'unknown/entity' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'unknown/entity' ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
-	public function test_sync_non_posttype_entity_with_object_id_rejected() {
+	public function test_collaboration_non_posttype_entity_with_object_id_rejected() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( 'root/site:123' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'root/site:123' ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
-	public function test_sync_nonexistent_post_rejected() {
+	public function test_collaboration_nonexistent_post_rejected() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:999999' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'postType/post:999999' ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
-	public function test_sync_permission_checked_per_room() {
+	public function test_collaboration_permission_checked_per_room() {
 		wp_set_current_user( self::$editor_id );
 
 		// First room is allowed, second room is forbidden.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $this->get_post_room() ),
 				$this->build_room( 'unknown/entity' ),
@@ -252,10 +252,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Validation tests.
 	 */
 
-	public function test_sync_invalid_room_format_rejected() {
+	public function test_collaboration_invalid_room_format_rejected() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( 'invalid-room-format' ),
 			)
@@ -268,10 +268,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Response format tests.
 	 */
 
-	public function test_sync_response_structure() {
+	public function test_collaboration_response_structure() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$this->assertSame( 200, $response->get_status() );
 
@@ -288,11 +288,11 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertArrayHasKey( 'should_compact', $room_data );
 	}
 
-	public function test_sync_response_room_matches_request() {
+	public function test_collaboration_response_room_matches_request() {
 		wp_set_current_user( self::$editor_id );
 
 		$room     = $this->get_post_room();
-		$response = $this->dispatch_sync( array( $this->build_room( $room ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $room ) ) );
 
 		$data = $response->get_data();
 		$this->assertSame( $room, $data['rooms'][0]['room'] );
@@ -301,10 +301,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_end_cursor_is_non_negative_integer() {
+	public function test_collaboration_end_cursor_is_non_negative_integer() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$data = $response->get_data();
 		$this->assertIsInt( $data['rooms'][0]['end_cursor'] );
@@ -312,10 +312,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'] );
 	}
 
-	public function test_sync_empty_updates_returns_zero_total() {
+	public function test_collaboration_empty_updates_returns_zero_total() {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$data = $response->get_data();
 		$this->assertSame( 0, $data['rooms'][0]['total_updates'] );
@@ -326,7 +326,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Update tests.
 	 */
 
-	public function test_sync_update_delivered_to_other_client() {
+	public function test_collaboration_update_delivered_to_other_client() {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -336,14 +336,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends an update.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'client1' ), array( $update ) ),
 			)
 		);
 
 		// Client 2 requests updates from the beginning.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0 ),
 			)
@@ -358,7 +358,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertContains( 'update', $types );
 	}
 
-	public function test_sync_own_updates_not_returned() {
+	public function test_collaboration_own_updates_not_returned() {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -368,7 +368,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends an update.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'client1' ), array( $update ) ),
 			)
@@ -381,7 +381,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertEmpty( $updates );
 	}
 
-	public function test_sync_step1_update_stored_and_returned() {
+	public function test_collaboration_step1_update_stored_and_returned() {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -391,14 +391,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends sync_step1.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'client1' ), array( $update ) ),
 			)
 		);
 
 		// Client 2 should see the sync_step1 update.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0 ),
 			)
@@ -409,7 +409,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertContains( 'sync_step1', $types );
 	}
 
-	public function test_sync_step2_update_stored_and_returned() {
+	public function test_collaboration_step2_update_stored_and_returned() {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -419,14 +419,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends sync_step2.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'client1' ), array( $update ) ),
 			)
 		);
 
 		// Client 2 should see the sync_step2 update.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0 ),
 			)
@@ -437,7 +437,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertContains( 'sync_step2', $types );
 	}
 
-	public function test_sync_multiple_updates_in_single_request() {
+	public function test_collaboration_multiple_updates_in_single_request() {
 		wp_set_current_user( self::$editor_id );
 
 		$room    = $this->get_post_room();
@@ -453,14 +453,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends multiple updates.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'client1' ), $updates ),
 			)
 		);
 
 		// Client 2 should see both updates.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0 ),
 			)
@@ -473,7 +473,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( 2, $data['rooms'][0]['total_updates'] );
 	}
 
-	public function test_sync_update_data_preserved() {
+	public function test_collaboration_update_data_preserved() {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -483,14 +483,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends an update.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'client1' ), array( $update ) ),
 			)
 		);
 
 		// Client 2 should receive the exact same data.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0 ),
 			)
@@ -503,7 +503,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( 'update', $room_updates[0]['type'] );
 	}
 
-	public function test_sync_total_updates_increments() {
+	public function test_collaboration_total_updates_increments() {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -513,24 +513,24 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Send three updates from different clients.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
 			)
 		);
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ), array( $update ) ),
 			)
 		);
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ), array( $update ) ),
 			)
 		);
 
 		// Any client should see total_updates = 3.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 4, 0 ),
 			)
@@ -544,7 +544,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Compaction tests.
 	 */
 
-	public function test_sync_should_compact_is_false_below_threshold() {
+	public function test_collaboration_should_compact_is_false_below_threshold() {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -554,7 +554,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends a single update.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
 			)
@@ -564,7 +564,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertFalse( $data['rooms'][0]['should_compact'] );
 	}
 
-	public function test_sync_should_compact_is_true_above_threshold_for_compactor() {
+	public function test_collaboration_should_compact_is_true_above_threshold_for_compactor() {
 		wp_set_current_user( self::$editor_id );
 
 		$room    = $this->get_post_room();
@@ -577,14 +577,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		}
 
 		// Client 1 sends enough updates to exceed the compaction threshold.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $updates ),
 			)
 		);
 
 		// Client 1 polls again. It is the lowest (only) client, so it is the compactor.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ) ),
 			)
@@ -594,7 +594,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertTrue( $data['rooms'][0]['should_compact'] );
 	}
 
-	public function test_sync_should_compact_is_false_for_non_compactor() {
+	public function test_collaboration_should_compact_is_false_for_non_compactor() {
 		wp_set_current_user( self::$editor_id );
 
 		$room    = $this->get_post_room();
@@ -607,14 +607,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		}
 
 		// Client 1 sends enough updates to exceed the compaction threshold.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $updates ),
 			)
 		);
 
 		// Client 2 (higher ID than client 1) should not be the compactor.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
 			)
@@ -624,7 +624,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertFalse( $data['rooms'][0]['should_compact'] );
 	}
 
-	public function test_sync_stale_compaction_succeeds_when_newer_compaction_exists() {
+	public function test_collaboration_stale_compaction_succeeds_when_newer_compaction_exists() {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -634,7 +634,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends an update to seed the room.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
 			)
@@ -648,7 +648,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			'data' => 'Y29tcGFjdGVk',
 		);
 
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, $end_cursor, array( 'user' => 'c2' ), array( $compaction ) ),
 			)
@@ -661,7 +661,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			'type' => 'compaction',
 			'data' => 'c3RhbGU=',
 		);
-		$response         = $this->dispatch_sync(
+		$response         = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ), array( $stale_compaction ) ),
 			)
@@ -670,7 +670,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( 200, $response->get_status() );
 
 		// Verify the newer compaction is preserved and the stale one was not stored.
-		$response    = $this->dispatch_sync(
+		$response    = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 4, 0, array( 'user' => 'c4' ) ),
 			)
@@ -685,11 +685,11 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Awareness tests.
 	 */
 
-	public function test_sync_awareness_returned() {
+	public function test_collaboration_awareness_returned() {
 		wp_set_current_user( self::$editor_id );
 
 		$awareness = array( 'name' => 'Editor' );
-		$response  = $this->dispatch_sync(
+		$response  = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $this->get_post_room(), 1, 0, $awareness ),
 			)
@@ -700,20 +700,20 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( $awareness, $data['rooms'][0]['awareness'][1] );
 	}
 
-	public function test_sync_awareness_shows_multiple_clients() {
+	public function test_collaboration_awareness_shows_multiple_clients() {
 		wp_set_current_user( self::$editor_id );
 
 		$room = $this->get_post_room();
 
 		// Client 1 connects.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'name' => 'Client 1' ) ),
 			)
 		);
 
 		// Client 2 connects.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0, array( 'name' => 'Client 2' ) ),
 			)
@@ -728,20 +728,20 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( array( 'name' => 'Client 2' ), $awareness[2] );
 	}
 
-	public function test_sync_awareness_updates_existing_client() {
+	public function test_collaboration_awareness_updates_existing_client() {
 		wp_set_current_user( self::$editor_id );
 
 		$room = $this->get_post_room();
 
 		// Client 1 connects with initial awareness.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'cursor' => 'start' ) ),
 			)
 		);
 
 		// Client 1 updates its awareness.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'cursor' => 'updated' ) ),
 			)
@@ -755,13 +755,13 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( array( 'cursor' => 'updated' ), $awareness[1] );
 	}
 
-	public function test_sync_awareness_client_id_cannot_be_used_by_another_user() {
+	public function test_collaboration_awareness_client_id_cannot_be_used_by_another_user() {
 		wp_set_current_user( self::$editor_id );
 
 		$room = $this->get_post_room();
 
 		// Editor establishes awareness with client_id 1.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'name' => 'Editor' ) ),
 			)
@@ -771,7 +771,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor_id_2 );
 
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'name' => 'Impostor' ) ),
 			)
@@ -784,13 +784,13 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Multiple rooms tests.
 	 */
 
-	public function test_sync_multiple_rooms_in_single_request() {
+	public function test_collaboration_multiple_rooms_in_single_request() {
 		wp_set_current_user( self::$editor_id );
 
 		$room1 = $this->get_post_room();
 		$room2 = 'taxonomy/category';
 
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room1 ),
 				$this->build_room( $room2 ),
@@ -805,7 +805,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( $room2, $data['rooms'][1]['room'] );
 	}
 
-	public function test_sync_rooms_are_isolated() {
+	public function test_collaboration_rooms_are_isolated() {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id_2 = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
@@ -818,14 +818,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends an update to room 1 only.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room1, 1, 0, array( 'user' => 'client1' ), array( $update ) ),
 			)
 		);
 
 		// Client 2 queries both rooms.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room1, 2, 0 ),
 				$this->build_room( $room2, 2, 0 ),
@@ -848,10 +848,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_empty_room_cursor_is_zero(): void {
+	public function test_collaboration_empty_room_cursor_is_zero(): void {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync( array( $this->build_room( $this->get_post_room() ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$data = $response->get_data();
 		$this->assertSame( 0, $data['rooms'][0]['end_cursor'] );
@@ -860,7 +860,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_cursor_advances_monotonically(): void {
+	public function test_collaboration_cursor_advances_monotonically(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -870,7 +870,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// First request.
-		$response1 = $this->dispatch_sync(
+		$response1 = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
 			)
@@ -878,7 +878,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$cursor1   = $response1->get_data()['rooms'][0]['end_cursor'];
 
 		// Second request with more updates.
-		$response2 = $this->dispatch_sync(
+		$response2 = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, $cursor1, array( 'user' => 'c2' ), array( $update ) ),
 			)
@@ -891,7 +891,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_cursor_prevents_re_delivery(): void {
+	public function test_collaboration_cursor_prevents_re_delivery(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room   = $this->get_post_room();
@@ -901,14 +901,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Client 1 sends an update.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
 			)
 		);
 
 		// Client 2 fetches updates and gets a cursor.
-		$response1 = $this->dispatch_sync(
+		$response1 = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
 			)
@@ -919,7 +919,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertNotEmpty( $data1['rooms'][0]['updates'], 'First poll should return updates.' );
 
 		// Client 2 polls again using the cursor from the first poll, with no new updates.
-		$response2 = $this->dispatch_sync(
+		$response2 = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, $cursor1, array( 'user' => 'c2' ) ),
 			)
@@ -936,7 +936,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_operations_do_not_affect_posts_last_changed(): void {
+	public function test_collaboration_operations_do_not_affect_posts_last_changed(): void {
 		wp_set_current_user( self::$editor_id );
 
 		// Prime the posts last changed cache.
@@ -950,12 +950,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Perform several collaboration operations.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
 			)
 		);
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ), array( $update ) ),
 			)
@@ -973,7 +973,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_compaction_does_not_lose_concurrent_updates(): void {
+	public function test_collaboration_compaction_does_not_lose_concurrent_updates(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room = $this->get_post_room();
@@ -987,7 +987,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			);
 		}
 
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $initial_updates ),
 			)
@@ -1001,7 +1001,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			'type' => 'update',
 			'data' => base64_encode( 'concurrent' ),
 		);
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ), array( $concurrent_update ) ),
 			)
@@ -1012,14 +1012,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			'type' => 'compaction',
 			'data' => base64_encode( 'compacted-state' ),
 		);
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, $cursor, array( 'user' => 'c1' ), array( $compaction_update ) ),
 			)
 		);
 
 		// Client 3 requests all updates from the beginning.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ) ),
 			)
@@ -1039,7 +1039,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_compaction_reduces_total_updates(): void {
+	public function test_collaboration_compaction_reduces_total_updates(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room    = $this->get_post_room();
@@ -1052,7 +1052,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		}
 
 		// Client 1 sends 10 updates.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $updates ),
 			)
@@ -1066,14 +1066,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			'type' => 'compaction',
 			'data' => base64_encode( 'compacted' ),
 		);
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, $cursor, array( 'user' => 'c1' ), array( $compaction ) ),
 			)
 		);
 
 		// Client 2 checks the state.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0, array( 'user' => 'c2' ) ),
 			)
@@ -1201,7 +1201,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_sync_routes_not_registered_when_db_version_is_old(): void {
+	public function test_collaboration_routes_not_registered_when_db_version_is_old(): void {
 		update_option( 'db_version', 61697 );
 
 		// Reset the global REST server so rest_get_server() builds a fresh instance.
@@ -1234,7 +1234,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_deprecated_sync_route_returns_deprecation_header(): void {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array( $this->build_room( $this->get_post_room() ) ),
 			'wp-sync/v1'
 		);
@@ -1262,7 +1262,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Send update via deprecated route.
-		$this->dispatch_sync(
+		$this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
 			),
@@ -1270,7 +1270,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Retrieve via primary route.
-		$response = $this->dispatch_sync(
+		$response = $this->dispatch_collaboration(
 			array(
 				$this->build_room( $room, 2, 0 ),
 			)
