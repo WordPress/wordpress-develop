@@ -242,8 +242,8 @@ class WP_HTTP_Polling_Collaboration_Server {
 				return new WP_Error(
 					'rest_cannot_edit',
 					sprintf(
-						/* translators: %s: The room name encodes the current entity being synced. */
-						__( 'You do not have permission to sync this entity: %s.' ),
+						/* translators: %s: The room name identifying the collaborative editing session. */
+						__( 'You do not have permission to collaborate on this entity: %s.' ),
 						esc_html( $room )
 					),
 					array( 'status' => rest_authorization_required_code() )
@@ -368,7 +368,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 			return current_user_can( $post_type_object->cap->edit_posts );
 		}
 
-		// Collection syncing does not exchange entity data. It only signals if
+		// Collection collaboration does not exchange entity data. It only signals if
 		// another user has updated an entity in the collection. Therefore, we only
 		// compare against an allow list of collection types.
 		$allowed_collection_entity_kinds = array(
@@ -451,7 +451,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 				/*
 				 * Compaction replaces updates the client has already seen. Only remove
 				 * updates with markers before the client's cursor to preserve updates
-				 * that arrived since the client's last sync.
+				 * that arrived since the client's last poll.
 				 *
 				 * Check for a newer compaction update first. If one exists, skip this
 				 * compaction to avoid overwriting it.

@@ -949,7 +949,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			'data' => 'dGVzdA==',
 		);
 
-		// Perform several sync operations.
+		// Perform several collaboration operations.
 		$this->dispatch_sync(
 			array(
 				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
@@ -963,7 +963,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$last_changed_after = wp_cache_get_last_changed( 'posts' );
 
-		$this->assertSame( $last_changed_before, $last_changed_after, 'Sync operations should not invalidate the posts last changed cache.' );
+		$this->assertSame( $last_changed_before, $last_changed_after, 'Collaboration operations should not invalidate the posts last changed cache.' );
 	}
 
 	/*
