@@ -171,7 +171,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 		// Deprecated alias kept for the Gutenberg plugin, which still uses the
 		// wp-sync/v1 namespace during its transition to wp-collaboration/v1.
 		register_rest_route(
-			self::DEPRECATED_REST_NAMESPACE,
+			'wp-sync/v1',
 			'/updates',
 			array(
 				'methods'             => array( WP_REST_Server::CREATABLE ),
