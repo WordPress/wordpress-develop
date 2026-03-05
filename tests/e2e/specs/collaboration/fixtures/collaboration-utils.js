@@ -85,36 +85,11 @@ export default class CollaborationUtils {
 	/**
 	 * Set the real-time collaboration WordPress setting.
 	 *
-	 * Uses the form-based approach because this setting is registered
-	 * on admin_init in the "writing" group and is not exposed via
-	 * /wp/v2/settings.
-	 *
 	 * @param {boolean} enabled Whether to enable or disable collaboration.
 	 */
 	async setCollaboration( enabled ) {
-		const response = await this.requestUtils.request.get(
-			'/wp-admin/options-writing.php'
-		);
-		const html = await response.text();
-		const nonce = html.match( /name="_wpnonce" value="([^"]+)"/ )[ 1 ];
-
-		const formData = {
-			option_page: 'writing',
-			action: 'update',
-			_wpnonce: nonce,
-			_wp_http_referer: '/wp-admin/options-writing.php',
-			submit: 'Save Changes',
-			default_category: 1,
-			default_post_format: 0,
-		};
-
-		if ( enabled ) {
-			formData.wp_enable_real_time_collaboration = 1;
-		}
-
-		await this.requestUtils.request.post( '/wp-admin/options.php', {
-			form: formData,
-			failOnStatusCode: true,
+		await this.requestUtils.updateSiteSettings( {
+			wp_enable_real_time_collaboration: enabled,
 		} );
 	}
 

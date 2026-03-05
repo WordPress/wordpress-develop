@@ -32,8 +32,16 @@ export const test = base.extend( {
 			page,
 		} );
 		await utils.setCollaboration( true );
-		await requestUtils.createUser( SECOND_USER );
-		await requestUtils.createUser( THIRD_USER );
+		await requestUtils.createUser( SECOND_USER ).catch( ( error ) => {
+			if ( error?.code !== 'existing_user_login' ) {
+				throw error;
+			}
+		} );
+		await requestUtils.createUser( THIRD_USER ).catch( ( error ) => {
+			if ( error?.code !== 'existing_user_login' ) {
+				throw error;
+			}
+		} );
 		await use( utils );
 		await utils.teardown();
 	},
