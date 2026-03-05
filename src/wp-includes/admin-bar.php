@@ -1215,14 +1215,20 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
-	if ( ! is_admin() || ! current_user_can( 'edit_posts' ) ) {
+	if ( ! is_admin() || ! wp_script_is( 'wp-core-commands', 'enqueued' ) ) {
 		return;
 	}
 
-	$title = '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' .
+	$is_apple_os    = (bool) preg_match( '/Macintosh|Mac OS X|Mac_PowerPC/i', $_SERVER['HTTP_USER_AGENT'] ?? '' );
+	$shortcut_label = $is_apple_os
+		? _x( '⌘K', 'keyboard shortcut to open the command palette' )
+		: _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' );
+	$title          = sprintf(
+		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
+		$shortcut_label,
 		/* translators: Hidden accessibility text. */
-		__( 'Open command palette' ) .
-	'</span>';
+		__( 'Open command palette' ),
+	);
 
 	$wp_admin_bar->add_node(
 		array(
