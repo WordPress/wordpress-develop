@@ -115,4 +115,160 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 		$this->assertNull( $mock['authentication']['credentials_url'] );
 		$this->assertSame( 'connectors_ai_mock_connectors_test_api_key', $mock['authentication']['setting_name'] );
 	}
+
+	/**
+	 * @ticket 64730
+	 */
+	public function test_filter_can_add_new_connector() {
+		add_filter(
+			'wp_connectors_settings',
+			static function ( $connectors ) {
+				$connectors['my_email_service'] = array(
+					'name'           => 'My Email Service',
+					'description'    => 'Send transactional emails.',
+					'type'           => 'email_service',
+					'authentication' => array( 'method' => 'none' ),
+				);
+				return $connectors;
+			}
+		);
+
+		$connectors = _wp_connectors_get_connector_settings();
+
+		$this->assertArrayHasKey( 'my_email_service', $connectors );
+		$this->assertSame( 'My Email Service', $connectors['my_email_service']['name'] );
+		$this->assertSame( 'email_service', $connectors['my_email_service']['type'] );
+		$this->assertSame( 'none', $connectors['my_email_service']['authentication']['method'] );
+
+		remove_all_filters( 'wp_connectors_settings' );
+	}
+
+	/**
+	 * @ticket 64730
+	 */
+	public function test_filter_can_modify_existing_connector() {
+		add_filter(
+			'wp_connectors_settings',
+			static function ( $connectors ) {
+				$connectors['google']['description'] = 'Custom description for Google.';
+				return $connectors;
+			}
+		);
+
+		$connectors = _wp_connectors_get_connector_settings();
+
+		$this->assertSame( 'Custom description for Google.', $connectors['google']['description'] );
+
+		remove_all_filters( 'wp_connectors_settings' );
+	}
+
+	/**
+	 * @ticket 64730
+	 */
+	public function test_filter_can_remove_connector() {
+		add_filter(
+			'wp_connectors_settings',
+			static function ( $connectors ) {
+				unset( $connectors['openai'] );
+				return $connectors;
+			}
+		);
+
+		$connectors = _wp_connectors_get_connector_settings();
+
+		$this->assertArrayNotHasKey( 'openai', $connectors );
+		// Other connectors remain.
+		$this->assertArrayHasKey( 'google', $connectors );
+		$this->assertArrayHasKey( 'anthropic', $connectors );
+
+		remove_all_filters( 'wp_connectors_settings' );
+	}
+
+	/**
+	 * @ticket 64730
+	 */
+	public function test_filter_added_api_key_connector_gets_setting_name() {
+		add_filter(
+			'wp_connectors_settings',
+			static function ( $connectors ) {
+				$connectors['custom_ai'] = array(
+					'name'           => 'Custom AI',
+					'description'    => 'A custom AI provider.',
+					'type'           => 'ai_provider',
+					'authentication' => array(
+						'method'          => 'api_key',
+						'credentials_url' => 'https://example.com/keys',
+					),
+				);
+				return $connectors;
+			}
+		);
+
+		$connectors = _wp_connectors_get_connector_settings();
+
+		$this->assertArrayHasKey( 'custom_ai', $connectors );
+		$this->assertSame(
+			'connectors_ai_custom_ai_api_key',
+			$connectors['custom_ai']['authentication']['setting_name'],
+			'Connectors added via the filter with api_key auth should receive a setting_name automatically.'
+		);
+
+		remove_all_filters( 'wp_connectors_settings' );
+	}
+
+	/**
+	 * @ticket 64730
+	 */
+	public function test_filter_added_non_ai_api_key_connector_does_not_get_setting_name() {
+		add_filter(
+			'wp_connectors_settings',
+			static function ( $connectors ) {
+				$connectors['my_crm'] = array(
+					'name'           => 'My CRM',
+					'description'    => 'CRM integration.',
+					'type'           => 'crm',
+					'authentication' => array(
+						'method'          => 'api_key',
+						'credentials_url' => 'https://example.com/crm-keys',
+					),
+				);
+				return $connectors;
+			}
+		);
+
+		$connectors = _wp_connectors_get_connector_settings();
+
+		$this->assertArrayHasKey( 'my_crm', $connectors );
+		$this->assertArrayNotHasKey(
+			'setting_name',
+			$connectors['my_crm']['authentication'],
+			'Non-AI connectors should not receive an auto-generated setting_name.'
+		);
+
+		remove_all_filters( 'wp_connectors_settings' );
+	}
+
+	/**
+	 * @ticket 64730
+	 */
+	public function test_filter_receives_all_default_connectors() {
+		$received = null;
+
+		add_filter(
+			'wp_connectors_settings',
+			static function ( $connectors ) use ( &$received ) {
+				$received = $connectors;
+				return $connectors;
+			}
+		);
+
+		_wp_connectors_get_connector_settings();
+
+		$this->assertArrayHasKey( 'google', $received );
+		$this->assertArrayHasKey( 'openai', $received );
+		$this->assertArrayHasKey( 'anthropic', $received );
+		$this->assertArrayHasKey( 'mock_connectors_test', $received );
+
+		remove_all_filters( 'wp_connectors_settings' );
+	}
 }

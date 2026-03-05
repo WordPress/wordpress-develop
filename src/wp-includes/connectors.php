@@ -202,9 +202,26 @@ function _wp_connectors_get_connector_settings(): array {
 
 	ksort( $connectors );
 
-	// Add setting_name for connectors that use API key authentication.
+	/**
+	 * Filters the registered connector settings.
+	 *
+	 * Allows plugins to add, modify, or remove connectors displayed
+	 * on the Connectors screen. Runs after built-in and AI Client
+	 * registry providers are collected, but before `setting_name` is
+	 * generated for API-key connectors.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array $connectors Connector settings keyed by connector ID.
+	 *                          Each entry is an array with keys: name, description,
+	 *                          type, authentication (with method, and optionally
+	 *                          credentials_url), and optionally plugin.
+	 */
+	$connectors = apply_filters( 'wp_connectors_settings', $connectors );
+
+	// Add setting_name for AI provider connectors that use API key authentication.
 	foreach ( $connectors as $connector_id => $connector ) {
-		if ( 'api_key' === $connector['authentication']['method'] ) {
+		if ( 'ai_provider' === $connector['type'] && 'api_key' === $connector['authentication']['method'] ) {
 			$connectors[ $connector_id ]['authentication']['setting_name'] = "connectors_ai_{$connector_id}_api_key";
 		}
 	}
