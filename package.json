@@ -132,6 +132,7 @@
 		"env:logs": "node ./tools/local-env/scripts/docker.js logs",
 		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
 		"test:performance": "wp-scripts test-playwright --config tests/performance/playwright.config.js",
+		"test:performance:sync": "npm run env:cli -- eval-file tools/local-env/scripts/sync-perf/run.php",
 		"test:performance:sync:prove": "npm run env:cli -- eval-file tools/local-env/scripts/sync-perf/prove-data-loss.php",
 		"test:php": "node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit",
 		"test:coverage": "npm run test:php -- --coverage-html ./coverage/html/ --coverage-php ./coverage/php/report.php --coverage-text=./coverage/text/report.txt",
