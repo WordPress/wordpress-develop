@@ -22,18 +22,6 @@ class WP_HTTP_Polling_Collaboration_Server {
 	const REST_NAMESPACE = 'wp-collaboration/v1';
 
 	/**
-	 * Deprecated REST API namespace.
-	 *
-	 * Retained for backward compatibility with the Gutenberg plugin, which
-	 * still registers requests under the `wp-sync/v1` namespace during its
-	 * transition to `wp-collaboration/v1`.
-	 *
-	 * @since 7.0.0
-	 * @var string
-	 */
-	const DEPRECATED_REST_NAMESPACE = 'wp-sync/v1';
-
-	/**
 	 * Awareness timeout in seconds. Clients that haven't updated
 	 * their awareness state within this time are considered disconnected.
 	 *
