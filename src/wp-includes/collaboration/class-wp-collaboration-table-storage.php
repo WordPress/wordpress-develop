@@ -82,7 +82,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT client_id, update_value FROM {$wpdb->awareness} WHERE room = %s AND created_at >= %s",
+				"SELECT client_id, wp_user_id, update_value FROM {$wpdb->awareness} WHERE room = %s AND created_at >= %s",
 				$room,
 				$cutoff
 			)
@@ -98,8 +98,8 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 			if ( json_last_error() === JSON_ERROR_NONE ) {
 				$entries[] = array(
 					'client_id'  => (int) $row->client_id,
-					'state'      => $decoded['state'],
-					'wp_user_id' => $decoded['wp_user_id'],
+					'state'      => $decoded,
+					'wp_user_id' => (int) $row->wp_user_id,
 				);
 			}
 		}
@@ -250,20 +250,16 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	public function set_awareness_state( string $room, int $client_id, array $state, int $wp_user_id ): bool {
 		global $wpdb;
 
-		$update_value = wp_json_encode(
-			array(
-				'state'      => $state,
-				'wp_user_id' => $wp_user_id,
-			)
-		);
+		$update_value = wp_json_encode( $state );
 
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"INSERT INTO {$wpdb->awareness} (room, client_id, update_value, created_at)
-				VALUES (%s, %d, %s, %s)
-				ON DUPLICATE KEY UPDATE update_value = VALUES(update_value), created_at = VALUES(created_at)",
+				"INSERT INTO {$wpdb->awareness} (room, client_id, wp_user_id, update_value, created_at)
+				VALUES (%s, %d, %d, %s, %s)
+				ON DUPLICATE KEY UPDATE wp_user_id = VALUES(wp_user_id), update_value = VALUES(update_value), created_at = VALUES(created_at)",
 				$room,
 				$client_id,
+				$wp_user_id,
 				$update_value,
 				current_time( 'mysql', true )
 			)

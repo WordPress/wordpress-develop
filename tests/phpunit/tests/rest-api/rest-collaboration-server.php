@@ -1440,15 +1440,11 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			array(
 				'room'         => $room,
 				'client_id'    => 99,
-				'update_value' => wp_json_encode(
-					array(
-						'state'      => array( 'cursor' => 'stale' ),
-						'wp_user_id' => self::$editor_id,
-					)
-				),
+				'wp_user_id'   => self::$editor_id,
+				'update_value' => wp_json_encode( array( 'cursor' => 'stale' ) ),
 				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
-			array( '%s', '%d', '%s', '%s' )
+			array( '%s', '%d', '%d', '%s', '%s' )
 		);
 
 		// Client 1 polls — the expired row should not appear in results.
@@ -1499,15 +1495,11 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			array(
 				'room'         => $this->get_post_room(),
 				'client_id'    => 42,
-				'update_value' => wp_json_encode(
-					array(
-						'state'      => array( 'cursor' => 'old' ),
-						'wp_user_id' => self::$editor_id,
-					)
-				),
+				'wp_user_id'   => self::$editor_id,
+				'update_value' => wp_json_encode( array( 'cursor' => 'old' ) ),
 				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
-			array( '%s', '%d', '%s', '%s' )
+			array( '%s', '%d', '%d', '%s', '%s' )
 		);
 
 		// Insert a recent sync update row (should survive).
