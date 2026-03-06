@@ -160,8 +160,12 @@ function _wp_connectors_get_connector_settings(): array {
 	foreach ( $registry->getRegisteredProviderIds() as $connector_id ) {
 		$provider_class_name = $registry->getProviderClassName( $connector_id );
 		$provider_metadata   = $provider_class_name::metadata();
+		$authentication_method = null;
 
-		$auth_method = $provider_metadata->getAuthenticationMethod();
+		if ( method_exists( $provider_metadata, 'getAuthenticationMethod' ) ) {
+		    $authentication_method = $provider_metadata->getAuthenticationMethod();
+		}
+		
 		$is_api_key  = null !== $auth_method && $auth_method->isApiKey();
 
 		if ( $is_api_key ) {
