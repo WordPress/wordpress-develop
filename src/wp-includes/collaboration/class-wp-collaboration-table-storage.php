@@ -51,10 +51,11 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 			$wpdb->collaboration,
 			array(
 				'room'         => $room,
+				'event_type'   => 'sync_update',
 				'update_value' => wp_json_encode( $update ),
 				'created_at'   => current_time( 'mysql', true ),
 			),
-			array( '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s' )
 		);
 
 		return false !== $result;
@@ -63,22 +64,57 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	/**
 	 * Gets awareness state for a given room.
 	 *
-	 * Awareness is ephemeral and stored as a transient rather than
-	 * in the collaboration table.
+	 * Retrieves per-client awareness rows from the collaboration table,
+	 * cleaning up expired entries inline.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param string $room Room identifier.
-	 * @return array<int, mixed> Awareness state.
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $room    Room identifier.
+	 * @param int    $timeout Seconds before an awareness entry is considered expired.
+	 * @return array<int, array{client_id: int, state: mixed, wp_user_id: int}> Awareness entries.
 	 */
-	public function get_awareness_state( string $room ): array {
-		$awareness = get_transient( $this->get_awareness_transient_key( $room ) );
+	public function get_awareness_state( string $room, int $timeout = 30 ): array {
+		global $wpdb;
 
-		if ( ! is_array( $awareness ) ) {
+		$cutoff = gmdate( 'Y-m-d H:i:s', time() - $timeout );
+
+		// Clean up expired awareness rows for this room.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND created_at < %s",
+				$room,
+				$cutoff
+			)
+		);
+
+		// Fetch active awareness rows.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT client_id, update_value FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND created_at >= %s",
+				$room,
+				$cutoff
+			)
+		);
+
+		if ( ! is_array( $rows ) ) {
 			return array();
 		}
 
-		return array_values( $awareness );
+		$entries = array();
+		foreach ( $rows as $row ) {
+			$decoded = json_decode( $row->update_value, true );
+			if ( json_last_error() === JSON_ERROR_NONE ) {
+				$entries[] = array(
+					'client_id'  => (int) $row->client_id,
+					'state'      => $decoded['state'],
+					'wp_user_id' => $decoded['wp_user_id'],
+				);
+			}
+		}
+
+		return $entries;
 	}
 
 	/**
@@ -126,10 +162,10 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	public function get_updates_after_cursor( string $room, int $cursor ): array {
 		global $wpdb;
 
-		// Snapshot the current max ID for this room to define a stable upper bound.
+		// Snapshot the current max ID for sync_update rows in this room.
 		$max_id = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->collaboration} WHERE room = %s",
+				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'sync_update'",
 				$room
 			)
 		);
@@ -141,20 +177,19 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 			return array();
 		}
 
-		// Count total updates for this room (used by compaction threshold logic).
-		// Bounded by max_id to stay consistent with the snapshot window above.
+		// Count total sync_update rows for this room (used by compaction threshold logic).
 		$this->room_update_counts[ $room ] = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND id <= %d",
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'sync_update' AND id <= %d",
 				$room,
 				$max_id
 			)
 		);
 
-		// Fetch updates after the cursor up to the snapshot boundary.
+		// Fetch sync updates after the cursor up to the snapshot boundary.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT update_value FROM {$wpdb->collaboration} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
+				"SELECT update_value FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'sync_update' AND id > %d AND id <= %d ORDER BY id ASC",
 				$room,
 				$cursor,
 				$max_id
@@ -195,7 +230,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND id < %d",
+				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'sync_update' AND id < %d",
 				$room,
 				$cursor
 			)
@@ -205,35 +240,45 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	}
 
 	/**
-	 * Returns the transient key used to store awareness state for a room.
+	 * Sets awareness state for a given client in a room.
 	 *
-	 * The room name is hashed with md5 to guarantee the key stays within
-	 * the 172-character limit imposed by the wp_options option_name column
-	 * (varchar 191 minus the 19-character `_transient_timeout_` prefix).
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param string $room Room identifier.
-	 * @return string Transient key.
-	 */
-	private function get_awareness_transient_key( string $room ): string {
-		return 'collaboration_awareness_' . md5( $room );
-	}
-
-	/**
-	 * Sets awareness state for a given room.
-	 *
-	 * Awareness is ephemeral and stored as a transient with a short timeout.
+	 * Uses INSERT … ON DUPLICATE KEY UPDATE so the row is never absent —
+	 * it is either inserted or updated atomically. Each client writes only
+	 * its own row, eliminating the race condition inherent in shared-state
+	 * approaches.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param string            $room      Room identifier.
-	 * @param array<int, mixed> $awareness Serializable awareness state.
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $room       Room identifier.
+	 * @param int    $client_id  Client identifier.
+	 * @param array  $state      Serializable awareness state for this client.
+	 * @param int    $wp_user_id WordPress user ID that owns this client.
 	 * @return bool True on success, false on failure.
 	 */
-	public function set_awareness_state( string $room, array $awareness ): bool {
-		// Awareness is high-frequency, short-lived data (cursor positions, selections)
-		// that doesn't need cursor-based history. Transients avoid row churn in the table.
-		return set_transient( $this->get_awareness_transient_key( $room ), $awareness, MINUTE_IN_SECONDS );
+	public function set_awareness_state( string $room, int $client_id, array $state, int $wp_user_id ): bool {
+		global $wpdb;
+
+		$update_value = wp_json_encode(
+			array(
+				'state'      => $state,
+				'wp_user_id' => $wp_user_id,
+			)
+		);
+
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->collaboration} (room, event_type, client_id, update_value, created_at)
+				VALUES (%s, 'awareness', %d, %s, %s)
+				ON DUPLICATE KEY UPDATE update_value = VALUES(update_value), created_at = VALUES(created_at)",
+				$room,
+				$client_id,
+				$update_value,
+				current_time( 'mysql', true )
+			)
+		);
+
+		return false !== $result;
 	}
 }

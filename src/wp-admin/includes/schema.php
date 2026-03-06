@@ -190,11 +190,14 @@ CREATE TABLE $wpdb->posts (
 CREATE TABLE $wpdb->collaboration (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	room varchar(255) NOT NULL,
+	event_type varchar(20) NOT NULL default 'sync_update',
+	client_id bigint(20) unsigned NOT NULL default 0,
 	update_value longtext NOT NULL,
 	created_at datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
 	KEY room (room,id),
-	KEY created_at (created_at)
+	KEY created_at (created_at),
+	UNIQUE KEY awareness (room,event_type,client_id)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.
