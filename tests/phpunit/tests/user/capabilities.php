@@ -552,6 +552,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$expected['delete_post_meta'],
 			$expected['add_post_meta'],
 			$expected['edit_comment'],
+			$expected['delete_comment'],
 			$expected['edit_comment_meta'],
 			$expected['delete_comment_meta'],
 			$expected['add_comment_meta'],
@@ -2592,5 +2593,298 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $expected_caps, $sally_caps, 'Sally role should include the three expected capabilities.' );
 		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
 		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
+	}
+
+	/**
+	 * Tests that a note author can edit their own note.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_note_author_can_edit_own_note() {
+		$contributor = self::$users['contributor'];
+		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $contributor->ID,
+			)
+		);
+
+		$this->assertTrue( user_can( $contributor->ID, 'edit_comment', $note_id ) );
+	}
+
+	/**
+	 * Tests that a note author can delete their own note.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_note_author_can_delete_own_note() {
+		$contributor = self::$users['contributor'];
+		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $contributor->ID,
+			)
+		);
+
+		$this->assertTrue( user_can( $contributor->ID, 'delete_comment', $note_id ) );
+	}
+
+	/**
+	 * Tests that a user cannot edit another user's note even if they can edit the post.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_non_author_cannot_edit_others_note() {
+		$contributor = self::$users['contributor'];
+		$admin       = self::$users['administrator'];
+		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $admin->ID,
+			)
+		);
+
+		$this->assertFalse(
+			user_can( $contributor->ID, 'edit_comment', $note_id ),
+			'A contributor should not be able to edit another user\'s note on their own post.'
+		);
+	}
+
+	/**
+	 * Tests that a user cannot delete another user's note even if they can edit the post.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_non_author_cannot_delete_others_note() {
+		$contributor = self::$users['contributor'];
+		$admin       = self::$users['administrator'];
+		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $admin->ID,
+			)
+		);
+
+		$this->assertFalse(
+			user_can( $contributor->ID, 'delete_comment', $note_id ),
+			'A contributor should not be able to delete another user\'s note on their own post.'
+		);
+	}
+
+	/**
+	 * Tests that a user with moderate_comments can edit another user's note.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_moderator_can_edit_others_note() {
+		$editor      = self::$users['editor'];
+		$contributor = self::$users['contributor'];
+		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $contributor->ID,
+			)
+		);
+
+		$this->assertTrue(
+			user_can( $editor->ID, 'edit_comment', $note_id ),
+			'An editor should be able to edit another user\'s note.'
+		);
+	}
+
+	/**
+	 * Tests that a user with moderate_comments can delete another user's note.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_moderator_can_delete_others_note() {
+		$editor      = self::$users['editor'];
+		$contributor = self::$users['contributor'];
+		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $contributor->ID,
+			)
+		);
+
+		$this->assertTrue(
+			user_can( $editor->ID, 'delete_comment', $note_id ),
+			'An editor should be able to delete another user\'s note.'
+		);
+	}
+
+	/**
+	 * Tests that an author without moderate_comments cannot edit another user's note.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_author_cannot_edit_others_note() {
+		$author = self::$users['author'];
+		$editor = self::$users['editor'];
+		$post_id = self::factory()->post->create( array( 'post_author' => $author->ID ) );
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $editor->ID,
+			)
+		);
+
+		$this->assertFalse(
+			user_can( $author->ID, 'edit_comment', $note_id ),
+			'An author should not be able to edit another user\'s note on their own post.'
+		);
+	}
+
+	/**
+	 * Tests that a subscriber cannot edit their own note.
+	 *
+	 * Subscribers do not have the edit_posts capability required.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_subscriber_cannot_edit_own_note() {
+		$subscriber = self::$users['subscriber'];
+		$post_id    = self::factory()->post->create();
+		$note_id    = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $subscriber->ID,
+			)
+		);
+
+		$this->assertFalse(
+			user_can( $subscriber->ID, 'edit_comment', $note_id ),
+			'A subscriber should not be able to edit a note because they lack edit_posts.'
+		);
+	}
+
+	/**
+	 * Tests that editing a regular comment still maps to edit_post capability.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_edit_regular_comment_unchanged() {
+		$contributor = self::$users['contributor'];
+		$admin       = self::$users['administrator'];
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_author' => $contributor->ID,
+				'post_status' => 'draft',
+			)
+		);
+		$comment_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'comment',
+				'user_id'         => $admin->ID,
+			)
+		);
+
+		$this->assertTrue(
+			user_can( $contributor->ID, 'edit_comment', $comment_id ),
+			'A contributor should be able to edit a regular comment on their own draft post.'
+		);
+	}
+
+	/**
+	 * Tests that delete_comment maps correctly for regular comments.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_delete_regular_comment_maps_to_edit_post() {
+		$contributor = self::$users['contributor'];
+		$admin       = self::$users['administrator'];
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_author' => $contributor->ID,
+				'post_status' => 'draft',
+			)
+		);
+		$comment_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'comment',
+				'user_id'         => $admin->ID,
+			)
+		);
+
+		$this->assertTrue(
+			user_can( $contributor->ID, 'delete_comment', $comment_id ),
+			'A contributor should be able to delete a regular comment on their own draft post.'
+		);
+	}
+
+	/**
+	 * Tests that edit_comment returns do_not_allow for a nonexistent comment.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_edit_comment_nonexistent_comment() {
+		$admin = self::$users['administrator'];
+
+		$this->assertFalse( user_can( $admin->ID, 'edit_comment', PHP_INT_MAX ) );
+	}
+
+	/**
+	 * Tests that delete_comment returns do_not_allow for a nonexistent comment.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_delete_comment_nonexistent_comment() {
+		$admin = self::$users['administrator'];
+
+		$this->assertFalse( user_can( $admin->ID, 'delete_comment', PHP_INT_MAX ) );
+	}
+
+	/**
+	 * Tests that edit_comment without an argument triggers _doing_it_wrong.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 * @expectedIncorrectUsage map_meta_cap
+	 */
+	public function test_edit_comment_without_argument() {
+		$admin = self::$users['administrator'];
+
+		$this->assertFalse( user_can( $admin->ID, 'edit_comment' ) );
+	}
+
+	/**
+	 * Tests that delete_comment without an argument triggers _doing_it_wrong.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 * @expectedIncorrectUsage map_meta_cap
+	 */
+	public function test_delete_comment_without_argument() {
+		$admin = self::$users['administrator'];
+
+		$this->assertFalse( user_can( $admin->ID, 'delete_comment' ) );
 	}
 }
