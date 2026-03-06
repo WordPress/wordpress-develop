@@ -202,6 +202,7 @@ function wp_get_plugin_file_editable_extensions( $plugin ) {
 		'inc',
 		'include',
 		'js',
+		'mjs',
 		'json',
 		'jsx',
 		'less',
@@ -261,6 +262,7 @@ function wp_get_theme_file_editable_extensions( $theme ) {
 		'inc',
 		'include',
 		'js',
+		'mjs',
 		'json',
 		'jsx',
 		'less',
@@ -2185,7 +2187,7 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
 		$abstraction_file = apply_filters( 'filesystem_method_file', ABSPATH . 'wp-admin/includes/class-wp-filesystem-' . $method . '.php', $method );
 
 		if ( ! file_exists( $abstraction_file ) ) {
-			return;
+			return null;
 		}
 
 		require_once $abstraction_file;
