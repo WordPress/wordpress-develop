@@ -64,8 +64,9 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	/**
 	 * Gets awareness state for a given room.
 	 *
-	 * Retrieves per-client awareness rows from the collaboration table,
-	 * cleaning up expired entries inline.
+	 * Retrieves per-client awareness rows from the collaboration table.
+	 * Expired rows are filtered by the WHERE clause; actual deletion is
+	 * handled by cron via wp_delete_old_collaboration_data().
 	 *
 	 * @since 7.0.0
 	 *
@@ -80,16 +81,6 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 
 		$cutoff = gmdate( 'Y-m-d H:i:s', time() - $timeout );
 
-		// Clean up expired awareness rows for this room.
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND created_at < %s",
-				$room,
-				$cutoff
-			)
-		);
-
-		// Fetch active awareness rows.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT client_id, update_value FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND created_at >= %s",
