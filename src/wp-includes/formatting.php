@@ -1600,7 +1600,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  * @since 5.7.0 Added locale support for `de_AT`.
  * @since 6.0.0 Added the `$locale` parameter.
  * @since 6.1.0 Added Unicode NFC encoding normalization support.
- * @since 7.1.0 Added capital Eszett (U+1E9E) support for German locales.
+ * @since TBD   Added capital Eszett (U+1E9E) support for German locales.
  *
  * @param string $text   Text that might have accent characters.
  * @param string $locale Optional. The locale to use for accent removal. Some character
