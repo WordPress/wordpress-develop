@@ -200,6 +200,7 @@ CREATE TABLE $wpdb->awareness (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	room varchar(255) NOT NULL,
 	client_id bigint(20) unsigned NOT NULL,
+	wp_user_id bigint(20) unsigned NOT NULL,
 	update_value longtext NOT NULL,
 	created_at datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
