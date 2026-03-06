@@ -32,6 +32,9 @@ class WP_Admin_Bar {
 	 * Initializes the admin bar.
 	 *
 	 * @since 3.1.0
+	 * @since 7.0.0 Enqueues the admin color scheme stylesheet on the front end.
+	 *
+	 * @global array $_wp_admin_css_colors Registered admin CSS color schemes.
 	 */
 	public function initialize() {
 		$this->user = new stdClass();
@@ -71,6 +74,27 @@ class WP_Admin_Bar {
 
 		wp_enqueue_script( 'admin-bar' );
 		wp_enqueue_style( 'admin-bar' );
+
+		if ( ! is_admin() ) {
+			global $_wp_admin_css_colors;
+
+			if ( empty( $_wp_admin_css_colors ) ) {
+				register_admin_color_schemes();
+			}
+
+			$color_scheme = get_user_option( 'admin_color' );
+
+			if ( empty( $color_scheme ) || ! isset( $_wp_admin_css_colors[ $color_scheme ] ) ) {
+				$color_scheme = 'modern';
+			}
+
+			$color = $_wp_admin_css_colors[ $color_scheme ] ?? null;
+			$url   = $color->url ?? '';
+
+			if ( $url ) {
+				wp_enqueue_style( 'admin-bar-colors', $url, array( 'admin-bar' ) );
+			}
+		}
 
 		/**
 		 * Fires after WP_Admin_Bar is initialized.
