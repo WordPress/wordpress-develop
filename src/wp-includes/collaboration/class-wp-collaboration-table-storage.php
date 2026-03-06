@@ -10,7 +10,7 @@
  * Core class that provides an interface for storing and retrieving
  * updates and awareness data during a collaborative session.
  *
- * Data is stored in the dedicated `collaboration` database table.
+ * Data is stored in the `collaboration` and `awareness` database tables.
  *
  * @since 7.0.0
  *
@@ -51,11 +51,10 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 			$wpdb->collaboration,
 			array(
 				'room'         => $room,
-				'event_type'   => 'sync_update',
 				'update_value' => wp_json_encode( $update ),
 				'created_at'   => current_time( 'mysql', true ),
 			),
-			array( '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s' )
 		);
 
 		return false !== $result;
@@ -64,7 +63,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	/**
 	 * Gets awareness state for a given room.
 	 *
-	 * Retrieves per-client awareness rows from the collaboration table.
+	 * Retrieves per-client awareness rows from the awareness table.
 	 * Expired rows are filtered by the WHERE clause; actual deletion is
 	 * handled by cron via wp_delete_old_collaboration_data().
 	 *
@@ -83,7 +82,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT client_id, update_value FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND created_at >= %s",
+				"SELECT client_id, update_value FROM {$wpdb->awareness} WHERE room = %s AND created_at >= %s",
 				$room,
 				$cutoff
 			)
@@ -153,10 +152,10 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	public function get_updates_after_cursor( string $room, int $cursor ): array {
 		global $wpdb;
 
-		// Snapshot the current max ID for sync_update rows in this room.
+		// Snapshot the current max ID for this room.
 		$max_id = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'sync_update'",
+				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->collaboration} WHERE room = %s",
 				$room
 			)
 		);
@@ -168,19 +167,19 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 			return array();
 		}
 
-		// Count total sync_update rows for this room (used by compaction threshold logic).
+		// Count total rows for this room (used by compaction threshold logic).
 		$this->room_update_counts[ $room ] = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'sync_update' AND id <= %d",
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND id <= %d",
 				$room,
 				$max_id
 			)
 		);
 
-		// Fetch sync updates after the cursor up to the snapshot boundary.
+		// Fetch updates after the cursor up to the snapshot boundary.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT update_value FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'sync_update' AND id > %d AND id <= %d ORDER BY id ASC",
+				"SELECT update_value FROM {$wpdb->collaboration} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
 				$room,
 				$cursor,
 				$max_id
@@ -221,7 +220,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'sync_update' AND id < %d",
+				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND id < %d",
 				$room,
 				$cursor
 			)
@@ -260,8 +259,8 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"INSERT INTO {$wpdb->collaboration} (room, event_type, client_id, update_value, created_at)
-				VALUES (%s, 'awareness', %d, %s, %s)
+				"INSERT INTO {$wpdb->awareness} (room, client_id, update_value, created_at)
+				VALUES (%s, %d, %s, %s)
 				ON DUPLICATE KEY UPDATE update_value = VALUES(update_value), created_at = VALUES(created_at)",
 				$room,
 				$client_id,

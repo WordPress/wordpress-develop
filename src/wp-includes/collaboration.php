@@ -57,7 +57,7 @@ function wp_delete_old_collaboration_data() {
 	// Clean up sync update rows older than 7 days.
 	$wpdb->query(
 		$wpdb->prepare(
-			"DELETE FROM {$wpdb->collaboration} WHERE event_type = 'sync_update' AND created_at < %s",
+			"DELETE FROM {$wpdb->collaboration} WHERE created_at < %s",
 			gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
 		)
 	);
@@ -65,7 +65,7 @@ function wp_delete_old_collaboration_data() {
 	// Clean up awareness rows older than 60 seconds (2× the 30-second awareness timeout as a buffer).
 	$wpdb->query(
 		$wpdb->prepare(
-			"DELETE FROM {$wpdb->collaboration} WHERE event_type = 'awareness' AND created_at < %s",
+			"DELETE FROM {$wpdb->awareness} WHERE created_at < %s",
 			gmdate( 'Y-m-d H:i:s', time() - 60 )
 		)
 	);
