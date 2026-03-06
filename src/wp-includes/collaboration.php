@@ -10,7 +10,7 @@
  * Checks whether real-time collaboration is enabled.
  *
  * The feature requires both the site option and the database schema
- * introduced in db_version 61698.
+ * introduced in db_version 61699.
  *
  * @since 7.0.0
  *
@@ -18,7 +18,7 @@
  */
 function wp_is_collaboration_enabled() {
 	return get_option( 'wp_enable_real_time_collaboration' )
-		&& get_option( 'db_version' ) >= 61698;
+		&& get_option( 'db_version' ) >= 61699;
 }
 
 /**
@@ -39,10 +39,11 @@ function wp_collaboration_inject_setting() {
 }
 
 /**
- * Deletes collaboration data older than 7 days from the collaboration table.
+ * Deletes stale collaboration data from the collaboration table.
  *
- * Rows left behind by abandoned collaborative editing sessions are cleaned up
- * to prevent unbounded table growth.
+ * Removes sync-update rows older than 7 days and awareness rows older than
+ * 60 seconds. Rows left behind by abandoned collaborative editing sessions
+ * are cleaned up to prevent unbounded table growth.
  *
  * @since 7.0.0
  */
@@ -53,10 +54,19 @@ function wp_delete_old_collaboration_data() {
 
 	global $wpdb;
 
+	// Clean up sync update rows older than 7 days.
 	$wpdb->query(
 		$wpdb->prepare(
-			"DELETE FROM {$wpdb->collaboration} WHERE created_at < %s",
+			"DELETE FROM {$wpdb->collaboration} WHERE event_type = 'sync_update' AND created_at < %s",
 			gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
+		)
+	);
+
+	// Clean up awareness rows older than 60 seconds (2× the 30-second awareness timeout as a buffer).
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->collaboration} WHERE event_type = 'awareness' AND created_at < %s",
+			gmdate( 'Y-m-d H:i:s', time() - 60 )
 		)
 	);
 }

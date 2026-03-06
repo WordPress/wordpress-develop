@@ -1100,6 +1100,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			$wpdb->collaboration,
 			array(
 				'room'         => $this->get_post_room(),
+				'event_type'   => 'sync_update',
 				'update_value' => wp_json_encode(
 					array(
 						'type' => 'update',
@@ -1108,7 +1109,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 				),
 				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
 			),
-			array( '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s' )
 		);
 	}
 
@@ -1202,7 +1203,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_routes_not_registered_when_db_version_is_old(): void {
-		update_option( 'db_version', 61697 );
+		update_option( 'db_version', 61698 );
 
 		// Reset the global REST server so rest_get_server() builds a fresh instance.
 		$GLOBALS['wp_rest_server'] = null;
@@ -1210,8 +1211,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$server = rest_get_server();
 		$routes = $server->get_routes();
 
-		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61698.' );
-		$this->assertArrayNotHasKey( '/wp-sync/v1/updates', $routes, 'Deprecated sync routes should not be registered when db_version is below 61698.' );
+		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61699.' );
+		$this->assertArrayNotHasKey( '/wp-sync/v1/updates', $routes, 'Deprecated sync routes should not be registered when db_version is below 61699.' );
 
 		// Reset again so subsequent tests get a server with the correct db_version.
 		$GLOBALS['wp_rest_server'] = null;
@@ -1278,5 +1279,239 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$data = $response->get_data();
 		$this->assertNotEmpty( $data['rooms'][0]['updates'], 'Updates sent via deprecated route should be retrievable via primary route.' );
+	}
+
+	/*
+	 * Awareness race condition tests.
+	 */
+
+	/**
+	 * Awareness state set by separate clients should be preserved across sequential dispatches.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_preserved_across_separate_upserts(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 1 sets awareness.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, 0, array( 'cursor' => 'pos-a' ) ),
+			)
+		);
+
+		// Client 2 sets awareness (simulating a concurrent request).
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 2, 0, array( 'cursor' => 'pos-b' ) ),
+			)
+		);
+
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+
+		$this->assertArrayHasKey( 1, $awareness, 'Client 1 awareness should be present.' );
+		$this->assertArrayHasKey( 2, $awareness, 'Client 2 awareness should be present.' );
+		$this->assertSame( array( 'cursor' => 'pos-a' ), $awareness[1] );
+		$this->assertSame( array( 'cursor' => 'pos-b' ), $awareness[2] );
+	}
+
+	/**
+	 * Awareness rows should not affect get_updates_after_cursor() or get_cursor().
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_rows_do_not_affect_cursor(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 1 sets awareness (creates awareness row in table).
+		$response1 = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, 0, array( 'cursor' => 'pos-a' ) ),
+			)
+		);
+
+		// With no sync updates, cursor should be 0.
+		$data1 = $response1->get_data();
+		$this->assertSame( 0, $data1['rooms'][0]['end_cursor'], 'Awareness rows should not affect the cursor.' );
+		$this->assertSame( 0, $data1['rooms'][0]['total_updates'], 'Awareness rows should not count as updates.' );
+		$this->assertEmpty( $data1['rooms'][0]['updates'], 'Awareness rows should not appear as updates.' );
+
+		// Now add a sync update.
+		$update   = array(
+			'type' => 'update',
+			'data' => 'dGVzdA==',
+		);
+		$response2 = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, 0, array( 'cursor' => 'pos-a' ), array( $update ) ),
+			)
+		);
+
+		$data2 = $response2->get_data();
+		$this->assertSame( 1, $data2['rooms'][0]['total_updates'], 'Only sync updates should count toward total.' );
+	}
+
+	/**
+	 * Compaction (remove_updates_before_cursor) should not delete awareness rows.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_compaction_does_not_delete_awareness_rows(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 1 sets awareness.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, 0, array( 'cursor' => 'pos-a' ) ),
+			)
+		);
+
+		// Client 2 sends updates.
+		$updates = array();
+		for ( $i = 0; $i < 5; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "update-$i" ),
+			);
+		}
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 2, 0, array( 'cursor' => 'pos-b' ), $updates ),
+			)
+		);
+
+		$cursor = $response->get_data()['rooms'][0]['end_cursor'];
+
+		// Client 2 sends a compaction.
+		$compaction = array(
+			'type' => 'compaction',
+			'data' => base64_encode( 'compacted' ),
+		);
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 2, $cursor, array( 'cursor' => 'pos-b' ), array( $compaction ) ),
+			)
+		);
+
+		// Client 3 checks awareness — client 1 should still be present.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 3, 0, array( 'cursor' => 'pos-c' ) ),
+			)
+		);
+
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+		$this->assertArrayHasKey( 1, $awareness, 'Client 1 awareness should survive compaction.' );
+	}
+
+	/**
+	 * Expired awareness rows should be filtered from results but remain in the
+	 * table until cron cleanup runs.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_expired_awareness_rows_cleaned_up(): void {
+		wp_set_current_user( self::$editor_id );
+
+		global $wpdb;
+
+		$room = $this->get_post_room();
+
+		// Insert an awareness row with an old timestamp directly.
+		$wpdb->insert(
+			$wpdb->collaboration,
+			array(
+				'room'         => $room,
+				'event_type'   => 'awareness',
+				'client_id'    => 99,
+				'update_value' => wp_json_encode(
+					array(
+						'state'      => array( 'cursor' => 'stale' ),
+						'wp_user_id' => self::$editor_id,
+					)
+				),
+				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - 60 ),
+			),
+			array( '%s', '%s', '%d', '%s', '%s' )
+		);
+
+		// Client 1 polls — the expired row should not appear in results.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, 0, array( 'cursor' => 'pos-a' ) ),
+			)
+		);
+
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+		$this->assertArrayNotHasKey( 99, $awareness, 'Expired awareness entry should not appear.' );
+		$this->assertArrayHasKey( 1, $awareness, 'Fresh client awareness should appear.' );
+
+		// The expired row still exists in the table (no inline DELETE on the read path).
+		$expired_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND client_id = %d",
+				$room,
+				99
+			)
+		);
+		$this->assertSame( 1, $expired_count, 'Expired awareness row should still exist in the table until cron runs.' );
+
+		// Cron cleanup removes the expired row.
+		wp_delete_old_collaboration_data();
+
+		$post_cron_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND client_id = %d",
+				$room,
+				99
+			)
+		);
+		$this->assertSame( 0, $post_cron_count, 'Expired awareness row should be deleted after cron cleanup.' );
+	}
+
+	/**
+	 * Cron cleanup should remove expired awareness rows.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_cron_cleanup_deletes_expired_awareness_rows(): void {
+		global $wpdb;
+
+		// Insert an awareness row older than 60 seconds.
+		$wpdb->insert(
+			$wpdb->collaboration,
+			array(
+				'room'         => $this->get_post_room(),
+				'event_type'   => 'awareness',
+				'client_id'    => 42,
+				'update_value' => wp_json_encode(
+					array(
+						'state'      => array( 'cursor' => 'old' ),
+						'wp_user_id' => self::$editor_id,
+					)
+				),
+				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - 120 ),
+			),
+			array( '%s', '%s', '%d', '%s', '%s' )
+		);
+
+		// Insert a recent sync update row (should survive).
+		$this->insert_collaboration_row( HOUR_IN_SECONDS );
+
+		$this->assertSame( 2, $this->get_collaboration_row_count() );
+
+		wp_delete_old_collaboration_data();
+
+		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Only the recent sync update row should survive cron cleanup.' );
+
+		// Verify the surviving row is the sync update, not the awareness row.
+		$surviving = $wpdb->get_var( "SELECT event_type FROM {$wpdb->collaboration}" );
+		$this->assertSame( 'sync_update', $surviving, 'The surviving row should be the sync update.' );
 	}
 }
