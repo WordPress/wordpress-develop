@@ -32,12 +32,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../src/wp-content/themes/twentyseventeen/template-parts/page/content-page.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function wp_cache_switch_to_blog_fallback invoked with 1 parameter, 0 required\\.$#',
-	'identifier' => 'arguments.count',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-includes/cache-compat.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Variable \\$addl_path in empty\\(\\) always exists and is always falsy\\.$#',
 	'identifier' => 'empty.variable',
 	'count' => 1,
