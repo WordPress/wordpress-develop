@@ -1972,6 +1972,7 @@ function remove_accents( $text, $locale = '' ) {
 			$chars['ö'] = 'oe';
 			$chars['Ü'] = 'Ue';
 			$chars['ü'] = 'ue';
+			$chars['ẞ'] = 'SS';
 			$chars['ß'] = 'ss';
 		} elseif ( 'da_DK' === $locale ) {
 			$chars['Æ'] = 'Ae';
