@@ -1408,11 +1408,11 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
  * @global array $_wp_admin_css_colors Registered administration color schemes.
  */
 function wp_admin_bar_add_color_scheme_to_front_end() {
-	global $_wp_admin_css_colors;
-
 	if ( is_admin() ) {
 		return;
 	}
+
+	global $_wp_admin_css_colors;
 
 	if ( empty( $_wp_admin_css_colors ) ) {
 		register_admin_color_schemes();
@@ -1427,7 +1427,7 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 	$color = $_wp_admin_css_colors[ $color_scheme ] ?? null;
 	$url   = $color->url ?? '';
 
-	if ( $url && is_readable( $url ) ) {
+	if ( $url ) {
 		$css = file_get_contents( $url );
 		if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
 			$start_position = strpos( $css, '#wpadminbar' );
