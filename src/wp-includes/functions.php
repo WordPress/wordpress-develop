@@ -2179,6 +2179,7 @@ function path_join( $base, $path ) {
  * @since 4.4.0 Ensures upper-case drive letters on Windows systems.
  * @since 4.5.0 Allows for Windows network shares.
  * @since 4.9.7 Allows for PHP file wrappers.
+ * @since 7.1.0 Uses a static cache to store normalized paths.
  *
  * @param string $path Path to normalize.
  * @return string Normalized path.
@@ -2186,22 +2187,13 @@ function path_join( $base, $path ) {
 function wp_normalize_path( $path ) {
 	$path = (string) $path;
 
-	static $hot  = array();
-	static $warm = array();
-	static $max  = 100;
-
-	if ( isset( $hot[ $path ] ) ) {
-		return $hot[ $path ];
-	}
-
-	if ( isset( $warm[ $path ] ) ) {
-		$hot[ $path ] = $warm[ $path ];
-		unset( $warm[ $path ] );
-		return $hot[ $path ];
+	static $cache = array();
+	if ( isset( $cache[ $path ] ) ) {
+		return $cache[ $path ];
 	}
 
 	$original_path = $path;
-	$wrapper       = '';
+	$wrapper = '';
 
 	if ( wp_is_stream( $path ) ) {
 		list( $wrapper, $path ) = explode( '://', $path, 2 );
@@ -2220,17 +2212,8 @@ function wp_normalize_path( $path ) {
 		$path = ucfirst( $path );
 	}
 
-	$value = $wrapper . $path;
-
-	$hot[ $original_path ] = $value;
-
-	// Rotate segments when hot is full.
-	if ( count( $hot ) >= $max ) {
-		$warm = $hot;
-		$hot  = array();
-	}
-
-	return $value;
+	$cache[ $original_path ] = $wrapper . $path;
+	return $cache[ $original_path ];
 }
 
 /**
