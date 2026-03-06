@@ -94,7 +94,7 @@ class WP_Font_Face {
 
 		$processor = new WP_HTML_Tag_Processor( '<style class="wp-fonts-local"></style>' );
 		$processor->next_tag();
-		$processor->set_modifiable_text( "\n{$css}\n" );
+		$processor->set_modifiable_text( "\n{$css}\n/*# sourceURL=wp-fonts-local */\n" );
 		echo "{$processor->get_updated_html()}\n";
 	}
 

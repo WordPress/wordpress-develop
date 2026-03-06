@@ -78,6 +78,49 @@ class WP_Font_Utils {
 	}
 
 	/**
+	 * This transforms a font name string into a valid, quoted, CSS font-family value.
+	 *
+	 * This expects a single font family and produces a single CSS string. This is suitable for the
+	 * `@font-face` at-rule `font-family` descriptor. It is not suitable for the `font-family` property of the same name.
+	 */
+	public static function font_name_to_css_font_face_font_family_value( string $font_family ): string {
+		// Escape existing backslashes before any other processing.
+		$result = strtr( $font_family, array( '\\' => '\\5C ' ) );
+
+		/*
+		 * CSS Unicode escaping for problematic characters.
+		 * https://www.w3.org/TR/css-syntax-3/#escaping
+		 *
+		 * These characters are not required by CSS but may be problematic in WordPress:
+		 *
+		 * - Normalize and replace newlines. https://www.w3.org/TR/css-syntax-3/#input-preprocessing
+		 * - "<", ">", and "&" are replaced to prevent issues with KSES and other sanitization that
+		 *   is confused by HTML-like text.
+		 *   is confused by HTML-like text.
+		 * - `,`, `"` and `'` are replaced to prevent issues where font families may be processed later.
+		 *
+		 * Note that the Unicode escape sequences are used rather than backslash-escaping so the
+		 * problematic characters are removed completely.
+		 */
+		$result = strtr(
+			$result,
+			array(
+				"\r\n" => '\\A ',
+				"\r"   => '\\A ',
+				"\f"   => '\\A ',
+				"\n"   => '\\A ',
+				','    => '\\2C ',
+				'"'    => '\\22 ',
+				"'"    => '\\27 ',
+				'<'    => '\\3C ',
+				'>'    => '\\3E ',
+				'&'    => '\\26 ',
+			)
+		);
+		return "\"{$result}\"";
+	}
+
+	/**
 	 * Generates a slug from font face properties, e.g. `open sans;normal;400;100%;U+0-10FFFF`
 	 *
 	 * Used for comparison with other font faces in the same family, to prevent duplicates

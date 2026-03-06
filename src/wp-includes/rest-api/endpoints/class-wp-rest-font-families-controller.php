@@ -344,7 +344,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 							'description' => __( 'CSS font-family value.' ),
 							'type'        => 'string',
 							'arg_options' => array(
-								'sanitize_callback' => array( 'WP_Font_Utils', 'sanitize_font_family' ),
+								'sanitize_callback' => array( 'WP_Font_Utils', 'font_name_to_css_font_face_font_family_value' ),
 							),
 						),
 						'preview'    => array(
