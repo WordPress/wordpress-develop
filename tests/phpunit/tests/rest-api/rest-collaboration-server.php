@@ -32,6 +32,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// in the test suite. TRUNCATE implicitly commits the transaction.
 		global $wpdb;
 		$wpdb->query( "DELETE FROM {$wpdb->collaboration}" );
+		$wpdb->query( "DELETE FROM {$wpdb->awareness}" );
 	}
 
 	/**
@@ -1100,7 +1101,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			$wpdb->collaboration,
 			array(
 				'room'         => $this->get_post_room(),
-				'event_type'   => 'sync_update',
 				'update_value' => wp_json_encode(
 					array(
 						'type' => 'update',
@@ -1109,7 +1109,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 				),
 				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
 			),
-			array( '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s' )
 		);
 	}
 
@@ -1122,6 +1122,17 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		global $wpdb;
 
 		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->collaboration}" );
+	}
+
+	/**
+	 * Returns the number of rows in the awareness table.
+	 *
+	 * @return positive-int Row count.
+	 */
+	private function get_awareness_row_count(): int {
+		global $wpdb;
+
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->awareness}" );
 	}
 
 	/**
@@ -1423,12 +1434,11 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$room = $this->get_post_room();
 
-		// Insert an awareness row with an old timestamp directly.
+		// Insert an awareness row clearly older than the 60-second cron threshold.
 		$wpdb->insert(
-			$wpdb->collaboration,
+			$wpdb->awareness,
 			array(
 				'room'         => $room,
-				'event_type'   => 'awareness',
 				'client_id'    => 99,
 				'update_value' => wp_json_encode(
 					array(
@@ -1436,9 +1446,9 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 						'wp_user_id' => self::$editor_id,
 					)
 				),
-				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - 60 ),
+				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
-			array( '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%d', '%s', '%s' )
 		);
 
 		// Client 1 polls — the expired row should not appear in results.
@@ -1455,7 +1465,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// The expired row still exists in the table (no inline DELETE on the read path).
 		$expired_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND client_id = %d",
+				"SELECT COUNT(*) FROM {$wpdb->awareness} WHERE room = %s AND client_id = %d",
 				$room,
 				99
 			)
@@ -1467,7 +1477,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$post_cron_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND event_type = 'awareness' AND client_id = %d",
+				"SELECT COUNT(*) FROM {$wpdb->awareness} WHERE room = %s AND client_id = %d",
 				$room,
 				99
 			)
@@ -1485,10 +1495,9 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		// Insert an awareness row older than 60 seconds.
 		$wpdb->insert(
-			$wpdb->collaboration,
+			$wpdb->awareness,
 			array(
 				'room'         => $this->get_post_room(),
-				'event_type'   => 'awareness',
 				'client_id'    => 42,
 				'update_value' => wp_json_encode(
 					array(
@@ -1498,20 +1507,18 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 				),
 				'created_at'   => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
-			array( '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%d', '%s', '%s' )
 		);
 
 		// Insert a recent sync update row (should survive).
 		$this->insert_collaboration_row( HOUR_IN_SECONDS );
 
-		$this->assertSame( 2, $this->get_collaboration_row_count() );
+		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Collaboration table should have 1 sync update row.' );
+		$this->assertSame( 1, $this->get_awareness_row_count(), 'Awareness table should have 1 awareness row.' );
 
 		wp_delete_old_collaboration_data();
 
 		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Only the recent sync update row should survive cron cleanup.' );
-
-		// Verify the surviving row is the sync update, not the awareness row.
-		$surviving = $wpdb->get_var( "SELECT event_type FROM {$wpdb->collaboration}" );
-		$this->assertSame( 'sync_update', $surviving, 'The surviving row should be the sync update.' );
+		$this->assertSame( 0, $this->get_awareness_row_count(), 'Expired awareness row should be deleted after cron cleanup.' );
 	}
 }
