@@ -2738,8 +2738,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @covers ::map_meta_cap
 	 */
 	public function test_author_cannot_edit_others_note() {
-		$author = self::$users['author'];
-		$editor = self::$users['editor'];
+		$author  = self::$users['author'];
+		$editor  = self::$users['editor'];
 		$post_id = self::factory()->post->create( array( 'post_author' => $author->ID ) );
 		$note_id = self::factory()->comment->create(
 			array(
