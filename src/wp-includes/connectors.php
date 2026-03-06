@@ -200,6 +200,13 @@ function _wp_connectors_get_connector_settings(): array {
 		}
 	}
 
+	// Add setting_name for AI provider connectors that use API key authentication.
+	foreach ( $connectors as $connector_id => $connector ) {
+		if ( 'ai_provider' === $connector['type'] && 'api_key' === $connector['authentication']['method'] ) {
+			$connectors[ $connector_id ]['authentication']['setting_name'] = "connectors_ai_{$connector_id}_api_key";
+		}
+	}
+
 	ksort( $connectors );
 
 	/**
@@ -207,8 +214,8 @@ function _wp_connectors_get_connector_settings(): array {
 	 *
 	 * Allows plugins to add, modify, or remove connectors displayed
 	 * on the Connectors screen. Runs after built-in and AI Client
-	 * registry providers are collected, but before `setting_name` is
-	 * generated for API-key connectors.
+	 * registry providers are collected and fully populated with
+	 * `setting_name` for API-key connectors.
 	 *
 	 * @since 7.0.0
 	 *
@@ -226,22 +233,16 @@ function _wp_connectors_get_connector_settings(): array {
 	 *         }
 	 *         @type array  $authentication {
 	 *             Authentication configuration. When method is 'api_key', includes
-	 *             credentials_url. When 'none', only method is present.
+	 *             credentials_url and setting_name. When 'none', only method is present.
 	 *
 	 *             @type string      $method          The authentication method: 'api_key' or 'none'.
 	 *             @type string|null $credentials_url Optional. URL where users can obtain API credentials.
+	 *             @type string      $setting_name    Optional. The setting name for the API key. Present when method is 'api_key'.
 	 *         }
 	 *     }
 	 * }
 	 */
 	$connectors = apply_filters( 'wp_connectors_settings', $connectors );
-
-	// Add setting_name for AI provider connectors that use API key authentication.
-	foreach ( $connectors as $connector_id => $connector ) {
-		if ( 'ai_provider' === $connector['type'] && 'api_key' === $connector['authentication']['method'] ) {
-			$connectors[ $connector_id ]['authentication']['setting_name'] = "connectors_ai_{$connector_id}_api_key";
-		}
-	}
 
 	return $connectors;
 }

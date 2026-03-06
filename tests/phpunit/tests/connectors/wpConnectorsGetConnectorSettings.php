@@ -178,65 +178,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	/**
 	 * @ticket 64791
 	 */
-	public function test_filter_added_api_key_connector_gets_setting_name() {
-		$callback = static function ( $connectors ) {
-			$connectors['custom_ai'] = array(
-				'name'           => 'Custom AI',
-				'description'    => 'A custom AI provider.',
-				'type'           => 'ai_provider',
-				'authentication' => array(
-					'method'          => 'api_key',
-					'credentials_url' => 'https://example.com/keys',
-				),
-			);
-			return $connectors;
-		};
-		add_filter( 'wp_connectors_settings', $callback );
-
-		$connectors = _wp_connectors_get_connector_settings();
-		remove_filter( 'wp_connectors_settings', $callback );
-
-		$this->assertArrayHasKey( 'custom_ai', $connectors );
-		$this->assertSame(
-			'connectors_ai_custom_ai_api_key',
-			$connectors['custom_ai']['authentication']['setting_name'],
-			'Connectors added via the filter with api_key auth should receive a setting_name automatically.'
-		);
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_filter_added_non_ai_api_key_connector_does_not_get_setting_name() {
-		$callback = static function ( $connectors ) {
-			$connectors['my_crm'] = array(
-				'name'           => 'My CRM',
-				'description'    => 'CRM integration.',
-				'type'           => 'crm',
-				'authentication' => array(
-					'method'          => 'api_key',
-					'credentials_url' => 'https://example.com/crm-keys',
-				),
-			);
-			return $connectors;
-		};
-		add_filter( 'wp_connectors_settings', $callback );
-
-		$connectors = _wp_connectors_get_connector_settings();
-		remove_filter( 'wp_connectors_settings', $callback );
-
-		$this->assertArrayHasKey( 'my_crm', $connectors );
-		$this->assertArrayNotHasKey(
-			'setting_name',
-			$connectors['my_crm']['authentication'],
-			'Non-AI connectors should not receive an auto-generated setting_name.'
-		);
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_filter_receives_all_default_connectors() {
+	public function test_filter_receives_all_default_connectors_with_setting_name() {
 		$received = null;
 
 		$callback = static function ( $connectors ) use ( &$received ) {
@@ -252,5 +194,10 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 		$this->assertArrayHasKey( 'openai', $received );
 		$this->assertArrayHasKey( 'anthropic', $received );
 		$this->assertArrayHasKey( 'mock_connectors_test', $received );
+
+		// The filter receives fully populated data, including setting_name for API-key connectors.
+		$this->assertSame( 'connectors_ai_openai_api_key', $received['openai']['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_ai_anthropic_api_key', $received['anthropic']['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_ai_google_api_key', $received['google']['authentication']['setting_name'] );
 	}
 }
