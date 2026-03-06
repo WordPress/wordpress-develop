@@ -169,7 +169,7 @@
 				{
 					"name": "Fira Code",
 					"slug": "fira-code",
-					"fontFamily": "\"Fira\\20 Code\", monospace",
+					"fontFamily": "\"Fira Code\", monospace",
 					"fontFace": [
 						{
 							"src": [
@@ -177,7 +177,7 @@
 							],
 							"fontWeight": "300 700",
 							"fontStyle": "normal",
-							"fontFamily": "\"Fira\\20 Code\""
+							"fontFamily": "\"Fira Code\""
 						}
 					]
 				}
