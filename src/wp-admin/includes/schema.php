@@ -189,7 +189,7 @@ CREATE TABLE $wpdb->posts (
 ) $charset_collate;
 CREATE TABLE $wpdb->collaboration (
 	id bigint(20) unsigned NOT NULL auto_increment,
-	room varchar(255) NOT NULL default '',
+	room varchar($max_index_length) NOT NULL default '',
 	update_value longtext NOT NULL,
 	created_at datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
@@ -198,7 +198,7 @@ CREATE TABLE $wpdb->collaboration (
 ) $charset_collate;
 CREATE TABLE $wpdb->awareness (
 	id bigint(20) unsigned NOT NULL auto_increment,
-	room varchar(255) NOT NULL default '',
+	room varchar($max_index_length) NOT NULL default '',
 	client_id bigint(20) unsigned NOT NULL default '0',
 	wp_user_id bigint(20) unsigned NOT NULL default '0',
 	update_value longtext NOT NULL,
