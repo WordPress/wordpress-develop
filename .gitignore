@@ -23,6 +23,8 @@ wp-tests-config.php
 /gutenberg
 /tests/phpunit/build
 /wp-cli.local.yml
+/phpstan.neon
+/*.tsbuildinfo
 /jsdoc
 /composer.lock
 /vendor
