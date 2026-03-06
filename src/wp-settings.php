@@ -29,8 +29,10 @@ define( 'WPINC', 'wp-includes' );
  * @global string[] $required_php_extensions The names of required PHP extensions.
  * @global string   $required_mysql_version  The minimum required MySQL version string.
  * @global string   $wp_local_package        Locale code of the package.
+ * @global array    $wp_filter               WordPress filter hooks.
+ * @global string   $table_prefix            Database table prefix.
  */
-global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wp_local_package;
+global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wp_local_package, $wp_filter, $table_prefix;
 require ABSPATH . WPINC . '/version.php';
 require ABSPATH . WPINC . '/compat-utf8.php';
 require ABSPATH . WPINC . '/compat.php';
