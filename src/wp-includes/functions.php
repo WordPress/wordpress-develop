@@ -2193,7 +2193,7 @@ function wp_normalize_path( $path ) {
 	}
 
 	$original_path = $path;
-	$wrapper = '';
+	$wrapper       = '';
 
 	if ( wp_is_stream( $path ) ) {
 		list( $wrapper, $path ) = explode( '://', $path, 2 );
