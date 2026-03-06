@@ -26,12 +26,15 @@ interface WP_Collaboration_Storage {
 	/**
 	 * Gets awareness state for a given room.
 	 *
+	 * Returns entries that have been updated within the timeout window.
+	 *
 	 * @since 7.0.0
 	 *
-	 * @param string $room Room identifier.
-	 * @return array<int, mixed> Awareness state.
+	 * @param string $room    Room identifier.
+	 * @param int    $timeout Seconds before an awareness entry is considered expired.
+	 * @return array<int, array{client_id: int, state: mixed, wp_user_id: int}> Awareness entries.
 	 */
-	public function get_awareness_state( string $room ): array;
+	public function get_awareness_state( string $room, int $timeout = 30 ): array;
 
 	/**
 	 * Gets the current cursor for a given room. This should return a monotonically
@@ -79,13 +82,15 @@ interface WP_Collaboration_Storage {
 	public function remove_updates_before_cursor( string $room, int $cursor ): bool;
 
 	/**
-	 * Sets awareness state for a given room.
+	 * Sets awareness state for a given client in a room.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param string            $room      Room identifier.
-	 * @param array<int, mixed> $awareness Serializable awareness state.
+	 * @param string $room       Room identifier.
+	 * @param int    $client_id  Client identifier.
+	 * @param array  $state      Serializable awareness state for this client.
+	 * @param int    $wp_user_id WordPress user ID that owns this client.
 	 * @return bool True on success, false on failure.
 	 */
-	public function set_awareness_state( string $room, array $awareness ): bool;
+	public function set_awareness_state( string $room, int $client_id, array $state, int $wp_user_id ): bool;
 }

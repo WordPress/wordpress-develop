@@ -379,40 +379,13 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * @return array<int, array<string, mixed>> Map of client ID to awareness state.
 	 */
 	private function process_awareness_update( string $room, int $client_id, ?array $awareness_update ): array {
-		$existing_awareness = $this->storage->get_awareness_state( $room );
-		$updated_awareness  = array();
-		$current_time       = time();
-
-		foreach ( $existing_awareness as $entry ) {
-			// Remove this client's entry (it will be updated below).
-			if ( $client_id === $entry['client_id'] ) {
-				continue;
-			}
-
-			// Remove entries that have expired.
-			if ( $current_time - $entry['updated_at'] >= self::AWARENESS_TIMEOUT ) {
-				continue;
-			}
-
-			$updated_awareness[] = $entry;
-		}
-
-		// Add this client's awareness state.
 		if ( null !== $awareness_update ) {
-			$updated_awareness[] = array(
-				'client_id'  => $client_id,
-				'state'      => $awareness_update,
-				'updated_at' => $current_time,
-				'wp_user_id' => get_current_user_id(),
-			);
+			$this->storage->set_awareness_state( $room, $client_id, $awareness_update, get_current_user_id() );
 		}
 
-		// This action can fail, but it shouldn't fail the entire request.
-		$this->storage->set_awareness_state( $room, $updated_awareness );
-
-		// Convert to client_id => state map for response.
+		$entries  = $this->storage->get_awareness_state( $room, self::AWARENESS_TIMEOUT );
 		$response = array();
-		foreach ( $updated_awareness as $entry ) {
+		foreach ( $entries as $entry ) {
 			$response[ $entry['client_id'] ] = $entry['state'];
 		}
 
