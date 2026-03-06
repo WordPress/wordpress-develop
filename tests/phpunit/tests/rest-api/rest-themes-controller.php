@@ -215,6 +215,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
+		$this->check_get_theme_response( $response );
 		$fields = array(
 			'_links',
 			'author',
