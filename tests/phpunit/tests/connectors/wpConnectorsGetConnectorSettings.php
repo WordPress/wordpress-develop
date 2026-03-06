@@ -200,4 +200,19 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 		$this->assertSame( 'connectors_ai_anthropic_api_key', $received['anthropic']['authentication']['setting_name'] );
 		$this->assertSame( 'connectors_ai_google_api_key', $received['google']['authentication']['setting_name'] );
 	}
+
+	/**
+	 * @ticket 64791
+	 */
+	public function test_filter_can_return_empty_array() {
+		$callback = static function () {
+			return array();
+		};
+		add_filter( 'wp_connectors_settings', $callback );
+
+		$connectors = _wp_connectors_get_connector_settings();
+		remove_filter( 'wp_connectors_settings', $callback );
+
+		$this->assertSame( array(), $connectors );
+	}
 }
