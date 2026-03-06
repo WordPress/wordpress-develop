@@ -4513,6 +4513,8 @@ EOF;
 			wp_get_loading_optimization_attributes( 'img', $attr, 'wp_get_attachment_image' )
 		);
 
+		$this->assert_fetchpriority_low_loading_attrs( $attr, 'wp_get_attachment_image' );
+
 		// Return 'lazy' if not in the loop or the main query.
 		$this->assertSameSetsWithIndex(
 			array(
@@ -4527,6 +4529,8 @@ EOF;
 		while ( have_posts() ) {
 			the_post();
 
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			// Return 'lazy' if in the loop but not in the main query.
 			$this->assertSameSetsWithIndex(
 				array(
@@ -4539,6 +4543,8 @@ EOF;
 			// Set as main query.
 			$this->set_main_query( $query );
 
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
 			$this->assertSameSetsWithIndex(
 				array(
@@ -4548,6 +4554,9 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				"Expected first image to not be lazy-loaded. First large image get's high fetchpriority."
 			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
@@ -4555,6 +4564,9 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected second image to not be lazy-loaded.'
 			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
@@ -4562,6 +4574,8 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected third image to not be lazy-loaded.'
 			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
 			$this->assertSameSetsWithIndex(
@@ -4572,6 +4586,8 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
 
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			// Yes, for all subsequent elements.
 			$this->assertSameSetsWithIndex(
 				array(
@@ -4580,6 +4596,8 @@ EOF;
 				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 		}
 	}
 
@@ -4606,12 +4624,17 @@ EOF;
 			'The "loading" attribute should be "lazy" when not in the loop or the main query.'
 		);
 
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 		$query = $this->get_new_wp_query_for_published_post();
 
 		// Set as main query.
 		$this->set_main_query( $query );
 
 		while ( have_posts() ) {
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			the_post();
 
 			$this->assertSameSetsWithIndex(
@@ -4656,8 +4679,12 @@ EOF;
 			'The "loading" attribute should be "lazy" before the main query loop.'
 		);
 
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 		while ( have_posts() ) {
 			the_post();
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 
 			$this->assertSameSetsWithIndex(
 				array(
@@ -4740,6 +4767,8 @@ EOF;
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Images in the header context should get lazy-loaded after the wp_loading_optimization_force_header_contexts filter.'
 		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 	}
 
 	/**
@@ -4769,6 +4798,8 @@ EOF;
 				return $contexts;
 			}
 		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, 'something_completely_arbitrary' );
 
 		$this->assertSameSetsWithIndex(
 			array(
@@ -4809,6 +4840,8 @@ EOF;
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 	}
 
 	/**
@@ -4840,6 +4873,8 @@ EOF;
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 	}
 
 	/**
@@ -4862,6 +4897,8 @@ EOF;
 		do_action( 'get_header' );
 
 		$attr = $this->get_width_height_for_high_priority();
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 
 		// First image is loaded with high fetchpriority.
 		$this->assertSameSetsWithIndex(
@@ -6309,6 +6346,24 @@ EOF;
 		);
 	}
 
+	/**
+	 * Asserts that loading attributes for IMG with fetchpriority=low.
+	 *
+	 * It must not get lazy-loaded or increase the counter since they may be in the Navigation Overlay.
+	 */
+	protected function assert_fetchpriority_low_loading_attrs( array $attr, string $context ): void {
+		$this->assertSameSetsWithIndex(
+			array(
+				'fetchpriority' => 'low',
+				'decoding'      => 'async',
+			),
+			wp_get_loading_optimization_attributes(
+				'img',
+				array_merge( $attr, array( 'fetchpriority' => 'low' ) ),
+				$context
+			)
+		);
+	}
 
 	/**
 	 * Test WebP lossless quality is handled correctly.

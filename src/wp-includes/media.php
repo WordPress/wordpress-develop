@@ -5967,6 +5967,7 @@ function wp_get_webp_info( $filename ) {
  * both attributes are present with those values.
  *
  * @since 6.3.0
+ * @since 7.0.0 Support `fetchpriority=low` so that `loading=lazy` is not added and the media count is not increased.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -6067,7 +6068,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	// Logic to handle a `fetchpriority` attribute that is already provided.
-	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
+	$existing_fetchpriority = ( $attr['fetchpriority'] ?? null );
+	$is_low_fetchpriority   = ( 'low' === $existing_fetchpriority );
+	if ( 'high' === $existing_fetchpriority ) {
 		/*
 		 * If the image was already determined to not be in the viewport (e.g.
 		 * from an already provided `loading` attribute), trigger a warning.
@@ -6090,6 +6093,13 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		} else {
 			$maybe_in_viewport = true;
 		}
+	} elseif ( $is_low_fetchpriority ) {
+		/*
+		 * An IMG with fetchpriority=low is not initially displayed, as it may be a hidden in the Navigation Overlay,
+		 * or it may be occluded in a non-initial carousel slide. Such images must not be lazy-loaded since the browser
+		 * has no heuristic to know when to start loading them prior the user needing to see them.
+		 */
+		$maybe_in_viewport = false;
 	}
 
 	if ( null === $maybe_in_viewport ) {
@@ -6140,7 +6150,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 * does not include any loop.
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
-			) {
+		) {
 			$maybe_in_viewport    = true;
 			$maybe_increase_count = true;
 		}
@@ -6149,16 +6159,23 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	/*
 	 * If the element is in the viewport (`true`), potentially add
 	 * `fetchpriority` with a value of "high". Otherwise, i.e. if the element
-	 * is not not in the viewport (`false`) or it is unknown (`null`), add
-	 * `loading` with a value of "lazy".
+	 * is not in the viewport (`false`) or it is unknown (`null`), add
+	 * `loading` with a value of "lazy" if the element is not already being
+	 * de-prioritized with `fetchpriority=low` due to occlusion in
+	 * Navigation Overlay, non-initial carousel slides, or a collapsed Details block.
 	 */
 	if ( $maybe_in_viewport ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
-	} else {
+	} elseif ( ! $is_low_fetchpriority ) {
 		// Only add `loading="lazy"` if the feature is enabled.
 		if ( wp_lazy_loading_enabled( $tag_name, $context ) ) {
 			$loading_attrs['loading'] = 'lazy';
 		}
+	}
+
+	// Preserve fetchpriorit=low.
+	if ( $is_low_fetchpriority ) {
+		$loading_attrs['fetchpriority'] = 'low';
 	}
 
 	/*
