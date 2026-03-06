@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* jshint esversion: 6 */
 /* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
@@ -108,6 +107,7 @@ module.exports = function(grunt) {
 			'concat',
 			'copy',
 			'cssmin',
+			'imagemin',
 			'jshint',
 			'qunit',
 			'uglify',
@@ -283,11 +283,9 @@ module.exports = function(grunt) {
 						src: buildFiles.concat( [
 							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
-							'!wp-includes/certificates/cacert.pem*', // Exclude raw root certificate files that are combined into ca-bundle.crt.
-							'!wp-includes/certificates/legacy-1024bit.pem',
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
-							'!**/*.map', // The build doesn't need .map files.
+							'!{wp-admin,wp-includes,wp-content/themes/twenty*,wp-content/plugins/akismet}/**/*.map', // The build doesn't need .map files.
 							'!index.php', '!wp-admin/index.php',
 							'!_index.php', '!wp-admin/_index.php'
 						] ),
@@ -341,10 +339,17 @@ module.exports = function(grunt) {
 					},
 					{
 						expand: true,
-						cwd: SOURCE_DIR + 'js/_enqueues/vendor/codemirror/',
+						cwd: SOURCE_DIR + 'js/_enqueues/lib/codemirror/',
+						src: [
+							'htmlhint-kses.js',
+						],
+						dest: WORKING_DIR + 'wp-includes/js/codemirror/'
+					},
+					{
+						expand: true,
+						cwd: SOURCE_DIR + 'js/_enqueues/deprecated/',
 						src: [
 							'fakejshint.js',
-							'htmlhint-kses.js',
 						],
 						dest: WORKING_DIR + 'wp-includes/js/codemirror/'
 					}
@@ -582,7 +587,7 @@ module.exports = function(grunt) {
 			},
 			certificates: {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
-				dest: SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
+				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		sass: {
@@ -926,7 +931,7 @@ module.exports = function(grunt) {
 					'wp-includes/js/tinymce/plugins/wp*/plugin.js',
 
 					// Exceptions.
-					'!**/*.min.js',
+					'!{wp-admin,wp-includes}/**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
 					'!wp-includes/js/wp-emoji-loader.js', // This is a module. See the emoji-loader task below.
@@ -1006,16 +1011,6 @@ module.exports = function(grunt) {
 					WORKING_DIR + 'wp-includes/js/wp-emoji.min.js'
 				],
 				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-release.min.js'
-			},
-			certificates: {
-				options: {
-					separator: '\n\n'
-				},
-				src: [
-					SOURCE_DIR + 'wp-includes/certificates/legacy-1024bit.pem',
-					SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
-				],
-				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		patch:{
@@ -1561,6 +1556,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'precommit:js', [
 		'webpack:prod',
 		'jshint:corejs',
+		'typecheck:js',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment',
@@ -1572,6 +1568,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:php', [
+		'phpstan',
 		'phpunit'
 	] );
 
@@ -1824,13 +1821,12 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'build:certificates', [
-		'concat:certificates'
+		'copy:certificates'
 	] );
 
 	grunt.registerTask( 'certificates:upgrade', [
 		'certificates:upgrade-package',
-		'copy:certificates',
-		'build:certificates'
+		'copy:certificates'
 	] );
 
 	grunt.registerTask( 'build:files', [
@@ -2013,6 +2009,30 @@ module.exports = function(grunt) {
 	);
 
 	grunt.registerTask( 'test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit'] );
+
+	grunt.registerTask( 'typecheck:js', 'Runs TypeScript type checking.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'npm',
+			args: [ 'run', 'typecheck:js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'phpstan', 'Runs PHPStan on the entire codebase.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: [ 'phpstan' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
 
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
