@@ -1427,7 +1427,7 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 	$color = $_wp_admin_css_colors[ $color_scheme ] ?? null;
 	$url   = $color->url ?? '';
 
-	if ( $url ) {
+	if ( $url && is_readable( $url ) ) {
 		$css = file_get_contents( $url );
 		if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
 			$start_position = strpos( $css, '#wpadminbar' );
