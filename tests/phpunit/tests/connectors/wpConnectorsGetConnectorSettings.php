@@ -117,102 +117,14 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	}
 
 	/**
-	 * @ticket 64791
+	 * @ticket 64730
 	 */
-	public function test_filter_can_add_new_connector() {
-		$callback = static function ( $connectors ) {
-			$connectors['my_email_service'] = array(
-				'name'           => 'My Email Service',
-				'description'    => 'Send transactional emails.',
-				'type'           => 'email_service',
-				'authentication' => array( 'method' => 'none' ),
-			);
-			return $connectors;
-		};
-		add_filter( 'wp_connectors_settings', $callback );
-
+	public function test_connectors_are_sorted_alphabetically() {
 		$connectors = _wp_connectors_get_connector_settings();
-		remove_filter( 'wp_connectors_settings', $callback );
+		$keys       = array_keys( $connectors );
+		$sorted     = $keys;
+		sort( $sorted );
 
-		$this->assertArrayHasKey( 'my_email_service', $connectors );
-		$this->assertSame( 'My Email Service', $connectors['my_email_service']['name'] );
-		$this->assertSame( 'email_service', $connectors['my_email_service']['type'] );
-		$this->assertSame( 'none', $connectors['my_email_service']['authentication']['method'] );
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_filter_can_modify_existing_connector() {
-		$callback = static function ( $connectors ) {
-			$connectors['google']['description'] = 'Custom description for Google.';
-			return $connectors;
-		};
-		add_filter( 'wp_connectors_settings', $callback );
-
-		$connectors = _wp_connectors_get_connector_settings();
-		remove_filter( 'wp_connectors_settings', $callback );
-
-		$this->assertSame( 'Custom description for Google.', $connectors['google']['description'] );
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_filter_can_remove_connector() {
-		$callback = static function ( $connectors ) {
-			unset( $connectors['openai'] );
-			return $connectors;
-		};
-		add_filter( 'wp_connectors_settings', $callback );
-
-		$connectors = _wp_connectors_get_connector_settings();
-		remove_filter( 'wp_connectors_settings', $callback );
-
-		$this->assertArrayNotHasKey( 'openai', $connectors );
-		// Other connectors remain.
-		$this->assertArrayHasKey( 'google', $connectors );
-		$this->assertArrayHasKey( 'anthropic', $connectors );
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_filter_receives_all_default_connectors_with_setting_name() {
-		$received = null;
-
-		$callback = static function ( $connectors ) use ( &$received ) {
-			$received = $connectors;
-			return $connectors;
-		};
-		add_filter( 'wp_connectors_settings', $callback );
-
-		_wp_connectors_get_connector_settings();
-		remove_filter( 'wp_connectors_settings', $callback );
-
-		$this->assertArrayHasKey( 'google', $received );
-		$this->assertArrayHasKey( 'openai', $received );
-		$this->assertArrayHasKey( 'anthropic', $received );
-		$this->assertArrayHasKey( 'mock_connectors_test', $received );
-
-		// The filter receives fully populated data, including setting_name for API-key connectors.
-		$this->assertSame( 'connectors_ai_openai_api_key', $received['openai']['authentication']['setting_name'] );
-		$this->assertSame( 'connectors_ai_anthropic_api_key', $received['anthropic']['authentication']['setting_name'] );
-		$this->assertSame( 'connectors_ai_google_api_key', $received['google']['authentication']['setting_name'] );
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_filter_can_return_empty_array() {
-		$callback = static function () {
-			return array();
-		};
-		add_filter( 'wp_connectors_settings', $callback );
-
-		$connectors = _wp_connectors_get_connector_settings();
-		remove_filter( 'wp_connectors_settings', $callback );
-
-		$this->assertSame( array(), $connectors );
+		$this->assertSame( $sorted, $keys, 'Connectors should be sorted alphabetically by ID.' );
 	}
 }
