@@ -205,12 +205,8 @@ function _wp_register_default_connectors(): void {
 		),
 	);
 
-	// Register built-in connectors first.
-	foreach ( $defaults as $id => $args ) {
-		wp_register_connector( $id, $args );
-	}
-
-	// Register connectors from the AI Client registry.
+	// Merge AI Client registry data on top of defaults.
+	// Registry values (from provider plugins) take precedence over hardcoded fallbacks.
 	$ai_registry = AiClient::defaultRegistry();
 
 	foreach ( $ai_registry->getRegisteredProviderIds() as $connector_id ) {
@@ -233,20 +229,32 @@ function _wp_register_default_connectors(): void {
 		$name        = $provider_metadata->getName();
 		$description = $provider_metadata->getDescription();
 
-		if ( wp_has_connector( $connector_id ) ) {
-			// Already registered as a built-in; skip to avoid duplicate registration error.
-			continue;
-		}
-
-		wp_register_connector(
-			$connector_id,
-			array(
+		if ( isset( $defaults[ $connector_id ] ) ) {
+			// Override fields with non-empty registry values.
+			if ( $name ) {
+				$defaults[ $connector_id ]['name'] = $name;
+			}
+			if ( $description ) {
+				$defaults[ $connector_id ]['description'] = $description;
+			}
+			// Always update auth method; keep existing credentials_url as fallback.
+			$defaults[ $connector_id ]['authentication']['method'] = $authentication['method'];
+			if ( ! empty( $authentication['credentials_url'] ) ) {
+				$defaults[ $connector_id ]['authentication']['credentials_url'] = $authentication['credentials_url'];
+			}
+		} else {
+			$defaults[ $connector_id ] = array(
 				'name'           => $name ? $name : ucwords( $connector_id ),
 				'description'    => $description ? $description : '',
 				'type'           => 'ai_provider',
 				'authentication' => $authentication,
-			)
-		);
+			);
+		}
+	}
+
+	// Register all connectors.
+	foreach ( $defaults as $id => $args ) {
+		wp_register_connector( $id, $args );
 	}
 }
 
