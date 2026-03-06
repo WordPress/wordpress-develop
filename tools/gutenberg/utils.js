@@ -12,7 +12,7 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
 
-// Paths
+// Paths.
 const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 
@@ -59,13 +59,13 @@ function verifyGutenbergVersion() {
 		const installedHash = fs.readFileSync( hashFilePath, 'utf8' ).trim();
 		if ( installedHash !== sha ) {
 			console.error(
-				`❌ SHA mismatch: expected ${ sha } but found ${ installedHash }. Run \`npm run grunt gutenberg-download -- --force\` to download the correct version.`
+				`❌ SHA mismatch: expected ${ sha } but found ${ installedHash }. Run \`npm run grunt gutenberg:download -- --force\` to download the correct version.`
 			);
 			process.exit( 1 );
 		}
 	} catch ( error ) {
 		if ( error.code === 'ENOENT' ) {
-			console.error( `❌ .gutenberg-hash not found. Run \`npm run grunt gutenberg-download\` to download Gutenberg.` );
+			console.error( `❌ .gutenberg-hash not found. Run \`npm run grunt gutenberg:download\` to download Gutenberg.` );
 		} else {
 			console.error( `❌ ${ error.message }` );
 		}

@@ -19,7 +19,7 @@ const { Writable } = require( 'stream' );
 const { pipeline } = require( 'stream/promises' );
 const path = require( 'path' );
 const zlib = require( 'zlib' );
-const { rootDir, gutenbergDir, readGutenbergConfig, verifyGutenbergVersion } = require( './utils' );
+const { gutenbergDir, readGutenbergConfig, verifyGutenbergVersion } = require( './utils' );
 
 /**
  * Main execution function.
