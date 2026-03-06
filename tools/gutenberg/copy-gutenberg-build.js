@@ -98,6 +98,7 @@ const COPY_CONFIG = {
 			{ from: 'theme.json', to: 'theme.json' },
 			{ from: 'theme-i18n.json', to: 'theme-i18n.json' },
 		],
+		transform: true,
 	},
 
 	// Specific files to copy to wp-includes/$destination
