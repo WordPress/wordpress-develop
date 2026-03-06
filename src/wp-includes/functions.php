@@ -2184,7 +2184,7 @@ function path_join( $base, $path ) {
  * @param string $path Path to normalize.
  * @return string Normalized path.
  */
-function wp_normalize_path( $path ) {
+function wp_normalize_path( $path ): string {
 	$path = (string) $path;
 
 	static $cache = array();
@@ -2193,7 +2193,7 @@ function wp_normalize_path( $path ) {
 	}
 
 	$original_path = $path;
-	$wrapper = '';
+	$wrapper       = '';
 
 	if ( wp_is_stream( $path ) ) {
 		list( $wrapper, $path ) = explode( '://', $path, 2 );
@@ -2205,7 +2205,7 @@ function wp_normalize_path( $path ) {
 	$path = str_replace( '\\', '/', $path );
 
 	// Replace multiple slashes down to a singular, allowing for network shares having two slashes.
-	$path = preg_replace( '|(?<=.)/+|', '/', $path );
+	$path = (string) preg_replace( '|(?<=.)/+|', '/', $path );
 
 	// Windows paths should uppercase the drive letter.
 	if ( ':' === substr( $path, 1, 1 ) ) {
