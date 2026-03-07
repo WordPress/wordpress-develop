@@ -10,7 +10,7 @@
  *
  * The 10 newest rows are never deleted, never absent. There is no step 2.
  *
- * Post meta compaction (beta 1) does this:
+ * Post meta compaction (beta 1–3) does this:
  *   1. delete_post_meta() — removes ALL 50 updates in one call.
  *   2. add_post_meta() — re-inserts the 10 newest updates one at a time.
  *
@@ -19,7 +19,7 @@
  * should still exist.
  *
  * Usage:
- *   npm run env:cli -- eval-file tools/local-env/scripts/collaboration-perf/DO_NOT_RELEASE_prove-data-loss.php
+ *   npm run env:cli -- eval-file tools/local-env/scripts/collaboration-perf/DO_NOT_RELEASE_prove-beta3-post_meta_data_loss.php
  *
  * @package WordPress
  */
@@ -113,13 +113,14 @@ $meta_count   = count( array_filter( $meta_visible, 'is_array' ) );
 // Step 2 of 2 (re-insert kept updates) would happen here, but the gap already occurred.
 
 // =====================================================================
-// Gap at scale.
+// Compaction at scale.
 //
-// The gap is the time between delete_post_meta() and the last
-// add_post_meta() — the window where all updates are missing.
-// More updates to keep = more add_post_meta() calls = wider gap.
+// Post meta: the data loss window is the time between
+// delete_post_meta() and the last add_post_meta() — more updates
+// to keep = more add_post_meta() calls = wider window.
 //
-// Table compaction has no gap. The kept rows are never removed.
+// Table: rows are never absent — verify by reading immediately
+// after compaction at each scale.
 // =====================================================================
 
 $gap_scales  = array( 50, 200, 500, 1000 );
@@ -135,7 +136,8 @@ foreach ( $gap_scales as $gap_total ) {
 
 	WP_CLI::log( "  Scale: {$gap_total} updates (keep {$gap_keep})" );
 
-	// Seed post meta for this scale.
+	// --- Post meta: measure the data loss window. ---
+
 	$gap_post_id = wp_insert_post( array(
 		'post_type'   => 'wp_sync_storage',
 		'post_status' => 'publish',
@@ -148,13 +150,9 @@ foreach ( $gap_scales as $gap_total ) {
 		) );
 	}
 
-	// The cursor: timestamp of the first update to keep.
-	$gap_cursor = 1000 + $gap_discard;
-
-	// Read all updates before deleting (same as production code path).
+	$gap_cursor  = 1000 + $gap_discard;
 	$all_updates = get_post_meta( $gap_post_id, 'wp_sync_update', false );
 
-	// Measure the full gap: delete all, then re-insert each kept update.
 	$gap_start = microtime( true );
 	delete_post_meta( $gap_post_id, 'wp_sync_update' );
 	foreach ( $all_updates as $envelope ) {
@@ -162,16 +160,36 @@ foreach ( $gap_scales as $gap_total ) {
 			add_post_meta( $gap_post_id, 'wp_sync_update', $envelope );
 		}
 	}
-	$gap_ms = ( microtime( true ) - $gap_start ) * 1000;
+	$meta_gap_ms = ( microtime( true ) - $gap_start ) * 1000;
+
+	wp_delete_post( $gap_post_id, true );
+
+	// --- Table: verify rows are never absent. ---
+
+	$wpdb->query( "TRUNCATE TABLE {$wpdb->collaboration}" );
+	$storage = new WP_Collaboration_Table_Storage();
+	for ( $i = 0; $i < $gap_total; $i++ ) {
+		$storage->add_update( $gap_room, array( 'edit' => $i ) );
+	}
+
+	$table_cursor = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT id FROM {$wpdb->collaboration} WHERE room = %s ORDER BY id DESC LIMIT 1 OFFSET %d",
+		$gap_room,
+		$gap_keep - 1
+	) );
+
+	$storage->remove_updates_before_cursor( $gap_room, $table_cursor );
+
+	$reader              = new WP_Collaboration_Table_Storage();
+	$table_after         = $reader->get_updates_after_cursor( $gap_room, 0 );
+	$table_visible_count = count( $table_after );
 
 	$gap_results[] = array(
-		'total'  => $gap_total,
-		'keep'   => $gap_keep,
-		'gap_ms' => $gap_ms,
+		'total'         => $gap_total,
+		'keep'          => $gap_keep,
+		'meta_gap_ms'   => $meta_gap_ms,
+		'table_visible' => $table_visible_count,
 	);
-
-	// Cleanup this scale.
-	wp_delete_post( $gap_post_id, true );
 }
 
 // =====================================================================
@@ -181,7 +199,7 @@ foreach ( $gap_scales as $gap_total ) {
 $separator = str_repeat( '─', 60 );
 
 WP_CLI::log( '' );
-WP_CLI::log( WP_CLI::colorize( '%_Sync Compaction Data Integrity Test%n' ) );
+WP_CLI::log( WP_CLI::colorize( '%_Compaction Data Integrity Test%n' ) );
 WP_CLI::log( 'Run: ' . gmdate( 'Y-m-d H:i:s' ) . ' UTC' );
 WP_CLI::log( '' );
 WP_CLI::log( "Compaction triggers at {$total} updates. Keeps {$keep} newest, discards {$discard} oldest." );
@@ -189,7 +207,7 @@ WP_CLI::log( WP_CLI::colorize( "%_Expected: {$keep} newest updates remain visibl
 
 WP_CLI::log( '' );
 WP_CLI::log( $separator );
-WP_CLI::log( WP_CLI::colorize( '%_Table (proposed)%n' ) );
+WP_CLI::log( WP_CLI::colorize( '%_Table (this PR)%n' ) );
 WP_CLI::log( $separator );
 WP_CLI::log( "  DELETE WHERE id < cutoff — only the {$discard} oldest removed." );
 WP_CLI::log( '' );
@@ -201,7 +219,7 @@ WP_CLI::log( $table_verdict );
 
 WP_CLI::log( '' );
 WP_CLI::log( $separator );
-WP_CLI::log( WP_CLI::colorize( '%_Post Meta (current beta 1)%n' ) );
+WP_CLI::log( WP_CLI::colorize( '%_Post Meta (beta 1–3)%n' ) );
 WP_CLI::log( $separator );
 WP_CLI::log( "  delete_post_meta() removes all {$total}, then add_post_meta() re-inserts {$keep}." );
 WP_CLI::log( '' );
@@ -213,22 +231,23 @@ WP_CLI::log( $meta_verdict );
 
 WP_CLI::log( '' );
 WP_CLI::log( $separator );
-WP_CLI::log( WP_CLI::colorize( '%_Post Meta gap at scale%n' ) );
+WP_CLI::log( WP_CLI::colorize( '%_Compaction at scale%n' ) );
 WP_CLI::log( $separator );
-WP_CLI::log( '  Duration where all updates are missing:' );
 WP_CLI::log( '' );
 
-$scale_items = array();
+$scale_fields = array( 'Updates (keep 20%)', 'Post meta data loss window', 'Table rows visible' );
+$scale_items  = array();
 foreach ( $gap_results as $gap ) {
+	$table_label   = $gap['table_visible'] >= $gap['keep']
+		? "{$gap['table_visible']} of {$gap['keep']} — OK"
+		: "{$gap['table_visible']} of {$gap['keep']} — UNEXPECTED";
 	$scale_items[] = array(
-		'Updates (keep 20%)' => sprintf( '%d (keep %d)', $gap['total'], $gap['keep'] ),
-		'Gap'                => sprintf( '%.1f ms', $gap['gap_ms'] ),
+		'Updates (keep 20%)'         => sprintf( '%d (keep %d)', $gap['total'], $gap['keep'] ),
+		'Post meta data loss window' => sprintf( '%.1f ms', $gap['meta_gap_ms'] ),
+		'Table rows visible'         => $table_label,
 	);
 }
-WP_CLI\Utils\format_items( 'table', $scale_items, array( 'Updates (keep 20%)', 'Gap' ) );
-
-WP_CLI::log( '' );
-WP_CLI::log( WP_CLI::colorize( '  %GTable: no gap at any scale.%n' ) );
+WP_CLI\Utils\format_items( 'table', $scale_items, $scale_fields );
 
 // Cleanup.
 wp_delete_post( $post_id, true );
