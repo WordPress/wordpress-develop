@@ -6095,9 +6095,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		}
 	} elseif ( $is_low_fetchpriority ) {
 		/*
-		 * An IMG with fetchpriority=low is not initially displayed, as it may be a hidden in the Navigation Overlay,
-		 * or it may be occluded in a non-initial carousel slide. Such images must not be lazy-loaded since the browser
-		 * has no heuristic to know when to start loading them prior the user needing to see them.
+		 * An IMG with fetchpriority=low is not initially displayed; it may be hidden in the Navigation Overlay,
+		 * or it may be occluded in a non-initial carousel slide. Such images must not be lazy-loaded because the browser
+		 * has no heuristic to know when to start loading them before the user needs to see them.
 		 */
 		$maybe_in_viewport = false;
 	}
