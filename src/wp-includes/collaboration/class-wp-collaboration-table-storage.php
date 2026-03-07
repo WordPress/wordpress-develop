@@ -202,7 +202,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 		$updates = array();
 		foreach ( $rows as $row ) {
 			$decoded = json_decode( $row->update_value, true );
-			if ( json_last_error() === JSON_ERROR_NONE ) {
+			if ( is_array( $decoded ) ) {
 				$updates[] = $decoded;
 			}
 		}

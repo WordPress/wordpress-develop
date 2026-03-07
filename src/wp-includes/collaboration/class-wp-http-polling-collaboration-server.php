@@ -453,13 +453,14 @@ class WP_HTTP_Polling_Collaboration_Server {
 				if ( ! $has_newer_compaction ) {
 					if ( ! $this->storage->remove_updates_before_cursor( $room, $cursor ) ) {
 						global $wpdb;
+						$data = array( 'status' => 500 );
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							$data['db_error'] = $wpdb->last_error;
+						}
 						return new WP_Error(
 							'rest_collaboration_storage_error',
 							__( 'Failed to remove updates during compaction.' ),
-							array(
-								'status'   => 500,
-								'db_error' => $wpdb->last_error,
-							)
+							$data
 						);
 					}
 
@@ -512,13 +513,14 @@ class WP_HTTP_Polling_Collaboration_Server {
 
 		if ( ! $this->storage->add_update( $room, $update ) ) {
 			global $wpdb;
+			$data = array( 'status' => 500 );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$data['db_error'] = $wpdb->last_error;
+			}
 			return new WP_Error(
 				'rest_collaboration_storage_error',
 				__( 'Failed to store collaboration update.' ),
-				array(
-					'status'   => 500,
-					'db_error' => $wpdb->last_error,
-				)
+				$data
 			);
 		}
 
