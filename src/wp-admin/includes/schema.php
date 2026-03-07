@@ -205,6 +205,7 @@ CREATE TABLE $wpdb->awareness (
 	created_at datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
 	UNIQUE KEY room_client (room,client_id),
+	KEY room_created_at (room,created_at),
 	KEY created_at (created_at)
 ) $charset_collate;\n";
 
