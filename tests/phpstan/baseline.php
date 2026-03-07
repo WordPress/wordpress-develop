@@ -14,6 +14,24 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../src/wp-admin/themes.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Function twentyseventeen_edit_link invoked with 1 parameter, 0 required\\.$#',
+	'identifier' => 'arguments.count',
+	'count' => 1,
+	'path' => __DIR__ . '/../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page-panels.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentyseventeen_edit_link invoked with 1 parameter, 0 required\\.$#',
+	'identifier' => 'arguments.count',
+	'count' => 1,
+	'path' => __DIR__ . '/../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentyseventeen_edit_link invoked with 1 parameter, 0 required\\.$#',
+	'identifier' => 'arguments.count',
+	'count' => 1,
+	'path' => __DIR__ . '/../../src/wp-content/themes/twentyseventeen/template-parts/page/content-page.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Variable \\$addl_path in empty\\(\\) always exists and is always falsy\\.$#',
 	'identifier' => 'empty.variable',
 	'count' => 1,
