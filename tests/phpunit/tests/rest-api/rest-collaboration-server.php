@@ -1585,6 +1585,24 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * Validates that REST accepts room names at the column width boundary (191 chars).
+	 *
+	 * @ticket 63
+	 */
+	public function test_collaboration_room_name_at_max_length_accepted() {
+		wp_set_current_user( self::$editor_id );
+
+		// 191 characters using a collection room: 'root/' (5) + 186 chars.
+		$room = 'root/' . str_repeat( 'a', 186 );
+		$this->assertSame( 191, strlen( $room ), 'Room name should be 191 characters.' );
+
+		$rooms    = array( $this->build_room( $room ) );
+		$response = $this->dispatch_collaboration( $rooms );
+
+		$this->assertSame( 200, $response->get_status(), 'REST should accept room names at 191 characters.' );
+	}
+
+	/**
 	 * Validates that REST rejects room names exceeding the column width (191 chars).
 	 *
 	 * @ticket 63
