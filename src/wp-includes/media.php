@@ -6100,6 +6100,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * has no heuristic to know when to start loading them before the user needs to see them.
 		 */
 		$maybe_in_viewport = false;
+
+		// Preserve fetchpriority=low.
+		$loading_attrs['fetchpriority'] = 'low';
 	}
 
 	if ( null === $maybe_in_viewport ) {
@@ -6171,11 +6174,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		if ( wp_lazy_loading_enabled( $tag_name, $context ) ) {
 			$loading_attrs['loading'] = 'lazy';
 		}
-	}
-
-	// Preserve fetchpriority=low.
-	if ( $is_low_fetchpriority ) {
-		$loading_attrs['fetchpriority'] = 'low';
 	}
 
 	/*
