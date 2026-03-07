@@ -6173,7 +6173,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		}
 	}
 
-	// Preserve fetchpriorit=low.
+	// Preserve fetchpriority=low.
 	if ( $is_low_fetchpriority ) {
 		$loading_attrs['fetchpriority'] = 'low';
 	}
