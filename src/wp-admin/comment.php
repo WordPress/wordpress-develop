@@ -14,9 +14,8 @@ $submenu_file = 'edit-comments.php';
 
 /**
  * @global string $action
- * @global int    $comment_id Comment ID.
  */
-global $action, $comment_id;
+global $action;
 
 $action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 
@@ -49,7 +48,8 @@ if ( isset( $_REQUEST['c'] ) ) {
 		);
 	}
 } else {
-	$comment = null;
+	$comment_id = 0;
+	$comment    = null;
 }
 
 switch ( $action ) {

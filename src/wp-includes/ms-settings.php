@@ -33,8 +33,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  *                                  Use `get_current_network_id()` instead.
  * @global bool       $public       Deprecated. Whether the site found on load is public.
  *                                  Use `get_site()->public` instead.
+ * @global string     $table_prefix Database table prefix.
+ * @global wpdb       $wpdb         WordPress database abstraction object.
  */
-global $current_site, $current_blog, $domain, $path, $site_id, $public;
+global $current_site, $current_blog, $domain, $path, $site_id, $public, $table_prefix, $wpdb;
 
 /** WP_Network class */
 require_once ABSPATH . WPINC . '/class-wp-network.php';
