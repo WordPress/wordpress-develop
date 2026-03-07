@@ -104,9 +104,6 @@ parameters:
 			message: '#Variable \$comment_closing_at might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$comment_id might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$comment_ids might not be defined\.#'
 		-
 			identifier: variable.undefined
