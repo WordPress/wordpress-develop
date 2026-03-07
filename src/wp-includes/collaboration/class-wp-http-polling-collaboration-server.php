@@ -132,10 +132,9 @@ class WP_HTTP_Polling_Collaboration_Server {
 				'type'     => 'integer',
 			),
 			'room'      => array(
-				'required'  => true,
-				'type'      => 'string',
-				'pattern'   => '^[^/]+/[^/:]+(?::\\S+)?$',
-				'maxLength' => 255, // The size of the wp_collaboration.room column.
+				'required' => true,
+				'type'     => 'string',
+				'pattern'  => '^[^/]+/[^/:]+(?::\\S+)?$',
 			),
 			'updates'   => array(
 				'items'    => $typed_update_args,
@@ -206,6 +205,15 @@ class WP_HTTP_Polling_Collaboration_Server {
 		foreach ( $rooms as $room ) {
 			$client_id = $room['client_id'];
 			$room      = $room['room'];
+
+			// Matches $max_index_length in wp-admin/includes/schema.php.
+			if ( mb_strlen( $room ) > 191 ) {
+				return new WP_Error(
+					'rest_collaboration_room_too_long',
+					__( 'Room name is too long.' ),
+					array( 'status' => 400 )
+				);
+			}
 
 			// Check that the client_id is not already owned by another user.
 			$existing_awareness = $this->storage->get_awareness_state( $room );

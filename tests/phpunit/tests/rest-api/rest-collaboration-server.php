@@ -1513,4 +1513,137 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Only the recent sync update row should survive cron cleanup.' );
 		$this->assertSame( 0, $this->get_awareness_row_count(), 'Expired awareness row should be deleted after cron cleanup.' );
 	}
+
+	/**
+	 * Verifies that wp_user_id is stored as a dedicated column,
+	 * not embedded inside the update_value JSON blob.
+	 *
+	 * @ticket 63
+	 */
+	public function test_collaboration_awareness_wp_user_id_round_trip() {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room  = $this->get_post_room();
+		$rooms = array( $this->build_room( $room, 1, 0, array( 'cursor' => array( 'x' => 10 ) ) ) );
+
+		$response = $this->dispatch_collaboration( $rooms );
+		$this->assertSame( 200, $response->get_status(), 'Dispatch should succeed.' );
+
+		// Query the awareness table directly.
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT wp_user_id, update_value FROM {$wpdb->awareness} WHERE room = %s AND client_id = %d",
+				$room,
+				1
+			)
+		);
+
+		$this->assertNotNull( $row, 'Awareness row should exist.' );
+		$this->assertSame( self::$editor_id, (int) $row->wp_user_id, 'wp_user_id column should match the editor.' );
+		$this->assertStringNotContainsString( 'wp_user_id', $row->update_value, 'update_value should not contain wp_user_id.' );
+	}
+
+	/**
+	 * Verifies that the is_array() guard in get_awareness_state() skips
+	 * rows where update_value contains valid JSON that is not an array.
+	 *
+	 * @ticket 63
+	 */
+	public function test_collaboration_awareness_non_array_json_ignored() {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Insert a malformed awareness row with a JSON string (not an array).
+		$wpdb->insert(
+			$wpdb->awareness,
+			array(
+				'room'         => $room,
+				'client_id'    => 99,
+				'wp_user_id'   => self::$editor_id,
+				'update_value' => '"hello"',
+				'created_at'   => gmdate( 'Y-m-d H:i:s' ),
+			),
+			array( '%s', '%d', '%d', '%s', '%s' )
+		);
+
+		// Dispatch as a different client so the response includes other clients' awareness.
+		$rooms    = array( $this->build_room( $room, 2, 0, array( 'cursor' => 'here' ) ) );
+		$response = $this->dispatch_collaboration( $rooms );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$awareness = $data['rooms'][0]['awareness'];
+
+		$this->assertArrayNotHasKey( 99, $awareness, 'Non-array JSON row should not appear in awareness.' );
+		$this->assertArrayHasKey( 2, $awareness, 'The dispatching client should appear in awareness.' );
+	}
+
+	/**
+	 * Validates that REST rejects room names exceeding the column width (191 chars).
+	 *
+	 * @ticket 63
+	 */
+	public function test_collaboration_room_name_max_length_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		// 192 characters: 'postType/' (9) + 183 chars.
+		$long_room = 'postType/' . str_repeat( 'a', 183 );
+		$this->assertSame( 192, strlen( $long_room ), 'Room name should be 192 characters.' );
+
+		$rooms    = array( $this->build_room( $long_room ) );
+		$response = $this->dispatch_collaboration( $rooms );
+
+		$this->assertSame( 400, $response->get_status(), 'REST should reject room names exceeding 191 characters.' );
+	}
+
+	/**
+	 * Verifies that sending awareness as null reads existing state without writing.
+	 *
+	 * @ticket 63
+	 */
+	public function test_collaboration_null_awareness_skips_write() {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 1 dispatches with awareness state (writes a row).
+		$rooms = array( $this->build_room( $room, 1, 0, array( 'cursor' => 'active' ) ) );
+		$this->dispatch_collaboration( $rooms );
+
+		// Client 2 dispatches with awareness = null (should not write).
+		$request = new WP_REST_Request( 'POST', '/wp-collaboration/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => null,
+						'client_id' => 2,
+						'room'      => $room,
+						'updates'   => array(),
+					),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Null awareness dispatch should succeed.' );
+
+		// Assert awareness table has exactly 1 row (client 1 only).
+		$row_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->awareness}" );
+		$this->assertSame( 1, $row_count, 'Only client 1 should have an awareness row.' );
+
+		// Assert response still contains client 1's awareness (read still works).
+		$data      = $response->get_data();
+		$awareness = $data['rooms'][0]['awareness'];
+		$this->assertArrayHasKey( 1, $awareness, 'Client 1 awareness should be readable by client 2.' );
+		$this->assertSame( array( 'cursor' => 'active' ), $awareness[1], 'Client 1 awareness state should match.' );
+	}
 }
