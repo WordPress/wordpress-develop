@@ -140,9 +140,9 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	/**
 	 * Retrieves updates from a room after a given cursor.
 	 *
-	 * Uses a snapshot approach: captures MAX(id) first, then fetches rows
-	 * WHERE id > cursor AND id <= max_id. Updates arriving after the snapshot
-	 * are deferred to the next poll, never lost.
+	 * Uses a snapshot approach: captures MAX(id) and COUNT(*) in a single
+	 * query, then fetches rows WHERE id > cursor AND id <= max_id. Updates
+	 * arriving after the snapshot are deferred to the next poll, never lost.
 	 *
 	 * @since 7.0.0
 	 *
@@ -155,13 +155,22 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	public function get_updates_after_cursor( string $room, int $cursor ): array {
 		global $wpdb;
 
-		// Snapshot the current max ID for this room.
-		$max_id = (int) $wpdb->get_var(
+		// Snapshot the current max ID and total row count in a single query.
+		$snapshot = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->collaboration} WHERE room = %s",
+				"SELECT COALESCE( MAX( id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s",
 				$room
 			)
 		);
+
+		if ( ! $snapshot ) {
+			$this->room_cursors[ $room ]       = 0;
+			$this->room_update_counts[ $room ] = 0;
+			return array();
+		}
+
+		$max_id = (int) $snapshot->max_id;
+		$total  = (int) $snapshot->total;
 
 		$this->room_cursors[ $room ] = $max_id;
 
@@ -170,14 +179,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 			return array();
 		}
 
-		// Count total rows for this room (used by compaction threshold logic).
-		$this->room_update_counts[ $room ] = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND id <= %d",
-				$room,
-				$max_id
-			)
-		);
+		$this->room_update_counts[ $room ] = $total;
 
 		// Fetch updates after the cursor up to the snapshot boundary.
 		$rows = $wpdb->get_results(
