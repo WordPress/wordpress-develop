@@ -9,6 +9,7 @@
  * @package WordPress
  */
 
+const child_process = require( 'child_process' );
 const fs = require( 'fs' );
 const path = require( 'path' );
 const json2php = require( 'json2php' );
@@ -353,18 +354,9 @@ function generateScriptModulesPackages() {
 				const jsPathRegular = jsPathMin.replace( /\.min\.js$/, '.js' );
 
 				try {
-					// Read and parse the PHP asset file.
-					const phpContent = fs.readFileSync( fullPath, 'utf8' );
-					// Extract the array from PHP: <?php return array(...);
-					const match = phpContent.match(
-						/return\s+array\(([\s\S]*?)\);/
-					);
-					if ( match ) {
-						// Parse PHP array to JavaScript object.
-						const assetData = parsePHPArray( match[ 1 ] );
-						assetsMin[ jsPathMin ] = assetData;
-						assetsRegular[ jsPathRegular ] = assetData;
-					}
+					const assetData = readReturnedValueFromPHPFile( fullPath );
+					assetsMin[ jsPathMin ] = assetData;
+					assetsRegular[ jsPathRegular ] = assetData;
 				} catch ( error ) {
 					console.error(
 						`   ⚠️  Error reading ${ relativePath }:`,
@@ -446,26 +438,19 @@ function generateScriptLoaderPackages() {
 		}
 
 		try {
-			// Read and parse the PHP asset file.
-			const phpContent = fs.readFileSync( assetFile, 'utf8' );
-			// Extract the array from PHP: <?php return array(...);
-			const match = phpContent.match( /return\s+array\(([\s\S]*?)\);/ );
-			if ( match ) {
-				// Parse PHP array to JavaScript object.
-				const assetData = parsePHPArray( match[ 1 ] );
+			const assetData = readReturnedValueFromPHPFile( assetFile );
 
-				// For regular scripts, use dependencies as-is.
-				if ( ! assetData.dependencies ) {
-					assetData.dependencies = [];
-				}
-
-				// Create entries for both minified and non-minified versions.
-				const jsPathMin = `${ entry.name }.min.js`;
-				const jsPathRegular = `${ entry.name }.js`;
-
-				assetsMin[ jsPathMin ] = assetData;
-				assetsRegular[ jsPathRegular ] = assetData;
+			// For regular scripts, use dependencies as-is.
+			if ( ! assetData.dependencies ) {
+				assetData.dependencies = [];
 			}
+
+			// Create entries for both minified and non-minified versions.
+			const jsPathMin = `${ entry.name }.min.js`;
+			const jsPathRegular = `${ entry.name }.js`;
+
+			assetsMin[ jsPathMin ] = assetData;
+			assetsRegular[ jsPathRegular ] = assetData;
 		} catch ( error ) {
 			console.error(
 				`   ⚠️  Error reading ${ entry.name }/index.min.asset.php:`,
@@ -663,179 +648,39 @@ function generateBlocksJson() {
 }
 
 /**
- * Parse PHP array syntax to JavaScript object.
- * Uses a simple but effective approach for the specific format in asset files.
+ * Given a path to a PHP file which returns a single value, converts that
+ * value into a native JavaScript value (limited by JSON serialization).
  *
- * @param {string} phpArrayContent - PHP array content (without outer 'array(' and ')').
- * @return {Object|Array} Parsed JavaScript object or array.
+ * @throws Error when PHP source file unable to be read, or PHP is unavailable.
+ *
+ * @param {string} phpFilepath Absolute path of PHP file returning a single value.
+ * @return {Object|Array} JavaScript representation of value from input file.
  */
-function parsePHPArray( phpArrayContent ) {
-	phpArrayContent = phpArrayContent.trim();
-
-	// First, extract all nested array() blocks and replace with placeholders.
-	const nestedArrays = [];
-	let content = phpArrayContent;
-	let depth = 0;
-	let inString = false;
-	let stringChar = '';
-	let currentArray = '';
-	let arrayStart = -1;
-
-	for ( let i = 0; i < content.length; i++ ) {
-		const char = content[ i ];
-
-		// Track strings.
-		if (
-			( char === "'" || char === '"' ) &&
-			( i === 0 || content[ i - 1 ] !== '\\' )
-		) {
-			if ( ! inString ) {
-				inString = true;
-				stringChar = char;
-			} else if ( char === stringChar ) {
-				inString = false;
-			}
+function readReturnedValueFromPHPFile( phpFilepath ) {
+	const results = child_process.spawnSync(
+		'php',
+		[ '-r', '$path = file_get_contents( "php://stdin" ); if ( ! is_file( $path ) ) { die( 1 ); } try { $data = require $path; } catch ( \\Throwable $e ) { die( 2 ); } $json = json_encode( $data ); if ( ! is_string( $json ) ) { die( 3 ); } echo $json;' ],
+		{
+			encoding: 'utf8',
+			input: phpFilepath,
 		}
+	);
 
-		if ( ! inString ) {
-			// Look for array( keyword.
-			if ( content.substring( i, i + 6 ) === 'array(' ) {
-				if ( depth === 0 ) {
-					arrayStart = i;
-					currentArray = '';
-				}
-				depth++;
-				if ( depth > 1 ) {
-					currentArray += 'array(';
-				}
-				i += 5; // Skip 'array('.
-				continue;
-			}
+	switch ( results.status ) {
+		case 0:
+			return JSON.parse( results.stdout );
 
-			if ( depth > 0 ) {
-				if ( char === '(' ) {
-					depth++;
-					currentArray += char;
-				} else if ( char === ')' ) {
-					depth--;
-					if ( depth === 0 ) {
-						// Found complete nested array.
-						const placeholder = `__ARRAY_${ nestedArrays.length }__`;
-						nestedArrays.push( currentArray );
-						content =
-							content.substring( 0, arrayStart ) +
-							placeholder +
-							content.substring( i + 1 );
-						i = arrayStart + placeholder.length - 1;
-						currentArray = '';
-					} else {
-						currentArray += char;
-					}
-				} else {
-					currentArray += char;
-				}
-			}
-		} else if ( depth > 0 ) {
-			currentArray += char;
-		}
+		case 1:
+			throw new Error( `Could not read PHP source file: '${ phpFilepath }'` );
+
+		case 2:
+			throw new Error( `PHP source file did not return value when imported: '${ phpFilepath }'` );
+
+		case 3:
+			throw new Error( `Could not serialize PHP source value into JSON: '${ phpFilepath }'` );
 	}
 
-	// Now parse the simplified content.
-	const result = {};
-	const values = [];
-	let isAssociative = false;
-
-	// Split by top-level commas.
-	const parts = [];
-	depth = 0;
-	inString = false;
-	let currentPart = '';
-
-	for ( let i = 0; i < content.length; i++ ) {
-		const char = content[ i ];
-
-		if (
-			( char === "'" || char === '"' ) &&
-			( i === 0 || content[ i - 1 ] !== '\\' )
-		) {
-			inString = ! inString;
-		}
-
-		if ( ! inString && char === ',' && depth === 0 ) {
-			parts.push( currentPart.trim() );
-			currentPart = '';
-		} else {
-			currentPart += char;
-			if ( ! inString ) {
-				if ( char === '(' ) {
-					depth++;
-				}
-				if ( char === ')' ) {
-					depth--;
-				}
-			}
-		}
-	}
-	if ( currentPart.trim() ) {
-		parts.push( currentPart.trim() );
-	}
-
-	// Parse each part.
-	for ( const part of parts ) {
-		const arrowMatch = part.match( /^(.+?)\s*=>\s*(.+)$/ );
-
-		if ( arrowMatch ) {
-			isAssociative = true;
-			let key = arrowMatch[ 1 ].trim().replace( /^['"]|['"]$/g, '' );
-			let value = arrowMatch[ 2 ].trim();
-
-			// Replace placeholders.
-			while ( value.match( /__ARRAY_(\d+)__/ ) ) {
-				value = value.replace( /__ARRAY_(\d+)__/, ( match, index ) => {
-					return 'array(' + nestedArrays[ parseInt( index ) ] + ')';
-				} );
-			}
-
-			result[ key ] = parseValue( value );
-		} else {
-			// No arrow, indexed array.
-			let value = part;
-
-			// Replace placeholders.
-			while ( value.match( /__ARRAY_(\d+)__/ ) ) {
-				value = value.replace( /__ARRAY_(\d+)__/, ( match, index ) => {
-					return 'array(' + nestedArrays[ parseInt( index ) ] + ')';
-				} );
-			}
-
-			values.push( parseValue( value ) );
-		}
-	}
-
-	return isAssociative ? result : values;
-
-	/**
-	 * Parse a single value.
-	 *
-	 * @param {string} value - The value string to parse.
-	 * @return {*} Parsed value.
-	 */
-	function parseValue( value ) {
-		value = value.trim();
-
-		if ( value.startsWith( 'array(' ) && value.endsWith( ')' ) ) {
-			return parsePHPArray( value.substring( 6, value.length - 1 ) );
-		} else if ( value.match( /^['"].*['"]$/ ) ) {
-			return value.substring( 1, value.length - 1 );
-		} else if ( value === 'true' ) {
-			return true;
-		} else if ( value === 'false' ) {
-			return false;
-		} else if ( ! isNaN( value ) && value !== '' ) {
-			return parseInt( value, 10 );
-		}
-		return value;
-	}
+	throw new Error( `Unknown error while reading PHP source file: '${ phpFilepath }'` );
 }
 
 /**
