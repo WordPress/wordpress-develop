@@ -1664,4 +1664,52 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertArrayHasKey( 1, $awareness, 'Client 1 awareness should be readable by client 2.' );
 		$this->assertSame( array( 'cursor' => 'active' ), $awareness[1], 'Client 1 awareness state should match.' );
 	}
+
+	/*
+	 * Query count tests.
+	 */
+
+	/**
+	 * An idle poll (no new updates) should use at most 3 queries per room:
+	 * 1. INSERT … ON DUPLICATE KEY UPDATE (awareness upsert)
+	 * 2. SELECT … FROM awareness (awareness read + ownership check)
+	 * 3. SELECT MAX(id), COUNT(*) FROM collaboration (snapshot + count)
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_idle_poll_query_count(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Prime awareness so subsequent polls are idle heartbeats.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'test' ) ),
+			)
+		);
+
+		$cursor = 0;
+
+		// Count queries for an idle poll (no updates to fetch).
+		$queries_before = $wpdb->num_queries;
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, $cursor, array( 'user' => 'test' ) ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status(), 'Idle poll should succeed.' );
+
+		$query_count = $wpdb->num_queries - $queries_before;
+
+		$this->assertLessThanOrEqual(
+			3,
+			$query_count,
+			sprintf( 'Idle poll should use at most 3 queries per room, used %d.', $query_count )
+		);
+	}
 }
