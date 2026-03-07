@@ -13,7 +13,7 @@ use WordPress\AiClient\AiClient;
  * Returns whether AI features are supported in the current environment.
  *
  * @since 7.0.0
- * 
+ *
  * @return bool Whether AI features are supported.
  */
 function wp_supports_ai(): bool {
