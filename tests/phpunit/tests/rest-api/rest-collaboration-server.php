@@ -1518,7 +1518,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Verifies that wp_user_id is stored as a dedicated column,
 	 * not embedded inside the update_value JSON blob.
 	 *
-	 * @ticket 63
+	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_wp_user_id_round_trip() {
 		global $wpdb;
@@ -1549,7 +1549,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Verifies that the is_array() guard in get_awareness_state() skips
 	 * rows where update_value contains valid JSON that is not an array.
 	 *
-	 * @ticket 63
+	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_non_array_json_ignored() {
 		global $wpdb;
@@ -1587,7 +1587,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Validates that REST accepts room names at the column width boundary (191 chars).
 	 *
-	 * @ticket 63
+	 * @ticket 64696
 	 */
 	public function test_collaboration_room_name_at_max_length_accepted() {
 		wp_set_current_user( self::$editor_id );
@@ -1605,7 +1605,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Validates that REST rejects room names exceeding the column width (191 chars).
 	 *
-	 * @ticket 63
+	 * @ticket 64696
 	 */
 	public function test_collaboration_room_name_max_length_rejected() {
 		wp_set_current_user( self::$editor_id );
@@ -1623,7 +1623,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Verifies that sending awareness as null reads existing state without writing.
 	 *
-	 * @ticket 63
+	 * @ticket 64696
 	 */
 	public function test_collaboration_null_awareness_skips_write() {
 		global $wpdb;
