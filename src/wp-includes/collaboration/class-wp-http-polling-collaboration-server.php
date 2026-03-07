@@ -200,24 +200,10 @@ class WP_HTTP_Polling_Collaboration_Server {
 			);
 		}
 
-		$rooms      = $request['rooms'];
-		$wp_user_id = get_current_user_id();
+		$rooms = $request['rooms'];
 
 		foreach ( $rooms as $room ) {
-			$client_id = $room['client_id'];
-			$room      = $room['room'];
-
-			// Check that the client_id is not already owned by another user.
-			$existing_awareness = $this->storage->get_awareness_state( $room );
-			foreach ( $existing_awareness as $entry ) {
-				if ( $client_id === $entry['client_id'] && $wp_user_id !== $entry['wp_user_id'] ) {
-					return new WP_Error(
-						'rest_cannot_edit',
-						__( 'Client ID is already in use by another user.' ),
-						array( 'status' => rest_authorization_required_code() )
-					);
-				}
-			}
+			$room = $room['room'];
 
 			$type_parts   = explode( '/', $room, 2 );
 			$object_parts = explode( ':', $type_parts[1] ?? '', 2 );
@@ -263,8 +249,12 @@ class WP_HTTP_Polling_Collaboration_Server {
 			$cursor    = $room_request['after'];
 			$room      = $room_request['room'];
 
-			// Merge awareness state.
+			// Merge awareness state (also validates client_id ownership).
 			$merged_awareness = $this->process_awareness_update( $room, $client_id, $awareness );
+
+			if ( is_wp_error( $merged_awareness ) ) {
+				return $merged_awareness;
+			}
 
 			// The lowest client ID is nominated to perform compaction when needed.
 			$is_compactor = false;
@@ -371,22 +361,49 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Processes and stores an awareness update from a client.
 	 *
+	 * Also validates that the client_id is not already owned by another user.
+	 * This check uses the same get_awareness_state() query that builds the
+	 * response, eliminating a duplicate query that was previously performed
+	 * in check_permissions().
+	 *
 	 * @since 7.0.0
 	 *
 	 * @param string                    $room             Room identifier.
 	 * @param int                       $client_id        Client identifier.
 	 * @param array<string, mixed>|null $awareness_update Awareness state sent by the client.
-	 * @return array<int, array<string, mixed>> Map of client ID to awareness state.
+	 * @return array<int, array<string, mixed>>|WP_Error Map of client ID to awareness state, or WP_Error if client_id is owned by another user.
 	 */
-	private function process_awareness_update( string $room, int $client_id, ?array $awareness_update ): array {
-		if ( null !== $awareness_update ) {
-			$this->storage->set_awareness_state( $room, $client_id, $awareness_update, get_current_user_id() );
+	private function process_awareness_update( string $room, int $client_id, ?array $awareness_update ) {
+		$wp_user_id = get_current_user_id();
+
+		// Check ownership before upserting so a hijacked client_id is rejected.
+		$entries = $this->storage->get_awareness_state( $room, self::AWARENESS_TIMEOUT );
+
+		foreach ( $entries as $entry ) {
+			if ( $client_id === $entry['client_id'] && $wp_user_id !== $entry['wp_user_id'] ) {
+				return new WP_Error(
+					'rest_cannot_edit',
+					__( 'Client ID is already in use by another user.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
 		}
 
-		$entries  = $this->storage->get_awareness_state( $room, self::AWARENESS_TIMEOUT );
+		if ( null !== $awareness_update ) {
+			$this->storage->set_awareness_state( $room, $client_id, $awareness_update, $wp_user_id );
+		}
+
 		$response = array();
 		foreach ( $entries as $entry ) {
 			$response[ $entry['client_id'] ] = $entry['state'];
+		}
+
+		// Other clients' states were decoded from the DB. Run the current
+		// client's state through the same encode/decode path so the response
+		// is consistent — wp_json_encode may normalize values (e.g. strip
+		// invalid UTF-8) that would otherwise differ on the next poll.
+		if ( null !== $awareness_update ) {
+			$response[ $client_id ] = json_decode( wp_json_encode( $awareness_update ), true );
 		}
 
 		return $response;
