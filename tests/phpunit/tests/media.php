@@ -4552,7 +4552,7 @@ EOF;
 					'fetchpriority' => 'high',
 				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
-				"Expected first image to not be lazy-loaded. First large image gets high fetchpriority."
+				'Expected first image to not be lazy-loaded. First large image gets high fetchpriority.'
 			);
 
 			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
