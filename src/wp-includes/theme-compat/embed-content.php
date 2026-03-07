@@ -13,6 +13,7 @@
 	<div <?php post_class( 'wp-embed' ); ?>>
 		<?php
 		$thumbnail_id = 0;
+		$shape        = null;
 
 		if ( has_post_thumbnail() ) {
 			$thumbnail_id = get_post_thumbnail_id();
