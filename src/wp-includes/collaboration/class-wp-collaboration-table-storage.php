@@ -15,6 +15,8 @@
  * @since 7.0.0
  *
  * @access private
+ *
+ * @phpstan-import-type AwarenessState from WP_Collaboration_Storage
  */
 class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	/**
@@ -73,7 +75,8 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	 *
 	 * @param string $room    Room identifier.
 	 * @param int    $timeout Seconds before an awareness entry is considered expired.
-	 * @return array<int, array{client_id: int, state: mixed, wp_user_id: int}> Awareness entries.
+	 * @return array<int, array> Awareness entries.
+	 * @phpstan-return array<int, AwarenessState>
 	 */
 	public function get_awareness_state( string $room, int $timeout = 30 ): array {
 		global $wpdb;
@@ -241,10 +244,10 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $room       Room identifier.
-	 * @param int    $client_id  Client identifier.
-	 * @param array  $state      Serializable awareness state for this client.
-	 * @param int    $wp_user_id WordPress user ID that owns this client.
+	 * @param string               $room       Room identifier.
+	 * @param int                  $client_id  Client identifier.
+	 * @param array<string, mixed> $state      Serializable awareness state for this client.
+	 * @param int                  $wp_user_id WordPress user ID that owns this client.
 	 * @return bool True on success, false on failure.
 	 */
 	public function set_awareness_state( string $room, int $client_id, array $state, int $wp_user_id ): bool {

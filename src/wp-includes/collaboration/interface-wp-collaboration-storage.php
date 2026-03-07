@@ -10,6 +10,8 @@
  * Interface for collaboration storage backends used by the collaborative editing server.
  *
  * @since 7.0.0
+ *
+ * @phpstan-type AwarenessState array{client_id: int, state: array<string, mixed>, wp_user_id: int}
  */
 interface WP_Collaboration_Storage {
 	/**
@@ -32,7 +34,8 @@ interface WP_Collaboration_Storage {
 	 *
 	 * @param string $room    Room identifier.
 	 * @param int    $timeout Seconds before an awareness entry is considered expired.
-	 * @return array<int, array{client_id: int, state: mixed, wp_user_id: int}> Awareness entries.
+	 * @return array<int, array> Awareness entries.
+	 * @phpstan-return array<int, AwarenessState>
 	 */
 	public function get_awareness_state( string $room, int $timeout = 30 ): array;
 
@@ -86,10 +89,10 @@ interface WP_Collaboration_Storage {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param string $room       Room identifier.
-	 * @param int    $client_id  Client identifier.
-	 * @param array  $state      Serializable awareness state for this client.
-	 * @param int    $wp_user_id WordPress user ID that owns this client.
+	 * @param string               $room       Room identifier.
+	 * @param int                  $client_id  Client identifier.
+	 * @param array<string, mixed> $state      Serializable awareness state for this client.
+	 * @param int                  $wp_user_id WordPress user ID that owns this client.
 	 * @return bool True on success, false on failure.
 	 */
 	public function set_awareness_state( string $room, int $client_id, array $state, int $wp_user_id ): bool;
