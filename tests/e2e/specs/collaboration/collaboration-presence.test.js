@@ -56,12 +56,13 @@ test.describe( 'Collaboration - Presence', () => {
 		await presenceButton.click();
 
 		// The popover should list both collaborators by name.
+		// Use the presence list item class to avoid matching snackbar toasts.
 		await expect(
-			page.getByText( 'Test Collaborator' )
+			page.locator( '.editor-collaborators-presence__list-item-name', { hasText: 'Test Collaborator' } )
 		).toBeVisible();
 
 		await expect(
-			page.getByText( 'Another Collaborator' )
+			page.locator( '.editor-collaborators-presence__list-item-name', { hasText: 'Another Collaborator' } )
 		).toBeVisible();
 	} );
 
@@ -78,29 +79,31 @@ test.describe( 'Collaboration - Presence', () => {
 			page.getByRole( 'button', { name: /Collaborators list/ } )
 		).toBeVisible( { timeout: SYNC_TIMEOUT } );
 
-		// Close User C's context to simulate leaving.
-		await collaborationUtils.page3.close();
+		// Navigate User C away from the editor to stop their polling.
+		// Avoids closing the context directly which corrupts Playwright state.
+		await collaborationUtils.page3.goto( '/wp-admin/' );
 
-		// After the awareness timeout (30s), User A and B should see
-		// the collaborators list update. The button may still be visible
-		// but should reflect only 1 remaining collaborator.
-		// We verify by opening the popover and checking that User C's
-		// name is no longer listed.
-		await expect( async () => {
-			const presenceButton = page.getByRole( 'button', {
-				name: /Collaborators list/,
-			} );
-			await presenceButton.click();
+		// Wait for User C's awareness entry to expire on the server (30s timeout)
+		// by watching the button label drop from 3 to 2 collaborators.
+		const presenceButton = page.getByRole( 'button', {
+			name: /Collaborators list/,
+		} );
+		await expect( presenceButton ).toHaveAccessibleName(
+			/1 online/,
+			{ timeout: 45000 }
+		);
 
-			// "Another Collaborator" (User C) should no longer appear.
-			await expect(
-				page.getByText( 'Another Collaborator' )
-			).not.toBeVisible();
+		// Open the popover once, then verify the list contents.
+		await presenceButton.click();
 
-			// "Test Collaborator" (User B) should still be listed.
-			await expect(
-				page.getByText( 'Test Collaborator' )
-			).toBeVisible();
-		} ).toPass( { timeout: 45000 } );
+		// "Another Collaborator" (User C) should no longer appear in the presence list.
+		await expect(
+			page.locator( '.editor-collaborators-presence__list-item-name', { hasText: 'Another Collaborator' } )
+		).not.toBeVisible();
+
+		// "Test Collaborator" (User B) should still be listed.
+		await expect(
+			page.locator( '.editor-collaborators-presence__list-item-name', { hasText: 'Test Collaborator' } )
+		).toBeVisible();
 	} );
 } );
