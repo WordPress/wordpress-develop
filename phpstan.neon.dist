@@ -374,9 +374,6 @@ parameters:
 			message: '#Variable \$self might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$shape might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$show_network_active might not be defined\.#'
 		-
 			identifier: variable.undefined
