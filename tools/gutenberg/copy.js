@@ -114,6 +114,42 @@ const COPY_CONFIG = {
 };
 
 /**
+ * Given a path to a PHP file which returns a single value, converts that
+ * value into a native JavaScript value (limited by JSON serialization).
+ *
+ * @throws Error when PHP source file unable to be read, or PHP is unavailable.
+ *
+ * @param {string} phpFilepath Absolute path of PHP file returning a single value.
+ * @return {Object|Array} JavaScript representation of value from input file.
+ */
+function readReturnedValueFromPHPFile( phpFilepath ) {
+	const results = child_process.spawnSync(
+		'php',
+		[ '-r', '$path = file_get_contents( "php://stdin" ); if ( ! is_file( $path ) ) { die( 1 ); } try { $data = require $path; } catch ( \\Throwable $e ) { die( 2 ); } $json = json_encode( $data ); if ( ! is_string( $json ) ) { die( 3 ); } echo $json;' ],
+		{
+			encoding: 'utf8',
+			input: phpFilepath,
+		}
+	);
+
+	switch ( results.status ) {
+		case 0:
+			return JSON.parse( results.stdout );
+
+		case 1:
+			throw new Error( `Could not read PHP source file: '${ phpFilepath }'` );
+
+		case 2:
+			throw new Error( `PHP source file did not return value when imported: '${ phpFilepath }'` );
+
+		case 3:
+			throw new Error( `Could not serialize PHP source value into JSON: '${ phpFilepath }'` );
+	}
+
+	throw new Error( `Unknown error while reading PHP source file: '${ phpFilepath }'` );
+}
+
+/**
  * Check if a block is experimental by reading its block.json.
  *
  * @param {string} blockJsonPath - Path to block.json file.
@@ -645,42 +681,6 @@ function generateBlocksJson() {
 	console.log(
 		`   ✅ Generated with ${ Object.keys( blocks ).length } blocks`
 	);
-}
-
-/**
- * Given a path to a PHP file which returns a single value, converts that
- * value into a native JavaScript value (limited by JSON serialization).
- *
- * @throws Error when PHP source file unable to be read, or PHP is unavailable.
- *
- * @param {string} phpFilepath Absolute path of PHP file returning a single value.
- * @return {Object|Array} JavaScript representation of value from input file.
- */
-function readReturnedValueFromPHPFile( phpFilepath ) {
-	const results = child_process.spawnSync(
-		'php',
-		[ '-r', '$path = file_get_contents( "php://stdin" ); if ( ! is_file( $path ) ) { die( 1 ); } try { $data = require $path; } catch ( \\Throwable $e ) { die( 2 ); } $json = json_encode( $data ); if ( ! is_string( $json ) ) { die( 3 ); } echo $json;' ],
-		{
-			encoding: 'utf8',
-			input: phpFilepath,
-		}
-	);
-
-	switch ( results.status ) {
-		case 0:
-			return JSON.parse( results.stdout );
-
-		case 1:
-			throw new Error( `Could not read PHP source file: '${ phpFilepath }'` );
-
-		case 2:
-			throw new Error( `PHP source file did not return value when imported: '${ phpFilepath }'` );
-
-		case 3:
-			throw new Error( `Could not serialize PHP source value into JSON: '${ phpFilepath }'` );
-	}
-
-	throw new Error( `Unknown error while reading PHP source file: '${ phpFilepath }'` );
 }
 
 /**
