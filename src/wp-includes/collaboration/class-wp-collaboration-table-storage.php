@@ -12,6 +12,10 @@
  *
  * Data is stored in the `collaboration` and `awareness` database tables.
  *
+ * This class intentionally fires no actions or filters. Collaboration
+ * queries run on every poll (0.5–1 s per editor tab), so hook overhead
+ * would degrade the real-time editing loop for all active sessions.
+ *
  * @since 7.0.0
  *
  * @access private
@@ -54,7 +58,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 			array(
 				'room'         => $room,
 				'update_value' => wp_json_encode( $update ),
-				'created_at'   => current_time( 'mysql', true ),
+				'created_at'   => gmdate( 'Y-m-d H:i:s' ),
 			),
 			array( '%s', '%s', '%s' )
 		);
@@ -266,7 +270,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 				$client_id,
 				$wp_user_id,
 				$update_value,
-				current_time( 'mysql', true )
+				gmdate( 'Y-m-d H:i:s' )
 			)
 		);
 

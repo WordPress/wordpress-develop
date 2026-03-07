@@ -98,8 +98,9 @@ class WP_HTTP_Polling_Collaboration_Server {
 		$typed_update_args = array(
 			'properties' => array(
 				'data' => array(
-					'type'     => 'string',
-					'required' => true,
+					'type'      => 'string',
+					'required'  => true,
+					'maxLength' => 1048576, // 1 MB — generous ceiling for base64-encoded Yjs updates.
 				),
 				'type' => array(
 					'type'     => 'string',
@@ -185,6 +186,11 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Checks if the current user has permission to access a room.
 	 *
+	 * Requires `edit_posts` (contributor+), then delegates to
+	 * can_user_collaborate_on_entity_type() for per-entity checks.
+	 * There is no dedicated `collaborate` capability; access follows
+	 * existing edit capabilities for the entity type.
+	 *
 	 * @since 7.0.0
 	 *
 	 * @param WP_REST_Request $request The REST request.
@@ -195,7 +201,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			return new WP_Error(
 				'rest_cannot_edit',
-				__( 'You do not have permission to perform this action' ),
+				__( 'You do not have permission to perform this action.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
@@ -446,10 +452,14 @@ class WP_HTTP_Polling_Collaboration_Server {
 
 				if ( ! $has_newer_compaction ) {
 					if ( ! $this->storage->remove_updates_before_cursor( $room, $cursor ) ) {
+						global $wpdb;
 						return new WP_Error(
 							'rest_collaboration_storage_error',
 							__( 'Failed to remove updates during compaction.' ),
-							array( 'status' => 500 )
+							array(
+								'status'   => 500,
+								'db_error' => $wpdb->last_error,
+							)
 						);
 					}
 
@@ -501,10 +511,14 @@ class WP_HTTP_Polling_Collaboration_Server {
 		);
 
 		if ( ! $this->storage->add_update( $room, $update ) ) {
+			global $wpdb;
 			return new WP_Error(
 				'rest_collaboration_storage_error',
 				__( 'Failed to store collaboration update.' ),
-				array( 'status' => 500 )
+				array(
+					'status'   => 500,
+					'db_error' => $wpdb->last_error,
+				)
 			);
 		}
 
