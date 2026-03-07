@@ -1352,7 +1352,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertEmpty( $data1['rooms'][0]['updates'], 'Awareness rows should not appear as updates.' );
 
 		// Now add a sync update.
-		$update   = array(
+		$update    = array(
 			'type' => 'update',
 			'data' => 'dGVzdA==',
 		);
