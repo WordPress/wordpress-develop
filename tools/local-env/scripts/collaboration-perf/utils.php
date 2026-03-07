@@ -2,9 +2,6 @@
 /**
  * Shared statistics, formatting, seeding, and cleanup utilities for collaboration storage benchmarks.
  *
- * PHP equivalents of the functions in tests/performance/utils.js
- * (median, standardDeviation, medianAbsoluteDeviation).
- *
  * @package WordPress
  */
 
@@ -24,34 +21,6 @@ function collaboration_perf_median( array $arr ): float {
 }
 
 /**
- * Computes the standard deviation of an array of numbers.
- *
- * @param float[] $arr Array of numbers.
- * @return float Standard deviation.
- */
-function collaboration_perf_sd( array $arr ): float {
-	$count  = count( $arr );
-	$mean   = array_sum( $arr ) / $count;
-	$sum_sq = 0.0;
-	foreach ( $arr as $v ) {
-		$sum_sq += ( $v - $mean ) ** 2;
-	}
-	return sqrt( $sum_sq / $count );
-}
-
-/**
- * Computes the median absolute deviation of an array of numbers.
- *
- * @param float[] $arr Array of numbers.
- * @return float Median absolute deviation.
- */
-function collaboration_perf_mad( array $arr ): float {
-	$med        = collaboration_perf_median( $arr );
-	$deviations = array_map( fn( $v ) => abs( $v - $med ), $arr );
-	return collaboration_perf_median( $deviations );
-}
-
-/**
  * Computes the 95th percentile of an array of numbers.
  *
  * @param float[] $arr Array of numbers.
@@ -64,17 +33,15 @@ function collaboration_perf_p95( array $arr ): float {
 }
 
 /**
- * Computes median, P95, standard deviation, and MAD.
+ * Computes median and P95.
  *
  * @param float[] $times Array of durations in milliseconds.
- * @return array{ median: float, p95: float, sd: float, mad: float }
+ * @return array{ median: float, p95: float }
  */
 function collaboration_perf_compute_stats( array $times ): array {
 	return array(
 		'median' => collaboration_perf_median( $times ),
 		'p95'    => collaboration_perf_p95( $times ),
-		'sd'     => collaboration_perf_sd( $times ),
-		'mad'    => collaboration_perf_mad( $times ),
 	);
 }
 
@@ -84,7 +51,7 @@ function collaboration_perf_compute_stats( array $times ): array {
  * @param callable $callback Function to benchmark.
  * @param int      $measured Number of measured iterations.
  * @param int      $warmup  Number of warm-up iterations (discarded).
- * @return array{ median: float, p95: float, sd: float, mad: float }
+ * @return array{ median: float, p95: float }
  */
 function collaboration_perf_stats( callable $callback, int $measured, int $warmup = 5 ): array {
 	for ( $i = 0; $i < $warmup; $i++ ) {
@@ -202,21 +169,18 @@ function collaboration_perf_collect_explains( string $target_room, int $scale, i
 	collaboration_perf_seed_table( $scale, $rooms );
 	$wpdb->query( "ANALYZE TABLE {$wpdb->collaboration}" );
 
-	$table_max_id = (int) $wpdb->get_var( $wpdb->prepare(
-		"SELECT COALESCE( MAX( id ), 0 ) FROM {$wpdb->collaboration} WHERE room = %s",
+	$snapshot = $wpdb->get_row( $wpdb->prepare(
+		"SELECT COALESCE( MAX( id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s",
 		$target_room
 	) );
 
+	$table_max_id = (int) $snapshot->max_id;
+
 	$queries = array(
 		array(
-			'label' => 'Idle poll (MAX cursor)',
-			'sql'   => "SELECT COALESCE(MAX(id), 0) FROM {$wpdb->collaboration} WHERE room = %s",
+			'label' => 'Snapshot (MAX + COUNT)',
+			'sql'   => "SELECT COALESCE(MAX(id), 0) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s",
 			'args'  => array( $target_room ),
-		),
-		array(
-			'label' => 'Idle poll (COUNT)',
-			'sql'   => "SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND id <= %d",
-			'args'  => array( $target_room, $table_max_id ),
 		),
 		array(
 			'label' => 'Catch-up poll (SELECT)',
@@ -255,7 +219,7 @@ function collaboration_perf_collect_explains( string $target_room, int $scale, i
  * @param array $op_results Results for this operation keyed by [$scale].
  * @param int[] $scales     Scale values.
  * @param int   $rooms      Rooms per scale.
- * @return array[] Rows with 'Rows per room', 'Median', 'P95', 'STD', 'MAD' keys.
+ * @return array[] Rows with 'Rows', 'Median', 'P95' keys.
  */
 function collaboration_perf_build_section_rows( array $op_results, array $scales, int $rooms ): array {
 	$rows = array();
@@ -265,11 +229,9 @@ function collaboration_perf_build_section_rows( array $op_results, array $scales
 		$stats    = $op_results[ $scale ];
 
 		$rows[] = array(
-			'Rows per room' => number_format( $per_room ),
-			'Median'        => collaboration_perf_format_ms( $stats['median'] ),
-			'P95'           => collaboration_perf_format_ms( $stats['p95'] ),
-			'STD'           => collaboration_perf_format_ms( $stats['sd'] ),
-			'MAD'           => collaboration_perf_format_ms( $stats['mad'] ),
+			'Rows'   => number_format( $per_room ),
+			'Median' => collaboration_perf_format_ms( $stats['median'] ),
+			'P95'    => collaboration_perf_format_ms( $stats['p95'] ),
 		);
 	}
 
@@ -287,61 +249,36 @@ function collaboration_perf_build_section_rows( array $op_results, array $scales
 function collaboration_perf_print_output( array $results, array $explain_data, array $config, array $scales ): void {
 	global $wp_version, $wpdb;
 
-	$fields    = array( 'Rows per room', 'Median', 'P95', 'STD', 'MAD' );
-	$separator = str_repeat( '─', 60 );
+	$fields = array( 'Rows', 'Median', 'P95' );
 
 	WP_CLI::log( '' );
-	WP_CLI::log( WP_CLI::colorize( '%_Collaboration Storage Performance%n' ) );
 	WP_CLI::log( sprintf(
-		'WordPress %s, MySQL %s, PHP %s, Docker (local dev)',
+		'WP %s | MySQL %s | PHP %s',
 		$wp_version,
 		$wpdb->db_version(),
 		phpversion()
 	) );
-	WP_CLI::log( sprintf(
-		'%d measured iterations (%d warm-up discarded), fresh instance per iteration',
-		$config['measured_iterations'],
-		$config['warmup_iterations']
-	) );
+	WP_CLI::log( 'Median = typical response, P95 = slowest 5%' );
 
 	$sections = array(
-		'idle_poll'    => array(
-			'title' => 'Idle Poll',
-			'desc'  => 'Checks for new updates when none exist. Called every second per open editor tab.',
-		),
-		'catchup_poll' => array(
-			'title' => 'Catch-up Poll',
-			'desc'  => 'Fetches all updates from cursor 0. Called when an editor opens or reconnects.',
-		),
-		'compaction'   => array(
-			'title' => 'Compaction',
-			'desc'  => sprintf(
-				'Removes old updates. Deletes ~80%% of rows (%d measured iterations, re-seeded each).',
-				$config['compaction_iterations']
-			),
-		),
+		'idle_poll'    => 'Idle Poll — editor open, no new changes',
+		'catchup_poll' => 'Catch-up Poll — opening a post or reconnecting',
+		'compaction'   => 'Compaction — pruning old edits (deletes ~80%)',
 	);
 
-	foreach ( $sections as $op_key => $section ) {
+	foreach ( $sections as $op_key => $title ) {
 		WP_CLI::log( '' );
-		WP_CLI::log( $separator );
-		WP_CLI::log( WP_CLI::colorize( "%_{$section['title']}%n" ) );
-		WP_CLI::log( $separator );
-		WP_CLI::log( $section['desc'] );
-		WP_CLI::log( '' );
+		WP_CLI::log( WP_CLI::colorize( "%_{$title}%n" ) );
 
 		$rows = collaboration_perf_build_section_rows( $results[ $op_key ], $scales, $config['rooms'] );
 		WP_CLI\Utils\format_items( 'table', $rows, $fields );
 	}
 
 	WP_CLI::log( '' );
-	WP_CLI::log( $separator );
-	WP_CLI::log( WP_CLI::colorize( '%_MySQL EXPLAIN Analysis%n' ) );
-	WP_CLI::log( $separator );
-	WP_CLI::log( '' );
-
+	$explain_scale = number_format( end( $scales ) );
+	WP_CLI::log( WP_CLI::colorize( "%_Query Plan ({$explain_scale} rows)%n" ) );
 	WP_CLI\Utils\format_items( 'table', $explain_data, array( 'Query', 'Access' ) );
 
 	WP_CLI::log( '' );
-	WP_CLI::success( 'Benchmark complete.' );
+	WP_CLI::success( 'Done.' );
 }
