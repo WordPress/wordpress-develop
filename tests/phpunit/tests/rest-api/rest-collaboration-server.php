@@ -1345,13 +1345,13 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			)
 		);
 
-		// With no sync updates, cursor should be 0.
+		// With no updates, cursor should be 0.
 		$data1 = $response1->get_data();
 		$this->assertSame( 0, $data1['rooms'][0]['end_cursor'], 'Awareness rows should not affect the cursor.' );
 		$this->assertSame( 0, $data1['rooms'][0]['total_updates'], 'Awareness rows should not count as updates.' );
 		$this->assertEmpty( $data1['rooms'][0]['updates'], 'Awareness rows should not appear as updates.' );
 
-		// Now add a sync update.
+		// Now add an update.
 		$update    = array(
 			'type' => 'update',
 			'data' => 'dGVzdA==',
@@ -1363,7 +1363,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		$data2 = $response2->get_data();
-		$this->assertSame( 1, $data2['rooms'][0]['total_updates'], 'Only sync updates should count toward total.' );
+		$this->assertSame( 1, $data2['rooms'][0]['total_updates'], 'Only updates should count toward total.' );
 	}
 
 	/**
@@ -1502,15 +1502,15 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			array( '%s', '%d', '%d', '%s', '%s' )
 		);
 
-		// Insert a recent sync update row (should survive).
+		// Insert a recent collaboration row (should survive).
 		$this->insert_collaboration_row( HOUR_IN_SECONDS );
 
-		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Collaboration table should have 1 sync update row.' );
+		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Collaboration table should have 1 row.' );
 		$this->assertSame( 1, $this->get_awareness_row_count(), 'Awareness table should have 1 awareness row.' );
 
 		wp_delete_old_collaboration_data();
 
-		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Only the recent sync update row should survive cron cleanup.' );
+		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Only the recent collaboration row should survive cron cleanup.' );
 		$this->assertSame( 0, $this->get_awareness_row_count(), 'Expired awareness row should be deleted after cron cleanup.' );
 	}
 

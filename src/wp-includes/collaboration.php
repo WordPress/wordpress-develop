@@ -41,7 +41,7 @@ function wp_collaboration_inject_setting() {
 /**
  * Deletes stale collaboration data from the collaboration table.
  *
- * Removes sync-update rows older than 7 days and awareness rows older than
+ * Removes collaboration rows older than 7 days and awareness rows older than
  * 60 seconds. Rows left behind by abandoned collaborative editing sessions
  * are cleaned up to prevent unbounded table growth.
  *
@@ -54,7 +54,7 @@ function wp_delete_old_collaboration_data() {
 
 	global $wpdb;
 
-	// Clean up sync update rows older than 7 days.
+	// Clean up collaboration rows older than 7 days.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->collaboration} WHERE created_at < %s",

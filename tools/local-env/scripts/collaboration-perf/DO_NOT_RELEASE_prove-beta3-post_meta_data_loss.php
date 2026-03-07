@@ -1,6 +1,6 @@
 <?php
 /**
- * Proves that post meta compaction loses sync data.
+ * Proves that post meta compaction loses collaboration data.
  *
  * Compaction triggers at 50 updates, keeping the newest 20% (10) and
  * discarding the oldest 80% (40).
@@ -32,7 +32,7 @@ $discard = (int) ( $total * 0.8 ); // 80% — matches production compaction rati
 $keep    = $total - $discard;       // 20% — the newest updates that should remain.
 
 // =====================================================================
-// Setup: 50 sync updates exist in both backends.
+// Setup: 50 updates exist in both backends.
 // =====================================================================
 
 // Table backend.
@@ -99,7 +99,7 @@ $table_count   = count( $table_visible );
 //       }
 //   }
 //
-// Between the delete and the first re-insert, the sync history is empty.
+// Between the delete and the first re-insert, the update history is empty.
 // =====================================================================
 
 // Step 1 of 2: delete ALL updates (this is the production code path).
