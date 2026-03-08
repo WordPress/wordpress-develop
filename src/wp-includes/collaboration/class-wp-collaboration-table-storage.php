@@ -179,7 +179,10 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 		$this->room_cursors[ $room ] = $max_id;
 
 		if ( 0 === $max_id || $max_id <= $cursor ) {
-			$this->room_update_counts[ $room ] = 0;
+			// Preserve the real row count so the server can still
+			// trigger compaction when updates have accumulated but
+			// no new ones arrived since the client's last poll.
+			$this->room_update_counts[ $room ] = $total;
 			return array();
 		}
 

@@ -617,6 +617,51 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertTrue( $data['rooms'][0]['should_compact'] );
 	}
 
+	/**
+	 * Verifies that a caught-up compactor client still receives the
+	 * should_compact signal when the room has accumulated updates
+	 * beyond the compaction threshold.
+	 *
+	 * Regression test: the update count was previously cached as 0
+	 * when the cursor matched the latest update ID, preventing
+	 * compaction from ever triggering for idle rooms.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_should_compact_when_compactor_is_caught_up() {
+		wp_set_current_user( self::$editor_id );
+
+		$room    = $this->get_post_room();
+		$updates = array();
+		for ( $i = 0; $i < 51; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "update-$i" ),
+			);
+		}
+
+		// Client 1 sends enough updates to exceed the compaction threshold.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), $updates ),
+			)
+		);
+
+		// Grab the end_cursor so the client is fully caught up.
+		$data       = $response->get_data();
+		$end_cursor = $data['rooms'][0]['end_cursor'];
+
+		// Client 1 polls again with cursor = end_cursor (caught up, no new updates).
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 1, $end_cursor, array( 'user' => 'c1' ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['rooms'][0]['should_compact'], 'Compactor should receive should_compact even when caught up.' );
+	}
+
 	public function test_collaboration_should_compact_is_false_for_non_compactor() {
 		wp_set_current_user( self::$editor_id );
 
