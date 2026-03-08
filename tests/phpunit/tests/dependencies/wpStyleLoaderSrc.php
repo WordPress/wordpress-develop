@@ -25,7 +25,7 @@ class Tests_Dependencies_wpStyleLoaderSrc extends WP_UnitTestCase {
 		if ( is_admin() ) {
 			$this->assertFalse( wp_style_loader_src( '', 'colors' ) );
 		} else {
-			$this->assertContains( '/colors.css', wp_style_loader_src( '', 'colors' ) );
+			$this->assertStringContainsString( '/colors.css', wp_style_loader_src( '', 'colors' ) );
 		}
 	}
 }
