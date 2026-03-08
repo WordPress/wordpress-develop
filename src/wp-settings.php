@@ -29,10 +29,8 @@ define( 'WPINC', 'wp-includes' );
  * @global string[] $required_php_extensions The names of required PHP extensions.
  * @global string   $required_mysql_version  The minimum required MySQL version string.
  * @global string   $wp_local_package        Locale code of the package.
- * @global array    $wp_filter               WordPress filter hooks.
- * @global string   $table_prefix            Database table prefix.
  */
-global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wp_local_package, $wp_filter, $table_prefix;
+global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wp_local_package;
 require ABSPATH . WPINC . '/version.php';
 require ABSPATH . WPINC . '/compat-utf8.php';
 require ABSPATH . WPINC . '/compat.php';
@@ -102,7 +100,7 @@ if ( WP_CACHE && apply_filters( 'enable_loading_advanced_cache_dropin', true ) &
 	include WP_CONTENT_DIR . '/advanced-cache.php';
 
 	// Re-initialize any hooks added manually by advanced-cache.php.
-	if ( $wp_filter ) {
+	if ( ! empty( $wp_filter ) ) {
 		$wp_filter = WP_Hook::build_preinitialized_hooks( $wp_filter );
 	}
 }
@@ -142,7 +140,7 @@ require_wp_db();
  *
  * @global string $table_prefix The database table prefix.
  */
-if ( ! isset( $GLOBALS['table_prefix'] ) ) {
+if ( ! isset( $GLOBALS['table_prefix'] ) && isset( $table_prefix ) ) {
 	$GLOBALS['table_prefix'] = $table_prefix;
 }
 
