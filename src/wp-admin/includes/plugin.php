@@ -103,6 +103,11 @@ function _get_plugin_json_data( $plugin_file ) {
 		'updateUri'   => 'UpdateURI',
 	);
 
+	$extra_plugin_headers = (array) apply_filters( 'extra_plugin_headers', array() );
+	foreach ( $extra_plugin_headers as $extra_header ) {
+		$key_map[ $extra_header ] = $extra_header;
+	}
+
 	// Initialize all headers to empty strings (matching get_file_data() behavior).
 	$plugin_data = array(
 		'Name'            => '',
@@ -120,6 +125,9 @@ function _get_plugin_json_data( $plugin_file ) {
 		'RequiresPlugins' => '',
 		'_sitewide'       => '',
 	);
+	foreach ( $extra_plugin_headers as $extra_header ) {
+		$plugin_data[ $extra_header ] = '';
+	}
 
 	foreach ( $key_map as $json_key => $header_key ) {
 		if ( isset( $json_data[ $json_key ] ) ) {

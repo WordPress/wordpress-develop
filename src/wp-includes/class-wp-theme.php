@@ -898,11 +898,18 @@ final class WP_Theme implements ArrayAccess {
 
 		$metadata = $theme_json_data['metadata'];
 
+		$extra_theme_headers = (array) apply_filters( 'extra_theme_headers', array() );
+
 		// Initialize all headers to empty strings (matching get_file_data() behavior).
-		$headers = array_fill_keys( array_keys( self::$file_headers ), '' );
+		$headers = array_fill_keys( array_merge( array_keys( self::$file_headers ), $extra_theme_headers ), '' );
+
+		$json_metadata_keys = self::$json_metadata_keys;
+		foreach ( $extra_theme_headers as $extra_header ) {
+			$json_metadata_keys[ $extra_header ] = $extra_header;
+		}
 
 		// Map JSON metadata keys to internal header keys.
-		foreach ( self::$json_metadata_keys as $json_key => $header_key ) {
+		foreach ( $json_metadata_keys as $json_key => $header_key ) {
 			if ( isset( $metadata[ $json_key ] ) ) {
 				if ( 'tags' === $json_key && is_array( $metadata[ $json_key ] ) ) {
 					$headers[ $header_key ] = implode( ', ', $metadata[ $json_key ] );

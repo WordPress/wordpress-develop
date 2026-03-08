@@ -13,6 +13,17 @@
 class Tests_Admin_IncludesPluginJsonMetadata extends WP_UnitTestCase {
 
 	/**
+	 * Registers an extra plugin header for testing.
+	 *
+	 * @param string[] $headers Existing extra headers.
+	 * @return string[] Filtered extra headers.
+	 */
+	public function filter_extra_plugin_headers( $headers ) {
+		$headers[] = 'Custom Header';
+		return $headers;
+	}
+
+	/**
 	 * Tests that plugin.json metadata is read correctly.
 	 *
 	 * @ticket 24152
@@ -212,6 +223,48 @@ class Tests_Admin_IncludesPluginJsonMetadata extends WP_UnitTestCase {
 		$this->assertSame( 'true', $true_data['Network'] );
 		$this->assertSame( '', $string_false_data['Network'] );
 		$this->assertSame( '', $int_one_data['Network'] );
+	}
+
+	/**
+	 * Tests that custom plugin headers registered via extra_plugin_headers are read from plugin.json.
+	 *
+	 * @ticket 24152
+	 */
+	public function test_plugin_json_supports_extra_plugin_headers() {
+		$plugin_dir  = WP_PLUGIN_DIR . '/json-custom-header-test-' . uniqid();
+		$dir_name    = basename( $plugin_dir );
+		$plugin_file = $plugin_dir . '/' . $dir_name . '.php';
+
+		add_filter( 'extra_plugin_headers', array( $this, 'filter_extra_plugin_headers' ) );
+		mkdir( $plugin_dir );
+		try {
+			file_put_contents(
+				$plugin_dir . '/plugin.json',
+				wp_json_encode(
+					array(
+						'name'          => 'Custom Header Plugin',
+						'version'       => '1.0.0',
+						'Custom Header' => 'Custom Header Value',
+					)
+				)
+			);
+			file_put_contents( $plugin_file, '<?php // test' );
+
+			$plugin_data = get_plugin_data( $plugin_file, false, false );
+			$this->assertSame( 'Custom Header Value', $plugin_data['Custom Header'] );
+		} finally {
+			remove_filter( 'extra_plugin_headers', array( $this, 'filter_extra_plugin_headers' ) );
+			if ( file_exists( $plugin_dir . '/plugin.json' ) ) {
+				unlink( $plugin_dir . '/plugin.json' );
+			}
+			if ( file_exists( $plugin_file ) ) {
+				unlink( $plugin_file );
+			}
+			if ( is_dir( $plugin_dir ) ) {
+				rmdir( $plugin_dir );
+			}
+			wp_clean_plugins_cache();
+		}
 	}
 
 	/**

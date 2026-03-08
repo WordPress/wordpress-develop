@@ -71,6 +71,17 @@ class Tests_Theme_wpThemeJsonMetadata extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Registers an extra theme header for testing.
+	 *
+	 * @param string[] $headers Existing extra headers.
+	 * @return string[] Filtered extra headers.
+	 */
+	public function filter_extra_theme_headers( $headers ) {
+		$headers[] = 'Custom Header';
+		return $headers;
+	}
+
+	/**
 	 * Tests that theme.json metadata takes priority over style.css headers.
 	 *
 	 * @ticket 24152
@@ -150,6 +161,57 @@ class Tests_Theme_wpThemeJsonMetadata extends WP_UnitTestCase {
 		// block-theme has theme.json for settings but no metadata property.
 		$this->assertSame( 'Block Theme', $theme->get( 'Name' ) );
 		$this->assertFalse( $theme->errors() );
+	}
+
+	/**
+	 * Tests that custom theme headers registered via extra_theme_headers are read from theme.json metadata.
+	 *
+	 * @ticket 24152
+	 */
+	public function test_theme_json_supports_extra_theme_headers() {
+		$theme_slug = 'json-custom-header-theme-' . wp_generate_password( 8, false );
+		$theme_dir  = $this->theme_root . '/' . $theme_slug;
+
+		add_filter( 'extra_theme_headers', array( $this, 'filter_extra_theme_headers' ) );
+		mkdir( $theme_dir );
+		try {
+			file_put_contents(
+				$theme_dir . '/theme.json',
+				wp_json_encode(
+					array(
+						'version'  => 3,
+						'metadata' => array(
+							'name'          => 'JSON Custom Header Theme',
+							'Custom Header' => 'Custom Theme Header Value',
+						),
+					)
+				)
+			);
+			file_put_contents( $theme_dir . '/style.css', "/*\nTheme Name: CSS Fallback\n*/\n" );
+			file_put_contents( $theme_dir . '/index.php', "<?php\n// Test theme.\n" );
+
+			wp_clean_themes_cache();
+			unset( $GLOBALS['wp_themes'] );
+
+			$theme = new WP_Theme( $theme_slug, $this->theme_root );
+			$this->assertSame( 'Custom Theme Header Value', $theme->get( 'Custom Header' ) );
+		} finally {
+			remove_filter( 'extra_theme_headers', array( $this, 'filter_extra_theme_headers' ) );
+			if ( file_exists( $theme_dir . '/theme.json' ) ) {
+				unlink( $theme_dir . '/theme.json' );
+			}
+			if ( file_exists( $theme_dir . '/style.css' ) ) {
+				unlink( $theme_dir . '/style.css' );
+			}
+			if ( file_exists( $theme_dir . '/index.php' ) ) {
+				unlink( $theme_dir . '/index.php' );
+			}
+			if ( is_dir( $theme_dir ) ) {
+				rmdir( $theme_dir );
+			}
+			wp_clean_themes_cache();
+			unset( $GLOBALS['wp_themes'] );
+		}
 	}
 
 	/**
