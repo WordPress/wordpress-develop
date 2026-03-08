@@ -1383,7 +1383,7 @@ class WP_REST_Server {
 			$input_formats  = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/heic' );
 			$output_formats = array();
 			foreach ( $input_formats as $mime_type ) {
-				/** This filter is documented in wp-includes/class-wp-image-editor.php */
+				/** This filter is documented in wp-includes/media.php */
 				$output_formats = apply_filters( 'image_editor_output_format', $output_formats, '', $mime_type );
 			}
 			$available['image_output_formats'] = (object) $output_formats;
