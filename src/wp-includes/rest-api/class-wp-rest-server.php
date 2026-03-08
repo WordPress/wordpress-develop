@@ -1388,11 +1388,11 @@ class WP_REST_Server {
 			}
 			$available['image_output_formats'] = (object) $output_formats;
 
-			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 			$available['jpeg_interlaced'] = (bool) apply_filters( 'image_save_progressive', false, 'image/jpeg' );
-			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 			$available['png_interlaced'] = (bool) apply_filters( 'image_save_progressive', false, 'image/png' );
-			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 			$available['gif_interlaced'] = (bool) apply_filters( 'image_save_progressive', false, 'image/gif' );
 		}
 
