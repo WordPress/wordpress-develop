@@ -85,7 +85,7 @@ add_filter( 'wp_refresh_nonces', 'wp_refresh_heartbeat_nonces' );
 
 add_filter( 'heartbeat_settings', 'wp_heartbeat_set_suspension' );
 
-add_action( 'use_block_editor_for_post_type', '_disable_block_editor_for_navigation_post_type', 10, 2 );
+add_filter( 'use_block_editor_for_post_type', '_disable_block_editor_for_navigation_post_type', 10, 2 );
 add_action( 'edit_form_after_title', '_disable_content_editor_for_navigation_post_type' );
 add_action( 'edit_form_after_editor', '_enable_content_editor_for_navigation_post_type' );
 
