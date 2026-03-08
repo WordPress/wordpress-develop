@@ -739,10 +739,12 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 	}
 
 	if ( $thumbnail_id ) {
-		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
-		$data['thumbnail_url']                                      = $thumbnail_url;
-		$data['thumbnail_width']                                    = $thumbnail_width;
-		$data['thumbnail_height']                                   = $thumbnail_height;
+		$image_src = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
+		if ( is_array( $image_src ) ) {
+			$data['thumbnail_url']   =(string) $image_src[0];
+			$data['thumbnail_width'] = (int) $image_src[1];
+			$data['thumbnail_height'] = (int) $image_src[2];
+		}
 	}
 
 	return $data;
