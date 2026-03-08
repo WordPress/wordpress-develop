@@ -895,6 +895,19 @@ body #dashboard-widgets .postbox form .submit {
 
 /* Dashboard activity widget */
 
+#dashboard_activity ul li,
+#dashboard_activity ul li a {
+    overflow-wrap: break-word; 
+    word-wrap: break-word;      
+    word-break: break-word;     
+}
+
+#dashboard_activity ul li a {
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: top;
+}
+
 #dashboard_activity .comment-meta span.approve:before {
 	content: "\f227";
 	content: "\f227" / '';
