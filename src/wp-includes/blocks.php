@@ -2075,17 +2075,29 @@ function _filter_block_content_callback( $matches ) {
  * @return array The filtered and sanitized block object result.
  */
 function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() ) {
+	/*
+	 * Extract per-block custom CSS before KSES processes the attributes.
+	 *
+	 * Custom CSS (attrs.style.css) may contain characters like & and > that
+	 * are valid CSS selectors but would be entity-encoded or stripped by
+	 * wp_kses(), which treats all values as HTML. Instead, the CSS is
+	 * temporarily removed, KSES runs on the remaining attributes, and then
+	 * the CSS is sanitized with CSS-appropriate methods and reinserted.
+	 */
+	$custom_css = null;
+	if ( isset( $block['attrs']['style']['css'] ) ) {
+		$custom_css = $block['attrs']['style']['css'];
+		unset( $block['attrs']['style']['css'] );
+	}
+
 	$block['attrs'] = filter_block_kses_value( $block['attrs'], $allowed_html, $allowed_protocols, $block );
 
-	// Per-block custom CSS (attrs.style.css) may contain & and > as valid
-	// CSS selectors. wp_kses() entity-encodes these because it treats the
-	// value as HTML. Decode them after KSES has already stripped any
-	// dangerous HTML tags, so the CSS round-trips correctly through
-	// serialize_block_attributes().
-	if ( isset( $block['attrs']['style']['css'] ) ) {
-		$block['attrs']['style']['css'] = undo_block_custom_css_kses_entities(
-			$block['attrs']['style']['css']
-		);
+	// Sanitize and reinsert the custom CSS using CSS-appropriate methods.
+	if ( null !== $custom_css ) {
+		$sanitized_css = wp_sanitize_block_custom_css( $custom_css );
+		if ( '' !== $sanitized_css ) {
+			$block['attrs']['style']['css'] = $sanitized_css;
+		}
 	}
 
 	if ( is_array( $block['innerBlocks'] ) ) {
@@ -2136,37 +2148,37 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
 }
 
 /**
- * Decodes HTML entities in per-block custom CSS that were incorrectly
- * introduced by wp_kses() during the block KSES filtering pipeline.
+ * Sanitizes per-block custom CSS using CSS-appropriate methods.
  *
- * Per-block custom CSS (stored in attrs.style.css) may contain & and >
- * as valid CSS selectors (nesting and child combinator). When wp_kses()
- * processes this CSS string as if it were HTML, it entity-encodes these
- * characters (&amp;, &gt;). If the block is then re-serialized via
- * serialize_block_attributes(), the entity's ampersand is escaped again
- * (\u0026amp;), producing a double-encoded value that corrupts the CSS
- * on subsequent editor loads.
+ * This function is used instead of wp_kses() for block custom CSS values
+ * (attrs.style.css) because wp_kses() treats its input as HTML and would
+ * entity-encode valid CSS characters like & (nesting selector) and >
+ * (child combinator), or strip content that resembles HTML tags.
  *
- * This reverses only the specific named entities that wp_kses() may
- * introduce, intentionally narrower than wp_specialchars_decode() to
- * avoid decoding numeric/hex references that KSES intentionally preserved.
+ * The sanitization approach mirrors what is used for global styles custom CSS:
+ * 1. Strip any HTML tags from the CSS string.
+ * 2. Validate that the CSS cannot break out of a `<style>` element.
  *
- * @since 7.0
+ * @since 7.0.0
  *
- * @param string $value Per-block custom CSS string potentially containing
- *                      KSES-introduced entities.
- * @return string CSS string with KSES-introduced entities decoded.
+ * @param string $css Per-block custom CSS string to sanitize.
+ * @return string Sanitized CSS string, or empty string if invalid.
  */
-function undo_block_custom_css_kses_entities( $value ) {
-	if ( ! is_string( $value ) || false === strpos( $value, '&' ) ) {
-		return $value;
+function wp_sanitize_block_custom_css( $css ) {
+	if ( ! is_string( $css ) ) {
+		return '';
 	}
 
-	return str_replace(
-		array( '&amp;', '&gt;', '&quot;', '&#039;' ),
-		array( '&', '>', '"', "'" ),
-		$value
-	);
+	// Strip HTML tags — valid CSS never contains them.
+	$css = wp_strip_all_tags( $css );
+
+	// Validate that the CSS cannot break out of a <style> element.
+	$validity = wp_validate_css_for_style_element( $css );
+	if ( is_wp_error( $validity ) ) {
+		return '';
+	}
+
+	return $css;
 }
 
 /**

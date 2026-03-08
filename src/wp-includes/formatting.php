@@ -5558,6 +5558,81 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 }
 
 /**
+ * Validates that a CSS string does not contain markup that could break out of
+ * an HTML STYLE element.
+ *
+ * Custom CSS text is expected to render inside a `<style>` element. A `</style>`
+ * closing tag (or a partial prefix of one at the end of the string) must not appear
+ * within the CSS because it would close the element prematurely and potentially
+ * introduce security issues.
+ *
+ * This function consolidates the validation logic previously duplicated in
+ * {@see WP_REST_Global_Styles_Controller::validate_custom_css()} and
+ * {@see WP_Customize_Custom_CSS_Setting::validate()}.
+ *
+ * @since 7.0.0
+ *
+ * @param string $css CSS to validate.
+ * @return true|WP_Error True if the CSS is safe for use inside a `<style>` element,
+ *                       WP_Error if it contains potentially dangerous markup.
+ */
+function wp_validate_css_for_style_element( $css ) {
+	$length = strlen( $css );
+	for (
+		$at = strcspn( $css, '<' );
+		$at < $length;
+		$at += strcspn( $css, '<', ++$at )
+	) {
+		$remaining_strlen = $length - $at;
+
+		/*
+		 * A STYLE closing tag must not appear within the CSS text because it
+		 * would close the element prematurely.
+		 *
+		 * The text must also *not* end with a partial closing tag (e.g., `<`,
+		 * `</`, … `</style`) because subsequent styles which are concatenated
+		 * could complete it, forming a valid `</style>` tag.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-name-state
+		 */
+		$possible_style_close_tag = 0 === substr_compare(
+			$css,
+			'</style',
+			$at,
+			min( 7, $remaining_strlen ),
+			true
+		);
+		if ( $possible_style_close_tag ) {
+			if ( $remaining_strlen < 8 ) {
+				return new WP_Error(
+					'illegal_css_markup',
+					sprintf(
+						/* translators: %s is the CSS that was provided. */
+						__( 'The CSS must not end in "%s".' ),
+						esc_html( substr( $css, $at ) )
+					),
+					array( 'status' => 400 )
+				);
+			}
+
+			if ( 1 === strspn( $css, " \t\f\r\n/>", $at + 7, 1 ) ) {
+				return new WP_Error(
+					'illegal_css_markup',
+					sprintf(
+						/* translators: %s is the CSS that was provided. */
+						__( 'The CSS must not contain "%s".' ),
+						esc_html( substr( $css, $at, 8 ) )
+					),
+					array( 'status' => 400 )
+				);
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
  * Sanitizes a string from user input or from the database.
  *
  * - Checks for invalid UTF-8,
