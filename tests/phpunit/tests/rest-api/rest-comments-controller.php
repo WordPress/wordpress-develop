@@ -4225,7 +4225,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'Updated content', $note->comment_content );
+		$this->assertSame( 'Updated content', get_comment( $note->comment_ID )->comment_content );
 	}
 
 	/**
