@@ -909,9 +909,11 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Register a namespace for lazy loading
+	 * Register a namespace for lazy loading.
 	 *
-	 * @param string $route_namespace The namespace to register for lazy loading
+	 * @since X.X.0
+	 *
+	 * @param string $route_namespace The namespace to register for lazy loading.
 	 */
 	public function register_lazy_loaded_namespace( $route_namespace ) {
 		if ( ! isset( $this->lazy_namespaces[ $route_namespace ] ) ) {
@@ -920,11 +922,12 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Load a specific lazy namespace
+	 * Load a specific lazy namespace.
 	 *
-	 * @param string $route_namespace
+	 * @since X.X.0
 	 *
-	 * @return bool True if loaded, false if not a lazy namespace
+	 * @param string $route_namespace The namespace to load.
+	 * @return bool True if loaded, false if not a lazy namespace.
 	 */
 	protected function load_lazy_namespace( $route_namespace ) {
 		if ( ! isset( $this->lazy_namespaces[ $route_namespace ] ) ) {
@@ -964,8 +967,14 @@ class WP_REST_Server {
 		/**
 		 * Fires when any lazy-loaded REST API namespace is being loaded.
 		 *
+		 * This action is triggered after the namespace-specific action
+		 * {@see 'rest_lazy_load_namespace_$route_namespace'} has fired.
+		 * It can be used to perform actions common to all lazy-loaded
+		 * namespaces, such as logging or registering shared dependencies.
+		 *
 		 * @since X.X.0
 		 *
+		 * @param string $route_namespace The namespace being loaded (e.g., 'my-plugin/v1').
 		 */
 		do_action( 'rest_lazy_load_namespace', $route_namespace );
 
@@ -973,7 +982,9 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Load all lazy namespaces
+	 * Load all lazy namespaces.
+	 *
+	 * @since X.X.0
 	 */
 	protected function load_all_lazy_namespaces() {
 		foreach ( $this->lazy_namespaces as $namespace => $has_loaded ) {
@@ -1270,7 +1281,7 @@ class WP_REST_Server {
 
 		$all_registered_namespaces = array_keys( $this->namespaces + $this->lazy_namespaces );
 		foreach ( $all_registered_namespaces as $namespace ) {
-			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
+			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), trailingslashit( $namespace ) ) ) {
 				$with_namespace[] = $this->get_routes( $namespace );
 			}
 		}
@@ -1278,7 +1289,7 @@ class WP_REST_Server {
 		if ( $with_namespace ) {
 			$routes = array_merge( ...$with_namespace );
 		} else {
-			// Avoid loading all namespases as none match.
+			// Avoid loading all namespaces as none match.
 			$routes = $this->get_routes( '', self::ROUTE_CONTEXT_LOADED_ONLY );
 		}
 

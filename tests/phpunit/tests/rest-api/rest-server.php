@@ -2629,6 +2629,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * Verify route matching priority is based on the order of registration.
 	 *
+	 * Documents existing route priority behavior that the lazy loading
+	 * changes to match_request_to_handler() must preserve.
+	 *
 	 * @ticket 63946
 	 */
 	public function test_route_priority_registration_order() {
@@ -2673,6 +2676,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * Verify route matching priority is based on the order of registration.
+	 *
+	 * Documents existing route priority behavior that the lazy loading
+	 * changes to match_request_to_handler() must preserve.
 	 *
 	 * @ticket 63946
 	 */
@@ -2763,8 +2769,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		// Register a lazy namespace.
 		$server->register_lazy_loaded_namespace( 'lazy-test/v1' );
 
-		// @todo Determine whether lazy loaded namespaces need to be loaded with an external ::get_namespaces() call.
-		// Should not appear in regular namespaces yet.
+		// Lazy-loaded namespaces don't appear in get_namespaces() until they are loaded and their routes are registered.
 		$namespaces = $server->get_namespaces();
 		$this->assertNotContains( 'lazy-test/v1', $namespaces );
 	}

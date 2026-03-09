@@ -187,6 +187,16 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
  * } );
  */
 function register_rest_namespace( $route_namespace ) {
+	if ( ! is_string( $route_namespace ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Namespace must be a string.' ),
+			'X.X.0'
+		);
+
+		return false;
+	}
+
 	if ( empty( $route_namespace ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
@@ -195,16 +205,6 @@ function register_rest_namespace( $route_namespace ) {
 				__( 'Namespaces must be specified. Instead there seems to be an empty namespace \'%s\'.' ),
 				'<code>' . $route_namespace . '</code>'
 			),
-			'X.X.0'
-		);
-
-		return false;
-	}
-
-	if ( ! is_string( $route_namespace ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			__( 'Namespace must be a string.' ),
 			'X.X.0'
 		);
 
