@@ -8979,6 +8979,28 @@ function wp_get_wp_version() {
 }
 
 /**
+ * Returns the major.minor "branch" version for a given WordPress version string.
+ *
+ * Extracts the first two version components (major and minor) from a WordPress
+ * version string, stripping any patch level and pre-release suffix.
+ *
+ * @since 7.1.0
+ *
+ * @param string $version Optional. A WordPress version string. Defaults to the
+ *                        current WordPress version from wp_get_wp_version().
+ * @return string The branch version string in "major.minor" format (e.g. "6.9").
+ */
+function wp_get_branch_version( $version = '' ) {
+	if ( '' === $version ) {
+		$version = wp_get_wp_version();
+	}
+
+	$parts = preg_split( '/[.-]/', $version, 3 );
+
+	return $parts[0] . '.' . ( $parts[1] ?? '0' );
+}
+
+/**
  * Checks compatibility with the current WordPress version.
  *
  * @since 5.2.0

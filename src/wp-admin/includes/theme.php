@@ -504,7 +504,7 @@ function themes_api( $action, $args = array() ) {
 	}
 
 	if ( ! isset( $args->wp_version ) ) {
-		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
+		$args->wp_version = wp_get_branch_version(); // x.y
 	}
 
 	/**
