@@ -62,32 +62,6 @@ class WP_Font_Face {
 	private $valid_font_display = array( 'auto', 'block', 'fallback', 'swap', 'optional' );
 
 	/**
-	 * Array of font-face style tag's attribute(s)
-	 * where the key is the attribute name and the
-	 * value is its value.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var string[]
-	 */
-	private $style_tag_attrs = array();
-
-	/**
-	 * Creates and initializes an instance of WP_Font_Face.
-	 *
-	 * @since 6.4.0
-	 */
-	public function __construct() {
-		if (
-			function_exists( 'is_admin' ) && ! is_admin()
-			&&
-			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'style' )
-		) {
-			$this->style_tag_attrs = array( 'type' => 'text/css' );
-		}
-	}
-
-	/**
 	 * Generates and prints the `@font-face` styles for the given fonts.
 	 *
 	 * @since 6.4.0
@@ -118,7 +92,10 @@ class WP_Font_Face {
 			return;
 		}
 
-		printf( $this->get_style_element(), $css );
+		$processor = new WP_HTML_Tag_Processor( '<style class="wp-fonts-local"></style>' );
+		$processor->next_tag();
+		$processor->set_modifiable_text( "\n{$css}\n" );
+		echo "{$processor->get_updated_html()}\n";
 	}
 
 	/**
@@ -217,34 +194,6 @@ class WP_Font_Face {
 		}
 
 		return $font_face;
-	}
-
-	/**
-	 * Gets the style element for wrapping the `@font-face` CSS.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return string The style element.
-	 */
-	private function get_style_element() {
-		$attributes = $this->generate_style_element_attributes();
-
-		return "<style class='wp-fonts-local'{$attributes}>\n%s\n</style>\n";
-	}
-
-	/**
-	 * Gets the defined <style> element's attributes.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return string A string of attribute=value when defined, else, empty string.
-	 */
-	private function generate_style_element_attributes() {
-		$attributes = '';
-		foreach ( $this->style_tag_attrs as $name => $value ) {
-			$attributes .= " {$name}='{$value}'";
-		}
-		return $attributes;
 	}
 
 	/**

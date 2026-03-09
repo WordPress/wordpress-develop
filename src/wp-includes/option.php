@@ -245,7 +245,7 @@ function get_option( $option, $default_value = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 1.5.0 As 'option_' . $setting
+	 * @since 1.5.0 As `option_{$setting}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 *
@@ -547,10 +547,7 @@ function wp_set_options_autoload( array $options, $autoload ) {
  */
 function wp_set_option_autoload( $option, $autoload ) {
 	$result = wp_set_option_autoload_values( array( $option => $autoload ) );
-	if ( isset( $result[ $option ] ) ) {
-		return $result[ $option ];
-	}
-	return false;
+	return $result[ $option ] ?? false;
 }
 
 /**
@@ -1325,10 +1322,11 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param bool|null $autoload The default autoload value to set. Returning true will be set as 'auto-on' in the
-	 *                            database, false will be set as 'auto-off', and null will be set as 'auto'.
-	 * @param string    $option   The passed option name.
-	 * @param mixed     $value    The passed option value to be saved.
+	 * @param bool|null $autoload         The default autoload value to set. Returning true will be set as 'auto-on' in the
+	 *                                    database, false will be set as 'auto-off', and null will be set as 'auto'.
+	 * @param string    $option           The passed option name.
+	 * @param mixed     $value            The passed option value to be saved.
+	 * @param mixed     $serialized_value The passed option value to be saved, in serialized form.
 	 */
 	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value, $serialized_value );
 	if ( is_bool( $autoload ) ) {
@@ -1754,7 +1752,7 @@ function wp_user_settings() {
 function get_user_setting( $name, $default_value = false ) {
 	$all_user_settings = get_all_user_settings();
 
-	return isset( $all_user_settings[ $name ] ) ? $all_user_settings[ $name ] : $default_value;
+	return $all_user_settings[ $name ] ?? $default_value;
 }
 
 /**
@@ -2020,7 +2018,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * Returning a value other than false from the filter will short-circuit retrieval
 	 * and return that value instead.
 	 *
-	 * @since 2.9.0 As 'pre_site_option_' . $key
+	 * @since 2.9.0 As `pre_site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
@@ -2123,7 +2121,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 2.9.0 As 'site_option_' . $key
+	 * @since 2.9.0 As `site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
@@ -2172,7 +2170,7 @@ function add_network_option( $network_id, $option, $value ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 2.9.0 As 'pre_add_site_option_' . $key
+	 * @since 2.9.0 As `pre_add_site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
@@ -2236,7 +2234,7 @@ function add_network_option( $network_id, $option, $value ) {
 		 *
 		 * The dynamic portion of the hook name, `$option`, refers to the option name.
 		 *
-		 * @since 2.9.0 As "add_site_option_{$key}"
+		 * @since 2.9.0 As `add_site_option_{$key}`.
 		 * @since 3.0.0
 		 * @since 4.7.0 The `$network_id` parameter was added.
 		 *
@@ -2342,7 +2340,7 @@ function delete_network_option( $network_id, $option ) {
 		 *
 		 * The dynamic portion of the hook name, `$option`, refers to the option name.
 		 *
-		 * @since 2.9.0 As "delete_site_option_{$key}"
+		 * @since 2.9.0 As `delete_site_option_{$key}`.
 		 * @since 3.0.0
 		 * @since 4.7.0 The `$network_id` parameter was added.
 		 *
@@ -2888,6 +2886,18 @@ function register_initial_settings() {
 	);
 
 	register_setting(
+		'writing',
+		'wp_enable_real_time_collaboration',
+		array(
+			'type'              => 'boolean',
+			'description'       => __( 'Enable Real-Time Collaboration' ),
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => true,
+			'show_in_rest'      => true,
+		)
+	);
+
+	register_setting(
 		'reading',
 		'posts_per_page',
 		array(
@@ -2957,25 +2967,6 @@ function register_initial_settings() {
 			'type'         => 'string',
 			'label'        => __( 'Allow comments on new posts' ),
 			'description'  => __( 'Allow people to submit comments on new posts.' ),
-		)
-	);
-
-	register_setting(
-		'reading',
-		'active_templates',
-		array(
-			'type'         => 'object',
-			// Do not set the default value to an empty array! For some reason
-			// that will prevent the option from being set to an empty array.
-			'show_in_rest' => array(
-				'schema' => array(
-					'type'                 => 'object',
-					// Properties can be integers, strings, or false
-					// (deactivated).
-					'additionalProperties' => true,
-				),
-			),
-			'label'        => 'Active Templates',
 		)
 	);
 }
