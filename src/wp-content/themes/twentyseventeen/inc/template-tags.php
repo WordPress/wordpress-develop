@@ -110,12 +110,7 @@ endif;
 
 if ( ! function_exists( 'twentyseventeen_edit_link' ) ) :
 	/**
-	 * Returns an accessibility-friendly link to edit a post or page.
-	 *
-	 * This also gives a little context about what exactly we're editing
-	 * (post or page?) so that users understand a bit more where they are in terms
-	 * of the template hierarchy and their content. Helpful when/if the single-page
-	 * layout with multiple posts/pages shown gets confusing.
+	 * Displays an accessibility-friendly edit link for the current post in the loop.
 	 */
 	function twentyseventeen_edit_link() {
 		edit_post_link(
