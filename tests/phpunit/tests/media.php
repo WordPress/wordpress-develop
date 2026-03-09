@@ -6086,52 +6086,83 @@ EOF;
 	 *
 	 * @dataProvider data_wp_maybe_add_fetchpriority_high_attr
 	 */
-	public function test_wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr, $expected_fetchpriority ) {
+	public function test_wp_maybe_add_fetchpriority_high_attr( array $loading_attrs, string $tag_name, array $attr, ?string $expected_fetchpriority, bool $expected_high_priority_element_flag ): void {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
 
-		if ( $expected_fetchpriority ) {
+		if ( null !== $expected_fetchpriority ) {
 			$this->assertArrayHasKey( 'fetchpriority', $loading_attrs, 'fetchpriority attribute should be present' );
 			$this->assertSame( $expected_fetchpriority, $loading_attrs['fetchpriority'], 'fetchpriority attribute has incorrect value' );
 		} else {
 			$this->assertArrayNotHasKey( 'fetchpriority', $loading_attrs, 'fetchpriority attribute should not be present' );
 		}
+		$this->assertSame( $expected_high_priority_element_flag, wp_high_priority_element_flag() );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{
+	 *     0: array<string, string>,
+	 *     1: string,
+	 *     2: array<string, string>,
+	 *     3: string|null,
+	 *     5: bool,
+	 * }}>
 	 */
-	public function data_wp_maybe_add_fetchpriority_high_attr() {
+	public function data_wp_maybe_add_fetchpriority_high_attr(): array {
 		return array(
-			'small image'                   => array(
+			'small image'                         => array(
 				array(),
 				'img',
 				$this->get_insufficient_width_height_for_high_priority(),
-				false,
+				null,
+				true,
 			),
-			'large image'                   => array(
+			'small image with fetchpriority=auto' => array(
+				array(),
+				'img',
+				array_merge(
+					$this->get_insufficient_width_height_for_high_priority(),
+					array( 'fetchpriority' => 'auto' )
+				),
+				null,
+				true,
+			),
+			'large image'                         => array(
 				array(),
 				'img',
 				$this->get_width_height_for_high_priority(),
 				'high',
+				false,
 			),
-			'image with loading=lazy'       => array(
+			'large image with fetchpriority=auto' => array(
+				array(),
+				'img',
+				array_merge(
+					$this->get_width_height_for_high_priority(),
+					array( 'fetchpriority' => 'auto' )
+				),
+				null,
+				false,
+			),
+			'image with loading=lazy'             => array(
 				array(
 					'loading'  => 'lazy',
 					'decoding' => 'async',
 				),
 				'img',
 				$this->get_width_height_for_high_priority(),
-				false,
+				null,
+				true,
 			),
-			'image with loading=eager'      => array(
+			'image with loading=eager'            => array(
 				array( 'loading' => 'eager' ),
 				'img',
 				$this->get_width_height_for_high_priority(),
 				'high',
+				false,
 			),
-			'image with fetchpriority=high' => array(
+			'image with fetchpriority=high'       => array(
 				array(),
 				'img',
 				array_merge(
@@ -6139,21 +6170,24 @@ EOF;
 					array( 'fetchpriority' => 'high' )
 				),
 				'high',
+				false,
 			),
-			'image with fetchpriority=low'  => array(
+			'image with fetchpriority=low'        => array(
 				array(),
 				'img',
 				array_merge(
 					$this->get_insufficient_width_height_for_high_priority(),
 					array( 'fetchpriority' => 'low' )
 				),
-				false,
+				null,
+				true,
 			),
-			'non-image element'             => array(
+			'non-image element'                   => array(
 				array(),
 				'video',
 				$this->get_width_height_for_high_priority(),
-				false,
+				null,
+				true,
 			),
 		);
 	}

@@ -6260,12 +6260,13 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * Determines whether to add `fetchpriority='high'` to loading attributes.
  *
  * @since 6.3.0
+ * @since 7.0.0 Support is added for IMG tags with `fetchpriority='low'` and `fetchpriority='auto'`.
  * @access private
  *
- * @param array  $loading_attrs Array of the loading optimization attributes for the element.
- * @param string $tag_name      The tag name.
- * @param array  $attr          Array of the attributes for the element.
- * @return array Updated loading optimization attributes for the element.
+ * @param array<string, string> $loading_attrs Array of the loading optimization attributes for the element.
+ * @param string                $tag_name      The tag name.
+ * @param array<string, mixed>  $attr          Array of the attributes for the element.
+ * @return array<string, string> Updated loading optimization attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ) {
 	// For now, adding `fetchpriority="high"` is only supported for images.
@@ -6273,12 +6274,15 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 		return $loading_attrs;
 	}
 
-	if ( isset( $attr['fetchpriority'] ) ) {
+	$existing_fetchpriority = $attr['fetchpriority'] ?? null;
+	if ( 'high' === $existing_fetchpriority || 'low' === $existing_fetchpriority ) {
 		/*
-		 * While any `fetchpriority` value could be set in `$loading_attrs`,
-		 * for consistency we only do it for `fetchpriority="high"` since that
-		 * is the only possible value that WordPress core would apply on its
-		 * own.
+		 * When an IMG has been explicitly marked with `fetchpriority=high`, then honor that this is the element that
+		 * should have the priority. In contrast, the Navigation block may add `fetchpriority=low` to an IMG which
+		 * appears in the Navigation Overlay; such images should never be considered candidates for
+		 * `fetchpriority=high`. Lastly, block visibility may add `fetchpriority=auto` to an IMG when the block is
+		 * conditionally displayed based on viewport size. Such an image is considered an LCP element candidate if it
+		 * exceeds the threshold for the minimum number of square pixels.
 		 */
 		if ( 'high' === $attr['fetchpriority'] ) {
 			$loading_attrs['fetchpriority'] = 'high';
@@ -6307,7 +6311,9 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 	$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
 
 	if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
-		$loading_attrs['fetchpriority'] = 'high';
+		if ( 'auto' !== $existing_fetchpriority ) {
+			$loading_attrs['fetchpriority'] = 'high';
+		}
 		wp_high_priority_element_flag( false );
 	}
 
