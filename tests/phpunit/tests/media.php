@@ -4607,7 +4607,7 @@ EOF;
 	/**
 	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value.
 	 *
-	 * This test is the same as {@see self::wp_get_loading_optimization_attributes()} except that the IMG which
+	 * This test is the same as {@see self::test_wp_get_loading_optimization_attributes()} except that the IMG which
 	 * previously got `fetchpriority=high` now initially has `fetchpriority=auto`. This causes the initial lazy-loaded
 	 * image to be bumped down one.
 	 *
