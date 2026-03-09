@@ -4229,6 +4229,68 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Tests that a note author cannot update their own note without post edit access.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_note_author_cannot_update_own_note_without_edit_post_access(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$admin_id,
+				'post_status' => 'publish',
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$contributor_id,
+				'comment_content' => 'Contributor note',
+			)
+		);
+		assert( is_int( $note_id ) );
+
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'content', 'Updated by note author' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * Tests that a note author cannot delete their own note without post edit access.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_note_author_cannot_delete_own_note_without_edit_post_access(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$admin_id,
+				'post_status' => 'publish',
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$contributor_id,
+				'comment_content' => 'Contributor note',
+			)
+		);
+		assert( is_int( $note_id ) );
+
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+	}
+
+	/**
 	 * Tests that an editor can update another user's note via the REST API.
 	 *
 	 * @ticket 64779

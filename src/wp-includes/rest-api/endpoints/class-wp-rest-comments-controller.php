@@ -1971,6 +1971,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return true;
 		}
 
+		if ( 'note' === $comment->comment_type && ! empty( $comment->comment_post_ID ) && ! current_user_can( 'edit_post', $comment->comment_post_ID ) ) {
+			return false;
+		}
+
 		return current_user_can( 'edit_comment', $comment->comment_ID );
 	}
 
