@@ -224,7 +224,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $room   Room identifier.
-	 * @param int    $cursor Remove updates with id < this cursor.
+	 * @param int    $cursor Remove updates with id <= this cursor.
 	 * @return bool True on success, false on failure.
 	 */
 	public function remove_updates_before_cursor( string $room, int $cursor ): bool {
@@ -232,7 +232,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND id < %d",
+				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND id <= %d",
 				$room,
 				$cursor
 			)

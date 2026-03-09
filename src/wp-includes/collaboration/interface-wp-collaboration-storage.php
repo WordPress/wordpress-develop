@@ -79,7 +79,7 @@ interface WP_Collaboration_Storage {
 	 * @since 7.0.0
 	 *
 	 * @param string $room   Room identifier.
-	 * @param int    $cursor Remove updates with markers < this cursor.
+	 * @param int    $cursor Remove updates with markers <= this cursor.
 	 * @return bool True on success, false on failure.
 	 */
 	public function remove_updates_before_cursor( string $room, int $cursor ): bool;

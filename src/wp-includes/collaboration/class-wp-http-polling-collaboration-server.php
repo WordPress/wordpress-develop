@@ -451,20 +451,31 @@ class WP_HTTP_Polling_Collaboration_Server {
 				}
 
 				if ( ! $has_newer_compaction ) {
+					// Insert the compaction row before deleting old rows.
+					// Reversing the order closes a race window where a
+					// client joining with cursor=0 between the DELETE and
+					// INSERT would see an empty room for one poll cycle.
+					// The compaction row always has a higher ID than the
+					// deleted rows, so cursor-based filtering is unaffected.
+					$insert_result = $this->add_update( $room, $client_id, $type, $data );
+					if ( is_wp_error( $insert_result ) ) {
+						return $insert_result;
+					}
+
 					if ( ! $this->storage->remove_updates_before_cursor( $room, $cursor ) ) {
 						global $wpdb;
-						$data = array( 'status' => 500 );
+						$error_data = array( 'status' => 500 );
 						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							$data['db_error'] = $wpdb->last_error;
+							$error_data['db_error'] = $wpdb->last_error;
 						}
 						return new WP_Error(
 							'rest_collaboration_storage_error',
 							__( 'Failed to remove updates during compaction.' ),
-							$data
+							$error_data
 						);
 					}
 
-					return $this->add_update( $room, $client_id, $type, $data );
+					return true;
 				}
 
 				// Reaching this point means there's a newer compaction, so we can
