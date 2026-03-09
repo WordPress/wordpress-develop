@@ -105,6 +105,8 @@ parameters:
 			- ../../src/wp-includes/deprecated.php
 			- ../../src/wp-includes/ms-deprecated.php
 			- ../../src/wp-includes/pluggable-deprecated.php
+			# These files are currently pulled in from Gutenberg, but maybe not long-term. See <https://core.trac.wordpress.org/ticket/64393>.
+			- ../../src/wp-includes/build
 			# These files are sourced by wordpress/gutenberg in `tools/release/sync-stable-blocks.js`.
 			- ../../src/wp-includes/blocks
 			# Third-party libraries.

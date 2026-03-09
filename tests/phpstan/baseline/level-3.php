@@ -1,0 +1,629 @@
+<?php declare(strict_types = 1);
+
+$ignoreErrors = [];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Automatic_Updater\\:\\:update\\(\\) should return WP_Error\\|null but returns false\\.$#',
+	'identifier' => 'return.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-automatic-updater.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Cannot access offset \'new_version\' on bool\\.$#',
+	'identifier' => 'offsetAccess.nonOffsetAccessible',
+	'count' => 4,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-debug-data.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Filesystem_Direct\\:\\:group\\(\\) should return string\\|false but returns int\\<1, max\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-direct.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Filesystem_Direct\\:\\:owner\\(\\) should return string\\|false but returns int\\<1, max\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-direct.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Filesystem_SSH2\\:\\:group\\(\\) should return string\\|false but returns int\\<1, max\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Filesystem_SSH2\\:\\:owner\\(\\) should return string\\|false but returns int\\<1, max\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Filesystem_SSH2\\:\\:\\$link \\(resource\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$comment_status \\(bool\\) of method WP_Post_Comments_List_Table\\:\\:get_per_page\\(\\) should be compatible with parameter \\$comment_status \\(string\\) of method WP_Comments_List_Table\\:\\:get_per_page\\(\\)$#',
+	'identifier' => 'method.childParameterType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-post-comments-list-table.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Offset \'preview\' does not exist on array\\{activate\\: non\\-falsy\\-string\\}\\.$#',
+	'identifier' => 'offsetAccess.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-themes-list-table.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_get_nav_menu_to_edit\\(\\) should return string\\|WP_Error\\|null but returns WP_Term\\|false\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function convert_to_screen\\(\\) should return WP_Screen but returns object\\{id\\: string, base\\: string\\}&stdClass\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/template.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Cannot access offset \'new_version\' on bool\\.$#',
+	'identifier' => 'offsetAccess.nonOffsetAccessible',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/update-core.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentytwenty_get_color_for_area\\(\\) should return string but returns false\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/functions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function twentytwenty_generate_css\\(\\) should return string but empty return statement found\\.$#',
+	'identifier' => 'return.empty',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-content/themes/twentytwenty/inc/custom-css.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Block_Template\\:\\:\\$author \\(int\\|null\\) does not accept string\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function filter_block_kses\\(\\) should return array but returns ArrayAccess&WP_Block_Parser_Block\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$args \\(stdClass\\) of method Walker_Nav_Menu\\:\\:end_lvl\\(\\) should be compatible with parameter \\$args \\(array\\) of method Walker\\:\\:end_lvl\\(\\)$#',
+	'identifier' => 'method.childParameterType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$args \\(stdClass\\) of method Walker_Nav_Menu\\:\\:start_lvl\\(\\) should be compatible with parameter \\$args \\(array\\) of method Walker\\:\\:start_lvl\\(\\)$#',
+	'identifier' => 'method.childParameterType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#4 \\$args \\(stdClass\\) of method Walker_Nav_Menu\\:\\:end_el\\(\\) should be compatible with parameter \\$args \\(array\\) of method Walker\\:\\:end_el\\(\\)$#',
+	'identifier' => 'method.childParameterType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#4 \\$args \\(stdClass\\) of method Walker_Nav_Menu\\:\\:start_el\\(\\) should be compatible with parameter \\$args \\(array\\) of method Walker\\:\\:start_el\\(\\)$#',
+	'identifier' => 'method.childParameterType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property Walker_Nav_Menu\\:\\:\\$tree_type \\(string\\) does not accept default value of type array\\<int, string\\>\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Block_Processor\\:\\:extract_full_block_and_advance\\(\\) should return array\\<array\\>\\|null but returns array\\<string, array\\|string\\|null\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Block_Processor\\:\\:extract_full_block_and_advance\\(\\) should return array\\<array\\>\\|null but returns array\\<string, list\\<string\\|null\\>\\|string\\|null\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Block_Type\\:\\:__get\\(\\) should return array\\<string\\>\\|string\\|void\\|null but returns array\\<array\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-type.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Block\\:\\:\\$inner_blocks \\(WP_Block_List\\) does not accept default value of type array\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Comment_Query\\:\\:\\$date_query \\(WP_Date_Query\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Comment_Query\\:\\:\\$meta_query \\(WP_Meta_Query\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Control\\:\\:\\$active_callback \\(callable\\(\\)\\: mixed\\) does not accept default value of type \'\'\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-control.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Control\\:\\:\\$settings \\(array\\) does not accept string\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-control.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Panel\\:\\:\\$active_callback \\(callable\\(\\)\\: mixed\\) does not accept default value of type \'\'\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-panel.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Panel\\:\\:\\$theme_supports \\(array\\<mixed\\>\\) does not accept default value of type string\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-panel.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Section\\:\\:\\$active_callback \\(callable\\(\\)\\: mixed\\) does not accept default value of type \'\'\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-section.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Setting\\:\\:\\$default \\(string\\) does not accept stdClass\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-setting.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Setting\\:\\:\\$sanitize_callback \\(callable\\(\\)\\: mixed\\) does not accept default value of type \'\'\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-setting.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Setting\\:\\:\\$sanitize_js_callback \\(callable\\(\\)\\: mixed\\) does not accept default value of type \'\'\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-setting.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Customize_Setting\\:\\:\\$validate_callback \\(callable\\(\\)\\: mixed\\) does not accept default value of type \'\'\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-setting.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^WpOrg\\\\Requests\\\\Cookie\\\\Jar does not accept WpOrg\\\\Requests\\\\Cookie\\.$#',
+	'identifier' => 'offsetAssign.valueType',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-http.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Image_Editor_Imagick\\:\\:set_imagick_time_limit\\(\\) should return int\\|null but returns float\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-image-editor-imagick.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Image_Editor_Imagick\\:\\:write_image\\(\\) should return WP_Error\\|true but returns bool\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-image-editor-imagick.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Image_Editor_Imagick\\:\\:\\$image \\(Imagick\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-image-editor-imagick.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Argument of an invalid type stdClass supplied for foreach, only iterables are supported\\.$#',
+	'identifier' => 'foreach.nonIterable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-post-type.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Query\\:\\:\\$date_query \\(WP_Date_Query\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Query\\:\\:\\$meta_query \\(WP_Meta_Query\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Query\\:\\:\\$posts \\(array\\<int\\|WP_Post\\>\\|null\\) does not accept array\\<int, stdClass\\>\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Rewrite\\:\\:\\$rules \\(array\\<string\\>\\) does not accept string\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$stored_results by\\-ref type of method WP_Scripts\\:\\:get_highest_fetchpriority_with_dependents\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\> given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-scripts.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Site_Query\\:\\:\\$date_query \\(WP_Date_Query\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-site-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Site_Query\\:\\:\\$meta_query \\(WP_Meta_Query\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-site-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$query by\\-ref type of method WP_Tax_Query\\:\\:clean_query\\(\\) expects array, WP_Error given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-tax-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$query by\\-ref type of method WP_Tax_Query\\:\\:transform_query\\(\\) expects array, WP_Error given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-tax-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$query by\\-ref type of method WP_Tax_Query\\:\\:transform_query\\(\\) expects array, array\\<int\\|string\\|WP_Term\\>\\|string given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-tax-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Term_Query\\:\\:get_terms\\(\\) should return array\\<int\\|string\\|WP_Term\\>\\|string but returns int\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-term-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Term_Query\\:\\:\\$meta_query \\(WP_Meta_Query\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-term-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Term_Query\\:\\:\\$terms \\(array\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-term-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Term\\:\\:\\$term_group \\(int\\) does not accept default value of type string\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-term.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Static property WP_Theme_JSON_Resolver\\:\\:\\$blocks \\(WP_Theme_JSON\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json-resolver.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Static property WP_Theme_JSON_Resolver\\:\\:\\$core \\(WP_Theme_JSON\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json-resolver.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Static property WP_Theme_JSON_Resolver\\:\\:\\$i18n_schema \\(array\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json-resolver.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Static property WP_Theme_JSON_Resolver\\:\\:\\$theme \\(WP_Theme_JSON\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json-resolver.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Static property WP_Theme_JSON_Resolver\\:\\:\\$user \\(WP_Theme_JSON\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json-resolver.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Static property WP_Theme_JSON_Resolver\\:\\:\\$user_custom_post_type_id \\(int\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json-resolver.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$matched_token_byte_length by\\-ref type of method WP_Token_Map\\:\\:read_token\\(\\) expects int\\|null, \\(float\\|int\\) given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-token-map.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_User_Query\\:\\:\\$meta_query \\(WP_Meta_Query\\) does not accept default value of type false\\.$#',
+	'identifier' => 'property.defaultValue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-user-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_User\\:\\:\\$roles \\(array\\<string\\>\\) does not accept array\\<string, bool\\>\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-user.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method wp_xmlrpc_server\\:\\:wp_newTerm\\(\\) should return int\\|IXR_Error but returns string\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-xmlrpc-server.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property wpdb\\:\\:\\$col_info \\(array\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property wpdb\\:\\:\\$last_query \\(string\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$has_noncharacters by\\-ref type of function _wp_scan_utf8\\(\\) expects bool\\|null, int given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/compat-utf8.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc type array of property WP_Customize_Nav_Menu_Item_Setting\\:\\:\\$default is not covariant with PHPDoc type string of overridden property WP_Customize_Setting\\:\\:\\$default\\.$#',
+	'identifier' => 'property.phpDocType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Post\\:\\:\\$post_author \\(string\\) does not accept int\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Customize_Nav_Menu_Setting\\:\\:filter_wp_get_nav_menu_object\\(\\) should return object\\|null but returns false\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc type array of property WP_Customize_Nav_Menu_Setting\\:\\:\\$default is not covariant with PHPDoc type string of overridden property WP_Customize_Setting\\:\\:\\$default\\.$#',
+	'identifier' => 'property.phpDocType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Offset \'basedir\' does not exist on string\\.$#',
+	'identifier' => 'offsetAccess.notFound',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/fonts.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Offset \'baseurl\' does not exist on string\\.$#',
+	'identifier' => 'offsetAccess.notFound',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/fonts.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_HTML_Tag_Processor\\:\\:\\$is_closing_tag \\(bool\\) does not accept null\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-tag-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_dropdown_languages\\(\\) should return string but empty return statement found\\.$#',
+	'identifier' => 'return.empty',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/l10n.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Translation_Controller\\:\\:get_entries\\(\\) should return array\\<string, string\\> but returns array\\<string, array\\<string\\>\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/l10n/class-wp-translation-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Translation_File\\:\\:entries\\(\\) should return array\\<string, array\\<string\\>\\> but returns array\\<string, string\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/l10n/class-wp-translation-file.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Translation_File\\:\\:\\$entries \\(array\\<string, string\\>\\) does not accept array\\<string, array\\<string\\>\\>\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/l10n/class-wp-translation-file.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function update_meta_cache\\(\\) should return array\\|false but returns bool\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/meta.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_update_nav_menu_item\\(\\) should return int\\|WP_Error but returns WP_Term\\|false\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_post_revision_title\\(\\) should return string\\|false but returns array\\{\\}\\|null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post-template.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_post_revision_title_expanded\\(\\) should return string\\|false but returns array\\{\\}\\|null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post-template.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_set_post_categories\\(\\) should return array\\|WP_Error\\|false but returns true\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_trash_post\\(\\) should return WP_Post\\|false\\|null but returns array\\{\\}\\|null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_untrash_post\\(\\) should return WP_Post\\|false\\|null but returns array\\{\\}\\|null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$result by\\-ref type of function _page_traverse_name\\(\\) expects array\\<string\\>, array given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc type false of property WP_REST_Attachments_Controller\\:\\:\\$allow_batch is not covariant with PHPDoc type array of overridden property WP_REST_Posts_Controller\\:\\:\\$allow_batch\\.$#',
+	'identifier' => 'property.phpDocType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_REST_Autosaves_Controller\\:\\:get_item\\(\\) should return WP_Error\\|WP_Post but returns WP_REST_Response\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-autosaves-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_REST_Autosaves_Controller\\:\\:\\$revisions_controller \\(WP_REST_Revisions_Controller\\) does not accept WP_REST_Controller\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-autosaves-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_REST_Controller\\:\\:get_object_type\\(\\) should return string but returns null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc type false of property WP_REST_Font_Faces_Controller\\:\\:\\$allow_batch is not covariant with PHPDoc type array of overridden property WP_REST_Posts_Controller\\:\\:\\$allow_batch\\.$#',
+	'identifier' => 'property.phpDocType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-font-faces-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc type false of property WP_REST_Font_Families_Controller\\:\\:\\$allow_batch is not covariant with PHPDoc type array of overridden property WP_REST_Posts_Controller\\:\\:\\$allow_batch\\.$#',
+	'identifier' => 'property.phpDocType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-font-families-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$id \\(int\\) of method WP_REST_Global_Styles_Controller\\:\\:prepare_links\\(\\) should be compatible with parameter \\$post \\(WP_Post\\) of method WP_REST_Posts_Controller\\:\\:prepare_links\\(\\)$#',
+	'identifier' => 'method.childParameterType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-global-styles-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_REST_Template_Autosaves_Controller\\:\\:get_item\\(\\) should return WP_Error\\|WP_Post but returns WP_REST_Response\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-template-autosaves-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_REST_Template_Autosaves_Controller\\:\\:\\$revisions_controller \\(WP_REST_Revisions_Controller\\) does not accept WP_REST_Controller\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-template-autosaves-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$parent_template_id \\(string\\) of method WP_REST_Template_Revisions_Controller\\:\\:get_parent\\(\\) should be compatible with parameter \\$parent_post_id \\(int\\) of method WP_REST_Revisions_Controller\\:\\:get_parent\\(\\)$#',
+	'identifier' => 'method.childParameterType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-template-revisions-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function _wp_preview_post_thumbnail_filter\\(\\) should return array\\|null but returns string\\.$#',
+	'identifier' => 'return.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/revision.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_delete_post_revision\\(\\) should return WP_Post\\|false\\|null but returns array\\{\\}\\|null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/revision.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_restore_post_revision\\(\\) should return int\\|false\\|null but returns array\\{\\}\\|null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/revision.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Taxonomy\\:\\:\\$labels \\(stdClass\\) does not accept array\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function _wp_get_current_user\\(\\) should return WP_User but returns array\\|float\\|int\\|string\\|false\\|null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 3,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function _wp_get_current_user\\(\\) should return WP_User but returns null\\.$#',
+	'identifier' => 'return.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Static property WP_Widget_Media\\:\\:\\$l10n_defaults \\(array\\<string\\>\\) does not accept array\\<string, array\\|string\\>\\.$#',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-media.php',
+];
+
+return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

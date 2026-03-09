@@ -10,11 +10,17 @@ includes:
 
 	# The baseline file includes preexisting errors in the codebase that should be ignored.
 	# https://phpstan.org/user-guide/baseline
-	- tests/phpstan/baseline.php
+	- tests/phpstan/baseline.php # level 0.
+	- tests/phpstan/baseline/level-1.php
+	- tests/phpstan/baseline/level-2.php
+	- tests/phpstan/baseline/level-3.php
+	- tests/phpstan/baseline/level-4.php
+	- tests/phpstan/baseline/level-5.php
+	- tests/phpstan/baseline/level-6.php
 
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
-	level: 0
+	level: 6
 	reportUnmatchedIgnoredErrors: true
 
 	ignoreErrors:
@@ -34,3 +40,11 @@ parameters:
 			identifier: function.inner
 			path: src/wp-includes/canonical.php
 			count: 1
+
+		# Level 1:
+		- # These are too noisy at the moment.
+			message: '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
+
+		# Level 2:
+		- # Callable-strings are used as callables in WordPress.
+			message: '#Default value of the parameter .* is incompatible with type callable.*#'
