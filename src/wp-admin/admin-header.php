@@ -191,8 +191,17 @@ if ( $current_screen->taxonomy ) {
 	$admin_body_class .= ' taxonomy-' . $current_screen->taxonomy;
 }
 
-$admin_body_class .= ' branch-' . str_replace( array( '.', ',' ), '-', (string) ( (float) get_bloginfo( 'version' ) ) );
-$admin_body_class .= ' version-' . str_replace( '.', '-', preg_replace( '/^([.0-9]+).*/', '$1', get_bloginfo( 'version' ) ) );
+$version_without_tag     = strtok( get_bloginfo( 'version' ), '-' );
+$version_components      = explode( '.', $version_without_tag );
+$version_class           = 'version-' . implode( '-', $version_components );
+$admin_body_class       .= ' ' . $version_class;
+
+$branch_version_components = array_slice( $version_components, 0, 2 );
+if ( '0' === array_last( $branch_version_components ) ) {
+	array_pop( $branch_version_components );
+}
+$branch_class      = 'branch-' . implode( '-', $branch_version_components );
+$admin_body_class .= ' ' . $branch_class;
 $admin_body_class .= ' admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' );
 $admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
 
