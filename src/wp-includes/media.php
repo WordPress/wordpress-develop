@@ -6291,7 +6291,7 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 	}
 
 	$existing_fetchpriority = $attr['fetchpriority'] ?? null;
-	if ( 'high' === $existing_fetchpriority || 'low' === $existing_fetchpriority ) {
+	if ( null !== $existing_fetchpriority && 'auto' !== $existing_fetchpriority ) {
 		/*
 		 * When an IMG has been explicitly marked with `fetchpriority=high`, then honor that this is the element that
 		 * should have the priority. In contrast, the Navigation block may add `fetchpriority=low` to an IMG which
@@ -6300,7 +6300,7 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 		 * conditionally displayed based on viewport size. Such an image is considered an LCP element candidate if it
 		 * exceeds the threshold for the minimum number of square pixels.
 		 */
-		if ( 'high' === $attr['fetchpriority'] ) {
+		if ( 'high' === $existing_fetchpriority ) {
 			$loading_attrs['fetchpriority'] = 'high';
 			wp_high_priority_element_flag( false );
 		}
