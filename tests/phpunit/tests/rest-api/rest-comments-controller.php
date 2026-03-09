@@ -4220,7 +4220,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		wp_set_current_user( self::$contributor_id );
 
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note->comment_ID);
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note->comment_ID );
 		$request->set_param( 'content', 'Updated content' );
 		$response = rest_get_server()->dispatch( $request );
 
