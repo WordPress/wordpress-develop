@@ -2601,7 +2601,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_note_author_can_edit_own_note() {
+	public function test_note_author_can_edit_own_note(): void {
 		$contributor = self::$users['contributor'];
 		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
 		$note_id     = self::factory()->comment->create(
@@ -2621,7 +2621,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_note_author_can_delete_own_note() {
+	public function test_note_author_can_delete_own_note(): void {
 		$contributor = self::$users['contributor'];
 		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
 		$note_id     = self::factory()->comment->create(
@@ -2641,7 +2641,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_non_author_cannot_edit_others_note() {
+	public function test_non_author_cannot_edit_others_note(): void {
 		$contributor = self::$users['contributor'];
 		$admin       = self::$users['administrator'];
 		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
@@ -2665,7 +2665,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_non_author_cannot_delete_others_note() {
+	public function test_non_author_cannot_delete_others_note(): void {
 		$contributor = self::$users['contributor'];
 		$admin       = self::$users['administrator'];
 		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
@@ -2689,7 +2689,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_moderator_can_edit_others_note() {
+	public function test_moderator_can_edit_others_note(): void {
 		$editor      = self::$users['editor'];
 		$contributor = self::$users['contributor'];
 		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
@@ -2713,7 +2713,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_moderator_can_delete_others_note() {
+	public function test_moderator_can_delete_others_note(): void {
 		$editor      = self::$users['editor'];
 		$contributor = self::$users['contributor'];
 		$post_id     = self::factory()->post->create( array( 'post_author' => $contributor->ID ) );
@@ -2737,7 +2737,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_author_cannot_edit_others_note() {
+	public function test_author_cannot_edit_others_note(): void {
 		$author  = self::$users['author'];
 		$editor  = self::$users['editor'];
 		$post_id = self::factory()->post->create( array( 'post_author' => $author->ID ) );
@@ -2763,7 +2763,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_subscriber_cannot_edit_own_note() {
+	public function test_subscriber_cannot_edit_own_note(): void {
 		$subscriber = self::$users['subscriber'];
 		$post_id    = self::factory()->post->create();
 		$note_id    = self::factory()->comment->create(
@@ -2786,7 +2786,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_edit_regular_comment_unchanged() {
+	public function test_edit_regular_comment_unchanged(): void {
 		$contributor = self::$users['contributor'];
 		$admin       = self::$users['administrator'];
 		$post_id     = self::factory()->post->create(
@@ -2815,7 +2815,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_delete_regular_comment_maps_to_edit_post() {
+	public function test_delete_regular_comment_maps_to_edit_post(): void {
 		$contributor = self::$users['contributor'];
 		$admin       = self::$users['administrator'];
 		$post_id     = self::factory()->post->create(
@@ -2844,7 +2844,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_edit_comment_nonexistent_comment() {
+	public function test_edit_comment_nonexistent_comment(): void {
 		$admin = self::$users['administrator'];
 
 		$this->assertFalse( user_can( $admin->ID, 'edit_comment', PHP_INT_MAX ) );
@@ -2856,7 +2856,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 64779
 	 * @covers ::map_meta_cap
 	 */
-	public function test_delete_comment_nonexistent_comment() {
+	public function test_delete_comment_nonexistent_comment(): void {
 		$admin = self::$users['administrator'];
 
 		$this->assertFalse( user_can( $admin->ID, 'delete_comment', PHP_INT_MAX ) );
@@ -2869,7 +2869,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @covers ::map_meta_cap
 	 * @expectedIncorrectUsage map_meta_cap
 	 */
-	public function test_edit_comment_without_argument() {
+	public function test_edit_comment_without_argument(): void {
 		$admin = self::$users['administrator'];
 
 		$this->assertFalse( user_can( $admin->ID, 'edit_comment' ) );
@@ -2882,7 +2882,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @covers ::map_meta_cap
 	 * @expectedIncorrectUsage map_meta_cap
 	 */
-	public function test_delete_comment_without_argument() {
+	public function test_delete_comment_without_argument(): void {
 		$admin = self::$users['administrator'];
 
 		$this->assertFalse( user_can( $admin->ID, 'delete_comment' ) );

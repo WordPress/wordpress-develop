@@ -1929,7 +1929,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		/*
-		 * Notes can be read by any user who can edit the parent post.
+		 * Notes can be read by any user who can edit the associated post.
 		 * This is separate from the edit_comment capability, which controls
 		 * whether a user can modify or delete the note.
 		 *

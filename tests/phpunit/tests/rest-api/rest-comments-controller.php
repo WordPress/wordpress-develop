@@ -4139,7 +4139,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64779
 	 */
-	public function test_contributor_cannot_update_others_note() {
+	public function test_contributor_cannot_update_others_note(): void {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author' => self::$contributor_id,
@@ -4154,6 +4154,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_content' => 'Admin note',
 			)
 		);
+		assert( is_int( $note_id ) );
 
 		wp_set_current_user( self::$contributor_id );
 
@@ -4169,7 +4170,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64779
 	 */
-	public function test_contributor_cannot_delete_others_note() {
+	public function test_contributor_cannot_delete_others_note(): void {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author' => self::$contributor_id,
@@ -4184,6 +4185,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_content' => 'Admin note',
 			)
 		);
+		assert( is_int( $note_id ) );
 
 		wp_set_current_user( self::$contributor_id );
 
@@ -4206,7 +4208,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'post_status' => 'draft',
 			)
 		);
-		$note_id = self::factory()->comment->create(
+		$note    = self::factory()->comment->create_and_get(
 			array(
 				'comment_post_ID' => $post_id,
 				'comment_type'    => 'note',
@@ -4214,15 +4216,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_content' => 'Original content',
 			)
 		);
+		assert( $note instanceof WP_Comment );
 
 		wp_set_current_user( self::$contributor_id );
 
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note->comment_ID);
 		$request->set_param( 'content', 'Updated content' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'Updated content', get_comment( $note_id )->comment_content );
+		$this->assertSame( 'Updated content', $note->comment_content );
 	}
 
 	/**
@@ -4230,7 +4233,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64779
 	 */
-	public function test_editor_can_update_others_note() {
+	public function test_editor_can_update_others_note(): void {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author' => self::$contributor_id,
@@ -4245,6 +4248,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_content' => 'Contributor note',
 			)
 		);
+		assert( is_int( $note_id ) );
 
 		wp_set_current_user( self::$editor_id );
 
@@ -4260,7 +4264,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64779
 	 */
-	public function test_contributor_can_read_others_notes_on_own_post() {
+	public function test_contributor_can_read_others_notes_on_own_post(): void {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author' => self::$contributor_id,
