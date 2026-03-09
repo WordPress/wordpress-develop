@@ -195,7 +195,6 @@ $version_without_tag     = strtok( get_bloginfo( 'version' ), '-' );
 $version_components      = explode( '.', $version_without_tag );
 $version_class           = 'version-' . implode( '-', $version_components );
 $admin_body_class       .= ' ' . $version_class;
-
 $branch_version_components = array_slice( $version_components, 0, 2 );
 if ( '0' === array_last( $branch_version_components ) ) {
 	array_pop( $branch_version_components );
