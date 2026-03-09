@@ -4921,7 +4921,7 @@ EOF;
 
 		add_filter(
 			'wp_loading_optimization_force_header_contexts',
-			function ( $context ) {
+			function ( $contexts ) {
 				$contexts['something_completely_arbitrary'] = true;
 				return $contexts;
 			}
