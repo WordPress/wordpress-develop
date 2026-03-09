@@ -3916,7 +3916,10 @@ EOF;
 		$this->assertFalse( wp_get_loading_attr_default( 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ), 'Images in the footer block template part should not be lazy-loaded.' );
 	}
 
-	public function data_wp_get_loading_attr_default() {
+	/**
+	 * @return array<int, array{ 0: string }>
+	 */
+	public function data_wp_get_loading_attr_default(): array {
 		return array(
 			array( 'the_content' ),
 			array( 'the_post_thumbnail' ),
@@ -4481,7 +4484,7 @@ EOF;
 	}
 
 	/**
-	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value.
+	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value.
 	 *
 	 * @ticket 53675
 	 * @ticket 56930
@@ -4494,7 +4497,7 @@ EOF;
 	 *
 	 * @param string $context
 	 */
-	public function test_wp_get_loading_optimization_attributes( $context ) {
+	public function test_wp_get_loading_optimization_attributes( string $context ): void {
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Return 'lazy' by default.
@@ -4582,6 +4585,131 @@ EOF;
 				array(
 					'decoding' => 'async',
 					'loading'  => 'lazy',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			// Yes, for all subsequent elements.
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+					'loading'  => 'lazy',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+		}
+	}
+
+	/**
+	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value.
+	 *
+	 * This test is the same as {@see self::wp_get_loading_optimization_attributes()} except that the IMG which
+	 * previously got `fetchpriority=high` now initially has `fetchpriority=auto`. This causes the initial lazy-loaded
+	 * image to be bumped down one.
+	 *
+	 * @ticket 64823
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default
+	 *
+	 * @param string $context
+	 */
+	public function test_wp_get_loading_optimization_attributes_with_fetchpriority_auto_for_lcp_candidate( string $context ): void {
+		$attr = $this->get_width_height_for_high_priority();
+
+		// Return 'lazy' by default.
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'test' )
+		);
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'wp_get_attachment_image' )
+		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, 'wp_get_attachment_image' );
+
+		// Return 'lazy' if not in the loop or the main query.
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, $context )
+		);
+
+		$query = $this->get_new_wp_query_for_published_post();
+
+		while ( have_posts() ) {
+			the_post();
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			// Return 'lazy' if in the loop but not in the main query.
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+					'loading'  => 'lazy',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			// Set as main query.
+			$this->set_main_query( $query );
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			// First three element are not lazy loaded. However, first image initially has `fetchpriority=auto` which marks it as a possible LCP element.
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'auto',
+				),
+				wp_get_loading_optimization_attributes(
+					'img',
+					array_merge( $attr, array( 'fetchpriority' => 'auto' ) ),
+					$context
+				),
+				'Expected first image to not be lazy-loaded.'
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'Expected second image to not be lazy-loaded.'
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'Expected third image to not be lazy-loaded.'
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			// This is the 4th subsequent image, and it still is not lazy-loaded because the first had fetchpriority=auto and so it may have been hidden with block visibility.
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
 				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);

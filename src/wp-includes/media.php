@@ -6103,6 +6103,22 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 		// Preserve fetchpriority=low.
 		$loading_attrs['fetchpriority'] = 'low';
+	} elseif ( 'auto' === $existing_fetchpriority ) {
+		/*
+		 * When a block's visibility support identifies that the block is conditionally displayed based on the viewport
+		 * size, then it adds `fetchpriority=auto` to the block's IMG tags. These images must not be fetched with high
+		 * priority because they could be erroneously loaded in viewports which do not even display them. Contrarily,
+		 * they must not get `fetchpriority=low` because they may in fact be displayed in the current viewport. So as
+		 * a signal to indicate that an IMG may be in the viewport, `fetchpriority=auto` is added. This has the effect
+		 * here of preventing the media count from being increased, so that images hidden with block visibility do not
+		 * effect whether a following IMG gets `loading=lazy`. In particular, `loading=lazy` should still be omitted
+		 * on an IMG following any number of initial IMGs with `fetchpriority=auto` since those initial images may not
+		 * be displayed.
+		 */
+		$maybe_in_viewport = true;
+
+		// Preserve fetchpriority=auto.
+		$loading_attrs['fetchpriority'] = 'auto';
 	}
 
 	if ( null === $maybe_in_viewport ) {
