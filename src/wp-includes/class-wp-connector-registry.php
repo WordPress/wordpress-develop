@@ -158,11 +158,7 @@ final class WP_Connector_Registry {
 	/**
 	 * Unregisters a connector.
 	 *
-	 * Do not use this method directly. Instead, use the `wp_unregister_connector()` function.
-	 *
 	 * @since 7.0.0
-	 *
-	 * @see wp_unregister_connector()
 	 *
 	 * @param string $id The connector identifier.
 	 * @return array|null The unregistered connector data on success, null on failure.
@@ -205,11 +201,11 @@ final class WP_Connector_Registry {
 	/**
 	 * Checks if a connector is registered.
 	 *
-	 * Do not use this method directly. Instead, use the `wp_has_connector()` function.
+	 * Do not use this method directly. Instead, use the `wp_is_connector_registered()` function.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @see wp_has_connector()
+	 * @see wp_is_connector_registered()
 	 *
 	 * @param string $id The connector identifier.
 	 * @return bool True if the connector is registered, false otherwise.
@@ -245,64 +241,25 @@ final class WP_Connector_Registry {
 	}
 
 	/**
-	 * Utility method to retrieve the main instance of the registry class.
-	 *
-	 * The instance will be created if it does not exist yet.
+	 * Retrieves the main instance of the registry class.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @return WP_Connector_Registry|null The main registry instance, or null when `init` action has not fired.
+	 * @return WP_Connector_Registry|null The main registry instance, or null if not yet initialized.
 	 */
 	public static function get_instance(): ?self {
-		if ( ! did_action( 'init' ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				sprintf(
-					/* translators: %s: init action. */
-					__( 'Connector registry should not be initialized before the %s action has fired.' ),
-					'<code>init</code>'
-				),
-				'7.0.0'
-			);
-			return null;
-		}
-
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-
-			/**
-			 * Fires when preparing connector registry.
-			 *
-			 * Connectors should be registered on this action rather
-			 * than another action to ensure they're only loaded when needed.
-			 *
-			 * @since 7.0.0
-			 *
-			 * @param WP_Connector_Registry $instance Connector registry object.
-			 */
-			do_action( 'wp_connectors_init', self::$instance );
-		}
-
 		return self::$instance;
 	}
 
 	/**
-	 * Wakeup magic method.
+	 * Sets the main instance of the registry class.
 	 *
 	 * @since 7.0.0
-	 * @throws LogicException If the registry object is unserialized.
-	 */
-	public function __wakeup(): void {
-		throw new LogicException( __CLASS__ . ' should never be unserialized.' );
-	}
-
-	/**
-	 * Sleep magic method.
+	 * @access private
 	 *
-	 * @since 7.0.0
-	 * @throws LogicException If the registry object is serialized.
+	 * @param WP_Connector_Registry $registry The registry instance.
 	 */
-	public function __sleep(): array {
-		throw new LogicException( __CLASS__ . ' should never be serialized.' );
+	public static function set_instance( WP_Connector_Registry $registry ): void {
+		self::$instance = $registry;
 	}
 }

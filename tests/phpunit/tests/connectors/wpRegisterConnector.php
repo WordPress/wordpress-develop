@@ -4,8 +4,7 @@
  *
  * @group connectors
  * @covers ::wp_register_connector
- * @covers ::wp_unregister_connector
- * @covers ::wp_has_connector
+ * @covers ::wp_is_connector_registered
  * @covers ::wp_get_connector
  * @covers ::wp_get_connectors
  */
@@ -77,18 +76,18 @@ class Tests_Connectors_WpRegisterConnector extends WP_UnitTestCase {
 	/**
 	 * @ticket 64791
 	 */
-	public function test_has_connector_returns_true_for_default() {
+	public function test_is_connector_registered_returns_true_for_default() {
 		// Default connectors are registered via wp_connectors_init.
-		$this->assertTrue( wp_has_connector( 'openai' ) );
-		$this->assertTrue( wp_has_connector( 'google' ) );
-		$this->assertTrue( wp_has_connector( 'anthropic' ) );
+		$this->assertTrue( wp_is_connector_registered( 'openai' ) );
+		$this->assertTrue( wp_is_connector_registered( 'google' ) );
+		$this->assertTrue( wp_is_connector_registered( 'anthropic' ) );
 	}
 
 	/**
 	 * @ticket 64791
 	 */
-	public function test_has_connector_returns_false_for_unregistered() {
-		$this->assertFalse( wp_has_connector( 'nonexistent_provider' ) );
+	public function test_is_connector_registered_returns_false_for_unregistered() {
+		$this->assertFalse( wp_is_connector_registered( 'nonexistent_provider' ) );
 	}
 
 	/**
@@ -124,34 +123,5 @@ class Tests_Connectors_WpRegisterConnector extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'openai', $connectors );
 		$this->assertArrayHasKey( 'google', $connectors );
 		$this->assertArrayHasKey( 'anthropic', $connectors );
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_unregister_removes_connector() {
-		$this->simulate_doing_wp_connectors_init_action(
-			function () {
-				wp_register_connector( 'to_remove', self::$default_args );
-			}
-		);
-
-		$this->assertTrue( wp_has_connector( 'to_remove' ) );
-
-		$result = wp_unregister_connector( 'to_remove' );
-
-		$this->assertIsArray( $result );
-		$this->assertFalse( wp_has_connector( 'to_remove' ) );
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_unregister_returns_null_for_nonexistent() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::unregister' );
-
-		$result = wp_unregister_connector( 'nonexistent' );
-
-		$this->assertNull( $result );
 	}
 }

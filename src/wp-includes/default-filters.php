@@ -540,7 +540,7 @@ add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_catego
 add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
 // Connectors API.
-add_action( 'wp_connectors_init', '_wp_register_default_connectors' );
+add_action( 'init', '_wp_connectors_init' );
 
 // Sitemaps actions.
 add_action( 'init', 'wp_sitemaps_get_server' );

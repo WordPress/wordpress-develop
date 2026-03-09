@@ -17,7 +17,7 @@ use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
  *
  * Example:
  *
- *     function my_plugin_register_connectors( WP_Connector_Registry $registry ): void {
+ *     function my_plugin_register_connectors(): void {
  *         wp_register_connector(
  *             'my_custom_ai',
  *             array(
@@ -81,28 +81,6 @@ function wp_register_connector( string $id, array $args ): ?array {
 }
 
 /**
- * Unregisters a connector.
- *
- * Can be called at any time after the connector has been registered.
- *
- * @since 7.0.0
- *
- * @see WP_Connector_Registry::unregister()
- * @see wp_register_connector()
- *
- * @param string $id The connector identifier.
- * @return array|null The unregistered connector data on success, null on failure.
- */
-function wp_unregister_connector( string $id ): ?array {
-	$registry = WP_Connector_Registry::get_instance();
-	if ( null === $registry ) {
-		return null;
-	}
-
-	return $registry->unregister( $id );
-}
-
-/**
  * Checks if a connector is registered.
  *
  * @since 7.0.0
@@ -159,12 +137,17 @@ function wp_get_connectors(): array {
 }
 
 /**
- * Registers default connectors from Core and the AI Client registry.
+ * Initializes the connector registry with default connectors and fires the registration action.
+ *
+ * Creates the registry instance, registers built-in connectors (which cannot be unhooked),
+ * and then fires the `wp_connectors_init` action for plugins to register their own connectors.
  *
  * @since 7.0.0
  * @access private
  */
-function _wp_register_default_connectors(): void {
+function _wp_connectors_init(): void {
+	$registry = new WP_Connector_Registry();
+	WP_Connector_Registry::set_instance( $registry );
 	// Built-in connectors.
 	$defaults = array(
 		'anthropic' => array(
@@ -252,10 +235,22 @@ function _wp_register_default_connectors(): void {
 		}
 	}
 
-	// Register all connectors.
+	// Register all default connectors directly on the registry.
 	foreach ( $defaults as $id => $args ) {
-		wp_register_connector( $id, $args );
+		$registry->register( $id, $args );
 	}
+
+	/**
+	 * Fires when the connector registry is ready for plugins to register connectors.
+	 *
+	 * Default connectors have already been registered at this point and cannot be
+	 * unhooked. Use `wp_register_connector()` within this action to add new connectors.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_Connector_Registry $registry Connector registry instance.
+	 */
+	do_action( 'wp_connectors_init', $registry );
 }
 
 /**
