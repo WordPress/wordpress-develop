@@ -112,7 +112,7 @@ function wp_unregister_connector( string $id ): ?array {
  * @param string $id The connector identifier.
  * @return bool True if the connector is registered, false otherwise.
  */
-function wp_has_connector( string $id ): bool {
+function wp_is_connector_registered( string $id ): bool {
 	$registry = WP_Connector_Registry::get_instance();
 	if ( null === $registry ) {
 		return false;
