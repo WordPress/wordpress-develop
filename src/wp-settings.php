@@ -140,7 +140,8 @@ require_wp_db();
  *
  * @global string $table_prefix The database table prefix.
  */
-if ( ! isset( $GLOBALS['table_prefix'] ) && isset( $table_prefix ) ) {
+if ( ! isset( $GLOBALS['table_prefix'] ) ) {
+	assert( isset( $table_prefix ) );
 	$GLOBALS['table_prefix'] = $table_prefix;
 }
 
