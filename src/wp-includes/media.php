@@ -6111,7 +6111,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * they must not get `fetchpriority=low` because they may in fact be displayed in the current viewport. So as
 		 * a signal to indicate that an IMG may be in the viewport, `fetchpriority=auto` is added. This has the effect
 		 * here of preventing the media count from being increased, so that images hidden with block visibility do not
-		 * effect whether a following IMG gets `loading=lazy`. In particular, `loading=lazy` should still be omitted
+		 * affect whether a following IMG gets `loading=lazy`. In particular, `loading=lazy` should still be omitted
 		 * on an IMG following any number of initial IMGs with `fetchpriority=auto` since those initial images may not
 		 * be displayed.
 		 */
