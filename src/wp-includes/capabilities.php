@@ -576,8 +576,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			/*
 			 * Notes can only be edited or deleted by their author
 			 * or by users who can moderate comments.
-			 *
-			 * @since 7.0.0
 			 */
 			if ( 'note' === $comment->comment_type ) {
 				if ( (int) $user_id === (int) $comment->user_id ) {
