@@ -431,18 +431,7 @@ function create_initial_rest_routes() {
 
 	// Collaboration.
 	if ( wp_is_collaboration_enabled() ) {
-		/**
-		 * Filters the storage backend used for collaborative editing.
-		 *
-		 * Allows hosts and plugins to replace the default database-backed
-		 * storage with a custom implementation (e.g. Redis, Memcached).
-		 * The returned object must implement WP_Collaboration_Storage.
-		 *
-		 * @since 7.0.0
-		 *
-		 * @param WP_Collaboration_Storage $storage Storage backend instance.
-		 */
-		$collaboration_storage = apply_filters( 'collaboration_storage', new WP_Collaboration_Table_Storage() );
+		$collaboration_storage = new WP_Collaboration_Table_Storage();
 		$collaboration_server  = new WP_HTTP_Polling_Collaboration_Server( $collaboration_storage );
 		$collaboration_server->register_routes();
 	}
