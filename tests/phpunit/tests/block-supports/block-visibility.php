@@ -236,8 +236,9 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 64414
+	 * @ticket 64823
 	 */
 	public function test_block_visibility_support_generated_css_with_two_viewport_sizes() {
 		$this->register_visibility_block_with_support(
@@ -259,13 +260,14 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString(
-			'class="wp-block-hidden-desktop wp-block-hidden-mobile"',
+		$this->assertEqualHTML(
+			'<div class="wp-block-hidden-desktop wp-block-hidden-mobile">Test content <img fetchpriority="auto" src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>',
 			$result,
-			'Block should have both visibility classes in the class attribute'
+			'<body>',
+			'Block should have both visibility classes in the class attribute, and the IMG should have fetchpriority=auto.'
 		);
 
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
