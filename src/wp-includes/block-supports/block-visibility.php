@@ -140,15 +140,17 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 			if ( $processor->next_tag() ) {
 				$processor->add_class( implode( ' ', $class_names ) );
 			}
+			$block_content = $processor->get_updated_html();
 
 			/*
 			 * Set all IMG tags to be `fetchpriority=auto` so that wp_get_loading_optimization_attributes() won't add
-			 * `fetchpriority=high` or increment the media count to affect whether subsequent IMG tags get `loading=lazy`.
+			 * `fetchpriority=high` or increment the media count to effect whether subsequent IMG tags get `loading=lazy`.
 			 */
-			while ( $processor->next_tag( 'IMG' ) ) {
-				$processor->set_attribute( 'fetchpriority', 'auto' );
+			$img_processor = new WP_HTML_Tag_Processor( $block_content );
+			while ( $img_processor->next_tag( 'IMG' ) ) {
+				$img_processor->set_attribute( 'fetchpriority', 'auto' );
 			}
-			$block_content = $processor->get_updated_html();
+			$block_content = $img_processor->get_updated_html();
 		}
 	}
 
