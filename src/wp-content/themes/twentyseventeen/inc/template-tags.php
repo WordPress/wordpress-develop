@@ -110,7 +110,7 @@ endif;
 
 if ( ! function_exists( 'twentyseventeen_edit_link' ) ) :
 	/**
-	 * Displays an accessibility-friendly edit link for the current post in the loop.
+	 * Displays an accessibility-friendly link to edit a post or page.
 	 */
 	function twentyseventeen_edit_link() {
 		edit_post_link(
