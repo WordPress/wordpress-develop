@@ -97,6 +97,31 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Verifies the sync route is registered when relying on the option's default
+	 * value (option not stored in the database).
+	 *
+	 * This covers the upgrade scenario where a site has never explicitly saved
+	 * the collaboration setting.
+	 *
+	 * @ticket 64814
+	 */
+	public function test_register_routes_with_default_option() {
+		global $wp_rest_server;
+
+		// Remove the pre_option filter added in ::set_up() so get_option() uses its default logic.
+		remove_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_true' );
+
+		// Ensure the option is not in the database.
+		delete_option( 'wp_enable_real_time_collaboration' );
+
+		// Reset the REST server so routes are re-registered from scratch.
+		$wp_rest_server = null;
+
+		$routes = rest_get_server()->get_routes();
+		$this->assertArrayHasKey( '/wp-sync/v1/updates', $routes );
+	}
+
+	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
