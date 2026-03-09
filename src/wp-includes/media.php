@@ -5967,7 +5967,7 @@ function wp_get_webp_info( $filename ) {
  * both attributes are present with those values.
  *
  * @since 6.3.0
- * @since 7.0.0 Support `fetchpriority=low` so that `loading=lazy` is not added and the media count is not increased.
+ * @since 7.0.0 Support `fetchpriority=low` and `fetchpriority=auto` so that `loading=lazy` is not added and the media count is not increased.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
