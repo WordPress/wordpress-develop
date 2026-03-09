@@ -6232,10 +6232,10 @@ EOF;
 	 * @return array<string, array{
 	 *     0: array<string, string>,
 	 *     1: string,
-	 *     2: array<string, string>,
+	 *     2: array<string, mixed>,
 	 *     3: string|null,
-	 *     5: bool,
-	 * }}>
+	 *     4: bool,
+	 * }>
 	 */
 	public function data_wp_maybe_add_fetchpriority_high_attr(): array {
 		return array(
@@ -7227,9 +7227,9 @@ EOF;
 	/**
 	 * Returns an array with dimension attribute values eligible for a high priority image.
 	 *
-	 * @return array Associative array with 'width' and 'height' keys.
+	 * @return array{ width: int, height: int } Associative array with 'width' and 'height' keys.
 	 */
-	private function get_width_height_for_high_priority() {
+	private function get_width_height_for_high_priority(): array {
 		/*
 		 * The product of width * height must be >50000 to qualify for high priority image.
 		 * 300 * 200 = 60000
@@ -7243,9 +7243,9 @@ EOF;
 	/**
 	 * Returns an array with dimension attribute values ineligible for a high priority image.
 	 *
-	 * @return array Associative array with 'width' and 'height' keys.
+	 * @return array{ width: int, height: int } Associative array with 'width' and 'height' keys.
 	 */
-	private function get_insufficient_width_height_for_high_priority() {
+	private function get_insufficient_width_height_for_high_priority(): array {
 		/*
 		 * The product of width * height must be >50000 to qualify for high priority image.
 		 * 200 * 100 = 20000
