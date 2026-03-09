@@ -579,6 +579,14 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			 */
 			if ( 'note' === $comment->comment_type ) {
 				if ( (int) $user_id === (int) $comment->user_id ) {
+					$post = get_post( $comment->comment_post_ID );
+					if ( $post ) {
+						$post_type = get_post_type_object( $post->post_type );
+						if ( $post_type ) {
+							$caps[] = $post_type->cap->edit_posts;
+							break;
+						}
+					}
 					$caps[] = 'edit_posts';
 				} else {
 					$caps[] = 'moderate_comments';

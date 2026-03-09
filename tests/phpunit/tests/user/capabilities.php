@@ -2781,6 +2781,52 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a note author can edit their own note on a custom post type.
+	 *
+	 * Ensures the post type's specific edit_posts capability is used,
+	 * not the generic 'edit_posts'.
+	 *
+	 * @ticket 64779
+	 * @covers ::map_meta_cap
+	 */
+	public function test_note_author_can_edit_own_note_on_custom_post_type(): void {
+		register_post_type(
+			'custom_cpt',
+			array(
+				'capability_type' => 'custom_item',
+				'map_meta_cap'    => true,
+			)
+		);
+
+		// Use a subscriber who does NOT have 'edit_posts', then grant only the
+		// custom post type's capability to prove the post-type-specific cap is used.
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( 'edit_custom_items' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'custom_cpt',
+				'post_author' => $user->ID,
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => $user->ID,
+			)
+		);
+
+		$this->assertTrue(
+			user_can( $user->ID, 'edit_comment', $note_id ),
+			'A user with the custom post type edit capability should be able to edit their own note.'
+		);
+
+		$user->remove_cap( 'edit_custom_items' );
+		_unregister_post_type( 'custom_cpt' );
+	}
+
+	/**
 	 * Tests that editing a regular comment still maps to edit_post capability.
 	 *
 	 * @ticket 64779
