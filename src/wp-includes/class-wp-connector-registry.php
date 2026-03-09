@@ -14,6 +14,8 @@
  *
  * @since 7.0.0
  * @access private
+ *
+ * @phpstan-type Connector array{ name: string, description: string, type: string, authentication: array{ method: string, credentials_url?: string|null }, plugin?: array{ slug: string } }
  */
 final class WP_Connector_Registry {
 	/**
@@ -22,7 +24,7 @@ final class WP_Connector_Registry {
 	 * @since 7.0.0
 	 * @var self|null
 	 */
-	private static $instance = null;
+	private static ?WP_Connector_Registry $instance = null;
 
 	/**
 	 * Holds the registered connectors.
@@ -31,9 +33,10 @@ final class WP_Connector_Registry {
 	 * name, description, type, authentication, and optionally plugin.
 	 *
 	 * @since 7.0.0
-	 * @var array[]
+	 * @var array<string, array>
+	 * @phpstan-var array<string, Connector>
 	 */
-	private $registered_connectors = array();
+	private array $registered_connectors = array();
 
 	/**
 	 * Registers a new connector.
@@ -63,6 +66,9 @@ final class WP_Connector_Registry {
 	 *     }
 	 * }
 	 * @return array|null The registered connector data on success, null on failure.
+	 *
+	 * @phpstan-param Connector $args
+	 * @phpstan-return Connector|null
 	 */
 	public function register( string $id, array $args ): ?array {
 		if ( ! preg_match( '/^[a-z0-9_]+$/', $id ) ) {
@@ -137,7 +143,7 @@ final class WP_Connector_Registry {
 		);
 
 		if ( 'api_key' === $args['authentication']['method'] ) {
-			$connector['authentication']['credentials_url'] = isset( $args['authentication']['credentials_url'] ) ? $args['authentication']['credentials_url'] : null;
+			$connector['authentication']['credentials_url'] = $args['authentication']['credentials_url'] ?? null;
 			$connector['authentication']['setting_name']    = "connectors_ai_{$id}_api_key";
 		}
 
@@ -160,6 +166,8 @@ final class WP_Connector_Registry {
 	 *
 	 * @param string $id The connector identifier.
 	 * @return array|null The unregistered connector data on success, null on failure.
+	 *
+	 * @phpstan-return Connector|null
 	 */
 	public function unregister( string $id ): ?array {
 		if ( ! $this->is_registered( $id ) ) {
@@ -187,7 +195,8 @@ final class WP_Connector_Registry {
 	 *
 	 * @see wp_get_connectors()
 	 *
-	 * @return array[] The array of registered connectors keyed by connector ID.
+	 * @return array<string, array> The array of registered connectors keyed by connector ID.
+	 * @phpstan-return array<string, Connector>
 	 */
 	public function get_all_registered(): array {
 		return $this->registered_connectors;
@@ -220,6 +229,7 @@ final class WP_Connector_Registry {
 	 *
 	 * @param string $id The connector identifier.
 	 * @return array|null The registered connector data, or null if it is not registered.
+	 * @phpstan-return Connector|null
 	 */
 	public function get_registered( string $id ): ?array {
 		if ( ! $this->is_registered( $id ) ) {
