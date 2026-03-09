@@ -6513,8 +6513,8 @@ EOF;
 	 *
 	 * It must not get lazy-loaded or increase the counter since they may be in the Navigation Overlay.
 	 *
-	 * @param array<string, string> $attr
-	 * @param string                $context
+	 * @param array<string, mixed> $attr
+	 * @param string               $context
 	 */
 	protected function assert_fetchpriority_low_loading_attrs( array $attr, string $context ): void {
 		$this->assertSameSetsWithIndex(
