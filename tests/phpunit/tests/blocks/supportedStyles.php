@@ -91,13 +91,17 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	 * Returns the rendered output for the current block.
 	 *
 	 * @param array $block            Block to render.
-	 * @param array $extra_attributes Extra attributes to pass to get_block_wrapper_attributes().
 	 * @return string Rendered output for the current block.
 	 */
-	private function render_example_block( $block, $extra_attributes = array() ) {
+	private function render_example_block( $block ) {
 		WP_Block_Supports::init();
 		WP_Block_Supports::$block_to_render = $block;
-		$wrapper_attributes                 = get_block_wrapper_attributes( $extra_attributes );
+		$wrapper_attributes                 = get_block_wrapper_attributes(
+			array(
+				'class' => 'foo-bar-class',
+				'style' => 'margin-top: 2px;',
+			)
+		);
 		return '<div ' . $wrapper_attributes . '>' . self::BLOCK_CONTENT . '</div>';
 	}
 
@@ -109,13 +113,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	 * @param string $expected_styles  Expected output styles attr string.
 	 */
 	private function assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles ) {
-		$styled_block = $this->render_example_block(
-			$block,
-			array(
-				'class' => 'foo-bar-class',
-				'style' => 'margin-top: 2px;',
-			)
-		);
+		$styled_block = $this->render_example_block( $block );
 
 		// Ensure blocks to not add extra whitespace.
 		$this->assertSame( $styled_block, trim( $styled_block ) );
@@ -144,13 +142,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	 * @param string $expected_aria_label Expected output aria-label attr string.
 	 */
 	private function assert_content_and_aria_label_match( $block, $expected_aria_label ) {
-		$styled_block = $this->render_example_block(
-			$block,
-			array(
-				'class' => 'foo-bar-class',
-				'style' => 'margin-top: 2px;',
-			)
-		);
+		$styled_block = $this->render_example_block( $block );
 		$content      = $this->get_content_from_block( $styled_block );
 
 		$this->assertSame( self::BLOCK_CONTENT, $content, 'Block content does not match expected content' );
