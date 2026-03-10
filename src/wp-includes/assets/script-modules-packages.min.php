@@ -298,7 +298,7 @@
     'dependencies' => array(
       
     ),
-    'version' => '4064876f4a80da877c25'
+    'version' => 'a742676bcc8809271cc6'
   ),
   'workflow/index.min.js' => array(
     'dependencies' => array(
