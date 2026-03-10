@@ -594,7 +594,7 @@ module.exports = function(grunt) {
 					process: function( content ) {
 						// Fix boot module asset file path for Core's different directory structure.
 						return content.replace(
-							/__DIR__\s*\.\s*['"]\/..\/\..\/modules\/boot\/index\.min\.asset\.php['"]/g,
+							/__DIR__\s*\.\s*(['"])\/..\/\..\/modules\/boot\/index\.min\.asset\.php\1/g,
 							'ABSPATH . WPINC . \'/js/dist/script-modules/boot/index.min.asset.php\''
 						);
 					}
