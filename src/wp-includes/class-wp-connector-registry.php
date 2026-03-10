@@ -61,8 +61,10 @@ final class WP_Connector_Registry {
 	 *         @type string      $method          Required. The authentication method: 'api_key' or 'none'.
 	 *         @type string|null $credentials_url Optional. URL where users can obtain API credentials.
 	 *     }
-	 *     @type array  $plugin         Optional. Plugin data for install/activate UI.
-	 *         @type string $slug       The WordPress.org plugin slug.
+	 *     @type array  $plugin {
+	 *         Optional. Plugin data for install/activate UI.
+	 *
+	 *         @type string $slug The WordPress.org plugin slug.
 	 *     }
 	 * }
 	 * @return array|null The registered connector data on success, null on failure.

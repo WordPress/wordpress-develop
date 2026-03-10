@@ -5,22 +5,23 @@
  * @covers WP_Connector_Registry
  *
  * @group connectors
+ *
+ * @phpstan-import-type Connector from WP_Connector_Registry
  */
 class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Connector registry instance.
-	 *
-	 * @var WP_Connector_Registry
 	 */
-	private $registry = null;
+	private WP_Connector_Registry $registry;
 
 	/**
 	 * Default valid connector args for testing.
 	 *
-	 * @var array
+	 * @var array<string, mixed>
+	 * @phpstan-var Connector
 	 */
-	private static $default_args = array();
+	private static array $default_args;
 
 	/**
 	 * Set up each test method.
