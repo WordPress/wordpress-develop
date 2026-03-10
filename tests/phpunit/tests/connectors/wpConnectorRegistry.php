@@ -332,6 +332,15 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 64791
 	 */
+	public function test_set_instance_rejects_after_init() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::set_instance' );
+
+		WP_Connector_Registry::set_instance( new WP_Connector_Registry() );
+	}
+
+	/**
+	 * @ticket 64791
+	 */
 	public function test_get_instance_returns_same_instance() {
 		$instance1 = WP_Connector_Registry::get_instance();
 		$instance2 = WP_Connector_Registry::get_instance();
