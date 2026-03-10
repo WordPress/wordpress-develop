@@ -232,6 +232,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, $files['file']['type'] ?? null );
 
+		// When the client handles image processing (generate_sub_sizes is false),
+		// skip the server-side image editor support check.
+		if ( isset( $request['generate_sub_sizes'] ) && ! $request['generate_sub_sizes'] ) {
+			$prevent_unsupported_uploads = false;
+		}
+
 		// If the upload is an image, check if the server can handle the mime type.
 		if (
 			$prevent_unsupported_uploads &&
