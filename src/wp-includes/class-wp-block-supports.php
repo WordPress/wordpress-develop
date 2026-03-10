@@ -200,10 +200,10 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 			return implode( ' ', $classes );
 		},
 		'id'         => function ( $new_attribute, $extra_attribute ) {
-			return $extra_attribute !== '' ? $extra_attribute : $new_attribute;
+			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
 		},
 		'aria-label' => function ( $new_attribute, $extra_attribute ) {
-			return $extra_attribute !== '' ? $extra_attribute : $new_attribute;
+			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
 		},
 	);
 
