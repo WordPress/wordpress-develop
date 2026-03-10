@@ -53,6 +53,7 @@ wait_on( {
 		wp_cli( 'db reset --yes --defaults' );
 		const installCommand = process.env.LOCAL_MULTISITE === 'true'  ? 'multisite-install' : 'install';
 		wp_cli( `core ${ installCommand } --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@test.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
+		wp_cli( `rewrite structure '/%year%/%monthnum%/%postname%/'` );
 	} )
 	.catch( err => {
 		console.error( `Error: Unable to reset DB and install WordPress. Message: ${ err.message }` );
