@@ -1135,25 +1135,36 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 
 .upload-theme .wp-upload-form,
 .upload-plugin .wp-upload-form {
-	position: relative;
 	margin: 30px auto;
-	display: inline-flex;
-	justify-content: space-between;
+	display: inline-block;
+}
+
+.upload-theme .wp-upload-form .wp-upload-form-box,
+.upload-plugin .wp-upload-form .wp-upload-form-box {
+	box-sizing: border-box;
+	display: flex;
+	flex-wrap: nowrap;
 	align-items: center;
-}
-
-.upload-theme .wp-upload-form input[type="file"],
-.upload-plugin .wp-upload-form input[type="file"] {
+	gap: 15px;
 	background: #f6f7f7;
-    border: 1px solid #c3c4c7;
-    margin: 0;
-    padding: 30px 128px 30px 30px;
+	border: 1px solid #c3c4c7;
+	margin: 0;
+	padding: 30px;
 }
 
-.upload-plugin .wp-upload-form input[type=submit],
-.upload-theme .wp-upload-form input[type=submit] {
-	position: absolute;
-	right: 30px;
+.upload-theme .wp-upload-form .wp-upload-form-box input[type="file"],
+.upload-plugin .wp-upload-form .wp-upload-form-box input[type="file"] {
+	background: transparent;
+	border: none;
+	margin: 0;
+	padding: 0;
+	flex: 1;
+	min-width: 0;
+}
+
+.upload-plugin .wp-upload-form .wp-upload-form-box input[type="submit"],
+.upload-theme .wp-upload-form .wp-upload-form-box input[type="submit"] {
+	flex-shrink: 0;
 }
 
 .upload-theme .install-help,
@@ -1191,6 +1202,7 @@ p.no-themes-local {
 	.upload-theme .wp-upload-form {
 		margin: 20px 0;
 		max-width: 100%;
+		display: block;
 	}
 	.upload-theme .install-help {
 		font-size: 15px;
@@ -2071,19 +2083,24 @@ body.full-overlay-active {
 	.upload-plugin .wp-upload-form,
 	.upload-theme .wp-upload-form {
 		width: 100%;
+		display: block;
 	}
 
-	.upload-plugin .wp-upload-form input[type=file],
-	.upload-theme .wp-upload-form input[type=file] {
-		padding: 30px 30px 80px;
+	.upload-plugin .wp-upload-form .wp-upload-form-box,
+	.upload-theme .wp-upload-form .wp-upload-form-box {
+		width: 100%;
+		flex-direction: column;
+		align-items: stretch;
+		padding: 30px;
+	}
+
+	.upload-plugin .wp-upload-form .wp-upload-form-box input[type=file],
+	.upload-theme .wp-upload-form .wp-upload-form-box input[type=file] {
 		width: 100%;
 	}
 
-	:is(.upload-theme, .upload-plugin) .wp-upload-form input[type="submit"].button {
-		right: unset;
-		left: 50%;
-		transform: translateX(-50%) !important;
-    	top: calc( 1.4em + 42px ); /* Line height of control + gap + top padding. */
-		margin: 10px 0 0;
+	:is(.upload-theme, .upload-plugin) .wp-upload-form .wp-upload-form-box input[type="submit"].button {
+		align-self: center;
+		margin-top: 10px;
 	}
 }

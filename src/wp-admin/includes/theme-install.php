@@ -203,8 +203,10 @@ function install_themes_upload() {
 		_e( 'Theme zip file' );
 		?>
 	</label>
-	<input type="file" id="themezip" name="themezip" accept=".zip" />
-	<?php submit_button( _x( 'Install Now', 'theme' ), '', 'install-theme-submit', false ); ?>
+	<div class="wp-upload-form-box">
+		<input type="file" id="themezip" name="themezip" accept=".zip" />
+		<?php submit_button( _x( 'Install Now', 'theme' ), '', 'install-theme-submit', false ); ?>
+	</div>
 </form>
 	<?php
 }
