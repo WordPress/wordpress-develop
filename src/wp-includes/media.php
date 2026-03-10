@@ -6439,6 +6439,10 @@ function wp_get_chromium_major_version(): ?int {
  * media processing in the editor. Uses Document-Isolation-Policy
  * on supported browsers (Chromium 137+).
  *
+ * Skips setup when a third-party page builder overrides the block
+ * editor via a custom `action` query parameter, as DIP would block
+ * same-origin iframe access that these editors rely on.
+ *
  * @since 7.0.0
  */
 function wp_set_up_cross_origin_isolation(): void {
