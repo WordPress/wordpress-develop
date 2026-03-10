@@ -4601,6 +4601,20 @@ EOF;
 			);
 
 			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'auto',
+					'loading'       => 'lazy',
+				),
+				wp_get_loading_optimization_attributes(
+					'img',
+					array_merge( $attr, array( 'fetchpriority' => 'auto' ) ),
+					$context
+				),
+				'Expected a fetchpriority=auto IMG appearing after the media count threshold to still be lazy-loaded.'
+			);
 		}
 	}
 
