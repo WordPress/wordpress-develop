@@ -2205,7 +2205,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access, WP_Error object otherwise.
 	 */
-	public function finalize_item_permissions_check( $request ) {
+	public function finalize_item_permissions_check( WP_REST_Request $request ) {
 		return $this->edit_media_item_permissions_check( $request );
 	}
 
@@ -2252,7 +2252,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$response_request['_fields'] = $request['_fields'];
 		}
 
-		return $this->prepare_item_for_response( get_post( $attachment_id ), $response_request );
+		return $this->prepare_item_for_response( $post, $response_request );
 	}
 
 }
