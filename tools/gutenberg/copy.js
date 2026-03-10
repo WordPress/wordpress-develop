@@ -9,19 +9,20 @@
  * @package WordPress
  */
 
+const child_process = require( 'child_process' );
 const fs = require( 'fs' );
 const path = require( 'path' );
 const json2php = require( 'json2php' );
-const glob = require( 'glob' );
 
-// Paths
+// Paths.
 const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 const gutenbergBuildDir = path.join( gutenbergDir, 'build' );
-const gutenbergPackagesDir = path.join( gutenbergDir, 'packages' );
 
-// Determine build target from command line argument (--dev or --build-dir)
-// Default to 'src' for development
+/*
+ * Determine build target from command line argument (--dev or --build-dir).
+ * Default to 'src' for development.
+ */
 const args = process.argv.slice( 2 );
 const buildDirArg = args.find( ( arg ) => arg.startsWith( '--build-dir=' ) );
 const buildTarget = buildDirArg
@@ -37,62 +38,61 @@ const wpIncludesDir = path.join( rootDir, buildTarget, 'wp-includes' );
  * Defines what to copy from Gutenberg build and where it goes in Core.
  */
 const COPY_CONFIG = {
-	// PHP infrastructure files (to wp-includes/build/)
+	// PHP infrastructure files (to wp-includes/build/).
 	phpInfrastructure: {
 		destination: 'build',
 		files: [ 'routes.php', 'pages.php', 'constants.php' ],
 		directories: [ 'pages', 'routes' ],
 	},
 
-	// JavaScript packages (to wp-includes/js/dist/)
+	// JavaScript packages (to wp-includes/js/dist/).
 	scripts: {
 		source: 'scripts',
 		destination: 'js/dist',
-		copyDirectories: true, // Copy subdirectories
-		patterns: [ '*.js' ],
-		// Rename vendors/ to vendor/ when copying
+		copyDirectories: true,
+		// Rename vendors/ to vendor/ when copying.
 		directoryRenames: {
 			vendors: 'vendor',
 		},
 	},
 
-	// Script modules (to wp-includes/js/dist/script-modules/)
+	// Script modules (to wp-includes/js/dist/script-modules/).
 	modules: {
 		source: 'modules',
 		destination: 'js/dist/script-modules',
-		copyAll: true,
 	},
 
-	// Styles (to wp-includes/css/dist/)
+	// Styles (to wp-includes/css/dist/).
 	styles: {
 		source: 'styles',
 		destination: 'css/dist',
-		copyAll: true,
 	},
 
-	// Blocks (to wp-includes/blocks/)
-	// Unified configuration for all block types
+	/*
+	 * Blocks (to wp-includes/blocks/).
+	 * Unified configuration for all block types.
+	 */
 	blocks: {
 		destination: 'blocks',
 		sources: [
 			{
-				// Block library blocks
+				// Block library blocks.
 				name: 'block-library',
 				scripts: 'scripts/block-library',
 				styles: 'styles/block-library',
-				php: 'block-library/src',
+				php: 'scripts/block-library',
 			},
 			{
-				// Widget blocks
+				// Widget blocks.
 				name: 'widgets',
 				scripts: 'scripts/widgets/blocks',
 				styles: 'styles/widgets',
-				php: 'widgets/src/blocks',
+				php: 'scripts/widgets/blocks',
 			},
 		],
 	},
 
-	// Theme JSON files (from Gutenberg lib directory)
+	// Theme JSON files (from Gutenberg lib directory).
 	themeJson: {
 		files: [
 			{ from: 'theme.json', to: 'theme.json' },
@@ -101,7 +101,7 @@ const COPY_CONFIG = {
 		transform: true,
 	},
 
-	// Specific files to copy to wp-includes/$destination
+	// Specific files to copy to wp-includes/$destination.
 	wpIncludes: [
 		{
 			files: [ 'packages/icons/src/manifest.php' ],
@@ -113,6 +113,42 @@ const COPY_CONFIG = {
 		},
 	],
 };
+
+/**
+ * Given a path to a PHP file which returns a single value, converts that
+ * value into a native JavaScript value (limited by JSON serialization).
+ *
+ * @throws Error when PHP source file unable to be read, or PHP is unavailable.
+ *
+ * @param {string} phpFilepath Absolute path of PHP file returning a single value.
+ * @return {Object|Array} JavaScript representation of value from input file.
+ */
+function readReturnedValueFromPHPFile( phpFilepath ) {
+	const results = child_process.spawnSync(
+		'php',
+		[ '-r', '$path = file_get_contents( "php://stdin" ); if ( ! is_file( $path ) ) { die( 1 ); } try { $data = require $path; } catch ( \\Throwable $e ) { die( 2 ); } $json = json_encode( $data ); if ( ! is_string( $json ) ) { die( 3 ); } echo $json;' ],
+		{
+			encoding: 'utf8',
+			input: phpFilepath,
+		}
+	);
+
+	switch ( results.status ) {
+		case 0:
+			return JSON.parse( results.stdout );
+
+		case 1:
+			throw new Error( `Could not read PHP source file: '${ phpFilepath }'` );
+
+		case 2:
+			throw new Error( `PHP source file did not return value when imported: '${ phpFilepath }'` );
+
+		case 3:
+			throw new Error( `Could not serialize PHP source value into JSON: '${ phpFilepath }'` );
+	}
+
+	throw new Error( `Unknown error while reading PHP source file: '${ phpFilepath }'` );
+}
 
 /**
  * Check if a block is experimental by reading its block.json.
@@ -158,7 +194,7 @@ function copyDirectory( src, dest, transform = null, options = {} ) {
 		const destPath = path.join( dest, entry.name );
 
 		if ( entry.isDirectory() ) {
-			// Check if this directory is an experimental block
+			// Check if this directory is an experimental block.
 			if ( options.excludeExperimental ) {
 				const blockJsonPath = path.join( srcPath, 'block.json' );
 				if ( isExperimentalBlock( blockJsonPath ) ) {
@@ -168,13 +204,13 @@ function copyDirectory( src, dest, transform = null, options = {} ) {
 
 			copyDirectory( srcPath, destPath, transform, options );
 		} else {
-			// Skip source map files (.map) — these are not useful in Core
+			// Skip source map files (.map) — these are not useful in Core,
 			// and the sourceMappingURL references are already stripped from JS files.
 			if ( /\.map$/.test( entry.name ) ) {
 				continue;
 			}
 
-			// Skip non-minified VIPS files — they are ~10MB of inlined WASM
+			// Skip non-minified VIPS files — they are ~10MB of inlined WASM,
 			// with no debugging value over the minified versions.
 			if (
 				srcPath.includes( '/vips/' ) &&
@@ -183,14 +219,14 @@ function copyDirectory( src, dest, transform = null, options = {} ) {
 				continue;
 			}
 
-			// Skip PHP files if excludePHP is true
+			// Skip PHP files if excludePHP is true.
 			if ( options.excludePHP && /\.php$/.test( entry.name ) ) {
 				continue;
 			}
 
 			let content = fs.readFileSync( srcPath );
 
-			// Apply transformation if provided and file is text
+			// Apply transformation if provided and file is text.
 			if ( transform && /\.(php|js|css)$/.test( entry.name ) ) {
 				try {
 					content = transform(
@@ -223,20 +259,20 @@ function copyBlockAssets( config ) {
 	for ( const source of config.sources ) {
 		const scriptsSrc = path.join( gutenbergBuildDir, source.scripts );
 		const stylesSrc = path.join( gutenbergBuildDir, source.styles );
-		const phpSrc = path.join( gutenbergPackagesDir, source.php );
+		const phpSrc = path.join( gutenbergBuildDir, source.php );
 
 		if ( ! fs.existsSync( scriptsSrc ) ) {
 			continue;
 		}
 
-		// Get all block directories from the scripts source
+		// Get all block directories from the scripts source.
 		const blockDirs = fs
 			.readdirSync( scriptsSrc, { withFileTypes: true } )
 			.filter( ( entry ) => entry.isDirectory() )
 			.map( ( entry ) => entry.name );
 
 		for ( const blockName of blockDirs ) {
-			// Skip experimental blocks
+			// Skip experimental blocks.
 			const blockJsonPath = path.join(
 				scriptsSrc,
 				blockName,
@@ -257,7 +293,7 @@ function copyBlockAssets( config ) {
 					blockDest,
 					{
 						recursive: true,
-						// Skip PHP, copied from packages
+						// Skip PHP, copied from build in steps 3 & 4.
 						filter: f => ! f.endsWith( '.php' ),
 					}
 				);
@@ -277,19 +313,18 @@ function copyBlockAssets( config ) {
 				}
 			}
 
-			// 3. Copy PHP from packages
-			const blockPhpSrc = path.join( phpSrc, blockName, 'index.php' );
+			// 3. Copy PHP from build
+			const blockPhpSrc = path.join( phpSrc, `${ blockName }.php` );
+			const phpDest = path.join(
+				wpIncludesDir,
+				config.destination,
+				`${ blockName }.php`
+			);
 			if ( fs.existsSync( blockPhpSrc ) ) {
-				const phpDest = path.join(
-					wpIncludesDir,
-					config.destination,
-					`${ blockName }.php`
-				);
-				const content = fs.readFileSync( blockPhpSrc, 'utf8' );
-				fs.writeFileSync( phpDest, content );
+				fs.copyFileSync( blockPhpSrc, phpDest );
 			}
 
-			// 4. Copy PHP subdirectories from packages (e.g., shared/helpers.php)
+			// 4. Copy PHP subdirectories from build (e.g., navigation-link/shared/*.php)
 			const blockPhpDir = path.join( phpSrc, blockName );
 			if ( fs.existsSync( blockPhpDir ) ) {
 				const rootIndex = path.join( blockPhpDir, 'index.php' );
@@ -302,7 +337,7 @@ function copyBlockAssets( config ) {
 								( entry ) => hasPhpFiles( path.join( src, entry.name ) )
 							);
 						}
-						// Copy PHP files, but skip root index.php (handled by step 3)
+						// Copy PHP files, but skip root index.php (handled by step 3).
 						return src.endsWith( '.php' ) && src !== rootIndex;
 					},
 				} );
@@ -345,7 +380,7 @@ function generateScriptModulesPackages() {
 				processDirectory( fullPath, baseDir );
 			} else if ( entry.name.endsWith( '.min.asset.php' ) ) {
 				const relativePath = path.relative( baseDir, fullPath );
-				// Normalize path separators to forward slashes for cross-platform consistency
+				// Normalize path separators to forward slashes for cross-platform consistency.
 				const normalizedPath = relativePath
 					.split( path.sep )
 					.join( '/' );
@@ -356,18 +391,9 @@ function generateScriptModulesPackages() {
 				const jsPathRegular = jsPathMin.replace( /\.min\.js$/, '.js' );
 
 				try {
-					// Read and parse the PHP asset file
-					const phpContent = fs.readFileSync( fullPath, 'utf8' );
-					// Extract the array from PHP: <?php return array(...);
-					const match = phpContent.match(
-						/return\s+array\(([\s\S]*?)\);/
-					);
-					if ( match ) {
-						// Parse PHP array to JavaScript object
-						const assetData = parsePHPArray( match[ 1 ] );
-						assetsMin[ jsPathMin ] = assetData;
-						assetsRegular[ jsPathRegular ] = assetData;
-					}
+					const assetData = readReturnedValueFromPHPFile( fullPath );
+					assetsMin[ jsPathMin ] = assetData;
+					assetsRegular[ jsPathRegular ] = assetData;
 				} catch ( error ) {
 					console.error(
 						`   ⚠️  Error reading ${ relativePath }:`,
@@ -380,7 +406,7 @@ function generateScriptModulesPackages() {
 
 	processDirectory( modulesDir, modulesDir );
 
-	// Generate both minified and non-minified PHP files using json2php
+	// Generate both minified and non-minified PHP files using json2php.
 	const phpContentMin =
 		'<?php return ' +
 		json2php.make( {
@@ -449,26 +475,19 @@ function generateScriptLoaderPackages() {
 		}
 
 		try {
-			// Read and parse the PHP asset file
-			const phpContent = fs.readFileSync( assetFile, 'utf8' );
-			// Extract the array from PHP: <?php return array(...);
-			const match = phpContent.match( /return\s+array\(([\s\S]*?)\);/ );
-			if ( match ) {
-				// Parse PHP array to JavaScript object
-				const assetData = parsePHPArray( match[ 1 ] );
+			const assetData = readReturnedValueFromPHPFile( assetFile );
 
-				// For regular scripts, use dependencies as-is.
-				if ( ! assetData.dependencies ) {
-					assetData.dependencies = [];
-				}
-
-				// Create entries for both minified and non-minified versions
-				const jsPathMin = `${ entry.name }.min.js`;
-				const jsPathRegular = `${ entry.name }.js`;
-
-				assetsMin[ jsPathMin ] = assetData;
-				assetsRegular[ jsPathRegular ] = assetData;
+			// For regular scripts, use dependencies as-is.
+			if ( ! assetData.dependencies ) {
+				assetData.dependencies = [];
 			}
+
+			// Create entries for both minified and non-minified versions.
+			const jsPathMin = `${ entry.name }.min.js`;
+			const jsPathRegular = `${ entry.name }.js`;
+
+			assetsMin[ jsPathMin ] = assetData;
+			assetsRegular[ jsPathRegular ] = assetData;
 		} catch ( error ) {
 			console.error(
 				`   ⚠️  Error reading ${ entry.name }/index.min.asset.php:`,
@@ -477,7 +496,7 @@ function generateScriptLoaderPackages() {
 		}
 	}
 
-	// Generate both minified and non-minified PHP files using json2php
+	// Generate both minified and non-minified PHP files using json2php.
 	const phpContentMin =
 		'<?php return ' +
 		json2php.make( {
@@ -524,7 +543,7 @@ function generateBlockRegistrationFiles() {
 	const dynamicBlocks = [];
 	const staticBlocks = [];
 
-	// Widget blocks to exclude (from @wordpress/widgets package)
+	// Widget blocks to exclude (from @wordpress/widgets package).
 	const widgetBlocks = [ 'legacy-widget', 'widget-group' ];
 
 	if ( ! fs.existsSync( blocksDir ) ) {
@@ -539,7 +558,7 @@ function generateBlockRegistrationFiles() {
 			continue;
 		}
 
-		// Skip widget blocks
+		// Skip widget blocks.
 		if ( widgetBlocks.includes( entry.name ) ) {
 			continue;
 		}
@@ -548,17 +567,17 @@ function generateBlockRegistrationFiles() {
 		const blockJsonPath = path.join( blockDir, 'block.json' );
 		const phpFilePath = path.join( blocksDir, `${ entry.name }.php` );
 
-		// Skip if block.json doesn't exist
+		// Skip if block.json doesn't exist.
 		if ( ! fs.existsSync( blockJsonPath ) ) {
 			continue;
 		}
 
-		// Check if it's experimental
+		// Check if it's experimental.
 		if ( isExperimentalBlock( blockJsonPath ) ) {
 			continue;
 		}
 
-		// Determine if it's dynamic (has a PHP file)
+		// Determine if it's dynamic (has a PHP file).
 		if ( fs.existsSync( phpFilePath ) ) {
 			dynamicBlocks.push( entry.name );
 		} else {
@@ -566,14 +585,14 @@ function generateBlockRegistrationFiles() {
 		}
 	}
 
-	// Sort alphabetically
+	// Sort alphabetically.
 	dynamicBlocks.sort();
 	staticBlocks.sort();
 
-	// Generate require-dynamic-blocks.php
+	// Generate require-dynamic-blocks.php.
 	const dynamicContent = `<?php
 
-// This file was autogenerated by tools/gutenberg/copy-gutenberg-build.js, do not change manually!
+// This file was autogenerated by tools/gutenberg/copy.js, do not change manually!
 // Requires files for dynamic blocks necessary for core blocks registration.
 ${ dynamicBlocks
 	.map(
@@ -587,10 +606,10 @@ ${ dynamicBlocks
 		dynamicContent
 	);
 
-	// Generate require-static-blocks.php
+	// Generate require-static-blocks.php.
 	const staticContent = `<?php
 
-// This file was autogenerated by tools/gutenberg/copy-gutenberg-build.js, do not change manually!
+// This file was autogenerated by tools/gutenberg/copy.js, do not change manually!
 // Returns folder names for static blocks necessary for core blocks registration.
 return array(
 ${ staticBlocks.map( ( name ) => `\t'${ name }',` ).join( '\n' ) }
@@ -645,7 +664,7 @@ function generateBlocksJson() {
 		}
 	}
 
-	// Generate the PHP file content using json2php for consistent formatting
+	// Generate the PHP file content using json2php for consistent formatting.
 	const phpContent =
 		'<?php return ' +
 		json2php.make( {
@@ -666,278 +685,22 @@ function generateBlocksJson() {
 }
 
 /**
- * Parse PHP array syntax to JavaScript object.
- * Uses a simple but effective approach for the specific format in asset files.
- *
- * @param {string} phpArrayContent - PHP array content (without outer 'array(' and ')').
- * @return {Object|Array} Parsed JavaScript object or array.
- */
-function parsePHPArray( phpArrayContent ) {
-	phpArrayContent = phpArrayContent.trim();
-
-	// First, extract all nested array() blocks and replace with placeholders
-	const nestedArrays = [];
-	let content = phpArrayContent;
-	let depth = 0;
-	let inString = false;
-	let stringChar = '';
-	let currentArray = '';
-	let arrayStart = -1;
-
-	for ( let i = 0; i < content.length; i++ ) {
-		const char = content[ i ];
-
-		// Track strings
-		if (
-			( char === "'" || char === '"' ) &&
-			( i === 0 || content[ i - 1 ] !== '\\' )
-		) {
-			if ( ! inString ) {
-				inString = true;
-				stringChar = char;
-			} else if ( char === stringChar ) {
-				inString = false;
-			}
-		}
-
-		if ( ! inString ) {
-			// Look for array( keyword
-			if ( content.substring( i, i + 6 ) === 'array(' ) {
-				if ( depth === 0 ) {
-					arrayStart = i;
-					currentArray = '';
-				}
-				depth++;
-				if ( depth > 1 ) {
-					currentArray += 'array(';
-				}
-				i += 5; // Skip 'array('
-				continue;
-			}
-
-			if ( depth > 0 ) {
-				if ( char === '(' ) {
-					depth++;
-					currentArray += char;
-				} else if ( char === ')' ) {
-					depth--;
-					if ( depth === 0 ) {
-						// Found complete nested array
-						const placeholder = `__ARRAY_${ nestedArrays.length }__`;
-						nestedArrays.push( currentArray );
-						content =
-							content.substring( 0, arrayStart ) +
-							placeholder +
-							content.substring( i + 1 );
-						i = arrayStart + placeholder.length - 1;
-						currentArray = '';
-					} else {
-						currentArray += char;
-					}
-				} else {
-					currentArray += char;
-				}
-			}
-		} else if ( depth > 0 ) {
-			currentArray += char;
-		}
-	}
-
-	// Now parse the simplified content
-	const result = {};
-	const values = [];
-	let isAssociative = false;
-
-	// Split by top-level commas
-	const parts = [];
-	depth = 0;
-	inString = false;
-	let currentPart = '';
-
-	for ( let i = 0; i < content.length; i++ ) {
-		const char = content[ i ];
-
-		if (
-			( char === "'" || char === '"' ) &&
-			( i === 0 || content[ i - 1 ] !== '\\' )
-		) {
-			inString = ! inString;
-		}
-
-		if ( ! inString && char === ',' && depth === 0 ) {
-			parts.push( currentPart.trim() );
-			currentPart = '';
-		} else {
-			currentPart += char;
-			if ( ! inString ) {
-				if ( char === '(' ) depth++;
-				if ( char === ')' ) depth--;
-			}
-		}
-	}
-	if ( currentPart.trim() ) {
-		parts.push( currentPart.trim() );
-	}
-
-	// Parse each part
-	for ( const part of parts ) {
-		const arrowMatch = part.match( /^(.+?)\s*=>\s*(.+)$/ );
-
-		if ( arrowMatch ) {
-			isAssociative = true;
-			let key = arrowMatch[ 1 ].trim().replace( /^['"]|['"]$/g, '' );
-			let value = arrowMatch[ 2 ].trim();
-
-			// Replace placeholders
-			while ( value.match( /__ARRAY_(\d+)__/ ) ) {
-				value = value.replace( /__ARRAY_(\d+)__/, ( match, index ) => {
-					return 'array(' + nestedArrays[ parseInt( index ) ] + ')';
-				} );
-			}
-
-			result[ key ] = parseValue( value );
-		} else {
-			// No arrow, indexed array
-			let value = part;
-
-			// Replace placeholders
-			while ( value.match( /__ARRAY_(\d+)__/ ) ) {
-				value = value.replace( /__ARRAY_(\d+)__/, ( match, index ) => {
-					return 'array(' + nestedArrays[ parseInt( index ) ] + ')';
-				} );
-			}
-
-			values.push( parseValue( value ) );
-		}
-	}
-
-	return isAssociative ? result : values;
-
-	/**
-	 * Parse a single value.
-	 *
-	 * @param {string} value - The value string to parse.
-	 * @return {*} Parsed value.
-	 */
-	function parseValue( value ) {
-		value = value.trim();
-
-		if ( value.startsWith( 'array(' ) && value.endsWith( ')' ) ) {
-			return parsePHPArray( value.substring( 6, value.length - 1 ) );
-		} else if ( value.match( /^['"].*['"]$/ ) ) {
-			return value.substring( 1, value.length - 1 );
-		} else if ( value === 'true' ) {
-			return true;
-		} else if ( value === 'false' ) {
-			return false;
-		} else if ( ! isNaN( value ) && value !== '' ) {
-			return parseInt( value, 10 );
-		}
-		return value;
-	}
-}
-
-/**
- * Transform PHP file contents to work in Core.
- *
- * @param {string} content  - File content.
- * @return {string} Transformed content.
- */
-function transformPHPContent( content ) {
-	let transformed = content;
-
-	// Fix boot module asset file path for Core's different directory structure
-	// FROM: __DIR__ . '/../../modules/boot/index.min.asset.php'
-	// TO:   ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'
-	// This is needed because Core copies modules to a different location than the plugin structure
-	transformed = transformed.replace(
-		/__DIR__\s*\.\s*['"]\/\.\.\/\.\.\/modules\/boot\/index\.min\.asset\.php['"]/g,
-		"ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'"
-	);
-
-	return transformed;
-}
-
-/**
- * Transform manifest.php to remove gutenberg text domain.
- *
- * @param {string} content - File content.
- * @return {string} Transformed content.
- */
-function transformManifestPHP( content ) {
-	// Remove 'gutenberg' text domain from _x() calls
-	// FROM: _x( '...', 'icon label', 'gutenberg' )
-	// TO:   _x( '...', 'icon label' )
-	const transformedContent = content.replace(
-		/_x\(\s*([^,]+),\s*([^,]+),\s*['"]gutenberg['"]\s*\)/g,
-		'_x( $1, $2 )'
-	);
-	return transformedContent;
-}
-
-/**
  * Main execution function.
  */
 async function main() {
-	console.log( '🔍 Checking Gutenberg build...' );
-	console.log( `   Build target: ${ buildTarget }/` );
+	console.log( `📦 Copying Gutenberg build to ${ buildTarget }/...` );
 
-	// Verify Gutenberg build exists
 	if ( ! fs.existsSync( gutenbergBuildDir ) ) {
 		console.error( '❌ Gutenberg build directory not found' );
-		console.error( '   Run: node tools/gutenberg/build-gutenberg.js' );
+		console.error( '   Run: npm run grunt gutenberg:download' );
 		process.exit( 1 );
 	}
 
-	console.log( '✅ Gutenberg build found' );
-
-	// 1. Copy PHP infrastructure
-	console.log( '\n📦 Copying PHP infrastructure...' );
-	const phpConfig = COPY_CONFIG.phpInfrastructure;
-	const phpDest = path.join( wpIncludesDir, phpConfig.destination );
-
-	// Copy PHP files
-	for ( const file of phpConfig.files ) {
-		const src = path.join( gutenbergBuildDir, file );
-		const dest = path.join( phpDest, file );
-
-		if ( fs.existsSync( src ) ) {
-			fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-			let content = fs.readFileSync( src, 'utf8' );
-			content = transformPHPContent( content );
-			fs.writeFileSync( dest, content );
-			console.log( `   ✅ ${ file }` );
-		} else {
-			console.log(
-				`   ⚠️  ${ file } not found (may not exist in this Gutenberg version)`
-			);
-		}
-	}
-
-	// Copy PHP directories
-	for ( const dir of phpConfig.directories ) {
-		const src = path.join( gutenbergBuildDir, dir );
-		const dest = path.join( phpDest, dir );
-
-		if ( fs.existsSync( src ) ) {
-			console.log( `   📁 Copying ${ dir }/...` );
-			copyDirectory( src, dest, transformPHPContent );
-			console.log( `   ✅ ${ dir }/ copied` );
-		}
-	}
-
-	// 2. Copy JavaScript packages
+	// 1. Copy JavaScript packages.
 	console.log( '\n📦 Copying JavaScript packages...' );
 	const scriptsConfig = COPY_CONFIG.scripts;
 	const scriptsSrc = path.join( gutenbergBuildDir, scriptsConfig.source );
 	const scriptsDest = path.join( wpIncludesDir, scriptsConfig.destination );
-
-	// Transform function to remove source map comments from all JS files.
-	// Only match actual source map comments at the start of a line (possibly
-	// with whitespace), not occurrences inside string literals.
-	const removeSourceMaps = ( content ) => {
-		return content.replace( /^\s*\/\/# sourceMappingURL=.*$/gm, '' ).trimEnd();
-	};
 
 	if ( fs.existsSync( scriptsSrc ) ) {
 		const entries = fs.readdirSync( scriptsSrc, { withFileTypes: true } );
@@ -946,20 +709,22 @@ async function main() {
 			const src = path.join( scriptsSrc, entry.name );
 
 			if ( entry.isDirectory() ) {
-				// Check if this should be copied as a directory (like vendors/)
+				// Check if this should be copied as a directory (like vendors/).
 				if (
 					scriptsConfig.copyDirectories &&
 					scriptsConfig.directoryRenames &&
 					scriptsConfig.directoryRenames[ entry.name ]
 				) {
-					// Copy special directories with rename (vendors/ → vendor/)
-					// Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules)
+					/*
+					 * Copy special directories with rename (vendors/ → vendor/).
+					 * Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules).
+					 */
 					const destName =
 						scriptsConfig.directoryRenames[ entry.name ];
 					const dest = path.join( scriptsDest, destName );
 
 					if ( entry.name === 'vendors' ) {
-						// Only copy react-jsx-runtime files, skip react and react-dom
+						// Only copy react-jsx-runtime files, skip react and react-dom.
 						const vendorFiles = fs.readdirSync( src );
 						let copiedCount = 0;
 						fs.mkdirSync( dest, { recursive: true } );
@@ -971,12 +736,7 @@ async function main() {
 								const srcFile = path.join( src, file );
 								const destFile = path.join( dest, file );
 
-								let content = fs.readFileSync(
-									srcFile,
-									'utf8'
-								);
-								content = removeSourceMaps( content );
-								fs.writeFileSync( destFile, content );
+								fs.copyFileSync( srcFile, destFile );
 								copiedCount++;
 							}
 						}
@@ -984,15 +744,17 @@ async function main() {
 							`   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)`
 						);
 					} else {
-						// Copy other special directories normally
-						copyDirectory( src, dest, removeSourceMaps );
+						// Copy other special directories normally.
+						copyDirectory( src, dest );
 						console.log(
 							`   ✅ ${ entry.name }/ → ${ destName }/`
 						);
 					}
 				} else {
-					// Flatten package structure: package-name/index.js → package-name.js
-					// This matches Core's expected file structure
+					/*
+					 * Flatten package structure: package-name/index.js → package-name.js.
+					 * This matches Core's expected file structure.
+					 */
 					const packageFiles = fs.readdirSync( src );
 
 					for ( const file of packageFiles ) {
@@ -1000,7 +762,7 @@ async function main() {
 							/^index\.(js|min\.js|min\.asset\.php)$/.test( file )
 						) {
 							const srcFile = path.join( src, file );
-							// Replace 'index.' with 'package-name.'
+							// Replace 'index.' with 'package-name.'.
 							const destFile = file.replace(
 								/^index\./,
 								`${ entry.name }.`
@@ -1011,144 +773,45 @@ async function main() {
 								recursive: true,
 							} );
 
-							// Apply source map removal for .js files
-							if ( file.endsWith( '.js' ) ) {
-								let content = fs.readFileSync(
-									srcFile,
-									'utf8'
-								);
-								content = removeSourceMaps( content );
-								fs.writeFileSync( destPath, content );
-							} else {
-								// Copy other files as-is (.min.asset.php)
-								fs.copyFileSync( srcFile, destPath );
-							}
+							fs.copyFileSync( srcFile, destPath );
 						}
 					}
 				}
 			} else if ( entry.isFile() && entry.name.endsWith( '.js' ) ) {
-				// Copy root-level JS files
+				// Copy root-level JS files.
 				const dest = path.join( scriptsDest, entry.name );
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-
-				let content = fs.readFileSync( src, 'utf8' );
-				content = removeSourceMaps( content );
-				fs.writeFileSync( dest, content );
+				fs.copyFileSync( src, dest );
 			}
 		}
 
 		console.log( '   ✅ JavaScript packages copied' );
 	}
 
-	// 3. Copy script modules
-	console.log( '\n📦 Copying script modules...' );
-	const modulesConfig = COPY_CONFIG.modules;
-	const modulesSrc = path.join( gutenbergBuildDir, modulesConfig.source );
-	const modulesDest = path.join( wpIncludesDir, modulesConfig.destination );
-
-	if ( fs.existsSync( modulesSrc ) ) {
-		// Use the same source map removal transform
-		copyDirectory( modulesSrc, modulesDest, removeSourceMaps );
-		console.log( '   ✅ Script modules copied' );
-	}
-
-	// 4. Copy styles
-	console.log( '\n📦 Copying styles...' );
-	const stylesConfig = COPY_CONFIG.styles;
-	const stylesSrc = path.join( gutenbergBuildDir, stylesConfig.source );
-	const stylesDest = path.join( wpIncludesDir, stylesConfig.destination );
-
-	if ( fs.existsSync( stylesSrc ) ) {
-		copyDirectory( stylesSrc, stylesDest );
-		console.log( '   ✅ Styles copied' );
-	}
-
-	// 5. Copy blocks (unified: scripts, styles, PHP, JSON)
+	// 2. Copy blocks (unified: scripts, styles, PHP, JSON).
 	console.log( '\n📦 Copying blocks...' );
-	const blocksDest = path.join(
-		wpIncludesDir,
-		COPY_CONFIG.blocks.destination
-	);
 	copyBlockAssets( COPY_CONFIG.blocks );
 
-	// 6. Copy theme JSON files (from Gutenberg lib directory)
-	console.log( '\n📦 Copying theme JSON files...' );
-	const themeJsonConfig = COPY_CONFIG.themeJson;
-	const gutenbergLibDir = path.join( gutenbergDir, 'lib' );
-
-	for ( const fileMap of themeJsonConfig.files ) {
-		const src = path.join( gutenbergLibDir, fileMap.from );
-		const dest = path.join( wpIncludesDir, fileMap.to );
-
-		if ( fs.existsSync( src ) ) {
-			let content = fs.readFileSync( src, 'utf8' );
-
-			if ( themeJsonConfig.transform && fileMap.from === 'theme.json' ) {
-				// Transform schema URL for Core
-				content = content.replace(
-					'"$schema": "../schemas/json/theme.json"',
-					'"$schema": "https://schemas.wp.org/trunk/theme.json"'
-				);
-			}
-
-			fs.writeFileSync( dest, content );
-			console.log( `   ✅ ${ fileMap.to }` );
-		} else {
-			console.log( `   ⚠️  Not found: ${ fileMap.from }` );
-		}
-	}
-
-	// Copy remaining files to wp-includes
-	console.log( '\n📦 Copying remaining files to wp-includes...' );
-	for ( const fileMap of COPY_CONFIG.wpIncludes ) {
-		const dest = path.join( wpIncludesDir, fileMap.destination );
-		fs.mkdirSync( dest, { recursive: true } );
-		for ( const src of fileMap.files ) {
-			const matches = glob.sync( path.join( gutenbergDir, src ) );
-			if ( ! matches.length ) {
-				throw new Error( `No files found matching '${ src }'` );
-			}
-			for ( const match of matches ) {
-				const destPath = path.join( dest, path.basename( match ) );
-				// Apply transformation for manifest.php to remove gutenberg text domain
-				if ( path.basename( match ) === 'manifest.php' ) {
-					let content = fs.readFileSync( match, 'utf8' );
-					content = transformManifestPHP( content );
-					fs.writeFileSync( destPath, content );
-				} else {
-					fs.copyFileSync( match, destPath );
-				}
-			}
-		}
-	}
-
-	// 7. Generate script-modules-packages.min.php from individual asset files
-	console.log( '\n📦 Generating script-modules-packages.min.php...' );
+	// 3. Generate script-modules-packages.php from individual asset files.
+	console.log( '\n📦 Generating script-modules-packages.php...' );
 	generateScriptModulesPackages();
 
-	// 8. Generate script-loader-packages.min.php
-	console.log( '\n📦 Generating script-loader-packages.min.php...' );
+	// 4. Generate script-loader-packages.php.
+	console.log( '\n📦 Generating script-loader-packages.php...' );
 	generateScriptLoaderPackages();
 
-	// 9. Generate require-dynamic-blocks.php and require-static-blocks.php
+	// 5. Generate require-dynamic-blocks.php and require-static-blocks.php.
 	console.log( '\n📦 Generating block registration files...' );
 	generateBlockRegistrationFiles();
 
-	// 10. Generate blocks-json.php from block.json files
+	// 6. Generate blocks-json.php from block.json files.
 	console.log( '\n📦 Generating blocks-json.php...' );
 	generateBlocksJson();
 
-	// Summary
 	console.log( '\n✅ Copy complete!' );
-	console.log( '\n📊 Summary:' );
-	console.log( `   PHP infrastructure: ${ phpDest }` );
-	console.log( `   JavaScript: ${ scriptsDest }` );
-	console.log( `   Script modules: ${ modulesDest }` );
-	console.log( `   Styles: ${ stylesDest }` );
-	console.log( `   Blocks: ${ blocksDest }` );
 }
 
-// Run main function
+// Run main function.
 main().catch( ( error ) => {
 	console.error( '❌ Unexpected error:', error );
 	process.exit( 1 );
