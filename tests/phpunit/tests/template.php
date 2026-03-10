@@ -1957,7 +1957,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 *
-	 * @param string[] $expected_styles
+	 * @phpstan-param array{ HEAD: string[], BODY: string[] } $expected_styles
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, string $content, int $inline_size_limit, array $expected_styles, ?Closure $assert = null ): void {
 		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
