@@ -11,76 +11,6 @@ use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 
 /**
- * Registers a new connector.
- *
- * Must be called during the `wp_connectors_init` action.
- *
- * Example:
- *
- *     function my_plugin_register_connectors(): void {
- *         wp_register_connector(
- *             'my_custom_ai',
- *             array(
- *                 'name'           => __( 'My Custom AI', 'my-plugin' ),
- *                 'description'    => __( 'Custom AI provider integration.', 'my-plugin' ),
- *                 'type'           => 'ai_provider',
- *                 'authentication' => array(
- *                     'method'          => 'api_key',
- *                     'credentials_url' => 'https://example.com/api-keys',
- *                 ),
- *             )
- *         );
- *     }
- *     add_action( 'wp_connectors_init', 'my_plugin_register_connectors' );
- *
- * @since 7.0.0
- *
- * @see WP_Connector_Registry::register()
- *
- * @param string $id   The unique connector identifier. Must contain only lowercase
- *                     alphanumeric characters and underscores.
- * @param array  $args {
- *     An associative array of arguments for the connector.
- *
- *     @type string $name           Required. The connector's display name.
- *     @type string $description    Optional. The connector's description. Default empty string.
- *     @type string $type           Required. The connector type. Currently, only 'ai_provider' is supported.
- *     @type array  $authentication {
- *         Required. Authentication configuration.
- *
- *         @type string      $method          Required. The authentication method: 'api_key' or 'none'.
- *         @type string|null $credentials_url Optional. URL where users can obtain API credentials.
- *     }
- *     @type array  $plugin         Optional. Plugin data for install/activate UI.
- *         @type string $slug       The WordPress.org plugin slug.
- *     }
- * }
- * @return array|null The registered connector data on success, null on failure.
- */
-function wp_register_connector( string $id, array $args ): ?array {
-	if ( ! doing_action( 'wp_connectors_init' ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: 1: wp_connectors_init, 2: string value of the connector ID. */
-				__( 'Connectors must be registered on the %1$s action. The connector %2$s was not registered.' ),
-				'<code>wp_connectors_init</code>',
-				'<code>' . esc_html( $id ) . '</code>'
-			),
-			'7.0.0'
-		);
-		return null;
-	}
-
-	$registry = WP_Connector_Registry::get_instance();
-	if ( null === $registry ) {
-		return null;
-	}
-
-	return $registry->register( $id, $args );
-}
-
-/**
  * Checks if a connector is registered.
  *
  * @since 7.0.0
@@ -244,7 +174,24 @@ function _wp_connectors_init(): void {
 	 * Fires when the connector registry is ready for plugins to register connectors.
 	 *
 	 * Default connectors have already been registered at this point and cannot be
-	 * unhooked. Use `wp_register_connector()` within this action to add new connectors.
+	 * unhooked. Use `$registry->register()` within this action to add new connectors.
+	 *
+	 * Example usage:
+	 *
+	 *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
+	 *         $registry->register(
+	 *             'my_custom_ai',
+	 *             array(
+	 *                 'name'           => __( 'My Custom AI', 'my-plugin' ),
+	 *                 'description'    => __( 'Custom AI provider integration.', 'my-plugin' ),
+	 *                 'type'           => 'ai_provider',
+	 *                 'authentication' => array(
+	 *                     'method'          => 'api_key',
+	 *                     'credentials_url' => 'https://example.com/api-keys',
+	 *                 ),
+	 *             )
+	 *         );
+	 *     } );
 	 *
 	 * @since 7.0.0
 	 *

@@ -40,11 +40,7 @@ final class WP_Connector_Registry {
 	/**
 	 * Registers a new connector.
 	 *
-	 * Do not use this method directly. Instead, use the `wp_register_connector()` function.
-	 *
 	 * @since 7.0.0
-	 *
-	 * @see wp_register_connector()
 	 *
 	 * @param string $id   The unique connector identifier. Must contain only lowercase
 	 *                     alphanumeric characters and underscores.

@@ -1,77 +1,13 @@
 <?php
 /**
- * Tests for wp_register_connector() and companion functions.
+ * Tests for connector registration companion functions.
  *
  * @group connectors
- * @covers ::wp_register_connector
  * @covers ::wp_is_connector_registered
  * @covers ::wp_get_connector
  * @covers ::wp_get_connectors
  */
 class Tests_Connectors_WpRegisterConnector extends WP_UnitTestCase {
-
-	/**
-	 * Default valid connector args for testing.
-	 *
-	 * @var array
-	 */
-	private static $default_args = array();
-
-	/**
-	 * Set up before class.
-	 */
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
-		self::$default_args = array(
-			'name'           => 'Test Connector',
-			'description'    => 'A test connector.',
-			'type'           => 'ai_provider',
-			'authentication' => array(
-				'method'          => 'api_key',
-				'credentials_url' => 'https://example.com/keys',
-			),
-		);
-	}
-
-	/**
-	 * Helper to simulate the wp_connectors_init action for registration.
-	 *
-	 * @param callable $callback The registration callback to run.
-	 */
-	private function simulate_doing_wp_connectors_init_action( callable $callback ): void {
-		global $wp_current_filter;
-		$wp_current_filter[] = 'wp_connectors_init';
-		$callback();
-		array_pop( $wp_current_filter );
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_register_fails_outside_action() {
-		$this->setExpectedIncorrectUsage( 'wp_register_connector' );
-
-		$result = wp_register_connector( 'outside_action', self::$default_args );
-
-		$this->assertNull( $result );
-	}
-
-	/**
-	 * @ticket 64791
-	 */
-	public function test_register_succeeds_during_action() {
-		$result = null;
-
-		$this->simulate_doing_wp_connectors_init_action(
-			function () use ( &$result ) {
-				$result = wp_register_connector( 'during_action', self::$default_args );
-			}
-		);
-
-		$this->assertIsArray( $result );
-		$this->assertSame( 'Test Connector', $result['name'] );
-	}
 
 	/**
 	 * @ticket 64791
