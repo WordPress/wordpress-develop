@@ -191,7 +191,11 @@ if ( $current_screen->taxonomy ) {
 	$admin_body_class .= ' taxonomy-' . $current_screen->taxonomy;
 }
 
-$admin_body_class .= ' branch-' . str_replace( '.', '-', preg_replace( '/\.0$/', '', wp_get_branch_version() ) );
+$major_version     = wp_get_wp_version( 'major' );
+$admin_body_class .= ' branch-' . str_replace( '.', '-', $major_version );
+if ( str_ends_with( $major_version, '.0' ) ) {
+	$admin_body_class .= ' branch-' . (int) $major_version;
+}
 $admin_body_class .= ' version-' . str_replace( '.', '-', preg_replace( '/^([.0-9]+).*/', '$1', get_bloginfo( 'version' ) ) );
 $admin_body_class .= ' admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' );
 $admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );

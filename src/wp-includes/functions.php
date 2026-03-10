@@ -8958,37 +8958,56 @@ function clean_dirsize_cache( $path ) {
 }
 
 /**
- * Returns the current WordPress version.
+ * Returns the WordPress version string in the requested format.
  *
- * Returns an unmodified value of `$wp_version`. Some plugins modify the global
- * in an attempt to improve security through obscurity. This practice can cause
- * errors in WordPress, so the ability to get an unmodified version is needed.
+ * Returns an unmodified value of `$wp_version` by default. Some plugins modify
+ * the global in an attempt to improve security through obscurity. This practice
+ * can cause errors in WordPress, so the ability to get an unmodified version is
+ * needed.
+ *
+ * WordPress version numbering: x.y is the "major" release (e.g. 7.0, 6.9),
+ * x.y.z is the "minor" release (e.g. 7.0.1). See
+ * https://make.wordpress.org/core/handbook/about/release-cycle/version-numbering/
  *
  * @since 6.7.0
+ * @since 7.1.0 Added the `$part` parameter to support 'major' and 'minor' formats.
  *
- * @return string The current WordPress version.
+ * @param string $part Optional. The version part to return. Accepts 'major' for the
+ *                     x.y version (e.g. '6.9'), 'minor' for the x.y.z version
+ *                     (e.g. '6.9.1'), or 'full' for the complete version string
+ *                     (e.g. '7.0-beta3-61849'). Default 'full'.
+ * @return string The WordPress version string in the requested format.
  */
-function wp_get_wp_version() {
+function wp_get_wp_version( $part = 'full' ) {
 	static $wp_version;
 
 	if ( ! isset( $wp_version ) ) {
 		require ABSPATH . WPINC . '/version.php';
 	}
 
+	if ( 'major' === $part ) {
+		return wp_get_branch_version( $wp_version );
+	}
+
+	if ( 'minor' === $part ) {
+		$parts = preg_split( '/[.-]/', $wp_version, 4 );
+		return $parts[0] . '.' . ( $parts[1] ?? '0' ) . '.' . ( $parts[2] ?? '0' );
+	}
+
 	return $wp_version;
 }
 
 /**
- * Returns the major.minor "branch" version for a given WordPress version string.
+ * Extracts the major version (x.y) from a WordPress version string.
  *
- * Extracts the first two version components (major and minor) from a WordPress
- * version string, stripping any patch level and pre-release suffix.
+ * WordPress version numbering: x.y is the "major" release (e.g. 7.0, 6.9).
+ * This function strips the minor release number and any pre-release suffix.
  *
  * @since 7.1.0
  *
  * @param string $version Optional. A WordPress version string. Defaults to the
  *                        current WordPress version from wp_get_wp_version().
- * @return string The branch version string in "major.minor" format (e.g. "6.9").
+ * @return string The major version string in "x.y" format (e.g. "7.0").
  */
 function wp_get_branch_version( $version = '' ) {
 	if ( '' === $version ) {

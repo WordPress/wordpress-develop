@@ -352,8 +352,16 @@ class WP_Site_Health_Auto_Updates {
 		$dev       = ( str_contains( $wp_version, '-' ) );
 		// Get the last stable version's files and test against that.
 		if ( ! $checksums && $dev ) {
-			$parts     = preg_split( '/[.-]/', $wp_version, 3 );
-			$prev_ver  = $parts[0] . '.' . max( 0, (int) ( $parts[1] ?? 0 ) - 1 );
+			$parts = explode( '.', wp_get_branch_version( $wp_version ) );
+			$major = (int) $parts[0];
+			$minor = (int) $parts[1];
+
+			if ( $minor > 0 ) {
+				$prev_ver = $major . '.' . ( $minor - 1 );
+			} else {
+				$prev_ver = ( $major - 1 ) . '.9';
+			}
+
 			$checksums = get_core_checksums( $prev_ver, 'en_US' );
 		}
 
