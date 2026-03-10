@@ -2943,7 +2943,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function test_upload_unsupported_image_type_skipped_when_not_generating_sub_sizes() {
 		wp_set_current_user( self::$author_id );
 
-		add_filter( 'wp_image_editor_supports', '__return_false' );
+		add_filter( 'wp_image_editors', '__return_empty_array' );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_file_params(
@@ -2962,7 +2962,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$controller = new WP_REST_Attachments_Controller( 'attachment' );
 		$result     = $controller->create_item_permissions_check( $request );
 
-		remove_filter( 'wp_image_editor_supports', '__return_false' );
+		remove_filter( 'wp_image_editors', '__return_empty_array' );
 
 		// Should pass because generate_sub_sizes is false (client handles processing).
 		$this->assertTrue( $result );
@@ -2982,7 +2982,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function test_upload_unsupported_image_type_enforced_when_generating_sub_sizes() {
 		wp_set_current_user( self::$author_id );
 
-		add_filter( 'wp_image_editor_supports', '__return_false' );
+		add_filter( 'wp_image_editors', '__return_empty_array' );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_file_params(
@@ -3001,7 +3001,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$controller = new WP_REST_Attachments_Controller( 'attachment' );
 		$result     = $controller->create_item_permissions_check( $request );
 
-		remove_filter( 'wp_image_editor_supports', '__return_false' );
+		remove_filter( 'wp_image_editors', '__return_empty_array' );
 
 		// Should fail because the server needs to generate sub-sizes but can't.
 		$this->assertWPError( $result );
