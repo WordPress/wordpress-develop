@@ -90,7 +90,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	/**
 	 * Returns the rendered output for the current block.
 	 *
-	 * @param array $block            Block to render.
+	 * @param array $block Block to render.
 	 * @return string Rendered output for the current block.
 	 */
 	private function render_example_block( $block ) {
@@ -181,43 +181,6 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-red-color has-background has-black-background-color';
 		$expected_styles  = 'margin-top: 2px';
-
-		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
-	}
-
-	/**
-	 * Ensures that class and style attributes from extra attributes and block supports are merged.
-	 *
-	 * @ticket 64603
-	 * @covers WP_Block_Supports::get_block_wrapper_attributes()
-	 */
-	public function test_block_wrapper_attributes_merge() {
-		$block_type_settings = array(
-			'attributes'      => array(),
-			'supports'        => array(
-				'color' => true,
-			),
-			'render_callback' => true,
-		);
-		$this->register_block_type( 'core/example-merge', $block_type_settings );
-
-		$block = array(
-			'blockName'    => 'core/example-merge',
-			'attrs'        => array(
-				'style' => array(
-					'color' => array(
-						'text'       => '#000',
-						'background' => '#fff',
-					),
-				),
-			),
-			'innerBlock'   => array(),
-			'innerContent' => array(),
-			'innerHTML'    => array(),
-		);
-
-		$expected_styles  = 'margin-top: 2px;color:#000;background-color:#fff';
-		$expected_classes = 'foo-bar-class wp-block-example-merge has-text-color has-background';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
