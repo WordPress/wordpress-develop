@@ -6465,7 +6465,6 @@ function wp_set_up_cross_origin_isolation(): void {
 	 * DIP isolates the document into its own agent cluster,
 	 * which blocks same-origin iframe access that these editors rely on.
 	 */
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
 		return;
 	}
