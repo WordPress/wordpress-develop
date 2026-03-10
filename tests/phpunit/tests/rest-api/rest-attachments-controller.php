@@ -3364,7 +3364,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 201, $response->get_status() );
 
 		// Track whether wp_generate_attachment_metadata filter fires.
-		$filter_called = false;
+		$filter_called  = false;
 		$filter_context = null;
 		add_filter(
 			'wp_generate_attachment_metadata',
