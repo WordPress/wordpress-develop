@@ -2935,7 +2935,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * When the client handles image processing (generate_sub_sizes is false),
 	 * the server should not check image editor support.
 	 *
-	 * @ticket 62717
+	 * @ticket 64836
 	 */
 	public function test_upload_unsupported_image_type_skipped_when_not_generating_sub_sizes() {
 
@@ -2959,7 +2959,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * When the server handles image processing (generate_sub_sizes is true),
 	 * the server should still check image editor support.
 	 *
-	 * @ticket 62717
+	 * @ticket 64836
 	 */
 	public function test_upload_unsupported_image_type_enforced_when_generating_sub_sizes() {
 
