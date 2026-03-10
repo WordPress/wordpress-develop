@@ -63,8 +63,8 @@ class Tests_Functions_WpGetBranchVersion extends WP_UnitTestCase {
 	 * @ticket 64830
 	 */
 	public function test_wp_get_wp_version_minor() {
-		$full    = wp_get_wp_version();
-		$parts   = preg_split( '/[.-]/', $full, 4 );
+		$full     = wp_get_wp_version();
+		$parts    = preg_split( '/[.-]/', $full, 4 );
 		$expected = $parts[0] . '.' . ( $parts[1] ?? '0' ) . '.' . ( $parts[2] ?? '0' );
 		$this->assertSame( $expected, wp_get_wp_version( 'minor' ) );
 	}
