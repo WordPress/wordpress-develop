@@ -15,7 +15,19 @@
  * @since 7.0.0
  * @access private
  *
- * @phpstan-type Connector array{ name: string, description: string, type: string, authentication: array{ method: string, credentials_url?: string|null, setting_name?: string }, plugin?: array{ slug: string } }
+ * @phpstan-type Connector array{
+ *     name: string,
+ *     description: string,
+ *     type: string,
+ *     authentication: array{
+ *         method: string,
+ *         credentials_url?: string|null,
+ *         setting_name?: string
+ *     },
+ *     plugin?: array{
+ *         slug: string
+ *     }
+ * }
  */
 final class WP_Connector_Registry {
 	/**
