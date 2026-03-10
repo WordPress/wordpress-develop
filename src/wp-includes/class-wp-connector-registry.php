@@ -269,10 +269,10 @@ final class WP_Connector_Registry {
 	 * @param WP_Connector_Registry $registry The registry instance.
 	 */
 	public static function set_instance( WP_Connector_Registry $registry ): void {
-		if ( did_action( 'init' ) && ! doing_action( 'init' ) ) {
+		if ( ! doing_action( 'init' ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'The connector registry instance must be set before the <code>init</code> action.' ),
+				__( 'The connector registry instance must be set during the <code>init</code> action.' ),
 				'7.0.0'
 			);
 			return;
