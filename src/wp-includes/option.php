@@ -2887,12 +2887,12 @@ function register_initial_settings() {
 
 	register_setting(
 		'writing',
-		'wp_disable_real_time_collaboration',
+		'wp_enable_real_time_collaboration',
 		array(
 			'type'              => 'boolean',
-			'description'       => __( 'Disable real-time collaboration' ),
+			'description'       => __( 'Enable Real-Time Collaboration' ),
 			'sanitize_callback' => 'rest_sanitize_boolean',
-			'default'           => false,
+			'default'           => true,
 			'show_in_rest'      => true,
 		)
 	);
