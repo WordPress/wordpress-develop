@@ -12,38 +12,30 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 
 	/**
 	 * Original HTTP_USER_AGENT value.
-	 *
-	 * @var string|null
 	 */
-	private $original_user_agent;
+	private ?string $original_user_agent;
 
 	/**
 	 * Original HTTP_HOST value.
-	 *
-	 * @var string|null
 	 */
-	private $original_http_host;
+	private ?string $original_http_host;
 
 	/**
 	 * Original HTTPS value.
-	 *
-	 * @var string|null
 	 */
-	private $original_https;
+	private ?string $original_https;
 
 	/**
 	 * Original $_GET['action'] value.
-	 *
-	 * @var string|null
 	 */
-	private $original_get_action;
+	private ?string $original_get_action;
 
 	public function set_up() {
 		parent::set_up();
-		$this->original_user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : null;
-		$this->original_http_host  = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : null;
-		$this->original_https      = isset( $_SERVER['HTTPS'] ) ? $_SERVER['HTTPS'] : null;
-		$this->original_get_action = isset( $_GET['action'] ) ? $_GET['action'] : null;
+		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+		$this->original_http_host  = $_SERVER['HTTP_HOST'] ?? null;
+		$this->original_https      = $_SERVER['HTTPS'] ?? null;
+		$this->original_get_action = $_GET['action'] ?? null;
 	}
 
 	public function tear_down() {
