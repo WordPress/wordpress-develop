@@ -111,7 +111,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.1',
 		'moment'                      => '2.30.1',
-		'lodash'                      => '4.17.21',
+		'lodash'                      => '4.17.23',
 		'wp-polyfill-fetch'           => '3.6.20',
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.8.0',
@@ -309,6 +309,10 @@ function wp_default_packages_scripts( $scripts ) {
 		}
 
 		$scripts->add( $handle, $path, $dependencies, $package_data['version'], 1 );
+
+		if ( ! empty( $package_data['module_dependencies'] ) ) {
+			$scripts->add_data( $handle, 'module_dependencies', $package_data['module_dependencies'] );
+		}
 
 		if ( in_array( 'wp-i18n', $dependencies, true ) ) {
 			$scripts->set_translations( $handle );
@@ -1060,7 +1064,7 @@ function wp_default_scripts( $scripts ) {
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', '_required-conditional-dependency_' );
 
 	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.7', 1 );
-	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.6.0', 1 );
+	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.6.1', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(
@@ -1195,12 +1199,13 @@ function wp_default_scripts( $scripts ) {
 		apply_filters( 'mejs_settings', $mejs_settings )
 	);
 
-	$scripts->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.js', array(), '5.29.1-alpha-ee20357' );
+	$scripts->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.js', array(), '5.65.20' );
+	did_action( 'init' ) && $scripts->add_data( 'wp-codemirror', 'module_dependencies', array( 'espree' ) );
 	$scripts->add( 'csslint', '/wp-includes/js/codemirror/csslint.js', array(), '1.0.5' );
-	$scripts->add( 'esprima', '/wp-includes/js/codemirror/esprima.js', array(), '4.0.0' );
-	$scripts->add( 'jshint', '/wp-includes/js/codemirror/fakejshint.js', array( 'esprima' ), '2.9.5' );
-	$scripts->add( 'jsonlint', '/wp-includes/js/codemirror/jsonlint.js', array(), '1.6.2' );
-	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '0.9.14-xwp' );
+	$scripts->add( 'esprima', '/wp-includes/js/codemirror/esprima.js', array(), '4.0.1' ); // Deprecated. Use 'espree' script module.
+	$scripts->add( 'jshint', '/wp-includes/js/codemirror/fakejshint.js', array( 'esprima' ), '2.9.5' ); // Deprecated.
+	$scripts->add( 'jsonlint', '/wp-includes/js/codemirror/jsonlint.js', array(), '1.6.3' );
+	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '1.8.0' );
 	$scripts->add( 'htmlhint-kses', '/wp-includes/js/codemirror/htmlhint-kses.js', array( 'htmlhint' ) );
 	$scripts->add( 'code-editor', "/wp-admin/js/code-editor$suffix.js", array( 'jquery', 'wp-codemirror', 'underscore' ) );
 	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'common', 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ), false, 1 );
@@ -1630,10 +1635,10 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'code-editor', "/wp-admin/css/code-editor$suffix.css", array( 'wp-codemirror' ) );
 	$styles->add( 'site-health', "/wp-admin/css/site-health$suffix.css" );
 
-	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n' ) );
+	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n', 'wp-base-styles' ) );
 
-	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
-	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
+	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n', 'wp-base-styles' ) );
+	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n', 'wp-base-styles' ) );
 	$styles->add( 'wp-color-picker', "/wp-admin/css/color-picker$suffix.css" );
 	$styles->add( 'customize-controls', "/wp-admin/css/customize-controls$suffix.css", array( 'wp-admin', 'colors', 'imgareaselect' ) );
 	$styles->add( 'customize-widgets', "/wp-admin/css/customize-widgets$suffix.css", array( 'wp-admin', 'colors' ) );
@@ -1661,7 +1666,7 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.17' );
 	$styles->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.css", array( 'mediaelement' ) );
 	$styles->add( 'thickbox', '/wp-includes/js/thickbox/thickbox.css', array( 'dashicons' ) );
-	$styles->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.css', array(), '5.29.1-alpha-ee20357' );
+	$styles->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.css', array(), '5.65.20' );
 
 	// Deprecated CSS.
 	$styles->add( 'deprecated-media', "/wp-admin/css/deprecated-media$suffix.css" );
@@ -1713,6 +1718,7 @@ function wp_default_styles( $styles ) {
 
 	// Only add CONTENT styles here that should be enqueued in the iframe!
 	$wp_edit_blocks_dependencies = array(
+		'wp-base-styles',
 		'wp-components',
 		/*
 		 * This needs to be added before the block library styles,
@@ -1752,6 +1758,7 @@ function wp_default_styles( $styles ) {
 		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
 		'block-directory'      => array(),
+		'base-styles'          => array(),
 		'components'           => array(),
 		'commands'             => array( 'wp-components' ),
 		'edit-post'            => array(
@@ -1814,6 +1821,11 @@ function wp_default_styles( $styles ) {
 		if ( 'block-library' === $package && wp_should_load_separate_core_block_assets() ) {
 			$path = "/wp-includes/css/dist/$package/common$suffix.css";
 		}
+
+		if ( 'base-styles' === $package ) {
+			$path = "/wp-includes/css/dist/base-styles/admin-schemes$suffix.css";
+		}
+
 		$styles->add( $handle, $path, $dependencies );
 		$styles->add_data( $handle, 'path', ABSPATH . $path );
 	}
@@ -2097,7 +2109,7 @@ function wp_style_loader_src( $src, $handle ) {
 		$color = get_user_option( 'admin_color' );
 
 		if ( empty( $color ) || ! isset( $_wp_admin_css_colors[ $color ] ) ) {
-			$color = 'fresh';
+			$color = 'modern';
 		}
 
 		$color = $_wp_admin_css_colors[ $color ] ?? null;
@@ -2873,37 +2885,6 @@ function wp_enqueue_editor_block_directory_assets() {
 function wp_enqueue_editor_format_library_assets() {
 	wp_enqueue_script( 'wp-format-library' );
 	wp_enqueue_style( 'wp-format-library' );
-}
-
-/**
- * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
- *
- * Automatically injects type attribute if needed.
- * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
- *
- * @since 5.7.0
- *
- * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
- * @return string String made of sanitized `<script>` tag attributes.
- */
-function wp_sanitize_script_attributes( $attributes ) {
-	$attributes_string = '';
-
-	/*
-	 * If HTML5 script tag is supported, only the attribute name is added
-	 * to $attributes_string for entries with a boolean value, and that are true.
-	 */
-	foreach ( $attributes as $attribute_name => $attribute_value ) {
-		if ( is_bool( $attribute_value ) ) {
-			if ( $attribute_value ) {
-				$attributes_string .= ' ' . esc_attr( $attribute_name );
-			}
-		} else {
-			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
-		}
-	}
-
-	return $attributes_string;
 }
 
 /**
@@ -3725,8 +3706,25 @@ function wp_hoist_late_printed_styles() {
 		return;
 	}
 
+	// Capture the styles enqueued at the enqueue_block_assets action, so that non-core block styles and global styles can be inserted afterwards during hoisting.
+	$style_handles_at_enqueue_block_assets = array();
+	add_action(
+		'enqueue_block_assets',
+		static function () use ( &$style_handles_at_enqueue_block_assets ) {
+			$style_handles_at_enqueue_block_assets = wp_styles()->queue;
+		},
+		PHP_INT_MIN
+	);
+	add_action(
+		'enqueue_block_assets',
+		static function () use ( &$style_handles_at_enqueue_block_assets ) {
+			$style_handles_at_enqueue_block_assets = array_values( array_diff( wp_styles()->queue, $style_handles_at_enqueue_block_assets ) );
+		},
+		PHP_INT_MAX
+	);
+
 	/*
-	 * Add a placeholder comment into the inline styles for wp-block-library, after which where the late block styles
+	 * Add a placeholder comment into the inline styles for wp-block-library, after which the late block styles
 	 * can be hoisted from the footer to be printed in the header by means of a filter below on the template enhancement
 	 * output buffer. The `wp_print_styles` action is used to ensure that if the inline style gets replaced at
 	 * `enqueue_block_assets` or `wp_enqueue_scripts` that the placeholder will be sure to be present.
@@ -3745,35 +3743,51 @@ function wp_hoist_late_printed_styles() {
 	 * later hoisted to the HEAD in the template enhancement output buffer. This will run at `wp_print_footer_scripts`
 	 * before `print_footer_scripts()` is called.
 	 */
-	$printed_block_styles = '';
-	$printed_late_styles  = '';
-	$capture_late_styles  = static function () use ( &$printed_block_styles, &$printed_late_styles ) {
+	$printed_core_block_styles  = '';
+	$printed_other_block_styles = '';
+	$printed_global_styles      = '';
+	$printed_late_styles        = '';
+
+	$capture_late_styles = static function () use ( &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 		// Gather the styles related to on-demand block enqueues.
-		$all_block_style_handles = array();
+		$all_core_block_style_handles  = array();
+		$all_other_block_style_handles = array();
 		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_type ) {
-			foreach ( $block_type->style_handles as $style_handle ) {
-				$all_block_style_handles[] = $style_handle;
+			if ( str_starts_with( $block_type->name, 'core/' ) ) {
+				foreach ( $block_type->style_handles as $style_handle ) {
+					$all_core_block_style_handles[] = $style_handle;
+				}
+			} else {
+				foreach ( $block_type->style_handles as $style_handle ) {
+					$all_other_block_style_handles[] = $style_handle;
+				}
 			}
 		}
-		$all_block_style_handles = array_merge(
-			$all_block_style_handles,
-			array(
-				'global-styles',
-				'block-style-variation-styles',
-				'core-block-supports',
-				'core-block-supports-duotone',
-			)
-		);
 
 		/*
-		 * First print all styles related to blocks which should inserted right after the wp-block-library stylesheet
+		 * First print all styles related to blocks which should be inserted right after the wp-block-library stylesheet
 		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
 		 */
-		$enqueued_block_styles = array_values( array_intersect( $all_block_style_handles, wp_styles()->queue ) );
-		if ( count( $enqueued_block_styles ) > 0 ) {
+		$enqueued_core_block_styles = array_values( array_intersect( $all_core_block_style_handles, wp_styles()->queue ) );
+		if ( count( $enqueued_core_block_styles ) > 0 ) {
 			ob_start();
-			wp_styles()->do_items( $enqueued_block_styles );
-			$printed_block_styles = ob_get_clean();
+			wp_styles()->do_items( $enqueued_core_block_styles );
+			$printed_core_block_styles = ob_get_clean();
+		}
+
+		// Non-core block styles get printed after the classic-theme-styles stylesheet.
+		$enqueued_other_block_styles = array_values( array_intersect( $all_other_block_style_handles, wp_styles()->queue ) );
+		if ( count( $enqueued_other_block_styles ) > 0 ) {
+			ob_start();
+			wp_styles()->do_items( $enqueued_other_block_styles );
+			$printed_other_block_styles = ob_get_clean();
+		}
+
+		// Capture the global-styles so that it can be printed separately after classic-theme-styles and other styles enqueued at enqueue_block_assets.
+		if ( wp_style_is( 'global-styles' ) ) {
+			ob_start();
+			wp_styles()->do_items( array( 'global-styles' ) );
+			$printed_global_styles = ob_get_clean();
 		}
 
 		/*
@@ -3814,7 +3828,7 @@ function wp_hoist_late_printed_styles() {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		static function ( $buffer ) use ( $placeholder, &$printed_block_styles, &$printed_late_styles ) {
+		static function ( $buffer ) use ( $placeholder, &$style_handles_at_enqueue_block_assets, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
@@ -3859,53 +3873,116 @@ function wp_hoist_late_printed_styles() {
 				}
 			};
 
-			/*
-			 * Insert block styles right after wp-block-library (if it is present), and then insert any remaining styles
-			 * at </head> (or else print everything there). The placeholder CSS comment will always be added to the
-			 * wp-block-library inline style since it gets printed at `wp_head` before the blocks are rendered.
-			 * This means that there may not actually be any block styles to hoist from the footer to insert after this
-			 * inline style. The placeholder CSS comment needs to be added so that the inline style gets printed, but
-			 * if the resulting inline style is empty after the placeholder is removed, then the inline style is
-			 * removed.
-			 */
+			// Locate the insertion points in the HEAD.
 			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 				if (
 					'STYLE' === $processor->get_tag() &&
 					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
-					$css_text = $processor->get_modifiable_text();
-
-					/*
-					 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
-					 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
-					 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
-					 * comment, then remove the STYLE entirely.)
-					 */
-					$css_text = str_replace( $placeholder, '', $css_text );
-					if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
-						$processor->remove();
-					} else {
-						$processor->set_modifiable_text( $css_text );
-					}
-
-					// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
-					if ( '' !== $printed_block_styles ) {
-						$processor->insert_after( $printed_block_styles );
-
-						// Prevent printing them again at </head>.
-						$printed_block_styles = '';
-					}
-
-					// If there aren't any late styles, there's no need to continue to finding </head>.
-					if ( '' === $printed_late_styles ) {
-						break;
-					}
+					$processor->set_bookmark( 'wp_block_library' );
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
-					$processor->insert_before( $printed_block_styles . $printed_late_styles );
+					$processor->set_bookmark( 'head_end' );
 					break;
+				} elseif ( ( 'STYLE' === $processor->get_tag() || 'LINK' === $processor->get_tag() ) && $processor->get_attribute( 'id' ) ) {
+					$id     = $processor->get_attribute( 'id' );
+					$handle = null;
+					if ( 'STYLE' === $processor->get_tag() ) {
+						if ( preg_match( '/^(.+)-inline-css$/', $id, $matches ) ) {
+							$handle = $matches[1];
+						}
+					} elseif ( preg_match( '/^(.+)-css$/', $id, $matches ) ) {
+						$handle = $matches[1];
+					}
+
+					if ( 'classic-theme-styles' === $handle ) {
+						$processor->set_bookmark( 'classic_theme_styles' );
+					}
+
+					if ( $handle && in_array( $handle, $style_handles_at_enqueue_block_assets, true ) ) {
+						if ( ! $processor->has_bookmark( 'first_style_at_enqueue_block_assets' ) ) {
+							$processor->set_bookmark( 'first_style_at_enqueue_block_assets' );
+						}
+						$processor->set_bookmark( 'last_style_at_enqueue_block_assets' );
+					}
 				}
 			}
 
+			/*
+			 * Insert block styles right after wp-block-library (if it is present). The placeholder CSS comment will
+			 * always be added to the wp-block-library inline style since it gets printed at `wp_head` before the blocks
+			 * are rendered. This means that there may not actually be any block styles to hoist from the footer to
+			 * insert after this inline style. The placeholder CSS comment needs to be added so that the inline style
+			 * gets printed, but if the resulting inline style is empty after the placeholder is removed, then the
+			 * inline style is removed.
+			 */
+			if ( $processor->has_bookmark( 'wp_block_library' ) ) {
+				$processor->seek( 'wp_block_library' );
+
+				$css_text = $processor->get_modifiable_text();
+
+				/*
+				 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
+				 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
+				 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
+				 * comment), then remove the STYLE entirely.
+				 */
+				$css_text = str_replace( $placeholder, '', $css_text );
+				if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
+					$processor->remove();
+				} else {
+					$processor->set_modifiable_text( $css_text );
+				}
+
+				$inserted_after            = $printed_core_block_styles;
+				$printed_core_block_styles = '';
+
+				// If the classic-theme-styles is absent, then the third-party block styles cannot be inserted after it, so they get inserted here.
+				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
+					if ( '' !== $printed_other_block_styles ) {
+						$inserted_after .= $printed_other_block_styles;
+					}
+					$printed_other_block_styles = '';
+
+					// If there aren't any other styles printed at enqueue_block_assets either, then the global styles need to also be printed here.
+					if ( ! $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
+						if ( '' !== $printed_global_styles ) {
+							$inserted_after .= $printed_global_styles;
+						}
+						$printed_global_styles = '';
+					}
+				}
+
+				if ( '' !== $inserted_after ) {
+					$processor->insert_after( "\n" . $inserted_after );
+				}
+			}
+
+			// Insert global-styles after the styles enqueued at enqueue_block_assets.
+			if ( '' !== $printed_global_styles && $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
+				$processor->seek( 'last_style_at_enqueue_block_assets' );
+
+				$processor->insert_after( "\n" . $printed_global_styles );
+				$printed_global_styles = '';
+
+				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) && '' !== $printed_other_block_styles ) {
+					$processor->insert_after( "\n" . $printed_other_block_styles );
+					$printed_other_block_styles = '';
+				}
+			}
+
+			// Insert third-party block styles right after the classic-theme-styles.
+			if ( '' !== $printed_other_block_styles && $processor->has_bookmark( 'classic_theme_styles' ) ) {
+				$processor->seek( 'classic_theme_styles' );
+				$processor->insert_after( "\n" . $printed_other_block_styles );
+				$printed_other_block_styles = '';
+			}
+
+			// Print all remaining styles.
+			$remaining_styles = $printed_core_block_styles . $printed_other_block_styles . $printed_global_styles . $printed_late_styles;
+			if ( $remaining_styles && $processor->has_bookmark( 'head_end' ) ) {
+				$processor->seek( 'head_end' );
+				$processor->insert_before( $remaining_styles . "\n" );
+			}
 			return $processor->get_updated_html();
 		}
 	);
