@@ -3737,23 +3737,6 @@ function wp_hoist_late_printed_styles(): void {
 		return;
 	}
 
-	// Capture the styles enqueued at the enqueue_block_assets action, so that non-core block styles and global styles can be inserted afterwards during hoisting.
-	$style_handles_at_enqueue_block_assets = array();
-	add_action(
-		'enqueue_block_assets',
-		static function () use ( &$style_handles_at_enqueue_block_assets ) {
-			$style_handles_at_enqueue_block_assets = wp_styles()->queue;
-		},
-		PHP_INT_MIN
-	);
-	add_action(
-		'enqueue_block_assets',
-		static function () use ( &$style_handles_at_enqueue_block_assets ) {
-			$style_handles_at_enqueue_block_assets = array_values( array_diff( wp_styles()->queue, $style_handles_at_enqueue_block_assets ) );
-		},
-		PHP_INT_MAX
-	);
-
 	/*
 	 * Add a placeholder comment into the inline styles for wp-block-library, after which the late block styles
 	 * can be hoisted from the footer to be printed in the header by means of a filter below on the template enhancement
@@ -3864,7 +3847,7 @@ function wp_hoist_late_printed_styles(): void {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		static function ( $buffer ) use ( $placeholder, &$style_handles_at_enqueue_block_assets, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
+		static function ( $buffer ) use ( $placeholder, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
@@ -3943,23 +3926,6 @@ function wp_hoist_late_printed_styles(): void {
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
 					$processor->set_bookmark( 'head_end' );
 					break;
-				} elseif ( ( 'STYLE' === $processor->get_tag() || 'LINK' === $processor->get_tag() ) && $processor->get_attribute( 'id' ) ) {
-					$id     = (string) $processor->get_attribute( 'id' );
-					$handle = null;
-					if ( 'STYLE' === $processor->get_tag() ) {
-						if ( preg_match( '/^(.+)-inline-css$/', $id, $matches ) ) {
-							$handle = $matches[1];
-						}
-					} elseif ( preg_match( '/^(.+)-css$/', $id, $matches ) ) {
-						$handle = $matches[1];
-					}
-
-					if ( $handle && in_array( $handle, $style_handles_at_enqueue_block_assets, true ) ) {
-						if ( ! $processor->has_bookmark( 'first_style_at_enqueue_block_assets' ) ) {
-							$processor->set_bookmark( 'first_style_at_enqueue_block_assets' );
-						}
-						$processor->set_bookmark( 'last_style_at_enqueue_block_assets' );
-					}
 				}
 			}
 
