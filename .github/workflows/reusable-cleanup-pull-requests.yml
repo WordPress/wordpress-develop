@@ -97,8 +97,16 @@ jobs:
 
             This PR will be closed, but please confirm the accuracy of this and reopen if there is more work to be done.`;
 
+            const tickets = "${{ steps.trac-tickets.outputs.fixed_list }}".split(' ').filter(Boolean);
+            for (const ticket of tickets) {
+              core.notice(`Ticket: https://core.trac.wordpress.org/ticket/${ticket}`);
+            }
+            core.notice(`SVN changeset: https://core.trac.wordpress.org/changeset/${{ steps.git-svn-id.outputs.svn_revision_number }}`);
+
             // Update all matched pull requests.
             for (const prNumber of prNumbers) {
+              core.notice(`Closed pull request: https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`);
+
               // Comment on the pull request with details.
               await github.rest.issues.createComment({
                 owner: context.repo.owner,

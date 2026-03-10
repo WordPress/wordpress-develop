@@ -46,6 +46,8 @@ jobs:
               return;
             }
 
+            core.notice(`Rerunning workflow run: ${workflow_run.data.html_url}`);
+
             const rerun = await github.rest.actions.reRunWorkflowFailedJobs({
               owner: context.repo.owner,
               repo: context.repo.repo,
