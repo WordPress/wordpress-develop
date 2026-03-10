@@ -22,7 +22,6 @@ final class WP_Connector_Registry {
 	 * The singleton instance of the registry.
 	 *
 	 * @since 7.0.0
-	 * @var self|null
 	 */
 	private static ?WP_Connector_Registry $instance = null;
 
