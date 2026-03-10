@@ -4738,7 +4738,7 @@ EOF;
 					array_merge( $attr, array( 'fetchpriority' => 'auto' ) ),
 					$context
 				),
-				'Expected a fetchpriority=auto IMG appearing after the media count threshold to till be lazy-loaded.'
+				'Expected a fetchpriority=auto IMG appearing after the media count threshold to still be lazy-loaded.'
 			);
 		}
 	}
