@@ -461,7 +461,7 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 			);
 		}
 	} catch ( Exception $e ) {
-			wp_trigger_error( __FUNCTION__, $e->getMessage() );
+		wp_trigger_error( __FUNCTION__, $e->getMessage() );
 	}
 }
 add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
