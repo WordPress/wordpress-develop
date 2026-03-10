@@ -6372,7 +6372,8 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
  */
 function wp_is_client_side_media_processing_enabled(): bool {
 	// This is due to SharedArrayBuffer requiring a secure context.
-	$enabled = ( is_ssl() || 'localhost' === strtok( $_SERVER['HTTP_HOST'] ?? '', ':' ) );
+	$host    = strtolower( (string) strtok( $_SERVER['HTTP_HOST'] ?? '', ':' ) );
+	$enabled = ( is_ssl() || 'localhost' === $host || str_ends_with( $host, '.localhost' ) );
 
 	/**
 	 * Filters whether client-side media processing is enabled.
