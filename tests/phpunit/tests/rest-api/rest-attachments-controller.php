@@ -3425,5 +3425,4 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
-
 }

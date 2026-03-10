@@ -2225,13 +2225,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment_id = $request['id'];
 
 		$post = $this->get_post( $attachment_id );
-
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
 
 		$metadata = wp_get_attachment_metadata( $attachment_id );
-
 		if ( ! is_array( $metadata ) ) {
 			$metadata = array();
 		}
@@ -2254,5 +2252,4 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		return $this->prepare_item_for_response( $post, $response_request );
 	}
-
 }
