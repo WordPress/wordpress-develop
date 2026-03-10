@@ -6371,14 +6371,16 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
  * @return bool Whether client-side media processing is enabled.
  */
 function wp_is_client_side_media_processing_enabled(): bool {
+	$enabled = ( is_ssl() || 'localhost' === $_SERVER['HTTP_HOST'] );
+
 	/**
 	 * Filters whether client-side media processing is enabled.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param bool $enabled Whether client-side media processing is enabled. Default true.
+	 * @param bool $enabled Whether client-side media processing is enabled. Default true if SSL or localhost.
 	 */
-	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', true );
+	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', $enabled );
 }
 
 /**
