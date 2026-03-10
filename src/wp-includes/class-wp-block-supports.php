@@ -183,10 +183,12 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	// This is hardcoded on purpose, as we only support a fixed list of attributes.
 	$attribute_merge_callbacks = array(
 		'style'      => function ( $new_attribute, $extra_attribute ) {
-			$styles = array_filter( array(
-				rtrim( trim( $extra_attribute ), ';' ),
-				rtrim( trim( $new_attribute ), ';' ),
-			) );
+			$styles = array_filter(
+				array(
+					rtrim( trim( $extra_attribute ), ';' ),
+					rtrim( trim( $new_attribute ), ';' ),
+				)
+			);
 			return safecss_filter_attr( implode( ';', array_filter( $styles ) ) );
 		},
 		'class'      => function ( $new_attribute, $extra_attribute ) {
@@ -205,19 +207,19 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		},
 	);
 
-		$attributes         = array();
-		foreach ( $attribute_merge_callbacks as $attribute_name => $merge_callback ) {
-			$new_attribute   = isset( $new_attributes[ $attribute_name ] ) ? $new_attributes[ $attribute_name ] : '';
-			$extra_attribute = isset( $extra_attributes[ $attribute_name ] ) ? $extra_attributes[ $attribute_name ] : '';
-			$new_attribute   = is_string( $new_attribute ) ? $new_attribute : '';
-			$extra_attribute = is_string( $extra_attribute ) ? $extra_attribute : '';
+		$attributes = array();
+	foreach ( $attribute_merge_callbacks as $attribute_name => $merge_callback ) {
+		$new_attribute   = isset( $new_attributes[ $attribute_name ] ) ? $new_attributes[ $attribute_name ] : '';
+		$extra_attribute = isset( $extra_attributes[ $attribute_name ] ) ? $extra_attributes[ $attribute_name ] : '';
+		$new_attribute   = is_string( $new_attribute ) ? $new_attribute : '';
+		$extra_attribute = is_string( $extra_attribute ) ? $extra_attribute : '';
 
-			if ( '' === $new_attribute && '' === $extra_attribute ) {
-				continue;
-			}
-
-			$attributes[ $attribute_name ] = $merge_callback( $new_attribute, $extra_attribute );
+		if ( '' === $new_attribute && '' === $extra_attribute ) {
+			continue;
 		}
+
+		$attributes[ $attribute_name ] = $merge_callback( $new_attribute, $extra_attribute );
+	}
 
 	foreach ( $extra_attributes as $attribute_name => $value ) {
 		if ( ! isset( $attribute_merge_callbacks[ $attribute_name ] ) ) {
