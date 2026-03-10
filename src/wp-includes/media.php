@@ -6379,7 +6379,7 @@ function wp_is_client_side_media_processing_enabled(): bool {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param bool $enabled Whether client-side media processing is enabled. Default true if SSL or localhost.
+	 * @param bool $enabled Whether client-side media processing is enabled. Default true if the page is served in a secure context.
 	 */
 	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', $enabled );
 }
