@@ -14,8 +14,6 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		update_option( 'wp_enable_real_time_collaboration', true );
-
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
@@ -25,11 +23,13 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
 		wp_delete_post( self::$post_id, true );
-		delete_option( 'wp_enable_real_time_collaboration' );
 	}
 
 	public function set_up() {
 		parent::set_up();
+
+		// Enable option for tests.
+		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_true' );
 
 		// Reset storage post ID cache to ensure clean state after transaction rollback.
 		$reflection = new ReflectionProperty( 'WP_Sync_Post_Meta_Storage', 'storage_post_ids' );
@@ -92,6 +92,31 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 */
 
 	public function test_register_routes() {
+		$routes = rest_get_server()->get_routes();
+		$this->assertArrayHasKey( '/wp-sync/v1/updates', $routes );
+	}
+
+	/**
+	 * Verifies the sync route is registered when relying on the option's default
+	 * value (option not stored in the database).
+	 *
+	 * This covers the upgrade scenario where a site has never explicitly saved
+	 * the collaboration setting.
+	 *
+	 * @ticket 64814
+	 */
+	public function test_register_routes_with_default_option() {
+		global $wp_rest_server;
+
+		// Remove the pre_option filter added in ::set_up() so get_option() uses its default logic.
+		remove_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_true' );
+
+		// Ensure the option is not in the database.
+		delete_option( 'wp_enable_real_time_collaboration' );
+
+		// Reset the REST server so routes are re-registered from scratch.
+		$wp_rest_server = null;
+
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp-sync/v1/updates', $routes );
 	}
@@ -623,6 +648,63 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertFalse( $data['rooms'][0]['should_compact'] );
 	}
 
+	public function test_sync_stale_compaction_succeeds_when_newer_compaction_exists() {
+		wp_set_current_user( self::$editor_id );
+
+		$room   = $this->get_post_room();
+		$update = array(
+			'type' => 'update',
+			'data' => 'dGVzdA==',
+		);
+
+		// Client 1 sends an update to seed the room.
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'user' => 'c1' ), array( $update ) ),
+			)
+		);
+
+		$end_cursor = $response->get_data()['rooms'][0]['end_cursor'];
+
+		// Client 2 sends a compaction at the current cursor.
+		$compaction = array(
+			'type' => 'compaction',
+			'data' => 'Y29tcGFjdGVk',
+		);
+
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, $end_cursor, array( 'user' => 'c2' ), array( $compaction ) ),
+			)
+		);
+
+		// Client 3 sends a stale compaction at cursor 0. The server should find
+		// client 2's compaction in the updates after cursor 0 and silently discard
+		// this one.
+		$stale_compaction = array(
+			'type' => 'compaction',
+			'data' => 'c3RhbGU=',
+		);
+		$response         = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'user' => 'c3' ), array( $stale_compaction ) ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// Verify the newer compaction is preserved and the stale one was not stored.
+		$response    = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 4, 0, array( 'user' => 'c4' ) ),
+			)
+		);
+		$update_data = wp_list_pluck( $response->get_data()['rooms'][0]['updates'], 'data' );
+
+		$this->assertContains( 'Y29tcGFjdGVk', $update_data, 'The newer compaction should be preserved.' );
+		$this->assertNotContains( 'c3RhbGU=', $update_data, 'The stale compaction should not be stored.' );
+	}
+
 	/*
 	 * Awareness tests.
 	 */
@@ -695,6 +777,31 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		// Should have exactly one entry for client 1 with updated state.
 		$this->assertCount( 1, $awareness );
 		$this->assertSame( array( 'cursor' => 'updated' ), $awareness[1] );
+	}
+
+	public function test_sync_awareness_client_id_cannot_be_used_by_another_user() {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Editor establishes awareness with client_id 1.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor' ) ),
+			)
+		);
+
+		// A different user tries to use the same client_id.
+		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_2 );
+
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Impostor' ) ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	/*
