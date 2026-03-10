@@ -113,7 +113,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			$block,
 			array(
 				'class' => 'foo-bar-class',
-				'style' => 'test: style;',
+				'style' => 'margin-top: 2px;',
 			)
 		);
 
@@ -148,7 +148,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			$block,
 			array(
 				'class' => 'foo-bar-class',
-				'style' => 'test: style;',
+				'style' => 'margin-top: 2px;',
 			)
 		);
 		$content      = $this->get_content_from_block( $styled_block );
@@ -188,7 +188,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-red-color has-background has-black-background-color';
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -224,7 +224,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'innerHTML'    => array(),
 		);
 
-		$expected_styles  = 'test: style;color:#000;background-color:#fff;';
+		$expected_styles  = 'margin-top: 2px;color:#000;background-color:#fff';
 		$expected_classes = 'foo-bar-class wp-block-example-merge has-text-color has-background';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
@@ -261,7 +261,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'innerHTML'    => array(),
 		);
 
-		$expected_styles  = 'test: style;color:#000;background-color:#fff;';
+		$expected_styles  = 'margin-top: 2px;color:#000;background-color:#fff';
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-background';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
@@ -293,7 +293,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-background has-red-gradient-background';
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -324,7 +324,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-background';
-		$expected_styles  = 'test: style; background:some-gradient-style;';
+		$expected_styles  = 'margin-top: 2px;background:some-gradient-style';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -360,7 +360,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -390,7 +390,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-large-font-size';
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -420,7 +420,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; font-size:10px;';
+		$expected_styles  = 'margin-top: 2px;font-size:10px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -447,7 +447,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -477,7 +477,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; line-height:10;';
+		$expected_styles  = 'margin-top: 2px;line-height:10';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -503,7 +503,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -531,7 +531,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example alignwide';
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -557,7 +557,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -604,7 +604,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-background alignwide';
-		$expected_styles  = 'test: style; color:#000; background-color:#fff; font-size:10px; line-height:20;';
+		$expected_styles  = 'margin-top: 2px;color:#000;background-color:#fff;font-size:10px;line-height:20';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -647,7 +647,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; font-size:10px;';
+		$expected_styles  = 'margin-top: 2px;font-size:10px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -672,7 +672,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'innerHTML'    => array(),
 		);
 
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 		$expected_classes = 'foo-bar-class wp-block-example my-custom-classname';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
@@ -700,7 +700,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'innerHTML'    => array(),
 		);
 
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 		$expected_classes = 'foo-bar-class wp-block-example';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
@@ -726,7 +726,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'innerHTML'    => array(),
 		);
 
-		$expected_styles  = 'test: style;';
+		$expected_styles  = 'margin-top: 2px';
 		$expected_classes = 'foo-bar-class';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
@@ -755,53 +755,6 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$this->assert_content_and_aria_label_match( $block, 'Label' );
-	}
-
-	/**
-	 * Ensures that user-provided attributes override the attributes generated by block supports.
-	 *
-	 * @ticket 64603
-	 * @covers WP_Block_Supports::get_block_wrapper_attributes()
-	 */
-	public function test_block_wrapper_attributes_prefer_user_id_and_aria_label_over_generated() {
-		$block_type_settings = array(
-			'attributes' => array(),
-			'supports'   => array(
-				'ariaLabel' => true,
-				'anchor'    => true,
-			),
-		);
-		$this->register_block_type( 'core/example-override', $block_type_settings );
-
-		$block = array(
-			'blockName'    => 'core/example-override',
-			'attrs'        => array(
-				'ariaLabel' => 'Generated label',
-				'anchor'    => 'generated-id',
-			),
-			'innerBlock'   => array(),
-			'innerContent' => array(),
-			'innerHTML'    => array(),
-		);
-
-		$styled_block = $this->render_example_block(
-			$block,
-			array(
-				'aria-label' => 'User label',
-				'id'         => 'user-id',
-			)
-		);
-
-		$this->assertSame(
-			'User label',
-			$this->get_attribute_from_block( 'aria-label', $styled_block ),
-			'Aria-label should prefer user-provided value over generated one'
-		);
-		$this->assertSame(
-			'user-id',
-			$this->get_attribute_from_block( 'id', $styled_block ),
-			'Id should prefer user-provided value over generated one'
-		);
 	}
 
 	/**
@@ -839,5 +792,162 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		restore_error_handler();
 
 		$this->assertEmpty( $errors, 'Libxml errors should be dropped.' );
+	}
+
+	/**
+	 * Ensures that style, class, id, and aria-label attributes are correctly merged or overridden
+	 * in get_block_wrapper_attributes().
+	 *
+	 * @ticket 64603
+	 * @covers ::get_block_wrapper_attributes
+	 *
+	 * @dataProvider data_get_block_wrapper_attributes_merge_or_override
+	 *
+	 * @param array $data {
+	 *     Data from the provider.
+	 *
+	 *     @type array  $block_type_settings Block type settings.
+	 *     @type array  $block_attrs        Block attributes.
+	 *     @type array  $extra_attributes   Extra attributes passed to get_block_wrapper_attributes().
+	 *     @type string $expected_attribute Expected attribute string (e.g. 'id="user-id"').
+	 * }
+	 */
+	public function test_get_block_wrapper_attributes_merge_and_override( $data ) {
+		$block_name = 'core/example';
+		$block_type_settings = array_merge(
+			array(
+				'attributes'      => array(),
+				'render_callback' => true,
+			),
+			$data['block_type_settings']
+		);
+		$this->register_block_type( $block_name, $block_type_settings );
+
+		$block = array(
+			'blockName'    => $block_name,
+			'attrs'        => $data['block_attrs'],
+			'innerBlock'   => array(),
+			'innerContent' => array(),
+			'innerHTML'    => array(),
+		);
+
+		WP_Block_Supports::init();
+		WP_Block_Supports::$block_to_render = $block;
+
+		$wrapper_attributes = get_block_wrapper_attributes( $data['extra_attributes'] );
+
+		$this->assertStringContainsString( $data['expected_attribute'], $wrapper_attributes );
+	}
+
+	/**
+	 * Data provider for test_get_block_wrapper_attributes_merge_and_override.
+	 *
+	 * @return array[] Array of test cases.
+	 */
+	public function data_get_block_wrapper_attributes_merge_or_override() {
+		return array(
+			'extra style attributes are merged with block values' => array(
+				array(
+					'block_type_settings' => array(
+						'supports' => array(
+							'color' => true,
+						),
+					),
+					'block_attrs'        => array(
+						'style' => array(
+							'color' => array(
+								'text' => '#000',
+							),
+						),
+					),
+					'extra_attributes'   => array(
+						// Redundant trailing semicolons should be stripped
+						'style' => 'margin-top: 2px;;;',
+					),
+					'expected_attribute' => 'style="margin-top: 2px;color:#000"',
+				),
+			),
+			'extra class attributes are merged with block values' => array(
+				array(
+					'block_type_settings' => array(
+						'supports' => array(
+							'color' => true,
+						),
+					),
+					'block_attrs'        => array(
+						'style' => array(
+							'color' => array(
+								'text' => '#000',
+							),
+						),
+					),
+					'extra_attributes'   => array(
+						// Duplicate class names should be merged
+						'class' => 'extra-class has-text-color',
+					),
+					'expected_attribute' => 'class="extra-class has-text-color wp-block-example"',
+				),
+			),
+			'extra attributes override block-generated id' => array(
+				array(
+					'block_type_settings' => array(
+						'supports' => array(
+							'anchor' => true,
+						),
+					),
+					'block_attrs'        => array(
+						'anchor' => 'block-id',
+					),
+					'extra_attributes'   => array(
+						'id' => 'user-id',
+					),
+					'expected_attribute' => 'id="user-id"',
+				),
+			),
+			'block-generated id is used when no extra provided' => array(
+				array(
+					'block_type_settings' => array(
+						'supports' => array(
+							'anchor' => true,
+						),
+					),
+					'block_attrs'        => array(
+						'anchor' => 'block-id',
+					),
+					'extra_attributes'   => array(),
+					'expected_attribute' => 'id="block-id"',
+				),
+			),
+			'extra attributes override block-generated aria-label' => array(
+				array(
+					'block_type_settings' => array(
+						'supports' => array(
+							'ariaLabel' => true,
+						),
+					),
+					'block_attrs'        => array(
+						'ariaLabel' => 'Block aria-label',
+					),
+					'extra_attributes'   => array(
+						'aria-label' => 'User aria-label',
+					),
+					'expected_attribute' => 'aria-label="User aria-label"',
+				),
+			),
+			'block-generated aria-label is used when no extra provided' => array(
+				array(
+					'block_type_settings' => array(
+						'supports' => array(
+							'ariaLabel' => true,
+						),
+					),
+					'block_attrs'        => array(
+						'ariaLabel' => 'Block aria-label',
+					),
+					'extra_attributes'   => array(),
+					'expected_attribute' => 'aria-label="Block aria-label"',
+				),
+			),
+		);
 	}
 }
