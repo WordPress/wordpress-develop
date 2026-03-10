@@ -6115,7 +6115,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		 * on an IMG following any number of initial IMGs with `fetchpriority=auto` since those initial images may not
 		 * be displayed.
 		 */
-		$maybe_in_viewport = true;
 
 		// Preserve fetchpriority=auto.
 		$loading_attrs['fetchpriority'] = 'auto';
@@ -6195,16 +6194,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	/*
 	 * If flag was set based on contextual logic above, increase the content
 	 * media count, either unconditionally, or based on whether the image size
-	 * is larger than the threshold.
+	 * is larger than the threshold. This does not apply when the IMG has
+	 * fetchpriority=auto because it may be conditionally displayed by viewport
+	 * size.
 	 */
-	if ( $increase_count ) {
-		wp_increase_content_media_count();
-	} elseif ( $maybe_increase_count ) {
-		/** This filter is documented in wp-includes/media.php */
-		$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
-
-		if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
+	if ( 'auto' !== $existing_fetchpriority ) {
+		if ( $increase_count ) {
 			wp_increase_content_media_count();
+		} elseif ( $maybe_increase_count ) {
+			/** This filter is documented in wp-includes/media.php */
+			$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
+
+			if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
+				wp_increase_content_media_count();
+			}
 		}
 	}
 
