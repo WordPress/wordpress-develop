@@ -127,4 +127,16 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 		$this->assertIsArray( $settings );
 		$this->assertEmpty( $settings );
 	}
+
+	/**
+	 * @ticket 64730
+	 */
+	public function test_connectors_are_sorted_alphabetically() {
+		$connectors = _wp_connectors_get_connector_settings();
+		$keys       = array_keys( $connectors );
+		$sorted     = $keys;
+		sort( $sorted );
+
+		$this->assertSame( $sorted, $keys, 'Connectors should be sorted alphabetically by ID.' );
+	}
 }
