@@ -164,7 +164,7 @@ function _wp_connectors_init(): void {
  *
  * @param WP_Connector_Registry $registry The connector registry instance.
  */
-function _wp_connectors_register_default_ai_providers( $registry ): void {
+function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $registry ): void {
 	// Built-in connectors.
 	$defaults = array(
 		'anthropic' => array(
