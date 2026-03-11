@@ -214,7 +214,7 @@ final class WP_Connector_Registry {
 	 *
 	 *         @type string      $name           The connector's display name.
 	 *         @type string      $description    The connector's description.
-	 *         @type string|null $logo_url        Optional. URL to the connector's logo image.
+	 *         @type string|null $logo_url       Optional. URL to the connector's logo image.
 	 *         @type string      $type           The connector type. Currently, only 'ai_provider' is supported.
 	 *         @type array       $plugin         Optional. Plugin data for install/activate UI.
 	 *             @type string $slug       The WordPress.org plugin slug.

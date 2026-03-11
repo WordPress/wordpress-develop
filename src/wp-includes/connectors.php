@@ -38,6 +38,20 @@ function wp_is_connector_registered( string $id ): bool {
  *
  * @param string $id The connector identifier.
  * @return array|null The registered connector data, or null if not registered.
+ * @phpstan-return ?array{
+ *     name: string,
+ *     description: string,
+ *     logo_url?: string|null,
+ *     type: string,
+ *     authentication: array{
+ *         method: string,
+ *         credentials_url?: string|null,
+ *         setting_name?: string
+ *     },
+ *     plugin?: array{
+ *         slug: string
+ *     }
+ * }
  */
 function wp_get_connector( string $id ): ?array {
 	$registry = WP_Connector_Registry::get_instance();
@@ -55,8 +69,6 @@ function wp_get_connector( string $id ): ?array {
  *
  * @see WP_Connector_Registry::get_all_registered()
  *
- * @phpstan-import-type Connector from WP_Connector_Registry
- *
  * @return array {
  *     Connector settings keyed by connector ID.
  *
@@ -65,7 +77,7 @@ function wp_get_connector( string $id ): ?array {
  *
  *         @type string      $name           The connector's display name.
  *         @type string      $description    The connector's description.
- *         @type string|null $logo_url        Optional. URL to the connector's logo image.
+ *         @type string|null $logo_url       Optional. URL to the connector's logo image.
  *         @type string      $type           The connector type. Currently, only 'ai_provider' is supported.
  *         @type array       $plugin         Optional. Plugin data for install/activate UI.
  *             @type string $slug       The WordPress.org plugin slug.
@@ -80,7 +92,20 @@ function wp_get_connector( string $id ): ?array {
  *         }
  *     }
  * }
- * @phpstan-return array<string, Connector>
+ * @phpstan-return array<string, array{
+ *     name: string,
+ *     description: string,
+ *     logo_url?: string|null,
+ *     type: string,
+ *     authentication: array{
+ *         method: string,
+ *         credentials_url?: string|null,
+ *         setting_name?: string
+ *     },
+ *     plugin?: array{
+ *         slug: string
+ *     }
+ * }>
  */
 function wp_get_connectors(): array {
 	$registry = WP_Connector_Registry::get_instance();
