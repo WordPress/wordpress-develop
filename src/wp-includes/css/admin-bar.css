@@ -705,9 +705,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
 	content: "\f179";
 	content: "\f179" / '';
-	/*top: 3px;*/
-	top: 2px;
-	left: -2px;
 }
 
 /**
