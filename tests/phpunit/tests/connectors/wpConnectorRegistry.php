@@ -99,6 +99,40 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 64791
 	 */
+	public function test_register_includes_logo_url() {
+		$args             = self::$default_args;
+		$args['logo_url'] = 'https://example.com/logo.png';
+
+		$result = $this->registry->register( 'with_logo', $args );
+
+		$this->assertArrayHasKey( 'logo_url', $result );
+		$this->assertSame( 'https://example.com/logo.png', $result['logo_url'] );
+	}
+
+	/**
+	 * @ticket 64791
+	 */
+	public function test_register_omits_logo_url_when_not_provided() {
+		$result = $this->registry->register( 'no_logo', self::$default_args );
+
+		$this->assertArrayNotHasKey( 'logo_url', $result );
+	}
+
+	/**
+	 * @ticket 64791
+	 */
+	public function test_register_omits_logo_url_when_empty() {
+		$args             = self::$default_args;
+		$args['logo_url'] = '';
+
+		$result = $this->registry->register( 'empty_logo', $args );
+
+		$this->assertArrayNotHasKey( 'logo_url', $result );
+	}
+
+	/**
+	 * @ticket 64791
+	 */
 	public function test_register_includes_plugin_data() {
 		$args           = self::$default_args;
 		$args['plugin'] = array( 'slug' => 'my-plugin' );

@@ -67,6 +67,48 @@ function wp_get_connectors(): array {
 }
 
 /**
+ * Resolves an AI provider logo file path to a URL.
+ *
+ * Converts an absolute file path to a plugin URL. The path must reside within
+ * the plugins or must-use plugins directory.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @param string $path Absolute path to the logo file.
+ * @return string|null The URL to the logo file, or null if the path is invalid.
+ */
+function _wp_connectors_resolve_ai_provider_logo_url( string $path ): ?string {
+	if ( ! $path ) {
+		return null;
+	}
+
+	$path = wp_normalize_path( $path );
+
+	if ( ! file_exists( $path ) ) {
+		return null;
+	}
+
+	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
+	if ( str_starts_with( $path, $mu_plugin_dir . '/' ) ) {
+		return plugins_url( substr( $path, strlen( $mu_plugin_dir ) ), WPMU_PLUGIN_DIR . '/.' );
+	}
+
+	$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
+	if ( str_starts_with( $path, $plugin_dir . '/' ) ) {
+		return plugins_url( substr( $path, strlen( $plugin_dir ) ) );
+	}
+
+	_doing_it_wrong(
+		__FUNCTION__,
+		__( 'Provider logo path must be located within the plugins or must-use plugins directory.' ),
+		'7.0.0'
+	);
+
+	return null;
+}
+
+/**
  * Initializes the connector registry with default connectors and fires the registration action.
  *
  * Creates the registry instance, registers built-in connectors (which cannot be unhooked),
@@ -141,6 +183,9 @@ function _wp_connectors_init(): void {
 
 		$name        = $provider_metadata->getName();
 		$description = $provider_metadata->getDescription();
+		$logo_url    = $provider_metadata->getLogoPath()
+			? _wp_connectors_resolve_ai_provider_logo_url( $provider_metadata->getLogoPath() )
+			: null;
 
 		if ( isset( $defaults[ $connector_id ] ) ) {
 			// Override fields with non-empty registry values.
@@ -149,6 +194,9 @@ function _wp_connectors_init(): void {
 			}
 			if ( $description ) {
 				$defaults[ $connector_id ]['description'] = $description;
+			}
+			if ( $logo_url ) {
+				$defaults[ $connector_id ]['logo_url'] = $logo_url;
 			}
 			// Always update auth method; keep existing credentials_url as fallback.
 			$defaults[ $connector_id ]['authentication']['method'] = $authentication['method'];
@@ -161,6 +209,7 @@ function _wp_connectors_init(): void {
 				'description'    => $description ? $description : '',
 				'type'           => 'ai_provider',
 				'authentication' => $authentication,
+				'logo_url'       => $logo_url,
 			);
 		}
 	}
