@@ -945,7 +945,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
-	if ( ! is_admin() ) {
+	if ( ! is_admin() || ! wp_script_is( 'wp-core-commands', 'enqueued' ) ) {
 		return;
 	}
 
