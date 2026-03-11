@@ -119,7 +119,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	/**
 	 * Tests connectors return an empty array when AI is not supported
 	 */
-	public function test_returns_empty_array_when_ai_not_supported() {
+	public function test_returns_empty_array_when_ai_not_supported(): void {
 		// Temporarily disable AI support for this test.
 		add_filter( 'wp_supports_ai', '__return_false' );
 

@@ -34,7 +34,7 @@ class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 	/**
 	 * Tests that returns a WP_AI_Client_Prompt_Builder instance even when AI is not supported, but that the builder contains an error.
 	 */
-	public function test_returns_error_builder_when_ai_not_supported() {
+	public function test_returns_error_builder_when_ai_not_supported(): void {
 		// Temporarily disable AI support for this test.
 		add_filter( 'wp_supports_ai', '__return_false' );
 		$builder = wp_ai_client_prompt();
