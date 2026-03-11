@@ -284,7 +284,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Handle generate_sub_sizes parameter.
-		if ( isset( $request['generate_sub_sizes'] ) && ! $request['generate_sub_sizes'] ) {
+		if ( false === $request['generate_sub_sizes'] ) {
 			add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
 			add_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 			// Disable server-side EXIF rotation so the client can handle it.
