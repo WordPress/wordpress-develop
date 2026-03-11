@@ -1857,6 +1857,33 @@ function wp_ajax_hidden_columns() {
 }
 
 /**
+ * Handles saving taxonomy filter visibility preferences via AJAX.
+ *
+ * @since 7.0.0
+ */
+function wp_ajax_taxonomy_filter_visibility() {
+	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
+
+	$page = $_POST['page'] ?? '';
+
+	if ( sanitize_key( $page ) !== $page ) {
+		wp_die( 0 );
+	}
+
+	$user = wp_get_current_user();
+	if ( ! $user ) {
+		wp_die( -1 );
+	}
+
+	$visible = ! empty( $_POST['visible'] ) ? explode( ',', $_POST['visible'] ) : array();
+	$visible = array_map( 'sanitize_key', $visible );
+
+	update_user_meta( $user->ID, "manage{$page}taxonomyfilters", $visible );
+
+	wp_die( 1 );
+}
+
+/**
  * Handles updating whether to display the welcome panel via AJAX.
  *
  * @since 3.1.0

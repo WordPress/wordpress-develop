@@ -85,6 +85,41 @@ function get_hidden_columns( $screen ) {
 }
 
 /**
+ * Gets the list of taxonomy slugs whose filter dropdowns are visible on the
+ * post list table for the given screen.
+ *
+ * Taxonomy filter dropdowns are hidden by default. A user must opt in via
+ * Screen Options to make them visible. An empty array (the default) means
+ * no extra taxonomy filter dropdowns are shown.
+ *
+ * @since 7.0.0
+ *
+ * @param string|WP_Screen $screen Screen identifier or object.
+ * @return string[] Array of taxonomy slugs with visible filter dropdowns.
+ */
+function get_visible_taxonomy_filters( $screen ) {
+	if ( is_string( $screen ) ) {
+		$screen = convert_to_screen( $screen );
+	}
+
+	$visible = get_user_option( 'manage' . $screen->id . 'taxonomyfilters' );
+
+	if ( ! is_array( $visible ) ) {
+		$visible = array();
+	}
+
+	/**
+	 * Filters the list of taxonomy slugs with visible filter dropdowns on the post list table.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string[]  $visible Array of taxonomy slugs whose filter dropdowns are shown.
+	 * @param WP_Screen $screen  WP_Screen object of the current screen.
+	 */
+	return apply_filters( 'visible_taxonomy_filters', $visible, $screen );
+}
+
+/**
  * Prints the meta box preferences for screen meta.
  *
  * @since 2.7.0

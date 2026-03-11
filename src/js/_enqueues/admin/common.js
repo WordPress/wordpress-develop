@@ -507,6 +507,97 @@ window.columns = {
 $( function() { columns.init(); } );
 
 /**
+ * Manages taxonomy filter dropdown visibility preferences in Screen Options.
+ *
+ * @since 7.0.0
+ *
+ * Binds change events to the taxonomy filter checkboxes to show or hide
+ * the corresponding filter dropdowns instantly, and persists the preference
+ * via AJAX. Hidden dropdowns have their <select> element disabled so they are
+ * not submitted as part of the filter form.
+ */
+var taxonomyFilters = {
+
+	/**
+	 * Initialises the taxonomy filter visibility toggles.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return {void}
+	 */
+	init : function() {
+		$( '.taxonomy-filter-tog', '#adv-settings' ).on( 'change', function() {
+			var $checkbox  = $( this ),
+				taxonomy   = $checkbox.val(),
+				$container = $( '.taxonomy-filter-container[data-taxonomy="' + taxonomy + '"]' ),
+				$select    = $container.find( 'select, [data-name]' );
+
+			if ( $checkbox.prop( 'checked' ) ) {
+				$container.removeClass( 'hidden' );
+				// Restore the `name` attribute so the control is submitted with the form.
+				if ( $select.is( '[data-name]' ) ) {
+					$select.attr( 'name', $select.attr( 'data-name' ) ).removeAttr( 'data-name' );
+				}
+				$select.prop( 'disabled', false );
+				// Ensure the dedicated taxonomy filters row is visible.
+				$( '.taxonomy-filters-row' ).removeClass( 'hidden' );
+			} else {
+				$container.addClass( 'hidden' );
+				// Move `name` to `data-name` so the control is never submitted with the form.
+				if ( $select.is( '[name]' ) ) {
+					$select.attr( 'data-name', $select.attr( 'name' ) ).removeAttr( 'name' );
+				}
+				$select.prop( 'disabled', true );
+				// Hide the row when no taxonomy filters remain enabled.
+				if ( $( '.taxonomy-filter-tog:checked', '#adv-settings' ).length === 0 ) {
+					$( '.taxonomy-filters-row' ).addClass( 'hidden' );
+				}
+			}
+
+			taxonomyFilters.saveState();
+		} );
+	},
+
+	/**
+	 * Saves the current taxonomy filter visibility state via AJAX.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return {void}
+	 */
+	saveState : function() {
+		var visible = this.visible();
+		$.post(
+			ajaxurl,
+			{
+				action: 'taxonomy-filter-visibility',
+				visible: visible,
+				screenoptionnonce: $( '#screenoptionnonce' ).val(),
+				page: pagenow
+			},
+			function() {
+				wp.a11y.speak( __( 'Screen Options updated.' ) );
+			}
+		);
+	},
+
+	/**
+	 * Gets the slugs of all currently visible taxonomy filter dropdowns.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return {string} Comma-separated taxonomy slugs that are currently visible.
+	 */
+	visible : function() {
+		return $( '.taxonomy-filter-tog:checked', '#adv-settings' ).map( function() {
+			return $( this ).val();
+		} ).get().join( ',' );
+	}
+};
+
+$( function() { taxonomyFilters.init(); } );
+
+/**
  * Validates that the required form fields are not empty.
  *
  * @since 2.9.0
