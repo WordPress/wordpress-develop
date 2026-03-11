@@ -2962,8 +2962,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$controller = new WP_REST_Attachments_Controller( 'attachment' );
 		$result     = $controller->create_item_permissions_check( $request );
 
-		remove_filter( 'wp_image_editors', '__return_empty_array' );
-
 		// Should pass because generate_sub_sizes is false (client handles processing).
 		$this->assertTrue( $result );
 	}
