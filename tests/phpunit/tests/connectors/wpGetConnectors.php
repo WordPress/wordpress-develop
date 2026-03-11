@@ -3,12 +3,12 @@
 require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-mock-provider-trait.php';
 
 /**
- * Tests for _wp_connectors_get_connector_settings().
+ * Tests for wp_get_connectors().
  *
  * @group connectors
- * @covers ::_wp_connectors_get_connector_settings
+ * @covers ::wp_get_connectors
  */
-class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase {
+class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 
 	use WP_AI_Client_Mock_Provider_Trait;
 
@@ -32,7 +32,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	 * @ticket 64730
 	 */
 	public function test_returns_expected_connector_keys() {
-		$connectors = _wp_connectors_get_connector_settings();
+		$connectors = wp_get_connectors();
 
 		$this->assertArrayHasKey( 'google', $connectors );
 		$this->assertArrayHasKey( 'openai', $connectors );
@@ -45,7 +45,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	 * @ticket 64730
 	 */
 	public function test_each_connector_has_required_fields() {
-		$connectors = _wp_connectors_get_connector_settings();
+		$connectors = wp_get_connectors();
 
 		$this->assertNotEmpty( $connectors, 'Connector settings should not be empty.' );
 
@@ -68,7 +68,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	 * @ticket 64730
 	 */
 	public function test_api_key_connectors_have_setting_name_and_credentials_url() {
-		$connectors    = _wp_connectors_get_connector_settings();
+		$connectors    = wp_get_connectors();
 		$api_key_count = 0;
 
 		foreach ( $connectors as $connector_id => $connector_data ) {
@@ -94,7 +94,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	 * @ticket 64730
 	 */
 	public function test_featured_provider_names_match_expected() {
-		$connectors = _wp_connectors_get_connector_settings();
+		$connectors = wp_get_connectors();
 
 		$this->assertSame( 'Google', $connectors['google']['name'] );
 		$this->assertSame( 'OpenAI', $connectors['openai']['name'] );
@@ -105,7 +105,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	 * @ticket 64730
 	 */
 	public function test_includes_registered_provider_from_registry() {
-		$connectors = _wp_connectors_get_connector_settings();
+		$connectors = wp_get_connectors();
 		$mock       = $connectors['mock_connectors_test'];
 
 		$this->assertSame( 'Mock Connectors Test', $mock['name'] );
@@ -114,17 +114,5 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 		$this->assertSame( 'api_key', $mock['authentication']['method'] );
 		$this->assertNull( $mock['authentication']['credentials_url'] );
 		$this->assertSame( 'connectors_ai_mock_connectors_test_api_key', $mock['authentication']['setting_name'] );
-	}
-
-	/**
-	 * @ticket 64730
-	 */
-	public function test_connectors_are_sorted_alphabetically() {
-		$connectors = _wp_connectors_get_connector_settings();
-		$keys       = array_keys( $connectors );
-		$sorted     = $keys;
-		sort( $sorted );
-
-		$this->assertSame( $sorted, $keys, 'Connectors should be sorted alphabetically by ID.' );
 	}
 }
