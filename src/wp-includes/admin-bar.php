@@ -935,9 +935,9 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 }
 
 /**
- * Adds the command palette trigger button.
+ * Adds a link to open the command palette.
  *
- * Displays a button in the admin bar that shows the keyboard shortcut
+ * Displays a link in the admin bar that shows the keyboard shortcut
  * for opening the command palette.
  *
  * @since 7.0.0
@@ -945,7 +945,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
-	if ( ! is_admin() ) {
+	if ( ! is_admin() || ! wp_script_is( 'wp-core-commands', 'enqueued' ) ) {
 		return;
 	}
 
@@ -954,17 +954,19 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		? _x( '⌘K', 'keyboard shortcut to open the command palette' )
 		: _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' );
 	$title          = sprintf(
-		'<span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
+		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
 		$shortcut_label,
 		/* translators: Hidden accessibility text. */
 		__( 'Open command palette' ),
 	);
+
 	$wp_admin_bar->add_node(
 		array(
-			'id'    => 'command-palette',
-			'title' => $title,
-			'href'  => '#',
-			'meta'  => array(
+			'parent' => 'top-secondary',
+			'id'     => 'command-palette',
+			'title'  => $title,
+			'href'   => '#',
+			'meta'   => array(
 				'class'   => 'hide-if-no-js',
 				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
 			),
@@ -1240,43 +1242,6 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 			'meta'   => array(
 				'class'    => 'admin-bar-search',
 				'tabindex' => -1,
-			),
-		)
-	);
-}
-
-/**
- * Adds a link to open the command palette.
- *
- * @since 7.0.0
- *
- * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
- */
-function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
-	if ( ! is_admin() || ! wp_script_is( 'wp-core-commands', 'enqueued' ) ) {
-		return;
-	}
-
-	$is_apple_os    = (bool) preg_match( '/Macintosh|Mac OS X|Mac_PowerPC/i', $_SERVER['HTTP_USER_AGENT'] ?? '' );
-	$shortcut_label = $is_apple_os
-		? _x( '⌘K', 'keyboard shortcut to open the command palette' )
-		: _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' );
-	$title          = sprintf(
-		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
-		$shortcut_label,
-		/* translators: Hidden accessibility text. */
-		__( 'Open command palette' ),
-	);
-
-	$wp_admin_bar->add_node(
-		array(
-			'parent' => 'top-secondary',
-			'id'     => 'command-palette',
-			'title'  => $title,
-			'href'   => '#',
-			'meta'   => array(
-				'class'   => 'hide-if-no-js',
-				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
 			),
 		)
 	);
