@@ -2263,8 +2263,9 @@ html.wp-toolbar {
 	color: #a7aaad;
 }
 
-.sortable-placeholder {
+.sortable-placeholder:not(.empty-container .sortable-placeholder) {
 	border: 1px dashed #c3c4c7;
+	border-radius: 8px;
 	margin-bottom: 20px;
 }
 
