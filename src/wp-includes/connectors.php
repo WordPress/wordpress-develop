@@ -265,7 +265,6 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 	}
 }
 
-
 /**
  * Masks an API key, showing only the last 4 characters.
  *
