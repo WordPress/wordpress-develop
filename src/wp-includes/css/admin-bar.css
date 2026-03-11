@@ -917,10 +917,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 		-moz-osx-font-smoothing: grayscale;
 	}
 
-	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
-		left: 0;
-	}
-
 	#wpadminbar #wp-admin-bar-appearance {
 		margin-top: 0;
 	}
