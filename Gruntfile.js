@@ -53,6 +53,7 @@ module.exports = function(grunt) {
 		webpackFiles = [
 			'wp-includes/assets/*',
 			'wp-includes/css/dist',
+			'wp-includes/blocks/**/*.css',
 			'!wp-includes/assets/script-loader-packages.min.php',
 			'!wp-includes/assets/script-modules-packages.min.php',
 		],
@@ -587,97 +588,7 @@ module.exports = function(grunt) {
 			certificates: {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
 				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
-			},
-			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/, routes/).
-			'gutenberg-php': {
-				options: {
-					process: function( content ) {
-						// Fix boot module asset file path for Core's different directory structure.
-						return content.replace(
-							/__DIR__\s*\.\s*(['"])\/..\/\..\/modules\/boot\/index\.min\.asset\.php\1/g,
-							'ABSPATH . WPINC . \'/js/dist/script-modules/boot/index.min.asset.php\''
-						);
-					}
-				},
-				files: [ {
-					expand: true,
-					cwd: 'gutenberg/build',
-					src: [
-						'routes.php',
-						'pages.php',
-						'constants.php',
-						'pages/**/*.php',
-						'routes/**/*.php',
-					],
-					dest: WORKING_DIR + 'wp-includes/build/',
-				} ],
-			},
-			'gutenberg-modules': {
-				files: [ {
-					expand: true,
-					cwd: 'gutenberg/build/modules',
-					src: [ '**/*', '!**/*.map' ],
-					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
-				} ],
-			},
-			'gutenberg-styles': {
-				files: [ {
-					expand: true,
-					cwd: 'gutenberg/build/styles',
-					src: [ '**/*', '!**/*.map' ],
-					dest: WORKING_DIR + 'wp-includes/css/dist/',
-				} ],
-			},
-			'gutenberg-theme-json': {
-				options: {
-					process: function( content, srcpath ) {
-						// Replace the local schema URL with the canonical public URL for Core.
-						if ( path.basename( srcpath ) === 'theme.json' ) {
-							return content.replace(
-								'"$schema": "../schemas/json/theme.json"',
-								'"$schema": "https://schemas.wp.org/trunk/theme.json"'
-							);
-						}
-						return content;
-					}
-				},
-				files: [
-					{
-						src: 'gutenberg/lib/theme.json',
-						dest: WORKING_DIR + 'wp-includes/theme.json',
-					},
-					{
-						src: 'gutenberg/lib/theme-i18n.json',
-						dest: WORKING_DIR + 'wp-includes/theme-i18n.json',
-					},
-				],
-			},
-			'gutenberg-icons': {
-				options: {
-					process: function( content, srcpath ) {
-						// Remove the 'gutenberg' text domain from _x() calls in manifest.php.
-						if ( path.basename( srcpath ) === 'manifest.php' ) {
-							return content.replace(
-								/_x\(\s*([^,]+),\s*([^,]+),\s*['"]gutenberg['"]\s*\)/g,
-								'_x( $1, $2 )'
-							);
-						}
-						return content;
-					}
-				},
-				files: [
-					{
-						src: 'gutenberg/packages/icons/src/manifest.php',
-						dest: WORKING_DIR + 'wp-includes/icons/manifest.php',
-					},
-					{
-						expand: true,
-						cwd: 'gutenberg/packages/icons/src/library',
-						src: '*.svg',
-						dest: WORKING_DIR + 'wp-includes/icons/library/',
-					},
-				],
-			},
+			}
 		},
 		sass: {
 			colors: {
@@ -1412,21 +1323,20 @@ module.exports = function(grunt) {
 					},
 					{
 						expand: true,
-						cwd: BUILD_DIR + 'wp-includes/js/dist/',
-						src: [ '*.js' ],
-						dest: BUILD_DIR + 'wp-includes/js/dist/',
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/dist/block-editor.js',
+							BUILD_DIR + 'wp-includes/js/dist/commands.js',
+						],
+						dest: BUILD_DIR + 'wp-includes/js/dist/'
 					},
 					{
 						expand: true,
-						cwd: BUILD_DIR + 'wp-includes/js/dist/vendor/',
-						src: [ '**/*.js' ],
-						dest: BUILD_DIR + 'wp-includes/js/dist/vendor/',
-					},
-					{
-						expand: true,
-						cwd: BUILD_DIR + 'wp-includes/js/dist/script-modules/',
-						src: [ '**/*.js' ],
-						dest: BUILD_DIR + 'wp-includes/js/dist/script-modules/',
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/dist/vendor/**/*.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/dist/vendor/'
 					}
 				]
 			}
@@ -1565,38 +1475,45 @@ module.exports = function(grunt) {
 	} );
 
 	// Gutenberg integration tasks.
-	grunt.registerTask( 'gutenberg:verify', 'Verifies the installed Gutenberg version matches the expected SHA.', function() {
+	grunt.registerTask( 'gutenberg-checkout', 'Checks out the Gutenberg repository.', function() {
 		const done = this.async();
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/utils.js' ],
+			args: [ 'tools/gutenberg/checkout-gutenberg.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
 		} );
 	} );
 
-	grunt.registerTask( 'gutenberg:download', 'Downloads the built Gutenberg artifact.', function() {
+	grunt.registerTask( 'gutenberg-build', 'Builds the Gutenberg repository.', function() {
 		const done = this.async();
-		const args = [ 'tools/gutenberg/download.js' ];
-		if ( grunt.option( 'force' ) ) {
-			args.push( '--force' );
-		}
 		grunt.util.spawn( {
 			cmd: 'node',
-			args,
+			args: [ 'tools/gutenberg/build-gutenberg.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
 		} );
 	} );
 
-	grunt.registerTask( 'gutenberg:copy', 'Copies Gutenberg JS packages and block assets to WordPress Core.', function() {
+	grunt.registerTask( 'gutenberg-copy', 'Copies Gutenberg build output to WordPress Core.', function() {
 		const done = this.async();
 		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/copy.js', `--build-dir=${ buildDir }` ],
+			args: [ 'tools/gutenberg/copy-gutenberg-build.js', `--build-dir=${ buildDir }` ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-sync', 'Syncs Gutenberg checkout and build if ref has changed.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/sync-gutenberg.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
@@ -2039,35 +1956,26 @@ module.exports = function(grunt) {
 			} );
 	} );
 
-	grunt.registerTask( 'build:gutenberg', [
-		'copy:gutenberg-php',
-		'gutenberg:copy',
-		'copy:gutenberg-modules',
-		'copy:gutenberg-styles',
-		'copy:gutenberg-theme-json',
-		'copy:gutenberg-icons',
-	] );
-
 	grunt.registerTask( 'build', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
-				'gutenberg:verify',
 				'build:js',
 				'build:css',
 				'build:codemirror',
-				'build:gutenberg',
+				'gutenberg-sync',
+				'gutenberg-copy',
 				'copy-vendor-scripts',
 				'build:certificates'
 			] );
 		} else {
 			grunt.task.run( [
-				'gutenberg:verify',
 				'build:certificates',
 				'build:files',
 				'build:js',
 				'build:css',
 				'build:codemirror',
-				'build:gutenberg',
+				'gutenberg-sync',
+				'gutenberg-copy',
 				'copy-vendor-scripts',
 				'replace:source-maps',
 				'verify:build'
