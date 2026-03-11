@@ -699,7 +699,7 @@ html:lang(he-il) .rtl #wpadminbar * {
  */
 #wpadminbar #wp-admin-bar-command-palette .ab-icon {
 	margin: 0;
-	display: none; /* Displayed only on mobile */
+	display: none; /* Icon displayed only on mobile */
 }
 
 #wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
