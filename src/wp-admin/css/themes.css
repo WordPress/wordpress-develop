@@ -1133,27 +1133,22 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	display: block;
 }
 
+/* Form is the drop zone (ticket #64065). Flex layout fixes Install Now alignment in all locales. */
 .upload-theme .wp-upload-form,
 .upload-plugin .wp-upload-form {
-	margin: 30px auto;
-	display: inline-block;
-}
-
-.upload-theme .wp-upload-form .wp-upload-form-box,
-.upload-plugin .wp-upload-form .wp-upload-form-box {
 	box-sizing: border-box;
-	display: flex;
+	display: inline-flex;
 	flex-wrap: nowrap;
 	align-items: center;
 	gap: 15px;
 	background: #f6f7f7;
 	border: 1px solid #c3c4c7;
-	margin: 0;
+	margin: 30px auto;
 	padding: 30px;
 }
 
-.upload-theme .wp-upload-form .wp-upload-form-box input[type="file"],
-.upload-plugin .wp-upload-form .wp-upload-form-box input[type="file"] {
+.upload-theme .wp-upload-form input[type="file"],
+.upload-plugin .wp-upload-form input[type="file"] {
 	background: transparent;
 	border: none;
 	margin: 0;
@@ -1162,8 +1157,8 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	min-width: 0;
 }
 
-.upload-plugin .wp-upload-form .wp-upload-form-box input[type="submit"],
-.upload-theme .wp-upload-form .wp-upload-form-box input[type="submit"] {
+.upload-plugin .wp-upload-form input[type="submit"],
+.upload-theme .wp-upload-form input[type="submit"] {
 	flex-shrink: 0;
 }
 
@@ -1202,7 +1197,7 @@ p.no-themes-local {
 	.upload-theme .wp-upload-form {
 		margin: 20px 0;
 		max-width: 100%;
-		display: block;
+		width: 100%;
 	}
 	.upload-theme .install-help {
 		font-size: 15px;
@@ -2083,23 +2078,16 @@ body.full-overlay-active {
 	.upload-plugin .wp-upload-form,
 	.upload-theme .wp-upload-form {
 		width: 100%;
-		display: block;
-	}
-
-	.upload-plugin .wp-upload-form .wp-upload-form-box,
-	.upload-theme .wp-upload-form .wp-upload-form-box {
-		width: 100%;
 		flex-direction: column;
 		align-items: stretch;
-		padding: 30px;
 	}
 
-	.upload-plugin .wp-upload-form .wp-upload-form-box input[type=file],
-	.upload-theme .wp-upload-form .wp-upload-form-box input[type=file] {
+	.upload-plugin .wp-upload-form input[type=file],
+	.upload-theme .wp-upload-form input[type=file] {
 		width: 100%;
 	}
 
-	:is(.upload-theme, .upload-plugin) .wp-upload-form .wp-upload-form-box input[type="submit"].button {
+	:is(.upload-theme, .upload-plugin) .wp-upload-form input[type="submit"].button {
 		align-self: center;
 		margin-top: 10px;
 	}

@@ -351,10 +351,8 @@ function install_plugins_upload() {
 			_e( 'Plugin zip file' );
 			?>
 		</label>
-		<div class="wp-upload-form-box">
-			<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
-			<?php submit_button( _x( 'Install Now', 'plugin' ), '', 'install-plugin-submit', false ); ?>
-		</div>
+		<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
+		<?php submit_button( _x( 'Install Now', 'plugin' ), '', 'install-plugin-submit', false ); ?>
 	</form>
 </div>
 	<?php
