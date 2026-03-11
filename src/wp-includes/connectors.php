@@ -39,17 +39,17 @@ function wp_is_connector_registered( string $id ): bool {
  * @param string $id The connector identifier.
  * @return array|null The registered connector data, or null if not registered.
  * @phpstan-return ?array{
- *     name: string,
- *     description: string,
- *     logo_url?: string|null,
- *     type: string,
+ *     name: non-empty-string,
+ *     description: non-empty-string,
+ *     logo_url?: non-empty-string|null,
+ *     type: 'ai_provider',
  *     authentication: array{
- *         method: string,
- *         credentials_url?: string|null,
- *         setting_name?: string
+ *         method: 'api_key'|'none',
+ *         credentials_url?: non-empty-string|null,
+ *         setting_name?: non-empty-string
  *     },
  *     plugin?: array{
- *         slug: string
+ *         slug: non-empty-string
  *     }
  * }
  */
@@ -79,8 +79,10 @@ function wp_get_connector( string $id ): ?array {
  *         @type string      $description    The connector's description.
  *         @type string|null $logo_url       Optional. URL to the connector's logo image.
  *         @type string      $type           The connector type. Currently, only 'ai_provider' is supported.
- *         @type array       $plugin         Optional. Plugin data for install/activate UI.
- *             @type string $slug       The WordPress.org plugin slug.
+ *         @type array       $plugin {
+ *             Optional. Plugin data for install/activate UI.
+ *
+ *             @type string $slug The WordPress.org plugin slug.
  *         }
  *         @type array  $authentication {
  *             Authentication configuration. When method is 'api_key', includes
