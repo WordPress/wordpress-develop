@@ -3348,6 +3348,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Tests that the finalize endpoint triggers wp_generate_attachment_metadata.
 	 *
 	 * @ticket 62243
+	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
 	 */
 	public function test_finalize_item(): void {
@@ -3373,6 +3374,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				$filter_metadata = $metadata;
 				$filter_id       = $id;
 				$filter_context  = $context;
+				$metadata['foo'] = 'bar';
 				return $metadata;
 			},
 			10,
@@ -3388,12 +3390,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertStringContainsString( 'canola', $filter_metadata['file'], 'Expected the canola image to have been had its metadata updated.' );
 		$this->assertSame( $attachment_id, $filter_id, 'Expected the post ID to be passed to the filter.' );
 		$this->assertSame( 'update', $filter_context, 'Filter context should be "update".' );
+		$resulting_metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $resulting_metadata );
+		$this->assertArrayHasKey( 'foo', $resulting_metadata, 'Expected new metadata key to have been added.' );
+		$this->assertSame( 'bar', $resulting_metadata['foo'], 'Expected filtered metadata to be updated.' );
 	}
 
 	/**
 	 * Tests that the finalize endpoint requires authentication.
 	 *
 	 * @ticket 62243
+	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
 	 */
 	public function test_finalize_item_requires_auth(): void {
@@ -3420,6 +3427,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Tests that the finalize endpoint returns error for invalid attachment ID.
 	 *
 	 * @ticket 62243
+	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 */
 	public function test_finalize_item_invalid_id(): void {
 		wp_set_current_user( self::$author_id );
