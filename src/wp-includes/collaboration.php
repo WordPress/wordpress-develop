@@ -12,6 +12,8 @@
  * @since 7.0.0
  *
  * @access private
+ *
+ * @global string $pagenow The filename of the current screen.
  */
 function wp_collaboration_inject_setting() {
 	global $pagenow;
@@ -22,16 +24,13 @@ function wp_collaboration_inject_setting() {
 
 	// Disable real-time collaboration on the site editor.
 	$enabled = true;
-	if (
-		'site-editor.php' === $pagenow ||
-		( 'admin.php' === $pagenow && isset( $_GET['page'] ) && 'site-editor-v2' === $_GET['page'] )
-	) {
+	if ( 'site-editor.php' === $pagenow ) {
 		$enabled = false;
 	}
 
 	wp_add_inline_script(
 		'wp-core-data',
-		'window._wpCollaborationEnabled = ' . ( $enabled ? 'true' : 'false' ) . ';',
+		'window._wpCollaborationEnabled = ' . wp_json_encode( $enabled ) . ';',
 		'after'
 	);
 }
