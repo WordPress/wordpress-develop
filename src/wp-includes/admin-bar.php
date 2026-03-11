@@ -954,7 +954,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		? _x( '⌘K', 'keyboard shortcut to open the command palette' )
 		: _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' );
 	$title          = sprintf(
-		'<span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
+		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
 		$shortcut_label,
 		/* translators: Hidden accessibility text. */
 		__( 'Open command palette' ),
