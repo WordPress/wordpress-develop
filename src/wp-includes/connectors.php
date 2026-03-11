@@ -63,10 +63,11 @@ function wp_get_connector( string $id ): ?array {
  *     @type array ...$0 {
  *         Data for a single connector.
  *
- *         @type string $name           The connector's display name.
- *         @type string $description    The connector's description.
- *         @type string $type           The connector type. Currently, only 'ai_provider' is supported.
- *         @type array  $plugin         Optional. Plugin data for install/activate UI.
+ *         @type string      $name           The connector's display name.
+ *         @type string      $description    The connector's description.
+ *         @type string|null $logo_url        Optional. URL to the connector's logo image.
+ *         @type string      $type           The connector type. Currently, only 'ai_provider' is supported.
+ *         @type array       $plugin         Optional. Plugin data for install/activate UI.
  *             @type string $slug       The WordPress.org plugin slug.
  *         }
  *         @type array  $authentication {
