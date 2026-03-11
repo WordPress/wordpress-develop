@@ -183,7 +183,7 @@ function _wp_connectors_init(): void {
 
 		$name        = $provider_metadata->getName();
 		$description = $provider_metadata->getDescription();
-		$logo_url    = method_exists( $provider_metadata, 'getLogoPath' ) && $provider_metadata->getLogoPath()
+		$logo_url    = $provider_metadata->getLogoPath()
 			? _wp_connectors_resolve_ai_provider_logo_url( $provider_metadata->getLogoPath() )
 			: null;
 
