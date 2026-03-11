@@ -546,7 +546,7 @@ input[type="number"].tiny-text {
 	padding: 0 24px 0 8px;
 }
 
-.tablenav .actions .button {
+.wp-core-ui .tablenav .button {
 	min-height: 32px;
 	line-height: 2.30769231; /* 30px for 32px height with 13px font */
 	padding: 0 12px;
