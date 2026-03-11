@@ -952,26 +952,18 @@ html:lang(he-il) .rtl #wpadminbar * {
 		top: 3px;
 	}
 
-	/* Command Palette */
+	/* Comments and Command Palette */
+	#wpadminbar #wp-admin-bar-comments .ab-icon,
 	#wpadminbar #wp-admin-bar-command-palette .ab-icon {
 		margin: 0;
-		display: block;
 	}
 
+	#wpadminbar #wp-admin-bar-command-palette .ab-icon {
+		display: block; /* Icon is only shown on mobile, while the keyboard shortcut is hidden */
+	}
+
+	#wpadminbar #wp-admin-bar-comments .ab-icon:before,
 	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
-		display: block;
-		font-size: 34px;
-		height: 46px;
-		line-height: 1.38235294;
-		top: 0;
-	}
-
-	/* Comments */
-	#wpadminbar #wp-admin-bar-comments .ab-icon {
-		margin: 0;
-	}
-
-	#wpadminbar #wp-admin-bar-comments .ab-icon:before {
 		display: block;
 		font-size: 34px;
 		height: 46px;
