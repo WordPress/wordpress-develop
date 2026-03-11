@@ -698,7 +698,6 @@ html:lang(he-il) .rtl #wpadminbar * {
  * Command Palette
  */
 #wpadminbar #wp-admin-bar-command-palette .ab-icon {
-	margin: 0;
 	display: none; /* Icon displayed only on mobile */
 }
 
