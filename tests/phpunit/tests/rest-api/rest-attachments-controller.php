@@ -2996,7 +2996,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				),
 			)
 		);
-		$request->set_param( 'generate_sub_sizes', true );
 
 		$controller = new WP_REST_Attachments_Controller( 'attachment' );
 		$result     = $controller->create_item_permissions_check( $request );
