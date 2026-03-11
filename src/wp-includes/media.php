@@ -6405,12 +6405,17 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
  *
  * Client-side media processing uses the browser's capabilities to handle
  * tasks like image resizing and compression before uploading to the server.
+ * This is currently disabled in Firefox by default since it does not yet
+ * {@link https://bugzilla.mozilla.org/show_bug.cgi?id=1863531 support}
+ * credentialless iframes.
  *
  * @since 7.0.0
  *
  * @return bool Whether client-side media processing is enabled.
  */
 function wp_is_client_side_media_processing_enabled(): bool {
+	$enabled = ! str_contains( $_SERVER['HTTP_USER_AGENT'] ?? '', 'Firefox' );
+
 	/**
 	 * Filters whether client-side media processing is enabled.
 	 *
@@ -6418,7 +6423,7 @@ function wp_is_client_side_media_processing_enabled(): bool {
 	 *
 	 * @param bool $enabled Whether client-side media processing is enabled. Default true.
 	 */
-	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', true );
+	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', $enabled );
 }
 
 /**
