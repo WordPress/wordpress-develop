@@ -2574,7 +2574,7 @@ function wp_enqueue_global_styles() {
 	 * So even though the main global styles are not printed here in the HEAD for classic themes with on-demand asset
 	 * loading, a placeholder for the global styles is still enqueued. Then when {@see wp_hoist_late_printed_styles()}
 	 * processes the output buffer, it can locate the placeholder and inject the global styles from the footer into the
-	 * HEAD.
+	 * HEAD, replacing the placeholder.
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/64099
 	 */
