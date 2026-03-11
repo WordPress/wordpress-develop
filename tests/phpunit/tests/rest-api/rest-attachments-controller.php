@@ -3350,27 +3350,29 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 62243
 	 * @requires function imagejpeg
 	 */
-	public function test_finalize_item() {
+	public function test_finalize_item(): void {
 		wp_set_current_user( self::$author_id );
 
 		// Create an attachment.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
-		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
 		$response      = rest_get_server()->dispatch( $request );
 		$attachment_id = $response->get_data()['id'];
 
 		$this->assertSame( 201, $response->get_status() );
 
 		// Track whether wp_generate_attachment_metadata filter fires.
-		$filter_called  = false;
-		$filter_context = null;
+		$filter_metadata = null;
+		$filter_id       = null;
+		$filter_context  = null;
 		add_filter(
 			'wp_generate_attachment_metadata',
-			function ( $metadata, $id, $context ) use ( &$filter_called, &$filter_context ) {
-				$filter_called  = true;
-				$filter_context = $context;
+			function ( array $metadata, int $id, string $context ) use ( &$filter_metadata, &$filter_id, &$filter_context ) {
+				$filter_metadata = $metadata;
+				$filter_id       = $id;
+				$filter_context  = $context;
 				return $metadata;
 			},
 			10,
@@ -3382,7 +3384,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Finalize endpoint should return 200.' );
-		$this->assertTrue( $filter_called, 'wp_generate_attachment_metadata filter should have been called.' );
+		$this->assertIsArray( $filter_metadata );
+		$this->assertStringContainsString( 'canola', $filter_metadata['file'], 'Expected the canola image to have been had its metadata updated.' );
+		$this->assertSame( $attachment_id, $filter_id, 'Expected the post ID to be passed to the filter.' );
 		$this->assertSame( 'update', $filter_context, 'Filter context should be "update".' );
 	}
 
@@ -3392,14 +3396,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 62243
 	 * @requires function imagejpeg
 	 */
-	public function test_finalize_item_requires_auth() {
+	public function test_finalize_item_requires_auth(): void {
 		wp_set_current_user( self::$author_id );
 
 		// Create an attachment.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
-		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
 		$response      = rest_get_server()->dispatch( $request );
 		$attachment_id = $response->get_data()['id'];
 
@@ -3417,10 +3421,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 62243
 	 */
-	public function test_finalize_item_invalid_id() {
+	public function test_finalize_item_invalid_id(): void {
 		wp_set_current_user( self::$author_id );
 
-		$request  = new WP_REST_Request( 'POST', '/wp/v2/media/999999/finalize' );
+		$invalid_id = PHP_INT_MAX;
+		$this->assertNull( get_post( $invalid_id ), 'Expected invalid ID to not exist for an existing post.' );
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/$invalid_id/finalize" );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
