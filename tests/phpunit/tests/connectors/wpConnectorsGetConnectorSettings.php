@@ -115,4 +115,16 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 		$this->assertNull( $mock['authentication']['credentials_url'] );
 		$this->assertSame( 'connectors_ai_mock_connectors_test_api_key', $mock['authentication']['setting_name'] );
 	}
+
+	/**
+	 * @ticket 64730
+	 */
+	public function test_connectors_are_sorted_alphabetically() {
+		$connectors = _wp_connectors_get_connector_settings();
+		$keys       = array_keys( $connectors );
+		$sorted     = $keys;
+		sort( $sorted );
+
+		$this->assertSame( $sorted, $keys, 'Connectors should be sorted alphabetically by ID.' );
+	}
 }
