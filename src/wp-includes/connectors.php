@@ -55,6 +55,8 @@ function wp_get_connector( string $id ): ?array {
  *
  * @see WP_Connector_Registry::get_all_registered()
  *
+ * @phpstan-import-type Connector from WP_Connector_Registry
+ *
  * @return array {
  *     Connector settings keyed by connector ID.
  *
@@ -77,6 +79,7 @@ function wp_get_connector( string $id ): ?array {
  *         }
  *     }
  * }
+ * @phpstan-return array<string, Connector>
  */
 function wp_get_connectors(): array {
 	$registry = WP_Connector_Registry::get_instance();
