@@ -41,6 +41,8 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  *
  * @since 7.0.0
  *
+ * @phpstan-import-type Prompt from PromptBuilder
+ *
  * @method self with_text(string $text) Adds text to the current message.
  * @method self with_file($file, ?string $mimeType = null) Adds a file to the current message.
  * @method self with_function_response(FunctionResponse $functionResponse) Adds a function response to the current message.
@@ -165,14 +167,14 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param ProviderRegistry                                                                 $registry The provider registry for finding suitable models.
-	 * @param string|MessagePart|Message|array|list<string|MessagePart|array>|list<Message>|null $prompt   Optional. Initial prompt content.
-	 *                                                                                                    A string for simple text prompts,
-	 *                                                                                                    a MessagePart or Message object for
-	 *                                                                                                    structured content, an array for a
-	 *                                                                                                    message array shape, or a list of
-	 *                                                                                                    parts or messages for multi-turn
-	 *                                                                                                    conversations. Default null.
+	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
+	 * @param Prompt           $prompt   Optional. Initial prompt content.
+	 *                                   A string for simple text prompts,
+	 *                                   a MessagePart or Message object for
+	 *                                   structured content, an array for a
+	 *                                   message array shape, or a list of
+	 *                                   parts or messages for multi-turn
+	 *                                   conversations. Default null.
 	 */
 	public function __construct( ProviderRegistry $registry, $prompt = null ) {
 		try {
