@@ -707,6 +707,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	content: "\f179" / '';
 }
 
+#wpadminbar #wp-admin-bar-command-palette kbd {
+	background: transparent;
+}
+
 /**
  * Customize support classes
  */
