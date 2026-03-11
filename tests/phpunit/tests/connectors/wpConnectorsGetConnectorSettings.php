@@ -115,6 +115,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 		$this->assertNull( $mock['authentication']['credentials_url'] );
 		$this->assertSame( 'connectors_ai_mock_connectors_test_api_key', $mock['authentication']['setting_name'] );
 	}
+
 	/**
 	 * Tests connectors return an empty array when AI is not supported
 	 */

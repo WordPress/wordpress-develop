@@ -8,16 +8,6 @@
 
 class Tests_WP_Supports_AI extends WP_UnitTestCase {
 	/**
-	 * {@inheritDoc}
-	 */
-	public function tear_down() {
-		// Remove the WP_DISABLE_AI constant if it was defined during tests.
-		remove_all_filters( 'wp_supports_ai' );
-
-		parent::tear_down();
-	}
-
-	/**
 	 * Test that wp_supports_ai() defaults to true.
 	 *
 	 * @ticket 64591
