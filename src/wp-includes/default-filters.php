@@ -454,6 +454,7 @@ add_action( 'wp_scheduled_auto_draft_delete', 'wp_delete_auto_drafts' );
 add_action( 'importer_scheduled_cleanup', 'wp_delete_attachment' );
 add_action( 'upgrader_scheduled_cleanup', 'wp_delete_attachment' );
 add_action( 'delete_expired_transients', 'delete_expired_transients' );
+add_action( 'wp_delete_old_collaboration_data', 'wp_delete_old_collaboration_data' );
 
 // Navigation menu actions.
 add_action( 'delete_post', '_wp_delete_post_menu_item' );
@@ -798,7 +799,7 @@ add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
 
 // Collaboration.
-add_action( 'admin_init', 'wp_collaboration_inject_setting' );
+add_action( 'enqueue_block_editor_assets', 'wp_collaboration_inject_setting' );
 
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
