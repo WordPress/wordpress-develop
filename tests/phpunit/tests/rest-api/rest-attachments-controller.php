@@ -3163,6 +3163,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_sideload_scaled_image() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		wp_set_current_user( self::$author_id );
 
 		// First, create an attachment.
@@ -3217,6 +3222,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_sideload_scaled_image_requires_auth() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		wp_set_current_user( self::$author_id );
 
 		// Create an attachment.
@@ -3247,6 +3257,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_sideload_route_includes_scaled_enum() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		$server = rest_get_server();
 		$routes = $server->get_routes();
 
@@ -3270,6 +3285,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_sideload_scaled_unique_filename() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		wp_set_current_user( self::$author_id );
 
 		// Create an attachment.
@@ -3305,6 +3325,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_sideload_scaled_unique_filename_conflict() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		wp_set_current_user( self::$author_id );
 
 		// Create the first attachment.
