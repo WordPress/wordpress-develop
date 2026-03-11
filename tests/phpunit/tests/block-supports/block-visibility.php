@@ -11,18 +11,18 @@
  * @covers ::wp_render_block_visibility_support
  */
 class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
-	/**
-	 * @var string|null
-	 */
-	private $test_block_name;
 
-	public function set_up() {
+	private ?string $test_block_name;
+
+	public function set_up(): void {
 		parent::set_up();
 		$this->test_block_name = null;
 	}
 
-	public function tear_down() {
-		unregister_block_type( $this->test_block_name );
+	public function tear_down(): void {
+		if ( $this->test_block_name ) {
+			unregister_block_type( $this->test_block_name );
+		}
 		$this->test_block_name = null;
 		parent::tear_down();
 	}
@@ -30,12 +30,10 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/**
 	 * Registers a new block for testing block visibility support.
 	 *
-	 * @param string $block_name Name for the test block.
-	 * @param array  $supports   Array defining block support configuration.
-	 *
-	 * @return WP_Block_Type The block type for the newly registered test block.
+	 * @param string              $block_name Name for the test block.
+	 * @param array<string, bool> $supports   Array defining block support configuration.
 	 */
-	private function register_visibility_block_with_support( $block_name, $supports = array() ) {
+	private function register_visibility_block_with_support( string $block_name, array $supports = array() ): void {
 		$this->test_block_name = $block_name;
 		register_block_type(
 			$this->test_block_name,
@@ -51,7 +49,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		);
 		$registry = WP_Block_Type_Registry::get_instance();
 
-		return $registry->get_registered( $this->test_block_name );
+		$registry->get_registered( $this->test_block_name );
 	}
 
 	/**
@@ -60,7 +58,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64061
 	 */
-	public function test_block_visibility_support_hides_block_when_visibility_false() {
+	public function test_block_visibility_support_hides_block_when_visibility_false(): void {
 		$this->register_visibility_block_with_support(
 			'test/visibility-block',
 			array( 'visibility' => true )
@@ -87,13 +85,13 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64061
 	 */
-	public function test_block_visibility_support_shows_block_when_support_not_opted_in() {
+	public function test_block_visibility_support_shows_block_when_support_not_opted_in(): void {
 		$this->register_visibility_block_with_support(
 			'test/visibility-block',
 			array( 'visibility' => false )
 		);
 
-		$block_content = '<p>This is a test block.</p>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$block         = array(
 			'blockName' => 'test/visibility-block',
 			'attrs'     => array(
@@ -108,10 +106,10 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when blockVisibility support is not opted in.' );
 	}
 
-	/*
+	/**
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_no_visibility_attribute() {
+	public function test_block_visibility_support_no_visibility_attribute(): void {
 		$this->register_visibility_block_with_support(
 			'test/block-visibility-none',
 			array( 'visibility' => true )
@@ -122,16 +120,16 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'attrs'     => array(),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when no visibility attribute is present.' );
 	}
 
-	/*
+	/**
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_mobile_viewport_size() {
+	public function test_block_visibility_support_generated_css_with_mobile_viewport_size(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-mobile',
 			array( 'visibility' => true )
@@ -150,7 +148,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertStringContainsString( 'wp-block-hidden-mobile', $result, 'Block should have the visibility class for the mobile breakpoint.' );
@@ -164,10 +162,10 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_tablet_viewport_size() {
+	public function test_block_visibility_support_generated_css_with_tablet_viewport_size(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-tablet',
 			array( 'visibility' => true )
@@ -186,10 +184,15 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div class="existing-class">Test content</div>';
+		$block_content = '<div class="existing-class">Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString( 'class="existing-class wp-block-hidden-tablet"', $result, 'Block should have the existing class and the visibility class for the tablet breakpoint in the class attribute.' );
+		$this->assertEqualHTML(
+			'<div class="existing-class wp-block-hidden-tablet">Test content <img fetchpriority="auto" src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>',
+			$result,
+			'<body>',
+			'Block should have the existing class and the visibility class for the tablet breakpoint in the class attribute.'
+		);
 
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
@@ -200,10 +203,10 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_desktop_breakpoint() {
+	public function test_block_visibility_support_generated_css_with_desktop_breakpoint(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-desktop',
 			array( 'visibility' => true )
@@ -222,10 +225,15 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div class="existing-class">Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString( 'class="wp-block-hidden-desktop"', $result, 'Block should have the visibility class for the desktop breakpoint in the class attribute.' );
+		$this->assertEqualHTML(
+			'<div class="existing-class wp-block-hidden-desktop">Test content <img fetchpriority="auto" src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>',
+			$result,
+			'<body>',
+			'Block should have the visibility class for the desktop breakpoint in the class attribute.'
+		);
 
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
@@ -236,10 +244,11 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 64414
+	 * @ticket 64823
 	 */
-	public function test_block_visibility_support_generated_css_with_two_viewport_sizes() {
+	public function test_block_visibility_support_generated_css_with_two_viewport_sizes(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-two',
 			array( 'visibility' => true )
@@ -259,13 +268,14 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString(
-			'class="wp-block-hidden-desktop wp-block-hidden-mobile"',
+		$this->assertEqualHTML(
+			'<div class="wp-block-hidden-desktop wp-block-hidden-mobile">Test content <img fetchpriority="auto" src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>',
 			$result,
-			'Block should have both visibility classes in the class attribute'
+			'<body>',
+			'Block should have both visibility classes in the class attribute, and the IMG should have fetchpriority=auto.'
 		);
 
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
@@ -277,10 +287,11 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 64414
+	 * @ticket 64823
 	 */
-	public function test_block_visibility_support_generated_css_with_all_viewport_sizes_visible() {
+	public function test_block_visibility_support_generated_css_with_all_viewport_sizes_visible(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-all-visible',
 			array( 'visibility' => true )
@@ -301,16 +312,17 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when all breakpoints are visible.' );
 	}
 
-	/*
+	/**
 	 * @ticket 64414
+	 * @ticket 64823
 	 */
-	public function test_block_visibility_support_generated_css_with_all_viewport_sizes_hidden() {
+	public function test_block_visibility_support_generated_css_with_all_viewport_sizes_hidden(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-all-hidden',
 			array( 'visibility' => true )
@@ -331,16 +343,21 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertSame( '<div class="wp-block-hidden-desktop wp-block-hidden-mobile wp-block-hidden-tablet">Test content</div>', $result, 'Block content should have the visibility classes for all viewport sizes in the class attribute.' );
+		$this->assertEqualHTML(
+			'<div class="wp-block-hidden-desktop wp-block-hidden-mobile wp-block-hidden-tablet">Test content <img fetchpriority="auto" src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>',
+			$result,
+			'<body>',
+			'Block content should have the visibility classes for all viewport sizes in the class attribute, and an IMG should get fetchpriority=auto.'
+		);
 	}
 
-	/*
+	/**
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_empty_object() {
+	public function test_block_visibility_support_generated_css_with_empty_object(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-empty',
 			array( 'visibility' => true )
@@ -355,16 +372,16 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when blockVisibility is an empty array.' );
 	}
 
-	/*
+	/**
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_unknown_viewport_sizes_ignored() {
+	public function test_block_visibility_support_generated_css_with_unknown_viewport_sizes_ignored(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-unknown-viewport-sizes',
 			array( 'visibility' => true )
@@ -385,7 +402,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			),
 		);
 
-		$block_content = '<div>Test content</div>';
+		$block_content = '<div>Test content <img src="https://example.com/image.jpg" width="1000" height="1000" alt=""></div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertStringContainsString(
@@ -395,10 +412,10 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_empty_content() {
+	public function test_block_visibility_support_generated_css_with_empty_content(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-empty-content',
 			array( 'visibility' => true )
