@@ -3000,8 +3000,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$controller = new WP_REST_Attachments_Controller( 'attachment' );
 		$result     = $controller->create_item_permissions_check( $request );
 
-		remove_filter( 'wp_image_editors', '__return_empty_array' );
-
 		// Should fail because the server needs to generate sub-sizes but can't.
 		$this->assertWPError( $result );
 		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
