@@ -124,8 +124,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 		add_filter( 'wp_supports_ai', '__return_false' );
 
 		$settings = _wp_connectors_get_connector_settings();
-		$this->assertIsArray( $settings );
-		$this->assertEmpty( $settings );
+		$this->assertSame( array(), $settings );
 	}
 
 	/**
