@@ -84,7 +84,6 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 				$connector_data['authentication']['setting_name'] ?? null,
 				"Connector '{$connector_id}' setting_name does not match expected format."
 			);
-			$this->assertArrayHasKey( 'credentials_url', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'credentials_url'." );
 		}
 
 		$this->assertGreaterThan( 0, $api_key_count, 'At least one connector should use api_key authentication.' );

@@ -18,11 +18,11 @@
  * @phpstan-type Connector array{
  *     name: string,
  *     description: string,
- *     logo_url?: string|null,
+ *     logo_url?: string,
  *     type: string,
  *     authentication: array{
  *         method: string,
- *         credentials_url?: string|null,
+ *         credentials_url?: string,
  *         setting_name?: string
  *     },
  *     plugin?: array{
@@ -62,13 +62,13 @@ final class WP_Connector_Registry {
 	 *
 	 *     @type string $name           Required. The connector's display name.
 	 *     @type string $description    Optional. The connector's description. Default empty string.
-	 *     @type string|null $logo_url  Optional. URL to the connector's logo image. Default null.
+	 *     @type string $logo_url       Optional. URL to the connector's logo image.
 	 *     @type string $type           Required. The connector type. Currently, only 'ai_provider' is supported.
 	 *     @type array  $authentication {
 	 *         Required. Authentication configuration.
 	 *
-	 *         @type string      $method          Required. The authentication method: 'api_key' or 'none'.
-	 *         @type string|null $credentials_url Optional. URL where users can obtain API credentials.
+	 *         @type string $method          Required. The authentication method: 'api_key' or 'none'.
+	 *         @type string $credentials_url Optional. URL where users can obtain API credentials.
 	 *     }
 	 *     @type array  $plugin {
 	 *         Optional. Plugin data for install/activate UI.
@@ -158,8 +158,10 @@ final class WP_Connector_Registry {
 		}
 
 		if ( 'api_key' === $args['authentication']['method'] ) {
-			$connector['authentication']['credentials_url'] = $args['authentication']['credentials_url'] ?? null;
-			$connector['authentication']['setting_name']    = "connectors_ai_{$id}_api_key";
+			if ( ! empty( $args['authentication']['credentials_url'] ) && is_string( $args['authentication']['credentials_url'] ) ) {
+				$connector['authentication']['credentials_url'] = $args['authentication']['credentials_url'];
+			}
+			$connector['authentication']['setting_name'] = "connectors_ai_{$id}_api_key";
 		}
 
 		if ( ! empty( $args['plugin'] ) && is_array( $args['plugin'] ) ) {
@@ -212,11 +214,11 @@ final class WP_Connector_Registry {
 	 *     @type array ...$0 {
 	 *         Data for a single connector.
 	 *
-	 *         @type string      $name           The connector's display name.
-	 *         @type string      $description    The connector's description.
-	 *         @type string|null $logo_url       Optional. URL to the connector's logo image.
-	 *         @type string      $type           The connector type. Currently, only 'ai_provider' is supported.
-	 *         @type array       $plugin         {
+	 *         @type string $name           The connector's display name.
+	 *         @type string $description    The connector's description.
+	 *         @type string $logo_url       Optional. URL to the connector's logo image.
+	 *         @type string $type           The connector type. Currently, only 'ai_provider' is supported.
+	 *         @type array  $plugin         {
 	 *             Optional. Plugin data for install/activate UI.
 	 *
 	 *             @type string $slug       The WordPress.org plugin slug.
@@ -225,9 +227,9 @@ final class WP_Connector_Registry {
 	 *             Authentication configuration. When method is 'api_key', includes
 	 *             credentials_url and setting_name. When 'none', only method is present.
 	 *
-	 *             @type string      $method          The authentication method: 'api_key' or 'none'.
-	 *             @type string|null $credentials_url Optional. URL where users can obtain API credentials.
-	 *             @type string      $setting_name    Optional. The setting name for the API key.
+	 *             @type string $method          The authentication method: 'api_key' or 'none'.
+	 *             @type string $credentials_url Optional. URL where users can obtain API credentials.
+	 *             @type string $setting_name    Optional. The setting name for the API key.
 	 *         }
 	 *     }
 	 * }
