@@ -392,7 +392,8 @@ class WP_AI_Client_Prompt_Builder {
 	protected function get_builder_callable( string $name ): callable {
 		$camel_case_name = $this->snake_to_camel_case( $name );
 
-		if ( ! is_callable( array( $this->builder, $camel_case_name ) ) ) {
+		$method = array( $this->builder, $camel_case_name );
+		if ( ! is_callable( $method ) ) {
 			throw new BadMethodCallException(
 				sprintf(
 					/* translators: 1: Method name. 2: Class name. */
@@ -403,7 +404,7 @@ class WP_AI_Client_Prompt_Builder {
 			);
 		}
 
-		return array( $this->builder, $camel_case_name );
+		return $method;
 	}
 
 	/**
