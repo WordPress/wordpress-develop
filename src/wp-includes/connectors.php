@@ -512,7 +512,8 @@ add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
  * @access private
  *
  * @param array $data Existing script module data.
- * @return array Script module data with connectors added.
+ * @param array<string, mixed> $data Existing script module data.
+ * @return array<string, mixed> Script module data with connectors added.
  */
 function _wp_connectors_get_connector_script_module_data( array $data ): array {
 	$connectors = array();
