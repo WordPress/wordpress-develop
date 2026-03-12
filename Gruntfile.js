@@ -612,6 +612,16 @@ module.exports = function(grunt) {
 					dest: WORKING_DIR + 'wp-includes/build/',
 				} ],
 			},
+			'gutenberg-js': {
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/build',
+					src: [
+						'routes/**/*.js',
+					],
+					dest: WORKING_DIR + 'wp-includes/build/',
+				} ],
+			},
 			'gutenberg-modules': {
 				files: [ {
 					expand: true,
