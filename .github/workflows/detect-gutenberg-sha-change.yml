@@ -1,5 +1,5 @@
 # Generates a list of changes and a commit message when the pinned gutenberg repository hash changes.
-name: Generate changelog and commit message
+name: Draft commit message
 
 on:
   # This workflow was introduced in WordPress 7.0.
@@ -148,7 +148,7 @@ jobs:
             else
               printf 'The following changes are included:\n\n'
               cat changelog.txt
-              printf '\n\n'
+              printf '\n'
             fi
 
             printf 'A full list of changes can be found on GitHub: https://github.com/WordPress/gutenberg/compare/%s...%s.\n\n' "$BASE_SHA" "$HEAD_SHA"
