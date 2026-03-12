@@ -112,6 +112,9 @@ if ( ! function_exists( 'twentyseventeen_edit_link' ) ) :
 	/**
 	 * Displays an accessibility-friendly link to edit a post or page.
 	 *
+	 * @since Twenty Seventeen 1.0
+	 * @since Twenty Seventeen 4.1 Added `$post_id` parameter.
+	 *
 	 * @param int $post_id Post ID. Default 0.
 	 */
 	function twentyseventeen_edit_link( $post_id = 0 ) {
