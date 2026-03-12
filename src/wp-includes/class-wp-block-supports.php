@@ -182,7 +182,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	// Attribute values are concatenated or overridden depending on the attribute type.
 	// This is hardcoded on purpose, as we only support a fixed list of attributes.
 	$attribute_merge_callbacks = array(
-		'style'      => function ( $new_attribute, $extra_attribute ) {
+		'style'      => static function ( $new_attribute, $extra_attribute ) {
 			$styles = array_filter(
 				array(
 					rtrim( trim( $extra_attribute ), ';' ),
