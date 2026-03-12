@@ -15,10 +15,9 @@
  */
 function wp_collaboration_inject_setting() {
 	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
-		wp_add_inline_script(
-			'wp-core-data',
-			'window._wpCollaborationEnabled = true;',
-			'after'
-		);
+		$inline_script = 'window._wpCollaborationEnabled = true;';
+
+		wp_add_inline_script( 'wp-core-data', $inline_script, 'after' );
+		wp_add_inline_script( 'inline-edit-post', $inline_script, 'before' );
 	}
 }
