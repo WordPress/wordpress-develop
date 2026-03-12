@@ -3678,10 +3678,11 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
  * the filters are added to cause {@see wp_should_load_separate_core_block_assets()} to return true.
  *
  * @since 6.9.0
+ * @since 7.0.0 This is now invoked at the `wp_default_styles` action with priority 0 instead of at `init` with priority 8.
  *
  * @see _add_default_theme_supports()
  */
-function wp_load_classic_theme_block_styles_on_demand() {
+function wp_load_classic_theme_block_styles_on_demand(): void {
 	// This is not relevant to block themes, as they are opted in to loading separate styles on demand via _add_default_theme_supports().
 	if ( wp_is_block_theme() ) {
 		return;
