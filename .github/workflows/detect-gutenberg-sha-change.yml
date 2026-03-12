@@ -147,7 +147,7 @@ jobs:
               printf '> No pull request references were found in the commits between the two hashes. Please verify the hash range is correct.\n\n'
             else
               printf 'The following changes are included:\n\n'
-              cat changes.txt
+              cat changelog.txt
               printf '\n\n'
             fi
 
