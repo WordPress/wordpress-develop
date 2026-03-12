@@ -191,7 +191,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 			);
 			return safecss_filter_attr( implode( ';', array_filter( $styles ) ) );
 		},
-		'class'      => function ( $new_attribute, $extra_attribute ) {
+		'class'      => static function ( $new_attribute, $extra_attribute ) {
 			$classes = array_merge(
 				wp_parse_list( $extra_attribute ),
 				wp_parse_list( $new_attribute )
