@@ -103,6 +103,26 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					'schema'      => array( $this, 'get_public_item_schema' ),
 				)
 			);
+
+			register_rest_route(
+				$this->namespace,
+				'/' . $this->rest_base . '/(?P<id>[\d]+)/finalize',
+				array(
+					array(
+						'methods'             => WP_REST_Server::CREATABLE,
+						'callback'            => array( $this, 'finalize_item' ),
+						'permission_callback' => array( $this, 'edit_media_item_permissions_check' ),
+						'args'                => array(
+							'id' => array(
+								'description' => __( 'Unique identifier for the attachment.' ),
+								'type'        => 'integer',
+							),
+						),
+					),
+					'allow_batch' => $this->allow_batch,
+					'schema'      => array( $this, 'get_public_item_schema' ),
+				)
+			);
 		}
 	}
 
@@ -232,6 +252,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, $files['file']['type'] ?? null );
 
+		// When the client handles image processing (generate_sub_sizes is false),
+		// skip the server-side image editor support check.
+		if ( false === $request['generate_sub_sizes'] ) {
+			$prevent_unsupported_uploads = false;
+		}
+
 		// If the upload is an image, check if the server can handle the mime type.
 		if (
 			$prevent_unsupported_uploads &&
@@ -278,7 +304,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Handle generate_sub_sizes parameter.
-		if ( isset( $request['generate_sub_sizes'] ) && ! $request['generate_sub_sizes'] ) {
+		if ( false === $request['generate_sub_sizes'] ) {
 			add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
 			add_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 			// Disable server-side EXIF rotation so the client can handle it.
@@ -2184,5 +2210,49 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $filename;
+	}
+
+	/**
+	 * Finalizes an attachment after client-side media processing.
+	 *
+	 * Triggers the 'wp_generate_attachment_metadata' filter so that
+	 * server-side plugins can process the attachment after all client-side
+	 * operations (upload, thumbnail generation, sideloads) are complete.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+	 */
+	public function finalize_item( WP_REST_Request $request ) {
+		$attachment_id = $request['id'];
+
+		$post = $this->get_post( $attachment_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		if ( ! is_array( $metadata ) ) {
+			$metadata = array();
+		}
+
+		/** This filter is documented in wp-admin/includes/image.php */
+		$metadata = apply_filters( 'wp_generate_attachment_metadata', $metadata, $attachment_id, 'update' );
+
+		wp_update_attachment_metadata( $attachment_id, $metadata );
+
+		$response_request = new WP_REST_Request(
+			WP_REST_Server::READABLE,
+			rest_get_route_for_post( $attachment_id )
+		);
+
+		$response_request['context'] = 'edit';
+
+		if ( isset( $request['_fields'] ) ) {
+			$response_request['_fields'] = $request['_fields'];
+		}
+
+		return $this->prepare_item_for_response( $post, $response_request );
 	}
 }
