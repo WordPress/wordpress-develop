@@ -199,7 +199,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 			$classes = array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) );
 			return implode( ' ', $classes );
 		},
-		'id'         => function ( $new_attribute, $extra_attribute ) {
+		'id'         => static function ( $new_attribute, $extra_attribute ) {
 			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
 		},
 		'aria-label' => function ( $new_attribute, $extra_attribute ) {
