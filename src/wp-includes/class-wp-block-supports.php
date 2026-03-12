@@ -202,7 +202,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		'id'         => static function ( $new_attribute, $extra_attribute ) {
 			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
 		},
-		'aria-label' => function ( $new_attribute, $extra_attribute ) {
+		'aria-label' => static function ( $new_attribute, $extra_attribute ) {
 			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
 		},
 	);
