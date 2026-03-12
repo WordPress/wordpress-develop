@@ -151,6 +151,7 @@ class Tests_Template extends WP_UnitTestCase {
 			$registry->unregister( 'third-party/test' );
 		}
 
+		unset( $GLOBALS['_wp_tests_development_mode'] );
 		parent::tear_down();
 	}
 
@@ -1477,9 +1478,17 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{set_up: Closure|null, inline_size_limit: int,  expected_styles: array{ HEAD: string[], BODY: string[] }}>
+	 * @return array<string, array{
+	 *     set_up: Closure|null,
+	 *     content: string,
+	 *     inline_size_limit: int,
+	 *     expected_styles: array{ HEAD: string[], BODY: string[] },
+	 *     assert?: Closure( string, string ): void,
+	 * }>
 	 */
 	public function data_wp_hoist_late_printed_styles(): array {
+		$blocks_content = '<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator --><!-- wp:third-party/test --><div>This is only a test!</div><!-- /wp:third-party/test -->';
+
 		$early_common_styles = array(
 			'wp-img-auto-sizes-contain-inline-css',
 			'early-css',
@@ -1487,12 +1496,14 @@ class Tests_Template extends WP_UnitTestCase {
 			'wp-emoji-styles-inline-css',
 		);
 
-		$common_late_in_head = array(
-			// Styles enqueued at wp_enqueue_scripts (priority 10).
+		// Styles enqueued at wp_enqueue_scripts (priority 10).
+		$common_at_wp_enqueue_scripts = array(
 			'normal-css',
 			'normal-inline-css',
+		);
 
-			// Styles printed at wp_head priority 10.
+		$common_late_in_head = array(
+			// Styles printed at wp_head priority 101.
 			'wp-custom-css',
 		);
 
@@ -1521,6 +1532,7 @@ class Tests_Template extends WP_UnitTestCase {
 				// Hoisted. Enqueued by wp_enqueue_global_styles() which runs at wp_enqueue_scripts priority 10 and wp_footer priority 1.
 				'global-styles-inline-css',
 			),
+			$common_at_wp_enqueue_scripts,
 			$common_late_in_head,
 			$common_late_in_body
 		);
@@ -1528,14 +1540,17 @@ class Tests_Template extends WP_UnitTestCase {
 		return array(
 			'standard_classic_theme_config_with_min_styles_inlined' => array(
 				'set_up'            => null,
+				'content'           => $blocks_content,
 				'inline_size_limit' => 0,
 				'expected_styles'   => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
 				),
 			),
+
 			'standard_classic_theme_config_with_max_styles_inlined' => array(
 				'set_up'            => null,
+				'content'           => $blocks_content,
 				'inline_size_limit' => PHP_INT_MAX,
 				'expected_styles'   => array(
 					'HEAD' => array_merge(
@@ -1548,12 +1563,14 @@ class Tests_Template extends WP_UnitTestCase {
 							'custom-block-styles-css',
 							'global-styles-inline-css',
 						),
+						$common_at_wp_enqueue_scripts,
 						$common_late_in_head,
 						$common_late_in_body
 					),
 					'BODY' => array(),
 				),
 			),
+
 			'classic_theme_styles_omitted'                => array(
 				'set_up'            => static function () {
 					// Note that wp_enqueue_scripts is used instead of enqueue_block_assets because it runs again at the former action.
@@ -1565,6 +1582,7 @@ class Tests_Template extends WP_UnitTestCase {
 						100
 					);
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => PHP_INT_MAX,
 				'expected_styles'   => array(
 					'HEAD' => array_merge(
@@ -1576,12 +1594,14 @@ class Tests_Template extends WP_UnitTestCase {
 							'custom-block-styles-css',
 							'global-styles-inline-css',
 						),
+						$common_at_wp_enqueue_scripts,
 						$common_late_in_head,
 						$common_late_in_body
 					),
 					'BODY' => array(),
 				),
 			),
+
 			'no_styles_at_enqueued_block_assets'          => array(
 				'set_up'            => static function () {
 					add_action(
@@ -1593,6 +1613,7 @@ class Tests_Template extends WP_UnitTestCase {
 						100
 					);
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => PHP_INT_MAX,
 				'expected_styles'   => array(
 					'HEAD' => array_merge(
@@ -1603,21 +1624,23 @@ class Tests_Template extends WP_UnitTestCase {
 							'third-party-test-block-css',
 							'global-styles-inline-css',
 						),
+						$common_at_wp_enqueue_scripts,
 						$common_late_in_head,
 						$common_late_in_body
 					),
 					'BODY' => array(),
 				),
 			),
+
 			'no_global_styles'                            => array(
 				'set_up'            => static function () {
-					add_filter(
-						'print_styles_array',
-						static function ( $handles ) {
-							return array_values( array_diff( $handles, array( 'global-styles' ) ) );
-						}
-					);
+					$dequeue = static function () {
+						wp_dequeue_style( 'global-styles' );
+					};
+					add_action( 'wp_enqueue_scripts', $dequeue, 1000 );
+					add_action( 'wp_footer', $dequeue, 2 );
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => PHP_INT_MAX,
 				'expected_styles'   => array(
 					'HEAD' => array_merge(
@@ -1629,37 +1652,121 @@ class Tests_Template extends WP_UnitTestCase {
 							'third-party-test-block-css',
 							'custom-block-styles-css',
 						),
+						$common_at_wp_enqueue_scripts,
 						$common_late_in_head,
 						$common_late_in_body
 					),
 					'BODY' => array(),
 				),
 			),
-			'standard_classic_theme_config_extra_block_library_inline_style' => array(
+
+			'standard_classic_theme_config_extra_block_library_inline_style_none_inlined' => array(
 				'set_up'            => static function () {
 					add_action(
 						'enqueue_block_assets',
 						static function () {
-							wp_add_inline_style( 'wp-block-library', '/* Extra CSS which prevents empty inline style containing placeholder from being removed. */' );
+							// Extra CSS which prevents empty inline style containing placeholder from being removed.
+							wp_add_inline_style( 'wp-block-library', '.wp-block-separator{ outline:solid 1px lime; }' );
 						}
 					);
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => 0,
 				'expected_styles'   => array(
-					'HEAD' => ( function ( $expected_styles ) {
-						// Insert 'wp-block-library-inline-css' right after 'wp-block-library-css'.
-						$i = array_search( 'wp-block-library-css', $expected_styles, true );
-						$this->assertIsInt( $i, 'Expected wp-block-library-css to be among the styles.' );
-						array_splice( $expected_styles, $i + 1, 0, 'wp-block-library-inline-css' );
-						return $expected_styles;
-					} )( $common_expected_head_styles ),
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-css',
+							'wp-block-separator-css',
+							'wp-block-library-inline-css-extra',
+							'classic-theme-styles-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
 					'BODY' => array(),
 				),
+				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+					$block_separator_core_style_span = null;
+					$block_separator_custom_style_span = null;
+					$processor = new class( $filtered_buffer ) extends WP_HTML_Tag_Processor {
+						public function get_span(): WP_HTML_Span {
+							$this->set_bookmark( 'here' );
+							return $this->bookmarks['here'];
+						}
+					};
+					while ( $processor->next_tag() ) {
+						if (
+							$processor->get_tag() === 'LINK' &&
+							$processor->get_attribute( 'rel' ) === 'stylesheet' &&
+							$processor->get_attribute( 'id' ) === 'wp-block-separator-css'
+						) {
+							$block_separator_core_style_span = $processor->get_span();
+						} elseif (
+							$processor->get_tag() === 'STYLE' &&
+							$processor->get_attribute( 'id' ) === 'wp-block-library-inline-css-extra' &&
+							str_contains( $processor->get_modifiable_text(), '.wp-block-separator{ outline:solid 1px lime; }' )
+						) {
+							$block_separator_custom_style_span = $processor->get_span();
+						}
+					}
+
+					$this->assertInstanceOf( WP_HTML_Span::class, $block_separator_core_style_span, 'Expected the block separator core style to be present.' );
+					$this->assertInstanceOf( WP_HTML_Span::class, $block_separator_custom_style_span, 'Expected the block separator custom style to be present.' );
+					$this->assertGreaterThan( $block_separator_core_style_span->start, $block_separator_custom_style_span->start, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
+				},
 			),
+
+			'standard_classic_theme_config_extra_block_library_inline_style_all_inlined' => array(
+				'set_up'            => static function () {
+					add_action(
+						'enqueue_block_assets',
+						static function () {
+							// Extra CSS which prevents empty inline style containing placeholder from being removed.
+							wp_add_inline_style( 'wp-block-library', '.wp-block-separator{ outline:solid 1px lime; }' );
+						}
+					);
+				},
+				'content'           => $blocks_content,
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-inline-css',
+							'wp-block-separator-inline-css',
+							'wp-block-library-inline-css-extra',
+							'classic-theme-styles-inline-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+					$block_separator_inline_style_start_tag = '<style id="wp-block-separator-inline-css">';
+					$block_separator_custom_style           = '.wp-block-separator{ outline:solid 1px lime; }';
+					$this->assertStringContainsString( $block_separator_inline_style_start_tag, $filtered_buffer );
+					$this->assertStringContainsString( $block_separator_custom_style, $filtered_buffer );
+					$block_separator_inline_style_position = strpos( $filtered_buffer, $block_separator_inline_style_start_tag );
+					$block_separator_custom_style_position = strpos( $filtered_buffer, $block_separator_custom_style );
+					$this->assertTrue( $block_separator_custom_style_position > $block_separator_inline_style_position, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
+				},
+			),
+
 			'classic_theme_opt_out_separate_block_styles' => array(
 				'set_up'            => static function () {
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => 0,
 				'expected_styles'   => array(
 					'HEAD' => array_merge(
@@ -1671,43 +1778,51 @@ class Tests_Template extends WP_UnitTestCase {
 							'custom-block-styles-css',
 							'global-styles-inline-css',
 						),
+						$common_at_wp_enqueue_scripts,
 						$common_late_in_head
 					),
 					'BODY' => $common_late_in_body,
 				),
 			),
+
 			'_wp_footer_scripts_removed'                  => array(
 				'set_up'            => static function () {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => 0,
 				'expected_styles'   => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
 				),
 			),
+
 			'wp_print_footer_scripts_removed'             => array(
 				'set_up'            => static function () {
 					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => 0,
 				'expected_styles'   => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
 				),
 			),
+
 			'both_actions_removed'                        => array(
 				'set_up'            => static function () {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => 0,
 				'expected_styles'   => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
 				),
 			),
-			'disable_block_library'                       => array(
+
+			'disable_block_library_and_load_combined'     => array(
 				'set_up'            => static function () {
 					add_action(
 						'enqueue_block_assets',
@@ -1718,6 +1833,7 @@ class Tests_Template extends WP_UnitTestCase {
 					);
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
+				'content'           => $blocks_content,
 				'inline_size_limit' => 0,
 				'expected_styles'   => array(
 					'HEAD' => array_merge(
@@ -1728,34 +1844,100 @@ class Tests_Template extends WP_UnitTestCase {
 							'custom-block-styles-css',
 							'global-styles-inline-css',
 						),
+						$common_at_wp_enqueue_scripts,
 						$common_late_in_head
 					),
 					'BODY' => $common_late_in_body,
 				),
 			),
-			'override_block_library_inline_style_late'    => array(
+
+			// This tests the Elementor scenario (e.g. Hello Elementor).
+			'dequeue_block_library_but_with_theme_json_and_no_block_content' => array(
 				'set_up'            => static function () {
 					add_action(
-						'enqueue_block_assets',
-						function (): void {
-							// This tests what happens when the placeholder comment gets replaced unexpectedly.
-							wp_styles()->registered['wp-block-library']->extra['after'] = array( '/* OVERRIDDEN! */' );
-						}
+						'wp_enqueue_scripts',
+						static function () {
+							wp_dequeue_style( 'wp-block-library' );
+							wp_dequeue_style( 'wp-block-library-theme' );
+							wp_dequeue_style( 'custom-block-styles' );
+						},
+						999
+					);
+
+					/*
+					 * Simulate the theme having a theme.json so that 'classic-theme-styles' is not enqueued. Note that
+					 * when 'classic-theme-styles' is present, then 'global-styles' gets inserted after it by
+					 * wp_hoist_late_printed_styles(). So by omitting 'classic-theme-styles', this can verify that
+					 * 'global-styles' is still printed before other styles.
+					 */
+					$GLOBALS['_wp_tests_development_mode'] = 'theme';
+					add_filter(
+						'theme_file_path',
+						static function ( $path, $file ) {
+							if ( 'theme.json' === $file ) {
+								$path = __DIR__ . '/../data/themedir1/block-theme/theme.json';
+							}
+							return $path;
+						},
+						10,
+						2
 					);
 				},
+				'content'           => 'Hello World!',
 				'inline_size_limit' => 0,
 				'expected_styles'   => array(
 					'HEAD' => array_merge(
 						$early_common_styles,
 						array(
-							'wp-block-library-css',
-							'wp-block-library-inline-css', // This contains the "OVERRIDDEN" text.
-							'wp-block-separator-css',
-							'classic-theme-styles-css',
-							'third-party-test-block-css',
-							'custom-block-styles-css',
 							'global-styles-inline-css',
 						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+			),
+
+			// This tests the Elementor scenario but a theme.json is not present.
+			'dequeue_block_library_but_without_theme_json_and_no_block_content' => array(
+				'set_up'            => static function () {
+					add_action(
+						'wp_enqueue_scripts',
+						static function () {
+							wp_dequeue_style( 'wp-block-library' );
+							wp_dequeue_style( 'wp-block-library-theme' );
+							wp_dequeue_style( 'custom-block-styles' );
+						},
+						999
+					);
+
+					/*
+					 * Simulate the theme NOT having a theme.json so that 'classic-theme-styles' is enqueued.
+					 */
+					$GLOBALS['_wp_tests_development_mode'] = 'theme';
+					add_filter(
+						'theme_file_path',
+						static function ( $path, $file ) {
+							if ( 'theme.json' === $file ) {
+								$path = __DIR__ . '/does-not-exist.json';
+							}
+							return $path;
+						},
+						10,
+						2
+					);
+				},
+				'content'           => 'Hello World!',
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'classic-theme-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
 						$common_late_in_head,
 						$common_late_in_body
 					),
@@ -1774,8 +1956,10 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_hoist_late_printed_styles
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
+	 *
+	 * @phpstan-param array{ HEAD: string[], BODY: string[] } $expected_styles
 	 */
-	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, int $inline_size_limit, array $expected_styles ): void {
+	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, string $content, int $inline_size_limit, array $expected_styles, ?Closure $assert = null ): void {
 		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 
@@ -1867,11 +2051,7 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_add_inline_style( 'late', '/* LATE */' );
 
 		// Simulate the_content().
-		$content = apply_filters(
-			'the_content',
-			'<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator -->' .
-			'<!-- wp:third-party/test --><div>This is only a test!</div><!-- /wp:third-party/test -->'
-		);
+		$content = apply_filters( 'the_content', $content );
 
 		// Simulate footer scripts.
 		$footer_output = get_echo( 'wp_footer' );
@@ -1879,9 +2059,15 @@ class Tests_Template extends WP_UnitTestCase {
 		// Create a simulated output buffer.
 		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>' . $content . '</main>' . $footer_output . '</body></html>';
 
-		$placeholder_regexp = '#/\*wp_block_styles_on_demand_placeholder:[a-f0-9]+\*/#';
+		$global_styles_placeholder_regexp = '#<style id="wp-global-styles-placeholder-inline-css">#';
+		$block_library_placeholder_regexp = '#/\*wp_block_styles_on_demand_placeholder:[a-f0-9]+\*/#';
 		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
-			$this->assertMatchesRegularExpression( $placeholder_regexp, $buffer, 'Expected the placeholder to be present in the buffer.' );
+			if ( wp_style_is( 'global-styles', 'enqueued' ) ) {
+				$this->assertMatchesRegularExpression( $global_styles_placeholder_regexp, $buffer, 'Expected the global-styles placeholder to be present in the buffer.' );
+			}
+			if ( wp_style_is( 'wp-block-library', 'enqueued' ) ) {
+				$this->assertMatchesRegularExpression( $block_library_placeholder_regexp, $buffer, 'Expected the wp-block-library placeholder to be present in the buffer.' );
+			}
 		}
 
 		// Apply the output buffer filter.
@@ -1889,12 +2075,14 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '</head>', $filtered_buffer, 'Expected the closing HEAD tag to be in the response.' );
 
-		$this->assertDoesNotMatchRegularExpression( $placeholder_regexp, $filtered_buffer, 'Expected the placeholder to be removed.' );
+		$this->assertDoesNotMatchRegularExpression( $global_styles_placeholder_regexp, $filtered_buffer, 'Expected the global-styles placeholder to be removed.' );
+		$this->assertDoesNotMatchRegularExpression( $block_library_placeholder_regexp, $filtered_buffer, 'Expected the wp-block-library placeholder to be removed.' );
 		$found_styles = array(
 			'HEAD' => array(),
 			'BODY' => array(),
 		);
 		$processor    = WP_HTML_Processor::create_full_parser( $filtered_buffer );
+		$this->assertInstanceOf( WP_HTML_Processor::class, $processor );
 		while ( $processor->next_tag() ) {
 			$group = in_array( 'HEAD', $processor->get_breadcrumbs(), true ) ? 'HEAD' : 'BODY';
 			if (
@@ -1930,6 +2118,10 @@ class Tests_Template extends WP_UnitTestCase {
 			$found_subset_styles,
 			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_subset_styles )
 		);
+
+		if ( $assert ) {
+			$assert( $buffer, $filtered_buffer );
+		}
 	}
 
 	/**
