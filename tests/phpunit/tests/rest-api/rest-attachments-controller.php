@@ -2930,6 +2930,80 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Test that unsupported image type check is skipped when not generating sub-sizes.
+	 *
+	 * When the client handles image processing (generate_sub_sizes is false),
+	 * the server should not check image editor support.
+	 *
+	 * Tests the permissions check directly with file params set, since the core
+	 * check uses get_file_params() which is only populated for multipart uploads.
+	 *
+	 * @ticket 64836
+	 */
+	public function test_upload_unsupported_image_type_skipped_when_not_generating_sub_sizes() {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'avif-lossy.avif',
+					'type'     => 'image/avif',
+					'tmp_name' => self::$test_avif_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_avif_file ),
+				),
+			)
+		);
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should pass because generate_sub_sizes is false (client handles processing).
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Test that unsupported image type check is enforced when generating sub-sizes.
+	 *
+	 * When the server handles image processing (generate_sub_sizes is true),
+	 * the server should still check image editor support.
+	 *
+	 * Tests the permissions check directly with file params set, since the core
+	 * check uses get_file_params() which is only populated for multipart uploads.
+	 *
+	 * @ticket 64836
+	 */
+	public function test_upload_unsupported_image_type_enforced_when_generating_sub_sizes() {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'avif-lossy.avif',
+					'type'     => 'image/avif',
+					'tmp_name' => self::$test_avif_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_avif_file ),
+				),
+			)
+		);
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should fail because the server needs to generate sub-sizes but can't.
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
+	}
+
+	/**
 	 * Test that uploading an SVG image doesn't throw a `rest_upload_image_type_not_supported` error.
 	 *
 	 * @ticket 63302
@@ -3162,6 +3236,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagejpeg
 	 */
 	public function test_sideload_scaled_image() {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		wp_set_current_user( self::$author_id );
 
 		// First, create an attachment.
@@ -3215,6 +3295,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagejpeg
 	 */
 	public function test_sideload_scaled_image_requires_auth() {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		wp_set_current_user( self::$author_id );
 
 		// Create an attachment.
@@ -3244,6 +3330,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 64737
 	 */
 	public function test_sideload_route_includes_scaled_enum() {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		$server = rest_get_server();
 		$routes = $server->get_routes();
 
@@ -3266,6 +3358,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagejpeg
 	 */
 	public function test_sideload_scaled_unique_filename() {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		wp_set_current_user( self::$author_id );
 
 		// Create an attachment.
@@ -3300,6 +3398,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagejpeg
 	 */
 	public function test_sideload_scaled_unique_filename_conflict() {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		// Reinitialize REST server so the sideload route is registered.
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
 		wp_set_current_user( self::$author_id );
 
 		// Create the first attachment.
