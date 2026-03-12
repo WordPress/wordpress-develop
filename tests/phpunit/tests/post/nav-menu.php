@@ -973,6 +973,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 'Test Cat - "Pre-Slashed" Cat Name &amp; &gt;', $category->name );
+
 		$category_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
 			0,
@@ -981,11 +983,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 				'menu-item-object'    => 'category',
 				'menu-item-object-id' => $category->term_id,
 				'menu-item-status'    => 'publish',
-				/*
-				 * Interestingly enough, if we use `$cat->name` for the menu item title,
-				 * we won't be able to replicate the bug because it's in htmlentities form.
-				 */
-				'menu-item-title'     => $category_name,
+				'menu-item-title'     => $category->name,
 			)
 		);
 
