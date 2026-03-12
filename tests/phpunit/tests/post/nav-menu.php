@@ -956,4 +956,38 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests `wp_update_nav_menu_item()` with special characters in a category name.
+	 *
+	 * When inserting a category as a nav item, the `post_title` property should
+	 * be empty, as the item should get the title from the category object itself.
+	 *
+	 * @ticket 48011
+	 */
+	function test_wp_update_nav_menu_item_with_special_characters_in_category_name() {
+		$category_name = 'Test Cat - \"Pre-Slashed\" Cat Name & >';
+
+		$category = self::factory()->category->create_and_get(
+			array(
+				'name' => $category_name,
+			)
+		);
+
+		$this->assertSame( 'Test Cat - "Pre-Slashed" Cat Name &amp; &gt;', $category->name );
+
+		$category_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'category',
+				'menu-item-object-id' => $category->term_id,
+				'menu-item-status'    => 'publish',
+				'menu-item-title'     => $category->name,
+			)
+		);
+
+		$category_item = get_post( $category_item_id );
+		$this->assertEmpty( $category_item->post_title );
+	}
 }
