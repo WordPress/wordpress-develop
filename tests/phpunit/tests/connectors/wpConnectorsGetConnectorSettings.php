@@ -63,11 +63,9 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 			$this->assertContains( $connector_data['authentication']['method'], array( 'api_key', 'none' ), "Connector '{$connector_id}' has unexpected authentication method." );
 		}
 	}
-  
-  
 
 	/**
-	 * Tests connectors return an empty array when AI is not supported
+	 * Tests connectors return an empty array when AI is not supported.
 	 */
 	public function test_returns_empty_array_when_ai_not_supported(): void {
 		// Temporarily disable AI support for this test.
