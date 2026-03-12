@@ -2179,12 +2179,21 @@ function path_join( $base, $path ) {
  * @since 4.4.0 Ensures upper-case drive letters on Windows systems.
  * @since 4.5.0 Allows for Windows network shares.
  * @since 4.9.7 Allows for PHP file wrappers.
+ * @since 7.0.0 Uses a static cache to store normalized paths.
  *
  * @param string $path Path to normalize.
  * @return string Normalized path.
  */
-function wp_normalize_path( $path ) {
-	$wrapper = '';
+function wp_normalize_path( $path ): string {
+	$path = (string) $path;
+
+	static $cache = array();
+	if ( isset( $cache[ $path ] ) ) {
+		return $cache[ $path ];
+	}
+
+	$original_path = $path;
+	$wrapper       = '';
 
 	if ( wp_is_stream( $path ) ) {
 		list( $wrapper, $path ) = explode( '://', $path, 2 );
@@ -2196,14 +2205,15 @@ function wp_normalize_path( $path ) {
 	$path = str_replace( '\\', '/', $path );
 
 	// Replace multiple slashes down to a singular, allowing for network shares having two slashes.
-	$path = preg_replace( '|(?<=.)/+|', '/', $path );
+	$path = (string) preg_replace( '|(?<=.)/+|', '/', $path );
 
 	// Windows paths should uppercase the drive letter.
 	if ( ':' === substr( $path, 1, 1 ) ) {
 		$path = ucfirst( $path );
 	}
 
-	return $wrapper . $path;
+	$cache[ $original_path ] = $wrapper . $path;
+	return $cache[ $original_path ];
 }
 
 /**
@@ -2556,7 +2566,6 @@ function _wp_upload_dir( $time = null ) {
 function wp_unique_filename( $dir, $filename, $unique_filename_callback = null ) {
 	// Sanitize the file name before we begin processing.
 	$filename = sanitize_file_name( $filename );
-	$ext2     = null;
 
 	// Initialize vars used in the wp_unique_filename filter.
 	$number        = '';
@@ -2877,7 +2886,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * @since 2.0.0
  *
  * @param string      $name       Filename.
- * @param null|string $deprecated Never used. Set to null.
+ * @param null|string $deprecated Not used. Set to null.
  * @param string      $bits       File content
  * @param string|null $time       Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array {
@@ -5844,6 +5853,7 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
 		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
+
 /**
  * Marks a function argument as deprecated and inform when it has been used.
  *

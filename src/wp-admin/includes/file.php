@@ -1895,6 +1895,11 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 			continue;
 		}
 
+		// Don't extract invalid files:
+		if ( 0 !== validate_file( $archive_file['filename'] ) ) {
+			continue;
+		}
+
 		$uncompressed_size += $archive_file['size'];
 
 		$needed_dirs[] = $to . untrailingslashit( $archive_file['folder'] ? $archive_file['filename'] : dirname( $archive_file['filename'] ) );
@@ -1953,7 +1958,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 		}
 	}
 
-	/** This filter is documented in src/wp-admin/includes/file.php */
+	/** This filter is documented in wp-admin/includes/file.php */
 	$pre = apply_filters( 'pre_unzip_file', null, $file, $to, $needed_dirs, $required_space );
 
 	if ( null !== $pre ) {
@@ -1980,7 +1985,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 		}
 	}
 
-	/** This action is documented in src/wp-admin/includes/file.php */
+	/** This filter is documented in wp-admin/includes/file.php */
 	$result = apply_filters( 'unzip_file', true, $file, $to, $needed_dirs, $required_space );
 
 	unset( $needed_dirs );
@@ -2187,7 +2192,7 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
 		$abstraction_file = apply_filters( 'filesystem_method_file', ABSPATH . 'wp-admin/includes/class-wp-filesystem-' . $method . '.php', $method );
 
 		if ( ! file_exists( $abstraction_file ) ) {
-			return;
+			return null;
 		}
 
 		require_once $abstraction_file;

@@ -385,7 +385,7 @@ if (
 
 // Login actions.
 add_action( 'login_head', 'wp_robots', 1 );
-add_filter( 'login_head', 'wp_resource_hints', 8 );
+add_action( 'login_head', 'wp_resource_hints', 8 );
 add_action( 'login_head', 'wp_print_head_scripts', 9 );
 add_action( 'login_head', 'print_admin_styles', 9 );
 add_action( 'login_head', 'wp_site_icon', 99 );
@@ -485,8 +485,9 @@ add_action( 'wp_head', 'wp_post_preview_js', 1 );
 // Timezone.
 add_filter( 'pre_option_gmt_offset', 'wp_timezone_override_offset' );
 
-// If the upgrade hasn't run yet, assume link manager is used.
-add_filter( 'default_option_link_manager_enabled', '__return_true' );
+// If the upgrade hasn't run yet, set some default options.
+add_filter( 'default_option_link_manager_enabled', '__return_true' ); // Assume link manager is used.
+add_filter( 'default_option_wp_enable_real_time_collaboration', '__return_true' ); // Enable real-time collaboration.
 
 // This option no longer exists; tell plugins we always support auto-embedding.
 add_filter( 'pre_option_embed_autourls', '__return_true' );
@@ -537,6 +538,9 @@ add_action( 'parse_request', 'rest_api_loaded' );
 // Abilities API.
 add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+
+// Connectors API.
+add_action( 'init', '_wp_connectors_init', 15 );
 
 // Sitemaps actions.
 add_action( 'init', 'wp_sitemaps_get_server' );
@@ -603,7 +607,7 @@ add_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_classic_theme_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
-add_action( 'init', 'wp_load_classic_theme_block_styles_on_demand', 8 ); // Must happen before register_core_block_style_handles() at priority 9.
+add_action( 'wp_default_styles', 'wp_load_classic_theme_block_styles_on_demand', 0 ); // Must happen before wp_default_styles() and register_core_block_style_handles().
 /*
  * `wp_enqueue_registered_block_scripts_and_styles` is bound to both
  * `enqueue_block_editor_assets` and `enqueue_block_assets` hooks
@@ -675,6 +679,13 @@ add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings'
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
 
+// Client-side media processing.
+add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
+// Cross-origin isolation for client-side media processing.
+add_action( 'load-post.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-post-new.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-site-editor.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-widgets.php', 'wp_set_up_cross_origin_isolation' );
 // Nav menu.
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );
 add_filter( 'nav_menu_css_class', 'wp_nav_menu_remove_menu_item_has_children_class', 10, 4 );
@@ -792,17 +803,5 @@ add_action( 'admin_init', 'wp_collaboration_inject_setting' );
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
-
-// Update ignoredHookedBlocks postmeta for some post types.
-add_filter( 'rest_pre_insert_page', 'update_ignored_hooked_blocks_postmeta' );
-add_filter( 'rest_pre_insert_post', 'update_ignored_hooked_blocks_postmeta' );
-add_filter( 'rest_pre_insert_wp_block', 'update_ignored_hooked_blocks_postmeta' );
-add_filter( 'rest_pre_insert_wp_navigation', 'update_ignored_hooked_blocks_postmeta' );
-
-// Inject hooked blocks into the Posts endpoint REST response for some given post types.
-add_filter( 'rest_prepare_page', 'insert_hooked_blocks_into_rest_response', 10, 2 );
-add_filter( 'rest_prepare_post', 'insert_hooked_blocks_into_rest_response', 10, 2 );
-add_filter( 'rest_prepare_wp_block', 'insert_hooked_blocks_into_rest_response', 10, 2 );
-add_filter( 'rest_prepare_wp_navigation', 'insert_hooked_blocks_into_rest_response', 10, 2 );
 
 unset( $filter, $action );
