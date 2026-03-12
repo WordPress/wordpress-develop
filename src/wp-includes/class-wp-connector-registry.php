@@ -70,7 +70,7 @@ final class WP_Connector_Registry {
 	 *         @type string $method          Required. The authentication method: 'api_key' or 'none'.
 	 *         @type string $credentials_url Optional. URL where users can obtain API credentials.
 	 *     }
-	 *     @type array  $plugin {
+	 *     @type array  $plugin         {
 	 *         Optional. Plugin data for install/activate UI.
 	 *
 	 *         @type string $slug The WordPress.org plugin slug.
@@ -208,31 +208,8 @@ final class WP_Connector_Registry {
 	 *
 	 * @see wp_get_connectors()
 	 *
-	 * @return array {
-	 *     Connector settings keyed by connector ID.
+	 * @return array Connector settings keyed by connector ID.
 	 *
-	 *     @type array ...$0 {
-	 *         Data for a single connector.
-	 *
-	 *         @type string $name           The connector's display name.
-	 *         @type string $description    The connector's description.
-	 *         @type string $logo_url       Optional. URL to the connector's logo image.
-	 *         @type string $type           The connector type. Currently, only 'ai_provider' is supported.
-	 *         @type array  $plugin         {
-	 *             Optional. Plugin data for install/activate UI.
-	 *
-	 *             @type string $slug       The WordPress.org plugin slug.
-	 *         }
-	 *         @type array  $authentication {
-	 *             Authentication configuration. When method is 'api_key', includes
-	 *             credentials_url and setting_name. When 'none', only method is present.
-	 *
-	 *             @type string $method          The authentication method: 'api_key' or 'none'.
-	 *             @type string $credentials_url Optional. URL where users can obtain API credentials.
-	 *             @type string $setting_name    Optional. The setting name for the API key.
-	 *         }
-	 *     }
-	 * }
 	 * @phpstan-return array<string, Connector>
 	 */
 	public function get_all_registered(): array {

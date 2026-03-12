@@ -44,11 +44,6 @@ function wp_is_connector_registered( string $id ): bool {
  *     @type string $description    The connector's description.
  *     @type string $logo_url       Optional. URL to the connector's logo image.
  *     @type string $type           The connector type. Currently, only 'ai_provider' is supported.
- *     @type array  $plugin {
- *         Optional. Plugin data for install/activate UI.
- *
- *         @type string $slug The WordPress.org plugin slug.
- *     }
  *     @type array  $authentication {
  *         Authentication configuration. When method is 'api_key', includes
  *         credentials_url and setting_name. When 'none', only method is present.
@@ -56,6 +51,11 @@ function wp_is_connector_registered( string $id ): bool {
  *         @type string $method          The authentication method: 'api_key' or 'none'.
  *         @type string $credentials_url Optional. URL where users can obtain API credentials.
  *         @type string $setting_name    Optional. The setting name for the API key.
+ *     }
+ *     @type array  $plugin         {
+ *         Optional. Plugin data for install/activate UI.
+ *
+ *         @type string $slug The WordPress.org plugin slug.
  *     }
  * }
  * @phpstan-return ?array{
@@ -99,11 +99,6 @@ function wp_get_connector( string $id ): ?array {
  *         @type string      $description    The connector's description.
  *         @type string      $logo_url       Optional. URL to the connector's logo image.
  *         @type string      $type           The connector type. Currently, only 'ai_provider' is supported.
- *         @type array       $plugin {
- *             Optional. Plugin data for install/activate UI.
- *
- *             @type string $slug The WordPress.org plugin slug.
- *         }
  *         @type array       $authentication {
  *             Authentication configuration. When method is 'api_key', includes
  *             credentials_url and setting_name. When 'none', only method is present.
@@ -111,6 +106,11 @@ function wp_get_connector( string $id ): ?array {
  *             @type string $method          The authentication method: 'api_key' or 'none'.
  *             @type string $credentials_url Optional. URL where users can obtain API credentials.
  *             @type string $setting_name    Optional. The setting name for the API key.
+ *         }
+ *         @type array       $plugin         {
+ *             Optional. Plugin data for install/activate UI.
+ *
+ *             @type string $slug The WordPress.org plugin slug.
  *         }
  *     }
  * }
