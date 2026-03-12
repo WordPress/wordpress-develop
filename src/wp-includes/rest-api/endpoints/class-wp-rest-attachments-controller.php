@@ -111,7 +111,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					array(
 						'methods'             => WP_REST_Server::CREATABLE,
 						'callback'            => array( $this, 'finalize_item' ),
-						'permission_callback' => array( $this, 'finalize_item_permissions_check' ),
+						'permission_callback' => array( $this, 'edit_media_item_permissions_check' ),
 						'args'                => array(
 							'id' => array(
 								'description' => __( 'Unique identifier for the attachment.' ),
@@ -2204,18 +2204,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $filename;
-	}
-
-	/**
-	 * Checks if a given request has access to finalize an attachment.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has access, WP_Error object otherwise.
-	 */
-	public function finalize_item_permissions_check( WP_REST_Request $request ) {
-		return $this->edit_media_item_permissions_check( $request );
 	}
 
 	/**
