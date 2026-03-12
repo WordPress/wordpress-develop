@@ -187,6 +187,18 @@ CREATE TABLE $wpdb->posts (
 	KEY post_author (post_author),
 	KEY type_status_author (post_type,post_status,post_author)
 ) $charset_collate;
+/*
+ * Collaboration and awareness use separate tables because they have
+ * opposite uniqueness requirements on the same columns.
+ *
+ * Collaboration rows are append-only: a single client writes many rows
+ * per room over time, so no UNIQUE constraint is possible on (room, client_id).
+ *
+ * Awareness rows require exactly one per client per room. The UNIQUE KEY
+ * on (room, client_id) enables INSERT ... ON DUPLICATE KEY UPDATE for
+ * atomic upsert, preventing the duplicate-row race condition that occurs
+ * with DELETE+INSERT under concurrent requests.
+ */
 CREATE TABLE $wpdb->collaboration (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	room varchar($max_index_length) NOT NULL default '',
