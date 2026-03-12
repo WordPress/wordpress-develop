@@ -422,41 +422,6 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
 }
 
 /**
- * Gets the registered connector settings.
- *
- * @since 7.0.0
- * @access private
- *
- * @return array {
- *     Connector settings keyed by connector ID.
- *
- *     @type array ...$0 {
- *         Data for a single connector.
- *
- *         @type string $name           The connector's display name.
- *         @type string $description    The connector's description.
- *         @type string $type           The connector type. Currently, only 'ai_provider' is supported.
- *         @type array  $plugin         Optional. Plugin data for install/activate UI.
- *             @type string $slug       The WordPress.org plugin slug.
- *         }
- *         @type array  $authentication {
- *             Authentication configuration. When method is 'api_key', includes
- *             credentials_url and setting_name. When 'none', only method is present.
- *
- *             @type string      $method          The authentication method: 'api_key' or 'none'.
- *             @type string|null $credentials_url Optional. URL where users can obtain API credentials.
- *             @type string      $setting_name    Optional. The setting name for the API key.
- *         }
- *     }
- * }
- */
-function _wp_connectors_get_connector_settings(): array {
-	$connectors = wp_get_connectors();
-	ksort( $connectors );
-	return $connectors;
-}
-
-/**
  * Masks and validates connector API keys in REST responses.
  *
  * On every `/wp/v2/settings` response, masks connector API key values so raw
@@ -485,7 +450,7 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 	$is_update = 'POST' === $request->get_method() || 'PUT' === $request->get_method();
 
-	foreach ( _wp_connectors_get_connector_settings() as $connector_id => $connector_data ) {
+	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
 		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
