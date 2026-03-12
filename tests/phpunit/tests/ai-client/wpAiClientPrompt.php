@@ -49,6 +49,6 @@ class Tests_AI_Client_Prompt extends WP_UnitTestCase {
 		$error = $error_prop->getValue( $builder );
 
 		$this->assertInstanceOf( WP_Error::class, $error );
-		$this->assertSame( 'AI features are not supported in the current environment.', $error->get_error_message() );
+		$this->assertSame( 'AI features are not supported in this environment.', $error->get_error_message() );
 	}
 }

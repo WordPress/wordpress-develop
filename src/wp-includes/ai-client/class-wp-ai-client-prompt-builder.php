@@ -180,7 +180,7 @@ class WP_AI_Client_Prompt_Builder {
 		try {
 			if ( ! wp_supports_ai() ) {
 				// The catch block will convert this to a WP_Error.
-				throw new \RuntimeException( __( 'AI features are not supported in the current environment.' ) );
+				throw new \RuntimeException( __( 'AI features are not supported in this environment.' ) );
 			}
 
 			$this->builder = new PromptBuilder( $registry, $prompt );

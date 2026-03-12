@@ -144,7 +144,7 @@ final class WP_Connector_Registry {
 			return null;
 		}
 
-		if ( 'ai_provider' === $args['type'] & ! wp_supports_ai() ) {
+		if ( 'ai_provider' === $args['type'] && ! wp_supports_ai() ) {
 			// No need for a `doing_it_wrong` as AI support is disabled intentionally.
 			return null;
 		}
