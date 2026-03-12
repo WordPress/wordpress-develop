@@ -6,19 +6,36 @@
  * @group media
  * @covers ::wp_set_up_cross_origin_isolation
  * @covers ::wp_start_cross_origin_isolation_output_buffer
+ * @covers ::wp_is_client_side_media_processing_enabled
  */
 class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 
 	/**
 	 * Original HTTP_USER_AGENT value.
-	 *
-	 * @var string|null
 	 */
-	private $original_user_agent;
+	private ?string $original_user_agent;
+
+	/**
+	 * Original HTTP_HOST value.
+	 */
+	private ?string $original_http_host;
+
+	/**
+	 * Original HTTPS value.
+	 */
+	private ?string $original_https;
+
+	/**
+	 * Original $_GET['action'] value.
+	 */
+	private ?string $original_get_action;
 
 	public function set_up() {
 		parent::set_up();
-		$this->original_user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : null;
+		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+		$this->original_http_host  = $_SERVER['HTTP_HOST'] ?? null;
+		$this->original_https      = $_SERVER['HTTPS'] ?? null;
+		$this->original_get_action = $_GET['action'] ?? null;
 	}
 
 	public function tear_down() {
@@ -26,6 +43,24 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 			unset( $_SERVER['HTTP_USER_AGENT'] );
 		} else {
 			$_SERVER['HTTP_USER_AGENT'] = $this->original_user_agent;
+		}
+
+		if ( null === $this->original_http_host ) {
+			unset( $_SERVER['HTTP_HOST'] );
+		} else {
+			$_SERVER['HTTP_HOST'] = $this->original_http_host;
+		}
+
+		if ( null === $this->original_https ) {
+			unset( $_SERVER['HTTPS'] );
+		} else {
+			$_SERVER['HTTPS'] = $this->original_https;
+		}
+
+		if ( null === $this->original_get_action ) {
+			unset( $_GET['action'] );
+		} else {
+			$_GET['action'] = $this->original_get_action;
 		}
 
 		// Clean up any output buffers started during tests.
@@ -122,6 +157,32 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Safari.' );
+	}
+
+	/**
+	 * @ticket 64803
+	 */
+	public function test_client_side_processing_disabled_on_non_secure_origin() {
+		$_SERVER['HTTP_HOST'] = 'example.com';
+		$_SERVER['HTTPS']     = '';
+
+		$this->assertFalse(
+			wp_is_client_side_media_processing_enabled(),
+			'Client-side media processing should be disabled on non-secure, non-localhost origins.'
+		);
+	}
+
+	/**
+	 * @ticket 64803
+	 */
+	public function test_client_side_processing_enabled_on_localhost() {
+		$_SERVER['HTTP_HOST'] = 'localhost';
+		$_SERVER['HTTPS']     = '';
+
+		$this->assertTrue(
+			wp_is_client_side_media_processing_enabled(),
+			'Client-side media processing should be enabled on localhost.'
+		);
 	}
 
 	/**
