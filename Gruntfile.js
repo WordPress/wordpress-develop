@@ -617,6 +617,7 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: 'gutenberg/build',
 					src: [
+						'pages/**/*.js',
 						'routes/**/*.js',
 					],
 					dest: WORKING_DIR + 'wp-includes/build/',
@@ -2051,6 +2052,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'build:gutenberg', [
 		'copy:gutenberg-php',
+		'copy:gutenberg-js',
 		'gutenberg:copy',
 		'copy:gutenberg-modules',
 		'copy:gutenberg-styles',
