@@ -347,10 +347,11 @@ function _wp_connectors_mask_api_key( string $key ): string {
  * @since 7.0.0
  * @access private
  *
- * @param string $provider_id The provider ID (e.g., 'openai', 'anthropic', 'google').
+ * @param string $provider_id  The provider ID (e.g., 'openai', 'anthropic', 'google').
+ * @param string $setting_name The option name for the API key (e.g., 'connectors_ai_openai_api_key').
  * @return string The key source: 'env', 'constant', 'database', or 'none'.
  */
-function _wp_connectors_get_api_key_source( string $provider_id ): string {
+function _wp_connectors_get_api_key_source( string $provider_id, string $setting_name ): string {
 	// Convert provider ID to CONSTANT_CASE for env var name.
 	// e.g., 'openai' -> 'OPENAI', 'anthropic' -> 'ANTHROPIC'.
 	$constant_case_id = strtoupper(
@@ -373,8 +374,7 @@ function _wp_connectors_get_api_key_source( string $provider_id ): string {
 	}
 
 	// Check database.
-	$setting_name = "connectors_ai_{$provider_id}_api_key";
-	$db_value     = get_option( $setting_name, '' );
+	$db_value = get_option( $setting_name, '' );
 	if ( '' !== $db_value ) {
 		return 'database';
 	}
@@ -452,7 +452,7 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+		if ( 'ai_provider' !== $connector_data['type'] || 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
 
@@ -551,7 +551,7 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 			}
 
 			// Skip if the key is already provided via env var or constant.
-			$key_source = _wp_connectors_get_api_key_source( $connector_id );
+			$key_source = _wp_connectors_get_api_key_source( $connector_id, $auth['setting_name'] );
 			if ( 'env' === $key_source || 'constant' === $key_source ) {
 				continue;
 			}
@@ -602,7 +602,7 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 		if ( 'api_key' === $auth['method'] ) {
 			$auth_out['settingName']    = $auth['setting_name'] ?? '';
 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
-			$auth_out['keySource']      = _wp_connectors_get_api_key_source( $connector_id );
+			$auth_out['keySource']      = _wp_connectors_get_api_key_source( $connector_id, $auth['setting_name'] ?? '' );
 			try {
 				$auth_out['isConnected'] = $registry->hasProvider( $connector_id ) && $registry->isProviderConfigured( $connector_id );
 			} catch ( Exception $e ) {
