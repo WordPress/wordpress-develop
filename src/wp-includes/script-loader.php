@@ -3674,6 +3674,9 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 /**
  * Adds hooks to load block styles on demand in classic themes.
  *
+ * This function must be called before {@see wp_default_styles()} and {@see register_core_block_style_handles()} so that
+ * the filters are added to cause {@see wp_should_load_separate_core_block_assets()} to return true.
+ *
  * @since 6.9.0
  *
  * @see _add_default_theme_supports()
