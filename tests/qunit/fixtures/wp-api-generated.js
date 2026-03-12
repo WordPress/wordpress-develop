@@ -3719,6 +3719,26 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/media/(?P<id>[\\d]+)/finalize": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the attachment.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/menu-items": {
             "namespace": "wp/v2",
             "methods": [

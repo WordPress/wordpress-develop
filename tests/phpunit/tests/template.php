@@ -1963,6 +1963,10 @@ class Tests_Template extends WP_UnitTestCase {
 		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 
+		if ( $set_up ) {
+			$set_up();
+		}
+
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
@@ -2000,10 +2004,6 @@ class Tests_Template extends WP_UnitTestCase {
 				wp_enqueue_style( 'custom-block-styles', 'https://example.com/custom-block-styles.css', array(), null );
 			}
 		);
-
-		if ( $set_up ) {
-			$set_up();
-		}
 
 		wp_load_classic_theme_block_styles_on_demand();
 
