@@ -43,7 +43,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	/**
 	 * Adds a link to the response.
 	 *
-	 * @internal The $rel parameter is first, as this looks nicer when sending multiple.
+	 * {@internal The $rel parameter is first, as this looks nicer when sending multiple.}
 	 *
 	 * @since 4.4.0
 	 *
@@ -76,9 +76,9 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $rel  Link relation. Either an IANA registered type, or an absolute URL.
-	 * @param string $href Optional. Only remove links for the relation matching the given href.
-	 *                     Default null.
+	 * @param string      $rel  Link relation. Either an IANA registered type, or an absolute URL.
+	 * @param string|null $href Optional. Only remove links for the relation matching the given href.
+	 *                          Default null.
 	 */
 	public function remove_link( $rel, $href = null ) {
 		if ( ! isset( $this->links[ $rel ] ) ) {
@@ -135,7 +135,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	/**
 	 * Sets a single link header.
 	 *
-	 * @internal The $rel parameter is first, as this looks nicer when sending multiple.
+	 * {@internal The $rel parameter is first, as this looks nicer when sending multiple.}
 	 *
 	 * @since 4.4.0
 	 *

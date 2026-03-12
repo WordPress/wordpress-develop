@@ -12,11 +12,18 @@ If this is your first time contributing, you may also find reviewing these guide
 - Inline Documentation Standards: https://make.wordpress.org/core/handbook/best-practices/inline-documentation-standards/
 - Browser Support Policies: https://make.wordpress.org/core/handbook/best-practices/browser-support/
 - Proper spelling and grammar related best practices: https://make.wordpress.org/core/handbook/best-practices/spelling/
+- ✨ If you are using AI tools, you must adhere to the AI Guidelines: https://make.wordpress.org/ai/handbook/ai-guidelines/
 -->
 
 <!-- Insert a description of your changes here -->
 
 Trac ticket: <!-- insert a link to the WordPress Trac ticket here -->
+
+## Use of AI Tools
+
+<!--
+You are free to use artificial intelligence (AI) tooling to contribute, but you must disclose what tooling you are using and to what extent a pull request has been authored by AI. It is your responsibility to review and take responsibility for what AI generates. See the WordPress AI Guidelines: <https://make.wordpress.org/ai/handbook/ai-guidelines/>.
+-->
 
 ---
 **This Pull Request is for code review only. Please keep all other discussion in the Trac ticket. Do not merge this Pull Request. See [GitHub Pull Requests for Code Review](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/) in the Core Handbook for more details.**

@@ -28,7 +28,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		'name'       => 'Open Sans',
 		'slug'       => 'open-sans',
 		'fontFamily' => '"Open Sans", sans-serif',
-		'preview'    => 'https://s.w.org/images/fonts/16.7/previews/open-sans/open-sans-400-normal.svg',
+		'preview'    => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
 	);
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -48,7 +48,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 				'name'       => 'Open Sans',
 				'slug'       => 'open-sans',
 				'fontFamily' => '"Open Sans", sans-serif',
-				'preview'    => 'https://s.w.org/images/fonts/16.7/previews/open-sans/open-sans-400-normal.svg',
+				'preview'    => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
 			)
 		);
 		self::$font_family_id2 = self::create_font_family_post(
@@ -629,6 +629,23 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	}
 
 	/**
+	 * @covers WP_REST_Font_Family_Controller::validate_font_family_settings
+	 */
+	public function test_create_item_non_string_settings() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families' );
+		$request->set_param( 'theme_json_version', WP_REST_Font_Families_Controller::LATEST_THEME_JSON_VERSION_SUPPORTED );
+		$request->set_param( 'font_family_settings', self::$default_settings );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400, 'The response should return an error for "rest_invalid_param" with 400 status.' );
+		$expected_message = 'font_family_settings is not of type string.';
+		$message          = $response->as_error()->get_all_error_data()[0]['params']['font_family_settings'];
+		$this->assertSame( $expected_message, $message, 'The response error message should match.' );
+	}
+
+	/**
 	 * @covers WP_REST_Font_Family_Controller::create_item
 	 */
 	public function test_create_item_with_duplicate_slug() {
@@ -665,7 +682,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 					'name'       => 'Open Sans',
 					'slug'       => 'open-sans',
 					'fontFamily' => '"Open Sans", sans-serif',
-					'preview'    => 'https://s.w.org/images/fonts/16.7/previews/open-sans/open-sans-400-normal.svg',
+					'preview'    => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
 				)
 			)
 		);
@@ -682,7 +699,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$settings = array(
 			'name'       => 'Open Sans',
 			'fontFamily' => 'Open Sans, "Noto Sans", sans-serif',
-			'preview'    => 'https://s.w.org/images/fonts/16.9/previews/open-sans/open-sans-400-normal.svg',
+			'preview'    => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
 		);
 
 		$font_family_id = self::create_font_family_post( array( 'slug' => 'open-sans-2' ) );
@@ -738,7 +755,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		return array(
 			array( array( 'name' => 'Opened Sans' ) ),
 			array( array( 'fontFamily' => '"Opened Sans", sans-serif' ) ),
-			array( array( 'preview' => 'https://s.w.org/images/fonts/16.7/previews/opened-sans/opened-sans-400-normal.svg' ) ),
+			array( array( 'preview' => 'https://s.w.org/images/fonts/wp-7.0/previews/opened-sans/opened-sans-400-normal.svg' ) ),
 			// Empty preview is allowed.
 			array( array( 'preview' => '' ) ),
 		);
@@ -825,6 +842,22 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400, 'The response should return an error for "rest_invalid_param" with 400 status.' );
 		$expected_message = 'font_family_settings[slug] cannot be updated.';
+		$message          = $response->as_error()->get_all_error_data()[0]['params']['font_family_settings'];
+		$this->assertSame( $expected_message, $message, 'The response error message should match.' );
+	}
+
+	/**
+	 * @covers WP_REST_Font_Family_Controller::validate_font_family_settings
+	 */
+	public function test_update_item_non_string_settings() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families/' . self::$font_family_id1 );
+		$request->set_param( 'font_family_settings', self::$default_settings );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400, 'The response should return an error for "rest_invalid_param" with 400 status.' );
+		$expected_message = 'font_family_settings is not of type string.';
 		$message          = $response->as_error()->get_all_error_data()[0]['params']['font_family_settings'];
 		$this->assertSame( $expected_message, $message, 'The response error message should match.' );
 	}
@@ -1048,9 +1081,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 			$expected = rest_url( 'wp/v2/font-families/' . $post->ID . '/font-faces/' . $font_face_ids[ $index ] );
 			$this->assertSame( $expected, $link['href'], 'The links for a font faces URL from the response data should match the REST endpoint.' );
 
-			$embeddable = isset( $link['attributes']['embeddable'] )
-				? $link['attributes']['embeddable']
-				: $link['embeddable'];
+			$embeddable = $link['attributes']['embeddable'] ?? $link['embeddable'];
 			$this->assertTrue( $embeddable, 'The embeddable should be true.' );
 		}
 	}

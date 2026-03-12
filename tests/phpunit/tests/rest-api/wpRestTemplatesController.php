@@ -1141,7 +1141,9 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
 
 		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
-		$prepare_item_for_database->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$prepare_item_for_database->setAccessible( true );
+		}
 
 		$body_params = array(
 			'title'   => 'Untitled Template Part',
@@ -1193,7 +1195,9 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
 
 		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
-		$prepare_item_for_database->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$prepare_item_for_database->setAccessible( true );
+		}
 
 		$id          = get_stylesheet() . '//' . 'my_template_part';
 		$body_params = array(

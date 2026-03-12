@@ -837,10 +837,11 @@ $_old_files = array(
 	'wp-includes/blocks/post-template/editor.min.css',
 	'wp-includes/blocks/post-template/editor-rtl.css',
 	'wp-includes/blocks/post-template/editor-rtl.min.css',
-	'wp-includes/js/dist/undo-manager.js',
-	'wp-includes/js/dist/undo-manager.min.js',
 	'wp-includes/js/dist/fields.min.js',
 	'wp-includes/js/dist/fields.js',
+	// 6.9
+	'wp-includes/SimplePie/src/Decode',
+	'wp-includes/SimplePie/src/Core.php',
 );
 
 /**
@@ -1023,6 +1024,7 @@ $_new_bundled_files = array(
  * @global string[]           $_old_requests_files
  * @global string[]           $_new_bundled_files
  * @global wpdb               $wpdb                   WordPress database abstraction object.
+ * @global string             $wp_version             The WordPress version string.
  *
  * @param string $from New release unzipped path.
  * @param string $to   Path to old WordPress installation.
@@ -1232,7 +1234,7 @@ function update_core( $from, $to ) {
 		// Find the local version of the working directory.
 		$working_dir_local = WP_CONTENT_DIR . '/upgrade/' . basename( $from ) . $distro;
 
-		$checksums = get_core_checksums( $wp_version, isset( $wp_local_package ) ? $wp_local_package : 'en_US' );
+		$checksums = get_core_checksums( $wp_version, $wp_local_package ?? 'en_US' );
 
 		if ( is_array( $checksums ) && isset( $checksums[ $wp_version ] ) ) {
 			$checksums = $checksums[ $wp_version ]; // Compat code for 3.7-beta2.
@@ -1714,7 +1716,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	);
 	echo '</div>';
 	?>
-<script type="text/javascript">
+<script>
 window.location = 'about.php?updated';
 </script>
 	<?php

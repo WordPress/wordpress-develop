@@ -27,6 +27,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $admin_user_id;
 
 	/**
+	 * Second admin user ID.
+	 *
+	 * @var int
+	 */
+	protected static $other_admin_user_id;
+
+	/**
 	 * Subscriber user ID.
 	 *
 	 * @var int
@@ -46,8 +53,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$subscriber_user_id = $factory->user->create( array( 'role' => 'subscriber' ) );
-		self::$admin_user_id      = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$subscriber_user_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
+		self::$admin_user_id       = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$other_admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
 	/**
@@ -153,7 +161,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_constructor_deferred_changeset_uuid() {
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'admin' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$data = array(
 			'blogname' => array(
@@ -1254,7 +1262,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_save_changeset_post_without_kses_corrupting_json() {
 		global $wp_customize;
-		$lesser_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$lesser_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = new WP_Customize_Manager(
@@ -1499,7 +1507,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_theme_support( 'custom-background' );
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = $this->create_test_manager( $uuid );
@@ -1714,7 +1722,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_theme_support( 'custom-background' );
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = $this->create_test_manager( $uuid );
@@ -1877,7 +1885,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$r = $wp_customize->save_changeset_post(
 			array(
 				'autosave' => true,
-				'user_id'  => self::factory()->user->create( array( 'role' => 'administrator' ) ),
+				'user_id'  => self::$other_admin_user_id,
 			)
 		);
 		$this->assertSame( 'illegal_autosave_with_non_current_user', $r->get_error_code() );
@@ -3009,7 +3017,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @see WP_Customize_Manager::set_return_url()
 	 */
 	public function test_return_url() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'author' ) ) );
+		wp_set_current_user( self::$subscriber_user_id );
 		$this->assertSame( home_url( '/' ), $this->manager->get_return_url() );
 
 		wp_set_current_user( self::$admin_user_id );
