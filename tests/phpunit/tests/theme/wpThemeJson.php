@@ -4138,7 +4138,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60936
 	 * @ticket 61165
 	 * @ticket 61829
-	 * @ticket xxxx
+	 * @ticket 64848
 	 */
 	public function test_get_styles_with_appearance_tools() {
 		$theme_json = new WP_Theme_JSON(
@@ -7059,7 +7059,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Theme_JSON::to_ruleset
 	 *
-	 * @ticket xxxx
+	 * @ticket 64848
 	 */
 	public function test_to_ruleset_skips_non_scalar_values_and_casts_numerics() {
 		$reflection = new ReflectionMethod( WP_Theme_JSON::class, 'to_ruleset' );
