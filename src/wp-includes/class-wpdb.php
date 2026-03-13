@@ -299,6 +299,7 @@ class wpdb {
 		'term_relationships',
 		'termmeta',
 		'commentmeta',
+		'collaboration',
 	);
 
 	/**
@@ -403,6 +404,15 @@ class wpdb {
 	 * @var string
 	 */
 	public $posts;
+
+	/**
+	 * WordPress Collaboration table.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @var string
+	 */
+	public $collaboration;
 
 	/**
 	 * WordPress Terms table.
