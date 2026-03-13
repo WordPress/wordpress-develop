@@ -860,5 +860,4 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			$this->assertNotContains( 'current-menu-item', $classes );
 		}
 	}
-
 }
