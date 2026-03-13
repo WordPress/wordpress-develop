@@ -310,7 +310,6 @@ require ABSPATH . WPINC . '/abilities-api/class-wp-ability.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-abilities-registry.php';
 require ABSPATH . WPINC . '/abilities-api.php';
 require ABSPATH . WPINC . '/abilities.php';
-require ABSPATH . WPINC . '/collaboration/interface-wp-collaboration-storage.php';
 require ABSPATH . WPINC . '/collaboration/class-wp-collaboration-table-storage.php';
 require ABSPATH . WPINC . '/collaboration/class-wp-http-polling-collaboration-server.php';
 require ABSPATH . WPINC . '/collaboration.php';

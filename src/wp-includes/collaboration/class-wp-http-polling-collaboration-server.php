@@ -74,18 +74,18 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * Storage backend for collaboration updates.
 	 *
 	 * @since 7.0.0
-	 * @var WP_Collaboration_Storage
+	 * @var WP_Collaboration_Table_Storage
 	 */
-	private WP_Collaboration_Storage $storage;
+	private WP_Collaboration_Table_Storage $storage;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param WP_Collaboration_Storage $storage Storage backend for collaboration updates.
+	 * @param WP_Collaboration_Table_Storage $storage Storage backend for collaboration updates.
 	 */
-	public function __construct( WP_Collaboration_Storage $storage ) {
+	public function __construct( WP_Collaboration_Table_Storage $storage ) {
 		$this->storage = $storage;
 	}
 
@@ -128,10 +128,11 @@ class WP_HTTP_Polling_Collaboration_Server {
 				'type'     => array( 'object', 'null' ),
 			),
 			'client_id' => array(
-				'maxLength' => 32,
-				'minLength' => 1,
-				'required'  => true,
-				'type'      => 'string',
+				'required'          => true,
+				'type'              => array( 'string', 'integer' ),
+				'sanitize_callback' => function ( $value ) {
+					return (string) $value;
+				},
 			),
 			'room'      => array(
 				'required'  => true,
@@ -252,7 +253,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 			// The lowest client ID is nominated to perform compaction when needed.
 			$is_compactor = false;
 			if ( count( $merged_awareness ) > 0 ) {
-				$is_compactor = min( array_keys( $merged_awareness ) ) === $client_id;
+				$is_compactor = (string) min( array_keys( $merged_awareness ) ) === $client_id;
 			}
 
 			// Process each update according to its type.
