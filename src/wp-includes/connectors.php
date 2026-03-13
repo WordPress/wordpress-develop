@@ -48,24 +48,24 @@
  *
  * ## Custom Connectors
  *
- * Plugins can register additional connectors via the `wp_connectors_init` action
- * hook. This is intended for non-AI-provider connectors or for overriding metadata
- * on existing ones:
+ * Plugins can use the `wp_connectors_init` action hook to override metadata on
+ * existing connectors or register new connector types. AI provider connectors
+ * are auto-discovered from the WP AI Client registry and should not be manually
+ * registered here.
+ *
+ * Example — overriding the description of an auto-discovered connector:
  *
  *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
- *         $registry->register(
- *             'my_custom_ai',
- *             array(
- *                 'name'           => __( 'My Custom AI', 'my-plugin' ),
- *                 'description'    => __( 'Custom AI provider integration.', 'my-plugin' ),
- *                 'type'           => 'ai_provider',
- *                 'authentication' => array(
- *                     'method'          => 'api_key',
- *                     'credentials_url' => 'https://example.com/api-keys',
- *                 ),
- *             )
- *         );
+ *         $connector = $registry->get_registered( 'openai' );
+ *         if ( $connector ) {
+ *             $connector['description'] = __( 'Custom description for OpenAI.', 'my-plugin' );
+ *             $registry->register( 'openai', $connector );
+ *         }
  *     } );
+ *
+ * As the Connectors API evolves to support additional connector types beyond
+ * `ai_provider`, this action will also be the primary hook for registering
+ * those new connector types.
  *
  * ## Initialization Lifecycle
  *
@@ -428,23 +428,17 @@ function _wp_connectors_init(): void {
 	 * primarily for registering non-AI-provider connectors or overriding metadata
 	 * on existing connectors.
 	 *
-	 * Use `$registry->register()` within this action to add new connectors.
+	 * Use `$registry->register()` within this action to add new connectors or
+	 * re-register existing ones with updated metadata.
 	 *
-	 * Example usage:
+	 * Example — overriding metadata on an auto-discovered connector:
 	 *
 	 *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
-	 *         $registry->register(
-	 *             'my_custom_ai',
-	 *             array(
-	 *                 'name'           => __( 'My Custom AI', 'my-plugin' ),
-	 *                 'description'    => __( 'Custom AI provider integration.', 'my-plugin' ),
-	 *                 'type'           => 'ai_provider',
-	 *                 'authentication' => array(
-	 *                     'method'          => 'api_key',
-	 *                     'credentials_url' => 'https://example.com/api-keys',
-	 *                 ),
-	 *             )
-	 *         );
+	 *         $connector = $registry->get_registered( 'openai' );
+	 *         if ( $connector ) {
+	 *             $connector['description'] = __( 'Custom description for OpenAI.', 'my-plugin' );
+	 *             $registry->register( 'openai', $connector );
+	 *         }
 	 *     } );
 	 *
 	 * @since 7.0.0
