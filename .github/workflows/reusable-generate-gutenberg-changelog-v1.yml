@@ -1,0 +1,57 @@
+##
+# A reusable workflow that detects when the `gutenberg.sha` value changes in the `package.json` file.
+##
+name: Detect hash change (reusable)
+
+on:
+  workflow_call:
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Generates a list of changes between two specified hashes.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Generates a list of changes.
+  # - Uploads the changelog as an artifact.
+  generate-changelog:
+    name: Generate a list of changes between the hashes
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    outputs:
+      has_changes: ${{ steps.change-list.outputs.has_changes }}
+
+    steps:
+      - name: Checkout Gutenberg repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: WordPress/gutenberg
+          filter: blob:none
+          fetch-depth: 0
+
+      - name: Generate a list of changes
+        id: change-list
+        env:
+          BASE_SHA: ${{ needs.detect-hash-change.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.detect-hash-change.outputs.head_sha }}
+        run: |
+          git log --reverse --format="- %s" "$BASE_SHA".."$HEAD_SHA" | \
+            sed 's|#\([0-9][0-9]*\)|https://github.com/WordPress/gutenberg/pull/\1|g; /github\.com\/WordPress\/gutenberg\/pull/!d' \
+            > changelog.txt
+
+          if [ -s changelog.txt ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload changelog as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: changelog.txt
+          archive: false

@@ -1,0 +1,55 @@
+##
+# A reusable workflow that detects when the `gutenberg.sha` value changes in the `package.json` file.
+##
+name: Detect hash change (reusable)
+
+on:
+  workflow_call:
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Detects whether the gutenberg.sha value in the package.json file has changed.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Check if the pinned hash has changed.
+  detect-hash-change:
+    name: Detect Gutenberg SHA change
+    runs-on: ubuntu-24.04
+    if: ${{ github.repository == 'wordpress/wordpress-develop' }}
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    outputs:
+      sha_changed: ${{ steps.check-sha.outputs.sha_changed }}
+      base_sha: ${{ steps.check-sha.outputs.base_sha }}
+      head_sha: ${{ steps.check-sha.outputs.head_sha }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check if the pinned Gutenberg hash has changed
+        id: check-sha
+        run: |
+          BASE_GUTENBERG_SHA=$(git show ${{ github.event.pull_request.base.sha }}:package.json | jq -r '.gutenberg.sha // empty')
+          HEAD_GUTENBERG_SHA=$(git show ${{ github.event.pull_request.head.sha }}:package.json | jq -r '.gutenberg.sha // empty')
+
+          echo "base_sha=$BASE_GUTENBERG_SHA" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$HEAD_GUTENBERG_SHA" >> "$GITHUB_OUTPUT"
+
+          if [ "$BASE_GUTENBERG_SHA" != "$HEAD_GUTENBERG_SHA" ]; then
+            echo "sha_changed=true" >> "$GITHUB_OUTPUT"
+            echo "The pinned Gutenberg Repository hash has changed."
+            echo "  Previous SHA (base branch): $BASE_GUTENBERG_SHA"
+            echo "  New SHA (head branch): $HEAD_GUTENBERG_SHA"
+          else
+            echo "sha_changed=false" >> "$GITHUB_OUTPUT"
+            echo "The pinned Gutenberg repository hash has not changed: $HEAD_GUTENBERG_SHA"
+          fi
