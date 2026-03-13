@@ -114,7 +114,7 @@ jobs:
           -e MYSQL_ROOT_PASSWORD="root"
           -e MYSQL_DATABASE="test_db"
           --entrypoint sh ${{ matrix.db-type }}:${{ matrix.db-version }}
-          -c "exec docker-entrypoint.sh mysqld${{ matrix.db-type == 'mysql' && contains( fromJSON('["5.4", "5.5", "5.6", "7.0", "7.1", "7.2", "7.3"]'), matrix.php ) && ( matrix.db-version == '8.4' && ' --authentication-policy=mysql_native_password' || ' --default-authentication-plugin=mysql_native_password' ) || '' }}"
+          -c "exec docker-entrypoint.sh mysqld${{ matrix.db-type == 'mysql' && contains( fromJSON('["5.4", "5.5", "5.6", "7.0", "7.1", "7.2", "7.3"]'), matrix.php ) && ( matrix.db-version == '8.4' && ' --mysql-native-password=ON --authentication-policy=mysql_native_password' || ' --default-authentication-plugin=mysql_native_password' ) || '' }}"
 
     steps:
       - name: Set up PHP ${{ matrix.php }}
