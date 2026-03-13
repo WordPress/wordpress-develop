@@ -241,7 +241,7 @@ export default class CollaborationUtils {
 		for ( let i = 0; i < cycles; i++ ) {
 			await page.waitForResponse(
 				( response ) =>
-					response.url().includes( 'wp-sync' ) &&
+					response.url().includes( 'wp-collaboration' ) &&
 					response.status() === 200,
 				{ timeout: SYNC_TIMEOUT }
 			);

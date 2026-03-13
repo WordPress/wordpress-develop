@@ -89,7 +89,7 @@ test.describe( 'Collaboration - Presence', () => {
 			name: /Collaborators list/,
 		} );
 		await expect( presenceButton ).toHaveAccessibleName(
-			/1 online/,
+			/2 online/,
 			{ timeout: 45000 }
 		);
 
