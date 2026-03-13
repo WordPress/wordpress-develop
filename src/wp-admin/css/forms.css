@@ -68,8 +68,6 @@ input[type="time"],
 input[type="url"],
 input[type="week"] {
 	padding: 0 12px;
-	/* inherits font size 14px */
-	line-height: 2.71428571; /* 38px for 40px min-height */
 	min-height: 40px;
 }
 
@@ -797,7 +795,6 @@ p.search-box {
 p.search-box input[type="search"],
 p.search-box input[type="text"] {
 	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 8px;
 }
 
@@ -1588,7 +1585,6 @@ table.form-table td .updated p {
 		-webkit-appearance: none;
 		padding: 0 12px;
 		min-height: 40px;
-		line-height: 2.5; /* 40px for 16px font */
 	}
 
 	::-webkit-datetime-edit {
