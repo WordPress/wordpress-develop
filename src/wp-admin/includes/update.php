@@ -468,7 +468,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		'em'      => array(),
 		'strong'  => array(),
 	);
-	$plugin_display_name = '<strong>' . wp_kses( $plugin_data['Name'], $plugins_allowedtags )  . '</strong>';
+	$plugin_display_name = '<strong>' . wp_kses( $plugin_data['Name'], $plugins_allowedtags ) . '</strong>';
 
 	$plugin_name = strip_tags( $plugin_display_name );
 	$plugin_slug = $response->slug ?? $response->id;
