@@ -2720,11 +2720,11 @@ HTML;
 
 	public function data_wp_kses_srcset_preserves_spacing() {
 		return array(
-			'no space after comma'       => array(
+			'no space after comma'        => array(
 				'image1.jpg 1x,image2.jpg 2x',
 				'image1.jpg 1x,image2.jpg 2x',
 			),
-			'single space after comma'   => array(
+			'single space after comma'    => array(
 				'image1.jpg 1x, image2.jpg 2x',
 				'image1.jpg 1x, image2.jpg 2x',
 			),
