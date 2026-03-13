@@ -7063,7 +7063,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function test_to_ruleset_skips_non_scalar_values_and_casts_numerics() {
 		$reflection = new ReflectionMethod( WP_Theme_JSON::class, 'to_ruleset' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 		$declarations = array(
 			array(
 				'name'  => 'color',
