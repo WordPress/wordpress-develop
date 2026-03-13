@@ -50,12 +50,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../src/wp-includes/class-wp-query.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Variable \\$deprecated in empty\\(\\) always exists and is always falsy\\.$#',
-	'identifier' => 'empty.variable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-includes/pluggable.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Variable \\$schema in empty\\(\\) is never defined\\.$#',
 	'identifier' => 'empty.variable',
 	'count' => 1,
