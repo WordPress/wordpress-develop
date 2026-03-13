@@ -429,7 +429,7 @@ EXPECTED;
 
 		$this->go_to( '/category/categorized/page/2/' );
 
-		// For some reason current isn't picked up.
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
 		$links = paginate_links( array( 'current' => 2 ) );
 
 		$base_url = untrailingslashit( home_url( '/category/categorized/' ) );
@@ -452,7 +452,7 @@ EXPECTED;
 
 		$this->go_to( '/category/categorized/page/2' );
 
-		// For some reason current isn't picked up.
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
 		$links = paginate_links( array( 'current' => 2 ) );
 
 		$base_url = untrailingslashit( home_url( '/category/categorized/' ) );
@@ -481,7 +481,7 @@ EXPECTED;
 
 		$this->go_to( "/page/2/?{$query_string}" );
 
-		// For some reason current isn't picked up.
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
 		$links = paginate_links( array( 'current' => 2 ) );
 
 		$this->assertStringContainsString( "/page/3/?{$query_string}\"", $links, 'The query string should appear in the links.' );
@@ -505,7 +505,7 @@ EXPECTED;
 
 		$this->go_to( "/page/2?{$query_string}" );
 
-		// For some reason current isn't picked up.
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
 		$links = paginate_links( array( 'current' => 2 ) );
 
 		$this->assertStringContainsString( "/page/3?{$query_string}\"", $links, 'The query string should appear in the links.' );
