@@ -430,10 +430,22 @@ function create_initial_rest_routes() {
 	$icons_controller->register_routes();
 
 	// Collaboration.
-	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
-		$sync_storage = new WP_Sync_Post_Meta_Storage();
-		$sync_server  = new WP_HTTP_Polling_Sync_Server( $sync_storage );
-		$sync_server->register_routes();
+	if ( wp_is_collaboration_enabled() ) {
+		/**
+		 * Filters the collaboration storage class name.
+		 *
+		 * Follows the wp_rest_server_class pattern: only the default
+		 * implementation is instantiated when no replacement is provided.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param string $storage_class The collaboration storage class name.
+		 */
+		$storage_class = apply_filters( 'wp_collaboration_storage_class', 'WP_Collaboration_Table_Storage' );
+
+		$collaboration_storage = new $storage_class();
+		$collaboration_server  = new WP_HTTP_Polling_Collaboration_Server( $collaboration_storage );
+		$collaboration_server->register_routes();
 	}
 }
 

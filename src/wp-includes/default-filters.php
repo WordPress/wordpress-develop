@@ -385,7 +385,7 @@ if (
 
 // Login actions.
 add_action( 'login_head', 'wp_robots', 1 );
-add_action( 'login_head', 'wp_resource_hints', 8 );
+add_filter( 'login_head', 'wp_resource_hints', 8 );
 add_action( 'login_head', 'wp_print_head_scripts', 9 );
 add_action( 'login_head', 'print_admin_styles', 9 );
 add_action( 'login_head', 'wp_site_icon', 99 );
@@ -454,6 +454,7 @@ add_action( 'wp_scheduled_auto_draft_delete', 'wp_delete_auto_drafts' );
 add_action( 'importer_scheduled_cleanup', 'wp_delete_attachment' );
 add_action( 'upgrader_scheduled_cleanup', 'wp_delete_attachment' );
 add_action( 'delete_expired_transients', 'delete_expired_transients' );
+add_action( 'wp_delete_old_collaboration_data', 'wp_delete_old_collaboration_data' );
 
 // Navigation menu actions.
 add_action( 'delete_post', '_wp_delete_post_menu_item' );
@@ -539,9 +540,6 @@ add_action( 'parse_request', 'rest_api_loaded' );
 add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
-// Connectors API.
-add_action( 'init', '_wp_connectors_init', 15 );
-
 // Sitemaps actions.
 add_action( 'init', 'wp_sitemaps_get_server' );
 
@@ -607,7 +605,7 @@ add_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_classic_theme_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
-add_action( 'wp_default_styles', 'wp_load_classic_theme_block_styles_on_demand', 0 ); // Must happen before wp_default_styles() and register_core_block_style_handles().
+add_action( 'init', 'wp_load_classic_theme_block_styles_on_demand', 8 ); // Must happen before register_core_block_style_handles() at priority 9.
 /*
  * `wp_enqueue_registered_block_scripts_and_styles` is bound to both
  * `enqueue_block_editor_assets` and `enqueue_block_assets` hooks
@@ -798,7 +796,7 @@ add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
 
 // Collaboration.
-add_action( 'admin_init', 'wp_collaboration_inject_setting' );
+add_action( 'enqueue_block_editor_assets', 'wp_collaboration_inject_setting' );
 
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
