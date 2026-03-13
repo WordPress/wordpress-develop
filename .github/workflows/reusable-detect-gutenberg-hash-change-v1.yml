@@ -29,7 +29,6 @@ jobs:
   detect-hash-change:
     name: Detect Gutenberg SHA change
     runs-on: ubuntu-24.04
-    if: ${{ github.repository == 'wordpress/wordpress-develop' }}
     permissions:
       contents: read
     timeout-minutes: 5
