@@ -4669,9 +4669,6 @@ function paginate_links( $args = '' ) {
 	$total   = $wp_query->max_num_pages ?? 1;
 	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 
-	// Append the format placeholder to the base URL.
-	$pagenum_link = trailingslashit( $url_parts[0] ) . '%_%';
-
 	/*
 	 * Ensures sites not using trailing slashes get links in the form
 	 * `/page/2` rather than `/page/2/`. On these sites, linking to the
