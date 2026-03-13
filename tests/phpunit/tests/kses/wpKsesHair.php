@@ -1086,6 +1086,32 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 				),
 			),
 		);
+
+		// @ticket 29807
+		yield 'srcset with valid multi-URI and width descriptors' => array(
+			'srcset="small.jpg 480w, large.jpg 1024w"',
+			array(
+				'srcset' => array(
+					'name'  => 'srcset',
+					'value' => 'small.jpg 480w, large.jpg 1024w',
+					'whole' => 'srcset="small.jpg 480w, large.jpg 1024w"',
+					'vless' => 'n',
+				),
+			),
+		);
+
+		// @ticket 29807
+		yield 'srcset with bad protocol in one of multiple URIs' => array(
+			'srcset="javascript:alert(1) 1x, https://example.com/img.jpg 2x"',
+			array(
+				'srcset' => array(
+					'name'  => 'srcset',
+					'value' => 'alert(1) 1x, https://example.com/img.jpg 2x',
+					'whole' => 'srcset="alert(1) 1x, https://example.com/img.jpg 2x"',
+					'vless' => 'n',
+				),
+			),
+		);
 	}
 
 	/**
