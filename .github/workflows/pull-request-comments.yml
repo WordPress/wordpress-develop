@@ -5,7 +5,7 @@ on:
   pull_request_target:
     types: [ 'opened', 'synchronize', 'reopened', 'edited' ]
   workflow_run:
-    workflows: [ 'Test Build Processes' ]
+    workflows: [ 'Test Build Processes', 'Draft commit message' ]
     types:
       - completed
 
@@ -228,3 +228,120 @@ jobs:
             `,
               } );
             }
+
+  # Adds a comment with a drafted commit message.
+  drafted-commit-message:
+    name: Manage commit message draft
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' }}
+
+    steps:
+      - name: Download artifact
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: process.env.RUN_ID,
+            } );
+
+            const matchPrNumberArtifact = artifacts.data.artifacts.filter( ( artifact ) => {
+              return artifact.name === 'pr-number'
+            } )[0];
+
+            if ( ! matchPrNumberArtifact ) {
+              core.setFailed( 'No PR number artifact found!' );
+              return;
+            }
+
+            const downloadPrNumber = await github.rest.actions.downloadArtifact( {
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchPrNumberArtifact.id,
+               archive_format: 'zip',
+            } );
+
+            fs.writeFileSync( '${{github.workspace}}/pr-number.zip', Buffer.from( downloadPrNumber.data ) )
+
+            const matchMessageArtifact = artifacts.data.artifacts.filter( ( artifact ) => {
+              return artifact.name === 'commit-message.md'
+            } )[0];
+
+            if ( ! matchMessageArtifact ) {
+              core.setFailed( 'No commit message artifact found!' );
+              return;
+            }
+
+            const downloadCommitMessage = await github.rest.actions.downloadArtifact( {
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchMessageArtifact.id,
+               archive_format: 'zip',
+            } );
+
+            fs.writeFileSync( '${{github.workspace}}/commit-message.zip', Buffer.from( downloadCommitMessage.data ) )
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+
+      - name: Unzip the artifact containing the PR number
+        run: unzip pr-number.zip
+
+      - name: Unzip the artifact containing the commit mesage
+        run: unzip commit-message.zip
+
+      - name: Leave or update a comment with the commit message draft
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+            const issue_number = Number( fs.readFileSync( './NR' ) );
+
+            core.info( `Checking pull request #${issue_number}.` );
+
+            // Confirm that the pull request is still open before leaving a comment.
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: issue_number,
+            });
+
+            if ( pr.data.state !== 'open' ) {
+              core.info( 'The pull request has been closed. No comment will be left.' );
+              return;
+            }
+
+            // Comments are only added once and then updated on future commits.
+            const commentInfo = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+            };
+
+            const comments = ( await github.rest.issues.listComments( commentInfo ) ).data;
+            const hasCommitMessageDraft = comments.find( comment => comment.user.type === 'Bot' && comment.body.includes( 'Editor: Bump pinned hash' ) );
+
+            // Construct comment
+            commentInfo.body = '## Commit Message Draft\n' +
+            'This pull request changes the pinned hash for the Gutenberg repository. Here is a commit message draft containing a compiled list of changes included with additional required information:\n\n' +
+            ```\n' +
+            commitMessageContents +
+            '\n```\n' +
+            '**Always verify these commit message drafts before using. And don't forget to include props!**';
+
+            // Only update the comment when there are changes.
+            if ( hasCommitMessageDraft ) {
+              if ( hasCommitMessageDraft.body != commentInfo.body ) {
+                commentInfo.comment_id = hasCommitMessageDraft.id;
+
+                github.rest.issues.updateComment( commentInfo );
+              }
+              return;
+            }
+
+            github.rest.issues.createComment( commentInfo );

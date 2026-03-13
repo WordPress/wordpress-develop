@@ -1,0 +1,85 @@
+##
+# A reusable workflow that detects when the `gutenberg.sha` value changes in the `package.json` file.
+##
+name: Detect hash change (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      previous-hash:
+        description: 'The previous commit SHA value.'
+        required: true
+        type: 'string'
+      new-hash:
+        description: 'The new commit hash value.'
+        required: true
+        type: 'string'
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Drafts a commit message containing a detailed list of changes being merged.
+  #
+  # Performs the following steps:
+  # - Downloads the changelog artifact.
+  # - Builds a commit message.
+  # - Uploads the commit message as an artifact.
+  # - Saves the pull request number to a text file.
+  # - Uploads the pull request number as an artifact.
+  generate-commit-message:
+    name: Generate commit message
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download changelog artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: changelog.txt
+          skip-decompress: true
+
+      - name: Build commit message
+        env:
+          BASE_SHA: ${{ inputs.previous-hash }}
+          HEAD_SHA: ${{ inputs.new-hash }}
+        run: |
+          {
+            printf 'Editor: Bump pinned hash for the Gutenberg repository.\n\n'
+            printf "This updates the pinned hash from the gutenberg from \`%s\` to \`%s\`.\n\n" "$BASE_SHA" "$HEAD_SHA"
+
+            if [ "$HAS_CHANGES" = "false" ]; then
+              printf '> [!WARNING]\n'
+              printf '> No pull request references were found in the commits between the two hashes. Please verify the hash range is correct.\n\n'
+            else
+              printf 'The following changes are included:\n\n'
+              cat changelog.txt
+              printf '\n'
+            fi
+
+            printf 'A full list of changes can be found on GitHub: https://github.com/WordPress/gutenberg/compare/%s...%s.\n\n' "$BASE_SHA" "$HEAD_SHA"
+            printf 'See #64595, #64393.\n'
+          } > commit-message.md
+
+      - name: Upload commit message as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: commit-message
+          path: commit-message.md
+
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr-number
+          echo "${EVENT_NUMBER}" > ./pr-number/NR
+        env:
+          EVENT_NUMBER: ${{ github.event.number }}
+
+      # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
+      # leave a comment detailing how to test the PR within WordPress Playground.
+      - name: Upload PR number as artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: pr-number
+          path: pr-number/
