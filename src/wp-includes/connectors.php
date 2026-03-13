@@ -34,14 +34,22 @@
  *
  * ## Admin UI Integration
  *
- * Connectors of type `ai_provider` with authentication method `api_key` receive
- * full admin UI integration out of the box:
+ * Registered `ai_provider` connectors appear on the Settings → Connectors
+ * admin screen. The screen renders each connector as a card using the
+ * registry data:
  *
- *  - Automatic settings registration via the Settings API (`show_in_rest`).
- *  - API key masking in REST API responses (raw keys are never exposed).
- *  - Key validation against the provider on update.
- *  - Key source detection (environment variable, PHP constant, or database).
- *  - Frontend settings UI in the Connectors admin screen.
+ *  - `name`, `description`, and `logo_url` are displayed on the card.
+ *  - `plugin.slug` enables install/activate controls — the screen checks
+ *    whether the plugin is installed and active, and shows the appropriate
+ *    action button.
+ *  - `authentication.credentials_url` is rendered as a link directing users
+ *    to the provider's site to obtain API credentials.
+ *  - For `api_key` connectors, the screen shows the current key source
+ *    (environment variable, PHP constant, or database) and connection status.
+ *
+ * On the backend, `api_key` connectors also receive automatic settings
+ * registration via the Settings API (`show_in_rest`), API key masking in
+ * REST API responses, and key validation against the provider on update.
  *
  * Connectors with other authentication methods or types are registered in the PHP
  * registry and exposed via the script module data, but require a client-side
@@ -705,13 +713,27 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
 
 /**
- * Exposes connector settings to the connectors-wp-admin script module.
+ * Provides connector data to the Settings → Connectors admin screen.
+ *
+ * This function is the bridge between the PHP connector registry and the
+ * frontend admin UI. It transforms each registered connector into the data
+ * structure consumed by the `options-connectors-wp-admin` script module,
+ * enriching registry data with runtime state:
+ *
+ *  - Plugin install/activate status (via `get_plugins()` and `is_plugin_active()`).
+ *  - API key source detection (`env`, `constant`, `database`, or `none`).
+ *  - Connection status for `api_key` connectors (via the WP AI Client registry).
+ *
+ * Hooked to the `script_module_data_options-connectors-wp-admin` filter.
  *
  * @since 7.0.0
  * @access private
  *
+ * @see _wp_connectors_get_api_key_source()
+ *
  * @param array<string, mixed> $data Existing script module data.
- * @return array<string, mixed> Script module data with connectors added.
+ * @return array<string, mixed> Script module data with a `connectors` key added,
+ *                              keyed by connector ID and sorted alphabetically.
  */
 function _wp_connectors_get_connector_script_module_data( array $data ): array {
 	$registry = AiClient::defaultRegistry();
