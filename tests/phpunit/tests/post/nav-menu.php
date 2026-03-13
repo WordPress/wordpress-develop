@@ -644,5 +644,4 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$this->assertNotContains( 'current-menu-parent', $post_archive_menu_item->classes );
 		$this->assertNotContains( 'current-menu-ancestor', $post_archive_menu_item->classes );
 	}
-
 }
