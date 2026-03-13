@@ -1,7 +1,5 @@
 <?php
 
-/* phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped */
-
 /**
  * Generates representation of the semantic HTML tree structure.
  *
@@ -40,7 +38,7 @@
  *
  * @since 6.9.0
  *
- * @throws WP_HTML_Unsupported_Exception|Error If the markup could not be parsed.
+ * @throws WP_HTML_Unsupported_Exception|Exception If the markup could not be parsed.
  *
  * @param string      $html             Given test HTML.
  * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
@@ -51,7 +49,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 		? WP_HTML_Processor::create_fragment( $html, $fragment_context )
 		: WP_HTML_Processor::create_full_parser( $html );
 	if ( null === $processor ) {
-		throw new Error( 'Could not create a parser.' );
+		throw new Exception( 'Could not create a parser.' );
 	}
 	$tree_indent = '  ';
 
@@ -202,7 +200,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 			case '#cdata-section':
 			case '#text':
 				$text_content = $processor->get_modifiable_text();
-				if ( '' === trim( $text_content, " \f\t\r\n" ) ) {
+				if ( '' === $text_content ) {
 					break;
 				}
 				$was_text = true;
@@ -237,7 +235,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 							++$indent_level;
 						}
 
-						// If they're no attributes, we're done here.
+						// When no attributes are present, there’s nothing left to do.
 						if ( empty( $block_attrs ) ) {
 							break;
 						}
@@ -278,9 +276,8 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 				}
 				break;
 			default:
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
 				$serialized_token_type = var_export( $processor->get_token_type(), true );
-				throw new Error( "Unhandled token type for tree construction: {$serialized_token_type}" );
+				throw new Exception( "Unhandled token type for tree construction: {$serialized_token_type}" );
 		}
 	}
 
@@ -289,11 +286,11 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 	}
 
 	if ( null !== $processor->get_last_error() ) {
-		throw new Error( "Parser error: {$processor->get_last_error()}" );
+		throw new Exception( "Parser error: {$processor->get_last_error()}" );
 	}
 
 	if ( $processor->paused_at_incomplete_token() ) {
-		throw new Error( 'Paused at incomplete token.' );
+		throw new Exception( 'Paused at incomplete token.' );
 	}
 
 	if ( '' !== $text_node ) {

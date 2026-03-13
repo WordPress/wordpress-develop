@@ -122,7 +122,7 @@ switch ( $wp_list_table->current_action() ) {
 		$editable_roles = get_editable_roles();
 		$role           = $_REQUEST['new_role'];
 
-		// Mocking the `none` role so we are able to save it to the database
+		// Mock `none` as editable role.
 		$editable_roles['none'] = array(
 			'name' => __( '&mdash; No role for this site &mdash;' ),
 		);
@@ -162,6 +162,8 @@ switch ( $wp_list_table->current_action() ) {
 			}
 
 			$user = get_userdata( $id );
+
+			// If $role is empty, none will be set.
 			$user->set_role( $role );
 		}
 
@@ -627,7 +629,7 @@ switch ( $wp_list_table->current_action() ) {
 					break;
 				case 'add':
 					$message = __( 'New user created.' );
-					$user_id = isset( $_GET['id'] ) ? $_GET['id'] : false;
+					$user_id = $_GET['id'] ?? false;
 					if ( $user_id && current_user_can( 'edit_user', $user_id ) ) {
 						$message .= sprintf(
 							' <a href="%1$s">%2$s</a>',
@@ -681,7 +683,7 @@ switch ( $wp_list_table->current_action() ) {
 					break;
 				case 'err_admin_role':
 					$messages[] = wp_get_admin_notice(
-						__( 'The current user&#8217;s role must have user editing capabilities.' ),
+						__( 'You cannot change your own role to one that does not allow managing other users. Your role was not changed.' ),
 						array(
 							'id'                 => 'message',
 							'additional_classes' => array( 'error' ),

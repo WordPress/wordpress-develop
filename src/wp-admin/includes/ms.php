@@ -97,7 +97,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 	if ( $drop ) {
 		wp_delete_site( $blog_id );
 	} else {
-		/** This action is documented in wp-includes/ms-blogs.php */
+		/** This action is documented in wp-includes/ms-site.php */
 		do_action_deprecated( 'delete_blog', array( $blog_id, false ), '5.1.0' );
 
 		$users = get_users(
@@ -116,7 +116,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 
 		update_blog_status( $blog_id, 'deleted', 1 );
 
-		/** This action is documented in wp-includes/ms-blogs.php */
+		/** This action is documented in wp-includes/ms-site.php */
 		do_action_deprecated( 'deleted_blog', array( $blog_id, false ), '5.1.0' );
 	}
 
@@ -847,7 +847,7 @@ function can_edit_network( $network_id ) {
  */
 function _thickbox_path_admin_subfolder() {
 	?>
-<script type="text/javascript">
+<script>
 var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) ); ?>";
 </script>
 	<?php
@@ -1010,7 +1010,7 @@ function confirm_delete_users( $users ) {
  */
 function network_settings_add_js() {
 	?>
-<script type="text/javascript">
+<script>
 jQuery( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).on( 'submit', function() {
