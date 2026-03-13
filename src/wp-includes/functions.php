@@ -8987,9 +8987,7 @@ function wp_get_wp_version( $part = 'full' ) {
 
 	if ( 'major' === $part ) {
 		return wp_get_branch_version( $wp_version );
-	}
-
-	if ( 'minor' === $part ) {
+	} elseif ( 'minor' === $part ) {
 		$parts = preg_split( '/[.-]/', $wp_version, 4 );
 		return $parts[0] . '.' . ( $parts[1] ?? '0' ) . '.' . ( $parts[2] ?? '0' );
 	}
