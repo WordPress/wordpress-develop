@@ -11,7 +11,7 @@
  *
  * The Connectors API enables developers to:
  *
- *  - Register custom connectors with standardized interfaces.
+ *  - Register AI provider connectors with standardized interfaces.
  *  - Define authentication methods and credential sources.
  *  - Associate connectors with WordPress.org plugins for install/activate UI.
  *  - Expose connector settings through the REST API with automatic key masking.
@@ -88,7 +88,8 @@
  *  3. Auto-discovers providers from the WP AI Client registry and merges their
  *     metadata (name, description, logo, authentication) on top of defaults,
  *     with registry values taking precedence.
- *  4. Fires the `wp_connectors_init` action so plugins can register additional connectors.
+ *  4. Fires the `wp_connectors_init` action so plugins can override metadata
+ *     on existing connectors or register additional connectors.
  *  5. Registers settings and passes stored API keys to the WP AI Client.
  *
  * ## Authentication
@@ -318,11 +319,12 @@ function _wp_connectors_resolve_ai_provider_logo_url( string $path ): ?string {
  *     Registry values (from provider plugins) take precedence over hardcoded fallbacks
  *     for name, description, logo URL, and authentication method.
  *  4. Registers all connectors (built-in and AI Client-discovered) on the registry.
- *  5. Fires the `wp_connectors_init` action for plugins to register additional connectors.
+ *  5. Fires the `wp_connectors_init` action for plugins to override metadata
+ *     on existing connectors or register additional connectors.
  *
  * Built-in connectors are registered before the action fires and cannot be unhooked.
- * Plugins should use the `wp_connectors_init` action to add their own connectors
- * via `$registry->register()`.
+ * Plugins should use the `wp_connectors_init` action to override metadata or
+ * register new connectors via `$registry->register()`.
  *
  * @since 7.0.0
  * @access private
@@ -625,6 +627,11 @@ add_filter( 'rest_post_dispatch', '_wp_connectors_rest_settings_dispatch', 10, 3
 
 /**
  * Registers default connector settings.
+ *
+ * Only registers settings for `ai_provider` connectors with `api_key`
+ * authentication whose provider is present in the WP AI Client registry.
+ * Each setting is registered with `show_in_rest` enabled, making it
+ * accessible through the `/wp/v2/settings` REST endpoint.
  *
  * @since 7.0.0
  * @access private
