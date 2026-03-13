@@ -4672,8 +4672,8 @@ function paginate_links( $args = '' ) {
 	/*
 	 * Ensures sites not using trailing slashes get links in the form
 	 * `/page/2` rather than `/page/2/`. On these sites, linking to the
-	 * URL with a trailing slash will results in a 301 redirect from the
-	 * incorrect URL to the correctly formattted one. This presents an
+	 * URL with a trailing slash will result in a 301 redirect from the
+	 * incorrect URL to the correctly formatted one. This presents an
 	 * unnecessary performance hit.
 	 */
 	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {

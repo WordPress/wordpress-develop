@@ -435,7 +435,7 @@ EXPECTED;
 		$found_links = 0;
 		while ( $processor->next_tag( 'A' ) ) {
 			++$found_links;
-			$href = $processor->get_attribute( 'href' );
+			$href = (string) $processor->get_attribute( 'href' );
 			$this->assertStringEndsWith( '/', $href, "Pagination links should end with a trailing slash, found: $href" );
 		}
 		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
@@ -459,8 +459,8 @@ EXPECTED;
 		$found_links = 0;
 		while ( $processor->next_tag( 'A' ) ) {
 			++$found_links;
-			$href = $processor->get_attribute( 'href' );
-			$this->assertStringEndsNotWith( '/', $href, "Pagination links should end with a trailing slash, found: $href" );
+			$href = (string) $processor->get_attribute( 'href' );
+			$this->assertStringEndsNotWith( '/', $href, "Pagination links should not end with a trailing slash, found: $href" );
 		}
 		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
 	}
@@ -474,7 +474,6 @@ EXPECTED;
 	 * @dataProvider data_query_strings
 	 *
 	 * @param string $query_string Query string.
-	 * @param string $unexpected   Unexpected query string.
 	 */
 	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( string $query_string ) {
 		update_option( 'posts_per_page', 2 );
@@ -489,7 +488,7 @@ EXPECTED;
 		$found_links = 0;
 		while ( $processor->next_tag( 'A' ) ) {
 			++$found_links;
-			$href = $processor->get_attribute( 'href' );
+			$href = (string) $processor->get_attribute( 'href' );
 			$this->assertStringEndsWith( "/?{$query_string}", $href, "Pagination links should not modify the query string, found: $href" );
 		}
 		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
@@ -504,7 +503,6 @@ EXPECTED;
 	 * @dataProvider data_query_strings
 	 *
 	 * @param string $query_string Query string.
-	 * @param string $unexpected   Unexpected query string.
 	 */
 	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( string $query_string ) {
 		update_option( 'posts_per_page', 2 );
@@ -519,7 +517,7 @@ EXPECTED;
 		$found_links = 0;
 		while ( $processor->next_tag( 'A' ) ) {
 			++$found_links;
-			$href = $processor->get_attribute( 'href' );
+			$href = (string) $processor->get_attribute( 'href' );
 			$this->assertStringEndsWith( "?{$query_string}", $href, "Pagination links should not modify the query string, found: $href" );
 			$this->assertStringEndsNotWith( "/?{$query_string}", $href, "Pagination links should not be slashed before the query string, found: $href" );
 		}
@@ -531,12 +529,12 @@ EXPECTED;
 	 *  - test_permalinks_without_trailing_slash_do_not_modify_query_strings
 	 *  - test_permalinks_with_trailing_slash_do_not_modify_query_strings
 	 *
-	 * @return array<string[]> Data provider.
+	 * @return array<string, array{ 0: string }> Data provider.
 	 */
 	public function data_query_strings(): array {
 		return array(
-			array( 'foo=bar' ),
-			array( 'foo=bar&pen=pencil' ),
+			'single query var' => array( 'foo=bar' ),
+			'multi query vars' => array( 'foo=bar&pen=pencil' ),
 		);
 	}
 }
