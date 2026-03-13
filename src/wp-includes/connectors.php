@@ -79,6 +79,8 @@ use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
  * @since 7.0.0
  *
  * @see WP_Connector_Registry::is_registered()
+ * @see wp_get_connector()
+ * @see wp_get_connectors()
  *
  * @param string $id The connector identifier.
  * @return bool True if the connector is registered, false otherwise.
@@ -105,6 +107,8 @@ function wp_is_connector_registered( string $id ): bool {
  * @since 7.0.0
  *
  * @see WP_Connector_Registry::get_registered()
+ * @see wp_is_connector_registered()
+ * @see wp_get_connectors()
  *
  * @param string $id The connector identifier.
  * @return array|null {
@@ -165,6 +169,8 @@ function wp_get_connector( string $id ): ?array {
  * @since 7.0.0
  *
  * @see WP_Connector_Registry::get_all_registered()
+ * @see wp_is_connector_registered()
+ * @see wp_get_connector()
  *
  * @return array {
  *     Connector settings keyed by connector ID.
