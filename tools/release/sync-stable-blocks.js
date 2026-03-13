@@ -50,7 +50,7 @@ ${ staticBlockFolderNames }
 		.map( toDirectoryName )
 		.sort()
 		// To PHP require_once statement:
-		.map( dirname => `require_once ABSPATH . WPINC . '/blocks/${ dirname }.php';` )
+		.map( dirname => `require_once BLOCKS_PATH . '${ dirname }.php';` )
 		.join( "\n" );
 
 	fs.writeFileSync(
