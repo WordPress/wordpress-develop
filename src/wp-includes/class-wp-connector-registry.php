@@ -308,8 +308,13 @@ final class WP_Connector_Registry {
 	/**
 	 * Sets the main instance of the registry class.
 	 *
+	 * Called by `_wp_connectors_init()` during the `init` action. Must not be
+	 * called outside of that context.
+	 *
 	 * @since 7.0.0
 	 * @access private
+	 *
+	 * @see _wp_connectors_init()
 	 *
 	 * @param WP_Connector_Registry $registry The registry instance.
 	 */
