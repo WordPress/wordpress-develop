@@ -270,6 +270,9 @@ final class WP_Connector_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_connector()` function.
 	 *
+	 * Triggers a `_doing_it_wrong()` notice if the connector is not registered.
+	 * Use `is_registered()` to check first when the connector may not exist.
+	 *
 	 * @since 7.0.0
 	 *
 	 * @see wp_get_connector()
