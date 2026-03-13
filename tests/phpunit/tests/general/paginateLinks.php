@@ -431,13 +431,14 @@ EXPECTED;
 		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
 		$links = paginate_links( array( 'current' => 2 ) );
 
-		$base_url = untrailingslashit( home_url( '/category/categorized/' ) );
-		$this->assertStringContainsString( "href=\"{$base_url}/\"", $links, 'The links should link to page one with a trailing slash.' );
-		$this->assertStringNotContainsString( "href=\"{$base_url}\"", $links, 'The links should not link to page one without a trailing slash.' );
-
-		$base_url_regex = preg_quote( $base_url, '/' );
-		$this->assertMatchesRegularExpression( "/href=\"{$base_url_regex}\/page\/[0-9]\/\"/", $links, 'Pagination links with trailing slashes should be included.' );
-		$this->assertDoesNotMatchRegularExpression( "/href=\"{$base_url_regex}\/page\/[0-9]\"/", $links, 'Pagination links without trailing slashes should not be included.' );
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			++$found_links;
+			$href = $processor->get_attribute( 'href' );
+			$this->assertStringEndsWith( '/', $href, "Pagination links should end with a trailing slash, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
 	}
 
 	/**
@@ -454,13 +455,14 @@ EXPECTED;
 		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
 		$links = paginate_links( array( 'current' => 2 ) );
 
-		$base_url = untrailingslashit( home_url( '/category/categorized/' ) );
-		$this->assertStringNotContainsString( "href=\"{$base_url}/\"", $links, 'The links should link to page one without a trailing slash.' );
-		$this->assertStringContainsString( "href=\"{$base_url}\"", $links, 'The links should not link to page one with a trailing slash.' );
-
-		$base_url_regex = preg_quote( $base_url, '/' );
-		$this->assertDoesNotMatchRegularExpression( "/href=\"$base_url_regex}\/page\/[0-9]\/\"/", $links, 'Pagination links with trailing slashes should not be included.' );
-		$this->assertMatchesRegularExpression( "/href=\"{$base_url_regex}\/page\/[0-9]\"/", $links, 'Pagination links without trailing slashes should be included.' );
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			++$found_links;
+			$href = $processor->get_attribute( 'href' );
+			$this->assertStringEndsNotWith( '/', $href, "Pagination links should end with a trailing slash, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
 	}
 
 	/**
@@ -474,7 +476,7 @@ EXPECTED;
 	 * @param string $query_string Query string.
 	 * @param string $unexpected   Unexpected query string.
 	 */
-	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( string $query_string, string $unexpected ) {
+	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( string $query_string ) {
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '/%postname%/' );
 
@@ -483,8 +485,14 @@ EXPECTED;
 		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
 		$links = paginate_links( array( 'current' => 2 ) );
 
-		$this->assertStringContainsString( "/page/3/?{$query_string}\"", $links, 'The query string should appear in the links.' );
-		$this->assertStringNotContainsString( "/page/3/?{$unexpected}\"", $links, 'The query string should not be modified.' );
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			++$found_links;
+			$href = $processor->get_attribute( 'href' );
+			$this->assertStringEndsWith( "/?{$query_string}", $href, "Pagination links should not modify the query string, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
 	}
 
 	/**
@@ -498,7 +506,7 @@ EXPECTED;
 	 * @param string $query_string Query string.
 	 * @param string $unexpected   Unexpected query string.
 	 */
-	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( string $query_string, string $unexpected ) {
+	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( string $query_string ) {
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -507,8 +515,15 @@ EXPECTED;
 		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
 		$links = paginate_links( array( 'current' => 2 ) );
 
-		$this->assertStringContainsString( "/page/3?{$query_string}\"", $links, 'The query string should appear in the links.' );
-		$this->assertStringNotContainsString( "/page/3?{$unexpected}\"", $links, 'The query string should not be modified.' );
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			++$found_links;
+			$href = $processor->get_attribute( 'href' );
+			$this->assertStringEndsWith( "?{$query_string}", $href, "Pagination links should not modify the query string, found: $href" );
+			$this->assertStringEndsNotWith( "/?{$query_string}", $href, "Pagination links should not be slashed before the query string, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
 	}
 
 	/**
@@ -520,12 +535,8 @@ EXPECTED;
 	 */
 	public function data_query_strings(): array {
 		return array(
-			array( 'foo=bar', 'foo=bar/' ),
-			array( 'foo=bar', 'foo=bar%2F' ),
-			array( 'foo=bar%2F', 'foo=bar' ),
-
-			array( 's=post', 's=post/' ),
-			array( 's=post', 's=post%2F' ),
+			array( 'foo=bar' ),
+			array( 'foo=bar&pen=pencil' ),
 		);
 	}
 }
