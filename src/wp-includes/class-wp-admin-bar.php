@@ -169,7 +169,7 @@ class WP_Admin_Bar {
 			'my-blogs'               => array( 'my-sites', '3.3' ),
 		);
 
-		if ( isset( $back_compat_parents[ $args['parent'] ] ) ) {
+		if ( is_string( $args['parent'] ) && isset( $back_compat_parents[ $args['parent'] ] ) ) {
 			list( $new_parent, $version ) = $back_compat_parents[ $args['parent'] ];
 			_deprecated_argument( __METHOD__, $version, sprintf( 'Use <code>%s</code> as the parent for the <code>%s</code> admin bar node instead of <code>%s</code>.', $new_parent, $args['id'], $args['parent'] ) );
 			$args['parent'] = $new_parent;
@@ -660,6 +660,9 @@ class WP_Admin_Bar {
 		add_action( 'admin_bar_menu', 'wp_admin_bar_edit_site_menu', 40 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_customize_menu', 40 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_updates_menu', 50 );
+
+		// Command palette.
+		add_action( 'admin_bar_menu', 'wp_admin_bar_command_palette_menu', 55 );
 
 		// Content-related.
 		if ( ! is_network_admin() && ! is_user_admin() ) {
