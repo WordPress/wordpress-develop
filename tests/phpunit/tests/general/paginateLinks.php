@@ -14,7 +14,7 @@ class Tests_General_PaginateLinks extends WP_UnitTestCase {
 	 *
 	 * @var int[]
 	 */
-	public protected $post_ids = array();
+	protected static $post_ids = array();
 
 	/**
 	 * Category ID created for shared fixtures.
@@ -517,8 +517,6 @@ EXPECTED;
 	 *  - test_permalinks_without_trailing_slash_do_not_modify_query_strings
 	 *  - test_permalinks_with_trailing_slash_do_not_modify_query_strings
 	 *
-	 * @return array[] Data provider.
-	 */
 	 * @return array<string[]> Data provider.
 	 */
 	public function data_query_strings(): array {
