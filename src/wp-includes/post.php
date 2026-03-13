@@ -2600,7 +2600,8 @@ function is_post_embeddable( $post = null ) {
  * @see WP_Query::parse_query()
  *
  * @param array|string $args {
- *     Optional. Arguments to retrieve posts. See WP_Query::parse_query() for all available arguments.
+ *     Optional. Array or query string of arguments to retrieve posts.
+ *     See WP_Query::parse_query() for all available arguments.
  *
  *     @type int        $numberposts      Total number of posts to retrieve. Is an alias of `$posts_per_page`
  *                                        in WP_Query. Accepts -1 for all. Default 5.
