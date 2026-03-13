@@ -95,7 +95,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	public function test_trashed_parent_comment_excludes_child_comments_from_count() {
 		$post_id = self::factory()->post->create();
 
-		// Create 2 parent comment, and 2 child comment for parent 1.
+		// Create 2 top-level parent comments, 2 child comments for parent 1, and a grandchild of parent 1.
 		$parent_comment_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
@@ -110,7 +110,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 			)
 		);
 
-		self::factory()->comment->create(
+		$child_comment_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_parent'   => $parent_comment_id,
@@ -126,8 +126,16 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 			)
 		);
 
-		wp_update_comment_count_now( $post_id );
-		$this->assertSame( '4', get_comments_number( $post_id ) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $child_comment_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		$this->assertSame( '5', get_comments_number( $post_id ) );
 
 		wp_update_comment(
 			array(
@@ -136,7 +144,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 			)
 		);
 
-		wp_update_comment_count_now( $post_id );
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 	}
 
@@ -148,7 +156,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	public function test_unapproved_parent_comment_excludes_child_comments_from_count() {
 		$post_id = self::factory()->post->create();
 
-		// Create 2 parent comment, and 2 child comment for parent 1.
+		// Create 2 top-level parent comments, 2 child comments for parent 1, and a grandchild of parent 1.
 		$parent_comment_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
@@ -163,7 +171,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 			)
 		);
 
-		self::factory()->comment->create(
+		$child_comment_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_parent'   => $parent_comment_id,
@@ -179,8 +187,16 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 			)
 		);
 
-		wp_update_comment_count_now( $post_id );
-		$this->assertSame( '4', get_comments_number( $post_id ) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $child_comment_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		$this->assertSame( '5', get_comments_number( $post_id ) );
 
 		wp_update_comment(
 			array(
@@ -189,7 +205,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 			)
 		);
 
-		wp_update_comment_count_now( $post_id );
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 	}
 }

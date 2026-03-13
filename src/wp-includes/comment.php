@@ -2875,13 +2875,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$comments       = get_comments(
-			array(
-				'post_id'                   => $post_id,
-				'type__not_in'              => array( 'note' ),
-				'update_comment_meta_cache' => false,
-			)
-		);
+		$comments       = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_parent, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_type != 'note'", $post_id ) );
 		$comments_by_id = array();
 
 		// Create a lookup array by comment ID.
@@ -2898,11 +2892,18 @@ function wp_update_comment_count_now( $post_id ) {
 				continue;
 			}
 
-			$parent_id      = (int) $comment->comment_parent;
-			$has_unapproved = false;
+			$parent_id            = (int) $comment->comment_parent;
+			$has_unapproved       = false;
+			$visited_comments_ids = array();
 
-			// Ensure all ancestor comments are approved.
 			while ( 0 !== $parent_id ) {
+				if ( isset( $visited_comments_ids[ $parent_id ] ) ) {
+					$has_unapproved = true;
+					break;
+				}
+
+				$visited_ids[ $parent_id ] = true;
+
 				if ( ! isset( $comments_by_id[ $parent_id ] ) ) {
 					$has_unapproved = true;
 					break;
@@ -2919,7 +2920,7 @@ function wp_update_comment_count_now( $post_id ) {
 			}
 
 			if ( ! $has_unapproved ) {
-				$comment_count++;
+				++$comment_count;
 			}
 		}
 
