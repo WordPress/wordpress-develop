@@ -837,10 +837,10 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 						),
 					),
 					'extra_attributes'    => array(
-						// Duplicate class names should be merged
-						'class' => 'extra-class has-text-color',
+						// Duplicate class names should be merged, and commas should be preserved.
+						'class' => 'extra-class extra,class has-text-color',
 					),
-					'expected_attribute'  => 'class="extra-class has-text-color wp-block-example"',
+					'expected_attribute'  => 'class="extra-class extra,class has-text-color wp-block-example"',
 				),
 			),
 			'extra attributes override block-generated id' => array(

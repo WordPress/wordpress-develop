@@ -193,10 +193,10 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		},
 		'class'      => static function ( $new_attribute, $extra_attribute ) {
 			$classes = array_merge(
-				wp_parse_list( $extra_attribute ),
-				wp_parse_list( $new_attribute )
+				preg_split( '/\s+/', $extra_attribute, -1, PREG_SPLIT_NO_EMPTY ),
+				preg_split( '/\s+/', $new_attribute, -1, PREG_SPLIT_NO_EMPTY )
 			);
-			$classes = array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) );
+			$classes = array_unique( array_filter( $classes ) );
 			return implode( ' ', $classes );
 		},
 		'id'         => static function ( $new_attribute, $extra_attribute ) {
