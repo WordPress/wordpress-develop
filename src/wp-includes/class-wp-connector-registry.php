@@ -1,8 +1,6 @@
 <?php
 /**
- * Connectors API
- *
- * Defines WP_Connector_Registry class.
+ * Connectors API: WP_Connector_Registry class.
  *
  * @package WordPress
  * @subpackage Connectors
@@ -12,8 +10,22 @@
 /**
  * Manages the registration and lookup of connectors.
  *
+ * This is an internal class. Use the public API functions to interact with connectors:
+ *
+ *  - `wp_is_connector_registered()` — check if a connector exists.
+ *  - `wp_get_connector()`           — retrieve a single connector's data.
+ *  - `wp_get_connectors()`          — retrieve all registered connectors.
+ *
+ * Plugins receive the registry instance via the `wp_connectors_init` action
+ * to register or override connectors directly.
+ *
  * @since 7.0.0
  * @access private
+ *
+ * @see wp_is_connector_registered()
+ * @see wp_get_connector()
+ * @see wp_get_connectors()
+ * @see _wp_connectors_init()
  *
  * @phpstan-type Connector array{
  *     name: non-empty-string,
