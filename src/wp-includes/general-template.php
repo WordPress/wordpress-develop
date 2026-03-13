@@ -4677,7 +4677,7 @@ function paginate_links( $args = '' ) {
 	$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
 
 	/*
-	 * Modify defaults for sites without trailing slashed permalinks.
+	 * Modify defaults for sites without trailing slash permalinks.
 	 *
 	 * Ensures sites not using trailing slashes get links in the form
 	 * `/page/2` rather than `/page/2/`. On these sites, linking to the

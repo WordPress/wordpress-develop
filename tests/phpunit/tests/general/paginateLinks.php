@@ -14,14 +14,14 @@ class Tests_General_PaginateLinks extends WP_UnitTestCase {
 	 *
 	 * @var int[]
 	 */
-	public static $post_ids = array();
+	public protected $post_ids = array();
 
 	/**
 	 * Category ID created for shared fixtures.
 	 *
 	 * @var int
 	 */
-	public static $category_id = 0;
+	protected static $category_id = 0;
 
 	/**
 	 * Set up shared fixtures.
@@ -442,7 +442,7 @@ EXPECTED;
 	}
 
 	/**
-	 * Ensures pagination links do not include trailing slashes when the permalink structure doesn't includes them.
+	 * Ensures pagination links do not include trailing slashes when the permalink structure doesn't include them.
 	 *
 	 * @ticket 61393
 	 */
@@ -475,7 +475,7 @@ EXPECTED;
 	 * @param string $query_string Query string.
 	 * @param string $unexpected   Unexpected query string.
 	 */
-	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( $query_string, $unexpected ) {
+	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( string $query_string, string $unexpected ) {
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '/%postname%/' );
 
@@ -499,7 +499,7 @@ EXPECTED;
 	 * @param string $query_string Query string.
 	 * @param string $unexpected   Unexpected query string.
 	 */
-	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( $query_string, $unexpected ) {
+	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( string $query_string, string $unexpected ) {
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -519,7 +519,9 @@ EXPECTED;
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_query_strings() {
+	 * @return array<string[]> Data provider.
+	 */
+	public function data_query_strings(): array {
 		return array(
 			array( 'foo=bar', 'foo=bar/' ),
 			array( 'foo=bar', 'foo=bar%2F' ),
