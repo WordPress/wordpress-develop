@@ -199,7 +199,16 @@ final class WP_Connector_Registry {
 	/**
 	 * Unregisters a connector.
 	 *
+	 * Returns the connector data on success, which can be modified and passed
+	 * back to `register()` to override a connector's metadata.
+	 *
+	 * Triggers a `_doing_it_wrong()` notice if the connector is not registered.
+	 * Use `is_registered()` to check first when the connector may not exist.
+	 *
 	 * @since 7.0.0
+	 *
+	 * @see WP_Connector_Registry::register()
+	 * @see WP_Connector_Registry::is_registered()
 	 *
 	 * @param string $id The connector identifier.
 	 * @return array|null The unregistered connector data on success, null on failure.
