@@ -1,6 +1,63 @@
 <?php
 /**
- * Connectors API.
+ * Connectors API: core functions for registering and managing connectors.
+ *
+ * The Connectors API provides a unified framework for registering and managing
+ * external service integrations within WordPress. A "connector" represents a
+ * connection to an external service — currently focused on AI providers — with
+ * standardized metadata, authentication configuration, and plugin association.
+ *
+ * ## Overview
+ *
+ * The Connectors API enables developers to:
+ *
+ *  - Register custom connectors with standardized interfaces.
+ *  - Define authentication methods and credential sources.
+ *  - Associate connectors with WordPress.org plugins for install/activate UI.
+ *  - Expose connector settings through the REST API with automatic key masking.
+ *
+ * ## Working with Connectors
+ *
+ * Connectors are registered via the `wp_connectors_init` action hook. WordPress
+ * registers built-in connectors (Anthropic, Google, OpenAI) before this action
+ * fires, and plugins can add their own within the hook:
+ *
+ *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
+ *         $registry->register(
+ *             'my_custom_ai',
+ *             array(
+ *                 'name'           => __( 'My Custom AI', 'my-plugin' ),
+ *                 'description'    => __( 'Custom AI provider integration.', 'my-plugin' ),
+ *                 'type'           => 'ai_provider',
+ *                 'authentication' => array(
+ *                     'method'          => 'api_key',
+ *                     'credentials_url' => 'https://example.com/api-keys',
+ *                 ),
+ *             )
+ *         );
+ *     } );
+ *
+ * ## Initialization Lifecycle
+ *
+ * During `init`, the system:
+ *
+ *  1. Creates the `WP_Connector_Registry` singleton.
+ *  2. Registers built-in connectors (Anthropic, Google, OpenAI) with hardcoded defaults.
+ *  3. Merges metadata from the WP AI Client provider registry (name, description,
+ *     logo, authentication) on top of defaults, with registry values taking precedence.
+ *  4. Fires the `wp_connectors_init` action so plugins can register additional connectors.
+ *  5. Registers settings and passes stored API keys to the WP AI Client.
+ *
+ * ## Authentication
+ *
+ * Connectors support two authentication methods:
+ *
+ *  - `api_key`: Requires an API key, which can be provided via environment variable,
+ *    PHP constant, or the database (checked in that order).
+ *  - `none`: No authentication required.
+ *
+ * API keys stored in the database are automatically masked in REST API responses
+ * and validated against the provider on update.
  *
  * @package WordPress
  * @subpackage Connectors
