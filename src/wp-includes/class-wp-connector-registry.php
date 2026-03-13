@@ -65,10 +65,22 @@ final class WP_Connector_Registry {
 	/**
 	 * Registers a new connector.
 	 *
+	 * Validates the provided arguments and stores the connector in the registry.
+	 * For connectors with `api_key` authentication, a `setting_name` is automatically
+	 * generated using the pattern `connectors_ai_{$id}_api_key` (e.g., connector ID
+	 * `openai` produces `connectors_ai_openai_api_key`). This setting name is used
+	 * for the Settings API registration and REST API exposure.
+	 *
+	 * Registering a connector with an ID that is already registered will trigger a
+	 * `_doing_it_wrong()` notice and return `null`. To override an existing connector,
+	 * call `unregister()` first.
+	 *
 	 * @since 7.0.0
 	 *
-	 * @param string $id   The unique connector identifier. Must contain only lowercase
-	 *                     alphanumeric characters and underscores.
+	 * @see WP_Connector_Registry::unregister()
+	 *
+	 * @param string $id   The unique connector identifier. Must match the pattern
+	 *                     `/^[a-z0-9_]+$/` (lowercase alphanumeric and underscores only).
 	 * @param array  $args {
 	 *     An associative array of arguments for the connector.
 	 *
