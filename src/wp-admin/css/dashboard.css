@@ -570,7 +570,7 @@
 }
 
 .community-events ul {
-	background-color: #f6f7f7;
+	background-color: #f8f8f8;
 	padding-left: 0;
 	padding-right: 0;
 	padding-bottom: 0;
@@ -949,7 +949,7 @@ body #dashboard-widgets .postbox form .submit {
 
 #future-posts li:nth-child(odd),
 #published-posts li:nth-child(odd) {
-	background-color: #f6f7f7;
+	background-color: #f8f8f8;
 }
 
 .activity-block {
@@ -978,7 +978,7 @@ body #dashboard-widgets .postbox form .submit {
 }
 
 #activity-widget #the-comment-list .comment-item {
-	background: #f6f7f7;
+	background: #f8f8f8;
 	padding: 12px;
 	position: relative;
 }
