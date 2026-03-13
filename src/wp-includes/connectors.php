@@ -266,8 +266,20 @@ function _wp_connectors_resolve_ai_provider_logo_url( string $path ): ?string {
 /**
  * Initializes the connector registry with default connectors and fires the registration action.
  *
- * Creates the registry instance, registers built-in connectors (which cannot be unhooked),
- * and then fires the `wp_connectors_init` action for plugins to register their own connectors.
+ * This function orchestrates the full connector initialization sequence:
+ *
+ *  1. Creates the `WP_Connector_Registry` singleton instance.
+ *  2. Defines built-in connectors (Anthropic, Google, OpenAI) with hardcoded defaults
+ *     including name, description, type, plugin slug, and authentication configuration.
+ *  3. Merges metadata from the WP AI Client provider registry on top of defaults.
+ *     Registry values (from provider plugins) take precedence over hardcoded fallbacks
+ *     for name, description, logo URL, and authentication method.
+ *  4. Registers all connectors (built-in and AI Client-discovered) on the registry.
+ *  5. Fires the `wp_connectors_init` action for plugins to register additional connectors.
+ *
+ * Built-in connectors are registered before the action fires and cannot be unhooked.
+ * Plugins should use the `wp_connectors_init` action to add their own connectors
+ * via `$registry->register()`.
  *
  * @since 7.0.0
  * @access private
