@@ -37,6 +37,9 @@ jobs:
     if: ${{ needs.detect-hash-change.outputs.sha_changed == 'true' }}
     permissions:
       contents: read
+    with:
+      base-sha: ${{ needs.detect-hash-change.outputs.base_sha }}
+      head-sha: ${{ needs.detect-hash-change.outputs.head_sha }}
 
   # Drafts a commit message containing a detailed list of changes being merged.
   #

@@ -5,6 +5,16 @@ name: Detect hash change (reusable)
 
 on:
   workflow_call:
+    outputs:
+      sha_changed:
+        description: 'Whether the pinned Gutenberg hash has changed.'
+        value: ${{ jobs.detect-hash-change.outputs.sha_changed }}
+      base_sha:
+        description: 'The previous pinned Gutenberg hash.'
+        value: ${{ jobs.detect-hash-change.outputs.base_sha }}
+      head_sha:
+        description: 'The new pinned Gutenberg hash.'
+        value: ${{ jobs.detect-hash-change.outputs.head_sha }}
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
