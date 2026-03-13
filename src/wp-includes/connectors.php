@@ -56,8 +56,8 @@
  * Example — overriding the description of an auto-discovered connector:
  *
  *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
- *         $connector = $registry->get_registered( 'openai' );
- *         if ( $connector ) {
+ *         if ( $registry->is_registered( 'openai' ) ) {
+ *             $connector = $registry->unregister( 'openai' );
  *             $connector['description'] = __( 'Custom description for OpenAI.', 'my-plugin' );
  *             $registry->register( 'openai', $connector );
  *         }
@@ -428,14 +428,15 @@ function _wp_connectors_init(): void {
 	 * primarily for registering non-AI-provider connectors or overriding metadata
 	 * on existing connectors.
 	 *
-	 * Use `$registry->register()` within this action to add new connectors or
-	 * re-register existing ones with updated metadata.
+	 * Use `$registry->register()` within this action to add new connectors.
+	 * To override an existing connector, unregister it first, then re-register
+	 * with updated data.
 	 *
 	 * Example — overriding metadata on an auto-discovered connector:
 	 *
 	 *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
-	 *         $connector = $registry->get_registered( 'openai' );
-	 *         if ( $connector ) {
+	 *         if ( $registry->is_registered( 'openai' ) ) {
+	 *             $connector = $registry->unregister( 'openai' );
 	 *             $connector['description'] = __( 'Custom description for OpenAI.', 'my-plugin' );
 	 *             $registry->register( 'openai', $connector );
 	 *         }
