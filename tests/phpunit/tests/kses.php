@@ -2502,7 +2502,7 @@ HTML;
 			),
 			array(
 				'http://localhost/test.png,big 1x, bad://localhost/test.png,medium 2x',
-				'http://localhost/test.png, big 1x, //localhost/test.png, medium 2x',
+				'http://localhost/test.png,big 1x, //localhost/test.png,medium 2x',
 			),
 			array(
 				'path/to/test.png 1x, path/to/test-2x.png 2x',
@@ -2580,8 +2580,8 @@ HTML;
 			// Test an empty srcset.
 			array( '', '' ),
 
-			// Srcset with extra whitespace.
-			array( '  image1.jpg 1x  ,   image2.jpg 2x  ', '  image1.jpg 1x, image2.jpg 2x  ' ),
+			// Srcset with extra whitespace (trailing whitespace trimmed, internal spacing preserved).
+			array( '  image1.jpg 1x  ,   image2.jpg 2x  ', '  image1.jpg 1x  ,   image2.jpg 2x' ),
 
 			// Srcset with single URL and no descriptor.
 			array( 'image.jpg', 'image.jpg' ),
