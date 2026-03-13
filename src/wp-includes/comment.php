@@ -2902,7 +2902,7 @@ function wp_update_comment_count_now( $post_id ) {
 					break;
 				}
 
-				$visited_ids[ $parent_id ] = true;
+				$visited_comments_ids[ $parent_id ] = true;
 
 				if ( ! isset( $comments_by_id[ $parent_id ] ) ) {
 					$has_unapproved = true;
