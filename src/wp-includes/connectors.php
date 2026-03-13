@@ -18,17 +18,19 @@
  *
  * ## AI Provider Plugins
  *
- * AI provider plugins that register with the WP AI Client get automatic connector
- * integration — no explicit connector registration is needed. The system discovers
- * providers from the WP AI Client registry and creates connectors with the correct
- * name, description, logo, authentication method, and setting name derived from
- * the provider's configuration.
+ * AI provider plugins that register with the WP AI Client's `ProviderRegistry`
+ * get automatic connector integration — no explicit connector registration is
+ * needed. The system discovers providers from the WP AI Client registry and
+ * creates connectors with the correct name, description, logo, authentication
+ * method, and setting name derived from the provider's configuration.
  *
  * The authentication method (`api_key` or `none`) is determined by the provider's
  * metadata in the WP AI Client. For `api_key` providers, a `setting_name` is
  * automatically generated following the same naming convention used for environment
  * variables and PHP constants (e.g., provider `openai` maps to `OPENAI_API_KEY`
  * for env/constant lookup).
+ *
+ * @see WordPress\AiClient\Providers\ProviderRegistry
  *
  * ## Admin UI Integration
  *
@@ -48,10 +50,9 @@
  *
  * ## Custom Connectors
  *
- * Plugins can use the `wp_connectors_init` action hook to override metadata on
- * existing connectors or register new connector types. AI provider connectors
- * are auto-discovered from the WP AI Client registry and should not be manually
- * registered here.
+ * The `wp_connectors_init` action hook allows plugins to override metadata on
+ * existing connectors. AI provider connectors are auto-discovered from the WP
+ * AI Client registry and should not be manually registered here.
  *
  * Example — overriding the description of an auto-discovered connector:
  *
@@ -63,9 +64,12 @@
  *         }
  *     } );
  *
- * As the Connectors API evolves to support additional connector types beyond
- * `ai_provider`, this action will also be the primary hook for registering
- * those new connector types.
+ * Non-AI-provider connector types are not yet fully supported. The PHP registry
+ * accepts any connector type, but only `ai_provider` connectors with `api_key`
+ * authentication receive automatic admin UI. Support for additional connector
+ * types with dedicated frontend integration is planned for future releases.
+ * When available, this action will be the primary hook for registering those
+ * new connector types.
  *
  * ## Initialization Lifecycle
  *
