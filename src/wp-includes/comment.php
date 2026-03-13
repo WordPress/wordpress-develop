@@ -2883,26 +2883,51 @@ function wp_update_comment_count_now( $post_id ) {
 			$comments_by_id[ $comment->comment_ID ] = $comment;
 		}
 
-		$comment_count = 0;
+		$comment_count           = 0;
+		$ancestor_approval_cache = array();
 
-		// Loop through each comment and check for approved comment.
+		foreach ( $comments as $comment ) {
+			if ( '1' !== $comment->comment_approved ) {
+				$ancestor_approval_cache[ (int) $comment->comment_ID ] = false;
+			}
+		}
+
 		foreach ( $comments as $comment ) {
 
 			if ( '1' !== $comment->comment_approved ) {
 				continue;
 			}
 
-			$parent_id            = (int) $comment->comment_parent;
-			$has_unapproved       = false;
-			$visited_comments_ids = array();
+			$comment_id = (int) $comment->comment_ID;
+
+			// Use cached result if this comment's ancestry was already resolved.
+			if ( isset( $ancestor_approval_cache[ $comment_id ] ) ) {
+				if ( $ancestor_approval_cache[ $comment_id ] ) {
+					++$comment_count;
+				}
+				continue;
+			}
+
+			// Walk the ancestor chain, collecting IDs to memoize afterwards.
+			$chain          = array( $comment_id );
+			$visited        = array(
+				$comment_id => true,
+			);
+			$parent_id      = (int) $comment->comment_parent;
+			$has_unapproved = false;
 
 			while ( 0 !== $parent_id ) {
-				if ( isset( $visited_comments_ids[ $parent_id ] ) ) {
+				if ( isset( $visited[ $parent_id ] ) ) {
 					$has_unapproved = true;
 					break;
 				}
 
-				$visited_comments_ids[ $parent_id ] = true;
+				if ( isset( $ancestor_approval_cache[ $parent_id ] ) ) {
+					if ( ! $ancestor_approval_cache[ $parent_id ] ) {
+						$has_unapproved = true;
+					}
+					break;
+				}
 
 				if ( ! isset( $comments_by_id[ $parent_id ] ) ) {
 					$has_unapproved = true;
@@ -2916,7 +2941,13 @@ function wp_update_comment_count_now( $post_id ) {
 					break;
 				}
 
-				$parent_id = (int) $parent_comment->comment_parent;
+				$visited[ $parent_id ] = true;
+				$chain[]               = $parent_id;
+				$parent_id             = (int) $parent_comment->comment_parent;
+			}
+
+			foreach ( $chain as $chain_id ) {
+				$ancestor_approval_cache[ $chain_id ] = ! $has_unapproved;
 			}
 
 			if ( ! $has_unapproved ) {
