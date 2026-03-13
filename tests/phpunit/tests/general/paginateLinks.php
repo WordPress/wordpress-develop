@@ -33,7 +33,6 @@ class Tests_General_PaginateLinks extends WP_UnitTestCase {
 			array(
 				'taxonomy' => 'category',
 				'name'     => 'Categorized',
-				array( 'slug' => 'categorized' ),
 			)
 		);
 
