@@ -70,6 +70,12 @@ use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 /**
  * Checks if a connector is registered.
  *
+ * Example:
+ *
+ *     if ( wp_is_connector_registered( 'openai' ) ) {
+ *         // The OpenAI connector is available.
+ *     }
+ *
  * @since 7.0.0
  *
  * @see WP_Connector_Registry::is_registered()
@@ -88,6 +94,13 @@ function wp_is_connector_registered( string $id ): bool {
 
 /**
  * Retrieves a registered connector.
+ *
+ * Example:
+ *
+ *     $connector = wp_get_connector( 'openai' );
+ *     if ( $connector ) {
+ *         echo $connector['name']; // 'OpenAI'
+ *     }
  *
  * @since 7.0.0
  *
@@ -141,6 +154,13 @@ function wp_get_connector( string $id ): ?array {
 
 /**
  * Retrieves all registered connectors.
+ *
+ * Example:
+ *
+ *     $connectors = wp_get_connectors();
+ *     foreach ( $connectors as $id => $connector ) {
+ *         printf( '%s: %s', $connector['name'], $connector['description'] );
+ *     }
  *
  * @since 7.0.0
  *
