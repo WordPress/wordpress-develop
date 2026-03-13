@@ -30,11 +30,41 @@ if ( ! class_exists( '\WordPress\AiClient\AiClient' ) || ! function_exists( 'wp_
 $title = __( 'Connectors' );
 
 // Set parent file for menu highlighting.
-$parent_file = 'options-general.php';
+$parent_file  = 'options-general.php';
+$submenu_file = 'options-connectors.php';
+
+add_action(
+	'admin_head-options-connectors.php', // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	static function () {
+		?>
+		<style>
+			#wpcontent {
+				background-color: #fff;
+			}
+		</style>
+		<?php
+	}
+);
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 // Render the Connectors page.
 wp_options_connectors_wp_admin_render_page();
+
+if ( is_rtl() ) {
+	?>
+	<style>
+		.rtl .admin-ui-page__header > div > div:first-child {
+			justify-content: start;
+		}
+
+		.rtl ul#adminmenu a.wp-has-current-submenu::after,
+		.rtl ul#adminmenu > li.current > a.current::after {
+			border-right-color: transparent;
+			border-left-color: #fff;
+		}
+	</style>
+	<?php
+}
 
 require_once ABSPATH . 'wp-admin/admin-footer.php';
