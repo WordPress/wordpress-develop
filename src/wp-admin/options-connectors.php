@@ -33,19 +33,6 @@ $title = __( 'Connectors' );
 $parent_file  = 'options-general.php';
 $submenu_file = 'options-connectors.php';
 
-add_action(
-	'admin_head-options-connectors.php', // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-	static function () {
-		?>
-		<style>
-			#wpcontent {
-				background-color: #fff;
-			}
-		</style>
-		<?php
-	}
-);
-
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 // Render the Connectors page.
