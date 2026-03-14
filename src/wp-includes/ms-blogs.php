@@ -1070,7 +1070,7 @@ function wp_count_sites( $network_id = null ) {
 		'no_found_rows' => false,
 	);
 
-	$q             = new WP_Site_Query( $args );
+	$q               = new WP_Site_Query( $args );
 	$counts[ 'all' ] = $q->found_sites;
 
 	$_args    = $args;
