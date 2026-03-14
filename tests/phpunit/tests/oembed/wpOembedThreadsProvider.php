@@ -24,7 +24,7 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	 * @param string $url      The URL to test.
 	 * @param string $expected The expected oEmbed provider URL.
 	 */
-	public function test_threads_provider_url( $url, $expected ) {
+	public function test_threads_provider_url( string $url, string $expected ): void {
 		$provider = $this->oembed->get_provider( $url, array( 'discover' => false ) );
 		$this->assertSame( $expected, $provider );
 	}
