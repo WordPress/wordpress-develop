@@ -7,38 +7,26 @@
  */
 class Tests_General_PaginateLinks extends WP_UnitTestCase {
 
-	private $i18n_count = 0;
-
-	/**
-	 * Post IDs created for shared fixtures.
-	 *
-	 * @var int[]
-	 */
-	protected static $post_ids = array();
-
-	/**
-	 * Category ID created for shared fixtures.
-	 *
-	 * @var int
-	 */
-	protected static $category_id = 0;
+	private int $i18n_count = 0;
 
 	/**
 	 * Set up shared fixtures.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory instance.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
-		self::$category_id = $factory->term->create(
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
+		$category_id = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
 				'name'     => 'Categorized',
 			)
 		);
+		assert( is_int( $category_id ) );
 
-		self::$post_ids = $factory->post->create_many( 10 );
-		foreach ( self::$post_ids as $post_id ) {
-			wp_set_post_categories( $post_id, array( self::$category_id ) );
+		$post_ids = $factory->post->create_many( 10 );
+		foreach ( $post_ids as $post_id ) {
+			assert( is_int( $post_id ) );
+			assert( is_array( wp_set_post_categories( $post_id, array( $category_id ) ) ) );
 		}
 	}
 
@@ -422,7 +410,7 @@ EXPECTED;
 	 *
 	 * @ticket 61393
 	 */
-	public function test_permalinks_with_trailing_slash_produce_links_with_trailing_slashes() {
+	public function test_permalinks_with_trailing_slash_produce_links_with_trailing_slashes(): void {
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '/%postname%/' );
 
@@ -446,7 +434,7 @@ EXPECTED;
 	 *
 	 * @ticket 61393
 	 */
-	public function test_permalinks_without_trailing_slash_produce_links_without_trailing_slashes() {
+	public function test_permalinks_without_trailing_slash_produce_links_without_trailing_slashes(): void {
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -475,7 +463,7 @@ EXPECTED;
 	 *
 	 * @param string $query_string Query string.
 	 */
-	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( string $query_string ) {
+	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( string $query_string ): void {
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '/%postname%/' );
 
@@ -504,7 +492,7 @@ EXPECTED;
 	 *
 	 * @param string $query_string Query string.
 	 */
-	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( string $query_string ) {
+	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( string $query_string ): void {
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '/%postname%' );
 
