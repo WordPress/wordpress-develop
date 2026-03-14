@@ -513,9 +513,10 @@ EXPECTED;
 	}
 
 	/**
-	 * Data provider for
-	 *  - test_permalinks_without_trailing_slash_do_not_modify_query_strings
-	 *  - test_permalinks_with_trailing_slash_do_not_modify_query_strings
+	 * Data provider.
+	 *
+	 * @see self::test_permalinks_without_trailing_slash_do_not_modify_query_strings()
+	 * @see self::test_permalinks_with_trailing_slash_do_not_modify_query_strings()
 	 *
 	 * @return array<string, array{ 0: string }> Data provider.
 	 */
