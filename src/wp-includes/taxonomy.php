@@ -4169,7 +4169,7 @@ function _update_post_term_count( $terms, $taxonomy ) {
 		$object_types = esc_sql( array_filter( $object_types, 'post_type_exists' ) );
 	}
 
-	$post_statuses = array( 'publish' );
+	$post_statuses = array( 'publish', 'future' );
 
 	/**
 	 * Filters the post statuses for updating the term count.
