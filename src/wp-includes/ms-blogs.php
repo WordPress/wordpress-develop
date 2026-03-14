@@ -134,19 +134,19 @@ function get_blog_details( $fields = null, $get_all = true ) {
 	global $wpdb;
 
 	if ( is_array( $fields ) ) {
-		if ( isset( $fields[ 'blog_id' ] ) ) {
-			$blog_id = $fields[ 'blog_id' ];
-		} elseif ( isset( $fields[ 'domain' ] ) && isset( $fields[ 'path' ] ) ) {
-			$key  = md5( $fields[ 'domain' ] . $fields[ 'path' ] );
+		if ( isset( $fields['blog_id'] ) ) {
+			$blog_id = $fields['blog_id'];
+		} elseif ( isset( $fields['domain'] ) && isset( $fields['path'] ) ) {
+			$key  = md5( $fields['domain'] . $fields['path'] );
 			$blog = wp_cache_get( $key, 'blog-lookup' );
 			if ( false !== $blog ) {
 				return $blog;
 			}
-			if ( str_starts_with( $fields[ 'domain' ], 'www.' ) ) {
-				$nowww = substr( $fields[ 'domain' ], 4 );
-				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields[ 'domain' ], $fields[ 'path' ] ) );
+			if ( str_starts_with( $fields['domain'], 'www.' ) ) {
+				$nowww = substr( $fields['domain'], 4 );
+				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'], $fields['path'] ) );
 			} else {
-				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s AND path = %s", $fields[ 'domain' ], $fields[ 'path' ] ) );
+				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s AND path = %s", $fields['domain'], $fields['path'] ) );
 			}
 			if ( $blog ) {
 				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
@@ -154,17 +154,17 @@ function get_blog_details( $fields = null, $get_all = true ) {
 			} else {
 				return false;
 			}
-		} elseif ( isset( $fields[ 'domain' ] ) && is_subdomain_install() ) {
-			$key  = md5( $fields[ 'domain' ] );
+		} elseif ( isset( $fields['domain'] ) && is_subdomain_install() ) {
+			$key  = md5( $fields['domain'] );
 			$blog = wp_cache_get( $key, 'blog-lookup' );
 			if ( false !== $blog ) {
 				return $blog;
 			}
-			if ( str_starts_with( $fields[ 'domain' ], 'www.' ) ) {
-				$nowww = substr( $fields[ 'domain' ], 4 );
-				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields[ 'domain' ] ) );
+			if ( str_starts_with( $fields['domain'], 'www.' ) ) {
+				$nowww = substr( $fields['domain'], 4 );
+				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'] ) );
 			} else {
-				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s", $fields[ 'domain' ] ) );
+				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s", $fields['domain'] ) );
 			}
 			if ( $blog ) {
 				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
@@ -351,17 +351,17 @@ function clean_site_details_cache( $site_id = 0 ) {
  *
  * @param int    $blog_id  Site ID.
  * @param string $option   Option name.
- * @param mixed  $default  Optional. Default value if option not found. Default false.
- * @return mixed Option value or $default.
+ * @param mixed  $default_value Optional. Default value if option not found. Default false.
+ * @return mixed Option value or $default_value.
  */
-function _get_option_from_blog( int $blog_id, string $option, $default = false ) {
+function _get_option_from_blog( int $blog_id, string $option, $default_value = false ) {
 	global $wpdb;
 
 	$blog_id = (int) $blog_id;
 
 	// Fast path: current blog — delegate to get_option() for full filter/cache compat.
 	if ( get_current_blog_id() === $blog_id ) {
-		return get_option( $option, $default );
+		return get_option( $option, $default_value );
 	}
 
 	// Check object cache first.
@@ -372,24 +372,26 @@ function _get_option_from_blog( int $blog_id, string $option, $default = false )
 
 	$notoptions = wp_cache_get( $blog_id, 'blog-notoptions' );
 	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
-		return $default;
+		return $default_value;
 	}
 
 	// Direct DB query using get_blog_prefix() — no switch.
 	$table = $wpdb->get_blog_prefix( $blog_id ) . 'options';
-	$row   = $wpdb->get_row(
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is built from $wpdb->get_blog_prefix().
+	$row = $wpdb->get_row(
 		$wpdb->prepare(
 			"SELECT option_value FROM `{$table}` WHERE option_name = %s LIMIT 1",
 			$option
 		)
 	);
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 	if ( null === $row ) {
 		// Mark as not-found in cache.
 		$notoptions            = is_array( $notoptions ) ? $notoptions : array();
 		$notoptions[ $option ] = true;
 		wp_cache_set( $blog_id, $notoptions, 'blog-notoptions' );
-		return $default;
+		return $default_value;
 	}
 
 	$value = maybe_unserialize( $row->option_value );
@@ -466,10 +468,12 @@ function add_blog_option( $id, $option, $value ) {
 		return add_option( $option, $value );
 	}
 
-	$table  = $wpdb->get_blog_prefix( $id ) . 'options';
+	$table = $wpdb->get_blog_prefix( $id ) . 'options';
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is built from $wpdb->get_blog_prefix().
 	$exists = $wpdb->get_var(
 		$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE option_name = %s", $option )
 	);
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 	if ( $exists ) {
 		return false;
@@ -563,9 +567,11 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
 		return false;
 	}
 
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is built from $wpdb->get_blog_prefix().
 	$exists = $wpdb->get_var(
 		$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE option_name = %s", $option )
 	);
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 	if ( $exists ) {
 		$result = $wpdb->update(
@@ -624,7 +630,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 		$new_blog_id = $prev_blog_id;
 	}
 
-	$GLOBALS[ '_wp_switched_stack' ][] = $prev_blog_id;
+	$GLOBALS['_wp_switched_stack'][] = $prev_blog_id;
 
 	/*
 	 * If we're switching to the same blog id that we're on,
@@ -645,21 +651,21 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 		 */
 		do_action( 'switch_blog', $new_blog_id, $prev_blog_id, 'switch' );
 
-		$GLOBALS[ 'switched' ] = true;
+		$GLOBALS['switched'] = true;
 
 		return true;
 	}
 
 	$wpdb->set_blog_id( $new_blog_id );
-	$GLOBALS[ 'table_prefix' ] = $wpdb->get_blog_prefix();
-	$GLOBALS[ 'blog_id' ]      = $new_blog_id;
+	$GLOBALS['table_prefix'] = $wpdb->get_blog_prefix();
+	$GLOBALS['blog_id']      = $new_blog_id;
 
 	wp_cache_switch_to_blog( $new_blog_id );
 
 	/** This filter is documented in wp-includes/ms-blogs.php */
 	do_action( 'switch_blog', $new_blog_id, $prev_blog_id, 'switch' );
 
-	$GLOBALS[ 'switched' ] = true;
+	$GLOBALS['switched'] = true;
 
 	return true;
 }
@@ -682,11 +688,11 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 function restore_current_blog() {
 	global $wpdb;
 
-	if ( empty( $GLOBALS[ '_wp_switched_stack' ] ) ) {
+	if ( empty( $GLOBALS['_wp_switched_stack'] ) ) {
 		return false;
 	}
 
-	$new_blog_id  = array_pop( $GLOBALS[ '_wp_switched_stack' ] );
+	$new_blog_id  = array_pop( $GLOBALS['_wp_switched_stack'] );
 	$prev_blog_id = get_current_blog_id();
 
 	if ( $new_blog_id === $prev_blog_id ) {
@@ -694,14 +700,14 @@ function restore_current_blog() {
 		do_action( 'switch_blog', $new_blog_id, $prev_blog_id, 'restore' );
 
 		// If we still have items in the switched stack, consider ourselves still 'switched'.
-		$GLOBALS[ 'switched' ] = ! empty( $GLOBALS[ '_wp_switched_stack' ] );
+		$GLOBALS['switched'] = ! empty( $GLOBALS['_wp_switched_stack'] );
 
 		return true;
 	}
 
 	$wpdb->set_blog_id( $new_blog_id );
-	$GLOBALS[ 'blog_id' ]      = $new_blog_id;
-	$GLOBALS[ 'table_prefix' ] = $wpdb->get_blog_prefix();
+	$GLOBALS['blog_id']      = $new_blog_id;
+	$GLOBALS['table_prefix'] = $wpdb->get_blog_prefix();
 
 	wp_cache_switch_to_blog( $new_blog_id );
 
@@ -709,7 +715,7 @@ function restore_current_blog() {
 	do_action( 'switch_blog', $new_blog_id, $prev_blog_id, 'restore' );
 
 	// If we still have items in the switched stack, consider ourselves still 'switched'.
-	$GLOBALS[ 'switched' ] = ! empty( $GLOBALS[ '_wp_switched_stack' ] );
+	$GLOBALS['switched'] = ! empty( $GLOBALS['_wp_switched_stack'] );
 
 	return true;
 }
@@ -834,7 +840,7 @@ function wp_switch_roles_and_user( $new_site_id, $old_site_id ) {
  * @return bool True if switched, false otherwise.
  */
 function ms_is_switched() {
-	return ! empty( $GLOBALS[ '_wp_switched_stack' ] );
+	return ! empty( $GLOBALS['_wp_switched_stack'] );
 }
 
 /**
@@ -1070,8 +1076,8 @@ function wp_count_sites( $network_id = null ) {
 		'no_found_rows' => false,
 	);
 
-	$q               = new WP_Site_Query( $args );
-	$counts[ 'all' ] = $q->found_sites;
+	$q             = new WP_Site_Query( $args );
+	$counts['all'] = $q->found_sites;
 
 	$_args    = $args;
 	$statuses = array( 'public', 'archived', 'mature', 'spam', 'deleted' );
