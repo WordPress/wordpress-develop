@@ -14,7 +14,7 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	 */
 	protected $oembed;
 
-	public function set_up() {
+	public function set_up(): void {
 		parent::set_up();
 
 		require_once ABSPATH . WPINC . '/class-wp-oembed.php';
