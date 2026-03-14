@@ -91,7 +91,7 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	 *
 	 * @param string $url The URL to test.
 	 */
-	public function test_threads_provider_does_not_match_non_post_urls( $url ) {
+	public function test_threads_provider_does_not_match_non_post_urls( string $url ): void {
 		$provider = $this->oembed->get_provider( $url, array( 'discover' => false ) );
 		$this->assertFalse( $provider );
 	}
