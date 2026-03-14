@@ -1443,9 +1443,9 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
  *
  * @since 7.0.0
  *
- * @global array $_wp_admin_css_colors Registered administration color schemes.
+ * @global array<string, object{ url: string }> $_wp_admin_css_colors Registered administration color schemes.
  */
-function wp_admin_bar_add_color_scheme_to_front_end() {
+function wp_admin_bar_add_color_scheme_to_front_end(): void {
 	if ( is_admin() ) {
 		return;
 	}
@@ -1463,23 +1463,41 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 	}
 
 	$color = $_wp_admin_css_colors[ $color_scheme ] ?? null;
-	$url   = $color->url ?? '';
+	if ( ! is_object( $color ) || ! isset( $color->url ) || ! is_string( $color->url ) ) {
+		return;
+	}
 
-	if ( $url ) {
-		$response = wp_remote_get( $url );
-		if ( ! is_wp_error( $response ) && is_string( $response['body'] ) ) {
-			$css            = $response['body'];
-			$start_position = strpos( $css, '#wpadminbar' );
-			if ( false !== $start_position ) {
-				$end_position = strpos( $css, '.wp-pointer' );
-				if ( false !== $end_position && $end_position > $start_position ) {
-					$css = substr( $css, $start_position, $end_position - $start_position );
-					if ( SCRIPT_DEBUG ) {
-						$css = str_replace( '/* Pointers */', '', $css );
-					}
-				}
-				wp_add_inline_style( 'admin-bar', $css );
-			}
+	$path = wp_parse_url( $color->url, PHP_URL_PATH );
+	if ( ! $path || ! str_ends_with( $path, '.css' ) ) {
+		return;
+	}
+
+	$css_admin_relative_path = strstr( $path, '/wp-admin/' );
+	if ( false === $css_admin_relative_path ) {
+		return;
+	}
+
+	$css_path = untrailingslashit( ABSPATH ) . $css_admin_relative_path;
+	if ( ! is_readable( $css_path ) ) {
+		return;
+	}
+
+	$css = file_get_contents( $css_path );
+	if ( false === $css ) {
+		return;
+	}
+
+	$start_position = strpos( $css, '#wpadminbar' );
+	if ( false === $start_position ) {
+		return;
+	}
+
+	$end_position = strpos( $css, '.wp-pointer' );
+	if ( false !== $end_position && $end_position > $start_position ) {
+		$css = substr( $css, $start_position, $end_position - $start_position );
+		if ( SCRIPT_DEBUG ) {
+			$css = str_replace( '/* Pointers */', '', $css );
 		}
 	}
+	wp_add_inline_style( 'admin-bar', $css );
 }
