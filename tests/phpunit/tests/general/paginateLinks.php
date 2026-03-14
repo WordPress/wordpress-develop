@@ -21,12 +21,12 @@ class Tests_General_PaginateLinks extends WP_UnitTestCase {
 				'name'     => 'Categorized',
 			)
 		);
-		assert( is_int( $category_id ) );
+		self::assertIsInt( $category_id );
 
 		$post_ids = $factory->post->create_many( 10 );
 		foreach ( $post_ids as $post_id ) {
-			assert( is_int( $post_id ) );
-			assert( is_array( wp_set_post_categories( $post_id, array( $category_id ) ) ) );
+			self::assertIsInt( $post_id );
+			self::assertIsArray( wp_set_post_categories( $post_id, array( $category_id ) ) );
 		}
 	}
 

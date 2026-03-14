@@ -4676,12 +4676,16 @@ function paginate_links( $args = '' ) {
 	 * incorrect URL to the correctly formatted one. This presents an
 	 * unnecessary performance hit.
 	 */
+<<<<<<< HEAD
 	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {
 		$pagenum_link = untrailingslashit( $url_parts[0] );
 	} else {
 		$pagenum_link = trailingslashit( $url_parts[0] );
 	}
 	$pagenum_link .= '%_%';
+=======
+	$pagenum_link = user_trailingslashit( $url_parts[0] );
+>>>>>>> d52bdb7a8f (Use PHPUnit assertion methods)
 
 	// URL base depends on permalink settings.
 	$format  = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
