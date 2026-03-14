@@ -193,8 +193,8 @@ class WP_oEmbed {
 		 * | Anghami      | anghami.com                               | 6.3.0   |
 		 * | Bluesky      | bsky.app                                  | 6.6.0   |
 		 * | Canva        | canva.com                                 | 6.8.0   |
-		 * | Threads      | threads.com                               | 6.9.0   |
-		 * | Threads      | threads.net                               | 6.9.0   |
+		 * | Threads      | threads.com                               | 7.0.0   |
+		 * | Threads      | threads.net                               | 7.0.0   |
 		 *
 		 * No longer supported providers:
 		 *
