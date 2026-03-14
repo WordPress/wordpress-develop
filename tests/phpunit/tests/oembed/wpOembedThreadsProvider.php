@@ -40,49 +40,49 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	public function data_threads_provider_urls() {
 		return array(
 			// threads.com post URLs.
-			'threads.com post URL'          => array(
+			'threads.com post URL'         => array(
 				'https://www.threads.com/@zuck/post/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
-			'threads.com post URL no www'   => array(
+			'threads.com post URL no www'  => array(
 				'https://threads.com/@zuck/post/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
-			'threads.com post URL http'     => array(
+			'threads.com post URL http'    => array(
 				'http://www.threads.com/@zuck/post/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
 
 			// threads.com short URLs.
-			'threads.com short URL'         => array(
+			'threads.com short URL'        => array(
 				'https://www.threads.com/t/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
-			'threads.com short URL no www'  => array(
+			'threads.com short URL no www' => array(
 				'https://threads.com/t/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
-			'threads.com short URL http'    => array(
+			'threads.com short URL http'   => array(
 				'http://www.threads.com/t/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
 
 			// threads.net post URLs.
-			'threads.net post URL'          => array(
+			'threads.net post URL'         => array(
 				'https://www.threads.net/@zuck/post/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
-			'threads.net post URL no www'   => array(
+			'threads.net post URL no www'  => array(
 				'https://threads.net/@zuck/post/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
 
 			// threads.net short URLs.
-			'threads.net short URL'         => array(
+			'threads.net short URL'        => array(
 				'https://www.threads.net/t/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
-			'threads.net short URL no www'  => array(
+			'threads.net short URL no www' => array(
 				'https://threads.net/t/C1234567890',
 				'https://graph.threads.com/oembed',
 			),
@@ -106,13 +106,13 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	 */
 	public function data_threads_non_matching_urls() {
 		return array(
-			'threads.com profile URL'       => array(
+			'threads.com profile URL'              => array(
 				'https://www.threads.com/@zuck',
 			),
-			'threads.com homepage'          => array(
+			'threads.com homepage'                 => array(
 				'https://www.threads.com/',
 			),
-			'threads.com search'            => array(
+			'threads.com search'                   => array(
 				'https://www.threads.com/search',
 			),
 			'non-threads URL with threads in path' => array(

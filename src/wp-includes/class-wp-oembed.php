@@ -111,7 +111,7 @@ class WP_oEmbed {
 			'#https?://bsky.app/profile/.*/post/.*#i'      => array( 'https://embed.bsky.app/oembed', true ),
 			'#https?://(www\.)?canva\.com/design/.*/view.*#i' => array( 'https://canva.com/_oembed', true ),
 			'#https?://(www\.)?threads\.(com|net)/@[^/]+/post/.+#i' => array( 'https://graph.threads.com/oembed', true ),
-			'#https?://(www\.)?threads\.(com|net)/t/.+#i' => array( 'https://graph.threads.com/oembed', true ),
+			'#https?://(www\.)?threads\.(com|net)/t/.+#i'  => array( 'https://graph.threads.com/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
