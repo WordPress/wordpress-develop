@@ -2881,11 +2881,11 @@ HTML;
 				'https://cdn.example/image/format=auto,quality=80/img.jpg 400w, https://cdn.example/image/format=auto,quality=80/img-large.jpg',
 				'https://cdn.example/image/format=auto,quality=80/img.jpg 400w, https://cdn.example/image/format=auto,quality=80/img-large.jpg',
 			),
-			'simple URLs, no descriptor on last entry'         => array(
+			'simple URLs, no descriptor on last entry' => array(
 				'small.jpg 300w, medium.jpg 600w, large.jpg',
 				'small.jpg 300w, medium.jpg 600w, large.jpg',
 			),
-			'single URL without any descriptor'                => array(
+			'single URL without any descriptor'        => array(
 				'only-image.jpg',
 				'only-image.jpg',
 			),
@@ -2908,15 +2908,15 @@ HTML;
 
 	public function data_wp_kses_srcset_decimal_descriptors() {
 		return array(
-			'decimal pixel density descriptors'      => array(
+			'decimal pixel density descriptors'     => array(
 				'image-1x.jpg 1x, image-1.5x.jpg 1.5x, image-2x.jpg 2x',
 				'image-1x.jpg 1x, image-1.5x.jpg 1.5x, image-2x.jpg 2x',
 			),
-			'mixed integer and decimal descriptors'   => array(
+			'mixed integer and decimal descriptors' => array(
 				'small.jpg 1x, medium.jpg 2x, large.jpg 3x',
 				'small.jpg 1x, medium.jpg 2x, large.jpg 3x',
 			),
-			'high density descriptor'                 => array(
+			'high density descriptor'               => array(
 				'low.jpg 1x, high.jpg 4x',
 				'low.jpg 1x, high.jpg 4x',
 			),
