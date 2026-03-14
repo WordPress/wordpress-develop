@@ -1467,11 +1467,11 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 
 	if ( $url ) {
 		$response = wp_remote_get( $url );
-		if ( ! is_wp_error( $response ) ) {
-			$css = $response['body'];
-			if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
-				$start_position = strpos( $css, '#wpadminbar' );
-				$end_position   = strpos( $css, '.wp-pointer' );
+		if ( ! is_wp_error( $response ) && is_string( $response['body'] ) ) {
+			$css            = $response['body'];
+			$start_position = strpos( $css, '#wpadminbar' );
+			if ( false !== $start_position ) {
+				$end_position = strpos( $css, '.wp-pointer' );
 				if ( false !== $end_position && $end_position > $start_position ) {
 					$css = substr( $css, $start_position, $end_position - $start_position );
 					if ( SCRIPT_DEBUG ) {
