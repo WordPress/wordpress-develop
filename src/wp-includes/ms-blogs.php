@@ -559,7 +559,7 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
 	$old_value = _get_option_from_blog( $id, $option );
 
 	// If old and new values are the same, no update needed.
-	if ( $serialized === maybe_serialize( $old_value ) ) {
+	if ( maybe_serialize( $old_value ) === $serialized ) {
 		return false;
 	}
 

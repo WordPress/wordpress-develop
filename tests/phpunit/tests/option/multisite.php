@@ -171,7 +171,7 @@ class Tests_Option_Multisite extends WP_UnitTestCase {
 		get_blog_option( $blog_id, 'blogname' );
 
 		$this->assertFalse(
-			isset( $GLOBALS[ 'switched' ] ) && $GLOBALS[ 'switched' ],
+			isset( $GLOBALS['switched'] ) && $GLOBALS['switched'],
 			'$GLOBALS[\'switched\'] should not be true after get_blog_option() on another site'
 		);
 	}
@@ -193,7 +193,7 @@ class Tests_Option_Multisite extends WP_UnitTestCase {
 		update_blog_option( $blog_id, 'test_no_switch_option', 'test_value' );
 
 		$this->assertFalse(
-			isset( $GLOBALS[ 'switched' ] ) && $GLOBALS[ 'switched' ],
+			isset( $GLOBALS['switched'] ) && $GLOBALS['switched'],
 			'$GLOBALS[\'switched\'] should not be true after update_blog_option() on another site'
 		);
 
@@ -225,7 +225,7 @@ class Tests_Option_Multisite extends WP_UnitTestCase {
 		$this->assertSame( 'Test Site Name', $site->blogname );
 
 		$this->assertFalse(
-			isset( $GLOBALS[ 'switched' ] ) && $GLOBALS[ 'switched' ],
+			isset( $GLOBALS['switched'] ) && $GLOBALS['switched'],
 			'$GLOBALS[\'switched\'] should not be true after accessing WP_Site::blogname'
 		);
 	}
