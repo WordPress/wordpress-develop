@@ -32,9 +32,9 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	/**
 	 * Data provider for valid Threads URLs.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ 0: string, 1: string }>
 	 */
-	public function data_threads_provider_urls() {
+	public function data_threads_provider_urls(): array {
 		return array(
 			// threads.com post URLs.
 			'threads.com post URL'         => array(
