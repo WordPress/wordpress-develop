@@ -9,10 +9,7 @@
  */
 class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 
-	/**
-	 * @var WP_oEmbed
-	 */
-	protected $oembed;
+	protected WP_oEmbed $oembed;
 
 	public function set_up(): void {
 		parent::set_up();
