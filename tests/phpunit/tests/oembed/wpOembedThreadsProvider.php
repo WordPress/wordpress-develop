@@ -99,9 +99,9 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	/**
 	 * Data provider for URLs that should not match the Threads provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ 0: string }>
 	 */
-	public function data_threads_non_matching_urls() {
+	public function data_threads_non_matching_urls(): array {
 		return array(
 			'threads.com profile URL'              => array(
 				'https://www.threads.com/@zuck',
