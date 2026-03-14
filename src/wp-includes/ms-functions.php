@@ -49,7 +49,7 @@ function get_active_blog_for_user( $user_id ) {
 	}
 
 	if ( ! is_multisite() ) {
-		return $blogs[ get_current_blog_id() ];
+		return $blogs[get_current_blog_id()];
 	}
 
 	$primary_blog = get_user_meta( $user_id, 'primary_blog', true );
@@ -959,7 +959,7 @@ function wpmu_signup_blog_notification(
 	$title,
 	$user_login,
 	$user_email,
-	#[\SensitiveParameter]
+	#[\SensitiveParameter ]
 	$key,
 	$meta = array()
 ) {
@@ -1100,7 +1100,7 @@ function wpmu_signup_blog_notification(
 function wpmu_signup_user_notification(
 	$user_login,
 	$user_email,
-	#[\SensitiveParameter]
+	#[\SensitiveParameter ]
 	$key,
 	$meta = array()
 ) {
@@ -1206,7 +1206,7 @@ function wpmu_signup_user_notification(
  * @return array|WP_Error An array containing information about the activated user and/or blog.
  */
 function wpmu_activate_signup(
-	#[\SensitiveParameter]
+	#[\SensitiveParameter ]
 	$key
 ) {
 	global $wpdb;
@@ -1362,7 +1362,7 @@ function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
  */
 function wpmu_create_user(
 	$user_name,
-	#[\SensitiveParameter]
+	#[\SensitiveParameter ]
 	$password,
 	$email
 ) {
@@ -1509,7 +1509,7 @@ Disable these notifications: %4$s'
 		),
 		$blogname,
 		$siteurl,
-		wp_unslash( $_SERVER['REMOTE_ADDR'] ),
+		wp_unslash( $_SERVER[ 'REMOTE_ADDR' ] ),
 		$options_site_url
 	);
 	/**
@@ -1565,7 +1565,7 @@ Remote IP address: %2$s
 Disable these notifications: %3$s'
 		),
 		$user->user_login,
-		wp_unslash( $_SERVER['REMOTE_ADDR'] ),
+		wp_unslash( $_SERVER[ 'REMOTE_ADDR' ] ),
 		$options_site_url
 	);
 
@@ -1652,7 +1652,7 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
 function wpmu_welcome_notification(
 	$blog_id,
 	$user_id,
-	#[\SensitiveParameter]
+	#[\SensitiveParameter ]
 	$password,
 	$title,
 	$meta = array()
@@ -1862,10 +1862,10 @@ Name: %3$s'
 	$new_site_email = apply_filters( 'new_site_email', $new_site_email, $site, $user );
 
 	wp_mail(
-		$new_site_email['to'],
-		wp_specialchars_decode( $new_site_email['subject'] ),
-		$new_site_email['message'],
-		$new_site_email['headers']
+		$new_site_email[ 'to' ],
+		wp_specialchars_decode( $new_site_email[ 'subject' ] ),
+		$new_site_email[ 'message' ],
+		$new_site_email[ 'headers' ]
 	);
 
 	if ( $switched_locale ) {
@@ -1892,7 +1892,7 @@ Name: %3$s'
  */
 function wpmu_welcome_user_notification(
 	$user_id,
-	#[\SensitiveParameter]
+	#[\SensitiveParameter ]
 	$password,
 	$meta = array()
 ) {
@@ -2019,19 +2019,19 @@ function get_most_recent_post_of_user( $user_id ) {
 		$recent_post = $wpdb->get_row( $wpdb->prepare( "SELECT ID, post_date_gmt FROM {$prefix}posts WHERE post_author = %d AND post_type = 'post' AND post_status = 'publish' ORDER BY post_date_gmt DESC LIMIT 1", $user_id ), ARRAY_A );
 
 		// Make sure we found a post.
-		if ( isset( $recent_post['ID'] ) ) {
-			$post_gmt_ts = strtotime( $recent_post['post_date_gmt'] );
+		if ( isset( $recent_post[ 'ID' ] ) ) {
+			$post_gmt_ts = strtotime( $recent_post[ 'post_date_gmt' ] );
 
 			/*
 			 * If this is the first post checked
 			 * or if this post is newer than the current recent post,
 			 * make it the new most recent post.
 			 */
-			if ( ! isset( $most_recent_post['post_gmt_ts'] ) || ( $post_gmt_ts > $most_recent_post['post_gmt_ts'] ) ) {
+			if ( ! isset( $most_recent_post[ 'post_gmt_ts' ] ) || ( $post_gmt_ts > $most_recent_post[ 'post_gmt_ts' ] ) ) {
 				$most_recent_post = array(
 					'blog_id'       => $blog->userblog_id,
-					'post_id'       => $recent_post['ID'],
-					'post_date_gmt' => $recent_post['post_date_gmt'],
+					'post_id'       => $recent_post[ 'ID' ],
+					'post_date_gmt' => $recent_post[ 'post_date_gmt' ],
 					'post_gmt_ts'   => $post_gmt_ts,
 				);
 			}
@@ -2110,7 +2110,7 @@ function wpmu_log_new_registrations( $blog_id, $user_id ) {
 	}
 
 	if ( is_array( $user_id ) ) {
-		$user_id = ! empty( $user_id['user_id'] ) ? $user_id['user_id'] : 0;
+		$user_id = ! empty( $user_id[ 'user_id' ] ) ? $user_id[ 'user_id' ] : 0;
 	}
 
 	$user = get_userdata( (int) $user_id );
@@ -2119,7 +2119,7 @@ function wpmu_log_new_registrations( $blog_id, $user_id ) {
 			$wpdb->registration_log,
 			array(
 				'email'           => $user->user_email,
-				'IP'              => preg_replace( '/[^0-9., ]/', '', wp_unslash( $_SERVER['REMOTE_ADDR'] ) ),
+				'IP'              => preg_replace( '/[^0-9., ]/', '', wp_unslash( $_SERVER[ 'REMOTE_ADDR' ] ) ),
 				'blog_id'         => $blog_id,
 				'date_registered' => current_time( 'mysql' ),
 			)
@@ -2157,7 +2157,7 @@ function upload_is_file_too_big( $upload ) {
 		return $upload;
 	}
 
-	if ( strlen( $upload['bits'] ) > ( KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 ) ) ) {
+	if ( strlen( $upload[ 'bits' ] ) > ( KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 ) ) ) {
 		/* translators: %s: Maximum allowed file size in kilobytes. */
 		return sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ) . '<br />', get_site_option( 'fileupload_maxk', 1500 ) );
 	}
@@ -2185,12 +2185,12 @@ function signup_nonce_fields() {
  * @return array
  */
 function signup_nonce_check( $result ) {
-	if ( ! strpos( $_SERVER['PHP_SELF'], 'wp-signup.php' ) ) {
+	if ( ! strpos( $_SERVER[ 'PHP_SELF' ], 'wp-signup.php' ) ) {
 		return $result;
 	}
 
-	if ( ! wp_verify_nonce( $_POST['_signup_form'], 'signup_form_' . $_POST['signup_form_id'] ) ) {
-		$result['errors']->add( 'invalid_nonce', __( 'Unable to submit this form, please try again.' ) );
+	if ( ! wp_verify_nonce( $_POST[ '_signup_form' ], 'signup_form_' . $_POST[ 'signup_form_id' ] ) ) {
+		$result[ 'errors' ]->add( 'invalid_nonce', __( 'Unable to submit this form, please try again.' ) );
 	}
 
 	return $result;
@@ -2235,11 +2235,11 @@ function maybe_redirect_404() {
  * @since MU (3.0.0)
  */
 function maybe_add_existing_user_to_blog() {
-	if ( ! str_contains( $_SERVER['REQUEST_URI'], '/newbloguser/' ) ) {
+	if ( ! str_contains( $_SERVER[ 'REQUEST_URI' ], '/newbloguser/' ) ) {
 		return;
 	}
 
-	$parts = explode( '/', $_SERVER['REQUEST_URI'] );
+	$parts = explode( '/', $_SERVER[ 'REQUEST_URI' ] );
 	$key   = array_pop( $parts );
 
 	if ( '' === $key ) {
@@ -2290,7 +2290,7 @@ function maybe_add_existing_user_to_blog() {
 function add_existing_user_to_blog( $details = false ) {
 	if ( is_array( $details ) ) {
 		$blog_id = get_current_blog_id();
-		$result  = add_user_to_blog( $blog_id, $details['user_id'], $details['role'] );
+		$result  = add_user_to_blog( $blog_id, $details[ 'user_id' ], $details[ 'role' ] );
 
 		/**
 		 * Fires immediately after an existing user is added to a site.
@@ -2301,7 +2301,7 @@ function add_existing_user_to_blog( $details = false ) {
 		 * @param true|WP_Error $result  True on success or a WP_Error object if the user doesn't exist
 		 *                               or could not be added.
 		 */
-		do_action( 'added_existing_user', $details['user_id'], $result );
+		do_action( 'added_existing_user', $details[ 'user_id' ], $result );
 
 		return $result;
 	}
@@ -2323,13 +2323,13 @@ function add_existing_user_to_blog( $details = false ) {
  */
 function add_new_user_to_blog(
 	$user_id,
-	#[\SensitiveParameter]
+	#[\SensitiveParameter ]
 	$password,
 	$meta
 ) {
-	if ( ! empty( $meta['add_to_blog'] ) ) {
-		$blog_id = $meta['add_to_blog'];
-		$role    = $meta['new_role'];
+	if ( ! empty( $meta[ 'add_to_blog' ] ) ) {
+		$blog_id = $meta[ 'add_to_blog' ];
+		$role    = $meta[ 'new_role' ];
 		remove_user_from_blog( $user_id, get_network()->site_id ); // Remove user from main blog.
 
 		$result = add_user_to_blog( $blog_id, $user_id, $role );
@@ -2613,7 +2613,7 @@ function get_space_used() {
 
 	if ( false === $space_used ) {
 		$upload_dir = wp_upload_dir();
-		$space_used = get_dirsize( $upload_dir['basedir'] ) / MB_IN_BYTES;
+		$space_used = get_dirsize( $upload_dir[ 'basedir' ] ) / MB_IN_BYTES;
 	}
 
 	return $space_used;
@@ -2955,18 +2955,18 @@ All at ###SITENAME###
 	 */
 	$email_change_email = apply_filters( 'network_admin_email_change_email', $email_change_email, $old_email, $new_email, $network_id );
 
-	$email_change_email['message'] = str_replace( '###OLD_EMAIL###', $old_email, $email_change_email['message'] );
-	$email_change_email['message'] = str_replace( '###NEW_EMAIL###', $new_email, $email_change_email['message'] );
-	$email_change_email['message'] = str_replace( '###SITENAME###', $network_name, $email_change_email['message'] );
-	$email_change_email['message'] = str_replace( '###SITEURL###', home_url(), $email_change_email['message'] );
+	$email_change_email[ 'message' ] = str_replace( '###OLD_EMAIL###', $old_email, $email_change_email[ 'message' ] );
+	$email_change_email[ 'message' ] = str_replace( '###NEW_EMAIL###', $new_email, $email_change_email[ 'message' ] );
+	$email_change_email[ 'message' ] = str_replace( '###SITENAME###', $network_name, $email_change_email[ 'message' ] );
+	$email_change_email[ 'message' ] = str_replace( '###SITEURL###', home_url(), $email_change_email[ 'message' ] );
 
 	wp_mail(
-		$email_change_email['to'],
+		$email_change_email[ 'to' ],
 		sprintf(
-			$email_change_email['subject'],
+			$email_change_email[ 'subject' ],
 			$network_name
 		),
-		$email_change_email['message'],
-		$email_change_email['headers']
+		$email_change_email[ 'message' ],
+		$email_change_email[ 'headers' ]
 	);
 }

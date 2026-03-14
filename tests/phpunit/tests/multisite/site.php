@@ -8,8 +8,8 @@
  * @group multisite
  */
 class Tests_Multisite_Site extends WP_UnitTestCase {
-	protected $suppress                = false;
-	protected $site_status_hooks       = array();
+	protected $suppress = false;
+	protected $site_status_hooks = array();
 	protected $wp_initialize_site_args = array();
 	protected $wp_initialize_site_meta = array();
 	protected static $network_ids;
@@ -45,12 +45,12 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			'make.wordpress.org/'     => array(
 				'domain'     => 'make.wordpress.org',
 				'path'       => '/',
-				'network_id' => self::$network_ids['make.wordpress.org/'],
+				'network_id' => self::$network_ids[ 'make.wordpress.org/' ],
 			),
 			'make.wordpress.org/foo/' => array(
 				'domain'     => 'make.wordpress.org',
 				'path'       => '/foo/',
-				'network_id' => self::$network_ids['make.wordpress.org/'],
+				'network_id' => self::$network_ids[ 'make.wordpress.org/' ],
 			),
 		);
 
@@ -64,7 +64,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			array(
 				'domain'     => 'uninitialized.org',
 				'path'       => '/',
-				'network_id' => self::$network_ids['make.wordpress.org/'],
+				'network_id' => self::$network_ids[ 'make.wordpress.org/' ],
 			)
 		);
 		add_action( 'wp_initialize_site', 'wp_initialize_site', 10, 2 );
@@ -389,16 +389,16 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		wpmu_delete_blog( $blog_id, true );
 
 		// The file on the main site should still exist. The file on the deleted site should not.
-		$this->assertFileExists( $file1['file'] );
-		$this->assertFileDoesNotExist( $file2['file'] );
+		$this->assertFileExists( $file1[ 'file' ] );
+		$this->assertFileDoesNotExist( $file2[ 'file' ] );
 
 		wpmu_delete_blog( $blog_id, true );
 
 		// The file on the main site should still exist. The file on the deleted site should not.
-		$this->assertFileExists( $file1['file'] );
-		$this->assertFileDoesNotExist( $file2['file'] );
+		$this->assertFileExists( $file1[ 'file' ] );
+		$this->assertFileDoesNotExist( $file2[ 'file' ] );
 
-		unlink( $file1['file'] );
+		unlink( $file1[ 'file' ] );
 	}
 
 	public function test_wpmu_update_blogs_date() {
@@ -566,26 +566,26 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$date = date_format( date_create( 'now' ), 'Y/m' );
 
 		$info = wp_upload_dir();
-		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
-		$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
-		$this->assertSame( '/' . $date, $info['subdir'] );
-		$this->assertFalse( $info['error'] );
+		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info[ 'url' ] );
+		$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info[ 'path' ] );
+		$this->assertSame( '/' . $date, $info[ 'subdir' ] );
+		$this->assertFalse( $info[ 'error' ] );
 
 		$blog_id = self::factory()->blog->create();
 
 		switch_to_blog( $blog_id );
 		$info = wp_upload_dir();
-		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
-		$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
-		$this->assertSame( '/' . $date, $info['subdir'] );
-		$this->assertFalse( $info['error'] );
+		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info[ 'url' ] );
+		$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info[ 'path' ] );
+		$this->assertSame( '/' . $date, $info[ 'subdir' ] );
+		$this->assertFalse( $info[ 'error' ] );
 		restore_current_blog();
 
 		$info = wp_upload_dir();
-		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
-		$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
-		$this->assertSame( '/' . $date, $info['subdir'] );
-		$this->assertFalse( $info['error'] );
+		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info[ 'url' ] );
+		$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info[ 'path' ] );
+		$this->assertSame( '/' . $date, $info[ 'subdir' ] );
+		$this->assertFalse( $info[ 'error' ] );
 	}
 
 	/**
@@ -733,7 +733,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertFalse( is_ssl() );
 		$this->assertSame( 'http', parse_url( get_blogaddress_by_id( $blog ), PHP_URL_SCHEME ) );
 
-		$_SERVER['HTTPS'] = 'on';
+		$_SERVER[ 'HTTPS' ] = 'on';
 
 		$is_ssl  = is_ssl();
 		$address = parse_url( get_blogaddress_by_id( $blog ), PHP_URL_SCHEME );
@@ -841,16 +841,16 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 40503
 	 */
 	public function test_different_network_language() {
-		$network = get_network( self::$network_ids['make.wordpress.org/'] );
+		$network = get_network( self::$network_ids[ 'make.wordpress.org/' ] );
 
 		add_filter( 'sanitize_option_WPLANG', array( $this, 'filter_allow_unavailable_languages' ), 10, 3 );
 
-		update_network_option( self::$network_ids['make.wordpress.org/'], 'WPLANG', 'wibble' );
+		update_network_option( self::$network_ids[ 'make.wordpress.org/' ], 'WPLANG', 'wibble' );
 		$blog_id = wpmu_create_blog( $network->domain, '/de-de/', 'New Blog', get_current_user_id(), array(), $network->id );
 
 		remove_filter( 'sanitize_option_WPLANG', array( $this, 'filter_allow_unavailable_languages' ), 10 );
 
-		$this->assertSame( get_network_option( self::$network_ids['make.wordpress.org/'], 'WPLANG' ), get_blog_option( $blog_id, 'WPLANG' ) );
+		$this->assertSame( get_network_option( self::$network_ids[ 'make.wordpress.org/' ], 'WPLANG' ), get_blog_option( $blog_id, 'WPLANG' ) );
 	}
 
 	/**
@@ -869,14 +869,14 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 29684
 	 */
 	public function test_is_main_site_different_network() {
-		$this->assertTrue( is_main_site( self::$site_ids['make.wordpress.org/'], self::$network_ids['make.wordpress.org/'] ) );
+		$this->assertTrue( is_main_site( self::$site_ids[ 'make.wordpress.org/' ], self::$network_ids[ 'make.wordpress.org/' ] ) );
 	}
 
 	/**
 	 * @ticket 29684
 	 */
 	public function test_is_main_site_different_network_random_site() {
-		$this->assertFalse( is_main_site( self::$site_ids['make.wordpress.org/foo/'], self::$network_ids['make.wordpress.org/'] ) );
+		$this->assertFalse( is_main_site( self::$site_ids[ 'make.wordpress.org/foo/' ], self::$network_ids[ 'make.wordpress.org/' ] ) );
 	}
 
 	/**
@@ -884,7 +884,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @dataProvider data_get_site_caches
 	 */
 	public function test_clean_blog_cache( $key, $group ) {
-		$site = get_site( self::$site_ids['make.wordpress.org/'] );
+		$site = get_site( self::$site_ids[ 'make.wordpress.org/' ] );
 
 		$replacements = array(
 			'%blog_id%'         => $site->blog_id,
@@ -910,7 +910,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @dataProvider data_get_site_caches
 	 */
 	public function test_clean_blog_cache_with_id( $key, $group ) {
-		$site = get_site( self::$site_ids['make.wordpress.org/'] );
+		$site = get_site( self::$site_ids[ 'make.wordpress.org/' ] );
 
 		$replacements = array(
 			'%blog_id%'         => $site->blog_id,
@@ -935,7 +935,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 40201
 	 */
 	public function test_clean_blog_cache_resets_last_changed() {
-		$site = get_site( self::$site_ids['make.wordpress.org/'] );
+		$site = get_site( self::$site_ids[ 'make.wordpress.org/' ] );
 
 		wp_cache_delete( 'last_changed', 'sites' );
 
@@ -947,7 +947,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 40201
 	 */
 	public function test_clean_blog_cache_fires_action() {
-		$site = get_site( self::$site_ids['make.wordpress.org/'] );
+		$site = get_site( self::$site_ids[ 'make.wordpress.org/' ] );
 
 		$old_count = did_action( 'clean_site_cache' );
 
@@ -959,7 +959,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 40201
 	 */
 	public function test_clean_blog_cache_bails_on_suspend_cache_invalidation() {
-		$site = get_site( self::$site_ids['make.wordpress.org/'] );
+		$site = get_site( self::$site_ids[ 'make.wordpress.org/' ] );
 
 		$old_count = did_action( 'clean_site_cache' );
 
@@ -1006,7 +1006,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @dataProvider data_get_site_caches
 	 */
 	public function test_refresh_blog_details( $key, $group ) {
-		$site = get_site( self::$site_ids['make.wordpress.org/'] );
+		$site = get_site( self::$site_ids[ 'make.wordpress.org/' ] );
 
 		$replacements = array(
 			'%blog_id%'         => $site->blog_id,
@@ -1355,7 +1355,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 */
 	public function test_wp_delete_site_validate_site_deletion_action() {
 		add_action( 'wp_validate_site_deletion', array( $this, 'action_wp_validate_site_deletion_prevent_deletion' ) );
-		$result = wp_delete_site( self::$site_ids['make.wordpress.org/'] );
+		$result = wp_delete_site( self::$site_ids[ 'make.wordpress.org/' ] );
 		$this->assertWPError( $result );
 		$this->assertSame( 'action_does_not_like_deletion', $result->get_error_code() );
 	}
@@ -1899,7 +1899,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	}
 
 	public function action_site_status_hook( $site_id ) {
-		$this->site_status_hooks[ current_action() ] = $site_id;
+		$this->site_status_hooks[current_action()] = $site_id;
 	}
 
 	/**
@@ -2050,7 +2050,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	}
 
 	public function filter_wp_initialize_site_args( $args, $site, $network ) {
-		$args['title'] = sprintf( 'My Site %1$d in Network %2$d', $site->id, $network->id );
+		$args[ 'title' ] = sprintf( 'My Site %1$d in Network %2$d', $site->id, $network->id );
 
 		return $args;
 	}

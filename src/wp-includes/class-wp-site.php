@@ -22,7 +22,7 @@
  * @property int    $post_count
  * @property string $home
  */
-#[AllowDynamicProperties]
+#[AllowDynamicProperties ]
 final class WP_Site {
 
 	/**
