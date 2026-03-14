@@ -2859,4 +2859,138 @@ HTML;
 		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
 		$this->assertStringNotContainsString( 'javascript:', $result );
 	}
+
+	/**
+	 * Test srcset with no descriptor on the final entry.
+	 *
+	 * The last srcset candidate often omits the width/pixel descriptor.
+	 * URLs with commas in the final descriptor-less entry must be preserved.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_no_final_descriptor
+	 */
+	public function test_wp_kses_srcset_no_final_descriptor( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_no_final_descriptor() {
+		return array(
+			'CDN URL with commas, no descriptor on last entry' => array(
+				'https://cdn.example/image/format=auto,quality=80/img.jpg 400w, https://cdn.example/image/format=auto,quality=80/img-large.jpg',
+				'https://cdn.example/image/format=auto,quality=80/img.jpg 400w, https://cdn.example/image/format=auto,quality=80/img-large.jpg',
+			),
+			'simple URLs, no descriptor on last entry'         => array(
+				'small.jpg 300w, medium.jpg 600w, large.jpg',
+				'small.jpg 300w, medium.jpg 600w, large.jpg',
+			),
+			'single URL without any descriptor'                => array(
+				'only-image.jpg',
+				'only-image.jpg',
+			),
+		);
+	}
+
+	/**
+	 * Test srcset with decimal pixel density descriptors.
+	 *
+	 * Descriptors like 1.5x and 2.5x are valid per the HTML spec.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_decimal_descriptors
+	 */
+	public function test_wp_kses_srcset_decimal_descriptors( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_decimal_descriptors() {
+		return array(
+			'decimal pixel density descriptors'      => array(
+				'image-1x.jpg 1x, image-1.5x.jpg 1.5x, image-2x.jpg 2x',
+				'image-1x.jpg 1x, image-1.5x.jpg 1.5x, image-2x.jpg 2x',
+			),
+			'mixed integer and decimal descriptors'   => array(
+				'small.jpg 1x, medium.jpg 2x, large.jpg 3x',
+				'small.jpg 1x, medium.jpg 2x, large.jpg 3x',
+			),
+			'high density descriptor'                 => array(
+				'low.jpg 1x, high.jpg 4x',
+				'low.jpg 1x, high.jpg 4x',
+			),
+		);
+	}
+
+	/**
+	 * Test picture element with WebP/AVIF type-based fallback pattern.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_picture_type_fallback() {
+		$html     = '<picture>'
+			. '<source srcset="photo.avif" type="image/avif">'
+			. '<source srcset="photo.webp" type="image/webp">'
+			. '<img src="photo.jpg" alt="Photo" width="800" height="600" />'
+			. '</picture>';
+		$expected = $html;
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test picture element with art direction using media queries and srcset descriptors.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_picture_art_direction() {
+		$html     = '<picture>'
+			. '<source media="(min-width: 1200px)" srcset="hero-wide-1x.jpg 1x, hero-wide-2x.jpg 2x">'
+			. '<source media="(min-width: 600px)" srcset="hero-medium-400.jpg 400w, hero-medium-800.jpg 800w" sizes="100vw">'
+			. '<img src="hero-small.jpg" srcset="hero-small-300.jpg 300w, hero-small-600.jpg 600w" sizes="100vw" alt="Hero" />'
+			. '</picture>';
+		$expected = $html;
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test srcset with protocol-relative URLs.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_srcset_protocol_relative_urls() {
+		$allowed_protocols = wp_allowed_protocols();
+		$input             = '//cdn.example.com/img-300.jpg 300w, //cdn.example.com/img-600.jpg 600w';
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $input, $result );
+	}
+
+	/**
+	 * Test that source element strips disallowed src attribute.
+	 *
+	 * The source element allows srcset but not src.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_source_strips_src_attribute() {
+		$html     = '<source src="not-allowed.jpg" srcset="allowed.jpg" type="image/jpeg">';
+		$expected = '<source srcset="allowed.jpg" type="image/jpeg">';
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test CDN URLs with gravity parameter containing x notation in srcset.
+	 *
+	 * Ensures that CDN-style gravity=0.5x0.5 is not mistaken for a pixel density descriptor.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_srcset_cdn_gravity_parameter() {
+		$html     = '<img src="https://resizer.example/cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg" '
+			. 'srcset="https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=412,height=275,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/img.jpg 412w, '
+			. 'https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=824,height=550,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/img.jpg 824w" '
+			. 'decoding="async" fetchpriority="high" width="824" height="550" alt="Test" />';
+		$expected = $html;
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
 }

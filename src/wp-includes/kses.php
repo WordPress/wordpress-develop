@@ -1673,7 +1673,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  * For attributes that can contain multiple URIs (such as 'srcset'), it splits the value and sanitizes each URI individually.
  * All URI values are passed through {@see wp_kses_bad_protocol()} to remove disallowed protocols (e.g., 'javascript:').
  *
- * @since 6.9.0
+ * @since 7.1.0
  *
  * @param string   $attrname          The attribute name to test.
  * @param string   $attrvalue         The attribute value to sanitize.
