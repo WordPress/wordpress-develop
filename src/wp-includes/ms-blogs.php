@@ -494,6 +494,12 @@ function add_blog_option( $id, $option, $value ) {
 	wp_cache_delete( $id, 'blog-alloptions' );
 	wp_cache_delete( $id, 'blog-notoptions' );
 
+	// Invalidate site-details cache when a site-detail option changes.
+	if ( in_array( $option, array( 'home', 'siteurl', 'blogname', 'post_count' ), true ) ) {
+		wp_cache_delete( $id, 'site-details' );
+		wp_cache_delete( $id, 'blog-details' );
+	}
+
 	return false !== $result;
 }
 
@@ -530,6 +536,12 @@ function delete_blog_option( $id, $option ) {
 	wp_cache_delete( $id, 'blog-alloptions' );
 	wp_cache_delete( $id, 'blog-notoptions' );
 
+	// Invalidate site-details cache when a site-detail option changes.
+	if ( in_array( $option, array( 'home', 'siteurl', 'blogname', 'post_count' ), true ) ) {
+		wp_cache_delete( $id, 'site-details' );
+		wp_cache_delete( $id, 'blog-details' );
+	}
+
 	return false !== $result && $result > 0;
 }
 
@@ -551,6 +563,10 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
 
 	if ( null !== $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '3.1.0' );
+	}
+
+	if ( empty( $id ) ) {
+		$id = get_current_blog_id();
 	}
 
 	if ( get_current_blog_id() === $id ) {
@@ -596,6 +612,12 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
 	// Bust per-blog option caches.
 	wp_cache_delete( $id, 'blog-alloptions' );
 	wp_cache_delete( $id, 'blog-notoptions' );
+
+	// Invalidate site-details cache when a site-detail option changes.
+	if ( in_array( $option, array( 'home', 'siteurl', 'blogname', 'post_count' ), true ) ) {
+		wp_cache_delete( $id, 'site-details' );
+		wp_cache_delete( $id, 'blog-details' );
+	}
 
 	return false !== $result;
 }
