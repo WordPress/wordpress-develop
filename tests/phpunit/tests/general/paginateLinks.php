@@ -454,6 +454,42 @@ EXPECTED;
 	}
 
 	/**
+	 * Ensures pagination links do not include trailing slashes when the permalink structure is plain.
+	 *
+	 * @ticket 61393
+	 */
+	public function test_plain_permalinks_are_not_modified_with_trailing_slash(): void {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '' );
+
+		$category_id = get_category_by_slug( 'categorized' )->term_id;
+		$this->go_to( "/?cat={$category_id}&paged=2" );
+
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$expected_links = array(
+			home_url( "?cat={$category_id}" ), // Previous
+			home_url( "?cat={$category_id}" ), // Page 1
+			home_url( "?paged=3&cat={$category_id}" ), // Page 3
+			home_url( "?paged=4&cat={$category_id}" ), // Page 4
+			home_url( "?paged=5&cat={$category_id}" ), // Page 5
+			home_url( "?paged=3&cat={$category_id}" ), // Next
+		);
+
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			$expected_link = $expected_links[ $found_links ] ?? '';
+			++$found_links;
+			$href = (string) $processor->get_attribute( 'href' );
+			$this->assertStringStartsWith( trailingslashit( home_url() ), $href, 'Pagination links should contain the home URL followed by a trailing slash, found: ' . $href );
+			$this->assertSame( $expected_link, $href, "Pagination links should include the category query string, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
+	}
+
+	/**
 	 * Ensures the pagination links do not modify query strings (permalinks with trailing slash).
 	 *
 	 * @ticket 61393
