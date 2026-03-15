@@ -209,6 +209,20 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 	// Update the attached file meta.
 	update_attached_file( $attachment_id, $new_file );
 
+	// Update the post mime type if the image was converted to a different format.
+	if ( ! empty( $saved_data['mime-type'] ) ) {
+		$post = get_post( $attachment_id );
+
+		if ( $post && $post->post_mime_type !== $saved_data['mime-type'] ) {
+			wp_update_post(
+				array(
+					'ID'             => $attachment_id,
+					'post_mime_type' => $saved_data['mime-type'],
+				)
+			);
+		}
+	}
+
 	// Width and height of the new image.
 	$image_meta['width']  = $saved_data['width'];
 	$image_meta['height'] = $saved_data['height'];
