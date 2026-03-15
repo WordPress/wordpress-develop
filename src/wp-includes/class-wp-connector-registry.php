@@ -27,7 +27,8 @@
  *     },
  *     plugin?: array{
  *         slug: non-empty-string
- *     }
+ *     },
+ *     provider_id?: non-empty-string
  * }
  */
 final class WP_Connector_Registry {
@@ -75,6 +76,9 @@ final class WP_Connector_Registry {
 	 *
 	 *         @type string $slug The WordPress.org plugin slug.
 	 *     }
+	 *     @type string $provider_id    Optional. The original AI Client provider ID. Used when the
+	 *                                  provider ID differs from the connector ID (e.g. hyphens replaced
+	 *                                  with underscores).
 	 * }
 	 * @return array|null The registered connector data on success, null on failure.
 	 *
@@ -166,6 +170,10 @@ final class WP_Connector_Registry {
 
 		if ( ! empty( $args['plugin'] ) && is_array( $args['plugin'] ) ) {
 			$connector['plugin'] = $args['plugin'];
+		}
+
+		if ( ! empty( $args['provider_id'] ) && is_string( $args['provider_id'] ) ) {
+			$connector['provider_id'] = $args['provider_id'];
 		}
 
 		$this->registered_connectors[ $id ] = $connector;

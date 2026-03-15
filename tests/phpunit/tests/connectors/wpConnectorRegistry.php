@@ -381,4 +381,55 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 
 		$this->assertSame( $instance1, $instance2 );
 	}
+
+	/**
+	 * @ticket 64861
+	 */
+	public function test_register_stores_provider_id() {
+		$args                = self::$default_args;
+		$args['provider_id'] = 'my-custom-provider';
+
+		$result = $this->registry->register( 'my_custom_provider', $args );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'provider_id', $result );
+		$this->assertSame( 'my-custom-provider', $result['provider_id'] );
+	}
+
+	/**
+	 * @ticket 64861
+	 */
+	public function test_register_omits_provider_id_when_not_provided() {
+		$result = $this->registry->register( 'no_provider_id', self::$default_args );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayNotHasKey( 'provider_id', $result );
+	}
+
+	/**
+	 * @ticket 64861
+	 */
+	public function test_register_omits_provider_id_when_empty() {
+		$args                = self::$default_args;
+		$args['provider_id'] = '';
+
+		$result = $this->registry->register( 'empty_provider_id', $args );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayNotHasKey( 'provider_id', $result );
+	}
+
+	/**
+	 * @ticket 64861
+	 */
+	public function test_get_registered_includes_provider_id() {
+		$args                = self::$default_args;
+		$args['provider_id'] = 'azure-openai';
+
+		$this->registry->register( 'azure_openai', $args );
+		$result = $this->registry->get_registered( 'azure_openai' );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'azure-openai', $result['provider_id'] );
+	}
 }

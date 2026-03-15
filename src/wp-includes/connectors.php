@@ -57,6 +57,8 @@ function wp_is_connector_registered( string $id ): bool {
  *
  *         @type string $slug The WordPress.org plugin slug.
  *     }
+ *     @type string $provider_id    Optional. The original AI Client provider ID, present when
+ *                                  it differs from the connector ID.
  * }
  * @phpstan-return ?array{
  *     name: non-empty-string,
@@ -70,7 +72,8 @@ function wp_is_connector_registered( string $id ): bool {
  *     },
  *     plugin?: array{
  *         slug: non-empty-string
- *     }
+ *     },
+ *     provider_id?: non-empty-string
  * }
  */
 function wp_get_connector( string $id ): ?array {
@@ -112,6 +115,8 @@ function wp_get_connector( string $id ): ?array {
  *
  *             @type string $slug The WordPress.org plugin slug.
  *         }
+ *         @type string      $provider_id    Optional. The original AI Client provider ID, present when
+ *                                           it differs from the connector ID.
  *     }
  * }
  * @phpstan-return array<string, array{
@@ -126,7 +131,8 @@ function wp_get_connector( string $id ): ?array {
  *     },
  *     plugin?: array{
  *         slug: non-empty-string
- *     }
+ *     },
+ *     provider_id?: non-empty-string
  * }>
  */
 function wp_get_connectors(): array {
@@ -236,8 +242,10 @@ function _wp_connectors_init(): void {
 	// Registry values (from provider plugins) take precedence over hardcoded fallbacks.
 	$ai_registry = AiClient::defaultRegistry();
 
-	foreach ( $ai_registry->getRegisteredProviderIds() as $connector_id ) {
-		$provider_class_name = $ai_registry->getProviderClassName( $connector_id );
+	foreach ( $ai_registry->getRegisteredProviderIds() as $provider_id ) {
+		// Connector IDs only allow [a-z0-9_]; provider IDs may use hyphens.
+		$connector_id        = str_replace( '-', '_', $provider_id );
+		$provider_class_name = $ai_registry->getProviderClassName( $provider_id );
 		$provider_metadata   = $provider_class_name::metadata();
 
 		$auth_method = $provider_metadata->getAuthenticationMethod();
@@ -275,13 +283,15 @@ function _wp_connectors_init(): void {
 			if ( ! empty( $authentication['credentials_url'] ) ) {
 				$defaults[ $connector_id ]['authentication']['credentials_url'] = $authentication['credentials_url'];
 			}
+			$defaults[ $connector_id ]['provider_id'] = $provider_id;
 		} else {
 			$defaults[ $connector_id ] = array(
-				'name'           => $name ? $name : ucwords( $connector_id ),
+				'name'           => $name ? $name : ucwords( str_replace( '_', ' ', $connector_id ) ),
 				'description'    => $description ? $description : '',
 				'type'           => 'ai_provider',
 				'authentication' => $authentication,
 				'logo_url'       => $logo_url,
+				'provider_id'    => $provider_id,
 			);
 		}
 	}
@@ -456,6 +466,9 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 			continue;
 		}
 
+		// Use the original provider ID for AiClient lookups.
+		$provider_id = $connector_data['provider_id'] ?? $connector_id;
+
 		$setting_name = $auth['setting_name'];
 		if ( ! array_key_exists( $setting_name, $data ) ) {
 			continue;
@@ -465,7 +478,7 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 		// On update, validate the key before masking.
 		if ( $is_update && is_string( $value ) && '' !== $value ) {
-			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
+			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $provider_id ) ) {
 				update_option( $setting_name, '' );
 				$data[ $setting_name ] = '';
 				continue;
@@ -498,8 +511,11 @@ function _wp_register_default_connector_settings(): void {
 			continue;
 		}
 
+		// Use the original provider ID for AiClient lookups.
+		$provider_id = $connector_data['provider_id'] ?? $connector_id;
+
 		// Skip registering the setting if the provider is not in the registry.
-		if ( ! $ai_registry->hasProvider( $connector_id ) ) {
+		if ( ! $ai_registry->hasProvider( $provider_id ) ) {
 			continue;
 		}
 
@@ -546,12 +562,15 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 				continue;
 			}
 
-			if ( ! $ai_registry->hasProvider( $connector_id ) ) {
+			// Use the original provider ID for AiClient lookups.
+			$provider_id = $connector_data['provider_id'] ?? $connector_id;
+
+			if ( ! $ai_registry->hasProvider( $provider_id ) ) {
 				continue;
 			}
 
 			// Skip if the key is already provided via env var or constant.
-			$key_source = _wp_connectors_get_api_key_source( $connector_id, $auth['setting_name'] );
+			$key_source = _wp_connectors_get_api_key_source( $provider_id, $auth['setting_name'] );
 			if ( 'env' === $key_source || 'constant' === $key_source ) {
 				continue;
 			}
@@ -562,7 +581,7 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 			}
 
 			$ai_registry->setProviderRequestAuthentication(
-				$connector_id,
+				$provider_id,
 				new ApiKeyRequestAuthentication( $api_key )
 			);
 		}
@@ -599,12 +618,15 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 		$auth     = $connector_data['authentication'];
 		$auth_out = array( 'method' => $auth['method'] );
 
+		// Use the original provider ID for AiClient lookups.
+		$provider_id = $connector_data['provider_id'] ?? $connector_id;
+
 		if ( 'api_key' === $auth['method'] ) {
 			$auth_out['settingName']    = $auth['setting_name'] ?? '';
 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
-			$auth_out['keySource']      = _wp_connectors_get_api_key_source( $connector_id, $auth['setting_name'] ?? '' );
+			$auth_out['keySource']      = _wp_connectors_get_api_key_source( $provider_id, $auth['setting_name'] ?? '' );
 			try {
-				$auth_out['isConnected'] = $registry->hasProvider( $connector_id ) && $registry->isProviderConfigured( $connector_id );
+				$auth_out['isConnected'] = $registry->hasProvider( $provider_id ) && $registry->isProviderConfigured( $provider_id );
 			} catch ( Exception $e ) {
 				$auth_out['isConnected'] = false;
 			}
