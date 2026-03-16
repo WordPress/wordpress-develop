@@ -165,7 +165,8 @@ module.exports = function(grunt) {
 				cwd: WORKING_DIR,
 				dest: WORKING_DIR,
 				src: [
-					'wp-admin/css/colors/*/colors.css'
+					'wp-admin/css/colors/*/colors.css',
+					'wp-admin/css/colors/*/admin-bar.css'
 				]
 			}
 		},
@@ -696,7 +697,10 @@ module.exports = function(grunt) {
 				cwd: SOURCE_DIR,
 				dest: WORKING_DIR,
 				ext: '.css',
-				src: ['wp-admin/css/colors/*/colors.scss'],
+				src: [
+					'wp-admin/css/colors/*/colors.scss',
+					'wp-admin/css/colors/*/admin-bar.scss'
+				],
 				options: {
 					implementation: sass
 				}
@@ -849,7 +853,8 @@ module.exports = function(grunt) {
 				dest: WORKING_DIR,
 				ext: '-rtl.css',
 				src: [
-					'wp-admin/css/colors/*/colors.css'
+					'wp-admin/css/colors/*/colors.css',
+					'wp-admin/css/colors/*/admin-bar.css'
 				]
 			},
 			dynamic: {

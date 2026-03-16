@@ -1,0 +1,6 @@
+@use "../_admin-bar.scss" as admin-bar with (
+	$base-color: #363b3f,
+	$highlight-color: #e14d43,
+);
+
+@include admin-bar.styles();

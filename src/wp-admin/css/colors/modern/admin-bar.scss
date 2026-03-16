@@ -1,0 +1,7 @@
+@use "../_admin-bar.scss" as admin-bar with (
+	$base-color: #1e1e1e,
+	$highlight-color: #3858e9,
+	$menu-submenu-focus-text: #7b90ff,
+);
+
+@include admin-bar.styles();

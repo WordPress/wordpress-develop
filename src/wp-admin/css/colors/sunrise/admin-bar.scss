@@ -1,0 +1,11 @@
+@use "sass:color";
+
+$highlight-color: #dd823b;
+
+@use "../_admin-bar.scss" as admin-bar with (
+	$base-color: #cf4944,
+	$highlight-color: $highlight-color,
+	$menu-submenu-focus-text: color.adjust($highlight-color, $lightness: 35%),
+);
+
+@include admin-bar.styles();
