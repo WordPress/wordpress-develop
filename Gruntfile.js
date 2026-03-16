@@ -1589,13 +1589,9 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'gutenberg:download', 'Downloads the built Gutenberg artifact.', function() {
 		const done = this.async();
-		const args = [ 'tools/gutenberg/download.js' ];
-		if ( grunt.option( 'force' ) ) {
-			args.push( '--force' );
-		}
 		grunt.util.spawn( {
 			cmd: 'node',
-			args,
+			args: [ 'tools/gutenberg/download.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
