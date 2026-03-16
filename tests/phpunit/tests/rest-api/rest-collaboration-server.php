@@ -1672,6 +1672,85 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/*
+	 * Cache tests.
+	 */
+
+	/**
+	 * Verifies that a normal awareness write updates the cache in-place
+	 * so the next client's poll hits the cache instead of the database.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_cache_hit_after_write(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 1 polls with awareness — primes cache via get, then
+		// updates it in-place via set.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, array( 'cursor' => 'pos-a' ) ),
+			)
+		);
+
+		// Client 2 polls — awareness read should hit the warm cache.
+		$queries_before = $wpdb->num_queries;
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '2', 0, array( 'cursor' => 'pos-b' ) ),
+			)
+		);
+
+		$queries_after = $wpdb->num_queries;
+
+		// With cache hit: awareness read is free, so:
+		//   awareness UPDATE (1) + snapshot SELECT (1) + awareness INSERT (1) = 3.
+		// Without cache: adds awareness SELECT = 4.
+		$this->assertLessThanOrEqual(
+			3,
+			$queries_after - $queries_before,
+			'Awareness cache hit should skip the awareness SELECT query.'
+		);
+	}
+
+	/**
+	 * Verifies that the in-place cache update after a write produces
+	 * correct data, not stale state.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_cache_reflects_latest_write(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 1 sets initial awareness.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, array( 'cursor' => 'initial' ) ),
+			)
+		);
+
+		// Client 1 updates awareness to a new value.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, array( 'cursor' => 'updated' ) ),
+			)
+		);
+
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+		$this->assertSame(
+			array( 'cursor' => 'updated' ),
+			$awareness['1'],
+			'Awareness should reflect the updated state, not a stale cache.'
+		);
+	}
+
+	/*
 	 * Query count tests.
 	 */
 

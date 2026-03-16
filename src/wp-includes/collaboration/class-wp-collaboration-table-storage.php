@@ -11,7 +11,9 @@
  * updates and awareness data during a collaborative session.
  *
  * All data is stored in the single `collaboration` database table,
- * discriminated by the `type` column.
+ * discriminated by the `type` column. Awareness reads are served from
+ * the persistent object cache when available, falling back to the
+ * database — similar to the transient pattern but without wp_options.
  *
  * This class intentionally fires no actions or filters. Collaboration
  * queries run on every poll (0.5–1 s per editor tab), so hook overhead
@@ -72,9 +74,14 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Gets awareness state for a given room.
 	 *
-	 * Retrieves per-client awareness rows from the collaboration table
-	 * where type = 'awareness'. Expired rows are filtered by the WHERE
-	 * clause; actual deletion is handled by cron via
+	 * Checks the persistent object cache first. On a cache miss, queries
+	 * the collaboration table for awareness rows and primes the cache
+	 * with the result. When no persistent cache is available the in-memory
+	 * WP_Object_Cache is used, which provides no cross-request benefit
+	 * but keeps the code path identical.
+	 *
+	 * Expired rows are filtered by the WHERE clause on cache miss;
+	 * actual deletion is handled by cron via
 	 * wp_delete_old_collaboration_data().
 	 *
 	 * @since 7.0.0
@@ -87,6 +94,13 @@ class WP_Collaboration_Table_Storage {
 	 * @phpstan-return list<AwarenessState>
 	 */
 	public function get_awareness_state( string $room, int $timeout = 30 ): array {
+		$cache_key = 'awareness:' . $room;
+		$cached    = wp_cache_get( $cache_key, 'collaboration' );
+
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		global $wpdb;
 
 		$cutoff = gmdate( 'Y-m-d H:i:s', time() - $timeout );
@@ -114,6 +128,8 @@ class WP_Collaboration_Table_Storage {
 				);
 			}
 		}
+
+		wp_cache_set( $cache_key, $entries, 'collaboration', $timeout );
 
 		return $entries;
 	}
@@ -257,6 +273,13 @@ class WP_Collaboration_Table_Storage {
 	 * its own row, eliminating the race condition inherent in shared-state
 	 * approaches.
 	 *
+	 * After writing, the cached awareness entries for the room are updated
+	 * in-place so that subsequent get_awareness_state() calls from other
+	 * clients hit the cache instead of the database. This is application-
+	 * level deduplication: the shared collaboration table cannot carry a
+	 * UNIQUE KEY on (room, client_id) because sync rows need multiple
+	 * entries per room+client pair.
+	 *
 	 * @since 7.0.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
@@ -302,9 +325,43 @@ class WP_Collaboration_Table_Storage {
 				)
 			);
 
-			return false !== $result;
+			if ( false === $result ) {
+				return false;
+			}
+		} elseif ( false === $updated ) {
+			return false;
 		}
 
-		return false !== $updated;
+		// Update the cached entries in-place so the next reader in this
+		// room gets a cache hit with fresh data. If the cache is cold,
+		// skip — the next get_awareness_state() call will prime it.
+		$cache_key = 'awareness:' . $room;
+		$cached    = wp_cache_get( $cache_key, 'collaboration' );
+
+		if ( false !== $cached ) {
+			$normalized_state = json_decode( $update_value, true );
+			$found            = false;
+
+			foreach ( $cached as $i => $entry ) {
+				if ( $client_id === $entry['client_id'] ) {
+					$cached[ $i ]['state']   = $normalized_state;
+					$cached[ $i ]['user_id'] = $user_id;
+					$found                   = true;
+					break;
+				}
+			}
+
+			if ( ! $found ) {
+				$cached[] = array(
+					'client_id' => $client_id,
+					'state'     => $normalized_state,
+					'user_id'   => $user_id,
+				);
+			}
+
+			wp_cache_set( $cache_key, $cached, 'collaboration', 30 );
+		}
+
+		return true;
 	}
 }
