@@ -186,6 +186,18 @@ CREATE TABLE $wpdb->posts (
 	KEY post_parent (post_parent),
 	KEY post_author (post_author),
 	KEY type_status_author (post_type,post_status,post_author)
+) $charset_collate;
+CREATE TABLE $wpdb->collaboration (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	room varchar($max_index_length) NOT NULL default '',
+	type varchar(32) NOT NULL default '',
+	client_id varchar(32) NOT NULL default '',
+	user_id bigint(20) unsigned NOT NULL default '0',
+	update_value longtext NOT NULL,
+	date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY  (id),
+	KEY room (room,id),
+	KEY date_gmt (date_gmt)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.
