@@ -163,4 +163,18 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 
 		$this->assertSame( array( $p3 ), $found );
 	}
+
+	/**
+	 * Verifies that get_posts() accepts a query string for the `$args` parameter.
+	 *
+	 * @ticket 64813
+	 */
+	public function test_should_accept_query_string_args() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+
+		$found = get_posts( 'numberposts=1&fields=ids' );
+
+		$this->assertSame( array( $p2 ), $found );
+	}
 }
