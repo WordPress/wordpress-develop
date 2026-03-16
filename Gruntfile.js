@@ -612,6 +612,17 @@ module.exports = function(grunt) {
 					dest: WORKING_DIR + 'wp-includes/build/',
 				} ],
 			},
+			'gutenberg-js': {
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/build',
+					src: [
+						'pages/**/*.js',
+						'routes/**/*.js',
+					],
+					dest: WORKING_DIR + 'wp-includes/build/',
+				} ],
+			},
 			'gutenberg-modules': {
 				files: [ {
 					expand: true,
@@ -1578,13 +1589,9 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'gutenberg:download', 'Downloads the built Gutenberg artifact.', function() {
 		const done = this.async();
-		const args = [ 'tools/gutenberg/download.js' ];
-		if ( grunt.option( 'force' ) ) {
-			args.push( '--force' );
-		}
 		grunt.util.spawn( {
 			cmd: 'node',
-			args,
+			args: [ 'tools/gutenberg/download.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
@@ -2041,6 +2048,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'build:gutenberg', [
 		'copy:gutenberg-php',
+		'copy:gutenberg-js',
 		'gutenberg:copy',
 		'copy:gutenberg-modules',
 		'copy:gutenberg-styles',

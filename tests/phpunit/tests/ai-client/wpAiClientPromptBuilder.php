@@ -8,6 +8,7 @@
 
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Files\DTO\File;
+use WordPress\AiClient\Files\Enums\MediaOrientationEnum;
 use WordPress\AiClient\Messages\DTO\Message;
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Messages\DTO\ModelMessage;
@@ -1029,12 +1030,13 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$builder->using_stop_sequences( 'STOP' );
 
 		/** @var ModelConfig $merged_config */
-		$merged_config  = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
-		$custom_options = $merged_config->getCustomOptions();
+		$merged_config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
+		$this->assertEquals( array( 'STOP' ), $merged_config->getStopSequences() );
+
+		$custom_options = $merged_config->getCustomOptions();
 		$this->assertArrayHasKey( 'stopSequences', $custom_options );
-		$this->assertIsArray( $custom_options['stopSequences'] );
-		$this->assertEquals( array( 'STOP' ), $custom_options['stopSequences'] );
+		$this->assertEquals( array( 'CONFIG_STOP' ), $custom_options['stopSequences'] );
 		$this->assertArrayHasKey( 'otherOption', $custom_options );
 		$this->assertEquals( 'value', $custom_options['otherOption'] );
 	}
@@ -1153,9 +1155,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$custom_options = $config->getCustomOptions();
-		$this->assertArrayHasKey( 'stopSequences', $custom_options );
-		$this->assertEquals( array( 'STOP', 'END', '###' ), $custom_options['stopSequences'] );
+		$this->assertEquals( array( 'STOP', 'END', '###' ), $config->getStopSequences() );
 	}
 
 	/**
@@ -1558,7 +1558,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
-		$this->assertStringContainsString( 'Output modality "video" is not yet supported', $result->get_error_message() );
+		$this->assertStringContainsString( 'does not support video generation', $result->get_error_message() );
 	}
 
 	/**
@@ -2049,6 +2049,168 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertSame( $files[0], $speech_files[0] );
 		$this->assertSame( $files[1], $speech_files[1] );
 		$this->assertSame( $files[2], $speech_files[2] );
+	}
+
+	/**
+	 * Tests generateVideo method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_generate_video() {
+		$file         = new File( 'https://example.com/video.mp4', 'video/mp4' );
+		$message_part = new MessagePart( $file );
+		$message      = new Message( MessageRoleEnum::model(), array( $message_part ) );
+		$candidate    = new Candidate( $message, FinishReasonEnum::stop() );
+
+		$result = new GenerativeAiResult(
+			'test-result',
+			array( $candidate ),
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_video_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_video_generation_model( $result, $metadata );
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Generate video' );
+		$builder->using_model( $model );
+
+		$video_file = $builder->generate_video();
+		$this->assertSame( $file, $video_file );
+	}
+
+	/**
+	 * Tests generateVideos method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_generate_videos() {
+		$files = array(
+			new File( 'https://example.com/video1.mp4', 'video/mp4' ),
+			new File( 'https://example.com/video2.mp4', 'video/mp4' ),
+		);
+
+		$candidates = array();
+		foreach ( $files as $file ) {
+			$candidates[] = new Candidate(
+				new Message( MessageRoleEnum::model(), array( new MessagePart( $file ) ) ),
+				FinishReasonEnum::stop()
+			);
+		}
+
+		$result = new GenerativeAiResult(
+			'test-result-id',
+			$candidates,
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_video_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_video_generation_model( $result, $metadata );
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Generate videos' );
+		$builder->using_model( $model );
+
+		$video_files = $builder->generate_videos( 2 );
+
+		$this->assertCount( 2, $video_files );
+		$this->assertSame( $files[0], $video_files[0] );
+		$this->assertSame( $files[1], $video_files[1] );
+	}
+
+	/**
+	 * Tests generateVideoResult method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_generate_video_result() {
+		$result = new GenerativeAiResult(
+			'test-result',
+			array(
+				new Candidate(
+					new ModelMessage( array( new MessagePart( new File( 'data:video/mp4;base64,AAAAAA==', 'video/mp4' ) ) ) ),
+					FinishReasonEnum::stop()
+				),
+			),
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_video_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_video_generation_model( $result, $metadata );
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Generate video' );
+		$builder->using_model( $model );
+
+		$actual_result = $builder->generate_video_result();
+		$this->assertSame( $result, $actual_result );
+
+		/** @var ModelConfig $config */
+		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
+
+		$modalities = $config->getOutputModalities();
+		$this->assertNotNull( $modalities );
+		$this->assertTrue( $modalities[0]->isVideo() );
+	}
+
+	/**
+	 * Tests asOutputMediaOrientation method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_as_output_media_orientation() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
+		$result  = $builder->as_output_media_orientation( MediaOrientationEnum::landscape() );
+
+		$this->assertSame( $builder, $result );
+
+		/** @var ModelConfig $config */
+		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
+
+		$this->assertTrue( $config->getOutputMediaOrientation()->isLandscape() );
+	}
+
+	/**
+	 * Tests asOutputMediaAspectRatio method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_as_output_media_aspect_ratio() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
+		$result  = $builder->as_output_media_aspect_ratio( '16:9' );
+
+		$this->assertSame( $builder, $result );
+
+		/** @var ModelConfig $config */
+		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
+
+		$this->assertEquals( '16:9', $config->getOutputMediaAspectRatio() );
+	}
+
+	/**
+	 * Tests asOutputSpeechVoice method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_as_output_speech_voice() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
+		$result  = $builder->as_output_speech_voice( 'alloy' );
+
+		$this->assertSame( $builder, $result );
+
+		/** @var ModelConfig $config */
+		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
+
+		$this->assertEquals( 'alloy', $config->getOutputSpeechVoice() );
 	}
 
 	/**
