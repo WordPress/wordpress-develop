@@ -297,20 +297,15 @@ class WP_AI_Client_Prompt_Builder {
 
 		// Check if the prompt should be prevented for is_supported* and generate_*/convert_text_to_speech* methods.
 		if ( self::is_support_check_method( $name ) || self::is_generating_method( $name ) ) {
-			// If AI is not supported, then there's no need to apply the filter as the prompt will be prevented anyway.
-			$is_ai_disabled = ! wp_supports_ai();
-			$prevent        = $is_ai_disabled;
-			if ( ! $prevent ) {
-				/**
-				 * Filters whether to prevent the prompt from being executed.
-				 *
-				 * @since 7.0.0
-				 *
-				 * @param bool                        $prevent Whether to prevent the prompt. Default false.
-				 * @param WP_AI_Client_Prompt_Builder $builder A clone of the prompt builder instance (read-only).
-				 */
-				$prevent = (bool) apply_filters( 'wp_ai_client_prevent_prompt', false, clone $this );
-			}
+			/**
+			 * Filters whether to prevent the prompt from being executed.
+			 *
+			 * @since 7.0.0
+			 *
+			 * @param bool                        $prevent Whether to prevent the prompt. Default false.
+			 * @param WP_AI_Client_Prompt_Builder $builder A clone of the prompt builder instance (read-only).
+			 */
+			$prevent = (bool) apply_filters( 'wp_ai_client_prevent_prompt', false, clone $this );
 
 			if ( $prevent ) {
 				// For is_supported* methods, return false.
@@ -318,14 +313,10 @@ class WP_AI_Client_Prompt_Builder {
 					return false;
 				}
 
-				$error_message = $is_ai_disabled
-					? __( 'AI features are not supported in this environment.' )
-					: __( 'Prompt execution was prevented by a filter.' );
-
 				// For generate_* and convert_text_to_speech* methods, create a WP_Error.
 				$this->error = new WP_Error(
 					'prompt_prevented',
-					$error_message,
+					__( 'Prompt execution was prevented by a filter.' ),
 					array(
 						'exception_class' => 'WP_AI_Client_Prompt_Prevented',
 					)
