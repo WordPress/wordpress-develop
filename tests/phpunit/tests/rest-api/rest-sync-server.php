@@ -829,6 +829,273 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( $room2, $data['rooms'][1]['room'] );
 	}
 
+	/*
+	 * Peer limit tests.
+	 */
+
+	public function test_sync_peer_limit_rejects_new_user_when_room_full() {
+		$room = $this->get_post_room();
+
+		// User 1 (editor) connects with client 1.
+		wp_set_current_user( self::$editor_id );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor 1' ) ),
+			)
+		);
+
+		// User 2 connects with client 2.
+		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_2 );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'name' => 'Editor 2' ) ),
+			)
+		);
+
+		// User 3 tries to connect — should be rejected (default limit is 2).
+		$editor_id_3 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_3 );
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'name' => 'Editor 3' ) ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_too_many_requests', $response, 429 );
+	}
+
+	public function test_sync_peer_limit_allows_existing_tracked_client() {
+		$room = $this->get_post_room();
+
+		// User 1 connects with client 1.
+		wp_set_current_user( self::$editor_id );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor 1' ) ),
+			)
+		);
+
+		// User 2 connects with client 2.
+		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_2 );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'name' => 'Editor 2' ) ),
+			)
+		);
+
+		// User 1 polls again — should succeed since they're already tracked.
+		wp_set_current_user( self::$editor_id );
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor 1' ) ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function test_sync_peer_limit_allows_same_user_multiple_tabs() {
+		$room = $this->get_post_room();
+
+		// User 1 connects with client 1.
+		wp_set_current_user( self::$editor_id );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor tab 1' ) ),
+			)
+		);
+
+		// User 2 connects with client 2.
+		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_2 );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'name' => 'Editor 2' ) ),
+			)
+		);
+
+		// User 1 opens second tab (client 3) — should succeed because same user
+		// doesn't count as additional peer.
+		wp_set_current_user( self::$editor_id );
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'name' => 'Editor tab 2' ) ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function test_sync_per_user_client_limit_rejects_excess_tabs() {
+		$room = $this->get_post_room();
+
+		wp_set_current_user( self::$editor_id );
+
+		// Open client 1.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Tab 1' ) ),
+			)
+		);
+
+		// Open client 2.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'name' => 'Tab 2' ) ),
+			)
+		);
+
+		// Open client 3 — should be rejected (default per-user limit is 2).
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'name' => 'Tab 3' ) ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_too_many_requests', $response, 429 );
+	}
+
+	public function test_sync_peer_limit_filter_is_respected() {
+		$room = $this->get_post_room();
+
+		// Increase peer limit to 3.
+		add_filter(
+			'real_time_collaboration_max_peers_per_room',
+			function () {
+				return 3;
+			}
+		);
+
+		// Connect 3 different users.
+		wp_set_current_user( self::$editor_id );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor 1' ) ),
+			)
+		);
+
+		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_2 );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'name' => 'Editor 2' ) ),
+			)
+		);
+
+		$editor_id_3 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_3 );
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'name' => 'Editor 3' ) ),
+			)
+		);
+
+		// Third user should be allowed since limit is now 3.
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function test_sync_client_limit_filter_is_respected() {
+		$room = $this->get_post_room();
+
+		// Increase per-user client limit to 3.
+		add_filter(
+			'real_time_collaboration_max_clients_per_user',
+			function () {
+				return 3;
+			}
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		// Open 3 tabs.
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Tab 1' ) ),
+			)
+		);
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'name' => 'Tab 2' ) ),
+			)
+		);
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'name' => 'Tab 3' ) ),
+			)
+		);
+
+		// Third tab should be allowed since limit is now 3.
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function test_sync_peer_limit_not_enforced_for_disconnect() {
+		$room = $this->get_post_room();
+
+		// Fill the room with 2 users.
+		wp_set_current_user( self::$editor_id );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor 1' ) ),
+			)
+		);
+
+		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_2 );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'name' => 'Editor 2' ) ),
+			)
+		);
+
+		// User 3 sends null awareness (disconnect signal) — should not be rejected.
+		$editor_id_3 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_3 );
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, null ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function test_sync_peer_limit_not_enforced_for_collection_rooms() {
+		// Collection rooms (no object ID) should not have peer limits.
+		$room = 'postType/post';
+
+		// Connect 3 different users to a collection room.
+		wp_set_current_user( self::$editor_id );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 1, 0, array( 'name' => 'Editor 1' ) ),
+			)
+		);
+
+		$editor_id_2 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_2 );
+		$this->dispatch_sync(
+			array(
+				$this->build_room( $room, 2, 0, array( 'name' => 'Editor 2' ) ),
+			)
+		);
+
+		$editor_id_3 = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id_3 );
+		$response = $this->dispatch_sync(
+			array(
+				$this->build_room( $room, 3, 0, array( 'name' => 'Editor 3' ) ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/*
+	 * Multiple rooms tests.
+	 */
+
 	public function test_sync_rooms_are_isolated() {
 		wp_set_current_user( self::$editor_id );
 

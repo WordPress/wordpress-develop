@@ -38,6 +38,23 @@ class WP_HTTP_Polling_Sync_Server {
 	const COMPACTION_THRESHOLD = 50;
 
 	/**
+	 * Default maximum number of peers allowed in a single room.
+	 *
+	 * @since 7.0.0
+	 * @var int
+	 */
+	const DEFAULT_MAX_PEERS_PER_ROOM = 2;
+
+	/**
+	 * Default maximum number of simultaneous clients (tabs) a single
+	 * user may have in one room.
+	 *
+	 * @since 7.0.0
+	 * @var int
+	 */
+	const DEFAULT_MAX_CLIENTS_PER_USER = 2;
+
+	/**
 	 * Sync update type: compaction.
 	 *
 	 * @since 7.0.0
@@ -185,8 +202,9 @@ class WP_HTTP_Polling_Sync_Server {
 		$wp_user_id = get_current_user_id();
 
 		foreach ( $rooms as $room ) {
-			$client_id = $room['client_id'];
-			$room      = $room['room'];
+			$client_id      = $room['client_id'];
+			$room_awareness = $room['awareness'];
+			$room           = $room['room'];
 
 			// Check that the client_id is not already owned by another user.
 			$existing_awareness = $this->storage->get_awareness_state( $room );
@@ -217,6 +235,54 @@ class WP_HTTP_Polling_Sync_Server {
 					),
 					array( 'status' => rest_authorization_required_code() )
 				);
+			}
+
+			// Enforce peer limit for single-entity rooms when the client
+			// is actively connecting (not sending a disconnect signal).
+			if ( null !== $object_id && null !== $room_awareness ) {
+				$is_client_tracked      = false;
+				$same_user_client_count = 0;
+				$other_user_ids         = array();
+				$current_time           = time();
+
+				foreach ( $existing_awareness as $entry ) {
+					if ( $current_time - $entry['updated_at'] >= self::AWARENESS_TIMEOUT ) {
+						continue;
+					}
+
+					if ( ! isset( $entry['wp_user_id'] ) ) {
+						continue;
+					}
+
+					if ( $wp_user_id === $entry['wp_user_id'] ) {
+						if ( $client_id === $entry['client_id'] ) {
+							$is_client_tracked = true;
+						} else {
+							++$same_user_client_count;
+						}
+					} else {
+						$other_user_ids[ $entry['wp_user_id'] ] = true;
+					}
+				}
+
+				// Limit the number of tabs a single user can open for this post.
+				if ( ! $is_client_tracked && $same_user_client_count >= $this->get_max_clients_per_user() ) {
+					return new WP_Error(
+						'rest_too_many_requests',
+						__( 'You have reached the maximum number of tabs for this post.' ),
+						array( 'status' => 429 )
+					);
+				}
+
+				// Limit the total number of unique users in the room.
+				$is_user_tracked = $is_client_tracked || $same_user_client_count > 0;
+				if ( ! $is_user_tracked && count( $other_user_ids ) >= $this->get_max_peers_per_room() ) {
+					return new WP_Error(
+						'rest_too_many_requests',
+						__( 'This post has reached its maximum number of simultaneous editors.' ),
+						array( 'status' => 429 )
+					);
+				}
 			}
 		}
 
@@ -375,6 +441,45 @@ class WP_HTTP_Polling_Sync_Server {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Returns the maximum number of peers allowed per room.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return int Maximum peers per room.
+	 */
+	private function get_max_peers_per_room(): int {
+		/**
+		 * Filters the maximum number of concurrent peers allowed in a
+		 * single real-time collaboration room.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param int $max_peers Default maximum peers per room.
+		 */
+		return (int) apply_filters( 'real_time_collaboration_max_peers_per_room', self::DEFAULT_MAX_PEERS_PER_ROOM );
+	}
+
+	/**
+	 * Returns the maximum number of simultaneous clients (tabs) a single
+	 * user may have in one room.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return int Maximum clients per user per room.
+	 */
+	private function get_max_clients_per_user(): int {
+		/**
+		 * Filters the maximum number of simultaneous clients (tabs) a
+		 * single user may have in a real-time collaboration room.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param int $max_clients Default maximum clients per user per room.
+		 */
+		return (int) apply_filters( 'real_time_collaboration_max_clients_per_user', self::DEFAULT_MAX_CLIENTS_PER_USER );
 	}
 
 	/**
