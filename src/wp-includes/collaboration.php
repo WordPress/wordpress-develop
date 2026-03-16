@@ -7,52 +7,18 @@
  */
 
 /**
- * Determines whether real-time collaboration is enabled.
+ * Checks whether real-time collaboration is enabled.
  *
- * If the WP_ALLOW_COLLABORATION constant is false,
- * collaboration is always disabled regardless of the database option.
- * Otherwise, falls back to the 'wp_collaboration_enabled' option.
+ * The feature requires both the site option and the database schema
+ * introduced in db_version 61840.
  *
  * @since 7.0.0
  *
- * @return bool Whether real-time collaboration is enabled.
+ * @return bool True if collaboration is enabled, false otherwise.
  */
 function wp_is_collaboration_enabled() {
-	return (
-		wp_is_collaboration_allowed() &&
-		(bool) get_option( 'wp_collaboration_enabled' )
-	);
-}
-
-/**
- * Determines whether real-time collaboration is allowed.
- *
- * If the WP_ALLOW_COLLABORATION constant is false,
- * collaboration is not allowed and cannot be enabled.
- * The constant defaults to true, unless the WP_ALLOW_COLLABORATION
- * environment variable is set to string "false".
- *
- * @since 7.0.0
- *
- * @return bool Whether real-time collaboration is enabled.
- */
-function wp_is_collaboration_allowed() {
-	if ( ! defined( 'WP_ALLOW_COLLABORATION' ) ) {
-		$env_value = getenv( 'WP_ALLOW_COLLABORATION' );
-		if ( false === $env_value ) {
-			// Environment variable is not defined, default to allowing collaboration.
-			define( 'WP_ALLOW_COLLABORATION', true );
-		} else {
-			/*
-			 * Environment variable is defined, let's confirm it is actually set to
-			 * "true" as it may still have a string value "false" – the preceeding
-			 * `if` branch only tests for the boolean `false`.
-			 */
-			define( 'WP_ALLOW_COLLABORATION', 'true' === $env_value );
-		}
-	}
-
-	return WP_ALLOW_COLLABORATION;
+	return get_option( 'wp_enable_real_time_collaboration' )
+		&& get_option( 'db_version' ) >= 61840;
 }
 
 /**
@@ -81,5 +47,38 @@ function wp_collaboration_inject_setting() {
 		'wp-core-data',
 		'window._wpCollaborationEnabled = ' . wp_json_encode( $enabled ) . ';',
 		'after'
+	);
+}
+
+/**
+ * Deletes stale collaboration data from the collaboration table.
+ *
+ * Removes non-awareness rows older than 7 days and awareness rows older
+ * than 60 seconds. Rows left behind by abandoned collaborative editing
+ * sessions are cleaned up to prevent unbounded table growth.
+ *
+ * @since 7.0.0
+ */
+function wp_delete_old_collaboration_data() {
+	if ( ! wp_is_collaboration_enabled() ) {
+		return;
+	}
+
+	global $wpdb;
+
+	// Clean up sync rows older than 7 days.
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->collaboration} WHERE type != 'awareness' AND date_gmt < %s",
+			gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
+		)
+	);
+
+	// Clean up awareness rows older than 60 seconds.
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->collaboration} WHERE type = 'awareness' AND date_gmt < %s",
+			gmdate( 'Y-m-d H:i:s', time() - 60 )
+		)
 	);
 }
