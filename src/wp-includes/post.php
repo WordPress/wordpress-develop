@@ -657,41 +657,6 @@ function create_initial_post_types() {
 		)
 	);
 
-	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
-		register_post_type(
-			'wp_sync_storage',
-			array(
-				'labels'             => array(
-					'name'          => __( 'Sync Updates' ),
-					'singular_name' => __( 'Sync Update' ),
-				),
-				'public'             => false,
-				'_builtin'           => true, /* internal use only. don't use this when registering your own post type. */
-				'hierarchical'       => false,
-				'capabilities'       => array(
-					'read'                   => 'do_not_allow',
-					'read_private_posts'     => 'do_not_allow',
-					'create_posts'           => 'do_not_allow',
-					'publish_posts'          => 'do_not_allow',
-					'edit_posts'             => 'do_not_allow',
-					'edit_others_posts'      => 'do_not_allow',
-					'edit_published_posts'   => 'do_not_allow',
-					'delete_posts'           => 'do_not_allow',
-					'delete_others_posts'    => 'do_not_allow',
-					'delete_published_posts' => 'do_not_allow',
-				),
-				'map_meta_cap'       => false,
-				'publicly_queryable' => false,
-				'query_var'          => false,
-				'rewrite'            => false,
-				'show_in_menu'       => false,
-				'show_in_rest'       => false,
-				'show_ui'            => false,
-				'supports'           => array( 'custom-fields' ),
-			)
-		);
-	}
-
 	register_post_status(
 		'publish',
 		array(
