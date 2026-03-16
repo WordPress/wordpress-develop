@@ -3720,6 +3720,26 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/media/(?P<id>[\\d]+)/finalize": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the attachment.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/menu-items": {
             "namespace": "wp/v2",
             "methods": [
@@ -11067,24 +11087,6 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
-                        "connectors_ai_anthropic_api_key": {
-                            "title": "Anthropic API Key",
-                            "description": "API key for the Anthropic AI provider.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "connectors_ai_google_api_key": {
-                            "title": "Google API Key",
-                            "description": "API key for the Google AI provider.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "connectors_ai_openai_api_key": {
-                            "title": "OpenAI API Key",
-                            "description": "API key for the OpenAI AI provider.",
-                            "type": "string",
-                            "required": false
-                        },
                         "title": {
                             "title": "Title",
                             "description": "Site title.",
@@ -12830,22 +12832,26 @@ mockedApiResponse.Schema = {
                                         ]
                                     },
                                     "client_id": {
-                                        "minimum": 1,
                                         "required": true,
-                                        "type": "integer"
+                                        "type": [
+                                            "string",
+                                            "integer"
+                                        ],
+                                        "sanitize_callback": {}
                                     },
                                     "room": {
                                         "required": true,
                                         "type": "string",
                                         "pattern": "^[^/]+/[^/:]+(?::\\S+)?$",
-                                        "maxLength": 255
+                                        "maxLength": 191
                                     },
                                     "updates": {
                                         "items": {
                                             "properties": {
                                                 "data": {
                                                     "type": "string",
-                                                    "required": true
+                                                    "required": true,
+                                                    "maxLength": 1048576
                                                 },
                                                 "type": {
                                                     "type": "string",
@@ -12939,22 +12945,26 @@ mockedApiResponse.Schema = {
                                         ]
                                     },
                                     "client_id": {
-                                        "minimum": 1,
                                         "required": true,
-                                        "type": "integer"
+                                        "type": [
+                                            "string",
+                                            "integer"
+                                        ],
+                                        "sanitize_callback": {}
                                     },
                                     "room": {
                                         "required": true,
                                         "type": "string",
                                         "pattern": "^[^/]+/[^/:]+(?::\\S+)?$",
-                                        "maxLength": 255
+                                        "maxLength": 191
                                     },
                                     "updates": {
                                         "items": {
                                             "properties": {
                                                 "data": {
                                                     "type": "string",
-                                                    "required": true
+                                                    "required": true,
+                                                    "maxLength": 1048576
                                                 },
                                                 "type": {
                                                     "type": "string",
@@ -14873,9 +14883,6 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
-    "connectors_ai_anthropic_api_key": "",
-    "connectors_ai_google_api_key": "",
-    "connectors_ai_openai_api_key": "",
     "title": "Test Blog",
     "description": "",
     "url": "http://example.org",
