@@ -52,33 +52,35 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should reject non-string names.
+	 * Should reject invalid icon names.
 	 *
+	 * @dataProvider data_invalid_icon_names
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 *
+	 * @param mixed $icon_name Icon name to test.
 	 */
-	public function test_invalid_non_string_names() {
-		$result = $this->register( 1, array() );
+	public function test_invalid_icon_names( $icon_name ) {
+		$settings = array(
+			'label'   => 'Icon',
+			'content' => '<svg></svg>',
+		);
+
+		$result = $this->register( $icon_name, $settings );
 		$this->assertFalse( $result );
 	}
 
 	/**
-	 * Should reject icons without a namespace.
+	 * Provides invalid icon names.
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @return array[]
 	 */
-	public function test_invalid_names_without_namespace() {
-		$result = $this->register( 'plus', array() );
-		$this->assertFalse( $result );
-	}
-
-	/**
-	 * Should reject icons with uppercase characters.
-	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
-	 */
-	public function test_uppercase_characters() {
-		$result = $this->register( 'Core/Plus', array() );
-		$this->assertFalse( $result );
+	public function data_invalid_icon_names() {
+		return array(
+			'non-string name'      => array( 1 ),
+			'no namespace'         => array( 'plus' ),
+			'uppercase characters' => array( 'Core/Plus' ),
+			'invalid characters'   => array( 'test/_doing_it_wrong' ),
+		);
 	}
 
 	/**
