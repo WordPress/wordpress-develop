@@ -178,16 +178,11 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 		$attributes = $request->get_param( 'attributes' );
 
 		// Create an array representation simulating the output of parse_blocks.
-		$block = array(
-			'blockName'    => $request['name'],
-			'attrs'        => $attributes,
-			'innerHTML'    => '',
-			'innerContent' => array(),
-		);
+		$block = wp_create_block( $request['name'], $attributes, '' );
 
 		// Render using render_block to ensure all relevant filters are used.
 		$data = array(
-			'rendered' => render_block( $block ),
+			'rendered' => render_block( (array) $block ),
 		);
 
 		return rest_ensure_response( $data );

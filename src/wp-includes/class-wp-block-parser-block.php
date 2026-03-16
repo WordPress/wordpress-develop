@@ -10,6 +10,9 @@
  *
  * Holds the block structure in memory
  *
+ * @private
+ * @ignore
+ *
  * @since 5.0.0
  */
 class WP_Block_Parser_Block {
