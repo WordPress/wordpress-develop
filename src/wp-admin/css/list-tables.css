@@ -79,14 +79,14 @@
 .column-response a.post-com-count-approved:focus .comment-count-approved,
 .column-comments a.post-com-count-approved:hover .comment-count-approved,
 .column-comments a.post-com-count-approved:focus .comment-count-approved {
-	background: #2271b1;
+	background: #3858e9;
 }
 
 .column-response a.post-com-count-approved:hover:after,
 .column-response a.post-com-count-approved:focus:after,
 .column-comments a.post-com-count-approved:hover:after,
 .column-comments a.post-com-count-approved:focus:after {
-	border-top-color: #2271b1;
+	border-top-color: #3858e9;
 }
 
 /* @todo: consider to use a single rule for these counters and the admin menu counters. */
@@ -922,8 +922,8 @@ tr.inline-edit-row td {
 }
 
 .inline-edit-wrapper:focus {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }

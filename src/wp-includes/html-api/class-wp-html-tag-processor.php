@@ -881,6 +881,8 @@ class WP_HTML_Tag_Processor {
 	 *     @type string|null $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
 	 * }
 	 * @return bool Whether a tag was matched.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_tag( $query = null ): bool {
 		$this->parse_query( $query );
@@ -5061,4 +5063,13 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 */
 	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
+
+	/**
+	 * Wakeup magic method.
+	 *
+	 * @since 6.9.2
+	 */
+	public function __wakeup() {
+		throw new \LogicException( __CLASS__ . ' should never be unserialized' );
+	}
 }
