@@ -966,7 +966,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 			'href'  => '#',
 			'meta'  => array(
 				'class'   => 'hide-if-no-js',
-				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
+				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); event.currentTarget.blur(); return false; ',
 			),
 		)
 	);
