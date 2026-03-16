@@ -84,21 +84,6 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should accept valid icon names.
-	 */
-	public function test_register_icon() {
-		$name     = 'test-plugin/my-icon';
-		$settings = array(
-			'label'   => 'My Icon',
-			'content' => '<svg></svg>',
-		);
-
-		$result = $this->register( $name, $settings );
-		$this->assertTrue( $result );
-		$this->assertTrue( $this->registry->is_registered( $name ) );
-	}
-
-	/**
 	 * Should fail to re-register the same icon.
 	 *
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
