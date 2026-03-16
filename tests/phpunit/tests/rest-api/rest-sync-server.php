@@ -530,6 +530,14 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	public function test_sync_total_updates_increments() {
 		wp_set_current_user( self::$editor_id );
 
+		// Raise per-user client limit so 4 clients from one user are allowed.
+		add_filter(
+			'real_time_collaboration_max_clients_per_user',
+			function () {
+				return 10;
+			}
+		);
+
 		$room   = $this->get_post_room();
 		$update = array(
 			'type' => 'update',
@@ -650,6 +658,14 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 	public function test_sync_stale_compaction_succeeds_when_newer_compaction_exists() {
 		wp_set_current_user( self::$editor_id );
+
+		// Raise per-user client limit so 4 clients from one user are allowed.
+		add_filter(
+			'real_time_collaboration_max_clients_per_user',
+			function () {
+				return 10;
+			}
+		);
 
 		$room   = $this->get_post_room();
 		$update = array(
