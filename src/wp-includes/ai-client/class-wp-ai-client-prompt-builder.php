@@ -310,6 +310,7 @@ class WP_AI_Client_Prompt_Builder {
 					'prompt_prevented',
 					__( 'Prompt execution was prevented by a filter.' ),
 					array(
+						'status'          => 503,
 						'exception_class' => 'WP_AI_Client_Prompt_Prevented',
 					)
 				);
