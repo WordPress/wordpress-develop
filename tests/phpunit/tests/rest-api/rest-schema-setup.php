@@ -16,6 +16,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	public function set_up() {
 		parent::set_up();
 
+		// Ensure client-side media processing is enabled so the sideload route is registered.
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
 		// Ensure collaboration routes are registered.
 		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_true' );
 
@@ -113,6 +116,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
 			'/wp/v2/media/(?P<id>[\\d]+)/edit',
 			'/wp/v2/media/(?P<id>[\\d]+)/sideload',
+			'/wp/v2/media/(?P<id>[\\d]+)/finalize',
 			'/wp/v2/blocks',
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',
