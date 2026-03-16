@@ -462,7 +462,9 @@ EXPECTED;
 		update_option( 'posts_per_page', 2 );
 		$this->set_permalink_structure( '' );
 
-		$category_id = get_category_by_slug( 'categorized' )->term_id;
+		$term = get_category_by_slug( 'categorized' );
+		$this->assertInstanceOf( WP_Term::class, $term );
+		$category_id = $term->term_id;
 		$this->go_to( "/?cat={$category_id}&paged=2" );
 
 		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
@@ -483,10 +485,9 @@ EXPECTED;
 			$expected_link = $expected_links[ $found_links ] ?? '';
 			++$found_links;
 			$href = (string) $processor->get_attribute( 'href' );
-			$this->assertStringStartsWith( trailingslashit( home_url() ), $href, 'Pagination links should contain the home URL followed by a trailing slash, found: ' . $href );
 			$this->assertSame( $expected_link, $href, "Pagination links should include the category query string, found: $href" );
 		}
-		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
+		$this->assertSame( count( $expected_links ), $found_links, 'There should be this number of pagination links found.' );
 	}
 
 	/**
