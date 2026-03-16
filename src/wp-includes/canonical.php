@@ -37,7 +37,7 @@
  * @param string $requested_url Optional. The URL that was requested, used to
  *                              figure if redirect is needed.
  * @param bool   $do_redirect   Optional. Redirect to the new URL.
- * @return string|null|never The string of the URL, if redirect needed. Never if a redirect occurs.
+ * @return string|null The string of the URL, if redirect needed. Never if a redirect occurs.
  */
 function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	global $wp_rewrite, $is_IIS, $wp_query, $wpdb, $wp;
