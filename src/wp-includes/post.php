@@ -656,7 +656,7 @@ function create_initial_post_types() {
 			'supports'              => array( 'title' ),
 		)
 	);
-	
+
 	register_post_status(
 		'publish',
 		array(
