@@ -19,6 +19,8 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64858
+	 *
 	 * @dataProvider data_threads_provider_urls
 	 *
 	 * @param string $url      The URL to test.
