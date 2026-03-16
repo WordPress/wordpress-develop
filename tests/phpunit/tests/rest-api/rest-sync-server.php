@@ -50,7 +50,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 * @return array Room request data.
 	 */
 	private function build_room( $room, $client_id = 1, $cursor = 0, $awareness = array(), $updates = array() ) {
-		if ( empty( $awareness ) ) {
+		if ( array() === $awareness ) {
 			$awareness = array( 'user' => 'test' );
 		}
 
