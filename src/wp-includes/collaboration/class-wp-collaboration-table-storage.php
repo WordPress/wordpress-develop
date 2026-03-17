@@ -94,14 +94,14 @@ class WP_Collaboration_Table_Storage {
 	 * @phpstan-return list<AwarenessState>
 	 */
 	public function get_awareness_state( string $room, int $timeout = 30 ): array {
-		$cache_key = 'awareness:' . $room;
+		global $wpdb;
+
+		$cache_key = 'awareness:' . str_replace( '/', ':', $room );
 		$cached    = wp_cache_get( $cache_key, 'collaboration' );
 
 		if ( false !== $cached ) {
 			return $cached;
 		}
-
-		global $wpdb;
 
 		$cutoff = gmdate( 'Y-m-d H:i:s', time() - $timeout );
 
@@ -182,8 +182,10 @@ class WP_Collaboration_Table_Storage {
 	public function get_updates_after_cursor( string $room, int $cursor ): array {
 		global $wpdb;
 
-		// Snapshot the current max ID and total row count in a single query.
-		// Excludes awareness rows — they are not sync updates.
+		/*
+		 * Snapshot the current max ID and total row count in a single query.
+		 * Excludes awareness rows — they are not sync updates.
+		 */
 		$snapshot = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT COALESCE( MAX( id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
@@ -203,16 +205,18 @@ class WP_Collaboration_Table_Storage {
 		$this->room_cursors[ $room ] = $max_id;
 
 		if ( 0 === $max_id || $max_id <= $cursor ) {
-			// Preserve the real row count so the server can still
-			// trigger compaction when updates have accumulated but
-			// no new ones arrived since the client's last poll.
+			/*
+			 * Preserve the real row count so the server can still
+			 * trigger compaction when updates have accumulated but
+			 * no new ones arrived since the client's last poll.
+			 */
 			$this->room_update_counts[ $room ] = $total;
 			return array();
 		}
 
 		$this->room_update_counts[ $room ] = $total;
 
-		// Fetch updates after the cursor up to the snapshot boundary.
+		/* Fetch updates after the cursor up to the snapshot boundary. */
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT data FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND id > %d AND id <= %d ORDER BY id ASC",
@@ -248,7 +252,7 @@ class WP_Collaboration_Table_Storage {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $room   Room identifier.
-	 * @param int    $cursor Remove updates with id <= this cursor.
+	 * @param int    $cursor Remove updates up to and including this cursor.
 	 * @return bool True on success, false on failure.
 	 */
 	public function remove_updates_before_cursor( string $room, int $cursor ): bool {
@@ -296,7 +300,7 @@ class WP_Collaboration_Table_Storage {
 		$data = wp_json_encode( $state );
 		$now  = gmdate( 'Y-m-d H:i:s' );
 
-		// Try UPDATE first.
+		/* Try UPDATE first. */
 		$updated = $wpdb->update(
 			$wpdb->collaboration,
 			array(
@@ -311,7 +315,7 @@ class WP_Collaboration_Table_Storage {
 			)
 		);
 
-		// INSERT only if no existing row.
+		/* INSERT only if no existing row. */
 		if ( 0 === (int) $updated ) {
 			$result = $wpdb->insert(
 				$wpdb->collaboration,
@@ -332,10 +336,12 @@ class WP_Collaboration_Table_Storage {
 			return false;
 		}
 
-		// Update the cached entries in-place so the next reader in this
-		// room gets a cache hit with fresh data. If the cache is cold,
-		// skip — the next get_awareness_state() call will prime it.
-		$cache_key = 'awareness:' . $room;
+		/*
+		 * Update the cached entries in-place so the next reader in this
+		 * room gets a cache hit with fresh data. If the cache is cold,
+		 * skip — the next get_awareness_state() call will prime it.
+		 */
+		$cache_key = 'awareness:' . str_replace( '/', ':', $room );
 		$cached    = wp_cache_get( $cache_key, 'collaboration' );
 
 		if ( false !== $cached ) {
