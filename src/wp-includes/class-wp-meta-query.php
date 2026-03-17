@@ -96,6 +96,14 @@ class WP_Meta_Query {
 	protected $has_or_relation = false;
 
 	/**
+	 * The type of object metadata is for (e.g. 'post', 'user', 'term').
+	 *
+	 * @since 7.0.0
+	 * @var string
+	 */
+	protected $object_type = '';
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.2.0
@@ -364,6 +372,7 @@ class WP_Meta_Query {
 
 		$this->meta_table     = $meta_table;
 		$this->meta_id_column = sanitize_key( $type . '_id' );
+		$this->object_type    = $type;
 
 		$this->primary_table     = $primary_table;
 		$this->primary_id_column = $primary_id_column;
@@ -532,6 +541,28 @@ class WP_Meta_Query {
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query, $clause_key = '' ) {
 		global $wpdb;
+
+		// Refuse to query by a meta key registered as non-query-cacheable.
+		if ( $this->object_type
+			&& isset( $clause['key'] )
+			&& is_string( $clause['key'] )
+			&& ! wp_meta_key_invalidates_query_cache( $this->object_type, $clause['key'] )
+		) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The meta key. */
+					__( 'The meta key "%s" is registered with invalidates_query_cache set to false and cannot be used in meta queries.' ),
+					$clause['key']
+				),
+				'7.0.0'
+			);
+
+			return array(
+				'join'  => array(),
+				'where' => array(),
+			);
+		}
 
 		$sql_chunks = array(
 			'where' => array(),

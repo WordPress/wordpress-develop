@@ -1440,16 +1440,17 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	$defaults = array(
-		'object_subtype'    => '',
-		'type'              => 'string',
-		'label'             => '',
-		'description'       => '',
-		'default'           => '',
-		'single'            => false,
-		'sanitize_callback' => null,
-		'auth_callback'     => null,
-		'show_in_rest'      => false,
-		'revisions_enabled' => false,
+		'object_subtype'           => '',
+		'type'                     => 'string',
+		'label'                    => '',
+		'description'              => '',
+		'default'                  => '',
+		'single'                   => false,
+		'sanitize_callback'        => null,
+		'auth_callback'            => null,
+		'show_in_rest'             => false,
+		'revisions_enabled'        => false,
+		'invalidates_query_cache'  => true,
 	);
 
 	// There used to be individual args for sanitize and auth callbacks.
@@ -1642,6 +1643,43 @@ function registered_meta_key_exists( $object_type, $meta_key, $object_subtype = 
 	$meta_keys = get_registered_meta_keys( $object_type, $object_subtype );
 
 	return isset( $meta_keys[ $meta_key ] );
+}
+
+/**
+ * Checks whether a meta key invalidates query caches when updated.
+ *
+ * Meta keys registered with `'invalidates_query_cache' => false` will not
+ * cause query cache invalidation when added, updated, or deleted. This is
+ * useful for high-frequency meta that is never used in query filters, such
+ * as real-time collaboration sync data.
+ *
+ * Unregistered meta keys are assumed to invalidate query caches.
+ *
+ * @since 7.0.0
+ *
+ * @param string $object_type    Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                               or any other object type with an associated meta table.
+ * @param string $meta_key       Metadata key.
+ * @param string $object_subtype Optional. The subtype of the object type. Default empty string.
+ * @return bool True if the meta key invalidates query caches, false otherwise.
+ */
+function wp_meta_key_invalidates_query_cache( $object_type, $meta_key, $object_subtype = '' ) {
+	$meta_keys = get_registered_meta_keys( $object_type, $object_subtype );
+
+	if ( isset( $meta_keys[ $meta_key ] ) ) {
+		return $meta_keys[ $meta_key ]['invalidates_query_cache'];
+	}
+
+	// Also check keys registered without a subtype.
+	if ( '' !== $object_subtype ) {
+		$meta_keys = get_registered_meta_keys( $object_type );
+		if ( isset( $meta_keys[ $meta_key ] ) ) {
+			return $meta_keys[ $meta_key ]['invalidates_query_cache'];
+		}
+	}
+
+	// Unregistered keys default to invalidating caches.
+	return true;
 }
 
 /**

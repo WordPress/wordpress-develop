@@ -690,6 +690,22 @@ function create_initial_post_types() {
 				'supports'           => array( 'custom-fields' ),
 			)
 		);
+
+		register_post_meta(
+			'wp_sync_storage',
+			'wp_sync_awareness',
+			array(
+				'invalidates_query_cache' => false,
+			)
+		);
+
+		register_post_meta(
+			'wp_sync_storage',
+			'wp_sync_update',
+			array(
+				'invalidates_query_cache' => false,
+			)
+		);
 	}
 
 	register_post_status(
@@ -8440,9 +8456,23 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 /**
  * Sets the last changed time for the 'posts' cache group.
  *
+ * When called from a post meta action (`added_post_meta`, `updated_post_meta`,
+ * or `deleted_post_meta`), the meta key is checked against the registered meta
+ * registry. If the meta key was registered with `'invalidates_query_cache' => false`,
+ * the cache is not invalidated. This allows high-frequency meta writes (e.g.
+ * real-time collaboration data) to avoid invalidating query caches site-wide.
+ *
  * @since 5.0.0
+ * @since 7.0.0 Added the `$meta_id`, `$object_id`, and `$meta_key` parameters.
+ *
+ * @param int    $meta_id   Optional. Meta ID. Passed by meta action hooks.
+ * @param int    $object_id Optional. Object ID. Passed by meta action hooks.
+ * @param string $meta_key  Optional. Meta key. Passed by meta action hooks.
  */
-function wp_cache_set_posts_last_changed() {
+function wp_cache_set_posts_last_changed( $meta_id = 0, $object_id = 0, $meta_key = '' ) {
+	if ( $meta_key && ! wp_meta_key_invalidates_query_cache( 'post', $meta_key ) ) {
+		return;
+	}
 	wp_cache_set_last_changed( 'posts' );
 }
 
