@@ -221,10 +221,10 @@ EOF;
 		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
 
 		$expected = join(
-			"\n",
+			'',
 			array_map(
 				static function ( $id ) {
-					return sprintf( '<li><a href="%s">%s</a></li>', get_permalink( $id ), get_the_title( $id ) );
+					return sprintf( "\t<li><a href='%s'>%s</a></li>\n", get_permalink( $id ), get_the_title( $id ) );
 				},
 				$ids
 			)

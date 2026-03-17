@@ -882,6 +882,7 @@ HTML;
 h1 { background: blue; }h2 { color: green; }
 /*# sourceURL=css-inline-concat-one%2Ctwo */
 </style>
+
 HTML;
 
 		$this->assertEqualHTML( $expected, $printed );
@@ -935,7 +936,7 @@ HTML;
 		wp_enqueue_style( 'test-style?qs1=q1&qs2=q2', '/test-style.css', array(), $version );
 		$markup = get_echo( 'wp_print_styles' );
 
-		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' media='all' />";
+		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' media='all' />\n";
 		$this->assertEqualHTML( $expected, $markup, '<body>', 'Expected equal snapshot for wp_print_styles() with version ' . var_export( $version, true ) . ":\n$markup" );
 	}
 
@@ -956,8 +957,73 @@ HTML;
 		wp_enqueue_style( 'test-style?qs1=q1&qs2=q2' );
 		$markup = get_echo( 'wp_print_styles' );
 
-		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' media='all' />";
+		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' media='all' />\n";
 		$this->assertEqualHTML( $expected, $markup, '<body>', 'Expected equal snapshot for wp_print_styles() with version ' . var_export( $version, true ) . ":\n$markup" );
+	}
+
+	/**
+	 * Tests that duplicate query vars and fragments are preserved in styles.
+	 *
+	 * @ticket 64372
+	 *
+	 * @dataProvider data_duplicate_query_vars_and_fragments_preserved_in_styles
+	 *
+	 * @param string           $src          The stylesheet's source URL.
+	 * @param string|bool|null $ver          The style's version.
+	 * @param string           $expected_url The expected URL.
+	 * @param string           $handle       Optional. The style's registered handle. Default 'test-style'.
+	 */
+	public function test_duplicate_query_vars_and_fragments_preserved_in_styles( string $src, $ver, string $expected_url, string $handle = 'test-style' ): void {
+		wp_enqueue_style( $handle, $src, array(), $ver );
+		$output    = get_echo( 'wp_print_styles' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( $expected_url, $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * Data provider for test_duplicate_query_vars_and_fragments_preserved_in_styles.
+	 *
+	 * @return array<string, array{src: string, ver: string|bool|null, expected_url: string, handle?: string}> Data provider.
+	 */
+	public function data_duplicate_query_vars_and_fragments_preserved_in_styles(): array {
+		$ver = get_bloginfo( 'version' );
+
+		return array(
+			'duplicate query vars'                => array(
+				'src'          => 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap',
+				'ver'          => '1.0',
+				'expected_url' => 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap&ver=1.0',
+			),
+			'duplicate query vars, null version'  => array(
+				'src'          => 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap',
+				'ver'          => null,
+				'expected_url' => 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap',
+			),
+			'duplicate query vars, false version' => array(
+				'src'          => 'https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap',
+				'ver'          => false,
+				'expected_url' => "https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap&ver=$ver",
+			),
+			'duplicate query vars in handle'      => array(
+				'src'          => 'https://example.com/test-style.css',
+				'ver'          => '1.0',
+				'expected_url' => 'https://example.com/test-style.css?ver=1.0&a=1&a=2',
+				'handle'       => 'test-style?a=1&a=2',
+			),
+			'duplicate query vars and fragments'  => array(
+				'src'          => 'https://example.com/style.css?arg=1&arg=2#anchor',
+				'ver'          => '1.0',
+				'expected_url' => 'https://example.com/style.css?arg=1&arg=2&ver=1.0#anchor',
+			),
+			'zero query var in handle'            => array(
+				'src'          => 'https://example.com/test-style.css',
+				'ver'          => '1.0',
+				'expected_url' => 'https://example.com/test-style.css?ver=1.0&0',
+				'handle'       => 'test-style?0',
+			),
+		);
 	}
 
 	/**

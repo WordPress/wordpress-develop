@@ -1623,6 +1623,11 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 	$processor = new WP_HTML_Tag_Processor( "<wp {$attr}>" );
 	$processor->next_token();
 
+	$attribute_names = $processor->get_attribute_names_with_prefix( '' );
+	if ( null === $attribute_names || 0 === count( $attribute_names ) ) {
+		return $attributes;
+	}
+
 	$syntax_characters = array(
 		'&' => '&amp;',
 		'<' => '&lt;',
@@ -1631,7 +1636,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 		'"' => '&quot;',
 	);
 
-	foreach ( $processor->get_attribute_names_with_prefix( '' ) as $name ) {
+	foreach ( $attribute_names as $name ) {
 		$value   = $processor->get_attribute( $name );
 		$is_bool = true === $value;
 		if ( is_string( $value ) && in_array( $name, $uris, true ) ) {
@@ -2113,8 +2118,8 @@ function wp_kses_normalize_entities( $content, $context = 'html' ) {
 	 *
 	 * Here, each input is normalized to an appropriate output.
 	 */
-	$content = preg_replace_callback( '/&amp;#(0*[0-9]{1,7});/', 'wp_kses_normalize_entities2', $content );
-	$content = preg_replace_callback( '/&amp;#[Xx](0*[0-9A-Fa-f]{1,6});/', 'wp_kses_normalize_entities3', $content );
+	$content = preg_replace_callback( '/&amp;#(0*[1-9][0-9]{0,6});/', 'wp_kses_normalize_entities2', $content );
+	$content = preg_replace_callback( '/&amp;#[Xx](0*[1-9A-Fa-f][0-9A-Fa-f]{0,5});/', 'wp_kses_normalize_entities3', $content );
 	if ( 'xml' === $context ) {
 		$content = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_xml_named_entities', $content );
 	} else {
@@ -2386,7 +2391,13 @@ function wp_filter_global_styles_post( $data ) {
 		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data, 'custom' );
 
 		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
-		return wp_slash( wp_json_encode( $data_to_encode ) );
+		/**
+		 * JSON encode the data stored in post content.
+		 * Escape characters that are likely to be mangled by HTML filters: "<>&".
+		 *
+		 * This matches the escaping in {@see WP_REST_Global_Styles_Controller::prepare_item_for_database()}.
+		 */
+		return wp_slash( wp_json_encode( $data_to_encode, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) );
 	}
 	return $data;
 }
@@ -2619,6 +2630,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'column-rule',
 			'column-span',
 			'column-width',
+
+			'display',
 
 			'color',
 			'filter',

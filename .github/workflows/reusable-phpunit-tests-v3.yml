@@ -131,13 +131,13 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -150,7 +150,7 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
@@ -158,7 +158,7 @@ jobs:
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@3cf229dc2919194e9e36783941438d17239e8520 # v3.1.1
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
@@ -237,7 +237,7 @@ jobs:
 
       - name: Upload test coverage report to Codecov
         if: ${{ inputs.coverage-report }}
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}.xml
@@ -246,7 +246,7 @@ jobs:
 
       - name: Upload HTML coverage report as artifact
         if: ${{ inputs.coverage-report }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
           path: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
@@ -257,7 +257,7 @@ jobs:
 
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'

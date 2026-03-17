@@ -1723,7 +1723,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 
 	$do_object = is_object( $term );
 
-	$term_id = $do_object ? $term->term_id : ( $term['term_id'] ?? 0 );
+	$term_id = $do_object ? ( $term->term_id ?? 0 ) : ( $term['term_id'] ?? 0 );
 
 	foreach ( (array) $fields as $field ) {
 		if ( $do_object ) {
@@ -1767,7 +1767,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  * @param string $taxonomy Taxonomy name.
  * @param string $context  Context in which to sanitize the term field.
  *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
- *                         'attribute', or 'js'. Default 'display'.
+ *                         'attribute', or 'js'.
  * @return mixed Sanitized field.
  */
 function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {

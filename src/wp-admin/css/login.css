@@ -15,7 +15,7 @@ body {
 }
 
 a {
-	color: #2271b1;
+	color: var(--wp-admin-theme-color-darker-10);
 	transition-property: border, background, color;
 	transition-duration: .05s;
 	transition-timing-function: ease-in-out;
@@ -27,12 +27,12 @@ a {
 
 a:hover,
 a:active {
-	color: #135e96;
+	color: var(--wp-admin-theme-color-darker-20);
 }
 
 a:focus {
 	color: #043959;
-	box-shadow: 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -44,22 +44,32 @@ p {
 .login .message,
 .login .notice,
 .login .success {
-	border-left: 4px solid #72aee6;
-	padding: 12px;
+	border-left: 4px solid #3858e9;
+	padding: 8px 12px;
+	margin-top: 0;
 	margin-left: 0;
 	margin-bottom: 20px;
 	background-color: #fff;
-	box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 	word-wrap: break-word;
 }
 
+.login .message p,
+.login .notice p,
+.login .success p {
+	font-size: 13px;
+	line-height: 1.54;
+	margin: 0.5em 0;
+}
+
 .login .success {
-	border-left-color: #00a32a;
+	border-left-color: #4ab866;
+	background-color: #eff9f1;
 }
 
 /* Match border color from common.css */
 .login .notice-error {
-	border-left-color: #d63638;
+	border-left-color: #cc1818;
+	background-color: #fcf0f0;
 }
 
 .login .login-error-list {
@@ -89,12 +99,13 @@ p {
 	margin-bottom: 15px;
 }
 
+/* rtl:ignore */
 .login .button.wp-hide-pw {
 	background: transparent;
 	border: 1px solid transparent;
 	box-shadow: none;
 	font-size: 14px;
-	line-height: 2;
+	line-height: normal;
 	width: 2.5rem;
 	height: 2.5rem;
 	min-width: 40px;
@@ -112,8 +123,8 @@ p {
 
 .login .button.wp-hide-pw:focus {
 	background: transparent;
-	border-color: #3582c4;
-	box-shadow: 0 0 0 1px #3582c4;
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -127,7 +138,6 @@ p {
 .login .button.wp-hide-pw .dashicons {
 	width: 1.25rem;
 	height: 1.25rem;
-	top: 0.25rem;
 }
 
 .login .wp-pwd {
@@ -273,8 +283,8 @@ p {
 }
 
 .login h1 a {
-	background-image: url(../images/w-logo-blue.png?ver=20131202);
-	background-image: none, url(../images/wordpress-logo.svg?ver=20131107);
+	background-image: url(../images/w-logo-gray.png?ver=20260303);
+	background-image: none, url(../images/wordpress-logo-gray.svg?ver=20260303);
 	background-size: 84px;
 	background-position: center top;
 	background-repeat: no-repeat;
@@ -355,14 +365,9 @@ p {
 	font-family: Consolas, Monaco, monospace;
 }
 
+/* rtl:ignore */
 .js.login input.password-input {
 	padding-right: 2.5rem;
-}
-
-.login form .input,
-.login input[type="text"],
-.login form input[type="checkbox"] {
-	background: #fff;
 }
 
 .js.login-action-resetpass input[type="text"],
@@ -413,7 +418,9 @@ body.interim-login {
 	padding: 0;
 	position: absolute;
 	width: 1px;
-	word-wrap: normal !important; /* many screen reader and browser combinations announce broken words as they would appear visually */
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
+	word-wrap: normal !important;
+	word-break: normal !important;
 }
 
 /* Hide the Edge "reveal password" native button */
