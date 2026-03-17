@@ -1825,6 +1825,53 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 */
 
 	/*
+	 * Deprecated route tests.
+	 */
+
+	/**
+	 * Verifies the deprecated wp-sync/v1 route alias works identically to
+	 * the canonical wp-collaboration/v1 namespace.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_deprecated_sync_route() {
+		wp_set_current_user( self::$editor_id );
+
+		$room   = $this->get_post_room();
+		$update = array(
+			'type' => 'update',
+			'data' => 'c3luYyByb3V0ZQ==',
+		);
+
+		// Send an update via the deprecated namespace.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, array( 'user' => 'client1' ), array( $update ) ),
+			),
+			'wp-sync/v1'
+		);
+
+		$this->assertSame( 200, $response->get_status(), 'Deprecated wp-sync/v1 route should return 200.' );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'rooms', $data, 'Response should contain rooms key.' );
+		$this->assertSame( $room, $data['rooms'][0]['room'], 'Room identifier should match.' );
+
+		// Verify the update is retrievable via the canonical namespace.
+		$response2 = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '2', 0 ),
+			)
+		);
+
+		$updates = $response2->get_data()['rooms'][0]['updates'];
+		$this->assertNotEmpty( $updates, 'Update sent via deprecated route should be retrievable via canonical route.' );
+
+		$update_data = wp_list_pluck( $updates, 'data' );
+		$this->assertContains( 'c3luYyByb3V0ZQ==', $update_data );
+	}
+
+	/*
 	 * Payload limit and permission hardening tests.
 	 */
 
