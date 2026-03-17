@@ -26,18 +26,18 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
 			),
-			'public'                => true,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
-			'capability_type'       => 'post',
-			'map_meta_cap'          => true,
-			'menu_position'         => 5,
-			'menu_icon'             => 'dashicons-admin-post',
-			'hierarchical'          => false,
-			'rewrite'               => false,
-			'query_var'             => false,
-			'delete_with_user'      => true,
-			'supports'              => array(
+			'public'                 => true,
+			'_builtin'               => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'             => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
+			'capability_type'        => 'post',
+			'map_meta_cap'           => true,
+			'menu_position'          => 5,
+			'menu_icon'              => 'dashicons-admin-post',
+			'hierarchical'           => false,
+			'rewrite'                => false,
+			'query_var'              => false,
+			'delete_with_user'       => true,
+			'supports'               => array(
 				'title',
 				'editor' => array( 'notes' => true ),
 				'author',
@@ -49,9 +49,10 @@ function create_initial_post_types() {
 				'revisions',
 				'post-formats',
 			),
-			'show_in_rest'          => true,
-			'rest_base'             => 'posts',
-			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'show_in_rest'           => true,
+			'rest_base'              => 'posts',
+			'rest_controller_class'  => 'WP_REST_Posts_Controller',
+			'show_in_home_page_list' => true,
 		)
 	);
 
@@ -61,19 +62,19 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name_admin_bar' => _x( 'Page', 'add new from admin bar' ),
 			),
-			'public'                => true,
-			'publicly_queryable'    => false,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
-			'capability_type'       => 'page',
-			'map_meta_cap'          => true,
-			'menu_position'         => 20,
-			'menu_icon'             => 'dashicons-admin-page',
-			'hierarchical'          => true,
-			'rewrite'               => false,
-			'query_var'             => false,
-			'delete_with_user'      => true,
-			'supports'              => array(
+			'public'                 => true,
+			'publicly_queryable'     => false,
+			'_builtin'               => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'             => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
+			'capability_type'        => 'page',
+			'map_meta_cap'           => true,
+			'menu_position'          => 20,
+			'menu_icon'              => 'dashicons-admin-page',
+			'hierarchical'           => true,
+			'rewrite'                => false,
+			'query_var'              => false,
+			'delete_with_user'       => true,
+			'supports'               => array(
 				'title',
 				'editor' => array( 'notes' => true ),
 				'author',
@@ -83,9 +84,9 @@ function create_initial_post_types() {
 				'comments',
 				'revisions',
 			),
-			'show_in_rest'          => true,
-			'rest_base'             => 'pages',
-			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'show_in_rest'           => true,
+			'rest_base'              => 'pages',
+			'rest_controller_class'  => 'WP_REST_Posts_Controller',
 		)
 	);
 
@@ -4006,8 +4007,9 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
  */
 function _reset_front_page_settings_for_post( $post_id ) {
 	$post = get_post( $post_id );
-
-	if ( 'page' === $post->post_type ) {
+	/** This filter is documented in wp-includes/class-wp-query.php:1057 */
+	$post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
+	if ( in_array( $post->post_type, $post_types_allowed_on_home_page, true ) ) {
 		/*
 		 * If the page is defined in option page_on_front or post_for_posts,
 		 * adjust the corresponding options.
