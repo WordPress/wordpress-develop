@@ -117,14 +117,6 @@ jobs:
             workflow: 'performance.yml'
           - branch: '6.8'
             workflow: 'performance.yml'
-          - branch: '6.7'
-            workflow: 'performance.yml'
-          - branch: '6.6'
-            workflow: 'performance.yml'
-          - branch: '6.5'
-            workflow: 'performance.yml'
-          - branch: '6.4'
-            workflow: 'performance.yml'
 
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:
