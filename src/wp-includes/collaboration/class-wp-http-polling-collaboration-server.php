@@ -39,6 +39,30 @@ class WP_HTTP_Polling_Collaboration_Server {
 	const COMPACTION_THRESHOLD = 50;
 
 	/**
+	 * Maximum allowed request body size in bytes.
+	 *
+	 * @since 7.0.0
+	 * @var int
+	 */
+	const MAX_BODY_SIZE = 16 * MB_IN_BYTES;
+
+	/**
+	 * Maximum number of rooms allowed per request.
+	 *
+	 * @since 7.0.0
+	 * @var int
+	 */
+	const MAX_ROOMS_PER_REQUEST = 50;
+
+	/**
+	 * Maximum allowed size for a single update's data field in bytes.
+	 *
+	 * @since 7.0.0
+	 * @var int
+	 */
+	const MAX_UPDATE_DATA_SIZE = MB_IN_BYTES;
+
+	/**
 	 * Collaboration update type: compaction.
 	 *
 	 * @since 7.0.0
@@ -100,7 +124,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 				'data' => array(
 					'type'      => 'string',
 					'required'  => true,
-					'maxLength' => 1048576, // 1 MB — generous ceiling for base64-encoded Yjs updates.
+					'maxLength' => self::MAX_UPDATE_DATA_SIZE,
 				),
 				'type' => array(
 					'type'     => 'string',
@@ -152,12 +176,14 @@ class WP_HTTP_Polling_Collaboration_Server {
 			'methods'             => array( WP_REST_Server::CREATABLE ),
 			'callback'            => array( $this, 'handle_request' ),
 			'permission_callback' => array( $this, 'check_permissions' ),
+			'validate_callback'   => array( $this, 'validate_request' ),
 			'args'                => array(
 				'rooms' => array(
 					'items'    => array(
 						'properties' => $room_args,
 						'type'       => 'object',
 					),
+					'maxItems' => self::MAX_ROOMS_PER_REQUEST,
 					'required' => true,
 					'type'     => 'array',
 				),
@@ -233,6 +259,28 @@ class WP_HTTP_Polling_Collaboration_Server {
 			}
 		}
 
+		return true;
+	}
+
+	/**
+	 * Validates the incoming REST request.
+	 *
+	 * Checks that the raw request body does not exceed the maximum allowed size.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_REST_Request $request The REST request.
+	 * @return true|WP_Error True if valid, WP_Error if body is too large.
+	 */
+	public function validate_request( WP_REST_Request $request ) {
+		$body = $request->get_body();
+		if ( is_string( $body ) && strlen( $body ) > self::MAX_BODY_SIZE ) {
+			return new WP_Error(
+				'rest_collaboration_body_too_large',
+				__( 'Request body is too large.' ),
+				array( 'status' => 413 )
+			);
+		}
 		return true;
 	}
 
