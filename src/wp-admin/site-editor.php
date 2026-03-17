@@ -224,6 +224,7 @@ $preload_paths = array(
 			'jpeg_interlaced',
 			'png_interlaced',
 			'gif_interlaced',
+			'client_side_supported_mime_types',
 			'name',
 			'site_icon',
 			'site_icon_url',

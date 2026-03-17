@@ -1394,6 +1394,21 @@ class WP_REST_Server {
 			$available['png_interlaced'] = (bool) apply_filters( 'image_save_progressive', false, 'image/png' );
 			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 			$available['gif_interlaced'] = (bool) apply_filters( 'image_save_progressive', false, 'image/gif' );
+
+			/**
+			 * Filters the MIME types supported by client-side media processing.
+			 *
+			 * Allows plugins to add or remove MIME types from the list of formats
+			 * that can be processed client-side using WebAssembly-based vips.
+			 *
+			 * @since 7.0.0
+			 *
+			 * @param string[] $mime_types Array of MIME type strings.
+			 */
+			$available['client_side_supported_mime_types'] = apply_filters(
+				'client_side_supported_mime_types',
+				array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif' )
+			);
 		}
 
 		$response = new WP_REST_Response( $available );

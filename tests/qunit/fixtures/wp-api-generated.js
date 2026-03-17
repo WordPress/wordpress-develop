@@ -12920,6 +12920,13 @@ mockedApiResponse.Schema = {
     "jpeg_interlaced": false,
     "png_interlaced": false,
     "gif_interlaced": false,
+    "client_side_supported_mime_types": [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/avif"
+    ],
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""
