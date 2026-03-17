@@ -214,6 +214,8 @@ input[type="radio"]:checked::before {
 	height: 0.5rem; /* 8px */
 	margin: auto;
 	background-color: #fff;
+	/* Only visible in Windows High Contrast mode */
+	outline: 4px solid transparent;
 }
 
 @-moz-document url-prefix() {
