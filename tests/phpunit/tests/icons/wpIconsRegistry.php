@@ -31,7 +31,9 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		$instance_property = new ReflectionProperty( WP_Icons_Registry::class, 'instance' );
-		$instance_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_property->setAccessible( true );
+		}
 		$instance_property->setValue( null, null );
 
 		$this->registry = null;
@@ -47,7 +49,9 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	private function register( $icon_name, $icon_properties ) {
 		$method = new ReflectionMethod( $this->registry, 'register' );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		return $method->invoke( $this->registry, $icon_name, $icon_properties );
 	}
 
