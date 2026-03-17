@@ -164,13 +164,6 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Retrieves updates from a room after a given cursor.
 	 *
-	 * Uses a snapshot approach: captures MAX(id) and COUNT(*) in a single
-	 * query, then fetches rows WHERE id > cursor AND id <= max_id. Updates
-	 * arriving after the snapshot are deferred to the next poll, never lost.
-	 *
-	 * Only retrieves non-awareness rows — awareness rows are handled
-	 * separately via get_awareness_state().
-	 *
 	 * @since 7.0.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
@@ -183,9 +176,15 @@ class WP_Collaboration_Table_Storage {
 		global $wpdb;
 
 		/*
-		 * Snapshot the current max ID and total row count in a single query.
-		 * Excludes awareness rows — they are not sync updates.
+		 * Uses a snapshot approach: captures MAX(id) and COUNT(*) in a single
+		 * query, then fetches rows WHERE id > cursor AND id <= max_id. Updates
+		 * arriving after the snapshot are deferred to the next poll, never lost.
+		 *
+		 * Only retrieves non-awareness rows — awareness rows are handled
+		 * separately via get_awareness_state().
 		 */
+
+		/* Snapshot the current max ID and total row count in a single query. */
 		$snapshot = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT COALESCE( MAX( id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
