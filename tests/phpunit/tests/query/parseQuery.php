@@ -233,4 +233,33 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 
 		$this->assertEmpty( $q->query_vars['attachment_id'] );
 	}
+
+	/**
+	 * Ensure an array value for a hierarchical taxonomy query var
+	 * does not cause a fatal TypeError in wp_basename().
+	 *
+	 * @ticket 64870
+	 */
+	public function test_parse_query_hierarchical_taxonomy_query_var_array() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'query_var' => 'wptests_tax',
+				'rewrite'   => array( 'hierarchical' => true ),
+				'public'    => true,
+			)
+		);
+
+		$q = new WP_Query(
+			array(
+				'wptests_tax' => array( 'term-a', 'term-b' ),
+			)
+		);
+
+		// The query should complete without a fatal TypeError.
+		$this->assertIsArray( $q->posts );
+
+		unregister_taxonomy( 'wptests_tax' );
+	}
 }
