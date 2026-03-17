@@ -363,7 +363,7 @@ function wp_nav_menu_item_link_meta_box() {
 	<div class="customlinkdiv" id="customlinkdiv">
 		<input type="hidden" value="custom" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" />
 		<p id="menu-item-url-wrap" class="wp-clearfix">
-			<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
+			<label for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
 			<input id="custom-menu-item-url" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-url]"
 				type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 				class="code menu-item-textbox form-required" placeholder="https://"
@@ -372,14 +372,14 @@ function wp_nav_menu_item_link_meta_box() {
 		</p>
 
 		<p id="menu-item-name-wrap" class="wp-clearfix">
-			<label class="howto" for="custom-menu-item-name"><?php _e( 'Link Text' ); ?></label>
+			<label for="custom-menu-item-name"><?php _e( 'Link Text' ); ?></label>
 			<input id="custom-menu-item-name" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-title]"
 				type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 				class="regular-text menu-item-textbox"
 			/>
 		</p>
 
-		<p class="button-controls wp-clearfix">
+		<p class="button-controls button-controls-customlinkdiv wp-clearfix">
 			<span class="add-to-menu">
 				<input id="submit-customlinkdiv" name="add-custom-menu-item"
 					type="submit"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
