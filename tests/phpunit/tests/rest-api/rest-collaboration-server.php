@@ -846,6 +846,76 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/**
+	 * Verifies that a client can reactivate with the same client ID after
+	 * its awareness entry has expired (e.g., laptop closed and reopened).
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_client_reactivates_after_expiry() {
+		wp_set_current_user( self::$editor_id );
+		global $wpdb;
+
+		$room = $this->get_post_room();
+
+		// Client 1 registers awareness.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, array( 'cursor' => 'before-sleep' ) ),
+			)
+		);
+
+		// Simulate the client going idle beyond the awareness timeout
+		// by backdating its awareness row.
+		$wpdb->update(
+			$wpdb->collaboration,
+			array( 'date_gmt' => gmdate( 'Y-m-d H:i:s', time() - 120 ) ),
+			array(
+				'room'      => $room,
+				'type'      => 'awareness',
+				'client_id' => '1',
+			)
+		);
+
+		// Flush the object cache so get_awareness_state() hits the DB.
+		wp_cache_flush();
+
+		// Another client polls — the expired client should not appear.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$response  = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '2', 0, array( 'cursor' => 'observer' ) ),
+			)
+		);
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+		$this->assertArrayNotHasKey( '1', $awareness, 'Expired client should not appear in awareness.' );
+
+		// Original user returns and reconnects with the same client_id.
+		wp_set_current_user( self::$editor_id );
+		wp_cache_flush();
+
+		$response  = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, array( 'cursor' => 'after-sleep' ) ),
+			)
+		);
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+
+		$this->assertSame( 200, $response->get_status(), 'Reactivation should succeed.' );
+		$this->assertArrayHasKey( '1', $awareness, 'Reactivated client should appear in awareness.' );
+		$this->assertSame( array( 'cursor' => 'after-sleep' ), $awareness['1'], 'Reactivated client should have updated state.' );
+
+		// Verify no duplicate rows were created.
+		$row_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type = 'awareness' AND room = %s AND client_id = %s",
+				$room,
+				'1'
+			)
+		);
+		$this->assertSame( 1, $row_count, 'Should have exactly one awareness row after reactivation.' );
+	}
+
 	/*
 	 * Multiple rooms tests.
 	 */
