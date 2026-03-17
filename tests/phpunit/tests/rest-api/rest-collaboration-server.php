@@ -1801,6 +1801,132 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertContains( 'c3luYyByb3V0ZQ==', $update_data );
 	}
 
+	/*
+	 * Payload limit and permission hardening tests.
+	 */
+
+	/**
+	 * Verifies that a request body exceeding MAX_BODY_SIZE returns a 413 error.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_oversized_body_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-collaboration/v1/updates' );
+		// Set a body larger than MAX_BODY_SIZE (16 MB).
+		$request->set_body( str_repeat( 'x', 16 * MB_IN_BYTES + 1 ) );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					$this->build_room( $this->get_post_room() ),
+				),
+			)
+		);
+
+		$server = new WP_HTTP_Polling_Collaboration_Server(
+			new WP_Collaboration_Table_Storage()
+		);
+
+		$result = $server->validate_request( $request );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_collaboration_body_too_large', $result->get_error_code() );
+		$this->assertSame( 413, $result->get_error_data()['status'] );
+	}
+
+	/**
+	 * Verifies that more than MAX_ROOMS_PER_REQUEST rooms is rejected by schema validation.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_too_many_rooms_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$rooms = array();
+		for ( $i = 0; $i <= WP_HTTP_Polling_Collaboration_Server::MAX_ROOMS_PER_REQUEST; $i++ ) {
+			$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+			$rooms[] = $this->build_room( 'postType/post:' . $post_id, (string) $i );
+		}
+
+		$response = $this->dispatch_collaboration( $rooms );
+
+		$this->assertSame( 400, $response->get_status(), 'Exceeding MAX_ROOMS_PER_REQUEST should return 400.' );
+	}
+
+	/**
+	 * Verifies that a non-numeric object ID in a room name is rejected.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_non_numeric_object_id_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( 'postType/post:abc' ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * Verifies that a post type mismatch (room says page but post is a post) is rejected.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_post_type_mismatch_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		// self::$post_id is a 'post', but the room claims 'page'.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( 'postType/page:' . self::$post_id ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * Verifies that a taxonomy term that doesn't exist is rejected.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_nonexistent_taxonomy_term_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( 'taxonomy/category:999999' ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * Verifies that a taxonomy term in the wrong taxonomy is rejected.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_taxonomy_term_wrong_taxonomy_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		// Create a term in 'category' taxonomy.
+		$term = self::factory()->term->create( array( 'taxonomy' => 'category' ) );
+
+		// Try to access it as a 'post_tag' term.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( 'taxonomy/post_tag:' . $term ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
 	/**
 	 * An idle poll (no new updates) should use at most 4 queries per room:
 	 * 1. SELECT … FROM collaboration WHERE type = 'awareness' (read + ownership check)
