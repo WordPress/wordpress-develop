@@ -347,15 +347,25 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * @return bool True if user has permission, otherwise false.
 	 */
 	private function can_user_collaborate_on_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
+		// Reject non-numeric object IDs early.
+		if ( ! is_null( $object_id ) && ! is_numeric( $object_id ) ) {
+			return false;
+		}
+
 		// Handle single post type entities with a defined object ID.
 		if ( 'postType' === $entity_kind && is_numeric( $object_id ) ) {
+			if ( get_post_type( $object_id ) !== $entity_name ) {
+				return false;
+			}
 			return current_user_can( 'edit_post', (int) $object_id );
 		}
 
 		// Handle single taxonomy term entities with a defined object ID.
 		if ( 'taxonomy' === $entity_kind && is_numeric( $object_id ) ) {
-			$taxonomy = get_taxonomy( $entity_name );
-			return isset( $taxonomy->cap->assign_terms ) && current_user_can( $taxonomy->cap->assign_terms );
+			if ( ! term_exists( (int) $object_id, $entity_name ) ) {
+				return false;
+			}
+			return current_user_can( 'assign_term', (int) $object_id );
 		}
 
 		// Handle single comment entities with a defined object ID.
