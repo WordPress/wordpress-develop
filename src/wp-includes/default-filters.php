@@ -800,6 +800,7 @@ add_action( 'init', '_wp_register_default_font_collections' );
 
 // Collaboration.
 add_action( 'admin_init', 'wp_collaboration_inject_setting' );
+add_action( 'admin_init', 'wp_post_list_collaboration_ui' );
 
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
