@@ -97,6 +97,29 @@ npm run test:php -- --filter <test name>
 npm run test:php -- --group <group name or ticket number>
 ```
 
+#### To lint the workflow files
+
+GitHub Actions workflows operate in a privileged software supply chain environment, therefore the workflow files must be adhere to a high degree of quality and security standards.
+
+The YAML workflow files in the `.github/workflows` directory are statically scanned during GitHub Actions workflow runs using [Actionlint](https://github.com/rhysd/actionlint) and [Zizmor](https://github.com/zizmorcore/zizmor). If you're making changes to those files then you can install both these tools locally using a package manager for your operating system and then run them to lint the files.
+
+- [Actionlint installations instructions](https://github.com/rhysd/actionlint/blob/main/docs/install.md)
+- [Zizmor installation instructions](https://docs.zizmor.sh/installation/)
+
+To run Actionlint:
+
+```
+actionlint
+```
+
+To run Zizmor (note the trailing period):
+
+```
+zizmor .
+```
+
+The linting that happens during GitHub Actions workflow runs is connected to GitHub Code Scanning, so linting errors won't cause workflow runs to fail directly. Some linting issues that are reported locally may be ignored in the Code Scanning settings.
+
 #### Generating a code coverage report
 PHP code coverage reports are [generated daily](https://github.com/WordPress/wordpress-develop/actions/workflows/test-coverage.yml) and [submitted to Codecov.io](https://app.codecov.io/gh/WordPress/wordpress-develop).
 
