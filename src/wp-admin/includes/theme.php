@@ -40,7 +40,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! WP_Filesystem( $credentials ) ) {
@@ -55,7 +55,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! is_object( $wp_filesystem ) ) {
@@ -400,11 +400,7 @@ function get_theme_feature_list( $api = true ) {
 		$wporg_features[ $feature_category ] = array();
 
 		foreach ( $feature_items as $feature ) {
-			if ( isset( $features[ $feature_category ][ $feature ] ) ) {
-				$wporg_features[ $feature_category ][ $feature ] = $features[ $feature_category ][ $feature ];
-			} else {
-				$wporg_features[ $feature_category ][ $feature ] = $feature;
-			}
+			$wporg_features[ $feature_category ][ $feature ] = $features[ $feature_category ][ $feature ] ?? $feature;
 		}
 	}
 

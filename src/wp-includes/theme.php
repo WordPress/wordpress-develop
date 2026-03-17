@@ -1529,17 +1529,12 @@ function get_uploaded_header_images() {
 		$header_data  = wp_get_attachment_metadata( $header->ID );
 		$header_index = $header->ID;
 
-		$header_images[ $header_index ]                  = array();
-		$header_images[ $header_index ]['attachment_id'] = $header->ID;
-		$header_images[ $header_index ]['url']           = $url;
-		$header_images[ $header_index ]['thumbnail_url'] = $url;
-		$header_images[ $header_index ]['alt_text']      = get_post_meta( $header->ID, '_wp_attachment_image_alt', true );
-
-		if ( isset( $header_data['attachment_parent'] ) ) {
-			$header_images[ $header_index ]['attachment_parent'] = $header_data['attachment_parent'];
-		} else {
-			$header_images[ $header_index ]['attachment_parent'] = '';
-		}
+		$header_images[ $header_index ]                      = array();
+		$header_images[ $header_index ]['attachment_id']     = $header->ID;
+		$header_images[ $header_index ]['url']               = $url;
+		$header_images[ $header_index ]['thumbnail_url']     = $url;
+		$header_images[ $header_index ]['alt_text']          = get_post_meta( $header->ID, '_wp_attachment_image_alt', true );
+		$header_images[ $header_index ]['attachment_parent'] = $header_data['attachment_parent'] ?? '';
 
 		if ( isset( $header_data['width'] ) ) {
 			$header_images[ $header_index ]['width'] = $header_data['width'];
@@ -2650,6 +2645,7 @@ function get_theme_starter_content() {
  * @since 6.5.0 The `appearance-tools` feature enables a few design tools for blocks,
  *              see `WP_Theme_JSON::APPEARANCE_TOOLS_OPT_INS` for a complete list.
  * @since 6.6.0 The `editor-spacing-sizes` feature was added.
+ * @since 7.0.0 The `html5` feature's 'script' and 'style' arguments are deprecated and unused.
  *
  * @global array $_wp_theme_features
  *
@@ -3047,10 +3043,7 @@ function get_theme_support( $feature, ...$args ) {
 		case 'custom-logo':
 		case 'custom-header':
 		case 'custom-background':
-			if ( isset( $_wp_theme_features[ $feature ][0][ $args[0] ] ) ) {
-				return $_wp_theme_features[ $feature ][0][ $args[0] ];
-			}
-			return false;
+			return $_wp_theme_features[ $feature ][0][ $args[0] ] ?? false;
 
 		default:
 			return $_wp_theme_features[ $feature ];
@@ -3103,7 +3096,7 @@ function _remove_theme_support( $feature ) {
 				return false;
 			}
 			add_theme_support( 'custom-header', array( 'uploads' => false ) );
-			return; // Do not continue - custom-header-uploads no longer exists.
+			return true; // Do not continue - custom-header-uploads no longer exists.
 	}
 
 	if ( ! isset( $_wp_theme_features[ $feature ] ) ) {

@@ -144,7 +144,7 @@ class WP_Theme_JSON_Resolver {
 	protected static function translate( $theme_json, $domain = 'default' ) {
 		if ( null === static::$i18n_schema ) {
 			$i18n_schema         = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
-			static::$i18n_schema = null === $i18n_schema ? array() : $i18n_schema;
+			static::$i18n_schema = $i18n_schema ?? array();
 		}
 
 		return translate_settings_using_i18n_schema( static::$i18n_schema, $theme_json, $domain );
@@ -478,17 +478,6 @@ class WP_Theme_JSON_Resolver {
 	public static function get_user_data_from_wp_global_styles( $theme, $create_post = false, $post_status_filter = array( 'publish' ) ) {
 		if ( ! $theme instanceof WP_Theme ) {
 			$theme = wp_get_theme();
-		}
-
-		/*
-		 * Bail early if the theme does not support a theme.json.
-		 *
-		 * Since wp_theme_has_theme_json() only supports the active
-		 * theme, the extra condition for whether $theme is the active theme is
-		 * present here.
-		 */
-		if ( $theme->get_stylesheet() === get_stylesheet() && ! wp_theme_has_theme_json() ) {
-			return array();
 		}
 
 		$user_cpt         = array();

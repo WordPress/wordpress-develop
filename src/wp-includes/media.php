@@ -1785,7 +1785,7 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 	}
 
 	// Bail early if an image has been inserted and later edited.
-	if ( preg_match( '/-e[0-9]{13}/', $image_meta['file'], $img_edit_hash )
+	if ( isset( $image_meta['file'] ) && preg_match( '/-e[0-9]{13}/', $image_meta['file'], $img_edit_hash )
 		&& ! str_contains( wp_basename( $image_src ), $img_edit_hash[0] )
 	) {
 		return $image;
@@ -4116,7 +4116,7 @@ function get_taxonomies_for_attachments( $output = 'names' ) {
  *              false otherwise.
  */
 function is_gd_image( $image ) {
-	if ( $image instanceof GdImage
+	if ( $image instanceof GdImage // @phpstan-ignore class.notFound (Only available with PHP8+.)
 		|| is_resource( $image ) && 'gd' === get_resource_type( $image )
 	) {
 		return true;
@@ -4568,7 +4568,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	if ( $attachment->post_parent ) {
 		$post_parent = get_post( $attachment->post_parent );
-		if ( $post_parent ) {
+		if ( $post_parent && current_user_can( 'read_post', $attachment->post_parent ) ) {
 			$response['uploadedToTitle'] = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
 			$response['uploadedToLink']  = get_edit_post_link( $attachment->post_parent, 'raw' );
 		}
@@ -5967,6 +5967,7 @@ function wp_get_webp_info( $filename ) {
  * both attributes are present with those values.
  *
  * @since 6.3.0
+ * @since 7.0.0 Support `fetchpriority=low` and `fetchpriority=auto` so that `loading=lazy` is not added and the media count is not increased.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -6036,11 +6037,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * conflicting `decoding` attribute already present.
 	 */
 	if ( 'img' === $tag_name ) {
-		if ( isset( $attr['decoding'] ) ) {
-			$loading_attrs['decoding'] = $attr['decoding'];
-		} else {
-			$loading_attrs['decoding'] = 'async';
-		}
+		$loading_attrs['decoding'] = $attr['decoding'] ?? 'async';
 	}
 
 	// For any resources, width and height must be provided, to avoid layout shifts.
@@ -6071,7 +6068,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	// Logic to handle a `fetchpriority` attribute that is already provided.
-	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
+	$existing_fetchpriority = ( $attr['fetchpriority'] ?? null );
+	$is_low_fetchpriority   = ( 'low' === $existing_fetchpriority );
+	if ( 'high' === $existing_fetchpriority ) {
 		/*
 		 * If the image was already determined to not be in the viewport (e.g.
 		 * from an already provided `loading` attribute), trigger a warning.
@@ -6094,6 +6093,31 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		} else {
 			$maybe_in_viewport = true;
 		}
+	} elseif ( $is_low_fetchpriority ) {
+		/*
+		 * An IMG with fetchpriority=low is not initially displayed; it may be hidden in the Navigation Overlay,
+		 * or it may be occluded in a non-initial carousel slide. Such images must not be lazy-loaded because the browser
+		 * has no heuristic to know when to start loading them before the user needs to see them.
+		 */
+		$maybe_in_viewport = false;
+
+		// Preserve fetchpriority=low.
+		$loading_attrs['fetchpriority'] = 'low';
+	} elseif ( 'auto' === $existing_fetchpriority ) {
+		/*
+		 * When a block's visibility support identifies that the block is conditionally displayed based on the viewport
+		 * size, then it adds `fetchpriority=auto` to the block's IMG tags. These images must not be fetched with high
+		 * priority because they could be erroneously loaded in viewports which do not even display them. Contrarily,
+		 * they must not get `fetchpriority=low` because they may in fact be displayed in the current viewport. So as
+		 * a signal to indicate that an IMG may be in the viewport, `fetchpriority=auto` is added. This has the effect
+		 * here of preventing the media count from being increased, so that images hidden with block visibility do not
+		 * affect whether a following IMG gets `loading=lazy`. In particular, `loading=lazy` should still be omitted
+		 * on an IMG following any number of initial IMGs with `fetchpriority=auto` since those initial images may not
+		 * be displayed.
+		 */
+
+		// Preserve fetchpriority=auto.
+		$loading_attrs['fetchpriority'] = 'auto';
 	}
 
 	if ( null === $maybe_in_viewport ) {
@@ -6144,7 +6168,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 * does not include any loop.
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
-			) {
+		) {
 			$maybe_in_viewport    = true;
 			$maybe_increase_count = true;
 		}
@@ -6153,12 +6177,14 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	/*
 	 * If the element is in the viewport (`true`), potentially add
 	 * `fetchpriority` with a value of "high". Otherwise, i.e. if the element
-	 * is not not in the viewport (`false`) or it is unknown (`null`), add
-	 * `loading` with a value of "lazy".
+	 * is not in the viewport (`false`) or it is unknown (`null`), add
+	 * `loading` with a value of "lazy" if the element is not already being
+	 * de-prioritized with `fetchpriority=low` due to occlusion in
+	 * Navigation Overlay, non-initial carousel slides, or a collapsed Details block.
 	 */
 	if ( $maybe_in_viewport ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
-	} else {
+	} elseif ( ! $is_low_fetchpriority ) {
 		// Only add `loading="lazy"` if the feature is enabled.
 		if ( wp_lazy_loading_enabled( $tag_name, $context ) ) {
 			$loading_attrs['loading'] = 'lazy';
@@ -6168,16 +6194,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	/*
 	 * If flag was set based on contextual logic above, increase the content
 	 * media count, either unconditionally, or based on whether the image size
-	 * is larger than the threshold.
+	 * is larger than the threshold. This does not apply when the IMG has
+	 * fetchpriority=auto because it may be conditionally displayed by viewport
+	 * size.
 	 */
-	if ( $increase_count ) {
-		wp_increase_content_media_count();
-	} elseif ( $maybe_increase_count ) {
-		/** This filter is documented in wp-includes/media.php */
-		$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
-
-		if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
+	if ( 'auto' !== $existing_fetchpriority ) {
+		if ( $increase_count ) {
 			wp_increase_content_media_count();
+		} elseif ( $maybe_increase_count ) {
+			/** This filter is documented in wp-includes/media.php */
+			$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
+
+			if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
+				wp_increase_content_media_count();
+			}
 		}
 	}
 
@@ -6249,12 +6279,13 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * Determines whether to add `fetchpriority='high'` to loading attributes.
  *
  * @since 6.3.0
+ * @since 7.0.0 Support is added for IMG tags with `fetchpriority='low'` and `fetchpriority='auto'`.
  * @access private
  *
- * @param array  $loading_attrs Array of the loading optimization attributes for the element.
- * @param string $tag_name      The tag name.
- * @param array  $attr          Array of the attributes for the element.
- * @return array Updated loading optimization attributes for the element.
+ * @param array<string, string> $loading_attrs Array of the loading optimization attributes for the element.
+ * @param string                $tag_name      The tag name.
+ * @param array<string, mixed>  $attr          Array of the attributes for the element.
+ * @return array<string, string> Updated loading optimization attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ) {
 	// For now, adding `fetchpriority="high"` is only supported for images.
@@ -6262,14 +6293,17 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 		return $loading_attrs;
 	}
 
-	if ( isset( $attr['fetchpriority'] ) ) {
+	$existing_fetchpriority = $attr['fetchpriority'] ?? null;
+	if ( null !== $existing_fetchpriority && 'auto' !== $existing_fetchpriority ) {
 		/*
-		 * While any `fetchpriority` value could be set in `$loading_attrs`,
-		 * for consistency we only do it for `fetchpriority="high"` since that
-		 * is the only possible value that WordPress core would apply on its
-		 * own.
+		 * When an IMG has been explicitly marked with `fetchpriority=high`, then honor that this is the element that
+		 * should have the priority. In contrast, the Navigation block may add `fetchpriority=low` to an IMG which
+		 * appears in the Navigation Overlay; such images should never be considered candidates for
+		 * `fetchpriority=high`. Lastly, block visibility may add `fetchpriority=auto` to an IMG when the block is
+		 * conditionally displayed based on viewport size. Such an image is considered an LCP element candidate if it
+		 * exceeds the threshold for the minimum number of square pixels.
 		 */
-		if ( 'high' === $attr['fetchpriority'] ) {
+		if ( 'high' === $existing_fetchpriority ) {
 			$loading_attrs['fetchpriority'] = 'high';
 			wp_high_priority_element_flag( false );
 		}
@@ -6296,7 +6330,9 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 	$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
 
 	if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
-		$loading_attrs['fetchpriority'] = 'high';
+		if ( 'auto' !== $existing_fetchpriority ) {
+			$loading_attrs['fetchpriority'] = 'high';
+		}
 		wp_high_priority_element_flag( false );
 	}
 
@@ -6310,9 +6346,9 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
  * @access private
  *
  * @param bool $value Optional. Used to change the static variable. Default null.
- * @return bool Returns true if high-priority element was marked already, otherwise false.
+ * @return bool Returns true if the high-priority element was not already marked.
  */
-function wp_high_priority_element_flag( $value = null ) {
+function wp_high_priority_element_flag( $value = null ): bool {
 	static $high_priority_element = true;
 
 	if ( is_bool( $value ) ) {
@@ -6363,3 +6399,242 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
 }
+
+/**
+ * Checks whether client-side media processing is enabled.
+ *
+ * Client-side media processing uses the browser's capabilities to handle
+ * tasks like image resizing and compression before uploading to the server.
+ *
+ * @since 7.0.0
+ *
+ * @return bool Whether client-side media processing is enabled.
+ */
+function wp_is_client_side_media_processing_enabled(): bool {
+	// This is due to SharedArrayBuffer requiring a secure context.
+	$host    = strtolower( (string) strtok( $_SERVER['HTTP_HOST'] ?? '', ':' ) );
+	$enabled = ( is_ssl() || 'localhost' === $host || str_ends_with( $host, '.localhost' ) );
+
+	/**
+	 * Filters whether client-side media processing is enabled.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param bool $enabled Whether client-side media processing is enabled. Default true if the page is served in a secure context.
+	 */
+	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', $enabled );
+}
+
+/**
+ * Sets a global JS variable to indicate that client-side media processing is enabled.
+ *
+ * @since 7.0.0
+ */
+function wp_set_client_side_media_processing_flag(): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true;', 'before' );
+
+	$chromium_version = wp_get_chromium_major_version();
+
+	if ( null !== $chromium_version && $chromium_version >= 137 ) {
+		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
+	}
+
+	/*
+	 * Register the @wordpress/vips/worker script module as a dynamic dependency
+	 * of the wp-upload-media classic script. This ensures it is included in the
+	 * import map so that the dynamic import() in upload-media.js can resolve it.
+	 */
+	wp_scripts()->add_data(
+		'wp-upload-media',
+		'module_dependencies',
+		array( '@wordpress/vips/worker' )
+	);
+}
+
+/**
+ * Returns the major Chrome/Chromium version from the current request's User-Agent.
+ *
+ * Matches all Chromium-based browsers (Chrome, Edge, Opera, Brave).
+ *
+ * @since 7.0.0
+ *
+ * @return int|null The major Chrome version, or null if not a Chromium browser.
+ */
+function wp_get_chromium_major_version(): ?int {
+	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+		return null;
+	}
+	if ( preg_match( '#Chrome/(\d+)#', $_SERVER['HTTP_USER_AGENT'], $matches ) ) {
+		return (int) $matches[1];
+	}
+	return null;
+}
+
+/**
+ * Enables cross-origin isolation in the block editor.
+ *
+ * Required for enabling SharedArrayBuffer for WebAssembly-based
+ * media processing in the editor. Uses Document-Isolation-Policy
+ * on supported browsers (Chromium 137+).
+ *
+ * Skips setup when a third-party page builder overrides the block
+ * editor via a custom `action` query parameter, as DIP would block
+ * same-origin iframe access that these editors rely on.
+ *
+ * @since 7.0.0
+ */
+function wp_set_up_cross_origin_isolation(): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	$screen = get_current_screen();
+
+	if ( ! $screen ) {
+		return;
+	}
+
+	if ( ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
+		return;
+	}
+
+	/*
+	 * Skip when a third-party page builder overrides the block editor.
+	 * DIP isolates the document into its own agent cluster,
+	 * which blocks same-origin iframe access that these editors rely on.
+	 */
+	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
+		return;
+	}
+
+	// Cross-origin isolation is not needed if users can't upload files anyway.
+	if ( ! current_user_can( 'upload_files' ) ) {
+		return;
+	}
+
+	wp_start_cross_origin_isolation_output_buffer();
+}
+
+/**
+ * Sends the Document-Isolation-Policy header for cross-origin isolation.
+ *
+ * Uses an output buffer to add crossorigin="anonymous" where needed.
+ *
+ * @since 7.0.0
+ */
+function wp_start_cross_origin_isolation_output_buffer(): void {
+	$chromium_version = wp_get_chromium_major_version();
+
+	if ( null === $chromium_version || $chromium_version < 137 ) {
+		return;
+	}
+
+	ob_start(
+		static function ( string $output ): string {
+			header( 'Document-Isolation-Policy: isolate-and-credentialless' );
+
+			return wp_add_crossorigin_attributes( $output );
+		}
+	);
+}
+
+/**
+ * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
+ *
+ * @since 7.0.0
+ *
+ * @param string $html HTML input.
+ * @return string Modified HTML.
+ */
+function wp_add_crossorigin_attributes( string $html ): string {
+	$site_url = site_url();
+
+	$processor = new WP_HTML_Tag_Processor( $html );
+
+	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin.
+	$cross_origin_tag_attributes = array(
+		'AUDIO'  => array( 'src' => false ),
+		'IMG'    => array(
+			'src'    => false,
+			'srcset' => true,
+		),
+		'LINK'   => array(
+			'href'        => false,
+			'imagesrcset' => true,
+		),
+		'SCRIPT' => array( 'src' => false ),
+		'VIDEO'  => array(
+			'src'    => false,
+			'poster' => false,
+		),
+		'SOURCE' => array( 'src' => false ),
+	);
+
+	while ( $processor->next_tag() ) {
+		$tag = $processor->get_tag();
+
+		if ( ! isset( $cross_origin_tag_attributes[ $tag ] ) ) {
+			continue;
+		}
+
+		if ( 'AUDIO' === $tag || 'VIDEO' === $tag ) {
+			$processor->set_bookmark( 'audio-video-parent' );
+		}
+
+		$processor->set_bookmark( 'resume' );
+
+		$sought = false;
+
+		$crossorigin = $processor->get_attribute( 'crossorigin' );
+
+		$is_cross_origin = false;
+
+		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr => $is_srcset ) {
+			if ( $is_srcset ) {
+				$srcset = $processor->get_attribute( $attr );
+				if ( is_string( $srcset ) ) {
+					foreach ( explode( ',', $srcset ) as $candidate ) {
+						$candidate_url = strtok( trim( $candidate ), ' ' );
+						if ( is_string( $candidate_url ) && '' !== $candidate_url && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
+							$is_cross_origin = true;
+							break;
+						}
+					}
+				}
+			} else {
+				$url = $processor->get_attribute( $attr );
+				if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
+					$is_cross_origin = true;
+				}
+			}
+
+			if ( $is_cross_origin ) {
+				break;
+			}
+		}
+
+		if ( $is_cross_origin && ! is_string( $crossorigin ) ) {
+			if ( 'SOURCE' === $tag ) {
+				$sought = $processor->seek( 'audio-video-parent' );
+
+				if ( $sought ) {
+					$processor->set_attribute( 'crossorigin', 'anonymous' );
+				}
+			} else {
+				$processor->set_attribute( 'crossorigin', 'anonymous' );
+			}
+
+			if ( $sought ) {
+				$processor->seek( 'resume' );
+				$processor->release_bookmark( 'audio-video-parent' );
+			}
+		}
+	}
+
+	return $processor->get_updated_html();
+}
+
