@@ -321,4 +321,72 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Double quotes in system ID' => array( '<!DOCTYPE html SYSTEM \'"quoted"\'\>', '<!DOCTYPE html SYSTEM \'"quoted"\'>' ),
 		);
 	}
+
+	/**
+	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are preserved upon normalization,
+	 * and that normalization is idempotent in these cases.
+	 *
+	 * @ticket 64607
+	 *
+	 * @dataProvider data_provider_normalize_special_leading_newline_cases
+	 *
+	 * @param string $input    HTML input containing leading newlines in PRE, LISTING, or TEXTAREA elements.
+	 * @param string $expected Expected output after normalization, which should preserve leading newlines.
+	 */
+	public function test_normalize_special_leading_newline_handling( string $input, string $expected ) {
+		$normalized = WP_HTML_Processor::normalize( $input );
+		$this->assertEqualHTML( $expected, $normalized );
+		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
+		$this->assertEqualHTML( $expected, $normalized_twice );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalize_special_leading_newline_cases() {
+		return array(
+			'Leading newline in PRE'             => array(
+				"<pre>\nline 1\nline 2</pre>",
+				"<pre>line 1\nline 2</pre>",
+			),
+			'Double leading newline in PRE'      => array(
+				"<pre>\n\nline 2\nline 3</pre>",
+				"<pre>\n\nline 2\nline 3</pre>",
+			),
+			'Multiple text nodes inside PRE'     => array(
+				"<pre>\nline 1<!--comment--> still line 1</pre>",
+				'<pre>line 1<!--comment--> still line 1</pre>',
+			),
+			'Multiple text nodes inside PRE with leading newlines' => array(
+				"<pre>\n\nline 2<!--comment--> still line 2</pre>",
+				"<pre>\n\nline 2<!--comment--> still line 2</pre>",
+			),
+			'Leading newline in LISTING'         => array(
+				"<listing>\nline 1\nline 2</listing>",
+				"<listing>line 1\nline 2</listing>",
+			),
+			'Double leading newline in LISTING'  => array(
+				"<listing>\n\nline 2\nline 3</listing>",
+				"<listing>\n\nline 2\nline 3</listing>",
+			),
+			'Multiple text nodes inside LISTING' => array(
+				"<listing>\nline 1<!--comment--> still line 1</listing>",
+				'<listing>line 1<!--comment--> still line 1</listing>',
+			),
+			'Multiple text nodes inside LISTING with leading newlines' => array(
+				"<listing>\n\nline 2<!--comment--> still line 2</listing>",
+				"<listing>\n\nline 2<!--comment--> still line 2</listing>",
+			),
+			'Leading newline in TEXTAREA'        => array(
+				"<textarea>\nline 1\nline 2</textarea>",
+				"<textarea>line 1\nline 2</textarea>",
+			),
+			'Double leading newline in TEXTAREA' => array(
+				"<textarea>\n\nline 2\nline 3</textarea>",
+				"<textarea>\n\nline 2\nline 3</textarea>",
+			),
+		);
+	}
 }
