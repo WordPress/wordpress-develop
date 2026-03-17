@@ -375,6 +375,11 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 }
 
 /* Add Menu Item Boxes */
+.postbox .howto input {
+	width: 180px;
+	float: right;
+}
+
 .accordion-container .outer-border {
 	margin: 0;
 }
