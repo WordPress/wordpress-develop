@@ -2233,7 +2233,7 @@ function _print_scripts() {
 		if ( ! empty( $wp_scripts->print_code ) ) {
 			echo "\n<script>\n";
 			echo $wp_scripts->print_code;
-			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
+			printf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
 			echo "</script>\n";
 		}
 
@@ -2764,6 +2764,18 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 		// Front-end and editor scripts.
 		foreach ( $block_type->script_handles as $script_handle ) {
 			wp_enqueue_script( $script_handle );
+		}
+
+		/**
+		 * Enqueue view script modules when block assets are loaded eagerly.
+		 *
+		 * This ensures parity with script and style handles, as modules are not
+		 * automatically handled elsewhere when on-demand loading is disabled.
+		 */
+		if ( ! empty( $block_type->view_script_module_ids ) && function_exists( 'wp_enqueue_script_module' ) ) {
+			foreach ( $block_type->view_script_module_ids as $view_script_module_id ) {
+				wp_enqueue_script_module( $view_script_module_id );
+			}
 		}
 
 		if ( $load_editor_scripts_and_styles ) {
