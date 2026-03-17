@@ -193,9 +193,10 @@ CREATE TABLE $wpdb->collaboration (
 	type varchar(32) NOT NULL default '',
 	client_id varchar(32) NOT NULL default '',
 	user_id bigint(20) unsigned NOT NULL default '0',
-	update_value longtext NOT NULL,
+	data longtext NOT NULL,
 	date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
+	KEY type_client_id (type,client_id),
 	KEY room (room,id),
 	KEY date_gmt (date_gmt)
 ) $charset_collate;\n";
