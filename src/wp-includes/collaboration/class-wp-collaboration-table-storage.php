@@ -59,11 +59,11 @@ class WP_Collaboration_Table_Storage {
 		$result = $wpdb->insert(
 			$wpdb->collaboration,
 			array(
-				'room'         => $room,
-				'type'         => $update['type'] ?? '',
-				'client_id'    => $update['client_id'] ?? '',
-				'update_value' => wp_json_encode( $update ),
-				'date_gmt'     => gmdate( 'Y-m-d H:i:s' ),
+				'room'      => $room,
+				'type'      => $update['type'] ?? '',
+				'client_id' => $update['client_id'] ?? '',
+				'data'      => wp_json_encode( $update ),
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
 			),
 			array( '%s', '%s', '%s', '%s', '%s' )
 		);
@@ -107,7 +107,7 @@ class WP_Collaboration_Table_Storage {
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT client_id, user_id, update_value FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s",
+				"SELECT client_id, user_id, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s",
 				$room,
 				$cutoff
 			)
@@ -119,7 +119,7 @@ class WP_Collaboration_Table_Storage {
 
 		$entries = array();
 		foreach ( $rows as $row ) {
-			$decoded = json_decode( $row->update_value, true );
+			$decoded = json_decode( $row->data, true );
 			if ( is_array( $decoded ) ) {
 				$entries[] = array(
 					'client_id' => $row->client_id,
@@ -215,7 +215,7 @@ class WP_Collaboration_Table_Storage {
 		// Fetch updates after the cursor up to the snapshot boundary.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT update_value FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND id > %d AND id <= %d ORDER BY id ASC",
+				"SELECT data FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND id > %d AND id <= %d ORDER BY id ASC",
 				$room,
 				$cursor,
 				$max_id
@@ -228,7 +228,7 @@ class WP_Collaboration_Table_Storage {
 
 		$updates = array();
 		foreach ( $rows as $row ) {
-			$decoded = json_decode( $row->update_value, true );
+			$decoded = json_decode( $row->data, true );
 			if ( is_array( $decoded ) ) {
 				$updates[] = $decoded;
 			}
@@ -293,16 +293,16 @@ class WP_Collaboration_Table_Storage {
 	public function set_awareness_state( string $room, string $client_id, array $state, int $user_id ): bool {
 		global $wpdb;
 
-		$update_value = wp_json_encode( $state );
-		$now          = gmdate( 'Y-m-d H:i:s' );
+		$data = wp_json_encode( $state );
+		$now  = gmdate( 'Y-m-d H:i:s' );
 
 		// Try UPDATE first.
 		$updated = $wpdb->update(
 			$wpdb->collaboration,
 			array(
-				'user_id'      => $user_id,
-				'update_value' => $update_value,
-				'date_gmt'     => $now,
+				'user_id'  => $user_id,
+				'data'     => $data,
+				'date_gmt' => $now,
 			),
 			array(
 				'room'      => $room,
@@ -316,12 +316,12 @@ class WP_Collaboration_Table_Storage {
 			$result = $wpdb->insert(
 				$wpdb->collaboration,
 				array(
-					'room'         => $room,
-					'type'         => 'awareness',
-					'client_id'    => $client_id,
-					'user_id'      => $user_id,
-					'update_value' => $update_value,
-					'date_gmt'     => $now,
+					'room'      => $room,
+					'type'      => 'awareness',
+					'client_id' => $client_id,
+					'user_id'   => $user_id,
+					'data'      => $data,
+					'date_gmt'  => $now,
 				)
 			);
 
@@ -339,7 +339,7 @@ class WP_Collaboration_Table_Storage {
 		$cached    = wp_cache_get( $cache_key, 'collaboration' );
 
 		if ( false !== $cached ) {
-			$normalized_state = json_decode( $update_value, true );
+			$normalized_state = json_decode( $data, true );
 			$found            = false;
 
 			foreach ( $cached as $i => $entry ) {

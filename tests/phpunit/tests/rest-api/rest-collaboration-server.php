@@ -1157,7 +1157,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Inserts a row directly into the collaboration table with a given age.
 	 *
 	 * @param positive-int $age_in_seconds How old the row should be.
-	 * @param string       $label          A label stored in the update_value for identification.
+	 * @param string       $label          A label stored in the data column for identification.
 	 */
 	private function insert_collaboration_row( int $age_in_seconds, string $label = 'test' ): void {
 		global $wpdb;
@@ -1165,16 +1165,16 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$wpdb->insert(
 			$wpdb->collaboration,
 			array(
-				'room'         => $this->get_post_room(),
-				'type'         => 'update',
-				'client_id'    => '1',
-				'update_value' => wp_json_encode(
+				'room'      => $this->get_post_room(),
+				'type'      => 'update',
+				'client_id' => '1',
+				'data'      => wp_json_encode(
 					array(
 						'type' => 'update',
 						'data' => $label,
 					)
 				),
-				'date_gmt'     => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
 			),
 			array( '%s', '%s', '%s', '%s', '%s' )
 		);
@@ -1236,7 +1236,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		wp_delete_old_collaboration_data();
 
 		global $wpdb;
-		$remaining = $wpdb->get_col( "SELECT update_value FROM {$wpdb->collaboration}" );
+		$remaining = $wpdb->get_col( "SELECT data FROM {$wpdb->collaboration}" );
 
 		$this->assertCount( 1, $remaining, 'Only the row within the 7-day window should remain.' );
 		$this->assertStringContainsString( 'just-inside', $remaining[0], 'The surviving row should be the one inside the window.' );
@@ -1289,7 +1289,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$server = rest_get_server();
 		$routes = $server->get_routes();
 
-		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61840.' );
+		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61841.' );
 
 		// Reset again so subsequent tests get a server with the correct db_version.
 		$GLOBALS['wp_rest_server'] = null;
@@ -1441,12 +1441,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$wpdb->insert(
 			$wpdb->collaboration,
 			array(
-				'room'         => $room,
-				'type'         => 'awareness',
-				'client_id'    => '99',
-				'user_id'      => self::$editor_id,
-				'update_value' => wp_json_encode( array( 'cursor' => 'stale' ) ),
-				'date_gmt'     => gmdate( 'Y-m-d H:i:s', time() - 120 ),
+				'room'      => $room,
+				'type'      => 'awareness',
+				'client_id' => '99',
+				'user_id'   => self::$editor_id,
+				'data'      => wp_json_encode( array( 'cursor' => 'stale' ) ),
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
 			array( '%s', '%s', '%s', '%d', '%s', '%s' )
 		);
@@ -1497,12 +1497,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$wpdb->insert(
 			$wpdb->collaboration,
 			array(
-				'room'         => $this->get_post_room(),
-				'type'         => 'awareness',
-				'client_id'    => '42',
-				'user_id'      => self::$editor_id,
-				'update_value' => wp_json_encode( array( 'cursor' => 'old' ) ),
-				'date_gmt'     => gmdate( 'Y-m-d H:i:s', time() - 120 ),
+				'room'      => $this->get_post_room(),
+				'type'      => 'awareness',
+				'client_id' => '42',
+				'user_id'   => self::$editor_id,
+				'data'      => wp_json_encode( array( 'cursor' => 'old' ) ),
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
 			array( '%s', '%s', '%s', '%d', '%s', '%s' )
 		);
@@ -1521,7 +1521,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 	/**
 	 * Verifies that user_id is stored as a dedicated column,
-	 * not embedded inside the update_value JSON blob.
+	 * not embedded inside the data JSON blob.
 	 *
 	 * @ticket 64696
 	 */
@@ -1539,7 +1539,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Query the collaboration table directly for the awareness row.
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT user_id, update_value FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s",
+				"SELECT user_id, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s",
 				$room,
 				'1'
 			)
@@ -1547,12 +1547,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$this->assertNotNull( $row, 'Awareness row should exist.' );
 		$this->assertSame( self::$editor_id, (int) $row->user_id, 'user_id column should match the editor.' );
-		$this->assertStringNotContainsString( 'user_id', $row->update_value, 'update_value should not contain user_id.' );
+		$this->assertStringNotContainsString( 'user_id', $row->data, 'data column should not contain user_id.' );
 	}
 
 	/**
 	 * Verifies that the is_array() guard in get_awareness_state() skips
-	 * rows where update_value contains valid JSON that is not an array.
+	 * rows where the data column contains valid JSON that is not an array.
 	 *
 	 * @ticket 64696
 	 */
@@ -1567,12 +1567,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$wpdb->insert(
 			$wpdb->collaboration,
 			array(
-				'room'         => $room,
-				'type'         => 'awareness',
-				'client_id'    => '99',
-				'user_id'      => self::$editor_id,
-				'update_value' => '"hello"',
-				'date_gmt'     => gmdate( 'Y-m-d H:i:s' ),
+				'room'      => $room,
+				'type'      => 'awareness',
+				'client_id' => '99',
+				'user_id'   => self::$editor_id,
+				'data'      => '"hello"',
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
 			),
 			array( '%s', '%s', '%s', '%d', '%s', '%s' )
 		);
