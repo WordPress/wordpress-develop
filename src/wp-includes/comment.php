@@ -2475,7 +2475,8 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	if ( ! ( $comment instanceof WP_Comment ) ) {
 		return false;
 	}
-	$is_note = ( 'note' === $comment->comment_type );
+	$comment_id = $comment->comment_ID;
+	$is_note    = ( 'note' === $comment->comment_type );
 
 	// By default, only notify for approved comments and notes.
 	if ( '1' !== $comment->comment_approved && ! $is_note ) {
