@@ -77,7 +77,7 @@
 		"typescript": "5.9.3",
 		"uuid": "13.0.0",
 		"wait-on": "9.0.4",
-		"webpack": "5.98.0"
+		"webpack": "5.105.4"
 	},
 	"dependencies": {
 		"backbone": "1.6.1",
