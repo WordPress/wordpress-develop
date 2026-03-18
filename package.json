@@ -62,7 +62,7 @@
 		"grunt-patch-wordpress": "~4.0.0",
 		"grunt-replace-lts": "~1.1.0",
 		"grunt-rtlcss": "~2.0.2",
-		"grunt-sass": "~4.0.1",
+		"grunt-sass": "~4.1.0",
 		"grunt-webpack": "7.0.0",
 		"install-changed": "1.1.0",
 		"postcss": "8.5.6",
