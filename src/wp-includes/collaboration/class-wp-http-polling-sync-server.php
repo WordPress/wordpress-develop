@@ -38,6 +38,30 @@ class WP_HTTP_Polling_Sync_Server {
 	const COMPACTION_THRESHOLD = 50;
 
 	/**
+	 * Maximum total size (in bytes) of the request body.
+	 *
+	 * @since 7.0.0
+	 * @var int
+	 */
+	const MAX_BODY_SIZE = 16 * MB_IN_BYTES;
+
+	/**
+	 * Maximum number of rooms allowed per request.
+	 *
+	 * @since 7.0.0
+	 * @var int
+	 */
+	const MAX_ROOMS_PER_REQUEST = 50;
+
+	/**
+	 * Maximum size (in bytes) of a single update data string.
+	 *
+	 * @since 7.0.0
+	 * @var int
+	 */
+	const MAX_UPDATE_DATA_SIZE = MB_IN_BYTES;
+
+	/**
 	 * Sync update type: compaction.
 	 *
 	 * @since 7.0.0
@@ -96,8 +120,9 @@ class WP_HTTP_Polling_Sync_Server {
 		$typed_update_args = array(
 			'properties' => array(
 				'data' => array(
-					'type'     => 'string',
-					'required' => true,
+					'type'      => 'string',
+					'required'  => true,
+					'maxLength' => self::MAX_UPDATE_DATA_SIZE,
 				),
 				'type' => array(
 					'type'     => 'string',
@@ -149,12 +174,14 @@ class WP_HTTP_Polling_Sync_Server {
 				'methods'             => array( WP_REST_Server::CREATABLE ),
 				'callback'            => array( $this, 'handle_request' ),
 				'permission_callback' => array( $this, 'check_permissions' ),
+				'validate_callback'   => array( $this, 'validate_request' ),
 				'args'                => array(
 					'rooms' => array(
 						'items'    => array(
 							'properties' => $room_args,
 							'type'       => 'object',
 						),
+						'maxItems' => self::MAX_ROOMS_PER_REQUEST,
 						'required' => true,
 						'type'     => 'array',
 					),
@@ -224,6 +251,30 @@ class WP_HTTP_Polling_Sync_Server {
 	}
 
 	/**
+	 * Validates that the request body does not exceed the maximum allowed size.
+	 *
+	 * Runs as the route-level validate_callback, after per-arg schema
+	 * validation has already passed.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_REST_Request $request The REST request.
+	 * @return true|WP_Error True if valid, WP_Error if the body is too large.
+	 */
+	public function validate_request( WP_REST_Request $request ) {
+		$body = $request->get_body();
+		if ( is_string( $body ) && strlen( $body ) > self::MAX_BODY_SIZE ) {
+			return new WP_Error(
+				'rest_sync_body_too_large',
+				__( 'Request body is too large.' ),
+				array( 'status' => 413 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Handles request: stores sync updates and awareness data, and returns
 	 * updates the client is missing.
 	 *
@@ -282,15 +333,28 @@ class WP_HTTP_Polling_Sync_Server {
 	 * @return bool True if user has permission, otherwise false.
 	 */
 	private function can_user_sync_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
+		if ( ! is_null( $object_id ) && ! is_numeric( $object_id ) ) {
+			// Object ID must be numeric if provided.
+			return false;
+		}
+
 		// Handle single post type entities with a defined object ID.
 		if ( 'postType' === $entity_kind && is_numeric( $object_id ) ) {
+			if ( get_post_type( $object_id ) !== $entity_name ) {
+				// Post is not of the specified post type.
+				return false;
+			}
 			return current_user_can( 'edit_post', (int) $object_id );
 		}
 
 		// Handle single taxonomy term entities with a defined object ID.
 		if ( 'taxonomy' === $entity_kind && is_numeric( $object_id ) ) {
+			if ( term_exists( (int) $object_id, $entity_name ) === false ) {
+				// Either term doesn't exist OR term is not in specified taxonomy.
+				return false;
+			}
 			$taxonomy = get_taxonomy( $entity_name );
-			return isset( $taxonomy->cap->assign_terms ) && current_user_can( $taxonomy->cap->assign_terms );
+			return current_user_can( 'edit_term', (int) $object_id );
 		}
 
 		// Handle single comment entities with a defined object ID.
