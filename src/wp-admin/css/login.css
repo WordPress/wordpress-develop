@@ -26,12 +26,12 @@ a {
 }
 
 a:hover,
-a:active {
+a:active,
+a:focus {
 	color: var(--wp-admin-theme-color-darker-20);
 }
 
 a:focus {
-	color: #043959;
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
@@ -322,24 +322,6 @@ p {
 #backtoblog {
 	margin: 16px 0;
 	word-wrap: break-word;
-}
-
-.login #nav a,
-.login #backtoblog a {
-	text-decoration: none;
-	color: #50575e;
-}
-
-.login #nav a:hover,
-.login #backtoblog a:hover,
-.login h1 a:hover {
-	color: #135e96;
-}
-
-.login #nav a:focus,
-.login #backtoblog a:focus,
-.login h1 a:focus {
-	color: #043959;
 }
 
 .login .privacy-policy-page-link {
