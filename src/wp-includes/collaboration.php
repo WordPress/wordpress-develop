@@ -7,6 +7,17 @@
  */
 
 /**
+ * Checks whether real-time collaboration is enabled.
+ *
+ * @since 7.0.0
+ *
+ * @return bool True if real-time collaboration is enabled, false otherwise.
+ */
+function wp_is_collaboration_enabled() {
+	return (bool) get_option( 'wp_collaboration_enabled' );
+}
+
+/**
  * Injects the real-time collaboration setting into a global variable.
  *
  * @since 7.0.0
@@ -18,7 +29,7 @@
 function wp_collaboration_inject_setting() {
 	global $pagenow;
 
-	if ( ! get_option( 'wp_enable_real_time_collaboration' ) ) {
+	if ( ! wp_is_collaboration_enabled() ) {
 		return;
 	}
 
