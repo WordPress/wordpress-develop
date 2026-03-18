@@ -15,7 +15,7 @@ body {
 }
 
 a {
-	color: var(--wp-admin-theme-color-darker-10);
+	color: var(--wp-admin-theme-color);
 	transition-property: border, background, color;
 	transition-duration: .05s;
 	transition-timing-function: ease-in-out;
@@ -322,6 +322,11 @@ p {
 #backtoblog {
 	margin: 16px 0;
 	word-wrap: break-word;
+}
+
+.login #nav a,
+.login #backtoblog a {
+	text-decoration: none;
 }
 
 .login .privacy-policy-page-link {
