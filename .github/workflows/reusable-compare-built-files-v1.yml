@@ -1,0 +1,109 @@
+##
+# A reusable workflow that compares the results of the build script with the most recent commit to WordPress/WordPress.
+##
+name: Compare Built Files (reusable)
+
+on:
+  workflow_call:
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs the PHP coding standards checks.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Sets up PHP.
+  # - Installs Composer dependencies.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
+  # - Builds WordPress to run from the build directory.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Checks out the WordPress/WordPress repository.
+  # - Creates a directory for text files to be uploaded as an artifact.
+  # - Stores a list of files that differ in the build directory from WordPress/WordPress.
+  # - Stores a diff file comparing the build directory to WordPress/WordPress.
+  # - Saves the pull request number to a text file.
+  # - Uploads the generated files as an artifact.
+  compare-built-files:
+    name: Compare built files to WordPress/WordPress
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          git --version
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Build WordPress to run from build directory
+        run: npm run build
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
+
+      - name: Checkout WordPress/WordPress
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: 'WordPress/WordPress'
+          path: ${{ github.workspace }}/build-server
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Create directory for artifacts
+        run: mkdir artifacts
+
+      - name: Create a list of files that have changed
+        run: diff -rq ${{ github.workspace }}/build ${{ github.workspace }}/build-server | sed "s|${{ github.workspace }}/||g" > artifacts/file-changes.txt
+
+      - name: Create a list of files that have changed
+        run: diff -r ${{ github.workspace }}/build ${{ github.workspace }}/build-server | sed "s|${{ github.workspace }}/||g" > artifacts/changes.diff
+
+      - name: Save PR number
+        run: echo "${EVENT_NUMBER}" > ./artifacts/NR
+        env:
+          EVENT_NUMBER: ${{ github.event.number }}
+
+      # Uploads the associated text files as an artifact.
+      - name: Upload comparison results as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
+        with:
+          name: build-server-comparison
+          path: artifacts/

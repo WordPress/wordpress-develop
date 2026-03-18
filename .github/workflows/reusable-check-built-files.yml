@@ -1,7 +1,7 @@
 ##
 # A reusable workflow that checks for uncommitted changes to built files in pull requests.
 ##
-name: Check Built Files (PRs)
+name: Check for Changes to Versioned Files (reusable)
 
 on:
   workflow_call:
@@ -9,7 +9,7 @@ on:
 permissions: {}
 
 jobs:
-  # Checks a PR for uncommitted changes to built files.
+  # Checks a PR for uncommitted changes to versioned files.
   #
   # When changes are detected, the patch is stored as an artifact for processing by the Commit Built File Changes
   # workflow.
@@ -29,8 +29,8 @@ jobs:
   # - Displays the result of git diff for debugging purposes.
   # - Saves the diff to a patch file.
   # - Uploads the patch file as an artifact.
-  update-built-files:
-    name: Check and update built files
+  check-versioned-files:
+    name: Check for changes
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
