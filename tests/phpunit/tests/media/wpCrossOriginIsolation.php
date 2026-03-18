@@ -237,4 +237,233 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 
 		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output );
 	}
+
+	/**
+	 * Images with srcset should also not get crossorigin="anonymous".
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_does_not_add_crossorigin_to_images_with_srcset() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<img src="https://external.example.com/image.jpg" srcset="https://external.example.com/image-2x.jpg 2x" />';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output );
+	}
+
+	/**
+	 * Audio elements with cross-origin sources should get crossorigin="anonymous".
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_adds_crossorigin_to_audio() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<audio src="https://external.example.com/audio.mp3"></audio>';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
+	}
+
+	/**
+	 * Video elements with cross-origin sources should get crossorigin="anonymous".
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_adds_crossorigin_to_video() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<video src="https://external.example.com/video.mp4"></video>';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
+	}
+
+	/**
+	 * Link elements with cross-origin href should get crossorigin="anonymous".
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_adds_crossorigin_to_link() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<link rel="stylesheet" href="https://external.example.com/style.css" />';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
+	}
+
+	/**
+	 * Link elements with imagesrcset should no longer trigger crossorigin="anonymous"
+	 * since imagesrcset handling was removed along with IMG.
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_does_not_add_crossorigin_to_link_with_imagesrcset_only() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<link rel="preload" as="image" imagesrcset="https://external.example.com/image.jpg 1x" href="/local-fallback.jpg" />';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output, 'Link elements should not get crossorigin based on imagesrcset alone.' );
+	}
+
+	/**
+	 * Same-origin URLs should not get crossorigin="anonymous".
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_does_not_add_crossorigin_to_same_origin_script() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<script src="' . site_url( '/wp-includes/js/wp-embed.min.js' ) . '"></script>';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output, 'Same-origin scripts should not get crossorigin attribute.' );
+	}
+
+	/**
+	 * Relative URLs should not get crossorigin="anonymous".
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_does_not_add_crossorigin_to_relative_urls() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<script src="/wp-includes/js/wp-embed.min.js"></script>';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output, 'Relative URLs should not get crossorigin attribute.' );
+	}
+
+	/**
+	 * Elements that already have a crossorigin attribute should not be modified.
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_does_not_override_existing_crossorigin() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<script src="https://external.example.com/script.js" crossorigin="use-credentials"></script>';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'crossorigin="use-credentials"', $output, 'Existing crossorigin attribute should not be overridden.' );
+		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output );
+	}
+
+	/**
+	 * Source elements inside video/audio with cross-origin src should add
+	 * crossorigin to the parent element.
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_adds_crossorigin_to_video_with_source() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<video><source src="https://external.example.com/video.mp4" type="video/mp4" /></video>';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
+	}
+
+	/**
+	 * Multiple tags in the same output should each be handled correctly.
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_handles_mixed_tags() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<img src="https://external.example.com/image.jpg" />';
+		echo '<script src="https://external.example.com/script.js"></script>';
+		echo '<audio src="https://external.example.com/audio.mp3"></audio>';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		// IMG should NOT have crossorigin.
+		$this->assertStringContainsString( '<img src="https://external.example.com/image.jpg" />', $output, 'IMG should not be modified.' );
+
+		// Script and audio should have crossorigin.
+		$this->assertSame( 2, substr_count( $output, 'crossorigin="anonymous"' ), 'Script and audio should both get crossorigin, but not img.' );
+	}
 }
