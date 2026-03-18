@@ -82,6 +82,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: 'WordPress/WordPress'
+          ref: ${{ github.base_ref == 'trunk' && 'master' || format( '{0}-branch', github.base_ref ) }}
           path: ${{ github.workspace }}/build-server
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
