@@ -692,7 +692,7 @@ function create_initial_post_types() {
 		);
 
 		register_post_meta(
-			'wp_sync_storage',
+			'',
 			'wp_sync_awareness',
 			array(
 				'invalidates_query_cache' => false,
@@ -700,7 +700,7 @@ function create_initial_post_types() {
 		);
 
 		register_post_meta(
-			'wp_sync_storage',
+			'',
 			'wp_sync_update',
 			array(
 				'invalidates_query_cache' => false,
