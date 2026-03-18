@@ -2,6 +2,18 @@
 /**
  * Tests for the `invalidates_query_cache` parameter of `register_meta()`.
  *
+ * Cache correctness relies on two complementary mechanisms:
+ *
+ * 1. Cache invalidation (wp_cache_set_posts_last_changed): the authoritative
+ *    check. Meta write hooks always provide the object ID, so the post type
+ *    is always known. This guarantees non-cacheable meta never incorrectly
+ *    bumps the 'posts' last_changed timestamp.
+ *
+ * 2. Meta query blocking (WP_Meta_Query): a conservative safety net. It only
+ *    refuses a non-cacheable key when the post type is known from the parent
+ *    WP_Query context. Without context, the key is allowed through — it's
+ *    better to allow a query than to incorrectly block a legitimate one.
+ *
  * @group meta
  * @group cache
  *
@@ -152,11 +164,43 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * WP_Meta_Query should refuse to query by a non-cacheable meta key.
+	 * WP_Meta_Query should refuse to query by a non-cacheable meta key
+	 * when the WP_Query context provides a post type.
 	 *
 	 * @expectedIncorrectUsage WP_Meta_Query::get_sql_for_clause
 	 */
 	public function test_meta_query_refuses_non_cacheable_key() {
+		register_post_meta(
+			'',
+			'nocache_meta',
+			array( 'invalidates_query_cache' => false )
+		);
+
+		$query = new WP_Query();
+		$query->query_vars['post_type'] = 'post';
+
+		$meta_query = new WP_Meta_Query(
+			array(
+				array(
+					'key'   => 'nocache_meta',
+					'value' => 'test',
+				),
+			)
+		);
+
+		$sql = $meta_query->get_sql( 'post', 'wp_posts', 'ID', $query );
+
+		$this->assertStringNotContainsString( 'nocache_meta', $sql['where'], 'Non-cacheable meta key should not appear in WHERE clause.' );
+		$this->assertStringNotContainsString( 'nocache_meta', $sql['join'], 'Non-cacheable meta key should not appear in JOIN clause.' );
+	}
+
+	/**
+	 * WP_Meta_Query should allow a non-cacheable meta key when no WP_Query
+	 * context is available. Without knowing the post type, refusing the query
+	 * could incorrectly block legitimate usage. Cache correctness is still
+	 * guaranteed by the invalidation side, which always knows the post type.
+	 */
+	public function test_meta_query_allows_non_cacheable_key_without_context() {
 		register_post_meta(
 			'',
 			'nocache_meta',
@@ -174,8 +218,7 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 
 		$sql = $meta_query->get_sql( 'post', 'wp_posts', 'ID' );
 
-		$this->assertStringNotContainsString( 'nocache_meta', $sql['where'], 'Non-cacheable meta key should not appear in WHERE clause.' );
-		$this->assertStringNotContainsString( 'nocache_meta', $sql['join'], 'Non-cacheable meta key should not appear in JOIN clause.' );
+		$this->assertStringContainsString( 'nocache_meta', $sql['where'], 'Non-cacheable meta key should be allowed without WP_Query context.' );
 	}
 
 	/**
@@ -248,7 +291,10 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 
 	/**
 	 * A key registered as non-cacheable for one post type should be allowed
-	 * in meta queries targeting a different post type.
+	 * in meta queries targeting a different post type. The query-side check
+	 * is conservative — it only refuses when the post type is known to be
+	 * non-cacheable. Cache correctness for the other post type is enforced
+	 * by the invalidation side.
 	 */
 	public function test_subtype_registration_allows_meta_query_for_different_post_type() {
 		register_post_meta(
@@ -305,8 +351,10 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A key registered for a specific post type should not skip cache invalidation
-	 * when written to a different post type.
+	 * A key registered as non-cacheable for one post type should still
+	 * invalidate the cache when written to a different post type. The
+	 * invalidation side always knows the exact post type from the object ID,
+	 * so per-post-type behavior is always correct.
 	 */
 	public function test_subtype_registration_does_not_skip_cache_for_different_post_type() {
 		register_post_meta(

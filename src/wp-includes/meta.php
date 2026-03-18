@@ -1509,6 +1509,12 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		}
 	}
 
+	if ( ! $args['invalidates_query_cache'] && 'post' !== $object_type ) {
+		_doing_it_wrong( __FUNCTION__, __( 'The invalidates_query_cache parameter is only supported for post meta.' ), '7.0.0' );
+
+		return false;
+	}
+
 	// If `auth_callback` is not provided, fall back to `is_protected_meta()`.
 	if ( empty( $args['auth_callback'] ) ) {
 		if ( is_protected_meta( $meta_key, $object_type ) ) {
@@ -1646,47 +1652,34 @@ function registered_meta_key_exists( $object_type, $meta_key, $object_subtype = 
 }
 
 /**
- * Checks whether a meta key invalidates query caches when updated.
+ * Checks whether a post meta key invalidates query caches when updated.
  *
- * Meta keys registered with `'invalidates_query_cache' => false` will not
+ * Post meta keys registered with `'invalidates_query_cache' => false` will not
  * cause query cache invalidation when added, updated, or deleted. This is
- * useful for high-frequency meta that is never used in query filters, such
+ * useful for high-frequency post meta that is never used in query filters, such
  * as real-time collaboration sync data.
  *
  * Unregistered meta keys are assumed to invalidate query caches.
  *
  * @since 7.0.0
  *
- * @param string $object_type    Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                               or any other object type with an associated meta table.
- * @param string $meta_key       Metadata key.
- * @param string $object_subtype Optional. The subtype of the object type. Default empty string.
+ * @param string $meta_key  Metadata key.
+ * @param string $post_type Post type to check.
  * @return bool True if the meta key invalidates query caches, false otherwise.
  */
-function wp_meta_key_invalidates_query_cache( $object_type, $meta_key, $object_subtype = '' ) {
-	global $wp_meta_keys;
-
-	$meta_keys = get_registered_meta_keys( $object_type, $object_subtype );
+function wp_post_meta_invalidates_query_cache( $meta_key, $post_type ) {
+	// Check keys registered for this specific post type.
+	$meta_keys = get_registered_meta_keys( 'post', $post_type );
 
 	if ( isset( $meta_keys[ $meta_key ] ) ) {
 		return $meta_keys[ $meta_key ]['invalidates_query_cache'];
 	}
 
-	// Also check keys registered without a subtype.
-	if ( '' !== $object_subtype ) {
-		$meta_keys = get_registered_meta_keys( $object_type );
-		if ( isset( $meta_keys[ $meta_key ] ) ) {
-			return $meta_keys[ $meta_key ]['invalidates_query_cache'];
-		}
-	}
+	// Also check keys registered for all post types.
+	$meta_keys = get_registered_meta_keys( 'post' );
 
-	// When no subtype is given, search across all registered subtypes.
-	if ( '' === $object_subtype && is_array( $wp_meta_keys ) && isset( $wp_meta_keys[ $object_type ] ) ) {
-		foreach ( $wp_meta_keys[ $object_type ] as $registered_keys ) {
-			if ( isset( $registered_keys[ $meta_key ] ) ) {
-				return $registered_keys[ $meta_key ]['invalidates_query_cache'];
-			}
-		}
+	if ( isset( $meta_keys[ $meta_key ] ) ) {
+		return $meta_keys[ $meta_key ]['invalidates_query_cache'];
 	}
 
 	// Unregistered keys default to invalidating caches.

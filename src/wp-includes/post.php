@@ -8462,6 +8462,11 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
  * the cache is not invalidated. This allows high-frequency meta writes (e.g.
  * real-time collaboration data) to avoid invalidating query caches site-wide.
  *
+ * This is the authoritative check — meta actions always provide both the
+ * object ID and meta key, so the exact post type is always known. This
+ * guarantees that non-cacheable meta never incorrectly invalidates caches,
+ * regardless of how the meta key was registered (globally or per post type).
+ *
  * @since 5.0.0
  * @since 7.0.0 Added the `$meta_id`, `$object_id`, and `$meta_key` parameters.
  *
@@ -8470,9 +8475,9 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
  * @param string $meta_key  Optional. Meta key. Passed by meta action hooks.
  */
 function wp_cache_set_posts_last_changed( $meta_id = 0, $object_id = 0, $meta_key = '' ) {
-	if ( $meta_key ) {
-		$post_type = $object_id ? get_post_type( $object_id ) : '';
-		if ( ! wp_meta_key_invalidates_query_cache( 'post', $meta_key, $post_type ? $post_type : '' ) ) {
+	if ( $meta_key && $object_id ) {
+		$post_type = get_post_type( $object_id );
+		if ( $post_type && ! wp_post_meta_invalidates_query_cache( $meta_key, $post_type ) ) {
 			return;
 		}
 	}

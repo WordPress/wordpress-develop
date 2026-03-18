@@ -561,8 +561,8 @@ class WP_Meta_Query {
 	public function get_sql_for_clause( &$clause, $parent_query, $clause_key = '' ) {
 		global $wpdb;
 
-		// Refuse to query by a meta key registered as non-query-cacheable.
-		if ( $this->object_type
+		// Refuse to query by a post meta key registered as non-query-cacheable.
+		if ( 'post' === $this->object_type
 			&& isset( $clause['key'] )
 			&& is_string( $clause['key'] )
 			&& $this->is_non_cacheable_meta_key( $clause['key'] )
@@ -860,10 +860,21 @@ class WP_Meta_Query {
 	/**
 	 * Checks whether a meta key is registered as non-query-cacheable.
 	 *
-	 * When object subtypes are known (e.g. post types from the parent WP_Query),
-	 * checks each subtype individually. If any subtype has the key registered as
-	 * non-cacheable, returns true. Falls back to searching across all subtypes
-	 * when no subtypes are available.
+	 * This check is deliberately conservative: it only refuses a meta key
+	 * when the post type is known from the parent WP_Query context. When
+	 * no post type context is available (e.g. direct WP_Meta_Query usage
+	 * without a WP_Query, or post_type set to 'any'), the key is allowed
+	 * through. This avoids incorrectly blocking legitimate queries.
+	 *
+	 * Correctness is guaranteed by the cache invalidation side
+	 * (wp_cache_set_posts_last_changed), which always has the post type
+	 * from the object ID. That side is authoritative — it ensures
+	 * non-cacheable meta never invalidates query caches. This query-side
+	 * check is a safety net to warn developers and prevent obviously
+	 * broken queries, not the primary enforcement mechanism.
+	 *
+	 * When multiple post types are queried, the key is refused if any
+	 * of them has it registered as non-cacheable.
 	 *
 	 * @since 7.0.0
 	 *
@@ -871,17 +882,17 @@ class WP_Meta_Query {
 	 * @return bool True if the meta key is non-cacheable, false otherwise.
 	 */
 	protected function is_non_cacheable_meta_key( $meta_key ) {
-		if ( ! empty( $this->object_subtypes ) ) {
-			foreach ( $this->object_subtypes as $subtype ) {
-				if ( ! wp_meta_key_invalidates_query_cache( $this->object_type, $meta_key, $subtype ) ) {
-					return true;
-				}
-			}
+		if ( empty( $this->object_subtypes ) ) {
 			return false;
 		}
 
-		// No subtypes available — fall back to checking all subtypes.
-		return ! wp_meta_key_invalidates_query_cache( $this->object_type, $meta_key );
+		foreach ( $this->object_subtypes as $subtype ) {
+			if ( ! wp_post_meta_invalidates_query_cache( $meta_key, $subtype ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
