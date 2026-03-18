@@ -93,6 +93,8 @@ jobs:
     steps:
       - name: Download artifact
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
         with:
           script: |
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
@@ -119,8 +121,6 @@ jobs:
 
             const fs = require( 'fs' );
             fs.writeFileSync( '${{github.workspace}}/pr-number.zip', Buffer.from( download.data ) )
-        env:
-          RUN_ID: ${{ github.event.workflow_run.id }}
 
       - name: Unzip the artifact containing the PR number
         run: unzip pr-number.zip
@@ -231,9 +231,6 @@ jobs:
 
       - name: Leave a comment with any differences noticed
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        env:
-          RUN_ID:
-            ${{ github.event.workflow_run.id }}
         with:
           script: |
             const fs = require( 'fs' );
@@ -316,7 +313,7 @@ jobs:
               </details>`;
               }
 
-              commentInfo.body += `[Download the complete .diff file from the workflow run](https://github.com/${ context.repo.owner }/${ context.repo.repo }/actions/runs/${ process.env.RUN_ID }).`;
+              commentInfo.body += `\n\n[Download the complete .diff file from the workflow run](https://github.com/${ context.repo.owner }/${ context.repo.repo }/actions/runs/${ context.payload.workflow_run.id }).`;
             }
 
             if ( commentInfo.comment_id ) {
