@@ -507,7 +507,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 						return $insert_result;
 					}
 
-					if ( ! $this->storage->remove_updates_up_to_cursor( $room, $cursor ) ) {
+					if ( ! $this->storage->remove_updates_through_cursor( $room, $cursor ) ) {
 						global $wpdb;
 						$error_data = array( 'status' => 500 );
 						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
