@@ -1,0 +1,33 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"noEmit": true,
+		"module": "preserve",
+		"target": "ES2020",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"erasableSyntaxOnly": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"skipLibCheck": true,
+		"isolatedModules": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": false,
+
+		"lib": [ "es2020", "dom" ],
+		"typeRoots": [ "./typings", "./node_modules/@types" ],
+		"types": [
+			"wp-globals",
+			"codemirror/addon/lint/lint",
+			"codemirror/addon/hint/show-hint"
+		]
+	},
+	"include": [],
+	"files": [
+		"src/js/_enqueues/wp/code-editor.js",
+		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
+		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js"
+	]
+}

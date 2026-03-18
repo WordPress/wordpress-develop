@@ -1057,7 +1057,7 @@ table.form-table td .updated p {
 
 .application-password-display input.code {
 	margin-bottom: 6px;
-	width: 19em;
+	width: 20em;
 }
 
 .auth-app-card.card {
@@ -1277,6 +1277,10 @@ table.form-table td .updated p {
 
 .form-table.permalink-structure .structure-selection .row p {
 	margin-top: 0;
+}
+
+.permalink-structure-optional-description code {
+	display: inline-block;
 }
 
 /*------------------------------------------------------------------------------
@@ -1792,6 +1796,11 @@ table.form-table td .updated p {
 
 	.form-table.permalink-structure td input[type="text"] {
 		margin-top: 4px;
+	}
+
+	.permalink-structure-has-blog-prefix {
+		display: flex;
+		align-items: center;
 	}
 
 	.form-table input.regular-text {

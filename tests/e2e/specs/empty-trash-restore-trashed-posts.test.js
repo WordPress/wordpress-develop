@@ -20,7 +20,7 @@ test.describe( 'Empty Trash', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Move post to trash
-		await listTable.getByRole( 'link', { name: `“${ POST_TITLE }” (Edit)` } ).hover();
+		await listTable.getByRole( 'link', { name: POST_TITLE, exact: true } ).hover();
 		await listTable.getByRole( 'link', { name: `Move “${POST_TITLE}” to the Trash` } ).click();
 
 		// Empty trash
@@ -40,7 +40,7 @@ test.describe( 'Empty Trash', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Move post to trash
-		await listTable.getByRole( 'link', { name: `“${ POST_TITLE }” (Edit)` } ).hover();
+		await listTable.getByRole( 'link', { name: POST_TITLE, exact: true } ).hover();
 		await listTable.getByRole( 'link', { name: `Move “${POST_TITLE}” to the Trash` } ).click();
 
 		await page.getByRole( 'link', { name: 'Trash' } ).click();
