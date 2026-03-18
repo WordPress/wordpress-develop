@@ -362,8 +362,6 @@ TABLE OF CONTENTS:
 
 /* pressed state e.g. a selected setting */
 .wp-core-ui .button-group > .button.active {
-	background-color: #dcdcde;
-	color: #135e96;
 	border-color: var(--wp-admin-theme-color);
 	box-shadow: inset 0 2px 5px -3px var(--wp-admin-theme-color-darker-20);
 }
