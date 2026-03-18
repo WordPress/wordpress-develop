@@ -1664,6 +1664,8 @@ function registered_meta_key_exists( $object_type, $meta_key, $object_subtype = 
  * @return bool True if the meta key invalidates query caches, false otherwise.
  */
 function wp_meta_key_invalidates_query_cache( $object_type, $meta_key, $object_subtype = '' ) {
+	global $wp_meta_keys;
+
 	$meta_keys = get_registered_meta_keys( $object_type, $object_subtype );
 
 	if ( isset( $meta_keys[ $meta_key ] ) ) {
@@ -1675,6 +1677,15 @@ function wp_meta_key_invalidates_query_cache( $object_type, $meta_key, $object_s
 		$meta_keys = get_registered_meta_keys( $object_type );
 		if ( isset( $meta_keys[ $meta_key ] ) ) {
 			return $meta_keys[ $meta_key ]['invalidates_query_cache'];
+		}
+	}
+
+	// When no subtype is given, search across all registered subtypes.
+	if ( '' === $object_subtype && is_array( $wp_meta_keys ) && isset( $wp_meta_keys[ $object_type ] ) ) {
+		foreach ( $wp_meta_keys[ $object_type ] as $registered_keys ) {
+			if ( isset( $registered_keys[ $meta_key ] ) ) {
+				return $registered_keys[ $meta_key ]['invalidates_query_cache'];
+			}
 		}
 	}
 
