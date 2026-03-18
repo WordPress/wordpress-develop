@@ -1594,7 +1594,13 @@ module.exports = function(grunt) {
 			args: [ 'tools/gutenberg/download.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
-			done( ! error );
+			if ( error ) {
+				done( false );
+				return;
+			}
+			grunt.option( 'dev', true );
+			grunt.task.run( 'build:gutenberg' );
+			done();
 		} );
 	} );
 

@@ -42,13 +42,24 @@ function readGutenbergConfig() {
 }
 
 /**
- * Trigger a fresh download of the Gutenberg artifact by spawning download.js.
- * Exits the process if the download fails.
+ * Trigger a fresh download of the Gutenberg artifact by spawning download.js,
+ * then immediately copy the build to src/ so the files are in place before
+ * the build process runs copy:files.
+ * Exits the process if either step fails.
  */
 function downloadGutenberg() {
-	const result = spawnSync( 'node', [ path.join( __dirname, 'download.js' ) ], { stdio: 'inherit' } );
-	if ( result.status !== 0 ) {
-		process.exit( result.status ?? 1 );
+	const downloadResult = spawnSync( 'node', [ path.join( __dirname, 'download.js' ) ], { stdio: 'inherit' } );
+	if ( downloadResult.status !== 0 ) {
+		process.exit( downloadResult.status ?? 1 );
+	}
+
+	const copyResult = spawnSync(
+		'node',
+		[ path.join( __dirname, 'copy.js' ), '--build-dir=src' ],
+		{ stdio: 'inherit' }
+	);
+	if ( copyResult.status !== 0 ) {
+		process.exit( copyResult.status ?? 1 );
 	}
 }
 
