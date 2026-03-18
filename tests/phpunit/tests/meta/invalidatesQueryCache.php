@@ -176,7 +176,7 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 			array( 'invalidates_query_cache' => false )
 		);
 
-		$query = new WP_Query();
+		$query                          = new WP_Query();
 		$query->query_vars['post_type'] = 'post';
 
 		$meta_query = new WP_Meta_Query(
@@ -272,7 +272,7 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 			array( 'invalidates_query_cache' => false )
 		);
 
-		$query = new WP_Query();
+		$query                          = new WP_Query();
 		$query->query_vars['post_type'] = 'post';
 
 		$meta_query = new WP_Meta_Query(
@@ -303,7 +303,7 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 			array( 'invalidates_query_cache' => false )
 		);
 
-		$query = new WP_Query();
+		$query                          = new WP_Query();
 		$query->query_vars['post_type'] = 'post';
 
 		$meta_query = new WP_Meta_Query(
@@ -333,7 +333,7 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 			array( 'invalidates_query_cache' => false )
 		);
 
-		$query = new WP_Query();
+		$query                          = new WP_Query();
 		$query->query_vars['post_type'] = array( 'post', 'page' );
 
 		$meta_query = new WP_Meta_Query(
