@@ -7952,20 +7952,22 @@ function wp_raise_memory_limit( $context = 'admin' ) {
  * Generates a random UUID (version 4).
  *
  * @since 4.7.0
+ * @since 7.0.0 Uses wp_rand instead of mt_rand if available.
  *
  * @return string UUID.
  */
 function wp_generate_uuid4() {
+	$randomizer = function_exists( 'wp_rand' ) ? 'wp_rand' : 'mt_rand';
 	return sprintf(
 		'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-		wp_rand( 0, 0xffff ),
-		wp_rand( 0, 0xffff ),
-		wp_rand( 0, 0xffff ),
-		wp_rand( 0, 0x0fff ) | 0x4000,
-		wp_rand( 0, 0x3fff ) | 0x8000,
-		wp_rand( 0, 0xffff ),
-		wp_rand( 0, 0xffff ),
-		wp_rand( 0, 0xffff )
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0x0fff ) | 0x4000,
+		$randomizer( 0, 0x3fff ) | 0x8000,
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff )
 	);
 }
 
