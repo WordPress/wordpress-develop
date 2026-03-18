@@ -202,12 +202,39 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		ob_start();
 
 		wp_start_cross_origin_isolation_output_buffer();
-		echo '<img src="https://external.example.com/image.jpg" />';
+		echo '<script src="https://external.example.com/script.js"></script>';
 
 		// Flush the inner buffer to trigger the callback, sending processed output to the outer buffer.
 		ob_end_flush();
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
+	}
+
+	/**
+	 * Images should not get crossorigin="anonymous" because under
+	 * Document-Isolation-Policy: isolate-and-credentialless, the credentialless
+	 * mode handles image loading without CORS headers. Adding the attribute
+	 * would break external images that don't serve CORS headers.
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_does_not_add_crossorigin_to_images() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		// Start an outer buffer to capture the callback-processed output.
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<img src="https://external.example.com/image.jpg" />';
+
+		// Flush the inner buffer to trigger the callback, sending processed output to the outer buffer.
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output );
 	}
 }
