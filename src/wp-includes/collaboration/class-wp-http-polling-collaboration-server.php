@@ -373,8 +373,10 @@ class WP_HTTP_Polling_Collaboration_Server {
 			return current_user_can( 'edit_comment', (int) $object_id );
 		}
 
-		// All the remaining checks are for collections. If an object ID is provided,
-		// reject the request.
+		/*
+		 * All the remaining checks are for collections. If an object ID is
+		 * provided, reject the request.
+		 */
 		if ( null !== $object_id ) {
 			return false;
 		}
@@ -389,9 +391,11 @@ class WP_HTTP_Polling_Collaboration_Server {
 			return current_user_can( $post_type_object->cap->edit_posts );
 		}
 
-		// Collection collaboration does not exchange entity data. It only signals if
-		// another user has updated an entity in the collection. Therefore, we only
-		// compare against an allow list of collection types.
+		/*
+		 * Collection collaboration does not exchange entity data. It only
+		 * signals if another user has updated an entity in the collection.
+		 * Therefore, we only compare against an allow list of collection types.
+		 */
 		$allowed_collection_entity_kinds = array(
 			'postType',
 			'root',
@@ -441,10 +445,12 @@ class WP_HTTP_Polling_Collaboration_Server {
 			$response[ $entry['client_id'] ] = $entry['state'];
 		}
 
-		// Other clients' states were decoded from the DB. Run the current
-		// client's state through the same encode/decode path so the response
-		// is consistent — wp_json_encode may normalize values (e.g. strip
-		// invalid UTF-8) that would otherwise differ on the next poll.
+		/*
+		 * Other clients' states were decoded from the DB. Run the current
+		 * client's state through the same encode/decode path so the response
+		 * is consistent — wp_json_encode may normalize values (e.g. strip
+		 * invalid UTF-8) that would otherwise differ on the next poll.
+		 */
 		if ( null !== $awareness_update ) {
 			$response[ $client_id ] = json_decode( wp_json_encode( $awareness_update ), true );
 		}
@@ -488,18 +494,20 @@ class WP_HTTP_Polling_Collaboration_Server {
 				}
 
 				if ( ! $has_newer_compaction ) {
-					// Insert the compaction row before deleting old rows.
-					// Reversing the order closes a race window where a
-					// client joining with cursor=0 between the DELETE and
-					// INSERT would see an empty room for one poll cycle.
-					// The compaction row always has a higher ID than the
-					// deleted rows, so cursor-based filtering is unaffected.
+					/*
+					 * Insert the compaction row before deleting old rows.
+					 * Reversing the order closes a race window where a
+					 * client joining with cursor=0 between the DELETE and
+					 * INSERT would see an empty room for one poll cycle.
+					 * The compaction row always has a higher ID than the
+					 * deleted rows, so cursor-based filtering is unaffected.
+					 */
 					$insert_result = $this->add_update( $room, $client_id, $type, $data );
 					if ( is_wp_error( $insert_result ) ) {
 						return $insert_result;
 					}
 
-					if ( ! $this->storage->remove_updates_before_cursor( $room, $cursor ) ) {
+					if ( ! $this->storage->remove_updates_up_to_cursor( $room, $cursor ) ) {
 						global $wpdb;
 						$error_data = array( 'status' => 500 );
 						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -515,8 +523,10 @@ class WP_HTTP_Polling_Collaboration_Server {
 					return true;
 				}
 
-				// Reaching this point means there's a newer compaction, so we can
-				// silently ignore this one.
+				/*
+				 * Reaching this point means there's a newer compaction,
+				 * so we can silently ignore this one.
+				 */
 				return true;
 
 			case self::UPDATE_TYPE_SYNC_STEP1:

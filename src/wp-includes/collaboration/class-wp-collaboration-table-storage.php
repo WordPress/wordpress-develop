@@ -241,10 +241,7 @@ class WP_Collaboration_Table_Storage {
 	}
 
 	/**
-	 * Removes updates from a room that are older than the given cursor.
-	 *
-	 * Uses a single atomic DELETE query, avoiding the race-prone
-	 * "delete all, re-add some" pattern.
+	 * Removes updates from a room up to and including the given cursor.
 	 *
 	 * @since 7.0.0
 	 *
@@ -254,9 +251,11 @@ class WP_Collaboration_Table_Storage {
 	 * @param int    $cursor Remove updates up to and including this cursor.
 	 * @return bool True on success, false on failure.
 	 */
-	public function remove_updates_before_cursor( string $room, int $cursor ): bool {
+	public function remove_updates_up_to_cursor( string $room, int $cursor ): bool {
 		global $wpdb;
 
+		// Uses a single atomic DELETE query, avoiding the race-prone
+		// "delete all, re-add some" pattern.
 		$result = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND id <= %d",
@@ -271,10 +270,10 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Sets awareness state for a given client in a room.
 	 *
-	 * Uses UPDATE-then-INSERT: tries to update the existing row first,
-	 * and only inserts if no row was updated. Each client writes only
-	 * its own row, eliminating the race condition inherent in shared-state
-	 * approaches.
+	 * Uses SELECT-then-UPDATE/INSERT: checks for an existing row by
+	 * primary key, then updates or inserts accordingly. Each client
+	 * writes only its own row, eliminating the race condition inherent
+	 * in shared-state approaches.
 	 *
 	 * After writing, the cached awareness entries for the room are updated
 	 * in-place so that subsequent get_awareness_state() calls from other
@@ -299,23 +298,26 @@ class WP_Collaboration_Table_Storage {
 		$data = wp_json_encode( $state );
 		$now  = gmdate( 'Y-m-d H:i:s' );
 
-		/* Try UPDATE first. */
-		$updated = $wpdb->update(
-			$wpdb->collaboration,
-			array(
-				'user_id'  => $user_id,
-				'data'     => $data,
-				'date_gmt' => $now,
-			),
-			array(
-				'room'      => $room,
-				'type'      => 'awareness',
-				'client_id' => $client_id,
+		/* Check if a row already exists. */
+		$exists = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s LIMIT 1",
+				$room,
+				$client_id
 			)
 		);
 
-		/* INSERT only if no existing row. */
-		if ( 0 === (int) $updated ) {
+		if ( $exists ) {
+			$result = $wpdb->update(
+				$wpdb->collaboration,
+				array(
+					'user_id'  => $user_id,
+					'data'     => $data,
+					'date_gmt' => $now,
+				),
+				array( 'id' => $exists )
+			);
+		} else {
 			$result = $wpdb->insert(
 				$wpdb->collaboration,
 				array(
@@ -327,11 +329,9 @@ class WP_Collaboration_Table_Storage {
 					'date_gmt'  => $now,
 				)
 			);
+		}
 
-			if ( false === $result ) {
-				return false;
-			}
-		} elseif ( false === $updated ) {
+		if ( false === $result ) {
 			return false;
 		}
 

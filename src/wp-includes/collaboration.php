@@ -70,7 +70,7 @@ function wp_delete_old_collaboration_data() {
 		 */
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE type != 'awareness' AND date_gmt < %s",
+				"DELETE FROM {$wpdb->collaboration} WHERE date_gmt < %s",
 				gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
 			)
 		);
@@ -86,16 +86,10 @@ function wp_delete_old_collaboration_data() {
 		return;
 	}
 
-	/*
-	 * Clean up sync rows older than 7 days.
-	 *
-	 * The type != 'awareness' exclusion keeps awareness rows untouched —
-	 * they are cleaned up separately below. Future persistent types
-	 * (e.g. persisted_crdt_doc) may also need exclusion here.
-	 */
+	/* Clean up rows older than 7 days. */
 	$wpdb->query(
 		$wpdb->prepare(
-			"DELETE FROM {$wpdb->collaboration} WHERE type != 'awareness' AND date_gmt < %s",
+			"DELETE FROM {$wpdb->collaboration} WHERE date_gmt < %s",
 			gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
 		)
 	);
