@@ -251,7 +251,7 @@ class WP_Collaboration_Table_Storage {
 	 * @param int    $cursor Remove updates up to and including this cursor.
 	 * @return bool True on success, false on failure.
 	 */
-	public function remove_updates_up_to_cursor( string $room, int $cursor ): bool {
+	public function remove_updates_through_cursor( string $room, int $cursor ): bool {
 		global $wpdb;
 
 		// Uses a single atomic DELETE query, avoiding the race-prone

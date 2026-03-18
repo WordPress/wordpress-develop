@@ -1838,7 +1838,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 * Compaction (remove_updates_up_to_cursor) should not delete awareness rows.
+	 * Compaction (remove_updates_through_cursor) should not delete awareness rows.
 	 *
 	 * @ticket 64696
 	 */
