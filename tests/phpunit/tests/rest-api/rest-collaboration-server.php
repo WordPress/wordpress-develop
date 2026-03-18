@@ -832,8 +832,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			)
 		);
 
-		$data         = $response->get_data();
-		$update_data  = wp_list_pluck( $data['rooms'][0]['updates'], 'data' );
+		$data        = $response->get_data();
+		$update_data = wp_list_pluck( $data['rooms'][0]['updates'], 'data' );
 
 		$this->assertSame(
 			array(
