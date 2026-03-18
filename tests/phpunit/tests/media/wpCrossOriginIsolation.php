@@ -282,13 +282,34 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 			'link with cross-origin imagesrcset only' => array(
 				'<link rel="preload" as="image" imagesrcset="https://external.example.com/image.jpg 1x" href="/local-fallback.jpg" />',
 			),
-			'same-origin script'                      => array(
-				'<script src="http://example.org/wp-includes/js/wp-embed.min.js"></script>',
-			),
 			'relative URL script'                     => array(
 				'<script src="/wp-includes/js/wp-embed.min.js"></script>',
 			),
 		);
+	}
+
+	/**
+	 * Same-origin URLs should not get crossorigin="anonymous".
+	 *
+	 * Uses site_url() at runtime since the test domain varies by CI config.
+	 *
+	 * @ticket 64766
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_output_buffer_does_not_add_crossorigin_to_same_origin() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		ob_start();
+
+		wp_start_cross_origin_isolation_output_buffer();
+		echo '<script src="' . site_url( '/wp-includes/js/wp-embed.min.js' ) . '"></script>';
+
+		ob_end_flush();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output );
 	}
 
 	/**
