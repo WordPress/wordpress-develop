@@ -313,6 +313,8 @@ jobs:
               </details>`;
               }
 
+              const sha = context.payload.workflow_run.head_sha;
+              commentInfo.body += `\n\n_Comment updated using [${ sha.slice( 0, 7 ) }](https://github.com/${ context.repo.owner }/${ context.repo.repo }/commit/${ sha })._ ([commenting workflow run](https://github.com/${ context.repo.owner }/${ context.repo.repo }/actions/runs/${ context.runId })).`;
               commentInfo.body += `\n\n[Download the complete .diff file from the workflow run](https://github.com/${ context.repo.owner }/${ context.repo.repo }/actions/runs/${ context.payload.workflow_run.id }).`;
             }
 
