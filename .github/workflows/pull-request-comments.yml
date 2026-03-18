@@ -231,6 +231,9 @@ jobs:
 
       - name: Leave a comment with any differences noticed
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          RUN_ID:
+            ${{ github.event.workflow_run.id }}
         with:
           script: |
             const fs = require( 'fs' );
@@ -263,19 +266,19 @@ jobs:
             const comments = ( await github.rest.issues.listComments( commentInfo ) ).data;
 
             for ( const currentComment of comments ) {
-              if ( currentComment.user.type === 'Bot' && currentComment.body.includes( 'Build Script Results Comparison' ) ) {
+              if ( currentComment.user.type === 'Bot' && currentComment.body.includes( 'Build Server Comparison' ) ) {
                 commentInfo.comment_id = currentComment.id;
                 break;
               }
             };
 
-            commentInfo.body = '## Build Server Comparison';
+            commentInfo.body = "## Build Server Comparison\n\n";
 
             // Post or update the comment.
             if ( fileChanges.trim() === '' ) {
               commentInfo.body += 'The contents of the `build` directory after running `npm run build` matches the contents of the WordPress/WordPress repository. No differences were found.';
             } else {
-              commentInfo.body += 'The contents of the `build` directory after running `npm run build` has been compared with the contents of the WordPress/WordPress repository.
+              commentInfo.body += `The contents of the \`build\` directory after running \`npm run build\` has been compared with the contents of the WordPress/WordPress repository.
 
             **Review these differences carefully for any unexpected results.**
 
