@@ -108,11 +108,11 @@ final class WP_Connector_Registry {
 	 * @phpstan-return Connector|null
 	 */
 	public function register( string $id, array $args ): ?array {
-		if ( ! preg_match( '/^[a-z0-9-]+$/', $id ) ) {
+		if ( ! preg_match( '/^[a-z0-9_-]+$/', $id ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__(
-					'Connector ID must contain only lowercase alphanumeric characters and hyphens.'
+					'Connector ID must contain only lowercase alphanumeric characters, hyphens, and underscores.'
 				),
 				'7.0.0'
 			);

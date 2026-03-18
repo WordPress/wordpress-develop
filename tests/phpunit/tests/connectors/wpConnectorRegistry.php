@@ -184,12 +184,10 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 64861
 	 */
-	public function test_register_rejects_invalid_id_with_underscores() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
-
+	public function test_register_accepts_id_with_underscores() {
 		$result = $this->registry->register( 'my_provider', self::$default_args );
 
-		$this->assertNull( $result );
+		$this->assertIsArray( $result );
 	}
 
 	/**
