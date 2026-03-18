@@ -37,7 +37,7 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'google', $connectors );
 		$this->assertArrayHasKey( 'openai', $connectors );
 		$this->assertArrayHasKey( 'anthropic', $connectors );
-		$this->assertArrayHasKey( 'mock_connectors_test', $connectors );
+		$this->assertArrayHasKey( 'mock-connectors-test', $connectors );
 		$this->assertCount( 4, $connectors );
 	}
 
@@ -80,7 +80,7 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 
 			$this->assertArrayHasKey( 'setting_name', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'setting_name'." );
 			$this->assertSame(
-				"connectors_ai_{$connector_id}_api_key",
+				'connectors_ai_' . str_replace( '-', '_', $connector_id ) . '_api_key',
 				$connector_data['authentication']['setting_name'] ?? null,
 				"Connector '{$connector_id}' setting_name does not match expected format."
 			);
@@ -105,7 +105,7 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 	 */
 	public function test_includes_registered_provider_from_registry(): void {
 		$connectors = wp_get_connectors();
-		$mock       = $connectors['mock_connectors_test'];
+		$mock       = $connectors['mock-connectors-test'];
 
 		$this->assertSame( 'Mock Connectors Test', $mock['name'] );
 		$this->assertSame( '', $mock['description'] );
