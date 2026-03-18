@@ -82,7 +82,7 @@ final class WP_Connector_Registry {
 	 * @see WP_Connector_Registry::unregister()
 	 *
 	 * @param string $id   The unique connector identifier. Must match the pattern
-	 *                     `/^[a-z0-9-]+$/` (lowercase alphanumeric and hyphens only).
+	 *                     `/^[a-z0-9_-]+$/` (lowercase alphanumeric, hyphens, and underscores only).
 	 * @param array  $args {
 	 *     An associative array of arguments for the connector.
 	 *
