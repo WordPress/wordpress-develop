@@ -12875,6 +12875,7 @@ mockedApiResponse.Schema = {
                                 "type": "object"
                             },
                             "type": "array",
+                            "maxItems": 50,
                             "required": true
                         }
                     }
@@ -12988,6 +12989,7 @@ mockedApiResponse.Schema = {
                                 "type": "object"
                             },
                             "type": "array",
+                            "maxItems": 50,
                             "required": true
                         }
                     }
