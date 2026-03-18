@@ -955,10 +955,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 		margin: 0;
 	}
 
-	#wpadminbar #wp-admin-bar-command-palette .ab-icon {
-		display: block; /* Icon is only shown on mobile, while the keyboard shortcut is hidden */
-	}
-
 	#wpadminbar #wp-admin-bar-comments .ab-icon:before,
 	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
 		display: block;
