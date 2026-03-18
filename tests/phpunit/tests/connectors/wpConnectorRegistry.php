@@ -84,7 +84,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 			'type'           => 'ai_provider',
 			'authentication' => array( 'method' => 'none' ),
 		);
-		$result = $this->registry->register( 'noauth', $args );
+		$result = $this->registry->register( 'no-auth', $args );
 
 		$this->assertIsArray( $result );
 		$this->assertArrayNotHasKey( 'setting_name', $result['authentication'] );
