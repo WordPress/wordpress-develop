@@ -22,6 +22,7 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 	public function tear_down() {
 		unregister_meta_key( 'post', 'nocache_meta' );
 		unregister_meta_key( 'post', 'nocache_meta', 'post' );
+		unregister_meta_key( 'post', 'nocache_meta', 'page' );
 		unregister_meta_key( 'post', 'normal_meta' );
 		parent::tear_down();
 	}
@@ -216,16 +217,20 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A key registered for a specific post type should be refused in meta queries.
+	 * A key registered for a specific post type should be refused in meta queries
+	 * when the WP_Query targets that post type.
 	 *
 	 * @expectedIncorrectUsage WP_Meta_Query::get_sql_for_clause
 	 */
-	public function test_subtype_registration_refuses_meta_query() {
+	public function test_subtype_registration_refuses_meta_query_for_matching_post_type() {
 		register_post_meta(
 			'post',
 			'nocache_meta',
 			array( 'invalidates_query_cache' => false )
 		);
+
+		$query = new WP_Query();
+		$query->query_vars['post_type'] = 'post';
 
 		$meta_query = new WP_Meta_Query(
 			array(
@@ -236,8 +241,88 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 			)
 		);
 
-		$sql = $meta_query->get_sql( 'post', 'wp_posts', 'ID' );
+		$sql = $meta_query->get_sql( 'post', 'wp_posts', 'ID', $query );
 
-		$this->assertStringNotContainsString( 'nocache_meta', $sql['where'], 'Non-cacheable meta key should not appear in WHERE clause.' );
+		$this->assertStringNotContainsString( 'nocache_meta', $sql['where'], 'Non-cacheable meta key should not appear in WHERE clause for matching post type.' );
+	}
+
+	/**
+	 * A key registered as non-cacheable for one post type should be allowed
+	 * in meta queries targeting a different post type.
+	 */
+	public function test_subtype_registration_allows_meta_query_for_different_post_type() {
+		register_post_meta(
+			'page',
+			'nocache_meta',
+			array( 'invalidates_query_cache' => false )
+		);
+
+		$query = new WP_Query();
+		$query->query_vars['post_type'] = 'post';
+
+		$meta_query = new WP_Meta_Query(
+			array(
+				array(
+					'key'   => 'nocache_meta',
+					'value' => 'test',
+				),
+			)
+		);
+
+		$sql = $meta_query->get_sql( 'post', 'wp_posts', 'ID', $query );
+
+		$this->assertStringContainsString( 'nocache_meta', $sql['where'], 'Meta key should be allowed for a post type where it is cacheable.' );
+	}
+
+	/**
+	 * When querying multiple post types, if the key is non-cacheable on any
+	 * of them, the clause should be refused.
+	 *
+	 * @expectedIncorrectUsage WP_Meta_Query::get_sql_for_clause
+	 */
+	public function test_subtype_registration_refuses_meta_query_for_array_with_matching_post_type() {
+		register_post_meta(
+			'page',
+			'nocache_meta',
+			array( 'invalidates_query_cache' => false )
+		);
+
+		$query = new WP_Query();
+		$query->query_vars['post_type'] = array( 'post', 'page' );
+
+		$meta_query = new WP_Meta_Query(
+			array(
+				array(
+					'key'   => 'nocache_meta',
+					'value' => 'test',
+				),
+			)
+		);
+
+		$sql = $meta_query->get_sql( 'post', 'wp_posts', 'ID', $query );
+
+		$this->assertStringNotContainsString( 'nocache_meta', $sql['where'], 'Non-cacheable meta key should be refused when any queried post type has it as non-cacheable.' );
+	}
+
+	/**
+	 * A key registered for a specific post type should not skip cache invalidation
+	 * when written to a different post type.
+	 */
+	public function test_subtype_registration_does_not_skip_cache_for_different_post_type() {
+		register_post_meta(
+			'page',
+			'nocache_meta',
+			array( 'invalidates_query_cache' => false )
+		);
+
+		// self::$post_id is a 'post', not a 'page'.
+		wp_cache_set_last_changed( 'posts' );
+		$before = wp_cache_get_last_changed( 'posts' );
+
+		usleep( 1000 );
+		add_post_meta( self::$post_id, 'nocache_meta', 'value1' );
+
+		$after = wp_cache_get_last_changed( 'posts' );
+		$this->assertNotSame( $before, $after, 'last_changed should still change when writing to a post type where the key is cacheable.' );
 	}
 }

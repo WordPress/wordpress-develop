@@ -104,6 +104,14 @@ class WP_Meta_Query {
 	protected $object_type = '';
 
 	/**
+	 * Object subtypes for the query (e.g. post types).
+	 *
+	 * @since 7.0.0
+	 * @var string[]
+	 */
+	protected $object_subtypes = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.2.0
@@ -374,6 +382,17 @@ class WP_Meta_Query {
 		$this->meta_id_column = sanitize_key( $type . '_id' );
 		$this->object_type    = $type;
 
+		// Extract object subtypes from the parent query context.
+		$this->object_subtypes = array();
+		if ( 'post' === $type && $context instanceof WP_Query && ! empty( $context->query_vars['post_type'] ) ) {
+			$post_type = $context->query_vars['post_type'];
+			if ( is_array( $post_type ) ) {
+				$this->object_subtypes = $post_type;
+			} elseif ( 'any' !== $post_type ) {
+				$this->object_subtypes = array( $post_type );
+			}
+		}
+
 		$this->primary_table     = $primary_table;
 		$this->primary_id_column = $primary_id_column;
 
@@ -546,7 +565,7 @@ class WP_Meta_Query {
 		if ( $this->object_type
 			&& isset( $clause['key'] )
 			&& is_string( $clause['key'] )
-			&& ! wp_meta_key_invalidates_query_cache( $this->object_type, $clause['key'] )
+			&& $this->is_non_cacheable_meta_key( $clause['key'] )
 		) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -836,6 +855,33 @@ class WP_Meta_Query {
 	 */
 	public function get_clauses() {
 		return $this->clauses;
+	}
+
+	/**
+	 * Checks whether a meta key is registered as non-query-cacheable.
+	 *
+	 * When object subtypes are known (e.g. post types from the parent WP_Query),
+	 * checks each subtype individually. If any subtype has the key registered as
+	 * non-cacheable, returns true. Falls back to searching across all subtypes
+	 * when no subtypes are available.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $meta_key Meta key to check.
+	 * @return bool True if the meta key is non-cacheable, false otherwise.
+	 */
+	protected function is_non_cacheable_meta_key( $meta_key ) {
+		if ( ! empty( $this->object_subtypes ) ) {
+			foreach ( $this->object_subtypes as $subtype ) {
+				if ( ! wp_meta_key_invalidates_query_cache( $this->object_type, $meta_key, $subtype ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		// No subtypes available — fall back to checking all subtypes.
+		return ! wp_meta_key_invalidates_query_cache( $this->object_type, $meta_key );
 	}
 
 	/**

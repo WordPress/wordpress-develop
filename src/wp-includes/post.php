@@ -8470,8 +8470,11 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
  * @param string $meta_key  Optional. Meta key. Passed by meta action hooks.
  */
 function wp_cache_set_posts_last_changed( $meta_id = 0, $object_id = 0, $meta_key = '' ) {
-	if ( $meta_key && ! wp_meta_key_invalidates_query_cache( 'post', $meta_key ) ) {
-		return;
+	if ( $meta_key ) {
+		$post_type = $object_id ? get_post_type( $object_id ) : '';
+		if ( ! wp_meta_key_invalidates_query_cache( 'post', $meta_key, $post_type ? $post_type : '' ) ) {
+			return;
+		}
 	}
 	wp_cache_set_last_changed( 'posts' );
 }
