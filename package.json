@@ -65,7 +65,7 @@
 		"grunt-sass": "~4.1.0",
 		"grunt-webpack": "7.0.0",
 		"install-changed": "1.1.0",
-		"postcss": "8.5.6",
+		"postcss": "8.5.8",
 		"prettier": "npm:wp-prettier@3.0.3",
 		"qunit": "~2.24.2",
 		"react-refresh": "0.14.0",
