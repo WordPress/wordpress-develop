@@ -273,19 +273,19 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 */
 	public function data_elements_that_should_not_get_crossorigin() {
 		return array(
-			'cross-origin img'                       => array(
+			'cross-origin img'                        => array(
 				'<img src="https://external.example.com/image.jpg" />',
 			),
-			'cross-origin img with srcset'           => array(
+			'cross-origin img with srcset'            => array(
 				'<img src="https://external.example.com/image.jpg" srcset="https://external.example.com/image-2x.jpg 2x" />',
 			),
 			'link with cross-origin imagesrcset only' => array(
 				'<link rel="preload" as="image" imagesrcset="https://external.example.com/image.jpg 1x" href="/local-fallback.jpg" />',
 			),
-			'same-origin script'                     => array(
+			'same-origin script'                      => array(
 				'<script src="http://example.org/wp-includes/js/wp-embed.min.js"></script>',
 			),
-			'relative URL script'                    => array(
+			'relative URL script'                     => array(
 				'<script src="/wp-includes/js/wp-embed.min.js"></script>',
 			),
 		);
