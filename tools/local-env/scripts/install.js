@@ -9,9 +9,6 @@ const local_env_utils = require( './utils' );
 
 dotenvExpand.expand( dotenv.config() );
 
-// Determine if a non-default database authentication plugin needs to be used.
-local_env_utils.determine_auth_option();
-
 // Create wp-config.php.
 wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"` );
 
@@ -49,6 +46,7 @@ wait_on( {
 		wp_cli( 'db reset --yes --defaults' );
 		const installCommand = process.env.LOCAL_MULTISITE === 'true'  ? 'multisite-install' : 'install';
 		wp_cli( `core ${ installCommand } --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@example.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
+		wp_cli( `rewrite structure '/%year%/%monthnum%/%postname%/'` );
 	} )
 	.catch( err => {
 		console.error( `Error: Unable to reset DB and install WordPress. Message: ${ err.message }` );

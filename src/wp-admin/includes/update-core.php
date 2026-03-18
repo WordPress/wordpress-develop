@@ -840,10 +840,6 @@ $_old_files = array(
 	'wp-includes/js/dist/fields.min.js',
 	'wp-includes/js/dist/fields.js',
 	// 6.9
-	'wp-includes/blocks/post-author/editor.css',
-	'wp-includes/blocks/post-author/editor.min.css',
-	'wp-includes/blocks/post-author/editor-rtl.css',
-	'wp-includes/blocks/post-author/editor-rtl.min.css',
 	'wp-includes/SimplePie/src/Decode',
 	'wp-includes/SimplePie/src/Core.php',
 );
@@ -1238,7 +1234,7 @@ function update_core( $from, $to ) {
 		// Find the local version of the working directory.
 		$working_dir_local = WP_CONTENT_DIR . '/upgrade/' . basename( $from ) . $distro;
 
-		$checksums = get_core_checksums( $wp_version, isset( $wp_local_package ) ? $wp_local_package : 'en_US' );
+		$checksums = get_core_checksums( $wp_version, $wp_local_package ?? 'en_US' );
 
 		if ( is_array( $checksums ) && isset( $checksums[ $wp_version ] ) ) {
 			$checksums = $checksums[ $wp_version ]; // Compat code for 3.7-beta2.

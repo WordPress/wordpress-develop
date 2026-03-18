@@ -493,7 +493,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 
 		<div class="inside">
 		<label for="author-email"><?php _e( 'Email' ); ?></label>
-		<input type="text" name="newcomment_author_email" size="50" value="" id="author-email" />
+		<input type="text" name="newcomment_author_email" size="50" class="code" value="" id="author-email" />
 		</div>
 
 		<div class="inside">
@@ -967,13 +967,18 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
  * Prints out option HTML elements for role selectors.
  *
  * @since 2.1.0
+ * @since 7.0.0 Added $editable_roles parameter.
  *
- * @param string $selected Slug for the role that should be already selected.
+ * @param string $selected       Slug for the role that should be already selected.
+ * @param array  $editable_roles Array of roles to include in the dropdown. Defaults to all
+ *                               roles the current user is allowed to edit.
  */
-function wp_dropdown_roles( $selected = '' ) {
+function wp_dropdown_roles( $selected = '', $editable_roles = null ) {
 	$r = '';
 
-	$editable_roles = array_reverse( get_editable_roles() );
+	if ( null === $editable_roles ) {
+		$editable_roles = array_reverse( get_editable_roles() );
+	}
 
 	foreach ( $editable_roles as $role => $details ) {
 		$name = translate_user_role( $details['name'] );
@@ -2172,6 +2177,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	do_action( 'admin_head' );
 
 	$admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
+	$admin_body_class .= ' admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' );
 
 	if ( is_rtl() ) {
 		$admin_body_class .= ' rtl';
@@ -2296,12 +2302,11 @@ function _post_states( $post, $display = true ) {
  */
 function get_post_states( $post ) {
 	$post_states = array();
-
-	if ( isset( $_REQUEST['post_status'] ) ) {
-		$post_status = $_REQUEST['post_status'];
-	} else {
-		$post_status = '';
+	if ( ! $post instanceof WP_Post ) {
+		return $post_states;
 	}
+
+	$post_status = $_REQUEST['post_status'] ?? '';
 
 	if ( ! empty( $post->post_password ) ) {
 		$post_states['protected'] = _x( 'Password protected', 'post status' );

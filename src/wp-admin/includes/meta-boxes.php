@@ -215,7 +215,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 					<?php endif; ?>
 
 					<input type="radio" name="visibility" id="visibility-radio-password" value="password" <?php checked( $visibility, 'password' ); ?> /> <label for="visibility-radio-password" class="selectit"><?php _e( 'Password protected' ); ?></label><br />
-					<span id="password-span"><label for="post_password"><?php _e( 'Password:' ); ?></label> <input type="text" name="post_password" id="post_password" value="<?php echo esc_attr( $post->post_password ); ?>"  maxlength="255" /><br /></span>
+					<span id="password-span"><label for="post_password"><?php _e( 'Password:' ); ?></label> <input type="text" name="post_password" id="post_password" class="ltr" value="<?php echo esc_attr( $post->post_password ); ?>"  maxlength="255" /><br /></span>
 
 					<input type="radio" name="visibility" id="visibility-radio-private" value="private" <?php checked( $visibility, 'private' ); ?> /> <label for="visibility-radio-private" class="selectit"><?php _e( 'Private' ); ?></label><br />
 
@@ -644,18 +644,18 @@ function post_categories_meta_box( $post, $box ) {
 	$taxonomy    = get_taxonomy( $parsed_args['taxonomy'] );
 	?>
 	<div id="taxonomy-<?php echo $tax_name; ?>" class="categorydiv">
-		<ul id="<?php echo $tax_name; ?>-tabs" class="category-tabs">
-			<li class="tabs"><a href="#<?php echo $tax_name; ?>-all"><?php echo $taxonomy->labels->all_items; ?></a></li>
-			<li class="hide-if-no-js"><a href="#<?php echo $tax_name; ?>-pop"><?php echo esc_html( $taxonomy->labels->most_used ); ?></a></li>
+		<ul id="<?php echo $tax_name; ?>-tabs" class="category-tabs" role="tablist">
+			<li class="tabs"><a href="#<?php echo $tax_name; ?>-all" role="tab" aria-selected="true" aria-controls="<?php echo $tax_name; ?>-all"><?php echo $taxonomy->labels->all_items; ?></a></li>
+			<li class="hide-if-no-js"><a href="#<?php echo $tax_name; ?>-pop" role="tab" aria-controls="<?php echo $tax_name; ?>-pop"><?php echo esc_html( $taxonomy->labels->most_used ); ?></a></li>
 		</ul>
 
-		<div id="<?php echo $tax_name; ?>-pop" class="tabs-panel" style="display: none;">
+		<div id="<?php echo $tax_name; ?>-pop" class="tabs-panel" style="display: none;" role="tabpanel">
 			<ul id="<?php echo $tax_name; ?>checklist-pop" class="categorychecklist form-no-clear" >
 				<?php $popular_ids = wp_popular_terms_checklist( $tax_name ); ?>
 			</ul>
 		</div>
 
-		<div id="<?php echo $tax_name; ?>-all" class="tabs-panel">
+		<div id="<?php echo $tax_name; ?>-all" class="tabs-panel" role="tabpanel">
 			<?php
 			$name = ( 'category' === $tax_name ) ? 'post_category' : 'tax_input[' . $tax_name . ']';
 			// Allows for an empty term set to be sent. 0 is an invalid term ID and will be ignored by empty() checks.
@@ -1176,12 +1176,12 @@ function link_submit_meta_box( $link ) {
 function link_categories_meta_box( $link ) {
 	?>
 <div id="taxonomy-linkcategory" class="categorydiv">
-	<ul id="category-tabs" class="category-tabs">
-		<li class="tabs"><a href="#categories-all"><?php _e( 'All categories' ); ?></a></li>
-		<li class="hide-if-no-js"><a href="#categories-pop"><?php _ex( 'Most Used', 'categories' ); ?></a></li>
+	<ul id="category-tabs" class="category-tabs" role="tablist">
+		<li class="tabs"><a href="#categories-all" role="tab" aria-controls="categories-all" aria-selected="true"><?php _e( 'All categories' ); ?></a></li>
+		<li class="hide-if-no-js"><a href="#categories-pop" role="tab" aria-controls="categories-pop"><?php _ex( 'Most Used', 'categories' ); ?></a></li>
 	</ul>
 
-	<div id="categories-all" class="tabs-panel">
+	<div id="categories-all" class="tabs-panel" role="tabpanel">
 		<ul id="categorychecklist" data-wp-lists="list:category" class="categorychecklist form-no-clear">
 			<?php
 			if ( isset( $link->link_id ) ) {
@@ -1193,7 +1193,7 @@ function link_categories_meta_box( $link ) {
 		</ul>
 	</div>
 
-	<div id="categories-pop" class="tabs-panel" style="display: none;">
+	<div id="categories-pop" class="tabs-panel" style="display: none;" role="tabpanel">
 		<ul id="categorychecklist-pop" class="categorychecklist form-no-clear">
 			<?php wp_popular_terms_checklist( 'link_category' ); ?>
 		</ul>
@@ -1265,7 +1265,7 @@ function xfn_check( $xfn_relationship, $xfn_value = '', $deprecated = '' ) {
 		_deprecated_argument( __FUNCTION__, '2.5.0' ); // Never implemented.
 	}
 
-	$link_rel  = isset( $link->link_rel ) ? $link->link_rel : '';
+	$link_rel  = $link->link_rel ?? '';
 	$link_rels = preg_split( '/\s+/', $link_rel );
 
 	// Mark the specified value as checked if it matches the current link's relationship.
@@ -1454,7 +1454,7 @@ function link_advanced_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"><label for="link_notes"><?php _e( 'Notes' ); ?></label></th>
-		<td><textarea name="link_notes" id="link_notes" rows="10"><?php echo ( isset( $link->link_notes ) ? $link->link_notes : '' ); // textarea_escaped ?></textarea></td>
+		<td><textarea name="link_notes" id="link_notes" rows="10"><?php echo $link->link_notes ?? ''; // textarea_escaped ?></textarea></td>
 	</tr>
 	<tr>
 		<th scope="row"><label for="link_rating"><?php _e( 'Rating' ); ?></label></th>

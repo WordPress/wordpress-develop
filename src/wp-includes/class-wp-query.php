@@ -1189,7 +1189,7 @@ class WP_Query {
 					'field'    => 'slug',
 				);
 
-				if ( ! empty( $t->rewrite['hierarchical'] ) ) {
+				if ( is_string( $query_vars[ $t->query_var ] ) && ! empty( $t->rewrite['hierarchical'] ) ) {
 					$query_vars[ $t->query_var ] = wp_basename( $query_vars[ $t->query_var ] );
 				}
 
@@ -1860,11 +1860,7 @@ class WP_Query {
 	 * @return mixed Contents of the query variable.
 	 */
 	public function get( $query_var, $default_value = '' ) {
-		if ( isset( $this->query_vars[ $query_var ] ) ) {
-			return $this->query_vars[ $query_var ];
-		}
-
-		return $default_value;
+		return $this->query_vars[ $query_var ] ?? $default_value;
 	}
 
 	/**
@@ -2390,7 +2386,7 @@ class WP_Query {
 		// Author/user stuff.
 
 		if ( ! empty( $query_vars['author'] ) && '0' != $query_vars['author'] ) {
-			$query_vars['author'] = addslashes_gpc( '' . urldecode( $query_vars['author'] ) );
+			$query_vars['author'] = wp_slash( '' . urldecode( $query_vars['author'] ) );
 			$authors              = array_unique( array_map( 'intval', preg_split( '/[,\s]+/', $query_vars['author'] ) ) );
 			sort( $authors );
 			foreach ( $authors as $author ) {
@@ -2509,7 +2505,7 @@ class WP_Query {
 			$orderby_array = array();
 			if ( is_array( $query_vars['orderby'] ) ) {
 				foreach ( $query_vars['orderby'] as $_orderby => $order ) {
-					$orderby = addslashes_gpc( urldecode( $_orderby ) );
+					$orderby = wp_slash( urldecode( $_orderby ) );
 					$parsed  = $this->parse_orderby( $orderby );
 
 					if ( ! $parsed ) {
@@ -2522,7 +2518,7 @@ class WP_Query {
 
 			} else {
 				$query_vars['orderby'] = urldecode( $query_vars['orderby'] );
-				$query_vars['orderby'] = addslashes_gpc( $query_vars['orderby'] );
+				$query_vars['orderby'] = wp_slash( $query_vars['orderby'] );
 
 				foreach ( explode( ' ', $query_vars['orderby'] ) as $i => $orderby ) {
 					$parsed = $this->parse_orderby( $orderby );
@@ -3473,21 +3469,21 @@ class WP_Query {
 		}
 
 		if ( ! empty( $this->posts ) && $this->is_comment_feed && $this->is_singular ) {
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( '', &$this ) );
 
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1'", &$this ) );
 
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( '', &$this ) );
 			$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
 
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$corderby = apply_filters_ref_array( 'comment_feed_orderby', array( 'comment_date_gmt DESC', &$this ) );
 			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
 
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
 
 			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
@@ -4066,12 +4062,7 @@ class WP_Query {
 	 */
 	public function get_queried_object_id() {
 		$this->get_queried_object();
-
-		if ( isset( $this->queried_object_id ) ) {
-			return $this->queried_object_id;
-		}
-
-		return 0;
+		return $this->queried_object_id ?? 0;
 	}
 
 	/**
@@ -4825,7 +4816,7 @@ class WP_Query {
 	 * @global int     $numpages
 	 *
 	 * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
-	 * @return true True when finished.
+	 * @return bool True on success, false on failure.
 	 */
 	public function setup_postdata( $post ) {
 		global $id, $authordata, $currentday, $currentmonth, $page, $pages, $multipage, $more, $numpages;
@@ -4835,12 +4826,12 @@ class WP_Query {
 		}
 
 		if ( ! $post ) {
-			return;
+			return false;
 		}
 
 		$elements = $this->generate_postdata( $post );
 		if ( false === $elements ) {
-			return;
+			return false;
 		}
 
 		$id           = $elements['id'];

@@ -454,8 +454,8 @@ function wp_ajax_logged_in() {
  * @since 2.7.0
  * @access private
  *
- * @param int $comment_id
- * @param int $delta
+ * @param int $comment_id Comment ID.
+ * @param int $delta      Optional. Change in the number of total comments. Default -1.
  */
 function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 	$total    = isset( $_POST['_total'] ) ? (int) $_POST['_total'] : 0;
@@ -1241,7 +1241,7 @@ function wp_ajax_get_tagcloud() {
  *
  * @since 3.1.0
  *
- * @global int $post_id
+ * @global int $post_id Post ID.
  *
  * @param string $action Action to perform.
  */
@@ -1808,7 +1808,7 @@ function wp_ajax_closed_postboxes() {
 	$hidden = isset( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : array();
 	$hidden = array_filter( $hidden );
 
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -1839,7 +1839,7 @@ function wp_ajax_closed_postboxes() {
  */
 function wp_ajax_hidden_columns() {
 	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -1988,13 +1988,13 @@ function wp_ajax_menu_locations_save() {
 function wp_ajax_meta_box_order() {
 	check_ajax_referer( 'meta-box-order' );
 	$order        = isset( $_POST['order'] ) ? (array) $_POST['order'] : false;
-	$page_columns = isset( $_POST['page_columns'] ) ? $_POST['page_columns'] : 'auto';
+	$page_columns = $_POST['page_columns'] ?? 'auto';
 
 	if ( 'auto' !== $page_columns ) {
 		$page_columns = (int) $page_columns;
 	}
 
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -2052,8 +2052,8 @@ function wp_ajax_get_permalink() {
 function wp_ajax_sample_permalink() {
 	check_ajax_referer( 'samplepermalink', 'samplepermalinknonce' );
 	$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
-	$title   = isset( $_POST['new_title'] ) ? $_POST['new_title'] : '';
-	$slug    = isset( $_POST['new_slug'] ) ? $_POST['new_slug'] : null;
+	$title   = $_POST['new_title'] ?? '';
+	$slug    = $_POST['new_slug'] ?? null;
 	wp_die( get_sample_permalink_html( $post_id, $title, $slug ) );
 }
 
@@ -2353,9 +2353,9 @@ function wp_ajax_widgets_order() {
  *
  * @since 3.1.0
  *
- * @global array $wp_registered_widgets
- * @global array $wp_registered_widget_controls
- * @global array $wp_registered_widget_updates
+ * @global array $wp_registered_widgets         Registered widgets.
+ * @global array $wp_registered_widget_controls Registered widget controls.
+ * @global array $wp_registered_widget_updates  Registered widget updates.
  */
 function wp_ajax_save_widget() {
 	global $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
@@ -2382,7 +2382,7 @@ function wp_ajax_save_widget() {
 	 */
 	do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-	/** This action is documented in wp-admin/widgets.php */
+	/** This action is documented in wp-admin/widgets-form.php */
 	do_action( 'sidebar_admin_setup' );
 
 	$id_base      = wp_unslash( $_POST['id_base'] );
@@ -2393,7 +2393,7 @@ function wp_ajax_save_widget() {
 	$error        = '<p>' . __( 'An error has occurred. Please reload the page and try again.' ) . '</p>';
 
 	$sidebars = wp_get_sidebars_widgets();
-	$sidebar  = isset( $sidebars[ $sidebar_id ] ) ? $sidebars[ $sidebar_id ] : array();
+	$sidebar  = $sidebars[ $sidebar_id ] ?? array();
 
 	// Delete.
 	if ( isset( $_POST['delete_widget'] ) && $_POST['delete_widget'] ) {
@@ -2410,7 +2410,7 @@ function wp_ajax_save_widget() {
 			'delete_widget'      => '1',
 		);
 
-		/** This action is documented in wp-admin/widgets.php */
+		/** This action is documented in wp-admin/widgets-form.php */
 		do_action( 'delete_widget', $widget_id, $sidebar_id, $id_base );
 
 	} elseif ( $settings && preg_match( '/__i__|%i%/', key( $settings ) ) ) {
@@ -2462,7 +2462,7 @@ function wp_ajax_save_widget() {
  *
  * @since 3.9.0
  *
- * @global WP_Customize_Manager $wp_customize
+ * @global WP_Customize_Manager $wp_customize Customizer manager object.
  */
 function wp_ajax_update_widget() {
 	global $wp_customize;
@@ -2486,7 +2486,7 @@ function wp_ajax_delete_inactive_widgets() {
 	do_action( 'load-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	/** This action is documented in wp-admin/includes/ajax-actions.php */
 	do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-	/** This action is documented in wp-admin/widgets.php */
+	/** This action is documented in wp-admin/widgets-form.php */
 	do_action( 'sidebar_admin_setup' );
 
 	$sidebars_widgets = wp_get_sidebars_widgets();
@@ -3353,12 +3353,12 @@ function wp_ajax_send_attachment_to_editor() {
 	remove_filter( 'media_send_to_editor', 'image_media_send_to_editor' );
 
 	if ( str_starts_with( $post->post_mime_type, 'image' ) ) {
-		$align = isset( $attachment['align'] ) ? $attachment['align'] : 'none';
-		$size  = isset( $attachment['image-size'] ) ? $attachment['image-size'] : 'medium';
-		$alt   = isset( $attachment['image_alt'] ) ? $attachment['image_alt'] : '';
+		$align = $attachment['align'] ?? 'none';
+		$size  = $attachment['image-size'] ?? 'medium';
+		$alt   = $attachment['image_alt'] ?? '';
 
 		// No whitespace-only captions.
-		$caption = isset( $attachment['post_excerpt'] ) ? $attachment['post_excerpt'] : '';
+		$caption = $attachment['post_excerpt'] ?? '';
 		if ( '' === trim( $caption ) ) {
 			$caption = '';
 		}
@@ -3368,7 +3368,7 @@ function wp_ajax_send_attachment_to_editor() {
 	} elseif ( wp_attachment_is( 'video', $post ) || wp_attachment_is( 'audio', $post ) ) {
 		$html = stripslashes_deep( $_POST['html'] );
 	} else {
-		$html = isset( $attachment['post_title'] ) ? $attachment['post_title'] : '';
+		$html = $attachment['post_title'] ?? '';
 		$rel  = $rel ? ' rel="attachment wp-att-' . $id . '"' : ''; // Hard-coded string, $id is already sanitized.
 
 		if ( ! empty( $url ) ) {
@@ -3421,7 +3421,7 @@ function wp_ajax_send_link_to_editor() {
 		$link_text = wp_basename( $src );
 	}
 
-	$post = get_post( isset( $_POST['post_id'] ) ? $_POST['post_id'] : 0 );
+	$post = get_post( $_POST['post_id'] ?? 0 );
 
 	// Ping WordPress for an embed.
 	$check_embed = $wp_embed->run_shortcode( '[embed]' . $src . '[/embed]' );
@@ -3588,7 +3588,7 @@ function wp_ajax_get_revision_diffs() {
  *
  * @since 3.8.0
  *
- * @global array $_wp_admin_css_colors
+ * @global array $_wp_admin_css_colors Registered admin CSS color schemes.
  */
 function wp_ajax_save_user_color_scheme() {
 	global $_wp_admin_css_colors;
@@ -3617,8 +3617,8 @@ function wp_ajax_save_user_color_scheme() {
  *
  * @since 3.9.0
  *
- * @global array $themes_allowedtags
- * @global array $theme_field_defaults
+ * @global array $themes_allowedtags   Allowed HTML tags for theme descriptions.
+ * @global array $theme_field_defaults Default theme fields.
  */
 function wp_ajax_query_themes() {
 	global $themes_allowedtags, $theme_field_defaults;
@@ -3647,7 +3647,7 @@ function wp_ajax_query_themes() {
 		}
 	}
 
-	$old_filter = isset( $args['browse'] ) ? $args['browse'] : 'search';
+	$old_filter = $args['browse'] ?? 'search';
 
 	/** This filter is documented in wp-admin/includes/class-wp-theme-install-list-table.php */
 	$args = apply_filters( 'install_themes_table_api_args_' . $old_filter, $args );
@@ -3750,8 +3750,8 @@ function wp_ajax_query_themes() {
  *
  * @global WP_Post    $post          Global post object.
  * @global WP_Embed   $wp_embed      WordPress Embed object.
- * @global WP_Scripts $wp_scripts
- * @global int        $content_width
+ * @global WP_Scripts $wp_scripts    Script dependencies object.
+ * @global int        $content_width Shared post content width.
  */
 function wp_ajax_parse_embed() {
 	global $post, $wp_embed, $content_width;
@@ -3891,7 +3891,7 @@ function wp_ajax_parse_embed() {
  * @since 4.0.0
  *
  * @global WP_Post    $post       Global post object.
- * @global WP_Scripts $wp_scripts
+ * @global WP_Scripts $wp_scripts Script dependencies object.
  */
 function wp_ajax_parse_media_shortcode() {
 	global $post, $wp_scripts;
