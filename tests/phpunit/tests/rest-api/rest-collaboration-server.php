@@ -2388,6 +2388,171 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/*
+	 * Feature gate tests.
+	 *
+	 * Verifies that wp_is_collaboration_enabled() properly gates
+	 * functionality when the db_version requirement is not met,
+	 * even if the option is enabled.
+	 */
+
+	/**
+	 * Verifies that REST requests return 404 when the option is enabled
+	 * but the database upgrade has not run (db_version too old).
+	 *
+	 * This covers the multisite scenario where a sub-site admin enables
+	 * RTC from the Writing settings page but the network upgrade has
+	 * not been performed.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_request_rejected_when_db_version_is_old(): void {
+		wp_set_current_user( self::$editor_id );
+
+		// Option is on, but db_version is below the threshold.
+		update_option( 'wp_collaboration_enabled', 1 );
+		update_option( 'db_version', 61839 );
+
+		// Reset the REST server so routes are re-registered.
+		$GLOBALS['wp_rest_server'] = null;
+
+		$request = new WP_REST_Request( 'POST', '/wp-collaboration/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					$this->build_room( $this->get_post_room() ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 404, $response->get_status(), 'Collaboration endpoint should not exist when db_version gate is not met.' );
+
+		// Reset so subsequent tests get a server with the correct db_version.
+		$GLOBALS['wp_rest_server'] = null;
+	}
+
+	/**
+	 * Verifies that wp_is_collaboration_enabled() returns false when
+	 * the option is enabled but db_version is below the threshold.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_wp_is_collaboration_enabled_requires_both_conditions(): void {
+		// Both conditions met.
+		update_option( 'wp_collaboration_enabled', 1 );
+		$this->assertTrue( wp_is_collaboration_enabled(), 'Should be enabled when both option and db_version are met.' );
+
+		// Option enabled, db_version too low.
+		update_option( 'db_version', 61839 );
+		$this->assertFalse( wp_is_collaboration_enabled(), 'Should be disabled when db_version is below threshold.' );
+
+		// Option disabled, db_version sufficient.
+		update_option( 'db_version', 61841 );
+		update_option( 'wp_collaboration_enabled', 0 );
+		$this->assertFalse( wp_is_collaboration_enabled(), 'Should be disabled when option is off.' );
+	}
+
+	/*
+	 * Awareness deduplication tests.
+	 *
+	 * Verifies the UPDATE-then-INSERT pattern does not produce
+	 * duplicate awareness rows for the same client in the same room.
+	 */
+
+	/**
+	 * Rapid sequential awareness writes for the same client should
+	 * produce exactly one row, not duplicates.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_no_duplicate_rows(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Simulate rapid sequential awareness writes from the same client.
+		for ( $i = 0; $i < 5; $i++ ) {
+			$this->dispatch_collaboration(
+				array(
+					$this->build_room( $room, '1', 0, array( 'cursor' => "pos-$i" ) ),
+				)
+			);
+		}
+
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s",
+				$room,
+				'1'
+			)
+		);
+
+		$this->assertSame( 1, $count, 'Rapid awareness writes should produce exactly one row per client per room.' );
+	}
+
+	/**
+	 * Multiple clients in the same room should each have exactly one
+	 * awareness row after multiple write cycles.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_one_row_per_client(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Three clients each write awareness three times.
+		for ( $cycle = 0; $cycle < 3; $cycle++ ) {
+			for ( $client = 1; $client <= 3; $client++ ) {
+				$this->dispatch_collaboration(
+					array(
+						$this->build_room( $room, (string) $client, 0, array( 'cursor' => "cycle-$cycle" ) ),
+					)
+				);
+			}
+		}
+
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness'",
+				$room
+			)
+		);
+
+		$this->assertSame( 3, $count, 'Each client should have exactly one awareness row regardless of write frequency.' );
+	}
+
+	/**
+	 * Awareness state should reflect the most recent write, not an older value.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_reflects_latest_state(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Write awareness three times with different state.
+		$this->dispatch_collaboration(
+			array( $this->build_room( $room, '1', 0, array( 'cursor' => 'first' ) ) )
+		);
+		$this->dispatch_collaboration(
+			array( $this->build_room( $room, '1', 0, array( 'cursor' => 'second' ) ) )
+		);
+		$response = $this->dispatch_collaboration(
+			array( $this->build_room( $room, '1', 0, array( 'cursor' => 'third' ) ) )
+		);
+
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+		$this->assertSame( array( 'cursor' => 'third' ), $awareness['1'], 'Awareness should reflect the most recent write.' );
+	}
+
 	/**
 	 * An idle poll (no new updates, awareness already primed) should use
 	 * fewer queries than the initial poll that seeds the room.
@@ -2429,5 +2594,165 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			$queries_idle,
 			'Idle poll should not use more queries than the initial poll.'
 		);
+	}
+
+	/*
+	 * Cursor ID uniqueness tests.
+	 *
+	 * Auto-increment IDs guarantee unique ordering even when
+	 * multiple updates arrive within the same millisecond.
+	 * This was a known bug with the timestamp-based cursors
+	 * used in the post meta implementation.
+	 */
+
+	/**
+	 * Updates stored in rapid succession must receive distinct,
+	 * monotonically increasing cursor IDs.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_cursor_ids_are_unique_and_ordered(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Send 10 updates as fast as possible from the same client.
+		$updates = array();
+		for ( $i = 0; $i < 10; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "rapid-$i" ),
+			);
+		}
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, null, $updates ),
+			)
+		);
+
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' ORDER BY id ASC",
+				$room
+			)
+		);
+
+		$this->assertCount( 10, $ids, 'All 10 updates should be stored.' );
+
+		// Verify all IDs are unique.
+		$this->assertSame( count( $ids ), count( array_unique( $ids ) ), 'Every update should have a unique cursor ID.' );
+
+		// Verify IDs are strictly increasing.
+		for ( $i = 1; $i < count( $ids ); $i++ ) {
+			$this->assertGreaterThan(
+				(int) $ids[ $i - 1 ],
+				(int) $ids[ $i ],
+				'Cursor IDs must be strictly increasing.'
+			);
+		}
+	}
+
+	/*
+	 * Room name tests.
+	 *
+	 * Room identifiers are stored unhashed so they remain
+	 * human-readable and LIKE-queryable.
+	 */
+
+	/**
+	 * Room names stored in the table should be queryable with LIKE.
+	 *
+	 * Matt explicitly noted that unhashed, LIKE-able room names are
+	 * a desirable property of the table design (comment 34).
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_room_names_are_likeable(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$post_id_2 = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+
+		// Write updates to two different post rooms.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'postType/post:' . self::$post_id,
+					'1',
+					0,
+					null,
+					array( array( 'type' => 'update', 'data' => base64_encode( 'a' ) ) )
+				),
+			)
+		);
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'postType/post:' . $post_id_2,
+					'1',
+					0,
+					null,
+					array( array( 'type' => 'update', 'data' => base64_encode( 'b' ) ) )
+				),
+			)
+		);
+
+		// LIKE query for all post rooms.
+		$count = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room LIKE 'postType/post:%' AND type != 'awareness'"
+		);
+
+		$this->assertSame( 2, $count, 'LIKE query should find updates across all post rooms.' );
+
+		wp_delete_post( $post_id_2, true );
+	}
+
+	/*
+	 * Table extensibility tests.
+	 *
+	 * The table is designed as a general-purpose primitive
+	 * that supports arbitrary type values for future use cases.
+	 */
+
+	/**
+	 * The table schema should accept arbitrary type values,
+	 * supporting future use cases like CRDT document persistence.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_table_accepts_arbitrary_types(): void {
+		global $wpdb;
+
+		$room = $this->get_post_room();
+
+		// Insert a row with a custom type directly (simulating a future use case).
+		$result = $wpdb->insert(
+			$wpdb->collaboration,
+			array(
+				'room'      => $room,
+				'type'      => 'persisted_crdt_doc',
+				'client_id' => '0',
+				'user_id'   => self::$editor_id,
+				'data'      => wp_json_encode( array( 'doc' => 'base64data' ) ),
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
+			),
+			array( '%s', '%s', '%s', '%d', '%s', '%s' )
+		);
+
+		$this->assertNotFalse( $result, 'Insert with custom type should succeed.' );
+
+		// Verify the row persists and is queryable.
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT type, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'persisted_crdt_doc'",
+				$room
+			)
+		);
+
+		$this->assertNotNull( $row, 'Custom type row should be queryable.' );
+		$this->assertSame( 'persisted_crdt_doc', $row->type, 'Type column should store the custom value.' );
 	}
 }
