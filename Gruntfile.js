@@ -2063,6 +2063,8 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'build', function() {
+		var done = this.async();
+		
 		grunt.util.spawn( {
 			grunt: true,
 			args: [ 'clean', '--dev' ],
