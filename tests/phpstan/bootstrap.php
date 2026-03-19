@@ -20,7 +20,11 @@ define( 'WP_MAX_MEMORY_LIMIT', '' );
 define( 'WP_DEVELOPMENT_MODE', '' );
 define( 'WP_DEBUG', false );
 define( 'WP_DEBUG_DISPLAY', false );
-define( 'WP_DEBUG_LOG', false );
+if ( isset( $_ ) ) {
+	define( 'WP_DEBUG_LOG', false );
+} else {
+	define( 'WP_DEBUG_LOG', '' );
+}
 define( 'WP_CACHE', false );
 define( 'SCRIPT_DEBUG', false );
 define( 'MEDIA_TRASH', false );
