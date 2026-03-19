@@ -185,8 +185,8 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		'style'      => static function ( $new_attribute, $extra_attribute ) {
 			$styles = array_filter(
 				array(
-					rtrim( trim( $extra_attribute ), ';' ),
 					rtrim( trim( $new_attribute ), ';' ),
+					rtrim( trim( $extra_attribute ), ';' ),
 				)
 			);
 			return safecss_filter_attr( implode( ';', array_filter( $styles ) ) );

@@ -216,7 +216,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'innerHTML'    => array(),
 		);
 
-		$expected_styles  = 'margin-top: 2px;color:#000;background-color:#fff';
+		$expected_styles  = 'color:#000;background-color:#fff;margin-top: 2px';
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-background';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
@@ -279,7 +279,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-background';
-		$expected_styles  = 'margin-top: 2px;background:some-gradient-style';
+		$expected_styles  = 'background:some-gradient-style;margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -375,7 +375,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'margin-top: 2px;font-size:10px';
+		$expected_styles  = 'font-size:10px;margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -432,7 +432,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'margin-top: 2px;line-height:10';
+		$expected_styles  = 'line-height:10;margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -559,7 +559,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-background alignwide';
-		$expected_styles  = 'margin-top: 2px;color:#000;background-color:#fff;font-size:10px;line-height:20';
+		$expected_styles  = 'color:#000;background-color:#fff;font-size:10px;line-height:20;margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -602,7 +602,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'margin-top: 2px;font-size:10px';
+		$expected_styles  = 'font-size:10px;margin-top: 2px';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -817,7 +817,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 						// Redundant trailing semicolons should be stripped
 						'style' => 'margin-top: 2px;;;',
 					),
-					'expected_attribute'  => 'style="margin-top: 2px;color:#000"',
+					'expected_attribute'  => 'style="color:#000;margin-top: 2px"',
 				),
 			),
 			'extra class attributes are merged with block values' => array(
