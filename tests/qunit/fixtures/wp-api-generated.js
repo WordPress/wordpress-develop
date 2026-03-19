@@ -3676,68 +3676,6 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/media/(?P<id>[\\d]+)/sideload": {
-            "namespace": "wp/v2",
-            "methods": [
-                "POST"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "POST"
-                    ],
-                    "args": {
-                        "id": {
-                            "description": "Unique identifier for the attachment.",
-                            "type": "integer",
-                            "required": false
-                        },
-                        "image_size": {
-                            "description": "Image size.",
-                            "type": "string",
-                            "enum": [
-                                "thumbnail",
-                                "medium",
-                                "medium_large",
-                                "large",
-                                "1536x1536",
-                                "2048x2048",
-                                "original",
-                                "full",
-                                "scaled"
-                            ],
-                            "required": true
-                        },
-                        "convert_format": {
-                            "type": "boolean",
-                            "default": true,
-                            "description": "Whether to convert image formats.",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
-        "/wp/v2/media/(?P<id>[\\d]+)/finalize": {
-            "namespace": "wp/v2",
-            "methods": [
-                "POST"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "POST"
-                    ],
-                    "args": {
-                        "id": {
-                            "description": "Unique identifier for the attachment.",
-                            "type": "integer",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
         "/wp/v2/menu-items": {
             "namespace": "wp/v2",
             "methods": [
