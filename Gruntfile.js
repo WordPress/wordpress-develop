@@ -41,20 +41,30 @@ module.exports = function(grunt) {
 			'wp-admin/css/colors/**/*.css',
 		],
 
-		// All built js files, in /src or /build.
+		// Built js files, in /src or /build.
 		jsFiles = [
 			'wp-admin/js/',
 			'wp-includes/js/',
-			'wp-includes/blocks/**/*.js',
-			'wp-includes/blocks/**/*.js.map',
+		],
+
+		// All files copied from the Gutenberg repository.
+		gutenbergFiles = [
+			'wp-includes/assets',
+			'wp-includes/build',
+			'wp-includes/js/dist',
+			'wp-includes/css/dist',
+			'wp-includes/blocks/**/*',
+			'!wp-includes/blocks/index.php',
+			'wp-includes/icons',
 		],
 
 		// All files built by Webpack, in /src or /build.
+		// Webpack only builds Core-specific media files and development scripts.
+		// Blocks, packages, script modules, and vendors come from the Gutenberg build.
 		webpackFiles = [
-			'wp-includes/assets/*',
-			'wp-includes/css/dist',
-			'!wp-includes/assets/script-loader-packages.min.php',
-			'!wp-includes/assets/script-modules-packages.min.php',
+			'wp-includes/js/media-*.js',
+			'wp-includes/js/media-*.min.js',
+			'wp-includes/js/dist/development',
 		],
 
 		// All workflow files that should be deleted from non-default branches.
@@ -229,13 +239,16 @@ module.exports = function(grunt) {
 			js: jsFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
+
+			// Clean files built by Webpack.
 			'webpack-assets': webpackFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
-			'interactivity-assets': [
-				WORKING_DIR + 'wp-includes/js/dist/interactivity.asset.php',
-				WORKING_DIR + 'wp-includes/js/dist/interactivity.min.asset.php',
-			],
+
+			// Clean files built by the tools/gutenberg scripts.
+			gutenberg: gutenbergFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
+			}),
 			dynamic: {
 				dot: true,
 				expand: true,
@@ -1812,7 +1825,6 @@ module.exports = function(grunt) {
 		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
-		'clean:interactivity-assets',
 	] );
 
 	grunt.registerTask( 'build:js', [
