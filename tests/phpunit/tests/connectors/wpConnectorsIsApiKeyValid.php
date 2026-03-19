@@ -49,7 +49,7 @@ class Tests_Connectors_WpConnectorsIsApiKeyValid extends WP_UnitTestCase {
 	public function test_configured_provider_returns_true() {
 		self::set_mock_provider_configured( true );
 
-		$result = _wp_connectors_is_ai_api_key_valid( 'test-key', 'mock_connectors_test' );
+		$result = _wp_connectors_is_ai_api_key_valid( 'test-key', 'mock-connectors-test' );
 
 		$this->assertTrue( $result );
 	}
@@ -62,7 +62,7 @@ class Tests_Connectors_WpConnectorsIsApiKeyValid extends WP_UnitTestCase {
 	public function test_unconfigured_provider_returns_false() {
 		self::set_mock_provider_configured( false );
 
-		$result = _wp_connectors_is_ai_api_key_valid( 'test-key', 'mock_connectors_test' );
+		$result = _wp_connectors_is_ai_api_key_valid( 'test-key', 'mock-connectors-test' );
 
 		$this->assertFalse( $result );
 	}
