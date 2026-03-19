@@ -1564,36 +1564,6 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'sync-gutenberg-packages', function() {
-		if ( grunt.option( 'update-browserlist' ) ) {
-			/*
-			 * Updating the browserlist database is opt-in and up to the release lead.
-			 *
-			 * Browserlist database should be updated:
-			 * - In each release cycle up until RC1
-			 * - If Webpack throws a warning about an outdated database
-			 *
-			 * It should not be updated:
-			 * - After the RC1
-			 * - When backporting fixes to older WordPress releases.
-			 *
-			 * For more context, see:
-			 * https://github.com/WordPress/wordpress-develop/pull/2621#discussion_r859840515
-			 * https://core.trac.wordpress.org/ticket/55559
-			 */
-			grunt.task.run( 'browserslist:update' );
-		}
-
-		// Install the latest version of the packages already listed in package.json.
-		grunt.task.run( 'wp-packages:update' );
-
-		/*
-		 * Install any new @wordpress packages that are now required.
-		 * Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
-		 */
-		grunt.task.run( 'wp-packages:refresh-deps' );
-	} );
-
 	// Gutenberg integration tasks.
 	grunt.registerTask( 'gutenberg:verify', 'Verifies the installed Gutenberg version matches the expected SHA.', function() {
 		const done = this.async();
@@ -2225,21 +2195,6 @@ module.exports = function(grunt) {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
-	} );
-
-	grunt.registerTask( 'wp-packages:refresh-deps', 'Update version of dependencies in package.json to match the ones listed in the latest WordPress packages', function() {
-		const distTag = grunt.option('dist-tag') || 'latest';
-		grunt.log.writeln( `Updating versions of dependencies listed in package.json (--dist-tag=${distTag})` );
-		spawn( 'node', [ 'tools/release/sync-gutenberg-packages.js', `--dist-tag=${distTag}` ], {
-			cwd: __dirname,
-			stdio: 'inherit',
-		} );
-	} );
-
-	grunt.registerTask( 'wp-packages:sync-stable-blocks', 'Refresh the PHP files referring to stable @wordpress/block-library blocks.', function() {
-		grunt.log.writeln( `Syncing stable blocks from @wordpress/block-library to src/` );
-		const { main } = require( './tools/release/sync-stable-blocks' );
-		main();
 	} );
 
 	// Patch task.

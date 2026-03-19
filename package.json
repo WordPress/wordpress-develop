@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "8c78d87453509661a9f28f978ba2c242d515563b",
+		"sha": "487a096a9782ba6110a7686d7b4b2d0c55ed1b06",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -65,6 +65,7 @@
 		"grunt-sass": "~4.1.0",
 		"grunt-webpack": "7.0.1",
 		"install-changed": "1.1.0",
+		"json2php": "0.0.12",
 		"postcss": "8.5.8",
 		"prettier": "npm:wp-prettier@3.0.3",
 		"qunit": "~2.25.0",
@@ -96,7 +97,6 @@
 		"jquery-color": "3.0.0",
 		"jquery-form": "4.3.0",
 		"jquery-hoverintent": "1.10.2",
-		"json2php": "0.0.12",
 		"jsonlint": "1.6.3",
 		"lodash": "4.17.23",
 		"masonry-layout": "4.2.2",
@@ -107,7 +107,7 @@
 		"react-dom": "18.3.1",
 		"react-is": "18.3.1",
 		"regenerator-runtime": "0.14.1",
-		"underscore": "1.13.7",
+		"underscore": "1.13.8",
 		"whatwg-fetch": "3.6.20",
 		"wicg-inert": "3.1.3"
 	},
@@ -142,8 +142,6 @@
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
 		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg --dev",
-		"vendor:copy": "node tools/vendors/copy-vendors.js",
-		"sync-gutenberg-packages": "grunt sync-gutenberg-packages",
-		"postsync-gutenberg-packages": "grunt wp-packages:sync-stable-blocks && grunt build --dev && grunt build"
+		"vendor:copy": "node tools/vendors/copy-vendors.js"
 	}
 }

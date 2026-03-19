@@ -20,8 +20,7 @@ mockedApiResponse.Schema = {
         "wp/v2",
         "wp-site-health/v1",
         "wp-block-editor/v1",
-        "wp-abilities/v1",
-        "wp-sync/v1"
+        "wp-abilities/v1"
     ],
     "authentication": {
         "application-passwords": {
@@ -11160,7 +11159,7 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
-                        "wp_enable_real_time_collaboration": {
+                        "wp_collaboration_enabled": {
                             "title": "",
                             "description": "Enable Real-Time Collaboration",
                             "type": "boolean",
@@ -12773,114 +12772,6 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
-        },
-        "/wp-sync/v1": {
-            "namespace": "wp-sync/v1",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "namespace": {
-                            "default": "wp-sync/v1",
-                            "required": false
-                        },
-                        "context": {
-                            "default": "view",
-                            "required": false
-                        }
-                    }
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp-sync/v1"
-                    }
-                ]
-            }
-        },
-        "/wp-sync/v1/updates": {
-            "namespace": "wp-sync/v1",
-            "methods": [
-                "POST"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "POST"
-                    ],
-                    "args": {
-                        "rooms": {
-                            "items": {
-                                "properties": {
-                                    "after": {
-                                        "minimum": 0,
-                                        "required": true,
-                                        "type": "integer"
-                                    },
-                                    "awareness": {
-                                        "required": true,
-                                        "type": [
-                                            "object",
-                                            "null"
-                                        ]
-                                    },
-                                    "client_id": {
-                                        "minimum": 1,
-                                        "required": true,
-                                        "type": "integer"
-                                    },
-                                    "room": {
-                                        "required": true,
-                                        "type": "string",
-                                        "pattern": "^[^/]+/[^/:]+(?::\\S+)?$"
-                                    },
-                                    "updates": {
-                                        "items": {
-                                            "properties": {
-                                                "data": {
-                                                    "type": "string",
-                                                    "required": true
-                                                },
-                                                "type": {
-                                                    "type": "string",
-                                                    "required": true,
-                                                    "enum": [
-                                                        "compaction",
-                                                        "sync_step1",
-                                                        "sync_step2",
-                                                        "update"
-                                                    ]
-                                                }
-                                            },
-                                            "required": true,
-                                            "type": "object"
-                                        },
-                                        "minItems": 0,
-                                        "required": true,
-                                        "type": "array"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "type": "array",
-                            "required": true
-                        }
-                    }
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp-sync/v1/updates"
-                    }
-                ]
-            }
         }
     },
     "image_sizes": {
@@ -14776,7 +14667,7 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
-    "wp_enable_real_time_collaboration": true,
+    "wp_collaboration_enabled": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,

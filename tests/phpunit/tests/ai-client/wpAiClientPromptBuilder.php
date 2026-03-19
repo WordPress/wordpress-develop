@@ -2405,6 +2405,19 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 *
 	 * @ticket 64591
 	 */
+	public function test_is_supported_returns_false_when_ai_not_supported() {
+		add_filter( 'wp_supports_ai', '__return_false' );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$this->assertFalse( $builder->is_supported() );
+	}
+
+	/**
+	 * Tests that is_supported returns false when prevent prompt filter returns true.
+	 *
+	 * @ticket 64591
+	 */
 	public function test_is_supported_returns_false_when_filter_prevents_prompt() {
 		add_filter( 'wp_ai_client_prevent_prompt', '__return_true' );
 
@@ -2412,7 +2425,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertFalse( $builder->is_supported() );
 	}
-
 	/**
 	 * Tests that generate_result returns WP_Error when prevent prompt filter returns true.
 	 *
