@@ -182,6 +182,90 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/*
+	 * HTTP method and request format tests.
+	 */
+
+	/**
+	 * GET requests to the collaboration endpoint should not succeed.
+	 *
+	 * The route is registered for POST only, so other HTTP methods
+	 * are rejected by the REST infrastructure.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_get_not_allowed(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp-collaboration/v1/updates' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertGreaterThanOrEqual( 400, $response->get_status(), 'GET should not succeed on a POST-only endpoint.' );
+	}
+
+	/**
+	 * PUT requests to the collaboration endpoint should not succeed.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_put_not_allowed(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'PUT', '/wp-collaboration/v1/updates' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertGreaterThanOrEqual( 400, $response->get_status(), 'PUT should not succeed on a POST-only endpoint.' );
+	}
+
+	/**
+	 * DELETE requests to the collaboration endpoint should not succeed.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_delete_not_allowed(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'DELETE', '/wp-collaboration/v1/updates' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertGreaterThanOrEqual( 400, $response->get_status(), 'DELETE should not succeed on a POST-only endpoint.' );
+	}
+
+	/**
+	 * A POST with an invalid JSON body should return a client error,
+	 * not a 500 internal server error.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_malformed_json_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-collaboration/v1/updates' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body( '{"rooms": [invalid json}' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertGreaterThanOrEqual( 400, $response->get_status(), 'Malformed JSON should return a client error.' );
+		$this->assertLessThan( 500, $response->get_status(), 'Malformed JSON should not cause a server error.' );
+	}
+
+	/**
+	 * A POST with a missing rooms parameter should return a 400 error.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_missing_rooms_parameter(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-collaboration/v1/updates' );
+		$request->set_body_params( array() );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'Missing rooms parameter should return 400.' );
+	}
+
+	/*
 	 * Permission tests.
 	 */
 
