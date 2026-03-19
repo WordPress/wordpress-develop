@@ -2604,7 +2604,7 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 		$type = explode( ' ', $type );
 	}
 
-	$button_shorthand = array( 'primary', 'small', 'large' );
+	$button_shorthand = array( 'primary', 'small', 'large', 'compact' );
 	$classes          = array( 'button' );
 
 	foreach ( $type as $t ) {
