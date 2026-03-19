@@ -41,7 +41,7 @@ module.exports = function(grunt) {
 			'wp-admin/css/colors/**/*.css',
 		],
 
-		// All built js files, in /src or /build.
+		// Built js files, in /src or /build.
 		jsFiles = [
 			'wp-admin/js/',
 			'wp-includes/js/',
