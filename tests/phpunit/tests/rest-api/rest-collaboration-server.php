@@ -2708,7 +2708,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( count( $ids ), count( array_unique( $ids ) ), 'Every update should have a unique cursor ID.' );
 
 		// Verify IDs are strictly increasing.
-		for ( $i = 1; $i < count( $ids ); $i++ ) {
+		$id_count = count( $ids );
+		for ( $i = 1; $i < $id_count; $i++ ) {
 			$this->assertGreaterThan(
 				(int) $ids[ $i - 1 ],
 				(int) $ids[ $i ],
@@ -2747,7 +2748,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 					'1',
 					0,
 					null,
-					array( array( 'type' => 'update', 'data' => base64_encode( 'a' ) ) )
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'a' ),
+						),
+					)
 				),
 			)
 		);
@@ -2758,7 +2764,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 					'1',
 					0,
 					null,
-					array( array( 'type' => 'update', 'data' => base64_encode( 'b' ) ) )
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'b' ),
+						),
+					)
 				),
 			)
 		);
