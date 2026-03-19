@@ -17,16 +17,23 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
+
+		// Enable option in setUpBeforeClass to ensure REST routes are registered.
+		update_option( 'wp_collaboration_enabled', 1 );
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
+		delete_option( 'wp_collaboration_enabled' );
 		wp_delete_post( self::$post_id, true );
 	}
 
 	public function set_up() {
 		parent::set_up();
+
+		// Enable option for tests.
+		update_option( 'wp_collaboration_enabled', 1 );
 
 		// Uses DELETE (not TRUNCATE) to preserve transaction rollback support
 		// in the test suite. TRUNCATE implicitly commits the transaction.
@@ -96,15 +103,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 * Verifies the collaboration route is registered when relying on the option's default
-	 * value (option not stored in the database).
-	 *
-	 * This covers the upgrade scenario where a site has never explicitly saved
-	 * the collaboration setting.
+	 * Verifies the collaboration route is not registered when the option is
+	 * not stored in the database (default is off).
 	 *
 	 * @ticket 64814
 	 */
-	public function test_register_routes_with_default_option(): void {
+	public function test_register_routes_without_option(): void {
 		global $wp_rest_server;
 
 		// Ensure the option is not in the database.
@@ -114,7 +118,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$wp_rest_server = null;
 
 		$routes = rest_get_server()->get_routes();
-		$this->assertArrayHasKey( '/wp-collaboration/v1/updates', $routes );
+		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes );
 	}
 
 	/**
