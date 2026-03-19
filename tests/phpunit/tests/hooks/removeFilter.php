@@ -101,7 +101,9 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 	protected function get_priorities( $hook ) {
 		$reflection          = new ReflectionClass( $hook );
 		$reflection_property = $reflection->getProperty( 'priorities' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 
 		return $reflection_property->getValue( $hook );
 	}
