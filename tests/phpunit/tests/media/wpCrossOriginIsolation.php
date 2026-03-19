@@ -89,13 +89,15 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	/**
 	 * @ticket 64766
 	 */
-	public function test_returns_early_when_no_screen() {
-		// No screen is set, so it should return early.
+	public function test_returns_early_when_user_cannot_upload() {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		wp_set_current_user( $user_id );
+
 		$level_before = ob_get_level();
 		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
-		$this->assertSame( $level_before, $level_after );
+		$this->assertSame( $level_before, $level_after, 'Output buffer should not start for users who cannot upload files.' );
 	}
 
 	/**
