@@ -3428,6 +3428,7 @@ function rest_convert_error_to_response( $error ) {
 	$status = array_reduce(
 		$error->get_all_error_data(),
 		static function ( $status, $error_data ) {
+			// Note: $error_data may not be an array (e.g. stdClass), so is_array() check is intentional.
 			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
 		},
 		500
