@@ -1915,11 +1915,11 @@ HTML;
 	 */
 	public function test_vips_script_modules_not_registered_in_core() {
 		wp_default_script_modules();
+		wp_enqueue_script_module( '@wordpress/vips/loader' );
 
-		$modules = wp_script_modules()->get_registered();
+		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
-		$this->assertArrayNotHasKey( '@wordpress/vips/loader', $modules );
-		$this->assertArrayNotHasKey( '@wordpress/vips/worker', $modules );
+		$this->assertStringNotContainsString( 'vips', $actual );
 	}
 
 	/**
