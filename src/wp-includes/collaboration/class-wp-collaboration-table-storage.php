@@ -64,8 +64,9 @@ class WP_Collaboration_Table_Storage {
 				'client_id' => $update['client_id'] ?? '',
 				'data'      => wp_json_encode( $update ),
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
+				'user_id'   => get_current_user_id(),
 			),
-			array( '%s', '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%d' )
 		);
 
 		return false !== $result;
