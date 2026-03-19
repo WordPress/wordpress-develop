@@ -935,6 +935,44 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 }
 
 /**
+ * Adds the command palette trigger button.
+ *
+ * Displays a button in the admin bar that shows the keyboard shortcut
+ * for opening the command palette.
+ *
+ * @since 7.0.0
+ *
+ * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+ */
+function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
+	if ( ! is_admin() || ! wp_script_is( 'wp-core-commands', 'enqueued' ) ) {
+		return;
+	}
+
+	$is_apple_os    = (bool) preg_match( '/Macintosh|Mac OS X|Mac_PowerPC/i', $_SERVER['HTTP_USER_AGENT'] ?? '' );
+	$shortcut_label = $is_apple_os
+		? _x( '⌘K', 'keyboard shortcut to open the command palette' )
+		: _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' );
+	$title          = sprintf(
+		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
+		$shortcut_label,
+		/* translators: Hidden accessibility text. */
+		__( 'Open command palette' ),
+	);
+	$wp_admin_bar->add_node(
+		array(
+			'id'    => 'command-palette',
+			'title' => $title,
+			'href'  => '#',
+			'meta'  => array(
+				'class'   => 'hide-if-no-js',
+				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
+			),
+		)
+	);
+}
+
+/**
  * Adds "Add New" menu.
  *
  * @since 3.1.0
@@ -1398,4 +1436,50 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 	}
 
 	return 'true' === $pref;
+}
+
+/**
+ * Adds CSS from the administration color scheme stylesheet on the front end.
+ *
+ * @since 7.0.0
+ *
+ * @global array $_wp_admin_css_colors Registered administration color schemes.
+ */
+function wp_admin_bar_add_color_scheme_to_front_end() {
+	if ( is_admin() ) {
+		return;
+	}
+
+	global $_wp_admin_css_colors;
+
+	if ( empty( $_wp_admin_css_colors ) ) {
+		register_admin_color_schemes();
+	}
+
+	$color_scheme = get_user_option( 'admin_color' );
+
+	if ( empty( $color_scheme ) || ! isset( $_wp_admin_css_colors[ $color_scheme ] ) ) {
+		$color_scheme = 'modern';
+	}
+
+	$color = $_wp_admin_css_colors[ $color_scheme ] ?? null;
+	$url   = $color->url ?? '';
+
+	if ( $url ) {
+		$response = wp_remote_get( $url );
+		if ( ! is_wp_error( $response ) ) {
+			$css = $response['body'];
+			if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
+				$start_position = strpos( $css, '#wpadminbar' );
+				$end_position   = strpos( $css, '.wp-pointer' );
+				if ( false !== $end_position && $end_position > $start_position ) {
+					$css = substr( $css, $start_position, $end_position - $start_position );
+					if ( SCRIPT_DEBUG ) {
+						$css = str_replace( '/* Pointers */', '', $css );
+					}
+				}
+				wp_add_inline_style( 'admin-bar', $css );
+			}
+		}
+	}
 }

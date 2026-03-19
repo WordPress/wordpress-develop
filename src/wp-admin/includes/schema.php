@@ -565,7 +565,7 @@ function populate_options( array $options = array() ) {
 		'wp_notes_notify'                 => 1,
 
 		// 7.0.0
-		'enable_real_time_collaboration'  => 1,
+		'wp_collaboration_enabled'        => 0,
 	);
 
 	// 3.3.0
@@ -1033,7 +1033,6 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 	}
 
 	// Check for network collision.
-	$network_exists = false;
 	if ( is_multisite() ) {
 		if ( get_network( $network_id ) ) {
 			$errors->add( 'siteid_exists', __( 'The network already exists.' ) );

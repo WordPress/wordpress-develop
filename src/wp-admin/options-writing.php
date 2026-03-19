@@ -115,8 +115,8 @@ unset( $post_formats['standard'] );
 	<?php if ( defined( 'WP_DISABLE_COLLABORATION' ) && WP_DISABLE_COLLABORATION ) : ?>
 		<p class="notice notice-warning inline"><?php _e( '<strong>Note:</strong> Real-time collaboration has been disabled.' ); ?></p>
 	<?php else : ?>
-		<label for="enable_real_time_collaboration">
-			<input name="enable_real_time_collaboration" type="checkbox" id="enable_real_time_collaboration" value="1" <?php checked( '1', get_option( 'enable_real_time_collaboration' ) ); ?> />
+		<label for="wp_collaboration_enabled">
+			<input name="wp_collaboration_enabled" type="checkbox" id="wp_collaboration_enabled" value="1" <?php checked( '1', (bool) get_option( 'wp_collaboration_enabled' ) ); ?> />
 			<?php _e( 'Enable real-time collaboration' ); ?>
 		</label>
 	<?php endif; ?>
