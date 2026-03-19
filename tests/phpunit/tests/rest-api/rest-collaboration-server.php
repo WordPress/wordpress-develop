@@ -108,7 +108,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		global $wp_rest_server;
 
 		// Ensure the option is not in the database.
-		delete_option( 'wp_enable_real_time_collaboration' );
+		delete_option( 'wp_collaboration_enabled' );
 
 		// Reset the REST server so routes are re-registered from scratch.
 		$wp_rest_server = null;
@@ -1699,7 +1699,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertIsInt( wp_next_scheduled( 'wp_delete_old_collaboration_data' ), 'Cron event should be scheduled before cleanup.' );
 
 		// Disable collaboration.
-		update_option( 'wp_enable_real_time_collaboration', false );
+		update_option( 'wp_collaboration_enabled', false );
 
 		wp_delete_old_collaboration_data();
 

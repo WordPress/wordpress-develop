@@ -89,7 +89,7 @@ export default class CollaborationUtils {
 	 */
 	async setCollaboration( enabled ) {
 		await this.requestUtils.updateSiteSettings( {
-			wp_enable_real_time_collaboration: enabled,
+			wp_collaboration_enabled: enabled,
 		} );
 	}
 

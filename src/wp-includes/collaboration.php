@@ -17,7 +17,7 @@
  * @return bool True if collaboration is enabled, false otherwise.
  */
 function wp_is_collaboration_enabled() {
-	return get_option( 'wp_enable_real_time_collaboration' )
+	return get_option( 'wp_collaboration_enabled' )
 		&& get_option( 'db_version' ) >= 61841;
 }
 

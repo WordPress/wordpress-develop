@@ -20,7 +20,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 
 		// Ensure collaboration routes are registered.
-		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_true' );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
