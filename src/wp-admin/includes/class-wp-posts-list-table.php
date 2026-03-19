@@ -1121,7 +1121,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			if ( $lock_holder ) {
 				if ( get_option( 'wp_collaboration_enabled' ) ) {
 					$locked_avatar = '';
-					$locked_text   = esc_html__( 'Currently being edited' );
+					/* translators: Collaboration status message for a singular post in the post list. Can be any type of post. */
+					$locked_text   = esc_html__( _x( 'Currently being edited', 'post list' ) );
 				} else {
 					$lock_holder   = get_userdata( $lock_holder );
 					$locked_avatar = get_avatar( $lock_holder->ID, 18 );
@@ -1495,9 +1496,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_edit_post_link( $post->ID ),
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( $is_rtc_locked ? __( 'Join editing &#8220;%s&#8221;' ) : __( 'Edit &#8220;%s&#8221;' ), $title ) ),
-				$is_rtc_locked ? __( 'Join' ) : __( 'Edit' )
+				/* translators: %s: Post title. Action link aria-label text for a singular post in the post list. Can be any type of post. */
+				esc_attr( sprintf( $is_rtc_locked ? __( 'Join editing &#8220;%s&#8221;', 'post list' ) : __( 'Edit &#8220;%s&#8221;' ), $title ) ),
+				/* translators: Action link text for a singular post in the post list. Can be any type of post. */
+				$is_rtc_locked ? _x( 'Join', 'post list' ) : __( 'Edit' )
 			);
 
 			/**

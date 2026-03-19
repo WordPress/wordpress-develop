@@ -1152,7 +1152,8 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 				if ( $user && current_user_can( 'edit_post', $post_id ) ) {
 					if ( $is_rtc_enabled ) {
 						$send = array(
-							'text'          => __( 'Currently being edited' ),
+							/* translators: Collaboration status message for a singular post in the post list. Can be any type of post. */
+							'text'          => _x( 'Currently being edited', 'post list' ),
 							'collaborative' => true,
 						);
 					} else {
