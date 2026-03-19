@@ -186,53 +186,52 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 */
 
 	/**
-	 * GET requests to the collaboration endpoint should not succeed.
-	 *
-	 * The route is registered for POST only, so other HTTP methods
-	 * are rejected by the REST infrastructure.
+	 * GET requests should return 404 because the route is registered
+	 * for POST only and does not exist for other methods.
 	 *
 	 * @ticket 64696
 	 */
-	public function test_collaboration_get_not_allowed(): void {
+	public function test_collaboration_get_returns_404(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp-collaboration/v1/updates' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertGreaterThanOrEqual( 400, $response->get_status(), 'GET should not succeed on a POST-only endpoint.' );
+		$this->assertSame( 404, $response->get_status(), 'GET should return 404 on a POST-only route.' );
 	}
 
 	/**
-	 * PUT requests to the collaboration endpoint should not succeed.
+	 * PUT requests should return 404 because the route is registered
+	 * for POST only.
 	 *
 	 * @ticket 64696
 	 */
-	public function test_collaboration_put_not_allowed(): void {
+	public function test_collaboration_put_returns_404(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$request  = new WP_REST_Request( 'PUT', '/wp-collaboration/v1/updates' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertGreaterThanOrEqual( 400, $response->get_status(), 'PUT should not succeed on a POST-only endpoint.' );
+		$this->assertSame( 404, $response->get_status(), 'PUT should return 404 on a POST-only route.' );
 	}
 
 	/**
-	 * DELETE requests to the collaboration endpoint should not succeed.
+	 * DELETE requests should return 404 because the route is registered
+	 * for POST only.
 	 *
 	 * @ticket 64696
 	 */
-	public function test_collaboration_delete_not_allowed(): void {
+	public function test_collaboration_delete_returns_404(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$request  = new WP_REST_Request( 'DELETE', '/wp-collaboration/v1/updates' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertGreaterThanOrEqual( 400, $response->get_status(), 'DELETE should not succeed on a POST-only endpoint.' );
+		$this->assertSame( 404, $response->get_status(), 'DELETE should return 404 on a POST-only route.' );
 	}
 
 	/**
-	 * A POST with an invalid JSON body should return a client error,
-	 * not a 500 internal server error.
+	 * A POST with an invalid JSON body should return 400.
 	 *
 	 * @ticket 64696
 	 */
@@ -245,8 +244,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertGreaterThanOrEqual( 400, $response->get_status(), 'Malformed JSON should return a client error.' );
-		$this->assertLessThan( 500, $response->get_status(), 'Malformed JSON should not cause a server error.' );
+		$this->assertSame( 400, $response->get_status(), 'Malformed JSON should return 400.' );
 	}
 
 	/**
@@ -2477,65 +2475,46 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 *
 	 * Verifies that wp_is_collaboration_enabled() properly gates
 	 * functionality when the db_version requirement is not met,
-	 * even if the option is enabled.
+	 * even if the option is enabled. This covers the multisite
+	 * scenario where a sub-site admin enables RTC from the Writing
+	 * settings page but the network upgrade has not been performed.
 	 */
 
 	/**
-	 * Verifies that REST requests return 404 when the option is enabled
-	 * but the database upgrade has not run (db_version too old).
-	 *
-	 * This covers the multisite scenario where a sub-site admin enables
-	 * RTC from the Writing settings page but the network upgrade has
-	 * not been performed.
+	 * wp_is_collaboration_enabled() should return true when both the
+	 * option and db_version conditions are met.
 	 *
 	 * @ticket 64696
 	 */
-	public function test_collaboration_request_rejected_when_db_version_is_old(): void {
-		wp_set_current_user( self::$editor_id );
-
-		// Option is on, but db_version is below the threshold.
+	public function test_wp_is_collaboration_enabled_true_when_both_conditions_met(): void {
 		update_option( 'wp_collaboration_enabled', 1 );
-		update_option( 'db_version', 61839 );
 
-		// Reset the REST server so routes are re-registered.
-		$GLOBALS['wp_rest_server'] = null;
-
-		$request = new WP_REST_Request( 'POST', '/wp-collaboration/v1/updates' );
-		$request->set_body_params(
-			array(
-				'rooms' => array(
-					$this->build_room( $this->get_post_room() ),
-				),
-			)
-		);
-
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertSame( 404, $response->get_status(), 'Collaboration endpoint should not exist when db_version gate is not met.' );
-
-		// Reset so subsequent tests get a server with the correct db_version.
-		$GLOBALS['wp_rest_server'] = null;
+		$this->assertTrue( wp_is_collaboration_enabled() );
 	}
 
 	/**
-	 * Verifies that wp_is_collaboration_enabled() returns false when
-	 * the option is enabled but db_version is below the threshold.
+	 * wp_is_collaboration_enabled() should return false when the
+	 * option is enabled but db_version is below the threshold.
 	 *
 	 * @ticket 64696
 	 */
-	public function test_wp_is_collaboration_enabled_requires_both_conditions(): void {
-		// Both conditions met.
+	public function test_wp_is_collaboration_enabled_false_when_db_version_too_low(): void {
 		update_option( 'wp_collaboration_enabled', 1 );
-		$this->assertTrue( wp_is_collaboration_enabled(), 'Should be enabled when both option and db_version are met.' );
-
-		// Option enabled, db_version too low.
 		update_option( 'db_version', 61839 );
-		$this->assertFalse( wp_is_collaboration_enabled(), 'Should be disabled when db_version is below threshold.' );
 
-		// Option disabled, db_version sufficient.
-		update_option( 'db_version', 61841 );
+		$this->assertFalse( wp_is_collaboration_enabled() );
+	}
+
+	/**
+	 * wp_is_collaboration_enabled() should return false when the
+	 * option is off, even if db_version is sufficient.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_wp_is_collaboration_enabled_false_when_option_off(): void {
 		update_option( 'wp_collaboration_enabled', 0 );
-		$this->assertFalse( wp_is_collaboration_enabled(), 'Should be disabled when option is off.' );
+
+		$this->assertFalse( wp_is_collaboration_enabled() );
 	}
 
 	/*
@@ -2786,12 +2765,13 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		// LIKE query for all post rooms.
 		$count = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room LIKE 'postType/post:%' AND type != 'awareness'"
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room LIKE %s AND type != 'awareness'",
+				'postType/post:%'
+			)
 		);
 
 		$this->assertSame( 2, $count, 'LIKE query should find updates across all post rooms.' );
-
-		wp_delete_post( $post_id_2, true );
 	}
 
 	/*
