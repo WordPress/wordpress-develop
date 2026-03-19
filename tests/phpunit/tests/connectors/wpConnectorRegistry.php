@@ -46,7 +46,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_returns_connector_data() {
-		$result = $this->registry->register( 'test_provider', self::$default_args );
+		$result = $this->registry->register( 'test-provider', self::$default_args );
 
 		$this->assertIsArray( $result );
 		$this->assertSame( 'Test Provider', $result['name'] );
@@ -61,7 +61,16 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_generates_setting_name_for_api_key() {
-		$result = $this->registry->register( 'my_ai', self::$default_args );
+		$result = $this->registry->register( 'myai', self::$default_args );
+
+		$this->assertSame( 'connectors_ai_myai_api_key', $result['authentication']['setting_name'] );
+	}
+
+	/**
+	 * @ticket 64861
+	 */
+	public function test_register_generates_setting_name_normalizes_hyphens() {
+		$result = $this->registry->register( 'my-ai', self::$default_args );
 
 		$this->assertSame( 'connectors_ai_my_ai_api_key', $result['authentication']['setting_name'] );
 	}
@@ -75,7 +84,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 			'type'           => 'ai_provider',
 			'authentication' => array( 'method' => 'none' ),
 		);
-		$result = $this->registry->register( 'no_auth', $args );
+		$result = $this->registry->register( 'no-auth', $args );
 
 		$this->assertIsArray( $result );
 		$this->assertArrayNotHasKey( 'setting_name', $result['authentication'] );
@@ -91,7 +100,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 			'authentication' => array( 'method' => 'none' ),
 		);
 
-		$result = $this->registry->register( 'minimal', $args );
+		$result = $this->registry->register( 'minimal-provider', $args );
 
 		$this->assertSame( '', $result['description'] );
 	}
@@ -103,7 +112,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$args             = self::$default_args;
 		$args['logo_url'] = 'https://example.com/logo.png';
 
-		$result = $this->registry->register( 'with_logo', $args );
+		$result = $this->registry->register( 'with-logo', $args );
 
 		$this->assertArrayHasKey( 'logo_url', $result );
 		$this->assertSame( 'https://example.com/logo.png', $result['logo_url'] );
@@ -113,7 +122,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_omits_logo_url_when_not_provided() {
-		$result = $this->registry->register( 'no_logo', self::$default_args );
+		$result = $this->registry->register( 'no-logo', self::$default_args );
 
 		$this->assertArrayNotHasKey( 'logo_url', $result );
 	}
@@ -125,7 +134,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$args             = self::$default_args;
 		$args['logo_url'] = '';
 
-		$result = $this->registry->register( 'empty_logo', $args );
+		$result = $this->registry->register( 'empty-logo', $args );
 
 		$this->assertArrayNotHasKey( 'logo_url', $result );
 	}
@@ -137,7 +146,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$args           = self::$default_args;
 		$args['plugin'] = array( 'slug' => 'my-plugin' );
 
-		$result = $this->registry->register( 'with_plugin', $args );
+		$result = $this->registry->register( 'with-plugin', $args );
 
 		$this->assertArrayHasKey( 'plugin', $result );
 		$this->assertSame( array( 'slug' => 'my-plugin' ), $result['plugin'] );
@@ -147,7 +156,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_omits_plugin_when_not_provided() {
-		$result = $this->registry->register( 'no_plugin', self::$default_args );
+		$result = $this->registry->register( 'no-plugin', self::$default_args );
 
 		$this->assertArrayNotHasKey( 'plugin', $result );
 	}
@@ -164,14 +173,21 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64791
+	 * @ticket 64861
 	 */
-	public function test_register_rejects_invalid_id_with_dashes() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
-
+	public function test_register_accepts_id_with_hyphens() {
 		$result = $this->registry->register( 'my-provider', self::$default_args );
 
-		$this->assertNull( $result );
+		$this->assertIsArray( $result );
+	}
+
+	/**
+	 * @ticket 64861
+	 */
+	public function test_register_accepts_id_with_underscores() {
+		$result = $this->registry->register( 'my_provider', self::$default_args );
+
+		$this->assertIsArray( $result );
 	}
 
 	/**
@@ -191,8 +207,8 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	public function test_register_rejects_duplicate_id() {
 		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
 
-		$this->registry->register( 'duplicate', self::$default_args );
-		$result = $this->registry->register( 'duplicate', self::$default_args );
+		$this->registry->register( 'test-duplicate', self::$default_args );
+		$result = $this->registry->register( 'test-duplicate', self::$default_args );
 
 		$this->assertNull( $result );
 	}
@@ -206,7 +222,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$args = self::$default_args;
 		unset( $args['name'] );
 
-		$result = $this->registry->register( 'no_name', $args );
+		$result = $this->registry->register( 'no-name', $args );
 
 		$this->assertNull( $result );
 	}
@@ -220,7 +236,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$args         = self::$default_args;
 		$args['name'] = '';
 
-		$result = $this->registry->register( 'empty_name', $args );
+		$result = $this->registry->register( 'empty-name', $args );
 
 		$this->assertNull( $result );
 	}
@@ -234,7 +250,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$args = self::$default_args;
 		unset( $args['type'] );
 
-		$result = $this->registry->register( 'no_type', $args );
+		$result = $this->registry->register( 'no-type', $args );
 
 		$this->assertNull( $result );
 	}
@@ -248,7 +264,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$args = self::$default_args;
 		unset( $args['authentication'] );
 
-		$result = $this->registry->register( 'no_auth', $args );
+		$result = $this->registry->register( 'no-auth', $args );
 
 		$this->assertNull( $result );
 	}
@@ -262,7 +278,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$args                             = self::$default_args;
 		$args['authentication']['method'] = 'oauth';
 
-		$result = $this->registry->register( 'bad_auth', $args );
+		$result = $this->registry->register( 'bad-auth', $args );
 
 		$this->assertNull( $result );
 	}
@@ -287,9 +303,9 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_get_registered_returns_connector_data() {
-		$this->registry->register( 'my_connector', self::$default_args );
+		$this->registry->register( 'my-connector', self::$default_args );
 
-		$result = $this->registry->get_registered( 'my_connector' );
+		$result = $this->registry->get_registered( 'my-connector' );
 
 		$this->assertIsArray( $result );
 		$this->assertSame( 'Test Provider', $result['name'] );
@@ -334,13 +350,13 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_unregister_removes_connector() {
-		$this->registry->register( 'to_remove', self::$default_args );
+		$this->registry->register( 'to-remove', self::$default_args );
 
-		$result = $this->registry->unregister( 'to_remove' );
+		$result = $this->registry->unregister( 'to-remove' );
 
 		$this->assertIsArray( $result );
 		$this->assertSame( 'Test Provider', $result['name'] );
-		$this->assertFalse( $this->registry->is_registered( 'to_remove' ) );
+		$this->assertFalse( $this->registry->is_registered( 'to-remove' ) );
 	}
 
 	/**
