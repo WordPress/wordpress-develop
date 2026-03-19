@@ -1611,9 +1611,21 @@ module.exports = function(grunt) {
 				done( false );
 				return;
 			}
-			grunt.option( 'dev', true );
-			grunt.task.run( 'build:gutenberg' );
-			done();
+			/*
+			 * Build block editor files into the src directory every time assets
+			 * are downloaded. This prevents failures when running from src
+			 * without running `build:dev` after those files were removed from
+			 * version control in https://core.trac.wordpress.org/changeset/61438.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/64393.
+			 */
+			grunt.util.spawn( {
+				grunt: true,
+				args: [ 'build:gutenberg', '--dev' ],
+				opts: { stdio: 'inherit' }
+			}, function( buildError ) {
+				done( ! buildError );
+			} );
 		} );
 	} );
 

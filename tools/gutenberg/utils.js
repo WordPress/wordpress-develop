@@ -43,8 +43,7 @@ function readGutenbergConfig() {
 
 /**
  * Trigger a fresh download of the Gutenberg artifact by spawning download.js,
- * then immediately copy the build to src/ so the files are in place before
- * the build process runs copy:files.
+ * then run `grunt build:gutenberg --dev` to copy the build to src/.
  * Exits the process if either step fails.
  */
 function downloadGutenberg() {
@@ -53,13 +52,9 @@ function downloadGutenberg() {
 		process.exit( downloadResult.status ?? 1 );
 	}
 
-	const copyResult = spawnSync(
-		'node',
-		[ path.join( __dirname, 'copy.js' ), '--build-dir=src' ],
-		{ stdio: 'inherit' }
-	);
-	if ( copyResult.status !== 0 ) {
-		process.exit( copyResult.status ?? 1 );
+	const buildResult = spawnSync( 'grunt', [ 'build:gutenberg', '--dev' ], { stdio: 'inherit', shell: true } );
+	if ( buildResult.status !== 0 ) {
+		process.exit( buildResult.status ?? 1 );
 	}
 }
 
