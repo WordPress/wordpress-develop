@@ -600,7 +600,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	// www.example.com vs. example.com
 	$user_home = parse_url( home_url() );
 
-	if ( ! empty( $user_home['scheme'] ) ) {
+	if ( ! empty( $user_home['scheme'] ) && ! empty( $original['scheme'] ) ) {
 		$redirect['scheme'] = $user_home['scheme'];
 	}
 
