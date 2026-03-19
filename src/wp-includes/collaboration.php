@@ -65,25 +65,10 @@ function wp_delete_old_collaboration_data() {
 	if ( ! wp_is_collaboration_enabled() ) {
 		/*
 		 * Collaboration was enabled in the past but has since been disabled.
-		 * Clean up any remaining stale data and unschedule the cron job
-		 * so this callback does not continue to run.
+		 * Unschedule the cron job prior to clean up so this callback does not
+		 * continue to run.
 		 */
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE date_gmt < %s",
-				gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
-			)
-		);
-
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE type = 'awareness' AND date_gmt < %s",
-				gmdate( 'Y-m-d H:i:s', time() - 60 )
-			)
-		);
-
 		wp_clear_scheduled_hook( 'wp_delete_old_collaboration_data' );
-		return;
 	}
 
 	/* Clean up rows older than 7 days. */
