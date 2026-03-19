@@ -359,9 +359,8 @@ function create_initial_post_types() {
 
 	$template_edit_link = 'site-editor.php?' . build_query(
 		array(
-			'postType' => '%s',
-			'postId'   => '%s',
-			'canvas'   => 'edit',
+			'p'      => '/%s/%s',
+			'canvas' => 'edit',
 		)
 	);
 
@@ -531,9 +530,8 @@ function create_initial_post_types() {
 
 	$navigation_post_edit_link = 'site-editor.php?' . build_query(
 		array(
-			'postId'   => '%s',
-			'postType' => 'wp_navigation',
-			'canvas'   => 'edit',
+			'p'      => '/wp_navigation/%s',
+			'canvas' => 'edit',
 		)
 	);
 
@@ -658,6 +656,41 @@ function create_initial_post_types() {
 			'supports'              => array( 'title' ),
 		)
 	);
+
+	if ( (bool) get_option( 'wp_collaboration_enabled' ) ) {
+		register_post_type(
+			'wp_sync_storage',
+			array(
+				'labels'             => array(
+					'name'          => __( 'Sync Updates' ),
+					'singular_name' => __( 'Sync Update' ),
+				),
+				'public'             => false,
+				'_builtin'           => true, /* internal use only. don't use this when registering your own post type. */
+				'hierarchical'       => false,
+				'capabilities'       => array(
+					'read'                   => 'do_not_allow',
+					'read_private_posts'     => 'do_not_allow',
+					'create_posts'           => 'do_not_allow',
+					'publish_posts'          => 'do_not_allow',
+					'edit_posts'             => 'do_not_allow',
+					'edit_others_posts'      => 'do_not_allow',
+					'edit_published_posts'   => 'do_not_allow',
+					'delete_posts'           => 'do_not_allow',
+					'delete_others_posts'    => 'do_not_allow',
+					'delete_published_posts' => 'do_not_allow',
+				),
+				'map_meta_cap'       => false,
+				'publicly_queryable' => false,
+				'query_var'          => false,
+				'rewrite'            => false,
+				'show_in_menu'       => false,
+				'show_in_rest'       => false,
+				'show_ui'            => false,
+				'supports'           => array( 'custom-fields' ),
+			)
+		);
+	}
 
 	register_post_status(
 		'publish',
@@ -1102,7 +1135,7 @@ function get_extended( $post ) {
  *
  * @global WP_Post $post Global post object.
  *
- * @param int|WP_Post|null $post   Optional. Post ID or post object. `null`, `false`, `0` and other PHP falsey values
+ * @param int|object|null  $post   Optional. Post ID or post object. `null`, `false`, `0` and other PHP falsey values
  *                                 return the current global post inside the loop. A numerically valid post ID that
  *                                 points to a non-existent post returns `null`. Defaults to global $post.
  * @param string           $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
@@ -1126,8 +1159,10 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 			$_post = new WP_Post( $_post );
 		} elseif ( 'raw' === $post->filter ) {
 			$_post = new WP_Post( $post );
-		} else {
+		} elseif ( isset( $post->ID ) ) {
 			$_post = WP_Post::get_instance( $post->ID );
+		} else {
+			$_post = null;
 		}
 	} else {
 		$_post = WP_Post::get_instance( $post );
@@ -1225,7 +1260,7 @@ function get_post_field( $field, $post = null, $context = 'display' ) {
  *
  * @since 2.0.0
  *
- * @param int|WP_Post $post Optional. Post ID or post object. Defaults to global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
  * @return string|false The mime type on success, false on failure.
  */
 function get_post_mime_type( $post = null ) {
@@ -2564,8 +2599,9 @@ function is_post_embeddable( $post = null ) {
  * @see WP_Query
  * @see WP_Query::parse_query()
  *
- * @param array $args {
- *     Optional. Arguments to retrieve posts. See WP_Query::parse_query() for all available arguments.
+ * @param array|string $args {
+ *     Optional. Array or query string of arguments to retrieve posts.
+ *     See WP_Query::parse_query() for all available arguments.
  *
  *     @type int        $numberposts      Total number of posts to retrieve. Is an alias of `$posts_per_page`
  *                                        in WP_Query. Accepts -1 for all. Default 5.
@@ -2795,9 +2831,11 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return mixed An array of values.
- *               False for an invalid `$post_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing post ID is passed.
+ * @return array<string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
+ *                                                 Post meta values will always be strings, even for values which would
+ *                                                 otherwise be retrieved individually as arrays or objects via
+ *                                                 {@see get_post_meta()}. An empty array is returned if the post has
+ *                                                 no post meta.
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
@@ -8613,6 +8651,7 @@ function use_block_editor_for_post_type( $post_type ) {
  * Registers any additional post meta fields.
  *
  * @since 6.3.0 Adds `wp_pattern_sync_status` meta field to the wp_block post type so an unsynced option can be added.
+ * @since 7.0.0 Adds `_crdt_document` meta field to post types so that CRDT documents can be persisted.
  *
  * @link https://github.com/WordPress/gutenberg/pull/51144
  */
@@ -8632,4 +8671,30 @@ function wp_create_initial_post_meta() {
 			),
 		)
 	);
+
+	if ( (bool) get_option( 'wp_collaboration_enabled' ) ) {
+		register_meta(
+			'post',
+			'_crdt_document',
+			array(
+				'auth_callback'     => static function ( bool $_allowed, string $_meta_key, int $object_id, int $user_id ): bool {
+					return user_can( $user_id, 'edit_post', $object_id );
+				},
+				/*
+				 * Revisions must be disabled because we always want to preserve
+				 * the latest persisted CRDT document, even when a revision is restored.
+				 * This ensures that we can continue to apply updates to a shared document
+				 * and peers can simply merge the restored revision like any other incoming
+				 * update.
+				 *
+				 * If we want to persist CRDT documents alongside revisions in the
+				 * future, we should do so in a separate meta key.
+				 */
+				'revisions_enabled' => false,
+				'show_in_rest'      => true,
+				'single'            => true,
+				'type'              => 'string',
+			)
+		);
+	}
 }

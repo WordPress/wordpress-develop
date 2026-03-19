@@ -1520,12 +1520,13 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.2.0
 	 * @since 6.6.0 Enforced 0-1-0 specificity for block custom CSS selectors.
+	 * @since 7.0.0 Made public for use in custom-css block support.
 	 *
 	 * @param string $css      The CSS to process.
 	 * @param string $selector The selector to nest.
 	 * @return string The processed CSS.
 	 */
-	protected function process_blocks_custom_css( $css, $selector ) {
+	public static function process_blocks_custom_css( $css, $selector ) {
 		$processed_css = '';
 
 		if ( empty( $css ) ) {
@@ -2559,10 +2560,6 @@ class WP_Theme_JSON {
 			}
 		}
 
-		if ( is_array( $value ) ) {
-			return $value;
-		}
-
 		return $value;
 	}
 
@@ -3545,7 +3542,7 @@ class WP_Theme_JSON {
 	 * @param array      $theme_json The theme.json like structure to inspect.
 	 * @param array      $path       Path to inspect.
 	 * @param bool|array $override   Data to compute whether to override the preset.
-	 * @return bool
+	 * @return bool|null True if the preset should override the defaults, false if not. Null if the override parameter is invalid.
 	 */
 	protected static function should_override_preset( $theme_json, $path, $override ) {
 		_deprecated_function( __METHOD__, '6.0.0', 'get_metadata_boolean' );
@@ -3580,6 +3577,8 @@ class WP_Theme_JSON {
 
 			return true;
 		}
+
+		return null;
 	}
 
 	/**
