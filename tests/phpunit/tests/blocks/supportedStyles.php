@@ -803,94 +803,94 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	public function data_get_block_wrapper_attributes_merge_or_override(): array {
 		return array(
 			'extra style attributes are merged with block values' => array(
-					'block_type_settings' => array(
-						'supports' => array(
-							'color' => true,
+				'block_type_settings' => array(
+					'supports' => array(
+						'color' => true,
+					),
+				),
+				'block_attrs'         => array(
+					'style' => array(
+						'color' => array(
+							'text' => '#000',
 						),
 					),
-					'block_attrs'         => array(
-						'style' => array(
-							'color' => array(
-								'text' => '#000',
-							),
-						),
-					),
-					'extra_attributes'    => array(
-						// Redundant trailing semicolons should be stripped
-						'style' => 'margin-top: 2px;;;',
-					),
-					'expected_attribute'  => 'style="color:#000;margin-top: 2px"',
+				),
+				'extra_attributes'    => array(
+					// Redundant trailing semicolons should be stripped
+					'style' => 'margin-top: 2px;;;',
+				),
+				'expected_attribute'  => 'style="color:#000;margin-top: 2px"',
 			),
 			'extra class attributes are merged with block values' => array(
-					'block_type_settings' => array(
-						'supports' => array(
-							'color' => true,
+				'block_type_settings' => array(
+					'supports' => array(
+						'color' => true,
+					),
+				),
+				'block_attrs'         => array(
+					'style' => array(
+						'color' => array(
+							'text' => '#000',
 						),
 					),
-					'block_attrs'         => array(
-						'style' => array(
-							'color' => array(
-								'text' => '#000',
-							),
-						),
-					),
-					'extra_attributes'    => array(
-						// Duplicate class names should be merged, and commas should be preserved.
-						'class' => 'extra-class extra,class has-text-color',
-					),
-					'expected_attribute'  => 'class="extra-class extra,class has-text-color wp-block-example"',
+				),
+				'extra_attributes'    => array(
+					// Duplicate class names should be merged, and commas should be preserved.
+					'class' => 'extra-class extra,class has-text-color',
+				),
+				'expected_attribute'  => 'class="extra-class extra,class has-text-color wp-block-example"',
 			),
 			'extra attributes override block-generated id' => array(
-					'block_type_settings' => array(
-						'supports' => array(
-							'anchor' => true,
-						),
+				'block_type_settings' => array(
+					'supports' => array(
+						'anchor' => true,
 					),
-					'block_attrs'         => array(
-						'anchor' => 'block-id',
-					),
-					'extra_attributes'    => array(
-						'id' => 'user-id',
-					),
-					'expected_attribute'  => 'id="user-id"',
+				),
+				'block_attrs'         => array(
+					'anchor' => 'block-id',
+				),
+				'extra_attributes'    => array(
+					'id' => 'user-id',
+				),
+				'expected_attribute'  => 'id="user-id"',
 			),
 			'block-generated id is used when no extra provided' => array(
-					'block_type_settings' => array(
-						'supports' => array(
-							'anchor' => true,
-						),
+				'block_type_settings' => array(
+					'supports' => array(
+						'anchor' => true,
 					),
-					'block_attrs'         => array(
-						'anchor' => 'block-id',
-					),
-					'extra_attributes'    => array(),
-					'expected_attribute'  => 'id="block-id"',
+				),
+				'block_attrs'         => array(
+					'anchor' => 'block-id',
+				),
+				'extra_attributes'    => array(),
+				'expected_attribute'  => 'id="block-id"',
 			),
 			'extra attributes override block-generated aria-label' => array(
-					'block_type_settings' => array(
-						'supports' => array(
-							'ariaLabel' => true,
-						),
+				'block_type_settings' => array(
+					'supports' => array(
+						'ariaLabel' => true,
 					),
-					'block_attrs'         => array(
-						'ariaLabel' => 'Block aria-label',
-					),
-					'extra_attributes'    => array(
-						'aria-label' => 'User aria-label',
-					),
-					'expected_attribute'  => 'aria-label="User aria-label"',
+				),
+				'block_attrs'         => array(
+					'ariaLabel' => 'Block aria-label',
+				),
+				'extra_attributes'    => array(
+					'aria-label' => 'User aria-label',
+				),
+				'expected_attribute'  => 'aria-label="User aria-label"',
 			),
 			'block-generated aria-label is used when no extra provided' => array(
-					'block_type_settings' => array(
-						'supports' => array(
-							'ariaLabel' => true,
-						),
+				'block_type_settings' => array(
+					'supports' => array(
+						'ariaLabel' => true,
 					),
-					'block_attrs'         => array(
-						'ariaLabel' => 'Block aria-label',
-					),
-					'extra_attributes'    => array(),
-					'expected_attribute'  => 'aria-label="Block aria-label"',
+				),
+				'block_attrs'         => array(
+					'ariaLabel' => 'Block aria-label',
+				),
+				'extra_attributes'    => array(),
+				'expected_attribute'  => 'aria-label="Block aria-label"',
 			),
 		);
 	}
