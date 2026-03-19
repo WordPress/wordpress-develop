@@ -1582,5 +1582,4 @@ function wp_print_media_templates() {
 	 * @since 3.5.0
 	 */
 	do_action( 'print_media_templates' );
-
 }
