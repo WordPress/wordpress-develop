@@ -9,12 +9,9 @@
  */
 class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 
-	/**
-	 * @var WP_oEmbed
-	 */
-	protected $oembed;
+	protected WP_oEmbed $oembed;
 
-	public function set_up() {
+	public function set_up(): void {
 		parent::set_up();
 
 		require_once ABSPATH . WPINC . '/class-wp-oembed.php';
@@ -22,12 +19,14 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64858
+	 *
 	 * @dataProvider data_threads_provider_urls
 	 *
 	 * @param string $url      The URL to test.
 	 * @param string $expected The expected oEmbed provider URL.
 	 */
-	public function test_threads_provider_url( $url, $expected ) {
+	public function test_threads_provider_url( string $url, string $expected ): void {
 		$provider = $this->oembed->get_provider( $url, array( 'discover' => false ) );
 		$this->assertSame( $expected, $provider );
 	}
@@ -35,9 +34,9 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	/**
 	 * Data provider for valid Threads URLs.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ 0: string, 1: string }>
 	 */
-	public function data_threads_provider_urls() {
+	public function data_threads_provider_urls(): array {
 		return array(
 			// threads.com post URLs.
 			'threads.com post URL'         => array(
@@ -90,11 +89,13 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64858
+	 *
 	 * @dataProvider data_threads_non_matching_urls
 	 *
 	 * @param string $url The URL to test.
 	 */
-	public function test_threads_provider_does_not_match_non_post_urls( $url ) {
+	public function test_threads_provider_does_not_match_non_post_urls( string $url ): void {
 		$provider = $this->oembed->get_provider( $url, array( 'discover' => false ) );
 		$this->assertFalse( $provider );
 	}
@@ -102,9 +103,9 @@ class Tests_oEmbed_wpOembedThreadsProvider extends WP_UnitTestCase {
 	/**
 	 * Data provider for URLs that should not match the Threads provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ 0: string }>
 	 */
-	public function data_threads_non_matching_urls() {
+	public function data_threads_non_matching_urls(): array {
 		return array(
 			'threads.com profile URL'              => array(
 				'https://www.threads.com/@zuck',
