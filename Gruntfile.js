@@ -51,8 +51,6 @@ module.exports = function(grunt) {
 		gutenbergFiles = [
 			'wp-includes/assets',
 			'wp-includes/build',
-			// This is redundant given the next line, but included for clarity.
-			'wp-includes/script-modules',
 			'wp-includes/js/dist',
 			'wp-includes/css/dist',
 			'wp-includes/blocks/**/*',
