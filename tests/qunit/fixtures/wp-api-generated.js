@@ -3703,7 +3703,8 @@ mockedApiResponse.Schema = {
                                 "1536x1536",
                                 "2048x2048",
                                 "original",
-                                "full"
+                                "full",
+                                "scaled"
                             ],
                             "required": true
                         },
@@ -3711,6 +3712,26 @@ mockedApiResponse.Schema = {
                             "type": "boolean",
                             "default": true,
                             "description": "Whether to convert image formats.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/media/(?P<id>[\\d]+)/finalize": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the attachment.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -11064,24 +11085,6 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
-                        "connectors_ai_google_api_key": {
-                            "title": "Google API Key",
-                            "description": "API key for the Google AI provider.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "connectors_ai_openai_api_key": {
-                            "title": "OpenAI API Key",
-                            "description": "API key for the OpenAI AI provider.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "connectors_ai_anthropic_api_key": {
-                            "title": "Anthropic API Key",
-                            "description": "API key for the Anthropic AI provider.",
-                            "type": "string",
-                            "required": false
-                        },
                         "title": {
                             "title": "Title",
                             "description": "Site title.",
@@ -11156,7 +11159,7 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
-                        "wp_enable_real_time_collaboration": {
+                        "wp_collaboration_enabled": {
                             "title": "",
                             "description": "Enable Real-Time Collaboration",
                             "type": "boolean",
@@ -14652,9 +14655,6 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
-    "connectors_ai_google_api_key": "",
-    "connectors_ai_openai_api_key": "",
-    "connectors_ai_anthropic_api_key": "",
     "title": "Test Blog",
     "description": "",
     "url": "http://example.org",
@@ -14667,7 +14667,7 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
-    "wp_enable_real_time_collaboration": false,
+    "wp_collaboration_enabled": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,
