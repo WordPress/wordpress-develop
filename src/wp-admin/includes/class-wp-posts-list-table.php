@@ -1122,7 +1122,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				if ( get_option( 'wp_collaboration_enabled' ) ) {
 					$locked_avatar = '';
 					/* translators: Collaboration status message for a singular post in the post list. Can be any type of post. */
-					$locked_text   = esc_html__( _x( 'Currently being edited', 'post list' ) );
+					$locked_text   = esc_html_x( 'Currently being edited', 'post list' );
 				} else {
 					$lock_holder   = get_userdata( $lock_holder );
 					$locked_avatar = get_avatar( $lock_holder->ID, 18 );
