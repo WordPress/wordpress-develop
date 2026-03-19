@@ -37,13 +37,13 @@ class WP_Site_Health {
 	/**
 	 * @since 7.0.0
 	 */
-	private ?bool $wp_debug_display = null;
+	private ?bool $wp_debug_display;
 
 	/**
 	 * @since 7.0.0
 	 * @var string|bool
 	 */
-	private $wp_debug_log = false;
+	private $wp_debug_log;
 
 	/**
 	 * WP_Site_Health constructor.
@@ -74,9 +74,13 @@ class WP_Site_Health {
 		$this->wp_debug = defined( 'WP_DEBUG' ) && WP_DEBUG;
 		if ( defined( 'WP_DEBUG_LOG' ) && ( is_bool( WP_DEBUG_LOG ) || is_string( WP_DEBUG_LOG ) ) ) {
 			$this->wp_debug_log = WP_DEBUG_LOG;
+		} else {
+			$this->wp_debug_log = false;
 		}
 		if ( defined( 'WP_DEBUG_DISPLAY' ) && is_bool( WP_DEBUG_DISPLAY ) ) {
 			$this->wp_debug_display = WP_DEBUG_DISPLAY;
+		} else {
+			$this->wp_debug_display = null;
 		}
 	}
 
