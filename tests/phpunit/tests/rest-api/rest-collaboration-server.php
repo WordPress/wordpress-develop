@@ -2297,6 +2297,83 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 	}
 
+	/**
+	 * Verifies that sync update writes do not invalidate the awareness cache.
+	 *
+	 * With post meta storage, add_post_meta() unconditionally calls
+	 * wp_cache_delete() on the object's entire meta cache (meta.php:145),
+	 * which would blow away cached awareness state on the same storage post.
+	 * The dedicated table avoids this because sync writes and awareness
+	 * reads use separate cache keys.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_sync_write_does_not_invalidate_awareness_cache(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		/* Prime the awareness cache by dispatching client 1. */
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, array( 'cursor' => 'pos-a' ) ),
+			)
+		);
+
+		/* Send a sync update from client 2 — this is the write that would
+		 * invalidate the awareness cache under post meta storage. */
+		$update = array(
+			'type' => 'update',
+			'data' => base64_encode( 'sync-payload' ),
+		);
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '2', 0, null, array( $update ) ),
+			)
+		);
+
+		/* Now client 3 polls for awareness only. If the cache survived the
+		 * sync write, this should require fewer queries than a cold start. */
+		wp_cache_delete( 'last_changed', 'posts' );
+
+		$queries_before = $wpdb->num_queries;
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '3', 0, array( 'cursor' => 'pos-c' ) ),
+			)
+		);
+
+		$queries_after = $wpdb->num_queries;
+
+		/* Verify awareness data is intact. */
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+		$this->assertArrayHasKey( '1', $awareness, 'Client 1 awareness should survive a sync write from client 2.' );
+
+		/* Flush cache and measure a cold-start dispatch for comparison. */
+		wp_cache_flush();
+
+		$queries_before_cold = $wpdb->num_queries;
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '4', 0, array( 'cursor' => 'pos-d' ) ),
+			)
+		);
+
+		$queries_cold = $wpdb->num_queries - $queries_before_cold;
+		$queries_warm = $queries_after - $queries_before;
+
+		$this->assertLessThan(
+			$queries_cold,
+			$queries_warm,
+			'Awareness read after a sync write should hit cache, not the database.'
+		);
+	}
+
 	/*
 	 * Deprecated route tests.
 	 */
