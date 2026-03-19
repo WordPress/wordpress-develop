@@ -70,6 +70,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$valid_image_sizes[] = 'original';
 			// Used for PDF thumbnails.
 			$valid_image_sizes[] = 'full';
+			// Client-side big image threshold: sideload the scaled version.
+			$valid_image_sizes[] = 'scaled';
 
 			register_rest_route(
 				$this->namespace,
@@ -94,6 +96,26 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 								'type'        => 'boolean',
 								'default'     => true,
 								'description' => __( 'Whether to convert image formats.' ),
+							),
+						),
+					),
+					'allow_batch' => $this->allow_batch,
+					'schema'      => array( $this, 'get_public_item_schema' ),
+				)
+			);
+
+			register_rest_route(
+				$this->namespace,
+				'/' . $this->rest_base . '/(?P<id>[\d]+)/finalize',
+				array(
+					array(
+						'methods'             => WP_REST_Server::CREATABLE,
+						'callback'            => array( $this, 'finalize_item' ),
+						'permission_callback' => array( $this, 'edit_media_item_permissions_check' ),
+						'args'                => array(
+							'id' => array(
+								'description' => __( 'Unique identifier for the attachment.' ),
+								'type'        => 'integer',
 							),
 						),
 					),
@@ -230,6 +252,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, $files['file']['type'] ?? null );
 
+		// When the client handles image processing (generate_sub_sizes is false),
+		// skip the server-side image editor support check.
+		if ( false === $request['generate_sub_sizes'] ) {
+			$prevent_unsupported_uploads = false;
+		}
+
 		// If the upload is an image, check if the server can handle the mime type.
 		if (
 			$prevent_unsupported_uploads &&
@@ -276,7 +304,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Handle generate_sub_sizes parameter.
-		if ( isset( $request['generate_sub_sizes'] ) && ! $request['generate_sub_sizes'] ) {
+		if ( false === $request['generate_sub_sizes'] ) {
 			add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
 			add_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 			// Disable server-side EXIF rotation so the client can handle it.
@@ -435,6 +463,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$url  = $file['url'];
 		$type = $file['type'];
 		$file = $file['file'];
+		$alt  = '';
 
 		// Include image functions to get access to wp_read_image_metadata().
 		require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -449,6 +478,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			if ( empty( $request['caption'] ) && trim( $image_meta['caption'] ) ) {
 				$request['caption'] = $image_meta['caption'];
+			}
+
+			if ( empty( $request['alt'] ) && trim( $image_meta['alt'] ) ) {
+				$alt = $image_meta['alt'];
 			}
 		}
 
@@ -474,6 +507,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		// $post_parent is inherited from $attachment['post_parent'].
 		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true, false );
+
+		if ( trim( $alt ) ) {
+			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+		}
 
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
@@ -2053,6 +2090,48 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( 'original' === $image_size ) {
 			$metadata['original_image'] = wp_basename( $path );
+		} elseif ( 'scaled' === $image_size ) {
+			// The current attached file is the original; record it as original_image.
+			$current_file = get_attached_file( $attachment_id, true );
+
+			if ( ! $current_file ) {
+				return new WP_Error(
+					'rest_sideload_no_attached_file',
+					__( 'Unable to retrieve the attached file for this attachment.' ),
+					array( 'status' => 404 )
+				);
+			}
+
+			$metadata['original_image'] = wp_basename( $current_file );
+
+			// Validate the scaled image before updating the attached file.
+			$size     = wp_getimagesize( $path );
+			$filesize = wp_filesize( $path );
+
+			if ( ! $size || ! $filesize ) {
+				return new WP_Error(
+					'rest_sideload_invalid_image',
+					__( 'Unable to read the scaled image file.' ),
+					array( 'status' => 500 )
+				);
+			}
+
+			// Update the attached file to point to the scaled version.
+			if (
+				get_attached_file( $attachment_id, true ) !== $path &&
+				! update_attached_file( $attachment_id, $path )
+			) {
+				return new WP_Error(
+					'rest_sideload_update_attached_file_failed',
+					__( 'Unable to update the attached file for this attachment.' ),
+					array( 'status' => 500 )
+				);
+			}
+
+			$metadata['width']    = $size[0];
+			$metadata['height']   = $size[1];
+			$metadata['filesize'] = $filesize;
+			$metadata['file']     = _wp_relative_upload_path( $path );
 		} else {
 			$metadata['sizes'] = $metadata['sizes'] ?? array();
 
@@ -2110,7 +2189,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return string Filtered file name.
 	 */
 	private static function filter_wp_unique_filename( $filename, $dir, $number, $attachment_filename ) {
-		if ( empty( $number ) || ! $attachment_filename ) {
+		if ( ! is_int( $number ) || ! $attachment_filename ) {
 			return $filename;
 		}
 
@@ -2123,13 +2202,57 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$matches = array();
-		if ( preg_match( '/(.*)(-\d+x\d+)-' . $number . '$/', $name, $matches ) ) {
-			$filename_without_suffix = $matches[1] . $matches[2] . ".$ext";
+		if ( preg_match( '/(.*)-(\d+x\d+|scaled)-' . $number . '$/', $name, $matches ) ) {
+			$filename_without_suffix = $matches[1] . '-' . $matches[2] . ".$ext";
 			if ( $matches[1] === $orig_name && ! file_exists( "$dir/$filename_without_suffix" ) ) {
 				return $filename_without_suffix;
 			}
 		}
 
 		return $filename;
+	}
+
+	/**
+	 * Finalizes an attachment after client-side media processing.
+	 *
+	 * Triggers the 'wp_generate_attachment_metadata' filter so that
+	 * server-side plugins can process the attachment after all client-side
+	 * operations (upload, thumbnail generation, sideloads) are complete.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+	 */
+	public function finalize_item( WP_REST_Request $request ) {
+		$attachment_id = $request['id'];
+
+		$post = $this->get_post( $attachment_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		if ( ! is_array( $metadata ) ) {
+			$metadata = array();
+		}
+
+		/** This filter is documented in wp-admin/includes/image.php */
+		$metadata = apply_filters( 'wp_generate_attachment_metadata', $metadata, $attachment_id, 'update' );
+
+		wp_update_attachment_metadata( $attachment_id, $metadata );
+
+		$response_request = new WP_REST_Request(
+			WP_REST_Server::READABLE,
+			rest_get_route_for_post( $attachment_id )
+		);
+
+		$response_request['context'] = 'edit';
+
+		if ( isset( $request['_fields'] ) ) {
+			$response_request['_fields'] = $request['_fields'];
+		}
+
+		return $this->prepare_item_for_response( $post, $response_request );
 	}
 }

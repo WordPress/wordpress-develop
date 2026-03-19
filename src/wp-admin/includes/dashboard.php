@@ -326,7 +326,7 @@ function wp_dashboard_right_now() {
 					),
 					admin_url( 'edit.php' )
 				);
-				printf( '<li class="%1$s-count"><a href="%1$s">%2$s</a></li>', esc_url( $url ), esc_html( $text ) );
+				printf( '<li class="%1$s-count"><a href="%2$s">%3$s</a></li>', $post_type, esc_url( $url ), esc_html( $text ) );
 			} else {
 				printf( '<li class="%1$s-count"><span>%2$s</span></li>', $post_type, $text );
 			}
@@ -2075,19 +2075,21 @@ function wp_welcome_panel() {
 	$is_block_theme          = wp_is_block_theme();
 	?>
 	<div class="welcome-panel-content">
-	<div class="welcome-panel-header">
-		<div class="welcome-panel-header-image">
-			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
+	<div class="welcome-panel-header-wrap">
+		<div class="welcome-panel-header">
+			<div class="welcome-panel-header-image">
+				<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
+			</div>
+			<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
+			<p>
+				<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
+				<?php
+					/* translators: %s: Current WordPress version. */
+					printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
+				?>
+				</a>
+			</p>
 		</div>
-		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
-		<p>
-			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
-			<?php
-				/* translators: %s: Current WordPress version. */
-				printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
-			?>
-			</a>
-		</p>
 	</div>
 	<div class="welcome-panel-column-container">
 		<div class="welcome-panel-column">
