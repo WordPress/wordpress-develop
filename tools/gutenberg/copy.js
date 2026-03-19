@@ -259,6 +259,10 @@ function generateScriptModulesPackages() {
 			const fullPath = path.join( dir, entry.name );
 
 			if ( entry.isDirectory() ) {
+				// Skip plugin-only packages (e.g., vips/wasm) that should not be in Core.
+				if ( entry.name === 'vips' ) {
+					continue;
+				}
 				processDirectory( fullPath, baseDir );
 			} else if ( entry.name.endsWith( '.min.asset.php' ) ) {
 				const relativePath = path.relative( baseDir, fullPath );

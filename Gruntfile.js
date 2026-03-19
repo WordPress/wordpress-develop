@@ -645,6 +645,7 @@ module.exports = function(grunt) {
 					src: [
 						'**/*',
 						'!**/*.map',
+						'!vips/**',
 					],
 					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
 				} ],
