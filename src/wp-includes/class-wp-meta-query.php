@@ -776,6 +776,21 @@ class WP_Meta_Query {
 			}
 		}
 
+		// When querying by meta_value without a specific key, exclude
+		// non-cacheable meta keys so their rows never appear in results.
+		// This is necessary because cache invalidation is skipped for these
+		// keys, so including them would produce stale cached query results.
+		if ( 'post' === $this->object_type
+			&& ! array_key_exists( 'key', $clause )
+			&& array_key_exists( 'value', $clause )
+		) {
+			$excluded_keys = $this->get_non_cacheable_meta_keys();
+			if ( ! empty( $excluded_keys ) ) {
+				$placeholders              = implode( ',', array_fill( 0, count( $excluded_keys ), '%s' ) );
+				$sql_chunks['where'][]     = $wpdb->prepare( "$alias.meta_key NOT IN ($placeholders)", $excluded_keys ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			}
+		}
+
 		// meta_value.
 		if ( array_key_exists( 'value', $clause ) ) {
 			$meta_value = $clause['value'];
@@ -893,6 +908,33 @@ class WP_Meta_Query {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns all post meta keys registered with invalidates_query_cache false.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return string[] Array of non-cacheable meta keys.
+	 */
+	protected function get_non_cacheable_meta_keys() {
+		global $wp_meta_keys;
+
+		$keys = array();
+
+		if ( ! is_array( $wp_meta_keys ) || ! isset( $wp_meta_keys['post'] ) ) {
+			return $keys;
+		}
+
+		foreach ( $wp_meta_keys['post'] as $registered_keys ) {
+			foreach ( $registered_keys as $meta_key => $args ) {
+				if ( isset( $args['invalidates_query_cache'] ) && ! $args['invalidates_query_cache'] ) {
+					$keys[] = $meta_key;
+				}
+			}
+		}
+
+		return array_unique( $keys );
 	}
 
 	/**

@@ -373,4 +373,60 @@ class Tests_Meta_InvalidatesQueryCache extends WP_UnitTestCase {
 		$after = wp_cache_get_last_changed( 'posts' );
 		$this->assertNotSame( $before, $after, 'last_changed should still change when writing to a post type where the key is cacheable.' );
 	}
+
+	/**
+	 * A WP_Query using meta_value without meta_key should not return posts
+	 * matched via a non-cacheable meta key.
+	 */
+	public function test_wp_query_meta_value_excludes_non_cacheable_keys() {
+		register_post_meta(
+			'post',
+			'nocache_meta',
+			array( 'invalidates_query_cache' => false )
+		);
+
+		add_post_meta( self::$post_id, 'nocache_meta', 'nocache_value' );
+
+		$query = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_value' => 'nocache_value',
+			)
+		);
+
+		$this->assertEmpty( $query->posts, 'WP_Query by meta_value should not match non-cacheable meta keys.' );
+	}
+
+	/**
+	 * A WP_Query using meta_value without meta_key should not return stale
+	 * cached results after non-cacheable meta is deleted.
+	 */
+	public function test_wp_query_meta_value_no_stale_cache_after_delete() {
+		register_post_meta(
+			'post',
+			'nocache_meta',
+			array( 'invalidates_query_cache' => false )
+		);
+
+		add_post_meta( self::$post_id, 'nocache_meta', 'nocache_value' );
+
+		// Run the query once to prime the cache.
+		$query1 = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_value' => 'nocache_value',
+			)
+		);
+
+		delete_post_meta( self::$post_id, 'nocache_meta' );
+
+		$query2 = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_value' => 'nocache_value',
+			)
+		);
+
+		$this->assertEmpty( $query2->posts, 'WP_Query should not return stale cached results for non-cacheable meta.' );
+	}
 }
