@@ -595,6 +595,10 @@ if ( $tab ) {
 
 						<div class="theme-description">{{{ data.description }}}</div>
 					</div>
+
+					<a class="theme-url" href="<?php echo esc_url( __( 'https://wordpress.org/themes/' ) ); ?>/{{ data.id }}" target="_blank">
+						<?php _e( 'WordPress.org Theme Page »' ); ?>
+					</a>
 				</div>
 			</div>
 			<div class="wp-full-overlay-footer">
