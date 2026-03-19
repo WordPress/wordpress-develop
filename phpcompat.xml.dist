@@ -79,20 +79,20 @@
 	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.safe_modeDeprecatedRemoved">
 		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 	</rule>
-	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated">
+	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecatedRemoved">
 		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 		<exclude-pattern>/PHPMailer/PHPMailer\.php$</exclude-pattern>
 	</rule>
-	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_runtimeDeprecated">
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_runtimeDeprecatedRemoved">
 		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 	</rule>
-	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_gpcDeprecated">
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_gpcDeprecatedRemoved">
 		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 	</rule>
 	<rule ref="PHPCompatibility.Lists.AssignmentOrder.Affected">
 		<exclude-pattern>/ID3/module.audio-video.quicktime\.php$</exclude-pattern>
 	</rule>
-	<rule ref="PHPCompatibility.Constants.RemovedConstants.intl_idna_variant_2003Deprecated">
+	<rule ref="PHPCompatibility.Constants.RemovedConstants.intl_idna_variant_2003DeprecatedRemoved">
 		<exclude-pattern>/PHPMailer/PHPMailer\.php$</exclude-pattern>
 	</rule>
 	<rule ref="PHPCompatibility.ParameterValues.NewIDNVariantDefault.NotSet">
@@ -115,11 +115,51 @@
 	</rule>
 
 	<!--
-		Excluded while waiting for PHPCompatibility v10.
-		See <https://github.com/PHPCompatibility/PHPCompatibility/issues/1481>.
+		Temporarily excluded while waiting for #53465.
+		The default value of the $flags parameter for htmlspecialchars(), htmlentities(),
+		html_entity_decode(), and htmlspecialchars_decode() changed in PHP 8.1.
 	-->
-	<rule ref="PHPCompatibility.FunctionDeclarations.NewClosure.ThisFoundInStatic">
-		<exclude-pattern>/src/wp-includes/script-loader\.php$</exclude-pattern>
+	<rule ref="PHPCompatibility.ParameterValues.NewHTMLEntitiesFlagsDefault.NotSet">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
+	<!--
+		The #[\SensitiveParameter] attribute is used intentionally.
+		It is silently ignored on PHP < 8.0 and active on 8.0+.
+		See https://core.trac.wordpress.org/ticket/57304.
+	-->
+	<rule ref="PHPCompatibility.Attributes.NewAttributes.PHPNativeAttributeFound">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
+	<!-- Third-party library: SimplePie. -->
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.strftimeDeprecated">
+		<exclude-pattern>/SimplePie/src/Item\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionDeclarations.RemovedCallingDestructAfterConstructorExit.Found">
+		<exclude-pattern>/SimplePie/src/SimplePie\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.curl_closeDeprecated">
+		<exclude-pattern>/SimplePie/src/File\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.xml_parser_freeDeprecated">
+		<exclude-pattern>/SimplePie/src/Parser\.php$</exclude-pattern>
+		<exclude-pattern>/SimplePie/src/SimplePie\.php$</exclude-pattern>
+	</rule>
+
+	<!-- Third-party library: getID3. -->
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated">
+		<exclude-pattern>/ID3/getid3\.lib\.php$</exclude-pattern>
+	</rule>
+
+	<!-- Third-party library: Snoopy (not maintained anymore and deprecated since WP 3.0). -->
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.socket_set_timeoutDeprecated">
+		<exclude-pattern>/class-snoopy\.php$</exclude-pattern>
+	</rule>
+
+	<!-- Third-party library: Nyholm/Psr7. -->
+	<rule ref="PHPCompatibility.ParameterValues.RemovedTriggerErrorLevel.Deprecated">
+		<exclude-pattern>/php-ai-client/third-party/Nyholm/Psr7/StreamTrait\.php$</exclude-pattern>
 	</rule>
 
 </ruleset>

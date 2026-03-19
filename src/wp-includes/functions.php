@@ -3185,7 +3185,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		$real_mime = finfo_file( $finfo, $file );
 
 		if ( PHP_VERSION_ID < 80100 ) { // finfo_close() has no effect as of PHP 8.1.
-			finfo_close( $finfo );
+			finfo_close( $finfo ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.finfo_closeDeprecated -- Called inside a PHP version guard.
 		}
 
 		$google_docs_types = array(
@@ -3417,7 +3417,7 @@ function wp_get_image_mime( $file ) {
 					$mime_type = finfo_file( $fileinfo, $file );
 
 					if ( PHP_VERSION_ID < 80100 ) { // finfo_close() has no effect as of PHP 8.1.
-						finfo_close( $fileinfo );
+						finfo_close( $fileinfo ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.finfo_closeDeprecated -- Called inside a PHP version guard.
 					}
 
 					if ( wp_is_heic_image_mime_type( $mime_type ) ) {
@@ -7691,7 +7691,7 @@ function mbstring_binary_safe_encoding( $reset = false ) {
 
 	if ( is_null( $overloaded ) ) {
 		if ( function_exists( 'mb_internal_encoding' )
-			&& ( (int) ini_get( 'mbstring.func_overload' ) & 2 ) // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated
+			&& ( (int) ini_get( 'mbstring.func_overload' ) & 2 ) // phpcs:ignore PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecatedRemoved
 		) {
 			$overloaded = true;
 		} else {

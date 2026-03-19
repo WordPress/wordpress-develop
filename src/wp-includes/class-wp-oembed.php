@@ -621,7 +621,7 @@ class WP_oEmbed {
 			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
 			 * is disabled by default, so this function is no longer needed to protect against XXE attacks.
 			 */
-			$loader = libxml_disable_entity_loader( true );
+			$loader = libxml_disable_entity_loader( true ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated -- Called inside a PHP version guard.
 		}
 
 		$errors = libxml_use_internal_errors( true );
