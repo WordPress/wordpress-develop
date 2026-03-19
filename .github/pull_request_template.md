@@ -28,7 +28,7 @@ Example disclosure:
 
 AI assistance: Yes
 Tool(s): GitHub Copilot, ChatGPT
-Model(s): GPT-5.1.
+Model(s): GPT-5.1
 Used for: Initial code skeleton and test suggestions; final implementation and tests were reviewed and edited by me.
 -->
 
