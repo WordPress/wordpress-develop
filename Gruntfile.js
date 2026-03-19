@@ -59,7 +59,7 @@ module.exports = function(grunt) {
 		],
 
 		// All files built by Webpack, in /src or /build.
-		// Webpack now only builds Core-specific media files and development scripts.
+		// Webpack only builds Core-specific media files and development scripts.
 		// Blocks, packages, script modules, and vendors come from the Gutenberg build.
 		webpackFiles = [
 			'wp-includes/js/media-*.js',
