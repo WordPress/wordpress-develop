@@ -758,14 +758,12 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_block_wrapper_attributes_merge_or_override
 	 *
-	 * @param array $data {
-	 *     Data from the provider.
-	 *
-	 *     @type array  $block_type_settings Block type settings.
-	 *     @type array  $block_attrs        Block attributes.
-	 *     @type array  $extra_attributes   Extra attributes passed to get_block_wrapper_attributes().
-	 *     @type string $expected_attribute Expected attribute string (e.g. 'id="user-id"').
-	 * }
+	 * @param array{
+	 *     block_type_settings: array<string, mixed>,
+	 *     block_attrs: array<string, mixed>,
+	 *     extra_attributes: array<string, string>,
+	 *     expected_attribute: string
+	 * } $data Data from the provider.
 	 */
 	public function test_get_block_wrapper_attributes_merge_and_override( $data ) {
 		$block_name          = 'core/example';
