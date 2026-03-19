@@ -193,8 +193,8 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		},
 		'class'      => static function ( $new_attribute, $extra_attribute ) {
 			$classes = array_merge(
-				preg_split( '/\s+/', $extra_attribute, -1, PREG_SPLIT_NO_EMPTY ),
-				preg_split( '/\s+/', $new_attribute, -1, PREG_SPLIT_NO_EMPTY )
+				(array) preg_split( '/\s+/', $extra_attribute, -1, PREG_SPLIT_NO_EMPTY ),
+				(array) preg_split( '/\s+/', $new_attribute, -1, PREG_SPLIT_NO_EMPTY )
 			);
 			$classes = array_unique( array_filter( $classes ) );
 			return implode( ' ', $classes );
