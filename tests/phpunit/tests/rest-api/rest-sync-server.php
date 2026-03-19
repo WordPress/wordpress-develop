@@ -17,11 +17,15 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
+
+		// Enable option in setUpBeforeClass to ensure REST routes are registered.
+		update_option( 'wp_collaboration_enabled', 1 );
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
+		delete_option( 'wp_collaboration_enabled' );
 		wp_delete_post( self::$post_id, true );
 	}
 
@@ -29,7 +33,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		parent::set_up();
 
 		// Enable option for tests.
-		add_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_true' );
+		update_option( 'wp_collaboration_enabled', 1 );
 
 		// Reset storage post ID cache to ensure clean state after transaction rollback.
 		$reflection = new ReflectionProperty( 'WP_Sync_Post_Meta_Storage', 'storage_post_ids' );
@@ -108,17 +112,14 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	public function test_register_routes_with_default_option() {
 		global $wp_rest_server;
 
-		// Remove the pre_option filter added in ::set_up() so get_option() uses its default logic.
-		remove_filter( 'pre_option_wp_enable_real_time_collaboration', '__return_true' );
-
 		// Ensure the option is not in the database.
-		delete_option( 'wp_enable_real_time_collaboration' );
+		delete_option( 'wp_collaboration_enabled' );
 
 		// Reset the REST server so routes are re-registered from scratch.
 		$wp_rest_server = null;
 
 		$routes = rest_get_server()->get_routes();
-		$this->assertArrayHasKey( '/wp-sync/v1/updates', $routes );
+		$this->assertArrayNotHasKey( '/wp-sync/v1/updates', $routes );
 	}
 
 	/**

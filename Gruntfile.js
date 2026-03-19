@@ -41,20 +41,30 @@ module.exports = function(grunt) {
 			'wp-admin/css/colors/**/*.css',
 		],
 
-		// All built js files, in /src or /build.
+		// Built js files, in /src or /build.
 		jsFiles = [
 			'wp-admin/js/',
 			'wp-includes/js/',
-			'wp-includes/blocks/**/*.js',
-			'wp-includes/blocks/**/*.js.map',
+		],
+
+		// All files copied from the Gutenberg repository.
+		gutenbergFiles = [
+			'wp-includes/assets',
+			'wp-includes/build',
+			'wp-includes/js/dist',
+			'wp-includes/css/dist',
+			'wp-includes/blocks/**/*',
+			'!wp-includes/blocks/index.php',
+			'wp-includes/icons',
 		],
 
 		// All files built by Webpack, in /src or /build.
+		// Webpack only builds Core-specific media files and development scripts.
+		// Blocks, packages, script modules, and vendors come from the Gutenberg build.
 		webpackFiles = [
-			'wp-includes/assets/*',
-			'wp-includes/css/dist',
-			'!wp-includes/assets/script-loader-packages.min.php',
-			'!wp-includes/assets/script-modules-packages.min.php',
+			'wp-includes/js/media-*.js',
+			'wp-includes/js/media-*.min.js',
+			'wp-includes/js/dist/development',
 		],
 
 		// All workflow files that should be deleted from non-default branches.
@@ -229,13 +239,16 @@ module.exports = function(grunt) {
 			js: jsFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
+
+			// Clean files built by Webpack.
 			'webpack-assets': webpackFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
-			'interactivity-assets': [
-				WORKING_DIR + 'wp-includes/js/dist/interactivity.asset.php',
-				WORKING_DIR + 'wp-includes/js/dist/interactivity.min.asset.php',
-			],
+
+			// Clean files built by the tools/gutenberg scripts.
+			gutenberg: gutenbergFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
+			}),
 			dynamic: {
 				dot: true,
 				expand: true,
@@ -627,7 +640,13 @@ module.exports = function(grunt) {
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/build/modules',
-					src: [ '**/*', '!**/*.map' ],
+					src: [
+						'**/*',
+						'!**/*.map',
+						// Skip non-minified VIPS files — they are ~16MB of inlined WASM
+						// with no debugging value over the minified versions.
+						'!vips/!(*.min).js',
+					],
 					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
 				} ],
 			},
@@ -1589,16 +1608,30 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'gutenberg:download', 'Downloads the built Gutenberg artifact.', function() {
 		const done = this.async();
-		const args = [ 'tools/gutenberg/download.js' ];
-		if ( grunt.option( 'force' ) ) {
-			args.push( '--force' );
-		}
 		grunt.util.spawn( {
 			cmd: 'node',
-			args,
+			args: [ 'tools/gutenberg/download.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
-			done( ! error );
+			if ( error ) {
+				done( false );
+				return;
+			}
+			/*
+			 * Build block editor files into the src directory every time assets
+			 * are downloaded. This prevents failures when running from src
+			 * without running `build:dev` after those files were removed from
+			 * version control in https://core.trac.wordpress.org/changeset/61438.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/64393.
+			 */
+			grunt.util.spawn( {
+				grunt: true,
+				args: [ 'build:gutenberg', '--dev' ],
+				opts: { stdio: 'inherit' }
+			}, function( buildError ) {
+				done( ! buildError );
+			} );
 		} );
 	} );
 
@@ -1810,7 +1843,6 @@ module.exports = function(grunt) {
 		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
-		'clean:interactivity-assets',
 	] );
 
 	grunt.registerTask( 'build:js', [

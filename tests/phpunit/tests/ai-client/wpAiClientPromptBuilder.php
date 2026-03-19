@@ -32,6 +32,11 @@ use WordPress\AiClient\Results\DTO\GenerativeAiResult;
 use WordPress\AiClient\Results\DTO\TokenUsage;
 use WordPress\AiClient\Results\Enums\FinishReasonEnum;
 use WordPress\AiClient\Builders\PromptBuilder;
+use WordPress\AiClient\Common\Exception\InvalidArgumentException as AiClientInvalidArgumentException;
+use WordPress\AiClient\Common\Exception\TokenLimitReachedException;
+use WordPress\AiClient\Providers\Http\Exception\ClientException;
+use WordPress\AiClient\Providers\Http\Exception\NetworkException;
+use WordPress\AiClient\Providers\Http\Exception\ServerException;
 use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 
@@ -902,7 +907,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString(
 			'Model preferences must be model identifiers',
 			$result->get_error_message()
@@ -926,7 +931,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString(
 			'Model preference tuple must contain model identifier and provider ID.',
 			$result->get_error_message()
@@ -945,7 +950,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString(
 			'Model preference identifiers cannot be empty.',
 			$result->get_error_message()
@@ -964,7 +969,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString(
 			'At least one model preference must be provided.',
 			$result->get_error_message()
@@ -1286,7 +1291,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'Cannot generate from an empty prompt', $result->get_error_message() );
 	}
 
@@ -1307,7 +1312,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'The first message must be from a user role', $result->get_error_message() );
 	}
 
@@ -1340,7 +1345,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'The last message must be from a user role', $result->get_error_message() );
 	}
 
@@ -1354,7 +1359,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result  = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'Cannot create a message from an empty string', $result->get_error_message() );
 	}
 
@@ -1368,7 +1373,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result  = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'Cannot create a message from an empty array', $result->get_error_message() );
 	}
 
@@ -1382,7 +1387,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result  = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'Input must be a string, MessagePart, MessagePartArrayShape', $result->get_error_message() );
 	}
 
@@ -1402,7 +1407,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 	}
 
 	/**
@@ -2522,7 +2527,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$error = $prompt_builder->generate_text();
 
 		$this->assertWPError( $error, 'generate_text should return WP_Error when exception occurs' );
-		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $error->get_error_code() );
 
 		$error_data = $error->get_error_data();
 		$this->assertIsArray( $error_data );
@@ -2597,12 +2602,206 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 			->generate_text();
 
 		$this->assertWPError( $result, 'generate_text should return WP_Error when exception occurs' );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertSame( 'Model preference tuple must contain model identifier and provider ID.', $result->get_error_message() );
 
 		$error_data = $result->get_error_data();
 		$this->assertIsArray( $error_data );
 		$this->assertArrayHasKey( 'exception_class', $error_data );
 		$this->assertNotEmpty( $error_data['exception_class'] );
+	}
+
+	/**
+	 * Invokes the private exception_to_wp_error method via reflection.
+	 *
+	 * @param WP_AI_Client_Prompt_Builder $builder   The builder instance.
+	 * @param Exception                   $exception The exception to convert.
+	 * @return WP_Error The resulting WP_Error.
+	 */
+	private function invoke_exception_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Exception $exception ): WP_Error {
+		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$method     = $reflection->getMethod( 'exception_to_wp_error' );
+		self::set_accessible( $method );
+
+		return $method->invoke( $builder, $exception );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps NetworkException correctly.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_network_exception() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new NetworkException( 'Connection timed out' )
+		);
+
+		$this->assertSame( 'prompt_network_error', $error->get_error_code() );
+		$this->assertSame( 'Connection timed out', $error->get_error_message() );
+		$this->assertSame( 503, $error->get_error_data()['status'] );
+		$this->assertSame( NetworkException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps ClientException with a custom code.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_client_exception_with_code() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new ClientException( 'Unauthorized', 401 )
+		);
+
+		$this->assertSame( 'prompt_client_error', $error->get_error_code() );
+		$this->assertSame( 'Unauthorized', $error->get_error_message() );
+		$this->assertSame( 401, $error->get_error_data()['status'] );
+		$this->assertSame( ClientException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps ClientException without a code to 400.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_client_exception_without_code() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new ClientException( 'Bad request' )
+		);
+
+		$this->assertSame( 'prompt_client_error', $error->get_error_code() );
+		$this->assertSame( 'Bad request', $error->get_error_message() );
+		$this->assertSame( 400, $error->get_error_data()['status'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps ServerException with a custom code.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_server_exception_with_code() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new ServerException( 'Bad gateway', 502 )
+		);
+
+		$this->assertSame( 'prompt_upstream_server_error', $error->get_error_code() );
+		$this->assertSame( 'Bad gateway', $error->get_error_message() );
+		$this->assertSame( 502, $error->get_error_data()['status'] );
+		$this->assertSame( ServerException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps ServerException without a code to 500.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_server_exception_without_code() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new ServerException( 'Internal server error' )
+		);
+
+		$this->assertSame( 'prompt_upstream_server_error', $error->get_error_code() );
+		$this->assertSame( 'Internal server error', $error->get_error_message() );
+		$this->assertSame( 500, $error->get_error_data()['status'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps TokenLimitReachedException correctly.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_token_limit_reached_exception() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new TokenLimitReachedException( 'Token limit exceeded', 4096 )
+		);
+
+		$this->assertSame( 'prompt_token_limit_reached', $error->get_error_code() );
+		$this->assertSame( 'Token limit exceeded', $error->get_error_message() );
+		$this->assertSame( 400, $error->get_error_data()['status'] );
+		$this->assertSame( TokenLimitReachedException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps InvalidArgumentException correctly.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_invalid_argument_exception() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new AiClientInvalidArgumentException( 'Invalid model parameter' )
+		);
+
+		$this->assertSame( 'prompt_invalid_argument', $error->get_error_code() );
+		$this->assertSame( 'Invalid model parameter', $error->get_error_message() );
+		$this->assertSame( 400, $error->get_error_data()['status'] );
+		$this->assertSame( AiClientInvalidArgumentException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps a generic Exception to the fallback error.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_generic_exception() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new Exception( 'Something went wrong' )
+		);
+
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
+		$this->assertSame( 'Something went wrong', $error->get_error_message() );
+		$this->assertSame( 500, $error->get_error_data()['status'] );
+		$this->assertSame( 'Exception', $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error always includes status and exception_class in error data.
+	 *
+	 * @ticket 64591
+	 *
+	 * @dataProvider data_exception_to_wp_error_error_data_structure
+	 *
+	 * @param Exception $exception The exception to convert.
+	 */
+	public function test_exception_to_wp_error_error_data_structure( Exception $exception ) {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error( $builder, $exception );
+
+		$data = $error->get_error_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'status', $data );
+		$this->assertIsInt( $data['status'] );
+		$this->assertArrayHasKey( 'exception_class', $data );
+		$this->assertIsString( $data['exception_class'] );
+	}
+
+	/**
+	 * Data provider for test_exception_to_wp_error_error_data_structure.
+	 *
+	 * @return array<string, array{0: Exception}>
+	 */
+	public static function data_exception_to_wp_error_error_data_structure(): array {
+		return array(
+			'NetworkException'           => array( new NetworkException( 'network error' ) ),
+			'ClientException'            => array( new ClientException( 'client error', 422 ) ),
+			'ServerException'            => array( new ServerException( 'server error', 503 ) ),
+			'TokenLimitReachedException' => array( new TokenLimitReachedException( 'token limit' ) ),
+			'InvalidArgumentException'   => array( new AiClientInvalidArgumentException( 'invalid arg' ) ),
+			'generic Exception'          => array( new Exception( 'generic' ) ),
+		);
 	}
 }
