@@ -300,13 +300,18 @@ class WP_Collaboration_Table_Storage {
 		$now  = gmdate( 'Y-m-d H:i:s' );
 
 		/* Check if a row already exists. */
-		$exists = $wpdb->get_var(
+		$exists = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s LIMIT 1",
+				"SELECT id, date_gmt FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s LIMIT 1",
 				$room,
 				$client_id
 			)
 		);
+
+		if ( $exists && $exists->date_gmt === $now ) {
+			// Row already has the current date, consider update a success.
+			return true;
+		}
 
 		if ( $exists ) {
 			$result = $wpdb->update(
@@ -316,7 +321,7 @@ class WP_Collaboration_Table_Storage {
 					'data'     => $data,
 					'date_gmt' => $now,
 				),
-				array( 'id' => $exists )
+				array( 'id' => $exists->id )
 			);
 		} else {
 			$result = $wpdb->insert(
