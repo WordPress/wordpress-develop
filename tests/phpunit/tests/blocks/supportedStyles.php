@@ -797,7 +797,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_get_block_wrapper_attributes_merge_and_override.
 	 *
-	 * @return array[] Array of test cases.
+	 * @return array<string, array{ ... }> Array of test cases.
 	 */
 	public function data_get_block_wrapper_attributes_merge_or_override(): array {
 		return array(
