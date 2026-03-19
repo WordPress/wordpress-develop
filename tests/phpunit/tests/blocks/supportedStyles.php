@@ -758,27 +758,25 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_block_wrapper_attributes_merge_or_override
 	 *
-	 * @param array{
-	 *     block_type_settings: array<string, mixed>,
-	 *     block_attrs: array<string, mixed>,
-	 *     extra_attributes: array<string, string>,
-	 *     expected_attribute: string
-	 * } $data Data from the provider.
+	 * @param array<string, mixed>  $block_type_settings
+	 * @param array<string, mixed>  $block_attrs
+	 * @param array<string, string> $extra_attributes
+	 * @param string                $expected_attribute
 	 */
-	public function test_get_block_wrapper_attributes_merge_and_override( $data ) {
+	public function test_get_block_wrapper_attributes_merge_and_override( array $block_type_settings, array $block_attrs, array $extra_attributes, string $expected_attribute ): void {
 		$block_name          = 'core/example';
 		$block_type_settings = array_merge(
 			array(
 				'attributes'      => array(),
 				'render_callback' => true,
 			),
-			$data['block_type_settings']
+			$block_type_settings
 		);
 		$this->register_block_type( $block_name, $block_type_settings );
 
 		$block = array(
 			'blockName'    => $block_name,
-			'attrs'        => $data['block_attrs'],
+			'attrs'        => $block_attrs,
 			'innerBlock'   => array(),
 			'innerContent' => array(),
 			'innerHTML'    => array(),
@@ -787,9 +785,9 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		WP_Block_Supports::init();
 		WP_Block_Supports::$block_to_render = $block;
 
-		$wrapper_attributes = get_block_wrapper_attributes( $data['extra_attributes'] );
+		$wrapper_attributes = get_block_wrapper_attributes( $extra_attributes );
 
-		$this->assertStringContainsString( $data['expected_attribute'], $wrapper_attributes );
+		$this->assertStringContainsString( $expected_attribute, $wrapper_attributes );
 	}
 
 	/**
@@ -799,13 +797,12 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	 *      block_type_settings: array<string, mixed>,
 	 *      block_attrs: array<string, mixed>,
 	 *      extra_attributes: array<string, string>,
-	 *      expected_attribute: string,
+	 *      expected_attribute: string
 	 *  }> Array of test cases.
 	 */
 	public function data_get_block_wrapper_attributes_merge_or_override(): array {
 		return array(
 			'extra style attributes are merged with block values' => array(
-				array(
 					'block_type_settings' => array(
 						'supports' => array(
 							'color' => true,
@@ -823,10 +820,8 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 						'style' => 'margin-top: 2px;;;',
 					),
 					'expected_attribute'  => 'style="color:#000;margin-top: 2px"',
-				),
 			),
 			'extra class attributes are merged with block values' => array(
-				array(
 					'block_type_settings' => array(
 						'supports' => array(
 							'color' => true,
@@ -844,10 +839,8 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 						'class' => 'extra-class extra,class has-text-color',
 					),
 					'expected_attribute'  => 'class="extra-class extra,class has-text-color wp-block-example"',
-				),
 			),
 			'extra attributes override block-generated id' => array(
-				array(
 					'block_type_settings' => array(
 						'supports' => array(
 							'anchor' => true,
@@ -860,10 +853,8 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 						'id' => 'user-id',
 					),
 					'expected_attribute'  => 'id="user-id"',
-				),
 			),
 			'block-generated id is used when no extra provided' => array(
-				array(
 					'block_type_settings' => array(
 						'supports' => array(
 							'anchor' => true,
@@ -874,10 +865,8 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 					),
 					'extra_attributes'    => array(),
 					'expected_attribute'  => 'id="block-id"',
-				),
 			),
 			'extra attributes override block-generated aria-label' => array(
-				array(
 					'block_type_settings' => array(
 						'supports' => array(
 							'ariaLabel' => true,
@@ -890,10 +879,8 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 						'aria-label' => 'User aria-label',
 					),
 					'expected_attribute'  => 'aria-label="User aria-label"',
-				),
 			),
 			'block-generated aria-label is used when no extra provided' => array(
-				array(
 					'block_type_settings' => array(
 						'supports' => array(
 							'ariaLabel' => true,
@@ -904,7 +891,6 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 					),
 					'extra_attributes'    => array(),
 					'expected_attribute'  => 'aria-label="Block aria-label"',
-				),
 			),
 		);
 	}
