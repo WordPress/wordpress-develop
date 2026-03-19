@@ -112,10 +112,18 @@ unset( $post_formats['standard'] );
 <tr>
 <th scope="row"><?php _e( 'Collaboration' ); ?></th>
 <td>
-	<label for="wp_collaboration_enabled">
-		<input name="wp_collaboration_enabled" type="checkbox" id="wp_collaboration_enabled" value="1" <?php checked( '1', (bool) get_option( 'wp_collaboration_enabled' ) ); ?> />
-		<?php _e( 'Enable real-time collaboration' ); ?>
-	</label>
+	<?php if ( defined ( 'FORCE_COLLABORATION_ENABLED' ) ) : ?>
+		<?php if ( TRUE === FORCE_COLLABORATION_ENABLED ) : ?>
+			<p class="notice notice-warning inline"><?php _e( '<strong>Note:</strong> The real-time collaboration feature preview is enabled.' ); ?></p>
+		<?php else : ?>
+			<p class="notice notice-warning inline"><?php _e( '<strong>Note:</strong> The real-time collaboration feature preview has been disabled.' ); ?></p>
+		<?php endif; ?>
+	<?php else : ?>
+		<label for="wp_collaboration_enabled">
+			<input name="wp_collaboration_enabled" type="checkbox" id="wp_collaboration_enabled" value="1" <?php checked( '1', (bool) get_option( 'wp_collaboration_enabled' ) ); ?> />
+			<?php _e( 'Enable real-time collaboration feature preview' ); ?>
+		</label>
+	<?php endif; ?>
 </td>
 </tr>
 <?php
