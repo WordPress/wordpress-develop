@@ -1932,8 +1932,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * Notes can be read by any user who can edit the associated post.
 		 * This is separate from the edit_comment capability, which controls
 		 * whether a user can modify or delete the note.
-		 *
-		 * @since 7.0.0
 		 */
 		if ( 'note' === $comment->comment_type && ! empty( $comment->comment_post_ID ) ) {
 			return current_user_can( 'edit_post', $comment->comment_post_ID );
