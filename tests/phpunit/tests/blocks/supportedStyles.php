@@ -787,7 +787,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 		$wrapper_attributes = get_block_wrapper_attributes( $extra_attributes );
 
-		$this->assertStringContainsString( $expected_attribute, $wrapper_attributes );
+		$this->assertSame( $expected_attribute, $wrapper_attributes );
 	}
 
 	/**
@@ -819,7 +819,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 					// Redundant trailing semicolons should be stripped
 					'style' => 'margin-top: 2px;;;',
 				),
-				'expected_attribute'  => 'style="color:#000;margin-top: 2px"',
+				'expected_attribute'  => 'style="color:#000;margin-top: 2px" class="wp-block-example has-text-color"',
 			),
 			'extra class attributes are merged with block values' => array(
 				'block_type_settings' => array(
@@ -838,7 +838,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 					// Duplicate class names should be merged, and commas should be preserved.
 					'class' => 'extra-class extra,class has-text-color',
 				),
-				'expected_attribute'  => 'class="extra-class extra,class has-text-color wp-block-example"',
+				'expected_attribute'  => 'style="color:#000" class="extra-class extra,class has-text-color wp-block-example"',
 			),
 			'extra attributes override block-generated id' => array(
 				'block_type_settings' => array(
@@ -852,7 +852,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 				'extra_attributes'    => array(
 					'id' => 'user-id',
 				),
-				'expected_attribute'  => 'id="user-id"',
+				'expected_attribute'  => 'class="wp-block-example" id="user-id"',
 			),
 			'block-generated id is used when no extra provided' => array(
 				'block_type_settings' => array(
@@ -864,7 +864,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 					'anchor' => 'block-id',
 				),
 				'extra_attributes'    => array(),
-				'expected_attribute'  => 'id="block-id"',
+				'expected_attribute'  => 'class="wp-block-example" id="block-id"',
 			),
 			'extra attributes override block-generated aria-label' => array(
 				'block_type_settings' => array(
@@ -878,7 +878,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 				'extra_attributes'    => array(
 					'aria-label' => 'User aria-label',
 				),
-				'expected_attribute'  => 'aria-label="User aria-label"',
+				'expected_attribute'  => 'class="wp-block-example" aria-label="User aria-label"',
 			),
 			'block-generated aria-label is used when no extra provided' => array(
 				'block_type_settings' => array(
@@ -890,7 +890,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 					'ariaLabel' => 'Block aria-label',
 				),
 				'extra_attributes'    => array(),
-				'expected_attribute'  => 'aria-label="Block aria-label"',
+				'expected_attribute'  => 'class="wp-block-example" aria-label="Block aria-label"',
 			),
 		);
 	}
