@@ -1144,7 +1144,6 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 		return null;
 	}
 
-	$tax = get_taxonomy( $term->taxonomy );
 	if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
 		return null;
 	}
@@ -2649,7 +2648,8 @@ function get_previous_posts_page_link() {
  * @return string|null The previous posts page link if `$display = false`.
  */
 function previous_posts( $display = true ) {
-	$output = esc_url( get_previous_posts_page_link() );
+	$link   = get_previous_posts_page_link();
+	$output = $link ? esc_url( $link ) : '';
 
 	if ( $display ) {
 		echo $output;
