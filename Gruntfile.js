@@ -640,7 +640,13 @@ module.exports = function(grunt) {
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/build/modules',
-					src: [ '**/*', '!**/*.map' ],
+					src: [
+						'**/*',
+						'!**/*.map',
+						// Skip non-minified VIPS files — they are ~16MB of inlined WASM
+						// with no debugging value over the minified versions.
+						'!vips/!(*.min).js',
+					],
 					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
 				} ],
 			},
