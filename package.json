@@ -142,8 +142,6 @@
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
 		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg --dev",
-		"vendor:copy": "node tools/vendors/copy-vendors.js",
-		"sync-gutenberg-packages": "grunt sync-gutenberg-packages",
-		"postsync-gutenberg-packages": "grunt wp-packages:sync-stable-blocks && grunt build --dev && grunt build"
+		"vendor:copy": "node tools/vendors/copy-vendors.js"
 	}
 }
