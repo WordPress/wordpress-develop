@@ -745,7 +745,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		|| (
 			'www.' . $original_host_low !== $redirect_host_low
 			&& 'www.' . $redirect_host_low !== $original_host_low
-			&& $original_port === $redirect_port
+			&& ( '' === $original_host_low || $original_port === $redirect_port )
 		)
 	) {
 		$redirect['host'] = $original['host'];
