@@ -207,7 +207,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		},
 	);
 
-		$attributes = array();
+	$attributes = array();
 	foreach ( $attribute_merge_callbacks as $attribute_name => $merge_callback ) {
 		$new_attribute   = $new_attributes[ $attribute_name ] ?? '';
 		$extra_attribute = $extra_attributes[ $attribute_name ] ?? '';
