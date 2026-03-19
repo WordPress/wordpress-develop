@@ -18,7 +18,6 @@ const path = require( 'path' );
 const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 const hashFilePath = path.join( gutenbergDir, '.gutenberg-hash' );
-const srcHashFilePath = path.join( rootDir, 'src/wp-includes/.gutenberg-hash' );
 
 /**
  * Read Gutenberg configuration from package.json.
@@ -43,36 +42,20 @@ function readGutenbergConfig() {
 }
 
 /**
- * Copy the Gutenberg build to src/ by running `grunt build:gutenberg --dev`
- * as a fresh subprocess (so WORKING_DIR resolves to src/). Writes the current
- * SHA to src/wp-includes/.gutenberg-hash afterward so future runs can skip
- * the copy when nothing has changed.
- * Exits the process if the copy fails.
- *
- * @param {string} sha The expected Gutenberg SHA, written to the src hash file.
- */
-function copyGutenbergToSrc( sha ) {
-	const buildResult = spawnSync( 'grunt', [ 'build:gutenberg', '--dev' ], { stdio: 'inherit', shell: true } );
-	if ( buildResult.status !== 0 ) {
-		process.exit( buildResult.status ?? 1 );
-	}
-	fs.mkdirSync( path.dirname( srcHashFilePath ), { recursive: true } );
-	fs.writeFileSync( srcHashFilePath, sha );
-}
-
-/**
  * Trigger a fresh download of the Gutenberg artifact by spawning download.js,
- * then copy the build to src/.
+ * then run `grunt build:gutenberg --dev` to copy the build to src/.
  * Exits the process if either step fails.
- *
- * @param {string} sha The expected Gutenberg SHA.
  */
-function downloadGutenberg( sha ) {
+function downloadGutenberg() {
 	const downloadResult = spawnSync( 'node', [ path.join( __dirname, 'download.js' ) ], { stdio: 'inherit' } );
 	if ( downloadResult.status !== 0 ) {
 		process.exit( downloadResult.status ?? 1 );
 	}
-	copyGutenbergToSrc( sha );
+
+	const buildResult = spawnSync( 'grunt', [ 'build:gutenberg', '--dev' ], { stdio: 'inherit', shell: true } );
+	if ( buildResult.status !== 0 ) {
+		process.exit( buildResult.status ?? 1 );
+	}
 }
 
 /**
@@ -95,7 +78,7 @@ function verifyGutenbergVersion() {
 	// Check for conditions that require a fresh download.
 	if ( ! fs.existsSync( gutenbergDir ) ) {
 		console.log( 'ℹ️  Gutenberg directory not found. Downloading...' );
-		downloadGutenberg( sha );
+		downloadGutenberg();
 	} else {
 		let installedHash = null;
 		try {
@@ -109,10 +92,10 @@ function verifyGutenbergVersion() {
 
 		if ( installedHash === null ) {
 			console.log( 'ℹ️  Hash file not found. Downloading expected version...' );
-			downloadGutenberg( sha );
+			downloadGutenberg();
 		} else if ( installedHash !== sha ) {
 			console.log( `ℹ️  Hash mismatch (found ${ installedHash }, expected ${ sha }). Downloading expected version...` );
-			downloadGutenberg( sha );
+			downloadGutenberg();
 		}
 	}
 
@@ -130,24 +113,6 @@ function verifyGutenbergVersion() {
 			console.error( `❌ ${ error.message }` );
 		}
 		process.exit( 1 );
-	}
-
-	// If the artifact is current but src/ was never populated (or is stale),
-	// copy now. This handles environments where the artifact was cached before
-	// this copy step was introduced.
-	let srcHash = null;
-	try {
-		srcHash = fs.readFileSync( srcHashFilePath, 'utf8' ).trim();
-	} catch ( error ) {
-		if ( error.code !== 'ENOENT' ) {
-			console.error( `❌ ${ error.message }` );
-			process.exit( 1 );
-		}
-	}
-
-	if ( srcHash !== sha ) {
-		console.log( 'ℹ️  Gutenberg files in src/ are missing or outdated. Copying...' );
-		copyGutenbergToSrc( sha );
 	}
 
 	console.log( '✅ Version verified' );
