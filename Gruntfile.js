@@ -2063,9 +2063,17 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'build', function() {
+		grunt.util.spawn( {
+			grunt: true,
+			args: [ 'clean', '--dev' ],
+			opts: { stdio: 'inherit' }
+		}, function( buildError ) {
+			done( ! buildError );
+		} );
+
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
-				'gutenberg:verify',
+				'gutenberg:download',
 				'build:js',
 				'build:css',
 				'build:codemirror',
@@ -2075,7 +2083,7 @@ module.exports = function(grunt) {
 			] );
 		} else {
 			grunt.task.run( [
-				'gutenberg:verify',
+				'gutenberg:download',
 				'build:certificates',
 				'build:files',
 				'build:js',
