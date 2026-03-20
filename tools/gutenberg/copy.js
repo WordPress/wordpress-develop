@@ -348,6 +348,17 @@ function generateScriptLoaderPackages() {
 				assetData.dependencies = [];
 			}
 
+			// Strip plugin-only module dependencies (e.g., vips) that are not in Core.
+			if ( Array.isArray( assetData.module_dependencies ) ) {
+				assetData.module_dependencies =
+					assetData.module_dependencies.filter(
+						( dep ) =>
+							! ( dep.id || dep ).startsWith(
+								'@wordpress/vips'
+							)
+					);
+			}
+
 			assets[ `${ entry.name }.js` ] = assetData;
 		} catch ( error ) {
 			console.error(
