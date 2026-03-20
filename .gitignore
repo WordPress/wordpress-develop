@@ -39,7 +39,7 @@ wp-tests-config.php
 /src/wp-includes/css/*-rtl.css
 /src/wp-includes/blocks/*
 !/src/wp-includes/blocks/index.php
-/src/wp-includes/icons
+/src/wp-includes/images/icon-library
 /src/wp-includes/build
 /src/wp-includes/theme.json
 /packagehash.txt

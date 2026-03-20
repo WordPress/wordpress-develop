@@ -55,6 +55,8 @@ module.exports = function(grunt) {
 			'wp-includes/css/dist',
 			'wp-includes/blocks/**/*',
 			'!wp-includes/blocks/index.php',
+			'wp-includes/images/icon-library',
+			// Old location kept temporarily to ensure they are cleaned up.
 			'wp-includes/icons',
 		],
 
@@ -682,31 +684,35 @@ module.exports = function(grunt) {
 					},
 				],
 			},
-			'gutenberg-icons': {
+			'icon-library-images': {
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/packages/icons/src/library',
+					src: '*.svg',
+					dest: WORKING_DIR + 'wp-includes/images/icon-library',
+				} ],
+			},
+			'icon-library-manifest': {
 				options: {
-					process: function( content, srcpath ) {
-						// Remove the 'gutenberg' text domain from _x() calls in manifest.php.
-						if ( path.basename( srcpath ) === 'manifest.php' ) {
-							return content.replace(
+					process: function( content ) {
+						return content
+							// Remove the 'gutenberg' text domain from _x() calls.
+							.replace(
 								/_x\(\s*([^,]+),\s*([^,]+),\s*['"]gutenberg['"]\s*\)/g,
 								'_x( $1, $2 )'
+							)
+							// Strip the 'library/' prefix from filePath values so they
+							// resolve correctly relative to wp-includes/images/icon-library/.
+							.replace(
+								/'filePath' => 'library\//g,
+								"'filePath' => '"
 							);
-						}
-						return content;
 					}
 				},
-				files: [
-					{
-						src: 'gutenberg/packages/icons/src/manifest.php',
-						dest: WORKING_DIR + 'wp-includes/icons/manifest.php',
-					},
-					{
-						expand: true,
-						cwd: 'gutenberg/packages/icons/src/library',
-						src: '*.svg',
-						dest: WORKING_DIR + 'wp-includes/icons/library/',
-					},
-				],
+				files: [ {
+					src: 'gutenberg/packages/icons/src/manifest.php',
+					dest: WORKING_DIR + 'wp-includes/assets/icon-library-manifest.php',
+				} ],
 			},
 		},
 		sass: {
@@ -2059,12 +2065,13 @@ module.exports = function(grunt) {
 		'copy:gutenberg-modules',
 		'copy:gutenberg-styles',
 		'copy:gutenberg-theme-json',
-		'copy:gutenberg-icons',
+		'copy:icon-library-images',
+		'copy:icon-library-manifest',
 	] );
 
 	grunt.registerTask( 'build', function() {
 		var done = this.async();
-		
+
 		grunt.util.spawn( {
 			grunt: true,
 			args: [ 'clean', '--dev' ],
