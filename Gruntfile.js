@@ -2067,16 +2067,18 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'routes:setup', 'Reads the routes registry and configures the copy:routes task.', function() {
-		var registryPath = 'gutenberg/build/routes/registry.php';
-		if ( ! fs.existsSync( registryPath ) ) {
+		const registryPath = 'gutenberg/build/routes/registry.php';
+		let registryContent;
+		try {
+			registryContent = fs.readFileSync( registryPath, 'utf8' );
+		} catch ( e ) {
 			grunt.fatal(
 				'Route registry not found at ' + registryPath + '. Run `grunt gutenberg:download` first.'
 			);
 		}
-		var registryContent = fs.readFileSync( registryPath, 'utf8' );
-		var routeNames = [];
-		var namePattern = /'name'\s*=>\s*'([^']+)'/g;
-		var match;
+		const namePattern = /'name'\s*=>\s*'([^']+)'/g;
+		const routeNames = [];
+		let match;
 		while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
 			routeNames.push( match[ 1 ] );
 		}
@@ -2086,6 +2088,15 @@ module.exports = function(grunt) {
 				'No route names found in ' + registryPath + '. The format of the file may have changed.'
 			);
 		}
+
+		const validName = /^[A-Za-z0-9_-]+$/;
+		routeNames.forEach( function( name ) {
+			if ( ! validName.test( name ) ) {
+				grunt.fatal(
+					'Invalid route name \'' + name + '\' in ' + registryPath + '. Expected only letters, digits, hyphens, and underscores.'
+				);
+			}
+		} );
 
 		grunt.config( [ 'copy', 'routes', 'src' ], [ 'routes/registry.php' ].concat(
 			routeNames.flatMap( function( name ) {
