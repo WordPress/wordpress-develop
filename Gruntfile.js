@@ -603,7 +603,7 @@ module.exports = function(grunt) {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
 				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			},
-			// Gutenberg PHP infrastructure files (pages.php, constants.php, pages/).
+			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/).
 			'gutenberg-php': {
 				options: {
 					process: function( content ) {
