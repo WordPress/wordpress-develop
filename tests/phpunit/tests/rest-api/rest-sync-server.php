@@ -293,6 +293,171 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 400, $response->get_status() );
 	}
 
+	/**
+	 * Verifies that schema type validation rejects a non-string value for the
+	 * update 'data' field, confirming that per-arg schema validation still runs
+	 * with a route-level validate_callback registered.
+	 */
+	public function test_sync_rejects_non_string_update_data() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => 12345,
+								'type' => 'update',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that schema enum validation rejects an invalid update type,
+	 * confirming that per-arg schema validation still runs with a route-level
+	 * validate_callback registered.
+	 */
+	public function test_sync_rejects_invalid_update_type_enum() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => 'dGVzdA==',
+								'type' => 'invalid_type',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that schema required-field validation rejects a room missing
+	 * the 'client_id' field, confirming that per-arg schema validation still
+	 * runs with a route-level validate_callback registered.
+	 */
+	public function test_sync_rejects_missing_required_room_field() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						// 'client_id' deliberately omitted.
+						'room'      => $this->get_post_room(),
+						'updates'   => array(),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the maxItems constraint rejects a request with more rooms
+	 * than MAX_ROOMS_PER_REQUEST.
+	 */
+	public function test_sync_rejects_rooms_exceeding_max_items() {
+		wp_set_current_user( self::$editor_id );
+
+		$rooms = array();
+		for ( $i = 0; $i < WP_HTTP_Polling_Sync_Server::MAX_ROOMS_PER_REQUEST + 1; $i++ ) {
+			$rooms[] = $this->build_room( 'root/site', $i + 1 );
+		}
+
+		$response = $this->dispatch_sync( $rooms );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the maxLength constraint rejects update data exceeding
+	 * MAX_UPDATE_DATA_SIZE.
+	 */
+	public function test_sync_rejects_update_data_exceeding_max_length() {
+		wp_set_current_user( self::$editor_id );
+
+		$oversized_data = str_repeat( 'a', WP_HTTP_Polling_Sync_Server::MAX_UPDATE_DATA_SIZE + 1 );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => $oversized_data,
+								'type' => 'update',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the route-level validate_callback rejects a request body
+	 * exceeding MAX_BODY_SIZE.
+	 */
+	public function test_sync_rejects_oversized_request_body() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+
+		// Set valid parsed params so per-arg schema validation passes first.
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					$this->build_room( $this->get_post_room() ),
+				),
+			)
+		);
+
+		// Set an oversized raw body to trigger the route-level validate_callback.
+		$request->set_body( str_repeat( 'x', WP_HTTP_Polling_Sync_Server::MAX_BODY_SIZE + 1 ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_sync_body_too_large', $response, 413 );
+	}
+
 	/*
 	 * Response format tests.
 	 */
