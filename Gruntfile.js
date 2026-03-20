@@ -601,7 +601,7 @@ module.exports = function(grunt) {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
 				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			},
-			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/, routes/).
+			// Gutenberg PHP infrastructure files (pages.php, constants.php, pages/).
 			'gutenberg-php': {
 				options: {
 					process: function( content ) {
@@ -616,22 +616,50 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: 'gutenberg/build',
 					src: [
-						'routes.php',
 						'pages.php',
 						'constants.php',
 						'pages/**/*.php',
-						'routes/**/*.php',
 					],
 					dest: WORKING_DIR + 'wp-includes/build/',
 				} ],
 			},
+			/*
+			 * Only copy files relevant to the routes specified in the registry file.
+			 *
+			 * While the registry file does not contain any experimental routes, the `gutenberg/build/routes` directory
+			 * includes the files for all registered routes. Only the files related to the routes specified in the
+			 * registry should be included in the WordPress build.
+			 */
+			routes: ( function() {
+				var registryContent = fs.readFileSync( 'gutenberg/build/routes/registry.php', 'utf8' );
+				var routeNames = [];
+				var namePattern = /'name'\s*=>\s*'([^']+)'/g;
+				var match;
+				while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
+					routeNames.push( match[ 1 ] );
+				}
+				return {
+					files: [ {
+						expand: true,
+						cwd: 'gutenberg/build',
+						src: [ 'routes.php', 'routes/registry.php' ].concat(
+							routeNames.flatMap( function( name ) {
+								return [
+									'routes/' + name + '/**/*.php',
+									'routes/' + name + '/**/*.js',
+								];
+							} )
+						),
+						dest: WORKING_DIR + 'wp-includes/build/',
+					} ],
+				};
+			} )(),
 			'gutenberg-js': {
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/build',
 					src: [
 						'pages/**/*.js',
-						'routes/**/*.js',
 					],
 					dest: WORKING_DIR + 'wp-includes/build/',
 				} ],
@@ -2054,6 +2082,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'build:gutenberg', [
 		'copy:gutenberg-php',
+		'copy:routes',
 		'copy:gutenberg-js',
 		'gutenberg:copy',
 		'copy:gutenberg-modules',
