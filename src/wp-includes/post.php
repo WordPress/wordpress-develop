@@ -8443,7 +8443,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
  * @since 5.0.0
  */
 function wp_cache_set_posts_last_changed() {
-	if ( isset( $GLOBALS['__suspend_posts_last_changed_update'] ) && true === $GLOBALS['__suspend_posts_last_changed_update'] ) {
+	if ( ! empty( $GLOBALS['__suspend_posts_last_changed_update'] ) ) {
 		return;
 	}
 

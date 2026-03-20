@@ -80,11 +80,14 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		}
 
 		// Suspend setting the posts last_changed cache key for this operation.
+		if ( ! isset( $GLOBALS['__suspend_posts_last_changed_update'] ) ) {
+			$GLOBALS['__suspend_posts_last_changed_update'] = 0;
+		}
+		++$GLOBALS['__suspend_posts_last_changed_update'];
 		try {
-			$GLOBALS['__suspend_posts_last_changed_update'] = true;
 			return (bool) add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false );
 		} finally {
-			$GLOBALS['__suspend_posts_last_changed_update'] = false;
+			--$GLOBALS['__suspend_posts_last_changed_update'];
 		}
 
 		return false;
@@ -129,11 +132,14 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		}
 
 		// Suspend setting the posts last_changed cache key for this operation.
+		if ( ! isset( $GLOBALS['__suspend_posts_last_changed_update'] ) ) {
+			$GLOBALS['__suspend_posts_last_changed_update'] = 0;
+		}
+		++$GLOBALS['__suspend_posts_last_changed_update'];
 		try {
-			$GLOBALS['__suspend_posts_last_changed_update'] = true;
 			update_post_meta( $post_id, self::AWARENESS_META_KEY, wp_slash( $awareness ) );
 		} finally {
-			$GLOBALS['__suspend_posts_last_changed_update'] = false;
+			--$GLOBALS['__suspend_posts_last_changed_update'];
 		}
 
 		// update_post_meta returns false if the value is the same as the existing value.
