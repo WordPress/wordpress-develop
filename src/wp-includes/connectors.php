@@ -192,6 +192,53 @@ function _wp_connectors_resolve_ai_provider_logo_url( string $path ): ?string {
 function _wp_connectors_init(): void {
 	$registry = new WP_Connector_Registry();
 	WP_Connector_Registry::set_instance( $registry );
+
+	// Only register default AI providers if AI support is enabled.
+	if ( wp_supports_ai() ) {
+		_wp_connectors_register_default_ai_providers( $registry );
+	}
+
+	/**
+	 * Fires when the connector registry is ready for plugins to register connectors.
+	 *
+	 * Built-in connectors and any AI providers auto-discovered from the WP AI Client
+	 * registry have already been registered at this point and cannot be unhooked.
+	 *
+	 * AI provider plugins that register with the WP AI Client do not need to use
+	 * this action — their connectors are created automatically. This action is
+	 * primarily for registering non-AI-provider connectors or overriding metadata
+	 * on existing connectors.
+	 *
+	 * Use `$registry->register()` within this action to add new connectors.
+	 * To override an existing connector, unregister it first, then re-register
+	 * with updated data.
+	 *
+	 * Example — overriding metadata on an auto-discovered connector:
+	 *
+	 *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
+	 *         if ( $registry->is_registered( 'openai' ) ) {
+	 *             $connector = $registry->unregister( 'openai' );
+	 *             $connector['description'] = __( 'Custom description for OpenAI.', 'my-plugin' );
+	 *             $registry->register( 'openai', $connector );
+	 *         }
+	 *     } );
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_Connector_Registry $registry Connector registry instance.
+	 */
+	do_action( 'wp_connectors_init', $registry );
+}
+
+/**
+ * Registers connectors for the built-in AI providers.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @param WP_Connector_Registry $registry The connector registry instance.
+ */
+function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $registry ): void {
 	// Built-in connectors.
 	$defaults = array(
 		'anthropic' => array(
@@ -290,35 +337,6 @@ function _wp_connectors_init(): void {
 	foreach ( $defaults as $id => $args ) {
 		$registry->register( $id, $args );
 	}
-
-	/**
-	 * Fires when the connector registry is ready for plugins to register connectors.
-	 *
-	 * Default connectors have already been registered at this point and cannot be
-	 * unhooked. Use `$registry->register()` within this action to add new connectors.
-	 *
-	 * Example usage:
-	 *
-	 *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
-	 *         $registry->register(
-	 *             'my_custom_ai',
-	 *             array(
-	 *                 'name'           => __( 'My Custom AI', 'my-plugin' ),
-	 *                 'description'    => __( 'Custom AI provider integration.', 'my-plugin' ),
-	 *                 'type'           => 'ai_provider',
-	 *                 'authentication' => array(
-	 *                     'method'          => 'api_key',
-	 *                     'credentials_url' => 'https://example.com/api-keys',
-	 *                 ),
-	 *             )
-	 *         );
-	 *     } );
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param WP_Connector_Registry $registry Connector registry instance.
-	 */
-	do_action( 'wp_connectors_init', $registry );
 }
 
 /**
