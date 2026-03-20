@@ -629,31 +629,13 @@ module.exports = function(grunt) {
 			 * While the registry file does not contain any experimental routes, the `gutenberg/build/routes` directory
 			 * includes the files for all registered routes. Only the files related to the routes specified in the
 			 * registry should be included in the WordPress build.
+			 *
+			 * The `src` list is populated at task runtime by `routes:setup`, which reads the registry after
+			 * `gutenberg:download` has run. See the `routes:setup` task registration for implementation details.
 			 */
-			routes: ( function() {
-				var registryContent = fs.readFileSync( 'gutenberg/build/routes/registry.php', 'utf8' );
-				var routeNames = [];
-				var namePattern = /'name'\s*=>\s*'([^']+)'/g;
-				var match;
-				while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
-					routeNames.push( match[ 1 ] );
-				}
-				return {
-					files: [ {
-						expand: true,
-						cwd: 'gutenberg/build',
-						src: [ 'routes.php', 'routes/registry.php' ].concat(
-							routeNames.flatMap( function( name ) {
-								return [
-									'routes/' + name + '/**/*.php',
-									'routes/' + name + '/**/*.js',
-								];
-							} )
-						),
-						dest: WORKING_DIR + 'wp-includes/build/',
-					} ],
-				};
-			} )(),
+			routes: {
+				files: [],
+			},
 			'gutenberg-js': {
 				files: [ {
 					expand: true,
@@ -2080,8 +2062,38 @@ module.exports = function(grunt) {
 			} );
 	} );
 
+	grunt.registerTask( 'routes:setup', 'Reads the routes registry and configures the copy:routes task.', function() {
+		var registryPath = 'gutenberg/build/routes/registry.php';
+		if ( ! fs.existsSync( registryPath ) ) {
+			grunt.fatal(
+				'Route registry not found at ' + registryPath + '. Run `grunt gutenberg:download` first.'
+			);
+		}
+		var registryContent = fs.readFileSync( registryPath, 'utf8' );
+		var routeNames = [];
+		var namePattern = /'name'\s*=>\s*'([^']+)'/g;
+		var match;
+		while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
+			routeNames.push( match[ 1 ] );
+		}
+		grunt.config( [ 'copy', 'routes', 'files' ], [ {
+			expand: true,
+			cwd: 'gutenberg/build',
+			src: [ 'routes/registry.php' ].concat(
+				routeNames.flatMap( function( name ) {
+					return [
+						'routes/' + name + '/**/*.php',
+						'routes/' + name + '/**/*.js',
+					];
+				} )
+			),
+			dest: WORKING_DIR + 'wp-includes/build/',
+		} ] );
+	} );
+
 	grunt.registerTask( 'build:gutenberg', [
 		'copy:gutenberg-php',
+		'routes:setup',
 		'copy:routes',
 		'copy:gutenberg-js',
 		'gutenberg:copy',
