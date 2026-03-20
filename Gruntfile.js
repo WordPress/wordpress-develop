@@ -641,7 +641,7 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: 'gutenberg/build/modules',
 					src: [
-						'**/*',
+						'**/*.js',
 						'!**/*.map',
 						// Skip non-minified VIPS files — they are ~16MB of inlined WASM
 						// with no debugging value over the minified versions.
