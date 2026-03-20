@@ -352,8 +352,8 @@ function copyBlockAssets( config ) {
 
 /**
  * Generate script-modules-packages.php from individual asset files.
- * Reads all view.min.asset.php files from modules/block-library and combines them
- * into a single PHP file.
+ * Recursively scans the Gutenberg modules/ directory for *.min.asset.php files
+ * and combines their contents into a single PHP file.
  */
 function generateScriptModulesPackages() {
 	const modulesDir = path.join( gutenbergBuildDir, 'modules' );
