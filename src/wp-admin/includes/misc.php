@@ -625,9 +625,11 @@ function show_message( $message ) {
 }
 
 /**
+ * Parses the PHP content and finds function calls to be used for documentation linking.
+ *
  * @since 2.8.0
  *
- * @param string $content
+ * @param string $content The PHP content to parse.
  * @return string[] Array of function names.
  */
 function wp_doc_link_parse( $content ) {
