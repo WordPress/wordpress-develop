@@ -705,7 +705,7 @@ module.exports = function(grunt) {
 							// resolve correctly relative to wp-includes/images/icon-library/.
 							.replace(
 								/'filePath' => 'library\//g,
-								"'filePath' => '"
+								'\'filePath\' => \''
 							);
 					}
 				},
