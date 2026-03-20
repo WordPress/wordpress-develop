@@ -297,7 +297,13 @@ class WP_Collaboration_Table_Storage {
 		global $wpdb;
 
 		$data = wp_json_encode( $state );
-		$now  = gmdate( 'Y-m-d H:i:s' );
+
+		/*
+		 * Bucket the timestamp to 5-second intervals so most polls
+		 * short-circuit without a database write. Ceil is used instead
+		 * of floor to prevent the awareness timeout from being hit early.
+		 */
+		$now = gmdate( 'Y-m-d H:i:s', (int) ceil( time() / 5 ) * 5 );
 
 		/* Check if a row already exists. */
 		$exists = $wpdb->get_row(
