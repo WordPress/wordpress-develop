@@ -79,9 +79,15 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		return $this->with_suspended_posts_last_changed_update(
-			fn() => (bool) add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false )
-		);
+		// Suspend setting the posts last_changed cache key for this operation.
+		try {
+			$GLOBALS['__suspend_posts_last_changed_update'] = true;
+			return (bool) add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false );
+		} finally {
+			$GLOBALS['__suspend_posts_last_changed_update'] = false;
+		}
+
+		return false;
 	}
 
 	/**
@@ -122,11 +128,16 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		// update_post_meta returns false if the value is the same as the existing value.
-		$this->with_suspended_posts_last_changed_update(
-			fn() => update_post_meta( $post_id, self::AWARENESS_META_KEY, wp_slash( $awareness ) )
-		);
+		// Suspend setting the posts last_changed cache key for this operation.
+		try {
+			$GLOBALS['__suspend_posts_last_changed_update'] = true;
+			update_post_meta( $post_id, self::AWARENESS_META_KEY, wp_slash( $awareness ) );
+		} finally {
+			$GLOBALS['__suspend_posts_last_changed_update'] = false;
+		}
 
+		// update_post_meta returns false if the value is the same as the existing value.
+		// ignore the return value since awareness updates are not critical.
 		return true;
 	}
 
@@ -301,26 +312,5 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Invokes the provided callback while the suspending setting the posts
-	 * last_changed cache key via a special global flag.
-	 *
-	 * @since 7.0.0
-	 * @see wp_cache_set_posts_last_changed()
-	 *
-	 * @template T
-	 * @param Closure(): T $callback Callback.
-	 * @return T Return value from the callback.
-	 */
-	private function with_suspended_posts_last_changed_update( Closure $callback ) {
-		$GLOBALS['__suspend_posts_last_changed_update'] = true;
-
-		try {
-			return $callback();
-		} finally {
-			$GLOBALS['__suspend_posts_last_changed_update'] = false;
-		}
 	}
 }
