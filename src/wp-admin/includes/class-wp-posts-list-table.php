@@ -1496,14 +1496,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_edit_post_link( $post->ID ),
-				esc_attr( sprintf(
-					$is_rtc_locked
-						/* translators: %s: Post title. */
-						? __( 'Join editing &#8220;%s&#8221;', 'post list' )
-						/* translators: %s: Post title. */
-						: __( 'Edit &#8220;%s&#8221;' ),
-					$title
-				) ),
+				esc_attr(
+					sprintf(
+						$is_rtc_locked
+							/* translators: %s: Post title. */
+							? __( 'Join editing &#8220;%s&#8221;', 'post list' )
+							/* translators: %s: Post title. */
+							: __( 'Edit &#8220;%s&#8221;' ),
+						$title
+					) 
+				),
 				/* translators: Action link text for a singular post in the post list. Can be any type of post. */
 				$is_rtc_locked ? _x( 'Join', 'post list' ) : __( 'Edit' )
 			);
