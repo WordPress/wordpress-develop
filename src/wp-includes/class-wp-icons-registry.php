@@ -42,7 +42,6 @@ class WP_Icons_Registry {
 	 */
 	protected function __construct() {
 		$icons_directory = __DIR__ . '/icons/';
-		$icons_directory = trailingslashit( $icons_directory );
 		$manifest_path   = $icons_directory . 'manifest.php';
 
 		if ( ! is_readable( $manifest_path ) ) {
