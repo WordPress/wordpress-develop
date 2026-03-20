@@ -351,14 +351,13 @@ function copyBlockAssets( config ) {
 }
 
 /**
- * Generate script-modules-packages.min.php from individual asset files.
+ * Generate script-modules-packages.php from individual asset files.
  * Reads all view.min.asset.php files from modules/block-library and combines them
  * into a single PHP file.
  */
 function generateScriptModulesPackages() {
 	const modulesDir = path.join( gutenbergBuildDir, 'modules' );
-	const assetsMin = {};
-	const assetsRegular = {};
+	const assets = {};
 
 	/**
 	 * Recursively process directory to find .asset.php files.
@@ -384,16 +383,13 @@ function generateScriptModulesPackages() {
 				const normalizedPath = relativePath
 					.split( path.sep )
 					.join( '/' );
-				const jsPathMin = normalizedPath.replace(
-					/\.asset\.php$/,
-					'.js'
-				);
-				const jsPathRegular = jsPathMin.replace( /\.min\.js$/, '.js' );
+				const jsPath = normalizedPath
+					.replace( /\.asset\.php$/, '.js' )
+					.replace( /\.min\.js$/, '.js' );
 
 				try {
 					const assetData = readReturnedValueFromPHPFile( fullPath );
-					assetsMin[ jsPathMin ] = assetData;
-					assetsRegular[ jsPathRegular ] = assetData;
+					assets[ jsPath ] = assetData;
 				} catch ( error ) {
 					console.error(
 						`   ⚠️  Error reading ${ relativePath }:`,
@@ -406,52 +402,35 @@ function generateScriptModulesPackages() {
 
 	processDirectory( modulesDir, modulesDir );
 
-	// Generate both minified and non-minified PHP files using json2php.
-	const phpContentMin =
+	const phpContent =
 		'<?php return ' +
 		json2php.make( {
 			linebreak: '\n',
 			indent: '  ',
 			shortArraySyntax: false,
-		} )( assetsMin ) +
+		} )( assets ) +
 		';';
 
-	const phpContentRegular =
-		'<?php return ' +
-		json2php.make( {
-			linebreak: '\n',
-			indent: '  ',
-			shortArraySyntax: false,
-		} )( assetsRegular ) +
-		';';
-
-	const outputPathMin = path.join(
-		wpIncludesDir,
-		'assets/script-modules-packages.min.php'
-	);
-	const outputPathRegular = path.join(
+	const outputPath = path.join(
 		wpIncludesDir,
 		'assets/script-modules-packages.php'
 	);
 
-	fs.mkdirSync( path.dirname( outputPathMin ), { recursive: true } );
-	fs.writeFileSync( outputPathMin, phpContentMin );
-	fs.writeFileSync( outputPathRegular, phpContentRegular );
+	fs.mkdirSync( path.dirname( outputPath ), { recursive: true } );
+	fs.writeFileSync( outputPath, phpContent );
 
 	console.log(
-		`   ✅ Generated with ${ Object.keys( assetsMin ).length } modules`
+		`   ✅ Generated with ${ Object.keys( assets ).length } modules`
 	);
 }
 
 /**
- * Generate script-loader-packages.php and script-loader-packages.min.php from individual asset files.
- * Reads all .min.asset.php files from scripts/ and combines them into PHP files for script registration.
- * Generates both minified and non-minified versions.
+ * Generate script-loader-packages.php from individual asset files.
+ * Reads all .min.asset.php files from scripts/ and combines them into a PHP file for script registration.
  */
 function generateScriptLoaderPackages() {
 	const scriptsDir = path.join( gutenbergBuildDir, 'scripts' );
-	const assetsMin = {};
-	const assetsRegular = {};
+	const assets = {};
 
 	if ( ! fs.existsSync( scriptsDir ) ) {
 		console.log( '   ⚠️  Scripts directory not found' );
@@ -482,12 +461,7 @@ function generateScriptLoaderPackages() {
 				assetData.dependencies = [];
 			}
 
-			// Create entries for both minified and non-minified versions.
-			const jsPathMin = `${ entry.name }.min.js`;
-			const jsPathRegular = `${ entry.name }.js`;
-
-			assetsMin[ jsPathMin ] = assetData;
-			assetsRegular[ jsPathRegular ] = assetData;
+			assets[ `${ entry.name }.js` ] = assetData;
 		} catch ( error ) {
 			console.error(
 				`   ⚠️  Error reading ${ entry.name }/index.min.asset.php:`,
@@ -496,40 +470,25 @@ function generateScriptLoaderPackages() {
 		}
 	}
 
-	// Generate both minified and non-minified PHP files using json2php.
-	const phpContentMin =
+	const phpContent =
 		'<?php return ' +
 		json2php.make( {
 			linebreak: '\n',
 			indent: '  ',
 			shortArraySyntax: false,
-		} )( assetsMin ) +
+		} )( assets ) +
 		';';
 
-	const phpContentRegular =
-		'<?php return ' +
-		json2php.make( {
-			linebreak: '\n',
-			indent: '  ',
-			shortArraySyntax: false,
-		} )( assetsRegular ) +
-		';';
-
-	const outputPathMin = path.join(
-		wpIncludesDir,
-		'assets/script-loader-packages.min.php'
-	);
-	const outputPathRegular = path.join(
+	const outputPath = path.join(
 		wpIncludesDir,
 		'assets/script-loader-packages.php'
 	);
 
-	fs.mkdirSync( path.dirname( outputPathMin ), { recursive: true } );
-	fs.writeFileSync( outputPathMin, phpContentMin );
-	fs.writeFileSync( outputPathRegular, phpContentRegular );
+	fs.mkdirSync( path.dirname( outputPath ), { recursive: true } );
+	fs.writeFileSync( outputPath, phpContent );
 
 	console.log(
-		`   ✅ Generated with ${ Object.keys( assetsMin ).length } packages`
+		`   ✅ Generated with ${ Object.keys( assets ).length } packages`
 	);
 }
 
