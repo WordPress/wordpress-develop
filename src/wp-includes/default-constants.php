@@ -406,11 +406,16 @@ function wp_functionality_constants() {
 	 */
 	if ( ! defined( 'WP_ALLOW_COLLABORATION' ) ) {
 		$env_value = getenv( 'WP_ALLOW_COLLABORATION' );
-		if ( false !== $env_value ) {
-			define( 'WP_ALLOW_COLLABORATION', 'true' === $env_value );
-		} else {
-			// Environment variable is not defined, default to true.
+		if ( false === $env_value ) {
+			// Environment variable is not defined, default to allowing collaboration.
 			define( 'WP_ALLOW_COLLABORATION', true );
+		} else {
+			/*
+			 * Environment variable is defined, let's confirm it is actually set to
+			 * "true" as it may still have a string value "false" – the preceeding
+			 * `if` branch only tests for the boolean `false`.
+			 */
+			define( 'WP_ALLOW_COLLABORATION', 'true' === $env_value );
 		}
 	}
 }
