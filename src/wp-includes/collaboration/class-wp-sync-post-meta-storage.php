@@ -74,14 +74,34 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_update( string $room, $update ): bool {
+		global $wpdb;
+
 		$post_id = $this->get_storage_post_id( $room );
 		if ( null === $post_id ) {
 			return false;
 		}
 
-		$meta_id = add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false );
+		// Use direct database operation to avoid cache invalidation performed by
+		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
+		// `wp_cache_delete()` calls).
+		//
+		// This operation corresponds to this function call (single=false):
+		// add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false );
+		$meta_value = wp_unslash( $update );
+		$meta_value = sanitize_meta( self::SYNC_UPDATE_META_KEY, $meta_value, 'post', self::POST_TYPE );
+		$meta_value = maybe_serialize( $meta_value );
 
-		return (bool) $meta_id;
+		$result = $wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $post_id,
+				'meta_key'   => self::SYNC_UPDATE_META_KEY,
+				'meta_value' => $meta_value,
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		return (bool) $result;
 	}
 
 	/**
@@ -93,12 +113,27 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return array<int, mixed> Awareness state.
 	 */
 	public function get_awareness_state( string $room ): array {
+		global $wpdb;
+
 		$post_id = $this->get_storage_post_id( $room );
 		if ( null === $post_id ) {
 			return array();
 		}
 
-		$awareness = get_post_meta( $post_id, self::AWARENESS_META_KEY, true );
+		// Use direct database operation to avoid updating the post meta cache.
+		$meta_value = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT meta_value FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s",
+				$post_id,
+				self::AWARENESS_META_KEY
+			)
+		);
+
+		if ( null === $meta_value ) {
+			return array();
+		}
+
+		$awareness = maybe_unserialize( $meta_value );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -117,13 +152,53 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return bool True on success, false on failure.
 	 */
 	public function set_awareness_state( string $room, array $awareness ): bool {
+		global $wpdb;
+
 		$post_id = $this->get_storage_post_id( $room );
 		if ( null === $post_id ) {
 			return false;
 		}
 
-		// update_post_meta returns false if the value is the same as the existing value.
-		update_post_meta( $post_id, wp_slash( self::AWARENESS_META_KEY ), wp_slash( $awareness ) );
+		// Use direct database operation to avoid cache invalidation performed by
+		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
+		// `wp_cache_delete()` calls).
+		//
+		// This operation corresponds to this function call:
+		// update_post_meta( $post_id, self::AWARENESS_META_KEY, $awareness );
+		$meta_value = wp_unslash( $awareness );
+		$meta_value = sanitize_meta( self::AWARENESS_META_KEY, $meta_value, 'post', self::POST_TYPE );
+		$meta_value = maybe_serialize( $meta_value );
+
+		$meta_id = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s",
+				$post_id,
+				self::AWARENESS_META_KEY
+			)
+		);
+
+		if ( $meta_id ) {
+			$wpdb->update(
+				$wpdb->postmeta,
+				array( 'meta_value' => $meta_value ),
+				array( 'meta_id' => $meta_id ),
+				array( '%s' ),
+				array( '%d' )
+			);
+		} else {
+			$wpdb->insert(
+				$wpdb->postmeta,
+				array(
+					'post_id'    => $post_id,
+					'meta_key'   => self::AWARENESS_META_KEY,
+					'meta_value' => $meta_value,
+				),
+				array( '%d', '%s', '%s' )
+			);
+		}
+
+		// Return true even if the database operation fails, since this operation is
+		// not critical for collaboration state.
 		return true;
 	}
 
