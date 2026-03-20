@@ -304,7 +304,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	}
 
 	/**
-	 * Invokes the provided callback while the suspending setting the posts last_changed cache key.
+	 * Invokes the provided callback while the suspending setting the posts
+	 * last_changed cache key via a special global flag.
 	 *
 	 * @since 7.0.0
 	 * @see wp_cache_set_posts_last_changed()
@@ -314,22 +315,12 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return T Return value from the callback.
 	 */
 	private function with_suspended_posts_last_changed_update( Closure $callback ) {
-		$priorities = array(
-			'added_post_meta'   => has_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' ),
-			'updated_post_meta' => has_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' ),
-			'deleted_post_meta' => has_action( 'deleted_post_meta', 'wp_cache_set_posts_last_changed' ),
-		);
-		foreach ( $priorities as $action => $priority ) {
-			if ( false !== $priority ) {
-				remove_action( $action, 'wp_cache_set_posts_last_changed', $priority );
-			}
+		$GLOBALS['__suspend_posts_last_changed_update'] = true;
+
+		try {
+			return $callback();
+		} finally {
+			$GLOBALS['__suspend_posts_last_changed_update'] = false;
 		}
-		$return_value = $callback();
-		foreach ( $priorities as $action => $priority ) {
-			if ( false !== $priority ) {
-				add_action( $action, 'wp_cache_set_posts_last_changed', $priority );
-			}
-		}
-		return $return_value;
 	}
 }
