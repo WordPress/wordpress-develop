@@ -2080,6 +2080,13 @@ module.exports = function(grunt) {
 		while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
 			routeNames.push( match[ 1 ] );
 		}
+
+		if ( routeNames.length === 0 ) {
+			grunt.fatal(
+				'No route names found in ' + registryPath + '. The format of the file may have changed.'
+			);
+		}
+
 		grunt.config( [ 'copy', 'routes', 'src' ], [ 'routes/registry.php' ].concat(
 			routeNames.flatMap( function( name ) {
 				return [
