@@ -15,6 +15,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 */
 	private WP_Site_Health $instance;
 
+	/**
+	 * Original error_log ini setting, restored after each test.
+	 *
+	 * @since 7.0.0
+	 * @var string|false
+	 */
+	private $original_error_log;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Include the `WP_Site_Health` file.
 		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
@@ -28,7 +36,18 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->instance = new WP_Site_Health();
+		$this->instance           = new WP_Site_Health();
+		$this->original_error_log = ini_get( 'error_log' );
+	}
+
+	/**
+	 * Tear down after each test.
+	 *
+	 * @since 7.0.0
+	 */
+	public function tear_down() {
+		ini_set( 'error_log', $this->original_error_log );
+		parent::tear_down();
 	}
 
 	/**
@@ -742,27 +761,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper method to set error_log ini setting and restore it later.
-	 *
-	 * @param string $log_path Path to set for error_log.
-	 * @return string|false Original error_log value.
-	 */
-	private function set_error_log_path( string $log_path = '' ) {
-		$original_error_log = ini_get( 'error_log' );
-		ini_set( 'error_log', $log_path );
-		return $original_error_log;
-	}
-
-	/**
-	 * Helper method to restore error_log ini setting.
-	 *
-	 * @param string|false $original_value Original error_log value.
-	 */
-	private function restore_error_log_path( $original_value ): void {
-		ini_set( 'error_log', $original_value );
-	}
-
-	/**
 	 * Returns the expected result array when debug mode is disabled.
 	 *
 	 * @return array<string, string|array<string, string>>
@@ -873,12 +871,12 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_enabled_no_error_log(): void {
-		$site_health        = $this->setup_site_health_with_debug_properties( true, false, null );
-		$original_error_log = $this->set_error_log_path( '' );
-		$actual_result      = $site_health->get_test_is_in_debug_mode();
-		$expected_result    = $this->get_debug_mode_disabled_result();
+		$site_health = $this->setup_site_health_with_debug_properties( true, false, null );
 
-		$this->restore_error_log_path( $original_error_log );
+		ini_set( 'error_log', '' );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_mode_disabled_result();
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when no error log is configured.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate no error log is configured.' );
@@ -894,13 +892,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_public(): void {
-		$site_health        = $this->setup_site_health_with_debug_properties( true, true, null );
-		$public_log_path    = ABSPATH . 'wp-content/debug.log';
-		$original_error_log = $this->set_error_log_path( $public_log_path );
-		$actual_result      = $site_health->get_test_is_in_debug_mode();
-		$expected_result    = $this->get_debug_error_log_public_result( true );
+		$site_health     = $this->setup_site_health_with_debug_properties( true, true, null );
+		$public_log_path = ABSPATH . 'wp-content/debug.log';
 
-		$this->restore_error_log_path( $original_error_log );
+		ini_set( 'error_log', $public_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_error_log_public_result( true );
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log is in a public location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a public location.' );
@@ -915,13 +913,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_public_without_wp_debug_log(): void {
-		$site_health        = $this->setup_site_health_with_debug_properties( true, false, null );
-		$public_log_path    = ABSPATH . 'wp-content/debug.log';
-		$original_error_log = $this->set_error_log_path( $public_log_path );
-		$actual_result      = $site_health->get_test_is_in_debug_mode();
-		$expected_result    = $this->get_debug_error_log_public_result( false );
+		$site_health     = $this->setup_site_health_with_debug_properties( true, false, null );
+		$public_log_path = ABSPATH . 'wp-content/debug.log';
 
-		$this->restore_error_log_path( $original_error_log );
+		ini_set( 'error_log', $public_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_error_log_public_result( false );
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log is in a public location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a public location.' );
@@ -936,13 +934,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_private(): void {
-		$site_health        = $this->setup_site_health_with_debug_properties( true, true, null );
-		$private_log_path   = '/var/log/php-error.log';
-		$original_error_log = $this->set_error_log_path( $private_log_path );
-		$actual_result      = $site_health->get_test_is_in_debug_mode();
-		$expected_result    = $this->get_debug_error_log_private_result( true );
+		$site_health      = $this->setup_site_health_with_debug_properties( true, true, null );
+		$private_log_path = '/var/log/php-error.log';
 
-		$this->restore_error_log_path( $original_error_log );
+		ini_set( 'error_log', $private_log_path );
+
+		$actual_result    = $site_health->get_test_is_in_debug_mode();
+		$expected_result  = $this->get_debug_error_log_private_result( true );
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when error log is in a private location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a private location.' );
@@ -957,13 +955,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_private_without_wp_debug_log(): void {
-		$site_health        = $this->setup_site_health_with_debug_properties( true, false, null );
-		$private_log_path   = '/var/log/php-error.log';
-		$original_error_log = $this->set_error_log_path( $private_log_path );
-		$actual_result      = $site_health->get_test_is_in_debug_mode();
-		$expected_result    = $this->get_debug_error_log_private_result( false );
+		$site_health      = $this->setup_site_health_with_debug_properties( true, false, null );
+		$private_log_path = '/var/log/php-error.log';
 
-		$this->restore_error_log_path( $original_error_log );
+		ini_set( 'error_log', $private_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_error_log_private_result( false );
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when error log is in a private location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a private location.' );
@@ -978,13 +976,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_non_existent(): void {
-		$site_health        = $this->setup_site_health_with_debug_properties( true, true, null );
-		$invalid_log_path   = '/nonexistent/path/that/does/not/exist/debug.log';
-		$original_error_log = $this->set_error_log_path( $invalid_log_path );
-		$actual_result      = $site_health->get_test_is_in_debug_mode();
-		$expected_result    = $this->get_debug_log_non_existent_path_result( true );
+		$site_health      = $this->setup_site_health_with_debug_properties( true, true, null );
+		$invalid_log_path = '/nonexistent/path/that/does/not/exist/debug.log';
 
-		$this->restore_error_log_path( $original_error_log );
+		ini_set( 'error_log', $invalid_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_log_non_existent_path_result( true );
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log location cannot be determined.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate that error log location could not be determined.' );
@@ -999,13 +997,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_test_is_in_debug_mode()
 	 */
 	public function test_is_in_debug_mode_error_log_non_existent_without_wp_debug_log(): void {
-		$site_health        = $this->setup_site_health_with_debug_properties( true, false, null );
-		$invalid_log_path   = '/nonexistent/path/that/does/not/exist/debug.log';
-		$original_error_log = $this->set_error_log_path( $invalid_log_path );
-		$actual_result      = $site_health->get_test_is_in_debug_mode();
-		$expected_result    = $this->get_debug_log_non_existent_path_result( false );
+		$site_health      = $this->setup_site_health_with_debug_properties( true, false, null );
+		$invalid_log_path = '/nonexistent/path/that/does/not/exist/debug.log';
 
-		$this->restore_error_log_path( $original_error_log );
+		ini_set( 'error_log', $invalid_log_path );
+
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_log_non_existent_path_result( false );
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "critical" when error log location cannot be determined.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate that error log location could not be determined.' );
