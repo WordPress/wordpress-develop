@@ -1504,7 +1504,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							/* translators: %s: Post title. */
 							: __( 'Edit &#8220;%s&#8221;' ),
 						$title
-					) 
+					)
 				),
 				/* translators: Action link text for a singular post in the post list. Can be any type of post. */
 				$is_rtc_locked ? _x( 'Join', 'post list' ) : __( 'Edit' )
