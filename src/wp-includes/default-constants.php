@@ -398,6 +398,21 @@ function wp_functionality_constants() {
 	if ( ! defined( 'WP_CRON_LOCK_TIMEOUT' ) ) {
 		define( 'WP_CRON_LOCK_TIMEOUT', MINUTE_IN_SECONDS );
 	}
+
+	/**
+	 * Whether real time collaboration is permitted to be enabled.
+	 *
+	 * @since 7.0.0
+	 */
+	if ( ! defined( 'WP_ALLOW_COLLABORATION' ) ) {
+		$env_value = getenv( 'WP_ALLOW_COLLABORATION' );
+		if ( false !== $env_value ) {
+			define( 'WP_ALLOW_COLLABORATION', 'true' === $env_value );
+		} else {
+			// Environment variable is not defined, default to true.
+			define( 'WP_ALLOW_COLLABORATION', true );
+		}
+	}
 }
 
 /**

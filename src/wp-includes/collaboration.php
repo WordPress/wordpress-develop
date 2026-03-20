@@ -9,7 +9,7 @@
 /**
  * Determines whether real-time collaboration is enabled.
  *
- * If the WP_DISABLE_COLLABORATION constant is defined and true,
+ * If the WP_ALLOW_COLLABORATION constant is false,
  * collaboration is always disabled regardless of the database option.
  * Otherwise, falls back to the 'wp_collaboration_enabled' option.
  *
@@ -18,7 +18,7 @@
  * @return bool Whether real-time collaboration is enabled.
  */
 function wp_is_collaboration_enabled() {
-	if ( defined( 'WP_DISABLE_COLLABORATION' ) && WP_DISABLE_COLLABORATION ) {
+	if ( ! defined( 'WP_ALLOW_COLLABORATION' ) || ! WP_ALLOW_COLLABORATION ) {
 		return false;
 	}
 
