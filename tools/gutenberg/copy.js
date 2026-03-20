@@ -406,7 +406,7 @@ function generateScriptModulesPackages() {
 		'<?php return ' +
 		json2php.make( {
 			linebreak: '\n',
-			indent: '  ',
+			indent: '\t',
 			shortArraySyntax: false,
 		} )( assets ) +
 		';';
@@ -474,7 +474,7 @@ function generateScriptLoaderPackages() {
 		'<?php return ' +
 		json2php.make( {
 			linebreak: '\n',
-			indent: '  ',
+			indent: '\t',
 			shortArraySyntax: false,
 		} )( assets ) +
 		';';
@@ -628,7 +628,7 @@ function generateBlocksJson() {
 		'<?php return ' +
 		json2php.make( {
 			linebreak: '\n',
-			indent: '  ',
+			indent: '\t',
 			shortArraySyntax: false,
 		} )( blocks ) +
 		';';
