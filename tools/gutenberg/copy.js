@@ -38,13 +38,6 @@ const wpIncludesDir = path.join( rootDir, buildTarget, 'wp-includes' );
  * Defines what to copy from Gutenberg build and where it goes in Core.
  */
 const COPY_CONFIG = {
-	// PHP infrastructure files (to wp-includes/build/).
-	phpInfrastructure: {
-		destination: 'build',
-		files: [ 'routes.php', 'pages.php', 'constants.php' ],
-		directories: [ 'pages', 'routes' ],
-	},
-
 	// JavaScript packages (to wp-includes/js/dist/).
 	scripts: {
 		source: 'scripts',
@@ -54,18 +47,6 @@ const COPY_CONFIG = {
 		directoryRenames: {
 			vendors: 'vendor',
 		},
-	},
-
-	// Script modules (to wp-includes/js/dist/script-modules/).
-	modules: {
-		source: 'modules',
-		destination: 'js/dist/script-modules',
-	},
-
-	// Styles (to wp-includes/css/dist/).
-	styles: {
-		source: 'styles',
-		destination: 'css/dist',
 	},
 
 	/*
@@ -91,27 +72,6 @@ const COPY_CONFIG = {
 			},
 		],
 	},
-
-	// Theme JSON files (from Gutenberg lib directory).
-	themeJson: {
-		files: [
-			{ from: 'theme.json', to: 'theme.json' },
-			{ from: 'theme-i18n.json', to: 'theme-i18n.json' },
-		],
-		transform: true,
-	},
-
-	// Specific files to copy to wp-includes/$destination.
-	wpIncludes: [
-		{
-			files: [ 'packages/icons/src/manifest.php' ],
-			destination: 'icons',
-		},
-		{
-			files: [ 'packages/icons/src/library/*.svg' ],
-			destination: 'icons/library',
-		},
-	],
 };
 
 /**
@@ -167,83 +127,6 @@ function isExperimentalBlock( blockJsonPath ) {
 		return !! blockJson.__experimental;
 	} catch ( error ) {
 		return false;
-	}
-}
-
-/**
- * Recursively copy directory.
- *
- * @param {string}   src        - Source directory.
- * @param {string}   dest       - Destination directory.
- * @param {Function} transform  - Optional transform function for file contents.
- * @param {Object}   options    - Optional configuration.
- * @param {boolean}  options.excludePHP - Skip PHP files.
- * @param {boolean}  options.excludeExperimental - Skip experimental blocks.
- */
-function copyDirectory( src, dest, transform = null, options = {} ) {
-	if ( ! fs.existsSync( src ) ) {
-		return;
-	}
-
-	fs.mkdirSync( dest, { recursive: true } );
-
-	const entries = fs.readdirSync( src, { withFileTypes: true } );
-
-	for ( const entry of entries ) {
-		const srcPath = path.join( src, entry.name );
-		const destPath = path.join( dest, entry.name );
-
-		if ( entry.isDirectory() ) {
-			// Check if this directory is an experimental block.
-			if ( options.excludeExperimental ) {
-				const blockJsonPath = path.join( srcPath, 'block.json' );
-				if ( isExperimentalBlock( blockJsonPath ) ) {
-					continue;
-				}
-			}
-
-			copyDirectory( srcPath, destPath, transform, options );
-		} else {
-			// Skip source map files (.map) — these are not useful in Core,
-			// and the sourceMappingURL references are already stripped from JS files.
-			if ( /\.map$/.test( entry.name ) ) {
-				continue;
-			}
-
-			// Skip non-minified VIPS files — they are ~10MB of inlined WASM,
-			// with no debugging value over the minified versions.
-			if (
-				srcPath.includes( '/vips/' ) &&
-				/(?<!\.min)\.js$/.test( entry.name )
-			) {
-				continue;
-			}
-
-			// Skip PHP files if excludePHP is true.
-			if ( options.excludePHP && /\.php$/.test( entry.name ) ) {
-				continue;
-			}
-
-			let content = fs.readFileSync( srcPath );
-
-			// Apply transformation if provided and file is text.
-			if ( transform && /\.(php|js|css)$/.test( entry.name ) ) {
-				try {
-					content = transform(
-						content.toString(),
-						srcPath,
-						destPath
-					);
-				} catch ( error ) {
-					console.error(
-						`   ⚠️  Transform error in ${ entry.name }:`,
-						error.message
-					);
-				}
-			}
-
-			fs.writeFileSync( destPath, content );
-		}
 	}
 }
 
@@ -742,12 +625,6 @@ async function main() {
 						}
 						console.log(
 							`   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)`
-						);
-					} else {
-						// Copy other special directories normally.
-						copyDirectory( src, dest );
-						console.log(
-							`   ✅ ${ entry.name }/ → ${ destName }/`
 						);
 					}
 				} else {
