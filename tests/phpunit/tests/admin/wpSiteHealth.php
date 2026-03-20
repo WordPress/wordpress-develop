@@ -939,8 +939,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		ini_set( 'error_log', $private_log_path );
 
-		$actual_result    = $site_health->get_test_is_in_debug_mode();
-		$expected_result  = $this->get_debug_error_log_private_result( true );
+		$actual_result   = $site_health->get_test_is_in_debug_mode();
+		$expected_result = $this->get_debug_error_log_private_result( true );
 
 		$this->assertSame( $expected_result['status'], $actual_result['status'], 'Status should be "good" when error log is in a private location.' );
 		$this->assertSame( $expected_result['label'], $actual_result['label'], 'Label should indicate error log is in a private location.' );
