@@ -634,7 +634,10 @@ module.exports = function(grunt) {
 			 * `gutenberg:download` has run. See the `routes:setup` task registration for implementation details.
 			 */
 			routes: {
-				files: [],
+				expand: true,
+				cwd: 'gutenberg/build',
+				src: [],
+				dest: WORKING_DIR + 'wp-includes/build/',
 			},
 			'gutenberg-js': {
 				files: [ {
@@ -2076,19 +2079,14 @@ module.exports = function(grunt) {
 		while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
 			routeNames.push( match[ 1 ] );
 		}
-		grunt.config( [ 'copy', 'routes', 'files' ], [ {
-			expand: true,
-			cwd: 'gutenberg/build',
-			src: [ 'routes/registry.php' ].concat(
-				routeNames.flatMap( function( name ) {
-					return [
-						'routes/' + name + '/**/*.php',
-						'routes/' + name + '/**/*.js',
-					];
-				} )
-			),
-			dest: WORKING_DIR + 'wp-includes/build/',
-		} ] );
+		grunt.config( [ 'copy', 'routes', 'src' ], [ 'routes/registry.php' ].concat(
+			routeNames.flatMap( function( name ) {
+				return [
+					'routes/' + name + '/**/*.php',
+					'routes/' + name + '/**/*.js',
+				];
+			} )
+		) );
 	} );
 
 	grunt.registerTask( 'build:gutenberg', [
