@@ -258,6 +258,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$prevent_unsupported_uploads = false;
 		}
 
+		// Always allow HEIC/HEIF uploads through even if the server's image
+		// editor doesn't support them. The client-side canvas fallback will
+		// handle processing using the browser's native HEVC decoder.
+		if (
+			$prevent_unsupported_uploads &&
+			! empty( $files['file']['type'] ) &&
+			wp_is_heic_image_mime_type( $files['file']['type'] )
+		) {
+			$prevent_unsupported_uploads = false;
+		}
+
 		// If the upload is an image, check if the server can handle the mime type.
 		if (
 			$prevent_unsupported_uploads &&
