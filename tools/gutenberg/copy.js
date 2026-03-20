@@ -38,13 +38,6 @@ const wpIncludesDir = path.join( rootDir, buildTarget, 'wp-includes' );
  * Defines what to copy from Gutenberg build and where it goes in Core.
  */
 const COPY_CONFIG = {
-	// PHP infrastructure files (to wp-includes/build/).
-	phpInfrastructure: {
-		destination: 'build',
-		files: [ 'routes.php', 'pages.php', 'constants.php' ],
-		directories: [ 'pages', 'routes' ],
-	},
-
 	// JavaScript packages (to wp-includes/js/dist/).
 	scripts: {
 		source: 'scripts',
@@ -54,18 +47,6 @@ const COPY_CONFIG = {
 		directoryRenames: {
 			vendors: 'vendor',
 		},
-	},
-
-	// Script modules (to wp-includes/js/dist/script-modules/).
-	modules: {
-		source: 'modules',
-		destination: 'js/dist/script-modules',
-	},
-
-	// Styles (to wp-includes/css/dist/).
-	styles: {
-		source: 'styles',
-		destination: 'css/dist',
 	},
 
 	/*
@@ -91,27 +72,6 @@ const COPY_CONFIG = {
 			},
 		],
 	},
-
-	// Theme JSON files (from Gutenberg lib directory).
-	themeJson: {
-		files: [
-			{ from: 'theme.json', to: 'theme.json' },
-			{ from: 'theme-i18n.json', to: 'theme-i18n.json' },
-		],
-		transform: true,
-	},
-
-	// Specific files to copy to wp-includes/$destination.
-	wpIncludes: [
-		{
-			files: [ 'packages/icons/src/manifest.php' ],
-			destination: 'icons',
-		},
-		{
-			files: [ 'packages/icons/src/library/*.svg' ],
-			destination: 'icons/library',
-		},
-	],
 };
 
 /**
@@ -167,83 +127,6 @@ function isExperimentalBlock( blockJsonPath ) {
 		return !! blockJson.__experimental;
 	} catch ( error ) {
 		return false;
-	}
-}
-
-/**
- * Recursively copy directory.
- *
- * @param {string}   src        - Source directory.
- * @param {string}   dest       - Destination directory.
- * @param {Function} transform  - Optional transform function for file contents.
- * @param {Object}   options    - Optional configuration.
- * @param {boolean}  options.excludePHP - Skip PHP files.
- * @param {boolean}  options.excludeExperimental - Skip experimental blocks.
- */
-function copyDirectory( src, dest, transform = null, options = {} ) {
-	if ( ! fs.existsSync( src ) ) {
-		return;
-	}
-
-	fs.mkdirSync( dest, { recursive: true } );
-
-	const entries = fs.readdirSync( src, { withFileTypes: true } );
-
-	for ( const entry of entries ) {
-		const srcPath = path.join( src, entry.name );
-		const destPath = path.join( dest, entry.name );
-
-		if ( entry.isDirectory() ) {
-			// Check if this directory is an experimental block.
-			if ( options.excludeExperimental ) {
-				const blockJsonPath = path.join( srcPath, 'block.json' );
-				if ( isExperimentalBlock( blockJsonPath ) ) {
-					continue;
-				}
-			}
-
-			copyDirectory( srcPath, destPath, transform, options );
-		} else {
-			// Skip source map files (.map) — these are not useful in Core,
-			// and the sourceMappingURL references are already stripped from JS files.
-			if ( /\.map$/.test( entry.name ) ) {
-				continue;
-			}
-
-			// Skip non-minified VIPS files — they are ~10MB of inlined WASM,
-			// with no debugging value over the minified versions.
-			if (
-				srcPath.includes( '/vips/' ) &&
-				/(?<!\.min)\.js$/.test( entry.name )
-			) {
-				continue;
-			}
-
-			// Skip PHP files if excludePHP is true.
-			if ( options.excludePHP && /\.php$/.test( entry.name ) ) {
-				continue;
-			}
-
-			let content = fs.readFileSync( srcPath );
-
-			// Apply transformation if provided and file is text.
-			if ( transform && /\.(php|js|css)$/.test( entry.name ) ) {
-				try {
-					content = transform(
-						content.toString(),
-						srcPath,
-						destPath
-					);
-				} catch ( error ) {
-					console.error(
-						`   ⚠️  Transform error in ${ entry.name }:`,
-						error.message
-					);
-				}
-			}
-
-			fs.writeFileSync( destPath, content );
-		}
 	}
 }
 
@@ -351,14 +234,13 @@ function copyBlockAssets( config ) {
 }
 
 /**
- * Generate script-modules-packages.min.php from individual asset files.
- * Reads all view.min.asset.php files from modules/block-library and combines them
- * into a single PHP file.
+ * Generate script-modules-packages.php from individual asset files.
+ * Recursively scans the Gutenberg modules/ directory for *.min.asset.php files
+ * and combines their contents into a single PHP file.
  */
 function generateScriptModulesPackages() {
 	const modulesDir = path.join( gutenbergBuildDir, 'modules' );
-	const assetsMin = {};
-	const assetsRegular = {};
+	const assets = {};
 
 	/**
 	 * Recursively process directory to find .asset.php files.
@@ -384,16 +266,13 @@ function generateScriptModulesPackages() {
 				const normalizedPath = relativePath
 					.split( path.sep )
 					.join( '/' );
-				const jsPathMin = normalizedPath.replace(
-					/\.asset\.php$/,
-					'.js'
-				);
-				const jsPathRegular = jsPathMin.replace( /\.min\.js$/, '.js' );
+				const jsPath = normalizedPath
+					.replace( /\.asset\.php$/, '.js' )
+					.replace( /\.min\.js$/, '.js' );
 
 				try {
 					const assetData = readReturnedValueFromPHPFile( fullPath );
-					assetsMin[ jsPathMin ] = assetData;
-					assetsRegular[ jsPathRegular ] = assetData;
+					assets[ jsPath ] = assetData;
 				} catch ( error ) {
 					console.error(
 						`   ⚠️  Error reading ${ relativePath }:`,
@@ -406,52 +285,35 @@ function generateScriptModulesPackages() {
 
 	processDirectory( modulesDir, modulesDir );
 
-	// Generate both minified and non-minified PHP files using json2php.
-	const phpContentMin =
+	const phpContent =
 		'<?php return ' +
 		json2php.make( {
 			linebreak: '\n',
-			indent: '  ',
+			indent: '\t',
 			shortArraySyntax: false,
-		} )( assetsMin ) +
+		} )( assets ) +
 		';';
 
-	const phpContentRegular =
-		'<?php return ' +
-		json2php.make( {
-			linebreak: '\n',
-			indent: '  ',
-			shortArraySyntax: false,
-		} )( assetsRegular ) +
-		';';
-
-	const outputPathMin = path.join(
-		wpIncludesDir,
-		'assets/script-modules-packages.min.php'
-	);
-	const outputPathRegular = path.join(
+	const outputPath = path.join(
 		wpIncludesDir,
 		'assets/script-modules-packages.php'
 	);
 
-	fs.mkdirSync( path.dirname( outputPathMin ), { recursive: true } );
-	fs.writeFileSync( outputPathMin, phpContentMin );
-	fs.writeFileSync( outputPathRegular, phpContentRegular );
+	fs.mkdirSync( path.dirname( outputPath ), { recursive: true } );
+	fs.writeFileSync( outputPath, phpContent );
 
 	console.log(
-		`   ✅ Generated with ${ Object.keys( assetsMin ).length } modules`
+		`   ✅ Generated with ${ Object.keys( assets ).length } modules`
 	);
 }
 
 /**
- * Generate script-loader-packages.php and script-loader-packages.min.php from individual asset files.
- * Reads all .min.asset.php files from scripts/ and combines them into PHP files for script registration.
- * Generates both minified and non-minified versions.
+ * Generate script-loader-packages.php from individual asset files.
+ * Reads all .min.asset.php files from scripts/ and combines them into a PHP file for script registration.
  */
 function generateScriptLoaderPackages() {
 	const scriptsDir = path.join( gutenbergBuildDir, 'scripts' );
-	const assetsMin = {};
-	const assetsRegular = {};
+	const assets = {};
 
 	if ( ! fs.existsSync( scriptsDir ) ) {
 		console.log( '   ⚠️  Scripts directory not found' );
@@ -482,12 +344,7 @@ function generateScriptLoaderPackages() {
 				assetData.dependencies = [];
 			}
 
-			// Create entries for both minified and non-minified versions.
-			const jsPathMin = `${ entry.name }.min.js`;
-			const jsPathRegular = `${ entry.name }.js`;
-
-			assetsMin[ jsPathMin ] = assetData;
-			assetsRegular[ jsPathRegular ] = assetData;
+			assets[ `${ entry.name }.js` ] = assetData;
 		} catch ( error ) {
 			console.error(
 				`   ⚠️  Error reading ${ entry.name }/index.min.asset.php:`,
@@ -496,40 +353,25 @@ function generateScriptLoaderPackages() {
 		}
 	}
 
-	// Generate both minified and non-minified PHP files using json2php.
-	const phpContentMin =
+	const phpContent =
 		'<?php return ' +
 		json2php.make( {
 			linebreak: '\n',
-			indent: '  ',
+			indent: '\t',
 			shortArraySyntax: false,
-		} )( assetsMin ) +
+		} )( assets ) +
 		';';
 
-	const phpContentRegular =
-		'<?php return ' +
-		json2php.make( {
-			linebreak: '\n',
-			indent: '  ',
-			shortArraySyntax: false,
-		} )( assetsRegular ) +
-		';';
-
-	const outputPathMin = path.join(
-		wpIncludesDir,
-		'assets/script-loader-packages.min.php'
-	);
-	const outputPathRegular = path.join(
+	const outputPath = path.join(
 		wpIncludesDir,
 		'assets/script-loader-packages.php'
 	);
 
-	fs.mkdirSync( path.dirname( outputPathMin ), { recursive: true } );
-	fs.writeFileSync( outputPathMin, phpContentMin );
-	fs.writeFileSync( outputPathRegular, phpContentRegular );
+	fs.mkdirSync( path.dirname( outputPath ), { recursive: true } );
+	fs.writeFileSync( outputPath, phpContent );
 
 	console.log(
-		`   ✅ Generated with ${ Object.keys( assetsMin ).length } packages`
+		`   ✅ Generated with ${ Object.keys( assets ).length } packages`
 	);
 }
 
@@ -669,7 +511,7 @@ function generateBlocksJson() {
 		'<?php return ' +
 		json2php.make( {
 			linebreak: '\n',
-			indent: '  ',
+			indent: '\t',
 			shortArraySyntax: false,
 		} )( blocks ) +
 		';';
@@ -743,12 +585,6 @@ async function main() {
 						console.log(
 							`   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)`
 						);
-					} else {
-						// Copy other special directories normally.
-						copyDirectory( src, dest );
-						console.log(
-							`   ✅ ${ entry.name }/ → ${ destName }/`
-						);
 					}
 				} else {
 					/*
@@ -759,7 +595,7 @@ async function main() {
 
 					for ( const file of packageFiles ) {
 						if (
-							/^index\.(js|min\.js|min\.asset\.php)$/.test( file )
+							/^index\.(js|min\.js)$/.test( file )
 						) {
 							const srcFile = path.join( src, file );
 							// Replace 'index.' with 'package-name.'.
