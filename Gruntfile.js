@@ -603,7 +603,7 @@ module.exports = function(grunt) {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
 				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			},
-			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/, routes/).
+			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/).
 			'gutenberg-php': {
 				options: {
 					process: function( content ) {
@@ -622,10 +622,25 @@ module.exports = function(grunt) {
 						'pages.php',
 						'constants.php',
 						'pages/**/*.php',
-						'routes/**/*.php',
 					],
 					dest: WORKING_DIR + 'wp-includes/build/',
 				} ],
+			},
+			/*
+			 * Only copy files relevant to the routes specified in the registry file.
+			 *
+			 * While the registry file does not contain any experimental routes, the `gutenberg/build/routes` directory
+			 * includes the files for all registered routes. Only the files related to the routes specified in the
+			 * registry should be included in the WordPress build.
+			 *
+			 * The `src` list is populated at task runtime by `routes:setup`, which reads the registry after
+			 * `gutenberg:download` has run. See the `routes:setup` task registration for implementation details.
+			 */
+			routes: {
+				expand: true,
+				cwd: 'gutenberg/build',
+				src: [],
+				dest: WORKING_DIR + 'wp-includes/build/',
 			},
 			'gutenberg-js': {
 				files: [ {
@@ -633,7 +648,6 @@ module.exports = function(grunt) {
 					cwd: 'gutenberg/build',
 					src: [
 						'pages/**/*.js',
-						'routes/**/*.js',
 					],
 					dest: WORKING_DIR + 'wp-includes/build/',
 				} ],
@@ -2056,8 +2070,52 @@ module.exports = function(grunt) {
 			} );
 	} );
 
+	grunt.registerTask( 'routes:setup', 'Reads the routes registry and configures the copy:routes task.', function() {
+		const registryPath = 'gutenberg/build/routes/registry.php';
+		let registryContent;
+		try {
+			registryContent = fs.readFileSync( registryPath, 'utf8' );
+		} catch ( e ) {
+			grunt.fatal(
+				'Route registry not found at ' + registryPath + '. Run `grunt gutenberg:download` first.'
+			);
+		}
+		const namePattern = /'name'\s*=>\s*'([^']+)'/g;
+		const routeNames = [];
+		let match;
+		while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
+			routeNames.push( match[ 1 ] );
+		}
+
+		if ( routeNames.length === 0 ) {
+			grunt.fatal(
+				'No route names found in ' + registryPath + '. The format of the file may have changed.'
+			);
+		}
+
+		const validName = /^[A-Za-z0-9_-]+$/;
+		routeNames.forEach( function( name ) {
+			if ( ! validName.test( name ) ) {
+				grunt.fatal(
+					'Invalid route name \'' + name + '\' in ' + registryPath + '. Expected only letters, digits, hyphens, and underscores.'
+				);
+			}
+		} );
+
+		grunt.config( [ 'copy', 'routes', 'src' ], [ 'routes/registry.php' ].concat(
+			routeNames.flatMap( function( name ) {
+				return [
+					'routes/' + name + '/**/*.php',
+					'routes/' + name + '/**/*.js',
+				];
+			} )
+		) );
+	} );
+
 	grunt.registerTask( 'build:gutenberg', [
 		'copy:gutenberg-php',
+		'routes:setup',
+		'copy:routes',
 		'copy:gutenberg-js',
 		'gutenberg:copy',
 		'copy:gutenberg-modules',
