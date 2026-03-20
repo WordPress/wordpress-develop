@@ -1442,27 +1442,20 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
  * Enqueues the admin bar color scheme stylesheet on the front end.
  *
  * @since 7.0.0
- *
- * @global array $_wp_admin_css_colors Registered administration color schemes.
  */
 function wp_admin_bar_add_color_scheme_to_front_end() {
 	if ( is_admin() ) {
 		return;
 	}
 
-	global $_wp_admin_css_colors;
-
-	if ( empty( $_wp_admin_css_colors ) ) {
-		register_admin_color_schemes();
-	}
-
 	$color_scheme = get_user_option( 'admin_color' );
 
-	if ( empty( $color_scheme ) || ! isset( $_wp_admin_css_colors[ $color_scheme ] ) ) {
-		$color_scheme = 'modern';
+	if ( empty( $color_scheme ) || ! in_array( 'modern', 'light', 'blue', 'coffee', 'ectoplasm', 'midnight', 'ocean', 'sunrise' ) ) {
+		return;
 	}
 
-	$admin_bar_url = $_wp_admin_css_colors[ $color_scheme ]->admin_bar_url ?? false;
+	$suffix        = SCRIPT_DEBUG ? '' : '.min';
+	$admin_bar_url = admin_url( 'css/colors/' . $color_scheme . "/admin-bar$suffix.css" );
 
 	if ( ! $admin_bar_url ) {
 		return;
