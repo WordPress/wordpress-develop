@@ -595,7 +595,7 @@ async function main() {
 
 					for ( const file of packageFiles ) {
 						if (
-							/^index\.(js|min\.js|min\.asset\.php)$/.test( file )
+							/^index\.(js|min\.js)$/.test( file )
 						) {
 							const srcFile = path.join( src, file );
 							// Replace 'index.' with 'package-name.'.
