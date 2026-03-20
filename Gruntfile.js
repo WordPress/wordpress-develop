@@ -616,6 +616,7 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: 'gutenberg/build',
 					src: [
+						'routes.php',
 						'pages.php',
 						'constants.php',
 						'pages/**/*.php',
