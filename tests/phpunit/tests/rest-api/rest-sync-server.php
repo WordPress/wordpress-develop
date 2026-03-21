@@ -667,11 +667,14 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 				$this->did_inject = true;
 
-				add_post_meta(
-					$this->storage_post_id,
-					WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
-					$this->injected_update,
-					false
+				$this->wpdb->insert(
+					$this->wpdb->postmeta,
+					array(
+						'post_id'    => $this->storage_post_id,
+						'meta_key'   => WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
+						'meta_value' => wp_json_encode( $this->injected_update ),
+					),
+					array( '%d', '%s', '%s' )
 				);
 			}
 
@@ -934,7 +937,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 						array(
 							'post_id'    => $this->storage_post_id,
 							'meta_key'   => WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
-							'meta_value' => maybe_serialize( $this->concurrent_update ),
+							'meta_value' => wp_json_encode( $this->concurrent_update ),
 						),
 						array( '%d', '%s', '%s' )
 					);

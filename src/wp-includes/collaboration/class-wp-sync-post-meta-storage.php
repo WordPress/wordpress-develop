@@ -30,7 +30,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const AWARENESS_META_KEY = 'wp_sync_awareness';
+	const AWARENESS_META_KEY = 'wp_sync_awareness_state';
 
 	/**
 	 * Meta key for sync updates.
@@ -38,7 +38,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const SYNC_UPDATE_META_KEY = 'wp_sync_update';
+	const SYNC_UPDATE_META_KEY = 'wp_sync_update_data';
 
 	/**
 	 * Cache of cursors by room.
@@ -84,24 +84,15 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		// Use direct database operation to avoid cache invalidation performed by
 		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
 		// `wp_cache_delete()` calls).
-		//
-		// This operation corresponds to this function call (single=false):
-		// add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false );
-		$meta_value = wp_unslash( $update );
-		$meta_value = sanitize_meta( self::SYNC_UPDATE_META_KEY, $meta_value, 'post', self::POST_TYPE );
-		$meta_value = maybe_serialize( $meta_value );
-
-		$result = $wpdb->insert(
+		return (bool) $wpdb->insert(
 			$wpdb->postmeta,
 			array(
 				'post_id'    => $post_id,
 				'meta_key'   => self::SYNC_UPDATE_META_KEY,
-				'meta_value' => $meta_value,
+				'meta_value' => wp_json_encode( $update ),
 			),
 			array( '%d', '%s', '%s' )
 		);
-
-		return (bool) $result;
 	}
 
 	/**
@@ -133,7 +124,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return array();
 		}
 
-		$awareness = maybe_unserialize( $meta_value );
+		$awareness = json_decode( $meta_value, true );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -159,16 +150,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		// Use direct database operation to avoid cache invalidation performed by
-		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
-		// `wp_cache_delete()` calls).
-		//
-		// This operation corresponds to this function call:
-		// update_post_meta( $post_id, self::AWARENESS_META_KEY, $awareness );
-		$meta_value = wp_unslash( $awareness );
-		$meta_value = sanitize_meta( self::AWARENESS_META_KEY, $meta_value, 'post', self::POST_TYPE );
-		$meta_value = maybe_serialize( $meta_value );
-
+		// Use direct database operation to avoid updating the post meta cache.
 		$meta_id = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s",
@@ -177,29 +159,28 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			)
 		);
 
+		// Use direct database operation to avoid cache invalidation performed by
+		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
+		// `wp_cache_delete()` calls).
 		if ( $meta_id ) {
-			$wpdb->update(
+			return (bool) $wpdb->update(
 				$wpdb->postmeta,
-				array( 'meta_value' => $meta_value ),
+				array( 'meta_value' => wp_json_encode( $awareness ) ),
 				array( 'meta_id' => $meta_id ),
 				array( '%s' ),
 				array( '%d' )
 			);
-		} else {
-			$wpdb->insert(
-				$wpdb->postmeta,
-				array(
-					'post_id'    => $post_id,
-					'meta_key'   => self::AWARENESS_META_KEY,
-					'meta_value' => $meta_value,
-				),
-				array( '%d', '%s', '%s' )
-			);
 		}
 
-		// Return true even if the database operation fails, since this operation is
-		// not critical for collaboration state.
-		return true;
+		return (bool) $wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $post_id,
+				'meta_key'   => self::AWARENESS_META_KEY,
+				'meta_value' => wp_json_encode( $awareness ),
+			),
+			array( '%d', '%s', '%s' )
+		);
 	}
 
 	/**
@@ -336,7 +317,10 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 
 		$updates = array();
 		foreach ( $rows as $row ) {
-			$updates[] = maybe_unserialize( $row->meta_value );
+			$decoded = json_decode( $row->meta_value, true );
+			if ( null !== $decoded ) {
+				$updates[] = $decoded;
+			}
 		}
 
 		return $updates;
