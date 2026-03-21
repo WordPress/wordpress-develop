@@ -1266,6 +1266,11 @@ figcaption,
   margin-left: 0;
 }
 
+/** === Preformatted === */
+.wp-block-preformatted {
+  font-size: 0.71111em;
+}
+
 /** === Verse === */
 .wp-block-verse,
 .wp-block-verse pre {
