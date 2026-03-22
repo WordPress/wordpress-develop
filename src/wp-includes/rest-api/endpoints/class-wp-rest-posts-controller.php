@@ -766,10 +766,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 */
 			$prepared_post->post_name = wp_unique_post_slug(
 				$prepared_post->post_name,
-				isset( $prepared_post->ID ) ? $prepared_post->ID : 0,
+				$prepared_post->ID ?? 0,
 				'publish',
 				$prepared_post->post_type,
-				isset( $prepared_post->post_parent ) ? $prepared_post->post_parent : 0
+				$prepared_post->post_parent ?? 0
 			);
 		}
 
