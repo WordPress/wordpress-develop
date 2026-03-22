@@ -1904,24 +1904,22 @@ HTML;
 	}
 
 	/**
-	 * Tests that VIPS script modules always use minified file paths.
+	 * Tests that VIPS script modules are not registered in Core.
 	 *
-	 * Non-minified VIPS files are not shipped because they are ~10MB of
-	 * inlined WASM with no debugging value, so the registration should
-	 * always point to the .min.js variants.
+	 * The wasm-vips library is plugin-only and should not be included
+	 * in WordPress Core builds due to its large size (~16MB per file).
 	 *
-	 * @ticket 64734
+	 * @ticket 64906
 	 *
 	 * @covers ::wp_default_script_modules
 	 */
-	public function test_vips_script_modules_always_use_minified_paths() {
+	public function test_vips_script_modules_not_registered_in_core() {
 		wp_default_script_modules();
 		wp_enqueue_script_module( '@wordpress/vips/loader' );
 
 		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
-		$this->assertStringContainsString( 'vips/loader.min.js', $actual );
-		$this->assertStringNotContainsString( 'vips/loader.js"', $actual );
+		$this->assertStringNotContainsString( 'vips', $actual );
 	}
 
 	/**
