@@ -13,6 +13,26 @@
  * @since 4.7.0
  *
  * @see WP_REST_Controller
+ *
+ * @phpstan-type PreparedPost object{
+ *     ID?: int,
+ *     post_title?: string,
+ *     post_content?: string,
+ *     post_excerpt?: string,
+ *     post_type: string,
+ *     post_status?: string,
+ *     post_date?: string|null,
+ *     post_date_gmt?: string|null,
+ *     edit_date?: true,
+ *     post_name?: string,
+ *     post_author?: int,
+ *     post_parent?: int,
+ *     menu_order?: int,
+ *     comment_status?: string,
+ *     ping_status?: string,
+ *     page_template?: null,
+ *     meta_input?: array<string, string>,
+ * }
  */
 class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
@@ -1283,13 +1303,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return stdClass|WP_Error Post object or WP_Error.
+	 * @return object|WP_Error Post object or WP_Error.
+	 * @phpstan-return PreparedPost|WP_Error
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_post  = new stdClass();
 		$current_status = '';
 
 		// Post ID.
+		$existing_post = null;
 		if ( isset( $request['id'] ) ) {
 			$existing_post = $this->get_post( $request['id'] );
 			if ( is_wp_error( $existing_post ) ) {
@@ -1330,15 +1352,22 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Post type.
-		if ( empty( $request['id'] ) ) {
+		if ( ! $existing_post ) {
 			// Creating new post, use default type for the controller.
 			$prepared_post->post_type = $this->post_type;
 		} else {
 			// Updating a post, use previous type.
-			$prepared_post->post_type = get_post_type( $request['id'] );
+			$prepared_post->post_type = $existing_post->post_type;
 		}
 
 		$post_type = get_post_type_object( $prepared_post->post_type );
+		if ( ! $post_type ) {
+			return new WP_Error(
+				'rest_post_invalid_type',
+				__( 'Invalid post type.' ),
+				array( 'status' => 400 )
+			);
+		}
 
 		// Post status.
 		if (
@@ -1357,7 +1386,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Post date.
 		if ( ! empty( $schema['properties']['date'] ) && ! empty( $request['date'] ) ) {
-			$current_date = isset( $prepared_post->ID ) ? get_post( $prepared_post->ID )->post_date : false;
+			$current_date = $existing_post ? $existing_post->post_date : false;
 			$date_data    = rest_get_date_with_gmt( $request['date'] );
 
 			if ( ! empty( $date_data ) && $current_date !== $date_data[0] ) {
@@ -1365,7 +1394,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$prepared_post->edit_date                                        = true;
 			}
 		} elseif ( ! empty( $schema['properties']['date_gmt'] ) && ! empty( $request['date_gmt'] ) ) {
-			$current_date = isset( $prepared_post->ID ) ? get_post( $prepared_post->ID )->post_date_gmt : false;
+			$current_date = $existing_post ? $existing_post->post_date_gmt : false;
 			$date_data    = rest_get_date_with_gmt( $request['date_gmt'], true );
 
 			if ( ! empty( $date_data ) && $current_date !== $date_data[1] ) {
@@ -1423,7 +1452,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					);
 				}
 
-				if ( ! empty( $prepared_post->ID ) && is_sticky( $prepared_post->ID ) ) {
+				if ( $existing_post && is_sticky( $existing_post->ID ) ) {
 					return new WP_Error(
 						'rest_invalid_field',
 						__( 'A sticky post can not be password protected.' ),
@@ -1434,7 +1463,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
-			if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
+			if ( $existing_post && post_password_required( $prepared_post->ID ) ) {
 				return new WP_Error(
 					'rest_invalid_field',
 					__( 'A password protected post can not be set to sticky.' ),
