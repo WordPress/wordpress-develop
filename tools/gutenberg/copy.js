@@ -60,14 +60,12 @@ const COPY_CONFIG = {
 				// Block library blocks.
 				name: 'block-library',
 				scripts: 'scripts/block-library',
-				styles: 'styles/block-library',
 				php: 'scripts/block-library',
 			},
 			{
 				// Widget blocks.
 				name: 'widgets',
 				scripts: 'scripts/widgets/blocks',
-				styles: 'styles/widgets',
 				php: 'scripts/widgets/blocks',
 			},
 		],
@@ -141,7 +139,6 @@ function copyBlockAssets( config ) {
 
 	for ( const source of config.sources ) {
 		const scriptsSrc = path.join( gutenbergBuildDir, source.scripts );
-		const stylesSrc = path.join( gutenbergBuildDir, source.styles );
 		const phpSrc = path.join( gutenbergBuildDir, source.php );
 
 		if ( ! fs.existsSync( scriptsSrc ) ) {
@@ -176,27 +173,13 @@ function copyBlockAssets( config ) {
 					blockDest,
 					{
 						recursive: true,
-						// Skip PHP, copied from build in steps 3 & 4.
+						// Skip PHP, copied from build in steps 2 & 3.
 						filter: f => ! f.endsWith( '.php' ),
 					}
 				);
 			}
 
-			// 2. Copy styles (if they exist in per-block directory)
-			const blockStylesSrc = path.join( stylesSrc, blockName );
-			if ( fs.existsSync( blockStylesSrc ) ) {
-				const cssFiles = fs
-					.readdirSync( blockStylesSrc )
-					.filter( ( file ) => file.endsWith( '.css' ) );
-				for ( const cssFile of cssFiles ) {
-					fs.copyFileSync(
-						path.join( blockStylesSrc, cssFile ),
-						path.join( blockDest, cssFile )
-					);
-				}
-			}
-
-			// 3. Copy PHP from build
+			// 2. Copy PHP from build
 			const blockPhpSrc = path.join( phpSrc, `${ blockName }.php` );
 			const phpDest = path.join(
 				wpIncludesDir,
