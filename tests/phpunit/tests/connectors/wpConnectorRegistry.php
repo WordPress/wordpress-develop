@@ -397,4 +397,16 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 
 		$this->assertSame( $instance1, $instance2 );
 	}
+
+	/**
+	 * Test registration skips AI connectors when AI is not supported.
+	 */
+	public function test_register_skips_when_ai_not_supported() {
+		add_filter( 'wp_supports_ai', '__return_false' );
+
+		$this->registry->register( 'first', self::$default_args );
+
+		$all = $this->registry->get_all_registered();
+		$this->assertCount( 0, $all );
+	}
 }

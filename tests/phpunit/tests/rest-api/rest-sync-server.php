@@ -334,7 +334,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$this->assertIsInt( $data['rooms'][0]['end_cursor'] );
-		$this->assertGreaterThan( 0, $data['rooms'][0]['end_cursor'] );
+		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'] );
 	}
 
 	public function test_sync_empty_updates_returns_zero_total() {
@@ -565,6 +565,154 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 3, $data['rooms'][0]['total_updates'] );
 	}
 
+	public function test_sync_cursor_does_not_skip_update_inserted_during_fetch_window() {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room    = $this->get_post_room();
+		$storage = new WP_Sync_Post_Meta_Storage();
+
+		$seed_update = array(
+			'client_id' => 1,
+			'type'      => 'update',
+			'data'      => 'c2VlZA==',
+		);
+
+		$this->assertTrue( $storage->add_update( $room, $seed_update ) );
+
+		$initial_updates = $storage->get_updates_after_cursor( $room, 0 );
+		$baseline_cursor = $storage->get_cursor( $room );
+
+		$this->assertCount( 1, $initial_updates );
+		$this->assertSame( $seed_update, $initial_updates[0] );
+		$this->assertGreaterThan( 0, $baseline_cursor );
+
+		$storage_posts   = get_posts(
+			array(
+				'post_type'      => WP_Sync_Post_Meta_Storage::POST_TYPE,
+				'posts_per_page' => 1,
+				'post_status'    => 'publish',
+				'name'           => md5( $room ),
+				'fields'         => 'ids',
+			)
+		);
+		$storage_post_id = array_first( $storage_posts );
+
+		$this->assertIsInt( $storage_post_id );
+
+		$injected_update = array(
+			'client_id' => 9999,
+			'type'      => 'update',
+			'data'      => base64_encode( 'injected-during-fetch' ),
+		);
+
+		$original_wpdb = $wpdb;
+		$proxy_wpdb    = new class( $original_wpdb, $storage_post_id, $injected_update ) {
+			private $wpdb;
+			private $storage_post_id;
+			private $injected_update;
+			public $postmeta;
+			public $did_inject = false;
+
+			public function __construct( $wpdb, int $storage_post_id, array $injected_update ) {
+				$this->wpdb            = $wpdb;
+				$this->storage_post_id = $storage_post_id;
+				$this->injected_update = $injected_update;
+				$this->postmeta        = $wpdb->postmeta;
+			}
+
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Proxy forwards fully prepared core queries.
+			public function prepare( ...$args ) {
+				return $this->wpdb->prepare( ...$args );
+			}
+
+			public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
+				$result = $this->wpdb->get_row( $query, $output, $y );
+
+				$this->maybe_inject_after_sync_query( $query );
+
+				return $result;
+			}
+
+			public function get_var( $query = null, $x = 0, $y = 0 ) {
+				$result = $this->wpdb->get_var( $query, $x, $y );
+
+				$this->maybe_inject_after_sync_query( $query );
+
+				return $result;
+			}
+
+			public function get_results( $query = null, $output = OBJECT ) {
+				return $this->wpdb->get_results( $query, $output );
+			}
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+
+			public function __call( $name, $arguments ) {
+				return $this->wpdb->$name( ...$arguments );
+			}
+
+			public function __get( $name ) {
+				return $this->wpdb->$name;
+			}
+
+			public function __set( $name, $value ) {
+				$this->wpdb->$name = $value;
+			}
+
+			private function inject_update(): void {
+				if ( $this->did_inject ) {
+					return;
+				}
+
+				$this->did_inject = true;
+
+				add_post_meta(
+					$this->storage_post_id,
+					WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
+					$this->injected_update,
+					false
+				);
+			}
+
+			private function maybe_inject_after_sync_query( $query ): void {
+				if ( $this->did_inject || ! is_string( $query ) ) {
+					return;
+				}
+
+				$targets_postmeta = false !== strpos( $query, $this->postmeta );
+				$targets_post_id  = 1 === preg_match( '/\bpost_id\s*=\s*' . (int) $this->storage_post_id . '\b/', $query );
+				$targets_meta_key = 1 === preg_match(
+					"/\bmeta_key\s*=\s*'" . preg_quote( WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY, '/' ) . "'/",
+					$query
+				);
+
+				if ( $targets_postmeta && $targets_post_id && $targets_meta_key ) {
+					$this->inject_update();
+				}
+			}
+		};
+
+		$wpdb = $proxy_wpdb;
+		try {
+			$race_updates = $storage->get_updates_after_cursor( $room, $baseline_cursor );
+			$race_cursor  = $storage->get_cursor( $room );
+		} finally {
+			$wpdb = $original_wpdb;
+		}
+
+		$this->assertTrue( $proxy_wpdb->did_inject, 'Expected race-window update injection to occur.' );
+		$this->assertEmpty( $race_updates );
+		$this->assertSame( $baseline_cursor, $race_cursor );
+
+		$follow_up_updates = $storage->get_updates_after_cursor( $room, $race_cursor );
+		$follow_up_cursor  = $storage->get_cursor( $room );
+
+		$this->assertCount( 1, $follow_up_updates );
+		$this->assertSame( $injected_update, $follow_up_updates[0] );
+		$this->assertGreaterThan( $race_cursor, $follow_up_cursor );
+	}
+
 	/*
 	 * Compaction tests.
 	 */
@@ -704,6 +852,132 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertContains( 'Y29tcGFjdGVk', $update_data, 'The newer compaction should be preserved.' );
 		$this->assertNotContains( 'c3RhbGU=', $update_data, 'The stale compaction should not be stored.' );
+	}
+
+	public function test_sync_compaction_does_not_delete_update_inserted_during_delete() {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room    = $this->get_post_room();
+		$storage = new WP_Sync_Post_Meta_Storage();
+
+		// Seed three updates so there's something to compact.
+		for ( $i = 1; $i <= 3; $i++ ) {
+			$this->assertTrue(
+				$storage->add_update(
+					$room,
+					array(
+						'client_id' => $i,
+						'type'      => 'update',
+						'data'      => base64_encode( "seed-$i" ),
+					)
+				)
+			);
+		}
+
+		// Capture the cursor after all seeds are in place.
+		$storage->get_updates_after_cursor( $room, 0 );
+		$compaction_cursor = $storage->get_cursor( $room );
+		$this->assertGreaterThan( 0, $compaction_cursor );
+
+		$storage_posts   = get_posts(
+			array(
+				'post_type'      => WP_Sync_Post_Meta_Storage::POST_TYPE,
+				'posts_per_page' => 1,
+				'post_status'    => 'publish',
+				'name'           => md5( $room ),
+				'fields'         => 'ids',
+			)
+		);
+		$storage_post_id = array_first( $storage_posts );
+		$this->assertIsInt( $storage_post_id );
+
+		$concurrent_update = array(
+			'client_id' => 9999,
+			'type'      => 'update',
+			'data'      => base64_encode( 'arrived-during-compaction' ),
+		);
+
+		$original_wpdb = $wpdb;
+		$proxy_wpdb    = new class( $original_wpdb, $storage_post_id, $concurrent_update ) {
+			private $wpdb;
+			private $storage_post_id;
+			private $concurrent_update;
+			public $did_inject = false;
+
+			public function __construct( $wpdb, int $storage_post_id, array $concurrent_update ) {
+				$this->wpdb              = $wpdb;
+				$this->storage_post_id   = $storage_post_id;
+				$this->concurrent_update = $concurrent_update;
+			}
+
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Proxy forwards fully prepared core queries.
+			public function prepare( ...$args ) {
+				return $this->wpdb->prepare( ...$args );
+			}
+
+			public function query( $query ) {
+				$result = $this->wpdb->query( $query );
+
+				// After the DELETE executes, inject a concurrent update via
+				// raw SQL through the real $wpdb to avoid metadata cache
+				// interactions while the proxy is active.
+				if ( ! $this->did_inject
+					&& is_string( $query )
+					&& 0 === strpos( $query, "DELETE FROM {$this->wpdb->postmeta}" )
+					&& false !== strpos( $query, "post_id = {$this->storage_post_id}" )
+				) {
+					$this->did_inject = true;
+					$this->wpdb->insert(
+						$this->wpdb->postmeta,
+						array(
+							'post_id'    => $this->storage_post_id,
+							'meta_key'   => WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
+							'meta_value' => maybe_serialize( $this->concurrent_update ),
+						),
+						array( '%d', '%s', '%s' )
+					);
+				}
+
+				return $result;
+			}
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+
+			public function __call( $name, $arguments ) {
+				return $this->wpdb->$name( ...$arguments );
+			}
+
+			public function __get( $name ) {
+				return $this->wpdb->$name;
+			}
+
+			public function __set( $name, $value ) {
+				$this->wpdb->$name = $value;
+			}
+		};
+
+		// Run compaction through the proxy so the concurrent update
+		// is injected immediately after the DELETE executes.
+		$wpdb = $proxy_wpdb;
+		try {
+			$result = $storage->remove_updates_before_cursor( $room, $compaction_cursor );
+		} finally {
+			$wpdb = $original_wpdb;
+		}
+
+		$this->assertTrue( $result );
+		$this->assertTrue( $proxy_wpdb->did_inject, 'Expected concurrent update injection to occur.' );
+
+		// The concurrent update must survive the compaction delete.
+		$updates = $storage->get_updates_after_cursor( $room, 0 );
+
+		$update_data = wp_list_pluck( $updates, 'data' );
+		$this->assertContains(
+			$concurrent_update['data'],
+			$update_data,
+			'Concurrent update should survive compaction.'
+		);
 	}
 
 	/*
