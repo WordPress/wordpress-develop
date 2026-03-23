@@ -235,6 +235,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 				'post_status'    => 'publish',
 				'name'           => $room_hash,
 				'fields'         => 'ids',
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
 			)
 		);
 
