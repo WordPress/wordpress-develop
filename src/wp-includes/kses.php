@@ -1624,7 +1624,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 	$processor->next_token();
 
 	$attribute_names = $processor->get_attribute_names_with_prefix( '' );
-	if ( ! isset( $attribute_names ) ) {
+	if ( null === $attribute_names || 0 === count( $attribute_names ) ) {
 		return $attributes;
 	}
 
@@ -2118,8 +2118,8 @@ function wp_kses_normalize_entities( $content, $context = 'html' ) {
 	 *
 	 * Here, each input is normalized to an appropriate output.
 	 */
-	$content = preg_replace_callback( '/&amp;#(0*[0-9]{1,7});/', 'wp_kses_normalize_entities2', $content );
-	$content = preg_replace_callback( '/&amp;#[Xx](0*[0-9A-Fa-f]{1,6});/', 'wp_kses_normalize_entities3', $content );
+	$content = preg_replace_callback( '/&amp;#(0*[1-9][0-9]{0,6});/', 'wp_kses_normalize_entities2', $content );
+	$content = preg_replace_callback( '/&amp;#[Xx](0*[1-9A-Fa-f][0-9A-Fa-f]{0,5});/', 'wp_kses_normalize_entities3', $content );
 	if ( 'xml' === $context ) {
 		$content = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_xml_named_entities', $content );
 	} else {
@@ -2630,6 +2630,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'column-rule',
 			'column-span',
 			'column-width',
+
+			'display',
 
 			'color',
 			'filter',

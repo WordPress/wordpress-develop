@@ -6,7 +6,7 @@
  * @covers WP_REST_Abilities_V1_Run_Controller
  *
  * @group abilities-api
- * @group rest-api
+ * @group restapi
  */
 class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 

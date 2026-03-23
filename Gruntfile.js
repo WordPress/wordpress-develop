@@ -1,5 +1,5 @@
 /* jshint node:true */
-/* jshint esversion: 6 */
+/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
@@ -41,21 +41,32 @@ module.exports = function(grunt) {
 			'wp-admin/css/colors/**/*.css',
 		],
 
-		// All built js files, in /src or /build.
+		// Built js files, in /src or /build.
 		jsFiles = [
 			'wp-admin/js/',
 			'wp-includes/js/',
-			'wp-includes/blocks/**/*.js',
-			'wp-includes/blocks/**/*.js.map',
+		],
+
+		// All files copied from the Gutenberg repository.
+		gutenbergFiles = [
+			'wp-includes/assets',
+			'wp-includes/build',
+			'wp-includes/js/dist',
+			'wp-includes/css/dist',
+			'wp-includes/blocks/**/*',
+			'!wp-includes/blocks/index.php',
+			'wp-includes/images/icon-library',
+			// Old location kept temporarily to ensure they are cleaned up.
+			'wp-includes/icons',
 		],
 
 		// All files built by Webpack, in /src or /build.
+		// Webpack only builds Core-specific media files and development scripts.
+		// Blocks, packages, script modules, and vendors come from the Gutenberg build.
 		webpackFiles = [
-			'wp-includes/assets/*',
-			'wp-includes/css/dist',
-			'wp-includes/blocks/**/*.css',
-			'!wp-includes/assets/script-loader-packages.min.php',
-			'!wp-includes/assets/script-modules-packages.min.php',
+			'wp-includes/js/media-*.js',
+			'wp-includes/js/media-*.min.js',
+			'wp-includes/js/dist/development',
 		],
 
 		// All workflow files that should be deleted from non-default branches.
@@ -107,6 +118,7 @@ module.exports = function(grunt) {
 			'concat',
 			'copy',
 			'cssmin',
+			'imagemin',
 			'jshint',
 			'qunit',
 			'uglify',
@@ -175,6 +187,17 @@ module.exports = function(grunt) {
 				banner: BANNER_TEXT,
 				linebreak: true
 			},
+			codemirror: {
+				options: {
+					linebreak: false,
+					banner: require( './tools/webpack/codemirror-banner' )
+				},
+				files: {
+					src: [
+						WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css'
+					]
+				}
+			},
 			files: {
 				src: [
 					WORKING_DIR + 'wp-admin/css/*.min.css',
@@ -218,13 +241,16 @@ module.exports = function(grunt) {
 			js: jsFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
+
+			// Clean files built by Webpack.
 			'webpack-assets': webpackFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
-			'interactivity-assets': [
-				WORKING_DIR + 'wp-includes/js/dist/interactivity.asset.php',
-				WORKING_DIR + 'wp-includes/js/dist/interactivity.min.asset.php',
-			],
+
+			// Clean files built by the tools/gutenberg scripts.
+			gutenberg: gutenbergFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
+			}),
 			dynamic: {
 				dot: true,
 				expand: true,
@@ -271,11 +297,9 @@ module.exports = function(grunt) {
 						src: buildFiles.concat( [
 							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
-							'!wp-includes/certificates/cacert.pem*', // Exclude raw root certificate files that are combined into ca-bundle.crt.
-							'!wp-includes/certificates/legacy-1024bit.pem',
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
-							'!**/*.map', // The build doesn't need .map files.
+							'!{wp-admin,wp-includes,wp-content/themes/twenty*,wp-content/plugins/akismet}/**/*.map', // The build doesn't need .map files.
 							'!index.php', '!wp-admin/index.php',
 							'!_index.php', '!wp-admin/_index.php'
 						] ),
@@ -308,6 +332,40 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.color.min.js' ]: [ './node_modules/jquery-color/dist/jquery.color.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
+					}
+				]
+			},
+			'codemirror': {
+				options: {
+					process: function( content, srcpath ) {
+						if ( srcpath.includes( 'htmlhint.min.js' ) ) {
+							return content + '\nif ( window.HTMLHint && window.HTMLHint.HTMLHint ) { window.HTMLHint = window.HTMLHint.HTMLHint; }';
+						}
+						return content;
+					}
+				},
+				files: [
+					{
+						[ WORKING_DIR + 'wp-includes/js/codemirror/csslint.js' ]: [ './node_modules/csslint/dist/csslint.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/esprima.js' ]: [ './node_modules/esprima/dist/esprima.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/htmlhint.js' ]: [ './node_modules/htmlhint/dist/htmlhint.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/codemirror/jsonlint.js' ]: [ './node_modules/jsonlint/web/jsonlint.js' ],
+					},
+					{
+						expand: true,
+						cwd: SOURCE_DIR + 'js/_enqueues/lib/codemirror/',
+						src: [
+							'htmlhint-kses.js',
+						],
+						dest: WORKING_DIR + 'wp-includes/js/codemirror/'
+					},
+					{
+						expand: true,
+						cwd: SOURCE_DIR + 'js/_enqueues/deprecated/',
+						src: [
+							'fakejshint.js',
+						],
+						dest: WORKING_DIR + 'wp-includes/js/codemirror/'
 					}
 				]
 			},
@@ -543,8 +601,131 @@ module.exports = function(grunt) {
 			},
 			certificates: {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
-				dest: SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
-			}
+				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
+			},
+			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/).
+			'gutenberg-php': {
+				options: {
+					process: function( content ) {
+						// Fix boot module asset file path for Core's different directory structure.
+						return content.replace(
+							/__DIR__\s*\.\s*(['"])\/..\/\..\/modules\/boot\/index\.min\.asset\.php\1/g,
+							'ABSPATH . WPINC . \'/js/dist/script-modules/boot/index.min.asset.php\''
+						);
+					}
+				},
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/build',
+					src: [
+						'routes.php',
+						'pages.php',
+						'constants.php',
+						'pages/**/*.php',
+					],
+					dest: WORKING_DIR + 'wp-includes/build/',
+				} ],
+			},
+			/*
+			 * Only copy files relevant to the routes specified in the registry file.
+			 *
+			 * While the registry file does not contain any experimental routes, the `gutenberg/build/routes` directory
+			 * includes the files for all registered routes. Only the files related to the routes specified in the
+			 * registry should be included in the WordPress build.
+			 *
+			 * The `src` list is populated at task runtime by `routes:setup`, which reads the registry after
+			 * `gutenberg:download` has run. See the `routes:setup` task registration for implementation details.
+			 */
+			routes: {
+				expand: true,
+				cwd: 'gutenberg/build',
+				src: [],
+				dest: WORKING_DIR + 'wp-includes/build/',
+			},
+			'gutenberg-js': {
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/build',
+					src: [
+						'pages/**/*.js',
+					],
+					dest: WORKING_DIR + 'wp-includes/build/',
+				} ],
+			},
+			'gutenberg-modules': {
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/build/modules',
+					src: [
+						'**/*',
+						'!**/*.map',
+						'!vips/**',
+					],
+					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
+				} ],
+			},
+			'gutenberg-styles': {
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/build/styles',
+					src: [ '**/*', '!**/*.map' ],
+					dest: WORKING_DIR + 'wp-includes/css/dist/',
+				} ],
+			},
+			'gutenberg-theme-json': {
+				options: {
+					process: function( content, srcpath ) {
+						// Replace the local schema URL with the canonical public URL for Core.
+						if ( path.basename( srcpath ) === 'theme.json' ) {
+							return content.replace(
+								'"$schema": "../schemas/json/theme.json"',
+								'"$schema": "https://schemas.wp.org/trunk/theme.json"'
+							);
+						}
+						return content;
+					}
+				},
+				files: [
+					{
+						src: 'gutenberg/lib/theme.json',
+						dest: WORKING_DIR + 'wp-includes/theme.json',
+					},
+					{
+						src: 'gutenberg/lib/theme-i18n.json',
+						dest: WORKING_DIR + 'wp-includes/theme-i18n.json',
+					},
+				],
+			},
+			'icon-library-images': {
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/packages/icons/src/library',
+					src: '*.svg',
+					dest: WORKING_DIR + 'wp-includes/images/icon-library',
+				} ],
+			},
+			'icon-library-manifest': {
+				options: {
+					process: function( content ) {
+						return content
+							// Remove the 'gutenberg' text domain from _x() calls.
+							.replace(
+								/_x\(\s*([^,]+),\s*([^,]+),\s*['"]gutenberg['"]\s*\)/g,
+								'_x( $1, $2 )'
+							)
+							// Strip the 'library/' prefix from filePath values so they
+							// resolve correctly relative to wp-includes/images/icon-library/.
+							.replace(
+								/'filePath' => 'library\//g,
+								'\'filePath\' => \''
+							);
+					}
+				},
+				files: [ {
+					src: 'gutenberg/packages/icons/src/manifest.php',
+					dest: WORKING_DIR + 'wp-includes/assets/icon-library-manifest.php',
+				} ],
+			},
 		},
 		sass: {
 			colors: {
@@ -561,6 +742,22 @@ module.exports = function(grunt) {
 		cssmin: {
 			options: {
 				compatibility: 'ie11'
+			},
+			codemirror: {
+				files: {
+					[ WORKING_DIR + 'wp-includes/js/codemirror/codemirror.min.css' ]: [
+						'node_modules/codemirror/lib/codemirror.css',
+						'node_modules/codemirror/addon/hint/show-hint.css',
+						'node_modules/codemirror/addon/lint/lint.css',
+						'node_modules/codemirror/addon/dialog/dialog.css',
+						'node_modules/codemirror/addon/display/fullscreen.css',
+						'node_modules/codemirror/addon/fold/foldgutter.css',
+						'node_modules/codemirror/addon/merge/merge.css',
+						'node_modules/codemirror/addon/scroll/simplescrollbars.css',
+						'node_modules/codemirror/addon/search/matchesonscrollbar.css',
+						'node_modules/codemirror/addon/tern/tern.css'
+					]
+				}
 			},
 			core: {
 				expand: true,
@@ -871,7 +1068,7 @@ module.exports = function(grunt) {
 					'wp-includes/js/tinymce/plugins/wp*/plugin.js',
 
 					// Exceptions.
-					'!**/*.min.js',
+					'!{wp-admin,wp-includes}/**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
 					'!wp-includes/js/wp-emoji-loader.js', // This is a module. See the emoji-loader task below.
@@ -921,7 +1118,8 @@ module.exports = function(grunt) {
 		webpack: {
 			prod: webpackConfig( { environment: 'production', buildTarget: WORKING_DIR } ),
 			dev: webpackConfig( { environment: 'development', buildTarget: WORKING_DIR } ),
-			watch: webpackConfig( { environment: 'development', watch: true } )
+			watch: webpackConfig( { environment: 'development', watch: true } ),
+			codemirror: require( './tools/webpack/codemirror.config.js' )( { buildTarget: WORKING_DIR } ),
 		},
 		concat: {
 			tinymce: {
@@ -950,16 +1148,6 @@ module.exports = function(grunt) {
 					WORKING_DIR + 'wp-includes/js/wp-emoji.min.js'
 				],
 				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-release.min.js'
-			},
-			certificates: {
-				options: {
-					separator: '\n\n'
-				},
-				src: [
-					SOURCE_DIR + 'wp-includes/certificates/legacy-1024bit.pem',
-					SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
-				],
-				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		patch:{
@@ -1272,20 +1460,21 @@ module.exports = function(grunt) {
 					},
 					{
 						expand: true,
-						flatten: true,
-						src: [
-							BUILD_DIR + 'wp-includes/js/dist/block-editor.js',
-							BUILD_DIR + 'wp-includes/js/dist/commands.js',
-						],
-						dest: BUILD_DIR + 'wp-includes/js/dist/'
+						cwd: BUILD_DIR + 'wp-includes/js/dist/',
+						src: [ '*.js' ],
+						dest: BUILD_DIR + 'wp-includes/js/dist/',
 					},
 					{
 						expand: true,
-						flatten: true,
-						src: [
-							BUILD_DIR + 'wp-includes/js/dist/vendor/**/*.js'
-						],
-						dest: BUILD_DIR + 'wp-includes/js/dist/vendor/'
+						cwd: BUILD_DIR + 'wp-includes/js/dist/vendor/',
+						src: [ '**/*.js' ],
+						dest: BUILD_DIR + 'wp-includes/js/dist/vendor/',
+					},
+					{
+						expand: true,
+						cwd: BUILD_DIR + 'wp-includes/js/dist/script-modules/',
+						src: [ '**/*.js' ],
+						dest: BUILD_DIR + 'wp-includes/js/dist/script-modules/',
 					}
 				]
 			}
@@ -1393,76 +1582,53 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'sync-gutenberg-packages', function() {
-		if ( grunt.option( 'update-browserlist' ) ) {
-			/*
-			 * Updating the browserlist database is opt-in and up to the release lead.
-			 *
-			 * Browserlist database should be updated:
-			 * - In each release cycle up until RC1
-			 * - If Webpack throws a warning about an outdated database
-			 *
-			 * It should not be updated:
-			 * - After the RC1
-			 * - When backporting fixes to older WordPress releases.
-			 *
-			 * For more context, see:
-			 * https://github.com/WordPress/wordpress-develop/pull/2621#discussion_r859840515
-			 * https://core.trac.wordpress.org/ticket/55559
-			 */
-			grunt.task.run( 'browserslist:update' );
-		}
-
-		// Install the latest version of the packages already listed in package.json.
-		grunt.task.run( 'wp-packages:update' );
-
-		/*
-		 * Install any new @wordpress packages that are now required.
-		 * Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
-		 */
-		grunt.task.run( 'wp-packages:refresh-deps' );
-	} );
-
 	// Gutenberg integration tasks.
-	grunt.registerTask( 'gutenberg-checkout', 'Checks out the Gutenberg repository.', function() {
+	grunt.registerTask( 'gutenberg:verify', 'Verifies the installed Gutenberg version matches the expected SHA.', function() {
 		const done = this.async();
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/checkout-gutenberg.js' ],
+			args: [ 'tools/gutenberg/utils.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
 		} );
 	} );
 
-	grunt.registerTask( 'gutenberg-build', 'Builds the Gutenberg repository.', function() {
+	grunt.registerTask( 'gutenberg:download', 'Downloads the built Gutenberg artifact.', function() {
 		const done = this.async();
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/build-gutenberg.js' ],
+			args: [ 'tools/gutenberg/download.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
-			done( ! error );
+			if ( error ) {
+				done( false );
+				return;
+			}
+			/*
+			 * Build block editor files into the src directory every time assets
+			 * are downloaded. This prevents failures when running from src
+			 * without running `build:dev` after those files were removed from
+			 * version control in https://core.trac.wordpress.org/changeset/61438.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/64393.
+			 */
+			grunt.util.spawn( {
+				grunt: true,
+				args: [ 'build:gutenberg', '--dev' ],
+				opts: { stdio: 'inherit' }
+			}, function( buildError ) {
+				done( ! buildError );
+			} );
 		} );
 	} );
 
-	grunt.registerTask( 'gutenberg-copy', 'Copies Gutenberg build output to WordPress Core.', function() {
+	grunt.registerTask( 'gutenberg:copy', 'Copies Gutenberg JS packages and block assets to WordPress Core.', function() {
 		const done = this.async();
 		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/copy-gutenberg-build.js', `--build-dir=${ buildDir }` ],
-			opts: { stdio: 'inherit' }
-		}, function( error ) {
-			done( ! error );
-		} );
-	} );
-
-	grunt.registerTask( 'gutenberg-sync', 'Syncs Gutenberg checkout and build if ref has changed.', function() {
-		const done = this.async();
-		grunt.util.spawn( {
-			cmd: 'node',
-			args: [ 'tools/gutenberg/sync-gutenberg.js' ],
+			args: [ 'tools/gutenberg/copy.js', `--build-dir=${ buildDir }` ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
@@ -1505,6 +1671,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'precommit:js', [
 		'webpack:prod',
 		'jshint:corejs',
+		'typecheck:js',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment',
@@ -1516,6 +1683,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:php', [
+		'phpstan',
 		'phpunit'
 	] );
 
@@ -1652,11 +1820,17 @@ module.exports = function(grunt) {
 		'uglify:moment'
 	] );
 
+	grunt.registerTask( 'build:codemirror', [
+		'webpack:codemirror',
+		'cssmin:codemirror',
+		'usebanner:codemirror',
+		'copy:codemirror'
+	] );
+
 	grunt.registerTask( 'build:webpack', [
 		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
-		'clean:interactivity-assets',
 	] );
 
 	grunt.registerTask( 'build:js', [
@@ -1679,7 +1853,7 @@ module.exports = function(grunt) {
 		'cssmin:rtl',
 		'cssmin:colors',
 		'cssmin:themes',
-		'usebanner'
+		'usebanner:files'
 	] );
 
 	grunt.registerTask( 'certificates:upgrade-package', 'Upgrades the package responsible for supplying the certificate authority certificate store bundled with WordPress.', function() {
@@ -1761,13 +1935,12 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'build:certificates', [
-		'concat:certificates'
+		'copy:certificates'
 	] );
 
 	grunt.registerTask( 'certificates:upgrade', [
 		'certificates:upgrade-package',
-		'copy:certificates',
-		'build:certificates'
+		'copy:certificates'
 	] );
 
 	grunt.registerTask( 'build:files', [
@@ -1897,24 +2070,91 @@ module.exports = function(grunt) {
 			} );
 	} );
 
+	grunt.registerTask( 'routes:setup', 'Reads the routes registry and configures the copy:routes task.', function() {
+		const registryPath = 'gutenberg/build/routes/registry.php';
+		let registryContent;
+		try {
+			registryContent = fs.readFileSync( registryPath, 'utf8' );
+		} catch ( e ) {
+			grunt.fatal(
+				'Route registry not found at ' + registryPath + '. Run `grunt gutenberg:download` first.'
+			);
+		}
+		const namePattern = /'name'\s*=>\s*'([^']+)'/g;
+		const routeNames = [];
+		let match;
+		while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
+			routeNames.push( match[ 1 ] );
+		}
+
+		if ( routeNames.length === 0 ) {
+			grunt.fatal(
+				'No route names found in ' + registryPath + '. The format of the file may have changed.'
+			);
+		}
+
+		const validName = /^[A-Za-z0-9_-]+$/;
+		routeNames.forEach( function( name ) {
+			if ( ! validName.test( name ) ) {
+				grunt.fatal(
+					'Invalid route name \'' + name + '\' in ' + registryPath + '. Expected only letters, digits, hyphens, and underscores.'
+				);
+			}
+		} );
+
+		grunt.config( [ 'copy', 'routes', 'src' ], [ 'routes/registry.php' ].concat(
+			routeNames.flatMap( function( name ) {
+				return [
+					'routes/' + name + '/**/*.php',
+					'routes/' + name + '/**/*.js',
+				];
+			} )
+		) );
+	} );
+
+	grunt.registerTask( 'build:gutenberg', [
+		'copy:gutenberg-php',
+		'routes:setup',
+		'copy:routes',
+		'copy:gutenberg-js',
+		'gutenberg:copy',
+		'copy:gutenberg-modules',
+		'copy:gutenberg-styles',
+		'copy:gutenberg-theme-json',
+		'copy:icon-library-images',
+		'copy:icon-library-manifest',
+	] );
+
 	grunt.registerTask( 'build', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			grunt: true,
+			args: [ 'clean', '--dev' ],
+			opts: { stdio: 'inherit' }
+		}, function( buildError ) {
+			done( ! buildError );
+		} );
+
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
+				'gutenberg:download',
 				'build:js',
 				'build:css',
-				'gutenberg-sync',
-				'gutenberg-copy',
+				'build:codemirror',
+				'build:gutenberg',
 				'copy-vendor-scripts',
 				'build:certificates'
 			] );
 		} else {
 			grunt.task.run( [
+				'gutenberg:download',
 				'build:certificates',
 				'build:files',
 				'build:js',
 				'build:css',
-				'gutenberg-sync',
-				'gutenberg-copy',
+				'build:codemirror',
+				'build:gutenberg',
 				'copy-vendor-scripts',
 				'replace:source-maps',
 				'verify:build'
@@ -1948,6 +2188,30 @@ module.exports = function(grunt) {
 	);
 
 	grunt.registerTask( 'test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit'] );
+
+	grunt.registerTask( 'typecheck:js', 'Runs TypeScript type checking.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'npm',
+			args: [ 'run', 'typecheck:js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'phpstan', 'Runs PHPStan on the entire codebase.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: [ 'phpstan' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
 
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
@@ -2004,21 +2268,6 @@ module.exports = function(grunt) {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
-	} );
-
-	grunt.registerTask( 'wp-packages:refresh-deps', 'Update version of dependencies in package.json to match the ones listed in the latest WordPress packages', function() {
-		const distTag = grunt.option('dist-tag') || 'latest';
-		grunt.log.writeln( `Updating versions of dependencies listed in package.json (--dist-tag=${distTag})` );
-		spawn( 'node', [ 'tools/release/sync-gutenberg-packages.js', `--dist-tag=${distTag}` ], {
-			cwd: __dirname,
-			stdio: 'inherit',
-		} );
-	} );
-
-	grunt.registerTask( 'wp-packages:sync-stable-blocks', 'Refresh the PHP files referring to stable @wordpress/block-library blocks.', function() {
-		grunt.log.writeln( `Syncing stable blocks from @wordpress/block-library to src/` );
-		const { main } = require( './tools/release/sync-stable-blocks' );
-		main();
 	} );
 
 	// Patch task.
