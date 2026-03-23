@@ -191,13 +191,14 @@ TABLE OF CONTENTS:
 .wp-core-ui .button.active,
 .wp-core-ui .button.active:hover {
 	background-color: rgba(var(--wp-admin-theme-color--rgb), 0.08);
-	color: var(--wp-admin-theme-color);
+	color: var(--wp-admin-theme-color-darker-20);
 	border-color: var(--wp-admin-theme-color);
 	box-shadow: inset 0 2px 6px -2px  var(--wp-admin-theme-color-darker-20);
 }
 
 .wp-core-ui .button.active:focus {
 	background-color: rgba(var(--wp-admin-theme-color--rgb), 0.08);
+	color: var(--wp-admin-theme-color-darker-20);
 	border-color: var(--wp-admin-theme-color-darker-20);
 	box-shadow: inset 0 2px 6px -2px  var(--wp-admin-theme-color-darker-20), 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 }
