@@ -790,13 +790,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
 			 *
 			 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
+			 *
+			 * Note that neither ID nor post_parent are guaranteed to be set in ::prepare_item_for_database(), so this
+			 * is the reason for the null coalescing operator.
 			 */
 			$prepared_post->post_name = wp_unique_post_slug(
 				$prepared_post->post_name,
-				$prepared_post->id,
+				$prepared_post->ID ?? 0,
 				'publish',
 				$prepared_post->post_type,
-				$prepared_post->post_parent
+				$prepared_post->post_parent ?? 0
 			);
 		}
 
@@ -999,15 +1002,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
 		 *
 		 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
+		 *
+		 * Note that neither ID nor post_parent are guaranteed to be set in ::prepare_item_for_database(), so this
+		 * is the reason for the null coalescing operator.
 		 */
 		if ( ! empty( $post->post_name ) && in_array( $post_status, array( 'draft', 'pending' ), true ) ) {
-			$post_parent     = ! empty( $post->post_parent ) ? $post->post_parent : 0;
 			$post->post_name = wp_unique_post_slug(
 				$post->post_name,
-				$post->ID,
+				$post->ID ?? 0,
 				'publish',
 				$post->post_type,
-				$post_parent
+				$post->post_parent ?? 0
 			);
 		}
 
