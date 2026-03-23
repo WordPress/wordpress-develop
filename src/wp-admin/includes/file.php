@@ -1042,7 +1042,9 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	// Set correct file permissions.
 	$stat  = stat( dirname( $new_file ) );
 	$perms = $stat['mode'] & 0000666;
-	chmod( $new_file, $perms );
+	if( function_exists('chmod') ) {
+		chmod( $new_file, $perms );
+	}
 
 	// Compute the URL.
 	$url = $uploads['url'] . "/$filename";
@@ -2036,7 +2038,9 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 		if ( 'f' === $fileinfo['type'] ) {
 			if ( ! $wp_filesystem->copy( $from . $filename, $to . $filename, true, FS_CHMOD_FILE ) ) {
 				// If copy failed, chmod file to 0644 and try again.
-				$wp_filesystem->chmod( $to . $filename, FS_CHMOD_FILE );
+				if( function_exists('chmod') ) {
+					$wp_filesystem->chmod( $to . $filename, FS_CHMOD_FILE );
+				}
 
 				if ( ! $wp_filesystem->copy( $from . $filename, $to . $filename, true, FS_CHMOD_FILE ) ) {
 					return new WP_Error( 'copy_failed_copy_dir', __( 'Could not copy file.' ), $to . $filename );
