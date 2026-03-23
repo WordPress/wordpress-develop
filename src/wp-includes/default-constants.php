@@ -398,6 +398,26 @@ function wp_functionality_constants() {
 	if ( ! defined( 'WP_CRON_LOCK_TIMEOUT' ) ) {
 		define( 'WP_CRON_LOCK_TIMEOUT', MINUTE_IN_SECONDS );
 	}
+
+	/**
+	 * Whether real time collaboration is permitted to be enabled.
+	 *
+	 * @since 7.0.0
+	 */
+	if ( ! defined( 'WP_ALLOW_COLLABORATION' ) ) {
+		$env_value = getenv( 'WP_ALLOW_COLLABORATION' );
+		if ( false === $env_value ) {
+			// Environment variable is not defined, default to allowing collaboration.
+			define( 'WP_ALLOW_COLLABORATION', true );
+		} else {
+			/*
+			 * Environment variable is defined, let's confirm it is actually set to
+			 * "true" as it may still have a string value "false" – the preceeding
+			 * `if` branch only tests for the boolean `false`.
+			 */
+			define( 'WP_ALLOW_COLLABORATION', 'true' === $env_value );
+		}
+	}
 }
 
 /**
@@ -434,6 +454,6 @@ function wp_templating_constants() {
 	 * @see WP_Theme::get_core_default_theme()
 	 */
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
-		define( 'WP_DEFAULT_THEME', 'twentytwentyfour' );
+		define( 'WP_DEFAULT_THEME', 'twentytwentyfive' );
 	}
 }

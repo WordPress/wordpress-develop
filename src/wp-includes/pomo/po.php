@@ -156,7 +156,7 @@ if ( ! class_exists( 'PO', false ) ) :
 						}
 					} else {
 						$previous_is_backslash = false;
-						$unpoified            .= isset( $escapes[ $char ] ) ? $escapes[ $char ] : $char;
+						$unpoified            .= $escapes[ $char ] ?? $char;
 					}
 				}
 			}
