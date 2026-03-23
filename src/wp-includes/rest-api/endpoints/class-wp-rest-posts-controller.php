@@ -714,6 +714,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post_type = get_post_type_object( $this->post_type );
+		if ( ! $post_type ) {
+			return new WP_Error(
+				'rest_post_invalid_type',
+				__( 'Invalid post type.' ),
+				array( 'status' => 400 )
+			);
+		}
 
 		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error(
