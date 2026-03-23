@@ -164,8 +164,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		//
 		// If two concurrent requests both see no row and both INSERT, the
 		// duplicate is harmless: get_awareness_state() reads the latest row
-		// (ORDER BY meta_id DESC), and the cleanup below removes stale
-		// duplicates on the next write.
+		// (ORDER BY meta_id DESC).
 		$meta_id = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s ORDER BY meta_id DESC LIMIT 1",
