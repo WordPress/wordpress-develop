@@ -814,6 +814,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
 
 		/**
 		 * Fires after a single post is created or updated via the REST API.
@@ -870,7 +877,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$post          = get_post( $post_id );
 		$fields_update = $this->update_additional_fields_for_object( $post, $request );
 
 		if ( is_wp_error( $fields_update ) ) {
@@ -901,6 +907,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		wp_after_insert_post( $post, false, null );
 
 		$response = $this->prepare_item_for_response( $post, $request );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
 		$response = rest_ensure_response( $response );
 
 		$response->set_status( 201 );
