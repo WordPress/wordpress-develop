@@ -11085,6 +11085,12 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "wp_collaboration_enabled": {
+                            "title": "",
+                            "description": "Enable Real-Time Collaboration",
+                            "type": "boolean",
+                            "required": false
+                        },
                         "posts_per_page": {
                             "title": "Maximum posts per page",
                             "description": "Blog pages show at most.",
@@ -12608,6 +12614,90 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
+        },
+        "/wp/v2/icons": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/icons"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/icons/(?P<name>[a-z][a-z0-9-]*/[a-z][a-z0-9-]*)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "description": "Icon name.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
         }
     },
     "site_logo": 0,
@@ -13422,6 +13512,8 @@ mockedApiResponse.MediaCollection = [
         "media_details": {},
         "post": null,
         "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg",
+        "filename": "canola.jpg",
+        "filesize": null,
         "_links": {
             "self": [
                 {
@@ -13499,7 +13591,9 @@ mockedApiResponse.MediaModel = {
     "mime_type": "image/jpeg",
     "media_details": {},
     "post": null,
-    "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg"
+    "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg",
+    "filename": "canola.jpg",
+    "filesize": null
 };
 
 mockedApiResponse.TypesCollection = {
@@ -14462,6 +14556,7 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
+    "wp_collaboration_enabled": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,

@@ -1119,10 +1119,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$lock_holder = wp_check_post_lock( $post->ID );
 
 			if ( $lock_holder ) {
-				$lock_holder   = get_userdata( $lock_holder );
-				$locked_avatar = get_avatar( $lock_holder->ID, 18 );
-				/* translators: %s: User's display name. */
-				$locked_text = esc_html( sprintf( __( '%s is currently editing' ), $lock_holder->display_name ) );
+				if ( get_option( 'wp_collaboration_enabled' ) ) {
+					$locked_avatar = '';
+					/* translators: Collaboration status message for a singular post in the post list. Can be any type of post. */
+					$locked_text   = esc_html_x( 'Currently being edited', 'post list' );
+				} else {
+					$lock_holder   = get_userdata( $lock_holder );
+					$locked_avatar = get_avatar( $lock_holder->ID, 18 );
+					/* translators: %s: User's display name. */
+					$locked_text = esc_html( sprintf( __( '%s is currently editing' ), $lock_holder->display_name ) );
+				}
 			} else {
 				$locked_avatar = '';
 				$locked_text   = '';
@@ -1138,10 +1144,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'<a class="row-title" href="%s" aria-label="%s">%s%s</a>',
+				'<a class="row-title" href="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) ),
 				$pad,
 				$title
 			);
@@ -1429,7 +1433,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$lock_holder = wp_check_post_lock( $post->ID );
 
 		if ( $lock_holder ) {
-			$classes .= ' wp-locked';
+			if ( get_option( 'wp_collaboration_enabled' ) ) {
+				$classes .= ' wp-collaborative-editing';
+			} else {
+				$classes .= ' wp-locked';
+			}
 		}
 
 		if ( $post->post_parent ) {
@@ -1483,12 +1491,23 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$title            = _draft_or_post_title();
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
+			$is_rtc_locked = get_option( 'wp_collaboration_enabled' ) && wp_check_post_lock( $post->ID );
+
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_edit_post_link( $post->ID ),
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
-				__( 'Edit' )
+				esc_attr(
+					sprintf(
+						$is_rtc_locked
+							/* translators: %s: Post title. */
+							? __( 'Join editing &#8220;%s&#8221;', 'post list' )
+							/* translators: %s: Post title. */
+							: __( 'Edit &#8220;%s&#8221;' ),
+						$title
+					)
+				),
+				/* translators: Action link text for a singular post in the post list. Can be any type of post. */
+				$is_rtc_locked ? _x( 'Join', 'post list' ) : __( 'Edit' )
 			);
 
 			/**
@@ -1781,7 +1800,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<div class="inline-edit-group wp-clearfix">
 						<label class="alignleft">
 							<span class="title"><?php _e( 'Password' ); ?></span>
-							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input" value="" /></span>
+							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input ltr" value="" /></span>
 						</label>
 
 						<span class="alignleft inline-edit-or">
