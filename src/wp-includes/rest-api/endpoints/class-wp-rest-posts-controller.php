@@ -962,14 +962,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
-		$valid_check = $this->get_post( $request['id'] );
-		if ( is_wp_error( $valid_check ) ) {
-			return $valid_check;
+		$post_before = $this->get_post( $request['id'] );
+		if ( is_wp_error( $post_before ) ) {
+			return $post_before;
 		}
 
-		$post_before = get_post( $request['id'] );
-		$post        = $this->prepare_item_for_database( $request );
-
+		$post = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
