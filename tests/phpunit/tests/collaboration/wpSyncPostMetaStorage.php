@@ -341,6 +341,42 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		$this->assertSame( $valid_update_2, $updates[1] );
 	}
 
+	public function test_duplicate_awareness_rows_coalesces_obn_latest_row() {
+		global $wpdb;
+
+		$storage         = new WP_Sync_Post_Meta_Storage();
+		$room            = $this->get_room();
+		$storage_post_id = $this->create_storage_post( $storage, $room );
+
+		// Simulate a race: insert two awareness rows directly.
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $storage_post_id,
+				'meta_key'   => WP_Sync_Post_Meta_Storage::AWARENESS_META_KEY,
+				'meta_value' => wp_json_encode( array( 1 => array( 'name' => 'Stale' ) ) ),
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $storage_post_id,
+				'meta_key'   => WP_Sync_Post_Meta_Storage::AWARENESS_META_KEY,
+				'meta_value' => wp_json_encode( array( 1 => array( 'name' => 'Latest' ) ) ),
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		// get_awareness_state and set_awareness_state should target the latest row.
+		$awareness = $storage->get_awareness_state( $room );
+		$this->assertSame( array( 'name' => 'Latest' ), $awareness[0] );
+		$storage->set_awareness_state( $room, array( 1 => array( 'name' => 'Current' ) ) );
+		$awareness = $storage->get_awareness_state( $room );
+		$this->assertSame( array( 'name' => 'Current' ), $awareness[0] );
+	}
+
 	/*
 	 * Race-condition tests.
 	 *

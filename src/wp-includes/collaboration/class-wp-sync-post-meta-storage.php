@@ -112,9 +112,11 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		}
 
 		// Use direct database operation to avoid updating the post meta cache.
+		// ORDER BY meta_id DESC ensures the latest row wins if duplicates exist
+		// from a past race condition in set_awareness_state().
 		$meta_value = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT meta_value FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s",
+				"SELECT meta_value FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s ORDER BY meta_id DESC LIMIT 1",
 				$post_id,
 				self::AWARENESS_META_KEY
 			)
@@ -150,18 +152,22 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		// Use direct database operation to avoid updating the post meta cache.
+		// Use direct database operation to avoid cache invalidation performed by
+		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
+		// `wp_cache_delete()` calls).
+		//
+		// If two concurrent requests both see no row and both INSERT, the
+		// duplicate is harmless: get_awareness_state() reads the latest row
+		// (ORDER BY meta_id DESC), and the cleanup below removes stale
+		// duplicates on the next write.
 		$meta_id = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s",
+				"SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s ORDER BY meta_id DESC LIMIT 1",
 				$post_id,
 				self::AWARENESS_META_KEY
 			)
 		);
 
-		// Use direct database operation to avoid cache invalidation performed by
-		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
-		// `wp_cache_delete()` calls).
 		if ( $meta_id ) {
 			return (bool) $wpdb->update(
 				$wpdb->postmeta,
