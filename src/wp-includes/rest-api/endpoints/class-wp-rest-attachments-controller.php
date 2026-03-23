@@ -664,6 +664,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( ! file_exists( $image_file_to_edit ) ) {
 			$image_file_to_edit = _load_image_to_edit_path( $attachment_id );
 		}
+		if ( false === $image_file_to_edit ) {
+			return new WP_Error(
+				'rest_cannot_get_image_file_to_edit',
+				__( 'Unable to get image file.' ),
+				array( 'status' => 404 )
+			);
+		}
 
 		$image_editor = wp_get_image_editor( $image_file_to_edit );
 
@@ -861,7 +868,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		wp_update_attachment_metadata( $new_attachment_id, $new_image_meta );
 
-		$response = $this->prepare_item_for_response( get_post( $new_attachment_id ), $request );
+		$new_attachment_post = get_post( $new_attachment_id );
+		if ( ! $new_attachment_post ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
+		$response = $this->prepare_item_for_response( $new_attachment_post, $request );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $new_attachment_id ) ) );
 
