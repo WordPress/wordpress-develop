@@ -99,10 +99,12 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		return $cached;
 	}
 
-	/*
-	 * Write operations must not invalidate the post meta object cache.
+	/**
+	 * Adding a sync update must not invalidate the post meta cache for the storage
+	 * post.
+	 *
+	 * @ticket 64916
 	 */
-
 	public function test_add_update_does_not_invalidate_post_meta_cache() {
 		$storage         = new WP_Sync_Post_Meta_Storage();
 		$room            = $this->get_room();
@@ -125,6 +127,12 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Setting awareness state must not invalidate the post meta cache for the
+	 * storage post.
+	 *
+	 * @ticket 64916
+	 */
 	public function test_set_awareness_state_insert_does_not_invalidate_post_meta_cache() {
 		$storage         = new WP_Sync_Post_Meta_Storage();
 		$room            = $this->get_room();
@@ -142,6 +150,12 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Updating awareness state must not invalidate the post meta cache for the
+	 * storage post.
+	 *
+	 * @ticket 64916
+	 */
 	public function test_set_awareness_state_update_does_not_invalidate_post_meta_cache() {
 		$storage         = new WP_Sync_Post_Meta_Storage();
 		$room            = $this->get_room();
@@ -164,6 +178,12 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Removing updates / compaction must not invalidate the post meta cache for
+	 * the storage post.
+	 *
+	 * @ticket 64916
+	 */
 	public function test_remove_updates_before_cursor_does_not_invalidate_post_meta_cache() {
 		$storage         = new WP_Sync_Post_Meta_Storage();
 		$room            = $this->get_room();
@@ -185,10 +205,11 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		);
 	}
 
-	/*
-	 * Write operations must not update the 'posts' last_changed cache marker.
+	/**
+	 * Adding a sync update must not update the posts last_changed value.
+	 *
+	 * @ticket 64696
 	 */
-
 	public function test_add_update_does_not_update_posts_last_changed() {
 		$storage = new WP_Sync_Post_Meta_Storage();
 		$room    = $this->get_room();
@@ -211,6 +232,11 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Setting awareness state must not update the posts last_changed value.
+	 *
+	 * @ticket 64696
+	 */
 	public function test_set_awareness_state_does_not_update_posts_last_changed() {
 		$storage = new WP_Sync_Post_Meta_Storage();
 		$room    = $this->get_room();
@@ -227,6 +253,43 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Updating awareness state must not update the posts last_changed value.
+	 *
+	 * @ticket 64916
+	 */
+	public function test_set_awareness_state_update_does_not_update_posts_last_changed() {
+		$storage = new WP_Sync_Post_Meta_Storage();
+		$room    = $this->get_room();
+		$this->create_storage_post( $storage, $room );
+
+		$last_changed_before = wp_cache_get_last_changed( 'posts' );
+
+		// Create initial awareness row (INSERT path).
+		$storage->set_awareness_state( $room, array( 1 => array( 'name' => 'Initial' ) ) );
+
+		$this->assertSame(
+			$last_changed_before,
+			wp_cache_get_last_changed( 'posts' ),
+			'set_awareness_state() must not update posts last_changed.'
+		);
+
+		// Second call triggers an UPDATE (existing awareness row).
+		$storage->set_awareness_state( $room, array( 1 => array( 'name' => 'Updated' ) ) );
+
+		$this->assertSame(
+			$last_changed_before,
+			wp_cache_get_last_changed( 'posts' ),
+			'set_awareness_state() must not update posts last_changed.'
+		);
+	}
+
+	/**
+	 * Removing sync updates / compaction must not update the posts last_changed
+	 * value.
+	 *
+	 * @ticket 64916
+	 */
 	public function test_remove_updates_before_cursor_does_not_update_posts_last_changed() {
 		$storage = new WP_Sync_Post_Meta_Storage();
 		$room    = $this->get_room();
@@ -246,10 +309,12 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		);
 	}
 
-	/*
-	 * Read operations must not prime the post meta object cache.
+	/**
+	 * Getting awareness state must not prime the post meta cache for the storage
+	 * post.
+	 *
+	 * @ticket 64916
 	 */
-
 	public function test_get_awareness_state_does_not_prime_post_meta_cache() {
 		$storage         = new WP_Sync_Post_Meta_Storage();
 		$room            = $this->get_room();
@@ -273,6 +338,12 @@ class Tests_Collaboration_WpSyncPostMetaStorage extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Getting sync updates must not prime the post meta cache for the storage
+	 * post.
+	 *
+	 * @ticket 64916
+	 */
 	public function test_get_updates_after_cursor_does_not_prime_post_meta_cache() {
 		$storage         = new WP_Sync_Post_Meta_Storage();
 		$room            = $this->get_room();
