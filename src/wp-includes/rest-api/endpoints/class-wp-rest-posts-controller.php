@@ -780,6 +780,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $prepared_post;
 		}
 
+		/*
+		 * This is also set in the ::prepare_item_for_database() method above, but since the return value is filterable,
+		 * there is no guarantee.
+		 */
 		$prepared_post->post_type = $this->post_type;
 
 		if ( ! empty( $prepared_post->post_name )
