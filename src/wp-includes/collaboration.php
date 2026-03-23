@@ -19,7 +19,7 @@
  */
 function wp_is_collaboration_enabled() {
 	return (
-		wp_is_collaboration_allowed() && 
+		wp_is_collaboration_allowed() &&
 		(bool) get_option( 'wp_collaboration_enabled' )
 	);
 }
