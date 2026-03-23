@@ -362,8 +362,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the uploading status errors. ?>
 	<script type="text/html" id="tmpl-uploader-status-error">
-		<span class="upload-error-filename word-wrap-break-word">{{{ data.filename }}}</span>
-		<span class="upload-error-message">{{ data.message }}</span>
+		<span class="upload-error-message word-wrap-break-word">{{{ data.message }}}</span>
 	</script>
 
 	<?php // Template for the Attachment Details layout in the media browser. ?>
