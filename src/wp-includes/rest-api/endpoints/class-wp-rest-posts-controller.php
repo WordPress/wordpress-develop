@@ -32,7 +32,7 @@
  *     ping_status?: string,
  *     page_template?: null,
  *     meta_input?: array<string, string>,
- * }
+ * }&stdClass
  */
 class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
