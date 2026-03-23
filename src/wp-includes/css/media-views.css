@@ -50,7 +50,7 @@
 
 .media-frame a:hover,
 .media-frame a:active {
-	color: var(--wp-admin-theme-color-darker-20);
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .media-frame a:focus {
