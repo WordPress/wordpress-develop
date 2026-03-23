@@ -468,7 +468,7 @@ if ( ! class_exists( 'PO', false ) ) :
 			if ( $use_last_line ) {
 				$line = $last_line;
 			} else {
-				$line = fgets( $f );
+				$line = (string) fgets( $f );
 				// Handle \r-only terminated lines after the deprecation of auto_detect_line_endings in PHP 8.1.
 				$r = strpos( $line, "\r" );
 				if ( false !== $r ) {
