@@ -69,6 +69,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @since 7.0.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param string $room   Room identifier.
 	 * @param mixed  $update Sync update.
 	 * @return bool True on success, false on failure.
@@ -99,6 +101,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * Gets awareness state for a given room.
 	 *
 	 * @since 7.0.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $room Room identifier.
 	 * @return array<int, mixed> Awareness state.
@@ -139,6 +143,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * Sets awareness state for a given room.
 	 *
 	 * @since 7.0.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string            $room      Room identifier.
 	 * @param array<int, mixed> $awareness Serializable awareness state.
@@ -274,6 +280,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @since 7.0.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Return updates after this cursor (meta_id).
 	 * @return array<int, mixed> Sync updates.
@@ -336,6 +344,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * Removes updates from a room that are older than the given cursor.
 	 *
 	 * @since 7.0.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Remove updates with meta_id < this cursor.
