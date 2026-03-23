@@ -684,6 +684,8 @@ function rest_ensure_request( $request ) {
  * @return WP_REST_Response|WP_Error If response generated an error, WP_Error, if response
  *                                   is already an instance, WP_REST_Response, otherwise
  *                                   returns a new WP_REST_Response instance.
+ *
+ * @phpstan-return ( $response is WP_Error ? WP_Error : WP_REST_Response )
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
