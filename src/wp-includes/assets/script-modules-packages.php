@@ -177,7 +177,7 @@
 			'wp-i18n',
 			'wp-private-apis'
 		),
-		'version' => 'c9991cd0656dfe1c46e9'
+		'version' => 'e973aa806299e3d70144'
 	),
 	'core-abilities/index.js' => array(
 		'dependencies' => array(
@@ -283,24 +283,6 @@
 			'wp-private-apis'
 		),
 		'version' => 'c5843b6c5e84b352f43b'
-	),
-	'vips/loader.js' => array(
-		'dependencies' => array(
-			
-		),
-		'module_dependencies' => array(
-			array(
-				'id' => '@wordpress/vips/worker',
-				'import' => 'dynamic'
-			)
-		),
-		'version' => '07c9acb45d3e5d81829a'
-	),
-	'vips/worker.js' => array(
-		'dependencies' => array(
-			
-		),
-		'version' => 'aff5e5c5b28ae6b73aaa'
 	),
 	'workflow/index.js' => array(
 		'dependencies' => array(
