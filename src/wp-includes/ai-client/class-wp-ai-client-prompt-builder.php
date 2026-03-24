@@ -23,6 +23,7 @@ use WordPress\AiClient\Results\DTO\GenerativeAiResult;
 use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 use WordPress\AiClient\Tools\DTO\WebSearch;
+use WordPress\AiClientDependencies\Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Fluent builder for constructing AI prompts, returning WP_Error on failure.
@@ -173,12 +174,13 @@ class WP_AI_Client_Prompt_Builder {
 	 *                                                                                                    message array shape, or a list of
 	 *                                                                                                    parts or messages for multi-turn
 	 *                                                                                                    conversations. Default null.
+	 * @param EventDispatcherInterface|null                                                          $event_dispatcher Optional. Event dispatcher for prompt lifecycle events.
 	 */
-	public function __construct( ProviderRegistry $registry, $prompt = null ) {
+	public function __construct( ProviderRegistry $registry, $prompt = null, ?EventDispatcherInterface $event_dispatcher = null ) {
 		try {
-			$this->builder = new PromptBuilder( $registry, $prompt );
+			$this->builder = new PromptBuilder( $registry, $prompt, $event_dispatcher );
 		} catch ( Exception $e ) {
-			$this->builder = new PromptBuilder( $registry );
+			$this->builder = new PromptBuilder( $registry, null, $event_dispatcher );
 			$this->error   = new WP_Error(
 				'prompt_builder_error',
 				$e->getMessage(),

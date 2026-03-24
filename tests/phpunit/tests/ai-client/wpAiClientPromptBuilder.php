@@ -34,6 +34,7 @@ use WordPress\AiClient\Results\Enums\FinishReasonEnum;
 use WordPress\AiClient\Builders\PromptBuilder;
 use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
+use WordPress\AiClientDependencies\Psr\EventDispatcher\EventDispatcherInterface;
 
 require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-mock-model-creation-trait.php';
 require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-test-abilities-trait.php';
@@ -1403,6 +1404,45 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that wp_ai_client_prompt() passes the AI client event dispatcher to the wrapped prompt builder.
+	 *
+	 * @ticket 64938
+	 */
+	public function test_wp_ai_client_prompt_passes_event_dispatcher() {
+		$original_event_dispatcher = AiClient::getEventDispatcher();
+		$event_dispatcher          = new WP_AI_Client_Event_Dispatcher();
+
+		AiClient::setEventDispatcher( $event_dispatcher );
+
+		try {
+			$builder = wp_ai_client_prompt( 'Test prompt' );
+
+			$this->assertSame(
+				$event_dispatcher,
+				$this->get_wrapped_prompt_builder_property_value( $builder, 'eventDispatcher' )
+			);
+		} finally {
+			AiClient::setEventDispatcher( $original_event_dispatcher );
+		}
+	}
+
+	/**
+	 * Tests that the prompt builder constructor forwards an event dispatcher to the wrapped SDK prompt builder.
+	 *
+	 * @ticket 64938
+	 */
+	public function test_constructor_passes_event_dispatcher() {
+		$event_dispatcher = $this->createMock( EventDispatcherInterface::class );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt', $event_dispatcher );
+
+		$this->assertSame(
+			$event_dispatcher,
+			$this->get_wrapped_prompt_builder_property_value( $builder, 'eventDispatcher' )
+		);
 	}
 
 	/**

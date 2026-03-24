@@ -30,5 +30,5 @@ use WordPress\AiClient\AiClient;
  * @return WP_AI_Client_Prompt_Builder The prompt builder instance.
  */
 function wp_ai_client_prompt( $prompt = null ) {
-	return new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), $prompt );
+	return new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), $prompt, AiClient::getEventDispatcher() );
 }
