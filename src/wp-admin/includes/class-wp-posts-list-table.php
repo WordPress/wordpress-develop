@@ -1491,23 +1491,25 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$title            = _draft_or_post_title();
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
-			$is_rtc_locked = get_option( 'wp_collaboration_enabled' ) && wp_check_post_lock( $post->ID );
+			$is_rtc_enabled = (bool) get_option( 'wp_collaboration_enabled' );
+
+			if ( $is_rtc_enabled ) {
+				$link_text = sprintf(
+					'<span class="edit-action-text">%s</span><span class="join-action-text">%s</span>',
+					__( 'Edit' ),
+					/* translators: Action link text for a singular post in the post list. Can be any type of post. */
+					_x( 'Join', 'post list' )
+				);
+			} else {
+				$link_text = __( 'Edit' );
+			}
 
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_edit_post_link( $post->ID ),
-				esc_attr(
-					sprintf(
-						$is_rtc_locked
-							/* translators: %s: Post title. */
-							? __( 'Join editing &#8220;%s&#8221;', 'post list' )
-							/* translators: %s: Post title. */
-							: __( 'Edit &#8220;%s&#8221;' ),
-						$title
-					)
-				),
-				/* translators: Action link text for a singular post in the post list. Can be any type of post. */
-				$is_rtc_locked ? _x( 'Join', 'post list' ) : __( 'Edit' )
+				/* translators: %s: Post title. */
+				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
+				$link_text
 			);
 
 			/**
