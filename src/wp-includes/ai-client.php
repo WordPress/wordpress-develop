@@ -17,7 +17,7 @@ use WordPress\AiClient\AiClient;
  * @return bool Whether AI features are supported.
  */
 function wp_supports_ai(): bool {
-	// Constant ensures 3rd-party code cannot override the explicit preferences defined by the environment.
+	// Return early if AI is disabled by the current environment.
 	if ( defined( 'WP_AI_SUPPORT' ) && ! WP_AI_SUPPORT ) {
 		return false;
 	}
@@ -25,11 +25,14 @@ function wp_supports_ai(): bool {
 	/**
 	 * Filters whether the current request should use AI.
 	 *
+	 * This allows plugins and 3rd-party code to disable AI features on a per-request basis, or to even override explicit
+	 * preferences defined by the site owner.
+	 *
 	 * @since 7.0.0
 	 *
-	 * @param bool $is_enabled Whether the current request should use AI. Default true.
+	 * @param bool $is_enabled Whether the current request should use AI. Default to true.
 	 */
-	return (bool) apply_filters( 'wp_supports_ai', true );
+	return (bool) apply_filters( 'wp_supports_ai', true );=
 }
 
 /**
