@@ -668,7 +668,12 @@ module.exports = function(grunt) {
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/build/styles',
-					src: [ '**/*', '!**/*.map' ],
+					src: [
+						'**/*',
+						'!**/*.map',
+						// Per-block CSS is copied to wp-includes/blocks/ by tools/gutenberg/copy.js.
+						'!block-library/*/**',
+					],
 					dest: WORKING_DIR + 'wp-includes/css/dist/',
 				} ],
 			},
