@@ -30,7 +30,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const AWARENESS_META_KEY = 'wp_sync_awareness_state';
+	const AWARENESS_META_KEY = 'wp_sync_awareness';
 
 	/**
 	 * Meta key for sync updates.
@@ -38,7 +38,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const SYNC_UPDATE_META_KEY = 'wp_sync_update_data';
+	const SYNC_UPDATE_META_KEY = 'wp_sync_update';
 
 	/**
 	 * Cache of cursors by room.
@@ -69,32 +69,19 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
 	 * @param string $room   Room identifier.
 	 * @param mixed  $update Sync update.
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_update( string $room, $update ): bool {
-		global $wpdb;
-
 		$post_id = $this->get_storage_post_id( $room );
 		if ( null === $post_id ) {
 			return false;
 		}
 
-		// Use direct database operation to avoid cache invalidation performed by
-		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
-		// `wp_cache_delete()` calls).
-		return (bool) $wpdb->insert(
-			$wpdb->postmeta,
-			array(
-				'post_id'    => $post_id,
-				'meta_key'   => self::SYNC_UPDATE_META_KEY,
-				'meta_value' => wp_json_encode( $update ),
-			),
-			array( '%d', '%s', '%s' )
-		);
+		$meta_id = add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false );
+
+		return (bool) $meta_id;
 	}
 
 	/**
@@ -102,35 +89,16 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
 	 * @param string $room Room identifier.
 	 * @return array<int, mixed> Awareness state.
 	 */
 	public function get_awareness_state( string $room ): array {
-		global $wpdb;
-
 		$post_id = $this->get_storage_post_id( $room );
 		if ( null === $post_id ) {
 			return array();
 		}
 
-		// Use direct database operation to avoid updating the post meta cache.
-		// ORDER BY meta_id DESC ensures the latest row wins if duplicates exist
-		// from a past race condition in set_awareness_state().
-		$meta_value = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT meta_value FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s ORDER BY meta_id DESC LIMIT 1",
-				$post_id,
-				self::AWARENESS_META_KEY
-			)
-		);
-
-		if ( null === $meta_value ) {
-			return array();
-		}
-
-		$awareness = json_decode( $meta_value, true );
+		$awareness = get_post_meta( $post_id, self::AWARENESS_META_KEY, true );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -144,54 +112,19 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
 	 * @param string            $room      Room identifier.
 	 * @param array<int, mixed> $awareness Serializable awareness state.
 	 * @return bool True on success, false on failure.
 	 */
 	public function set_awareness_state( string $room, array $awareness ): bool {
-		global $wpdb;
-
 		$post_id = $this->get_storage_post_id( $room );
 		if ( null === $post_id ) {
 			return false;
 		}
 
-		// Use direct database operation to avoid cache invalidation performed by
-		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
-		// `wp_cache_delete()` calls).
-		//
-		// If two concurrent requests both see no row and both INSERT, the
-		// duplicate is harmless: get_awareness_state() reads the latest row
-		// (ORDER BY meta_id DESC).
-		$meta_id = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s ORDER BY meta_id DESC LIMIT 1",
-				$post_id,
-				self::AWARENESS_META_KEY
-			)
-		);
-
-		if ( $meta_id ) {
-			return (bool) $wpdb->update(
-				$wpdb->postmeta,
-				array( 'meta_value' => wp_json_encode( $awareness ) ),
-				array( 'meta_id' => $meta_id ),
-				array( '%s' ),
-				array( '%d' )
-			);
-		}
-
-		return (bool) $wpdb->insert(
-			$wpdb->postmeta,
-			array(
-				'post_id'    => $post_id,
-				'meta_key'   => self::AWARENESS_META_KEY,
-				'meta_value' => wp_json_encode( $awareness ),
-			),
-			array( '%d', '%s', '%s' )
-		);
+		// update_post_meta returns false if the value is the same as the existing value.
+		update_post_meta( $post_id, wp_slash( self::AWARENESS_META_KEY ), wp_slash( $awareness ) );
+		return true;
 	}
 
 	/**
@@ -235,8 +168,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 				'post_status'    => 'publish',
 				'name'           => $room_hash,
 				'fields'         => 'ids',
-				'orderby'        => 'ID',
-				'order'          => 'ASC',
 			)
 		);
 
@@ -280,8 +211,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * Retrieves sync updates from a room after the given cursor.
 	 *
 	 * @since 7.0.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Return updates after this cursor (meta_id).
@@ -332,10 +261,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 
 		$updates = array();
 		foreach ( $rows as $row ) {
-			$decoded = json_decode( $row->meta_value, true );
-			if ( null !== $decoded ) {
-				$updates[] = $decoded;
-			}
+			$updates[] = maybe_unserialize( $row->meta_value );
 		}
 
 		return $updates;
@@ -345,8 +271,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * Removes updates from a room that are older than the given cursor.
 	 *
 	 * @since 7.0.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $room   Room identifier.
 	 * @param int    $cursor Remove updates with meta_id < this cursor.
