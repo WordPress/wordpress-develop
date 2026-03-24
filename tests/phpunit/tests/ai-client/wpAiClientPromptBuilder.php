@@ -1600,6 +1600,63 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the wrapped PromptBuilder receives the same event dispatcher as AiClient.
+	 *
+	 * @ticket 64935
+	 */
+	public function test_prompt_builder_passes_ai_client_event_dispatcher_to_wrapped_builder() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$wrapped_dispatcher = $this->get_wrapped_prompt_builder_property_value( $builder, 'eventDispatcher' );
+
+		$this->assertSame( AiClient::getEventDispatcher(), $wrapped_dispatcher );
+		$this->assertInstanceOf( WP_AI_Client_Event_Dispatcher::class, $wrapped_dispatcher );
+	}
+
+	/**
+	 * Tests that generate_text_result fires wp_ai_client_before_generate_result and wp_ai_client_after_generate_result in order.
+	 *
+	 * @ticket 64935
+	 */
+	public function test_generate_text_result_fires_lifecycle_action_hooks() {
+		$result = new GenerativeAiResult(
+			'test-result',
+			array( new Candidate( new ModelMessage( array( new MessagePart( 'Generated text' ) ) ), FinishReasonEnum::stop() ) ),
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_text_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_text_generation_model( $result, $metadata );
+
+		$hook_order = array();
+
+		add_action(
+			'wp_ai_client_before_generate_result',
+			static function () use ( &$hook_order ) {
+				$hook_order[] = 'before';
+			}
+		);
+		add_action(
+			'wp_ai_client_after_generate_result',
+			static function () use ( &$hook_order ) {
+				$hook_order[] = 'after';
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Test prompt' );
+		$builder->using_model( $model );
+
+		$actual_result = $builder->generate_text_result();
+
+		$this->assertSame( $result, $actual_result );
+		$this->assertSame( array( 'before', 'after' ), $hook_order );
+	}
+
+	/**
 	 * Tests generateImageResult method.
 	 *
 	 * @ticket 64591
