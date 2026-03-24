@@ -32,7 +32,7 @@ function wp_supports_ai(): bool {
 	 *
 	 * @param bool $is_enabled Whether the current request should use AI. Default to true.
 	 */
-	return (bool) apply_filters( 'wp_supports_ai', true );=
+	return (bool) apply_filters( 'wp_supports_ai', true );
 }
 
 /**
