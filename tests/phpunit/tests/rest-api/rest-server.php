@@ -605,6 +605,19 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 500, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 64901
+	 */
+	public function test_error_to_response_with_non_numeric_status() {
+		$error = new WP_Error( 'test', 'test', array( 'status' => 'forbidden' ) );
+
+		$response = rest_convert_error_to_response( $error );
+		$this->assertInstanceOf( 'WP_REST_Response', $response );
+
+		// Non-numeric status should be ignored, status should default to 500.
+		$this->assertSame( 500, $response->get_status() );
+	}
+
 	public function test_rest_error() {
 		$data     = array(
 			'code'    => 'wp-api-test-error',

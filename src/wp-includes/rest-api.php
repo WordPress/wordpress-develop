@@ -3429,7 +3429,10 @@ function rest_convert_error_to_response( $error ) {
 		$error->get_all_error_data(),
 		static function ( $status, $error_data ) {
 			// Note: $error_data may not be an array (e.g. stdClass), so is_array() check is intentional.
-			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
+			if ( is_array( $error_data ) && isset( $error_data['status'] ) && is_numeric( $error_data['status'] ) ) {
+				$status = (int) $error_data['status'];
+			}
+			return $status;
 		},
 		500
 	);
