@@ -1495,14 +1495,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			if ( $is_rtc_enabled ) {
 				$link_text = sprintf(
-					'<span class="edit-action-text">%s<span class="screen-reader-text"> %s</span></span><span class="join-action-text">%s<span class="screen-reader-text"> %s</span></span>',
+					'<span class="edit-action-text"><span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span><span class="join-action-text"><span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
 					__( 'Edit' ),
 					/* translators: %s: Post title. */
-					sprintf( __( '&#8220;%s&#8221;' ), $title ),
+					sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ),
 					/* translators: Action link text for a singular post in the post list. Can be any type of post. */
 					_x( 'Join', 'post list' ),
 					/* translators: %s: Post title. */
-					sprintf( __( 'editing &#8220;%s&#8221;' ), $title )
+					sprintf( __( 'Join editing &#8220;%s&#8221;', 'post list' ), $title )
 				);
 
 				$actions['edit'] = sprintf(
