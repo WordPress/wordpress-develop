@@ -91,10 +91,10 @@ jobs:
         run: mkdir artifacts
 
       - name: Create a list of files that have changed
-        run: diff --strip-trailing-cr --recursive --exclude='.git' ${{ github.workspace }}/build ${{ github.workspace }}/build-server | sed "s|${{ github.workspace }}/||g" > artifacts/file-changes.txt
+        run: diff --strip-trailing-cr --recursive --exclude='.git' --exclude='version.php' ${{ github.workspace }}/build ${{ github.workspace }}/build-server | sed "s|${{ github.workspace }}/||g" > artifacts/file-changes.txt
 
       - name: Create a list of files that have changed
-        run: diff --strip-trailing-cr --recursive --exclude='.git' ${{ github.workspace }}/build ${{ github.workspace }}/build-server | sed "s|${{ github.workspace }}/||g" > artifacts/changes.diff
+        run: diff --strip-trailing-cr --recursive --exclude='.git' --exclude='version.php' ${{ github.workspace }}/build ${{ github.workspace }}/build-server | sed "s|${{ github.workspace }}/||g" > artifacts/changes.diff
 
       - name: Save PR number
         run: echo "${EVENT_NUMBER}" > ./artifacts/NR

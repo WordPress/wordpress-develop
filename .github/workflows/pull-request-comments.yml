@@ -269,13 +269,20 @@ jobs:
               }
             };
 
-            commentInfo.body = "## Build Server Comparison\n\n";
-
             // Post or update the comment.
             if ( fileChanges.trim() === '' ) {
-              commentInfo.body += 'The contents of the `build` directory after running `npm run build` matches the contents of the WordPress/WordPress repository. No differences were found.';
-            } else {
-              commentInfo.body += `The contents of the \`build\` directory after running \`npm run build\` has been compared with the contents of the WordPress/WordPress repository.
+              if ( ! commentInfo.comment_id ) {
+                core.info( 'No differences found and no existing comment. Skipping.' );
+                return;
+              }
+
+              commentInfo.body = "## Build Server Comparison\n\nThe changes in this pull request will not result in any differences with the WordPress/WordPress repository.";
+              github.rest.issues.updateComment( commentInfo );
+              return;
+            }
+
+            commentInfo.body = "## Build Server Comparison\n\n";
+            commentInfo.body += `The contents of the \`build\` directory after running \`npm run build\` has been compared with the contents of the WordPress/WordPress repository.
 
             **Review these differences carefully for any unexpected results.**
 
@@ -288,11 +295,11 @@ jobs:
             ### Full Diff File
             `;
 
-              if ( diffContents.length > MAX_DIFF_LENGTH ) {
-                const cutoff = diffContents.lastIndexOf( '\n', MAX_DIFF_LENGTH );
-                const truncated = diffContents.substring( 0, cutoff );
+            if ( diffContents.length > MAX_DIFF_LENGTH ) {
+              const cutoff = diffContents.lastIndexOf( '\n', MAX_DIFF_LENGTH );
+              const truncated = diffContents.substring( 0, cutoff );
 
-                commentInfo.body += `<details>
+              commentInfo.body += `<details>
               <summary>Click to expand (truncated)</summary>
 
               \`\`\`diff
@@ -302,8 +309,8 @@ jobs:
               ⚠️ The diff was too large to display in full.
 
               </details>`;
-              } else {
-                commentInfo.body += `<details>
+            } else {
+              commentInfo.body += `<details>
               <summary>Click to expand</summary>
 
               \`\`\`diff
@@ -311,12 +318,11 @@ jobs:
               \`\`\`
 
               </details>`;
-              }
-
-              const sha = context.payload.workflow_run.head_sha;
-              commentInfo.body += `\n\n_Comment updated using [${ sha.slice( 0, 7 ) }](https://github.com/${ context.repo.owner }/${ context.repo.repo }/commit/${ sha })._ ([commenting workflow run](https://github.com/${ context.repo.owner }/${ context.repo.repo }/actions/runs/${ context.runId })).`;
-              commentInfo.body += `\n\n[Download the complete .diff file from the workflow run](https://github.com/${ context.repo.owner }/${ context.repo.repo }/actions/runs/${ context.payload.workflow_run.id }).`;
             }
+
+            const sha = context.payload.workflow_run.head_sha;
+            commentInfo.body += `\n\n_Comment updated using [${ sha.slice( 0, 7 ) }](https://github.com/${ context.repo.owner }/${ context.repo.repo }/commit/${ sha })._ ([commenting workflow run](https://github.com/${ context.repo.owner }/${ context.repo.repo }/actions/runs/${ context.runId })).`;
+            commentInfo.body += `\n\n[Download the complete .diff file from the workflow run](https://github.com/${ context.repo.owner }/${ context.repo.repo }/actions/runs/${ context.payload.workflow_run.id }).`;
 
             if ( commentInfo.comment_id ) {
               github.rest.issues.updateComment( commentInfo );
