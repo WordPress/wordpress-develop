@@ -1495,22 +1495,30 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			if ( $is_rtc_enabled ) {
 				$link_text = sprintf(
-					'<span class="edit-action-text">%s</span><span class="join-action-text">%s</span>',
+					'<span class="edit-action-text">%s<span class="screen-reader-text"> %s</span></span><span class="join-action-text">%s<span class="screen-reader-text"> %s</span></span>',
 					__( 'Edit' ),
+					/* translators: %s: Post title. */
+					sprintf( __( '&#8220;%s&#8221;' ), $title ),
 					/* translators: Action link text for a singular post in the post list. Can be any type of post. */
-					_x( 'Join', 'post list' )
+					_x( 'Join', 'post list' ),
+					/* translators: %s: Post title. */
+					sprintf( __( 'editing &#8220;%s&#8221;' ), $title )
+				);
+
+				$actions['edit'] = sprintf(
+					'<a href="%s">%s</a>',
+					get_edit_post_link( $post->ID ),
+					$link_text
 				);
 			} else {
-				$link_text = __( 'Edit' );
+				$actions['edit'] = sprintf(
+					'<a href="%s" aria-label="%s">%s</a>',
+					get_edit_post_link( $post->ID ),
+					/* translators: %s: Post title. */
+					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
+					__( 'Edit' )
+				);
 			}
-
-			$actions['edit'] = sprintf(
-				'<a href="%s" aria-label="%s">%s</a>',
-				get_edit_post_link( $post->ID ),
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
-				$link_text
-			);
 
 			/**
 			 * Filters whether Quick Edit should be enabled for the given post type.
