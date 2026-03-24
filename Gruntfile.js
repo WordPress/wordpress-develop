@@ -55,6 +55,8 @@ module.exports = function(grunt) {
 			'wp-includes/css/dist',
 			'wp-includes/blocks/**/*',
 			'!wp-includes/blocks/index.php',
+			'wp-includes/images/icon-library',
+			// Old location kept temporarily to ensure they are cleaned up.
 			'wp-includes/icons',
 		],
 
@@ -601,7 +603,7 @@ module.exports = function(grunt) {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
 				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			},
-			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/, routes/).
+			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/).
 			'gutenberg-php': {
 				options: {
 					process: function( content ) {
@@ -620,10 +622,25 @@ module.exports = function(grunt) {
 						'pages.php',
 						'constants.php',
 						'pages/**/*.php',
-						'routes/**/*.php',
 					],
 					dest: WORKING_DIR + 'wp-includes/build/',
 				} ],
+			},
+			/*
+			 * Only copy files relevant to the routes specified in the registry file.
+			 *
+			 * While the registry file does not contain any experimental routes, the `gutenberg/build/routes` directory
+			 * includes the files for all registered routes. Only the files related to the routes specified in the
+			 * registry should be included in the WordPress build.
+			 *
+			 * The `src` list is populated at task runtime by `routes:setup`, which reads the registry after
+			 * `gutenberg:download` has run. See the `routes:setup` task registration for implementation details.
+			 */
+			routes: {
+				expand: true,
+				cwd: 'gutenberg/build',
+				src: [],
+				dest: WORKING_DIR + 'wp-includes/build/',
 			},
 			'gutenberg-js': {
 				files: [ {
@@ -631,7 +648,6 @@ module.exports = function(grunt) {
 					cwd: 'gutenberg/build',
 					src: [
 						'pages/**/*.js',
-						'routes/**/*.js',
 					],
 					dest: WORKING_DIR + 'wp-includes/build/',
 				} ],
@@ -643,9 +659,7 @@ module.exports = function(grunt) {
 					src: [
 						'**/*',
 						'!**/*.map',
-						// Skip non-minified VIPS files — they are ~16MB of inlined WASM
-						// with no debugging value over the minified versions.
-						'!vips/!(*.min).js',
+						'!vips/**',
 					],
 					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
 				} ],
@@ -682,31 +696,35 @@ module.exports = function(grunt) {
 					},
 				],
 			},
-			'gutenberg-icons': {
+			'icon-library-images': {
+				files: [ {
+					expand: true,
+					cwd: 'gutenberg/packages/icons/src/library',
+					src: '*.svg',
+					dest: WORKING_DIR + 'wp-includes/images/icon-library',
+				} ],
+			},
+			'icon-library-manifest': {
 				options: {
-					process: function( content, srcpath ) {
-						// Remove the 'gutenberg' text domain from _x() calls in manifest.php.
-						if ( path.basename( srcpath ) === 'manifest.php' ) {
-							return content.replace(
+					process: function( content ) {
+						return content
+							// Remove the 'gutenberg' text domain from _x() calls.
+							.replace(
 								/_x\(\s*([^,]+),\s*([^,]+),\s*['"]gutenberg['"]\s*\)/g,
 								'_x( $1, $2 )'
+							)
+							// Strip the 'library/' prefix from filePath values so they
+							// resolve correctly relative to wp-includes/images/icon-library/.
+							.replace(
+								/'filePath' => 'library\//g,
+								'\'filePath\' => \''
 							);
-						}
-						return content;
 					}
 				},
-				files: [
-					{
-						src: 'gutenberg/packages/icons/src/manifest.php',
-						dest: WORKING_DIR + 'wp-includes/icons/manifest.php',
-					},
-					{
-						expand: true,
-						cwd: 'gutenberg/packages/icons/src/library',
-						src: '*.svg',
-						dest: WORKING_DIR + 'wp-includes/icons/library/',
-					},
-				],
+				files: [ {
+					src: 'gutenberg/packages/icons/src/manifest.php',
+					dest: WORKING_DIR + 'wp-includes/assets/icon-library-manifest.php',
+				} ],
 			},
 		},
 		sass: {
@@ -2052,14 +2070,59 @@ module.exports = function(grunt) {
 			} );
 	} );
 
+	grunt.registerTask( 'routes:setup', 'Reads the routes registry and configures the copy:routes task.', function() {
+		const registryPath = 'gutenberg/build/routes/registry.php';
+		let registryContent;
+		try {
+			registryContent = fs.readFileSync( registryPath, 'utf8' );
+		} catch ( e ) {
+			grunt.fatal(
+				'Route registry not found at ' + registryPath + '. Run `grunt gutenberg:download` first.'
+			);
+		}
+		const namePattern = /'name'\s*=>\s*'([^']+)'/g;
+		const routeNames = [];
+		let match;
+		while ( ( match = namePattern.exec( registryContent ) ) !== null ) {
+			routeNames.push( match[ 1 ] );
+		}
+
+		if ( routeNames.length === 0 ) {
+			grunt.fatal(
+				'No route names found in ' + registryPath + '. The format of the file may have changed.'
+			);
+		}
+
+		const validName = /^[A-Za-z0-9_-]+$/;
+		routeNames.forEach( function( name ) {
+			if ( ! validName.test( name ) ) {
+				grunt.fatal(
+					'Invalid route name \'' + name + '\' in ' + registryPath + '. Expected only letters, digits, hyphens, and underscores.'
+				);
+			}
+		} );
+
+		grunt.config( [ 'copy', 'routes', 'src' ], [ 'routes/registry.php' ].concat(
+			routeNames.flatMap( function( name ) {
+				return [
+					'routes/' + name + '/**/*.php',
+					'routes/' + name + '/**/*.js',
+				];
+			} )
+		) );
+	} );
+
 	grunt.registerTask( 'build:gutenberg', [
 		'copy:gutenberg-php',
+		'routes:setup',
+		'copy:routes',
 		'copy:gutenberg-js',
 		'gutenberg:copy',
 		'copy:gutenberg-modules',
 		'copy:gutenberg-styles',
 		'copy:gutenberg-theme-json',
-		'copy:gutenberg-icons',
+		'copy:icon-library-images',
+		'copy:icon-library-manifest',
 	] );
 
 	grunt.registerTask( 'build', function() {
