@@ -103,13 +103,7 @@ class Admin_Includes_User_WpIsAuthorizeApplicationRedirectUrlValid_Test extends 
 				'env'                 => $environment_type,
 			);
 
-			// HTTP + loopback hosts should be valid in all environments.
-			$datasets[ $environment_type . ' and a "http" scheme URL with localhost' ] = array(
-				'url'                 => 'http://localhost/callback',
-				'expected_error_code' => '',
-				'env'                 => $environment_type,
-			);
-
+			// HTTP + loopback IP addresses should be valid in all environments.
 			$datasets[ $environment_type . ' and a "http" scheme URL with 127.0.0.1' ] = array(
 				'url'                 => 'http://127.0.0.1/callback',
 				'expected_error_code' => '',
@@ -122,13 +116,7 @@ class Admin_Includes_User_WpIsAuthorizeApplicationRedirectUrlValid_Test extends 
 				'env'                 => $environment_type,
 			);
 
-			// HTTP + loopback hosts with ports should be valid in all environments.
-			$datasets[ $environment_type . ' and a "http" scheme URL with localhost and port' ] = array(
-				'url'                 => 'http://localhost:8080/callback',
-				'expected_error_code' => '',
-				'env'                 => $environment_type,
-			);
-
+			// HTTP + loopback IP addresses with ports should be valid in all environments.
 			$datasets[ $environment_type . ' and a "http" scheme URL with 127.0.0.1 and port' ] = array(
 				'url'                 => 'http://127.0.0.1:3000/callback',
 				'expected_error_code' => '',
@@ -137,19 +125,6 @@ class Admin_Includes_User_WpIsAuthorizeApplicationRedirectUrlValid_Test extends 
 
 			$datasets[ $environment_type . ' and a "http" scheme URL with IPv6 loopback and port' ] = array(
 				'url'                 => 'http://[::1]:8080/callback',
-				'expected_error_code' => '',
-				'env'                 => $environment_type,
-			);
-
-			// Case insensitivity for loopback hostnames.
-			$datasets[ $environment_type . ' and a "http" scheme URL with uppercase LOCALHOST' ] = array(
-				'url'                 => 'http://LOCALHOST/callback',
-				'expected_error_code' => '',
-				'env'                 => $environment_type,
-			);
-
-			$datasets[ $environment_type . ' and a "http" scheme URL with mixed case Localhost' ] = array(
-				'url'                 => 'http://Localhost/callback',
 				'expected_error_code' => '',
 				'env'                 => $environment_type,
 			);
@@ -167,7 +142,13 @@ class Admin_Includes_User_WpIsAuthorizeApplicationRedirectUrlValid_Test extends 
 				'env'                 => $environment_type,
 			);
 
-			// Boundary cases: addresses NOT treated as loopback.
+			// Boundary cases: hostnames and addresses NOT treated as loopback.
+			$datasets[ $environment_type . ' and a "http" scheme URL with localhost' ] = array(
+				'url'                 => 'http://localhost/callback',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
 			$datasets[ $environment_type . ' and a "http" scheme URL with 127.0.0.2' ] = array(
 				'url'                 => 'http://127.0.0.2/callback',
 				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',

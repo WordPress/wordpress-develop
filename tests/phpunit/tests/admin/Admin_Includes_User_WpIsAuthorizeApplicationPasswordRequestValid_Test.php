@@ -83,7 +83,7 @@ class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test exte
 			);
 
 			$datasets[ $environment_type . ' and a "http" loopback "success_url"' ] = array(
-				'request'             => array( 'success_url' => 'http://localhost:8080/callback' ),
+				'request'             => array( 'success_url' => 'http://127.0.0.1:8080/callback' ),
 				'expected_error_code' => '',
 				'env'                 => $environment_type,
 			);
