@@ -1455,7 +1455,7 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 	}
 
 	$suffix        = SCRIPT_DEBUG ? '' : '.min';
-	$admin_bar_url = admin_url( 'css/colors/' . $color_scheme . "/admin-bar$suffix.css" );
+	$admin_bar_url = admin_url( "css/colors/{$color_scheme}/admin-bar{$suffix}.css" );
 
 	if ( ! $admin_bar_url ) {
 		return;
