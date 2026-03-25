@@ -38,14 +38,14 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	public function data_wp_timezone_choice(): array {
 		return array(
 			'placeholder option'           => array( '<option selected="selected" value="">Select a city</option>' ),
-			'city in Americas'             => array( '<option value="America/Los_Angeles">Los Angeles</option>' ),
-			'deprecated timezone'          => array( '<option value="Pacific/Honolulu">Honolulu</option>' ),
-			'manual offset example'        => array( '<option value="UTC-8">UTC-8</option>' ),
-			'UTC option'                   => array( '<option value="UTC">UTC</option>' ),
-			'continent example'            => array( '<option value="Africa/Johannesburg">Johannesburg</option>' ),
-			'city example'                 => array( '<option value="Asia/Kuala_Lumpur">Kuala Lumpur</option>' ),
-			'city with sub-city'           => array( '<option value="America/Argentina/Buenos_Aires">Argentina - Buenos Aires</option>' ),
-			'translated city name appears' => array( '<option value="Pacific/Port_Moresby">Port Moresby</option>' ),
+			'city in Americas'             => array( '<option value="America/Los_Angeles" dir="auto">Los Angeles</option>' ),
+			'deprecated timezone'          => array( '<option value="Pacific/Honolulu" dir="auto">Honolulu</option>' ),
+			'manual offset example'        => array( '<option value="UTC-8" dir="auto">UTC-8</option>' ),
+			'UTC option'                   => array( '<option value="UTC" dir="auto">UTC</option>' ),
+			'continent example'            => array( '<option value="Africa/Johannesburg" dir="auto">Johannesburg</option>' ),
+			'city example'                 => array( '<option value="Asia/Kuala_Lumpur" dir="auto">Kuala Lumpur</option>' ),
+			'city with sub-city'           => array( '<option value="America/Argentina/Buenos_Aires" dir="auto">Argentina - Buenos Aires</option>' ),
+			'translated city name appears' => array( '<option value="Pacific/Port_Moresby" dir="auto">Port Moresby</option>' ),
 		);
 	}
 
