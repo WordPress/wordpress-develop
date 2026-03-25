@@ -295,6 +295,7 @@ require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-ability-function-resolv
 require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-prompt-builder.php';
 require ABSPATH . WPINC . '/ai-client.php';
 require ABSPATH . WPINC . '/ai-connector-pro.php';
+require ABSPATH . WPINC . '/ai-security/ai-security.php';
 require ABSPATH . WPINC . '/class-wp-connector-registry.php';
 require ABSPATH . WPINC . '/connectors.php';
 require ABSPATH . WPINC . '/class-wp-icons-registry.php';
