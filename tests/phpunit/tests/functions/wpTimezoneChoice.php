@@ -12,7 +12,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	/**
 	 * Tears down.
 	 */
-	public function tear_down() {
+	public function tear_down(): void {
 		restore_current_locale();
 		parent::tear_down();
 	}
@@ -25,7 +25,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	 *
 	 * @param string $expected Expected string HTML fragment.
 	 */
-	public function test_wp_timezone_choice( $expected ) {
+	public function test_wp_timezone_choice( string $expected ): void {
 		$timezone_list = wp_timezone_choice( '' );
 		$this->assertStringContainsString( $expected, $timezone_list );
 	}
@@ -58,7 +58,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	 * @param string $selected_zone The timezone to select.
 	 * @param string $expected Expected string HTML fragment.
 	 */
-	public function test_wp_timezone_choice_selected( $selected_zone, $expected ) {
+	public function test_wp_timezone_choice_selected( string $selected_zone, string $expected ): void {
 		$actual = wp_timezone_choice( $selected_zone );
 		$this->assertStringContainsString( $expected, $actual );
 	}
@@ -97,7 +97,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	 *
 	 * @param string $expected Expected string HTML fragment.
 	 */
-	public function test_wp_timezone_choice_es( $expected ) {
+	public function test_wp_timezone_choice_es( string $expected ): void {
 		$timezone_list = wp_timezone_choice( '', 'es_ES' );
 		$this->assertStringContainsString( $expected, $timezone_list );
 	}
@@ -124,7 +124,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	 *
 	 * @param string $expected Expected string HTML fragment.
 	 */
-	public function test_wp_timezone_choice_es_set( $expected ) {
+	public function test_wp_timezone_choice_es_set( string $expected ): void {
 		switch_to_locale( 'es_ES' );
 		$timezone_list = wp_timezone_choice( '' );
 		$this->assertStringContainsString( $expected, $timezone_list );
