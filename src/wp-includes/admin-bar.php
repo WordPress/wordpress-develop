@@ -1464,7 +1464,6 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 	wp_enqueue_style(
 		'admin-bar-color-scheme',
 		$admin_bar_url,
-		array( 'admin-bar' ),
-		false
+		array( 'admin-bar' )
 	);
 }
