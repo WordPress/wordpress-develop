@@ -1449,8 +1449,9 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 	}
 
 	$color_scheme = get_user_option( 'admin_color' );
+	$core_list    = array( 'modern', 'light', 'blue', 'coffee', 'ectoplasm', 'midnight', 'ocean', 'sunrise' );
 
-	if ( empty( $color_scheme ) || ! in_array( $color_scheme, array( 'modern', 'light', 'blue', 'coffee', 'ectoplasm', 'midnight', 'ocean', 'sunrise' ), true ) ) {
+	if ( empty( $color_scheme ) || ! in_array( $color_scheme, $core_list, true ) ) {
 		return;
 	}
 
