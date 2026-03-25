@@ -360,13 +360,18 @@ class WP_HTTP_Polling_Sync_Server {
 			$updated_awareness[] = array(
 				'client_id'  => $client_id,
 				'state'      => $awareness_update,
-				'updated_at' => $current_time,
+				'updated_at' => ceil( time() / 10 ) * 10, // Round up to nearest 10 seconds to reduce database churn.
 				'wp_user_id' => get_current_user_id(),
 			);
 		}
 
-		// This action can fail, but it shouldn't fail the entire request.
-		$this->storage->set_awareness_state( $room, $updated_awareness );
+		wp_list_sort( $updated_awareness, 'client_id' );
+
+		// Compare old and new here to avoid function calls to set_transient/update_option.
+		if ( wp_json_encode( $updated_awareness ) !== wp_json_encode( $existing_awareness ) ) {
+			// Awareness has updated, trigger database/object cache update.
+			$this->storage->set_awareness_state( $room, $updated_awareness );
+		}
 
 		// Convert to client_id => state map for response.
 		$response = array();
