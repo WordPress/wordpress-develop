@@ -30,7 +30,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const AWARENESS_META_KEY = 'wp_sync_awareness';
+	const AWARENESS_TRANSIENT_PREFIX = 'wp_sync_awareness';
 
 	/**
 	 * Meta key for sync updates.
@@ -93,12 +93,9 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return array<int, mixed> Awareness state.
 	 */
 	public function get_awareness_state( string $room ): array {
-		$post_id = $this->get_storage_post_id( $room );
-		if ( null === $post_id ) {
-			return array();
-		}
-
-		$awareness = get_post_meta( $post_id, self::AWARENESS_META_KEY, true );
+		$room_hash = md5( $room ); // Not used for cryptographic purposes.
+		$awareness = get_transient( self::AWARENESS_TRANSIENT_PREFIX . ":{$room_hash}" );
+		$awareness = json_decode( $awareness, true );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -117,13 +114,17 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return bool True on success, false on failure.
 	 */
 	public function set_awareness_state( string $room, array $awareness ): bool {
-		$post_id = $this->get_storage_post_id( $room );
-		if ( null === $post_id ) {
-			return false;
-		}
+		$room_hash = md5( $room ); // Not used for cryptographic purposes.
 
-		// update_post_meta returns false if the value is the same as the existing value.
-		update_post_meta( $post_id, wp_slash( self::AWARENESS_META_KEY ), wp_slash( $awareness ) );
+		/*
+		 * Maintain transient for longer than awareness.
+		 *
+		 * The more recently a room is used, the more likely it is to be used again
+		 * soon, so the transient can be maintained for longer to avoid additional
+		 * entries in the options table.
+		 */
+		$awareness = wp_json_encode( $awareness );
+		set_transient( self::AWARENESS_TRANSIENT_PREFIX . ":{$room_hash}", $awareness, HOUR_IN_SECONDS );
 		return true;
 	}
 
