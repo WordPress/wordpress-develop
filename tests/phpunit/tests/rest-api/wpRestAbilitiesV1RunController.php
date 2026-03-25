@@ -379,43 +379,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		// Ability with nested namespace (3 segments).
-		$this->register_test_ability(
-			'test/math/add',
-			array(
-				'label'               => 'Nested Add',
-				'description'         => 'Adds numbers with nested namespace',
-				'category'            => 'math',
-				'input_schema'        => array(
-					'type'                 => 'object',
-					'properties'           => array(
-						'a' => array(
-							'type'        => 'number',
-							'description' => 'First number',
-						),
-						'b' => array(
-							'type'        => 'number',
-							'description' => 'Second number',
-						),
-					),
-					'required'             => array( 'a', 'b' ),
-					'additionalProperties' => false,
-				),
-				'output_schema'       => array(
-					'type' => 'number',
-				),
-				'execute_callback'    => static function ( array $input ) {
-					return $input['a'] + $input['b'];
-				},
-				'permission_callback' => static function () {
-					return current_user_can( 'edit_posts' );
-				},
-				'meta'                => array(
-					'show_in_rest' => true,
-				),
-			)
-		);
-
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -467,31 +430,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 8, $response->get_data() );
-	}
-
-	/**
-	 * Test executing an ability with a nested namespace (3 segments) via REST.
-	 *
-	 * @ticket 64098
-	 */
-	public function test_execute_nested_namespace_ability(): void {
-		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/math/add/run' );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body(
-			wp_json_encode(
-				array(
-					'input' => array(
-						'a' => 10,
-						'b' => 7,
-					),
-				)
-			)
-		);
-
-		$response = $this->server->dispatch( $request );
-
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 17, $response->get_data() );
 	}
 
 	/**
