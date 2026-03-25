@@ -14,11 +14,23 @@ declare( strict_types = 1 );
 namespace WordPress\AI_Security;
 
 /**
+ * Path to AI Security directory.
+ *
+ * @since 7.1.0
+ */
+define( 'AI_SECURITY_PATH', __DIR__ . '/' );
+
+/**
  * Main initialization for AI Security.
  *
  * @since 7.1.0
  */
 function init(): void {
+	// Check if security is enabled
+	if ( ! get_option( 'ai_security_enabled', true ) ) {
+		return;
+	}
+
 	// Load security modules
 	require_once AI_SECURITY_PATH . 'class-wp-ai-security-client.php';
 	require_once AI_SECURITY_PATH . 'class-wp-security-analyzer.php';
@@ -99,6 +111,15 @@ function add_admin_menu(): void {
 		'manage_options',
 		'ai-security-logs',
 		__NAMESPACE__ . '\\render_logs_page'
+	);
+
+	add_submenu_page(
+		'ai-security',
+		__( 'Settings', 'ai-security' ),
+		__( 'Settings', 'ai-security' ),
+		'manage_options',
+		'ai-security-settings',
+		__NAMESPACE__ . '\\render_settings_page'
 	);
 }
 
@@ -234,6 +255,104 @@ function render_logs_page(): void {
 				<?php endif; ?>
 			</tbody>
 		</table>
+	</div>
+	<?php
+}
+/**
+ * Render settings page.
+ *
+ * @since 7.1.0
+ */
+function render_settings_page(): void {
+	// Save settings if form submitted
+	if ( isset( $_POST['ai_security_save_settings'] ) && check_admin_referer( 'ai_security_settings' ) ) {
+		update_option( 'ai_security_enabled', isset( $_POST['ai_security_enabled'] ) );
+		update_option( 'ai_security_auto_block', isset( $_POST['ai_security_auto_block'] ) );
+		update_option( 'ai_security_rate_limit', absint( $_POST['ai_security_rate_limit'] ?? 60 ) );
+		update_option( 'ai_security_failed_login_threshold', absint( $_POST['ai_security_failed_login_threshold'] ?? 5 ) );
+		update_option( 'ai_security_notifications_enabled', isset( $_POST['ai_security_notifications_enabled'] ) );
+		update_option( 'ai_security_notification_email', sanitize_email( $_POST['ai_security_notification_email'] ?? '' ) );
+		update_option( 'ai_security_webhook_url', esc_url_raw( $_POST['ai_security_webhook_url'] ?? '' ) );
+		echo '<div class="notice notice-success"><p>' . esc_html__( 'Settings saved.', 'ai-security' ) . '</p></div>';
+	}
+
+	$settings = array(
+		'enabled'                   => get_option( 'ai_security_enabled', true ),
+		'auto_block'               => get_option( 'ai_security_auto_block', true ),
+		'rate_limit'               => get_option( 'ai_security_rate_limit', 60 ),
+		'failed_login_threshold'   => get_option( 'ai_security_failed_login_threshold', 5 ),
+		'notifications_enabled'    => get_option( 'ai_security_notifications_enabled', true ),
+		'notification_email'       => get_option( 'ai_security_notification_email', get_option( 'admin_email' ) ),
+		'webhook_url'             => get_option( 'ai_security_webhook_url', '' ),
+	);
+	?>
+	<div class="wrap">
+		<h1><?php esc_html_e( 'AI Security Settings', 'ai-security' ); ?></h1>
+
+		<form method="post">
+			<?php wp_nonce_field( 'ai_security_settings' ); ?>
+
+			<table class="form-table">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Enable AI Security', 'ai-security' ); ?></th>
+					<td>
+						<input type="checkbox" name="ai_security_enabled" id="ai_security_enabled" <?php checked( $settings['enabled'] ); ?>>
+						<label for="ai_security_enabled"><?php esc_html_e( 'Enable real-time threat detection', 'ai-security' ); ?></label>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Auto-Block', 'ai-security' ); ?></th>
+					<td>
+						<input type="checkbox" name="ai_security_auto_block" id="ai_security_auto_block" <?php checked( $settings['auto_block'] ); ?>>
+						<label for="ai_security_auto_block"><?php esc_html_e( 'Automatically block IPs on critical/high threats', 'ai-security' ); ?></label>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><label for="ai_security_rate_limit"><?php esc_html_e( 'Rate Limit', 'ai-security' ); ?></label></th>
+					<td>
+						<input type="number" name="ai_security_rate_limit" id="ai_security_rate_limit" value="<?php echo esc_attr( $settings['rate_limit'] ); ?>" class="small-text">
+						<span><?php esc_html_e( 'requests per minute', 'ai-security' ); ?></span>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><label for="ai_security_failed_login_threshold"><?php esc_html_e( 'Failed Login Threshold', 'ai-security' ); ?></label></th>
+					<td>
+						<input type="number" name="ai_security_failed_login_threshold" id="ai_security_failed_login_threshold" value="<?php echo esc_attr( $settings['failed_login_threshold'] ); ?>" class="small-text">
+						<span><?php esc_html_e( 'attempts before blocking', 'ai-security' ); ?></span>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Email Notifications', 'ai-security' ); ?></th>
+					<td>
+						<input type="checkbox" name="ai_security_notifications_enabled" id="ai_security_notifications_enabled" <?php checked( $settings['notifications_enabled'] ); ?>>
+						<label for="ai_security_notifications_enabled"><?php esc_html_e( 'Send email alerts for threats', 'ai-security' ); ?></label>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><label for="ai_security_notification_email"><?php esc_html_e( 'Notification Email', 'ai-security' ); ?></label></th>
+					<td>
+						<input type="email" name="ai_security_notification_email" id="ai_security_notification_email" value="<?php echo esc_attr( $settings['notification_email'] ); ?>" class="regular-text">
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><label for="ai_security_webhook_url"><?php esc_html_e( 'Webhook URL', 'ai-security' ); ?></label></th>
+					<td>
+						<input type="url" name="ai_security_webhook_url" id="ai_security_webhook_url" value="<?php echo esc_attr( $settings['webhook_url'] ); ?>" class="regular-text" placeholder="https://...">
+						<p class="description"><?php esc_html_e( 'Send JSON notifications to this URL when threats are detected.', 'ai-security' ); ?></p>
+					</td>
+				</tr>
+			</table>
+
+			<p class="submit">
+				<input type="submit" name="ai_security_save_settings" class="button button-primary" value="<?php esc_attr_e( 'Save Changes', 'ai-security' ); ?>">
+			</p>
+		</form>
 	</div>
 	<?php
 }
