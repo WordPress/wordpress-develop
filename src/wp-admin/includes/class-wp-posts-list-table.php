@@ -1135,10 +1135,19 @@ class WP_Posts_List_Table extends WP_List_Table {
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
+		$label = '';
 
+		if ( has_post_parent( $post ) ) {
+			$post_type_object = get_post_type_object( $post->post_type );
+			/* translators: %s: Post title. */
+			$label       = sprintf( ' aria-label="%s"', esc_attr( sprintf( __( 'Subpage "%s" (Edit)' ), $title ) ) );
+			$parent      = get_post( $post->post_parent );
+			$parent_name = apply_filters( 'the_title', $parent->post_title, $parent->ID );
+		}
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'<a class="row-title" href="%s">%s%s</a>',
+				'<a class="row-title" %s href="%s">%s%s</a>',
+				$label,
 				get_edit_post_link( $post->ID ),
 				$pad,
 				$title
