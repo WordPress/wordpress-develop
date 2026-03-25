@@ -135,7 +135,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_wp_timezone_choice_es_set(): array {
+	public static function data_wp_timezone_choice_es_set(): array {
 		return array(
 			'placeholder in Spanish'          => array( '<option selected="selected" value="">Elige una ciudad</option>' ),
 			'spanish city translation'        => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
