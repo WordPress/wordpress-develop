@@ -23,24 +23,29 @@ This project aims to make WordPress more secure than ever through AI-powered fea
 
 ## AI Providers (Built-in)
 
-The following providers are integrated directly into core:
+This fork includes support for 8 AI providers. Five are integrated directly into core, three require separate plugins:
 
-| Provider | Models | Type |
-|----------|--------|------|
-| **DeepSeek** | Chat, Coder, Reasoner | Cloud |
-| **OpenRouter** | 100+ models (Anthropic, OpenAI, Google, etc.) | Cloud |
-| **Ollama** | Llama, Mistral, Phi, etc. | Local |
-| **xAI (Grok)** | Grok-2, Grok Vision | Cloud |
-| **Mistral** | Mistral Large, Codestral | Cloud |
+| Provider | Status | Description |
+|----------|--------|-------------|
+| **DeepSeek** | ✅ Built-in | Open-source models for code and chat |
+| **OpenRouter** | ✅ Built-in | 100+ models via single API |
+| **Ollama** | ✅ Built-in | Local models (Llama, Mistral, etc.) |
+| **xAI (Grok)** | ✅ Built-in | Conversational AI with real-time knowledge |
+| **Mistral** | ✅ Built-in | Strong coding models |
+| **OpenAI** | 🔄 Plugin required | GPT-4o, o1, DALL-E |
+| **Anthropic** | 🔄 Plugin required | Claude 3.5 Sonnet, Opus, Haiku |
+| **Google** | 🔄 Plugin required | Gemini 2.0, 1.5 Pro/Flash |
 
-Location: `wp-includes/php-ai-client/src/Providers/AiConnectorPro/`
+**Built-in provider location:** `wp-includes/php-ai-client/src/Providers/AiConnectorPro/`
+
+**Note:** OpenAI, Anthropic, and Google providers are available via separate WordPress plugins. These providers will be added to core in a future update.
 
 ## Quick Links
 
 - [GitHub Repository](https://github.com/cbuntingde/wordpress-develop)
+- [AI Connector Pro Plugin](https://github.com/cbuntingde/ai-connector-pro)
 - [WordPress.org](https://wordpress.org/)
 - [WordPress Trac](https://core.trac.wordpress.org/)
-- [Contributor Handbook](https://make.wordpress.org/core/handbook/)
 
 ## License
 
