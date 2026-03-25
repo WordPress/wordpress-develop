@@ -2886,7 +2886,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * @since 2.0.0
  *
  * @param string      $name       Filename.
- * @param null|string $deprecated Never used. Set to null.
+ * @param null|string $deprecated Not used. Set to null.
  * @param string      $bits       File content
  * @param string|null $time       Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array {
@@ -5853,6 +5853,7 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
 		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
+
 /**
  * Marks a function argument as deprecated and inform when it has been used.
  *
@@ -7989,20 +7990,34 @@ function wp_raise_memory_limit( $context = 'admin' ) {
  * Generates a random UUID (version 4).
  *
  * @since 4.7.0
+ * @since 7.0.0 Uses wp_rand if available.
  *
  * @return string UUID.
  */
 function wp_generate_uuid4() {
+	static $backup_randomizer = false;
+	$randomizer               = function_exists( 'wp_rand' ) ? 'wp_rand' : $backup_randomizer;
+
+	if ( false === $randomizer ) {
+		try {
+			random_int( 0, 15705 );
+			$backup_randomizer = 'random_int';
+		} catch ( Exception $e ) {
+			$backup_randomizer = 'mt_rand';
+		}
+		$randomizer = $backup_randomizer;
+	}
+
 	return sprintf(
 		'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0x0fff ) | 0x4000,
-		mt_rand( 0, 0x3fff ) | 0x8000,
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff )
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0x0fff ) | 0x4000,
+		$randomizer( 0, 0x3fff ) | 0x8000,
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff )
 	);
 }
 
