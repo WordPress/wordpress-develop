@@ -767,7 +767,7 @@ function rest_handle_deprecated_argument( $function_name, $message, $version ) {
  * @param string|null $version       The version of WordPress where the message was added.
  */
 function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
-	if ( ! WP_DEBUG || headers_sent() ) {
+	if ( ! WP_DEBUG ) {
 		return;
 	}
 
@@ -781,7 +781,15 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 		$string = sprintf( $string, $function_name, $message );
 	}
 
-	header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
+	if ( WP_DEBUG_LOG ) {
+		error_log(
+			sprintf(
+				'REST API - Function %1$s was called incorrectly. %2$s',
+				$function_name,
+				wp_strip_all_tags( $message )
+			)
+		);
+	}
 }
 
 /**
