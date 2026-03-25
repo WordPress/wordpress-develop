@@ -1,72 +1,47 @@
 # WordPress AI Security Edition
 
-⚠️ **WARNING: This is a work-in-progress fork**  
-This version of WordPress is being developed by **Chris Bunting** with AI agent assistance. It is **NOT intended for production use**. Features are experimental and the core is actively being modified.
+> ⚠️ **WARNING: This is a work-in-progress fork** — Not intended for production use
 
----
+This fork integrates AI-powered security features directly into WordPress core. Developed by Chris Bunting with AI agent assistance.
 
-## About This Fork
+## Overview
 
-This fork aims to integrate AI-powered security features directly into WordPress core to provide:
+This project aims to make WordPress more secure than ever through AI-powered features:
 
-- **AI-powered exploit detection** — Code analysis and pattern recognition to catch vulnerabilities before they're exploited
-- **Real-time threat monitoring** — DDoS detection, brute force protection, anomalous behavior detection
-- **Plugin/theme security scanning** — Automated vulnerability detection for installed extensions
-- **Configurable security dashboard** — Manage AI settings, alerts, and monitoring rules directly from WP Admin
+- **Exploit Detection** — AI analyzes code patterns to catch vulnerabilities before exploitation
+- **Real-time Monitoring** — DDoS protection, brute force detection, anomaly detection
+- **Plugin/Theme Scanning** — Automated vulnerability detection for extensions
+- **Security Dashboard** — Configure AI settings, alerts, and monitoring from WP Admin
 
----
+## Documentation
 
-## For Original Documentation
+| Document | Description |
+|----------|-------------|
+| [README-ORIG.md](./README-ORIG.md) | Original WordPress development setup |
+| [docs/implementation-plan.md](./docs/implementation-plan.md) | Security features roadmap |
+| [docs/knowledge-base.md](./docs/knowledge-base.md) | Security research and architecture |
 
-See [README-ORIG.md](./README-ORIG.md) for the standard WordPress development setup instructions.
+## AI Providers (Built-in)
 
----
+The following providers are integrated directly into core:
 
-## Changes & Updates
-
-*(This section will be updated as features are added)*
-
-### Current Status: Implementation
-
-- [x] Research: WordPress core security architecture and hook system
-- [x] Research: Existing AI client in core (wp-includes/ai-client/)
-- [x] Research: Abilities API system (wp-includes/abilities-api/)
-- [x] Architecture: Design AI security plugin integration
-- [x] Create detailed implementation plan (docs/implementation-plan.md)
-- [x] Research: AI provider plugins - found they need separate plugins
-- [x] Design: AI Connector Pro plugin (multi-provider support)
-- [x] Core Integration: Add AI providers directly to WordPress core
-
-### Providers Now Built Into Core
-
-The following AI providers are now integrated directly into WordPress core:
-
-- **DeepSeek** - Open-source models for code and chat
-- **OpenRouter** - 100+ models via single API
-- **Ollama** - Local models (Llama, Mistral, etc.)
-- **xAI (Grok)** - Conversational AI with real-time knowledge
-- **Mistral** - Strong coding models
+| Provider | Models | Type |
+|----------|--------|------|
+| **DeepSeek** | Chat, Coder, Reasoner | Cloud |
+| **OpenRouter** | 100+ models (Anthropic, OpenAI, Google, etc.) | Cloud |
+| **Ollama** | Llama, Mistral, Phi, etc. | Local |
+| **xAI (Grok)** | Grok-2, Grok Vision | Cloud |
+| **Mistral** | Mistral Large, Codestral | Cloud |
 
 Location: `wp-includes/php-ai-client/src/Providers/AiConnectorPro/`
 
-### Related Projects
-
-- **AI Connector Pro Plugin** (separate repo): https://github.com/cbuntingde/ai-connector-pro
-- **Implementation Plan:** docs/implementation-plan.md
-- **Security Knowledge Base:** docs/knowledge-base.md
-
----
-
-## Development Notes
-
-- This project uses AI agents to assist with research, implementation, and maintenance
-- Agents have access to WordPress documentation and can search/update their knowledge base
-- Contributions and ideas welcome — open an issue to discuss
-
----
-
 ## Quick Links
 
-- Original WordPress: https://wordpress.org/
-- WordPress Trac: https://core.trac.wordpress.org/
-- Contributor Handbook: https://make.wordpress.org/core/handbook/
+- [GitHub Repository](https://github.com/cbuntingde/wordpress-develop)
+- [WordPress.org](https://wordpress.org/)
+- [WordPress Trac](https://core.trac.wordpress.org/)
+- [Contributor Handbook](https://make.wordpress.org/core/handbook/)
+
+## License
+
+GPL v2 or later — Same as WordPress core
