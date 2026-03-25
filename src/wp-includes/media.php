@@ -1229,7 +1229,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
  */
 function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail', $icon = false ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
-	return isset( $image[0] ) ? $image[0] : false;
+	return $image[0] ?? false;
 }
 
 /**
@@ -1410,7 +1410,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 		 * be compared against the image URL using the same port.
 		 */
 		$parsed = parse_url( $image_baseurl );
-		$domain = isset( $parsed['host'] ) ? $parsed['host'] : '';
+		$domain = $parsed['host'] ?? '';
 
 		if ( isset( $parsed['port'] ) ) {
 			$domain .= ':' . $parsed['port'];
@@ -1618,7 +1618,7 @@ function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null,
 	$sizes = sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', $width );
 
 	/**
-	 * Filters the output of 'wp_calculate_image_sizes()'.
+	 * Filters the output of wp_calculate_image_sizes().
 	 *
 	 * @since 4.4.0
 	 *
@@ -1742,7 +1742,7 @@ function wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id = 
 	}
 
 	/**
-	 * Filters the 'wp_image_src_get_dimensions' value.
+	 * Filters the wp_image_src_get_dimensions() value.
 	 *
 	 * @since 5.7.0
 	 *
@@ -1785,7 +1785,7 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 	}
 
 	// Bail early if an image has been inserted and later edited.
-	if ( preg_match( '/-e[0-9]{13}/', $image_meta['file'], $img_edit_hash )
+	if ( isset( $image_meta['file'] ) && preg_match( '/-e[0-9]{13}/', $image_meta['file'], $img_edit_hash )
 		&& ! str_contains( wp_basename( $image_src ), $img_edit_hash[0] )
 	) {
 		return $image;
@@ -2156,7 +2156,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 
 	if ( empty( $decoding_val ) ) {
 		/**
-		 * Filters the `decoding` attribute value to add to an image. Default `async`.
+		 * Filters the `decoding` attribute value to add to an image. Default 'async'.
 		 *
 		 * Returning a falsey value will omit the attribute.
 		 *
@@ -2171,7 +2171,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 */
 		$filtered_decoding_attr = apply_filters(
 			'wp_img_tag_add_decoding_attr',
-			isset( $optimization_attrs['decoding'] ) ? $optimization_attrs['decoding'] : false,
+			$optimization_attrs['decoding'] ?? false,
 			$image,
 			$context
 		);
@@ -2199,7 +2199,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 
 	if ( empty( $loading_val ) && $loading_attrs_enabled ) {
 		/**
-		 * Filters the `loading` attribute value to add to an image. Default `lazy`.
+		 * Filters the `loading` attribute value to add to an image. Default 'lazy'.
 		 *
 		 * Returning `false` or an empty string will not add the attribute.
 		 * Returning `true` will add the default value.
@@ -2213,7 +2213,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 */
 		$filtered_loading_attr = apply_filters(
 			'wp_img_tag_add_loading_attr',
-			isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false,
+			$optimization_attrs['loading'] ?? false,
 			$image,
 			$context
 		);
@@ -2232,7 +2232,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 			 * is only intended for the specific scenario where the above filtered caused the problem.
 			 */
 			if ( isset( $optimization_attrs['fetchpriority'] ) && 'high' === $optimization_attrs['fetchpriority'] &&
-				( isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false ) !== $filtered_loading_attr &&
+				( $optimization_attrs['loading'] ?? false ) !== $filtered_loading_attr &&
 				'lazy' === $filtered_loading_attr
 			) {
 				_doing_it_wrong(
@@ -2380,10 +2380,10 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 		return $iframe;
 	}
 
-	$value = isset( $optimization_attrs['loading'] ) ? $optimization_attrs['loading'] : false;
+	$value = $optimization_attrs['loading'] ?? false;
 
 	/**
-	 * Filters the `loading` attribute value to add to an iframe. Default `lazy`.
+	 * Filters the `loading` attribute value to add to an iframe. Default 'lazy'.
 	 *
 	 * Returning `false` or an empty string will not add the attribute.
 	 * Returning `true` will add the default value.
@@ -2871,10 +2871,8 @@ function gallery_shortcode( $attr ) {
 	 *                    Otherwise, defaults to true.
 	 */
 	if ( apply_filters( 'use_default_gallery_style', ! $html5 ) ) {
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
 		$gallery_style = "
-		<style{$type_attr}>
+		<style>
 			#{$selector} {
 				margin: auto;
 			}
@@ -4118,7 +4116,7 @@ function get_taxonomies_for_attachments( $output = 'names' ) {
  *              false otherwise.
  */
 function is_gd_image( $image ) {
-	if ( $image instanceof GdImage
+	if ( $image instanceof GdImage // @phpstan-ignore class.notFound (Only available with PHP8+.)
 		|| is_resource( $image ) && 'gd' === get_resource_type( $image )
 	) {
 		return true;
@@ -4570,7 +4568,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	if ( $attachment->post_parent ) {
 		$post_parent = get_post( $attachment->post_parent );
-		if ( $post_parent ) {
+		if ( $post_parent && current_user_can( 'read_post', $attachment->post_parent ) ) {
 			$response['uploadedToTitle'] = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
 			$response['uploadedToLink']  = get_edit_post_link( $attachment->post_parent, 'raw' );
 		}
@@ -5829,7 +5827,7 @@ function wp_getimagesize( $filename, ?array &$image_info = null ) {
 			return array(
 				$size['width'],
 				$size['height'],
-				IMAGETYPE_HEIC,
+				IMAGETYPE_HEIF,
 				sprintf(
 					'width="%d" height="%d"',
 					$size['width'],
@@ -5969,6 +5967,7 @@ function wp_get_webp_info( $filename ) {
  * both attributes are present with those values.
  *
  * @since 6.3.0
+ * @since 7.0.0 Support `fetchpriority=low` and `fetchpriority=auto` so that `loading=lazy` is not added and the media count is not increased.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -6038,11 +6037,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	 * conflicting `decoding` attribute already present.
 	 */
 	if ( 'img' === $tag_name ) {
-		if ( isset( $attr['decoding'] ) ) {
-			$loading_attrs['decoding'] = $attr['decoding'];
-		} else {
-			$loading_attrs['decoding'] = 'async';
-		}
+		$loading_attrs['decoding'] = $attr['decoding'] ?? 'async';
 	}
 
 	// For any resources, width and height must be provided, to avoid layout shifts.
@@ -6073,7 +6068,9 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	}
 
 	// Logic to handle a `fetchpriority` attribute that is already provided.
-	if ( isset( $attr['fetchpriority'] ) && 'high' === $attr['fetchpriority'] ) {
+	$existing_fetchpriority = ( $attr['fetchpriority'] ?? null );
+	$is_low_fetchpriority   = ( 'low' === $existing_fetchpriority );
+	if ( 'high' === $existing_fetchpriority ) {
 		/*
 		 * If the image was already determined to not be in the viewport (e.g.
 		 * from an already provided `loading` attribute), trigger a warning.
@@ -6096,6 +6093,31 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		} else {
 			$maybe_in_viewport = true;
 		}
+	} elseif ( $is_low_fetchpriority ) {
+		/*
+		 * An IMG with fetchpriority=low is not initially displayed; it may be hidden in the Navigation Overlay,
+		 * or it may be occluded in a non-initial carousel slide. Such images must not be lazy-loaded because the browser
+		 * has no heuristic to know when to start loading them before the user needs to see them.
+		 */
+		$maybe_in_viewport = false;
+
+		// Preserve fetchpriority=low.
+		$loading_attrs['fetchpriority'] = 'low';
+	} elseif ( 'auto' === $existing_fetchpriority ) {
+		/*
+		 * When a block's visibility support identifies that the block is conditionally displayed based on the viewport
+		 * size, then it adds `fetchpriority=auto` to the block's IMG tags. These images must not be fetched with high
+		 * priority because they could be erroneously loaded in viewports which do not even display them. Contrarily,
+		 * they must not get `fetchpriority=low` because they may in fact be displayed in the current viewport. So as
+		 * a signal to indicate that an IMG may be in the viewport, `fetchpriority=auto` is added. This has the effect
+		 * here of preventing the media count from being increased, so that images hidden with block visibility do not
+		 * affect whether a following IMG gets `loading=lazy`. In particular, `loading=lazy` should still be omitted
+		 * on an IMG following any number of initial IMGs with `fetchpriority=auto` since those initial images may not
+		 * be displayed.
+		 */
+
+		// Preserve fetchpriority=auto.
+		$loading_attrs['fetchpriority'] = 'auto';
 	}
 
 	if ( null === $maybe_in_viewport ) {
@@ -6146,7 +6168,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 			 * does not include any loop.
 			 */
 			&& did_action( 'get_header' ) && ! did_action( 'get_footer' )
-			) {
+		) {
 			$maybe_in_viewport    = true;
 			$maybe_increase_count = true;
 		}
@@ -6155,12 +6177,14 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	/*
 	 * If the element is in the viewport (`true`), potentially add
 	 * `fetchpriority` with a value of "high". Otherwise, i.e. if the element
-	 * is not not in the viewport (`false`) or it is unknown (`null`), add
-	 * `loading` with a value of "lazy".
+	 * is not in the viewport (`false`) or it is unknown (`null`), add
+	 * `loading` with a value of "lazy" if the element is not already being
+	 * de-prioritized with `fetchpriority=low` due to occlusion in
+	 * Navigation Overlay, non-initial carousel slides, or a collapsed Details block.
 	 */
 	if ( $maybe_in_viewport ) {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
-	} else {
+	} elseif ( ! $is_low_fetchpriority ) {
 		// Only add `loading="lazy"` if the feature is enabled.
 		if ( wp_lazy_loading_enabled( $tag_name, $context ) ) {
 			$loading_attrs['loading'] = 'lazy';
@@ -6170,16 +6194,20 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	/*
 	 * If flag was set based on contextual logic above, increase the content
 	 * media count, either unconditionally, or based on whether the image size
-	 * is larger than the threshold.
+	 * is larger than the threshold. This does not apply when the IMG has
+	 * fetchpriority=auto because it may be conditionally displayed by viewport
+	 * size.
 	 */
-	if ( $increase_count ) {
-		wp_increase_content_media_count();
-	} elseif ( $maybe_increase_count ) {
-		/** This filter is documented in wp-includes/media.php */
-		$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
-
-		if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
+	if ( 'auto' !== $existing_fetchpriority ) {
+		if ( $increase_count ) {
 			wp_increase_content_media_count();
+		} elseif ( $maybe_increase_count ) {
+			/** This filter is documented in wp-includes/media.php */
+			$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
+
+			if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
+				wp_increase_content_media_count();
+			}
 		}
 	}
 
@@ -6251,12 +6279,13 @@ function wp_increase_content_media_count( $amount = 1 ) {
  * Determines whether to add `fetchpriority='high'` to loading attributes.
  *
  * @since 6.3.0
+ * @since 7.0.0 Support is added for IMG tags with `fetchpriority='low'` and `fetchpriority='auto'`.
  * @access private
  *
- * @param array  $loading_attrs Array of the loading optimization attributes for the element.
- * @param string $tag_name      The tag name.
- * @param array  $attr          Array of the attributes for the element.
- * @return array Updated loading optimization attributes for the element.
+ * @param array<string, string> $loading_attrs Array of the loading optimization attributes for the element.
+ * @param string                $tag_name      The tag name.
+ * @param array<string, mixed>  $attr          Array of the attributes for the element.
+ * @return array<string, string> Updated loading optimization attributes for the element.
  */
 function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr ) {
 	// For now, adding `fetchpriority="high"` is only supported for images.
@@ -6264,14 +6293,17 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 		return $loading_attrs;
 	}
 
-	if ( isset( $attr['fetchpriority'] ) ) {
+	$existing_fetchpriority = $attr['fetchpriority'] ?? null;
+	if ( null !== $existing_fetchpriority && 'auto' !== $existing_fetchpriority ) {
 		/*
-		 * While any `fetchpriority` value could be set in `$loading_attrs`,
-		 * for consistency we only do it for `fetchpriority="high"` since that
-		 * is the only possible value that WordPress core would apply on its
-		 * own.
+		 * When an IMG has been explicitly marked with `fetchpriority=high`, then honor that this is the element that
+		 * should have the priority. In contrast, the Navigation block may add `fetchpriority=low` to an IMG which
+		 * appears in the Navigation Overlay; such images should never be considered candidates for
+		 * `fetchpriority=high`. Lastly, block visibility may add `fetchpriority=auto` to an IMG when the block is
+		 * conditionally displayed based on viewport size. Such an image is considered an LCP element candidate if it
+		 * exceeds the threshold for the minimum number of square pixels.
 		 */
-		if ( 'high' === $attr['fetchpriority'] ) {
+		if ( 'high' === $existing_fetchpriority ) {
 			$loading_attrs['fetchpriority'] = 'high';
 			wp_high_priority_element_flag( false );
 		}
@@ -6298,7 +6330,9 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
 	$wp_min_priority_img_pixels = apply_filters( 'wp_min_priority_img_pixels', 50000 );
 
 	if ( $wp_min_priority_img_pixels <= $attr['width'] * $attr['height'] ) {
-		$loading_attrs['fetchpriority'] = 'high';
+		if ( 'auto' !== $existing_fetchpriority ) {
+			$loading_attrs['fetchpriority'] = 'high';
+		}
 		wp_high_priority_element_flag( false );
 	}
 
@@ -6312,9 +6346,9 @@ function wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr 
  * @access private
  *
  * @param bool $value Optional. Used to change the static variable. Default null.
- * @return bool Returns true if high-priority element was marked already, otherwise false.
+ * @return bool Returns true if the high-priority element was not already marked.
  */
-function wp_high_priority_element_flag( $value = null ) {
+function wp_high_priority_element_flag( $value = null ): bool {
 	static $high_priority_element = true;
 
 	if ( is_bool( $value ) ) {
@@ -6365,3 +6399,4 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
 }
+

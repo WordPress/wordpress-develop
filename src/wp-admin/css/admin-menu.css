@@ -112,6 +112,7 @@
 .folded #adminmenu .wp-submenu-head:hover {
 	box-shadow: inset 4px 0 0 0 currentColor;
 	transition: box-shadow .1s linear;
+	border-radius: 0;
 }
 
 #adminmenu li.menu-top {
@@ -503,6 +504,7 @@ ul#adminmenu > li.current > a.current:after {
 }
 
 #collapse-button .collapse-button-icon:after {
+	content: "\f148";
 	content: "\f148" / '';
 	display: block;
 	position: relative;

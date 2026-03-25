@@ -70,7 +70,7 @@ body {
 
 #customize-save-button-wrapper {
 	float: right;
-	margin-top: 9px;
+	margin-top: 3px; /* Vertically center 40px button in 45px header */
 }
 
 body:not(.ready) #customize-save-button-wrapper .save {
@@ -81,10 +81,6 @@ body:not(.ready) #customize-save-button-wrapper .save {
 	border-radius: 3px;
 	box-shadow: none; /* @todo Adjust box shadow based on the disable states of paired button. */
 	margin-top: 0;
-}
-
-#customize-save-button-wrapper .save:focus, #publish-settings:focus {
-	box-shadow: 0 1px 0 #2271b1, 0 0 2px 1px #72aee6; /* This is default box shadow for focus */
 }
 
 #customize-save-button-wrapper .save.has-next-sibling {
@@ -185,7 +181,7 @@ body.trashing #publish-settings {
 }
 
 #customize-header-actions .spinner {
-	margin-top: 13px;
+	margin-top: 13px; /* Vertically center 20px spinner in 45px header */
 	margin-right: 4px;
 }
 
@@ -233,6 +229,7 @@ body.trashing #publish-settings {
 	display: inline-block;
 }
 #customize-control-trash_changeset .button-link:before {
+	content: "\f182";
 	content: "\f182" / '';
 	font: normal 22px dashicons;
 	text-decoration: none;
@@ -271,8 +268,10 @@ body.trashing #publish-settings {
 .preview-link-wrapper .customize-copy-preview-link.preview-control-element.button {
 	margin: 0;
 	position: absolute;
-	bottom: 9px;
+	top: 50%;
+	transform: translateY(-50%) !important;
 	right: 0;
+	background: #fff !important;
 }
 
 .preview-link-wrapper {
@@ -282,10 +281,10 @@ body.trashing #publish-settings {
 .customize-copy-preview-link:before,
 .customize-copy-preview-link:after {
 	content: "";
-	height: 28px;
+	height: 40px;
 	position: absolute;
 	background: #fff;
-	top: -1px;
+	top: 0;
 }
 
 .customize-copy-preview-link:before {
@@ -496,12 +495,6 @@ body.trashing #publish-settings {
 	left: 6px;
 }
 
-#customize-controls .customize-info.open .customize-help-toggle,
-#customize-controls .customize-info .customize-help-toggle:focus,
-#customize-controls .customize-info .customize-help-toggle:hover {
-	color: #2271b1;
-}
-
 #customize-controls .customize-info .customize-panel-description,
 #customize-controls .customize-info .customize-section-description,
 #customize-outer-theme-controls .customize-info .customize-section-description,
@@ -594,6 +587,7 @@ body.trashing #publish-settings {
 
 #customize-theme-controls .accordion-section-title:after,
 #customize-outer-theme-controls .accordion-section-title:after {
+	content: "\f345";
 	content: "\f345" / '';
 	color: #a7aaad;
 	pointer-events: none;
@@ -605,15 +599,6 @@ body.trashing #publish-settings {
 	background: transparent;
 }
 
-#customize-controls .control-section:hover > .accordion-section-title,
-#customize-controls .control-section .accordion-section-title button:hover,
-#customize-controls .control-section.open .accordion-section-title,
-#customize-controls .control-section .accordion-section-title button:focus {
-	color: #2271b1;
-	background: #f6f7f7;
-	border-left-color: #2271b1;
-}
-
 #accordion-section-themes + .control-section {
 	border-top: 1px solid #dcdcde;
 }
@@ -623,17 +608,6 @@ body.trashing #publish-settings {
 .js .control-section.open .accordion-section-title,
 .js .control-section .accordion-section-title:focus {
 	background: #f6f7f7;
-}
-
-#customize-theme-controls .control-section:hover > .accordion-section-title:after,
-#customize-theme-controls .control-section .accordion-section-title:hover:after,
-#customize-theme-controls .control-section.open .accordion-section-title:after,
-#customize-theme-controls .control-section .accordion-section-title:focus:after,
-#customize-outer-theme-controls .control-section:hover > .accordion-section-title:after,
-#customize-outer-theme-controls .control-section .accordion-section-title:hover:after,
-#customize-outer-theme-controls .control-section.open .accordion-section-title:after,
-#customize-outer-theme-controls .control-section .accordion-section-title:focus:after {
-	color: #2271b1;
 }
 
 #customize-theme-controls .control-section.open {
@@ -903,8 +877,6 @@ h3.customize-section-title {
 .customize-controls-preview-toggle:focus,
 .customize-controls-preview-toggle:hover {
 	background: #fff;
-	color: #2271b1;
-	border-top-color: #2271b1;
 	box-shadow: none;
 	/* Only visible in Windows High Contrast mode */
 	outline: 1px solid transparent;
@@ -920,9 +892,7 @@ h3.customize-section-title {
 .customize-panel-back:focus,
 .customize-section-back:hover,
 .customize-section-back:focus {
-	color: #2271b1;
 	background: #f6f7f7;
-	border-left-color: #2271b1;
 	box-shadow: none;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
@@ -931,6 +901,7 @@ h3.customize-section-title {
 
 .customize-controls-close:before {
 	font: normal 22px/45px dashicons;
+	content: "\f335";
 	content: "\f335" / '';
 	position: relative;
 	top: -3px;
@@ -940,6 +911,7 @@ h3.customize-section-title {
 .customize-panel-back:before,
 .customize-section-back:before {
 	font: normal 20px/72px dashicons;
+	content: "\f341";
 	content: "\f341" / '';
 	position: relative;
 	left: 9px;
@@ -1026,6 +998,7 @@ p.customize-section-description {
 
 .customize-section-description a.external-link:after {
 	font: 16px/11px dashicons;
+	content: "\f504";
 	content: "\f504" / '';
 	top: 3px;
 	position: relative;
@@ -1131,6 +1104,12 @@ p.customize-section-description {
 	position: static;
 }
 
+#available-menu-items .new-content-item-wrapper > label,
+.customize-control-dropdown-pages .new-content-item-wrapper > label {
+	margin-bottom: 4px;
+	display: block;
+}
+
 #available-menu-items .accordion-section-content .new-content-item,
 .customize-control-dropdown-pages .new-content-item {
 	display: flex;
@@ -1153,12 +1132,23 @@ p.customize-section-description {
 #available-menu-items .new-content-item .create-item-input,
 .customize-control-dropdown-pages .new-content-item .create-item-input {
 	flex-grow: 10;
+	width: 100%;
+}
+
+#available-menu-items .new-content-item .create-item-input {
+	min-height: 32px;
+	line-height: 2.15384615; /* 28px for 32px min-height with 13px font */
 }
 
 #available-menu-items .new-content-item .add-content,
 .customize-control-dropdown-pages .new-content-item .add-content {
-	margin: 2px 0 2px 6px;
+	margin: 0 0 0 6px;
 	flex-grow: 1;
+}
+
+#available-menu-items .new-content-item .add-content {
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px min-height with 13px font */
 }
 
 .customize-control-dropdown-pages .new-content-item .create-item-input.invalid {
@@ -1357,6 +1347,7 @@ p.customize-section-description {
 }
 
 .customize-control .dropdown-arrow:after {
+	content: "\f140";
 	content: "\f140" / '';
 	font: normal 20px/1 dashicons;
 	display: block;
@@ -1442,17 +1433,16 @@ p.customize-section-description {
 
 .customize-control .attachment-media-view .upload-button {
 	width: 100%;
-	padding: 9px 0;
+	text-align: center;
 }
 
 .customize-control .attachment-media-view .upload-button.control-focus {
 	width: auto;
-	padding: 0 10px;
 }
 
 .customize-control.customize-control-header .actions .upload-button.button.new {
 	width: 100%;
-	padding: 9px 0;
+	text-align: center;
 }
 
 .customize-control .attachment-media-view .thumbnail,
@@ -1590,7 +1580,7 @@ p.customize-section-description {
 }
 
 .customize-control-header button.random .dice {
-	margin-top: 4px;
+	margin-top: 0;
 }
 
 .customize-control-header .placeholder:hover .dice,
@@ -1631,7 +1621,7 @@ p.customize-section-description {
 }
 
 .customize-control-header .choice:focus {
-	box-shadow: 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -1723,6 +1713,9 @@ p.customize-section-description {
 .theme-browser .theme.active .theme-actions,
 .wp-customizer .theme-browser .theme .theme-actions {
 	padding: 9px 15px;
+}
+
+.theme-browser .theme:not(.active) .theme-actions {
 	box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -1790,7 +1783,7 @@ p.customize-section-description {
 	position: absolute;
 	right: 10px;
 	top: 50%;
-	margin-top: -14px;
+	margin-top: -20px; /* Half of 40px button height for vertical centering */
 	font-weight: 400;
 }
 
@@ -1880,7 +1873,13 @@ p.customize-section-description {
 	bottom: 0;
 }
 
+.themes-filter-bar .feature-filter-toggle {
+	min-height: 32px;
+	line-height: 2.30769231;
+}
+
 .themes-filter-bar .feature-filter-toggle:before {
+	content: "\f111";
 	content: "\f111" / '';
 	margin: 0 5px 0 0;
 	font: normal 16px/1 dashicons;
@@ -2000,8 +1999,6 @@ p.customize-section-description {
 
 .control-panel-themes .customize-themes-section-title:focus,
 .control-panel-themes .customize-themes-section-title:hover {
-	border-left-color: #2271b1;
-	color: #2271b1;
 	background: #f6f7f7;
 }
 
@@ -2019,6 +2016,7 @@ p.customize-section-description {
 }
 
 .control-panel-themes .theme-section .customize-themes-section-title.selected:after {
+	content: "\f147";
 	content: "\f147" / '';
 	font: 16px/1 dashicons;
 	box-sizing: border-box;
@@ -2029,12 +2027,7 @@ p.customize-section-description {
 	position: absolute;
 	top: 9px;
 	right: 15px;
-	background: #2271b1;
 	color: #fff;
-}
-
-.control-panel-themes .customize-themes-section-title.selected {
-	color: #2271b1;
 }
 
 #customize-theme-controls .themes.accordion-section-content {
@@ -2191,12 +2184,13 @@ p.customize-section-description {
 }
 
 .themes-filter-bar .wp-filter-search {
-	line-height: 1.8;
-	padding: 6px 10px 6px 30px;
+	line-height: 2.14285714; /* 30px for 32px compact input */
+	padding: 0 10px 0 30px;
 	max-width: 100%;
 	width: 40%;
 	min-width: 300px;
 	height: 32px;
+	min-height: 32px; /* Override global 40px min-height for compact bar */
 	margin: 1px 0;
 	top: 0;
 	left: 0;
@@ -2338,9 +2332,7 @@ p.customize-section-description {
 
 	.wp-customizer .showing-themes .control-panel-themes .customize-themes-mobile-back:hover,
 	.wp-customizer .showing-themes .control-panel-themes .customize-themes-mobile-back:focus {
-		color: #2271b1;
 		background: #f6f7f7;
-		border-left-color: #2271b1;
 		box-shadow: none;
 		/* Only visible in Windows High Contrast mode */
 		outline: 2px solid transparent;
@@ -2436,13 +2428,11 @@ p.customize-section-description {
 .wp-customizer .theme-overlay .theme-header .left:focus,
 .wp-customizer .theme-overlay .theme-header .left:hover {
 	background: #fff;
-	border-bottom: 4px solid #2271b1;
-	color: #2271b1;
 }
 
 .wp-customizer .theme-overlay .theme-header .close:focus:before,
 .wp-customizer .theme-overlay .theme-header .close:hover:before {
-	color: #2271b1;
+	color: var(--wp-admin-theme-color);
 }
 
 .wp-customizer .theme-overlay .theme-header button.disabled,
@@ -2522,6 +2512,7 @@ body.cheatin p {
 .add-new-widget:before,
 .add-new-menu-item:before,
 #available-menu-items .new-content-item .add-content:before {
+	content: "\f132";
 	content: "\f132" / '';
 	display: inline-block;
 	position: relative;
@@ -2601,11 +2592,13 @@ body.cheatin p {
 
 .move-widget-down:before,
 .menus-move-down:before {
+	content: "\f347";
 	content: "\f347" / '';
 }
 
 .move-widget-up:before,
 .menus-move-up:before {
+	content: "\f343";
 	content: "\f343" / '';
 }
 
@@ -2665,6 +2658,11 @@ body.adding-widget .add-new-widget:before,
 	border-right: 1px solid #dcdcde;
 }
 
+#available-widgets .accordion-section-title,
+#available-menu-items .accordion-section-title {
+	z-index: 2;
+}
+
 #available-widgets .customize-section-title,
 #available-menu-items .customize-section-title {
 	border: 0;
@@ -2675,7 +2673,9 @@ body.adding-widget .add-new-widget:before,
 	padding: 0;
 	position: absolute;
 	width: 1px;
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 	word-wrap: normal !important;
+	word-break: normal !important;
 }
 
 #available-widgets .customize-section-title button,
@@ -2714,7 +2714,7 @@ body.adding-widget .add-new-widget:before,
 #available-widgets-filter input,
 #available-menu-items-search input {
 	width: 100%;
-	min-height: 32px;
+	min-height: 40px;
 	margin: 1px 0;
 	padding: 0 30px;
 }
@@ -2728,7 +2728,7 @@ body.adding-widget .add-new-widget:before,
 #available-widgets-filter .search-icon {
 	display: block;
 	position: absolute;
-	bottom: 15px; /* 13 container padding +1 input margin +1 input border */
+	bottom: 19px; /* 13 container padding +1 input margin +1 input border +4 centering in 40px input */
 	left: 16px;
 	width: 30px;
 	height: 30px;
@@ -2740,7 +2740,7 @@ body.adding-widget .add-new-widget:before,
 #available-widgets-filter .clear-results,
 #available-menu-items-search .accordion-section-title .clear-results {
 	position: absolute;
-	top: 36px; /* 13 container padding +1 input margin +1 input border */
+	top: 40px; /* 13 container padding +1 input margin +1 input border +4 centering in 40px input */
 	right: 16px;
 	width: 30px;
 	height: 30px;
@@ -2766,6 +2766,7 @@ body.adding-widget .add-new-widget:before,
 
 #available-widgets-filter .clear-results:before,
 #available-menu-items-search .clear-results:before {
+	content: "\f335";
 	content: "\f335" / '';
 	font: normal 20px/1 dashicons;
 	vertical-align: middle;
@@ -2782,7 +2783,8 @@ body.adding-widget .add-new-widget:before,
 
 #available-widgets-filter .clear-results:focus,
 #available-menu-items-search .clear-results:focus {
-	box-shadow: 0 0 0 2px #2271b1;
+	border-radius: 2px;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -2908,10 +2910,6 @@ body.adding-widget .add-new-widget:before,
 		bottom: 16px;
 	}
 
-	.preview-link-wrapper .customize-copy-preview-link.preview-control-element.button {
-		bottom: 10px;
-	}
-
 	.media-widget-control .media-widget-buttons .button.edit-media,
 	.media-widget-control .media-widget-buttons .button.change-media,
 	.media-widget-control .media-widget-buttons .button.select-media {
@@ -2977,6 +2975,7 @@ body.adding-widget .add-new-widget:before,
 	.customize-controls-preview-toggle .preview:before,
 	.customize-controls-preview-toggle .controls:before {
 		font: normal 20px/1 dashicons;
+		content: "\f177";
 		content: "\f177" / '';
 		position: relative;
 		top: 4px;
@@ -2984,6 +2983,7 @@ body.adding-widget .add-new-widget:before,
 	}
 
 	.customize-controls-preview-toggle .controls:before {
+		content: "\f540";
 		content: "\f540" / '';
 	}
 
@@ -3005,7 +3005,7 @@ body.adding-widget .add-new-widget:before,
 	}
 
 	.customize-control .attachment-media-view .upload-button {
-		padding: 5px 0;
+		text-align: center;
 	}
 
 	#customize-control-changeset_status .customize-inside-control-row {
@@ -3075,7 +3075,7 @@ body.adding-widget .add-new-widget:before,
 	}
 
 	#available-menu-items-search .clear-results {
-		top: 36px;
+		top: 40px;
 		right: 16px;
 	}
 

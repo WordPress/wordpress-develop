@@ -29,7 +29,7 @@
  *
  * @param array $args    Arguments for displaying the site logo either as an image or text.
  * @param bool  $display Display or return the HTML.
- * @return string Compiled HTML based on our arguments.
+ * @return string|void Compiled HTML based on our arguments.
  */
 function twentytwenty_site_logo( $args = array(), $display = true ) {
 	$logo       = get_custom_logo();
@@ -98,7 +98,7 @@ function twentytwenty_site_logo( $args = array(), $display = true ) {
 		return $html;
 	}
 
-	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo $html;
 }
 
 /**
@@ -107,7 +107,7 @@ function twentytwenty_site_logo( $args = array(), $display = true ) {
  * @since Twenty Twenty 1.0
  *
  * @param bool $display Display or return the HTML.
- * @return string The HTML to display.
+ * @return string|void The HTML to display.
  */
 function twentytwenty_site_description( $display = true ) {
 	$description = get_bloginfo( 'description' );
@@ -135,7 +135,7 @@ function twentytwenty_site_description( $display = true ) {
 		return $html;
 	}
 
-	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo $html;
 }
 
 /**
@@ -148,7 +148,7 @@ function twentytwenty_site_description( $display = true ) {
  * @since Twenty Twenty 1.0
  *
  * @param object $comment Comment data.
- * @return bool
+ * @return bool Whether the comment is by the post author.
  */
 function twentytwenty_is_comment_by_post_author( $comment = null ) {
 
@@ -201,7 +201,7 @@ add_filter( 'comment_reply_link', 'twentytwenty_filter_comment_reply_link' );
  */
 function twentytwenty_the_post_meta( $post_id = null, $location = 'single-top' ) {
 
-	echo twentytwenty_get_post_meta( $post_id, $location ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in twentytwenty_get_post_meta().
+	echo twentytwenty_get_post_meta( $post_id, $location );
 }
 
 /**
@@ -249,6 +249,7 @@ add_filter( 'edit_post_link', 'twentytwenty_edit_post_link', 10, 3 );
  *
  * @param int    $post_id  The ID of the post.
  * @param string $location The location where the meta is shown.
+ * @return string|void Post meta HTML.
  */
 function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' ) {
 
@@ -265,7 +266,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 	 *
 	 * @since Twenty Twenty 1.0
 	 *
-	 * @param array Array of post types.
+	 * @param array $post_types Array of post types.
 	 */
 	$disallowed_post_types = apply_filters( 'twentytwenty_disallowed_post_types_for_meta_output', array( 'page' ) );
 

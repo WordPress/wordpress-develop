@@ -334,7 +334,7 @@ function iis7_save_url_rewrite_rules() {
  *
  * @since 1.5.0
  *
- * @param string $file
+ * @param string $file Path to the recently edited file.
  */
 function update_recently_edited( $file ) {
 	$oldfiles = (array) get_option( 'recently_edited' );
@@ -492,6 +492,9 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
  * @since 4.9.0
  * @access private
  *
+ * @global string $file   Path to the file being edited.
+ * @global string $plugin Path to the plugin file relative to the plugins directory.
+ *
  * @param array|string $tree  List of file/folder paths, or filename.
  * @param string       $label Name of file or folder to print.
  * @param int          $level The aria-level for the current iteration.
@@ -560,8 +563,8 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
  *
  * @since 2.1.0
  *
- * @param string $old_value
- * @param string $value
+ * @param string $old_value The old value of the option. Unused.
+ * @param string $value     The new value of the option. Unused.
  */
 function update_home_siteurl( $old_value, $value ) {
 	if ( wp_installing() ) {
@@ -605,7 +608,7 @@ function wp_reset_vars( $vars ) {
  *
  * @since 2.1.0
  *
- * @param string|WP_Error $message
+ * @param string|WP_Error $message The message to display, or a WP_Error object.
  */
 function show_message( $message ) {
 	if ( is_wp_error( $message ) ) {
@@ -622,9 +625,11 @@ function show_message( $message ) {
 }
 
 /**
+ * Parses the PHP content and finds function calls to be used for documentation linking.
+ *
  * @since 2.8.0
  *
- * @param string $content
+ * @param string $content The PHP content to parse.
  * @return string[] Array of function names.
  */
 function wp_doc_link_parse( $content ) {
@@ -816,7 +821,7 @@ function set_screen_options() {
  * @since 2.8.0
  *
  * @param string $filename The file path to the configuration file.
- * @return bool
+ * @return bool Whether the rule exists.
  */
 function iis7_rewrite_rule_exists( $filename ) {
 	if ( ! file_exists( $filename ) ) {
@@ -849,7 +854,7 @@ function iis7_rewrite_rule_exists( $filename ) {
  * @since 2.8.0
  *
  * @param string $filename Name of the configuration file.
- * @return bool
+ * @return bool Whether the rule was deleted.
  */
 function iis7_delete_rewrite_rule( $filename ) {
 	// If configuration file does not exist then rules also do not exist, so there is nothing to delete.
@@ -889,7 +894,7 @@ function iis7_delete_rewrite_rule( $filename ) {
  *
  * @param string $filename     The file path to the configuration file.
  * @param string $rewrite_rule The XML fragment with URL Rewrite rule.
- * @return bool
+ * @return bool Whether the rule was added.
  */
 function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	if ( ! class_exists( 'DOMDocument', false ) ) {
@@ -975,8 +980,8 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
  *
  * @since 2.8.0
  *
- * @param DOMDocument $doc
- * @param string      $filename
+ * @param DOMDocument $doc      The DOMDocument object to save.
+ * @param string      $filename The file path to save the XML document to.
  */
 function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$config = $doc->saveXML();
@@ -1001,14 +1006,14 @@ function admin_color_scheme_picker( $user_id ) {
 
 	ksort( $_wp_admin_css_colors );
 
-	if ( isset( $_wp_admin_css_colors['fresh'] ) ) {
-		// Set Default ('fresh') and Light should go first.
+	if ( isset( $_wp_admin_css_colors['modern'] ) ) {
+		// Set Modern (new default), Classic ('fresh'), and Light first.
 		$_wp_admin_css_colors = array_filter(
 			array_merge(
 				array(
+					'modern' => '',
 					'fresh'  => '',
 					'light'  => '',
-					'modern' => '',
 				),
 				$_wp_admin_css_colors
 			)
@@ -1018,7 +1023,7 @@ function admin_color_scheme_picker( $user_id ) {
 	$current_color = get_user_option( 'admin_color', $user_id );
 
 	if ( empty( $current_color ) || ! isset( $_wp_admin_css_colors[ $current_color ] ) ) {
-		$current_color = 'fresh';
+		$current_color = 'modern';
 	}
 	?>
 	<fieldset id="color-picker" class="scheme-list">
@@ -1029,7 +1034,7 @@ function admin_color_scheme_picker( $user_id ) {
 
 			?>
 			<div class="color-option <?php echo ( $color === $current_color ) ? 'selected' : ''; ?>">
-				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?> />
+				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" <?php checked( $color, $current_color ); ?> />
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
 				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
@@ -1052,6 +1057,7 @@ function admin_color_scheme_picker( $user_id ) {
 }
 
 /**
+ * Outputs the JavaScript for the admin color scheme settings.
  *
  * @since 3.8.0
  *
@@ -1064,13 +1070,13 @@ function wp_color_scheme_settings() {
 
 	// It's possible to have a color scheme set that is no longer registered.
 	if ( empty( $_wp_admin_css_colors[ $color_scheme ] ) ) {
-		$color_scheme = 'fresh';
+		$color_scheme = 'modern';
 	}
 
 	if ( ! empty( $_wp_admin_css_colors[ $color_scheme ]->icon_colors ) ) {
 		$icon_colors = $_wp_admin_css_colors[ $color_scheme ]->icon_colors;
-	} elseif ( ! empty( $_wp_admin_css_colors['fresh']->icon_colors ) ) {
-		$icon_colors = $_wp_admin_css_colors['fresh']->icon_colors;
+	} elseif ( ! empty( $_wp_admin_css_colors['modern']->icon_colors ) ) {
+		$icon_colors = $_wp_admin_css_colors['modern']->icon_colors;
 	} else {
 		// Fall back to the default set of icon colors if the default scheme is missing.
 		$icon_colors = array(
@@ -1080,7 +1086,7 @@ function wp_color_scheme_settings() {
 		);
 	}
 
-	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
+	echo '<script>var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
 }
 
 /**
@@ -1130,7 +1136,8 @@ function _customizer_mobile_viewport_meta( $viewport_meta ) {
  * @return array The Heartbeat response.
  */
 function wp_check_locked_posts( $response, $data, $screen_id ) {
-	$checked = array();
+	$checked        = array();
+	$is_rtc_enabled = (bool) get_option( 'wp_collaboration_enabled' );
 
 	if ( array_key_exists( 'wp-check-locked-posts', $data ) && is_array( $data['wp-check-locked-posts'] ) ) {
 		foreach ( $data['wp-check-locked-posts'] as $key ) {
@@ -1146,15 +1153,23 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 				$user = get_userdata( $user_id );
 
 				if ( $user && current_user_can( 'edit_post', $post_id ) ) {
-					$send = array(
-						'name' => $user->display_name,
-						/* translators: %s: User's display name. */
-						'text' => sprintf( __( '%s is currently editing' ), $user->display_name ),
-					);
+					if ( $is_rtc_enabled ) {
+						$send = array(
+							/* translators: Collaboration status message for a singular post in the post list. Can be any type of post. */
+							'text'          => _x( 'Currently being edited', 'post list' ),
+							'collaborative' => true,
+						);
+					} else {
+						$send = array(
+							'name' => $user->display_name,
+							/* translators: %s: User's display name. */
+							'text' => sprintf( __( '%s is currently editing' ), $user->display_name ),
+						);
 
-					if ( get_option( 'show_avatars' ) ) {
-						$send['avatar_src']    = get_avatar_url( $user->ID, array( 'size' => 18 ) );
-						$send['avatar_src_2x'] = get_avatar_url( $user->ID, array( 'size' => 36 ) );
+						if ( get_option( 'show_avatars' ) ) {
+							$send['avatar_src']    = get_avatar_url( $user->ID, array( 'size' => 18 ) );
+							$send['avatar_src_2x'] = get_avatar_url( $user->ID, array( 'size' => 36 ) );
+						}
 					}
 
 					$checked[ $key ] = $send;
@@ -1621,8 +1636,8 @@ function wp_check_php_version() {
 
 	$response['is_lower_than_future_minimum'] = false;
 
-	// The minimum supported PHP version will be updated to 7.4 in the future. Check if the current version is lower.
-	if ( version_compare( $version, '7.4', '<' ) ) {
+	// The minimum supported PHP version will be updated to at least 8.0 in the future. Check if the current version is lower.
+	if ( version_compare( $version, '8.0', '<' ) ) {
 		$response['is_lower_than_future_minimum'] = true;
 
 		// Force showing of warnings.

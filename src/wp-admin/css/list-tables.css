@@ -79,14 +79,14 @@
 .column-response a.post-com-count-approved:focus .comment-count-approved,
 .column-comments a.post-com-count-approved:hover .comment-count-approved,
 .column-comments a.post-com-count-approved:focus .comment-count-approved {
-	background: #2271b1;
+	background: #3858e9;
 }
 
 .column-response a.post-com-count-approved:hover:after,
 .column-response a.post-com-count-approved:focus:after,
 .column-comments a.post-com-count-approved:hover:after,
 .column-comments a.post-com-count-approved:focus:after {
-	border-top-color: #2271b1;
+	border-top-color: #3858e9;
 }
 
 /* @todo: consider to use a single rule for these counters and the admin menu counters. */
@@ -257,7 +257,7 @@
 .vim-current,
 .vim-current th,
 .vim-current td {
-	background-color: #f0f6fc !important;
+	background-color: rgba(var(--wp-admin-theme-color--rgb), 0.08) !important;
 }
 
 th .comment-grey-bubble {
@@ -268,6 +268,7 @@ th .comment-grey-bubble {
 }
 
 th .comment-grey-bubble:before {
+	content: "\f101";
 	content: "\f101" / '';
 	font: normal 20px/.5 dashicons;
 	display: inline-block;
@@ -488,10 +489,12 @@ table.media .column-title .filename {
 }
 
 .sorting-indicator.asc:before {
+	content: "\f142";
 	content: "\f142" / '';
 }
 
 .sorting-indicator.desc:before {
+	content: "\f140";
 	content: "\f140" / '';
 }
 
@@ -535,7 +538,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 }
 
 .wp-list-table .toggle-row:focus:before {
-	box-shadow: 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -552,6 +555,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 	display: block;
 	padding: 1px 2px 1px 0;
 	color: #3c434a; /* same as table headers sort arrows */
+	content: "\f140";
 	content: "\f140" / '';
 	font: normal 20px/1 dashicons;
 	line-height: 1;
@@ -560,6 +564,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 }
 
 .wp-list-table .is-expanded .toggle-row:before {
+	content: "\f142";
 	content: "\f142" / '';
 }
 
@@ -600,6 +605,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 
 .locked-indicator-icon:before {
 	color: #8c8f94;
+	content: "\f160";
 	content: "\f160" / '';
 	display: inline-block;
 	font: normal 20px/1 dashicons;
@@ -629,6 +635,10 @@ tr.wp-locked .row-actions .trash {
 	display: none;
 }
 
+.wp-collaborative-editing .locked-info {
+	display: block;
+}
+
 #menu-locations-wrap .widefat {
 	width: 60%;
 }
@@ -647,7 +657,8 @@ th.sorted a {
 
 th.sortable a:focus,
 th.sorted a:focus {
-	box-shadow: inset 0 0 0 2px #2271b1;
+	border-radius: 2px;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -662,6 +673,9 @@ th.sorted a span {
 	margin: 0 2px 0 0;
 	font-size: 13px;
 	text-align: center;
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
+	padding: 0 8px;
 }
 
 .tablenav .total-pages {
@@ -674,9 +688,8 @@ th.sorted a span {
 
 .tablenav {
 	clear: both;
-	height: 30px;
+	height: 32px;
 	margin: 6px 0 4px;
-	padding-top: 5px;
 	vertical-align: middle;
 }
 
@@ -698,12 +711,12 @@ th.sorted a span {
 .tablenav .tablenav-pages .tablenav-pages-navspan {
 	display: inline-block;
 	vertical-align: baseline;
-	min-width: 30px;
-	min-height: 30px;
+	min-width: 32px;
+	min-height: 32px;
 	margin: 0;
 	padding: 0 4px;
 	font-size: 16px;
-	line-height: 1.625; /* 26px */
+	line-height: 1.875; /* 30px for 32px height */
 	text-align: center;
 }
 
@@ -775,14 +788,17 @@ th.sorted a span {
 }
 
 .view-switch .view-list:before {
+	content: "\f163";
 	content: "\f163" / '';
 }
 
 .view-switch .view-excerpt:before {
+	content: "\f164";
 	content: "\f164" / '';
 }
 
 .view-switch .view-grid:before {
+	content: "\f509";
 	content: "\f509" / '';
 }
 
@@ -841,7 +857,7 @@ p.pagenav {
 }
 
 .row-actions {
-	color: #a7aaad;
+	color: #646970;
 	font-size: 13px;
 	padding: 2px 0 0;
 	position: relative;
@@ -910,8 +926,8 @@ tr.inline-edit-row td {
 }
 
 .inline-edit-wrapper:focus {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -1069,6 +1085,17 @@ tr.inline-edit-row td {
 	vertical-align: top;
 }
 
+.inline-edit-row select,
+.inline-edit-row input:where(:not([type=checkbox],[type=radio],[type=submit],[type=button])) {
+	line-height: 2.14285714;
+	min-height: 32px;
+	padding: 0 8px 0 8px;
+}
+
+.inline-edit-row select {
+	padding-right: 24px;
+}
+
 #wpbody-content .bulk-edit-row fieldset .inline-edit-group label {
 	max-width: 50%;
 }
@@ -1182,7 +1209,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 }
 
 #bulk-titles .ntdelbutton:focus {
-	box-shadow: 0 0 0 2px #3582c4;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	/* Reset inherited offset from Gutenberg */
@@ -1258,7 +1285,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 
 .plugins .active td,
 .plugins .active th {
-	background-color: #f0f6fc;
+	background-color: rgba(var(--wp-admin-theme-color--rgb), 0.08);
 }
 
 .plugins .update th,
@@ -1299,7 +1326,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 
 .plugins .active th.check-column,
 .plugin-update-tr.active td {
-	border-left: 4px solid #72aee6;
+	border-left: 4px solid var(--wp-admin-theme-color);
 }
 
 .wp-list-table.plugins .plugin-title,
@@ -1409,16 +1436,18 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 
 .plugin-card .update-now:before {
 	color: #d63638;
+	content: "\f463";
 	content: "\f463" / '';
 	display: inline-block;
-	font: normal 20px/1 dashicons;
-	margin: -3px 5px 0 -2px;
+	font: normal 16px/1.875 dashicons; /* line-height 1.875 = 30px to match button */
+	margin: 0 5px 0 -2px;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	vertical-align: middle;
+	vertical-align: top;
 }
 
 .plugin-card .updating-message:before {
+	content: "\f463";
 	content: "\f463" / '';
 	animation: rotation 2s infinite linear;
 }
@@ -1434,7 +1463,16 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 
 .plugin-card .updated-message:before {
 	color: #68de7c;
+	content: "\f147";
 	content: "\f147" / '';
+}
+
+.plugin-card .updated-message:before,
+.plugin-card .updating-message:before {
+	line-height: 1;
+	position: relative;
+	top: -2px;
+	vertical-align: middle;
 }
 
 .plugin-install-php #the-list {
@@ -1475,9 +1513,11 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	margin: 0 8px 16px;
 	width: 48.5%;
 	width: calc( 50% - 8px );
-	background-color: #fff;
-	border: 1px solid #dcdcde;
+	background-color: #ffffff;
+	border: 1px solid rgb(0, 0, 0, 0.1);
+	border-radius: 8px;
 	box-sizing: border-box;
+	overflow: hidden;
 }
 
 .plugin-card:nth-child(odd) {
@@ -1541,13 +1581,20 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 
 .plugin-card-top {
 	position: relative;
-	padding: 20px 20px 10px;
+	padding: 16px;
 	min-height: 135px;
 }
 
 div.action-links,
 .plugin-action-buttons {
 	margin: 0; /* Override existing margins */
+}
+
+/* Use compact size for space-constrained plugin cards */
+.plugin-action-buttons li .button {
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px min-height */
+	padding: 0 12px;
 }
 
 .plugin-card h3 {
@@ -1656,9 +1703,9 @@ div.action-links,
 
 .plugin-card-bottom {
 	clear: both;
-	padding: 12px 20px;
+	padding: 16px;
 	background-color: #f6f7f7;
-	border-top: 1px solid #dcdcde;
+	border-top: 1px solid rgb(0, 0, 0, 0.1);
 	overflow: hidden;
 }
 
@@ -1720,11 +1767,13 @@ div.action-links,
 }
 
 .plugin-card .column-compatibility .compatibility-incompatible:before {
+	content: "\f158";
 	content: "\f158" / '';
 	color: #d63638;
 }
 
 .plugin-card .column-compatibility .compatibility-compatible:before {
+	content: "\f147";
 	content: "\f147" / '';
 	color: #007017;
 }
@@ -2296,8 +2345,8 @@ div.action-links,
 
 	.plugins .active.update + .plugin-update-tr:before,
 	.plugins .active.updated + .plugin-update-tr:before {
-		background-color: #f0f6fc;
-		border-left: 4px solid #72aee6;
+		background-color: rgba(var(--wp-admin-theme-color--rgb), 0.08);
+		border-left: 4px solid var(--wp-admin-theme-color);
 	}
 
 	.plugins .plugin-update-tr .update-message {

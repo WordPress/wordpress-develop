@@ -190,7 +190,7 @@ function register_sidebars( $number = 1, $args = array() ) {
 				$_args['name'] = sprintf( __( 'Sidebar %d' ), $i );
 			}
 		} else {
-			$_args['name'] = isset( $args['name'] ) ? $args['name'] : __( 'Sidebar' );
+			$_args['name'] = $args['name'] ?? __( 'Sidebar' );
 		}
 
 		/*
@@ -711,11 +711,11 @@ function dynamic_sidebar( $index = 1 ) {
 
 	$sidebars_widgets = wp_get_sidebars_widgets();
 	if ( empty( $wp_registered_sidebars[ $index ] ) || empty( $sidebars_widgets[ $index ] ) || ! is_array( $sidebars_widgets[ $index ] ) ) {
-		/** This action is documented in wp-includes/widget.php */
+		/** This action is documented in wp-includes/widgets.php */
 		do_action( 'dynamic_sidebar_before', $index, false );
-		/** This action is documented in wp-includes/widget.php */
+		/** This action is documented in wp-includes/widgets.php */
 		do_action( 'dynamic_sidebar_after', $index, false );
-		/** This filter is documented in wp-includes/widget.php */
+		/** This filter is documented in wp-includes/widgets.php */
 		return apply_filters( 'dynamic_sidebar_has_widgets', false, $index );
 	}
 
@@ -925,7 +925,7 @@ function is_active_widget( $callback = false, $widget_id = false, $id_base = fal
 			if ( is_array( $widgets ) ) {
 				foreach ( $widgets as $widget ) {
 					if ( ( $callback && isset( $wp_registered_widgets[ $widget ]['callback'] ) && $wp_registered_widgets[ $widget ]['callback'] === $callback ) || ( $id_base && _get_widget_id_base( $widget ) === $id_base ) ) {
-						if ( ! $widget_id || $widget_id === $wp_registered_widgets[ $widget ]['id'] ) {
+						if ( ! $widget_id || ( isset( $wp_registered_widgets[ $widget ]['id'] ) && $widget_id === $wp_registered_widgets[ $widget ]['id'] ) ) {
 							return $sidebar;
 						}
 					}
@@ -1495,7 +1495,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 
 	// Sidebars_widgets settings from when this theme was previously active.
 	$old_sidebars_widgets = get_theme_mod( 'sidebars_widgets' );
-	$old_sidebars_widgets = isset( $old_sidebars_widgets['data'] ) ? $old_sidebars_widgets['data'] : false;
+	$old_sidebars_widgets = $old_sidebars_widgets['data'] ?? false;
 
 	if ( is_array( $old_sidebars_widgets ) ) {
 
@@ -1718,17 +1718,17 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	);
 	$inputs         = wp_parse_args( $inputs, $default_inputs );
 
-	$args['title'] = isset( $args['title'] ) ? $args['title'] : '';
-	$args['url']   = isset( $args['url'] ) ? $args['url'] : '';
-	$args['items'] = isset( $args['items'] ) ? (int) $args['items'] : 0;
+	$args['title'] = $args['title'] ?? '';
+	$args['url']   = $args['url'] ?? '';
+	$args['items'] = (int) ( $args['items'] ?? 0 );
 
 	if ( $args['items'] < 1 || 20 < $args['items'] ) {
 		$args['items'] = 10;
 	}
 
-	$args['show_summary'] = isset( $args['show_summary'] ) ? (int) $args['show_summary'] : (int) $inputs['show_summary'];
-	$args['show_author']  = isset( $args['show_author'] ) ? (int) $args['show_author'] : (int) $inputs['show_author'];
-	$args['show_date']    = isset( $args['show_date'] ) ? (int) $args['show_date'] : (int) $inputs['show_date'];
+	$args['show_summary'] = (int) ( $args['show_summary'] ?? $inputs['show_summary'] );
+	$args['show_author']  = (int) ( $args['show_author'] ?? $inputs['show_author'] );
+	$args['show_date']    = (int) ( $args['show_date'] ?? $inputs['show_date'] );
 
 	if ( ! empty( $args['error'] ) ) {
 		echo '<p class="widget-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $args['error'] ) . '</p>';
@@ -1798,10 +1798,10 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 		$items = 10;
 	}
 	$url          = sanitize_url( strip_tags( $widget_rss['url'] ) );
-	$title        = isset( $widget_rss['title'] ) ? trim( strip_tags( $widget_rss['title'] ) ) : '';
-	$show_summary = isset( $widget_rss['show_summary'] ) ? (int) $widget_rss['show_summary'] : 0;
-	$show_author  = isset( $widget_rss['show_author'] ) ? (int) $widget_rss['show_author'] : 0;
-	$show_date    = isset( $widget_rss['show_date'] ) ? (int) $widget_rss['show_date'] : 0;
+	$title        = trim( strip_tags( $widget_rss['title'] ?? '' ) );
+	$show_summary = (int) ( $widget_rss['show_summary'] ?? 0 );
+	$show_author  = (int) ( $widget_rss['show_author'] ?? 0 );
+	$show_date    = (int) ( $widget_rss['show_date'] ?? 0 );
 	$error        = false;
 	$link         = '';
 

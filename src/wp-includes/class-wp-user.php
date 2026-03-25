@@ -121,9 +121,9 @@ class WP_User {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int|string|stdClass|WP_User $id      User's ID, a WP_User object, or a user object from the DB.
-	 * @param string                      $name    Optional. User's username
-	 * @param int                         $site_id Optional Site ID, defaults to current site.
+	 * @param int|string|object $id      User's ID, a WP_User object, or a user object from the DB.
+	 * @param string            $name    Optional. User's username
+	 * @param int               $site_id Optional Site ID, defaults to current site.
 	 */
 	public function __construct( $id = 0, $name = '', $site_id = 0 ) {
 		global $wpdb;
@@ -654,7 +654,7 @@ class WP_User {
 		 * Fires after the user's role has changed.
 		 *
 		 * @since 2.9.0
-		 * @since 3.6.0 Added $old_roles to include an array of the user's previous roles.
+		 * @since 3.6.0 Added `$old_roles` to include an array of the user's previous roles.
 		 *
 		 * @param int      $user_id   The user ID.
 		 * @param string   $role      The new role.
