@@ -96,7 +96,7 @@ class Mock_Connectors_Test_Provider extends AbstractProvider {
 	 */
 	protected static function createProviderMetadata(): ProviderMetadata {
 		return new ProviderMetadata(
-			'mock_connectors_test',
+			'mock-connectors-test',
 			'Mock Connectors Test',
 			ProviderTypeEnum::cloud(),
 			null,
@@ -156,15 +156,15 @@ trait WP_AI_Client_Mock_Provider_Trait {
 	 */
 	private static function register_mock_connectors_provider(): void {
 		$ai_registry = AiClient::defaultRegistry();
-		if ( ! $ai_registry->hasProvider( 'mock_connectors_test' ) ) {
+		if ( ! $ai_registry->hasProvider( 'mock-connectors-test' ) ) {
 			$ai_registry->registerProvider( Mock_Connectors_Test_Provider::class );
 		}
 
 		// Also register in the WP connector registry if not already present.
 		$connector_registry = WP_Connector_Registry::get_instance();
-		if ( null !== $connector_registry && ! $connector_registry->is_registered( 'mock_connectors_test' ) ) {
+		if ( null !== $connector_registry && ! $connector_registry->is_registered( 'mock-connectors-test' ) ) {
 			$connector_registry->register(
-				'mock_connectors_test',
+				'mock-connectors-test',
 				array(
 					'name'           => 'Mock Connectors Test',
 					'description'    => '',
