@@ -781,6 +781,9 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 		$string = sprintf( $string, $function_name, $message );
 	}
 
+	if ( ! headers_sent() ) {
+		header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
+	}
 	if ( WP_DEBUG_LOG ) {
 		error_log(
 			sprintf(
