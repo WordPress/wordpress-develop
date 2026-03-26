@@ -1493,6 +1493,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			$is_rtc_enabled = (bool) get_option( 'wp_collaboration_enabled' );
 
+			/*
+			 * When RTC is enabled, both "Edit" and "Join" labels are rendered.
+			 * The visible label is toggled by CSS based on the row's
+			 * `wp-collaborative-editing` class, which is added or removed by
+			 * inline-edit-post.js in response to heartbeat ticks.
+			 */
 			if ( $is_rtc_enabled ) {
 				$actions['edit'] = sprintf(
 					'<a href="%1$s">'
