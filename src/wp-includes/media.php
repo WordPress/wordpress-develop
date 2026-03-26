@@ -1035,7 +1035,16 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 	 *                                    an array of width and height values in pixels (in that order).
 	 * @param bool         $icon          Whether the image should be treated as an icon.
 	 */
-	return apply_filters( 'wp_get_attachment_image_src', $image, $attachment_id, $size, $icon );
+	$source = apply_filters( 'wp_get_attachment_image_src', $image, $attachment_id, $size, $icon );
+	if ( is_array( $source ) && isset( $source[0] ) && is_string( $source[0] ) ) {
+		return array(
+			$source[0],
+			(int) ( $source[1] ?? 0 ),
+			(int) ( $source[2] ?? 0 ),
+			(bool) ( $source[3] ?? false ),
+		);
+	}
+	return false;
 }
 
 /**
@@ -3244,18 +3253,18 @@ function wp_playlist_shortcode( $attr ) {
 				$image_src_full = wp_get_attachment_image_src( $thumb_id, 'full' );
 				if ( is_array( $image_src_full ) ) {
 					$track['image'] = array(
-						'src'    => (string) ( $image_src_full[0] ?? '' ),
-						'width'  => (int) ( $image_src_full[1] ?? 0 ),
-						'height' => (int) ( $image_src_full[2] ?? 0 ),
+						'src'    => $image_src_full[0],
+						'width'  => $image_src_full[1],
+						'height' => $image_src_full[2],
 					);
 				}
 
 				$image_src_thumb = wp_get_attachment_image_src( $thumb_id, 'thumbnail' );
 				if ( is_array( $image_src_thumb ) ) {
 					$track['thumb'] = array(
-						'src'    => (string) ( $image_src_thumb[0] ?? '' ),
-						'width'  => (int) ( $image_src_thumb[1] ?? 0 ),
-						'height' => (int) ( $image_src_thumb[2] ?? 0 ),
+						'src'    => $image_src_thumb[0],
+						'width'  => $image_src_thumb[1],
+						'height' => $image_src_thumb[2],
 					);
 				}
 			} else {
@@ -4738,18 +4747,18 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			$response_image_full = wp_get_attachment_image_src( $id, 'full' );
 			if ( is_array( $response_image_full ) ) {
 				$response['image'] = array(
-					'src'    => (string) ( $response_image_full[0] ?? '' ),
-					'width'  => (int) ( $response_image_full[1] ?? 0 ),
-					'height' => (int) ( $response_image_full[2] ?? 0 ),
+					'src'    => $response_image_full[0],
+					'width'  => $response_image_full[1],
+					'height' => $response_image_full[2],
 				);
 			}
 
 			$response_image_thumb = wp_get_attachment_image_src( $id, 'thumbnail' );
 			if ( is_array( $response_image_thumb ) ) {
 				$response['thumb'] = array(
-					'src'    => (string) ( $response_image_thumb[0] ?? '' ),
-					'width'  => (int) ( $response_image_thumb[1] ?? 0 ),
-					'height' => (int) ( $response_image_thumb[2] ?? 0 ),
+					'src'    => $response_image_thumb[0],
+					'width'  => $response_image_thumb[1],
+					'height' => $response_image_thumb[2],
 				);
 			}
 		} else {
