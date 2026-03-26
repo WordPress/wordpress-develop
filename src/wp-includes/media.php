@@ -978,7 +978,9 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 	// Get a thumbnail or intermediate image if there is one.
 	$image = image_downsize( $attachment_id, $size );
 	if ( ! $image ) {
-		$src = false;
+		$src    = false;
+		$width  = 0;
+		$height = 0;
 
 		if ( $icon ) {
 			$src = wp_mime_type_icon( $attachment_id, '.svg' );
@@ -988,8 +990,6 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
 
 				$src_file = $icon_dir . '/' . wp_basename( $src );
-				$width    = 0;
-				$height   = 0;
 
 				$image_size = wp_getimagesize( $src_file );
 				if ( is_array( $image_size ) ) {
