@@ -1140,7 +1140,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		if ( has_post_parent( $post ) ) {
 			$post_type_object = get_post_type_object( $post->post_type );
 			/* translators: %s: Post title. */
-			$label       = sprintf( ' aria-label="%s"', esc_attr( sprintf( __( 'Subpage "%s" (Edit)' ), $title ) ) );
+			$label       = sprintf( ' aria-label="%s"', esc_attr( sprintf( __( 'Subpage "%s"' ), $title ) ) );
 			$parent      = get_post( $post->post_parent );
 			$parent_name = apply_filters( 'the_title', $parent->post_title, $parent->ID );
 		}
