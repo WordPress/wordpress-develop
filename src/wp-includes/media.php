@@ -5761,7 +5761,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
  * @return array|false Array of image information or false on failure.
- * @phpstan-return array{ 0: int, 1: int, 2: int, 3: string, mime: string }|false
+ * @phpstan-return array{ 0: int, 1: int, 2: int, 3: string, mime: string, bits?: int, channels?: int }|false
  */
 function wp_getimagesize( $filename, ?array &$image_info = null ) {
 	// Don't silence errors when in debug mode, unless running unit tests.
