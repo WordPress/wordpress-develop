@@ -45,12 +45,12 @@
 
 .media-frame a {
 	border-bottom: none;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-frame a:hover,
 .media-frame a:active {
-	color: #135e96;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .media-frame a:focus {
@@ -352,6 +352,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 12px;
+	align-items: end;
 }
 
 .media-toolbar-primary > .media-button,
@@ -1010,6 +1011,11 @@
 	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
 	box-sizing: border-box;
 	font-weight: 600;
+}
+
+/* Do not show the aria-label overlay on thumbnails in the gallery selection strip. */
+.wp-core-ui .media-selection .attachment::after {
+	content: none;
 }
 
 .wp-core-ui .attachment:focus,

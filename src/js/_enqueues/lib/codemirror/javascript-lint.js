@@ -25,7 +25,7 @@ import CodeMirror from 'codemirror';
  * @see https://www.npmjs.com/package/espree#options
  *
  * @typedef {Object} SupportedJSHintOptions
- * @property {number} [esversion] - "This option is used to specify the ECMAScript version to which the code must adhere."
+ * @property {import('espree').Options['ecmaVersion']} [esversion] - "This option is used to specify the ECMAScript version to which the code must adhere."
  * @property {boolean} [es5] - "This option enables syntax first defined in the ECMAScript 5.1 specification. This includes allowing reserved keywords as object properties."
  * @property {boolean} [es3] - "This option tells JSHint that your code needs to adhere to ECMAScript 3 specification. Use this option if you need your program to be executable in older browsers—such as Internet Explorer 6/7/8/9—and other legacy JavaScript environments."
  * @property {boolean} [module] - "This option informs JSHint that the input code describes an ECMAScript 6 module. All module code is interpreted as strict mode code."
@@ -50,19 +50,20 @@ async function validator( text, options ) {
 			loc: true,
 		} );
 	} catch ( error ) {
+		const enhancedError = /** @type {Error & { lineNumber?: number, column?: number }} */ ( error );
 		if (
 			// This is an `EnhancedSyntaxError` in Espree: <https://github.com/brettz9/espree/blob/3c1120280b24f4a5e4c3125305b072fa0dfca22b/packages/espree/lib/espree.js#L48-L54>.
 			error instanceof SyntaxError &&
-			typeof error.lineNumber === 'number' &&
-			typeof error.column === 'number'
+			typeof enhancedError.lineNumber === 'number' &&
+			typeof enhancedError.column === 'number'
 		) {
-			const line = error.lineNumber - 1;
-			errors.push( {
+			const line = enhancedError.lineNumber - 1;
+			errors.push( /** @type {CodeMirrorLintError} */ ( {
 				message: error.message,
 				severity: 'error',
-				from: CodeMirror.Pos( line, error.column - 1 ),
-				to: CodeMirror.Pos( line, error.column ),
-			} );
+				from: CodeMirror.Pos( line, enhancedError.column - 1 ),
+				to: CodeMirror.Pos( line, enhancedError.column ),
+			} ) );
 		} else {
 			console.warn( '[CodeMirror] Unable to lint JavaScript:', error ); // jshint ignore:line
 		}
@@ -80,13 +81,15 @@ CodeMirror.registerHelper( 'lint', 'javascript', validator );
  *
  * @param {SupportedJSHintOptions} options - Linting options for JSHint.
  * @return {{
- *     ecmaVersion?: number|'latest',
+ *     ecmaVersion?: import('espree').Options['ecmaVersion'],
+ *     sourceType?: 'module'|'script',
  *     ecmaFeatures?: {
  *         impliedStrict?: true
  *     }
  * }}
  */
 function getEspreeOptions( options ) {
+	/** @type {{ impliedStrict?: true }} */
 	const ecmaFeatures = {};
 	if ( options.strict === 'implied' ) {
 		ecmaFeatures.impliedStrict = true;
@@ -105,10 +108,10 @@ function getEspreeOptions( options ) {
  * @since 7.0.0
  *
  * @param {SupportedJSHintOptions} options - Options.
- * @return {number|'latest'} ECMAScript version.
+ * @return {import('espree').Options['ecmaVersion']} ECMAScript version.
  */
 function getEcmaVersion( options ) {
-	if ( typeof options.esversion === 'number' ) {
+	if ( options.esversion ) {
 		return options.esversion;
 	}
 	if ( options.es5 ) {
