@@ -2131,16 +2131,6 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'build', function() {
-		var done = this.async();
-
-		grunt.util.spawn( {
-			grunt: true,
-			args: [ 'clean', '--dev' ],
-			opts: { stdio: 'inherit' }
-		}, function( buildError ) {
-			done( ! buildError );
-		} );
-
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
 				'gutenberg:download',
