@@ -8445,6 +8445,17 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
  */
 function wp_cache_set_posts_last_changed() {
 	wp_cache_set_last_changed( 'posts' );
+	// Indicate meta query cache is updated for use in WP_Query
+	wp_cache_set( 'wp_query_meta_query_updated', true, 'post_meta' );
+}
+
+/**
+ * Marks the WP_Query cache as needing to be flushed after a meta query change.
+ *
+ * @since 7.0.0
+ */
+function wp_cache_set_needs_meta_query_flush() {
+	wp_cache_delete( 'wp_query_meta_query_updated', 'post_meta' );
 }
 
 /**
