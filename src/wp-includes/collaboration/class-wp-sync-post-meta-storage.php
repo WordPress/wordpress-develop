@@ -95,7 +95,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	public function get_awareness_state( string $room ): array {
 		$room_hash = md5( $room ); // Not used for cryptographic purposes.
 		$awareness = get_transient( self::AWARENESS_TRANSIENT_PREFIX . ":{$room_hash}" );
-		$awareness = json_decode( $awareness, true );
 
 		if ( ! is_array( $awareness ) ) {
 			return array();
@@ -123,7 +122,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		 * soon, so the transient can be maintained for longer to avoid additional
 		 * entries in the options table.
 		 */
-		$awareness = wp_json_encode( $awareness );
 		set_transient( self::AWARENESS_TRANSIENT_PREFIX . ":{$room_hash}", $awareness, HOUR_IN_SECONDS );
 		return true;
 	}
