@@ -365,13 +365,8 @@ class WP_HTTP_Polling_Sync_Server {
 			);
 		}
 
-		wp_list_sort( $updated_awareness, 'client_id' );
-
-		// Compare old and new here to avoid function calls to set_transient/update_option.
-		if ( wp_json_encode( $updated_awareness ) !== wp_json_encode( $existing_awareness ) ) {
-			// Awareness has updated, trigger database/object cache update.
-			$this->storage->set_awareness_state( $room, $updated_awareness );
-		}
+		// This action can fail, but it shouldn't fail the entire request.
+		$this->storage->set_awareness_state( $room, $updated_awareness );
 
 		// Convert to client_id => state map for response.
 		$response = array();

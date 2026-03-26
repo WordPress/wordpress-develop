@@ -100,6 +100,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return array();
 		}
 
+		// Deterministic ordering of transient data.
+		$awareness = wp_list_sort( $awareness, 'client_id' );
 		return array_values( $awareness );
 	}
 
@@ -114,6 +116,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 */
 	public function set_awareness_state( string $room, array $awareness ): bool {
 		$room_hash = md5( $room ); // Not used for cryptographic purposes.
+		// Deterministic ordering of transient data.
+		$awareness = wp_list_sort( $awareness, 'client_id' );
 
 		/*
 		 * Maintain transient for longer than awareness.
