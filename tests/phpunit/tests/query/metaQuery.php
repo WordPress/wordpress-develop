@@ -739,6 +739,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64696
+	 *
+	 * @dataProvider data_jit_meta_query_invalidation
 	 */
 	public function test_jit_meta_query_invalidation_adding_meta() {
 		$post_id = self::factory()->post->create();
@@ -785,11 +787,13 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64696
+	 *
+	 * @dataProvider data_jit_meta_query_invalidation
 	 */
 	public function test_jit_meta_query_invalidation_updating_meta() {
 		$post_id = self::factory()->post->create();
 		wp_cache_set_posts_last_changed();
-		add_post_meta( $post_id, 'foo', 'bar' );
+		add_post_meta( $post_id, 'foo', 'baz' );
 
 		// Query posts by meta data.
 		$query = new WP_Query(
@@ -798,7 +802,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_query' => array(
 					array(
 						'key'   => 'foo',
-						'value' => 'baz',
+						'value' => 'bar',
 					),
 				),
 			)
@@ -807,7 +811,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$posts_last_changed_initial = wp_cache_get_last_changed( 'posts' );
 
 		// Update post meta.
-		update_post_meta( $post_id, 'foo', 'baz' );
+		update_post_meta( $post_id, 'foo', 'bar' );
 
 		// Confirm last changed has not updated.
 		$this->assertSame( $posts_last_changed_initial, wp_cache_get_last_changed( 'posts' ), 'Updating meta data should not invalidate post query cache.' );
@@ -819,7 +823,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_query' => array(
 					array(
 						'key'   => 'foo',
-						'value' => 'baz',
+						'value' => 'bar',
 					),
 				),
 			)
@@ -833,6 +837,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64696
+	 *
+	 * @dataProvider data_jit_meta_query_invalidation
 	 */
 	public function test_jit_meta_query_invalidation_deleting_meta() {
 		$post_id = self::factory()->post->create();
@@ -876,6 +882,51 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		// Confirm JIT last changed has updated.
 		$this->assertNotSame( $posts_last_changed_initial, wp_cache_get_last_changed( 'posts' ), 'JIT meta query should invalidate post query cache.' );
 		$this->assertNotContains( $post_id, $query->posts, 'Queried post should not be in results after meta data deleted.' );
+	}
+
+	/**
+	 * Data provider for:
+	 * - test_jit_meta_query_invalidation_adding_meta
+	 * - test_jit_meta_query_invalidation_updating_meta
+	 * - test_jit_meta_query_invalidation_deleting_meta
+	 *
+	 * @return array<string, array> Data provider.
+	 */
+	public function data_jit_meta_query_invalidation() {
+		return array(
+			'meta_query key only'               => array(
+				'meta_query' => array(
+					array(
+						'key' => 'foo',
+					),
+				),
+			),
+			'meta_query value only'             => array(
+				'meta_query' => array(
+					array(
+						'value' => 'bar',
+					),
+				),
+			),
+			'meta_query key and value'          => array(
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			),
+			'meta_key top level only'           => array(
+				'meta_key' => 'foo',
+			),
+			'meta_value top level only'         => array(
+				'meta_value' => 'bar',
+			),
+			'meta_key and meta_value top level' => array(
+				'meta_key'   => 'foo',
+				'meta_value' => 'bar',
+			),
+		);
 	}
 
 	/**
