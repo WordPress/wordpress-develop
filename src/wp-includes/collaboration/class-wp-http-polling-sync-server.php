@@ -329,37 +329,40 @@ class WP_HTTP_Polling_Sync_Server {
 	 *
 	 * @param string      $entity_kind The entity kind, e.g. 'postType', 'taxonomy', 'root'.
 	 * @param string      $entity_name The entity name, e.g. 'post', 'category', 'site'.
-	 * @param string|null $object_id   The object ID / entity key for single entities, null for collections.
+	 * @param string|null $object_id   The numeric object ID / entity key for single entities, null for collections.
 	 * @return bool True if user has permission, otherwise false.
 	 */
 	private function can_user_sync_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
-		if ( ! is_null( $object_id ) && ! is_numeric( $object_id ) ) {
+		if ( is_string( $object_id ) ) {
+			$object_id = (int) $object_id;
+		}
+		if ( null !== $object_id && $object_id <= 0 ) {
 			// Object ID must be numeric if provided.
 			return false;
 		}
 
 		// Handle single post type entities with a defined object ID.
-		if ( 'postType' === $entity_kind && is_numeric( $object_id ) ) {
+		if ( 'postType' === $entity_kind && is_int( $object_id ) ) {
 			if ( get_post_type( $object_id ) !== $entity_name ) {
 				// Post is not of the specified post type.
 				return false;
 			}
-			return current_user_can( 'edit_post', (int) $object_id );
+			return current_user_can( 'edit_post', $object_id );
 		}
 
 		// Handle single taxonomy term entities with a defined object ID.
-		if ( 'taxonomy' === $entity_kind && is_numeric( $object_id ) ) {
-			if ( term_exists( (int) $object_id, $entity_name ) === false ) {
+		if ( 'taxonomy' === $entity_kind && is_int( $object_id ) ) {
+			if ( term_exists( $object_id, $entity_name ) === false ) {
 				// Either term doesn't exist OR term is not in specified taxonomy.
 				return false;
 			}
 			$taxonomy = get_taxonomy( $entity_name );
-			return current_user_can( 'edit_term', (int) $object_id );
+			return current_user_can( 'edit_term', $object_id );
 		}
 
 		// Handle single comment entities with a defined object ID.
-		if ( 'root' === $entity_kind && 'comment' === $entity_name && is_numeric( $object_id ) ) {
-			return current_user_can( 'edit_comment', (int) $object_id );
+		if ( 'root' === $entity_kind && 'comment' === $entity_name && is_int( $object_id ) ) {
+			return current_user_can( 'edit_comment', $object_id );
 		}
 
 		// All the remaining checks are for collections. If an object ID is provided,
