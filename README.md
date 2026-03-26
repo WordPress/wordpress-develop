@@ -11,6 +11,8 @@
 </p>
 
 > ⚠️ **WARNING: This is an experimental fork** — Not intended for production use without thorough testing.
+> 
+> **This is NOT an official WordPress project.** Created and maintained by [Chris Bunting](https://github.com/cbuntingde) with AI agent assistance. Not affiliated with, endorsed by, or connected to the WordPress Foundation or Automattic.
 
 ## Overview
 
