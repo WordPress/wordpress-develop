@@ -2128,7 +2128,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
-				'gutenberg:verify',
+				'gutenberg:download',
 				'build:js',
 				'build:css',
 				'build:codemirror',
@@ -2138,7 +2138,7 @@ module.exports = function(grunt) {
 			] );
 		} else {
 			grunt.task.run( [
-				'gutenberg:verify',
+				'gutenberg:download',
 				'build:certificates',
 				'build:files',
 				'build:js',
