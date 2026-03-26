@@ -45,3 +45,35 @@ upstream/wordpress-develop (official)
 1. Sync to `trunk` first (from upstream/trunk)
 2. Test/verify changes
 3. Later, merge `trunk` to `main` when stable
+
+## Moving to Production (trunk → main)
+
+When trunk has stable, tested changes ready for production:
+
+1. **Create PR on GitHub:**
+   - Base: `main` ← Compare: `trunk`
+   - Title: "Promote to production - [description]"
+   - Description: List what changes are being promoted
+
+2. **Review requirements:**
+   - Must pass all CI/CD checks
+   - Code quality (phpstan, php-cs-fixer)
+   - Security scan
+
+3. **After approval:** Merge PR to main
+
+**Commands (if doing locally):**
+```bash
+# Make sure trunk is up to date
+git checkout trunk
+git pull origin trunk
+
+# Create PR branch
+git checkout -b promote-to-main trunk
+
+# Push and create PR via GitHub
+git push -u origin promote-to-main
+# Then open PR on GitHub UI
+```
+
+**Note:** Main is now the default branch on GitHub. Trunk is our working branch.
