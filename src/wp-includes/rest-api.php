@@ -785,13 +785,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 		header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
 	}
 	if ( WP_DEBUG_LOG ) {
-		error_log(
-			sprintf(
-				'REST API - Function %1$s was called incorrectly. %2$s',
-				$function_name,
-				wp_strip_all_tags( $message )
-			)
-		);
+		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) );
 	}
 }
 
