@@ -341,28 +341,31 @@ class WP_HTTP_Polling_Sync_Server {
 			return false;
 		}
 
-		// Handle single post type entities with a defined object ID.
-		if ( 'postType' === $entity_kind && is_int( $object_id ) ) {
-			if ( get_post_type( $object_id ) !== $entity_name ) {
-				// Post is not of the specified post type.
-				return false;
+		// Validate permissions for the provided object ID.
+		if ( is_int( $object_id ) ) {
+			// Handle single post type entities with a defined object ID.
+			if ( 'postType' === $entity_kind ) {
+				if ( get_post_type( $object_id ) !== $entity_name ) {
+					// Post is not of the specified post type.
+					return false;
+				}
+				return current_user_can( 'edit_post', $object_id );
 			}
-			return current_user_can( 'edit_post', $object_id );
-		}
 
-		// Handle single taxonomy term entities with a defined object ID.
-		if ( 'taxonomy' === $entity_kind && is_int( $object_id ) ) {
-			if ( term_exists( $object_id, $entity_name ) === false ) {
-				// Either term doesn't exist OR term is not in specified taxonomy.
-				return false;
+			// Handle single taxonomy term entities with a defined object ID.
+			if ( 'taxonomy' === $entity_kind ) {
+				if ( term_exists( $object_id, $entity_name ) === false ) {
+					// Either term doesn't exist OR term is not in specified taxonomy.
+					return false;
+				}
+				$taxonomy = get_taxonomy( $entity_name );
+				return current_user_can( 'edit_term', $object_id );
 			}
-			$taxonomy = get_taxonomy( $entity_name );
-			return current_user_can( 'edit_term', $object_id );
-		}
 
-		// Handle single comment entities with a defined object ID.
-		if ( 'root' === $entity_kind && 'comment' === $entity_name && is_int( $object_id ) ) {
-			return current_user_can( 'edit_comment', $object_id );
+			// Handle single comment entities with a defined object ID.
+			if ( 'root' === $entity_kind && 'comment' === $entity_name ) {
+				return current_user_can( 'edit_comment', $object_id );
+			}
 		}
 
 		// All the remaining checks are for collections. If an object ID is provided,
