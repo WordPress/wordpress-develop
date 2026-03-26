@@ -1,52 +1,158 @@
 # WordPress AI Security Edition
 
-> ⚠️ **WARNING: This is a work-in-progress fork** — Not intended for production use
+<p align="center">
+  <a href="https://wordpress.org/">
+    <img src="https://img.shields.io/badge/WordPress-6.7+-21759B?style=for-the-badge&logo=wordpress" alt="WordPress 6.7+" />
+  </a>
+  <a href="https://github.com/cbuntingde/wordpress-develop/blob/trunk/LICENSE">
+    <img src="https://img.shields.io/badge/License-GPL%20v2+-51A2CC?style=for-the-badge" alt="GPL v2+" />
+  </a>
+  <img src="https://img.shields.io/badge/status-alpha-FDAE53?style=for-the-badge" alt="Status: Alpha" />
+</p>
 
-This fork integrates AI-powered security features directly into WordPress core. Developed by Chris Bunting with AI agent assistance.
+> ⚠️ **WARNING: This is an experimental fork** — Not intended for production use without thorough testing.
 
 ## Overview
 
-This project aims to make WordPress more secure than ever through AI-powered features:
+WordPress AI Security Edition is a fork of WordPress core that integrates AI-powered security features directly into the CMS. This project aims to make WordPress practically unhackable by leveraging modern AI capabilities for threat detection, vulnerability prevention, and real-time security monitoring.
 
-- **Exploit Detection** — AI analyzes code patterns to catch vulnerabilities before exploitation
-- **Real-time Monitoring** — DDoS protection, brute force detection, anomaly detection
-- **Plugin/Theme Scanning** — Automated vulnerability detection for extensions
-- **Security Dashboard** — Configure AI settings, alerts, and monitoring from WP Admin
+## Features
+
+### 🔒 AI-Powered Security
+
+- **Exploit Detection** — AI analyzes code patterns to identify and block potential vulnerabilities before they can be exploited
+- **Real-time Monitoring** — Continuous protection against DDoS attacks, brute force attempts, and anomalous behavior
+- **Plugin/Theme Scanning** — Automated vulnerability detection for extensions using static analysis and AI pattern recognition
+- **Security Dashboard** — Configure AI settings, view alerts, and monitor site security from WordPress Admin
+
+### 🤖 AI Provider Support
+
+Built-in support for multiple AI providers with automatic failover:
+
+| Provider | Type | Status |
+|----------|------|--------|
+| DeepSeek | Cloud | ✅ Built-in |
+| OpenRouter | Cloud | ✅ Built-in |
+| Ollama | Local | ✅ Built-in |
+| xAI (Grok) | Cloud | ✅ Built-in |
+| Mistral | Cloud | ✅ Built-in |
+
+*Additional providers available via plugin extension.*
+
+### 🏗️ Architecture
+
+The AI security layer integrates with WordPress core through:
+
+- **`wp-includes/ai-client/`** — Core AI client infrastructure
+- **`wp-content/plugins/ai-security/`** — Security features plugin (planned)
+- WordPress REST API extensions for secure AI communication
+- Hook-based architecture for minimal core modification
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [README-ORIG.md](./README-ORIG.md) | Original WordPress development setup |
-| [docs/implementation-plan.md](./docs/implementation-plan.md) | Security features roadmap |
-| [docs/knowledge-base.md](./docs/knowledge-base.md) | Security research and architecture |
+### For Users
 
-## AI Providers (Built-in)
+- [Installation Guide](./docs/installation.md) — Setup and configuration
+- [Security Dashboard Guide](./docs/security-dashboard.md) — Using the AI security UI
+- [AI Provider Configuration](./docs/ai-providers.md) — Setting up AI connections
 
-This fork includes support for 8 AI providers. Five are integrated directly into core, three require separate plugins:
+### For Developers
 
-| Provider | Status | Description |
-|----------|--------|-------------|
-| **DeepSeek** | ✅ Built-in | Open-source models for code and chat |
-| **OpenRouter** | ✅ Built-in | 100+ models via single API |
-| **Ollama** | ✅ Built-in | Local models (Llama, Mistral, etc.) |
-| **xAI (Grok)** | ✅ Built-in | Conversational AI with real-time knowledge |
-| **Mistral** | ✅ Built-in | Strong coding models |
-| **OpenAI** | 🔄 Plugin required | GPT-4o, o1, DALL-E |
-| **Anthropic** | 🔄 Plugin required | Claude 3.5 Sonnet, Opus, Haiku |
-| **Google** | 🔄 Plugin required | Gemini 2.0, 1.5 Pro/Flash |
+- [Architecture Overview](./docs/architecture.md) — System design and components
+- [Contributing Guide](./CONTRIBUTING.md) — How to contribute to this project
+- [Coding Standards](./docs/coding-standards.md) — Code style and quality requirements
+- [Security Policy](./SECURITY.md) — Reporting vulnerabilities
 
-**Built-in provider location:** `wp-includes/php-ai-client/src/Providers/AiConnectorPro/`
+### Project Management
 
-**Note:** OpenAI, Anthropic, and Google providers are available via separate WordPress plugins. These providers will be added to core in a future update.
+- [Project Board](https://github.com/cbuntingde/wordpress-develop/projects) — Track progress and tasks
+- [Milestones](https://github.com/cbuntingde/wordpress-develop/milestones) — Release planning
 
-## Quick Links
+## Quick Start
 
-- [GitHub Repository](https://github.com/cbuntingde/wordpress-develop)
-- [AI Connector Pro Plugin](https://github.com/cbuntingde/ai-connector-pro)
-- [WordPress.org](https://wordpress.org/)
-- [WordPress Trac](https://core.trac.wordpress.org/)
+```bash
+# Clone the repository
+git clone https://github.com/cbuntingde/wordpress-develop.git
+cd wordpress-develop
+
+# Install dependencies
+npm install
+npm run build:dev
+
+# Run local development server
+npm run dev:server
+```
+
+## Requirements
+
+- **PHP** 8.1+ (8.2+ recommended)
+- **Node.js** 18+ 
+- **MySQL** 8.0+ or **MariaDB** 10.5+
+- **WordPress** 6.7+ compatibility target
+
+## Project Structure
+
+```
+wordpress-develop/
+├── src/                    # WordPress source (wp-includes, wp-admin)
+│   └── wp-includes/
+│       └── ai-client/       # AI integration layer
+├── tests/                  # Test suites
+├── tools/                  # Build and deployment tools
+├── docs/                   # Project documentation
+└── CONTRIBUTING.md         # Contribution guidelines
+```
+
+## Roadmap
+
+### Phase 1: Foundation (Current)
+- [x] AI client infrastructure in core
+- [x] Multiple provider support (DeepSeek, OpenRouter, Ollama, xAI, Mistral)
+- [x] Basic security hooks and filters
+
+### Phase 2: Core Security (In Progress)
+- [ ] Exploit detection engine
+- [ ] Real-time monitoring system
+- [ ] Security dashboard UI
+
+### Phase 3: Extension Scanning
+- [ ] Plugin vulnerability scanner
+- [ ] Theme security analysis
+- [ ] Dependency vulnerability checking
+
+### Phase 4: Production Readiness
+- [ ] Performance optimization
+- [ ] Comprehensive testing
+- [ ] Security audit
+
+See [Milestones](https://github.com/cbuntingde/wordpress-develop/milestones) for detailed timelines.
+
+## Support
+
+### Community
+
+- **GitHub Issues** — Report bugs and request features
+- **Discussions** — Ask questions and share ideas
+
+### Commercial Support
+
+This is an open-source project. For commercial implementation assistance, contact the maintainer.
 
 ## License
 
-GPL v2 or later — Same as WordPress core
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+## Acknowledgments
+
+- [WordPress](https://wordpress.org/) — The core project
+- [AI Connector Pro](https://github.com/cbuntingde/ai-connector-pro) — Provider implementations
+- [Contributors](https://github.com/cbuntingde/wordpress-develop/graphs/contributors) — Community involvement
+
+---
+
+<p align="center">
+  <strong>WordPress AI Security Edition</strong><br>
+  Making WordPress Unhackable 🚀
+</p>

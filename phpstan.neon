@@ -1,0 +1,19 @@
+# PHPStan configuration for WordPress AI Security Edition
+
+includes:
+  - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+  level: 5
+  paths:
+    - src/wp-includes
+    - src/wp-admin
+  excludePaths:
+    - vendor/*
+    - node_modules/*
+    - tests/*
+  ignoreErrors:
+    # WordPress-specific patterns
+    - '#Function .+ not found#'
+    - '#Class .+ not found#'
+    - '#Call to an undefined method .+#'
