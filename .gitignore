@@ -20,6 +20,7 @@ wp-tests-config.php
 /node_modules
 /npm-debug.log
 /build
+/gutenberg
 /tests/phpunit/build
 /wp-cli.local.yml
 /jsdoc
