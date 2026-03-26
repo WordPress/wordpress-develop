@@ -1502,14 +1502,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 			if ( $is_rtc_enabled ) {
 				$actions['edit'] = sprintf(
 					'<a href="%1$s">'
-					.   '<span class="edit-action-text">'
-					.     '<span aria-hidden="true">%2$s</span>'
-					.     '<span class="screen-reader-text">%3$s</span>'
-					.   '</span>'
-					.   '<span class="join-action-text">'
-					.     '<span aria-hidden="true">%4$s</span>'
-					.     '<span class="screen-reader-text">%5$s</span>'
-					.   '</span>'
+					. '<span class="edit-action-text">'
+					. '<span aria-hidden="true">%2$s</span>'
+					. '<span class="screen-reader-text">%3$s</span>'
+					. '</span>'
+					. '<span class="join-action-text">'
+					. '<span aria-hidden="true">%4$s</span>'
+					. '<span class="screen-reader-text">%5$s</span>'
+					. '</span>'
 					. '</a>',
 					get_edit_post_link( $post->ID ),
 					__( 'Edit' ),
