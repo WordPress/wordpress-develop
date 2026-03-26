@@ -834,7 +834,6 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertContains( $post_id, $query->posts, 'Queried post should be in results.' );
 	}
 
-
 	/**
 	 * @ticket 64696
 	 *
