@@ -51,6 +51,8 @@ function wp_is_connector_registered( string $id ): bool {
  *         @type string $method          The authentication method: 'api_key' or 'none'.
  *         @type string $credentials_url Optional. URL where users can obtain API credentials.
  *         @type string $setting_name    Optional. The setting name for the API key.
+ *         @type string $constant_name   Optional. PHP constant name for the API key.
+ *         @type string $env_var_name    Optional. Environment variable name for the API key.
  *     }
  *     @type array  $plugin         {
  *         Optional. Plugin data for install/activate UI.
@@ -66,7 +68,9 @@ function wp_is_connector_registered( string $id ): bool {
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
- *         setting_name?: non-empty-string
+ *         setting_name?: non-empty-string,
+ *         constant_name?: non-empty-string,
+ *         env_var_name?: non-empty-string
  *     },
  *     plugin?: array{
  *         slug: non-empty-string
@@ -106,6 +110,8 @@ function wp_get_connector( string $id ): ?array {
  *             @type string $method          The authentication method: 'api_key' or 'none'.
  *             @type string $credentials_url Optional. URL where users can obtain API credentials.
  *             @type string $setting_name    Optional. The setting name for the API key.
+ *             @type string $constant_name   Optional. PHP constant name for the API key.
+ *             @type string $env_var_name    Optional. Environment variable name for the API key.
  *         }
  *         @type array       $plugin         {
  *             Optional. Plugin data for install/activate UI.
@@ -122,7 +128,9 @@ function wp_get_connector( string $id ): ?array {
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
- *         setting_name?: non-empty-string
+ *         setting_name?: non-empty-string,
+ *         constant_name?: non-empty-string,
+ *         env_var_name?: non-empty-string
  *     },
  *     plugin?: array{
  *         slug: non-empty-string
@@ -357,25 +365,33 @@ function _wp_connectors_mask_api_key( string $key ): string {
 }
 
 /**
- * Determines the source of an API key for a given provider.
+ * Determines the source of an API key for a given connector.
  *
  * Checks in order: environment variable, PHP constant, database.
- * Uses the same naming convention as the WP AI Client ProviderRegistry.
+ * By default, derives the env var / constant name from the connector ID
+ * using the same convention as the WP AI Client ProviderRegistry
+ * (e.g., 'openai' → 'OPENAI_API_KEY'). Connectors may override these
+ * names via `env_var_name` and `constant_name` in their authentication config.
  *
  * @since 7.0.0
  * @access private
  *
- * @param string $provider_id  The provider ID (e.g., 'openai', 'anthropic', 'google').
- * @param string $setting_name The option name for the API key (e.g., 'connectors_ai_openai_api_key').
+ * @param string $connector_id      The connector ID (e.g., 'openai', 'akismet').
+ * @param string $setting_name      The option name for the API key (e.g., 'connectors_ai_openai_api_key').
+ * @param string $env_var_override  Optional. Custom environment variable name. Default empty string.
+ * @param string $constant_override Optional. Custom PHP constant name (e.g., 'WPCOM_API_KEY'). Default empty string.
  * @return string The key source: 'env', 'constant', 'database', or 'none'.
  */
-function _wp_connectors_get_api_key_source( string $provider_id, string $setting_name ): string {
-	// Convert provider ID to CONSTANT_CASE for env var name.
-	// e.g., 'openai' -> 'OPENAI', 'anthropic' -> 'ANTHROPIC'.
+function _wp_connectors_get_api_key_source( string $connector_id, string $setting_name, string $env_var_override = '', string $constant_override = '' ): string {
+	// Derive default name from connector ID in CONSTANT_CASE.
+	// e.g., 'openai' -> 'OPENAI_API_KEY', 'anthropic' -> 'ANTHROPIC_API_KEY'.
 	$constant_case_id = strtoupper(
-		preg_replace( '/([a-z])([A-Z])/', '$1_$2', str_replace( '-', '_', $provider_id ) )
+		preg_replace( '/([a-z])([A-Z])/', '$1_$2', str_replace( '-', '_', $connector_id ) )
 	);
-	$env_var_name     = "{$constant_case_id}_API_KEY";
+	$default_name     = "{$constant_case_id}_API_KEY";
+
+	$env_var_name  = '' !== $env_var_override ? $env_var_override : $default_name;
+	$constant_name = '' !== $constant_override ? $constant_override : $default_name;
 
 	// Check environment variable first.
 	$env_value = getenv( $env_var_name );
@@ -384,8 +400,8 @@ function _wp_connectors_get_api_key_source( string $provider_id, string $setting
 	}
 
 	// Check PHP constant.
-	if ( defined( $env_var_name ) ) {
-		$const_value = constant( $env_var_name );
+	if ( defined( $constant_name ) ) {
+		$const_value = constant( $constant_name );
 		if ( is_string( $const_value ) && '' !== $const_value ) {
 			return 'constant';
 		}
@@ -569,7 +585,12 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 			}
 
 			// Skip if the key is already provided via env var or constant.
-			$key_source = _wp_connectors_get_api_key_source( $connector_id, $auth['setting_name'] );
+			$key_source = _wp_connectors_get_api_key_source(
+				$connector_id,
+				$auth['setting_name'],
+				$auth['env_var_name'] ?? '',
+				$auth['constant_name'] ?? ''
+			);
 			if ( 'env' === $key_source || 'constant' === $key_source ) {
 				continue;
 			}
@@ -620,7 +641,12 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 		if ( 'api_key' === $auth['method'] ) {
 			$auth_out['settingName']    = $auth['setting_name'] ?? '';
 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
-			$auth_out['keySource']      = _wp_connectors_get_api_key_source( $connector_id, $auth['setting_name'] ?? '' );
+			$auth_out['keySource']      = _wp_connectors_get_api_key_source(
+				$connector_id,
+				$auth['setting_name'] ?? '',
+				$auth['env_var_name'] ?? '',
+				$auth['constant_name'] ?? ''
+			);
 			try {
 				$auth_out['isConnected'] = $registry->hasProvider( $connector_id ) && $registry->isProviderConfigured( $connector_id );
 			} catch ( Exception $e ) {
