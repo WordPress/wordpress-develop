@@ -51,8 +51,8 @@ module.exports = function(grunt) {
 			 */
 			'!wp-includes/js/dist',
 			'wp-includes/js/dist/vendor/*.js',
-			// Managed by the Gutenberg-related tasks.
-			'!wp-includes/js/dist/vendor/react-jsx-runtime*',
+			// Managed by the Gutenberg-related tasks (react, react-dom, react-jsx-runtime).
+			'!wp-includes/js/dist/vendor/react*',
 		],
 
 		// Files sourced from the Gutenberg repository built asset that are ignored by version control.
@@ -61,7 +61,7 @@ module.exports = function(grunt) {
 			SOURCE_DIR + 'wp-includes/css/dist',
 			SOURCE_DIR + 'wp-includes/js/dist/*.js',
 			SOURCE_DIR + 'wp-includes/js/dist/script-modules',
-			SOURCE_DIR + 'wp-includes/js/dist/vendor/react-jsx-runtime*',
+			SOURCE_DIR + 'wp-includes/js/dist/vendor/react*',
 		],
 
 		// Files sourced from the Gutenberg repository built asset that are managed through version control.
@@ -454,13 +454,6 @@ module.exports = function(grunt) {
 					{
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.js' ]: [ './node_modules/regenerator-runtime/runtime.js' ],
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.min.js' ]: [ './node_modules/regenerator-runtime/runtime.js' ],
-					},
-					// React libraries: react, react-dom
-					{
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react.js' ]: [ './node_modules/react/umd/react.development.js' ],
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react.min.js' ]: [ './node_modules/react/umd/react.production.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-dom.js' ]: [ './node_modules/react-dom/umd/react-dom.development.js' ],
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-dom.min.js' ]: [ './node_modules/react-dom/umd/react-dom.production.min.js' ],
 					},
 					// Polyfills
 					{

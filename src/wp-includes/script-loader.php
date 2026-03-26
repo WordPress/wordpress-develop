@@ -106,9 +106,10 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	$vendor_scripts_versions = array(
-		'react'                       => '18.3.1.1', // Final .1 due to switch to UMD build, can be removed in the next update.
-		'react-dom'                   => '18.3.1.1', // Final .1 due to switch to UMD build, can be removed in the next update.
-		'react-jsx-runtime'           => '18.3.1',
+		// Add `-wp` suffix to React package versions to differentiate from the UMD builds. We build our own bundles now.
+		'react'                       => '18.3.1-wp',
+		'react-dom'                   => '18.3.1-wp',
+		'react-jsx-runtime'           => '18.3.1-wp',
 		'regenerator-runtime'         => '0.14.1',
 		'moment'                      => '2.30.1',
 		'lodash'                      => '4.18.1',

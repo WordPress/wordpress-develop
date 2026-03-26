@@ -183,19 +183,31 @@ function copyScripts( config ) {
 			) {
 				/*
 				 * Copy special directories with rename (vendors/ → vendor/).
-				 * Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules).
+				 * Copy the React vendor scripts (react, react-dom, react-jsx-runtime)
+				 * built by Gutenberg.
 				 */
 				const destName = config.directoryRenames[ entry.name ];
 				const dest = path.join( scriptsDest, destName );
 
 				if ( entry.name === 'vendors' ) {
-					// Only copy react-jsx-runtime files, skip react and react-dom.
+					/*
+					 * Only copy these React scripts. The build directory also
+					 * contains future versions (react-19, react-dom-19, etc.)
+					 * that should not be copied.
+					 */
+					const copiedVendorScripts = [
+						'react',
+						'react-dom',
+						'react-jsx-runtime',
+					];
 					const vendorFiles = fs.readdirSync( src );
 					let copiedCount = 0;
 					fs.mkdirSync( dest, { recursive: true } );
 					for ( const file of vendorFiles ) {
 						if (
-							file.startsWith( 'react-jsx-runtime' ) &&
+							copiedVendorScripts.some( ( prefix ) =>
+								file.startsWith( prefix + '.' )
+							) &&
 							file.endsWith( '.js' )
 						) {
 							const srcFile = path.join( src, file );
@@ -206,7 +218,7 @@ function copyScripts( config ) {
 						}
 					}
 					console.log(
-						`   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)`
+						`   ✅ ${ entry.name }/ → ${ destName }/ (${ copiedCount } files)`
 					);
 				}
 			} else {

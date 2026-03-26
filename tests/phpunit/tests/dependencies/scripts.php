@@ -4160,18 +4160,18 @@ HTML;
 		}
 
 		/*
-		 * Append '.1' to the version number for React and ReactDOM.
+		 * Append '-wp' to the version number for React-related scripts.
 		 *
-		 * This is due to a change in the build to use the UMD version of the
+		 * This is due to a change in the build to stop using the UMD version of the
 		 * scripts, requiring a different version number in order to break the
 		 * caches of some CDNs.
 		 *
-		 * This can be removed in the next update to the packages.
+		 * This can be removed in the next update to the packages (to React 19).
 		 *
-		 * See https://core.trac.wordpress.org/ticket/62422
+		 * See https://core.trac.wordpress.org/ticket/64958
 		 */
-		if ( in_array( $handle, array( 'react', 'react-dom' ), true ) ) {
-			$package_json[ $script ] .= '.1';
+		if ( in_array( $handle, array( 'react', 'react-dom', 'react-jsx-runtime' ), true ) ) {
+			$package_json[ $script ] .= '-wp';
 		}
 
 		$script_query = $wp_scripts->query( $handle, 'registered' );
