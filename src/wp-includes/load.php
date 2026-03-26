@@ -808,15 +808,20 @@ function wp_set_wpdb_vars() {
  * @return bool The current 'using' setting.
  */
 function wp_using_ext_object_cache( $using = null ) {
-	global $_wp_using_ext_object_cache;
+    global $_wp_using_ext_object_cache;
 
-	$current_using = $_wp_using_ext_object_cache;
+    // Save the current state to return later.
+    $current_using = $_wp_using_ext_object_cache;
 
-	if ( null !== $using ) {
-		$_wp_using_ext_object_cache = $using;
-	}
+    if ( null !== $using ) {
+        $_wp_using_ext_object_cache = (bool) $using;
+    }
 
-	return $current_using;
+    /**
+     * Ensure the returned value is always a boolean. 
+     * If the global is uninitialized, it could be null, which violates the type signature.
+     */
+    return (bool) $current_using;
 }
 
 /**
