@@ -1,0 +1,119 @@
+name: Promote to Production
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate PR for Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction
+
+      - name: Run PHPStan
+        id: phpstan
+        run: vendor/bin/phpstan analyze --error-format=github --no-progress
+        continue-on-error: true
+
+      - name: Run PHP CS Fixer (dry-run)
+        id: cs-fixer
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --format=github
+        continue-on-error: true
+
+      - name: Check for required files
+        id: files
+        run: |
+          echo "Checking for required documentation..."
+          if [ -f "docs/SYNC-WORKFLOW.md" ] && [ -f "docs/BRANCH-STRATEGY.md" ]; then
+            echo "✅ Documentation present"
+          else
+            echo "⚠️ Some documentation may be missing"
+          fi
+          
+          echo "Checking branch status..."
+          git log main..trunk --oneline > /tmp/commits.txt
+          COMMITS=$(wc -l < /tmp/commits.txt)
+          echo "Commits to promote: $COMMITS"
+          echo "commits_count=$COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Show commit summary
+        run: |
+          echo "=== Commits since last production release ==="
+          git log main..trunk --oneline
+
+  check-changes:
+    name: Check for security changes
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for security-related file changes
+        run: |
+          SECURITY_PATTERNS="security|ai-client|firewall|protect|scan"
+          CHANGES=$(git diff main..trunk --name-only | grep -iE "$SECURITY_PATTERNS" || true)
+          
+          if [ -n "$CHANGES" ]; then
+            echo "=== Security-related changes detected ==="
+            echo "$CHANGES"
+            echo "security_changes=1" >> $GITHUB_OUTPUT
+          else
+            echo "No security-related file changes detected"
+            echo "security_changes=0" >> $GITHUB_OUTPUT
+          fi
+
+  label-pr:
+    name: Label PR
+    runs-on: ubuntu-latest
+    needs: [validate, check-changes]
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Add promotion label
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "promote-to-production" 2>/dev/null || true
+          
+          # Add security label if security changes detected
+          if [ "${{ needs.check-changes.outputs.security_changes }}" == "1" ]; then
+            gh pr edit ${{ github.event.pull_request.number }} --add-label "security" 2>/dev/null || true
+            echo "Added security label"
+          fi
+
+  summary:
+    name: Promotion Summary
+    runs-on: ubuntu-latest
+    needs: [validate, check-changes]
+    if: always()
+    
+    steps:
+      - name: Create summary
+        run: |
+          echo "## Production Promotion Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "- PHPStan: ${{ steps.phpstan.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- PHP CS Fixer: ${{ steps.cs-fixer.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Files check: ${{ steps.files.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changes Summary" >> $$GITHUB_STEP_SUMMARY
+          echo "- Commits to promote: ${{ needs.validate.outputs.commits_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security changes: ${{ needs.check-changes.outputs.security_changes }}" >> $GITHUB_STEP_SUMMARY
