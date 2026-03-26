@@ -297,8 +297,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 * Verifies that schema type validation rejects a non-string value for the
 	 * update 'data' field, confirming that per-arg schema validation still runs
 	 * with a route-level validate_callback registered.
+	 *
+	 * @ticket 64890
 	 */
-	public function test_sync_rejects_non_string_update_data() {
+	public function test_sync_rejects_non_string_update_data(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
@@ -329,8 +331,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 * Verifies that schema enum validation rejects an invalid update type,
 	 * confirming that per-arg schema validation still runs with a route-level
 	 * validate_callback registered.
+	 *
+	 * @ticket 64890
 	 */
-	public function test_sync_rejects_invalid_update_type_enum() {
+	public function test_sync_rejects_invalid_update_type_enum(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
@@ -361,8 +365,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	 * Verifies that schema required-field validation rejects a room missing
 	 * the 'client_id' field, confirming that per-arg schema validation still
 	 * runs with a route-level validate_callback registered.
+	 *
+	 * @ticket 64890
 	 */
-	public function test_sync_rejects_missing_required_room_field() {
+	public function test_sync_rejects_missing_required_room_field(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
@@ -387,8 +393,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Verifies that the maxItems constraint rejects a request with more rooms
 	 * than MAX_ROOMS_PER_REQUEST.
+	 *
+	 * @ticket 64890
 	 */
-	public function test_sync_rejects_rooms_exceeding_max_items() {
+	public function test_sync_rejects_rooms_exceeding_max_items(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$rooms = array();
@@ -403,8 +411,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Verifies that the maxLength constraint rejects update data exceeding
 	 * MAX_UPDATE_DATA_SIZE.
+	 *
+	 * @ticket 64890
 	 */
-	public function test_sync_rejects_update_data_exceeding_max_length() {
+	public function test_sync_rejects_update_data_exceeding_max_length(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$oversized_data = str_repeat( 'a', WP_HTTP_Polling_Sync_Server::MAX_UPDATE_DATA_SIZE + 1 );
@@ -436,8 +446,10 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Verifies that the route-level validate_callback rejects a request body
 	 * exceeding MAX_BODY_SIZE.
+	 *
+	 * @ticket 64890
 	 */
-	public function test_sync_rejects_oversized_request_body() {
+	public function test_sync_rejects_oversized_request_body(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
