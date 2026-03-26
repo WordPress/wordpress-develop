@@ -2473,6 +2473,10 @@ class WP_Query {
 			$clauses = $this->meta_query->get_sql( 'post', $wpdb->posts, 'ID', $this );
 			$join   .= $clauses['join'];
 			$where  .= $clauses['where'];
+
+			if ( ! wp_cache_get( 'wp_query_meta_query_updated', 'post_meta' ) ) {
+				wp_cache_set_posts_last_changed();
+			}
 		}
 
 		$rand = ( isset( $query_vars['orderby'] ) && 'rand' === $query_vars['orderby'] );
