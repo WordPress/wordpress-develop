@@ -27,6 +27,15 @@
 	font-size: 13px;
 }
 
+.media-modal .media-filter-container label {
+	display: block;
+}
+
+.media-modal .media-filter-container select,
+.media-modal .search-form input {
+	margin-top: 6px;
+}
+
 .media-modal .legend-inline {
 	position: absolute;
 	transform: translate(-100%, 50%);
@@ -36,16 +45,17 @@
 
 .media-frame a {
 	border-bottom: none;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-frame a:hover,
 .media-frame a:active {
-	color: #135e96;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .media-frame a:focus {
-	box-shadow: 0 0 0 2px #2271b1;
+	border-radius: 2px;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	color: #043959;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
@@ -66,12 +76,12 @@
 
 .media-frame input,
 .media-frame textarea {
-	padding: 6px 8px;
+	padding: 8px 12px;
 }
 
 .media-frame select,
 .wp-admin .media-frame select {
-	min-height: 30px;
+	min-height: 40px;
 	vertical-align: middle;
 }
 
@@ -92,13 +102,13 @@
 .media-frame textarea,
 .media-frame select {
 	box-shadow: 0 0 0 transparent;
-	border-radius: 4px;
-	border: 1px solid #8c8f94;
+	border-radius: 2px;
+	border: 1px solid #949494;
 	background-color: #fff;
-	color: #2c3338;
+	color: #1e1e1e;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-	font-size: 13px;
-	line-height: 1.38461538;
+	font-size: 14px;
+	line-height: 1.42857143;
 }
 
 .media-frame input[type="text"],
@@ -114,9 +124,10 @@
 .media-frame input[type="time"],
 .media-frame input[type="url"],
 .media-frame input[type="week"] {
-	padding: 0 8px;
-	/* inherits font size 13px */
-	line-height: 2.15384615; /* 28px */
+	padding: 0 12px;
+	/* inherits font size 14px */
+	line-height: 2.71428571; /* 38px for 40px min-height */
+	min-height: 40px;
 }
 
 /* Search field in the Media Library toolbar */
@@ -133,8 +144,9 @@
 .media-frame input[type="url"]:focus,
 .media-frame textarea:focus,
 .media-frame select:focus {
-	border-color: #3582c4;
-	box-shadow: 0 0 0 1px #3582c4;
+	border-color: var(--wp-admin-theme-color);
+	/* Expand border by 0.5px for total 1.5px effect */
+	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
 	outline: 2px solid transparent;
 }
 
@@ -142,7 +154,9 @@
 .media-frame textarea:disabled,
 .media-frame input[readonly],
 .media-frame textarea[readonly] {
-	background-color: #f0f0f1;
+	background-color: #f0f0f0;
+	border-color: #cccccc;
+	color: #949494;
 }
 
 .media-frame input[type="search"] {
@@ -246,6 +260,7 @@
 }
 
 .media-modal-close .media-modal-icon:before {
+	content: "\f158";
 	content: "\f158" / '';
 	font: normal 20px/1 dashicons;
 	vertical-align: middle;
@@ -266,11 +281,27 @@
 	-webkit-font-smoothing: subpixel-antialiased;
 }
 
-.media-modal-content .media-frame select.attachment-filters {
-	margin-top: 32px;
-	margin-right: 2%;
-	width: 42%;
-	width: calc(48% - 12px);
+.media-modal-content .button,
+.media-modal-content .button.button-large {
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
+	padding: 0 12px;
+}
+
+.media-toolbar input[type="text"],
+.media-toolbar input[type="search"],
+.media-toolbar select {
+	min-height: 32px;
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+}
+
+.media-toolbar input[type="text"],
+.media-toolbar input[type="search"] {
+	padding: 0 8px;
+}
+
+.media-toolbar select {
+	padding: 0 24px 0 8px;
 }
 
 /* higher specificity */
@@ -288,18 +319,25 @@
 	left: 0;
 	right: 0;
 	z-index: 100;
-	height: 60px;
+	height: 48px;
 	padding: 0 16px;
 	border: 0 solid #dcdcde;
-	overflow: hidden;
+	overflow: auto;
 }
 
 .media-frame-toolbar .media-toolbar {
 	top: auto;
-	bottom: -47px;
+	bottom: -60px;
 	height: auto;
 	overflow: visible;
 	border-top: 1px solid #dcdcde;
+	background: #fff;
+}
+
+.media-frame-toolbar .media-toolbar-primary > .media-button,
+.media-frame-toolbar .media-toolbar-primary > .media-button-group {
+	margin-top: 14px;
+	margin-bottom: 14px;
 }
 
 .media-toolbar-primary {
@@ -311,6 +349,10 @@
 .media-toolbar-secondary {
 	float: left;
 	height: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: end;
 }
 
 .media-toolbar-primary > .media-button,
@@ -502,6 +544,13 @@
 	float: right;
 }
 
+.attachment-details .setting + .description .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+	margin-top: 0px;
+}
+
 .media-sidebar .setting .value,
 .attachment-details .setting .value,
 .attachment-details .setting + .description {
@@ -646,7 +695,7 @@
 }
 
 .media-menu .media-menu-item:focus {
-	box-shadow: 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	color: #043959;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
@@ -699,7 +748,7 @@
 }
 
 .media-router .media-menu-item:focus {
-	box-shadow: 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	color: #043959;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
@@ -889,10 +938,10 @@
  * Attachment Browser Filters
  */
 .media-frame select.attachment-filters {
-	margin-top: 11px;
+	min-height: 32px;
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+	padding: 0 24px 0 8px;
 	margin-right: 2%;
-	max-width: 42%;
-	max-width: calc(48% - 12px);
 }
 
 .media-frame select.attachment-filters:last-of-type {
@@ -903,7 +952,7 @@
  * Search
  */
 .media-frame .search {
-	margin: 32px 0 0;
+	margin: 0;
 	padding: 4px;
 	font-size: 13px;
 	color: #3c434a;
@@ -916,11 +965,7 @@
 }
 
 .media-modal .media-frame .media-search-input-label {
-	position: absolute;
-	left: 0;
-	top: 10px;
-	margin: 0;
-	line-height: 1;
+	display: block;
 }
 
 /**
@@ -949,12 +994,36 @@
 	box-sizing: border-box;
 }
 
+.wp-core-ui .attachment:not(:has(.filename))::after {
+	content: attr(aria-label);
+	position: absolute;
+	bottom: 8px;
+	width: calc( 100% - 16px );
+	left: 8px;
+	font-size: 12px;
+	background-color: rgba(255, 255, 255, 0.8);
+	color: #1d2327;
+	max-height: 3rem;
+	overflow: hidden;
+	text-align: start;
+	padding: 5px 10px;
+	word-wrap: break-word;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+	box-sizing: border-box;
+	font-weight: 600;
+}
+
+/* Do not show the aria-label overlay on thumbnails in the gallery selection strip. */
+.wp-core-ui .media-selection .attachment::after {
+	content: none;
+}
+
 .wp-core-ui .attachment:focus,
 .wp-core-ui .selected.attachment:focus,
 .wp-core-ui .attachment.details:focus {
 	box-shadow:
 		inset 0 0 2px 3px #fff,
-		inset 0 0 0 7px #4f94d4;
+		inset 0 0 0 7px var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -6px;
@@ -969,7 +1038,7 @@
 .wp-core-ui .attachment.details {
 	box-shadow:
 		inset 0 0 0 3px #fff,
-		inset 0 0 0 7px #2271b1;
+		inset 0 0 0 7px var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .wp-core-ui .attachment-preview {
@@ -1076,14 +1145,20 @@
 	width: 22px;
 	padding: 0;
 	background-color: #fff;
-	background-position: -96px 4px;
 	border-radius: 3px;
 	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
 	transition: none;
 }
 
-.wp-core-ui .attachment-close:hover,
-.wp-core-ui .attachment-close:focus {
+.wp-core-ui .attachment-close .media-modal-icon {
+	display: inline-block;
+	background-position: -96px 4px;
+	height: 22px;
+	width: 22px;
+}
+
+.wp-core-ui .attachment-close:hover .media-modal-icon,
+.wp-core-ui .attachment-close:focus .media-modal-icon {
 	background-position: -36px 4px;
 }
 
@@ -1122,10 +1197,10 @@
 .wp-core-ui .attachment.details .check,
 .wp-core-ui .attachment.selected .check:focus,
 .wp-core-ui .media-frame.mode-grid .attachment.selected .check {
-	background-color: #2271b1;
+	background-color: var(--wp-admin-theme-color, #3858e9);
 	box-shadow:
 		0 0 0 1px #fff,
-		0 0 0 2px #2271b1;
+		0 0 0 2px var(--wp-admin-theme-color, #3858e9);
 }
 
 .wp-core-ui .attachment.selected .check:focus {
@@ -1166,8 +1241,8 @@
 
 .attachments-browser .media-toolbar {
 	right: 300px;
-	height: 72px;
 	background: #fff;
+	padding: 12px 16px;
 }
 
 .attachments-browser.hide-sidebar .media-toolbar {
@@ -1239,6 +1314,7 @@
 	font: normal 30px/1 dashicons !important;
 	color: #50575e;
 	display: inline-block;
+	content: "\f335";
 	content: "\f335" / '';
 	font-weight: 300;
 	margin-top: 1px;
@@ -1993,6 +2069,7 @@
 }
 
 .media-modal .imgedit-help-toggled span.dashicons:before {
+	content: "\f142";
 	content: "\f142" / '';
 }
 
@@ -2095,8 +2172,8 @@
 }
 
 .mejs-container:focus {
-	outline: 1px solid #2271b1;
-	box-shadow: 0 0 0 2px #2271b1;
+	outline: 1px solid var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 }
 
 .image-details .media-modal {
@@ -2175,12 +2252,14 @@
 	vertical-align: top;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	content: "\f140";
 	content: "\f140" / '';
 	display: inline-block;
 	margin-top: -2px;
 }
 
 .image-details .advanced-visible .advanced-toggle:after {
+	content: "\f142";
 	content: "\f142" / '';
 }
 
@@ -2488,7 +2567,9 @@
 		width: 1px;
 		border: 0;
 		margin: -1px;
+		/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 		word-wrap: normal !important;
+		word-break: normal !important;
 	}
 
 	/* Reveal the menu toggle button. */
@@ -2508,6 +2589,10 @@
 		height: 0.1%;
 		/* Modern browsers */
 		min-height: 40px;
+	}
+
+	.wp-core-ui .media-frame:not(.hide-menu) .button.media-frame-menu-toggle .dashicons {
+		line-height: 1;
 	}
 
 	.wp-core-ui .button.media-frame-menu-toggle:hover,
@@ -2540,13 +2625,13 @@
 	}
 
 	.attachments-browser .media-toolbar {
-		height: 82px;
+		height: 74px;
 	}
 
 	.attachments-browser .attachments,
 	.attachments-browser .uploader-inline,
 	.media-frame-content .attachments-browser .attachments-wrapper {
-		top: 82px;
+		top: 90px;
 	}
 
 	.media-sidebar .setting,
@@ -2764,7 +2849,7 @@
 	}
 
 	.media-frame-toolbar .media-toolbar {
-		bottom: -54px;
+		bottom: -60px;
 	}
 
 	.mode-grid .attachments-browser .media-toolbar-primary {

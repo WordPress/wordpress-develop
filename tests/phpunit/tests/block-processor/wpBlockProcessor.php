@@ -748,6 +748,46 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that innerHTML only matches as a block type when checking with the wildcard '*'.
+	 *
+	 * @ticket 64485
+	 *
+	 * @covers ::is_block_type()
+	 */
+	public function test_inner_html_is_only_a_block_type_match_with_the_wildcard() {
+		$processor = new WP_Block_Processor( '0<!-- wp:b1 -->1<!-- wp:b2 -->' );
+
+		$processor->next_token();
+		$this->assertTrue(
+			$processor->is_block_type( 'freeform' ),
+			'Failed to detect top-level freeform HTML as freeform block: check test setup.'
+		);
+
+		$processor->next_token();
+		$this->assertTrue(
+			$processor->is_block_type( 'b1' ),
+			'Failed to detect opening delimiter as b1 block type: check test setup.'
+		);
+
+		$processor->next_token();
+		$this->assertFalse(
+			(
+				$processor->is_block_type( 'freeform' ) ||
+				$processor->is_block_type( 'b1' ) ||
+				$processor->is_block_type( 'core/freeform' ) ||
+				$processor->is_block_type( 'core/b1' ) ||
+				$processor->is_block_type( '' )
+			),
+			'Failed to reject innerHTML as a matched block type.'
+		);
+
+		$this->assertTrue(
+			$processor->is_block_type( '*' ),
+			'Failed to accept innerHTML as a wildcard block-type match.'
+		);
+	}
+
+	/**
 	 * Verifies that the processor indicates if the currently-matched delimiter
 	 * opens a block of a given block type. This is true for openers and void delimiters.
 	 *
@@ -1208,6 +1248,191 @@ HTML
 			'Only freeform'   => array( 'Have a lovely day.', array( 0, 18 ) ),
 			'Only void'       => array( '<!-- wp:into/abyss /-->', array( 0, 23 ) ),
 			'Mixed'           => array( '<!-- wp:pw --><><!-- /wp:pw -->', array( 0, 14 ), array( 14, 2 ), array( 16, 15 ) ),
+		);
+	}
+
+	/**
+	 * Verifies that next_block( $block_type ) scans directly to the appropriate tokens.
+	 *
+	 * @ticket 64485
+	 *
+	 * @dataProvider data_markup_with_block_of_given_type
+	 *
+	 * @param string $html       Contains block markup, including the tested block type.
+	 * @param string $block_type Jump to this block type.
+	 */
+	public function test_scans_directly_to_requested_block_type( string $html, string $block_type ) {
+		$processor = new WP_Block_Processor( $html );
+
+		$this->assertTrue(
+			$processor->next_block( $block_type ),
+			'Failed to find block of requested type.'
+		);
+
+		$full_block_type = WP_Block_Processor::normalize_block_type( $block_type );
+
+		if ( 'core/freeform' === $full_block_type ) {
+			$this->assertTrue(
+				$processor->is_html(),
+				'Failed to match on HTML token when looking for freeform content.'
+			);
+
+			$this->assertSame(
+				0,
+				$processor->get_depth(),
+				'Failed to scan to top-level freeform content when searching for freeform.'
+			);
+		} else {
+			$this->assertFalse(
+				$processor->is_html(),
+				'Matched on HTML token when looking for block delimiter.'
+			);
+		}
+
+		$this->assertSame(
+			$full_block_type,
+			$processor->get_printable_block_type(),
+			'Scanned to token of wrong block type.'
+		);
+	}
+
+	/**
+	 * Ensures that block extraction matches the behavior of the default block parser.
+	 *
+	 * @ticket 64537
+	 *
+	 * @dataProvider data_various_block_posts
+	 *
+	 * @param string $test_document An HTML document to parse as blocks.
+	 */
+	public function test_extracts_equivalent_parses_as_parse_blocks( string $test_document ) {
+		$processor = new WP_Block_Processor( $test_document );
+		$blocks    = array();
+
+		while ( $processor->next_block( '*' ) ) {
+			$blocks[] = $processor->extract_full_block_and_advance();
+		}
+
+		$this->assertSame(
+			parse_blocks( $test_document ),
+			$blocks,
+			'Failed to properly parse the block structure.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator
+	 */
+	public static function data_various_block_posts() {
+		yield 'Empty post' => array( '' );
+
+		yield 'Void block' => array( '<!-- wp:void /-->' );
+
+		yield 'Empty block' => array( '<!-- wp:empty --><!-- /wp:empty -->' );
+
+		yield 'Paragraph block' => array( '<!-- wp:paragraph --><p>Test</p><!-- /wp:paragraph -->' );
+
+		yield 'Paragraph block with attributes' => array(
+			'<!-- wp:paragraph {"dropCaps": true} --><p>Test</p><!-- /wp:paragraph -->',
+		);
+
+		yield 'Group with void inner' => array(
+			'<!-- wp:group --><!-- wp:void /--><!-- /wp:group -->',
+		);
+
+		/*
+		 * @todo There is a hidden bug in here, which is possibly a problem in
+		 *       the default parser. There are HTML spans of newlines between
+		 *       these block delimiters, and without them, the parse doesn’t
+		 *       match `parse_blocks()`. However, `parse_blocks()` is inconsistent
+		 *       in its behavior. Whereas it produces an empty text chunk here,
+		 *       in the case of a void inner block it produces none. The test is
+		 *       being adjusted to step around this issue so that it can be resolved
+		 *       separately, and until it’s clear if there is an implementation issue
+		 *       with `parse_blocks()` itself.
+		 */
+		yield 'Empty columns' => array(
+			<<<HTML
+			<!-- wp:columns -->
+			<!-- wp:column -->
+			<!-- /wp:column -->
+			<!-- /wp:columns -->
+HTML
+			,
+		);
+
+		yield 'Contentful columns' => array(
+			<<<HTML
+			<!-- wp:columns -->
+			<ul>
+			<!-- wp:column -->
+			<li>A good point.</li>
+			<!-- wp:column /-->
+			</ul>
+			<!-- /wp:columns -->
+HTML
+			,
+		);
+
+		yield 'Group with mixed content' => array(
+			<<<HTML
+			<!-- wp:group -->
+			<div>
+			<!-- wp:paragraph --><p>Test</p><!-- /wp:paragraph -->
+			This is freeform.
+			<!-- wp:void /-->
+			End
+			<!-- wp:footer -->
+			<footer>That&rsquo;s it!</footer>
+			<!-- /wp:footer -->
+			<!-- wp:another-void /-->
+			</div>
+			<!-- /wp:group -->
+HTML
+			,
+		);
+
+		yield 'Nested blocks' => array(
+			<<<HTML
+			<!-- wp:a -->
+			<div>
+			<!-- wp:b -->
+			<span><!-- wp:c /--></span>
+			<!-- /wp:b -->
+			</div>
+			<!-- /wp:a -->
+HTML
+			,
+		);
+
+		yield 'Attributes on nested blocks' => array(
+			<<<HTML
+			<!-- wp:b1 -->
+			<!-- wp:b2 {} -->
+			<!-- wp:b3 {"id":"going"} -->
+			<!-- wp:b4 {"id":"down"} -->
+			<!-- /wp:b4 -->
+			<!-- /wp:b3 -->
+			<!-- /wp:b2 -->
+			<!-- /wp:b1 -->
+HTML
+			,
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_markup_with_block_of_given_type() {
+		return array(
+			'At start of HTML'    => array( '<!-- wp:target -->', 'target' ),
+			'After freeform text' => array( 'prefix<!-- wp:target -->', 'target' ),
+			'After outer block'   => array( 'prefix<!-- wp:group --><!-- wp:target -->', 'target' ),
+			'After innerHTML'     => array( 'prefix<!-- wp:group -->inner<!-- wp:target -->', 'target' ),
 		);
 	}
 

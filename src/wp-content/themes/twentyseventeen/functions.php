@@ -443,7 +443,7 @@ function twentyseventeen_colors_css_wrap() {
 		$customize_preview_data_hue = 'data-hue="' . $hue . '"';
 	}
 	?>
-	<style type="text/css" id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
+	<style id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
 		<?php echo twentyseventeen_custom_colors_css(); ?>
 	</style>
 	<?php
@@ -461,7 +461,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20250415' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20251202' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20240729' );

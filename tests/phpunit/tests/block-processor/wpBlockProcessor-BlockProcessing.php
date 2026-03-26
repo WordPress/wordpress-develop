@@ -49,31 +49,34 @@ class Tests_Blocks_BlockProcessor_BlockProcessing extends WP_UnitTestCase {
 		}
 
 		$processor = new WP_Block_Processor( $html );
-		$n         = new NumberFormatter( 'en-US', NumberFormatter::ORDINAL );
 
 		for ( $i = 0; $i < $max_depth; $i++ ) {
+			$nth = $i + 1;
+
 			$this->assertTrue(
 				$processor->next_delimiter(),
-				"Should have found {$n->format( $i + 1 )} opening delimiter: check test setup."
+				"Should have found opening delimiter #{$nth}: check test setup."
 			);
 
 			$this->assertSame(
 				$i + 1,
 				$processor->get_depth(),
-				"Should have identified the proper depth of the {$n->format( $i + 1 )} opening delimiter."
+				"Should have identified the proper depth of opening delimiter #{$nth}."
 			);
 		}
 
 		for ( $i = 0; $i < $max_depth; $i++ ) {
+			$nth = $i + 1;
+
 			$this->assertTrue(
 				$processor->next_delimiter(),
-				"Should have found {$n->format( $i + 1 )} closing delimiter: check test setup."
+				"Should have found closing delimiter #{$nth}: check test setup."
 			);
 
 			$this->assertSame(
 				$max_depth - $i - 1,
 				$processor->get_depth(),
-				"Should have identified the proper depth of the {$n->format( $i + 1 )} closing delimiter."
+				"Should have identified the proper depth of closing delimiter #{$nth}."
 			);
 		}
 	}

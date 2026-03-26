@@ -89,8 +89,8 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
 	$revision_data['post_status']   = 'inherit';
 	$revision_data['post_type']     = 'revision';
 	$revision_data['post_name']     = $autosave ? "$post[ID]-autosave-v1" : "$post[ID]-revision-v1"; // "1" is the revisioning system version.
-	$revision_data['post_date']     = isset( $post['post_modified'] ) ? $post['post_modified'] : '';
-	$revision_data['post_date_gmt'] = isset( $post['post_modified_gmt'] ) ? $post['post_modified_gmt'] : '';
+	$revision_data['post_date']     = $post['post_modified'] ?? '';
+	$revision_data['post_date_gmt'] = $post['post_modified_gmt'] ?? '';
 
 	return $revision_data;
 }
@@ -187,7 +187,7 @@ function wp_save_post_revision( $post_id ) {
 			$post_has_changed = false;
 
 			foreach ( array_keys( _wp_post_revision_fields( $post ) ) as $field ) {
-				if ( normalize_whitespace( $post->$field ) !== normalize_whitespace( $latest_revision->$field ) ) {
+				if ( normalize_whitespace( maybe_serialize( $post->$field ) ) !== normalize_whitespace( maybe_serialize( $latest_revision->$field ) ) ) {
 					$post_has_changed = true;
 					break;
 				}
@@ -379,7 +379,7 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 		 * Fires once a revision has been saved.
 		 *
 		 * @since 2.6.0
-		 * @since 6.4.0 The post_id parameter was added.
+		 * @since 6.4.0 The `$post_id` parameter was added.
 		 *
 		 * @param int $revision_id Post revision ID.
 		 * @param int $post_id     Post ID.

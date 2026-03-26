@@ -453,7 +453,7 @@ final class WP_Interactivity_API {
 		$this->namespace_stack = null;
 		$this->context_stack   = null;
 
-		return null === $result ? $html : $result;
+		return $result ?? $html;
 	}
 
 	/**
@@ -636,7 +636,7 @@ final class WP_Interactivity_API {
 	 * @since 6.6.0 The function now adds a warning when the namespace is null, falsy, or the directive value is empty.
 	 * @since 6.6.0 Removed `default_namespace` and `context` arguments.
 	 * @since 6.6.0 Add support for derived state.
-	 * @since 6.9.0 Recieve $entry as an argument instead of the directive value string.
+	 * @since 6.9.0 Receive $entry as an argument instead of the directive value string.
 	 *
 	 * @param array $entry An array containing a whole directive entry with its namespace, value, suffix, or unique ID.
 	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
@@ -904,14 +904,11 @@ final class WP_Interactivity_API {
 				$a_suffix = $a['suffix'] ?? '';
 				$b_suffix = $b['suffix'] ?? '';
 				if ( $a_suffix !== $b_suffix ) {
-					return $a_suffix < $b_suffix ? -1 : 1;
+					return $a_suffix <=> $b_suffix;
 				}
 				$a_id = $a['unique_id'] ?? '';
 				$b_id = $b['unique_id'] ?? '';
-				if ( $a_id === $b_id ) {
-					return 0;
-				}
-				return $a_id > $b_id ? 1 : -1;
+				return $a_id <=> $b_id;
 			}
 		);
 		return $entries;
@@ -1029,7 +1026,21 @@ final class WP_Interactivity_API {
 			$entries = $this->get_directive_entries( $p, 'bind' );
 			foreach ( $entries as $entry ) {
 				if ( empty( $entry['suffix'] ) || null !== $entry['unique_id'] ) {
-						return;
+						continue;
+				}
+
+				// Skip if the suffix is an event handler.
+				if ( str_starts_with( $entry['suffix'], 'on' ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: The directive, e.g. data-wp-on--click. */
+							__( 'Binding event handler attributes is not supported. Please use "%s" instead.' ),
+							esc_attr( 'data-wp-on--' . substr( $entry['suffix'], 2 ) )
+						),
+						'6.9.2'
+					);
+					continue;
 				}
 
 				$result = $this->evaluate( $entry );
@@ -1293,7 +1304,7 @@ CSS;
 		echo <<<HTML
 			<div
 				class="wp-interactivity-router-loading-bar"
-				data-wp-interactive="core/router"
+				data-wp-interactive="core/router/private"
 				data-wp-class--start-animation="state.navigation.hasStarted"
 				data-wp-class--finish-animation="state.navigation.hasFinished"
 			></div>
@@ -1316,6 +1327,14 @@ HTML;
 	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
+
+			// Initializes the `state.url` property from the server.
+			$this->state(
+				'core/router',
+				array(
+					'url' => get_self_link(),
+				)
+			);
 
 			// Enqueues as an inline style.
 			wp_register_style( 'wp-interactivity-router-animations', false );
