@@ -202,4 +202,108 @@ class Audit_Logger {
 
 		return explode( ',', $ip )[0];
 	}
+
+	/**
+	 * Get log statistics.
+	 *
+	 * @since 7.1.0
+	 * @return array
+	 */
+	public function get_stats(): array {
+		$logs = $this->get_logs();
+
+		$stats = array(
+			'total'   => count( $logs ),
+			'critical' => 0,
+			'high'    => 0,
+			'medium'  => 0,
+			'low'     => 0,
+			'info'    => 0,
+		);
+
+		foreach ( $logs as $log ) {
+			$sev = $log['severity'] ?? 'info';
+			if ( isset( $stats[ $sev ] ) ) {
+				$stats[ $sev ]++;
+			} else {
+				$stats['info']++;
+			}
+		}
+
+		return $stats;
+	}
+
+	/**
+	 * Generate PDF report.
+	 *
+	 * @since 7.1.0
+	 * @param array $logs Logs to include.
+	 * @return string HTML content for PDF.
+	 */
+	public function generate_report_html( array $logs ): string {
+		$stats = $this->get_stats();
+		$date  = current_time( 'mysql' );
+
+		$html = '<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Security Audit Report - ' . esc_html( $date ) . '</title>
+<style>
+	body { font-family: Arial, sans-serif; margin: 40px; }
+	h1 { color: #333; }
+	.stats { display: flex; gap: 20px; margin: 20px 0; }
+	.stat-box { border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+	.stat-box.critical { border-color: red; }
+	.stat-box.high { border-color: orange; }
+	table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+	th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+	th { background: #f5f5f5; }
+</style>
+</head><body>
+<h1>Security Audit Report</h1>
+<p>Generated: ' . esc_html( $date ) . '</p>
+
+<div class="stats">
+	<div class="stat-box critical"><strong>Critical:</strong> ' . $stats['critical'] . '</div>
+	<div class="stat-box high"><strong>High:</strong> ' . $stats['high'] . '</div>
+	<div class="stat-box"><strong>Medium:</strong> ' . $stats['medium'] . '</div>
+	<div class="stat-box"><strong>Low:</strong> ' . $stats['low'] . '</div>
+	<div class="stat-box"><strong>Total:</strong> ' . $stats['total'] . '</div>
+</div>
+
+<h2>Recent Events</h2>
+<table>
+<tr><th>Time</th><th>Event</th><th>Severity</th><th>Details</th><th>IP</th></tr>
+';
+
+		foreach ( $logs as $log ) {
+			$html .= '<tr>';
+			$html .= '<td>' . esc_html( $log['time'] ) . '</td>';
+			$html .= '<td>' . esc_html( $log['event'] ) . '</td>';
+			$html .= '<td>' . esc_html( $log['severity'] ) . '</td>';
+			$html .= '<td>' . esc_html( $log['details'] ) . '</td>';
+			$html .= '<td>' . esc_html( $log['ip'] ?? '-' ) . '</td>';
+			$html .= '</tr>';
+		}
+
+		$html .= '</table></body></html>';
+
+		return $html;
+	}
+
+	/**
+	 * Export as PDF (generates HTML that can be printed to PDF).
+	 *
+	 * @since 7.1.0
+	 * @param int $limit Number of logs to include.
+	 */
+	public function export_pdf( int $limit = 100 ): void {
+		$logs = $this->get_recent_logs( $limit );
+		$html = $this->generate_report_html( $logs );
+
+		header( 'Content-Type: text/html' );
+		header( 'Content-Disposition: attachment; filename="security-report-' . date( 'Y-m-d' ) . '.html"' );
+		echo $html;
+		exit;
+	}
 }
