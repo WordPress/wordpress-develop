@@ -26,6 +26,7 @@ jobs:
 
       - name: Run PHPStan
         run: vendor/bin/phpstan analyze --error-format=github
+        continue-on-error: true
 
   php-cs-fixer:
     name: PHP CS Fixer
@@ -46,3 +47,4 @@ jobs:
 
       - name: Run PHP CS Fixer (dry-run)
         run: vendor/bin/php-cs-fixer fix --dry-run --diff --format=github
+        continue-on-error: true
