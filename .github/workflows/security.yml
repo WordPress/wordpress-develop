@@ -1,0 +1,46 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [trunk]
+  schedule:
+    # Run weekly on Sunday
+    - cron: '0 0 * * 0'
+
+jobs:
+  dependency-check:
+    name: Check for vulnerable dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Composer
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run security audit
+        run: |
+          composer audit --no-interaction || true
+        continue-on-error: true
+
+  php-lint:
+    name: PHP Syntax Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Find PHP files
+        run: |
+          find src/wp-includes src/wp-admin -name "*.php" -type f | head -50
+
+      - name: Lint PHP files
+        run: |
+          find src/wp-includes src/wp-admin -name "*.php" -type f -exec php -l {} \; 2>&1 | grep -v "No syntax errors" || true

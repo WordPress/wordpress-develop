@@ -1,0 +1,46 @@
+name: Upstream Sync Check
+
+on:
+  schedule:
+    # Run every 3 hours
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-check:
+    name: Check upstream sync status
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/WordPress/wordpress-develop.git
+          git fetch upstream
+
+      - name: Check sync status
+        id: sync
+        run: |
+          LOCAL=$(git rev-parse HEAD)
+          UPSTREAM=$(git rev-parse upstream/trunk)
+          
+          if [ "$LOCAL" = "$UPSTREAM" ]; then
+            echo "status=in_sync" >> $GITHUB_OUTPUT
+            echo "✅ In sync with upstream ($LOCAL)"
+          else
+            COMMITS=$(git rev-list --count HEAD..upstream/trunk)
+            echo "status=behind" >> $GITHUB_OUTPUT
+            echo "commits_behind=$COMMITS" >> $GITHUB_OUTPUT
+            echo "⚠️ Behind upstream by $COMMITS commit(s)"
+            git log --oneline HEAD..upstream/trunk
+          fi
+
+      - name: Show upstream commits
+        if: steps.sync.outputs.status == 'behind'
+        run: |
+          echo "=== Recent upstream commits ==="
+          git log --oneline upstream/trunk -10
