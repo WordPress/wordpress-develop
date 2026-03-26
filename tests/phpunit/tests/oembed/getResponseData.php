@@ -289,4 +289,21 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'thumbnail_height', $data );
 		$this->assertLessThanOrEqual( 400, $data['thumbnail_width'] );
 	}
+
+	/**
+	 * @ticket 64742
+	 */
+	public function test_get_oembed_response_data_with_invalid_thumbnail_does_not_warn() {
+		$post = self::factory()->post->create_and_get();
+
+		// Set _thumbnail_id to a non-existent attachment ID.
+		update_post_meta( $post->ID, '_thumbnail_id', 99999 );
+
+		$data = get_oembed_response_data( $post, 400 );
+
+		$this->assertIsArray( $data );
+		$this->assertArrayNotHasKey( 'thumbnail_url', $data );
+		$this->assertArrayNotHasKey( 'thumbnail_width', $data );
+		$this->assertArrayNotHasKey( 'thumbnail_height', $data );
+	}
 }

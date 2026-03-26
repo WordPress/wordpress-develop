@@ -7283,6 +7283,35 @@ EOF;
 			'height' => 100,
 		);
 	}
+
+	/**
+	 * @ticket 64742
+	 */
+	public function test_wp_get_attachment_image_src_returns_false_for_invalid_attachment() {
+		$result = wp_get_attachment_image_src( 99999, 'thumbnail' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 64742
+	 */
+	public function test_wp_prepare_attachment_for_js_with_invalid_thumbnail_does_not_warn() {
+		$attachment_id = self::factory()->attachment->create_object(
+			DIR_TESTDATA . '/uploads/test-image.jpg',
+			0,
+			array(
+				'post_mime_type' => 'audio/mpeg',
+				'post_type'     => 'attachment',
+			)
+		);
+
+		// Set _thumbnail_id to a non-existent attachment ID.
+		update_post_meta( $attachment_id, '_thumbnail_id', 99999 );
+
+		$result = wp_prepare_attachment_for_js( $attachment_id );
+
+		$this->assertIsArray( $result );
+	}
 }
 
 /**

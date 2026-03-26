@@ -988,7 +988,8 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 
 				$src_file = $icon_dir . '/' . wp_basename( $src );
 
-				list( $width, $height ) = wp_getimagesize( $src_file );
+				$width  = 0;
+				$height = 0;
 
 				$ext = strtolower( substr( $src_file, -4 ) );
 
@@ -997,7 +998,11 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 					$width  = 48;
 					$height = 64;
 				} else {
-					list( $width, $height ) = wp_getimagesize( $src_file );
+					$imagesize = wp_getimagesize( $src_file );
+					if ( is_array( $imagesize ) ) {
+						$width  = $imagesize[0];
+						$height = $imagesize[1];
+					}
 				}
 			}
 		}
@@ -3230,10 +3235,22 @@ function wp_playlist_shortcode( $attr ) {
 		if ( $atts['images'] ) {
 			$thumb_id = get_post_thumbnail_id( $attachment->ID );
 			if ( ! empty( $thumb_id ) ) {
-				list( $src, $width, $height ) = wp_get_attachment_image_src( $thumb_id, 'full' );
-				$track['image']               = compact( 'src', 'width', 'height' );
-				list( $src, $width, $height ) = wp_get_attachment_image_src( $thumb_id, 'thumbnail' );
-				$track['thumb']               = compact( 'src', 'width', 'height' );
+				$image_src = wp_get_attachment_image_src( $thumb_id, 'full' );
+				if ( is_array( $image_src ) ) {
+					$track['image'] = array(
+						'src'    => $image_src[0],
+						'width'  => $image_src[1],
+						'height' => $image_src[2],
+					);
+				}
+				$thumb_src = wp_get_attachment_image_src( $thumb_id, 'thumbnail' );
+				if ( is_array( $thumb_src ) ) {
+					$track['thumb'] = array(
+						'src'    => $thumb_src[0],
+						'width'  => $thumb_src[1],
+						'height' => $thumb_src[2],
+					);
+				}
 			} else {
 				$src            = wp_mime_type_icon( $attachment->ID, '.svg' );
 				$width          = 48;
@@ -4711,10 +4728,22 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 		$id = get_post_thumbnail_id( $attachment->ID );
 		if ( ! empty( $id ) ) {
-			list( $src, $width, $height ) = wp_get_attachment_image_src( $id, 'full' );
-			$response['image']            = compact( 'src', 'width', 'height' );
-			list( $src, $width, $height ) = wp_get_attachment_image_src( $id, 'thumbnail' );
-			$response['thumb']            = compact( 'src', 'width', 'height' );
+			$image_src = wp_get_attachment_image_src( $id, 'full' );
+			if ( is_array( $image_src ) ) {
+				$response['image'] = array(
+					'src'    => $image_src[0],
+					'width'  => $image_src[1],
+					'height' => $image_src[2],
+				);
+			}
+			$thumb_src = wp_get_attachment_image_src( $id, 'thumbnail' );
+			if ( is_array( $thumb_src ) ) {
+				$response['thumb'] = array(
+					'src'    => $thumb_src[0],
+					'width'  => $thumb_src[1],
+					'height' => $thumb_src[2],
+				);
+			}
 		} else {
 			$src               = wp_mime_type_icon( $attachment->ID, '.svg' );
 			$width             = 48;
