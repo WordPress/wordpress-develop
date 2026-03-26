@@ -41,6 +41,7 @@ wp-tests-config.php
 /src/wp-includes/blocks/**/*.js
 /src/wp-includes/blocks/**/*.js.map
 /packagehash.txt
+/.gutenberg-hash
 /artifacts
 /setup.log
 /coverage
