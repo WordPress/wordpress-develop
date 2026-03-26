@@ -334,6 +334,9 @@ class WP_HTTP_Polling_Sync_Server {
 	 */
 	private function can_user_sync_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
 		if ( is_string( $object_id ) ) {
+			if ( ! ctype_digit( $object_id ) ) {
+				return false;
+			}
 			$object_id = (int) $object_id;
 		}
 		if ( null !== $object_id && $object_id <= 0 ) {
