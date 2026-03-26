@@ -1,36 +1,39 @@
-<!--
-Hi there! Thanks for contributing to WordPress!
+# Pull Request Template
 
-Pull Requests in this GitHub repository **must** be linked to a ticket in the WordPress Core Trac instance (https://core.trac.wordpress.org), and are only used for code review. **No pull requests will be merged on GitHub.**
+## Description
 
-See the WordPress Handbook page on using PRs for Code Review more information: https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/
+Please describe your changes and why they're needed.
 
-If this is your first time contributing, you may also find reviewing these guides first to be helpful:
-- FAQs for New Contributors: https://make.wordpress.org/core/handbook/tutorials/faq-for-new-contributors/
-- Contributing with Code Guide: https://make.wordpress.org/core/handbook/contribute/
-- WordPress Coding Standards: https://make.wordpress.org/core/handbook/best-practices/coding-standards/
-- Inline Documentation Standards: https://make.wordpress.org/core/handbook/best-practices/inline-documentation-standards/
-- Browser Support Policies: https://make.wordpress.org/core/handbook/best-practices/browser-support/
-- Proper spelling and grammar related best practices: https://make.wordpress.org/core/handbook/best-practices/spelling/
-- ✨ If you are using AI tools, you must adhere to the AI Guidelines: https://make.wordpress.org/ai/handbook/ai-guidelines/
--->
+## Type of Change
 
-<!-- Insert a description of your changes here -->
+- [ ] Bug fix (non-breaking change)
+- [ ] New feature (non-breaking change)
+- [ ] Breaking change (fix or feature that would cause issues)
+- [ ] Documentation update
+- [ ] Code quality improvement
+- [ ] Security enhancement
 
-Trac ticket: <!-- insert a link to the WordPress Trac ticket here -->
+## Testing
 
-## Use of AI Tools
+Please describe how you tested your changes:
 
-<!--
-You are free to use artificial intelligence (AI) tooling to contribute, but you must disclose what tooling you are using and to what extent a pull request has been authored by AI. It is your responsibility to review and take responsibility for what AI generates. See the WordPress AI Guidelines: <https://make.wordpress.org/ai/handbook/ai-guidelines/>.
+- [ ] Unit tests pass
+- [ ] PHPStan passes
+- [ ] PHP CS Fixer passes (or deviations are documented)
+- [ ] Manual testing completed
 
-Example disclosure:
+## Checklist
 
-AI assistance: Yes
-Tool(s): GitHub Copilot, ChatGPT
-Model(s): GPT-5.1
-Used for: Initial code skeleton and test suggestions; final implementation and tests were reviewed and edited by me.
--->
+- [ ] My code follows the project's coding standards
+- [ ] I have performed a self-review of my code
+- [ ] I have commented my code where necessary
+- [ ] I have updated documentation as needed
+- [ ] My changes generate no new warnings
+
+## Related Issues
+
+Closes #
 
 ---
-**This Pull Request is for code review only. Please keep all other discussion in the Trac ticket. Do not merge this Pull Request. See [GitHub Pull Requests for Code Review](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/) in the Core Handbook for more details.**
+
+**Note:** This is our own fork. We don't require WordPress Trac tickets — just describe your changes here!
