@@ -7301,7 +7301,7 @@ EOF;
 			0,
 			array(
 				'post_mime_type' => 'audio/mpeg',
-				'post_type'     => 'attachment',
+				'post_type'      => 'attachment',
 			)
 		);
 
