@@ -1494,22 +1494,25 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$is_rtc_enabled = (bool) get_option( 'wp_collaboration_enabled' );
 
 			if ( $is_rtc_enabled ) {
-				$link_text  = '<span class="edit-action-text">';
-				$link_text .= '<span aria-hidden="true">' . __( 'Edit' ) . '</span>';
-				/* translators: %s: Post title. */
-				$link_text .= '<span class="screen-reader-text">' . sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) . '</span>';
-				$link_text .= '</span>';
-				$link_text .= '<span class="join-action-text">';
-				/* translators: Action link text for a singular post in the post list. Can be any type of post. */
-				$link_text .= '<span aria-hidden="true">' . _x( 'Join', 'post list' ) . '</span>';
-				/* translators: %s: Post title. */
-				$link_text .= '<span class="screen-reader-text">' . sprintf( __( 'Join editing &#8220;%s&#8221;', 'post list' ), $title ) . '</span>';
-				$link_text .= '</span>';
-
 				$actions['edit'] = sprintf(
-					'<a href="%s">%s</a>',
+					'<a href="%1$s">'
+					.   '<span class="edit-action-text">'
+					.     '<span aria-hidden="true">%2$s</span>'
+					.     '<span class="screen-reader-text">%3$s</span>'
+					.   '</span>'
+					.   '<span class="join-action-text">'
+					.     '<span aria-hidden="true">%4$s</span>'
+					.     '<span class="screen-reader-text">%5$s</span>'
+					.   '</span>'
+					. '</a>',
 					get_edit_post_link( $post->ID ),
-					$link_text
+					__( 'Edit' ),
+					/* translators: %s: Post title. */
+					sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ),
+					/* translators: Action link text for a singular post in the post list. Can be any type of post. */
+					_x( 'Join', 'post list' ),
+					/* translators: %s: Post title. */
+					sprintf( __( 'Join editing &#8220;%s&#8221;', 'post list' ), $title )
 				);
 			} else {
 				$actions['edit'] = sprintf(
