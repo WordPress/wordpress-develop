@@ -102,9 +102,9 @@ final class WP_Connector_Registry {
 	 *                                       `connectors_{$type}_{$id}_api_key`.
 	 *                                       Must be a non-empty string when provided.
 	 *         @type string $constant_name   Optional. PHP constant name for the API key
-	 *                                       (e.g. 'OPENAI_API_KEY'). Only checked when provided.
+	 *                                       (e.g. 'ANTHROPIC_API_KEY'). Only checked when provided.
 	 *         @type string $env_var_name    Optional. Environment variable name for the API key
-	 *                                       (e.g. 'OPENAI_API_KEY'). Only checked when provided.
+	 *                                       (e.g. 'ANTHROPIC_API_KEY'). Only checked when provided.
 	 *     }
 	 *     @type array  $plugin         {
 	 *         Optional. Plugin data for install/activate UI.
