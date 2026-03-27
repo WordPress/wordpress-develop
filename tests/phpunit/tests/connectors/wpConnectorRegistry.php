@@ -128,6 +128,104 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64957
+	 */
+	public function test_register_stores_constant_name_when_provided() {
+		$args                                        = self::$default_args;
+		$args['authentication']['constant_name']     = 'MY_PROVIDER_API_KEY';
+
+		$result = $this->registry->register( 'my-provider', $args );
+
+		$this->assertSame( 'MY_PROVIDER_API_KEY', $result['authentication']['constant_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_omits_constant_name_when_not_provided() {
+		$result = $this->registry->register( 'no-const', self::$default_args );
+
+		$this->assertArrayNotHasKey( 'constant_name', $result['authentication'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_empty_constant_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                    = self::$default_args;
+		$args['authentication']['constant_name'] = '';
+
+		$result = $this->registry->register( 'empty-const', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_non_string_constant_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                    = self::$default_args;
+		$args['authentication']['constant_name'] = 123;
+
+		$result = $this->registry->register( 'bad-const', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_stores_env_var_name_when_provided() {
+		$args                                       = self::$default_args;
+		$args['authentication']['env_var_name']     = 'MY_PROVIDER_API_KEY';
+
+		$result = $this->registry->register( 'my-provider', $args );
+
+		$this->assertSame( 'MY_PROVIDER_API_KEY', $result['authentication']['env_var_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_omits_env_var_name_when_not_provided() {
+		$result = $this->registry->register( 'no-env', self::$default_args );
+
+		$this->assertArrayNotHasKey( 'env_var_name', $result['authentication'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_empty_env_var_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                   = self::$default_args;
+		$args['authentication']['env_var_name'] = '';
+
+		$result = $this->registry->register( 'empty-env', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_non_string_env_var_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                   = self::$default_args;
+		$args['authentication']['env_var_name'] = 123;
+
+		$result = $this->registry->register( 'bad-env', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * @ticket 64791
 	 */
 	public function test_register_no_setting_name_for_none_auth() {

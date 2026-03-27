@@ -35,7 +35,9 @@
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
- *         setting_name?: non-empty-string
+ *         setting_name?: non-empty-string,
+ *         constant_name?: non-empty-string,
+ *         env_var_name?: non-empty-string
  *     },
  *     plugin?: array{
  *         slug: non-empty-string
@@ -99,6 +101,10 @@ final class WP_Connector_Registry {
 	 *                                       When omitted, auto-generated as
 	 *                                       `connectors_{$type}_{$id}_api_key`.
 	 *                                       Must be a non-empty string when provided.
+	 *         @type string $constant_name   Optional. PHP constant name for the API key
+	 *                                       (e.g. 'OPENAI_API_KEY'). Only checked when provided.
+	 *         @type string $env_var_name    Optional. Environment variable name for the API key
+	 *                                       (e.g. 'OPENAI_API_KEY'). Only checked when provided.
 	 *     }
 	 *     @type array  $plugin         {
 	 *         Optional. Plugin data for install/activate UI.
@@ -212,6 +218,30 @@ final class WP_Connector_Registry {
 				$sanitized_id   = str_replace( '-', '_', $id );
 
 				$connector['authentication']['setting_name'] = "connectors_{$sanitized_type}_{$sanitized_id}_api_key";
+			}
+			if ( isset( $args['authentication']['constant_name'] ) ) {
+				if ( ! is_string( $args['authentication']['constant_name'] ) || '' === $args['authentication']['constant_name'] ) {
+					_doing_it_wrong(
+						__METHOD__,
+						/* translators: %s: Connector ID. */
+						sprintf( __( 'Connector "%s" authentication constant_name must be a non-empty string.' ), esc_html( $id ) ),
+						'7.0.0'
+					);
+					return null;
+				}
+				$connector['authentication']['constant_name'] = $args['authentication']['constant_name'];
+			}
+			if ( isset( $args['authentication']['env_var_name'] ) ) {
+				if ( ! is_string( $args['authentication']['env_var_name'] ) || '' === $args['authentication']['env_var_name'] ) {
+					_doing_it_wrong(
+						__METHOD__,
+						/* translators: %s: Connector ID. */
+						sprintf( __( 'Connector "%s" authentication env_var_name must be a non-empty string.' ), esc_html( $id ) ),
+						'7.0.0'
+					);
+					return null;
+				}
+				$connector['authentication']['env_var_name'] = $args['authentication']['env_var_name'];
 			}
 		}
 

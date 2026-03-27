@@ -51,6 +51,8 @@ function wp_is_connector_registered( string $id ): bool {
  *         @type string $method          The authentication method: 'api_key' or 'none'.
  *         @type string $credentials_url Optional. URL where users can obtain API credentials.
  *         @type string $setting_name    Optional. The setting name for the API key.
+ *         @type string $constant_name   Optional. PHP constant name for the API key.
+ *         @type string $env_var_name    Optional. Environment variable name for the API key.
  *     }
  *     @type array  $plugin         {
  *         Optional. Plugin data for install/activate UI.
@@ -66,7 +68,9 @@ function wp_is_connector_registered( string $id ): bool {
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
- *         setting_name?: non-empty-string
+ *         setting_name?: non-empty-string,
+ *         constant_name?: non-empty-string,
+ *         env_var_name?: non-empty-string
  *     },
  *     plugin?: array{
  *         slug: non-empty-string
@@ -106,6 +110,8 @@ function wp_get_connector( string $id ): ?array {
  *             @type string $method          The authentication method: 'api_key' or 'none'.
  *             @type string $credentials_url Optional. URL where users can obtain API credentials.
  *             @type string $setting_name    Optional. The setting name for the API key.
+ *             @type string $constant_name   Optional. PHP constant name for the API key.
+ *             @type string $env_var_name    Optional. Environment variable name for the API key.
  *         }
  *         @type array       $plugin         {
  *             Optional. Plugin data for install/activate UI.
@@ -122,7 +128,9 @@ function wp_get_connector( string $id ): ?array {
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
- *         setting_name?: non-empty-string
+ *         setting_name?: non-empty-string,
+ *         constant_name?: non-empty-string,
+ *         env_var_name?: non-empty-string
  *     },
  *     plugin?: array{
  *         slug: non-empty-string
@@ -334,10 +342,26 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 	}
 
 	// Register all default connectors directly on the registry.
-	// All AI providers use the connectors_ai_{$id}_api_key naming convention.
+	// All AI providers use the {CONSTANT_CASE_ID}_API_KEY naming convention.
 	foreach ( $defaults as $id => $args ) {
-		if ( 'api_key' === ( $args['authentication']['method'] ?? '' ) && ! isset( $args['authentication']['setting_name'] ) ) {
-			$args['authentication']['setting_name'] = 'connectors_ai_' . str_replace( '-', '_', $id ) . '_api_key';
+		if ( 'api_key' === ( $args['authentication']['method'] ?? '' ) ) {
+			$sanitized_id = str_replace( '-', '_', $id );
+
+			if ( ! isset( $args['authentication']['setting_name'] ) ) {
+				$args['authentication']['setting_name'] = "connectors_ai_{$sanitized_id}_api_key";
+			}
+
+			if ( ! isset( $args['authentication']['constant_name'] ) ) {
+				$constant_case = strtoupper( preg_replace( '/([a-z])([A-Z])/', '$1_$2', $sanitized_id ) );
+
+				$args['authentication']['constant_name'] = "{$constant_case}_API_KEY";
+			}
+
+			if ( ! isset( $args['authentication']['env_var_name'] ) ) {
+				$constant_case = $constant_case ?? strtoupper( preg_replace( '/([a-z])([A-Z])/', '$1_$2', $sanitized_id ) );
+
+				$args['authentication']['env_var_name'] = "{$constant_case}_API_KEY";
+			}
 		}
 		$registry->register( $id, $args );
 	}
