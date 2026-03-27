@@ -43,7 +43,7 @@ function wp_is_connector_registered( string $id ): bool {
  *     @type string $name           The connector's display name.
  *     @type string $description    The connector's description.
  *     @type string $logo_url       Optional. URL to the connector's logo image.
- *     @type string $type           The connector type. Currently, only 'ai_provider' is supported.
+ *     @type string $type           The connector type, e.g. 'ai_provider' or 'spam_filtering'.
  *     @type array  $authentication {
  *         Authentication configuration. When method is 'api_key', includes
  *         credentials_url and setting_name. When 'none', only method is present.
@@ -64,7 +64,7 @@ function wp_is_connector_registered( string $id ): bool {
  *     name: non-empty-string,
  *     description: non-empty-string,
  *     logo_url?: non-empty-string,
- *     type: 'ai_provider',
+ *     type: non-empty-string,
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
@@ -102,7 +102,7 @@ function wp_get_connector( string $id ): ?array {
  *         @type string      $name           The connector's display name.
  *         @type string      $description    The connector's description.
  *         @type string      $logo_url       Optional. URL to the connector's logo image.
- *         @type string      $type           The connector type. Currently, only 'ai_provider' is supported.
+ *         @type string      $type           The connector type, e.g. 'ai_provider' or 'spam_filtering'.
  *         @type array       $authentication {
  *             Authentication configuration. When method is 'api_key', includes
  *             credentials_url and setting_name. When 'none', only method is present.
@@ -124,7 +124,7 @@ function wp_get_connector( string $id ): ?array {
  *     name: non-empty-string,
  *     description: non-empty-string,
  *     logo_url?: non-empty-string,
- *     type: 'ai_provider',
+ *     type: non-empty-string,
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
@@ -496,7 +496,7 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'ai_provider' !== $connector_data['type'] || 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
 
@@ -507,8 +507,9 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 		$value = $data[ $setting_name ];
 
-		// On update, validate the key before masking.
-		if ( $is_update && is_string( $value ) && '' !== $value ) {
+		// On update, validate AI provider keys before masking.
+		// Non-AI connectors accept keys as-is; the service plugin handles its own validation.
+		if ( $is_update && is_string( $value ) && '' !== $value && 'ai_provider' === $connector_data['type'] ) {
 			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
 				update_option( $setting_name, '' );
 				$data[ $setting_name ] = '';
@@ -534,16 +535,22 @@ add_filter( 'rest_post_dispatch', '_wp_connectors_rest_settings_dispatch', 10, 3
  * @access private
  */
 function _wp_register_default_connector_settings(): void {
-	$ai_registry = AiClient::defaultRegistry();
+	$ai_registry       = AiClient::defaultRegistry();
+	$existing_settings = get_registered_settings();
 
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'ai_provider' !== $connector_data['type'] || 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
 
-		// Skip registering the setting if the provider is not in the registry.
-		if ( ! $ai_registry->hasProvider( $connector_id ) ) {
+		// For AI providers, skip if the provider is not in the AI Client registry.
+		if ( 'ai_provider' === $connector_data['type'] && ! $ai_registry->hasProvider( $connector_id ) ) {
+			continue;
+		}
+
+		// Skip if the setting is already registered (e.g. by the connector's plugin).
+		if ( isset( $existing_settings[ $auth['setting_name'] ] ) ) {
 			continue;
 		}
 
@@ -553,13 +560,13 @@ function _wp_register_default_connector_settings(): void {
 			array(
 				'type'              => 'string',
 				'label'             => sprintf(
-					/* translators: %s: AI provider name. */
+					/* translators: %s: Connector name. */
 					__( '%s API Key' ),
 					$connector_data['name']
 				),
 				'description'       => sprintf(
-					/* translators: %s: AI provider name. */
-					__( 'API key for the %s AI provider.' ),
+					/* translators: %s: Connector name. */
+					__( 'API key for %s.' ),
 					$connector_data['name']
 				),
 				'default'           => '',
@@ -655,10 +662,16 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 				$auth['env_var_name'] ?? '',
 				$auth['constant_name'] ?? ''
 			);
-			try {
-				$auth_out['isConnected'] = $registry->hasProvider( $connector_id ) && $registry->isProviderConfigured( $connector_id );
-			} catch ( Exception $e ) {
-				$auth_out['isConnected'] = false;
+
+			if ( 'ai_provider' === $connector_data['type'] ) {
+				try {
+					$auth_out['isConnected'] = $registry->hasProvider( $connector_id ) && $registry->isProviderConfigured( $connector_id );
+				} catch ( Exception $e ) {
+					$auth_out['isConnected'] = false;
+				}
+			} else {
+				// For non-AI connectors, consider connected if a key exists from any source.
+				$auth_out['isConnected'] = 'none' !== $auth_out['keySource'];
 			}
 		}
 
@@ -679,7 +692,9 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 
 			$connector_out['plugin'] = array(
 				'slug'        => $plugin_slug,
-				'isInstalled' => $is_installed,
+				'pluginFile'  => $is_installed
+					? ( str_ends_with( $plugin_file, '.php' ) ? substr( $plugin_file, 0, -4 ) : $plugin_file )
+					: null,
 				'isActivated' => $is_activated,
 			);
 		}

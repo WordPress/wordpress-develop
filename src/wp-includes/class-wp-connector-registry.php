@@ -31,7 +31,7 @@
  *     name: non-empty-string,
  *     description: non-empty-string,
  *     logo_url?: non-empty-string,
- *     type: 'ai_provider',
+ *     type: non-empty-string,
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
@@ -67,18 +67,6 @@ final class WP_Connector_Registry {
 	/**
 	 * Registers a new connector.
 	 *
-	 * Validates the provided arguments and stores the connector in the registry.
-	 * For connectors with `api_key` authentication, a `setting_name` is automatically
-	 * generated using the pattern `connectors_ai_{$id}_api_key`, with hyphens in the ID
-	 * normalized to underscores (e.g., connector ID `openai` produces
-	 * `connectors_ai_openai_api_key`, and `azure-openai` produces
-	 * `connectors_ai_azure_openai_api_key`). This setting name is used for the Settings
-	 * API registration and REST API exposure.
-	 *
-	 * Registering a connector with an ID that is already registered will trigger a
-	 * `_doing_it_wrong()` notice and return `null`. To override an existing connector,
-	 * call `unregister()` first.
-	 *
 	 * @since 7.0.0
 	 *
 	 * @see WP_Connector_Registry::unregister()
@@ -91,7 +79,7 @@ final class WP_Connector_Registry {
 	 *     @type string $name           Required. The connector's display name.
 	 *     @type string $description    Optional. The connector's description. Default empty string.
 	 *     @type string $logo_url       Optional. URL to the connector's logo image.
-	 *     @type string $type           Required. The connector type. Currently, only 'ai_provider' is supported.
+	 *     @type string $type           Required. The connector type, e.g. 'ai_provider' or 'spam_filtering'.
 	 *     @type array  $authentication {
 	 *         Required. Authentication configuration.
 	 *
@@ -203,11 +191,7 @@ final class WP_Connector_Registry {
 			if ( ! empty( $args['authentication']['setting_name'] ) && is_string( $args['authentication']['setting_name'] ) ) {
 				$connector['authentication']['setting_name'] = $args['authentication']['setting_name'];
 			} else {
-				$sanitized_id   = str_replace( '-', '_', $id );
-				$sanitized_type = str_replace( '-', '_', $connector['type'] ?? '' );
-				$connector['authentication']['setting_name'] = '' !== $sanitized_type
-					? "connectors_{$sanitized_type}_{$sanitized_id}_api_key"
-					: "connectors_{$sanitized_id}_api_key";
+				$connector['authentication']['setting_name'] = str_replace( '-', '_', "connectors_{$connector['type']}_{$id}_api_key" );
 			}
 			if ( ! empty( $args['authentication']['constant_name'] ) && is_string( $args['authentication']['constant_name'] ) ) {
 				$connector['authentication']['constant_name'] = $args['authentication']['constant_name'];
