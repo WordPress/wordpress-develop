@@ -887,10 +887,162 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64696
+	 *
+	 * @dataProvider data_jit_meta_query_invalidation
+	 */
+	public function test_jit_meta_query_invalidation_adding_meta_does_not_affect_unregistered_meta() {
+		$post_id = self::factory()->post->create();
+		wp_cache_set_posts_last_changed();
+		$posts_last_changed_initial = wp_cache_get_last_changed( 'posts' );
+
+		// Query posts by meta data.
+		$query = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			)
+		);
+		$this->assertNotContains( $post_id, $query->posts, 'Post should not be in results without meta data.' );
+
+		// Add post meta.
+		add_post_meta( $post_id, 'foo', 'bar' );
+
+		// Confirm last changed has updated as meta is not JIT registered.
+		$this->assertNotSame( $posts_last_changed_initial, wp_cache_get_last_changed( 'posts' ), 'Adding meta data should invalidate post query cache.' );
+		$posts_last_changed_second = wp_cache_get_last_changed( 'posts' );
+
+		// Query posts by meta data.
+		$query = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			)
+		);
+
+		// Confirm JIT cache invalidation has not triggered again as meta is not registered.
+		$this->assertSame( $posts_last_changed_second, wp_cache_get_last_changed( 'posts' ), 'JIT meta query should not invalidate post query cache again.' );
+		$this->assertContains( $post_id, $query->posts, 'Queried post should be in results.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 *
+	 * @dataProvider data_jit_meta_query_invalidation
+	 */
+	public function test_jit_meta_query_invalidation_updating_meta_does_not_affect_unregistered_meta() {
+		$post_id = self::factory()->post->create();
+		wp_cache_set_posts_last_changed();
+		add_post_meta( $post_id, 'foo', 'baz' );
+
+		// Query posts by meta data.
+		$query = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			)
+		);
+		$this->assertNotContains( $post_id, $query->posts, 'Post should not be in results with meta data before update.' );
+		$posts_last_changed_initial = wp_cache_get_last_changed( 'posts' );
+
+		// Update post meta.
+		update_post_meta( $post_id, 'foo', 'bar' );
+
+		// Confirm last changed has updated as meta is not JIT registered.
+		$this->assertNotSame( $posts_last_changed_initial, wp_cache_get_last_changed( 'posts' ), 'Updating meta data should invalidate post query cache.' );
+		$posts_last_changed_second = wp_cache_get_last_changed( 'posts' );
+
+		// Query posts by meta data.
+		$query = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			)
+		);
+
+		// Confirm JIT cache invalidation has not triggered again as meta is not registered.
+		$this->assertSame( $posts_last_changed_second, wp_cache_get_last_changed( 'posts' ), 'JIT meta query should not invalidate post query cache again.' );
+		$this->assertContains( $post_id, $query->posts, 'Queried post should be in results.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 *
+	 * @dataProvider data_jit_meta_query_invalidation
+	 */
+	public function test_jit_meta_query_invalidation_deleting_meta_does_not_affect_unregistered_meta() {
+		$post_id = self::factory()->post->create();
+		wp_cache_set_posts_last_changed();
+		add_post_meta( $post_id, 'foo', 'bar' );
+
+		// Query posts by meta data.
+		$query = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			)
+		);
+		$this->assertContains( $post_id, $query->posts, 'Post should be in results with meta data before meta data deleted.' );
+		$posts_last_changed_initial = wp_cache_get_last_changed( 'posts' );
+
+		// Delete post meta.
+		delete_post_meta( $post_id, 'foo' );
+
+		// Confirm last changed has updated as meta is not JIT registered.
+		$this->assertNotSame( $posts_last_changed_initial, wp_cache_get_last_changed( 'posts' ), 'Deleting meta data should invalidate post query cache.' );
+		$posts_last_changed_second = wp_cache_get_last_changed( 'posts' );
+
+		// Query posts by meta data.
+		$query = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			)
+		);
+
+		// Confirm JIT cache invalidation has not triggered again as meta is not registered.
+		$this->assertSame( $posts_last_changed_second, wp_cache_get_last_changed( 'posts' ), 'JIT meta query should not invalidate post query cache again.' );
+		$this->assertNotContains( $post_id, $query->posts, 'Queried post should not be in results after meta data deleted.' );
+	}
+
+	/**
 	 * Data provider for:
 	 * - test_jit_meta_query_invalidation_adding_meta
 	 * - test_jit_meta_query_invalidation_updating_meta
 	 * - test_jit_meta_query_invalidation_deleting_meta
+	 * - test_jit_meta_query_invalidation_adding_meta_does_not_affect_unregistered_meta
+	 * - test_jit_meta_query_invalidation_updating_meta_does_not_affect_unregistered_meta
+	 * - test_jit_meta_query_invalidation_deleting_meta_does_not_affect_unregistered_meta
 	 *
 	 * @return array<string, array> Data provider.
 	 */
