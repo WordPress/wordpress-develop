@@ -26,9 +26,9 @@ class Tests_Connectors_WpConnectorsGetApiKeySource extends WP_UnitTestCase {
 
 		$result = _wp_connectors_get_api_key_source( $setting_name );
 
-		$this->assertSame( 'database', $result );
-
 		delete_option( $setting_name );
+
+		$this->assertSame( 'database', $result );
 	}
 
 	/**
@@ -40,9 +40,9 @@ class Tests_Connectors_WpConnectorsGetApiKeySource extends WP_UnitTestCase {
 
 		$result = _wp_connectors_get_api_key_source( 'connectors_ai_test_api_key', $env_var );
 
-		$this->assertSame( 'env', $result );
-
 		putenv( $env_var );
+
+		$this->assertSame( 'env', $result );
 	}
 
 	/**
@@ -75,10 +75,10 @@ class Tests_Connectors_WpConnectorsGetApiKeySource extends WP_UnitTestCase {
 
 		$result = _wp_connectors_get_api_key_source( $setting_name, $env_var, $constant_name );
 
-		$this->assertSame( 'env', $result );
-
 		putenv( $env_var );
 		delete_option( $setting_name );
+
+		$this->assertSame( 'env', $result );
 	}
 
 	/**
@@ -95,28 +95,28 @@ class Tests_Connectors_WpConnectorsGetApiKeySource extends WP_UnitTestCase {
 
 		$result = _wp_connectors_get_api_key_source( $setting_name, '', $constant_name );
 
-		$this->assertSame( 'constant', $result );
-
 		delete_option( $setting_name );
+
+		$this->assertSame( 'constant', $result );
 	}
 
 	/**
 	 * @ticket 64957
 	 */
 	public function test_skips_env_check_when_env_var_name_empty() {
-		$env_var = 'WP_TEST_SKIP_ENV_KEY';
-		putenv( "{$env_var}=sk-from-env" );
-
+		$env_var      = 'WP_TEST_SKIP_ENV_KEY';
 		$setting_name = 'connectors_ai_skip_env_api_key';
+
+		putenv( "{$env_var}=sk-from-env" );
 		update_option( $setting_name, 'sk-from-db' );
 
 		// Empty env_var_name means env is not checked, falls through to database.
 		$result = _wp_connectors_get_api_key_source( $setting_name, '', '' );
 
-		$this->assertSame( 'database', $result );
-
 		putenv( $env_var );
 		delete_option( $setting_name );
+
+		$this->assertSame( 'database', $result );
 	}
 
 	/**
@@ -124,18 +124,18 @@ class Tests_Connectors_WpConnectorsGetApiKeySource extends WP_UnitTestCase {
 	 */
 	public function test_skips_constant_check_when_constant_name_empty() {
 		$constant_name = 'WP_TEST_SKIP_CONST_KEY';
+		$setting_name  = 'connectors_ai_skip_const_api_key';
+
 		if ( ! defined( $constant_name ) ) {
 			define( $constant_name, 'sk-from-constant' );
 		}
-
-		$setting_name = 'connectors_ai_skip_const_api_key';
 		update_option( $setting_name, 'sk-from-db' );
 
 		// Empty constant_name means constant is not checked, falls through to database.
 		$result = _wp_connectors_get_api_key_source( $setting_name, '' );
 
-		$this->assertSame( 'database', $result );
-
 		delete_option( $setting_name );
+
+		$this->assertSame( 'database', $result );
 	}
 }
