@@ -62,7 +62,10 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_generates_setting_name_for_api_key() {
-		$result = $this->registry->register( 'myai', self::$default_args );
+		$args = self::$default_args;
+		unset( $args['authentication']['setting_name'] );
+
+		$result = $this->registry->register( 'myai', $args );
 
 		$this->assertSame( 'connectors_ai_provider_myai_api_key', $result['authentication']['setting_name'] );
 	}
@@ -71,7 +74,10 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64861
 	 */
 	public function test_register_generates_setting_name_normalizes_hyphens() {
-		$result = $this->registry->register( 'my-ai', self::$default_args );
+		$args = self::$default_args;
+		unset( $args['authentication']['setting_name'] );
+
+		$result = $this->registry->register( 'my-ai', $args );
 
 		$this->assertSame( 'connectors_ai_provider_my_ai_api_key', $result['authentication']['setting_name'] );
 	}
