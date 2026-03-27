@@ -371,7 +371,10 @@ class WP_HTTP_Polling_Sync_Server {
 		 *
 		 * @param int $granularity Granularity in seconds. Default 10.
 		 */
-		$granularity = (int) apply_filters( 'wp_sync_awareness_timestamp_granularity', 10 );
+		$granularity = absint( apply_filters( 'wp_sync_awareness_timestamp_granularity', 10 ) );
+		if ( 0 === $granularity ) {
+			$granularity = 1;
+		}
 
 		// Add this client's awareness state.
 		if ( null !== $awareness_update ) {
