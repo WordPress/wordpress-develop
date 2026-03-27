@@ -981,6 +981,57 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/*
+	 * Data integrity tests.
+	 */
+
+	public function test_get_updates_after_cursor_drops_malformed_json() {
+		$storage         = new WP_Sync_Post_Meta_Storage();
+		$room            = $this->get_post_room();
+		$storage_posts   = get_posts(
+			array(
+				'post_type'      => WP_Sync_Post_Meta_Storage::POST_TYPE,
+				'posts_per_page' => 1,
+				'post_status'    => 'publish',
+				'name'           => md5( $room ),
+				'fields'         => 'ids',
+			)
+		);
+		$storage_post_id = array_first( $storage_posts );
+
+		// Advance cursor past the seed update from create_storage_post().
+		$storage->get_updates_after_cursor( $room, 0 );
+		$cursor = $storage->get_cursor( $room );
+
+		// Insert a valid update.
+		$valid_update = array(
+			'type' => 'update',
+			'data' => 'dGVzdA==',
+		);
+		$this->assertTrue( $storage->add_update( $room, $valid_update ) );
+
+		// Insert a malformed JSON row directly into the meta data.
+		add_post_meta(
+			$storage_post_id,
+			WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
+			'{invalid json'
+		);
+
+		// Insert another valid update after the malformed one.
+		$valid_update_2 = array(
+			'type' => 'sync_step1',
+			'data' => 'c3RlcDE=',
+		);
+		$this->assertTrue( $storage->add_update( $room, $valid_update_2 ) );
+
+		$updates = $storage->get_updates_after_cursor( $room, $cursor );
+
+		// The malformed row should be dropped; only the valid updates should appear.
+		$this->assertCount( 2, $updates );
+		$this->assertSame( $valid_update, $updates[0] );
+		$this->assertSame( $valid_update_2, $updates[1] );
+	}
+
+	/*
 	 * Awareness tests.
 	 */
 
