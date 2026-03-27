@@ -192,7 +192,16 @@ final class WP_Connector_Registry {
 			if ( ! empty( $args['authentication']['credentials_url'] ) && is_string( $args['authentication']['credentials_url'] ) ) {
 				$connector['authentication']['credentials_url'] = $args['authentication']['credentials_url'];
 			}
-			if ( ! empty( $args['authentication']['setting_name'] ) && is_string( $args['authentication']['setting_name'] ) ) {
+			if ( isset( $args['authentication']['setting_name'] ) ) {
+				if ( ! is_string( $args['authentication']['setting_name'] ) || '' === $args['authentication']['setting_name'] ) {
+					_doing_it_wrong(
+						__METHOD__,
+						/* translators: %s: Connector ID. */
+						sprintf( __( 'Connector "%s" authentication setting_name must be a non-empty string.' ), esc_html( $id ) ),
+						'7.0.0'
+					);
+					return null;
+				}
 				$connector['authentication']['setting_name'] = $args['authentication']['setting_name'];
 			} else {
 				$connector['authentication']['setting_name'] = 'connectors_ai_' . str_replace( '-', '_', $id ) . '_api_key';

@@ -76,6 +76,46 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64957
+	 */
+	public function test_register_uses_custom_setting_name_when_provided() {
+		$args                                       = self::$default_args;
+		$args['authentication']['setting_name']     = 'wordpress_api_key';
+
+		$result = $this->registry->register( 'custom-setting', $args );
+
+		$this->assertSame( 'wordpress_api_key', $result['authentication']['setting_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_empty_setting_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                   = self::$default_args;
+		$args['authentication']['setting_name'] = '';
+
+		$result = $this->registry->register( 'empty-setting', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_non_string_setting_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                   = self::$default_args;
+		$args['authentication']['setting_name'] = 123;
+
+		$result = $this->registry->register( 'non-string-setting', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * @ticket 64791
 	 */
 	public function test_register_no_setting_name_for_none_auth() {
