@@ -25,7 +25,11 @@ const gutenbergBuildDir = path.join( gutenbergDir, 'build' );
  */
 const args = process.argv.slice( 2 );
 const buildDirArg = args.find( ( arg ) => arg.startsWith( '--build-dir=' ) );
-const buildTarget = 'src';
+const buildTarget = buildDirArg
+	? buildDirArg.split( '=' )[ 1 ]
+	: args.includes( '--dev' )
+	? 'src'
+	: 'build';
 
 const wpIncludesDir = path.join( rootDir, buildTarget, 'wp-includes' );
 
