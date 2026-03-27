@@ -46,7 +46,8 @@ function wp_is_connector_registered( string $id ): bool {
  *     @type string $type           The connector type, e.g. 'ai_provider'.
  *     @type array  $authentication {
  *         Authentication configuration. When method is 'api_key', includes
- *         credentials_url and setting_name. When 'none', only method is present.
+ *         credentials_url, setting_name, and optionally constant_name and
+ *         env_var_name. When 'none', only method is present.
  *
  *         @type string $method          The authentication method: 'api_key' or 'none'.
  *         @type string $credentials_url Optional. URL where users can obtain API credentials.
@@ -224,10 +225,10 @@ function _wp_connectors_init(): void {
 	 * Example — overriding metadata on an auto-discovered connector:
 	 *
 	 *     add_action( 'wp_connectors_init', function ( WP_Connector_Registry $registry ) {
-	 *         if ( $registry->is_registered( 'openai' ) ) {
-	 *             $connector = $registry->unregister( 'openai' );
-	 *             $connector['description'] = __( 'Custom description for OpenAI.', 'my-plugin' );
-	 *             $registry->register( 'openai', $connector );
+	 *         if ( $registry->is_registered( 'anthropic' ) ) {
+	 *             $connector = $registry->unregister( 'anthropic' );
+	 *             $connector['description'] = __( 'Custom description for Anthropic.', 'my-plugin' );
+	 *             $registry->register( 'anthropic', $connector );
 	 *         }
 	 *     } );
 	 *
