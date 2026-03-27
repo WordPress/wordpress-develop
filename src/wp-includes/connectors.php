@@ -495,7 +495,7 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'ai_provider' !== $connector_data['type'] || 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
 
@@ -507,7 +507,8 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 		$value = $data[ $setting_name ];
 
 		// On update, validate the key before masking.
-		if ( $is_update && is_string( $value ) && '' !== $value ) {
+		// Validation is only available for AI providers via the AI Client registry.
+		if ( $is_update && is_string( $value ) && '' !== $value && 'ai_provider' === $connector_data['type'] ) {
 			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
 				update_option( $setting_name, '' );
 				$data[ $setting_name ] = '';
@@ -533,16 +534,22 @@ add_filter( 'rest_post_dispatch', '_wp_connectors_rest_settings_dispatch', 10, 3
  * @access private
  */
 function _wp_register_default_connector_settings(): void {
-	$ai_registry = AiClient::defaultRegistry();
+	$ai_registry         = AiClient::defaultRegistry();
+	$registered_settings = get_registered_settings();
 
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'ai_provider' !== $connector_data['type'] || 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
+		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
 
-		// Skip registering the setting if the provider is not in the registry.
-		if ( ! $ai_registry->hasProvider( $connector_id ) ) {
+		// Skip if the setting is already registered (e.g. by an owning plugin).
+		if ( isset( $registered_settings[ $auth['setting_name'] ] ) ) {
+			continue;
+		}
+
+		// For AI providers, skip if the provider is not in the AI Client registry.
+		if ( 'ai_provider' === $connector_data['type'] && ! $ai_registry->hasProvider( $connector_id ) ) {
 			continue;
 		}
 
@@ -552,13 +559,13 @@ function _wp_register_default_connector_settings(): void {
 			array(
 				'type'              => 'string',
 				'label'             => sprintf(
-					/* translators: %s: AI provider name. */
+					/* translators: %s: Connector name. */
 					__( '%s API Key' ),
 					$connector_data['name']
 				),
 				'description'       => sprintf(
-					/* translators: %s: AI provider name. */
-					__( 'API key for the %s AI provider.' ),
+					/* translators: %s: Connector name. */
+					__( 'API key for the %s connector.' ),
 					$connector_data['name']
 				),
 				'default'           => '',
@@ -645,11 +652,17 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 		if ( 'api_key' === $auth['method'] ) {
 			$auth_out['settingName']    = $auth['setting_name'] ?? '';
 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
-			$auth_out['keySource']      = _wp_connectors_get_api_key_source( $auth['setting_name'] ?? '', $auth['env_var_name'] ?? '', $auth['constant_name'] ?? '' );
-			try {
-				$auth_out['isConnected'] = $registry->hasProvider( $connector_id ) && $registry->isProviderConfigured( $connector_id );
-			} catch ( Exception $e ) {
-				$auth_out['isConnected'] = false;
+			$key_source                 = _wp_connectors_get_api_key_source( $auth['setting_name'] ?? '', $auth['env_var_name'] ?? '', $auth['constant_name'] ?? '' );
+			$auth_out['keySource']      = $key_source;
+
+			if ( 'ai_provider' === $connector_data['type'] ) {
+				try {
+					$auth_out['isConnected'] = $registry->hasProvider( $connector_id ) && $registry->isProviderConfigured( $connector_id );
+				} catch ( Exception $e ) {
+					$auth_out['isConnected'] = false;
+				}
+			} else {
+				$auth_out['isConnected'] = 'none' !== $key_source;
 			}
 		}
 
