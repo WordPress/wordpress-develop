@@ -38,7 +38,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @since 7.0.0
 	 * @var string
 	 */
-	const SYNC_UPDATE_META_KEY = 'wp_sync_update';
+	const SYNC_UPDATE_META_KEY = 'wp_sync_update_data';
 
 	/**
 	 * Cache of cursors by room.
@@ -171,6 +171,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 				'post_status'    => 'publish',
 				'name'           => $room_hash,
 				'fields'         => 'ids',
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
 			)
 		);
 
