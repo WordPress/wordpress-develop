@@ -122,9 +122,9 @@ foreach ( array( 'user_register', 'deleted_user' ) as $action ) {
 }
 
 // Post meta.
-add_action( 'added_post_meta', 'wp_cache_set_needs_meta_query_flush' );
-add_action( 'updated_post_meta', 'wp_cache_set_needs_meta_query_flush' );
-add_action( 'deleted_post_meta', 'wp_cache_set_needs_meta_query_flush' );
+add_action( 'added_post_meta', 'wp_cache_set_needs_meta_query_flush', 10, 3 );
+add_action( 'updated_post_meta', 'wp_cache_set_needs_meta_query_flush', 10, 3 );
+add_action( 'deleted_post_meta', 'wp_cache_set_needs_meta_query_flush', 10, 3 );
 
 // User meta.
 add_action( 'added_user_meta', 'wp_cache_set_users_last_changed' );

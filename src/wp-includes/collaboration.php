@@ -83,3 +83,25 @@ function wp_collaboration_inject_setting() {
 		'after'
 	);
 }
+
+function wp_collaboration_register_meta() {
+	register_post_meta(
+		WP_Sync_Post_Meta_Storage::POST_TYPE,
+		WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
+		array(
+			'show_in_rest'           => false,
+			'jit_cache_invalidation' => true,
+		)
+	);
+
+	register_post_meta(
+		'',
+		'_edit_lock',
+		array(
+			'show_in_rest'           => false,
+			'jit_cache_invalidation' => true,
+		)
+	);
+}
+
+add_action( 'init', 'wp_collaboration_register_meta', 20 );
