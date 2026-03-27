@@ -334,7 +334,11 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 	}
 
 	// Register all default connectors directly on the registry.
+	// All AI providers use the connectors_ai_{$id}_api_key naming convention.
 	foreach ( $defaults as $id => $args ) {
+		if ( 'api_key' === ( $args['authentication']['method'] ?? '' ) && ! isset( $args['authentication']['setting_name'] ) ) {
+			$args['authentication']['setting_name'] = 'connectors_ai_' . str_replace( '-', '_', $id ) . '_api_key';
+		}
 		$registry->register( $id, $args );
 	}
 }

@@ -54,7 +54,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$this->assertSame( 'ai_provider', $result['type'] );
 		$this->assertSame( 'api_key', $result['authentication']['method'] );
 		$this->assertSame( 'https://example.com/keys', $result['authentication']['credentials_url'] );
-		$this->assertSame( 'connectors_ai_test_provider_api_key', $result['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_ai_provider_test_provider_api_key', $result['authentication']['setting_name'] );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	public function test_register_generates_setting_name_for_api_key() {
 		$result = $this->registry->register( 'myai', self::$default_args );
 
-		$this->assertSame( 'connectors_ai_myai_api_key', $result['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_ai_provider_myai_api_key', $result['authentication']['setting_name'] );
 	}
 
 	/**
@@ -72,7 +72,19 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	public function test_register_generates_setting_name_normalizes_hyphens() {
 		$result = $this->registry->register( 'my-ai', self::$default_args );
 
-		$this->assertSame( 'connectors_ai_my_ai_api_key', $result['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_ai_provider_my_ai_api_key', $result['authentication']['setting_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_generates_setting_name_using_type_and_id() {
+		$args         = self::$default_args;
+		$args['type'] = 'spam_filtering';
+
+		$result = $this->registry->register( 'akismet', $args );
+
+		$this->assertSame( 'connectors_spam_filtering_akismet_api_key', $result['authentication']['setting_name'] );
 	}
 
 	/**

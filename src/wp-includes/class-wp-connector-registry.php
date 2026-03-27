@@ -68,10 +68,10 @@ final class WP_Connector_Registry {
 	 * Validates the provided arguments and stores the connector in the registry.
 	 * For connectors with `api_key` authentication, a `setting_name` can be provided
 	 * explicitly. If omitted, one is automatically generated using the pattern
-	 * `connectors_ai_{$id}_api_key`, with hyphens in the ID normalized to underscores
-	 * (e.g., connector ID `openai` produces `connectors_ai_openai_api_key`, and
-	 * `azure-openai` produces `connectors_ai_azure_openai_api_key`). This setting
-	 * name is used for the Settings API registration and REST API exposure.
+	 * `connectors_{$type}_{$id}_api_key`, with hyphens in the type and ID normalized
+	 * to underscores (e.g., connector type `ai_provider` with ID `openai` produces
+	 * `connectors_ai_provider_openai_api_key`). This setting name is used for the
+	 * Settings API registration and REST API exposure.
 	 *
 	 * Registering a connector with an ID that is already registered will trigger a
 	 * `_doing_it_wrong()` notice and return `null`. To override an existing connector,
@@ -96,7 +96,8 @@ final class WP_Connector_Registry {
 	 *         @type string $method          Required. The authentication method: 'api_key' or 'none'.
 	 *         @type string $credentials_url Optional. URL where users can obtain API credentials.
 	 *         @type string $setting_name    Optional. The setting name for the API key.
-	 *                                       When omitted, auto-generated as `connectors_ai_{$id}_api_key`.
+	 *                                       When omitted, auto-generated as
+	 *                                       `connectors_{$type}_{$id}_api_key`.
 	 *                                       Must be a non-empty string when provided.
 	 *     }
 	 *     @type array  $plugin         {
@@ -207,7 +208,10 @@ final class WP_Connector_Registry {
 				}
 				$connector['authentication']['setting_name'] = $args['authentication']['setting_name'];
 			} else {
-				$connector['authentication']['setting_name'] = 'connectors_ai_' . str_replace( '-', '_', $id ) . '_api_key';
+				$sanitized_type = str_replace( '-', '_', $args['type'] );
+				$sanitized_id   = str_replace( '-', '_', $id );
+
+				$connector['authentication']['setting_name'] = "connectors_{$sanitized_type}_{$sanitized_id}_api_key";
 			}
 		}
 
