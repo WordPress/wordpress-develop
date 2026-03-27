@@ -66,7 +66,12 @@ class Tests_Script_Modules_WpScriptModules_ResourceHints extends WP_UnitTestCase
 		$this->script_modules->enqueue(
 			'my-module',
 			'/local/module.js',
-			array( array( 'id' => 'dep-module', 'import' => 'dynamic' ) )
+			array(
+				array(
+					'id' => 'dep-module',
+					'import' => 'dynamic',
+				),
+			)
 		);
 
 		$hints = $this->script_modules->filter_resource_hints( array(), 'dns-prefetch' );
