@@ -373,7 +373,7 @@ class WP_HTTP_Polling_Sync_Server {
 			$updated_awareness[] = array(
 				'client_id'  => $client_id,
 				'state'      => $awareness_update,
-				'updated_at' => ceil( time() / $granularity ) * $granularity, // Round up to nearest granularity to reduce database churn.
+				'updated_at' => ceil( $current_time / $granularity ) * $granularity, // Round up to nearest granularity to reduce database churn.
 				'wp_user_id' => get_current_user_id(),
 			);
 		}
