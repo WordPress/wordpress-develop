@@ -145,6 +145,12 @@ jQuery( function($) {
 		t = $('#quick-press').on( 'submit', function( e ) {
 			e.preventDefault();
 
+			// Don't submit if both the title and content are empty.
+			if ( '' === t.find('#title').val() && '' === t.find('#content').val() ) {
+				$('#title').trigger( 'focus' );
+				return;
+			}
+
 			// Show a spinner.
 			$('#dashboard_quick_press #publishing-action .spinner').show();
 
