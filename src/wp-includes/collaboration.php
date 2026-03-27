@@ -84,6 +84,9 @@ function wp_collaboration_inject_setting() {
 	);
 }
 
+/**
+ * Register post meta used for real-time collaboration.
+ */
 function wp_collaboration_register_meta() {
 	register_post_meta(
 		WP_Sync_Post_Meta_Storage::POST_TYPE,
@@ -94,6 +97,7 @@ function wp_collaboration_register_meta() {
 		)
 	);
 
+	// @todo This should probably go elsewhere.
 	register_post_meta(
 		'',
 		'_edit_lock',

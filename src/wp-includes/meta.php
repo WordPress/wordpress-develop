@@ -1396,6 +1396,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 5.5.0 The `$default` argument was added to the arguments array.
  * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
  * @since 6.7.0 The `label` argument was added to the arguments array.
+ * @since 7.0.0 The `$jit_cache_invalidation` argument was added to the arguments array.
  *
  * @global array $wp_meta_keys Global registry for meta keys.
  *
@@ -1405,27 +1406,30 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @param array        $args {
  *     Data used to describe the meta key when registered.
  *
- *     @type string     $object_subtype    A subtype; e.g. if the object type is "post", the post type. If left empty,
- *                                         the meta key will be registered on the entire object type. Default empty.
- *     @type string     $type              The type of data associated with this meta key.
- *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
- *     @type string     $label             A human-readable label of the data attached to this meta key.
- *     @type string     $description       A description of the data attached to this meta key.
- *     @type bool       $single            Whether the meta key has one value per object, or an array of values per object.
- *     @type mixed      $default           The default value returned from get_metadata() if no value has been set yet.
- *                                         When using a non-single meta key, the default value is for the first entry.
- *                                         In other words, when calling get_metadata() with `$single` set to `false`,
- *                                         the default value given here will be wrapped in an array.
- *     @type callable   $sanitize_callback A function or method to call when sanitizing `$meta_key` data.
- *     @type callable   $auth_callback     Optional. A function or method to call when performing edit_post_meta,
- *                                         add_post_meta, and delete_post_meta capability checks.
- *     @type bool|array $show_in_rest      Whether data associated with this meta key can be considered public and
- *                                         should be accessible via the REST API. A custom post type must also declare
- *                                         support for custom fields for registered meta to be accessible via REST.
- *                                         When registering complex meta values this argument may optionally be an
- *                                         array with 'schema' or 'prepare_callback' keys instead of a boolean.
- *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key. Can only be used when the
- *                                         object type is 'post'.
+ *     @type string     $object_subtype         A subtype; e.g. if the object type is "post", the post type. If left empty,
+ *                                              the meta key will be registered on the entire object type. Default empty.
+ *     @type string     $type                   The type of data associated with this meta key.
+ *                                              Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *     @type string     $label                  A human-readable label of the data attached to this meta key.
+ *     @type string     $description            A description of the data attached to this meta key.
+ *     @type bool       $single                 Whether the meta key has one value per object, or an array of values per object.
+ *     @type mixed      $default                The default value returned from get_metadata() if no value has been set yet.
+ *                                              When using a non-single meta key, the default value is for the first entry.
+ *                                              In other words, when calling get_metadata() with `$single` set to `false`,
+ *                                              the default value given here will be wrapped in an array.
+ *     @type callable   $sanitize_callback      A function or method to call when sanitizing `$meta_key` data.
+ *     @type callable   $auth_callback          Optional. A function or method to call when performing edit_post_meta,
+ *                                              add_post_meta, and delete_post_meta capability checks.
+ *     @type bool|array $show_in_rest           Whether data associated with this meta key can be considered public and
+ *                                              should be accessible via the REST API. A custom post type must also declare
+ *                                              support for custom fields for registered meta to be accessible via REST.
+ *                                              When registering complex meta values this argument may optionally be an
+ *                                              array with 'schema' or 'prepare_callback' keys instead of a boolean.
+ *     @type bool       $revisions_enabled      Whether to enable revisions support for this meta_key. Can only be used when the
+ *                                              object type is 'post'.
+ *     @type bool       $jit_cache_invalidation Whether to enable just-in-time cache invalidation for this meta key. When enabled, the cache
+ *                                              for WP_Query will be invalidated the next time a meta query is run. Can only be used when the
+ *                                              object type is 'post'.
  * }
  * @param string|array $deprecated Deprecated. Use `$args` instead.
  * @return bool True if the meta key was successfully registered in the global array, false if not.
