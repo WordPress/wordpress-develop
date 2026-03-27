@@ -214,10 +214,7 @@ final class WP_Connector_Registry {
 				}
 				$connector['authentication']['setting_name'] = $args['authentication']['setting_name'];
 			} else {
-				$sanitized_type = str_replace( '-', '_', $args['type'] );
-				$sanitized_id   = str_replace( '-', '_', $id );
-
-				$connector['authentication']['setting_name'] = "connectors_{$sanitized_type}_{$sanitized_id}_api_key";
+				$connector['authentication']['setting_name'] = 'connectors_' . str_replace( '-', '_', $args['type'] . '_' . $id ) . '_api_key';
 			}
 			if ( isset( $args['authentication']['constant_name'] ) ) {
 				if ( ! is_string( $args['authentication']['constant_name'] ) || '' === $args['authentication']['constant_name'] ) {
