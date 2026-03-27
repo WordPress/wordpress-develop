@@ -362,6 +362,11 @@ class WP_HTTP_Polling_Sync_Server {
 		 * awareness state. This allows implementations to increase or reduce the granularity
 		 * of awareness updates which can help reduce server load.
 		 *
+		 * The default database granularity of 10 seconds reduces the number of writes to the
+		 * database as WordPress only makes the database call if the transient has changed.
+		 * Increasing the granularity by lowering this number will increase the number of
+		 * database writes.
+		 *
 		 * @since 7.0.0
 		 *
 		 * @param int $granularity Granularity in seconds. Default 10.
