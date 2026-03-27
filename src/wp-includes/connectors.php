@@ -385,35 +385,32 @@ function _wp_connectors_mask_api_key( string $key ): string {
 }
 
 /**
- * Determines the source of an API key for a given provider.
+ * Determines the source of an API key for a given connector.
  *
  * Checks in order: environment variable, PHP constant, database.
- * Uses the same naming convention as the WP AI Client ProviderRegistry.
+ * Environment variable and constant are only checked when their
+ * respective names are provided.
  *
  * @since 7.0.0
  * @access private
  *
- * @param string $provider_id  The provider ID (e.g., 'openai', 'anthropic', 'google').
- * @param string $setting_name The option name for the API key (e.g., 'connectors_ai_openai_api_key').
+ * @param string $setting_name  The option name for the API key (e.g., 'connectors_ai_openai_api_key').
+ * @param string $env_var_name  Optional. Environment variable name to check (e.g., 'OPENAI_API_KEY').
+ * @param string $constant_name Optional. PHP constant name to check (e.g., 'OPENAI_API_KEY').
  * @return string The key source: 'env', 'constant', 'database', or 'none'.
  */
-function _wp_connectors_get_api_key_source( string $provider_id, string $setting_name ): string {
-	// Convert provider ID to CONSTANT_CASE for env var name.
-	// e.g., 'openai' -> 'OPENAI', 'anthropic' -> 'ANTHROPIC'.
-	$constant_case_id = strtoupper(
-		preg_replace( '/([a-z])([A-Z])/', '$1_$2', str_replace( '-', '_', $provider_id ) )
-	);
-	$env_var_name     = "{$constant_case_id}_API_KEY";
-
+function _wp_connectors_get_api_key_source( string $setting_name, string $env_var_name = '', string $constant_name = '' ): string {
 	// Check environment variable first.
-	$env_value = getenv( $env_var_name );
-	if ( false !== $env_value && '' !== $env_value ) {
-		return 'env';
+	if ( '' !== $env_var_name ) {
+		$env_value = getenv( $env_var_name );
+		if ( false !== $env_value && '' !== $env_value ) {
+			return 'env';
+		}
 	}
 
 	// Check PHP constant.
-	if ( defined( $env_var_name ) ) {
-		$const_value = constant( $env_var_name );
+	if ( '' !== $constant_name && defined( $constant_name ) ) {
+		$const_value = constant( $constant_name );
 		if ( is_string( $const_value ) && '' !== $const_value ) {
 			return 'constant';
 		}
@@ -597,7 +594,7 @@ function _wp_connectors_pass_default_keys_to_ai_client(): void {
 			}
 
 			// Skip if the key is already provided via env var or constant.
-			$key_source = _wp_connectors_get_api_key_source( $connector_id, $auth['setting_name'] );
+			$key_source = _wp_connectors_get_api_key_source( $auth['setting_name'], $auth['env_var_name'] ?? '', $auth['constant_name'] ?? '' );
 			if ( 'env' === $key_source || 'constant' === $key_source ) {
 				continue;
 			}
@@ -648,7 +645,7 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 		if ( 'api_key' === $auth['method'] ) {
 			$auth_out['settingName']    = $auth['setting_name'] ?? '';
 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
-			$auth_out['keySource']      = _wp_connectors_get_api_key_source( $connector_id, $auth['setting_name'] ?? '' );
+			$auth_out['keySource']      = _wp_connectors_get_api_key_source( $auth['setting_name'] ?? '', $auth['env_var_name'] ?? '', $auth['constant_name'] ?? '' );
 			try {
 				$auth_out['isConnected'] = $registry->hasProvider( $connector_id ) && $registry->isProviderConfigured( $connector_id );
 			} catch ( Exception $e ) {
