@@ -358,11 +358,11 @@ class WP_HTTP_Polling_Sync_Server {
 		/**
 		 * Filters granularity used for rounding up a client's awareness timestamp.
 		 *
-		 * Use to modify the granularity used when recording the latest time a client update their
+		 * Modifies the granularity used when recording the latest time a client updates their
 		 * awareness state. This allows implementations to increase or reduce the granularity
-		 * of awareness updates which can help reduce server load.
+		 * of awareness updates for the desired balance of real-time updates and server load.
 		 *
-		 * The default database granularity of 10 seconds reduces the number of writes to the
+		 * The default database granularity of 10 seconds limits the number of writes to the
 		 * database as WordPress only makes the database call if the transient has changed.
 		 * Increasing the granularity by lowering this number will increase the number of
 		 * database writes.

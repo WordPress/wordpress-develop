@@ -1514,7 +1514,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	if ( $args['jit_cache_invalidation'] && 'post' !== $object_type ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Just-in-time cache invalidation cannot be enabled for meta keys unless the object type is "post".' ), '7.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Just-in-time cache invalidation for meta keys is only supported with the "post" object type.' ), '7.0.0' );
 
 		return false;
 	}
