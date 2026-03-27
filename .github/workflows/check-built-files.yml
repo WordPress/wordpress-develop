@@ -23,11 +23,14 @@ on:
       - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/check-built-files.yml'
+      - '.github/workflows/reusable-check-built-files.yml'
       # Changes to the default themes should be handled by the themes workflows.
       - '!src/wp-content/themes/twenty**'
 

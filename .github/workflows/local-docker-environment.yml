@@ -17,6 +17,8 @@ on:
       - 'package*.json'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       - '.npmrc'
       - '.nvmrc'
