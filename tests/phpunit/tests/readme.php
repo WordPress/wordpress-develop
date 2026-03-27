@@ -30,7 +30,7 @@ class Tests_Readme extends WP_UnitTestCase {
 	 */
 	public function test_readme_mysql_version() {
 		// This test is designed to only run on trunk.
-		//      $this->skipOnAutomatedBranches();
+	  	$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
