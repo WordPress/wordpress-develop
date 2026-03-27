@@ -126,7 +126,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		 * soon, so the transient can be maintained for longer to avoid additional
 		 * entries in the options table.
 		 */
-		set_transient( self::AWARENESS_TRANSIENT_PREFIX . ":{$room_hash}", $awareness, HOUR_IN_SECONDS );
+		set_transient( self::AWARENESS_TRANSIENT_PREFIX . ":{$room_hash}", $awareness, DAY_IN_SECONDS );
 		return true;
 	}
 
