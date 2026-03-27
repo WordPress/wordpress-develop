@@ -741,6 +741,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_adding_meta( $query_args ) {
 		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => true ) );
@@ -770,6 +772,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation_updating
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_updating_meta( $query_args ) {
 		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => true ) );
@@ -800,6 +804,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_deleting_meta( $query_args ) {
 		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => true ) );
@@ -830,6 +836,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_adding_meta_does_not_affect_unregistered_meta( $query_args ) {
 		$post_id = self::factory()->post->create();
@@ -859,6 +867,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation_updating
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_updating_meta_does_not_affect_unregistered_meta( $query_args ) {
 		$post_id = self::factory()->post->create();
@@ -889,6 +899,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_deleting_meta_does_not_affect_unregistered_meta( $query_args ) {
 		$post_id = self::factory()->post->create();
@@ -919,6 +931,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_adding_meta_does_not_affect_registered_meta_without_jit_registration( $query_args ) {
 		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => false ) );
@@ -949,6 +963,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation_updating
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_updating_meta_does_not_affect_registered_meta_without_jit_registration( $query_args ) {
 		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => false ) );
@@ -980,6 +996,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 64696
 	 *
 	 * @dataProvider data_jit_meta_query_invalidation
+	 *
+	 * @param array $query_args Array of query arguments to test JIT meta query cache invalidation with.
 	 */
 	public function test_jit_meta_query_invalidation_deleting_meta_does_not_affect_registered_meta_without_jit_registration( $query_args ) {
 		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => false ) );
