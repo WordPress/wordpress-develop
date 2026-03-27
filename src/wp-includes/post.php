@@ -8454,8 +8454,23 @@ function wp_cache_set_posts_last_changed() {
  *
  * @since 7.0.0
  */
-function wp_cache_set_needs_meta_query_flush() {
-	wp_cache_delete( 'wp_query_meta_query_updated', 'post_meta' );
+function wp_cache_set_needs_meta_query_flush( $meta_ids, $object_id, $meta_key ) {
+	$post_type = get_post_type( $object_id );
+	$registered_meta_keys = array_merge(
+		get_registered_meta_keys( 'post' ),
+		get_registered_meta_keys( 'post', $post_type )
+	);
+	$meta_key_data = array();
+	if ( isset( $registered_meta_keys[ $meta_key ] ) ) {
+		$meta_key_data = $registered_meta_keys[ $meta_key ];
+	}
+
+	if ( isset( $meta_key_data['jit_cache_invalidation'] ) && $meta_key_data['jit_cache_invalidation'] ) {
+		wp_cache_delete( 'wp_query_meta_query_updated', 'post_meta' );
+		return;
+	}
+
+	wp_cache_set_posts_last_changed();
 }
 
 /**

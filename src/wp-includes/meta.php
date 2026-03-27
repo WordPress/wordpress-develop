@@ -1450,6 +1450,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		'auth_callback'     => null,
 		'show_in_rest'      => false,
 		'revisions_enabled' => false,
+		'jit_cache_invalidation' => false,
 	);
 
 	// There used to be individual args for sanitize and auth callbacks.
