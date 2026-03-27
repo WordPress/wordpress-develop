@@ -743,6 +743,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @dataProvider data_jit_meta_query_invalidation
 	 */
 	public function test_jit_meta_query_invalidation_adding_meta() {
+		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => true ) );
 		$post_id = self::factory()->post->create();
 		wp_cache_set_posts_last_changed();
 		$posts_last_changed_initial = wp_cache_get_last_changed( 'posts' );
@@ -791,6 +792,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @dataProvider data_jit_meta_query_invalidation
 	 */
 	public function test_jit_meta_query_invalidation_updating_meta() {
+		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => true ) );
 		$post_id = self::factory()->post->create();
 		wp_cache_set_posts_last_changed();
 		add_post_meta( $post_id, 'foo', 'baz' );
@@ -840,6 +842,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @dataProvider data_jit_meta_query_invalidation
 	 */
 	public function test_jit_meta_query_invalidation_deleting_meta() {
+		register_post_meta( 'post', 'foo', array( 'jit_cache_invalidation' => true ) );
 		$post_id = self::factory()->post->create();
 		wp_cache_set_posts_last_changed();
 		add_post_meta( $post_id, 'foo', 'bar' );
