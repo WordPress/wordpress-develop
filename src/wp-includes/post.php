@@ -8450,9 +8450,20 @@ function wp_cache_set_posts_last_changed() {
 }
 
 /**
- * Marks the WP_Query cache as needing to be flushed after a meta query change.
+ * Handles cache invalidation for post meta updates.
+ *
+ * For post meta registered as using just-in-time cache invalidation, the
+ * post_meta cache is updated to indicate that this will be required for the
+ * next `WP_Query` call containing a meta query.
+ *
+ * For unregisistered post meta or post meta that doesn't use JIT cache invalidation
+ * the `WP_Query` cache group is flushed by calling wp_cache_set_posts_last_changed().
  *
  * @since 7.0.0
+ *
+ * @param int    $meta_ids   Array of meta IDs that were updated.
+ * @param int    $object_id  Object ID for which the meta was updated.
+ * @param string $meta_key   Meta key that was updated.
  */
 function wp_cache_set_needs_meta_query_flush( $meta_ids, $object_id, $meta_key ) {
 	$post_type = get_post_type( $object_id );
