@@ -342,7 +342,6 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 	}
 
 	// Register all default connectors directly on the registry.
-	// All AI providers use the {CONSTANT_CASE_ID}_API_KEY naming convention.
 	foreach ( $defaults as $id => $args ) {
 		if ( 'api_key' === ( $args['authentication']['method'] ?? '' ) ) {
 			$sanitized_id = str_replace( '-', '_', $id );
@@ -351,16 +350,17 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 				$args['authentication']['setting_name'] = "connectors_ai_{$sanitized_id}_api_key";
 			}
 
-			if ( ! isset( $args['authentication']['constant_name'] ) ) {
-				$constant_case = strtoupper( preg_replace( '/([a-z])([A-Z])/', '$1_$2', $sanitized_id ) );
+			// All AI providers use the {CONSTANT_CASE_ID}_API_KEY naming convention.
+			if ( ! isset( $args['authentication']['constant_name'] ) || ! isset( $args['authentication']['env_var_name'] ) ) {
+				$constant_case_key = strtoupper( preg_replace( '/([a-z])([A-Z])/', '$1_$2', $sanitized_id ) ) . '_API_KEY';
 
-				$args['authentication']['constant_name'] = "{$constant_case}_API_KEY";
-			}
+				if ( ! isset( $args['authentication']['constant_name'] ) ) {
+					$args['authentication']['constant_name'] = $constant_case_key;
+				}
 
-			if ( ! isset( $args['authentication']['env_var_name'] ) ) {
-				$constant_case = $constant_case ?? strtoupper( preg_replace( '/([a-z])([A-Z])/', '$1_$2', $sanitized_id ) );
-
-				$args['authentication']['env_var_name'] = "{$constant_case}_API_KEY";
+				if ( ! isset( $args['authentication']['env_var_name'] ) ) {
+					$args['authentication']['env_var_name'] = $constant_case_key;
+				}
 			}
 		}
 		$registry->register( $id, $args );
