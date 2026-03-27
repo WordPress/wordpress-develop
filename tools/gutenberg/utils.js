@@ -42,13 +42,19 @@ function readGutenbergConfig() {
 }
 
 /**
- * Trigger a fresh download of the Gutenberg artifact by spawning download.js.
- * Exits the process if the download fails.
+ * Trigger a fresh download of the Gutenberg artifact by spawning download.js,
+ * then run `grunt build:gutenberg --dev` to copy the build to src/.
+ * Exits the process if either step fails.
  */
 function downloadGutenberg() {
-	const result = spawnSync( 'node', [ path.join( __dirname, 'download.js' ) ], { stdio: 'inherit' } );
-	if ( result.status !== 0 ) {
-		process.exit( result.status ?? 1 );
+	const downloadResult = spawnSync( 'node', [ path.join( __dirname, 'download.js' ) ], { stdio: 'inherit' } );
+	if ( downloadResult.status !== 0 ) {
+		process.exit( downloadResult.status ?? 1 );
+	}
+
+	const buildResult = spawnSync( 'grunt', [ 'build:gutenberg', '--dev' ], { stdio: 'inherit', shell: true } );
+	if ( buildResult.status !== 0 ) {
+		process.exit( buildResult.status ?? 1 );
 	}
 }
 
