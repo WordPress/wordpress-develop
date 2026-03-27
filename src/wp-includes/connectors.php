@@ -343,7 +343,7 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 
 	// Register all default connectors directly on the registry.
 	foreach ( $defaults as $id => $args ) {
-		if ( 'api_key' === ( $args['authentication']['method'] ?? '' ) ) {
+		if ( 'api_key' === $args['authentication']['method'] ) {
 			$sanitized_id = str_replace( '-', '_', $id );
 
 			if ( ! isset( $args['authentication']['setting_name'] ) ) {
