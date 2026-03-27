@@ -91,8 +91,8 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_uses_custom_setting_name_when_provided() {
-		$args                                       = self::$default_args;
-		$args['authentication']['setting_name']     = 'wordpress_api_key';
+		$args                                   = self::$default_args;
+		$args['authentication']['setting_name'] = 'wordpress_api_key';
 
 		$result = $this->registry->register( 'custom-setting', $args );
 
@@ -131,8 +131,8 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_stores_constant_name_when_provided() {
-		$args                                        = self::$default_args;
-		$args['authentication']['constant_name']     = 'MY_PROVIDER_API_KEY';
+		$args                                    = self::$default_args;
+		$args['authentication']['constant_name'] = 'MY_PROVIDER_API_KEY';
 
 		$result = $this->registry->register( 'my-provider', $args );
 
@@ -180,8 +180,8 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_stores_env_var_name_when_provided() {
-		$args                                       = self::$default_args;
-		$args['authentication']['env_var_name']     = 'MY_PROVIDER_API_KEY';
+		$args                                   = self::$default_args;
+		$args['authentication']['env_var_name'] = 'MY_PROVIDER_API_KEY';
 
 		$result = $this->registry->register( 'my-provider', $args );
 
