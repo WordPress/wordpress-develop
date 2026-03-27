@@ -43,7 +43,7 @@ function wp_is_connector_registered( string $id ): bool {
  *     @type string $name           The connector's display name.
  *     @type string $description    The connector's description.
  *     @type string $logo_url       Optional. URL to the connector's logo image.
- *     @type string $type           The connector type. Currently, only 'ai_provider' is supported.
+ *     @type string $type           The connector type, e.g. 'ai_provider'.
  *     @type array  $authentication {
  *         Authentication configuration. When method is 'api_key', includes
  *         credentials_url and setting_name. When 'none', only method is present.
@@ -62,7 +62,7 @@ function wp_is_connector_registered( string $id ): bool {
  *     name: non-empty-string,
  *     description: non-empty-string,
  *     logo_url?: non-empty-string,
- *     type: 'ai_provider',
+ *     type: non-empty-string,
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
@@ -98,7 +98,7 @@ function wp_get_connector( string $id ): ?array {
  *         @type string      $name           The connector's display name.
  *         @type string      $description    The connector's description.
  *         @type string      $logo_url       Optional. URL to the connector's logo image.
- *         @type string      $type           The connector type. Currently, only 'ai_provider' is supported.
+ *         @type string      $type           The connector type, e.g. 'ai_provider'.
  *         @type array       $authentication {
  *             Authentication configuration. When method is 'api_key', includes
  *             credentials_url and setting_name. When 'none', only method is present.
@@ -118,7 +118,7 @@ function wp_get_connector( string $id ): ?array {
  *     name: non-empty-string,
  *     description: non-empty-string,
  *     logo_url?: non-empty-string,
- *     type: 'ai_provider',
+ *     type: non-empty-string,
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,

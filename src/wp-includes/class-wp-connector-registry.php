@@ -31,7 +31,7 @@
  *     name: non-empty-string,
  *     description: non-empty-string,
  *     logo_url?: non-empty-string,
- *     type: 'ai_provider',
+ *     type: non-empty-string,
  *     authentication: array{
  *         method: 'api_key'|'none',
  *         credentials_url?: non-empty-string,
@@ -66,12 +66,12 @@ final class WP_Connector_Registry {
 	 * Registers a new connector.
 	 *
 	 * Validates the provided arguments and stores the connector in the registry.
-	 * For connectors with `api_key` authentication, a `setting_name` is automatically
-	 * generated using the pattern `connectors_ai_{$id}_api_key`, with hyphens in the ID
-	 * normalized to underscores (e.g., connector ID `openai` produces
-	 * `connectors_ai_openai_api_key`, and `azure-openai` produces
-	 * `connectors_ai_azure_openai_api_key`). This setting name is used for the Settings
-	 * API registration and REST API exposure.
+	 * For connectors with `api_key` authentication, a `setting_name` can be provided
+	 * explicitly. If omitted, one is automatically generated using the pattern
+	 * `connectors_ai_{$id}_api_key`, with hyphens in the ID normalized to underscores
+	 * (e.g., connector ID `openai` produces `connectors_ai_openai_api_key`, and
+	 * `azure-openai` produces `connectors_ai_azure_openai_api_key`). This setting
+	 * name is used for the Settings API registration and REST API exposure.
 	 *
 	 * Registering a connector with an ID that is already registered will trigger a
 	 * `_doing_it_wrong()` notice and return `null`. To override an existing connector,
@@ -89,12 +89,15 @@ final class WP_Connector_Registry {
 	 *     @type string $name           Required. The connector's display name.
 	 *     @type string $description    Optional. The connector's description. Default empty string.
 	 *     @type string $logo_url       Optional. URL to the connector's logo image.
-	 *     @type string $type           Required. The connector type. Currently, only 'ai_provider' is supported.
+	 *     @type string $type           Required. The connector type, e.g. 'ai_provider'.
 	 *     @type array  $authentication {
 	 *         Required. Authentication configuration.
 	 *
 	 *         @type string $method          Required. The authentication method: 'api_key' or 'none'.
 	 *         @type string $credentials_url Optional. URL where users can obtain API credentials.
+	 *         @type string $setting_name    Optional. The setting name for the API key.
+	 *                                       When omitted, auto-generated as `connectors_ai_{$id}_api_key`.
+	 *                                       Must be a non-empty string when provided.
 	 *     }
 	 *     @type array  $plugin         {
 	 *         Optional. Plugin data for install/activate UI.
