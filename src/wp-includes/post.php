@@ -8453,10 +8453,10 @@ function wp_cache_set_posts_last_changed() {
  * Handles cache invalidation for post meta updates.
  *
  * For post meta registered as using just-in-time cache invalidation, the
- * post_meta cache is updated to indicate that this will be required for the
+ * post_meta cache is updated to indicate that a cache flush is required for the
  * next `WP_Query` call containing a meta query.
  *
- * For unregisistered post meta or post meta that doesn't use JIT cache invalidation
+ * For unregisistered post meta or post meta without JIT cache invalidation support
  * the `WP_Query` cache group is flushed by calling wp_cache_set_posts_last_changed().
  *
  * @since 7.0.0

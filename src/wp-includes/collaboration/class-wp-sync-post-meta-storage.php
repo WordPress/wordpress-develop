@@ -122,9 +122,9 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		/*
 		 * Maintain transient for longer than awareness.
 		 *
-		 * The more recently a room is used, the more likely it is to be used again
-		 * soon, so the transient can be maintained for longer to avoid additional
-		 * entries in the options table.
+		 * Recently used rooms are more likely to be used again soon. Maintaining the
+		 * transient longer than the awareness can avoid adding new entries in the options
+		 * table unnecessarily.
 		 */
 		set_transient( self::AWARENESS_TRANSIENT_PREFIX . ":{$room_hash}", $awareness, DAY_IN_SECONDS );
 		return true;
