@@ -6,6 +6,9 @@
  * @group oembed
  * @group oembed-headers
  * @group xdebug
+ *
+ * @covers WP_REST_Request
+ * @covers WP_REST_Server::dispatch
  */
 class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 

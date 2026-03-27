@@ -2,8 +2,14 @@
 
 /**
  * @group oembed
+ *
+ * @covers ::wp_oembed_add_discovery_links
  */
 class Tests_oEmbed_Discovery extends WP_UnitTestCase {
+
+	/**
+	 * @ticket 34971
+	 */
 	public function test_add_oembed_discovery_links_non_singular() {
 		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ) );
 	}

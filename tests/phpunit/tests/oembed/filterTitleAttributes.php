@@ -2,6 +2,8 @@
 
 /**
  * @group oembed
+ *
+ * @covers ::wp_filter_oembed_iframe_title_attribute
  */
 class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 	public function data_filter_oembed_iframe_title_attribute() {
