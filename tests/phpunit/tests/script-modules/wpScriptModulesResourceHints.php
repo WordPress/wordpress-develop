@@ -68,7 +68,7 @@ class Tests_Script_Modules_WpScriptModules_ResourceHints extends WP_UnitTestCase
 			'/local/module.js',
 			array(
 				array(
-					'id' => 'dep-module',
+					'id'     => 'dep-module',
 					'import' => 'dynamic',
 				),
 			)
