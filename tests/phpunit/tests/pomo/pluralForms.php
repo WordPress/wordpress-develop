@@ -41,7 +41,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 * @ticket 41562
 	 * @group external-http
 	 */
-	public function test_regression() {
+	public function test_regression(): void {
 		require_once dirname( __DIR__, 2 ) . '/includes/plural-form-function.php';
 
 		foreach ( self::data_locales() as list( $lang, $nplurals, $expression ) ) {
@@ -74,7 +74,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 	/**
 	 * @return array<int, array{ 0: string, 1: int, 2: string }>
 	 */
-	public static function data_locales() {
+	public static function data_locales(): array {
 		if ( ! class_exists( 'GP_Locales' ) ) {
 			$filename = download_url( 'https://raw.githubusercontent.com/GlotPress/GlotPress-WP/develop/locales/locales.php' );
 			if ( is_wp_error( $filename ) ) {
