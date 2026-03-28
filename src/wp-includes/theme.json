@@ -4,9 +4,6 @@
 	"settings": {
 		"appearanceTools": false,
 		"useRootPaddingAwareAlignments": false,
-		"background": {
-			"gradient": true
-		},
 		"border": {
 			"color": false,
 			"radius": false,
