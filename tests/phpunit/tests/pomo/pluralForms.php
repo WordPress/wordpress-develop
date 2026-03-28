@@ -72,6 +72,11 @@ class PluralFormsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Gets locale data.
+	 *
+	 * Note: Do not use this method directly as a data provider, or else it may cause an unconditional HTTP request
+	 * during PHPUnit initialization. See <https://core.trac.wordpress.org/ticket/64963>.
+	 *
 	 * @return array<int, array{ 0: string, 1: int, 2: string }>
 	 */
 	public static function data_locales(): array {
