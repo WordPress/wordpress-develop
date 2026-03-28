@@ -12,11 +12,17 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	protected static $editor_id;
 	protected static $subscriber_id;
 	protected static $post_id;
+	protected static $category_id;
+	protected static $tag_id;
+	protected static $comment_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
+		self::$category_id   = $factory->category->create();
+		self::$tag_id        = $factory->tag->create();
+		self::$comment_id    = $factory->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 
 		// Enable option in setUpBeforeClass to ensure REST routes are registered.
 		update_option( 'wp_collaboration_enabled', 1 );
@@ -27,6 +33,9 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$subscriber_id );
 		delete_option( 'wp_collaboration_enabled' );
 		wp_delete_post( self::$post_id, true );
+		wp_delete_term( self::$category_id, 'category' );
+		wp_delete_term( self::$tag_id, 'post_tag' );
+		wp_delete_comment( self::$comment_id, true );
 	}
 
 	public function set_up() {
@@ -273,6 +282,107 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 				$this->build_room( 'unknown/entity' ),
 			)
 		);
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_malformed_object_id_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:1abc' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_zero_object_id_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:0' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_post_type_mismatch_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		// The test post is of type 'post', not 'page'.
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/page:' . self::$post_id ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_taxonomy_term_allowed() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:' . self::$category_id ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_taxonomy_term_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:999999' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_taxonomy_term_wrong_taxonomy_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		// The tag term exists in 'post_tag', not 'category'.
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:' . self::$tag_id ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_comment_allowed() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'root/comment:' . self::$comment_id ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_comment_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'root/comment:999999' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_post_type_collection_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/nonexistent_type' ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
