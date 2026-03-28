@@ -1543,7 +1543,7 @@ class WP_Automatic_Updater {
 		if ( WP_DEBUG && ( 'fail' === $type || 'mixed' === $type ) ) {
 			$fatal_error = get_transient( 'wp_updater_last_fatal_error' );
 			if ( $fatal_error ) {
-				$email['body'] .= "\n\n=== " . __( 'LAST FATAL PHP ERROR' ) . " ===\n";
+				$email['body'] .= "\n\n=== " . __( 'Last fatal PHP error', 'default' ) . " ===\n";
 				$email['body'] .= '• ' . $fatal_error . "\n";
 				$email['body'] .= "========================================\n";
 				delete_transient( 'wp_updater_last_fatal_error' );
