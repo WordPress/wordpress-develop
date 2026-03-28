@@ -54,7 +54,7 @@ class WP_HTTP_Polling_Sync_Server {
 	const MAX_ROOMS_PER_REQUEST = 50;
 
 	/**
-	 * Maximum size (in bytes) of a single update data string.
+	 * Maximum length of a single update data string.
 	 *
 	 * @since 7.0.0
 	 * @var int
@@ -357,11 +357,12 @@ class WP_HTTP_Polling_Sync_Server {
 
 			// Handle single taxonomy term entities with a defined object ID.
 			if ( 'taxonomy' === $entity_kind ) {
-				if ( term_exists( $object_id, $entity_name ) === false ) {
+				$term_exists = term_exists( $object_id, $entity_name );
+				if ( ! is_array( $term_exists ) || ! isset( $term_exists['term_id'] ) ) {
 					// Either term doesn't exist OR term is not in specified taxonomy.
 					return false;
 				}
-				$taxonomy = get_taxonomy( $entity_name );
+
 				return current_user_can( 'edit_term', $object_id );
 			}
 
