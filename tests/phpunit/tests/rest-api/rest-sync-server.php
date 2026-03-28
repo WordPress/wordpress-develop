@@ -9,12 +9,12 @@
  */
 class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
-	protected static $editor_id;
-	protected static $subscriber_id;
-	protected static $post_id;
-	protected static $category_id;
-	protected static $tag_id;
-	protected static $comment_id;
+	protected static int $editor_id;
+	protected static int $subscriber_id;
+	protected static int $post_id;
+	protected static int $category_id;
+	protected static int $tag_id;
+	protected static int $comment_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
