@@ -75,6 +75,7 @@ input[type="week"] {
 select {
 	padding: 0 24px 0 12px;
 	/* inherits font size 14px */
+	line-height: 2.71428571; /* 38px for 40px min-height */
 	min-height: 40px;
 }
 
@@ -338,6 +339,7 @@ input[type="radio"].disabled:checked:before {
 /* Select styles are based on the default button in buttons.css */
 .wp-core-ui select {
 	font-size: 14px;
+	line-height: 2.71428571; /* 38px for 40px min-height */
 	color: #1e1e1e;
 	border-color: #949494;
 	box-shadow: none;
@@ -551,6 +553,7 @@ input[type="number"].tiny-text {
 .wp-core-ui .tablenav select {
 	padding: 0 12px;
 	/* inherits font size 14px */
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	min-height: 32px;
 }
 
