@@ -47,7 +47,7 @@ Images
 = 5.1 =
 * Released: April 9, 2026
 
-https://wordpress.org/documentation/article/twenty-eleven-changelog/#Version_5.0
+https://wordpress.org/documentation/article/twenty-eleven-changelog/#Version_5.1
 
 = 5.0 =
 * Released: December 2, 2025
