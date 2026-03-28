@@ -69,14 +69,12 @@ input[type="url"],
 input[type="week"] {
 	padding: 0 12px;
 	/* inherits font size 14px */
-	line-height: 2.71428571; /* 38px for 40px min-height */
 	min-height: 40px;
 }
 
 select {
 	padding: 0 24px 0 12px;
 	/* inherits font size 14px */
-	line-height: 2.71428571; /* 38px for 40px min-height */
 	min-height: 40px;
 }
 
@@ -340,7 +338,6 @@ input[type="radio"].disabled:checked:before {
 /* Select styles are based on the default button in buttons.css */
 .wp-core-ui select {
 	font-size: 14px;
-	line-height: 2.71428571; /* 38px for 40px min-height */
 	color: #1e1e1e;
 	border-color: #949494;
 	box-shadow: none;
@@ -554,7 +551,6 @@ input[type="number"].tiny-text {
 .wp-core-ui .tablenav select {
 	padding: 0 12px;
 	/* inherits font size 14px */
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	min-height: 32px;
 }
 
@@ -816,7 +812,6 @@ p.search-box {
 p.search-box input[type="search"],
 p.search-box input[type="text"] {
 	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 8px;
 }
 
@@ -1601,7 +1596,6 @@ table.form-table td .updated p {
 		-webkit-appearance: none;
 		padding: 0 12px;
 		min-height: 40px;
-		line-height: 2.5; /* 40px for 16px font */
 	}
 
 	::-webkit-datetime-edit {
