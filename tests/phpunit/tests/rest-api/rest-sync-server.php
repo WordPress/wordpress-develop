@@ -300,7 +300,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64890
 	 */
-	public function test_sync_zero_object_id_rejected() {
+	public function test_sync_zero_object_id_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:0' ) ) );
@@ -311,7 +311,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64890
 	 */
-	public function test_sync_post_type_mismatch_rejected() {
+	public function test_sync_post_type_mismatch_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
 		// The test post is of type 'post', not 'page'.
@@ -323,7 +323,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64890
 	 */
-	public function test_sync_taxonomy_term_allowed() {
+	public function test_sync_taxonomy_term_allowed(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:' . self::$category_id ) ) );
@@ -334,7 +334,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64890
 	 */
-	public function test_sync_nonexistent_taxonomy_term_rejected() {
+	public function test_sync_nonexistent_taxonomy_term_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:999999' ) ) );
@@ -345,7 +345,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64890
 	 */
-	public function test_sync_taxonomy_term_wrong_taxonomy_rejected() {
+	public function test_sync_taxonomy_term_wrong_taxonomy_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
 		// The tag term exists in 'post_tag', not 'category'.
@@ -357,7 +357,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64890
 	 */
-	public function test_sync_comment_allowed() {
+	public function test_sync_comment_allowed(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'root/comment:' . self::$comment_id ) ) );
@@ -368,7 +368,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64890
 	 */
-	public function test_sync_nonexistent_comment_rejected() {
+	public function test_sync_nonexistent_comment_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'root/comment:999999' ) ) );
@@ -379,7 +379,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 64890
 	 */
-	public function test_sync_nonexistent_post_type_collection_rejected() {
+	public function test_sync_nonexistent_post_type_collection_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_sync( array( $this->build_room( 'postType/nonexistent_type' ) ) );
