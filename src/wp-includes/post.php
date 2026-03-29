@@ -8477,6 +8477,14 @@ function wp_cache_set_needs_meta_query_flush( $meta_ids, $object_id, $meta_key )
 	}
 
 	if ( isset( $meta_key_data['jit_cache_invalidation'] ) && $meta_key_data['jit_cache_invalidation'] ) {
+		/*
+		 * Indicate meta queries require just-in-time cache invalidation.
+		 *
+		 * Clears the `wp_query_meta_query_updated` cache key to indicate that WP_Query requires
+		 * just-in-time cache invalidation for the next meta query. This is to avoid flushing
+		 * the entire `posts` cache group on all post meta updates, and instead only flushes
+		 * the cache for meta queries when necessary.
+		 */
 		wp_cache_delete( 'wp_query_meta_query_updated', 'post_meta' );
 		return;
 	}
