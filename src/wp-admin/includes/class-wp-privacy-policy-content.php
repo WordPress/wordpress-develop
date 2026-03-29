@@ -120,7 +120,7 @@ final class WP_Privacy_Policy_Content {
 
 		// Cache the result for use before `admin_init` (see above).
 		if ( $cached !== $state ) {
-			update_option( '_wp_suggested_policy_text_has_changed', $state );
+			update_option( '_wp_suggested_policy_text_has_changed', $state, false );
 		}
 
 		return 'changed' === $state;
@@ -333,7 +333,7 @@ final class WP_Privacy_Policy_Content {
 			return;
 		}
 
-		$message = __( 'Need help putting together your new Privacy Policy page? Check out our guide for recommendations on what content to include, along with policies suggested by your plugins and theme.' );
+		$message = __( 'Need help putting together your new Privacy Policy page? Check out the guide for recommendations on what content to include, along with policies suggested by your plugins and theme.' );
 		$url     = esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) );
 		$label   = __( 'View Privacy Policy Guide.' );
 
@@ -348,7 +348,7 @@ final class WP_Privacy_Policy_Content {
 				sprintf(
 					'wp.data.dispatch( "core/notices" ).createWarningNotice( "%s", { actions: [ %s ], isDismissible: false } )',
 					$message,
-					wp_json_encode( $action )
+					wp_json_encode( $action, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 				),
 				'after'
 			);
@@ -378,14 +378,14 @@ final class WP_Privacy_Policy_Content {
 	public static function privacy_policy_guide() {
 
 		$content_array = self::get_suggested_policy_text();
-		$content       = '';
 		$date_format   = __( 'F j, Y' );
 
-		foreach ( $content_array as $section ) {
-			$class   = '';
-			$meta    = '';
-			$removed = '';
+		$i = 0;
 
+		foreach ( $content_array as $section ) {
+			++$i;
+
+			$removed = '';
 			if ( ! empty( $section['removed'] ) ) {
 				$badge_class = ' red';
 				$date        = date_i18n( $date_format, $section['removed'] );
@@ -409,11 +409,9 @@ final class WP_Privacy_Policy_Content {
 			}
 
 			$plugin_name = esc_html( $section['plugin_name'] );
-
-			$sanitized_policy_name = sanitize_title_with_dashes( $plugin_name );
 			?>
 			<h4 class="privacy-settings-accordion-heading">
-			<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-<?php echo $sanitized_policy_name; ?>" type="button">
+				<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-<?php echo $i; ?>" type="button">
 				<span class="title"><?php echo $plugin_name; ?></span>
 				<?php if ( ! empty( $section['removed'] ) || ! empty( $section['updated'] ) ) : ?>
 				<span class="badge <?php echo $badge_class; ?>"> <?php echo $badge_title; ?></span>
@@ -421,7 +419,7 @@ final class WP_Privacy_Policy_Content {
 				<span class="icon"></span>
 			</button>
 			</h4>
-			<div id="privacy-settings-accordion-block-<?php echo $sanitized_policy_name; ?>" class="privacy-settings-accordion-panel privacy-text-box-body" hidden="hidden">
+			<div id="privacy-settings-accordion-block-<?php echo $i; ?>" class="privacy-settings-accordion-panel privacy-text-box-body" hidden="hidden">
 				<?php
 				echo $removed;
 				echo $section['policy_text'];
@@ -466,7 +464,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Who we are' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Who we are' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -494,7 +492,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Comments' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Comments' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -507,7 +505,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Media' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Media' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -525,7 +523,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Cookies' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Cookies' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -543,7 +541,7 @@ final class WP_Privacy_Policy_Content {
 
 		if ( ! $description ) {
 			/* translators: Default privacy policy heading. */
-			$strings[] = '<h2>' . __( 'Embedded content from other websites' ) . '</h2>';
+			$strings[] = '<h2 class="wp-block-heading">' . __( 'Embedded content from other websites' ) . '</h2>';
 			/* translators: Default privacy policy text. */
 			$strings[] = '<p>' . $suggested_text . __( 'Articles on this site may include embedded content (e.g. videos, images, articles, etc.). Embedded content from other websites behaves in the exact same way as if the visitor has visited the other website.' ) . '</p>';
 			/* translators: Default privacy policy text. */
@@ -560,7 +558,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Who we share your data with' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Who we share your data with' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -573,7 +571,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'How long we retain your data' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'How long we retain your data' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -586,7 +584,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'What rights you have over your data' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'What rights you have over your data' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -597,7 +595,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Where your data is sent' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Where your data is sent' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -662,11 +660,11 @@ final class WP_Privacy_Policy_Content {
 		if ( $blocks ) {
 			foreach ( $strings as $key => $string ) {
 				if ( str_starts_with( $string, '<p>' ) ) {
-					$strings[ $key ] = '<!-- wp:paragraph -->' . $string . '<!-- /wp:paragraph -->';
+					$strings[ $key ] = "<!-- wp:paragraph -->\n" . $string . "\n<!-- /wp:paragraph -->\n";
 				}
 
-				if ( str_starts_with( $string, '<h2>' ) ) {
-					$strings[ $key ] = '<!-- wp:heading -->' . $string . '<!-- /wp:heading -->';
+				if ( str_starts_with( $string, '<h2 ' ) ) {
+					$strings[ $key ] = "<!-- wp:heading -->\n" . $string . "\n<!-- /wp:heading -->\n";
 				}
 			}
 		}

@@ -1,7 +1,11 @@
-$scheme-name: "sunrise";
-$base-color: #cf4944;
-$highlight-color: #dd823b;
-$notification-color: #ccaf0b;
-$menu-submenu-focus-text: lighten( $highlight-color, 35% );
+@use "sass:color";
 
-@import "../_admin.scss";
+$highlight-color: #dd823b;
+
+@use "../_admin.scss" with (
+  $scheme-name: "sunrise",
+  $base-color: #cf4944,
+  $highlight-color: $highlight-color,
+  $notification-color: #ccaf0b,
+  $menu-submenu-focus-text: color.adjust($highlight-color, $lightness: 35%)
+);

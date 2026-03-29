@@ -48,7 +48,7 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	// [footag foo="bar"]
 	public function shortcode_footag( $atts ) {
-		$foo = isset( $atts['foo'] ) ? $atts['foo'] : '';
+		$foo = $atts['foo'] ?? '';
 		return "foo = $foo";
 	}
 
@@ -105,9 +105,13 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		return $out;
 	}
 
+	/**
+	 * @ticket 59249
+	 */
 	public function test_noatts() {
 		do_shortcode( '[test-shortcode-tag /]' );
-		$this->assertSame( '', $this->atts );
+		$this->assertIsArray( $this->atts );
+		$this->assertEmpty( $this->atts );
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
@@ -181,9 +185,13 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
+	/**
+	 * @ticket 59249
+	 */
 	public function test_noatts_enclosing() {
 		do_shortcode( '[test-shortcode-tag]content[/test-shortcode-tag]' );
-		$this->assertSame( '', $this->atts );
+		$this->assertIsArray( $this->atts );
+		$this->assertEmpty( $this->atts );
 		$this->assertSame( 'content', $this->content );
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
@@ -208,10 +216,14 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
+	/**
+	 * @ticket 59249
+	 */
 	public function test_unclosed() {
 		$out = do_shortcode( '[test-shortcode-tag]' );
 		$this->assertSame( '', $out );
-		$this->assertSame( '', $this->atts );
+		$this->assertIsArray( $this->atts );
+		$this->assertEmpty( $this->atts );
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
@@ -681,10 +693,11 @@ EOF;
 	private function sub_registration( $input, $expected ) {
 		add_shortcode( $input, '' );
 		$actual = shortcode_exists( $input );
-		$this->assertSame( $expected, $actual );
 		if ( $actual ) {
 			remove_shortcode( $input );
 		}
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	public function data_registration_bad() {
@@ -997,5 +1010,14 @@ EOF;
 			$this->atts
 		);
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
+	}
+
+	/**
+	 * @ticket 59249
+	 */
+	public function test_shortcode_parse_atts_empty() {
+		$out = shortcode_parse_atts( '' );
+		$this->assertIsArray( $out, 'Return value is not an array' );
+		$this->assertEmpty( $out, 'Returned array is not empty' );
 	}
 }

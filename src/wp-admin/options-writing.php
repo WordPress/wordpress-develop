@@ -67,14 +67,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <table class="form-table" role="presentation">
 <?php if ( get_site_option( 'initial_db_version' ) < 32453 ) : ?>
+	<?php $formatting_title = __( 'Formatting' ); ?>
 <tr>
-<th scope="row"><?php _e( 'Formatting' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: Hidden accessibility text. */
-	_e( 'Formatting' );
-	?>
-</span></legend>
+<th scope="row"><?php echo $formatting_title; ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo $formatting_title; ?></span></legend>
 <label for="use_smilies">
 <input name="use_smilies" type="checkbox" id="use_smilies" value="1" <?php checked( '1', get_option( 'use_smilies' ) ); ?> />
 	<?php _e( 'Convert emoticons like <code>:-)</code> and <code>:-P</code> to graphics on display' ); ?></label><br />
@@ -111,6 +107,21 @@ unset( $post_formats['standard'] );
 		<option<?php selected( get_option( 'default_post_format' ), $format_slug ); ?> value="<?php echo esc_attr( $format_slug ); ?>"><?php echo esc_html( $format_name ); ?></option>
 <?php endforeach; ?>
 	</select>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php _e( 'Collaboration' ); ?></th>
+<td>
+	<?php if ( wp_is_collaboration_allowed() ) : ?>
+		<label for="wp_collaboration_enabled">
+			<input name="wp_collaboration_enabled" type="checkbox" id="wp_collaboration_enabled" value="1" <?php checked( '1', (bool) get_option( 'wp_collaboration_enabled' ) ); ?> />
+			<?php _e( "Enable early access to real-time collaboration. Real-time collaboration may affect your website's performance." ); ?>
+		</label>
+	<?php else : ?>
+		<div class="notice notice-warning inline">
+			<p><?php _e( '<strong>Note:</strong> Real-time collaboration has been disabled.' ); ?></p>
+		</div>
+	<?php endif; ?>
 </td>
 </tr>
 <?php
@@ -225,7 +236,7 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 		printf(
 			/* translators: %s: Documentation URL. */
 			__( 'When you publish a new post, WordPress automatically notifies the following site update services. For more about this, see the <a href="%s">Update Services</a> documentation article. Separate multiple service URLs with line breaks.' ),
-			__( 'https://wordpress.org/documentation/article/update-services/' )
+			__( 'https://developer.wordpress.org/advanced-administration/wordpress/update-services/' )
 		);
 		?>
 	</label></p>
@@ -239,7 +250,7 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 		printf(
 			/* translators: 1: Documentation URL, 2: URL to Reading Settings screen. */
 			__( 'WordPress is not notifying any <a href="%1$s">Update Services</a> because of your site&#8217;s <a href="%2$s">visibility settings</a>.' ),
-			__( 'https://wordpress.org/documentation/article/update-services/' ),
+			__( 'https://developer.wordpress.org/advanced-administration/wordpress/update-services/' ),
 			'options-reading.php'
 		);
 		?>

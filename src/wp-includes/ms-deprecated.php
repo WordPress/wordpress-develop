@@ -94,7 +94,7 @@ function graceful_fail( $message ) {
 <html><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Error!</title>
-<style type="text/css">
+<style>
 img {
 	border: 0;
 }
@@ -145,7 +145,7 @@ function clear_global_post_cache( $post_id ) {
 }
 
 /**
- * Deprecated functionality to determin if the current site is the main site.
+ * Deprecated functionality to determine if the current site is the main site.
  *
  * @since MU (3.0.0)
  * @deprecated 3.0.0 Use is_main_site()
@@ -694,6 +694,7 @@ function install_blog_defaults( $blog_id, $user_id ) {
  * Previously used in core to mark a user as spam or "ham" (not spam) in Multisite.
  *
  * @since 3.0.0
+ * @since 3.0.2 Deprecated fourth argument.
  * @deprecated 5.3.0 Use wp_update_user()
  * @see wp_update_user()
  *
@@ -703,7 +704,7 @@ function install_blog_defaults( $blog_id, $user_id ) {
  * @param string $pref       The column in the wp_users table to update the user's status
  *                           in (presumably user_status, spam, or deleted).
  * @param int    $value      The new status for the user.
- * @param null   $deprecated Deprecated as of 3.0.2 and should not be used.
+ * @param mixed  $deprecated Not used.
  * @return int   The initially passed $value.
  */
 function update_user_status( $id, $pref, $value, $deprecated = null ) {

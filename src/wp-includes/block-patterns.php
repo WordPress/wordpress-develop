@@ -9,6 +9,59 @@
 add_theme_support( 'core-block-patterns' );
 
 /**
+ * Registers a new block pattern.
+ *
+ * @since 5.5.0
+ *
+ * @param string $pattern_name       Block pattern name including namespace.
+ * @param array  $pattern_properties List of properties for the block pattern.
+ *                                   See WP_Block_Patterns_Registry::register() for accepted arguments.
+ * @return bool True if the pattern was registered with success and false otherwise.
+ */
+function register_block_pattern( $pattern_name, $pattern_properties ) {
+	return WP_Block_Patterns_Registry::get_instance()->register( $pattern_name, $pattern_properties );
+}
+
+/**
+ * Unregisters a block pattern.
+ *
+ * @since 5.5.0
+ *
+ * @param string $pattern_name Block pattern name including namespace.
+ * @return bool True if the pattern was unregistered with success and false otherwise.
+ */
+function unregister_block_pattern( $pattern_name ) {
+	return WP_Block_Patterns_Registry::get_instance()->unregister( $pattern_name );
+}
+
+/**
+ * Registers a new pattern category.
+ *
+ * @since 5.5.0
+ *
+ * @param string $category_name       Pattern category name including namespace.
+ * @param array  $category_properties List of properties for the block pattern.
+ *                                    See WP_Block_Pattern_Categories_Registry::register() for
+ *                                    accepted arguments.
+ * @return bool True if the pattern category was registered with success and false otherwise.
+ */
+function register_block_pattern_category( $category_name, $category_properties ) {
+	return WP_Block_Pattern_Categories_Registry::get_instance()->register( $category_name, $category_properties );
+}
+
+/**
+ * Unregisters a pattern category.
+ *
+ * @since 5.5.0
+ *
+ * @param string $category_name Pattern category name including namespace.
+ * @return bool True if the pattern category was unregistered with success and false otherwise.
+ */
+function unregister_block_pattern_category( $category_name ) {
+	return WP_Block_Pattern_Categories_Registry::get_instance()->unregister( $category_name );
+}
+
+/**
  * Registers the core block patterns and categories.
  *
  * @since 5.5.0
@@ -26,7 +79,11 @@ function _register_core_block_patterns_and_categories() {
 			'query-grid-posts',
 			'query-large-title-posts',
 			'query-offset-posts',
-			'social-links-shared-background-color',
+			'navigation-overlay',
+			'navigation-overlay-black-bg',
+			'navigation-overlay-accent-bg',
+			'navigation-overlay-centered',
+			'navigation-overlay-centered-with-extras',
 		);
 
 		foreach ( $core_block_patterns as $core_block_pattern ) {
@@ -36,7 +93,13 @@ function _register_core_block_patterns_and_categories() {
 		}
 	}
 
-	register_block_pattern_category( 'banner', array( 'label' => _x( 'Banners', 'Block pattern category' ) ) );
+	register_block_pattern_category(
+		'banner',
+		array(
+			'label'       => _x( 'Banners', 'Block pattern category' ),
+			'description' => __( 'Bold sections designed to showcase key content.' ),
+		)
+	);
 	register_block_pattern_category(
 		'buttons',
 		array(
@@ -75,7 +138,7 @@ function _register_core_block_patterns_and_categories() {
 	register_block_pattern_category(
 		'call-to-action',
 		array(
-			'label'       => _x( 'Call to Action', 'Block pattern category' ),
+			'label'       => _x( 'Call to action', 'Block pattern category' ),
 			'description' => __( 'Sections whose purpose is to trigger a specific action.' ),
 		)
 	);
@@ -136,6 +199,20 @@ function _register_core_block_patterns_and_categories() {
 		)
 	);
 	register_block_pattern_category(
+		'videos',
+		array(
+			'label'       => _x( 'Videos', 'Block pattern category' ),
+			'description' => __( 'Different layouts containing videos.' ),
+		)
+	);
+	register_block_pattern_category(
+		'audio',
+		array(
+			'label'       => _x( 'Audio', 'Block pattern category' ),
+			'description' => __( 'Different layouts containing audio.' ),
+		)
+	);
+	register_block_pattern_category(
 		'posts',
 		array(
 			'label'       => _x( 'Posts', 'Block pattern category' ),
@@ -154,6 +231,13 @@ function _register_core_block_patterns_and_categories() {
 		array(
 			'label'       => _x( 'Headers', 'Block pattern category' ),
 			'description' => __( 'A variety of header designs displaying your site title and navigation.' ),
+		)
+	);
+	register_block_pattern_category(
+		'navigation',
+		array(
+			'label'       => _x( 'Navigation', 'Block pattern category' ),
+			'description' => __( 'A variety of designs displaying site navigation.' ),
 		)
 	);
 }
@@ -377,13 +461,7 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 
-			// The actual pattern content is the output of the file.
-			ob_start();
-			include $file_path;
-			$pattern_data['content'] = ob_get_clean();
-			if ( ! $pattern_data['content'] ) {
-				continue;
-			}
+			$pattern_data['filePath'] = $file_path;
 
 			// Translate the pattern metadata.
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction

@@ -116,15 +116,20 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return $counts;
 		}
 
-		$query = "
-			SELECT post_status, COUNT( * ) AS num_posts
-			FROM {$wpdb->posts}
-			WHERE post_type = %s
-			AND post_name = %s
-			GROUP BY post_status";
+		$results = (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_status, COUNT( * ) AS num_posts
+				FROM {$wpdb->posts}
+				WHERE post_type = %s
+				AND post_name = %s
+				GROUP BY post_status",
+				$this->post_type,
+				$this->request_type
+			),
+			ARRAY_A
+		);
 
-		$results = (array) $wpdb->get_results( $wpdb->prepare( $query, $this->post_type, $this->request_type ), ARRAY_A );
-		$counts  = array_fill_keys( get_post_stati(), 0 );
+		$counts = array_fill_keys( get_post_stati(), 0 );
 
 		foreach ( $results as $row ) {
 			$counts[ $row['post_status'] ] = $row['num_posts'];
@@ -430,7 +435,8 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @since 4.9.6
 	 *
 	 * @param WP_User_Request $item Item being shown.
-	 * @return string Status column markup.
+	 * @return string|void Status column markup. Returns a string if no status is found,
+	 *                     otherwise it displays the markup.
 	 */
 	public function column_status( $item ) {
 		$status        = get_post_status( $item->ID );
@@ -455,7 +461,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		echo esc_html( $status_object->label );
 
 		if ( $timestamp ) {
-			echo ' (' . $this->get_timestamp_as_date( $timestamp ) . ')';
+			echo '<span class="status-date">' . $this->get_timestamp_as_date( $timestamp ) . '</span>';
 		}
 
 		echo '</span>';
@@ -481,7 +487,14 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return sprintf( __( '%s ago' ), human_time_diff( $timestamp ) );
 		}
 
-		return date_i18n( get_option( 'date_format' ), $timestamp );
+		return sprintf(
+			/* translators: 1: privacy request date format, 2: privacy request time format. */
+			__( '%1$s at %2$s' ),
+			/* translators: privacy request date format. See https://www.php.net/manual/en/datetime.format.php */
+			date_i18n( __( 'Y/m/d' ), $timestamp ),
+			/* translators: privacy request time format. See https://www.php.net/manual/en/datetime.format.php */
+			date_i18n( __( 'g:i a' ), $timestamp )
+		);
 	}
 
 	/**
@@ -495,10 +508,18 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 */
 	public function column_default( $item, $column_name ) {
 		/**
-		 * Fires for each custom column of a specific request type in the Requests list table.
+		 * Fires for each custom column of a specific request type in the Privacy Requests list table.
 		 *
 		 * Custom columns are registered using the {@see 'manage_export-personal-data_columns'}
 		 * and the {@see 'manage_erase-personal-data_columns'} filters.
+		 *
+		 * The dynamic portion of the hook name, `$this->screen->id`, refers to the ID given to the list table
+		 * according to which screen it's displayed on.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `manage_export-personal-data_custom_column`
+		 *  - `manage_erase-personal-data_custom_column`
 		 *
 		 * @since 5.7.0
 		 *

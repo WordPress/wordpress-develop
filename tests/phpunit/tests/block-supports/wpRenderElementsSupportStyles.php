@@ -12,7 +12,6 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 	private $test_block_name;
 
 	public function tear_down() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::tear_down();
@@ -22,6 +21,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 	 * Tests that elements block support generates appropriate styles.
 	 *
 	 * @ticket 59555
+	 * @ticket 60557
 	 *
 	 * @covers ::wp_render_elements_support_styles
 	 *
@@ -58,7 +58,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 			),
 		);
 
-		wp_render_elements_support_styles( null, $block );
+		wp_render_elements_support_styles( $block );
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertMatchesRegularExpression(
@@ -139,8 +139,8 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 						),
 					),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} a' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32} a:hover' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} a:where\(:not\(.wp-element-button\)\)' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32} a:where\(:not\(.wp-element-button\)\):hover' . $color_css_rules . '$/',
 			),
 			'generic heading element styles are applied' => array(
 				'color_settings'  => array( 'heading' => true ),

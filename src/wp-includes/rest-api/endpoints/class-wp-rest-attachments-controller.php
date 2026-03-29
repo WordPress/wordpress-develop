@@ -70,6 +70,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * prepares for WP_Query.
 	 *
 	 * @since 4.7.0
+	 * @since 6.9.0 Extends the `media_type` and `mime_type` request arguments to support array values.
 	 *
 	 * @param array           $prepared_args Optional. Array of prepared arguments. Default empty array.
 	 * @param WP_REST_Request $request       Optional. Request to prepare items for.
@@ -82,17 +83,28 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$query_args['post_status'] = 'inherit';
 		}
 
-		$media_types = $this->get_media_types();
+		$all_mime_types = array();
+		$media_types    = $this->get_media_types();
 
-		if ( ! empty( $request['media_type'] ) && isset( $media_types[ $request['media_type'] ] ) ) {
-			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
+		if ( ! empty( $request['media_type'] ) && is_array( $request['media_type'] ) ) {
+			foreach ( $request['media_type'] as $type ) {
+				if ( isset( $media_types[ $type ] ) ) {
+					$all_mime_types = array_merge( $all_mime_types, $media_types[ $type ] );
+				}
+			}
 		}
 
-		if ( ! empty( $request['mime_type'] ) ) {
-			$parts = explode( '/', $request['mime_type'] );
-			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ], true ) ) {
-				$query_args['post_mime_type'] = $request['mime_type'];
+		if ( ! empty( $request['mime_type'] ) && is_array( $request['mime_type'] ) ) {
+			foreach ( $request['mime_type'] as $mime_type ) {
+				$parts = explode( '/', $mime_type );
+				if ( isset( $media_types[ $parts[0] ] ) && in_array( $mime_type, $media_types[ $parts[0] ], true ) ) {
+					$all_mime_types[] = $mime_type;
+				}
 			}
+		}
+
+		if ( ! empty( $all_mime_types ) ) {
+			$query_args['post_mime_type'] = array_values( array_unique( $all_mime_types ) );
 		}
 
 		// Filter query clauses to include filenames.
@@ -134,6 +146,44 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
+		$files = $request->get_file_params();
+
+		/**
+		 * Filter whether the server should prevent uploads for image types it doesn't support. Default true.
+		 *
+		 * Developers can use this filter to enable uploads of certain image types. By default image types that are not
+		 * supported by the server are prevented from being uploaded.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool        $check_mime Whether to prevent uploads of unsupported image types.
+		 * @param string|null $mime_type  The mime type of the file being uploaded (if available).
+		 */
+		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, $files['file']['type'] ?? null );
+
+		// If the upload is an image, check if the server can handle the mime type.
+		if (
+			$prevent_unsupported_uploads &&
+			isset( $files['file']['type'] ) &&
+			str_starts_with( $files['file']['type'], 'image/' )
+		) {
+			// List of non-resizable image formats.
+			$editor_non_resizable_formats = array(
+				'image/svg+xml',
+			);
+
+			// Check if the image editor supports the type or ignore if it isn't a format resizable by an editor.
+			if (
+				! in_array( $files['file']['type'], $editor_non_resizable_formats, true ) &&
+				! wp_image_editor_supports( array( 'mime_type' => $files['file']['type'] ) )
+			) {
+				return new WP_Error(
+					'rest_upload_image_type_not_supported',
+					__( 'The web server cannot generate responsive image sizes for this image. Convert it to JPEG or PNG before uploading.' ),
+					array( 'status' => 400 )
+				);
+			}
+		}
 
 		return true;
 	}
@@ -171,6 +221,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $request['alt_text'] ) );
 		}
 
+		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
+			$thumbnail_update = $this->handle_featured_media( $request['featured_media'], $attachment_id );
+
+			if ( is_wp_error( $thumbnail_update ) ) {
+				return $thumbnail_update;
+			}
+		}
+
 		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
 			$meta_update = $this->meta->update_value( $request['meta'], $attachment_id );
 
@@ -184,6 +242,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
+		}
+
+		$terms_update = $this->handle_terms( $attachment_id, $request );
+
+		if ( is_wp_error( $terms_update ) ) {
+			return $terms_update;
 		}
 
 		$request->set_param( 'context', 'edit' );
@@ -201,7 +265,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		wp_after_insert_post( $attachment, false, null );
 
-		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		if ( wp_is_serving_rest_request() ) {
 			/*
 			 * Set a custom header with the attachment_id.
 			 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
@@ -240,10 +304,21 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$files   = $request->get_file_params();
 		$headers = $request->get_headers();
 
+		$time = null;
+
+		// Matches logic in media_handle_upload().
+		if ( ! empty( $request['post'] ) ) {
+			$post = get_post( $request['post'] );
+			// The post date doesn't usually matter for pages, so don't backdate this upload.
+			if ( $post && 'page' !== $post->post_type && substr( $post->post_date, 0, 4 ) > 0 ) {
+				$time = $post->post_date;
+			}
+		}
+
 		if ( ! empty( $files ) ) {
-			$file = $this->upload_from_file( $files, $headers );
+			$file = $this->upload_from_file( $files, $headers, $time );
 		} else {
-			$file = $this->upload_from_data( $request->get_body(), $headers );
+			$file = $this->upload_from_data( $request->get_body(), $headers, $time );
 		}
 
 		if ( is_wp_error( $file ) ) {
@@ -257,6 +332,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$url  = $file['url'];
 		$type = $file['type'];
 		$file = $file['file'];
+		$alt  = '';
 
 		// Include image functions to get access to wp_read_image_metadata().
 		require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -272,6 +348,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( empty( $request['caption'] ) && trim( $image_meta['caption'] ) ) {
 				$request['caption'] = $image_meta['caption'];
 			}
+
+			if ( empty( $request['alt'] ) && trim( $image_meta['alt'] ) ) {
+				$alt = $image_meta['alt'];
+			}
 		}
 
 		$attachment = $this->prepare_item_for_database( $request );
@@ -279,12 +359,27 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment->post_mime_type = $type;
 		$attachment->guid           = $url;
 
+		// If the title was not set, use the original filename.
+		if ( empty( $attachment->post_title ) && ! empty( $files['file']['name'] ) ) {
+			// Remove the file extension (after the last `.`)
+			$tmp_title = substr( $files['file']['name'], 0, strrpos( $files['file']['name'], '.' ) );
+
+			if ( ! empty( $tmp_title ) ) {
+				$attachment->post_title = $tmp_title;
+			}
+		}
+
+		// Fall back to the original approach.
 		if ( empty( $attachment->post_title ) ) {
 			$attachment->post_title = preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
 		}
 
 		// $post_parent is inherited from $attachment['post_parent'].
 		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true, false );
+
+		if ( trim( $alt ) ) {
+			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+		}
 
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
@@ -303,8 +398,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * @since 4.7.0
 		 *
-		 * @param WP_Post         $attachment Inserted or updated attachment
-		 *                                    object.
+		 * @param WP_Post         $attachment Inserted or updated attachment object.
 		 * @param WP_REST_Request $request    The request sent to the API.
 		 * @param bool            $creating   True when creating an attachment, false when updating.
 		 */
@@ -313,6 +407,43 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		return array(
 			'attachment_id' => $id,
 			'file'          => $file,
+		);
+	}
+
+	/**
+	 * Determines the featured media based on a request param.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param int $featured_media Featured Media ID.
+	 * @param int $post_id        Post ID.
+	 * @return bool|WP_Error Whether the post thumbnail was successfully deleted, otherwise WP_Error.
+	 */
+	protected function handle_featured_media( $featured_media, $post_id ) {
+		$post_type         = get_post_type( $post_id );
+		$thumbnail_support = current_theme_supports( 'post-thumbnails', $post_type ) && post_type_supports( $post_type, 'thumbnail' );
+
+		// Similar check as in wp_insert_post().
+		if ( ! $thumbnail_support && get_post_mime_type( $post_id ) ) {
+			if ( wp_attachment_is( 'audio', $post_id ) ) {
+				$thumbnail_support = post_type_supports( 'attachment:audio', 'thumbnail' ) || current_theme_supports( 'post-thumbnails', 'attachment:audio' );
+			} elseif ( wp_attachment_is( 'video', $post_id ) ) {
+				$thumbnail_support = post_type_supports( 'attachment:video', 'thumbnail' ) || current_theme_supports( 'post-thumbnails', 'attachment:video' );
+			}
+		}
+
+		if ( $thumbnail_support ) {
+			return parent::handle_featured_media( $featured_media, $post_id );
+		}
+
+		return new WP_Error(
+			'rest_no_featured_media',
+			sprintf(
+				/* translators: %s: attachment mime type */
+				__( 'This site does not support post thumbnails on attachments with MIME type %s.' ),
+				get_post_mime_type( $post_id )
+			),
+			array( 'status' => 400 )
 		);
 	}
 
@@ -349,6 +480,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$attachment = get_post( $request['id'] );
 
+		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
+			$thumbnail_update = $this->handle_featured_media( $request['featured_media'], $attachment->ID );
+
+			if ( is_wp_error( $thumbnail_update ) ) {
+				return $thumbnail_update;
+			}
+		}
+
 		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
 
 		if ( is_wp_error( $fields_update ) ) {
@@ -369,7 +508,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Performs post processing on an attachment.
+	 * Performs post-processing on an attachment.
 	 *
 	 * @since 5.3.0
 	 *
@@ -390,7 +529,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Checks if a given request can perform post processing on an attachment.
+	 * Checks if a given request can perform post-processing on an attachment.
 	 *
 	 * @since 5.3.0
 	 *
@@ -425,6 +564,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Applies edits to a media item and creates a new attachment record.
 	 *
 	 * @since 5.5.0
+	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -450,7 +590,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' );
+		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/heic' );
 		$mime_type       = get_post_mime_type( $attachment_id );
 		if ( ! in_array( $mime_type, $supported_types, true ) ) {
 			return new WP_Error(
@@ -465,6 +605,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$modifiers = $request['modifiers'];
 		} else {
 			$modifiers = array();
+
+			if ( isset( $request['flip']['horizontal'] ) || isset( $request['flip']['vertical'] ) ) {
+				$flip_args = array(
+					'vertical'   => isset( $request['flip']['vertical'] ) ? (bool) $request['flip']['vertical'] : false,
+					'horizontal' => isset( $request['flip']['horizontal'] ) ? (bool) $request['flip']['horizontal'] : false,
+				);
+
+				$modifiers[] = array(
+					'type' => 'flip',
+					'args' => array(
+						'flip' => $flip_args,
+					),
+				);
+			}
 
 			if ( ! empty( $request['rotation'] ) ) {
 				$modifiers[] = array(
@@ -519,8 +673,23 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( $modifiers as $modifier ) {
 			$args = $modifier['args'];
 			switch ( $modifier['type'] ) {
+				case 'flip':
+					/*
+					 * Flips the current image.
+					 * The vertical flip is the first argument (flip along horizontal axis), the horizontal flip is the second argument (flip along vertical axis).
+					 * See: WP_Image_Editor::flip()
+					 */
+					$result = $image_editor->flip( $args['flip']['vertical'], $args['flip']['horizontal'] );
+					if ( is_wp_error( $result ) ) {
+						return new WP_Error(
+							'rest_image_flip_failed',
+							__( 'Unable to flip this image.' ),
+							array( 'status' => 500 )
+						);
+					}
+					break;
 				case 'rotate':
-					// Rotation direction: clockwise vs. counter clockwise.
+					// Rotation direction: clockwise vs. counterclockwise.
 					$rotate = 0 - $args['angle'];
 
 					if ( 0 !== $rotate ) {
@@ -540,12 +709,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				case 'crop':
 					$size = $image_editor->get_size();
 
-					$crop_x = round( ( $size['width'] * $args['left'] ) / 100.0 );
-					$crop_y = round( ( $size['height'] * $args['top'] ) / 100.0 );
-					$width  = round( ( $size['width'] * $args['width'] ) / 100.0 );
-					$height = round( ( $size['height'] * $args['height'] ) / 100.0 );
+					$crop_x = (int) round( ( $size['width'] * $args['left'] ) / 100.0 );
+					$crop_y = (int) round( ( $size['height'] * $args['top'] ) / 100.0 );
+					$width  = (int) round( ( $size['width'] * $args['width'] ) / 100.0 );
+					$height = (int) round( ( $size['height'] * $args['height'] ) / 100.0 );
 
-					if ( $size['width'] !== $width && $size['height'] !== $height ) {
+					if ( $size['width'] !== $width || $size['height'] !== $height ) {
 						$result = $image_editor->crop( $crop_x, $crop_y, $width, $height );
 
 						if ( is_wp_error( $result ) ) {
@@ -580,7 +749,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$filename = "{$image_name}.{$image_ext}";
 
-		// Create the uploads sub-directory if needed.
+		// Create the uploads subdirectory if needed.
 		$uploads = wp_upload_dir();
 
 		// Make the file name unique in the (new) upload directory.
@@ -593,24 +762,31 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $saved;
 		}
 
-		// Create new attachment post.
-		$new_attachment_post = array(
-			'post_mime_type' => $saved['mime-type'],
-			'guid'           => $uploads['url'] . "/$filename",
-			'post_title'     => $image_name,
-			'post_content'   => '',
-		);
+		// Grab original attachment post so we can use it to set defaults.
+		$original_attachment_post = get_post( $attachment_id );
 
-		// Copy post_content, post_excerpt, and post_title from the edited image's attachment post.
-		$attachment_post = get_post( $attachment_id );
+		// Check request fields and assign default values.
+		$new_attachment_post                 = $this->prepare_item_for_database( $request );
+		$new_attachment_post->post_mime_type = $saved['mime-type'];
+		$new_attachment_post->guid           = $uploads['url'] . "/$filename";
 
-		if ( $attachment_post ) {
-			$new_attachment_post['post_content'] = $attachment_post->post_content;
-			$new_attachment_post['post_excerpt'] = $attachment_post->post_excerpt;
-			$new_attachment_post['post_title']   = $attachment_post->post_title;
-		}
+		// Unset ID so wp_insert_attachment generates a new ID.
+		unset( $new_attachment_post->ID );
 
-		$new_attachment_id = wp_insert_attachment( wp_slash( $new_attachment_post ), $saved['path'], 0, true );
+		// Set new attachment post title with fallbacks.
+		$new_attachment_post->post_title = $new_attachment_post->post_title ?? $original_attachment_post->post_title ?? $image_name;
+
+		// Set new attachment post caption (post_excerpt).
+		$new_attachment_post->post_excerpt = $new_attachment_post->post_excerpt ?? $original_attachment_post->post_excerpt ?? '';
+
+		// Set new attachment post description (post_content) with fallbacks.
+		$new_attachment_post->post_content = $new_attachment_post->post_content ?? $original_attachment_post->post_content ?? '';
+
+		// Set post parent if set in request, else the default of `0` (no parent).
+		$new_attachment_post->post_parent = $new_attachment_post->post_parent ?? 0;
+
+		// Insert the new attachment post.
+		$new_attachment_id = wp_insert_attachment( wp_slash( (array) $new_attachment_post ), $saved['path'], 0, true );
 
 		if ( is_wp_error( $new_attachment_id ) ) {
 			if ( 'db_update_error' === $new_attachment_id->get_error_code() ) {
@@ -622,15 +798,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $new_attachment_id;
 		}
 
-		// Copy the image alt text from the edited image.
-		$image_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+		// First, try to use the alt text from the request. If not set, copy the image alt text from the original attachment.
+		$image_alt = isset( $request['alt_text'] ) ? sanitize_text_field( $request['alt_text'] ) : get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
 
 		if ( ! empty( $image_alt ) ) {
 			// update_post_meta() expects slashed.
 			update_post_meta( $new_attachment_id, '_wp_attachment_image_alt', wp_slash( $image_alt ) );
 		}
 
-		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		if ( wp_is_serving_rest_request() ) {
 			/*
 			 * Set a custom header with the attachment_id.
 			 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
@@ -821,6 +997,59 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( in_array( 'missing_image_sizes', $fields, true ) ) {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 			$data['missing_image_sizes'] = array_keys( wp_get_missing_image_subsizes( $post->ID ) );
+
+			// Handle PDFs which don't use wp_get_missing_image_subsizes().
+			if ( empty( $data['missing_image_sizes'] ) && 'application/pdf' === get_post_mime_type( $post ) ) {
+				$metadata = wp_get_attachment_metadata( $post->ID, true );
+
+				if ( ! is_array( $metadata ) ) {
+					$metadata = array();
+				}
+
+				$metadata['sizes'] = $metadata['sizes'] ?? array();
+
+				$fallback_sizes = array(
+					'thumbnail',
+					'medium',
+					'large',
+				);
+
+				// The filter might have been added by ::create_item().
+				remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
+
+				/** This filter is documented in wp-admin/includes/image.php */
+				$fallback_sizes = apply_filters( 'fallback_intermediate_image_sizes', $fallback_sizes, $metadata );
+
+				$registered_sizes = wp_get_registered_image_subsizes();
+				$merged_sizes     = array_keys( array_intersect_key( $registered_sizes, array_flip( $fallback_sizes ) ) );
+
+				$data['missing_image_sizes'] = array_values( array_diff( $merged_sizes, array_keys( $metadata['sizes'] ) ) );
+			}
+		}
+
+		if ( in_array( 'filename', $fields, true ) ) {
+			$data['filename'] = $this->get_attachment_filename( $post->ID );
+		}
+
+		if ( in_array( 'filesize', $fields, true ) ) {
+			$data['filesize'] = $this->get_attachment_filesize( $post->ID );
+		}
+
+		if ( in_array( 'exif_orientation', $fields, true ) && wp_attachment_is_image( $post ) ) {
+			$metadata = wp_get_attachment_metadata( $post->ID, true );
+
+			// Default to 1 (no rotation needed) if orientation not set.
+			$orientation = 1;
+
+			if (
+				is_array( $metadata ) &&
+				isset( $metadata['image_meta']['orientation'] ) &&
+				(int) $metadata['image_meta']['orientation'] > 0
+			) {
+				$orientation = (int) $metadata['image_meta']['orientation'];
+			}
+
+			$data['exif_orientation'] = $orientation;
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -850,6 +1079,33 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_attachment', $response, $post, $request );
+	}
+
+	/**
+	 * Prepares attachment links for the request.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return array Links for the given attachment.
+	 */
+	protected function prepare_links( $post ) {
+		$links = parent::prepare_links( $post );
+
+		if ( ! empty( $post->post_parent ) ) {
+			$post = get_post( $post->post_parent );
+
+			if ( ! empty( $post ) ) {
+				$links['https://api.w.org/attached-to'] = array(
+					'href'       => rest_url( rest_get_route_for_post( $post ) ),
+					'embeddable' => true,
+					'post_type'  => $post->post_type,
+					'id'         => $post->ID,
+				);
+			}
+		}
+
+		return $links;
 	}
 
 	/**
@@ -965,6 +1221,27 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'readonly'    => true,
 		);
 
+		$schema['properties']['filename'] = array(
+			'description' => __( 'Original attachment file name.' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema['properties']['filesize'] = array(
+			'description' => __( 'Attachment file size in bytes.' ),
+			'type'        => 'integer',
+			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema['properties']['exif_orientation'] = array(
+			'description' => __( 'EXIF orientation value. Values 1-8 follow the EXIF specification, where 1 means no rotation needed.' ),
+			'type'        => 'integer',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+		);
+
 		unset( $schema['properties']['password'] );
 
 		$this->schema = $schema;
@@ -976,12 +1253,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Handles an upload via raw POST data.
 	 *
 	 * @since 4.7.0
+	 * @since 6.6.0 Added the `$time` parameter.
 	 *
-	 * @param string $data    Supplied file data.
-	 * @param array  $headers HTTP headers from the request.
+	 * @param string      $data    Supplied file data.
+	 * @param array       $headers HTTP headers from the request.
+	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
 	 * @return array|WP_Error Data from wp_handle_sideload().
 	 */
-	protected function upload_from_data( $data, $headers ) {
+	protected function upload_from_data( $data, $headers, $time = null ) {
 		if ( empty( $data ) ) {
 			return new WP_Error(
 				'rest_upload_no_data',
@@ -1069,7 +1348,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'test_form' => false,
 		);
 
-		$sideloaded = wp_handle_sideload( $file_data, $overrides );
+		$sideloaded = wp_handle_sideload( $file_data, $overrides, $time );
 
 		if ( isset( $sideloaded['error'] ) ) {
 			@unlink( $tmpfname );
@@ -1124,7 +1403,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				continue;
 			}
 
-			list( $type, $attr_parts ) = explode( ';', $value, 2 );
+			list( , $attr_parts ) = explode( ';', $value, 2 );
 
 			$attr_parts = explode( ';', $attr_parts );
 			$attributes = array();
@@ -1158,6 +1437,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Retrieves the query params for collections of attachments.
 	 *
 	 * @since 4.7.0
+	 * @since 6.9.0 Extends the `media_type` and `mime_type` request arguments to support array values.
 	 *
 	 * @return array Query parameters for the attachment collection as an array.
 	 */
@@ -1165,19 +1445,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$params                            = parent::get_collection_params();
 		$params['status']['default']       = 'inherit';
 		$params['status']['items']['enum'] = array( 'inherit', 'private', 'trash' );
-		$media_types                       = $this->get_media_types();
+		$media_types                       = array_keys( $this->get_media_types() );
 
 		$params['media_type'] = array(
 			'default'     => null,
-			'description' => __( 'Limit result set to attachments of a particular media type.' ),
-			'type'        => 'string',
-			'enum'        => array_keys( $media_types ),
+			'description' => __( 'Limit result set to attachments of a particular media type or media types.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type' => 'string',
+				'enum' => $media_types,
+			),
 		);
 
 		$params['mime_type'] = array(
 			'default'     => null,
-			'description' => __( 'Limit result set to attachments of a particular MIME type.' ),
-			'type'        => 'string',
+			'description' => __( 'Limit result set to attachments of a particular MIME type or MIME types.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type' => 'string',
+			),
 		);
 
 		return $params;
@@ -1187,12 +1473,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Handles an upload via multipart/form-data ($_FILES).
 	 *
 	 * @since 4.7.0
+	 * @since 6.6.0 Added the `$time` parameter.
 	 *
-	 * @param array $files   Data from the `$_FILES` superglobal.
-	 * @param array $headers HTTP headers from the request.
+	 * @param array       $files   Data from the `$_FILES` superglobal.
+	 * @param array       $headers HTTP headers from the request.
+	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
 	 * @return array|WP_Error Data from wp_handle_upload().
 	 */
-	protected function upload_from_file( $files, $headers ) {
+	protected function upload_from_file( $files, $headers, $time = null ) {
 		if ( empty( $files ) ) {
 			return new WP_Error(
 				'rest_upload_no_data',
@@ -1234,7 +1522,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Include filesystem functions to get access to wp_handle_upload().
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 
-		$file = wp_handle_upload( $files['file'], $overrides );
+		$file = wp_handle_upload( $files['file'], $overrides, $time );
 
 		if ( isset( $file['error'] ) ) {
 			return new WP_Error(
@@ -1331,17 +1619,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Gets the request args for the edit item route.
 	 *
 	 * @since 5.5.0
+	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
 	 *
 	 * @return array
 	 */
 	protected function get_edit_media_item_args() {
-		return array(
+		$args = array(
 			'src'       => array(
 				'description' => __( 'URL to the edited image file.' ),
 				'type'        => 'string',
 				'format'      => 'uri',
 				'required'    => true,
 			),
+			// The `modifiers` param takes precedence over the older format.
 			'modifiers' => array(
 				'description' => __( 'Array of image edits.' ),
 				'type'        => 'array',
@@ -1354,6 +1644,43 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						'args',
 					),
 					'oneOf'       => array(
+						array(
+							'title'      => __( 'Flip' ),
+							'properties' => array(
+								'type' => array(
+									'description' => __( 'Flip type.' ),
+									'type'        => 'string',
+									'enum'        => array( 'flip' ),
+								),
+								'args' => array(
+									'description' => __( 'Flip arguments.' ),
+									'type'        => 'object',
+									'required'    => array(
+										'flip',
+									),
+									'properties'  => array(
+										'flip' => array(
+											'description' => __( 'Flip direction.' ),
+											'type'        => 'object',
+											'required'    => array(
+												'horizontal',
+												'vertical',
+											),
+											'properties'  => array(
+												'horizontal' => array(
+													'description' => __( 'Whether to flip in the horizontal direction.' ),
+													'type' => 'boolean',
+												),
+												'vertical' => array(
+													'description' => __( 'Whether to flip in the vertical direction.' ),
+													'type' => 'boolean',
+												),
+											),
+										),
+									),
+								),
+							),
+						),
 						array(
 							'title'      => __( 'Rotation' ),
 							'properties' => array(
@@ -1451,5 +1778,82 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'maximum'     => 100,
 			),
 		);
+
+		/*
+		 * Get the args based on the post schema. This calls `rest_get_endpoint_args_for_schema()`,
+		 * which also takes care of sanitization and validation.
+		 */
+		$update_item_args = $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE );
+
+		if ( isset( $update_item_args['caption'] ) ) {
+			$args['caption'] = $update_item_args['caption'];
+		}
+
+		if ( isset( $update_item_args['description'] ) ) {
+			$args['description'] = $update_item_args['description'];
+		}
+
+		if ( isset( $update_item_args['title'] ) ) {
+			$args['title'] = $update_item_args['title'];
+		}
+
+		if ( isset( $update_item_args['post'] ) ) {
+			$args['post'] = $update_item_args['post'];
+		}
+
+		if ( isset( $update_item_args['alt_text'] ) ) {
+			$args['alt_text'] = $update_item_args['alt_text'];
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Gets the attachment's original file name.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return string|null Attachment file name, or null if not found.
+	 */
+	protected function get_attachment_filename( int $attachment_id ): ?string {
+		$path = wp_get_original_image_path( $attachment_id );
+
+		if ( $path ) {
+			return wp_basename( $path );
+		}
+
+		$path = get_attached_file( $attachment_id );
+
+		if ( $path ) {
+			return wp_basename( $path );
+		}
+
+		return null;
+	}
+
+	/**
+	 * Gets the attachment's file size in bytes.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return int|null Attachment file size in bytes, or null if not available.
+	 */
+	protected function get_attachment_filesize( int $attachment_id ): ?int {
+		$meta = wp_get_attachment_metadata( $attachment_id );
+
+		if ( isset( $meta['filesize'] ) ) {
+			return $meta['filesize'];
+		}
+
+		$original_path = wp_get_original_image_path( $attachment_id );
+		$attached_file = $original_path ? $original_path : get_attached_file( $attachment_id );
+
+		if ( is_string( $attached_file ) && is_readable( $attached_file ) ) {
+			return wp_filesize( $attached_file );
+		}
+
+		return null;
 	}
 }

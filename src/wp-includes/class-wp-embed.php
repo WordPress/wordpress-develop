@@ -88,7 +88,7 @@ class WP_Embed {
 			return;
 		}
 		?>
-<script type="text/javascript">
+<script>
 	jQuery( function($) {
 		$.get("<?php echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=oembed-cache&post=' . $post->ID; ?>");
 	} );
@@ -163,9 +163,9 @@ class WP_Embed {
 						 *
 						 * @see WP_Embed::shortcode()
 						 *
-						 * @param string|false $return The HTML result of the shortcode, or false on failure.
-						 * @param string       $url    The embed URL.
-						 * @param array        $attr   An array of shortcode attributes.
+						 * @param string $return The HTML result of the shortcode.
+						 * @param string $url    The embed URL.
+						 * @param array  $attr   An array of shortcode attributes.
 						 */
 						return apply_filters( 'embed_handler_html', $return, $url, $attr );
 					}
@@ -283,10 +283,10 @@ class WP_Embed {
 				 *
 				 * @see WP_Embed::shortcode()
 				 *
-				 * @param string|false $cache   The cached HTML result, stored in post meta.
-				 * @param string       $url     The attempted embed URL.
-				 * @param array        $attr    An array of shortcode attributes.
-				 * @param int          $post_id Post ID.
+				 * @param string $cache   The cached HTML result, stored in post meta.
+				 * @param string $url     The attempted embed URL.
+				 * @param array  $attr    An array of shortcode attributes.
+				 * @param int    $post_id Post ID.
 				 */
 				return apply_filters( 'embed_oembed_html', $cache, $url, $attr, $post_id );
 			}

@@ -186,7 +186,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_duplicate_name() {
 		$term = self::factory()->tag->create_and_get( array( 'name' => 'Bozo' ) );
 		$this->assertNotWPError( $term );
-		$this->assertEmpty( $term->errors );
 
 		// Test existing term name with unique slug.
 		$term1 = self::factory()->tag->create(
@@ -893,6 +892,19 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Term', $term_object );
 		$this->assertSame( '', $term_object->description );
+	}
+
+	/**
+	 * @ticket 59995
+	 */
+	public function test_wp_insert_term_with_empty_name_after_db_sanitization() {
+		$term = wp_insert_term(
+			'<script>onclick=alert("hello")</script>',
+			'post_tag'
+		);
+
+		$this->assertWPError( $term );
+		$this->assertSame( 'invalid_term_name', $term->get_error_code() );
 	}
 
 	/** Helpers */

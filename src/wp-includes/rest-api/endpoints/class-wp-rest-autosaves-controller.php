@@ -232,7 +232,31 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$post_lock = wp_check_post_lock( $post->ID );
 		$is_draft  = 'draft' === $post->post_status || 'auto-draft' === $post->post_status;
 
-		if ( $is_draft && (int) $post->post_author === $user_id && ! $post_lock ) {
+		/*
+		 * In the context of real-time collaboration, all peers are effectively
+		 * authors and we don't want to vary behavior based on whether they are the
+		 * original author. Always target an autosave revision.
+		 *
+		 * This avoids the following issue when real-time collaboration is enabled:
+		 *
+		 * - Autosaves from the original author (if they have the post lock) will
+		 *   target the saved post.
+		 *
+		 * - Autosaves from other users are applied to a post revision.
+		 *
+		 * - If any user reloads a post, they load changes from the author's autosave.
+		 *
+		 * - The saved post has now diverged from the persisted CRDT document. The
+		 *   content (and/or title or excerpt) are now "ahead" of the persisted CRDT
+		 *   document.
+		 *
+		 * - When the persisted CRDT document is loaded, a diff is computed against
+		 *   the saved post. This diff is then applied to the in-memory CRDT
+		 *   document, which can lead to duplicate inserts or deletions.
+		 */
+		$is_collaboration_enabled = wp_is_collaboration_enabled();
+
+		if ( $is_draft && (int) $post->post_author === $user_id && ! $post_lock && ! $is_collaboration_enabled ) {
 			/*
 			 * Draft posts for the same author: autosaving updates the post and does not create a revision.
 			 * Convert the post object to an array and add slashes, wp_update_post() expects escaped array.
@@ -305,6 +329,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $parent;
 		}
 
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
 		$response  = array();
 		$parent_id = $parent->ID;
 		$revisions = wp_get_post_revisions( $parent_id, array( 'check_enabled' => false ) );
@@ -385,7 +413,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			foreach ( $revisioned_meta_keys as $meta_key ) {
 				// get_metadata_raw is used to avoid retrieving the default value.
 				$old_meta = get_metadata_raw( 'post', $post_id, $meta_key, true );
-				$new_meta = isset( $meta[ $meta_key ] ) ? $meta[ $meta_key ] : '';
+				$new_meta = $meta[ $meta_key ] ?? '';
 
 				if ( $new_meta !== $old_meta ) {
 					$autosave_is_different = true;
@@ -408,7 +436,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$new_autosave['ID']          = $old_autosave->ID;
 			$new_autosave['post_author'] = $user_id;
 
-			/** This filter is documented in wp-admin/post.php */
+			/** This action is documented in wp-admin/includes/post.php */
 			do_action( 'wp_creating_autosave', $new_autosave );
 
 			// wp_update_post() expects escaped array.
@@ -448,6 +476,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-autosaves-controller.php */
+			return apply_filters( 'rest_prepare_autosave', new WP_REST_Response( array() ), $post, $request );
+		}
 		$response = $this->revisions_controller->prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
 

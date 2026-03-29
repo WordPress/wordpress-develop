@@ -7,7 +7,7 @@
  *
  * @covers ::_wp_mysql_week
  */
-class Tests_Functons_WpMysqlWeek extends WP_UnitTestCase {
+class Tests_Functions_WpMysqlWeek extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59931

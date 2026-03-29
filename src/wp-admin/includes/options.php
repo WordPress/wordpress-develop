@@ -33,10 +33,11 @@ function options_discussion_add_js() {
  */
 function options_general_add_js() {
 	?>
-<script type="text/javascript">
+<script>
 	jQuery( function($) {
 		var $siteName = $( '#wp-admin-bar-site-name' ).children( 'a' ).first(),
-			homeURL = ( <?php echo wp_json_encode( get_home_url() ); ?> || '' ).replace( /^(https?:\/\/)?(www\.)?/, '' );
+			$siteIconPreview = $('#site-icon-preview-site-title'),
+			homeURL = ( <?php echo wp_json_encode( get_home_url(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> || '' ).replace( /^(https?:\/\/)?(www\.)?/, '' );
 
 		$( '#blogname' ).on( 'input', function() {
 			var title = $.trim( $( this ).val() ) || homeURL;
@@ -47,6 +48,7 @@ function options_general_add_js() {
 			}
 
 			$siteName.text( title );
+			$siteIconPreview.text( title );
 		});
 
 		$( 'input[name="date_format"]' ).on( 'click', function() {
@@ -110,7 +112,7 @@ function options_general_add_js() {
  */
 function options_reading_add_js() {
 	?>
-<script type="text/javascript">
+<script>
 	jQuery( function($) {
 		var section = $('#front-static-pages'),
 			staticPage = section.find('input:radio[value="page"]'),
