@@ -79,7 +79,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
-		$meta_id = add_post_meta( $post_id, self::SYNC_UPDATE_META_KEY, $update, false );
+		$update  = wp_json_encode( $update );
+		$meta_id = add_post_meta( $post_id, wp_slash( self::SYNC_UPDATE_META_KEY ), wp_slash( $update ), false );
 
 		return (bool) $meta_id;
 	}
@@ -266,7 +267,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 
 		$updates = array();
 		foreach ( $rows as $row ) {
-			$updates[] = maybe_unserialize( $row->meta_value );
+			$updates[] = json_decode( $row->meta_value, true );
 		}
 
 		return $updates;
