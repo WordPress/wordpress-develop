@@ -137,20 +137,30 @@ jQuery( function($) {
 	 * @return {void}
 	 */
 	window.quickPressLoad = function() {
-		var act = $('#quickpost-action'), t;
+		var act = $( '#quickpost-action' ), t = $( '#quick-press' ), titleInput, contentInput;
 
 		// Enable the submit buttons.
 		$( '#quick-press .submit input[type="submit"], #quick-press .submit input[type="reset"]' ).prop( 'disabled' , false );
 
-		t = $('#quick-press').on( 'submit', function( e ) {
+		titleInput = t.find( '#title' );
+		contentInput = t.find( '#content' );
+
+		function validateAtLeastOne() {
+			var isFilled = titleInput.val().trim() || contentInput.val().trim(),
+				message = isFilled ? '' : wp.i18n.__( 'You must provide at least the title or the content.' );
+			titleInput[0].setCustomValidity( message );
+			contentInput[0].setCustomValidity( message );
+		}
+
+		t.on( 'input', validateAtLeastOne );
+
+		t.on( 'submit', function( e ) {
 			e.preventDefault();
 
 			// Don't submit if both the title and content are empty.
-			if (
-				'' === t.find( '#title' ).val() &&
-				'' === t.find( '#content' ).val()
-			) {
-				$( '#title' ).trigger( 'focus' );
+			validateAtLeastOne();
+			if ( ! e.target.checkValidity() ) {
+				e.target.reportValidity();
 				return;
 			}
 
@@ -189,7 +199,7 @@ jQuery( function($) {
 		// Change the QuickPost action to the publish value.
 		$('#publish').on( 'click', function() { act.val( 'post-quickpress-publish' ); } );
 
-		$('#quick-press').on( 'click focusin', function() {
+		t.on( 'click focusin', function() {
 			wpActiveEditor = 'content';
 		});
 
