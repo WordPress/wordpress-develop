@@ -774,7 +774,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 'Untrusted', $data->provider_name );
 		$this->assertSame( self::UNTRUSTED_PROVIDER_URL, $data->provider_url );
 		$this->assertSame( 'rich', $data->type );
-		$this->assertFalse( $data->html );
+		$this->assertNotFalse( $data->html );
+		$this->assertSame( 'Filtered<a href="">Unfiltered</a>', $data->html );
 	}
 
 	/**

@@ -79,12 +79,12 @@ EOD;
 		$html   = '<span>Hello</span><p>World</p>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertFalse( $actual );
+		$this->assertSame( 'Hello<p>World</p>', $actual );
 
 		$html   = '<div><p></p></div><script></script>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertFalse( $actual );
+		$this->assertSame( '<p></p>', $actual );
 	}
 
 	public function test_filter_oembed_result_secret_param_available() {
@@ -137,7 +137,7 @@ EOD;
 
 	public function test_filter_oembed_result_invalid_result() {
 		$this->assertFalse( wp_filter_oembed_result( false, (object) array( 'type' => 'rich' ), '' ) );
-		$this->assertFalse( wp_filter_oembed_result( '', (object) array( 'type' => 'rich' ), '' ) );
+		$this->assertSame( '', wp_filter_oembed_result( '', (object) array( 'type' => 'rich' ), '' ) );
 	}
 
 	public function test_filter_oembed_result_blockquote_adds_style_to_iframe() {
@@ -196,5 +196,35 @@ EOD;
 		$actual = _oembed_filter_feed_content( wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' ) );
 
 		$this->assertEqualHTML( '<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" ></iframe>', $actual );
+	}
+
+	/**
+	 * Test standalone blockquote with paragraph tag is allowed.
+	 */
+	public function test_filter_oembed_result_standalone_blockquote_paragraph() {
+		$html   = '<blockquote><p>Test content</p></blockquote>';
+		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
+
+		$this->assertSame( '<blockquote><p>Test content</p></blockquote>', $actual );
+	}
+
+	/**
+	 * Test multiple paragraph tags within blockquote are preserved.
+	 */
+	public function test_filter_oembed_result_multiple_paragraphs() {
+		$html   = '<blockquote><p>First paragraph</p><p>Second paragraph</p></blockquote>';
+		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
+
+		$this->assertSame( '<blockquote><p>First paragraph</p><p>Second paragraph</p></blockquote>', $actual );
+	}
+
+	/**
+	 * Test blockquote with paragraph and link tags.
+	 */
+	public function test_filter_oembed_result_paragraph_with_link() {
+		$html   = '<blockquote><p>Text with <a href="https://example.com">link</a></p></blockquote>';
+		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
+
+		$this->assertSame( '<blockquote><p>Text with <a href="https://example.com">link</a></p></blockquote>', $actual );
 	}
 }
