@@ -302,6 +302,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			return false;
 		}
 
+		wp_cache_maybe_set_posts_last_changed_following_post_meta_update( array(), $post_id, self::SYNC_UPDATE_META_KEY );
 		return true;
 	}
 }
