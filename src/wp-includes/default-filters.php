@@ -125,6 +125,7 @@ foreach ( array( 'user_register', 'deleted_user' ) as $action ) {
 add_action( 'added_post_meta', 'wp_cache_set_needs_meta_query_flush', 10, 3 );
 add_action( 'updated_post_meta', 'wp_cache_set_needs_meta_query_flush', 10, 3 );
 add_action( 'deleted_post_meta', 'wp_cache_set_needs_meta_query_flush', 10, 3 );
+add_action( 'init', 'wp_create_initial_post_meta' );
 
 // User meta.
 add_action( 'added_user_meta', 'wp_cache_set_users_last_changed' );
@@ -768,9 +769,6 @@ add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
 
 // User preferences.
 add_action( 'init', 'wp_register_persisted_preferences_meta' );
-
-// CPT wp_block custom postmeta field.
-add_action( 'init', 'wp_create_initial_post_meta' );
 
 // Include revisioned meta when considering whether a post revision has changed.
 add_filter( 'wp_save_post_revision_post_has_changed', 'wp_check_revisioned_meta_fields_have_changed', 10, 3 );
