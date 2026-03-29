@@ -146,8 +146,11 @@ jQuery( function($) {
 			e.preventDefault();
 
 			// Don't submit if both the title and content are empty.
-			if ( '' === t.find('#title').val() && '' === t.find('#content').val() ) {
-				$('#title').trigger( 'focus' );
+			if (
+				'' === t.find( '#title' ).val() &&
+				'' === t.find( '#content' ).val()
+			) {
+				$( '#title' ).trigger( 'focus' );
 				return;
 			}
 
