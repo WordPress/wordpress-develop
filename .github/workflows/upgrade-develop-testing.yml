@@ -75,7 +75,7 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
         # WordPress 5.3 is the oldest version that supports PHP 7.4.
-        wp: [ '5.3', '6.8', '6.9' ]
+        wp: [ '5.3', '6.8', '6.9', '7.0-RC2' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -101,7 +101,7 @@ jobs:
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        wp: [ '6.8', '6.9' ]
+        wp: [ '6.8', '6.9', '7.0-RC2' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}

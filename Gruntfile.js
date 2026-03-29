@@ -47,15 +47,10 @@ module.exports = function(grunt) {
 			'wp-includes/js/',
 		],
 
-		// All files copied from the Gutenberg repository.
+		// All files copied from the Gutenberg repository excluded from version control.
 		gutenbergFiles = [
-			'wp-includes/assets',
-			'wp-includes/build',
 			'wp-includes/js/dist',
 			'wp-includes/css/dist',
-			'wp-includes/blocks/**/*',
-			'!wp-includes/blocks/index.php',
-			'wp-includes/images/icon-library',
 			// Old location kept temporarily to ensure they are cleaned up.
 			'wp-includes/icons',
 		],
@@ -2131,19 +2126,9 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'build', function() {
-		var done = this.async();
-
-		grunt.util.spawn( {
-			grunt: true,
-			args: [ 'clean', '--dev' ],
-			opts: { stdio: 'inherit' }
-		}, function( buildError ) {
-			done( ! buildError );
-		} );
-
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
-				'gutenberg:download',
+				'gutenberg:verify',
 				'build:js',
 				'build:css',
 				'build:codemirror',
@@ -2153,7 +2138,7 @@ module.exports = function(grunt) {
 			] );
 		} else {
 			grunt.task.run( [
-				'gutenberg:download',
+				'gutenberg:verify',
 				'build:certificates',
 				'build:files',
 				'build:js',
