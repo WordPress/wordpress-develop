@@ -8465,7 +8465,7 @@ function wp_cache_set_posts_last_changed() {
  * @param int    $object_id  Object ID for which the meta was updated.
  * @param string $meta_key   Meta key that was updated.
  */
-function wp_cache_set_needs_meta_query_flush( $meta_ids, $object_id, $meta_key ) {
+function wp_cache_maybe_set_posts_last_changed_following_post_meta_update( $meta_ids, $object_id, $meta_key ) {
 	$post_type = get_post_type( $object_id );
 	$registered_meta_keys = array_merge(
 		get_registered_meta_keys( 'post' ),
