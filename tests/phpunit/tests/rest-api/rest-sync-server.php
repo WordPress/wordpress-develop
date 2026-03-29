@@ -670,7 +670,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 				add_post_meta(
 					$this->storage_post_id,
 					WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
-					wp_slash( wp_json_encode( $this->injected_update ) ),
+					$this->injected_update,
 					false
 				);
 			}
