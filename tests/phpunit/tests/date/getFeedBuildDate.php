@@ -61,8 +61,9 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 		);
 
 		// Simulate a query where have_posts() is true but posts lack 'post_modified_gmt'.
-		$wp_query        = new WP_Query();
-		$incomplete_post = new stdClass();
+		$wp_query = new WP_Query();
+
+		$incomplete_post             = new stdClass();
 		$incomplete_post->ID         = 1;
 		$incomplete_post->post_title = 'Test';
 
