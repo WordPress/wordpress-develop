@@ -41,6 +41,45 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that get_feed_build_date() does not throw a ValueError
+	 * when wp_list_pluck() returns an empty array from posts that
+	 * lack the 'post_modified_gmt' property.
+	 *
+	 * @ticket 59956
+	 */
+	public function test_should_not_error_when_modified_times_is_empty() {
+		global $wp_query;
+
+		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
+		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+
+		// Create a real post so the fallback has something to return.
+		self::factory()->post->create(
+			array(
+				'post_date' => $datetime->format( 'Y-m-d H:i:s' ),
+			)
+		);
+
+		// Simulate a query where have_posts() is true but posts lack 'post_modified_gmt'.
+		$wp_query        = new WP_Query();
+		$incomplete_post = new stdClass();
+		$incomplete_post->ID         = 1;
+		$incomplete_post->post_title = 'Test';
+
+		$wp_query->posts      = array( $incomplete_post );
+		$wp_query->post_count = 1;
+
+		$result = get_feed_build_date( DATE_RFC3339 );
+
+		$this->assertEqualsWithDelta(
+			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
+			strtotime( $result ),
+			2,
+			'Should fall back to last post modified when modified_times is empty.'
+		);
+	}
+
+	/**
 	 * Test that get_feed_build_date() works with invalid post dates.
 	 *
 	 * @ticket 48957
