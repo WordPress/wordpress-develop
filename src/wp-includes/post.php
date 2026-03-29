@@ -8689,7 +8689,9 @@ function use_block_editor_for_post_type( $post_type ) {
  * Registers any additional post meta fields.
  *
  * @since 6.3.0 Adds `wp_pattern_sync_status` meta field to the wp_block post type so an unsynced option can be added.
- * @since 7.0.0 Adds `_crdt_document` meta field to post types so that CRDT documents can be persisted.
+ * @since 7.0.0 Adds `_edit_lock` for use of just-in-time cache invalidation; `_crdt_document` meta field to post types so that CRDT
+ *              documents can be persisted and `WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY` to the sync post type for storing
+ *              pending sync updates.
  *
  * @link https://github.com/WordPress/gutenberg/pull/51144
  */
@@ -8707,6 +8709,15 @@ function wp_create_initial_post_meta() {
 					'enum' => array( 'partial', 'unsynced' ),
 				),
 			),
+		)
+	);
+
+	register_post_meta(
+		'',
+		'_edit_lock',
+		array(
+			'show_in_rest'           => false,
+			'jit_cache_invalidation' => true,
 		)
 	);
 
@@ -8732,6 +8743,15 @@ function wp_create_initial_post_meta() {
 				'show_in_rest'      => true,
 				'single'            => true,
 				'type'              => 'string',
+			)
+		);
+
+		register_post_meta(
+			WP_Sync_Post_Meta_Storage::POST_TYPE,
+			WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
+			array(
+				'show_in_rest'           => false,
+				'jit_cache_invalidation' => true,
 			)
 		);
 	}
