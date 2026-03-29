@@ -42,8 +42,8 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 
 	/**
 	 * Test that get_feed_build_date() does not throw a ValueError
-	 * when wp_list_pluck() returns an empty array from posts that
-	 * lack the 'post_modified_gmt' property.
+	 * when wp_list_pluck() returns an empty array because the posts
+	 * array contains non-object, non-array values.
 	 *
 	 * @ticket 59956
 	 */
@@ -60,15 +60,16 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 			)
 		);
 
-		// Simulate a query where have_posts() is true but posts lack 'post_modified_gmt'.
+		// Simulate a query where have_posts() is true but wp_list_pluck()
+		// returns an empty array because the posts array contains scalar
+		// values (neither objects nor arrays). This triggers the _doing_it_wrong
+		// notice in WP_List_Util::pluck() and produces an empty result.
 		$wp_query = new WP_Query();
 
-		$incomplete_post             = new stdClass();
-		$incomplete_post->ID         = 1;
-		$incomplete_post->post_title = 'Test';
-
-		$wp_query->posts      = array( $incomplete_post );
+		$wp_query->posts      = array( 1 );
 		$wp_query->post_count = 1;
+
+		$this->setExpectedIncorrectUsage( 'WP_List_Util::pluck' );
 
 		$result = get_feed_build_date( DATE_RFC3339 );
 
