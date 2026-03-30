@@ -136,7 +136,7 @@ class WP_Importer {
 
 	/**
 	 * @param int $blog_id
-	 * @return int|void
+	 * @return int
 	 */
 	public function set_blog( $blog_id ) {
 		if ( is_numeric( $blog_id ) ) {
@@ -177,7 +177,7 @@ class WP_Importer {
 
 	/**
 	 * @param int $user_id
-	 * @return int|void
+	 * @return int
 	 */
 	public function set_user( $user_id ) {
 		if ( is_numeric( $user_id ) ) {
