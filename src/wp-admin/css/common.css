@@ -1475,7 +1475,7 @@ div.error p,
 
 .notice a,
 .error a,
-.updated a {
+.updated:not(tr) a {
 	color: var(--wp-admin-theme-color-darker-10);
 	text-decoration: underline;
 }
