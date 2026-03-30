@@ -1296,8 +1296,8 @@ function is_uninstallable_plugin( $plugin ) {
  * @since 2.7.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return true|null True if a plugin's uninstall.php file has been found and included.
- *                   Null otherwise.
+ * @return true|void True if a plugin's uninstall.php file has been found and included.
+ *                   Void otherwise.
  */
 function uninstall_plugin( $plugin ) {
 	$file = plugin_basename( $plugin );
@@ -1350,7 +1350,6 @@ function uninstall_plugin( $plugin ) {
 		 */
 		do_action( "uninstall_{$file}" );
 	}
-	return null;
 }
 
 //
