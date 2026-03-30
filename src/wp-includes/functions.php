@@ -3777,7 +3777,7 @@ function wp_nonce_ays( $action ) {
  * }
  * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
  *
- * @phpstan-return ( $args is array{ exit: false } ? void : never )
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
 	global $wp_query;
