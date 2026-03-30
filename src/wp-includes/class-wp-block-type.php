@@ -611,7 +611,7 @@ class WP_Block_Type {
 		 * @since 6.5.0
 		 *
 		 * @param array<int, array<string, mixed>> $variations Array of registered variations for a block type.
-		 * @param WP_Block_Type        $block_type The full block type object.
+		 * @param WP_Block_Type                    $block_type The full block type object.
 		 */
 		return apply_filters( 'get_block_type_variations', $this->variations, $this );
 	}
