@@ -1207,4 +1207,220 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
+
+	/**
+	 * Queries producing equivalent SQL and identical PHP post-processing should share
+	 * a single cache entry regardless of how their input args are expressed.
+	 *
+	 * The motivating case: wp_dropdown_categories() passes `hierarchical=1, hide_empty=0`
+	 * to get_terms(), while wp_terms_checklist() passes `get='all'` which normalises to
+	 * `hierarchical=false, hide_empty=0`.  Both produce the same SQL and the same PHP
+	 * post-processing behaviour, so they should hit the same cache entry and avoid the
+	 * duplicate database query reported in ticket #64038.
+	 *
+	 * @ticket 64038
+	 * @group  cache
+	 *
+	 * @covers WP_Term_Query::generate_cache_key
+	 */
+	public function test_equivalent_queries_share_cache_entry() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+		self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax_1' ) );
+
+		// First query: explicit hierarchical=1, hide_empty=0 (wp_dropdown_categories style).
+		$query1 = new WP_Term_Query(
+			array(
+				'taxonomy'     => 'wptests_tax_1',
+				'hide_empty'   => 0,
+				'hierarchical' => 1,
+				'fields'       => 'ids',
+			)
+		);
+
+		$terms1 = $query1->get_terms();
+
+		$num_queries_after_first = get_num_queries();
+
+		// Second query: get='all' (wp_terms_checklist style) – normalises to the same SQL
+		// and the same PHP post-processing path as the first query.
+		$query2 = new WP_Term_Query(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+				'get'      => 'all',
+				'fields'   => 'ids',
+			)
+		);
+
+		$terms2 = $query2->get_terms();
+
+		$this->assertSame(
+			$num_queries_after_first,
+			get_num_queries(),
+			'A second equivalent term query should be served from cache without an extra database query.'
+		);
+
+		$this->assertSameSets(
+			$terms1,
+			$terms2,
+			'Both queries should return the same term IDs.'
+		);
+	}
+
+	/**
+	 * Two queries that produce the same SQL but differ in whether PHP empty-term pruning
+	 * applies (`hierarchical=true && hide_empty=true` vs. `hide_empty=false`) must NOT
+	 * share a cache entry, because the stored result sets may be different.
+	 *
+	 * @ticket 64038
+	 * @group  cache
+	 *
+	 * @covers WP_Term_Query::generate_cache_key
+	 */
+	public function test_queries_with_different_prune_empty_terms_get_separate_cache_entries() {
+		register_taxonomy( 'wptests_tax_1', 'post', array( 'hierarchical' => true ) );
+
+		$reflection = new ReflectionMethod( new WP_Term_Query(), 'generate_cache_key' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
+
+		// Query A: hierarchical=true + hide_empty=true  ->  PHP pruning IS active.
+		$query_a = new WP_Term_Query();
+		$query_a->query(
+			array(
+				'taxonomy'     => 'wptests_tax_1',
+				'hierarchical' => true,
+				'hide_empty'   => true,
+				'fields'       => 'ids',
+			)
+		);
+
+		$key_a = $reflection->invoke( $query_a, $query_a->query_vars, $query_a->request );
+
+		// Query B: hide_empty=false  ->  PHP pruning is NOT active (hierarchical irrelevant).
+		$query_b = new WP_Term_Query();
+		$query_b->query(
+			array(
+				'taxonomy'     => 'wptests_tax_1',
+				'hierarchical' => false,
+				'hide_empty'   => false,
+				'fields'       => 'ids',
+			)
+		);
+
+		$key_b = $reflection->invoke( $query_b, $query_b->query_vars, $query_b->request );
+
+		$this->assertNotSame(
+			$key_a,
+			$key_b,
+			'Queries with different PHP empty-term pruning behaviour must have distinct cache keys.'
+		);
+	}
+
+	/**
+	 * Two queries with the same SQL but different child_of values must NOT share
+	 * a cache entry; child_of filtering is applied in PHP, not SQL.
+	 *
+	 * @ticket 64038
+	 * @group  cache
+	 *
+	 * @covers WP_Term_Query::generate_cache_key
+	 */
+	public function test_queries_with_different_child_of_get_separate_cache_entries() {
+		register_taxonomy( 'wptests_tax_1', 'post', array( 'hierarchical' => true ) );
+
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_1' ) );
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+				'parent'   => $parent,
+			)
+		);
+
+		$reflection = new ReflectionMethod( new WP_Term_Query(), 'generate_cache_key' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
+
+		// Query A: no child_of filter.
+		$query_a = new WP_Term_Query();
+		$query_a->query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$key_a = $reflection->invoke( $query_a, $query_a->query_vars, $query_a->request );
+
+		// Query B: child_of filtering.
+		$query_b = new WP_Term_Query();
+		$query_b->query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'hide_empty' => false,
+				'child_of'   => $parent,
+				'fields'     => 'ids',
+			)
+		);
+
+		$key_b = $reflection->invoke( $query_b, $query_b->query_vars, $query_b->request );
+
+		$this->assertNotSame(
+			$key_a,
+			$key_b,
+			'Queries with different child_of values must have distinct cache keys.'
+		);
+	}
+
+	/**
+	 * Two queries with the same SQL but different pad_counts values must NOT share
+	 * a cache entry; pad_counts is applied in PHP and changes the cache data shape.
+	 *
+	 * @ticket 64038
+	 * @group  cache
+	 *
+	 * @covers WP_Term_Query::generate_cache_key
+	 */
+	public function test_queries_with_different_pad_counts_get_separate_cache_entries() {
+		register_taxonomy( 'wptests_tax_1', 'post', array( 'hierarchical' => true ) );
+
+		$reflection = new ReflectionMethod( new WP_Term_Query(), 'generate_cache_key' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
+
+		$query_a = new WP_Term_Query();
+		$query_a->query(
+			array(
+				'taxonomy'     => 'wptests_tax_1',
+				'hide_empty'   => false,
+				'hierarchical' => false,
+				'pad_counts'   => false,
+				'fields'       => 'all',
+			)
+		);
+
+		$key_a = $reflection->invoke( $query_a, $query_a->query_vars, $query_a->request );
+
+		$query_b = new WP_Term_Query();
+		$query_b->query(
+			array(
+				'taxonomy'     => 'wptests_tax_1',
+				'hide_empty'   => false,
+				'hierarchical' => false,
+				'pad_counts'   => true,
+				'fields'       => 'all',
+			)
+		);
+
+		$key_b = $reflection->invoke( $query_b, $query_b->query_vars, $query_b->request );
+
+		$this->assertNotSame(
+			$key_a,
+			$key_b,
+			'Queries with different pad_counts values must have distinct cache keys.'
+		);
+	}
 }
