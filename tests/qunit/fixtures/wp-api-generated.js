@@ -11012,7 +11012,7 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "wordpress_api_key": {
-                            "title": "Akismet Anti-Spam API Key",
+                            "title": "Akismet Anti-spam API key",
                             "description": "API key for the Akismet Anti-spam connector.",
                             "type": "string",
                             "required": false
