@@ -3905,6 +3905,8 @@ class wpdb {
 				return $this->col_info[ $col_offset ]->{$info_type};
 			}
 		}
+
+		return null;
 	}
 
 	/**
