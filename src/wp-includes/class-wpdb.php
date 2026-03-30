@@ -1666,7 +1666,7 @@ class wpdb {
 				'6.2.0'
 			);
 
-			return;
+			return null;
 		}
 
 		$args_count = count( $args );
@@ -1684,7 +1684,7 @@ class wpdb {
 					'4.9.0'
 				);
 
-				return;
+				return null;
 			} else {
 				/*
 				 * If we don't have the right number of placeholders,
