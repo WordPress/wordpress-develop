@@ -708,10 +708,12 @@ th.sorted a span {
 	max-width: 98%;
 }
 
-.tablenav .tablenav-pages {
-	float: right;
-	margin: 0 0 9px;
-}
+  .tablenav .tablenav-pages {                                                                                                                                              
+      float: right;
+      margin: 0;
+      display: flex;
+      align-items: center;                                                                                                                                                 
+  }
 
 .tablenav .no-pages,
 .tablenav .one-page .pagination-links {
