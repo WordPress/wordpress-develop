@@ -1709,6 +1709,7 @@ function wp_dashboard_quota() {
 	</ul>
 	</div>
 	<?php
+	return null;
 }
 
 /**

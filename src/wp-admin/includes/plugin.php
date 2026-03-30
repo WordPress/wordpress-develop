@@ -1350,6 +1350,7 @@ function uninstall_plugin( $plugin ) {
 		 */
 		do_action( "uninstall_{$file}" );
 	}
+	return null;
 }
 
 //

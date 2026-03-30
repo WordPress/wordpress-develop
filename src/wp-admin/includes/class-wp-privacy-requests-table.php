@@ -465,6 +465,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		}
 
 		echo '</span>';
+		return null;
 	}
 
 	/**
