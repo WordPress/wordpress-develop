@@ -1453,11 +1453,11 @@ class wpdb {
 	 *                             individual arguments.
 	 * @param mixed       ...$args Further variables to substitute into the query's placeholders
 	 *                             if being called with individual arguments.
-	 * @return string|void Sanitized query string, if there is a query to prepare.
+	 * @return string|null Sanitized query string, if there is a query to prepare.
 	 */
 	public function prepare( $query, ...$args ) {
 		if ( is_null( $query ) ) {
-			return;
+			return null;
 		}
 
 		/*
@@ -1666,7 +1666,7 @@ class wpdb {
 				'6.2.0'
 			);
 
-			return;
+			return null;
 		}
 
 		$args_count = count( $args );
@@ -1684,7 +1684,7 @@ class wpdb {
 					'4.9.0'
 				);
 
-				return;
+				return null;
 			} else {
 				/*
 				 * If we don't have the right number of placeholders,
