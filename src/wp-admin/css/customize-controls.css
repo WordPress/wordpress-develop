@@ -70,7 +70,7 @@ body {
 
 #customize-save-button-wrapper {
 	float: right;
-	margin-top: 3px; /* Vertically center 40px button in 45px header */
+	margin-top: 7px; /* Vertically center 32px button in 45px header */
 }
 
 body:not(.ready) #customize-save-button-wrapper .save {
