@@ -160,7 +160,7 @@ class WP_Recovery_Mode {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array<string, mixed> $error Error details from `error_get_last()`.
+	 * @param array $error Error details from `error_get_last()`.
 	 * @return true|WP_Error True if the error was handled and headers have already been sent.
 	 *                       Or the request will exit to try and catch multiple errors at once.
 	 *                       WP_Error if an error occurred preventing it from being handled.
