@@ -3087,6 +3087,7 @@ class wpdb {
 		} else {
 			$this->print_error( ' $db->get_row(string query, output type, int offset) -- Output type must be one of: OBJECT, ARRAY_A, ARRAY_N' );
 		}
+		return null;
 	}
 
 	/**
