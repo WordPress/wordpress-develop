@@ -106,7 +106,8 @@ function wp_get_connector( string $id ): ?array {
  *         @type string      $type           The connector type, e.g. 'ai_provider'.
  *         @type array       $authentication {
  *             Authentication configuration. When method is 'api_key', includes
- *             credentials_url and setting_name. When 'none', only method is present.
+ *             credentials_url, setting_name, and optionally constant_name and
+ *             env_var_name. When 'none', only method is present.
  *
  *             @type string $method          The authentication method: 'api_key' or 'none'.
  *             @type string $credentials_url Optional. URL where users can obtain API credentials.
@@ -507,8 +508,8 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 		$value = $data[ $setting_name ];
 
-		// On update, validate the key before masking.
-		// Validation is only available for AI providers via the AI Client registry.
+		// On update, validate AI provider keys before masking.
+		// Non-AI connectors accept keys as-is; the service plugin handles its own validation.
 		if ( $is_update && is_string( $value ) && '' !== $value && 'ai_provider' === $connector_data['type'] ) {
 			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
 				update_option( $setting_name, '' );
@@ -684,7 +685,9 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 
 			$connector_out['plugin'] = array(
 				'slug'        => $plugin_slug,
-				'isInstalled' => $is_installed,
+				'pluginFile'  => $is_installed
+					? ( str_ends_with( $plugin_file, '.php' ) ? substr( $plugin_file, 0, -4 ) : $plugin_file )
+					: null,
 				'isActivated' => $is_activated,
 			);
 		}
