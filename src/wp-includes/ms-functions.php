@@ -52,6 +52,7 @@ function get_active_blog_for_user( $user_id ) {
 		return $blogs[ get_current_blog_id() ];
 	}
 
+	$primary      = null;
 	$primary_blog = get_user_meta( $user_id, 'primary_blog', true );
 	$first_blog   = current( $blogs );
 	if ( false !== $primary_blog ) {
