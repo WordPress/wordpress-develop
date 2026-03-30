@@ -142,7 +142,7 @@ class WP_Importer {
 	 * to the resolved blog. Exits with an error if the blog cannot be found.
 	 *
 	 * @param int|string $blog_id Blog ID or URL.
-	 * @return int|never Blog ID on success. Exits on failure.
+	 * @return int Blog ID on success. Exits on failure.
 	 */
 	public function set_blog( $blog_id ) {
 		if ( is_numeric( $blog_id ) ) {
@@ -183,7 +183,7 @@ class WP_Importer {
 
 	/**
 	 * @param int $user_id
-	 * @return int|never
+	 * @return int
 	 */
 	public function set_user( $user_id ) {
 		if ( is_numeric( $user_id ) ) {

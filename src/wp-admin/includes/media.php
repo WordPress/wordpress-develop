@@ -754,7 +754,7 @@ function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
  *
  * @since 2.5.0
  *
- * @return null|array|never Array of error messages keyed by attachment ID, null on success, or exit.
+ * @return null|array Array of error messages keyed by attachment ID, null on success, or exit.
  */
 function media_upload_form_handler() {
 	check_admin_referer( 'media-form' );
