@@ -281,11 +281,11 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets_file = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets_file = ABSPATH . WPINC . '/assets/script-loader-packages.php';
 	$assets      = file_exists( $assets_file ) ? include $assets_file : array();
 
 	foreach ( $assets as $file_name => $package_data ) {
-		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
+		$basename = str_replace( '.js', '', basename( $file_name ) );
 		$handle   = 'wp-' . $basename;
 		$path     = "/wp-includes/js/dist/{$basename}{$suffix}.js";
 
@@ -2371,13 +2371,13 @@ function print_admin_styles() {
  * @global WP_Styles $wp_styles
  * @global bool      $concatenate_scripts
  *
- * @return string[]|void
+ * @return string[]|null
  */
 function print_late_styles() {
 	global $wp_styles, $concatenate_scripts;
 
 	if ( ! ( $wp_styles instanceof WP_Styles ) ) {
-		return;
+		return null;
 	}
 
 	script_concat_settings();

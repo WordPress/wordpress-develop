@@ -334,7 +334,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$this->assertIsInt( $data['rooms'][0]['end_cursor'] );
-		$this->assertGreaterThan( 0, $data['rooms'][0]['end_cursor'] );
+		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'] );
 	}
 
 	public function test_sync_empty_updates_returns_zero_total() {

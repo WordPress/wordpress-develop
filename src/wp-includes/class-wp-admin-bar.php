@@ -221,6 +221,7 @@ class WP_Admin_Bar {
 		if ( isset( $this->nodes[ $id ] ) ) {
 			return $this->nodes[ $id ];
 		}
+		return null;
 	}
 
 	/**

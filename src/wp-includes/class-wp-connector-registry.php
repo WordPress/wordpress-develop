@@ -170,6 +170,11 @@ final class WP_Connector_Registry {
 			return null;
 		}
 
+		if ( 'ai_provider' === $args['type'] && ! wp_supports_ai() ) {
+			// No need for a `doing_it_wrong` as AI support is disabled intentionally.
+			return null;
+		}
+
 		$connector = array(
 			'name'           => $args['name'],
 			'description'    => isset( $args['description'] ) && is_string( $args['description'] ) ? $args['description'] : '',
@@ -187,7 +192,11 @@ final class WP_Connector_Registry {
 			if ( ! empty( $args['authentication']['credentials_url'] ) && is_string( $args['authentication']['credentials_url'] ) ) {
 				$connector['authentication']['credentials_url'] = $args['authentication']['credentials_url'];
 			}
-			$connector['authentication']['setting_name'] = 'connectors_ai_' . str_replace( '-', '_', $id ) . '_api_key';
+			if ( ! empty( $args['authentication']['setting_name'] ) && is_string( $args['authentication']['setting_name'] ) ) {
+				$connector['authentication']['setting_name'] = $args['authentication']['setting_name'];
+			} else {
+				$connector['authentication']['setting_name'] = 'connectors_ai_' . str_replace( '-', '_', $id ) . '_api_key';
+			}
 		}
 
 		if ( ! empty( $args['plugin'] ) && is_array( $args['plugin'] ) ) {
