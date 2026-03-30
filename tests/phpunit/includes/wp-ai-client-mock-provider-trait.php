@@ -96,7 +96,7 @@ class Mock_Connectors_Test_Provider extends AbstractProvider {
 	 */
 	protected static function createProviderMetadata(): ProviderMetadata {
 		return new ProviderMetadata(
-			'mock_connectors_test',
+			'mock-connectors-test',
 			'Mock Connectors Test',
 			ProviderTypeEnum::cloud(),
 			null,
@@ -155,9 +155,26 @@ trait WP_AI_Client_Mock_Provider_Trait {
 	 * Must be called from set_up_before_class() after parent::set_up_before_class().
 	 */
 	private static function register_mock_connectors_provider(): void {
-		$registry = AiClient::defaultRegistry();
-		if ( ! $registry->hasProvider( 'mock_connectors_test' ) ) {
-			$registry->registerProvider( Mock_Connectors_Test_Provider::class );
+		$ai_registry = AiClient::defaultRegistry();
+		if ( ! $ai_registry->hasProvider( 'mock-connectors-test' ) ) {
+			$ai_registry->registerProvider( Mock_Connectors_Test_Provider::class );
+		}
+
+		// Also register in the WP connector registry if not already present.
+		$connector_registry = WP_Connector_Registry::get_instance();
+		if ( null !== $connector_registry && ! $connector_registry->is_registered( 'mock-connectors-test' ) ) {
+			$connector_registry->register(
+				'mock-connectors-test',
+				array(
+					'name'           => 'Mock Connectors Test',
+					'description'    => '',
+					'type'           => 'ai_provider',
+					'authentication' => array(
+						'method'          => 'api_key',
+						'credentials_url' => null,
+					),
+				)
+			);
 		}
 	}
 
@@ -168,5 +185,18 @@ trait WP_AI_Client_Mock_Provider_Trait {
 	 */
 	private static function set_mock_provider_configured( bool $is_configured ): void {
 		Mock_Connectors_Test_Provider_Availability::$is_configured = $is_configured;
+	}
+
+	/**
+	 * Unregisters the mock provider's connector setting.
+	 *
+	 * Reverses the side effect of _wp_register_default_connector_settings()
+	 * for the mock provider so that subsequent test classes start with a clean slate.
+	 * Must be called from tear_down_after_class() after running tests.
+	 */
+	private static function unregister_mock_connector_setting(): void {
+		$setting_name = 'connectors_ai_mock_connectors_test_api_key';
+		unregister_setting( 'connectors', $setting_name );
+		remove_filter( "option_{$setting_name}", '_wp_connectors_mask_api_key' );
 	}
 }
