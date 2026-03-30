@@ -532,7 +532,7 @@ function wp_dropdown_categories( $args = '' ) {
  *     @type Walker       $walker                Walker object to use to build the output. Default empty which results
  *                                               in a Walker_Category instance being used.
  * }
- * @return void|string|false Void if 'echo' argument is true, HTML list of categories if 'echo' is false.
+ * @return string|false|null Null if 'echo' argument is true, HTML list of categories if 'echo' is false.
  *                           False if the taxonomy does not exist.
  */
 function wp_list_categories( $args = '' ) {
@@ -710,7 +710,7 @@ function wp_list_categories( $args = '' ) {
  *                             associated with the taxonomy.
  *     @type bool   $echo      Whether or not to echo the return value. Default true.
  * }
- * @return void|string|string[] Void if 'echo' argument is true, or on failure. Otherwise, tag cloud
+ * @return string|string[]|null Null if 'echo' argument is true, or on failure. Otherwise, tag cloud
  *                              as a string or an array, depending on 'format' argument.
  */
 function wp_tag_cloud( $args = '' ) {
@@ -745,7 +745,7 @@ function wp_tag_cloud( $args = '' ) {
 	); // Always query top tags.
 
 	if ( empty( $tags ) || is_wp_error( $tags ) ) {
-		return;
+		return null;
 	}
 
 	foreach ( $tags as $key => $tag ) {
@@ -756,7 +756,7 @@ function wp_tag_cloud( $args = '' ) {
 		}
 
 		if ( is_wp_error( $link ) ) {
-			return;
+			return null;
 		}
 
 		$tags[ $key ]->link = $link;
@@ -1452,7 +1452,7 @@ function get_term_parents_list( $term_id, $taxonomy, $args = array() ) {
  * @param string $before   Optional. String to use before the terms. Default empty.
  * @param string $sep      Optional. String to use between the terms. Default ', '.
  * @param string $after    Optional. String to use after the terms. Default empty.
- * @return void|false Void on success, false on failure.
+ * @return false|null Null on success, false on failure.
  */
 function the_terms( $post_id, $taxonomy, $before = '', $sep = ', ', $after = '' ) {
 	$term_list = get_the_term_list( $post_id, $taxonomy, $before, $sep, $after );

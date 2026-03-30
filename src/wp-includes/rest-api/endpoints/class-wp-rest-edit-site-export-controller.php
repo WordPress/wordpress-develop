@@ -70,7 +70,7 @@ class WP_REST_Edit_Site_Export_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return void|WP_Error
+	 * @return WP_Error
 	 */
 	public function export() {
 		// Generate the export file.

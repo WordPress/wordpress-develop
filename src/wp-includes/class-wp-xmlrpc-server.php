@@ -1388,7 +1388,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @param array $post_data
 	 * @param bool  $update
-	 * @return void|IXR_Error
+	 * @return IXR_Error|null
 	 */
 	private function _toggle_sticky( $post_data, $update = false ) {
 		$post_type = get_post_type_object( $post_data['post_type'] );

@@ -37,14 +37,14 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$display` argument is true or the title is empty,
+ * @return string|null Null if `$display` argument is true or the title is empty,
  *                     current post title if `$display` is false.
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $before . $title . $after;
@@ -76,7 +76,7 @@ function the_title( $before = '', $after = '', $display = true ) {
  *     @type bool    $echo   Whether to echo or return the title. Default true for echo.
  *     @type WP_Post $post   Current post object to retrieve the title for.
  * }
- * @return void|string Void if 'echo' argument is true, the title attribute if 'echo' is false.
+ * @return string|null Null if 'echo' argument is true, the title attribute if 'echo' is false.
  */
 function the_title_attribute( $args = '' ) {
 	$defaults    = array(
@@ -90,7 +90,7 @@ function the_title_attribute( $args = '' ) {
 	$title = get_the_title( $parsed_args['post'] );
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
@@ -1298,7 +1298,7 @@ function wp_dropdown_pages( $args = '' ) {
  *     @type Walker       $walker       Walker instance to use for listing pages. Default empty which results in a
  *                                      Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML list of pages if 'echo' is false.
+ * @return string|null Null if 'echo' argument is true, HTML list of pages if 'echo' is false.
  */
 function wp_list_pages( $args = '' ) {
 	$defaults = array(
@@ -1421,7 +1421,7 @@ function wp_list_pages( $args = '' ) {
  *     @type Walker          $walker       Walker instance to use for listing pages. Default empty which results in a
  *                                         Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML menu if 'echo' is false.
+ * @return string|null Null if 'echo' argument is true, HTML menu if 'echo' is false.
  */
 function wp_page_menu( $args = array() ) {
 	$defaults = array(

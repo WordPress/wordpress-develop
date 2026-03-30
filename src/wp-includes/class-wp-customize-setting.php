@@ -519,7 +519,7 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @return void|false Void on success, false if cap check fails
+	 * @return false|null Null on success, false if cap check fails
 	 *                    or value isn't set or is invalid.
 	 */
 	final public function save() {
