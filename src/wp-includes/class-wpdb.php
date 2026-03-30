@@ -3940,7 +3940,7 @@ class wpdb {
 	 * @param string $message    The error message.
 	 * @param string $error_code Optional. A computer-readable string to identify the error.
 	 *                           Default '500'.
-	 * @return void|false Void if the showing of errors is enabled, false if disabled.
+	 * @return false False if the showing of errors is disabled.
 	 */
 	public function bail( $message, $error_code = '500' ) {
 		if ( $this->show_errors ) {
