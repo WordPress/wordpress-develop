@@ -203,7 +203,7 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '9.5', '12.0' ]
+        db-version: [ '9.6', '12.1' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
@@ -211,9 +211,9 @@ jobs:
         exclude:
           # Exclude version combinations that don't exist.
           - db-type: 'mariadb'
-            db-version: '9.5'
+            db-version: '9.6'
           - db-type: 'mysql'
-            db-version: '12.0'
+            db-version: '12.1'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}

@@ -2887,7 +2887,7 @@ function register_initial_settings() {
 
 	register_setting(
 		'writing',
-		'enable_real_time_collaboration',
+		'wp_collaboration_enabled',
 		array(
 			'type'              => 'boolean',
 			'description'       => __( 'Enable Real-Time Collaboration' ),
