@@ -1794,7 +1794,7 @@ class wpdb {
 	 * @global array $EZSQL_ERROR Stores error information of query and error string.
 	 *
 	 * @param string $str The error to display.
-	 * @return void|false Void if the showing of errors is enabled, false if disabled.
+	 * @return null|false Null if the showing of errors is enabled, false if disabled.
 	 */
 	public function print_error( $str = '' ) {
 		global $EZSQL_ERROR;
@@ -1855,6 +1855,8 @@ class wpdb {
 				$query
 			);
 		}
+
+		return null;
 	}
 
 	/**
