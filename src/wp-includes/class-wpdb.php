@@ -2117,7 +2117,7 @@ class wpdb {
 	 * @since 3.9.0
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
-	 * @return bool Whether the connection is up.
+	 * @return bool Whether the connection is up. Exits if down and $allow_bail is true.
 	 */
 	public function check_connection( $allow_bail = true ) {
 		// Check if the connection is alive.
