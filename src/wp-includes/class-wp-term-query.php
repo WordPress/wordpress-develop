@@ -1177,6 +1177,11 @@ class WP_Term_Query {
 			'child_of' => (int) $args['child_of'],
 		);
 
+		// cache_domain is a caller-controlled key that intentionally separates cache
+		// entries for the same query. It must be included so that callers can opt into
+		// distinct cache buckets even when the SQL is identical.
+		$php_cache_args['cache_domain'] = $args['cache_domain'];
+
 		// pad_counts changes result values via _pad_term_counts() and also changes the
 		// shape of what is stored in the cache ({term_id, count} objects vs. term_ids).
 		$php_cache_args['pad_counts'] = (bool) $args['pad_counts'];
