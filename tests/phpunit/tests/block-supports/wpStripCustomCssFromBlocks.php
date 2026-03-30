@@ -10,7 +10,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that style.css is stripped from block attributes.
 	 *
-	 * @ticket 63
+	 * @ticket 64771
 	 *
 	 * @dataProvider data_strips_css_from_blocks
 	 *
@@ -45,7 +45,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that style.css is stripped from nested inner blocks.
 	 *
-	 * @ticket 63
+	 * @ticket 64771
 	 */
 	public function test_strips_css_from_inner_blocks() {
 		$content = '<!-- wp:group --><div class="wp-block-group"><!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph --></div><!-- /wp:group -->';
@@ -60,7 +60,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that content without blocks is returned unchanged.
 	 *
-	 * @ticket 63
+	 * @ticket 64771
 	 */
 	public function test_returns_non_block_content_unchanged() {
 		$content = '<p>This is plain HTML content with no blocks.</p>';
@@ -73,7 +73,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that content without style.css attributes is returned unchanged.
 	 *
-	 * @ticket 63
+	 * @ticket 64771
 	 */
 	public function test_returns_unchanged_when_no_css_attributes() {
 		$content = '<!-- wp:paragraph {"style":{"color":{"text":"#ff0000"}}} --><p class="has-text-color" style="color:#ff0000">Hello</p><!-- /wp:paragraph -->';
@@ -86,7 +86,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that other style properties are preserved when css is stripped.
 	 *
-	 * @ticket 63
+	 * @ticket 64771
 	 */
 	public function test_preserves_other_style_properties() {
 		$content = '<!-- wp:paragraph {"style":{"css":"color: red;","color":{"text":"#ff0000"}}} --><p>Hello</p><!-- /wp:paragraph -->';
@@ -101,7 +101,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that empty style object is cleaned up after stripping css.
 	 *
-	 * @ticket 63
+	 * @ticket 64771
 	 */
 	public function test_cleans_up_empty_style_object() {
 		$content = '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->';
@@ -115,7 +115,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that slashed content is handled correctly.
 	 *
-	 * @ticket 63
+	 * @ticket 64771
 	 */
 	public function test_handles_slashed_content() {
 		$content = '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->';
