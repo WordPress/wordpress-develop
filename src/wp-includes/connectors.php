@@ -214,7 +214,7 @@ function _wp_connectors_init(): void {
 	$registry->register(
 		'akismet',
 		array(
-			'name'           => __( 'Akismet Anti-Spam' ),
+			'name'           => __( 'Akismet Anti-spam' ),
 			'description'    => __( 'Protect your site from spam.' ),
 			'type'           => 'spam_filtering',
 			'plugin'         => array(
