@@ -681,6 +681,11 @@ th.sorted a span {
 	cursor: pointer;
 }
 
+.tablenav-pages .paging-input {
+	position: relative;
+	top: -1px;
+}
+
 .tablenav-pages .current-page {
 	margin: 0 2px 0 0;
 	font-size: 13px;
