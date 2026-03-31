@@ -59,7 +59,7 @@ function wp_is_connector_registered( string $id ): bool {
  *         Optional. Plugin data for install/activate UI.
  *
  *         @type string $file The plugin's main file path relative to the plugins
- *                            directory (e.g. 'akismet/akismet.php').
+ *                            directory (e.g. 'akismet/akismet.php' or 'hello.php').
  *     }
  * }
  * @phpstan-return ?array{
@@ -678,7 +678,7 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 			$is_activated = $is_installed && is_plugin_active( $file );
 
 			$connector_out['plugin'] = array(
-				'file'        => str_ends_with( $file, '.php' ) ? substr( $file, 0, -4 ) : $file,
+				'file'        => $file,
 				'isInstalled' => $is_installed,
 				'isActivated' => $is_activated,
 			);
