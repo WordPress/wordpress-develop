@@ -110,7 +110,7 @@ final class WP_Connector_Registry {
 	 *         Optional. Plugin data for install/activate UI.
 	 *
 	 *         @type string $file The plugin's main file path relative to the plugins
-	 *                           directory (e.g. 'akismet/akismet.php').
+	 *                            directory (e.g. 'akismet/akismet.php').
 	 *     }
 	 * }
 	 * @return array|null The registered connector data on success, null on failure.
