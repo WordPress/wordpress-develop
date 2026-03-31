@@ -8637,7 +8637,7 @@ function wp_create_initial_post_meta() {
 		)
 	);
 
-	if ( get_option( 'wp_collaboration_enabled' ) ) {
+	if ( wp_is_collaboration_enabled() ) {
 		register_meta(
 			'post',
 			'_crdt_document',
