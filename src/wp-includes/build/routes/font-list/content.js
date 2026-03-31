@@ -15465,7 +15465,7 @@ function FontLibraryPage() {
   const tabs = [
     {
       id: "installed-fonts",
-      title: (0, import_i18n46.__)("Library")
+      title: (0, import_i18n46._x)("Library", "Font library")
     }
   ];
   if (canUserCreate) {
