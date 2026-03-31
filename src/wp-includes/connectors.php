@@ -59,7 +59,7 @@ function wp_is_connector_registered( string $id ): bool {
  *         Optional. Plugin data for install/activate UI.
  *
  *         @type string $file The plugin's main file path relative to the plugins
- *                           directory (e.g. 'akismet/akismet.php').
+ *                            directory (e.g. 'akismet/akismet.php').
  *     }
  * }
  * @phpstan-return ?array{
