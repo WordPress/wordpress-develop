@@ -592,6 +592,33 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( array( array( 'status' => 400 ) ), $response->get_data()['additional_data'] );
 	}
 
+	/**
+	 * @ticket 64901
+	 */
+	public function test_error_to_response_with_stdclass_data() {
+		$error = new WP_Error( 'test', 'test', (object) array( 'status' => 400 ) );
+
+		$response = rest_convert_error_to_response( $error );
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+
+		// stdClass data should not cause a fatal, status should default to 500.
+		$this->assertSame( 500, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64901
+	 */
+	public function test_error_to_response_with_multi_status_non_numeric_status() {
+		$error = new WP_Error( 'test', 'test', array( 'status' => array( 'feeling' => 'happy' ) ) );
+		$error->add_data( array( 'status' => 400 ), 'test' );
+		$error->add_data( array( 'status' => array( 'feeling' => 'bleh' ) ), 'test' );
+
+		$response = rest_convert_error_to_response( $error );
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
 	public function test_rest_error() {
 		$data     = array(
 			'code'    => 'wp-api-test-error',
@@ -1137,6 +1164,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'home', $data );
 		$this->assertArrayHasKey( 'gmt_offset', $data );
 		$this->assertArrayHasKey( 'timezone_string', $data );
+		$this->assertArrayHasKey( 'page_for_posts', $data );
+		$this->assertArrayHasKey( 'page_on_front', $data );
+		$this->assertArrayHasKey( 'show_on_front', $data );
 		$this->assertArrayHasKey( 'namespaces', $data );
 		$this->assertArrayHasKey( 'authentication', $data );
 		$this->assertArrayHasKey( 'routes', $data );
@@ -1868,6 +1898,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function test_get_routes_respects_namespace_parameter() {
 		$routes = rest_get_server()->get_routes( 'oembed/1.0' );
 
+		$this->assertNotEmpty( $routes );
+
 		foreach ( $routes as $route => $handlers ) {
 			$this->assertStringStartsWith( '/oembed/1.0', $route );
 		}
@@ -2322,6 +2354,30 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 63502
+	 */
+	public function test_batch_request_with_malformed_url() {
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'method' => 'POST',
+						'path'   => 'http://user@:80',
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data()['responses'][0]['body'] ?? null;
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 'parse_path_failed', $data['code'] );
 	}
 
 	/**

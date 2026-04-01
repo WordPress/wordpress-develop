@@ -44,12 +44,12 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 
 		// Assert that the block was registered successfully
 		$this->assertInstanceOf( 'WP_Block_Type', $registered_block );
-		$this->assertEquals( 'test-suite/test-block', $registered_block->name );
-		$this->assertEquals( 'Custom Test Block', $registered_block->title );
-		$this->assertEquals( 'widgets', $registered_block->category );
-		$this->assertEquals( 'smiley', $registered_block->icon );
-		$this->assertEquals( 'A test block registered via WP_Block_Metadata_Registry', $registered_block->description );
-		$this->assertEquals( array( 'html' => false ), $registered_block->supports );
+		$this->assertSame( 'test-suite/test-block', $registered_block->name );
+		$this->assertSame( 'Custom Test Block', $registered_block->title );
+		$this->assertSame( 'widgets', $registered_block->category );
+		$this->assertSame( 'smiley', $registered_block->icon );
+		$this->assertSame( 'A test block registered via WP_Block_Metadata_Registry', $registered_block->description );
+		$this->assertSame( array( 'html' => false ), $registered_block->supports );
 	}
 
 	public function test_register_block_type_from_metadata_with_registry_and_override() {
@@ -83,12 +83,12 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 
 		// Assert that the block was registered successfully with overrides
 		$this->assertInstanceOf( 'WP_Block_Type', $registered_block );
-		$this->assertEquals( 'test-suite/test-block', $registered_block->name );
-		$this->assertEquals( 'Overridden Title', $registered_block->title );
-		$this->assertEquals( 'widgets', $registered_block->category );
-		$this->assertEquals( 'smiley', $registered_block->icon );
-		$this->assertEquals( 'A test block registered via WP_Block_Metadata_Registry', $registered_block->description );
-		$this->assertEquals( array( 'html' => true ), $registered_block->supports );
+		$this->assertSame( 'test-suite/test-block', $registered_block->name );
+		$this->assertSame( 'Overridden Title', $registered_block->title );
+		$this->assertSame( 'widgets', $registered_block->category );
+		$this->assertSame( 'smiley', $registered_block->icon );
+		$this->assertSame( 'A test block registered via WP_Block_Metadata_Registry', $registered_block->description );
+		$this->assertSame( array( 'html' => true ), $registered_block->supports );
 	}
 
 	private function unregister_test_blocks() {

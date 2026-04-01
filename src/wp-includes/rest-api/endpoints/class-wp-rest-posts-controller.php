@@ -411,6 +411,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
 
+		$is_head_request = $request->is_method( 'HEAD' );
+		if ( $is_head_request ) {
+			// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
+			$args['fields'] = 'ids';
+			// Disable priming post meta for HEAD requests to improve performance.
+			$args['update_post_term_cache'] = false;
+			$args['update_post_meta_cache'] = false;
+		}
+
 		/**
 		 * Filters WP_Query arguments when querying posts via the REST API.
 		 *
@@ -432,7 +441,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param array           $args    Array of arguments for WP_Query.
 		 * @param WP_REST_Request $request The REST API request.
 		 */
-		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		$args = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		if ( ! is_array( $args ) ) {
+			$args = array();
+		}
 		$query_args = $this->prepare_items_query( $args, $request );
 
 		$posts_query  = new WP_Query();
@@ -443,22 +455,30 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
-		$posts = array();
+		if ( ! $is_head_request ) {
+			$posts = array();
 
-		update_post_author_caches( $query_result );
-		update_post_parent_caches( $query_result );
+			update_post_author_caches( $query_result );
+			update_post_parent_caches( $query_result );
 
-		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
-			update_post_thumbnail_cache( $posts_query );
-		}
-
-		foreach ( $query_result as $post ) {
-			if ( ! $this->check_read_permission( $post ) ) {
-				continue;
+			if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
+				update_post_thumbnail_cache( $posts_query );
 			}
 
-			$data    = $this->prepare_item_for_response( $post, $request );
-			$posts[] = $this->prepare_response_for_collection( $data );
+			foreach ( $query_result as $post ) {
+				if ( 'edit' === $request['context'] ) {
+					$permission = $this->check_update_permission( $post );
+				} else {
+					$permission = $this->check_read_permission( $post );
+				}
+
+				if ( ! $permission ) {
+					continue;
+				}
+
+				$data    = $this->prepare_item_for_response( $post, $request );
+				$posts[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
 		// Reset filter.
@@ -466,14 +486,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', array( $this, 'check_password_required' ) );
 		}
 
-		$page        = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
+		$page        = (int) ( $query_args['paged'] ?? 0 );
 		$total_posts = $posts_query->found_posts;
 
 		if ( $total_posts < 1 && $page > 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count.
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $query_args['paged'] );
 
-			$count_query = new WP_Query();
+			$count_query                          = new WP_Query();
+			$query_args['fields']                 = 'ids';
+			$query_args['posts_per_page']         = 1;
+			$query_args['update_post_meta_cache'] = false;
+			$query_args['update_post_term_cache'] = false;
+
 			$count_query->query( $query_args );
 			$total_posts = $count_query->found_posts;
 		}
@@ -488,7 +513,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$response = rest_ensure_response( $posts );
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $posts );
 
 		$response->header( 'X-WP-Total', (int) $total_posts );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -1189,6 +1214,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
+		if ( ! is_array( $prepared_args ) ) {
+			$prepared_args = array();
+		}
 
 		foreach ( $prepared_args as $key => $value ) {
 			/**
@@ -1452,6 +1480,35 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['template'] ) ) {
 			// Force template to null so that it can be handled exclusively by the REST controller.
 			$prepared_post->page_template = null;
+		}
+
+		/**
+		 * Applies Block Hooks to content-like post types.
+		 *
+		 * Content-like post types are those that support the editor and would benefit
+		 * from Block Hooks functionality. This replaces the individual post type filters
+		 * that were previously hardcoded in default-filters.php.
+		 *
+		 * @since 7.0.0
+		 */
+		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+		/**
+		 * Filters which post types should have Block Hooks applied.
+		 *
+		 * Allows themes and plugins to add or remove post types that should
+		 * have Block Hooks functionality enabled in the REST API.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param array  $content_like_post_types Array of post type names that support Block Hooks.
+		 * @param string $post_type               The current post type being processed.
+		 * @param object $prepared_post           The prepared post object.
+		 */
+		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $prepared_post );
+
+		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+			$prepared_post = update_ignored_hooked_blocks_postmeta( $prepared_post );
 		}
 
 		/**
@@ -1833,6 +1890,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		setup_postdata( $post );
 
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+			return apply_filters( "rest_prepare_{$this->post_type}", new WP_REST_Response( array() ), $post, $request );
+		}
+
 		$fields = $this->get_fields_for_response( $request );
 
 		// Base fields for every post.
@@ -1960,7 +2023,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				add_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 
@@ -1980,7 +2043,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				remove_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 		}
@@ -2100,6 +2163,34 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
+		 * Applies Block Hooks to content-like post types for REST response.
+		 *
+		 * This replaces the individual post type filters that were previously hardcoded
+		 * in default-filters.php.
+		 *
+		 * @since 7.0.0
+		 */
+		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+		/**
+		 * Filters which post types should have Block Hooks applied.
+		 *
+		 * Allows themes and plugins to add or remove post types that should
+		 * have Block Hooks functionality enabled in the REST API.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param array   $content_like_post_types Array of post type names that support Block Hooks.
+		 * @param string  $post_type               The current post type being processed.
+		 * @param WP_Post $post                    The post object.
+		 */
+		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $post );
+
+		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+			$response = insert_hooked_blocks_into_rest_response( $response, $post );
+		}
+
+		/**
 		 * Filters the post data for a REST API response.
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
@@ -2203,7 +2294,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// If we have a featured media, add that.
 		$featured_media = get_post_thumbnail_id( $post->ID );
-		if ( $featured_media ) {
+		if ( $featured_media && ( 'publish' === get_post_status( $featured_media ) || current_user_can( 'read_post', $featured_media ) ) ) {
 			$image_url = rest_url( rest_get_route_for_post( $featured_media ) );
 
 			$links['https://api.w.org/featuredmedia'] = array(
@@ -3058,7 +3149,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_params['ignore_sticky'] = array(
 				'description' => __( 'Whether to ignore sticky posts or not.' ),
 				'type'        => 'boolean',
-				'default'     => false,
+				'default'     => true,
 			);
 		}
 

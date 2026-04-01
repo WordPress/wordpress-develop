@@ -69,6 +69,9 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 		$redirect = add_query_arg( array( 'update' => 'addexisting' ), 'user-new.php' );
 	} else {
 		if ( isset( $_POST['noconfirmation'] ) && current_user_can( 'manage_network_users' ) ) {
+
+			wp_ensure_editable_role( $_REQUEST['role'] );
+
 			$result = add_existing_user_to_blog(
 				array(
 					'user_id' => $user_id,
@@ -224,6 +227,8 @@ Please click the following link to confirm the invite:
 				add_filter( 'wpmu_signup_user_notification', '__return_false' );  // Disable confirmation email.
 				add_filter( 'wpmu_welcome_user_notification', '__return_false' ); // Disable welcome email.
 			}
+
+			wp_ensure_editable_role( $_REQUEST['role'] );
 
 			wpmu_signup_user(
 				$new_user_login,
@@ -536,7 +541,7 @@ if ( current_user_can( 'create_users' ) ) {
 <table class="form-table" role="presentation">
 	<tr class="form-field form-required">
 		<th scope="row"><label for="user_login"><?php _e( 'Username' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
-		<td><input name="user_login" type="text" id="user_login" value="<?php echo esc_attr( $new_user_login ); ?>" aria-required="true" autocapitalize="none" autocorrect="off" autocomplete="off" maxlength="60" /></td>
+		<td><input name="user_login" type="text" id="user_login" class="ltr" value="<?php echo esc_attr( $new_user_login ); ?>" aria-required="true" autocapitalize="none" autocorrect="off" autocomplete="off" maxlength="60" /></td>
 	</tr>
 	<tr class="form-field form-required">
 		<th scope="row"><label for="email"><?php _e( 'Email' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
@@ -595,7 +600,7 @@ if ( current_user_can( 'create_users' ) ) {
 			<div class="wp-pwd">
 				<?php $initial_password = wp_generate_password( 24 ); ?>
 				<div class="password-input-wrapper">
-					<input type="password" name="pass1" id="pass1" class="regular-text" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
+					<input type="password" name="pass1" id="pass1" class="regular-text ltr" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
 					<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 				</div>
 				<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">

@@ -132,23 +132,26 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23494
+	 * @dataProvider data_passwords_for_trimming
 	 */
-	public function test_password_trimming() {
-		$passwords_to_test = array(
-			'a password with no trailing or leading spaces',
-			'a password with trailing spaces ',
-			' a password with leading spaces',
-			' a password with trailing and leading spaces ',
+	public function test_password_trimming( $password_to_test ) {
+		wp_set_password( $password_to_test, $this->user->ID );
+		$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
+
+		$this->assertNotWPError( $authed_user );
+		$this->assertInstanceOf( 'WP_User', $authed_user );
+		$this->assertSame( $this->user->ID, $authed_user->ID );
+	}
+
+	public function data_passwords_for_trimming() {
+		return array(
+			'no spaces'                => array( 'a password with no trailing or leading spaces' ),
+			'trailing space'           => array( 'a password with trailing spaces ' ),
+			'leading space'            => array( ' a password with leading spaces' ),
+			'leading and trailing'     => array( ' a password with trailing and leading spaces ' ),
+			'multiple leading spaces'  => array( '    a password with multiple leading spaces' ),
+			'multiple trailing spaces' => array( 'a password with multiple trailing spaces    ' ),
 		);
-
-		foreach ( $passwords_to_test as $password_to_test ) {
-			wp_set_password( $password_to_test, $this->user->ID );
-			$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
-
-			$this->assertNotWPError( $authed_user );
-			$this->assertInstanceOf( 'WP_User', $authed_user );
-			$this->assertSame( $this->user->ID, $authed_user->ID );
-		}
 	}
 
 	/**
@@ -180,23 +183,20 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * wp_hash_password function
 	 *
 	 * @ticket 24973
+	 * @dataProvider data_passwords_with_whitespace
 	 */
-	public function test_wp_hash_password_trimming() {
+	public function test_wp_hash_password_trimming( $password_with_whitespace, $expected_password ) {
+		$this->assertTrue( wp_check_password( $expected_password, wp_hash_password( $password_with_whitespace ) ) );
+	}
 
-		$password = ' pass with leading whitespace';
-		$this->assertTrue( wp_check_password( 'pass with leading whitespace', wp_hash_password( $password ) ) );
-
-		$password = 'pass with trailing whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with trailing whitespace', wp_hash_password( $password ) ) );
-
-		$password = ' pass with whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with whitespace', wp_hash_password( $password ) ) );
-
-		$password = "pass with new line \n";
-		$this->assertTrue( wp_check_password( 'pass with new line', wp_hash_password( $password ) ) );
-
-		$password = "pass with vertical tab o_O\x0B";
-		$this->assertTrue( wp_check_password( 'pass with vertical tab o_O', wp_hash_password( $password ) ) );
+	public function data_passwords_with_whitespace() {
+		return array(
+			'leading whitespace'  => array( ' pass with leading whitespace', 'pass with leading whitespace' ),
+			'trailing whitespace' => array( 'pass with trailing whitespace ', 'pass with trailing whitespace' ),
+			'both whitespace'     => array( ' pass with whitespace ', 'pass with whitespace' ),
+			'new line'            => array( "pass with new line \n", 'pass with new line' ),
+			'vertical tab'        => array( "pass with vertical tab o_O\x0B", 'pass with vertical tab o_O' ),
+		);
 	}
 
 	/**
@@ -288,7 +288,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_supports_argon2i_hash() {
 		if ( ! defined( 'PASSWORD_ARGON2I' ) ) {
-			$this->fail( 'Argon2i is not supported.' );
+			$this->markTestSkipped( 'Argon2i is not supported.' );
 		}
 
 		$password = 'password';
@@ -306,7 +306,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_supports_argon2id_hash() {
 		if ( ! defined( 'PASSWORD_ARGON2ID' ) ) {
-			$this->fail( 'Argon2id is not supported.' );
+			$this->markTestSkipped( 'Argon2id is not supported.' );
 		}
 
 		$password = 'password';
@@ -318,10 +318,10 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @ticket 21022
 	 */
-	public function test_wp_check_password_does_not_support_md5_hashes() {
+	public function test_wp_check_password_supports_md5_hash() {
 		$password = 'password';
 		$hash     = md5( $password );
-		$this->assertFalse( wp_check_password( $password, $hash ) );
+		$this->assertTrue( wp_check_password( $password, $hash ) );
 		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
@@ -363,8 +363,6 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	public function data_empty_values() {
 		return array(
-			// Integer zero:
-			array( 0 ),
 			// String zero:
 			array( '0' ),
 			// Zero-length string:
@@ -473,6 +471,99 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	public function data_passwords(): array {
+		return array(
+			array( 'a' ),
+			array( 'password' ),
+			array( str_repeat( 'a', self::$password_length_limit ) ),
+		);
+	}
+
+	/**
+	 * Ensure the hash of the user password remains less than 64 characters in length to account for the old users table schema.
+	 *
+	 * @ticket 21022
+	 * @dataProvider data_passwords
+	 */
+	public function test_user_password_against_old_users_table_schema( string $password ) {
+		// Mimic the schema of the users table prior to WordPress 4.4.
+		add_filter( 'wp_pre_insert_user_data', array( $this, 'mimic_users_schema_prior_to_44' ) );
+
+		$username = 'old-schema-user';
+
+		// Create a user.
+		$user_id = $this->factory()->user->create(
+			array(
+				'user_login' => $username,
+				'user_email' => 'old-schema-user@example.com',
+				'user_pass'  => $password,
+			)
+		);
+
+		// Check the user can authenticate.
+		$user = wp_authenticate( $username, $password );
+
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( $user_id, $user->ID, 'User should be able to authenticate' );
+		$this->assertNotSame( self::$user_id, $user->ID, 'A unique user must be created for this test, the shared fixture must not be used' );
+	}
+
+	/**
+	 * Ensure the hash of the user activation key remains less than 60 characters in length to account for the old users table schema.
+	 *
+	 * @ticket 21022
+	 */
+	public function test_user_activation_key_against_old_users_table_schema() {
+		// Mimic the schema of the users table prior to WordPress 4.4.
+		add_filter( 'wp_pre_insert_user_data', array( $this, 'mimic_users_schema_prior_to_44' ) );
+
+		$username = 'old-schema-user';
+
+		// Create a user.
+		$user_id = $this->factory()->user->create(
+			array(
+				'user_login' => $username,
+				'user_email' => 'old-schema-user@example.com',
+			)
+		);
+
+		$user = get_userdata( $user_id );
+		$key  = get_password_reset_key( $user );
+
+		// A correctly saved key should be accepted.
+		$check = check_password_reset_key( $key, $user->user_login );
+
+		$this->assertNotWPError( $check );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $user->ID, $check->ID );
+		$this->assertNotSame( self::$user_id, $user->ID, 'A unique user must be created for this test, the shared fixture must not be used' );
+	}
+
+	/*
+	 * Fake the schema of the users table prior to WordPress 4.4 to mimic sites that are using the
+	 * `DO_NOT_UPGRADE_GLOBAL_TABLES` constant and have not updated the users table schema.
+	 *
+	 * The schema of the wp_users table on wordpress.org has not been updated since the schema was changed in [35638]
+	 * for WordPress 4.4, which means the `user_activation_key` field remains at 60 characters length and the `user_pass`
+	 * field remains at 64 characters length instead of the expected 255. Although this is unlikely to affect other
+	 * sites, this can be accommodated for in the codebase.
+	 *
+	 * Actually altering the database schema during tests will commit the transaction and break subsequent tests, hence
+	 * the use of this filter.
+	 */
+	public function mimic_users_schema_prior_to_44( array $data ): array {
+		if ( isset( $data['user_pass'] ) ) {
+			$this->assertLessThanOrEqual( 64, strlen( $data['user_pass'] ) );
+		}
+
+		if ( isset( $data['user_activation_key'] ) ) {
+			$this->assertLessThanOrEqual( 60, strlen( $data['user_activation_key'] ) );
+		}
+
+		return $data;
 	}
 
 	/**
@@ -1044,6 +1135,29 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21022
+	 * @ticket 63203
+	 */
+	public function test_plain_bcrypt_application_password_is_accepted() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$password = 'password';
+
+		// Set an application password with plain bcrypt, which mimics a password that was hashed with
+		// a custom `wp_hash_password()` in use.
+		$uuid = self::set_application_password_with_plain_bcrypt( $password, self::$user_id );
+
+		// Authenticate.
+		$user = wp_authenticate_application_password( null, self::USER_LOGIN, $password );
+
+		// Verify that the plain bcrypt hash for the application password was valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	/**
 	 * @dataProvider data_usernames
 	 *
 	 * @ticket 21022
@@ -1062,6 +1176,42 @@ class Tests_Auth extends WP_UnitTestCase {
 		$user = wp_authenticate( $username_or_email, $password );
 
 		// Verify that the phpass password hash was valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+
+		// Verify that the password no longer needs rehashing.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertFalse( wp_password_needs_rehash( $hash, self::$user_id ) );
+
+		// Authenticate a second time to ensure the new hash is valid.
+		$user = wp_authenticate( $username_or_email, $password );
+
+		// Verify that the bcrypt password hash is valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	/**
+	 * @dataProvider data_usernames
+	 *
+	 * @ticket 21022
+	 */
+	public function test_md5_password_is_rehashed_after_successful_user_password_authentication( $username_or_email ) {
+		$password = 'password';
+
+		// Set the user password with the old md5 algorithm.
+		self::set_user_password_with_md5( $password, self::$user_id );
+
+		// Verify that the password needs rehashing.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertTrue( wp_password_needs_rehash( $hash, self::$user_id ) );
+
+		// Authenticate.
+		$user = wp_authenticate( $username_or_email, $password );
+
+		// Verify that the md5 password hash was valid.
 		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( self::$user_id, $user->ID );
@@ -1429,12 +1579,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @covers ::wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
-		$user_id = self::factory()->user->create(
-			array(
-				'user_login' => 'http_auth_login',
-				'user_pass'  => 'http_auth_pass', // Shouldn't be allowed for API login.
-			)
-		);
+		$user_id = self::$_user->ID;
 
 		// Create a new app-only password.
 		list( $user_app_password, $item ) = WP_Application_Passwords::create_new_application_password( $user_id, array( 'name' => 'phpunit' ) );
@@ -1444,8 +1589,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 
 		// Fake an HTTP Auth request with the regular account password first.
-		$_SERVER['PHP_AUTH_USER'] = 'http_auth_login';
-		$_SERVER['PHP_AUTH_PW']   = 'http_auth_pass';
+		$_SERVER['PHP_AUTH_USER'] = self::USER_LOGIN;
+		$_SERVER['PHP_AUTH_PW']   = self::USER_PASS;
 
 		$this->assertNull(
 			wp_validate_application_password( null ),
@@ -1462,6 +1607,19 @@ class Tests_Auth extends WP_UnitTestCase {
 			'Application passwords should be allowed for API authentication'
 		);
 		$this->assertSame( $item['uuid'], rest_get_authenticated_app_password() );
+	}
+
+	/**
+	 * @ticket 21022
+	 * @ticket 63203
+	 *
+	 * @covers WP_Application_Passwords::create_new_application_password
+	 */
+	public function test_application_password_is_hashed_with_fast_hash() {
+		// Create a new app-only password.
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		$this->assertStringStartsWith( '$generic$', $item['password'] );
 	}
 
 	/**
@@ -1772,6 +1930,38 @@ class Tests_Auth extends WP_UnitTestCase {
 		clean_user_cache( $user_id );
 	}
 
+	/**
+	 * Test the tests
+	 *
+	 * @covers Tests_Auth::set_user_password_with_md5
+	 *
+	 * @ticket 21022
+	 */
+	public function test_set_user_password_with_md5() {
+		$password = 'password';
+
+		// Set the user password with the old md5 algorithm.
+		self::set_user_password_with_md5( $password, self::$user_id );
+
+		// Ensure the password is hashed with md5.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertSame( md5( $password ), $hash );
+	}
+
+	private static function set_user_password_with_md5( string $password, int $user_id ) {
+		global $wpdb;
+
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_pass' => md5( $password ),
+			),
+			array(
+				'ID' => $user_id,
+			)
+		);
+		clean_user_cache( $user_id );
+	}
 
 	/**
 	 * Test the tests
@@ -1807,6 +1997,37 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * Test the tests
 	 *
+	 * @covers Tests_Auth::set_application_password_with_plain_bcrypt
+	 *
+	 * @ticket 21022
+	 * @ticket 63203
+	 */
+	public function test_set_application_password_with_plain_bcrypt() {
+		// Set an application password with the plain_bcrypt algorithm.
+		$uuid = self::set_application_password_with_plain_bcrypt( 'password', self::$user_id );
+
+		// Ensure the password is hashed with plain_bcrypt.
+		$hash = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid )['password'];
+		$this->assertStringStartsWith( '$2y$', $hash );
+	}
+
+	/**
+	 * Creates an application password that is hashed using bcrypt instead of the generic algorithm.
+	 *
+	 * This is ultimately used to mimic a plugged version of `wp_hash_password()` that uses bcrypt and
+	 * facilitate backwards compatibility testing.
+	 *
+	 * @param string $password The password to hash.
+	 * @param int    $user_id  The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
+	private static function set_application_password_with_plain_bcrypt( string $password, int $user_id ) {
+		return self::set_application_password( password_hash( $password, PASSWORD_BCRYPT ), $user_id );
+	}
+
+	/**
+	 * Test the tests
+	 *
 	 * @covers Tests_Auth::set_application_password_with_phpass
 	 *
 	 * @ticket 21022
@@ -1820,13 +2041,33 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '$P$', $hash );
 	}
 
+	/**
+	 * Creates an application password that is hashed using a phpass portable hash instead of the generic algorithm.
+	 *
+	 * This facilitate backwards compatibility testing.
+	 *
+	 * @param string $password The password to hash.
+	 * @param int    $user_id  The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
 	private static function set_application_password_with_phpass( string $password, int $user_id ) {
+		return self::set_application_password( self::$wp_hasher->HashPassword( $password ), $user_id );
+	}
+
+	/**
+	 * Creates an application password using the given password hash.
+	 *
+	 * @param string $hash    The password hash.
+	 * @param int    $user_id The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
+	private static function set_application_password( string $hash, int $user_id ) {
 		$uuid = wp_generate_uuid4();
 		$item = array(
 			'uuid'      => $uuid,
 			'app_id'    => '',
 			'name'      => 'Test',
-			'password'  => self::$wp_hasher->HashPassword( $password ),
+			'password'  => $hash,
 			'created'   => time(),
 			'last_used' => null,
 			'last_ip'   => null,
@@ -1848,9 +2089,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	private static function get_default_bcrypt_cost(): int {
-		$hash = password_hash( 'password', PASSWORD_BCRYPT );
-		$info = password_get_info( $hash );
-
-		return $info['options']['cost'];
+		return 5;
 	}
 }

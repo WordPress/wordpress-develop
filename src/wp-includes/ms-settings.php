@@ -21,6 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * These may be populated through a custom `sunrise.php`. If not, then this
  * file will attempt to populate them based on the current request.
  *
+ * @since 3.0.0
+ *
  * @global WP_Network $current_site The current network.
  * @global object     $current_blog The current site.
  * @global string     $domain       Deprecated. The domain of the site found on load.
@@ -31,8 +33,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  *                                  Use `get_current_network_id()` instead.
  * @global bool       $public       Deprecated. Whether the site found on load is public.
  *                                  Use `get_site()->public` instead.
- *
- * @since 3.0.0
  */
 global $current_site, $current_blog, $domain, $path, $site_id, $public;
 
@@ -59,7 +59,7 @@ ms_subdomain_constants();
 // have not been populated in the global scope through something like `sunrise.php`.
 if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 
-	$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ) );
+	$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ?? '' ) );
 	if ( str_ends_with( $domain, ':80' ) ) {
 		$domain               = substr( $domain, 0, -3 );
 		$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -3 );
@@ -77,7 +77,7 @@ if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 	$bootstrap_result = ms_load_current_site_and_network( $domain, $path, is_subdomain_install() );
 
 	if ( true === $bootstrap_result ) {
-		// `$current_blog` and `$current_site are now populated.
+		// `$current_blog` and `$current_site` are now populated.
 	} elseif ( false === $bootstrap_result ) {
 		ms_not_installed( $domain, $path );
 	} else {
