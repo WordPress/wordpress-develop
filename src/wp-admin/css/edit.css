@@ -995,14 +995,15 @@ form#tags-filter {
 
 .privacy-settings-accordion-actions {
 	text-align: right;
-	display: block;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
 }
 
 .privacy-settings-accordion-actions .success {
-	display: none;
-	color: #007017;
-	padding-right: 1em;
-	vertical-align: middle;
+	 display: none;
+	 color: #007017;
+	 padding-right: 1em;
 }
 
 .privacy-settings-accordion-actions .success.visible {
