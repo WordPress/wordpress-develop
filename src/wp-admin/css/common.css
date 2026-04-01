@@ -1115,7 +1115,6 @@ th.action-links {
 
 .wp-filter .search-form input[type="search"] {
 	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 8px;
 }
 
@@ -2076,17 +2075,6 @@ p.auto-update-status {
 	border-left: 2px solid var(--wp-admin-theme-color);
 	background: color-mix(in srgb, var(--wp-admin-theme-color) 8%, white);
 	box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02), 0 1px 0 rgba(0, 0, 0, 0.02);
-}
-
-.contextual-help-tabs .active::after {
-	content: "";
-	position: absolute;
-	top: 0;
-	right: -1px;
-	width: 2px;
-	height: 100%;
-	background: inherit;
-	z-index: 2;
 }
 
 .contextual-help-tabs .active a {
