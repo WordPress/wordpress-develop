@@ -198,44 +198,34 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		if ( showFilterByType ) {
-			// "Filters" is a <select>, a visually hidden label element needs to be rendered before.
-			var filtersLabel = new wp.media.view.Label({
+			// "Filters" is a <select>, a label element needs to be rendered before.
+			this.toolbar.set( 'filtersLabel', new wp.media.view.Label({
 				value: l10n.filterByType,
 				attributes: {
 					'for':  'media-attachment-filters'
 				},
 				priority:   -80
-			});
+			}).render() );
 
 			if ( 'uploaded' === this.options.filters ) {
-				Filters = new wp.media.view.AttachmentFilters.Uploaded({
-					controller: this.controller,
-					model:      this.collection.props,
-				});
+				this.toolbar.set(
+					'filters',
+					new wp.media.view.AttachmentFilters.Uploaded({
+						controller: this.controller,
+						model:      this.collection.props,
+						priority:   -80
+					}).render() );
 			} else {
 				Filters = new wp.media.view.AttachmentFilters.All({
 					controller: this.controller,
 					model:      this.collection.props,
+					priority:   -80
 				});
 			}
 
-			var filterContainer = wp.media.View.extend({
-				tagname: 'div',
-				className: 'media-filter-container type-filter',
-
-				initialize: function() {
-					this.views.add( [ filtersLabel, Filters ] );
-				}
-			});
-
-			this.toolbar.set( 'filters', new filterContainer({
-				controller: this.controller,
-				model:      this.controller.props,
-				priority:   -80
-			}).render() );
+			this.toolbar.set( 'filters', Filters.render() );
 		}
-		
-		var dateFilter, dateFilterLabel, dateFilterContainer;
+
 		/*
 		 * Feels odd to bring the global media library switcher into the Attachment browser view.
 		 * Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
@@ -253,30 +243,18 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}).render() );
 
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			dateFilterLabel = new wp.media.view.Label({
+			this.toolbar.set( 'dateFilter', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
 				},
-			});
-			dateFilter = new wp.media.view.DateFilter({
+				priority: -75
+			}).render() );
+
+			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-			});
-
-			dateFilterContainer = wp.media.View.extend({
-				tagname: 'div',
-				className: 'media-filter-container date-filter',
-
-				initialize: function() {
-					this.views.add( [ dateFilterLabel, dateFilter ] );
-				}
-			});
-
-			this.toolbar.set( 'dateFilters', new dateFilterContainer({
-				controller: this.controller,
-				model:      this.collection.props,
-				priority:   -75
+				priority:   -75,
 			}).render() );
 
 			// BulkSelection is a <div> with subviews, including screen reader text.
@@ -388,30 +366,17 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		} else if ( this.options.date ) {
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			dateFilterLabel = new wp.media.view.Label({
+			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
-				},
-			});
-			dateFilter = new wp.media.view.DateFilter({
+				},priority: -75
+			}).render() );
+
+			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-			});
-
-			dateFilterContainer = wp.media.View.extend({
-				tagname: 'div',
-				className: 'media-filter-container date-filter',
-
-				initialize: function() {
-					this.views.add( [ dateFilterLabel, dateFilter ] );
-				}
-			});
-
-			this.toolbar.set( 'dateFilters', new dateFilterContainer({
-				controller: this.controller,
-				model:      this.collection.props,
-				priority:   -75
+				priority:   -75,
 			}).render() );
 		}
 
