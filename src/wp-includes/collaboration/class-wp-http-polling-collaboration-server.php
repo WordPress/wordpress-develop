@@ -152,6 +152,8 @@ class WP_HTTP_Polling_Collaboration_Server {
 				'type'     => array( 'object', 'null' ),
 			),
 			'client_id' => array(
+				'minimum'           => 1,
+				'minLength'         => 1,
 				'required'          => true,
 				'type'              => array( 'string', 'integer' ),
 				'sanitize_callback' => function ( $value ) {

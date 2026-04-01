@@ -1626,6 +1626,109 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertLessThan( 10, $data['rooms'][0]['total_updates'], 'Compaction should reduce the total update count.' );
 	}
 
+	/**
+	 * Verifies that the lowest client ID is correctly identified as the compactor
+	 * and that compaction actually removes old rows from the database.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_compactor_is_lowest_client_id(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 10 and client 5 both join and send updates.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '10', 0, array( 'user' => 'c10' ), array(
+					array( 'type' => 'update', 'data' => base64_encode( 'update-from-10' ) ),
+				) ),
+			)
+		);
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '5', 0, array( 'user' => 'c5' ), array(
+					array( 'type' => 'update', 'data' => base64_encode( 'update-from-5' ) ),
+				) ),
+			)
+		);
+
+		$data = $response->get_data();
+
+		// Client 5 is the lowest ID, so it should be the compactor candidate.
+		// Verify both clients appear in awareness (keys are client IDs).
+		$this->assertArrayHasKey( '5', $data['rooms'][0]['awareness'], 'Client 5 should appear in awareness.' );
+		$this->assertArrayHasKey( '10', $data['rooms'][0]['awareness'], 'Client 10 should appear in awareness.' );
+
+		// Now add enough updates to exceed the compaction threshold.
+		$updates = array();
+		for ( $i = 0; $i < 51; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "bulk-$i" ),
+			);
+		}
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '10', 0, array( 'user' => 'c10' ), $updates ),
+			)
+		);
+
+		// Client 5 (lowest) polls — should be told to compact.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '5', 0, array( 'user' => 'c5' ) ),
+			)
+		);
+
+		$data   = $response->get_data();
+		$cursor = $data['rooms'][0]['end_cursor'];
+		$this->assertTrue( $data['rooms'][0]['should_compact'], 'Lowest client ID should be nominated as compactor.' );
+
+		// Client 10 (higher) polls — should NOT be told to compact.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '10', 0, array( 'user' => 'c10' ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertFalse( $data['rooms'][0]['should_compact'], 'Higher client ID should not be nominated as compactor.' );
+
+		// Count rows before compaction.
+		$count_before = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
+				$room
+			)
+		);
+
+		// Client 5 sends a compaction update.
+		$compaction = array(
+			'type' => 'compaction',
+			'data' => base64_encode( 'compacted-state' ),
+		);
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '5', $cursor, array( 'user' => 'c5' ), array( $compaction ) ),
+			)
+		);
+
+		// Count rows after compaction.
+		$count_after = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
+				$room
+			)
+		);
+
+		$this->assertLessThan( $count_before, $count_after, 'Compaction should delete old rows from the database.' );
+	}
+
 	/*
 	 * Cron cleanup tests.
 	 */
@@ -2906,5 +3009,57 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$this->assertNotNull( $row, 'Custom type row should be queryable.' );
 		$this->assertSame( 'persisted_crdt_doc', $row->type, 'Type column should store the custom value.' );
+	}
+
+	/*
+	 * Storage validation tests.
+	 *
+	 * Verify that storage methods reject empty required fields
+	 * rather than inserting rows with default empty values.
+	 */
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_add_update_rejects_empty_room(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->add_update( '', array( 'type' => 'update', 'client_id' => '1', 'data' => 'test' ) );
+		$this->assertFalse( $result, 'add_update should reject an empty room.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_add_update_rejects_empty_type(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->add_update( 'postType/post:1', array( 'type' => '', 'client_id' => '1', 'data' => 'test' ) );
+		$this->assertFalse( $result, 'add_update should reject an empty type.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_add_update_rejects_empty_client_id(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->add_update( 'postType/post:1', array( 'type' => 'update', 'client_id' => '', 'data' => 'test' ) );
+		$this->assertFalse( $result, 'add_update should reject an empty client_id.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_set_awareness_rejects_empty_room(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->set_awareness_state( '', '1', array( 'user' => 'test' ), 1 );
+		$this->assertFalse( $result, 'set_awareness_state should reject an empty room.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_set_awareness_rejects_empty_client_id(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->set_awareness_state( 'postType/post:1', '', array( 'user' => 'test' ), 1 );
+		$this->assertFalse( $result, 'set_awareness_state should reject an empty client_id.' );
 	}
 }

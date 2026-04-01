@@ -56,6 +56,10 @@ class WP_Collaboration_Table_Storage {
 	public function add_update( string $room, $update ): bool {
 		global $wpdb;
 
+		if ( '' === $room || empty( $update['type'] ) || empty( $update['client_id'] ) ) {
+			return false;
+		}
+
 		$result = $wpdb->insert(
 			$wpdb->collaboration,
 			array(
@@ -295,6 +299,10 @@ class WP_Collaboration_Table_Storage {
 	 */
 	public function set_awareness_state( string $room, string $client_id, array $state, int $user_id ): bool {
 		global $wpdb;
+
+		if ( '' === $room || '' === $client_id ) {
+			return false;
+		}
 
 		$data = wp_json_encode( $state );
 
