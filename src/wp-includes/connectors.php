@@ -218,7 +218,7 @@ function _wp_connectors_init(): void {
 			'description'    => __( 'Protect your site from spam.' ),
 			'type'           => 'spam_filtering',
 			'plugin'         => array(
-				'slug' => 'akismet',
+				'file' => 'akismet/akismet.php',
 			),
 			'authentication' => array(
 				'method'          => 'api_key',
