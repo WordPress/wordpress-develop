@@ -84,6 +84,9 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     uses: ./.github/workflows/reusable-failed-workflow.yml
+    with:
+      run_id: ${{ github.run_id }}
+      ref: ${{ github.ref }}
     permissions:
       actions: write
     needs: [ phpcs, jshint, slack-notifications ]
