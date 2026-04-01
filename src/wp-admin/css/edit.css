@@ -997,12 +997,13 @@ form#tags-filter {
 	justify-content: right;
     display: flex;
     align-items: center;
+	flex-wrap: wrap;
+    gap: 1em;
 }
 
 .privacy-settings-accordion-actions .success {
 	display: none;
 	color: #007017;
-	padding-right: 1em;
 }
 
 .privacy-settings-accordion-actions .success.visible {
