@@ -1409,7 +1409,7 @@
 	height: 10px;
 	min-width: 20px;
 	width: 0;
-	background: #2271b1;
+	background: var(--wp-admin-theme-color, #3858e9);
 	border-radius: 10px;
 	transition: width 300ms;
 }
