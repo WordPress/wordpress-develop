@@ -1729,6 +1729,54 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertLessThan( $count_before, $count_after, 'Compaction should delete old rows from the database.' );
 	}
 
+	/**
+	 * Verifies that compaction works when client IDs are integers.
+	 *
+	 * JSON payloads may decode numeric client IDs as integers rather
+	 * than strings. The compactor comparison must handle both types.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_compaction_with_integer_client_ids(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Both clients join with integer client IDs.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 10, 0, array( 'user' => 'c10' ), array(
+					array( 'type' => 'update', 'data' => base64_encode( 'update-from-10' ) ),
+				) ),
+			)
+		);
+
+		// Add enough updates to exceed the compaction threshold.
+		$updates = array();
+		for ( $i = 0; $i < 51; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "bulk-$i" ),
+			);
+		}
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 10, 0, array( 'user' => 'c10' ), $updates ),
+			)
+		);
+
+		// Client 5 (lowest, integer) polls — should be told to compact.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 5, 0, array( 'user' => 'c5' ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['rooms'][0]['should_compact'], 'Integer client ID should be correctly identified as compactor.' );
+	}
+
 	/*
 	 * Cron cleanup tests.
 	 */
