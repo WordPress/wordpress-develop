@@ -23,7 +23,8 @@ export { SYNC_TIMEOUT };
 export const test = base.extend( {
 	collaborationUtils: async (
 		{ admin, editor, requestUtils, page },
-		use
+		use,
+		testInfo
 	) => {
 		const utils = new CollaborationUtils( {
 			admin,
@@ -31,7 +32,27 @@ export const test = base.extend( {
 			requestUtils,
 			page,
 		} );
+
+		/*
+		 * Skip collaboration tests when the JS runtime is not available.
+		 *
+		 * The collaboration client-side code lives in Gutenberg and may not
+		 * be bundled in every CI environment. Enable the setting, navigate
+		 * to the editor, and check whether the runtime loaded.
+		 */
 		await utils.setCollaboration( true );
+		await admin.visitAdminPage( 'post-new.php' );
+		await page.waitForFunction( () => window?.wp?.data && window?.wp?.blocks, {
+			timeout: 15000,
+		} );
+		const hasRuntime = await page.evaluate(
+			() => !! window._wpCollaborationEnabled
+		);
+		if ( ! hasRuntime ) {
+			testInfo.skip( true, 'Collaboration JS runtime is not available.' );
+			return;
+		}
+
 		await requestUtils.createUser( SECOND_USER ).catch( ( error ) => {
 			if ( error?.code !== 'existing_user_login' ) {
 				throw error;
