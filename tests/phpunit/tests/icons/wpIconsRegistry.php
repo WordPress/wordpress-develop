@@ -43,7 +43,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes Gutenberg_Icons_Registry_7_1::register despite it being private
+	 * Invokes WP_Icons_Registry::register despite it being private
 	 *
 	 * @param string $icon_name       Icon name including namespace.
 	 * @param array  $icon_properties Icon properties (label, content, filePath).
@@ -61,7 +61,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		if ( PHP_VERSION_ID < 80100 ) {
 			$method->setAccessible( true );
 		}
-		
+
 		return $method->invoke( $this->registry, $icon_name, $icon_properties );
 	}
 
