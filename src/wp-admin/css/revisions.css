@@ -136,6 +136,8 @@ body.folded .revisions .loading-indicator {
 
 .revisions-controls .author-card.autosave {
 	color: #d63638;
+	display: flex;
+	justify-content: space-between;
 }
 
 .revisions-controls .author-card .author-name {
