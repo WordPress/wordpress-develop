@@ -1002,7 +1002,7 @@ form#tags-filter {
 	display: none;
 	color: #007017;
 	padding-right: 1em;
-	padding-top: 6px;
+	vertical-align: middle;
 }
 
 .privacy-settings-accordion-actions .success.visible {
