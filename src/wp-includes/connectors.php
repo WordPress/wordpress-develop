@@ -120,7 +120,7 @@ function wp_get_connector( string $id ): ?array {
  *             Optional. Plugin data for install/activate UI.
  *
  *             @type string $file The plugin's main file path relative to the plugins
- *                                directory (e.g. 'akismet/akismet.php').
+ *                                directory (e.g. 'akismet/akismet.php' or 'hello.php').
  *         }
  *     }
  * }
