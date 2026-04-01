@@ -18,22 +18,24 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	private $registry;
 
-	/**
-	 * Sets up the test fixture.
-	 */
 	public function set_up() {
 		parent::set_up();
 		$this->registry = WP_Icons_Registry::get_instance();
 	}
 
-	/**
-	 * Tear down each test method.
-	 */
 	public function tear_down() {
 		$instance_property = new ReflectionProperty( WP_Icons_Registry::class, 'instance' );
+
+		/*
+		 * ReflectionProperty::setAccessible is:
+		 * - redundant as of 8.1.0, which made all properties accessible
+		 * - deprecated as of 8.5.0
+		 * - needed until 8.1.0, as property `instance` is private
+		 */
 		if ( PHP_VERSION_ID < 80100 ) {
 			$instance_property->setAccessible( true );
 		}
+
 		$instance_property->setValue( null, null );
 
 		$this->registry = null;
@@ -41,7 +43,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the WP_Icons_Registry::register method on the registry instance.
+	 * Invokes Gutenberg_Icons_Registry_7_1::register despite it being private
 	 *
 	 * @param string $icon_name       Icon name including namespace.
 	 * @param array  $icon_properties Icon properties (label, content, filePath).
@@ -49,28 +51,18 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	private function register( $icon_name, $icon_properties ) {
 		$method = new ReflectionMethod( $this->registry, 'register' );
+
+		/*
+		 * ReflectionMethod::setAccessible is:
+		 * - redundant as of 8.1.0, which made all properties accessible
+		 * - deprecated as of 8.5.0
+		 * - needed until 8.1.0, as property `instance` is private
+		 */
 		if ( PHP_VERSION_ID < 80100 ) {
 			$method->setAccessible( true );
 		}
+		
 		return $method->invoke( $this->registry, $icon_name, $icon_properties );
-	}
-
-	/**
-	 * Should reject invalid icon names.
-	 *
-	 * @dataProvider data_invalid_icon_names
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
-	 *
-	 * @param mixed $icon_name Icon name to test.
-	 */
-	public function test_invalid_icon_names( $icon_name ) {
-		$settings = array(
-			'label'   => 'Icon',
-			'content' => '<svg></svg>',
-		);
-
-		$result = $this->register( $icon_name, $settings );
-		$this->assertFalse( $result );
 	}
 
 	/**
@@ -82,7 +74,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		return array(
 			'non-string name'      => array( 1 ),
 			'no namespace'         => array( 'plus' ),
-			'uppercase characters' => array( 'Core/Plus' ),
+			'uppercase characters' => array( 'Test/Plus' ),
 			'invalid characters'   => array( 'test/_doing_it_wrong' ),
 		);
 	}
@@ -103,5 +95,24 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$this->assertTrue( $result );
 		$result2 = $this->register( $name, $settings );
 		$this->assertFalse( $result2 );
+	}
+
+
+	/**
+	 * Should fail to register icon with invalid names.
+	 *
+	 * @dataProvider data_invalid_icon_names
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 */
+	public function test_register_invalid_name() {
+		foreach ( $this->data_invalid_icon_names() as $name ) {
+			$settings = array(
+				'label'   => 'Icon',
+				'content' => '<svg></svg>',
+			);
+
+			$result = $this->register( $name, $settings );
+			$this->assertFalse( $result );
+		}
 	}
 }

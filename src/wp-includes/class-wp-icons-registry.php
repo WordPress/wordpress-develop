@@ -111,7 +111,7 @@ class WP_Icons_Registry {
 			return false;
 		}
 
-		if ( preg_match( '/[A-Z]+/', $icon_name ) ) {
+		if ( preg_match( '/[A-Z]/', $icon_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Icon names must not contain uppercase characters.' ),
@@ -120,7 +120,7 @@ class WP_Icons_Registry {
 			return false;
 		}
 
-		$name_matcher = '/^[a-z0-9-]+\/[a-z0-9-]+$/';
+		$name_matcher = '/^[a-z][a-z0-9-]*\/[a-z][a-z0-9-]*$/';
 		if ( ! preg_match( $name_matcher, $icon_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
