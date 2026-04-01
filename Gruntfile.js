@@ -424,7 +424,7 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill.min.js' ]: [ './node_modules/@wordpress/babel-preset-default/build/polyfill.min.js' ],
 						// polyfill-library (DOMRect)
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-dom-rect.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/DOMRect/raw.js' ],
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-dom-rect.min.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/DOMRect/raw.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-dom-rect.min.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/DOMRect/min.js' ],
 						// element-closest
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-element-closest.js' ]: [ './node_modules/element-closest/browser.js' ],
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-element-closest.min.js' ]: [ './node_modules/element-closest/browser.js' ],
@@ -439,7 +439,7 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-inert.min.js' ]: [ './node_modules/wicg-inert/dist/inert.min.js' ],
 						// polyfill-library (Node.prototype.contains)
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-node-contains.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js' ],
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-node-contains.min.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-node-contains.min.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/Node.prototype.contains/min.js' ],
 						// objectFitPolyfill
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-object-fit.js' ]: [ './node_modules/objectFitPolyfill/src/objectFitPolyfill.js' ],
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-object-fit.min.js' ]: [ './node_modules/objectFitPolyfill/dist/objectFitPolyfill.min.js' ],
@@ -1156,6 +1156,14 @@ module.exports = function(grunt) {
 				src: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.js',
 				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.min.js'
 			},
+			'regenerator-runtime': {
+				src: WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.js',
+				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.min.js'
+			},
+			'wp-polyfill-fetch': {
+				src: WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-fetch.js',
+				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-fetch.min.js'
+			},
 			dynamic: {
 				expand: true,
 				cwd: WORKING_DIR,
@@ -1712,6 +1720,8 @@ module.exports = function(grunt) {
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment',
+		'uglify:regenerator-runtime',
+		'uglify:wp-polyfill-fetch',
 		'qunit:compiled'
 	] );
 
@@ -1854,7 +1864,9 @@ module.exports = function(grunt) {
 		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
-		'uglify:moment'
+		'uglify:moment',
+		'uglify:regenerator-runtime',
+		'uglify:wp-polyfill-fetch'
 	] );
 
 	grunt.registerTask( 'build:codemirror', [
