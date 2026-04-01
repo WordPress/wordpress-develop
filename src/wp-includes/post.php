@@ -8451,6 +8451,15 @@ function wp_cache_set_posts_last_changed() {
 }
 
 /**
+ * Sets the last changed time for the 'posts' cache group.
+ *
+ * @since 7.0.0
+ */
+function wp_cache_set_post_meta_last_changed() {
+	wp_cache_set_last_changed( 'post_meta' );
+}
+
+/**
  * Gets all available post MIME types for a given post type.
  *
  * @since 2.5.0

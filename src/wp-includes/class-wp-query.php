@@ -2883,6 +2883,11 @@ class WP_Query {
 				wp_cache_get_last_changed( 'posts' ),
 			);
 
+			// If this query has been filterd to include post meta table, then also include post meta last changed as part of the cache salt.
+			if ( str_contains( $comments_request, $wpdb->postmeta ) ) {
+				$last_changed[] = wp_cache_get_last_changed( 'post_meta' );
+			}
+
 			$cache_key   = "comment_feed:$key";
 			$comment_ids = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
 			if ( false === $comment_ids ) {
@@ -3248,6 +3253,11 @@ class WP_Query {
 		$last_changed = (array) wp_cache_get_last_changed( 'posts' );
 		if ( ! empty( $this->tax_query->queries ) ) {
 			$last_changed[] = wp_cache_get_last_changed( 'terms' );
+		}
+
+		// If meta query is present or postmeta is referenced in the request, salt cache key.
+		if ( ! empty( $this->meta_query->queries ) || str_contains( $this->request, $wpdb->postmeta ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'post_meta' );
 		}
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
