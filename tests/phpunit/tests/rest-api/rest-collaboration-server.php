@@ -1642,17 +1642,35 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Client 10 and client 5 both join and send updates.
 		$this->dispatch_collaboration(
 			array(
-				$this->build_room( $room, '10', 0, array( 'user' => 'c10' ), array(
-					array( 'type' => 'update', 'data' => base64_encode( 'update-from-10' ) ),
-				) ),
+				$this->build_room(
+					$room,
+					'10',
+					0,
+					array( 'user' => 'c10' ),
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'update-from-10' ),
+						),
+					)
+				),
 			)
 		);
 
 		$response = $this->dispatch_collaboration(
 			array(
-				$this->build_room( $room, '5', 0, array( 'user' => 'c5' ), array(
-					array( 'type' => 'update', 'data' => base64_encode( 'update-from-5' ) ),
-				) ),
+				$this->build_room(
+					$room,
+					'5',
+					0,
+					array( 'user' => 'c5' ),
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'update-from-5' ),
+						),
+					)
+				),
 			)
 		);
 
@@ -1745,9 +1763,18 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Both clients join with integer client IDs.
 		$this->dispatch_collaboration(
 			array(
-				$this->build_room( $room, 10, 0, array( 'user' => 'c10' ), array(
-					array( 'type' => 'update', 'data' => base64_encode( 'update-from-10' ) ),
-				) ),
+				$this->build_room(
+					$room,
+					10,
+					0,
+					array( 'user' => 'c10' ),
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'update-from-10' ),
+						),
+					)
+				),
 			)
 		);
 
@@ -3071,7 +3098,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 */
 	public function test_collaboration_storage_add_update_rejects_empty_room(): void {
 		$storage = new WP_Collaboration_Table_Storage();
-		$result  = $storage->add_update( '', array( 'type' => 'update', 'client_id' => '1', 'data' => 'test' ) );
+		$result  = $storage->add_update(
+			'',
+			array(
+				'type'      => 'update',
+				'client_id' => '1',
+				'data'      => 'test',
+			)
+		);
 		$this->assertFalse( $result, 'add_update should reject an empty room.' );
 	}
 
@@ -3080,7 +3114,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 */
 	public function test_collaboration_storage_add_update_rejects_empty_type(): void {
 		$storage = new WP_Collaboration_Table_Storage();
-		$result  = $storage->add_update( 'postType/post:1', array( 'type' => '', 'client_id' => '1', 'data' => 'test' ) );
+		$result  = $storage->add_update(
+			'postType/post:1',
+			array(
+				'type'      => '',
+				'client_id' => '1',
+				'data'      => 'test',
+			)
+		);
 		$this->assertFalse( $result, 'add_update should reject an empty type.' );
 	}
 
@@ -3089,7 +3130,14 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 */
 	public function test_collaboration_storage_add_update_rejects_empty_client_id(): void {
 		$storage = new WP_Collaboration_Table_Storage();
-		$result  = $storage->add_update( 'postType/post:1', array( 'type' => 'update', 'client_id' => '', 'data' => 'test' ) );
+		$result  = $storage->add_update(
+			'postType/post:1',
+			array(
+				'type'      => 'update',
+				'client_id' => '',
+				'data'      => 'test',
+			)
+		);
 		$this->assertFalse( $result, 'add_update should reject an empty client_id.' );
 	}
 
