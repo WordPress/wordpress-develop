@@ -11013,6 +11013,12 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "wordpress_api_key": {
+                            "title": "Akismet Anti-spam API Key",
+                            "description": "API key for the Akismet Anti-spam connector.",
+                            "type": "string",
+                            "required": false
+                        },
                         "title": {
                             "title": "Title",
                             "description": "Site title.",
@@ -14778,6 +14784,7 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
+    "wordpress_api_key": "",
     "title": "Test Blog",
     "description": "",
     "url": "http://example.org",
