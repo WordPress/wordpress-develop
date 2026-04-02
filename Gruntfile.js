@@ -905,7 +905,6 @@ module.exports = function(grunt) {
 				src: [
 					'tests/qunit/**/*.js',
 					'!tests/qunit/vendor/*',
-					'!tests/qunit/editor/**'
 				],
 				options: grunt.file.readJSON( 'tests/qunit/.jshintrc' )
 			},
@@ -1533,8 +1532,7 @@ module.exports = function(grunt) {
 			},
 			test: {
 				files: [
-					'tests/qunit/**',
-					'!tests/qunit/editor/**'
+					'tests/qunit/**'
 				],
 				tasks: ['qunit']
 			}
