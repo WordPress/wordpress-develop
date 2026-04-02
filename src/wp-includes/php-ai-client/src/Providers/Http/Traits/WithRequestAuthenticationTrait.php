@@ -33,7 +33,7 @@ trait WithRequestAuthenticationTrait
     public function getRequestAuthentication(): RequestAuthenticationInterface
     {
         if ($this->requestAuthentication === null) {
-            throw new RuntimeException('RequestAuthenticationInterface instance not set. ' . 'Make sure you use the AiClient class for all requests.');
+            throw new RuntimeException('Image generation isn’t available because it hasn’t been set up yet. Please add an API key for an image-generation provider in Connectors, then try again.');
         }
         return $this->requestAuthentication;
     }
