@@ -37,8 +37,9 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'google', $connectors );
 		$this->assertArrayHasKey( 'openai', $connectors );
 		$this->assertArrayHasKey( 'anthropic', $connectors );
+		$this->assertArrayHasKey( 'akismet', $connectors );
 		$this->assertArrayHasKey( 'mock-connectors-test', $connectors );
-		$this->assertCount( 4, $connectors );
+		$this->assertCount( 5, $connectors );
 	}
 
 	/**
@@ -56,7 +57,7 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 			$this->assertArrayHasKey( 'description', $connector_data, "Connector '{$connector_id}' is missing 'description'." );
 			$this->assertIsString( $connector_data['description'], "Connector '{$connector_id}' description should be a string." );
 			$this->assertArrayHasKey( 'type', $connector_data, "Connector '{$connector_id}' is missing 'type'." );
-			$this->assertContains( $connector_data['type'], array( 'ai_provider' ), "Connector '{$connector_id}' has unexpected type '{$connector_data['type']}'." );
+			$this->assertContains( $connector_data['type'], array( 'ai_provider', 'spam_filtering' ), "Connector '{$connector_id}' has unexpected type '{$connector_data['type']}'." );
 			$this->assertArrayHasKey( 'authentication', $connector_data, "Connector '{$connector_id}' is missing 'authentication'." );
 			$this->assertIsArray( $connector_data['authentication'], "Connector '{$connector_id}' authentication should be an array." );
 			$this->assertArrayHasKey( 'method', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'method'." );
@@ -79,11 +80,16 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 			++$api_key_count;
 
 			$this->assertArrayHasKey( 'setting_name', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'setting_name'." );
-			$this->assertSame(
-				'connectors_ai_' . str_replace( '-', '_', $connector_id ) . '_api_key',
-				$connector_data['authentication']['setting_name'] ?? null,
-				"Connector '{$connector_id}' setting_name does not match expected format."
-			);
+
+			// AI providers use the connectors_ai_{id}_api_key convention.
+			// Non-AI connectors may use custom setting names.
+			if ( 'ai_provider' === $connector_data['type'] ) {
+				$this->assertSame(
+					'connectors_ai_' . str_replace( '-', '_', $connector_id ) . '_api_key',
+					$connector_data['authentication']['setting_name'] ?? null,
+					"Connector '{$connector_id}' setting_name does not match expected format."
+				);
+			}
 		}
 
 		$this->assertGreaterThan( 0, $api_key_count, 'At least one connector should use api_key authentication.' );
