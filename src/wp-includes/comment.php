@@ -1295,8 +1295,8 @@ function wp_check_comment_data( $comment_data ) {
 	global $wpdb;
 
 	if ( ! is_user_logged_in() && isset( $comment_data['comment_author_email'] ) && email_exists( $comment_data['comment_author_email'] ) ) {
-		$referrer = wp_get_referer() ? wp_get_referer() : home_url( $_SERVER['REQUEST_URI'] );
-        $login_url = wp_login_url($referrer);
+		$referrer  = wp_get_referer() ? wp_get_referer() : home_url( $_SERVER['REQUEST_URI'] );
+		$login_url = wp_login_url( $referrer );
 
 		wp_die(
 			'<p>' . sprintf(
