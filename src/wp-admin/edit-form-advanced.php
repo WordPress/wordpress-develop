@@ -69,7 +69,7 @@ if ( wp_is_mobile() ) {
  */
 $post_ID = isset( $post_ID ) ? (int) $post_ID : 0;
 $user_ID = isset( $user_ID ) ? (int) $user_ID : 0;
-$action  = isset( $action ) ? $action : '';
+$action  = $action ?? '';
 
 if ( (int) get_option( 'page_for_posts' ) === $post->ID && empty( $post->post_content ) ) {
 	add_action( 'edit_form_after_title', '_wp_posts_page_notice' );
@@ -769,7 +769,7 @@ if ( post_type_supports( $post_type, 'comments' ) ) {
 ?>
 
 <?php if ( ! wp_is_mobile() && post_type_supports( $post_type, 'title' ) && '' === $post->post_title ) : ?>
-<script type="text/javascript">
+<script>
 try{document.post.title.focus();}catch(e){}
 </script>
 <?php endif; ?>

@@ -203,9 +203,15 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 			$total_revisions = $revisions_query->found_posts;
 
 			if ( $total_revisions < 1 ) {
-				// Out-of-bounds, run the query again without LIMIT for total count.
+				// Out-of-bounds, run the query without pagination/offset to get the total count.
 				unset( $query_args['paged'], $query_args['offset'] );
-				$count_query = new WP_Query();
+
+				$count_query                          = new WP_Query();
+				$query_args['fields']                 = 'ids';
+				$query_args['posts_per_page']         = 1;
+				$query_args['update_post_meta_cache'] = false;
+				$query_args['update_post_term_cache'] = false;
+
 				$count_query->query( $query_args );
 
 				$total_revisions = $count_query->found_posts;
@@ -306,6 +312,15 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 		$theme_json = null;
 
 		if ( ! empty( $global_styles_config['styles'] ) || ! empty( $global_styles_config['settings'] ) ) {
+			/*
+			 * Register block style variations from the theme data.
+			 * This is required so the variations pass sanitization of theme.json data.
+			 */
+			if ( ! empty( $global_styles_config['styles']['blocks'] ) ) {
+				$variations = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+				wp_register_block_style_variations_from_theme_json_partials( $variations );
+			}
+
 			$theme_json           = new WP_Theme_JSON( $global_styles_config, 'custom' );
 			$global_styles_config = $theme_json->get_raw_data();
 			if ( rest_is_field_included( 'settings', $fields ) ) {

@@ -20,6 +20,11 @@ if ( [ 'exec', 'run' ].includes( dockerCommand[0] ) && ! process.stdin.isTTY ) {
 	dockerCommand.splice( 1, 0, '--no-TTY' );
 }
 
+// Add a --defaults flag to any db command WP-CLI command. See https://core.trac.wordpress.org/ticket/63876.
+if ( dockerCommand.includes( 'cli' ) && dockerCommand.includes( 'db' ) && ! dockerCommand.includes( '--defaults' ) ) {
+	dockerCommand.push( '--defaults' );
+}
+
 // Execute any Docker compose command passed to this script.
 const returns = spawnSync(
 	'docker',
