@@ -18,6 +18,7 @@ use WordPress\AiClient\Providers\Models\ImageGeneration\Contracts\ImageGeneratio
 use WordPress\AiClient\Providers\Models\SpeechGeneration\Contracts\SpeechGenerationModelInterface;
 use WordPress\AiClient\Providers\Models\TextGeneration\Contracts\TextGenerationModelInterface;
 use WordPress\AiClient\Providers\Models\TextToSpeechConversion\Contracts\TextToSpeechConversionModelInterface;
+use WordPress\AiClient\Providers\Models\VideoGeneration\Contracts\VideoGenerationModelInterface;
 use WordPress\AiClient\Results\DTO\Candidate;
 use WordPress\AiClient\Results\DTO\GenerativeAiResult;
 use WordPress\AiClient\Results\DTO\TokenUsage;
@@ -136,6 +137,25 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 			$id,
 			$name,
 			array( CapabilityEnum::textToSpeechConversion() ),
+			array()
+		);
+	}
+
+	/**
+	 * Creates a test model metadata instance for video generation.
+	 *
+	 * @param string $id   Optional model ID.
+	 * @param string $name Optional model name.
+	 * @return ModelMetadata
+	 */
+	protected function create_test_video_model_metadata(
+		string $id = 'test-video-model',
+		string $name = 'Test Video Model'
+	): ModelMetadata {
+		return new ModelMetadata(
+			$id,
+			$name,
+			array( CapabilityEnum::videoGeneration() ),
 			array()
 		);
 	}
@@ -375,6 +395,65 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 			}
 
 			public function convertTextToSpeechResult( array $prompt ): GenerativeAiResult { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+				return $this->result;
+			}
+		};
+	}
+
+	/**
+	 * Creates a mock video generation model using anonymous class.
+	 *
+	 * @param GenerativeAiResult $result   The result to return from generation.
+	 * @param ModelMetadata|null $metadata Optional metadata.
+	 * @return ModelInterface&VideoGenerationModelInterface The mock model.
+	 */
+	protected function create_mock_video_generation_model(
+		GenerativeAiResult $result,
+		?ModelMetadata $metadata = null
+	): ModelInterface {
+		$metadata = $metadata ?? $this->create_test_video_model_metadata();
+
+		$provider_metadata = new ProviderMetadata(
+			'mock-provider',
+			'Mock Provider',
+			ProviderTypeEnum::cloud()
+		);
+
+		return new class( $metadata, $provider_metadata, $result ) implements ModelInterface, VideoGenerationModelInterface {
+
+			private ModelMetadata $metadata;
+			private ProviderMetadata $provider_metadata;
+			private GenerativeAiResult $result;
+			private ModelConfig $config;
+
+			public function __construct(
+				ModelMetadata $metadata,
+				ProviderMetadata $provider_metadata,
+				GenerativeAiResult $result
+			) {
+				$this->metadata          = $metadata;
+				$this->provider_metadata = $provider_metadata;
+				$this->result            = $result;
+				$this->config            = new ModelConfig();
+			}
+
+			public function metadata(): ModelMetadata {
+				return $this->metadata;
+			}
+
+			public function providerMetadata(): ProviderMetadata {
+				return $this->provider_metadata;
+			}
+
+			public function setConfig( ModelConfig $config ): void {
+				$this->config = $config;
+			}
+
+			public function getConfig(): ModelConfig {
+				return $this->config;
+			}
+
+			public function generateVideoResult( array $prompt ): GenerativeAiResult { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
 				return $this->result;
 			}
 		};
