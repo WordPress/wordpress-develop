@@ -9,14 +9,20 @@
  */
 class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
-	protected static $editor_id;
-	protected static $subscriber_id;
-	protected static $post_id;
+	protected static int $editor_id;
+	protected static int $subscriber_id;
+	protected static int $post_id;
+	protected static int $category_id;
+	protected static int $tag_id;
+	protected static int $comment_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
+		self::$category_id   = $factory->category->create();
+		self::$tag_id        = $factory->tag->create();
+		self::$comment_id    = $factory->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 
 		// Enable option in setUpBeforeClass to ensure REST routes are registered.
 		update_option( 'wp_collaboration_enabled', 1 );
@@ -27,6 +33,9 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$subscriber_id );
 		delete_option( 'wp_collaboration_enabled' );
 		wp_delete_post( self::$post_id, true );
+		wp_delete_term( self::$category_id, 'category' );
+		wp_delete_term( self::$tag_id, 'post_tag' );
+		wp_delete_comment( self::$comment_id, true );
 	}
 
 	public function set_up() {
@@ -277,6 +286,107 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_malformed_object_id_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:1abc' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_zero_object_id_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:0' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_post_type_mismatch_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		// The test post is of type 'post', not 'page'.
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/page:' . self::$post_id ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_taxonomy_term_allowed(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:' . self::$category_id ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_taxonomy_term_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:999999' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_taxonomy_term_wrong_taxonomy_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		// The tag term exists in 'post_tag', not 'category'.
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:' . self::$tag_id ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_comment_allowed(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'root/comment:' . self::$comment_id ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_comment_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'root/comment:999999' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_post_type_collection_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/nonexistent_type' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
 	/*
 	 * Validation tests.
 	 */
@@ -291,6 +401,183 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * Verifies that schema type validation rejects a non-string value for the
+	 * update 'data' field, confirming that per-arg schema validation still runs
+	 * with a route-level validate_callback registered.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_non_string_update_data(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => 12345,
+								'type' => 'update',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that schema enum validation rejects an invalid update type,
+	 * confirming that per-arg schema validation still runs with a route-level
+	 * validate_callback registered.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_invalid_update_type_enum(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => 'dGVzdA==',
+								'type' => 'invalid_type',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that schema required-field validation rejects a room missing
+	 * the 'client_id' field, confirming that per-arg schema validation still
+	 * runs with a route-level validate_callback registered.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_missing_required_room_field(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						// 'client_id' deliberately omitted.
+						'room'      => $this->get_post_room(),
+						'updates'   => array(),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the maxItems constraint rejects a request with more rooms
+	 * than MAX_ROOMS_PER_REQUEST.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_rooms_exceeding_max_items(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$rooms = array();
+		for ( $i = 0; $i < WP_HTTP_Polling_Sync_Server::MAX_ROOMS_PER_REQUEST + 1; $i++ ) {
+			$rooms[] = $this->build_room( 'root/site', $i + 1 );
+		}
+
+		$response = $this->dispatch_sync( $rooms );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the maxLength constraint rejects update data exceeding
+	 * MAX_UPDATE_DATA_SIZE.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_update_data_exceeding_max_length(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$oversized_data = str_repeat( 'a', WP_HTTP_Polling_Sync_Server::MAX_UPDATE_DATA_SIZE + 1 );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => $oversized_data,
+								'type' => 'update',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the route-level validate_callback rejects a request body
+	 * exceeding MAX_BODY_SIZE.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_oversized_request_body(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+
+		// Set valid parsed params so per-arg schema validation passes first.
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					$this->build_room( $this->get_post_room() ),
+				),
+			)
+		);
+
+		// Set an oversized raw body to trigger the route-level validate_callback.
+		$request->set_body( str_repeat( 'x', WP_HTTP_Polling_Sync_Server::MAX_BODY_SIZE + 1 ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_sync_body_too_large', $response, 413 );
 	}
 
 	/*
