@@ -2233,7 +2233,7 @@ function _print_scripts() {
 		if ( ! empty( $wp_scripts->print_code ) ) {
 			echo "\n<script>\n";
 			echo $wp_scripts->print_code;
-			printf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
+			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
 			echo "</script>\n";
 		}
 
