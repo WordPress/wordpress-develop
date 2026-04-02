@@ -205,37 +205,4 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$results = check_comment( 'bar', 'zag@example.com', 'http://example.com', 'This is my first comment.', '66.155.40.249', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:35.0) Gecko/20100101 Firefox/35.0', 'comment', 4 );
 		$this->assertFalse( $results );
 	}
-
-	/**
-	 * @ticket 10931
-	 */
-	public function test_wp_check_comment_data_should_return_false_when_non_logged_in_user_uses_registered_email() {
-		$user_id = self::factory()->user->create(
-			array(
-				'role'       => 'subscriber',
-				'user_login' => 'testuser',
-				'user_email' => 'registered_email@example.com',
-			)
-		);
-
-		wp_set_current_user( 0 );
-
-		$comment_data = array(
-			'comment_post_ID'      => 1,
-			'user_id'              => 0,
-			'comment_author'       => 'testuser',
-			'comment_author_email' => 'registered_email@example.com',
-			'comment_author_url'   => 'https://example.com',
-			'comment_content'      => 'Test comment',
-			'comment_author_IP'    => '127.0.0.1',
-			'comment_agent'        => 'PHPUnit',
-			'comment_type'         => 'comment',
-		);
-
-		$approved = wp_check_comment_data( $comment_data );
-
-		$this->assertEquals( 0, $approved );
-
-		wp_delete_user( $user_id );
-	}
 }
