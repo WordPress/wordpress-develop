@@ -905,6 +905,8 @@ module.exports = function(grunt) {
 				src: [
 					'tests/qunit/**/*.js',
 					'!tests/qunit/vendor/*',
+					'!tests/qunit/qunit.js',
+					'!tests/qunit/playwright.config.js'
 				],
 				options: grunt.file.readJSON( 'tests/qunit/.jshintrc' )
 			},
