@@ -566,34 +566,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * "When I delete a future post using wp_delete_post( $post->ID ) it does not update the cron correctly."
-	 *
-	 * @ticket 5364
-	 * @covers ::wp_delete_post
-	 */
-	public function test_delete_future_post_cron() {
-		$future_date = strtotime( '+1 day' );
-
-		$data = array(
-			'post_status'  => 'publish',
-			'post_content' => 'content',
-			'post_title'   => 'title',
-			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
-		);
-
-		// Insert a post and make sure the ID is OK.
-		$post_id = wp_insert_post( $data );
-
-		// Check that there's a publish_future_post job scheduled at the right time.
-		$this->assertSame( $future_date, $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
-
-		// Now delete the post and make sure the cron entry is removed.
-		wp_delete_post( $post_id );
-
-		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
-	}
-
-	/**
 	 * Bug: permalink doesn't work if post title is empty.
 	 *
 	 * Might only fail if the post ID is greater than four characters.

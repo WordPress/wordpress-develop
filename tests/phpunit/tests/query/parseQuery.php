@@ -233,4 +233,35 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 
 		$this->assertEmpty( $q->query_vars['attachment_id'] );
 	}
+
+	/**
+	 * Tests that a fatal error is not thrown when a hierarchical taxonomy query var
+	 * passed to wp_basename() in ::parse_tax_query() is an array instead of a string.
+	 *
+	 * The message that we should not see:
+	 * `TypeError: urldecode(): Argument #1 ($string) must be of type string, array given`.
+	 *
+	 * @ticket 64870
+	 */
+	public function test_parse_query_hierarchical_taxonomy_query_var_array() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'query_var' => 'wptests_tax',
+				'rewrite'   => array( 'hierarchical' => true ),
+				'public'    => true,
+			)
+		);
+
+		$q = new WP_Query(
+			array(
+				'wptests_tax' => array( 'term-a', 'term-b' ),
+			)
+		);
+
+		unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertIsArray( $q->posts );
+	}
 }

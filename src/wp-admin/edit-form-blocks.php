@@ -92,6 +92,12 @@ $preload_paths = array(
 			'description',
 			'gmt_offset',
 			'home',
+			'image_sizes',
+			'image_size_threshold',
+			'image_output_formats',
+			'jpeg_interlaced',
+			'png_interlaced',
+			'gif_interlaced',
 			'name',
 			'site_icon',
 			'site_icon_url',
@@ -105,7 +111,7 @@ $preload_paths = array(
 	),
 	$paths[] = add_query_arg(
 		'slug',
-		// @see https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
+		// @link https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
 		$template_lookup_slug,
 		'/wp/v2/templates/lookup'
 	),

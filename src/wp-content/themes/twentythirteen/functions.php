@@ -270,7 +270,7 @@ if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 	 * @since Twenty Thirteen 1.0
 	 * @since Twenty Thirteen 3.8 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Font stylesheet or empty string if disabled.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentythirteen_fonts_url() {
 		$fonts_url = '';
@@ -329,7 +329,7 @@ function twentythirteen_scripts_styles() {
 		'twentythirteen-script',
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
-		'20230526',
+		'20250727',
 		array(
 			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
@@ -341,17 +341,16 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), $font_version );
 
 	// Add Genericons font, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20250415' );
+	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20251202' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20240520' );
 
 	// Registers the Internet Explorer specific stylesheet.
-	wp_register_style( 'twentythirteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentythirteen-style' ), '20150214' );
-	wp_style_add_data( 'twentythirteen-ie', 'conditional', 'lt IE 9' );
+	wp_register_style( 'twentythirteen-ie', false, array( 'twentythirteen-style' ) );
 }
 add_action( 'wp_enqueue_scripts', 'twentythirteen_scripts_styles' );
 
@@ -474,7 +473,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Thirteen 3.7
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */
@@ -495,7 +496,17 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 		if ( $wp_query->max_num_pages < 2 ) {
 			return;
 		}
+
+		$order   = get_query_var( 'order', 'DESC' );
+		$is_desc = 'DESC' === $order;
+
+		$new_posts_text = __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentythirteen' );
+		$old_posts_text = __( '<span class="meta-nav">&larr;</span> Older posts', 'twentythirteen' );
+
+		$prev_link = $is_desc ? get_next_posts_link( $old_posts_text ) : get_previous_posts_link( $old_posts_text );
+		$next_link = $is_desc ? get_previous_posts_link( $new_posts_text ) : get_next_posts_link( $new_posts_text );
 		?>
+
 		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text">
 			<?php
@@ -504,14 +515,19 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 			?>
 		</h1>
 		<div class="nav-links">
+		<?php if ( $prev_link ) : ?>
+			<div class="nav-previous">
+				<?php echo $prev_link; ?>
+			</div>
+			<?php
+		endif;
 
-			<?php if ( get_next_posts_link() ) : ?>
-			<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentythirteen' ) ); ?></div>
-			<?php endif; ?>
-
-			<?php if ( get_previous_posts_link() ) : ?>
-			<div class="nav-next"><?php previous_posts_link( __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentythirteen' ) ); ?></div>
-			<?php endif; ?>
+		if ( $next_link ) :
+			?>
+			<div class="nav-next">
+				<?php echo $next_link; ?>
+			</div>
+		<?php endif; ?>
 
 		</div><!-- .nav-links -->
 	</nav><!-- .navigation -->
