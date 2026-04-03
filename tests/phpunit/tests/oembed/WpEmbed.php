@@ -100,7 +100,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$handlers = $GLOBALS['wp_embed']->handlers[10];
 
 		// Restore.
-		wp_embed_register_handler( 'youtube_embed_url', '#https?://(www.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
+		wp_embed_register_handler( 'youtube_embed_url', '#https?://(www\.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
 
 		$this->assertArrayNotHasKey( 'youtube_embed_url', $handlers );
 	}

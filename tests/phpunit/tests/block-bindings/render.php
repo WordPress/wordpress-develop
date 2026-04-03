@@ -90,7 +90,7 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 <!-- /wp:paragraph -->
 HTML
 				,
-				'<p>test source value</p>',
+				'<p class="wp-block-paragraph">test source value</p>',
 			),
 			'button block'    => array(
 				'text',
@@ -101,6 +101,16 @@ HTML
 HTML
 				,
 				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">test source value</a></div>',
+			),
+			'image block'     => array(
+				'caption',
+				<<<HTML
+<!-- wp:image {"id":66,"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="breakfast.jpg" alt="" class="wp-image-1"/><figcaption class="wp-element-caption">Breakfast at a <em>café</em> in Wrocław.</figcaption></figure>
+<!-- /wp:image -->
+HTML
+			,
+				'<figure class="wp-block-image size-large"><img src="breakfast.jpg" alt="" class="wp-image-1"/><figcaption class="wp-element-caption">test source value</figcaption></figure>',
 			),
 			'test block'      => array(
 				'myAttribute',
@@ -169,19 +179,19 @@ HTML
 					$value = $source_args['key'];
 					return "The attribute name is '$attribute_name' and its binding has argument 'key' with value '$value'.";
 				},
-				"<p>The attribute name is 'content' and its binding has argument 'key' with value 'test'.</p>",
+				"<p class=\"wp-block-paragraph\">The attribute name is 'content' and its binding has argument 'key' with value 'test'.</p>",
 			),
 			'unsafe HTML should be sanitized' => array(
 				function () {
 					return '<script>alert("Unsafe HTML")</script>';
 				},
-				'<p>alert("Unsafe HTML")</p>',
+				'<p class="wp-block-paragraph">alert("Unsafe HTML")</p>',
 			),
 			'symbols and numbers should be rendered correctly' => array(
 				function () {
 					return '$12.50';
 				},
-				'<p>$12.50</p>',
+				'<p class="wp-block-paragraph">$12.50</p>',
 			),
 		);
 	}
@@ -282,13 +292,21 @@ HTML;
 	 * Tests if the block content is updated with the value returned by the source
 	 * for the Image block in the placeholder state.
 	 *
+	 * Furthermore tests if the caption attribute is correctly processed.
+	 *
 	 * @ticket 60282
+	 * @ticket 64031
 	 *
 	 * @covers ::register_block_bindings_source
 	 */
 	public function test_update_block_with_value_from_source_image_placeholder() {
-		$get_value_callback = function () {
-			return 'https://example.com/image.jpg';
+		$get_value_callback = function ( $source_args, $block_instance, $attribute_name ) {
+			if ( 'url' === $attribute_name ) {
+				return 'https://example.com/image.jpg';
+			}
+			if ( 'caption' === $attribute_name ) {
+				return 'Example Image';
+			}
 		};
 
 		register_block_bindings_source(
@@ -300,8 +318,8 @@ HTML;
 		);
 
 		$block_content = <<<HTML
-<!-- wp:image {"metadata":{"bindings":{"url":{"source":"test/source"}}}} -->
-<figure class="wp-block-image"><img alt=""/></figure>
+<!-- wp:image {"metadata":{"bindings":{"url":{"source":"test/source"},"caption":{"source":"test/source"}}}} -->
+<figure class="wp-block-image"><img alt=""/><figcaption class="wp-element-caption"></figcaption></figure>
 <!-- /wp:image -->
 HTML;
 		$parsed_blocks = parse_blocks( $block_content );
@@ -314,7 +332,12 @@ HTML;
 			"The 'url' attribute should be updated with the value returned by the source."
 		);
 		$this->assertSame(
-			'<figure class="wp-block-image"><img src="https://example.com/image.jpg" alt=""/></figure>',
+			'Example Image',
+			$block->attributes['caption'],
+			"The 'caption' attribute should be updated with the value returned by the source."
+		);
+		$this->assertSame(
+			'<figure class="wp-block-image"><img src="https://example.com/image.jpg" alt=""/><figcaption class="wp-element-caption">Example Image</figcaption></figure>',
 			trim( $result ),
 			'The block content should be updated with the value returned by the source.'
 		);
@@ -395,7 +418,7 @@ HTML;
 		remove_filter( 'block_bindings_source_value', $filter_value );
 
 		$this->assertSame(
-			'<p>Filtered value: test_arg. Block instance: core/paragraph. Attribute name: content.</p>',
+			'<p class="wp-block-paragraph">Filtered value: test_arg. Block instance: core/paragraph. Attribute name: content.</p>',
 			trim( $result ),
 			'The block content should show the filtered value.'
 		);

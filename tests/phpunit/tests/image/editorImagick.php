@@ -705,6 +705,10 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Test filter `image_max_bit_depth` correctly sets the maximum bit depth of resized images.
 	 *
 	 * @ticket 62285
+	 *
+	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * See https://core.trac.wordpress.org/ticket/63932.
+	 * @requires PHP < 8.3
 	 */
 	public function test_image_max_bit_depth() {
 		$file                 = DIR_TESTDATA . '/images/colors_hdr_p3.avif';
@@ -779,6 +783,14 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 */
 	public function test_resizes_are_small_for_16bit_images( $file ) {
 
+		// Temporarily disabled. See https://core.trac.wordpress.org/ticket/63932.
+		if ( DIR_TESTDATA . '/images/png-tests/test8.png' === $file ) {
+			$version = Imagick::getVersion();
+			if ( $version['versionNumber'] >= 0x700 ) {
+				$this->markTestSkipped( 'ImageMagick 7 is unable to optimize grayscale images with 1-bit transparency.' );
+			}
+		}
+
 		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
 
 		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
@@ -824,16 +836,25 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing
+	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing.
 	 * Used to identify indexed PNG images, see https://www.w3.org/TR/PNG-Chunks.html#C.IHDR.
 	 *
 	 * @ticket 63448
+	 *
 	 * @dataProvider data_png_color_type_after_resize
 	 *
-	 * @param string $file_path             Path to the image file.
-	 * @param int    $expected_color_type   The expected original color type.
+	 * @param string $file_path           Path to the image file.
+	 * @param int    $expected_color_type The expected original color type.
 	 */
 	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
+
+		// Temporarily disabled. See https://core.trac.wordpress.org/ticket/63932.
+		if ( DIR_TESTDATA . '/images/png-tests/test8.png' === $file_path ) {
+			$version = Imagick::getVersion();
+			if ( $version['versionNumber'] >= 0x700 ) {
+				$this->markTestSkipped( 'ImageMagick 7 is unable to optimize grayscale images with 1-bit transparency.' );
+			}
+		}
 
 		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
 
@@ -882,6 +903,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Tests that alpha transparency is preserved after resizing.
 	 *
 	 * @ticket 63448
+	 *
 	 * @dataProvider data_alpha_transparency_is_preserved_after_resize
 	 *
 	 * @param string $file_path Path to the image file.
