@@ -3944,8 +3944,9 @@ function human_time_diff( $from, $to = 0 ) {
  *
  * Returns a maximum of 55 words with an ellipsis appended if necessary.
  *
- * The 55-word limit can be modified by plugins/themes using the {@see 'excerpt_length'} filter
- * The ' [&hellip;]' string can be modified by plugins/themes using the {@see 'excerpt_more'} filter
+ * The 55-word limit can be modified by plugins/themes using the {@see 'excerpt_length'} filter.
+ * The ' [&hellip;]' string can be modified by plugins/themes using the {@see 'excerpt_more'} filter.
+ * Allowed HTML tags can be specified using the {@see 'excerpt_allowed_tags'} filter.
  *
  * @since 1.5.0
  * @since 5.2.0 Added the `$post` parameter.
