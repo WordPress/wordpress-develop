@@ -30,6 +30,10 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 		$url      = 'https://s.w.org/screenshots/3.9/dashboard.png';
 		$response = wp_remote_fopen( $url );
 
+		if ( false === $response ) {
+			$this->markTestSkipped( 'External HTTP request failed. The remote resource may be unavailable.' );
+		}
+
 		$this->assertIsString( $response );
 		$this->assertSame( 153204, strlen( $response ) );
 	}
