@@ -4117,7 +4117,6 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		} else {
 			$text = wp_trim_words( $text, $excerpt_length, $excerpt_more );
 		}
-
 	}
 
 	/**
