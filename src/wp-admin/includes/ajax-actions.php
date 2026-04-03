@@ -894,6 +894,59 @@ function wp_ajax_delete_post( $action ) {
 }
 
 /**
+ * Handles deleting multiple posts via a single AJAX request.
+ *
+ * Accepts an array of post IDs and their corresponding nonces,
+ * validates each individually, and deletes them. If any single
+ * deletion fails, it continues to the next post without stopping
+ * but returns a failure code. It returns a success code only if
+ * all deletions succeed.
+ *
+ * @since 7.1.0
+ */
+function wp_ajax_delete_post_batch() {
+	$ids    = isset( $_POST['ids'] ) ? array_map( 'intval', (array) $_POST['ids'] ) : array();
+	$nonces = isset( $_POST['nonces'] ) ? (array) $_POST['nonces'] : array();
+
+	if ( empty( $ids ) ) {
+		wp_die( 0 );
+	}
+
+	$failed = false;
+
+	foreach ( $ids as $id ) {
+		$id = (int) $id;
+
+		if ( $id <= 0 ) {
+			continue;
+		}
+
+		$nonce = isset( $nonces[ $id ] ) ? $nonces[ $id ] : '';
+		if ( ! wp_verify_nonce( $nonce, "delete-post_$id" ) ) {
+			$failed = true;
+			continue;
+		}
+
+		if ( ! current_user_can( 'delete_post', $id ) ) {
+			$failed = true;
+			continue;
+		}
+
+		if ( get_post( $id ) ) {
+			if ( ! wp_delete_post( $id ) ) {
+				$failed = true;
+			}
+		}
+	}
+
+	if ( $failed ) {
+		wp_die( 0 );
+	} else {
+		wp_die( 1 );
+	}
+}
+
+/**
  * Handles sending a post to the Trash via AJAX.
  *
  * @since 3.1.0

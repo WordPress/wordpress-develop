@@ -163,7 +163,53 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	get: _.memoize( function( id, attachment ) {
 		var Attachments = wp.media.model.Attachments;
 		return Attachments.all.push( attachment || { id: id } );
-	})
+	}),
+
+	/**
+	 * Delete multiple attachments in a single batched AJAX request.
+	 *
+	 * Sends attachment IDs and their per-item nonces to the
+	 * `delete-post-batch` endpoint, splitting into chunks of `batchSize`.
+	 * On success, marks each successfully deleted model as destroyed and
+	 * fires its `destroy` event so collections update automatically.
+	 *
+	 * @since 7.1.0
+	 * @static
+	 *
+	 * @param {wp.media.model.Attachment[]} 	models    Array of Attachment models to delete.
+	 * @param {number}                      	[batchSize=50] Max items per request.
+	 * @return {jQuery.Promise} Resolves with 0 or 1 for failure and success respectively.
+	 */
+	batchDestroy: function( models, batchSize ) {
+		batchSize = batchSize || 50;
+
+		var promises = [],
+			i, slice, ids, nonces;
+
+		for ( i = 0; i < models.length; i += batchSize ) {
+			slice  = models.slice( i, i + batchSize );
+			ids    = [];
+			nonces = {};
+
+			_.each( slice, function( model ) {
+				ids.push( model.id );
+				nonces[ model.id ] = model.get( 'nonces' )['delete'];
+			});
+
+			promises.push( wp.media.post( 'delete-post-batch', {
+				ids:    ids,
+				nonces: nonces
+			}) );
+		}
+
+		return $.when.apply( null, promises ).then( function() {
+			_.each( models, function( model ) {
+				model.destroyed = true;
+				model.stopListening();
+				model.trigger( 'destroy', model, model.collection );
+			});
+		});
+	}
 });
 
 module.exports = Attachment;
