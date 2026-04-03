@@ -197,6 +197,220 @@ function wp_register_core_abilities(): void {
 	);
 
 	wp_register_ability(
+		'core/get-user',
+		array(
+			'label'               => __( 'Get User' ),
+			'description'         => __( 'Retrieves profile data for a specific user by id, username, or email.' ),
+			'category'            => $category_user,
+			'input_schema'        => array(
+				'type'                 => 'object',
+				'oneOf'                => array(
+					array(
+						'required' => array( 'id' ),
+					),
+					array(
+						'required' => array( 'username' ),
+					),
+					array(
+						'required' => array( 'email' ),
+					),
+				),
+				'properties'           => array(
+					'id'                   => array(
+						'type'        => 'integer',
+						'description' => __( 'The user ID to retrieve.' ),
+					),
+					'username'             => array(
+						'type'        => 'string',
+						'description' => __( 'The user login/username to retrieve.' ),
+					),
+					'email'                => array(
+						'type'        => 'string',
+						'description' => __( 'The user email address to retrieve.' ),
+					),
+					'include_capabilities' => array(
+						'type'        => 'boolean',
+						'description' => __( 'Whether to include the user\'s capabilities in the response. Default is false.' ),
+						'default'     => false,
+					),
+				),
+				'additionalProperties' => false,
+			),
+			'output_schema'       => array(
+				'type'                 => 'object',
+				'required'             => array( 'id', 'username', 'email', 'display_name', 'roles' ),
+				'properties'           => array(
+					'id'              => array(
+						'type'        => 'integer',
+						'description' => __( 'The user ID.' ),
+					),
+					'username'        => array(
+						'type'        => 'string',
+						'description' => __( 'The user login/username.' ),
+					),
+					'email'           => array(
+						'type'        => 'string',
+						'description' => __( 'The user email address.' ),
+					),
+					'display_name'    => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s display name.' ),
+					),
+					'first_name'      => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s first name.' ),
+					),
+					'last_name'       => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s last name.' ),
+					),
+					'nickname'        => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s nickname.' ),
+					),
+					'description'     => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s biographical description.' ),
+					),
+					'url'             => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s website URL.' ),
+					),
+					'link'            => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s profile page URL.' ),
+					),
+					'slug'            => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s URL-friendly slug/nicename.' ),
+					),
+					'registered_date' => array(
+						'type'        => 'string',
+						'format'      => 'date-time',
+						'description' => __( 'The date and time the user registered (ISO 8601 format).' ),
+					),
+					'roles'           => array(
+						'type'        => 'array',
+						'description' => __( 'The roles assigned to the user.' ),
+						'items'       => array(
+							'type' => 'string',
+						),
+					),
+					'locale'          => array(
+						'type'        => 'string',
+						'description' => __( 'The user\'s locale setting, such as en_US.' ),
+					),
+					'avatar_urls'     => array(
+						'type'                 => 'object',
+						'description'          => __( 'User avatar URLs at various sizes (24, 48, 96 pixels).' ),
+						'properties'           => array(
+							'24' => array(
+								'type'        => 'string',
+								'description' => __( 'Avatar URL at 24px size.' ),
+							),
+							'48' => array(
+								'type'        => 'string',
+								'description' => __( 'Avatar URL at 48px size.' ),
+							),
+							'96' => array(
+								'type'        => 'string',
+								'description' => __( 'Avatar URL at 96px size.' ),
+							),
+						),
+						'additionalProperties' => false,
+					),
+					'capabilities'    => array(
+						'type'                 => 'object',
+						'description'          => __( 'The user\'s capabilities (only included if include_capabilities is true).' ),
+						'additionalProperties' => array(
+							'type' => 'boolean',
+						),
+					),
+				),
+				'additionalProperties' => false,
+			),
+			'execute_callback'    => static function ( $input = array() ) {
+				$user = null;
+				if ( ! empty( $input['id'] ) ) {
+					$user = get_user_by( 'id', $input['id'] );
+				} elseif ( ! empty( $input['username'] ) ) {
+					$user = get_user_by( 'login', $input['username'] );
+				} elseif ( ! empty( $input['email'] ) ) {
+					$user = get_user_by( 'email', $input['email'] );
+				}
+
+				if ( ! $user || is_wp_error( $user ) ) {
+					return new WP_Error(
+						'user_not_found',
+						__( 'The requested user does not exist.' )
+					);
+				}
+
+				$result = array(
+					'id'              => (int) $user->ID,
+					'username'        => $user->user_login,
+					'email'           => $user->user_email,
+					'display_name'    => $user->display_name,
+					'first_name'      => $user->first_name,
+					'last_name'       => $user->last_name,
+					'nickname'        => $user->nickname,
+					'description'     => $user->description,
+					'url'             => $user->user_url,
+					'link'            => get_author_posts_url( $user->ID ),
+					'slug'            => $user->user_nicename,
+					'registered_date' => gmdate( 'c', strtotime( $user->user_registered ) ),
+					'roles'           => array_values( $user->roles ),
+					'locale'          => get_user_locale( $user ),
+					'avatar_urls'     => array(
+						'24' => get_avatar_url( $user->ID, array( 'size' => 24 ) ),
+						'48' => get_avatar_url( $user->ID, array( 'size' => 48 ) ),
+						'96' => get_avatar_url( $user->ID, array( 'size' => 96 ) ),
+					),
+				);
+
+				if ( ! empty( $input['include_capabilities'] ) ) {
+					$result['capabilities'] = $user->allcaps;
+				}
+
+				return $result;
+			},
+			'permission_callback' => static function ( $input = array() ) {
+				if ( ! is_user_logged_in() ) {
+					return false;
+				}
+
+				$target_user = null;
+				if ( ! empty( $input['id'] ) ) {
+					$target_user = get_user_by( 'id', $input['id'] );
+				} elseif ( ! empty( $input['username'] ) ) {
+					$target_user = get_user_by( 'login', $input['username'] );
+				} elseif ( ! empty( $input['email'] ) ) {
+					$target_user = get_user_by( 'email', $input['email'] );
+				}
+
+				if ( ! $target_user || is_wp_error( $target_user ) ) {
+					return true;
+				}
+
+				$current_user = wp_get_current_user();
+				if ( (int) $target_user->ID === (int) $current_user->ID ) {
+					return true;
+				}
+
+				return current_user_can( 'list_users' );
+			},
+			'meta'                => array(
+				'annotations'  => array(
+					'readonly'    => true,
+					'destructive' => false,
+					'idempotent'  => true,
+				),
+				'show_in_rest' => true,
+			),
+		)
+	);
+
+	wp_register_ability(
 		'core/get-environment-info',
 		array(
 			'label'               => __( 'Get Environment Info' ),
