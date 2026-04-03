@@ -657,7 +657,7 @@ function create_initial_post_types() {
 		)
 	);
 
-	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
+	if ( wp_is_collaboration_enabled() ) {
 		register_post_type(
 			'wp_sync_storage',
 			array(
@@ -687,6 +687,7 @@ function create_initial_post_types() {
 				'show_in_menu'       => false,
 				'show_in_rest'       => false,
 				'show_ui'            => false,
+				'can_export'         => false,
 				'supports'           => array( 'custom-fields' ),
 			)
 		);
@@ -2599,8 +2600,9 @@ function is_post_embeddable( $post = null ) {
  * @see WP_Query
  * @see WP_Query::parse_query()
  *
- * @param array $args {
- *     Optional. Arguments to retrieve posts. See WP_Query::parse_query() for all available arguments.
+ * @param array|string $args {
+ *     Optional. Array or query string of arguments to retrieve posts.
+ *     See WP_Query::parse_query() for all available arguments.
  *
  *     @type int        $numberposts      Total number of posts to retrieve. Is an alias of `$posts_per_page`
  *                                        in WP_Query. Accepts -1 for all. Default 5.
@@ -2854,19 +2856,20 @@ function get_post_custom( $post_id = 0 ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|void Array of the keys, if retrieved.
+ * @return array|null Array of the keys, if retrieved.
  */
 function get_post_custom_keys( $post_id = 0 ) {
 	$custom = get_post_custom( $post_id );
 
 	if ( ! is_array( $custom ) ) {
-		return;
+		return null;
 	}
 
 	$keys = array_keys( $custom );
 	if ( $keys ) {
 		return $keys;
 	}
+	return null;
 }
 
 /**
@@ -4219,7 +4222,7 @@ function wp_untrash_post( $post_id = 0 ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
- * @return mixed|void False on failure.
+ * @return int|false|null int if the comments were successfully deleted, false on failure and null if the post or comment did not exist.
  */
 function wp_trash_post_comments( $post = null ) {
 	global $wpdb;
@@ -4227,7 +4230,7 @@ function wp_trash_post_comments( $post = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	$post_id = $post->ID;
@@ -4244,7 +4247,7 @@ function wp_trash_post_comments( $post = null ) {
 	$comments = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
 
 	if ( ! $comments ) {
-		return;
+		return null;
 	}
 
 	// Cache current status for each comment.
@@ -4280,7 +4283,7 @@ function wp_trash_post_comments( $post = null ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
- * @return true|void
+ * @return true|null
  */
 function wp_untrash_post_comments( $post = null ) {
 	global $wpdb;
@@ -4288,7 +4291,7 @@ function wp_untrash_post_comments( $post = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	$post_id = $post->ID;
@@ -4335,6 +4338,8 @@ function wp_untrash_post_comments( $post = null ) {
 	 * @param int $post_id Post ID.
 	 */
 	do_action( 'untrashed_post_comments', $post_id );
+
+	return null;
 }
 
 /**
@@ -8671,7 +8676,7 @@ function wp_create_initial_post_meta() {
 		)
 	);
 
-	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
+	if ( wp_is_collaboration_enabled() ) {
 		register_meta(
 			'post',
 			'_crdt_document',
