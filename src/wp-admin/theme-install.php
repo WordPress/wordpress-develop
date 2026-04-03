@@ -416,7 +416,7 @@ if ( $tab ) {
 					<# if ( data.customize_url ) { #>
 						<# if ( ! data.active ) { #>
 							<# if ( data.block_theme ) { #>
-								<a class="button" href="{{ data.customize_url }}"><?php _e( 'Preview' ); ?></a>
+								<a class="button" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
 							<# } else { #>
 								<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
 							<# } #>

@@ -1818,13 +1818,13 @@
 
 			if ( response.customizeUrl ) {
 
-				// Transform the 'Preview' button into a 'Live Preview' or 'Preview' (block theme) button.
+				// Transform the 'Preview' button into a 'Live Preview' button.
 				$message.siblings( '.preview' ).replaceWith( function () {
 					if ( response.blockTheme ) {
 						return $( '<a>' )
 							.attr( 'href', response.customizeUrl )
 							.addClass( 'button' )
-							.text( __( 'Preview' ) );
+							.text( __( 'Live Preview' ) );
 					}
 					return $( '<a>' )
 						.attr( 'href', response.customizeUrl )
