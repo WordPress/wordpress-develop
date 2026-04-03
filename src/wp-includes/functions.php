@@ -6094,7 +6094,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  * Generates the message when `WP_DEBUG` is true.
  *
  * @since 6.4.0
- * @since 7.0.0 The caller's file and line number are appended to the message.
+ * @since x.x.x The caller's file and line number are appended to the message.
  *
  * @param string $function_name The function that triggered the error.
  * @param string $message       The message explaining the error.
@@ -6178,7 +6178,7 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 		$message .= sprintf(
 			' (Called from %s on line %d.)',
 			esc_html( $frame['file'] ),
-			(int) $frame['line']
+			absint( $frame['line'] )
 		);
 		break;
 	}
