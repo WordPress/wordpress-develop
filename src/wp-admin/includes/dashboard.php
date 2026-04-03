@@ -317,10 +317,11 @@ function wp_dashboard_right_now() {
 			$text = number_format_i18n( $num_post_published ) . ' ' . $post_label;
 
 			$icon_class = '';
+			$menu_icon  = $post_type_object->menu_icon ?? 'dashicons-admin-post';
 
-			if ( str_starts_with( $post_type_object->menu_icon, 'dashicons-' ) ) {
-				$icon_class = $post_type_object->menu_icon;
-			} elseif ( str_starts_with( $post_type_object->menu_icon, 'data:image/svg+xml;base64,' ) ) {
+			if ( str_starts_with( $menu_icon, 'dashicons-' ) ) {
+				$icon_class = $menu_icon;
+			} elseif ( str_starts_with( $menu_icon, 'data:image/svg+xml;base64,' ) ) {
 				printf(
 					'<style>
 #dashboard_right_now li.%1$s-count a:before,
@@ -331,7 +332,7 @@ function wp_dashboard_right_now() {
 }
 </style>',
 					$post_type,
-					$post_type_object->menu_icon
+					$menu_icon
 				);
 			}
 
