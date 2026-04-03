@@ -3951,6 +3951,7 @@ function human_time_diff( $from, $to = 0 ) {
  * @since 1.5.0
  * @since 5.2.0 Added the `$post` parameter.
  * @since 6.3.0 Removes footnotes markup from the excerpt content.
+ * @since 7.1.0 Added support for preserving allowed HTML tags via the `excerpt_allowed_tags` filter.
  *
  * @param string             $text Optional. The excerpt. If set to empty, an excerpt is generated.
  * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default null.
