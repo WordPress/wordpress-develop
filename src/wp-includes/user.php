@@ -5095,6 +5095,22 @@ function wp_validate_user_request_key(
 }
 
 /**
+ * Reject usernames that can be used for spamming people.
+ *
+ * @param string $username Username to check.
+ * @return bool Whether username given is valid.
+ */
+function wp_validate_username_spam( $valid, $username ) {
+	//username begins with "www." or has " www." in it,
+	// which gets auto-linked by email clients
+	if ( strpos( ' ' . $username, ' www.' ) !== false ) {
+		return false;
+	}
+
+	return $valid;
+}
+
+/**
  * Returns the user request object for the specified request ID.
  *
  * @since 4.9.6

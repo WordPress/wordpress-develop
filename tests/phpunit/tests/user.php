@@ -1274,6 +1274,14 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63085
+	 */
+	public function test_validate_username_spam() {
+		$this->assertFalse( validate_username( 'www.example.com - 1.2342 BTC' ) );
+		$this->assertFalse( validate_username( '1.23 BTC www.spammer.example.com' ) );
+	}
+
+	/**
 	 * @ticket 29880
 	 */
 	public function test_wp_insert_user_should_not_wipe_existing_password() {

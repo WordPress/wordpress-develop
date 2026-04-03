@@ -393,6 +393,9 @@ add_action( 'login_footer', 'wp_print_footer_scripts', 20 );
 add_action( 'login_init', 'send_frame_options_header', 10, 0 );
 add_action( 'login_init', 'wp_admin_headers' );
 
+// Registration
+add_filter( 'validate_username', 'wp_validate_username_spam', 10, 2 );
+
 // Feed generator tags.
 foreach ( array( 'rss2_head', 'commentsrss2_head', 'rss_head', 'rdf_header', 'atom_head', 'comments_atom_head', 'opml_head', 'app_head' ) as $action ) {
 	add_action( $action, 'the_generator' );
