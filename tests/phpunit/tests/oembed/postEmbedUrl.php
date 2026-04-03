@@ -107,4 +107,68 @@ class Tests_Post_Embed_URL extends WP_UnitTestCase {
 	public function filter_unique_post_slug() {
 		return 'embed';
 	}
+
+	/**
+	 * Test should return embed URL with '/embed/' for a published post.
+	 */
+	public function test_should_return_embed_url_with_embed_suffix_when_post_is_published() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$post = self::factory()->post->create_and_get( array( 'post_status' => 'publish' ) );
+
+		$embed_url = get_post_embed_url( $post );
+
+		$this->assertStringContainsString( 'embed', $embed_url );
+		$this->assertStringEndsWith( '/embed/', $embed_url );
+	}
+
+	/**
+	 * Test should return embed URL with '?embed=true' for a draft post.
+	 */
+	public function test_should_return_embed_url_with_embed_query_when_post_is_draft() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$post = self::factory()->post->create_and_get( array( 'post_status' => 'draft' ) );
+
+		$embed_url = get_post_embed_url( $post );
+
+		$this->assertStringContainsString( '&embed=true', $embed_url );
+		$this->assertStringNotContainsString( '/embed/', $embed_url );
+	}
+
+	/**
+	 * Test should return embed URL with '?embed=true' for a scheduled post.
+	 */
+	public function test_should_return_embed_url_with_embed_query_when_post_is_scheduled() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$future_post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 hour' ) ),
+			)
+		);
+
+		$embed_url = get_post_embed_url( $future_post );
+
+		$this->assertStringContainsString( '&embed=true', $embed_url );
+		$this->assertStringNotContainsString( '/embed/', $embed_url );
+	}
+
+	/**
+	 * Test should return the embed URL for the current post when no post ID is provided.
+	 */
+	public function test_should_return_embed_url_for_current_post_when_no_post_id_is_provided() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$custom_post = self::factory()->post->create_and_get( array( 'post_status' => 'publish' ) );
+
+		global $post;
+		$post = $custom_post;
+
+		$embed_url = get_post_embed_url();
+
+		$this->assertStringContainsString( 'embed', $embed_url );
+		$this->assertStringEndsWith( '/embed/', $embed_url );
+	}
 }
