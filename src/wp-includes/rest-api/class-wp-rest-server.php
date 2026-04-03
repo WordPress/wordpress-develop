@@ -64,6 +64,14 @@ class WP_REST_Server {
 	protected $namespaces = array();
 
 	/**
+	 * Lazily-loaded namespaces registered to the server.
+	 *
+	 * @since X.X.0
+	 * @var array
+	 */
+	protected $lazy_namespaces = array();
+
+	/**
 	 * Endpoints registered to the server.
 	 *
 	 * @since 4.4.0
@@ -94,6 +102,22 @@ class WP_REST_Server {
 	 * @var array
 	 */
 	protected $dispatching_requests = array();
+
+	/**
+	 * Route context constant: Load all namespaces including lazy-loaded ones.
+	 *
+	 * @since X.X.0
+	 * @var string
+	 */
+	public const ROUTE_CONTEXT_ALL = 'all';
+
+	/**
+	 * Route context constant: Only return routes from already-loaded namespaces.
+	 *
+	 * @since X.X.0
+	 * @var string
+	 */
+	public const ROUTE_CONTEXT_LOADED_ONLY = 'loaded_only';
 
 	/**
 	 * Instantiates the REST server.
@@ -880,6 +904,92 @@ class WP_REST_Server {
 	}
 
 	/**
+	 * Register a namespace for lazy loading.
+	 *
+	 * @since X.X.0
+	 *
+	 * @param string $route_namespace The namespace to register for lazy loading.
+	 */
+	public function register_lazy_loaded_namespace( $route_namespace ) {
+		if ( ! isset( $this->lazy_namespaces[ $route_namespace ] ) ) {
+			$this->lazy_namespaces[ $route_namespace ] = false;
+		}
+	}
+
+	/**
+	 * Load a specific lazy namespace.
+	 *
+	 * @since X.X.0
+	 *
+	 * @param string $route_namespace The namespace to load.
+	 * @return bool True if loaded, false if not a lazy namespace.
+	 */
+	protected function load_lazy_namespace( $route_namespace ) {
+		if ( ! isset( $this->lazy_namespaces[ $route_namespace ] ) ) {
+			return false;
+		}
+
+		if ( $this->lazy_namespaces[ $route_namespace ] ) {
+			return true; // Already loaded
+		}
+
+		$this->lazy_namespaces[ $route_namespace ] = true;
+
+		/**
+		 * Fires when a lazy-loaded REST API namespace is being loaded.
+		 *
+		 * This action is triggered when a lazy-loaded namespace needs to have its
+		 * routes registered. Plugins should hook into this action to register
+		 * their routes for the specific namespace being loaded.
+		 *
+		 * The dynamic portion of the hook name, `$route_namespace`, refers to
+		 * the namespace being loaded (e.g., 'my-plugin/v1').
+		 *
+		 * @since X.X.0
+		 *
+		 * @example
+		 * // Register routes when your namespace loads
+		 * add_action( 'rest_lazy_load_namespace_my-plugin/v1', function() {
+		 *     register_rest_route( 'my-plugin/v1', '/posts', array(
+		 *         'methods'             => 'GET',
+		 *         'callback'            => 'my_plugin_get_posts',
+		 *         'permission_callback' => '__return_true',
+		 *     ) );
+		 * } );
+		 */
+		do_action( 'rest_lazy_load_namespace_' . $route_namespace );
+
+		/**
+		 * Fires when any lazy-loaded REST API namespace is being loaded.
+		 *
+		 * This action is triggered after the namespace-specific action
+		 * {@see 'rest_lazy_load_namespace_$route_namespace'} has fired.
+		 * It can be used to perform actions common to all lazy-loaded
+		 * namespaces, such as logging or registering shared dependencies.
+		 *
+		 * @since X.X.0
+		 *
+		 * @param string $route_namespace The namespace being loaded (e.g., 'my-plugin/v1').
+		 */
+		do_action( 'rest_lazy_load_namespace', $route_namespace );
+
+		return true;
+	}
+
+	/**
+	 * Load all lazy namespaces.
+	 *
+	 * @since X.X.0
+	 */
+	protected function load_all_lazy_namespaces() {
+		foreach ( $this->lazy_namespaces as $namespace => $has_loaded ) {
+			if ( ! $has_loaded ) {
+				$this->load_lazy_namespace( $namespace );
+			}
+		}
+	}
+
+	/**
 	 * Registers a route to the server.
 	 *
 	 * @since 4.4.0
@@ -941,14 +1051,28 @@ class WP_REST_Server {
 	 * Note that the path regexes (array keys) must have @ escaped, as this is
 	 * used as the delimiter with preg_match()
 	 *
-	 * @since 4.4.0
-	 * @since 5.4.0 Added `$route_namespace` parameter.
-	 *
 	 * @param string $route_namespace Optionally, only return routes in the given namespace.
+	 * @param string $route_context   Optional. Route loading context. Accepts:
+	 *                                  - 'all' (default): Load all namespaces including lazy-loaded ones
+	 *                                  - 'loaded_only': Only return routes from already-loaded namespaces
+	 *
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
 	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
+	 *
+	 * @since 4.4.0
+	 * @since 5.4.0 Added `$route_namespace` parameter.
+	 * @since X.X.0 Added `$route_context` parameter.
 	 */
-	public function get_routes( $route_namespace = '' ) {
+	public function get_routes( $route_namespace = '', $route_context = self::ROUTE_CONTEXT_ALL ) {
+		if ( self::ROUTE_CONTEXT_LOADED_ONLY !== $route_context ) {
+			if ( $route_namespace ) {
+				// Load only the namespace requested
+				$this->load_lazy_namespace( $route_namespace );
+			} else {
+				$this->load_all_lazy_namespaces();
+			}
+		}
+
 		$endpoints = $this->endpoints;
 
 		if ( $route_namespace ) {
@@ -1150,8 +1274,9 @@ class WP_REST_Server {
 
 		$with_namespace = array();
 
-		foreach ( $this->get_namespaces() as $namespace ) {
-			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
+		$all_registered_namespaces = array_keys( $this->namespaces + $this->lazy_namespaces );
+		foreach ( $all_registered_namespaces as $namespace ) {
+			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), trailingslashit( $namespace ) ) ) {
 				$with_namespace[] = $this->get_routes( $namespace );
 			}
 		}
@@ -1159,7 +1284,8 @@ class WP_REST_Server {
 		if ( $with_namespace ) {
 			$routes = array_merge( ...$with_namespace );
 		} else {
-			$routes = $this->get_routes();
+			// Avoid loading all namespaces as none match.
+			$routes = $this->get_routes( '', self::ROUTE_CONTEXT_LOADED_ONLY );
 		}
 
 		foreach ( $routes as $route => $handlers ) {
@@ -1352,6 +1478,9 @@ class WP_REST_Server {
 	 * @return WP_REST_Response The API root index data.
 	 */
 	public function get_index( $request ) {
+		// Pre-load all namespaces and endpoints.
+		$this->load_all_lazy_namespaces();
+
 		// General site data.
 		$available = array(
 			'name'            => get_option( 'blogname' ),
@@ -1365,7 +1494,7 @@ class WP_REST_Server {
 			'show_on_front'   => get_option( 'show_on_front' ),
 			'namespaces'      => array_keys( $this->namespaces ),
 			'authentication'  => array(),
-			'routes'          => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),
+			'routes'          => $this->get_data_for_routes( $this->get_routes( '', self::ROUTE_CONTEXT_LOADED_ONLY ), $request['context'] ),
 		);
 
 		$response = new WP_REST_Response( $available );
@@ -1510,6 +1639,8 @@ class WP_REST_Server {
 	public function get_namespace_index( $request ) {
 		$namespace = $request['namespace'];
 
+		$this->load_lazy_namespace( $namespace );
+
 		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
 			return new WP_Error(
 				'rest_invalid_namespace',
@@ -1519,7 +1650,7 @@ class WP_REST_Server {
 		}
 
 		$routes    = $this->namespaces[ $namespace ];
-		$endpoints = array_intersect_key( $this->get_routes(), $routes );
+		$endpoints = array_intersect_key( $this->get_routes( $namespace, self::ROUTE_CONTEXT_LOADED_ONLY ), $routes );
 
 		$data     = array(
 			'namespace' => $namespace,
