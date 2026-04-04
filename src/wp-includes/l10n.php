@@ -1756,7 +1756,7 @@ function wp_dropdown_languages( $args = array() ) {
 		$structure[] = sprintf(
 			'<option value="%s" lang="en" data-installed="1"%s>English (United States)</option>',
 			esc_attr( $value ),
-			selected( '', $parsed_args['selected'], false )
+			selected( $value, $parsed_args['selected'], false )
 		);
 	}
 

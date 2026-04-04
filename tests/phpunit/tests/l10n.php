@@ -221,6 +221,30 @@ class Tests_L10n extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58284
+	 *
+	 * @covers ::wp_dropdown_languages
+	 */
+	public function test_wp_dropdown_languages_explicit_option_en_us_selected() {
+		$args   = array(
+			'id'                    => 'test_explicit_en_us',
+			'name'                  => 'test_explicit_en_us',
+			'languages'             => array( 'de_DE' ),
+			'translations'          => $this->wp_dropdown_languages_filter(),
+			'selected'              => 'en_US',
+			'explicit_option_en_us' => true,
+			'echo'                  => false,
+		);
+		$actual = wp_dropdown_languages( $args );
+
+		$this->assertStringContainsString(
+			'value="en_US" lang="en" data-installed="1" selected=\'selected\'',
+			$actual,
+			'en_US should be selected when explicit_option_en_us is true and selected is en_US'
+		);
+	}
+
+	/**
 	 * Add site default language to ja_JP in dropdown
 	 *
 	 * @covers ::wp_dropdown_languages
