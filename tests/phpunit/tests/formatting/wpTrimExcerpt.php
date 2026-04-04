@@ -223,4 +223,21 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		// Assert that the filter callback was not restored after running 'the_content'.
 		$this->assertFalse( has_filter( 'the_content', 'do_blocks' ) );
 	}
+
+	/**
+	 * Tests that by default all HTML is stripped from the excerpt.
+	 *
+	 * @ticket 12084
+	 */
+	public function test_excerpt_allowed_tags_default_strips_all_html() {
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => '<p>Hello <strong>world</strong>.</p>',
+			)
+		);
+
+		$excerpt = wp_trim_excerpt( '', $post );
+
+		$this->assertStringNotContainsString( '<', $excerpt, 'Default excerpt should contain no HTML tags.' );
+	}
 }
