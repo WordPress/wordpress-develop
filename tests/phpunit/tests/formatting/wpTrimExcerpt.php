@@ -240,4 +240,33 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 
 		$this->assertStringNotContainsString( '<', $excerpt, 'Default excerpt should contain no HTML tags.' );
 	}
+
+	/**
+	 * Tests that the excerpt_allowed_tags filter preserves specified tags
+	 * and strips disallowed ones while keeping their inner text.
+	 *
+	 * @ticket 12084
+	 */
+	public function test_excerpt_allowed_tags_preserves_specified_tags() {
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => '<p>Hello <strong>bold</strong> and <em>italic</em> text.</p>',
+			)
+		);
+
+		add_filter(
+			'excerpt_allowed_tags',
+			static function () {
+				return '<strong><em>';
+			}
+		);
+
+		$excerpt = wp_trim_excerpt( '', $post );
+
+		remove_all_filters( 'excerpt_allowed_tags' );
+
+		$this->assertStringContainsString( '<strong>bold</strong>', $excerpt, 'Allowed tag should be preserved.' );
+		$this->assertStringNotContainsString( '<p>', $excerpt, 'Disallowed tag should be stripped.' );
+		$this->assertStringContainsString( 'Hello', $excerpt, 'Inner text of stripped tags should be kept.' );
+	}
 }
