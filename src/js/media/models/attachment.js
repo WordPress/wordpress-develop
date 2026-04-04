@@ -184,22 +184,17 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 		batchSize = batchSize || 50;
 
 		var promises = [],
-			i, slice, ids, nonces;
+			i, slice, data;
 
 		for ( i = 0; i < models.length; i += batchSize ) {
-			slice  = models.slice( i, i + batchSize );
-			ids    = [];
-			nonces = {};
+			slice = models.slice( i, i + batchSize );
+			data  = _.reduce( slice, function( acc, model ) {
+				acc.ids.push( model.id );
+				acc.nonces[ model.id ] = model.get( 'nonces' )['delete'];
+				return acc;
+			}, { ids: [], nonces: {} } );
 
-			_.each( slice, function( model ) {
-				ids.push( model.id );
-				nonces[ model.id ] = model.get( 'nonces' )['delete'];
-			});
-
-			promises.push( wp.media.post( 'delete-post-batch', {
-				ids:    ids,
-				nonces: nonces
-			}) );
+			promises.push( wp.media.post( 'delete-post-batch', data ) );
 		}
 
 		return $.when.apply( null, promises ).then( function() {
