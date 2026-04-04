@@ -12,7 +12,8 @@ module.exports = defineConfig( {
 	workers: 1,
 	use: {
 		headless: true,
-		channel: 'chrome',
+		/* This avoids the need to run `npx playwright install` in CI. */
+		channel: process.env.CI ? 'chrome' : undefined,
 	},
 	reporter: process.env.CI ? 'github' : 'list',
 } );

@@ -2168,8 +2168,8 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'qunit', 'Runs QUnit tests.', function() {
 		var done = this.async();
 		grunt.util.spawn( {
-			cmd: 'node_modules/.bin/playwright',
-			args: [ 'test', '--config', 'tests/qunit/playwright.config.js' ],
+			cmd: 'npx',
+			args: [ 'playwright', 'test', '--config', 'tests/qunit/playwright.config.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error, result, code ) {
 			if ( code !== 0 ) {

@@ -1,12 +1,24 @@
 const { test, expect } = require( '@playwright/test' );
+const fs = require( 'fs' );
 const path = require( 'path' );
-const glob = require( 'fast-glob' );
+const { pathToFileURL } = require( 'url' );
+
+function getHtmlFiles( dir ) {
+	const entries = fs.readdirSync( dir, { withFileTypes: true } );
+
+	return entries.flatMap( ( entry ) => {
+		const entryPath = path.join( dir, entry.name );
+
+		if ( entry.isDirectory() ) {
+			return getHtmlFiles( entryPath );
+		}
+
+		return entry.isFile() && entry.name.endsWith( '.html' ) ? [ entryPath ] : [];
+	} );
+}
 
 const qunitDir = path.resolve( __dirname );
-const htmlFiles = glob.sync( [ '**/*.html' ], {
-	cwd: qunitDir,
-	absolute: true,
-} );
+const htmlFiles = getHtmlFiles( qunitDir );
 
 for ( const file of htmlFiles ) {
 	const name = path.relative( qunitDir, file );
@@ -51,7 +63,7 @@ for ( const file of htmlFiles ) {
 		} );
 
 		// Navigate to the test file.
-		await page.goto( 'file://' + file, { waitUntil: 'domcontentloaded' } );
+		await page.goto( pathToFileURL( file ).href, { waitUntil: 'domcontentloaded' } );
 
 		// Wait for QUnit to complete.
 		const results = await page.evaluate( () => window.__qunitResults );
