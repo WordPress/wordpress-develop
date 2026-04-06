@@ -1,0 +1,139 @@
+<?php
+/**
+ * Tests for _reset_privacy_policy_page_for_post() and the self-healing
+ * check in WP_Privacy_Policy_Content::notice().
+ *
+ * @package WordPress
+ * @subpackage UnitTests
+ * @since 7.1.0
+ *
+ * @group privacy
+ *
+ * @covers ::_reset_privacy_policy_page_for_post
+ */
+class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
+	/**
+	 * ID of the page set as the Privacy Policy page.
+	 *
+	 * @var int
+	 */
+	private $policy_page_id;
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->policy_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'wp_page_for_privacy_policy', $this->policy_page_id );
+	}
+
+	public function tear_down() {
+		delete_option( 'wp_page_for_privacy_policy' );
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that trashing the Privacy Policy page resets the option to 0.
+	 *
+	 * @ticket 56694
+	 */
+	public function test_trashing_privacy_policy_page_resets_option() {
+		wp_trash_post( $this->policy_page_id );
+
+		$this->assertSame( 0, (int) get_option( 'wp_page_for_privacy_policy' ) );
+	}
+
+	/**
+	 * Tests that permanently deleting the Privacy Policy page resets the option to 0.
+	 *
+	 * @ticket 56694
+	 */
+	public function test_deleting_privacy_policy_page_resets_option() {
+		wp_delete_post( $this->policy_page_id, true );
+
+		$this->assertSame( 0, (int) get_option( 'wp_page_for_privacy_policy' ) );
+	}
+
+	/**
+	 * Tests that trashing a different page does not change the option.
+	 *
+	 * @ticket 56694
+	 */
+	public function test_trashing_a_different_page_does_not_reset_option() {
+		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		wp_trash_post( $other_page_id );
+
+		$this->assertSame(
+			$this->policy_page_id,
+			(int) get_option( 'wp_page_for_privacy_policy' ),
+			'Trashing an unrelated page should not reset wp_page_for_privacy_policy.'
+		);
+	}
+
+	/**
+	 * Tests that deleting a non-page post type does not change the option.
+	 *
+	 * @ticket 56694
+	 */
+	public function test_deleting_non_page_post_type_does_not_reset_option() {
+		$post_id = self::factory()->post->create( array( 'post_type' => 'post' ) );
+		wp_delete_post( $post_id, true );
+
+		$this->assertSame(
+			$this->policy_page_id,
+			(int) get_option( 'wp_page_for_privacy_policy' ),
+			'Deleting a non-page post should not reset wp_page_for_privacy_policy.'
+		);
+	}
+
+	/**
+	 * Tests that WP_Privacy_Policy_Content::notice() resets the option to 0
+	 * when the stored ID points to a page that no longer exists.
+	 *
+	 * @ticket 56694
+	 *
+	 * @covers WP_Privacy_Policy_Content::notice
+	 */
+	public function test_notice_self_heals_when_policy_page_does_not_exist() {
+		update_option( 'wp_page_for_privacy_policy', 99999 );
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		set_current_screen( 'post' );
+
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
+		WP_Privacy_Policy_Content::notice( $post );
+
+		$this->assertSame(
+			0,
+			(int) get_option( 'wp_page_for_privacy_policy' ),
+			'notice() should reset the option to 0 when the stored page does not exist.'
+		);
+	}
+
+	/**
+	 * Tests that _reset_privacy_policy_page_for_post() does not call
+	 * update_option() when wp_page_for_privacy_policy is already 0.
+	 *
+	 * @ticket 56694
+	 */
+	public function test_no_update_option_when_policy_page_already_zero() {
+		update_option( 'wp_page_for_privacy_policy', 0 );
+
+		$call_count = 0;
+		add_filter(
+			'pre_update_option_wp_page_for_privacy_policy',
+			static function ( $value ) use ( &$call_count ) {
+				++$call_count;
+				return $value;
+			}
+		);
+
+		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		wp_trash_post( $other_page_id );
+
+		$this->assertSame(
+			0,
+			$call_count,
+			'update_option() should not be called when wp_page_for_privacy_policy is already 0.'
+		);
+	}
+}
