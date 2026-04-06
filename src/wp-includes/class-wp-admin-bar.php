@@ -72,6 +72,15 @@ class WP_Admin_Bar {
 		wp_enqueue_script( 'admin-bar' );
 		wp_enqueue_style( 'admin-bar' );
 
+		wp_localize_script(
+			'admin-bar',
+			'wpAdminBarL10n',
+			array(
+				'toolbarHidden'  => __( 'Toolbar hidden.' ),
+				'toolbarVisible' => __( 'Toolbar visible.' ),
+			)
+		);
+
 		/**
 		 * Fires after WP_Admin_Bar is initialized.
 		 *

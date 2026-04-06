@@ -99,6 +99,24 @@ html:lang(he-il) .rtl #wpadminbar * {
 	background: #1d2327;
 	/* Only visible in Windows High Contrast mode */
 	outline: 1px solid transparent;
+	transition: transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+/**
+ * Toolbar toggle hidden state.
+ *
+ * Toggled via access+w keyboard shortcut on the frontend.
+ * Sets the admin bar height variable to 0 so all dependent spacing
+ * (scroll-padding, bump margin) adjusts automatically.
+ */
+html.wp-toolbar-hidden {
+	--wp-admin--admin-bar--height: 0px;
+	margin-top: 0 !important;
+}
+
+html.wp-toolbar-hidden #wpadminbar {
+	transform: translateY(-100%);
+	visibility: hidden;
 }
 
 #wpadminbar .ab-sub-wrapper,

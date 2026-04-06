@@ -23,6 +23,7 @@
 			skipLink,
 			mobileEvent,
 			adminBarSearchInput,
+			isMac = /Mac|iPhone|iPad|iPod/.test( navigator.platform ),
 			i;
 
 		if ( ! adminBar || ! ( 'querySelectorAll' in adminBar ) ) {
@@ -108,7 +109,81 @@
 		if ( adminBarLogout ) {
 			adminBarLogout.addEventListener( 'click', emptySessionStorage );
 		}
+
+		// Toggle toolbar visibility with access+w keyboard shortcut (frontend only).
+		if ( ! document.body.classList.contains( 'wp-admin' ) ) {
+			document.addEventListener( 'keydown', function( event ) {
+				var isAccessModifier;
+
+				if ( event.which !== 87 ) { // 'W' key.
+					return;
+				}
+
+				if ( isMac ) {
+					isAccessModifier = event.ctrlKey && event.altKey && ! event.metaKey && ! event.shiftKey;
+				} else {
+					isAccessModifier = event.altKey && event.shiftKey && ! event.ctrlKey && ! event.metaKey;
+				}
+
+				if ( ! isAccessModifier ) {
+					return;
+				}
+
+				event.preventDefault();
+				toggleToolbar( adminBar );
+			} );
+		}
 	} );
+
+	/**
+	 * Toggle the toolbar visibility.
+	 *
+	 * Slides the toolbar out of view and adjusts page spacing by toggling
+	 * the `wp-toolbar-hidden` class on the document element.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param {HTMLElement} adminBar The admin bar element.
+	 */
+	function toggleToolbar( adminBar ) {
+		var isHidden = document.documentElement.classList.toggle( 'wp-toolbar-hidden' );
+
+		adminBar.setAttribute( 'aria-hidden', isHidden ? 'true' : 'false' );
+		announceToolbarState( isHidden );
+	}
+
+	/**
+	 * Announce toolbar visibility state to screen readers.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param {boolean} isHidden Whether the toolbar is hidden.
+	 */
+	function announceToolbarState( isHidden ) {
+		var message = isHidden ? window.wpAdminBarL10n.toolbarHidden : window.wpAdminBarL10n.toolbarVisible,
+			el;
+
+		if ( ! message ) {
+			return;
+		}
+
+		el = document.getElementById( 'wp-toolbar-announce' );
+
+		if ( ! el ) {
+			el = document.createElement( 'div' );
+			el.id = 'wp-toolbar-announce';
+			el.className = 'screen-reader-text';
+			el.setAttribute( 'role', 'status' );
+			el.setAttribute( 'aria-live', 'polite' );
+			document.body.appendChild( el );
+		}
+
+		// Clear then set to ensure screen readers re-announce.
+		el.textContent = '';
+		setTimeout( function() {
+			el.textContent = message;
+		}, 100 );
+	}
 
 	/**
 	 * Remove hover class for top level menu item when escape is pressed.
