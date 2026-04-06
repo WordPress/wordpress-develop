@@ -868,6 +868,14 @@ function shortcode_unautop( $text ) {
 	return preg_replace( $pattern, '$1', $text );
 }
 
+/**
+ * Strips unnecessary newlines from HTML content.
+ *
+ * @since 7.1.0
+ *
+ * @param string $text The HTML content to strip newlines from.
+ * @return string The HTML content with unnecessary newlines removed.
+ */
 function strip_html_newlines( $text ) {
 	if ( ! str_contains( $text, "\n" ) && ! str_contains( $text, "\r" ) ) {
 		return $text;
