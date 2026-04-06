@@ -71,12 +71,12 @@ class Tests_Cache_MetaLastChanged extends WP_UnitTestCase {
 	 * @covers ::wp_cache_set_posts_meta_last_changed
 	 */
 	public function test_adding_post_meta_updates_posts_meta_group_not_posts_group() {
-		$posts_before     = wp_cache_get_last_changed( 'posts' );
+		$posts_before      = wp_cache_get_last_changed( 'posts' );
 		$posts_meta_before = wp_cache_get_last_changed( 'posts-meta' );
 
 		add_post_meta( self::$post_ids[0], 'test_key', 'test_value' );
 
-		$posts_after     = wp_cache_get_last_changed( 'posts' );
+		$posts_after      = wp_cache_get_last_changed( 'posts' );
 		$posts_meta_after = wp_cache_get_last_changed( 'posts-meta' );
 
 		$this->assertSame( $posts_before, $posts_after, 'posts last_changed should not change when post meta is added.' );
@@ -90,12 +90,12 @@ class Tests_Cache_MetaLastChanged extends WP_UnitTestCase {
 	public function test_updating_post_meta_updates_posts_meta_group_not_posts_group() {
 		add_post_meta( self::$post_ids[0], 'update_key', 'old_value' );
 
-		$posts_before     = wp_cache_get_last_changed( 'posts' );
+		$posts_before      = wp_cache_get_last_changed( 'posts' );
 		$posts_meta_before = wp_cache_get_last_changed( 'posts-meta' );
 
 		update_post_meta( self::$post_ids[0], 'update_key', 'new_value' );
 
-		$posts_after     = wp_cache_get_last_changed( 'posts' );
+		$posts_after      = wp_cache_get_last_changed( 'posts' );
 		$posts_meta_after = wp_cache_get_last_changed( 'posts-meta' );
 
 		$this->assertSame( $posts_before, $posts_after, 'posts last_changed should not change when post meta is updated.' );
@@ -109,12 +109,12 @@ class Tests_Cache_MetaLastChanged extends WP_UnitTestCase {
 	public function test_deleting_post_meta_updates_posts_meta_group_not_posts_group() {
 		add_post_meta( self::$post_ids[0], 'delete_key', 'value' );
 
-		$posts_before     = wp_cache_get_last_changed( 'posts' );
+		$posts_before      = wp_cache_get_last_changed( 'posts' );
 		$posts_meta_before = wp_cache_get_last_changed( 'posts-meta' );
 
 		delete_post_meta( self::$post_ids[0], 'delete_key' );
 
-		$posts_after     = wp_cache_get_last_changed( 'posts' );
+		$posts_after      = wp_cache_get_last_changed( 'posts' );
 		$posts_meta_after = wp_cache_get_last_changed( 'posts-meta' );
 
 		$this->assertSame( $posts_before, $posts_after, 'posts last_changed should not change when post meta is deleted.' );
@@ -193,12 +193,12 @@ class Tests_Cache_MetaLastChanged extends WP_UnitTestCase {
 	 * @covers ::wp_cache_set_comments_meta_last_changed
 	 */
 	public function test_adding_comment_meta_updates_comment_meta_group_not_comment_group() {
-		$comment_before     = wp_cache_get_last_changed( 'comment' );
+		$comment_before      = wp_cache_get_last_changed( 'comment' );
 		$comment_meta_before = wp_cache_get_last_changed( 'comment-meta' );
 
 		add_comment_meta( self::$comment_ids[0], 'c_key', 'val' );
 
-		$comment_after     = wp_cache_get_last_changed( 'comment' );
+		$comment_after      = wp_cache_get_last_changed( 'comment' );
 		$comment_meta_after = wp_cache_get_last_changed( 'comment-meta' );
 
 		$this->assertSame( $comment_before, $comment_after, 'comment last_changed should not change when comment meta is added.' );
@@ -271,12 +271,12 @@ class Tests_Cache_MetaLastChanged extends WP_UnitTestCase {
 	 * @covers ::wp_cache_set_terms_meta_last_changed
 	 */
 	public function test_adding_term_meta_updates_terms_meta_group_not_terms_group() {
-		$terms_before     = wp_cache_get_last_changed( 'terms' );
+		$terms_before      = wp_cache_get_last_changed( 'terms' );
 		$terms_meta_before = wp_cache_get_last_changed( 'terms-meta' );
 
 		add_term_meta( self::$term_ids[0], 't_key', 'val' );
 
-		$terms_after     = wp_cache_get_last_changed( 'terms' );
+		$terms_after      = wp_cache_get_last_changed( 'terms' );
 		$terms_meta_after = wp_cache_get_last_changed( 'terms-meta' );
 
 		$this->assertSame( $terms_before, $terms_after, 'terms last_changed should not change when term meta is added.' );
@@ -335,12 +335,12 @@ class Tests_Cache_MetaLastChanged extends WP_UnitTestCase {
 	 * @covers ::wp_cache_set_users_meta_last_changed
 	 */
 	public function test_adding_user_meta_updates_users_meta_group_not_users_group() {
-		$users_before     = wp_cache_get_last_changed( 'users' );
+		$users_before      = wp_cache_get_last_changed( 'users' );
 		$users_meta_before = wp_cache_get_last_changed( 'users-meta' );
 
 		add_user_meta( self::$user_ids[0], 'u_key', 'val' );
 
-		$users_after     = wp_cache_get_last_changed( 'users' );
+		$users_after      = wp_cache_get_last_changed( 'users' );
 		$users_meta_after = wp_cache_get_last_changed( 'users-meta' );
 
 		$this->assertSame( $users_before, $users_after, 'users last_changed should not change when user meta is added.' );
