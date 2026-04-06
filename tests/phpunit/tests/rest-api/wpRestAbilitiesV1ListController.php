@@ -891,6 +891,18 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 							'sanitize_callback' => 'sanitize_text_field',
 						),
 					),
+					'definitions' => array(
+						'address' => array(
+							'type'              => 'object',
+							'validate_callback' => 'rest_validate_request_arg',
+							'properties'        => array(
+								'street' => array(
+									'type'              => 'string',
+									'sanitize_callback' => 'sanitize_text_field',
+								),
+							),
+						),
+					),
 					'dependencies' => array(
 						'bar' => array(
 							'type'              => 'object',
@@ -910,10 +922,20 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 					),
 				),
 				'output_schema'       => array(
-					'type'  => 'array',
-					'items' => array(
-						'type'              => 'string',
-						'validate_callback' => 'is_string',
+					'type'            => 'array',
+					'items'           => array(
+						array(
+							'type'              => 'string',
+							'validate_callback' => 'is_string',
+						),
+						array(
+							'type'        => 'number',
+							'arg_options' => array( 'sanitize_callback' => 'absint' ),
+						),
+					),
+					'additionalItems' => array(
+						'type'              => 'boolean',
+						'sanitize_callback' => 'rest_sanitize_boolean',
 					),
 				),
 				'execute_callback'    => static function ( $input ) {
@@ -969,14 +991,29 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		// Property dependencies (numeric arrays) should pass through unchanged.
 		$this->assertSame( array( 'bar' ), $data['input_schema']['dependencies']['qux'] );
 
+		// Verify internal keywords are stripped from definitions sub-schemas.
+		$this->assertArrayHasKey( 'definitions', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['input_schema']['definitions']['address'] );
+		$this->assertSame( 'object', $data['input_schema']['definitions']['address']['type'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['definitions']['address']['properties']['street'] );
+		$this->assertSame( 'string', $data['input_schema']['definitions']['address']['properties']['street']['type'] );
+
 		// Verify internal keywords are stripped from additionalProperties sub-schema.
 		$this->assertArrayHasKey( 'additionalProperties', $data['input_schema'] );
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['additionalProperties'] );
 		$this->assertSame( 'string', $data['input_schema']['additionalProperties']['type'] );
 
-		// Verify internal keywords are stripped from items sub-schema.
+		// Verify internal keywords are stripped from tuple-style items sub-schemas.
 		$this->assertArrayHasKey( 'items', $data['output_schema'] );
-		$this->assertArrayNotHasKey( 'validate_callback', $data['output_schema']['items'] );
-		$this->assertSame( 'string', $data['output_schema']['items']['type'] );
+		$this->assertCount( 2, $data['output_schema']['items'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['output_schema']['items'][0] );
+		$this->assertSame( 'string', $data['output_schema']['items'][0]['type'] );
+		$this->assertArrayNotHasKey( 'arg_options', $data['output_schema']['items'][1] );
+		$this->assertSame( 'number', $data['output_schema']['items'][1]['type'] );
+
+		// Verify internal keywords are stripped from additionalItems sub-schema.
+		$this->assertArrayHasKey( 'additionalItems', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema']['additionalItems'] );
+		$this->assertSame( 'boolean', $data['output_schema']['additionalItems']['type'] );
 	}
 }

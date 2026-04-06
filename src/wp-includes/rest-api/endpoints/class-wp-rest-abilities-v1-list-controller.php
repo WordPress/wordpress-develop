@@ -219,9 +219,13 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * WordPress-internal schema keywords to strip from REST responses.
 	 *
 	 * @since 6.9.0
-	 * @var array<int, string>
+	 * @var array<string, true>
 	 */
-	private const INTERNAL_SCHEMA_KEYWORDS = array( 'sanitize_callback', 'validate_callback', 'arg_options' );
+	private const INTERNAL_SCHEMA_KEYWORDS = array(
+		'sanitize_callback' => true,
+		'validate_callback' => true,
+		'arg_options'       => true,
+	);
 
 	/**
 	 * Recursively removes WordPress-internal keywords from a schema.
@@ -237,7 +241,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return array<string, mixed> The schema without WordPress-internal keywords.
 	 */
 	private function strip_internal_schema_keywords( array $schema ): array {
-		$schema = array_diff_key( $schema, array_flip( self::INTERNAL_SCHEMA_KEYWORDS ) );
+		$schema = array_diff_key( $schema, self::INTERNAL_SCHEMA_KEYWORDS );
 
 		// Sub-schema maps: keys are user-defined, values are sub-schemas.
 		// Note: 'dependencies' values can also be property-dependency arrays
