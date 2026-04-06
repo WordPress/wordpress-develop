@@ -245,12 +245,11 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 
 		// Sub-schema maps: keys are user-defined, values are sub-schemas.
 		// Note: 'dependencies' values can also be property-dependency arrays
-		// (numeric arrays of strings), which is_array() will pass through
-		// harmlessly since array_diff_key won't match any denylist keys.
+		// (numeric arrays of strings) which are skipped via wp_is_numeric_array().
 		foreach ( array( 'properties', 'patternProperties', 'definitions', 'dependencies' ) as $keyword ) {
 			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
 				foreach ( $schema[ $keyword ] as $key => $child_schema ) {
-					if ( is_array( $child_schema ) ) {
+					if ( is_array( $child_schema ) && ! wp_is_numeric_array( $child_schema ) ) {
 						$schema[ $keyword ][ $key ] = $this->strip_internal_schema_keywords( $child_schema );
 					}
 				}
