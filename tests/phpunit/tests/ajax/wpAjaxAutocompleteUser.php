@@ -353,7 +353,16 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	 * @ticket 19867
 	 */
 	public function test_email_token_visible_for_administrator() {
-		$this->_setRole( 'administrator' );
+		/*
+		 * On multisite, map_meta_cap('edit_users') returns 'do_not_allow' for any
+		 * non-super-admin regardless of what is stored in user capabilities meta.
+		 * grant_super_admin() is the only way to pass this check reliably on multisite.
+		 */
+		if ( is_multisite() ) {
+			grant_super_admin( self::$user_ids['administrator'] );
+		}
+
+		wp_set_current_user( self::$user_ids['administrator'] );
 
 		$_GET['term']               = 'autocomplete_editor';
 		$_GET['autocomplete_type']  = 'search';
@@ -363,6 +372,10 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 			$this->_handleAjax( 'autocomplete-user' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
+		}
+
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$user_ids['administrator'] );
 		}
 
 		$results = json_decode( $this->_last_response, true );
