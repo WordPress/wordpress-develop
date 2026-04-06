@@ -231,9 +231,45 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	private function strip_internal_schema_keywords( array $schema ): array {
 		unset( $schema['sanitize_callback'], $schema['validate_callback'], $schema['arg_options'] );
 
-		foreach ( $schema as $key => $value ) {
-			if ( is_array( $value ) ) {
-				$schema[ $key ] = $this->strip_internal_schema_keywords( $value );
+		// Sub-schema maps: keys are user-defined, values are sub-schemas.
+		foreach ( array( 'properties', 'patternProperties', 'definitions' ) as $keyword ) {
+			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
+				foreach ( $schema[ $keyword ] as $key => $child_schema ) {
+					if ( is_array( $child_schema ) ) {
+						$schema[ $keyword ][ $key ] = $this->strip_internal_schema_keywords( $child_schema );
+					}
+				}
+			}
+		}
+
+		// Single sub-schema keywords.
+		foreach ( array( 'not', 'additionalProperties', 'additionalItems' ) as $keyword ) {
+			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
+				$schema[ $keyword ] = $this->strip_internal_schema_keywords( $schema[ $keyword ] );
+			}
+		}
+
+		// Items: single schema or tuple array of schemas.
+		if ( isset( $schema['items'] ) ) {
+			if ( wp_is_numeric_array( $schema['items'] ) ) {
+				foreach ( $schema['items'] as $index => $item_schema ) {
+					if ( is_array( $item_schema ) ) {
+						$schema['items'][ $index ] = $this->strip_internal_schema_keywords( $item_schema );
+					}
+				}
+			} elseif ( is_array( $schema['items'] ) ) {
+				$schema['items'] = $this->strip_internal_schema_keywords( $schema['items'] );
+			}
+		}
+
+		// Array-of-schemas keywords.
+		foreach ( array( 'anyOf', 'oneOf', 'allOf' ) as $keyword ) {
+			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
+				foreach ( $schema[ $keyword ] as $index => $sub_schema ) {
+					if ( is_array( $sub_schema ) ) {
+						$schema[ $keyword ][ $index ] = $this->strip_internal_schema_keywords( $sub_schema );
+					}
+				}
 			}
 		}
 
