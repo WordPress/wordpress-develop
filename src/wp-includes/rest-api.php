@@ -784,8 +784,18 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 	if ( ! headers_sent() ) {
 		header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
 	}
+
 	if ( WP_DEBUG_LOG ) {
-		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) );
+		$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+		$caller    = '';
+		// Find the first caller outside of WordPress core (plugin or theme).
+		foreach ( $backtrace as $frame ) {
+			if ( isset( $frame['file'] ) && str_contains( $frame['file'], WP_CONTENT_DIR ) ) {
+				$caller = ' in ' . $frame['file'] . ' on line ' . $frame['line'];
+				break;
+			}
+		}
+		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) . $caller );
 	}
 }
 
