@@ -1,10 +1,9 @@
 /**
- * Suggests users in a multisite environment.
+ * Suggests users in site admin and multisite environments.
  *
- * For input fields where the admin can select a user based on email or
- * username, this script shows an autocompletion menu for these inputs. Should
- * only be used in a multisite environment. Only users in the currently active
- * site are shown.
+ * For input fields where the admin can select a user by searching their name,
+ * login, or email, this script shows an autocompletion menu. On multisite,
+ * only users in the currently active site are shown for 'search' type requests.
  *
  * @since 3.4.0
  * @output wp-admin/js/user-suggest.js
@@ -36,19 +35,29 @@
 		 * - data-autocomplete-type (add, search)
 		 *   The action that is going to be performed: search for existing users
 		 *   or add a new one. Default: add
-		 * - data-autocomplete-field (user_login, user_email)
+		 * - data-autocomplete-field (user_login, user_email, user_id)
 		 *   The field that is returned as the value for the suggestion.
+		 *   When set to 'user_id', the input is expected to have an adjacent
+		 *   '.wp-suggest-user-helper' hidden input that stores the numeric ID
+		 *   while the visible input shows the display label.
 		 *   Default: user_login
+		 * - data-autocomplete-label
+		 *   A template string with {{tokens}} to build each result's display label.
+		 *   Supported tokens: {{user_login}}, {{user_email}}, {{display_name}}, {{user_id}}.
+		 *   Default: empty (server returns display_name).
 		 *
-		 * @see wp-admin/includes/admin-actions.php:wp_ajax_autocomplete_user()
+		 * @see wp-admin/includes/ajax-actions.php:wp_ajax_autocomplete_user()
 		 */
-		$( '.wp-suggest-user' ).each( function(){
-			var $this = $( this ),
-				autocompleteType = ( typeof $this.data( 'autocompleteType' ) !== 'undefined' ) ? $this.data( 'autocompleteType' ) : 'add',
-				autocompleteField = ( typeof $this.data( 'autocompleteField' ) !== 'undefined' ) ? $this.data( 'autocompleteField' ) : 'user_login';
+		$( '.wp-suggest-user' ).each( function() {
+			var $this           = $( this ),
+				autocompleteType  = ( typeof $this.data( 'autocompleteType' )  !== 'undefined' ) ? $this.data( 'autocompleteType' )  : 'add',
+				autocompleteField = ( typeof $this.data( 'autocompleteField' ) !== 'undefined' ) ? $this.data( 'autocompleteField' ) : 'user_login',
+				autocompleteLabel = ( typeof $this.data( 'autocompleteLabel' ) !== 'undefined' ) ? $this.data( 'autocompleteLabel' ) : '',
+				// True when using user_id field with a sibling helper input.
+				hasHelper = ( 'user_id' === autocompleteField && $this.next( '.wp-suggest-user-helper' ).length > 0 );
 
 			$this.autocomplete({
-				source:    ajaxurl + '?action=autocomplete-user&autocomplete_type=' + autocompleteType + '&autocomplete_field=' + autocompleteField + id,
+				source:    ajaxurl + '?action=autocomplete-user&autocomplete_type=' + autocompleteType + '&autocomplete_field=' + autocompleteField + '&autocomplete_label=' + encodeURIComponent( autocompleteLabel ) + id,
 				delay:     500,
 				minLength: 2,
 				position:  position,
@@ -57,6 +66,21 @@
 				},
 				close: function() {
 					$( this ).removeClass( 'open' );
+				},
+				focus: function( e, ui ) {
+					if ( hasHelper ) {
+						// Show the display label while navigating, not the raw ID value.
+						$( this ).val( ui.item.label );
+						return false;
+					}
+				},
+				select: function( e, ui ) {
+					if ( hasHelper ) {
+						// Store the user ID in the hidden helper; show the label in the text input.
+						$( this ).next( '.wp-suggest-user-helper' ).val( ui.item.value );
+						$( this ).val( ui.item.label );
+						return false;
+					}
 				}
 			});
 		});

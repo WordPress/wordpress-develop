@@ -284,80 +284,170 @@ function wp_ajax_oembed_cache() {
 /**
  * Handles user autocomplete via AJAX.
  *
+ * Works on both single-site and multisite installs. On multisite, the 'add'
+ * type searches the full network and is restricted to network admins; the
+ * 'search' type is restricted to users already on the current site.
+ * On single-site, only the 'search' type is supported and requires
+ * the 'list_users' capability.
+ *
  * @since 3.4.0
+ * @since 7.1.0 Added single-site support, the `user_id` autocomplete field,
+ *              label template tokens, and the `autocomplete_user_results` filter.
  */
 function wp_ajax_autocomplete_user() {
-	if ( ! is_multisite() || ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) ) {
+	/*
+	 * Validate the minimum search term length before anything else.
+	 * The same minimum is enforced in JS via the minLength option.
+	 */
+	$term = isset( $_REQUEST['term'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ) : '';
+
+	/**
+	 * Filters the minimum search term length for user autocomplete.
+	 *
+	 * The same minimum should be mirrored in the JavaScript minLength option.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int    $length  Minimum number of characters required. Default 2.
+	 * @param string $context Context for the autocomplete search. Currently 'users'.
+	 */
+	if ( strlen( $term ) < apply_filters( 'autocomplete_term_length', 2, 'users' ) ) {
 		wp_die( -1 );
 	}
-
-	/** This filter is documented in wp-admin/user-new.php */
-	if ( ! current_user_can( 'manage_network_users' ) && ! apply_filters( 'autocomplete_users_for_site_admins', false ) ) {
-		wp_die( -1 );
-	}
-
-	$return = array();
 
 	/*
 	 * Check the type of request.
-	 * Current allowed values are `add` and `search`.
+	 * Allowed values are `add` (multisite only) and `search`.
 	 */
-	if ( isset( $_REQUEST['autocomplete_type'] ) && 'search' === $_REQUEST['autocomplete_type'] ) {
-		$type = $_REQUEST['autocomplete_type'];
-	} else {
-		$type = 'add';
-	}
+	$type = ( isset( $_REQUEST['autocomplete_type'] ) && 'search' === $_REQUEST['autocomplete_type'] )
+		? 'search'
+		: 'add';
 
 	/*
-	 * Check the desired field for value.
-	 * Current allowed values are `user_email` and `user_login`.
+	 * Determine the user field to return as the suggestion value.
+	 * Allowed values are `user_email`, `user_login`, and `user_id`.
 	 */
-	if ( isset( $_REQUEST['autocomplete_field'] ) && 'user_email' === $_REQUEST['autocomplete_field'] ) {
-		$field = $_REQUEST['autocomplete_field'];
+	$requested_field = isset( $_REQUEST['autocomplete_field'] ) ? $_REQUEST['autocomplete_field'] : '';
+	if ( 'user_email' === $requested_field ) {
+		$field = 'user_email';
+	} elseif ( 'user_id' === $requested_field ) {
+		$field = 'ID';
 	} else {
 		$field = 'user_login';
 	}
 
-	// Exclude current users of this blog.
-	if ( isset( $_REQUEST['site_id'] ) ) {
-		$id = absint( $_REQUEST['site_id'] );
+	/*
+	 * Resolve the label template. Supported tokens:
+	 * {{user_login}}, {{user_email}}, {{display_name}}, {{user_id}}.
+	 */
+	$label_template = ( isset( $_REQUEST['autocomplete_label'] ) && '' !== $_REQUEST['autocomplete_label'] )
+		? sanitize_text_field( wp_unslash( $_REQUEST['autocomplete_label'] ) )
+		: '{{display_name}}';
+
+	$blog_id            = false;
+	$include_blog_users = array();
+	$exclude_blog_users = array();
+	$search_columns     = array( 'user_login', 'user_nicename', 'display_name' );
+
+	if ( is_multisite() && 'add' === $type ) {
+		/*
+		 * Adding a user to a site requires network-level permissions and should
+		 * not run on very large networks where the search would be slow.
+		 */
+		if ( ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) ) {
+			wp_die( -1 );
+		}
+
+		/** This filter is documented in wp-admin/user-new.php */
+		if ( ! current_user_can( 'manage_network_users' ) && ! apply_filters( 'autocomplete_users_for_site_admins', false ) ) {
+			wp_die( -1 );
+		}
+
+		// Search the full network; exclude users already on the target site.
+		$site_id            = isset( $_REQUEST['site_id'] ) ? absint( $_REQUEST['site_id'] ) : get_current_blog_id();
+		$exclude_blog_users = get_users(
+			array(
+				'blog_id' => $site_id,
+				'fields'  => 'ID',
+			)
+		);
+
+		// Super-admins may search by email as well.
+		$search_columns[] = 'user_email';
 	} else {
-		$id = get_current_blog_id();
+		/*
+		 * Single-site search, or multisite 'search' type.
+		 * Requires the ability to list users on this site.
+		 */
+		if ( ! current_user_can( 'list_users' ) ) {
+			wp_die( -1 );
+		}
+
+		$blog_id = get_current_blog_id();
+
+		if ( is_multisite() ) {
+			// Restrict results to users already on this site.
+			$include_blog_users = get_users(
+				array(
+					'blog_id' => $blog_id,
+					'fields'  => 'ID',
+				)
+			);
+		}
+
+		// Include email in search columns only for users who can edit others.
+		if ( current_user_can( 'edit_users' ) ) {
+			$search_columns[] = 'user_email';
+		}
 	}
 
-	$include_blog_users = ( 'search' === $type ? get_users(
-		array(
-			'blog_id' => $id,
-			'fields'  => 'ID',
-		)
-	) : array() );
-
-	$exclude_blog_users = ( 'add' === $type ? get_users(
-		array(
-			'blog_id' => $id,
-			'fields'  => 'ID',
-		)
-	) : array() );
+	// Email tokens in the label should only be visible to users who can edit others.
+	if ( ! current_user_can( 'edit_users' ) ) {
+		$label_template = str_replace( '{{user_email}}', '', $label_template );
+	}
 
 	$users = get_users(
 		array(
-			'blog_id'        => false,
-			'search'         => '*' . $_REQUEST['term'] . '*',
+			'blog_id'        => $blog_id,
+			'search'         => '*' . $term . '*',
 			'include'        => $include_blog_users,
 			'exclude'        => $exclude_blog_users,
-			'search_columns' => array( 'user_login', 'user_nicename', 'user_email' ),
+			'search_columns' => $search_columns,
+			'number'         => 20,
 		)
 	);
 
+	$return = array();
+
 	foreach ( $users as $user ) {
+		// Replace supported tokens in the label template.
+		$label = $label_template;
+		foreach ( array( 'user_login', 'user_email', 'display_name' ) as $token ) {
+			$label = str_replace( '{{' . $token . '}}', $user->$token, $label );
+		}
+		$label = str_replace( '{{user_id}}', $user->ID, $label );
+
+		if ( '' === trim( $label ) ) {
+			$label = '(' . $user->user_login . ')';
+		}
+
 		$return[] = array(
-			/* translators: 1: User login, 2: User email address. */
-			'label' => sprintf( _x( '%1$s (%2$s)', 'user autocomplete result' ), $user->user_login, $user->user_email ),
-			'value' => $user->$field,
+			'label' => esc_html( $label ),
+			'value' => ( 'ID' === $field ) ? $user->ID : $user->$field,
 		);
 	}
 
-	wp_die( wp_json_encode( $return ) );
+	/**
+	 * Filters the user autocomplete results array.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array  $return Array of result objects with 'label' and 'value' keys.
+	 * @param string $term   The sanitized search term.
+	 */
+	$return = apply_filters( 'autocomplete_user_results', $return, $term );
+
+	wp_send_json( $return );
 }
 
 /**

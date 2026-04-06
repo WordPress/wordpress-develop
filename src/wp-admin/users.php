@@ -218,7 +218,12 @@ switch ( $wp_list_table->current_action() ) {
 					wp_delete_user( $id );
 					break;
 				case 'reassign':
-					wp_delete_user( $id, $_REQUEST['reassign_user'] );
+					$reassign_id = isset( $_REQUEST['reassign_user'] ) ? absint( $_REQUEST['reassign_user'] ) : 0;
+					if ( $reassign_id > 0 && $reassign_id !== $id ) {
+						wp_delete_user( $id, $reassign_id );
+					} else {
+						wp_delete_user( $id );
+					}
 					break;
 			}
 
