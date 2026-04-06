@@ -815,7 +815,14 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-internal-keywords' );
 		$response = $this->server->dispatch( $request );
-		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'input_schema', $data );
+		$this->assertArrayHasKey( 'properties', $data['input_schema'] );
+		$this->assertArrayHasKey( 'content', $data['input_schema']['properties'] );
+		$this->assertArrayHasKey( 'output_schema', $data );
 
 		// Verify internal keywords are stripped from input_schema properties.
 		$content_schema = $data['input_schema']['properties']['content'];
