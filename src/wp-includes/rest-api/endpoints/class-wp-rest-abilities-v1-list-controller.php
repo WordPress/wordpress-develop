@@ -216,6 +216,14 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * WordPress-internal schema keywords to strip from REST responses.
+	 *
+	 * @since 6.9.0
+	 * @var array<int, string>
+	 */
+	private const INTERNAL_SCHEMA_KEYWORDS = array( 'sanitize_callback', 'validate_callback', 'arg_options' );
+
+	/**
 	 * Recursively removes WordPress-internal keywords from a schema.
 	 *
 	 * Ability schemas may include WordPress-internal properties like
@@ -229,10 +237,13 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return array<string, mixed> The schema without WordPress-internal keywords.
 	 */
 	private function strip_internal_schema_keywords( array $schema ): array {
-		unset( $schema['sanitize_callback'], $schema['validate_callback'], $schema['arg_options'] );
+		$schema = array_diff_key( $schema, array_flip( self::INTERNAL_SCHEMA_KEYWORDS ) );
 
 		// Sub-schema maps: keys are user-defined, values are sub-schemas.
-		foreach ( array( 'properties', 'patternProperties', 'definitions' ) as $keyword ) {
+		// Note: 'dependencies' values can also be property-dependency arrays
+		// (numeric arrays of strings), which is_array() will pass through
+		// harmlessly since array_diff_key won't match any denylist keys.
+		foreach ( array( 'properties', 'patternProperties', 'definitions', 'dependencies' ) as $keyword ) {
 			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
 				foreach ( $schema[ $keyword ] as $key => $child_schema ) {
 					if ( is_array( $child_schema ) ) {
