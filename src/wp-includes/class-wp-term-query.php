@@ -775,7 +775,10 @@ class WP_Term_Query {
 
 		if ( $args['cache_results'] ) {
 			$cache_key    = $this->generate_cache_key( $args, $this->request );
-			$last_changed = wp_cache_get_last_changed( 'terms' );
+			$last_changed = (array) wp_cache_get_last_changed( 'terms' );
+			if ( ! empty( $this->meta_query->queries ) ) {
+				$last_changed[] = wp_cache_get_last_changed( 'terms-meta' );
+			}
 			$cache        = wp_cache_get_salted( $cache_key, 'term-queries', $last_changed );
 
 			if ( false !== $cache ) {

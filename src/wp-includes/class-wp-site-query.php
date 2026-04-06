@@ -355,7 +355,10 @@ class WP_Site_Query {
 		unset( $_args['fields'], $_args['update_site_cache'], $_args['update_site_meta_cache'] );
 
 		$key          = md5( serialize( $_args ) );
-		$last_changed = wp_cache_get_last_changed( 'sites' );
+		$last_changed = (array) wp_cache_get_last_changed( 'sites' );
+		if ( ! empty( $this->meta_query->queries ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'sites-meta' );
+		}
 
 		$cache_key   = "get_sites:$key";
 		$cache_value = wp_cache_get_salted( $cache_key, 'site-queries', $last_changed );
