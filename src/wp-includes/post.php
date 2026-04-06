@@ -4039,7 +4039,7 @@ function _reset_front_page_settings_for_post( $post_id ) {
  */
 function _reset_privacy_policy_page_for_post( int $post_id ): void {
 	$post = get_post( $post_id );
-	
+
 	if ( ! $post ) {
 		return;
 	}
