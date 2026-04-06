@@ -8482,7 +8482,7 @@ function wp_schedule_personal_data_cleanup_requests() {
 	}
 
 	if ( ! wp_next_scheduled( 'wp_privacy_personal_data_cleanup_requests' ) ) {
-		wp_schedule_event( time(), 'hourly', 'wp_privacy_personal_data_cleanup_requests' );
+		wp_schedule_event( time(), 'daily', 'wp_privacy_personal_data_cleanup_requests' );
 	}
 }
 
