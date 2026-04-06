@@ -94,12 +94,13 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 * @covers WP_Privacy_Policy_Content::notice
 	 */
 	public function test_notice_self_heals_when_policy_page_does_not_exist() {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
+
 		update_option( 'wp_page_for_privacy_policy', 99999 );
 
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		$user    = new WP_User( $user_id );
-		$user->add_cap( 'manage_privacy_options' );
 		wp_set_current_user( $user_id );
+		wp_get_current_user()->add_cap( 'manage_privacy_options' );
 		set_current_screen( 'post' );
 
 		$post = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
