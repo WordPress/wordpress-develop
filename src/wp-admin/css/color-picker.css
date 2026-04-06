@@ -8,9 +8,9 @@
 	display: none;
 }
 
-/* Needs higher specificiity. */
+/* Needs higher specificity to override `.wp-core-ui .button`. */
 .wp-picker-container .wp-color-result.button {
-	min-height: 30px;
+	min-height: 32px;
 	margin: 0 6px 6px 0;
 	padding: 0 0 0 30px;
 	font-size: 11px;
@@ -22,7 +22,7 @@
 	border-left: 1px solid #c3c4c7;
 	color: #50575e;
 	display: block;
-	line-height: 2.54545455; /* 28px */
+	line-height: 2.72727273; /* 30px */
 	padding: 0 6px;
 	text-align: center;
 }
@@ -76,8 +76,8 @@
 .wp-customizer .wp-picker-input-wrap .button.wp-picker-clear {
 	margin-left: 6px;
 	padding: 0 8px;
-	line-height: 2.54545455; /* 28px */
-	min-height: 30px;
+	line-height: 2.72727273; /* 30px */
+	min-height: 32px;
 }
 
 .wp-picker-container .iris-square-slider .ui-slider-handle:focus {
@@ -94,11 +94,10 @@
 	width: 4rem;
 	font-size: 12px;
 	font-family: monospace;
-	line-height: 2.33333333; /* 28px */
 	margin: 0;
 	padding: 0 5px;
 	vertical-align: top;
-	min-height: 30px;
+	min-height: 32px;
 }
 
 .wp-color-picker::-webkit-input-placeholder {
@@ -106,11 +105,6 @@
 }
 
 .wp-color-picker::-moz-placeholder {
-	color: #646970;
-	opacity: 1;
-}
-
-.wp-color-picker:-ms-input-placeholder {
 	color: #646970;
 }
 
@@ -122,14 +116,14 @@
 
 .iris-picker .ui-square-handle:focus,
 .iris-picker .iris-strip .ui-slider-handle:focus {
-	border-color: #3582c4;
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	border-style: solid;
-	box-shadow: 0 0 0 1px #3582c4;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	outline: 2px solid transparent;
 }
 
 .iris-picker .iris-palette:focus {
-	box-shadow: 0 0 0 2px #3582c4;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 }
 
 @media screen and (max-width: 782px) {
