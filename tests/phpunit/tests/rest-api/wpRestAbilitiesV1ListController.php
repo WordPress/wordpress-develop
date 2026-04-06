@@ -852,8 +852,8 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				'description'         => 'Tests stripping from all sub-schema locations',
 				'category'            => 'general',
 				'input_schema'        => array(
-					'type'  => 'object',
-					'anyOf' => array(
+					'type'                => 'object',
+					'anyOf'               => array(
 						array(
 							'type'              => 'object',
 							'sanitize_callback' => 'sanitize_text_field',
@@ -869,29 +869,29 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 							'arg_options' => array( 'sanitize_callback' => 'absint' ),
 						),
 					),
-					'oneOf' => array(
+					'oneOf'               => array(
 						array(
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_text_field',
 						),
 					),
-					'allOf' => array(
+					'allOf'               => array(
 						array(
 							'type'              => 'object',
 							'validate_callback' => 'rest_validate_request_arg',
 						),
 					),
-					'not' => array(
+					'not'                 => array(
 						'type'        => 'null',
 						'arg_options' => array( 'sanitize_callback' => 'absint' ),
 					),
-					'patternProperties' => array(
+					'patternProperties'   => array(
 						'^S_' => array(
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_text_field',
 						),
 					),
-					'definitions' => array(
+					'definitions'         => array(
 						'address' => array(
 							'type'              => 'object',
 							'validate_callback' => 'rest_validate_request_arg',
