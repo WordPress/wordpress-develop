@@ -216,63 +216,24 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Recursively removes non-JSON-Schema keywords from a schema.
+	 * Recursively removes WordPress-internal keywords from a schema.
 	 *
 	 * Ability schemas may include WordPress-internal properties like
 	 * `sanitize_callback`, `validate_callback`, and `arg_options` that are
 	 * used server-side but are not valid JSON Schema keywords. This method
-	 * strips any key not in the list returned by rest_get_allowed_schema_keywords(),
-	 * plus `required`.
+	 * removes those specific keys so they are not exposed in REST responses.
 	 *
 	 * @since 6.9.0
 	 *
 	 * @param array<string, mixed> $schema The schema array.
-	 * @return array<string, mixed> The schema with only valid JSON Schema keywords.
+	 * @return array<string, mixed> The schema without WordPress-internal keywords.
 	 */
 	private function strip_internal_schema_keywords( array $schema ): array {
-		$allowed_keywords   = rest_get_allowed_schema_keywords();
-		$allowed_keywords[] = 'required';
-		$allowed_keywords   = array_flip( $allowed_keywords );
+		unset( $schema['sanitize_callback'], $schema['validate_callback'], $schema['arg_options'] );
 
-		$schema = array_intersect_key( $schema, $allowed_keywords );
-
-		// Sub-schema maps: keys are user-defined, values are sub-schemas.
-		foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
-				foreach ( $schema[ $keyword ] as $key => $child_schema ) {
-					if ( is_array( $child_schema ) ) {
-						$schema[ $keyword ][ $key ] = $this->strip_internal_schema_keywords( $child_schema );
-					}
-				}
-			}
-		}
-
-		// Single sub-schema: items.
-		if ( isset( $schema['items'] ) ) {
-			if ( wp_is_numeric_array( $schema['items'] ) ) {
-				foreach ( $schema['items'] as $index => $item_schema ) {
-					if ( is_array( $item_schema ) ) {
-						$schema['items'][ $index ] = $this->strip_internal_schema_keywords( $item_schema );
-					}
-				}
-			} elseif ( is_array( $schema['items'] ) ) {
-				$schema['items'] = $this->strip_internal_schema_keywords( $schema['items'] );
-			}
-		}
-
-		// Single sub-schema: additionalProperties (when not boolean).
-		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
-			$schema['additionalProperties'] = $this->strip_internal_schema_keywords( $schema['additionalProperties'] );
-		}
-
-		// Array-of-schemas keywords.
-		foreach ( array( 'anyOf', 'oneOf' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
-				foreach ( $schema[ $keyword ] as $index => $sub_schema ) {
-					if ( is_array( $sub_schema ) ) {
-						$schema[ $keyword ][ $index ] = $this->strip_internal_schema_keywords( $sub_schema );
-					}
-				}
+		foreach ( $schema as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$schema[ $key ] = $this->strip_internal_schema_keywords( $value );
 			}
 		}
 
