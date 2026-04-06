@@ -776,4 +776,59 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertIsArray( $data );
 		$this->assertEmpty( $data, 'Should return empty array for non-existent category' );
 	}
+
+	/**
+	 * Test that WordPress-internal schema keywords are stripped from ability schemas in REST response.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_internal_schema_keywords_stripped_from_response(): void {
+		$this->register_test_ability(
+			'test/with-internal-keywords',
+			array(
+				'label'               => 'Test Internal Keywords',
+				'description'         => 'Tests stripping of internal schema keywords',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'content' => array(
+							'type'              => 'string',
+							'description'       => 'The content value.',
+							'sanitize_callback' => 'sanitize_text_field',
+							'validate_callback' => 'is_string',
+							'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
+						),
+					),
+				),
+				'output_schema'       => array(
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'execute_callback'    => static function ( $input ) {
+					return $input['content'];
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-internal-keywords' );
+		$response = $this->server->dispatch( $request );
+		$data     = $response->get_data();
+
+		// Verify internal keywords are stripped from input_schema properties.
+		$content_schema = $data['input_schema']['properties']['content'];
+		$this->assertArrayNotHasKey( 'sanitize_callback', $content_schema );
+		$this->assertArrayNotHasKey( 'validate_callback', $content_schema );
+		$this->assertArrayNotHasKey( 'arg_options', $content_schema );
+
+		// Verify valid JSON Schema keywords are preserved.
+		$this->assertSame( 'string', $content_schema['type'] );
+		$this->assertSame( 'The content value.', $content_schema['description'] );
+
+		// Verify internal keywords are stripped from output_schema.
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema'] );
+		$this->assertSame( 'string', $data['output_schema']['type'] );
+	}
 }
