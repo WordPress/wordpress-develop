@@ -1032,7 +1032,7 @@ class Tests_Multisite_wpSiteQuery extends WP_UnitTestCase {
 			// NOT IN operator - excludes sites with the term.
 			array(
 				array(
-					'tax_query' => array(
+					'tax_query'    => array(
 						array(
 							'taxonomy' => 'wptests_site_tax',
 							'field'    => 'slug',
@@ -1137,7 +1137,7 @@ class Tests_Multisite_wpSiteQuery extends WP_UnitTestCase {
 			// NOT EXISTS operator - sites that have no terms in this taxonomy (excluding main site from expected).
 			array(
 				array(
-					'tax_query' => array(
+					'tax_query'    => array(
 						array(
 							'taxonomy' => 'wptests_site_tax',
 							'operator' => 'NOT EXISTS',
