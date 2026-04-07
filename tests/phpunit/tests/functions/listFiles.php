@@ -53,6 +53,32 @@ class Tests_Functions_ListFiles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that list_files() returns files in alphabetical order.
+	 *
+	 * @ticket 47544
+	 */
+	public function test_list_files_returns_files_in_alphabetical_order() {
+		$test_dir = get_temp_dir() . 'test-list-files-order/';
+		mkdir( $test_dir );
+
+		// Create files in reverse alphabetical order.
+		touch( $test_dir . 'zebra.php' );
+		touch( $test_dir . 'mango.php' );
+		touch( $test_dir . 'apple.php' );
+
+		$files = list_files( $test_dir );
+
+		unlink( $test_dir . 'zebra.php' );
+		unlink( $test_dir . 'mango.php' );
+		unlink( $test_dir . 'apple.php' );
+		rmdir( $test_dir );
+
+		$basenames = array_map( 'wp_basename', $files );
+
+		$this->assertSame( array( 'apple.php', 'mango.php', 'zebra.php' ), $basenames );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]

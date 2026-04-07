@@ -149,10 +149,10 @@ function list_files( $folder = '', $levels = 100, $exclusions = array(), $includ
 
 	$files = array();
 
-	$dir = @opendir( $folder );
+	$results = @scandir( $folder );
 
-	if ( $dir ) {
-		while ( ( $file = readdir( $dir ) ) !== false ) {
+	if ( $results ) {
+		foreach ( $results as $file ) {
 			// Skip current and parent folder links.
 			if ( in_array( $file, array( '.', '..' ), true ) ) {
 				continue;
@@ -174,8 +174,6 @@ function list_files( $folder = '', $levels = 100, $exclusions = array(), $includ
 				$files[] = $folder . $file;
 			}
 		}
-
-		closedir( $dir );
 	}
 
 	return $files;
