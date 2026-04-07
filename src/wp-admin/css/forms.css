@@ -584,8 +584,8 @@ input[type="number"].tiny-text {
 }
 
 .button.wp-hide-pw.user-new-password-toggle > .dashicons {
-	line-height: normal;
-	vertical-align: baseline;
+	line-height: 1.9;
+	vertical-align: top;
 }
 
 .wp-cancel-pw .dashicons-no {
