@@ -25,6 +25,11 @@ class Tests_Formatting_StripHtmlNewlines extends WP_UnitTestCase {
 			'Newlines within and around inline elements should be stripped.'
 		);
 	}
+
+	/**
+	 *
+	 * @ticket 5678
+	 */
 	public function test_preserves_newlines_in_preformatted_elements() {
 		$input  = "<p>Normal\ntext</p>\n<pre>\nPreformatted\nlines\n</pre>\n<p>More\ntext</p>";
 		$result = strip_html_newlines( $input );
