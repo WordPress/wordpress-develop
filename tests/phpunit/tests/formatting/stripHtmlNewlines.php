@@ -25,4 +25,25 @@ class Tests_Formatting_StripHtmlNewlines extends WP_UnitTestCase {
 			'Newlines within and around inline elements should be stripped.'
 		);
 	}
+	public function test_preserves_newlines_in_preformatted_elements() {
+		$input  = "<p>Normal\ntext</p>\n<pre>\nPreformatted\nlines\n</pre>\n<p>More\ntext</p>";
+		$result = strip_html_newlines( $input );
+
+		$this->assertStringContainsString( 'Normal text', $result, 'Newlines in normal text should be stripped.' );
+		$this->assertStringContainsString( 'More text', $result, 'Newlines in trailing paragraph should be stripped.' );
+		$this->assertStringContainsString( "\nPreformatted\nlines\n", $result, 'Newlines inside <pre> should be preserved.' );
+
+		$preserved_cases = array(
+			'code'   => "<p>A\nB</p><code>x\ny</code>",
+			'kbd'    => "<p>A\nB</p><kbd>x\ny</kbd>",
+			'script' => "<p>A\nB</p><script>x\ny</script>",
+			'style'  => "<p>A\nB</p><style>x\ny</style>",
+		);
+
+		foreach ( $preserved_cases as $tag => $html ) {
+			$out = strip_html_newlines( $html );
+			$this->assertStringContainsString( 'A B', $out, "Text node newline should be stripped around <{$tag}>." );
+			$this->assertStringContainsString( "x\ny", $out, "Newline inside <{$tag}> should be preserved." );
+		}
+	}
 }
