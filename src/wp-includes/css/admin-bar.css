@@ -713,6 +713,19 @@ html.wp-toolbar-hidden #wpadminbar {
 }
 
 /**
+ * Command Palette
+ */
+#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
+	content: "\f179";
+	content: "\f179" / '';
+	top: 3px;
+}
+
+#wpadminbar #wp-admin-bar-command-palette kbd {
+	background: transparent;
+}
+
+/**
  * Customize support classes
  */
 .no-customize-support .hide-if-no-customize,
@@ -910,7 +923,8 @@ html.wp-toolbar-hidden #wpadminbar {
 	#wpadminbar #wp-admin-bar-site-name > .ab-item:before,
 	#wpadminbar #wp-admin-bar-site-editor > .ab-item:before,
 	#wpadminbar #wp-admin-bar-customize > .ab-item:before,
-	#wpadminbar #wp-admin-bar-my-account > .ab-item:before {
+	#wpadminbar #wp-admin-bar-my-account > .ab-item:before,
+	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
 		display: block;
 		text-indent: 0;
 		font: normal 32px/1 dashicons;
@@ -953,12 +967,14 @@ html.wp-toolbar-hidden #wpadminbar {
 		top: 3px;
 	}
 
-	/* Comments */
-	#wpadminbar #wp-admin-bar-comments .ab-icon {
+	/* Comments and Command Palette */
+	#wpadminbar #wp-admin-bar-comments .ab-icon,
+	#wpadminbar #wp-admin-bar-command-palette .ab-icon {
 		margin: 0;
 	}
 
-	#wpadminbar #wp-admin-bar-comments .ab-icon:before {
+	#wpadminbar #wp-admin-bar-comments .ab-icon:before,
+	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
 		display: block;
 		font-size: 34px;
 		height: 46px;
@@ -1027,7 +1043,8 @@ html.wp-toolbar-hidden #wpadminbar {
 	#wpadminbar li#wp-admin-bar-new-content,
 	#wpadminbar li#wp-admin-bar-edit,
 	#wpadminbar li#wp-admin-bar-comments,
-	#wpadminbar li#wp-admin-bar-my-account {
+	#wpadminbar li#wp-admin-bar-my-account,
+	#wpadminbar li#wp-admin-bar-command-palette {
 		display: block;
 	}
 
@@ -1058,7 +1075,8 @@ html.wp-toolbar-hidden #wpadminbar {
 	#wpadminbar #wp-admin-bar-comments,
 	#wpadminbar #wp-admin-bar-new-content,
 	#wpadminbar #wp-admin-bar-edit,
-	#wpadminbar #wp-admin-bar-my-account {
+	#wpadminbar #wp-admin-bar-my-account,
+	#wpadminbar #wp-admin-bar-command-palette {
 		position: static;
 	}
 
