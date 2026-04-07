@@ -780,7 +780,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	/**
 	 * Test that WordPress-internal schema keywords are stripped from ability schemas in REST response.
 	 *
-	 * @ticket 64098
+	 * @ticket 65035
 	 */
 	public function test_internal_schema_keywords_stripped_from_response(): void {
 		$this->register_test_ability(
