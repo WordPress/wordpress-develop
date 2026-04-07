@@ -578,37 +578,32 @@ if ( ! function_exists( 'mb_trim' ) ) {
 	 */
 	function mb_trim( string $str, ?string $characters = null, ?string $encoding = null ) {
 		if ( is_null( $characters ) ) {
-			$characters = " \t\n\r\0\v\f\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u180E";
-		}
-
-		if ( is_null( $encoding ) ) {
-			$encoding = mb_internal_encoding();
-		}
-
-		if ( ! mb_check_encoding( '', $encoding ) ) {
-			return $str; // If the encoding is invalid, return the original string.
+			$characters = " \t\n\r\0\v\f\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}";
 		}
 
 		if ( '' === $characters ) {
 			return $str;
 		}
 
-		if ( 'UTF-8' !== $encoding ) {
-			$characters = mb_convert_encoding( $characters, 'UTF-8', $encoding );
-			$str        = mb_convert_encoding( $str, 'UTF-8', $encoding );
+		/*
+		 * Keep this polyfill UTF-8-only: if a non-UTF-8 encoding is explicitly
+		 * requested, bail out unchanged instead of attempting lossy conversions.
+		 */
+		if ( ! is_null( $encoding ) && ! _is_utf8_charset( $encoding ) ) {
+			wp_trigger_error(
+				__FUNCTION__,
+				'mb_trim() polyfill only supports UTF-8 encoding. The provided encoding "' . $encoding . '" is not supported.',
+				E_USER_WARNING
+			);
+			return $str;
 		}
 
 		// Use preg_replace to trim the characters from both ends of the string.
 		$pattern        = '/^[' . preg_quote( $characters, '/' ) . ']+|[' . preg_quote( $characters, '/' ) . ']+$/uD';
 		$trimmed_string = preg_replace( $pattern, '', $str );
 
-		if ( false === $trimmed_string ) {
+		if ( false === $trimmed_string || null === $trimmed_string ) {
 			return $str; // If preg_replace fails, return the original string.
-		}
-
-		// Convert back to the original encoding if it was not UTF-8.
-		if ( 'UTF-8' !== $encoding ) {
-			$trimmed_string = mb_convert_encoding( $trimmed_string, $encoding, 'UTF-8' );
 		}
 
 		return $trimmed_string;
