@@ -37,12 +37,12 @@ class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
 	 */
 	public function test_wp_sort_file_tree_folders_before_files() {
 		$tree = array(
-			'readme.txt'  => 'plugin/readme.txt',
-			'assets'      => array(
+			'readme.txt'    => 'plugin/readme.txt',
+			'assets'        => array(
 				'logo.png' => 'plugin/assets/logo.png',
 			),
 			'composer.json' => 'plugin/composer.json',
-			'classes'     => array(
+			'classes'       => array(
 				'Foo.php' => 'plugin/classes/Foo.php',
 			),
 		);
@@ -123,11 +123,11 @@ class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
 	 */
 	public function test_wp_make_theme_file_tree_main_files_first_then_folders_then_files() {
 		$allowed_files = array(
-			'readme.txt'       => '/theme/readme.txt',
-			'inc/extras.php'   => '/theme/inc/extras.php',
-			'functions.php'    => '/theme/functions.php',
-			'style.css'        => '/theme/style.css',
-			'404.php'          => '/theme/404.php',
+			'readme.txt'     => '/theme/readme.txt',
+			'inc/extras.php' => '/theme/inc/extras.php',
+			'functions.php'  => '/theme/functions.php',
+			'style.css'      => '/theme/style.css',
+			'404.php'        => '/theme/404.php',
 		);
 
 		$tree = wp_make_theme_file_tree( $allowed_files );
