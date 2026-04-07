@@ -105,7 +105,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 /**
  * Toolbar toggle hidden state.
  *
- * Toggled via access+w keyboard shortcut on the frontend.
+ * Toggled via Ctrl+Shift+F keyboard shortcut on the frontend.
  * Sets the admin bar height variable to 0 so all dependent spacing
  * (scroll-padding, bump margin) adjusts automatically.
  */

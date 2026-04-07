@@ -23,7 +23,6 @@
 			skipLink,
 			mobileEvent,
 			adminBarSearchInput,
-			isMac = /Mac|iPhone|iPad|iPod/.test( navigator.platform ),
 			i;
 
 		if ( ! adminBar || ! ( 'querySelectorAll' in adminBar ) ) {
@@ -110,22 +109,10 @@
 			adminBarLogout.addEventListener( 'click', emptySessionStorage );
 		}
 
-		// Toggle toolbar visibility with access+w keyboard shortcut (frontend only).
+		// Toggle toolbar visibility with Ctrl+Shift+F keyboard shortcut (frontend only).
 		if ( ! document.body.classList.contains( 'wp-admin' ) ) {
 			document.addEventListener( 'keydown', function( event ) {
-				var isAccessModifier;
-
-				if ( event.which !== 87 ) { // 'W' key.
-					return;
-				}
-
-				if ( isMac ) {
-					isAccessModifier = event.ctrlKey && event.altKey && ! event.metaKey && ! event.shiftKey;
-				} else {
-					isAccessModifier = event.altKey && event.shiftKey && ! event.ctrlKey && ! event.metaKey;
-				}
-
-				if ( ! isAccessModifier ) {
+				if ( event.which !== 70 || ! event.ctrlKey || ! event.shiftKey || event.altKey || event.metaKey ) { // Ctrl+Shift+F.
 					return;
 				}
 
