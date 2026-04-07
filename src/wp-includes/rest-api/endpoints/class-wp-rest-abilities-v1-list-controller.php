@@ -218,7 +218,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	/**
 	 * WordPress-internal schema keywords to strip from REST responses.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 * @var array<string, true>
 	 */
 	private const INTERNAL_SCHEMA_KEYWORDS = array(
