@@ -369,7 +369,7 @@ function update_recently_edited( $file ) {
 function _wp_sort_file_tree( $tree ) {
 	uksort(
 		$tree,
-		function( $a, $b ) use ( $tree ) {
+		function ( $a, $b ) use ( $tree ) {
 			$a_is_dir = is_array( $tree[ $a ] );
 			$b_is_dir = is_array( $tree[ $b ] );
 
