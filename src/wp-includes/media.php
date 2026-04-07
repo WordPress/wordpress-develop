@@ -5076,6 +5076,7 @@ function wp_enqueue_media( $args = array() ) {
 
 		// From URL.
 		'insertFromUrlTitle'          => __( 'Insert from URL' ),
+		'invalidUrl'                  => __( 'Please enter a valid URL.' ),
 
 		// Featured Images.
 		'setFeaturedImageTitle'       => $post_type_object->labels->featured_image,
@@ -6446,4 +6447,3 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
 }
-

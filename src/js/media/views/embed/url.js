@@ -14,7 +14,7 @@ var View = wp.media.View,
  * @augments Backbone.View
  */
 EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
-	tagName:   'span',
+	tagName:	 'span',
 	className: 'embed-url',
 
 	events: {
@@ -28,7 +28,13 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 		this.input = this.$input[0];
 
 		this.spinner = $('<span class="spinner" />')[0];
-		this.$el.append([ this.input, this.spinner ]);
+
+		this.error = $('<div class="notice notice-error embed-url-error"><p></p></div>')[0];
+
+		this.$error = $(this.error);
+		this.$error.hide();
+
+		this.$el.append([ this.input, this.spinner, this.error ]);
 
 		this.listenTo( this.model, 'change:url', this.render );
 
@@ -62,8 +68,32 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 	},
 
 	url: function( event ) {
-		var url = event.target.value || '';
-		this.model.set( 'url', url.trim() );
+		var $el = $( event.target );
+		var url = $el.val() || '';
+
+		if ( this.isValidUrlInput( event.target ) ) {
+			this.model.set( 'url', url.trim() );
+			this.$error.hide();
+		} else {
+			if ( url.length > 0 ) {
+				this.model.set( 'url', '' );
+				this.$error.find( 'p' ).text( l10n.invalidUrl );
+				this.$error.show();
+			} else {
+				this.$error.hide();
+			}
+		}
+	},
+
+	isValidUrlInput: function ( el ) {
+		var url = ( el.value || '' ).trim();
+
+		var isNativeValid = el.validity ? el.validity.valid : true;
+
+		var pattern = /^(https?:\/\/)([\w.-]+)+(:\d+)?(\/.*)?$/i;
+		var isRegexValid = pattern.test( url );
+
+		return isNativeValid && isRegexValid;
 	}
 });
 
