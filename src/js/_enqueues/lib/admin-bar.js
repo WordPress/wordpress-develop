@@ -141,7 +141,7 @@
 	 * Slides the toolbar out of view and adjusts page spacing by toggling
 	 * the `wp-toolbar-hidden` class on the document element.
 	 *
-	 * @since 6.9.0
+	 * @since TBD
 	 *
 	 * @param {HTMLElement} adminBar The admin bar element.
 	 */
@@ -155,7 +155,7 @@
 	/**
 	 * Announce toolbar visibility state to screen readers.
 	 *
-	 * @since 6.9.0
+	 * @since TBD
 	 *
 	 * @param {boolean} isHidden Whether the toolbar is hidden.
 	 */
