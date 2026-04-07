@@ -4284,6 +4284,16 @@ img {
 		margin-bottom: 20px; /* Add margins beneath links for better spacing between boxes and elements */
 	}
 
+	#screen-meta-links .show-settings {
+		box-sizing: border-box;
+		min-height: 40px;
+		line-height: 2.71428571;
+	}
+
+	#screen-meta-links .show-settings:after {
+		font: normal 20px/1.9 dashicons;
+	}
+
 	.wp-filter .search-form input[type="search"] {
 		font-size: 1rem;
 	}
