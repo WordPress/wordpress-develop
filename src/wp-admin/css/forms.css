@@ -1751,6 +1751,42 @@ table.form-table td .updated p {
 		display: block;
 	}
 
+	.wp-core-ui .tablenav input[type="text"],
+	.wp-core-ui .tablenav input[type="password"],
+	.wp-core-ui .tablenav input[type="date"],
+	.wp-core-ui .tablenav input[type="datetime"],
+	.wp-core-ui .tablenav input[type="datetime-local"],
+	.wp-core-ui .tablenav input[type="email"],
+	.wp-core-ui .tablenav input[type="month"],
+	.wp-core-ui .tablenav input[type="number"],
+	.wp-core-ui .tablenav input[type="search"],
+	.wp-core-ui .tablenav input[type="tel"],
+	.wp-core-ui .tablenav input[type="time"],
+	.wp-core-ui .tablenav input[type="url"],
+	.wp-core-ui .tablenav input[type="week"],
+	.wp-core-ui .tablenav select {
+		min-height: 40px;
+	}
+
+	.wp-core-ui .tablenav select {
+		line-height: 2.375;
+		font-size: 16px;
+	}
+
+	#doaction,
+	#doaction2,
+	#post-query-submit {
+		min-height: 40px;
+		line-height: 2.71428571;
+		padding: 0 14px;
+	}
+
+	.wp-core-ui .tablenav .button {
+		min-height: 40px;
+		line-height: 2.71428571;
+		padding: 0 14px;
+	}
+
 	p.search-box {
 		float: none;
 		width: 100%;
@@ -1767,6 +1803,12 @@ table.form-table td .updated p {
 	.js.plugins-php .search-box .wp-filter-search {
 		width: 100%;
 		margin-bottom: 0;
+	}
+
+	p.search-box .button {
+		min-height: 40px;
+		line-height: 2.71428571; /* 38px - matches default mobile button */
+		padding: 0 14px;
 	}
 
 	p.search-box input[type="submit"] {
