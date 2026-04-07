@@ -924,6 +924,333 @@ class Tests_Multisite_wpSiteQuery extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 46184
+	 * @dataProvider data_wp_site_query_tax_query
+	 */
+	public function test_wp_site_query_tax_query( $query, $expected, $strict ) {
+		register_taxonomy( 'wptests_site_tax', 'blog' );
+
+		// Create test terms.
+		$term_1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_site_tax',
+				'slug'     => 'test-term-1',
+				'name'     => 'Test Term 1',
+			)
+		);
+		$term_2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_site_tax',
+				'slug'     => 'test-term-2',
+				'name'     => 'Test Term 2',
+			)
+		);
+		$term_3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_site_tax',
+				'slug'     => 'test-term-3',
+				'name'     => 'Test Term 3',
+			)
+		);
+
+		// Assign terms to sites.
+		wp_set_object_terms( self::$site_ids['wordpress.org/'], $term_1, 'wptests_site_tax' );
+		wp_set_object_terms( self::$site_ids['wordpress.org/foo/'], $term_2, 'wptests_site_tax' );
+		wp_set_object_terms( self::$site_ids['wordpress.org/foo/bar/'], array( $term_1, $term_2 ), 'wptests_site_tax' );
+		wp_set_object_terms( self::$site_ids['make.wordpress.org/'], $term_3, 'wptests_site_tax' );
+
+		$query['fields'] = 'ids';
+
+		$q     = new WP_Site_Query();
+		$found = $q->query( $query );
+
+		foreach ( $expected as $index => $domain_path ) {
+			$expected[ $index ] = self::$site_ids[ $domain_path ];
+		}
+
+		if ( $strict ) {
+			$this->assertSame( $expected, $found );
+		} else {
+			$this->assertSameSets( $expected, $found );
+		}
+	}
+
+	public function data_wp_site_query_tax_query() {
+		return array(
+			// Single term by slug.
+			array(
+				array(
+					'tax_query' => array(
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'slug',
+							'terms'    => 'test-term-1',
+						),
+					),
+				),
+				array(
+					'wordpress.org/',
+					'wordpress.org/foo/bar/',
+				),
+				false,
+			),
+			// Single term by name.
+			array(
+				array(
+					'tax_query' => array(
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'name',
+							'terms'    => 'Test Term 1',
+						),
+					),
+				),
+				array(
+					'wordpress.org/',
+					'wordpress.org/foo/bar/',
+				),
+				false,
+			),
+			// Multiple terms with IN operator.
+			array(
+				array(
+					'tax_query' => array(
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'slug',
+							'terms'    => array( 'test-term-1', 'test-term-2' ),
+						),
+					),
+				),
+				array(
+					'wordpress.org/',
+					'wordpress.org/foo/',
+					'wordpress.org/foo/bar/',
+				),
+				false,
+			),
+			// NOT IN operator - excludes sites with the term.
+			array(
+				array(
+					'tax_query' => array(
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'slug',
+							'terms'    => array( 'test-term-1' ),
+							'operator' => 'NOT IN',
+						),
+					),
+					'site__not_in' => array( 1 ), // Exclude main site.
+				),
+				array(
+					'wordpress.org/foo/',
+					'make.wordpress.org/',
+					'make.wordpress.org/foo/',
+					'www.w.org/',
+					'www.w.org/foo/',
+					'www.w.org/foo/bar/',
+					'www.w.org/make/',
+				),
+				false,
+			),
+			// AND operator (must have all terms).
+			array(
+				array(
+					'tax_query' => array(
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'slug',
+							'terms'    => array( 'test-term-1', 'test-term-2' ),
+							'operator' => 'AND',
+						),
+					),
+				),
+				array(
+					'wordpress.org/foo/bar/',
+				),
+				false,
+			),
+			// Nested tax query with relation OR.
+			array(
+				array(
+					'tax_query' => array(
+						'relation' => 'OR',
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'slug',
+							'terms'    => 'test-term-1',
+						),
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'slug',
+							'terms'    => 'test-term-3',
+						),
+					),
+				),
+				array(
+					'wordpress.org/',
+					'wordpress.org/foo/bar/',
+					'make.wordpress.org/',
+				),
+				false,
+			),
+			// Nested tax query with relation AND.
+			array(
+				array(
+					'tax_query' => array(
+						'relation' => 'AND',
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'slug',
+							'terms'    => 'test-term-1',
+						),
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'field'    => 'slug',
+							'terms'    => 'test-term-2',
+						),
+					),
+				),
+				array(
+					'wordpress.org/foo/bar/',
+				),
+				false,
+			),
+			// EXISTS operator - sites that have any term in this taxonomy.
+			array(
+				array(
+					'tax_query' => array(
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'operator' => 'EXISTS',
+						),
+					),
+				),
+				array(
+					'wordpress.org/',
+					'wordpress.org/foo/',
+					'wordpress.org/foo/bar/',
+					'make.wordpress.org/',
+				),
+				false,
+			),
+			// NOT EXISTS operator - sites that have no terms in this taxonomy (excluding main site from expected).
+			array(
+				array(
+					'tax_query' => array(
+						array(
+							'taxonomy' => 'wptests_site_tax',
+							'operator' => 'NOT EXISTS',
+						),
+					),
+					'site__not_in' => array( 1 ), // Exclude main site.
+				),
+				array(
+					'make.wordpress.org/foo/',
+					'www.w.org/',
+					'www.w.org/foo/',
+					'www.w.org/foo/bar/',
+					'www.w.org/make/',
+				),
+				false,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 46184
+	 */
+	public function test_wp_site_query_tax_query_with_term_taxonomy_id() {
+		register_taxonomy( 'wptests_site_tax', 'blog' );
+
+		// Create test term.
+		$term_1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_site_tax',
+				'slug'     => 'test-term-1',
+				'name'     => 'Test Term 1',
+			)
+		);
+
+		wp_set_object_terms( self::$site_ids['wordpress.org/'], $term_1, 'wptests_site_tax' );
+
+		$term = get_term( $term_1, 'wptests_site_tax' );
+
+		$q = new WP_Site_Query(
+			array(
+				'fields'    => 'ids',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'wptests_site_tax',
+						'field'    => 'term_taxonomy_id',
+						'terms'    => array( $term->term_taxonomy_id ),
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( self::$site_ids['wordpress.org/'] ), $q->sites );
+	}
+
+	/**
+	 * @ticket 46184
+	 */
+	public function test_wp_site_query_tax_query_with_count() {
+		// Create a test taxonomy for sites.
+		register_taxonomy( 'wptests_site_tax_count', 'blog' );
+
+		// Create test terms with unique slugs.
+		$term_1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_site_tax_count',
+				'slug'     => 'count-term-1',
+			)
+		);
+		$term_2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_site_tax_count',
+				'slug'     => 'count-term-2',
+			)
+		);
+
+		// Assign terms to sites.
+		wp_set_object_terms( self::$site_ids['wordpress.org/'], $term_1, 'wptests_site_tax_count' );
+		wp_set_object_terms( self::$site_ids['wordpress.org/foo/'], $term_2, 'wptests_site_tax_count' );
+
+		$q1 = new WP_Site_Query(
+			array(
+				'fields'    => 'ids',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'wptests_site_tax_count',
+						'field'    => 'slug',
+						'terms'    => array( 'count-term-1', 'count-term-2' ),
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 2, $q1->sites, 'Without count, should find 2 sites' );
+
+		$q2     = new WP_Site_Query();
+		$count2 = $q2->query(
+			array(
+				'count'     => true,
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'wptests_site_tax_count',
+						'field'    => 'slug',
+						'terms'    => array( 'count-term-1', 'count-term-2' ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 2, $count2, 'With count=true, query() should return 2' );
+		$this->assertSame( 2, $q2->found_sites, 'found_sites should be 2' );
+	}
+
+	/**
 	 * @ticket 40229
 	 * @dataProvider data_wp_site_query_meta_query
 	 */
