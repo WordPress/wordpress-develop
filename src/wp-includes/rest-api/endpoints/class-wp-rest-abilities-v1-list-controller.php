@@ -235,7 +235,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * used server-side but are not valid JSON Schema keywords. This method
 	 * removes those specific keys so they are not exposed in REST responses.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @param array<string, mixed> $schema The schema array.
 	 * @return array<string, mixed> The schema without WordPress-internal keywords.
