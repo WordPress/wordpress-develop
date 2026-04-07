@@ -8,6 +8,13 @@
  * @covers ::strip_html_newlines
  */
 class Tests_Formatting_StripHtmlNewlines extends WP_UnitTestCase {
+
+	/**
+	 * Verifies that newlines and carriage returns in text nodes are replaced
+	 * with spaces, including across inline elements like anchors.
+	 *
+	 * @ticket 5678
+	 */
 	public function test_strips_newlines_from_text_nodes() {
 		$this->assertSame( '', strip_html_newlines( '' ), 'Empty string should be returned as-is.' );
 		$this->assertSame( '<p>No newlines here.</p>', strip_html_newlines( '<p>No newlines here.</p>' ), 'Text without newlines should be returned as-is.' );
