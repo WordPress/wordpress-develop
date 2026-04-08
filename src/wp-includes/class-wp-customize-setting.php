@@ -708,7 +708,7 @@ class WP_Customize_Setting {
 			 */
 			do_action( "customize_update_{$this->type}", $value, $this );
 
-			return has_action( "customize_update_{$this->type}" );
+			return (bool) has_action( "customize_update_{$this->type}" );
 		}
 	}
 
@@ -765,7 +765,7 @@ class WP_Customize_Setting {
 			 * functions for available hooks.
 			 *
 			 * @since 3.4.0
-			 * @since 4.6.0 Added the `$this` setting instance as the second parameter.
+			 * @since 4.6.0 Added the `$setting` instance as the second parameter.
 			 *
 			 * @param mixed                $default_value The setting default value. Default empty.
 			 * @param WP_Customize_Setting $setting       The setting instance.
@@ -856,7 +856,7 @@ class WP_Customize_Setting {
 	 * @param array $root
 	 * @param array $keys
 	 * @param bool  $create Default false.
-	 * @return array|void Keys are 'root', 'node', and 'key'.
+	 * @return array|null Keys are 'root', 'node', and 'key'.
 	 */
 	final protected function multidimensional( &$root, $keys, $create = false ) {
 		if ( $create && empty( $root ) ) {
@@ -864,7 +864,7 @@ class WP_Customize_Setting {
 		}
 
 		if ( ! isset( $root ) || empty( $keys ) ) {
-			return;
+			return null;
 		}
 
 		$last = array_pop( $keys );
@@ -876,7 +876,7 @@ class WP_Customize_Setting {
 			}
 
 			if ( ! is_array( $node ) || ! isset( $node[ $key ] ) ) {
-				return;
+				return null;
 			}
 
 			$node = &$node[ $key ];
@@ -893,7 +893,7 @@ class WP_Customize_Setting {
 		}
 
 		if ( ! isset( $node[ $last ] ) ) {
-			return;
+			return null;
 		}
 
 		return array(
@@ -941,7 +941,7 @@ class WP_Customize_Setting {
 	 */
 	final protected function multidimensional_get( $root, $keys, $default_value = null ) {
 		if ( empty( $keys ) ) { // If there are no keys, test the root.
-			return isset( $root ) ? $root : $default_value;
+			return $root ?? $default_value;
 		}
 
 		$result = $this->multidimensional( $root, $keys );

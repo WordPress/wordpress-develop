@@ -15,7 +15,9 @@ class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
 
 	public static function wpSetupBeforeClass() {
 		self::$get_block_bindings_processor_method = new ReflectionMethod( 'WP_Block', 'get_block_bindings_processor' );
-		self::$get_block_bindings_processor_method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$get_block_bindings_processor_method->setAccessible( true );
+		}
 	}
 
 	/**

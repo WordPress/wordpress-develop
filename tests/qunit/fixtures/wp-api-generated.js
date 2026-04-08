@@ -19,7 +19,8 @@ mockedApiResponse.Schema = {
         "oembed/1.0",
         "wp/v2",
         "wp-site-health/v1",
-        "wp-block-editor/v1"
+        "wp-block-editor/v1",
+        "wp-abilities/v1"
     ],
     "authentication": {
         "application-passwords": {
@@ -2963,21 +2964,27 @@ mockedApiResponse.Schema = {
                         },
                         "media_type": {
                             "default": null,
-                            "description": "Limit result set to attachments of a particular media type.",
-                            "type": "string",
-                            "enum": [
-                                "image",
-                                "video",
-                                "text",
-                                "application",
-                                "audio"
-                            ],
+                            "description": "Limit result set to attachments of a particular media type or media types.",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "image",
+                                    "video",
+                                    "text",
+                                    "application",
+                                    "audio"
+                                ]
+                            },
                             "required": false
                         },
                         "mime_type": {
                             "default": null,
-                            "description": "Limit result set to attachments of a particular MIME type.",
-                            "type": "string",
+                            "description": "Limit result set to attachments of a particular MIME type or MIME types.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         }
                     }
@@ -3428,6 +3435,45 @@ mockedApiResponse.Schema = {
                                 ],
                                 "oneOf": [
                                     {
+                                        "title": "Flip",
+                                        "properties": {
+                                            "type": {
+                                                "description": "Flip type.",
+                                                "type": "string",
+                                                "enum": [
+                                                    "flip"
+                                                ]
+                                            },
+                                            "args": {
+                                                "description": "Flip arguments.",
+                                                "type": "object",
+                                                "required": [
+                                                    "flip"
+                                                ],
+                                                "properties": {
+                                                    "flip": {
+                                                        "description": "Flip direction.",
+                                                        "type": "object",
+                                                        "required": [
+                                                            "horizontal",
+                                                            "vertical"
+                                                        ],
+                                                        "properties": {
+                                                            "horizontal": {
+                                                                "description": "Whether to flip in the horizontal direction.",
+                                                                "type": "boolean"
+                                                            },
+                                                            "vertical": {
+                                                                "description": "Whether to flip in the vertical direction.",
+                                                                "type": "boolean"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
                                         "title": "Rotation",
                                         "properties": {
                                             "type": {
@@ -3531,6 +3577,87 @@ mockedApiResponse.Schema = {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100,
+                            "required": false
+                        },
+                        "caption": {
+                            "description": "The attachment caption.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Caption for the attachment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML caption for the attachment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "The attachment description.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Description for the attachment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML description for the attachment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "post": {
+                            "description": "The ID for the associated post of the attachment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "alt_text": {
+                            "description": "Alternative text to display when attachment is not displayed.",
+                            "type": "string",
                             "required": false
                         }
                     }
@@ -10958,6 +11085,12 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "wp_collaboration_enabled": {
+                            "title": "",
+                            "description": "Enable Real-Time Collaboration",
+                            "type": "boolean",
+                            "required": false
+                        },
                         "posts_per_page": {
                             "title": "Maximum posts per page",
                             "description": "Blog pages show at most.",
@@ -12265,6 +12398,306 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
+        },
+        "/wp-abilities/v1": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "default": "wp-abilities/v1",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1"
+                    }
+                ]
+            }
+        },
+        "/wp-abilities/v1/categories": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1/categories"
+                    }
+                ]
+            }
+        },
+        "/wp-abilities/v1/categories/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "Unique identifier for the ability category.",
+                            "type": "string",
+                            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+?)/run": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE"
+                    ],
+                    "args": {
+                        "name": {
+                            "description": "Unique identifier for the ability.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-\\/]+$",
+                            "required": false
+                        },
+                        "input": {
+                            "description": "Input parameters for the ability execution.",
+                            "type": [
+                                "integer",
+                                "number",
+                                "boolean",
+                                "string",
+                                "array",
+                                "object",
+                                "null"
+                            ],
+                            "default": null,
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp-abilities/v1/abilities": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "category": {
+                            "description": "Limit results to abilities in specific ability category.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1/abilities"
+                    }
+                ]
+            }
+        },
+        "/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+)": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "description": "Unique identifier for the ability.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-\\/]+$",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/icons": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/icons"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/icons/(?P<name>[a-z][a-z0-9-]*/[a-z][a-z0-9-]*)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "description": "Icon name.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
         }
     },
     "site_logo": 0,
@@ -13079,6 +13512,8 @@ mockedApiResponse.MediaCollection = [
         "media_details": {},
         "post": null,
         "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg",
+        "filename": "canola.jpg",
+        "filesize": null,
         "_links": {
             "self": [
                 {
@@ -13156,7 +13591,9 @@ mockedApiResponse.MediaModel = {
     "mime_type": "image/jpeg",
     "media_details": {},
     "post": null,
-    "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg"
+    "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg",
+    "filename": "canola.jpg",
+    "filesize": null
 };
 
 mockedApiResponse.TypesCollection = {
@@ -14119,6 +14556,7 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
+    "wp_collaboration_enabled": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,
