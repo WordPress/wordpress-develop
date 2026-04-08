@@ -6,6 +6,13 @@
  */
 class Tests_Comment_PingsOpen extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+
+		// Remove the environment-based filter to test core pings_open() behavior in isolation.
+		remove_filter( 'pings_open', 'wp_disable_pings_open_for_environment' );
+	}
+
 	/**
 	 * @ticket 54159
 	 */

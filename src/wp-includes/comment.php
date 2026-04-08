@@ -3164,6 +3164,89 @@ function generic_ping( $post_id = 0 ) {
 }
 
 /**
+ * Determines whether pings should be disabled for the current environment.
+ *
+ * By default, all pings (outgoing pingbacks, trackbacks, and ping service
+ * notifications, as well as incoming pingbacks and trackbacks) are disabled
+ * for non-production environments ('local', 'development', 'staging').
+ *
+ * @since 6.9.0
+ *
+ * @return bool True if pings should be disabled, false otherwise.
+ */
+function wp_should_disable_pings_for_environment() {
+	$environment_type = wp_get_environment_type();
+	$should_disable   = 'production' !== $environment_type;
+
+	/**
+	 * Filters whether pings should be disabled for the current environment.
+	 *
+	 * Returning false re-enables pings in non-production environments.
+	 * Returning true disables pings even in production.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param bool   $should_disable  Whether pings should be disabled. Default true
+	 *                                for non-production environments, false for production.
+	 * @param string $environment_type The current environment type as returned by
+	 *                                 wp_get_environment_type().
+	 */
+	return apply_filters( 'wp_should_disable_pings_for_environment', $should_disable, $environment_type );
+}
+
+/**
+ * Removes outgoing ping callbacks in non-production environments.
+ *
+ * Hooked to `do_all_pings` at priority 1 so it runs before the default
+ * priority 10 callbacks. Does not remove `do_all_enclosures`.
+ *
+ * @since 6.9.0
+ * @access private
+ */
+function wp_disable_outgoing_pings_for_environment() {
+	if ( wp_should_disable_pings_for_environment() ) {
+		remove_action( 'do_all_pings', 'do_all_pingbacks', 10 );
+		remove_action( 'do_all_pings', 'do_all_trackbacks', 10 );
+		remove_action( 'do_all_pings', 'generic_ping', 10 );
+	}
+}
+
+/**
+ * Closes pings for posts in non-production environments.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param bool $pings_open Whether the post is open for pings.
+ * @param int  $post_id    The post ID.
+ * @return bool False if pings are disabled for the environment, otherwise the original value.
+ */
+function wp_disable_pings_open_for_environment( $pings_open, $post_id ) {
+	if ( wp_should_disable_pings_for_environment() ) {
+		return false;
+	}
+
+	return $pings_open;
+}
+
+/**
+ * Removes the pingback XML-RPC method in non-production environments.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param array $methods Associative array of XML-RPC methods.
+ * @return array Modified associative array of XML-RPC methods.
+ */
+function wp_disable_xmlrpc_pingback_for_environment( $methods ) {
+	if ( wp_should_disable_pings_for_environment() ) {
+		unset( $methods['pingback.ping'] );
+	}
+
+	return $methods;
+}
+
+/**
  * Pings back the links found in a post.
  *
  * @since 0.71
