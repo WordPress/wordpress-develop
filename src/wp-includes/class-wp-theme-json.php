@@ -248,6 +248,7 @@ class WP_Theme_JSON {
 	 * @since 6.7.0 Added `background-attachment` property.
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 *              Added `text-indent` property.
+	 * @since 7.1.0 Added `min-width` property.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -417,6 +418,7 @@ class WP_Theme_JSON {
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
 	 *              Added support for `background.gradient`.
+	 *              Added support for `dimensions.minWidth`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -561,6 +563,7 @@ class WP_Theme_JSON {
 	 * @since 6.6.0 Added `background` sub properties to top-level only.
 	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
 	 * @since 7.1.0 Added `background.gradient`.
+	 *              Added support for `dimensions.minWidth`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -1031,6 +1034,7 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Added `background.backgroundSize` and `dimensions.aspectRatio`.
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 * @since 7.1.0 Added `background.gradient`.
+	 *              Added `dimensions.minWidth`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
