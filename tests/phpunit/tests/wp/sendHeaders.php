@@ -8,13 +8,6 @@
 class Tests_WP_SendHeaders extends WP_UnitTestCase {
 	protected $headers_sent = array();
 
-	public function set_up() {
-		parent::set_up();
-
-		// Remove the environment-based filter to test core behavior in isolation.
-		remove_filter( 'pings_open', 'wp_disable_pings_open_for_environment' );
-	}
-
 	/**
 	 * @ticket 56068
 	 */

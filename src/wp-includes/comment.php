@@ -3212,21 +3212,23 @@ function wp_disable_outgoing_pings_for_environment() {
 }
 
 /**
- * Closes pings for posts in non-production environments.
+ * Rejects incoming trackbacks in non-production environments.
+ *
+ * Hooked to `pre_trackback_post` which fires before the trackback is processed.
+ * Sends an error response and exits if pings are disabled for the environment.
  *
  * @since 6.9.0
  * @access private
  *
- * @param bool $pings_open Whether the post is open for pings.
- * @param int  $post_id    The post ID.
- * @return bool False if pings are disabled for the environment, otherwise the original value.
+ * @param int    $post_id       Post ID related to the trackback.
+ * @param string $trackback_url Trackback URL.
  */
-function wp_disable_pings_open_for_environment( $pings_open, $post_id ) {
+function wp_disable_trackback_for_environment( $post_id, $trackback_url ) {
 	if ( wp_should_disable_pings_for_environment() ) {
-		return false;
+		if ( function_exists( 'trackback_response' ) ) {
+			trackback_response( 1, __( 'Sorry, trackbacks are closed for this item.' ) );
+		}
 	}
-
-	return $pings_open;
 }
 
 /**

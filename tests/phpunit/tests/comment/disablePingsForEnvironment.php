@@ -6,7 +6,7 @@
  * @group comment
  * @covers ::wp_should_disable_pings_for_environment
  * @covers ::wp_disable_outgoing_pings_for_environment
- * @covers ::wp_disable_pings_open_for_environment
+ * @covers ::wp_disable_trackback_for_environment
  * @covers ::wp_disable_xmlrpc_pingback_for_environment
  *
  * @ticket 64837
@@ -182,27 +182,21 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 	/**
 	 * @ticket 64837
 	 */
-	public function test_pings_open_returns_false_in_non_production() {
+	public function test_trackback_hook_registered_in_non_production() {
+		$this->assertSame( 10, has_action( 'pre_trackback_post', 'wp_disable_trackback_for_environment' ) );
+	}
+
+	/**
+	 * @ticket 64837
+	 */
+	public function test_pings_open_unaffected_by_environment() {
 		putenv( 'WP_ENVIRONMENT_TYPE=local' );
 
 		$post = self::factory()->post->create_and_get(
 			array( 'ping_status' => 'open' )
 		);
 
-		$this->assertFalse( wp_disable_pings_open_for_environment( true, $post->ID ) );
-	}
-
-	/**
-	 * @ticket 64837
-	 */
-	public function test_pings_open_unchanged_in_production() {
-		putenv( 'WP_ENVIRONMENT_TYPE=production' );
-
-		$post = self::factory()->post->create_and_get(
-			array( 'ping_status' => 'open' )
-		);
-
-		$this->assertTrue( wp_disable_pings_open_for_environment( true, $post->ID ) );
+		$this->assertTrue( pings_open( $post ) );
 	}
 
 	/**
