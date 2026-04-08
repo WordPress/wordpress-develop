@@ -1426,9 +1426,9 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			$this->menu_id,
 			0,
 			array(
-				'menu-item-type'      => 'post_type_archive',
-				'menu-item-object'    => 'cpt38836',
-				'menu-item-status'    => 'publish',
+				'menu-item-type'   => 'post_type_archive',
+				'menu-item-object' => 'cpt38836',
+				'menu-item-status' => 'publish',
 			)
 		);
 
@@ -1477,9 +1477,9 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			$this->menu_id,
 			0,
 			array(
-				'menu-item-type'      => 'post_type_archive',
-				'menu-item-object'    => 'cpt38836b',
-				'menu-item-status'    => 'publish',
+				'menu-item-type'   => 'post_type_archive',
+				'menu-item-object' => 'cpt38836b',
+				'menu-item-status' => 'publish',
 			)
 		);
 
