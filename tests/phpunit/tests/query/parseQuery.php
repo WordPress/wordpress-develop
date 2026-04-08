@@ -264,4 +264,52 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 
 		$this->assertIsArray( $q->posts );
 	}
+
+	/**
+	 * Data provider of string-only query vars and a representative valid value.
+	 *
+	 * @ticket 64507
+	 *
+	 * @return array[]
+	 */
+	public function data_string_query_vars() {
+		return array(
+			'author_name' => array( 'author_name', 'johndoe' ),
+			'feed'        => array( 'feed', 'rss2' ),
+			'attachment'  => array( 'attachment', 'my-image' ),
+		);
+	}
+
+	/**
+	 * Ensure that string query vars pass through parse_query() unchanged.
+	 *
+	 * @ticket 64507
+	 * @dataProvider data_string_query_vars
+	 *
+	 * @param string $query_var Query var name.
+	 * @param string $value     Valid string value.
+	 */
+	public function test_parse_query_string_var_string_value( $query_var, $value ) {
+		$q = new WP_Query();
+		$q->parse_query( array( $query_var => $value ) );
+
+		$this->assertSame( $value, $q->query_vars[ $query_var ] );
+	}
+
+	/**
+	 * Ensure that array values for string-only query vars are rejected (returns ''),
+	 * preventing a TypeError fatal from str_contains() / str_replace() / wp_basename()
+	 * on PHP 8+.
+	 *
+	 * @ticket 64507
+	 * @dataProvider data_string_query_vars
+	 *
+	 * @param string $query_var Query var name.
+	 */
+	public function test_parse_query_string_var_array_value( $query_var ) {
+		$q = new WP_Query();
+		$q->parse_query( array( $query_var => array( 'unexpected', 'array' ) ) );
+
+		$this->assertSame( '', $q->query_vars[ $query_var ] );
+	}
 }
