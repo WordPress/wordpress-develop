@@ -1452,7 +1452,7 @@ a.rsswidget {
 	}
 
 	.community-events-toggle-location {
-		height: 38px;
+		min-height: 40px;
 		vertical-align: baseline;
 	}
 
