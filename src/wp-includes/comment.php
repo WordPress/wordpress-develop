@@ -2635,6 +2635,30 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		$filter_comment = ! user_can( $comment['user_id'] ?? 0, 'unfiltered_html' );
 	}
 
+	// Allow images in comments when edited by users with appropriate capabilities in admin.
+	$img_filter_callback = null;
+	if ( is_admin() && current_user_can( 'edit_comment', $commentarr['comment_ID'] ) ) {
+		$img_filter_callback = function ( $allowed_html ) {
+			if ( ! isset( $allowed_html['img'] ) ) {
+				$allowed_html['img'] = array(
+					'alt'      => true,
+					'align'    => true,
+					'border'   => true,
+					'height'   => true,
+					'hspace'   => true,
+					'loading'  => true,
+					'longdesc' => true,
+					'vspace'   => true,
+					'src'      => true,
+					'usemap'   => true,
+					'width'    => true,
+				);
+			}
+			return $allowed_html;
+		};
+		add_filter( 'wp_kses_allowed_html', $img_filter_callback );
+	}
+
 	if ( $filter_comment ) {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 	}
@@ -2651,6 +2675,10 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 
 	if ( $filter_comment ) {
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+	}
+
+	if ( $img_filter_callback ) {
+		remove_filter( 'wp_kses_allowed_html', $img_filter_callback );
 	}
 
 	// Now extract the merged array.
