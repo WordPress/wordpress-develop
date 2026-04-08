@@ -1137,7 +1137,21 @@ class WP_Posts_List_Table extends WP_List_Table {
 			echo '<div class="locked-info"><span class="locked-avatar">' . $locked_avatar . '</span> <span class="locked-text">' . $locked_text . "</span></div>\n";
 		}
 
-		$pad = str_repeat( '&#8212; ', $this->current_level );
+		/**
+		 * Filters the hierarchy separator for a post title in the posts list table.
+		 *
+		 * The separator is output once per hierarchical level before the post title
+		 * (it is repeated based on the current depth in the tree).
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param string  $separator The hierarchy separator. Default em dash with a trailing space (`&#8212; `).
+		 * @param int     $level     Current hierarchical depth for this row.
+		 * @param WP_Post $post      Current post object.
+		 */
+		$separator = apply_filters( 'post_title_child_separator', '&#8212; ', $this->current_level, $post );
+		$pad       = str_repeat( $separator, $this->current_level );
+
 		echo '<strong>';
 
 		$title = _draft_or_post_title();

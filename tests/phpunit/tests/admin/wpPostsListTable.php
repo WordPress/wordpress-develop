@@ -330,4 +330,48 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
+
+	/**
+	 * @ticket 39106
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_post_title_child_separator_filter_changes_title_pad() {
+		add_filter(
+			'post_title_child_separator',
+			static function () {
+				return '-- ';
+			}
+		);
+
+		$child = self::$children[1][1];
+
+		$this->table->set_hierarchical_display( true );
+
+		ob_start();
+		$this->table->single_row( $child, 2 );
+		$output = ob_get_clean();
+
+		remove_all_filters( 'post_title_child_separator' );
+
+		// Level 2 => separator repeated twice before the title.
+		$this->assertStringContainsString( '-- -- ', $output, 'Filtered separator should repeat per hierarchy level.' );
+	}
+
+	/**
+	 * @ticket 39106
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_post_title_child_separator_default_pad_unchanged() {
+		$child = self::$children[1][1];
+
+		$this->table->set_hierarchical_display( true );
+
+		ob_start();
+		$this->table->single_row( $child, 1 );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '&#8212; ', $output, 'Default hierarchy separator should remain the em dash.' );
+	}
 }
