@@ -43,6 +43,8 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 				this.model.trigger( 'change:url' );
 			}, this ), 500 );
 		}
+
+		this.updateUrl = _.debounce( this.updateUrl, 500 );
 	},
 	/**
 	 * @return {wp.media.view.EmbedUrl} Returns itself to allow chaining.
@@ -70,8 +72,22 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 	url: function( event ) {
 		var $el = $( event.target );
 		var url = $el.val() || '';
+		var valid = this.isValidUrlInput( event.target );
+		this.updateUrl( url, valid );
+	},
 
-		if ( this.isValidUrlInput( event.target ) ) {
+	isValidUrlInput: function ( el ) {
+		var url = ( el.value || '' ).trim();
+		try {
+			var url = new URL( url );
+			return [ 'http:', 'https:' ].includes(url.protocol);
+		} catch ( e ) {
+			return false;
+		}
+	},
+
+	updateUrl: function ( url, valid ) {
+		if ( valid ) {
 			this.model.set( 'url', url.trim() );
 			this.$error.hide();
 		} else {
@@ -83,17 +99,6 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 				this.$error.hide();
 			}
 		}
-	},
-
-	isValidUrlInput: function ( el ) {
-		var url = ( el.value || '' ).trim();
-
-		var isNativeValid = el.validity ? el.validity.valid : true;
-
-		var pattern = /^(https?:\/\/)([\w.-]+)+(:\d+)?(\/.*)?$/i;
-		var isRegexValid = pattern.test( url );
-
-		return isNativeValid && isRegexValid;
 	}
 });
 
