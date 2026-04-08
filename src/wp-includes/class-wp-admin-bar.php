@@ -217,6 +217,7 @@ class WP_Admin_Bar {
 		if ( empty( $id ) ) {
 			$id = 'root';
 		}
+
 		return $this->nodes[ $id ] ?? null;
 	}
 
