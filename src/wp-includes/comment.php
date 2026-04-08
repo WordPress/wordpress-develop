@@ -3214,8 +3214,9 @@ function wp_disable_outgoing_pings_for_environment() {
 /**
  * Rejects incoming trackbacks in non-production environments.
  *
- * Hooked to `pre_trackback_post` which fires before the trackback is processed.
- * Sends an error response and exits if pings are disabled for the environment.
+ * Hooked to `pre_trackback_post` which fires in `wp-trackback.php` before the
+ * trackback is processed. Calls `trackback_response()` which sends an XML error
+ * response and terminates the request.
  *
  * @since 6.9.0
  * @access private
@@ -3225,9 +3226,7 @@ function wp_disable_outgoing_pings_for_environment() {
  */
 function wp_disable_trackback_for_environment( $post_id, $trackback_url ) {
 	if ( wp_should_disable_pings_for_environment() ) {
-		if ( function_exists( 'trackback_response' ) ) {
-			trackback_response( 1, __( 'Sorry, trackbacks are closed for this item.' ) );
-		}
+		trackback_response( 1, __( 'Sorry, trackbacks are closed for this item.' ) );
 	}
 }
 
@@ -3237,8 +3236,8 @@ function wp_disable_trackback_for_environment( $post_id, $trackback_url ) {
  * @since 6.9.0
  * @access private
  *
- * @param array $methods Associative array of XML-RPC methods.
- * @return array Modified associative array of XML-RPC methods.
+ * @param string[] $methods An array of XML-RPC methods, keyed by their methodName.
+ * @return string[] Modified array of XML-RPC methods.
  */
 function wp_disable_xmlrpc_pingback_for_environment( $methods ) {
 	if ( wp_should_disable_pings_for_environment() ) {
