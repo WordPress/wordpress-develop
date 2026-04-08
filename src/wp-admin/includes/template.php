@@ -1780,7 +1780,7 @@ function do_settings_sections( $page ) {
 		}
 
 		if ( $section['title'] ) {
-			echo "<h2>{$section['title']}</h2>\n";
+			echo '<h2 id="' . esc_attr( $section['id'] ) . '">' . $section['title'] . "</h2>\n";
 		}
 
 		if ( $section['callback'] ) {
