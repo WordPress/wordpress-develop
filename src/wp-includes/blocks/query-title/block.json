@@ -29,7 +29,14 @@
 			"default": true
 		}
 	},
+	"example": {
+		"attributes": {
+			"type": "search"
+		}
+	},
+	"usesContext": [ "query" ],
 	"supports": {
+		"anchor": true,
 		"align": [ "wide", "full" ],
 		"html": false,
 		"color": {

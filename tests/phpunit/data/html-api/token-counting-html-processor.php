@@ -23,6 +23,10 @@ class Token_Counting_HTML_Processor extends WP_HTML_Processor {
 			$token_name = $this->get_token_name();
 		}
 
+		if ( null === $token_name ) {
+			$token_name = '';
+		}
+
 		if ( ! isset( $this->token_seen_count[ $token_name ] ) ) {
 			$this->token_seen_count[ $token_name ] = 1;
 		} else {

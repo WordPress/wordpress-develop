@@ -23,11 +23,7 @@ require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 delete_site_transient( 'update_core' );
 
-if ( isset( $_GET['step'] ) ) {
-	$step = $_GET['step'];
-} else {
-	$step = 0;
-}
+$step = $_GET['step'] ?? 0;
 
 // Do it. No output.
 if ( 'upgrade_db' === $step ) {
@@ -36,12 +32,13 @@ if ( 'upgrade_db' === $step ) {
 }
 
 /**
- * @global string $wp_version             The WordPress version string.
- * @global string $required_php_version   The required PHP version string.
- * @global string $required_mysql_version The required MySQL version string.
- * @global wpdb   $wpdb                   WordPress database abstraction object.
+ * @global string   $wp_version              The WordPress version string.
+ * @global string   $required_php_version    The minimum required PHP version string.
+ * @global string[] $required_php_extensions The names of required PHP extensions.
+ * @global string   $required_mysql_version  The minimum required MySQL version string.
+ * @global wpdb     $wpdb                    WordPress database abstraction object.
  */
-global $wp_version, $required_php_version, $required_mysql_version, $wpdb;
+global $wp_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wpdb;
 
 $step = (int) $step;
 
@@ -52,6 +49,24 @@ if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 	$mysql_compat = true;
 } else {
 	$mysql_compat = version_compare( $mysql_version, $required_mysql_version, '>=' );
+}
+
+$missing_extensions = array();
+
+if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+	foreach ( $required_php_extensions as $extension ) {
+		if ( extension_loaded( $extension ) ) {
+			continue;
+		}
+
+		$missing_extensions[] = sprintf(
+			/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: The PHP extension name needed. */
+			__( 'You cannot upgrade because <a href="%1$s">WordPress %2$s</a> requires the %3$s PHP extension.' ),
+			$version_url,
+			$wp_version,
+			$extension
+		);
+	}
 }
 
 header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
@@ -65,8 +80,8 @@ header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option
 	<title><?php _e( 'WordPress &rsaquo; Update' ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
-<body class="wp-core-ui">
-<p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>"><?php _e( 'WordPress' ); ?></a></p>
+<body class="wp-core-ui admin-color-modern">
+<p id="logo"><?php _e( 'WordPress' ); ?></p>
 
 <?php if ( (int) get_option( 'db_version' ) === $wp_db_version || ! is_blog_installed() ) : ?>
 
@@ -126,8 +141,8 @@ elseif ( ! $php_compat || ! $mysql_compat ) :
 	}
 
 	echo '<p>' . $message . '</p>';
-	?>
-	<?php
+elseif ( count( $missing_extensions ) > 0 ) :
+	echo '<p>' . implode( '</p><p>', $missing_extensions ) . '</p>';
 else :
 	switch ( $step ) :
 		case 0:

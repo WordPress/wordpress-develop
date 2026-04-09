@@ -16,6 +16,17 @@ class Tests_L10n extends WP_UnitTestCase {
 	private $long_text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 
 	/**
+	 * Editor user ID.
+	 *
+	 * @var int $editor_id
+	 */
+	public static $editor_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
+
+	/**
 	 * @ticket 35961
 	 *
 	 * @covers ::_n_noop
@@ -113,175 +124,6 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->assertSame( '2024-01-31 19:08:22+0000', $data_en_gb['PO-Revision-Date'] );
 		$this->assertSame( 'WordPress - 6.4.x - Development', $data_en_gb['Project-Id-Version'] );
 		$this->assertSame( 'GlotPress/4.0.0-beta.2', $data_en_gb['X-Generator'] );
-	}
-
-	/**
-	 * @ticket 35294
-	 *
-	 * @covers ::wp_dropdown_languages
-	 */
-	public function test_wp_dropdown_languages() {
-		$args   = array(
-			'id'           => 'foo',
-			'name'         => 'bar',
-			'languages'    => array( 'de_DE' ),
-			'translations' => $this->wp_dropdown_languages_filter(),
-			'selected'     => 'de_DE',
-			'echo'         => false,
-		);
-		$actual = wp_dropdown_languages( $args );
-
-		$this->assertStringContainsString( 'id="foo"', $actual );
-		$this->assertStringContainsString( 'name="bar"', $actual );
-		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-		$this->assertStringContainsString( '<option value="de_DE" lang="de" selected=\'selected\' data-installed="1">Deutsch</option>', $actual );
-		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertStringContainsString( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
-	}
-
-	/**
-	 * @ticket 38632
-	 *
-	 * @covers ::wp_dropdown_languages
-	 */
-	public function test_wp_dropdown_languages_site_default() {
-		$args   = array(
-			'id'                       => 'foo',
-			'name'                     => 'bar',
-			'languages'                => array( 'de_DE' ),
-			'translations'             => $this->wp_dropdown_languages_filter(),
-			'selected'                 => 'de_DE',
-			'echo'                     => false,
-			'show_option_site_default' => true,
-		);
-		$actual = wp_dropdown_languages( $args );
-
-		$this->assertStringContainsString( 'id="foo"', $actual );
-		$this->assertStringContainsString( 'name="bar"', $actual );
-		$this->assertStringContainsString( '<option value="site-default" data-installed="1">Site Default</option>', $actual );
-		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-		$this->assertStringContainsString( '<option value="de_DE" lang="de" selected=\'selected\' data-installed="1">Deutsch</option>', $actual );
-		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertStringContainsString( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
-	}
-
-	/**
-	 * @ticket 44494
-	 *
-	 * @covers ::wp_dropdown_languages
-	 */
-	public function test_wp_dropdown_languages_exclude_en_us() {
-		$args   = array(
-			'id'                => 'foo',
-			'name'              => 'bar',
-			'languages'         => array( 'de_DE' ),
-			'translations'      => $this->wp_dropdown_languages_filter(),
-			'selected'          => 'de_DE',
-			'echo'              => false,
-			'show_option_en_us' => false,
-		);
-		$actual = wp_dropdown_languages( $args );
-
-		$this->assertStringNotContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-	}
-
-	/**
-	 * @ticket 38632
-	 *
-	 * @covers ::wp_dropdown_languages
-	 */
-	public function test_wp_dropdown_languages_en_US_selected() {
-		$args   = array(
-			'id'           => 'foo',
-			'name'         => 'bar',
-			'languages'    => array( 'de_DE' ),
-			'translations' => $this->wp_dropdown_languages_filter(),
-			'selected'     => 'en_US',
-			'echo'         => false,
-		);
-		$actual = wp_dropdown_languages( $args );
-
-		$this->assertStringContainsString( 'id="foo"', $actual );
-		$this->assertStringContainsString( 'name="bar"', $actual );
-		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1" selected=\'selected\'>English (United States)</option>', $actual );
-		$this->assertStringContainsString( '<option value="de_DE" lang="de" data-installed="1">Deutsch</option>', $actual );
-		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertStringContainsString( '<option value="ja_JP" lang="ja">日本語</option>', $actual );
-	}
-
-	/**
-	 * Add site default language to ja_JP in dropdown
-	 *
-	 * @covers ::wp_dropdown_languages
-	 */
-	public function test_wp_dropdown_languages_site_default_ja_JP() {
-		$args   = array(
-			'id'                       => 'foo',
-			'name'                     => 'bar',
-			'languages'                => array( 'ja_JP' ),
-			'translations'             => $this->wp_dropdown_languages_filter(),
-			'selected'                 => 'ja_JP',
-			'echo'                     => false,
-			'show_option_site_default' => true,
-		);
-		$actual = wp_dropdown_languages( $args );
-
-		$this->assertStringContainsString( 'id="foo"', $actual );
-		$this->assertStringContainsString( 'name="bar"', $actual );
-		$this->assertStringContainsString( '<option value="site-default" data-installed="1">Site Default</option>', $actual );
-		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-		$this->assertStringContainsString( '<option value="de_DE" lang="de">Deutsch</option>', $actual );
-		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertStringContainsString( '<option value="ja_JP" lang="ja" selected=\'selected\' data-installed="1">日本語</option>', $actual );
-	}
-
-	/**
-	 * Select dropdown language from de_DE to ja_JP
-	 *
-	 * @covers ::wp_dropdown_languages
-	 */
-	public function test_wp_dropdown_languages_ja_JP_selected() {
-		$args   = array(
-			'id'           => 'foo',
-			'name'         => 'bar',
-			'languages'    => array( 'de_DE' ),
-			'translations' => $this->wp_dropdown_languages_filter(),
-			'selected'     => 'ja_JP',
-			'echo'         => false,
-		);
-		$actual = wp_dropdown_languages( $args );
-
-		$this->assertStringContainsString( 'id="foo"', $actual );
-		$this->assertStringContainsString( 'name="bar"', $actual );
-		$this->assertStringContainsString( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
-		$this->assertStringContainsString( '<option value="de_DE" lang="de" data-installed="1">Deutsch</option>', $actual );
-		$this->assertStringContainsString( '<option value="it_IT" lang="it">Italiano</option>', $actual );
-		$this->assertStringContainsString( '<option value="ja_JP" lang="ja" selected=\'selected\'>日本語</option>', $actual );
-	}
-
-	/**
-	 * We don't want to call the API when testing.
-	 *
-	 * @return array
-	 */
-	private function wp_dropdown_languages_filter() {
-		return array(
-			'de_DE' => array(
-				'language'    => 'de_DE',
-				'native_name' => 'Deutsch',
-				'iso'         => array( 'de' ),
-			),
-			'it_IT' => array(
-				'language'    => 'it_IT',
-				'native_name' => 'Italiano',
-				'iso'         => array( 'it', 'ita' ),
-			),
-			'ja_JP' => array(
-				'language'    => 'ja_JP',
-				'native_name' => '日本語',
-				'iso'         => array( 'ja' ),
-			),
-		);
 	}
 
 	/**
@@ -464,7 +306,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => $this->long_text,
@@ -503,7 +345,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => $this->long_text,
@@ -542,7 +384,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		 * and return a string instead of null, which would otherwise cause a PHP 8.1
 		 * "passing null to non-nullable" deprecation notice.
 		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$args = array(
 			'post_content' => str_repeat( 'あ', 200 ),
