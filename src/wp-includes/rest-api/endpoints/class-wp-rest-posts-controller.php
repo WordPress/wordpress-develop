@@ -585,10 +585,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return;
 		}
 
-		$response->set_headers(
-			array(
-				'Last-Modified' => gmdate( 'D, d M Y H:i:s', $modified->getTimestamp() ) . ' GMT',
-			)
+		$response->header(
+			'Last-Modified',
+			gmdate( 'D, d M Y H:i:s', $modified->getTimestamp() ) . ' GMT'
 		);
 	}
 
