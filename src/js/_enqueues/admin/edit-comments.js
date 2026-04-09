@@ -1046,6 +1046,12 @@ window.commentReply = {
 					if ( e.type === 'keydown' && e.which === 27 && isContextMenuOpen ) {
 						isContextMenuOpen = false;
 					}
+
+					// Submit the comment when Ctrl+Enter (Windows/Linux) or Cmd+Enter (Mac) is pressed.
+					if ( e.type === 'keydown' && ( e.ctrlKey || e.metaKey ) && e.which === 13 && ! isComposing ) {
+						e.preventDefault();
+						commentReply.send();
+					}
 				} )
 				.on( 'keyup', function( e ) {
 					// Close on Escape unless Input Method Editors (IMEs) are in use or the context menu is open.
