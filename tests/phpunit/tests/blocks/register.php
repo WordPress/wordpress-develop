@@ -843,6 +843,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @ticket 56325
 	 * @ticket 56797
+	 * @ticket 61625
 	 *
 	 * @covers ::register_block_style_handle
 	 */
@@ -887,6 +888,44 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-rtl.css' ) ),
 			$extra_path,
 			'The "path" did not match the expected path.'
+		);
+	}
+
+	/**
+	 * Tests that register_block_style_handle() always stores an empty suffix for
+	 * non-core blocks, so that WP_Styles::do_item() can correctly rewrite the
+	 * stylesheet URL to its RTL counterpart.
+	 *
+	 * Non-core block files registered via block.json never use a '.min' suffix,
+	 * so storing a non-empty suffix causes str_replace() to search for '.min.css'
+	 * in a filename that only contains '.css', silently leaving the LTR URL
+	 * unchanged on RTL sites.
+	 *
+	 * @ticket 61625
+	 *
+	 * @covers ::register_block_style_handle
+	 */
+	public function test_register_block_style_handle_rtl_suffix_is_empty_for_non_core_blocks() {
+		global $wp_locale;
+
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'tests/test-block-rtl-suffix',
+			'style' => 'file:./block.css',
+		);
+
+		$orig_text_dir             = $wp_locale->text_direction;
+		$wp_locale->text_direction = 'rtl';
+
+		register_block_style_handle( $metadata, 'style' );
+		$extra_suffix = wp_styles()->get_data( 'tests-test-block-rtl-suffix-style', 'suffix' );
+
+		$wp_locale->text_direction = $orig_text_dir;
+
+		$this->assertSame(
+			'',
+			$extra_suffix,
+			'Non-core block RTL styles must have an empty suffix so the LTR URL is correctly rewritten to the RTL URL, regardless of SCRIPT_DEBUG.'
 		);
 	}
 
