@@ -3358,73 +3358,69 @@ function retrieve_password( $user_login = '' ) {
 		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	}
 
-	$message = __( 'Someone has requested a password reset for the following account:' ) . "\r\n\r\n";
-	/* translators: %s: Site name. */
-	$message .= sprintf( __( 'Site Name: %s' ), $site_name ) . "\r\n\r\n";
-	/* translators: %s: User login. */
-	$message .= sprintf( __( 'Username: %s' ), $user_login ) . "\r\n\r\n";
-	$message .= __( 'If this was a mistake, ignore this email and nothing will happen.' ) . "\r\n\r\n";
-	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
+	$reset_url = network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale;
 
-	/*
-	 * Since some user login names end in a period, this could produce ambiguous URLs that
-	 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
-	 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
-	 *
-	 * @see https://core.trac.wordpress.org/tickets/42957
-	 */
-	$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
-
+	$ip_notification = '';
 	if ( ! is_user_logged_in() ) {
 		$requester_ip = $_SERVER['REMOTE_ADDR'];
 		if ( $requester_ip ) {
-			$message .= sprintf(
-				/* translators: %s: IP address of password reset requester. */
-				__( 'This password reset request originated from the IP address %s.' ),
-				$requester_ip
-			) . "\r\n";
+			/* translators: %s: IP address of password reset requester. */
+			$ip_notification = sprintf( __( 'This password reset request originated from the IP address %s.' ), $requester_ip );
 		}
 	}
+
+	$email_data = array(
+		'sitename'        => $site_name,
+		'user_login'      => $user_login,
+		'reset_url'       => $reset_url,
+		'ip_notification' => $ip_notification,
+	);
+
+	WP_Mailer::register_email(
+		'retrieve_password',
+		'user',
+		array(
+			/* translators: Password reset notification email subject. %s: Site title. */
+			'subject' => __( '[{{sitename}}] Password Reset' ),
+			'body'    => __(
+				'Someone has requested a password reset for the following account:
+
+Site Name: {{sitename}}
+
+Username: {{user_login}}
+
+If this was a mistake, ignore this email and nothing will happen.
+
+To reset your password, visit the following address:
+
+{{reset_url}}
+
+{{ip_notification}}'
+			),
+		)
+	);
 
 	/* translators: Password reset notification email subject. %s: Site title. */
 	$title = sprintf( __( '[%s] Password Reset' ), $site_name );
 
-	/**
-	 * Filters the subject of the password reset email.
-	 *
-	 * @since 2.8.0
-	 * @since 4.4.0 Added the `$user_login` and `$user_data` parameters.
-	 *
-	 * @param string  $title      Email subject.
-	 * @param string  $user_login The username for the user.
-	 * @param WP_User $user_data  WP_User object.
-	 */
+	/** This filter is documented in wp-includes/user.php */
 	$title = apply_filters( 'retrieve_password_title', $title, $user_login, $user_data );
 
-	/**
-	 * Filters the message body of the password reset mail.
-	 *
-	 * If the filtered message is empty, the password reset email will not be sent.
-	 *
-	 * @since 2.8.0
-	 * @since 4.1.0 Added `$user_login` and `$user_data` parameters.
-	 *
-	 * @param string  $message    Email message.
-	 * @param string  $key        The activation key.
-	 * @param string  $user_login The username for the user.
-	 * @param WP_User $user_data  WP_User object.
-	 */
-	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
+	// We pass the default message to the filter for backward compatibility, 
+	// but we'll use WP_Mailer for the actual sending if the message isn't overridden.
+	$default_message = WP_Mailer::render( WP_Mailer::get_email( 'retrieve_password' )['body'], $email_data );
+
+	/** This filter is documented in wp-includes/user.php */
+	$message = apply_filters( 'retrieve_password_message', $default_message, $key, $user_login, $user_data );
 
 	// Short-circuit on falsey $message value for backwards compatibility.
 	if ( ! $message ) {
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
 		return true;
 	}
 
-	/*
-	 * Wrap the single notification email arguments in an array
-	 * to pass them to the retrieve_password_notification_email filter.
-	 */
 	$defaults = array(
 		'to'      => $user_email,
 		'subject' => $title,
@@ -3432,41 +3428,29 @@ function retrieve_password( $user_login = '' ) {
 		'headers' => '',
 	);
 
-	/**
-	 * Filters the contents of the reset password notification email sent to the user.
-	 *
-	 * @since 6.0.0
-	 *
-	 * @param array $defaults {
-	 *     The default notification email arguments. Used to build wp_mail().
-	 *
-	 *     @type string $to      The intended recipient - user email address.
-	 *     @type string $subject The subject of the email.
-	 *     @type string $message The body of the email.
-	 *     @type string $headers The headers of the email.
-	 * }
-	 * @param string  $key        The activation key.
-	 * @param string  $user_login The username for the user.
-	 * @param WP_User $user_data  WP_User object.
-	 */
+	/** This filter is documented in wp-includes/user.php */
 	$notification_email = apply_filters( 'retrieve_password_notification_email', $defaults, $key, $user_login, $user_data );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
 	}
 
-	if ( is_array( $notification_email ) ) {
-		// Force key order and merge defaults in case any value is missing in the filtered array.
-		$notification_email = array_merge( $defaults, $notification_email );
-	} else {
-		$notification_email = $defaults;
-	}
+	$notification_email = array_merge( $defaults, (array) $notification_email );
 
-	list( $to, $subject, $message, $headers ) = array_values( $notification_email );
+	$mail_success = WP_Mailer::send(
+		'retrieve_password',
+		array(
+			'to'      => $notification_email['to'],
+			'headers' => $notification_email['headers'],
+		),
+		array_merge( $email_data, array(
+			// Overwrite subject and body if they were filtered.
+			'subject' => $notification_email['subject'],
+			'body'    => $notification_email['message'],
+		) )
+	);
 
-	$subject = wp_specialchars_decode( $subject );
-
-	if ( ! wp_mail( $to, $subject, $message, $headers ) ) {
+	if ( ! $mail_success ) {
 		$errors->add(
 			'retrieve_password_email_failure',
 			sprintf(

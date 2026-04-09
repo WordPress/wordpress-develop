@@ -481,6 +481,9 @@ if ( ! function_exists( 'wp_mail' ) ) :
 						}
 					}
 
+					$recipient_name = str_replace( '"', '', $recipient_name );
+					$recipient_name = trim( $recipient_name );
+
 					switch ( $address_header ) {
 						case 'to':
 							$phpmailer->addAddress( $address, $recipient_name );
@@ -2305,44 +2308,53 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 				$switched_locale = switch_to_locale( get_locale() );
 			}
 
-			/* translators: %s: Site title. */
-			$message = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
-			/* translators: %s: User login. */
-			$message .= sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
-			/* translators: %s: User email address. */
-			$message .= sprintf( __( 'Email: %s' ), $user->user_email ) . "\r\n";
+			$email_data = array(
+				'sitename'   => $blogname,
+				'user_login' => $user->user_login,
+				'user_email' => $user->user_email,
+			);
+
+			WP_Mailer::register_email(
+				'new_user_admin',
+				'admin',
+				array(
+					/* translators: New user registration notification email subject. %s: Site title. */
+					'subject' => __( '[{{sitename}}] New User Registration' ),
+					'body'    => __(
+						'New user registration on your site {{sitename}}:
+
+Username: {{user_login}}
+
+Email: {{user_email}}'
+					),
+				)
+			);
+
+			/* translators: New user registration notification email subject. %s: Site title. */
+			$subject = sprintf( __( '[%s] New User Registration' ), $blogname );
+
+			$message = WP_Mailer::render( WP_Mailer::get_email( 'new_user_admin' )['body'], $email_data );
 
 			$wp_new_user_notification_email_admin = array(
 				'to'      => get_option( 'admin_email' ),
-				/* translators: New user registration notification email subject. %s: Site title. */
-				'subject' => __( '[%s] New User Registration' ),
+				'subject' => $subject,
 				'message' => $message,
 				'headers' => '',
 			);
 
-			/**
-			 * Filters the contents of the new user notification email sent to the site admin.
-			 *
-			 * @since 4.9.0
-			 *
-			 * @param array   $wp_new_user_notification_email_admin {
-			 *     Used to build wp_mail().
-			 *
-			 *     @type string $to      The intended recipient - site admin email address.
-			 *     @type string $subject The subject of the email.
-			 *     @type string $message The body of the email.
-			 *     @type string $headers The headers of the email.
-			 * }
-			 * @param WP_User $user     User object for new user.
-			 * @param string  $blogname The site title.
-			 */
+			/** This filter is documented in wp-includes/pluggable.php */
 			$wp_new_user_notification_email_admin = apply_filters( 'wp_new_user_notification_email_admin', $wp_new_user_notification_email_admin, $user, $blogname );
 
-			wp_mail(
-				$wp_new_user_notification_email_admin['to'],
-				wp_specialchars_decode( sprintf( $wp_new_user_notification_email_admin['subject'], $blogname ) ),
-				$wp_new_user_notification_email_admin['message'],
-				$wp_new_user_notification_email_admin['headers']
+			WP_Mailer::send(
+				'new_user_admin',
+				array(
+					'to'      => $wp_new_user_notification_email_admin['to'],
+					'headers' => $wp_new_user_notification_email_admin['headers'],
+				),
+				array_merge( $email_data, array(
+					'subject' => $wp_new_user_notification_email_admin['subject'],
+					'body'    => $wp_new_user_notification_email_admin['message'],
+				) )
 			);
 
 			if ( $switched_locale ) {
@@ -2370,52 +2382,55 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			return;
 		}
 
-		$switched_locale = switch_to_user_locale( $user_id );
+		$set_password_url = network_site_url( 'wp-login.php?login=' . rawurlencode( $user->user_login ) . "&key=$key&action=rp", 'login' );
 
-		/* translators: %s: User login. */
-		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
-		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
+		$email_data = array(
+			'sitename'         => $blogname,
+			'user_login'       => $user->user_login,
+			'set_password_url' => $set_password_url,
+		);
 
-		/*
-		 * Since some user login names end in a period, this could produce ambiguous URLs that
-		 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
-		 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
-		 *
-		 * @see https://core.trac.wordpress.org/tickets/42957
-		 */
-		$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user->user_login ) . "&key=$key&action=rp", 'login' ) . "\r\n";
+		WP_Mailer::register_email(
+			'new_user',
+			'user',
+			array(
+				/* translators: Login details notification email subject. %s: Site title. */
+				'subject' => __( '[{{sitename}}] Login Details' ),
+				'body'    => __(
+					'Username: {{user_login}}
+
+To set your password, visit the following address:
+
+{{set_password_url}}'
+				),
+			)
+		);
+
+		/* translators: Login details notification email subject. %s: Site title. */
+		$subject = sprintf( __( '[%s] Login Details' ), $blogname );
+
+		$message = WP_Mailer::render( WP_Mailer::get_email( 'new_user' )['body'], $email_data );
 
 		$wp_new_user_notification_email = array(
 			'to'      => $user->user_email,
-			/* translators: Login details notification email subject. %s: Site title. */
-			'subject' => __( '[%s] Login Details' ),
+			'subject' => $subject,
 			'message' => $message,
 			'headers' => '',
 		);
 
-		/**
-		 * Filters the contents of the new user notification email sent to the new user.
-		 *
-		 * @since 4.9.0
-		 *
-		 * @param array   $wp_new_user_notification_email {
-		 *     Used to build wp_mail().
-		 *
-		 *     @type string $to      The intended recipient - New user email address.
-		 *     @type string $subject The subject of the email.
-		 *     @type string $message The body of the email.
-		 *     @type string $headers The headers of the email.
-		 * }
-		 * @param WP_User $user     User object for new user.
-		 * @param string  $blogname The site title.
-		 */
+		/** This filter is documented in wp-includes/pluggable.php */
 		$wp_new_user_notification_email = apply_filters( 'wp_new_user_notification_email', $wp_new_user_notification_email, $user, $blogname );
 
-		wp_mail(
-			$wp_new_user_notification_email['to'],
-			wp_specialchars_decode( sprintf( $wp_new_user_notification_email['subject'], $blogname ) ),
-			$wp_new_user_notification_email['message'],
-			$wp_new_user_notification_email['headers']
+		WP_Mailer::send(
+			'new_user',
+			array(
+				'to'      => $wp_new_user_notification_email['to'],
+				'headers' => $wp_new_user_notification_email['headers'],
+			),
+			array_merge( $email_data, array(
+				'subject' => $wp_new_user_notification_email['subject'],
+				'body'    => $wp_new_user_notification_email['message'],
+			) )
 		);
 
 		if ( $switched_locale ) {

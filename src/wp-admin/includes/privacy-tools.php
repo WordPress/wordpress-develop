@@ -632,112 +632,52 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 		'siteurl'           => $site_url,
 	);
 
-	/* translators: Personal data export notification email subject. %s: Site title. */
-	$subject = sprintf( __( '[%s] Personal Data Export' ), $site_name );
+	$email_data = array(
+		'request'         => $request,
+		'expiration'      => $expiration,
+		'expiration_date' => $expiration_date,
+		'export_file_url' => $export_file_url,
+		'sitename'        => $site_name,
+		'siteurl'         => $site_url,
+	);
 
-	/**
-	 * Filters the subject of the email sent when an export request is completed.
-	 *
-	 * @since 5.3.0
-	 *
-	 * @param string $subject    The email subject.
-	 * @param string $sitename   The name of the site.
-	 * @param array  $email_data {
-	 *     Data relating to the account action email.
-	 *
-	 *     @type WP_User_Request $request           User request object.
-	 *     @type int             $expiration        The time in seconds until the export file expires.
-	 *     @type string          $expiration_date   The localized date and time when the export file expires.
-	 *     @type string          $message_recipient The address that the email will be sent to. Defaults
-	 *                                              to the value of `$request->email`, but can be changed
-	 *                                              by the `wp_privacy_personal_data_email_to` filter.
-	 *     @type string          $export_file_url   The export file URL.
-	 *     @type string          $sitename          The site name sending the mail.
-	 *     @type string          $siteurl           The site URL sending the mail.
-	 * }
-	 */
-	$subject = apply_filters( 'wp_privacy_personal_data_email_subject', $subject, $site_name, $email_data );
-
-	/* translators: Do not translate EXPIRATION, LINK, SITENAME, SITEURL: those are placeholders. */
-	$email_text = __(
-		'Howdy,
+	WP_Mailer::register_email(
+		'privacy_export',
+		'privacy',
+		array(
+			/* translators: Personal data export notification email subject. %s: Site title. */
+			'subject' => __( '[{{sitename}}] Personal Data Export' ),
+			/* translators: Do not translate {{expiration_date}}, {{export_file_url}}, {{sitename}}, {{siteurl}}: those are placeholders. */
+			'body'    => __(
+				'Howdy,
 
 Your request for an export of personal data has been completed. You may
 download your personal data by clicking on the link below. For privacy
-and security, we will automatically delete the file on ###EXPIRATION###,
+and security, we will automatically delete the file on {{expiration_date}},
 so please download it before then.
 
-###LINK###
+{{export_file_url}}
 
 Regards,
-All at ###SITENAME###
-###SITEURL###'
+All at {{sitename}}
+{{siteurl}}'
+			),
+		)
 	);
-
-	/**
-	 * Filters the text of the email sent with a personal data export file.
-	 *
-	 * The following strings have a special meaning and will get replaced dynamically:
-	 *
-	 *  - `###EXPIRATION###` The date when the URL will be automatically deleted.
-	 *  - `###LINK###`       URL of the personal data export file for the user.
-	 *  - `###SITENAME###`   The name of the site.
-	 *  - `###SITEURL###`    The URL to the site.
-	 *
-	 * @since 4.9.6
-	 * @since 5.3.0 Introduced the `$email_data` array.
-	 *
-	 * @param string $email_text Text in the email.
-	 * @param int    $request_id The request ID for this personal data export.
-	 * @param array  $email_data {
-	 *     Data relating to the account action email.
-	 *
-	 *     @type WP_User_Request $request           User request object.
-	 *     @type int             $expiration        The time in seconds until the export file expires.
-	 *     @type string          $expiration_date   The localized date and time when the export file expires.
-	 *     @type string          $message_recipient The address that the email will be sent to. Defaults
-	 *                                              to the value of `$request->email`, but can be changed
-	 *                                              by the `wp_privacy_personal_data_email_to` filter.
-	 *     @type string          $export_file_url   The export file URL.
-	 *     @type string          $sitename          The site name sending the mail.
-	 *     @type string          $siteurl           The site URL sending the mail.
-	 */
-	$content = apply_filters( 'wp_privacy_personal_data_email_content', $email_text, $request_id, $email_data );
-
-	$content = str_replace( '###EXPIRATION###', $expiration_date, $content );
-	$content = str_replace( '###LINK###', sanitize_url( $export_file_url ), $content );
-	$content = str_replace( '###EMAIL###', $request_email, $content );
-	$content = str_replace( '###SITENAME###', $site_name, $content );
-	$content = str_replace( '###SITEURL###', sanitize_url( $site_url ), $content );
 
 	$headers = '';
 
-	/**
-	 * Filters the headers of the email sent with a personal data export file.
-	 *
-	 * @since 5.4.0
-	 *
-	 * @param string|array $headers    The email headers.
-	 * @param string       $subject    The email subject.
-	 * @param string       $content    The email content.
-	 * @param int          $request_id The request ID.
-	 * @param array        $email_data {
-	 *     Data relating to the account action email.
-	 *
-	 *     @type WP_User_Request $request           User request object.
-	 *     @type int             $expiration        The time in seconds until the export file expires.
-	 *     @type string          $expiration_date   The localized date and time when the export file expires.
-	 *     @type string          $message_recipient The address that the email will be sent to. Defaults
-	 *                                              to the value of `$request->email`, but can be changed
-	 *                                              by the `wp_privacy_personal_data_email_to` filter.
-	 *     @type string          $export_file_url   The export file URL.
-	 *     @type string          $sitename          The site name sending the mail.
-	 *     @type string          $siteurl           The site URL sending the mail.
-	 * }
-	 */
-	$headers = apply_filters( 'wp_privacy_personal_data_email_headers', $headers, $subject, $content, $request_id, $email_data );
+	/** This filter is documented in wp-admin/includes/privacy-tools.php */
+	$headers = apply_filters( 'wp_privacy_personal_data_email_headers', $headers, '', '', $request_id, $email_data );
 
-	$mail_success = wp_mail( $request_email, $subject, $content, $headers );
+	$mail_success = WP_Mailer::send(
+		'privacy_export',
+		array(
+			'to'      => $request_email,
+			'headers' => $headers,
+		),
+		$email_data
+	);
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
