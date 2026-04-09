@@ -86,25 +86,19 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
-		$abilities = array_filter(
-			wp_get_abilities(),
-			static function ( $ability ) {
-				return $ability->get_meta_item( 'show_in_rest' );
-			}
+		$query_args = array(
+			'meta' => array( 'show_in_rest' => true ),
 		);
 
-		// Filter by ability category if specified.
-		$category = $request['category'];
-		if ( ! empty( $category ) ) {
-			$abilities = array_filter(
-				$abilities,
-				static function ( $ability ) use ( $category ) {
-					return $ability->get_category() === $category;
-				}
-			);
-			// Reset array keys after filtering.
-			$abilities = array_values( $abilities );
+		if ( ! empty( $request['category'] ) ) {
+			$query_args['category'] = $request['category'];
 		}
+
+		if ( ! empty( $request['namespace'] ) ) {
+			$query_args['namespace'] = $request['namespace'];
+		}
+
+		$abilities = wp_get_abilities( $query_args );
 
 		$page     = $request['page'];
 		$per_page = $request['per_page'];
@@ -432,8 +426,14 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'minimum'     => 1,
 				'maximum'     => 100,
 			),
-			'category' => array(
+			'category'  => array(
 				'description'       => __( 'Limit results to abilities in specific ability category.' ),
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_key',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+			'namespace' => array(
+				'description'       => __( 'Limit results to abilities in a specific namespace.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
