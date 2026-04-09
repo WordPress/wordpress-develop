@@ -623,13 +623,12 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 	$request_email = apply_filters( 'wp_privacy_personal_data_email_to', $request->email, $request );
 
 	$email_data = array(
-		'request'           => $request,
-		'expiration'        => $expiration,
-		'expiration_date'   => $expiration_date,
-		'message_recipient' => $request_email,
-		'export_file_url'   => $export_file_url,
-		'sitename'          => $site_name,
-		'siteurl'           => $site_url,
+		'request'         => $request,
+		'expiration'      => $expiration,
+		'expiration_date' => $expiration_date,
+		'export_file_url' => $export_file_url,
+		'sitename'        => $site_name,
+		'siteurl'         => $site_url,
 	);
 
 	$email_data = array(

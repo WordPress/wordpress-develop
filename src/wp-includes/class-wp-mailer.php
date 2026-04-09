@@ -88,9 +88,9 @@ class WP_Mailer {
 		$message = apply_filters( "wp_mailer_{$group}_message", $message, $email_id, $data );
 		$message = apply_filters( "wp_mailer_{$email_id}_message", $message, $email_id, $data );
 
-		$to          = isset( $args['to'] ) ? $args['to'] : '';
-		$headers     = isset( $args['headers'] ) ? $args['headers'] : '';
-		$attachments = isset( $args['attachments'] ) ? $args['attachments'] : array();
+		$to          = isset( $args['to'] ) ? $args[ 'to' ] : '';
+		$headers     = isset( $args['headers'] ) ? $args[ 'headers' ] : '';
+		$attachments = isset( $args['attachments'] ) ? $args[ 'attachments' ] : array();
 
 		/**
 		 * Filters the email headers before sending.
@@ -169,9 +169,9 @@ class WP_Mailer {
 	public static function render( $template, $data ) {
 		return preg_replace_callback(
 			'/{{(.*?)}}/',
-			function ( $matches ) use ( $data ) {
-				$key = trim( $matches[1] );
-				return isset( $data[ $key ] ) ? $data[ $key ] : $matches[0];
+			function( $matches ) use ( $data ) {
+				$key = trim( $matches[ 1 ] );
+				return isset( $data[ $key ] ) ? $data[ $key ] : $matches[ 0 ];
 			},
 			$template
 		);

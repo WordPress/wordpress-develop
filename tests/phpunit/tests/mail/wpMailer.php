@@ -141,7 +141,7 @@ class Tests_Mail_WPMailer extends WP_UnitTestCase {
 			'sitename'   => 'Site',
 			'user_login' => 'bob',
 			'user_email' => 'bob@example.com',
-		));
+		) );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertSame( '[Site] New User', $mailer->Subject );
@@ -158,7 +158,7 @@ class Tests_Mail_WPMailer extends WP_UnitTestCase {
 			'sitename'         => 'Site',
 			'user_login'       => 'bob',
 			'set_password_url' => 'http://example.com/set-pw',
-		));
+		) );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertSame( '[Site] Login Details', $mailer->Subject );

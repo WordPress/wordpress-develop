@@ -2333,7 +2333,7 @@ Email: {{user_email}}'
 			/* translators: New user registration notification email subject. %s: Site title. */
 			$subject = sprintf( __( '[%s] New User Registration' ), $blogname );
 
-			$message = WP_Mailer::render( WP_Mailer::get_email( 'new_user_admin' )['body'], $email_data );
+			$message = WP_Mailer::render( WP_Mailer::get_email( 'new_user_admin' )[ 'body' ], $email_data );
 
 			$wp_new_user_notification_email_admin = array(
 				'to'      => get_option( 'admin_email' ),
@@ -2348,13 +2348,16 @@ Email: {{user_email}}'
 			WP_Mailer::send(
 				'new_user_admin',
 				array(
-					'to'      => $wp_new_user_notification_email_admin['to'],
-					'headers' => $wp_new_user_notification_email_admin['headers'],
+					'to'      => $wp_new_user_notification_email_admin[ 'to' ],
+					'headers' => $wp_new_user_notification_email_admin[ 'headers' ],
 				),
-				array_merge( $email_data, array(
-					'subject' => $wp_new_user_notification_email_admin['subject'],
-					'body'    => $wp_new_user_notification_email_admin['message'],
-				) )
+				array_merge(
+					$email_data,
+					array(
+						'subject' => $wp_new_user_notification_email_admin[ 'subject' ],
+						'body'    => $wp_new_user_notification_email_admin[ 'message' ],
+					)
+				)
 			);
 
 			if ( $switched_locale ) {
@@ -2409,7 +2412,7 @@ To set your password, visit the following address:
 		/* translators: Login details notification email subject. %s: Site title. */
 		$subject = sprintf( __( '[%s] Login Details' ), $blogname );
 
-		$message = WP_Mailer::render( WP_Mailer::get_email( 'new_user' )['body'], $email_data );
+		$message = WP_Mailer::render( WP_Mailer::get_email( 'new_user' )[ 'body' ], $email_data );
 
 		$wp_new_user_notification_email = array(
 			'to'      => $user->user_email,
@@ -2424,13 +2427,16 @@ To set your password, visit the following address:
 		WP_Mailer::send(
 			'new_user',
 			array(
-				'to'      => $wp_new_user_notification_email['to'],
-				'headers' => $wp_new_user_notification_email['headers'],
+				'to'      => $wp_new_user_notification_email[ 'to' ],
+				'headers' => $wp_new_user_notification_email[ 'headers' ],
 			),
-			array_merge( $email_data, array(
-				'subject' => $wp_new_user_notification_email['subject'],
-				'body'    => $wp_new_user_notification_email['message'],
-			) )
+			array_merge(
+				$email_data,
+				array(
+					'subject' => $wp_new_user_notification_email[ 'subject' ],
+					'body'    => $wp_new_user_notification_email[ 'message' ],
+				)
+			)
 		);
 
 		if ( $switched_locale ) {

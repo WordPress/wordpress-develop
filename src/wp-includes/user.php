@@ -3440,14 +3440,17 @@ To reset your password, visit the following address:
 	$mail_success = WP_Mailer::send(
 		'retrieve_password',
 		array(
-			'to'      => $notification_email['to'],
-			'headers' => $notification_email['headers'],
+			'to'      => $notification_email[ 'to' ],
+			'headers' => $notification_email[ 'headers' ],
 		),
-		array_merge( $email_data, array(
-			// Overwrite subject and body if they were filtered.
-			'subject' => $notification_email['subject'],
-			'body'    => $notification_email['message'],
-		) )
+		array_merge(
+			$email_data,
+			array(
+				// Overwrite subject and body if they were filtered.
+				'subject' => $notification_email[ 'subject' ],
+				'body'    => $notification_email[ 'message' ],
+			)
+		)
 	);
 
 	if ( ! $mail_success ) {
