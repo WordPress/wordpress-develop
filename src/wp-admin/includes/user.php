@@ -226,14 +226,6 @@ function edit_user( $user_id = 0 ) {
 	do_action_ref_array( 'user_profile_update_errors', array( &$errors, $update, &$user ) );
 
 	if ( $errors->has_errors() ) {
-		if ( $update ) {
-			$updated_user_id = _edit_user_partial_update( $user, $errors );
-
-			if ( is_wp_error( $updated_user_id ) ) {
-				$errors->merge_from( $updated_user_id );
-			}
-		}
-
 		return $errors;
 	}
 
@@ -258,76 +250,16 @@ function edit_user( $user_id = 0 ) {
 }
 
 /**
- * Updates a user with the valid data from a failed profile submission.
- *
- * When an existing user update fails due to field-specific validation errors,
- * the remaining valid fields can still be saved so they are not lost on the
- * subsequent page load.
- *
- * @since 7.1.0
- * @access private
- *
- * @param stdClass $user   User data prepared for `wp_update_user()`.
- * @param WP_Error $errors Validation errors from `edit_user()`.
- * @return int|WP_Error User ID on success, WP_Error on failure, or 0 if no partial update was attempted.
- */
-function _edit_user_partial_update( $user, $errors ) {
-	$error_fields = _get_edit_user_error_fields( $errors );
-
-	if ( ! $error_fields ) {
-		return 0;
-	}
-
-	foreach ( $error_fields as $field ) {
-		$property = _get_edit_user_property( $field );
-
-		if ( property_exists( $user, $property ) ) {
-			unset( $user->$property );
-		}
-	}
-
-	if ( 1 === count( get_object_vars( $user ) ) ) {
-		return 0;
-	}
-
-	return wp_update_user( $user );
-}
-
-/**
- * Maps edit-user form fields to the properties stored by `wp_update_user()`.
- *
- * @since 7.1.0
- * @access private
- *
- * @param string $field Form field name.
- * @return string User property name.
- */
-function _get_edit_user_property( $field ) {
-	switch ( $field ) {
-		case 'email':
-			return 'user_email';
-		case 'url':
-			return 'user_url';
-		case 'pass1':
-		case 'pass2':
-			return 'user_pass';
-		default:
-			return $field;
-	}
-}
-
-/**
  * Gets the form fields responsible for a failed user update.
  *
- * Only errors that can be mapped back to a specific submitted field are
- * considered safe for partial saving. Any unknown error aborts the partial
- * update so the submission remains fully blocked.
+ * These fields are excluded when rebuilding the edit form from submitted data
+ * after a failed update.
  *
  * @since 7.1.0
  * @access private
  *
  * @param WP_Error $errors Validation errors from `edit_user()`.
- * @return string[] Array of field names that should be excluded from the save.
+ * @return string[] Array of field names that should not be repopulated.
  */
 function _get_edit_user_error_fields( $errors ) {
 	$error_fields = array();
@@ -363,6 +295,119 @@ function _get_edit_user_error_fields( $errors ) {
 	}
 
 	return array_keys( $error_fields );
+}
+
+/**
+ * Retrieves user data for the edit screen and overlays safe submitted values.
+ *
+ * When an existing user update fails validation, the edit and profile screens
+ * should preserve submitted values without writing them to the database. Fields
+ * that produced errors are left at their stored values, and password fields are
+ * never repopulated.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int      $user_id User ID.
+ * @param WP_Error $errors  Validation errors from `edit_user()`.
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function _get_user_to_edit_from_post( $user_id, $errors ) {
+	$user = get_user_to_edit( $user_id );
+	$is_profile_page = defined( 'IS_PROFILE_PAGE' ) && IS_PROFILE_PAGE;
+
+	if ( ! $user || ! is_wp_error( $errors ) || ! $errors->has_errors() ) {
+		return $user;
+	}
+
+	$error_fields = array_flip( _get_edit_user_error_fields( $errors ) );
+	$properties   = array(
+		'first_name'   => 'first_name',
+		'last_name'    => 'last_name',
+		'nickname'     => 'nickname',
+		'display_name' => 'display_name',
+		'email'        => 'user_email',
+		'url'          => 'user_url',
+		'description'  => 'description',
+		'locale'       => 'locale',
+		'admin_color'  => 'admin_color',
+	);
+
+	foreach ( $properties as $field => $property ) {
+		if ( isset( $error_fields[ $field ] ) || ! isset( $_POST[ $field ] ) ) {
+			continue;
+		}
+
+		$user->$property = wp_unslash( $_POST[ $field ] );
+	}
+
+	foreach ( wp_get_user_contact_methods( $user ) as $method => $label ) {
+		if ( isset( $error_fields[ $method ] ) || ! isset( $_POST[ $method ] ) ) {
+			continue;
+		}
+
+		$user->$method = wp_unslash( $_POST[ $method ] );
+	}
+
+	if ( ! isset( $error_fields['rich_editing'] ) ) {
+		$user->rich_editing = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
+	}
+
+	if ( ! isset( $error_fields['syntax_highlighting'] ) ) {
+		$user->syntax_highlighting = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
+	}
+
+	if ( ! isset( $error_fields['comment_shortcuts'] ) ) {
+		$user->comment_shortcuts = isset( $_POST['comment_shortcuts'] ) && 'true' === $_POST['comment_shortcuts'] ? 'true' : '';
+	}
+
+	if ( ! isset( $error_fields['admin_bar_front'] ) ) {
+		$user->show_admin_bar_front = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
+	}
+
+	if ( ! isset( $error_fields['use_ssl'] ) ) {
+		$user->use_ssl = ! empty( $_POST['use_ssl'] ) ? 1 : 0;
+	}
+
+	if ( ! isset( $error_fields['role'] )
+		&& ! $is_profile_page
+		&& ! is_network_admin()
+		&& isset( $_POST['role'] )
+		&& current_user_can( 'promote_user', $user_id )
+	) {
+		$role           = sanitize_text_field( wp_unslash( $_POST['role'] ) );
+		$editable_roles = get_editable_roles();
+
+		if ( '' === $role || ! empty( $editable_roles[ $role ] ) ) {
+			$user->roles = $role ? array( $role ) : array();
+		}
+	}
+
+	return $user;
+}
+
+/**
+ * Filters user options for the edit screen when repopulating submitted values.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed   $result  Value for the user's option.
+ * @param string  $option  Name of the option being retrieved.
+ * @param WP_User $user    WP_User object of the user whose option is being retrieved.
+ * @return mixed Filtered user option value.
+ */
+function _get_user_edit_form_posted_option( $result, $option, $user ) {
+	global $_wp_user_edit_posted_options;
+
+	if ( empty( $_wp_user_edit_posted_options['user_id'] )
+		|| (int) $_wp_user_edit_posted_options['user_id'] !== (int) $user->ID
+		|| ! isset( $_wp_user_edit_posted_options['options'][ $option ] )
+	) {
+		return $result;
+	}
+
+	return $_wp_user_edit_posted_options['options'][ $option ];
 }
 
 /**
