@@ -42,6 +42,14 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	protected static $pid3;
 
 	/**
+	 * The post ID of the fixture post used for slug search tests.
+	 *
+	 * @since 7.1.0
+	 * @var int $pid_slug
+	 */
+	protected static $pid_slug;
+
+	/**
 	 * Create posts fixtures.
 	 *
 	 * @param WP_UnitTest_Factory $factory The factory instance.
@@ -70,6 +78,16 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 				'post_title'   => 'baz title',
 				'post_excerpt' => 'baz bar excerpt',
 				'post_content' => 'baz bar foo content',
+			)
+		);
+
+		self::$pid_slug = $factory->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_title'   => 'Taco',
+				'post_name'    => 'burrito',
+				'post_content' => 'Enchilada',
+				'post_excerpt' => 'Torta',
 			)
 		);
 	}
@@ -353,6 +371,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 * Tests that search columns ignores non-supported search columns from the `post_search_columns` filter.
 	 *
 	 * @ticket 43867
+	 * @ticket 20044
 	 */
 	public function test_search_columns_should_not_be_filterable_with_non_supported_search_columns() {
 		add_filter( 'post_search_columns', array( $this, 'post_non_supported_search_column' ), 10, 3 );
@@ -363,7 +382,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringNotContainsString( 'post_name', $q->request, "SQL request shouldn't contain post_name string." );
+		$this->assertStringNotContainsString( 'post_author', $q->request, "SQL request shouldn't contain post_author string." );
 		$this->assertSameSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
@@ -376,7 +395,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 * @return string[] $search_columns Array of column names to be searched.
 	 */
 	public function post_non_supported_search_column( $search_columns, $search, $wp_query ) {
-		$search_columns = array( 'post_name' );
+		$search_columns = array( 'post_author' );
 		return $search_columns;
 	}
 
@@ -408,6 +427,68 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 */
 	public function post_non_existing_search_column( $search_columns, $search, $wp_query ) {
 		$search_columns = array( 'post_non_existing_column' );
+		return $search_columns;
+	}
+
+	/**
+	 * Tests that `post_name` is not searched by default.
+	 *
+	 * @ticket 20044
+	 */
+	public function test_s_should_not_search_post_name_by_default() {
+		$q = new WP_Query(
+			array(
+				's'      => 'burrito',
+				'fields' => 'ids',
+			)
+		);
+
+		$this->assertSame( array(), $q->posts );
+	}
+
+	/**
+	 * Tests that search supports the `post_name` search column via the `post_search_columns` filter.
+	 *
+	 * @ticket 20044
+	 */
+	public function test_s_should_support_post_name_search_column_via_filter() {
+		add_filter( 'post_search_columns', array( $this, 'filter_add_post_name_search_column' ) );
+		$q = new WP_Query(
+			array(
+				's'      => 'burrito',
+				'fields' => 'ids',
+			)
+		);
+		remove_filter( 'post_search_columns', array( $this, 'filter_add_post_name_search_column' ) );
+
+		$this->assertSame( array( self::$pid_slug ), $q->posts );
+	}
+
+	/**
+	 * Tests that search supports the `post_name` search column via the `search_columns` query var.
+	 *
+	 * @ticket 20044
+	 */
+	public function test_s_should_support_post_name_search_column_via_query_var() {
+		$q = new WP_Query(
+			array(
+				's'              => 'burrito',
+				'fields'         => 'ids',
+				'search_columns' => array( 'post_name' ),
+			)
+		);
+
+		$this->assertSame( array( self::$pid_slug ), $q->posts );
+	}
+
+	/**
+	 * Filter callback that adds `post_name` to the search columns.
+	 *
+	 * @param  string[] $search_columns Array of column names to be searched.
+	 * @return string[] $search_columns Array of column names to be searched.
+	 */
+	public function filter_add_post_name_search_column( $search_columns ) {
+		$search_columns[] = 'post_name';
 		return $search_columns;
 	}
 }
