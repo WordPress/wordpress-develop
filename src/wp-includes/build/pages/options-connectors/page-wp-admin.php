@@ -153,6 +153,8 @@ function wp_options_connectors_wp_admin_enqueue_scripts( $hook_suffix ) {
 		// 2. It initializes the boot module as an inline script.
 		wp_register_script( 'options-connectors-wp-admin-prerequisites', '', $asset['dependencies'], $asset['version'], true );
 
+		_wp_add_inline_route_content_script_translations( 'options-connectors-wp-admin-prerequisites', 'connectors-home' );
+
 		// Add inline script to initialize the app using initSinglePage (no menuItems)
 		wp_add_inline_script(
 			'options-connectors-wp-admin-prerequisites',

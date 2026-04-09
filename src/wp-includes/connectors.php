@@ -251,6 +251,13 @@ function _wp_connectors_init(): void {
  * @param WP_Connector_Registry $registry The connector registry instance.
  */
 function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $registry ): void {
+	// English source strings for built-in descriptions (used to avoid replacing translated defaults with duplicate English from provider metadata).
+	$default_ai_provider_description_i18n = array(
+		'anthropic' => 'Text generation with Claude.',
+		'google'    => 'Text and image generation with Gemini and Imagen.',
+		'openai'    => 'Text and image generation with GPT and Dall-E.',
+	);
+
 	// Built-in connectors.
 	$defaults = array(
 		'anthropic' => array(
@@ -324,7 +331,13 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 				$defaults[ $connector_id ]['name'] = $name;
 			}
 			if ( $description ) {
-				$defaults[ $connector_id ]['description'] = $description;
+				// Keep the translated default when metadata repeats the same English string.
+				if (
+					! isset( $default_ai_provider_description_i18n[ $connector_id ] ) ||
+					$description !== $default_ai_provider_description_i18n[ $connector_id ]
+				) {
+					$defaults[ $connector_id ]['description'] = $description;
+				}
 			}
 			if ( $logo_url ) {
 				$defaults[ $connector_id ]['logo_url'] = $logo_url;
@@ -690,4 +703,47 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 	$data['connectors'] = $connectors;
 	return $data;
 }
+
+/**
+ * Outputs wp.i18n locale data for a route content script module by inlining it on the
+ * page prerequisites script. Route content is loaded as an ES module, which is not
+ * registered in {@see WP_Scripts}, so {@see wp_set_script_translations()} cannot attach
+ * JSON translations to it without a companion script handle sharing the same source URL.
+ *
+ * @since 7.0.1
+ * @access private
+ *
+ * @param string $prerequisites_script_handle Registered script handle for the page prerequisites script.
+ * @param string $route_name                  Route directory name under `wp-includes/build/routes/`.
+ */
+function _wp_add_inline_route_content_script_translations( $prerequisites_script_handle, $route_name ) {
+	$asset_path = ABSPATH . WPINC . '/build/routes/' . $route_name . '/content.min.asset.php';
+	if ( ! file_exists( $asset_path ) ) {
+		return;
+	}
+
+	$content_asset      = require $asset_path;
+	$extension          = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
+	$translation_handle = 'wp-routes-' . str_replace( '/', '-', $route_name ) . '-content';
+	$content_src        = includes_url( 'build/routes/' . $route_name . '/content' . $extension );
+
+	wp_register_script(
+		$translation_handle,
+		$content_src,
+		array( 'wp-i18n' ),
+		$content_asset['version'] ?? false,
+		true
+	);
+	wp_set_script_translations( $translation_handle, 'default' );
+
+	$translations = wp_scripts()->print_translations( $translation_handle, false );
+	wp_deregister_script( $translation_handle );
+
+	if ( ! $translations ) {
+		return;
+	}
+
+	wp_add_inline_script( $prerequisites_script_handle, $translations, 'before' );
+}
+
 add_filter( 'script_module_data_options-connectors-wp-admin', '_wp_connectors_get_connector_script_module_data' );

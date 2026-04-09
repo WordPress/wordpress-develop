@@ -159,6 +159,8 @@ function wp_options_connectors_render_page() {
 		// 2. It initializes the boot module as an inline script.
 		wp_register_script( 'options-connectors-prerequisites', '', $asset['dependencies'], $asset['version'], true );
 
+		_wp_add_inline_route_content_script_translations( 'options-connectors-prerequisites', 'connectors-home' );
+
 		// Add inline script to initialize the app
 		$init_modules = [];
 		wp_add_inline_script(
