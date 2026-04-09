@@ -65,8 +65,7 @@ final class WP_Block_Type_Registry {
 		if ( preg_match( '/[A-Z]+/', $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				/* translators: %s: Block name. */
-				sprintf( __( 'Block type names must not contain uppercase characters. "%s" was given.' ), $name ),
+				sprintf( __( 'Block type names must not contain uppercase characters. "%s" was given.' ), esc_html( $name ) ),
 				'5.0.0'
 			);
 			return false;
