@@ -1015,6 +1015,7 @@ final class WP_Post_Type {
 			'item_trashed'             => array( __( 'Post trashed.' ), __( 'Page trashed.' ) ),
 			'item_scheduled'           => array( __( 'Post scheduled.' ), __( 'Page scheduled.' ) ),
 			'item_updated'             => array( __( 'Post updated.' ), __( 'Page updated.' ) ),
+			'item_draft_saved'         => array( __( 'Draft saved.' ), __( 'Draft saved.' ) ),
 			'item_link'                => array(
 				_x( 'Post Link', 'navigation link block title' ),
 				_x( 'Page Link', 'navigation link block title' ),
