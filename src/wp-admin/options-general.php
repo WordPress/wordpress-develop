@@ -576,7 +576,7 @@ foreach ( $time_formats as $format ) {
 		/* translators: Hidden accessibility text. */
 		__( '(opens in a new tab)' )
 	);
-?>
+	?>
 	</fieldset>
 </td>
 </tr>
