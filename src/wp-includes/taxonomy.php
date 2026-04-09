@@ -4072,7 +4072,6 @@ function _pad_term_counts( &$terms, $taxonomy ) {
 			array_merge( array_keys( $term_ids ), $object_types )
 		)
 	);
-	
 	foreach ( $results as $row ) {
 		$id = $term_ids[ $row->term_taxonomy_id ];
 
