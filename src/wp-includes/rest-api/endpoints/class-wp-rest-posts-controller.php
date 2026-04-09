@@ -570,7 +570,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Adds a `Last-Modified` response header based on the post modified time (GMT).
+	 * Adds a `Last-Modified` response header based on the post modified time (GMT). (#47676)
 	 *
 	 * Enables clients to send `If-Unmodified-Since` on subsequent write requests.
 	 *
