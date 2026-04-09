@@ -226,6 +226,14 @@ function edit_user( $user_id = 0 ) {
 	do_action_ref_array( 'user_profile_update_errors', array( &$errors, $update, &$user ) );
 
 	if ( $errors->has_errors() ) {
+		if ( $update ) {
+			$updated_user_id = _edit_user_partial_update( $user, $errors );
+
+			if ( is_wp_error( $updated_user_id ) ) {
+				$errors->merge_from( $updated_user_id );
+			}
+		}
+
 		return $errors;
 	}
 
@@ -247,6 +255,114 @@ function edit_user( $user_id = 0 ) {
 		do_action( 'edit_user_created_user', $user_id, $notify );
 	}
 	return $user_id;
+}
+
+/**
+ * Updates a user with the valid data from a failed profile submission.
+ *
+ * When an existing user update fails due to field-specific validation errors,
+ * the remaining valid fields can still be saved so they are not lost on the
+ * subsequent page load.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param stdClass $user   User data prepared for `wp_update_user()`.
+ * @param WP_Error $errors Validation errors from `edit_user()`.
+ * @return int|WP_Error User ID on success, WP_Error on failure, or 0 if no partial update was attempted.
+ */
+function _edit_user_partial_update( $user, $errors ) {
+	$error_fields = _get_edit_user_error_fields( $errors );
+
+	if ( ! $error_fields ) {
+		return 0;
+	}
+
+	foreach ( $error_fields as $field ) {
+		$property = _get_edit_user_property( $field );
+
+		if ( property_exists( $user, $property ) ) {
+			unset( $user->$property );
+		}
+	}
+
+	if ( 1 === count( get_object_vars( $user ) ) ) {
+		return 0;
+	}
+
+	return wp_update_user( $user );
+}
+
+/**
+ * Maps edit-user form fields to the properties stored by `wp_update_user()`.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $field Form field name.
+ * @return string User property name.
+ */
+function _get_edit_user_property( $field ) {
+	switch ( $field ) {
+		case 'email':
+			return 'user_email';
+		case 'url':
+			return 'user_url';
+		case 'pass1':
+		case 'pass2':
+			return 'user_pass';
+		default:
+			return $field;
+	}
+}
+
+/**
+ * Gets the form fields responsible for a failed user update.
+ *
+ * Only errors that can be mapped back to a specific submitted field are
+ * considered safe for partial saving. Any unknown error aborts the partial
+ * update so the submission remains fully blocked.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Error $errors Validation errors from `edit_user()`.
+ * @return string[] Array of field names that should be excluded from the save.
+ */
+function _get_edit_user_error_fields( $errors ) {
+	$error_fields = array();
+
+	foreach ( $errors->get_error_codes() as $code ) {
+		$mapped_fields = array();
+
+		foreach ( $errors->get_all_error_data( $code ) as $data ) {
+			if ( is_array( $data ) && ! empty( $data['form-field'] ) ) {
+				$mapped_fields[] = $data['form-field'];
+			}
+		}
+
+		if ( empty( $mapped_fields ) ) {
+			switch ( $code ) {
+				case 'invalid_username':
+				case 'user_login':
+					$mapped_fields[] = 'user_login';
+					break;
+				case 'nickname':
+					$mapped_fields[] = 'nickname';
+					break;
+			}
+		}
+
+		if ( empty( $mapped_fields ) ) {
+			return array();
+		}
+
+		foreach ( $mapped_fields as $field ) {
+			$error_fields[ $field ] = true;
+		}
+	}
+
+	return array_keys( $error_fields );
 }
 
 /**
