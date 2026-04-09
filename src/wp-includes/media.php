@@ -3468,9 +3468,10 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 
 	$primary = false;
 	if ( ! empty( $atts['src'] ) ) {
-		$type = wp_check_filetype( $atts['src'], wp_get_mime_types() );
+		$type          = wp_check_filetype( $atts['src'], wp_get_mime_types() );
+		$has_extension = (bool) pathinfo( wp_parse_url( $atts['src'], PHP_URL_PATH ), PATHINFO_EXTENSION );
 
-		if ( ! in_array( strtolower( $type['ext'] ), $default_types, true ) ) {
+		if ( $has_extension && ! in_array( strtolower( $type['ext'] ), $default_types, true ) ) {
 			return sprintf( '<a class="wp-embedded-audio" href="%s">%s</a>', esc_url( $atts['src'] ), esc_html( $atts['src'] ) );
 		}
 
@@ -3567,7 +3568,6 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 
 	$html    = sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
 	$fileurl = '';
-	$source  = '<source type="%s" src="%s" />';
 
 	foreach ( $default_types as $fallback ) {
 		if ( ! empty( $atts[ $fallback ] ) ) {
@@ -3575,9 +3575,14 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 				$fileurl = $atts[ $fallback ];
 			}
 
-			$type  = wp_check_filetype( $atts[ $fallback ], wp_get_mime_types() );
-			$url   = add_query_arg( '_', $instance, $atts[ $fallback ] );
-			$html .= sprintf( $source, $type['type'], esc_url( $url ) );
+			$type = wp_check_filetype( $atts[ $fallback ], wp_get_mime_types() );
+			$url  = add_query_arg( '_', $instance, $atts[ $fallback ] );
+
+			if ( ! empty( $type['type'] ) ) {
+				$html .= sprintf( '<source type="%s" src="%s" />', $type['type'], esc_url( $url ) );
+			} else {
+				$html .= sprintf( '<source src="%s" />', esc_url( $url ) );
+			}
 		}
 	}
 
@@ -3723,9 +3728,10 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		$is_youtube = ( preg_match( $yt_pattern, $atts['src'] ) );
 
 		if ( ! $is_youtube && ! $is_vimeo ) {
-			$type = wp_check_filetype( $atts['src'], wp_get_mime_types() );
+			$type          = wp_check_filetype( $atts['src'], wp_get_mime_types() );
+			$has_extension = (bool) pathinfo( wp_parse_url( $atts['src'], PHP_URL_PATH ), PATHINFO_EXTENSION );
 
-			if ( ! in_array( strtolower( $type['ext'] ), $default_types, true ) ) {
+			if ( $has_extension && ! in_array( strtolower( $type['ext'] ), $default_types, true ) ) {
 				return sprintf( '<a class="wp-embedded-video" href="%s">%s</a>', esc_url( $atts['src'] ), esc_html( $atts['src'] ) );
 			}
 		}
@@ -3845,7 +3851,6 @@ function wp_video_shortcode( $attr, $content = '' ) {
 
 	$html    = sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
 	$fileurl = '';
-	$source  = '<source type="%s" src="%s" />';
 
 	foreach ( $default_types as $fallback ) {
 		if ( ! empty( $atts[ $fallback ] ) ) {
@@ -3859,8 +3864,13 @@ function wp_video_shortcode( $attr, $content = '' ) {
 			} else {
 				$type = wp_check_filetype( $atts[ $fallback ], wp_get_mime_types() );
 			}
-			$url   = add_query_arg( '_', $instance, $atts[ $fallback ] );
-			$html .= sprintf( $source, $type['type'], esc_url( $url ) );
+			$url = add_query_arg( '_', $instance, $atts[ $fallback ] );
+
+			if ( ! empty( $type['type'] ) ) {
+				$html .= sprintf( '<source type="%s" src="%s" />', $type['type'], esc_url( $url ) );
+			} else {
+				$html .= sprintf( '<source src="%s" />', esc_url( $url ) );
+			}
 		}
 	}
 
