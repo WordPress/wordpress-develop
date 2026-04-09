@@ -111,7 +111,12 @@ class Tests_Admin_IncludesUpgrade extends WP_UnitTestCase {
 			return;
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( 'DROP TABLE IF EXISTS ' . implode( ', ', $tables ) );
+		$wpdb->query(
+			$wpdb->prepare(
+				'DROP TABLE IF EXISTS ' . implode( ', ', array_fill( 0, count( $tables ), '%i' ) ),
+				$tables
+			)
+		);
+
 	}
 }
