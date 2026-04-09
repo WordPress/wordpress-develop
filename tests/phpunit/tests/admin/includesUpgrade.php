@@ -117,6 +117,5 @@ class Tests_Admin_IncludesUpgrade extends WP_UnitTestCase {
 				$tables
 			)
 		);
-
 	}
 }
