@@ -589,13 +589,13 @@ function get_weekstartend( $mysqlstring, $start_of_week = '' ) {
 	$my = substr( $mysqlstring, 0, 4 );
 
 	// MySQL string month.
-	$mm = substr( $mysqlstring, 8, 2 );
+	$mm = substr( $mysqlstring, 5, 2 );
 
 	// MySQL string day.
-	$md = substr( $mysqlstring, 5, 2 );
+	$md = substr( $mysqlstring, 8, 2 );
 
 	// The timestamp for MySQL string day.
-	$day = mktime( 0, 0, 0, $md, $mm, $my );
+	$day = mktime( 0, 0, 0, $mm, $md, $my );
 
 	// The day of the week from the timestamp.
 	$weekday = (int) gmdate( 'w', $day );
