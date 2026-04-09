@@ -3170,7 +3170,7 @@ function generic_ping( $post_id = 0 ) {
  * notifications, as well as incoming pingbacks and trackbacks) are disabled
  * for non-production environments ('local', 'development', 'staging').
  *
- * @since 6.9.0
+ * @since 7.1.0
  *
  * @return bool True if pings should be disabled, false otherwise.
  */
@@ -3184,7 +3184,7 @@ function wp_should_disable_pings_for_environment() {
 	 * Returning false re-enables pings in non-production environments.
 	 * Returning true disables pings even in production.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
 	 *
 	 * @param bool   $should_disable  Whether pings should be disabled. Default true
 	 *                                for non-production environments, false for production.
@@ -3200,7 +3200,7 @@ function wp_should_disable_pings_for_environment() {
  * Hooked to `do_all_pings` at priority 1 so it runs before the default
  * priority 10 callbacks. Does not remove `do_all_enclosures`.
  *
- * @since 6.9.0
+ * @since 7.1.0
  * @access private
  */
 function wp_disable_outgoing_pings_for_environment() {
@@ -3218,22 +3218,19 @@ function wp_disable_outgoing_pings_for_environment() {
  * trackback is processed. Calls `trackback_response()` which sends an XML error
  * response and terminates the request.
  *
- * @since 6.9.0
+ * @since 7.1.0
  * @access private
- *
- * @param int    $post_id       Post ID related to the trackback.
- * @param string $trackback_url Trackback URL.
  */
-function wp_disable_trackback_for_environment( $post_id, $trackback_url ) {
+function wp_disable_trackback_for_environment() {
 	if ( wp_should_disable_pings_for_environment() ) {
-		trackback_response( 1, __( 'Sorry, trackbacks are closed for this item.' ) );
+		trackback_response( 1, __( 'Trackbacks are disabled in non-production environments.' ) );
 	}
 }
 
 /**
  * Removes the pingback XML-RPC method in non-production environments.
  *
- * @since 6.9.0
+ * @since 7.1.0
  * @access private
  *
  * @param string[] $methods An array of XML-RPC methods, keyed by their methodName.

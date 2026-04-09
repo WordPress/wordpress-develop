@@ -174,15 +174,15 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 
 		wp_disable_outgoing_pings_for_environment();
 
-		$this->assertSame( 10, has_action( 'do_all_pings', 'do_all_pingbacks' ) );
-		$this->assertSame( 10, has_action( 'do_all_pings', 'do_all_trackbacks' ) );
-		$this->assertSame( 10, has_action( 'do_all_pings', 'generic_ping' ) );
+		$this->assertSame( 10, has_action( 'do_all_pings', 'do_all_pingbacks' ), 'do_all_pingbacks should still be hooked.' );
+		$this->assertSame( 10, has_action( 'do_all_pings', 'do_all_trackbacks' ), 'do_all_trackbacks should still be hooked.' );
+		$this->assertSame( 10, has_action( 'do_all_pings', 'generic_ping' ), 'generic_ping should still be hooked.' );
 	}
 
 	/**
 	 * @ticket 64837
 	 */
-	public function test_trackback_hook_registered_in_non_production() {
+	public function test_trackback_hook_is_registered() {
 		$this->assertSame( 10, has_action( 'pre_trackback_post', 'wp_disable_trackback_for_environment' ) );
 	}
 
