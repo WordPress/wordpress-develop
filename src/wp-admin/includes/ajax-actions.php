@@ -805,9 +805,10 @@ function wp_ajax_delete_tag() {
 	}
 
 	if ( wp_delete_term( $tag_id, $taxonomy ) ) {
-		wp_die( 1 );
+		$total = wp_count_terms( array( 'taxonomy' => $taxonomy ) );
+		wp_send_json_success( array( 'total' => (int) $total ) );
 	} else {
-		wp_die( 0 );
+		wp_send_json_error();
 	}
 }
 
@@ -1153,6 +1154,8 @@ function wp_ajax_add_tag() {
 		$message = $messages['_item'][1];
 	}
 
+	$total = wp_count_terms( array( 'taxonomy' => $taxonomy ) );
+
 	$response->add(
 		array(
 			'what'         => 'taxonomy',
@@ -1161,6 +1164,7 @@ function wp_ajax_add_tag() {
 				'parents'   => $parents,
 				'noparents' => $no_parents,
 				'notice'    => $message,
+				'total'     => (int) $total,
 			),
 		)
 	);

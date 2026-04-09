@@ -140,6 +140,41 @@ class Tests_Ajax_wpAjaxAddTag extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the add tag AJAX response includes the total term count.
+	 *
+	 * @ticket 50082
+	 *
+	 * @covers ::wp_ajax_add_tag
+	 * @covers ::wp_count_terms
+	 */
+	public function test_add_tag_returns_total_count() {
+		$this->_setRole( 'administrator' );
+
+		wp_insert_term( 'existing-tag', 'post_tag' );
+
+		$_POST = array(
+			'taxonomy'         => 'post_tag',
+			'post_type'        => 'post',
+			'screen'           => 'edit-post_tag',
+			'action'           => 'add-tag',
+			'tag-name'         => 'new-tag',
+			'_wpnonce_add-tag' => wp_create_nonce( 'add-tag' ),
+		);
+
+		try {
+			$this->_handleAjax( 'add-tag' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$xml   = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
+		$total = (int) $xml->response->taxonomy->supplemental->total;
+
+		// Two terms now exist: 'existing-tag' and 'new-tag'.
+		$this->assertSame( 2, $total );
+	}
+
+	/**
 	 * Helper method to get the taxonomy's response or error.
 	 *
 	 * @since 5.9.0
