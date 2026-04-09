@@ -3004,7 +3004,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
  * @since 2.5.0
  *
  * @param string $ext The extension to search.
- * @return string|void The file type, example: audio, video, document, spreadsheet, etc.
+ * @return string|null The file type, example: audio, video, document, spreadsheet, etc.
  */
 function wp_ext2type( $ext ) {
 	$ext = strtolower( $ext );
@@ -3015,6 +3015,7 @@ function wp_ext2type( $ext ) {
 			return $type;
 		}
 	}
+	return null;
 }
 
 /**
@@ -3774,9 +3775,9 @@ function wp_nonce_ays( $action ) {
  *                                  is a WP_Error.
  *     @type bool   $exit           Whether to exit the process after completion. Default true.
  * }
- * @return never|void Returns void if `$args['exit']` is false, otherwise exits.
+ * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
  *
- * @phpstan-return ( $args['exit'] is false ? void : never )
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
 	global $wp_query;
@@ -5105,7 +5106,7 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 		}
 
 		if ( is_string( $path_element )
-			|| is_integer( $path_element )
+			|| is_int( $path_element )
 			|| null === $path_element
 		) {
 			/*
@@ -5182,7 +5183,7 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
 
 	foreach ( $path as $path_element ) {
 		if (
-			! is_string( $path_element ) && ! is_integer( $path_element ) &&
+			! is_string( $path_element ) && ! is_int( $path_element ) &&
 			! is_null( $path_element )
 		) {
 			return;
@@ -5511,6 +5512,8 @@ function wp_ob_end_flush_all() {
  * @since 2.3.2
  *
  * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @return never
  */
 function dead_db() {
 	global $wpdb;
@@ -8578,7 +8581,7 @@ function wp_get_default_update_php_url() {
  * @param string $after   Markup to output after the annotation. Default `</p>`.
  * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
  *
- * @return string|void
+ * @return string|null Update PHP page annotation if available and $display is false, null otherwise.
  */
 function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
 	$annotation = wp_get_update_php_annotation();
@@ -8590,6 +8593,7 @@ function wp_update_php_annotation( $before = '<p class="description">', $after =
 			return $before . $annotation . $after;
 		}
 	}
+	return null;
 }
 
 /**
