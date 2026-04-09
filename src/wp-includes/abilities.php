@@ -112,7 +112,8 @@ function wp_register_core_abilities(): void {
 				$result = array();
 				foreach ( $requested_fields as $field ) {
 					if ( 'language' === $field ) {
-						$result[ $field ] = str_replace( '_', '-', get_option( 'WPLANG' ) ?: 'en_US' );
+						$wplang = get_option( 'WPLANG' );
+						$result[ $field ] = str_replace( '_', '-', $wplang ? $wplang : 'en_US' );
 					} else {
 						$result[ $field ] = get_bloginfo( $field );
 					}
