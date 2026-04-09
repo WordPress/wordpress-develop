@@ -3201,13 +3201,12 @@ function wp_should_disable_pings_for_environment() {
  * priority 10 callbacks. Does not remove `do_all_enclosures`.
  *
  * @since 7.1.0
- * @access private
  */
-function wp_disable_outgoing_pings_for_environment() {
+function wp_maybe_disable_outgoing_pings_for_environment() {
 	if ( wp_should_disable_pings_for_environment() ) {
-		remove_action( 'do_all_pings', 'do_all_pingbacks', 10 );
-		remove_action( 'do_all_pings', 'do_all_trackbacks', 10 );
-		remove_action( 'do_all_pings', 'generic_ping', 10 );
+		remove_action( 'do_all_pings', 'do_all_pingbacks' );
+		remove_action( 'do_all_pings', 'do_all_trackbacks' );
+		remove_action( 'do_all_pings', 'generic_ping' );
 	}
 }
 
@@ -3219,9 +3218,8 @@ function wp_disable_outgoing_pings_for_environment() {
  * response and terminates the request.
  *
  * @since 7.1.0
- * @access private
  */
-function wp_disable_trackback_for_environment() {
+function wp_maybe_disable_trackback_for_environment() {
 	if ( wp_should_disable_pings_for_environment() ) {
 		trackback_response( 1, __( 'Trackbacks are disabled in non-production environments.' ) );
 	}
@@ -3231,12 +3229,11 @@ function wp_disable_trackback_for_environment() {
  * Removes the pingback XML-RPC method in non-production environments.
  *
  * @since 7.1.0
- * @access private
  *
  * @param string[] $methods An array of XML-RPC methods, keyed by their methodName.
  * @return string[] Modified array of XML-RPC methods.
  */
-function wp_disable_xmlrpc_pingback_for_environment( $methods ) {
+function wp_maybe_disable_xmlrpc_pingback_for_environment( $methods ) {
 	if ( wp_should_disable_pings_for_environment() ) {
 		unset( $methods['pingback.ping'] );
 	}

@@ -5,9 +5,9 @@
  *
  * @group comment
  * @covers ::wp_should_disable_pings_for_environment
- * @covers ::wp_disable_outgoing_pings_for_environment
- * @covers ::wp_disable_trackback_for_environment
- * @covers ::wp_disable_xmlrpc_pingback_for_environment
+ * @covers ::wp_maybe_disable_outgoing_pings_for_environment
+ * @covers ::wp_maybe_disable_trackback_for_environment
+ * @covers ::wp_maybe_disable_xmlrpc_pingback_for_environment
  *
  * @ticket 64837
  */
@@ -118,7 +118,7 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 		add_action( 'do_all_pings', 'do_all_pingbacks', 10, 0 );
 
 		// Fire the priority-1 callback.
-		wp_disable_outgoing_pings_for_environment();
+		wp_maybe_disable_outgoing_pings_for_environment();
 
 		$this->assertFalse( has_action( 'do_all_pings', 'do_all_pingbacks' ) );
 	}
@@ -131,7 +131,7 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 
 		add_action( 'do_all_pings', 'do_all_trackbacks', 10, 0 );
 
-		wp_disable_outgoing_pings_for_environment();
+		wp_maybe_disable_outgoing_pings_for_environment();
 
 		$this->assertFalse( has_action( 'do_all_pings', 'do_all_trackbacks' ) );
 	}
@@ -144,7 +144,7 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 
 		add_action( 'do_all_pings', 'generic_ping', 10, 0 );
 
-		wp_disable_outgoing_pings_for_environment();
+		wp_maybe_disable_outgoing_pings_for_environment();
 
 		$this->assertFalse( has_action( 'do_all_pings', 'generic_ping' ) );
 	}
@@ -157,9 +157,9 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 
 		add_action( 'do_all_pings', 'do_all_enclosures', 10, 0 );
 
-		wp_disable_outgoing_pings_for_environment();
+		wp_maybe_disable_outgoing_pings_for_environment();
 
-		$this->assertSame( 10, has_action( 'do_all_pings', 'do_all_enclosures' ) );
+		$this->assertTrue( has_action( 'do_all_pings', 'do_all_enclosures', 10 ) );
 	}
 
 	/**
@@ -172,18 +172,18 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 		add_action( 'do_all_pings', 'do_all_trackbacks', 10, 0 );
 		add_action( 'do_all_pings', 'generic_ping', 10, 0 );
 
-		wp_disable_outgoing_pings_for_environment();
+		wp_maybe_disable_outgoing_pings_for_environment();
 
-		$this->assertSame( 10, has_action( 'do_all_pings', 'do_all_pingbacks' ), 'do_all_pingbacks should still be hooked.' );
-		$this->assertSame( 10, has_action( 'do_all_pings', 'do_all_trackbacks' ), 'do_all_trackbacks should still be hooked.' );
-		$this->assertSame( 10, has_action( 'do_all_pings', 'generic_ping' ), 'generic_ping should still be hooked.' );
+		$this->assertTrue( has_action( 'do_all_pings', 'do_all_pingbacks', 10 ), 'do_all_pingbacks should still be hooked at priority 10.' );
+		$this->assertTrue( has_action( 'do_all_pings', 'do_all_trackbacks', 10 ), 'do_all_trackbacks should still be hooked at priority 10.' );
+		$this->assertTrue( has_action( 'do_all_pings', 'generic_ping', 10 ), 'generic_ping should still be hooked at priority 10.' );
 	}
 
 	/**
 	 * @ticket 64837
 	 */
 	public function test_trackback_hook_is_registered() {
-		$this->assertSame( 10, has_action( 'pre_trackback_post', 'wp_disable_trackback_for_environment' ) );
+		$this->assertTrue( has_action( 'pre_trackback_post', 'wp_maybe_disable_trackback_for_environment', 10 ) );
 	}
 
 	/**
@@ -211,7 +211,7 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 			'wp.getUsersBlogs'                 => 'this:wp_getUsersBlogs',
 		);
 
-		$filtered = wp_disable_xmlrpc_pingback_for_environment( $methods );
+		$filtered = wp_maybe_disable_xmlrpc_pingback_for_environment( $methods );
 
 		$this->assertArrayNotHasKey( 'pingback.ping', $filtered );
 	}
@@ -227,7 +227,7 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 			'wp.getUsersBlogs' => 'this:wp_getUsersBlogs',
 		);
 
-		$filtered = wp_disable_xmlrpc_pingback_for_environment( $methods );
+		$filtered = wp_maybe_disable_xmlrpc_pingback_for_environment( $methods );
 
 		$this->assertArrayHasKey( 'pingback.ping', $filtered );
 	}
@@ -245,7 +245,7 @@ class Tests_Comment_DisablePingsForEnvironment extends WP_UnitTestCase {
 			'wp.getPost'                       => 'this:wp_getPost',
 		);
 
-		$filtered = wp_disable_xmlrpc_pingback_for_environment( $methods );
+		$filtered = wp_maybe_disable_xmlrpc_pingback_for_environment( $methods );
 
 		$this->assertArrayHasKey( 'pingback.extensions.getPingbacks', $filtered );
 		$this->assertArrayHasKey( 'wp.getUsersBlogs', $filtered );
