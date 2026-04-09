@@ -76,7 +76,7 @@ final class WP_Block_Type_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Block name. */
-				sprintf( __( 'Block type names must contain a namespace prefix. Example: my-plugin/my-custom-block-type. "%s" was given.' ), $name ),
+				sprintf( __( 'Block type names must contain a namespace prefix. Example: my-plugin/my-custom-block-type. "%s" was given.' ), esc_html( $name ) ),
 				'5.0.0'
 			);
 			return false;
