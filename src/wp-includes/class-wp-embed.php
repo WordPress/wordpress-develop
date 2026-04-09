@@ -42,9 +42,12 @@ class WP_Embed {
 		add_filter( 'widget_text_content', array( $this, 'autoembed' ), 8 );
 		add_filter( 'widget_block_content', array( $this, 'autoembed' ), 8 );
 
-		// After a post is saved, cache oEmbed items via Ajax.
+		// After a post is saved, cache oEmbed items items via Ajax.
 		add_action( 'edit_form_advanced', array( $this, 'maybe_run_ajax_cache' ) );
 		add_action( 'edit_page_form', array( $this, 'maybe_run_ajax_cache' ) );
+
+		// After a post is saved, cache oEmbed items directly. See #63667
+		add_action( 'save_post', array( $this, 'cache_oembed' ) );
 	}
 
 	/**
@@ -418,6 +421,8 @@ class WP_Embed {
 		if ( empty( $post->ID ) || ! in_array( $post->post_type, $cache_oembed_types, true ) ) {
 			return;
 		}
+
+		$this->delete_oembed_caches( $post_id );
 
 		// Trigger a caching.
 		if ( ! empty( $post->post_content ) ) {

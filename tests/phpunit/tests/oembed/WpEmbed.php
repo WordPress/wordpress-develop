@@ -160,7 +160,13 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertNotSame( $post_id, $this->wp_embed->post_ID );
 	}
 
-	public function test_cache_oembed_for_post() {
+
+	/*
+	 * Test that when an embed is removed from the post content, the oembed cache is removed.
+	 *
+	 * @ticket 63667
+	 */
+	public function test_cache_oembed_for_post_and_update_removing_embed() {
 		$url           = 'https://example.com/';
 		$expected      = '<b>Embedded content</b>';
 		$key_suffix    = md5( $url . serialize( wp_embed_defaults( $url ) ) );
@@ -176,6 +182,18 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( $post_id, $this->wp_embed->post_ID );
 		$this->assertSame( $expected, get_post_meta( $post_id, $cachekey, true ) );
 		$this->assertNotEmpty( get_post_meta( $post_id, $cachekey_time, true ) );
+
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => 'Removing Oembed.',
+			)
+		);
+
+		$this->wp_embed->cache_oembed( $post_id );
+
+		$this->assertEmpty( get_post_meta( $post_id, $cachekey, true ) );
+		$this->assertEmpty( get_post_meta( $post_id, $cachekey_time, true ) );
 	}
 
 	public function test_shortcode_should_get_cached_data_from_post_meta_for_known_post() {
