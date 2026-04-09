@@ -81,10 +81,11 @@ function wp_ajax_nopriv_heartbeat() {
  * @since 3.1.0
  */
 function wp_ajax_fetch_list() {
-	$list_class = $_GET['list_args']['class'];
+	$list_class = isset( $_GET['list_args']['class'] ) ? sanitize_key( $_GET['list_args']['class'] ) : '';
+	$screen_id  = isset( $_GET['list_args']['screen']['id'] ) ? sanitize_key( $_GET['list_args']['screen']['id'] ) : '';
 	check_ajax_referer( "fetch-list-$list_class", '_ajax_fetch_list_nonce' );
 
-	$wp_list_table = _get_list_table( $list_class, array( 'screen' => $_GET['list_args']['screen']['id'] ) );
+	$wp_list_table = _get_list_table( $list_class, array( 'screen' => $screen_id ) );
 	if ( ! $wp_list_table ) {
 		wp_die( 0 );
 	}
