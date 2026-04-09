@@ -3362,7 +3362,7 @@ function retrieve_password( $user_login = '' ) {
 
 	$ip_notification = '';
 	if ( ! is_user_logged_in() ) {
-		$requester_ip = $_SERVER['REMOTE_ADDR'];
+		$requester_ip = $_SERVER[ 'REMOTE_ADDR' ];
 		if ( $requester_ip ) {
 			/* translators: %s: IP address of password reset requester. */
 			$ip_notification = sprintf( __( 'This password reset request originated from the IP address %s.' ), $requester_ip );

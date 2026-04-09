@@ -631,15 +631,6 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 		'siteurl'         => $site_url,
 	);
 
-	$email_data = array(
-		'request'         => $request,
-		'expiration'      => $expiration,
-		'expiration_date' => $expiration_date,
-		'export_file_url' => $export_file_url,
-		'sitename'        => $site_name,
-		'siteurl'         => $site_url,
-	);
-
 	WP_Mailer::register_email(
 		'privacy_export',
 		'privacy',

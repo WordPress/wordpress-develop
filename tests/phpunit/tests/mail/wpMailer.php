@@ -3,7 +3,7 @@
  * @group mail
  * @covers WP_Mailer
  */
-class Tests_Mail_WPMailer extends WP_UnitTestCase {
+class Tests_Mail_WP_Mailer extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
@@ -69,7 +69,7 @@ class Tests_Mail_WPMailer extends WP_UnitTestCase {
 
 	/**
 	 * Tests the Reply-To fix in wp_mail.
-	 * 
+	 *
 	 * @ticket 49661
 	 */
 	public function test_wp_mail_reply_to_quoting_fix() {
@@ -80,25 +80,25 @@ class Tests_Mail_WPMailer extends WP_UnitTestCase {
 
 		wp_mail( $to, $subject, $message, $headers );
 
-		$mailer = tests_retrieve_phpmailer_instance();
+		$mailer    = tests_retrieve_phpmailer_instance();
 		$reply_tos = $mailer->getReplyToAddresses();
-		
+
 		$this->assertCount( 1, $reply_tos );
 		$reply_to = reset( $reply_tos );
-		
+
 		// PHPMailer will add its own quotes if needed, but we should not have double quotes here.
-		$this->assertSame( 'john@example.com', $reply_to[0] );
-		$this->assertSame( 'John Doe', $reply_to[1] );
+		$this->assertSame( 'john@example.com', $reply_to[ 0 ] );
+		$this->assertSame( 'John Doe', $reply_to[ 1 ] );
 	}
 
 	/**
 	 * Tests the retrieve_password template logic.
 	 */
 	public function test_retrieve_password_template() {
-		$site_name = 'My Awesome Site';
+		$site_name  = 'My Awesome Site';
 		$user_login = 'alice';
-		$reset_url = 'https://example.com/reset';
-		$ip = '127.0.0.1';
+		$reset_url  = 'https://example.com/reset';
+		$ip         = '127.0.0.1';
 
 		WP_Mailer::register_email(
 			'retrieve_password',
@@ -131,34 +131,50 @@ class Tests_Mail_WPMailer extends WP_UnitTestCase {
 	 * Tests the new_user templates.
 	 */
 	public function test_new_user_templates() {
-		// Admin notification
-		WP_Mailer::register_email( 'new_user_admin', 'admin', array(
-			'subject' => '[{{sitename}}] New User',
-			'body'    => 'User: {{user_login}} Email: {{user_email}}',
-		));
+		// Admin notification.
+		WP_Mailer::register_email(
+			'new_user_admin',
+			'admin',
+			array(
+				'subject' => '[{{sitename}}] New User',
+				'body'    => 'User: {{user_login}} Email: {{user_email}}',
+			)
+		);
 
-		WP_Mailer::send( 'new_user_admin', array( 'to' => 'admin@example.com' ), array(
-			'sitename'   => 'Site',
-			'user_login' => 'bob',
-			'user_email' => 'bob@example.com',
-		) );
+		WP_Mailer::send(
+			'new_user_admin',
+			array( 'to' => 'admin@example.com' ),
+			array(
+				'sitename'   => 'Site',
+				'user_login' => 'bob',
+				'user_email' => 'bob@example.com',
+			)
+		);
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertSame( '[Site] New User', $mailer->Subject );
 		$this->assertStringContainsString( 'User: bob', $mailer->get_sent()->body );
 
-		// User notification
+		// User notification.
 		reset_phpmailer_instance();
-		WP_Mailer::register_email( 'new_user', 'user', array(
-			'subject' => '[{{sitename}}] Login Details',
-			'body'    => 'Login: {{user_login}} URL: {{set_password_url}}',
-		));
+		WP_Mailer::register_email(
+			'new_user',
+			'user',
+			array(
+				'subject' => '[{{sitename}}] Login Details',
+				'body'    => 'Login: {{user_login}} URL: {{set_password_url}}',
+			)
+		);
 
-		WP_Mailer::send( 'new_user', array( 'to' => 'bob@example.com' ), array(
-			'sitename'         => 'Site',
-			'user_login'       => 'bob',
-			'set_password_url' => 'http://example.com/set-pw',
-		) );
+		WP_Mailer::send(
+			'new_user',
+			array( 'to' => 'bob@example.com' ),
+			array(
+				'sitename'         => 'Site',
+				'user_login'       => 'bob',
+				'set_password_url' => 'http://example.com/set-pw',
+			)
+		);
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertSame( '[Site] Login Details', $mailer->Subject );

@@ -47,7 +47,7 @@ class WP_Mailer {
 			return false;
 		}
 
-		$group = $email['group'];
+		$group = $email[ 'group' ];
 
 		/**
 		 * Filters the data used for email template rendering.
@@ -61,8 +61,8 @@ class WP_Mailer {
 		$data = apply_filters( "wp_mailer_{$group}_data", $data, $email_id, $group );
 		$data = apply_filters( "wp_mailer_{$email_id}_data", $data, $email_id, $group );
 
-		$subject = self::render( $email['subject'], $data );
-		$message = self::render( $email['body'], $data );
+		$subject = self::render( $email[ 'subject' ], $data );
+		$message = self::render( $email[ 'body' ], $data );
 
 		/**
 		 * Filters the email subject before sending.
@@ -88,9 +88,9 @@ class WP_Mailer {
 		$message = apply_filters( "wp_mailer_{$group}_message", $message, $email_id, $data );
 		$message = apply_filters( "wp_mailer_{$email_id}_message", $message, $email_id, $data );
 
-		$to          = isset( $args['to'] ) ? $args[ 'to' ] : '';
-		$headers     = isset( $args['headers'] ) ? $args[ 'headers' ] : '';
-		$attachments = isset( $args['attachments'] ) ? $args[ 'attachments' ] : array();
+		$to          = isset( $args[ 'to' ] ) ? $args[ 'to' ] : '';
+		$headers     = isset( $args[ 'headers' ] ) ? $args[ 'headers' ] : '';
+		$attachments = isset( $args[ 'attachments' ] ) ? $args[ 'attachments' ] : array();
 
 		/**
 		 * Filters the email headers before sending.
@@ -124,8 +124,8 @@ class WP_Mailer {
 	public static function register_email( $email_id, $group, $args ) {
 		self::$emails[ $email_id ] = array(
 			'group'   => $group,
-			'subject' => $args['subject'],
-			'body'    => $args['body'],
+			'subject' => $args[ 'subject' ],
+			'body'    => $args[ 'body' ],
 		);
 	}
 

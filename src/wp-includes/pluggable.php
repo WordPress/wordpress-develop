@@ -448,8 +448,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		try {
 			$phpmailer->setFrom( $from_email, $from_name, false );
 		} catch ( PHPMailer\PHPMailer\Exception $e ) {
-			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
-			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
+			$mail_error_data                              = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
+			$mail_error_data[ 'phpmailer_exception_code' ] = $e->getCode();
 
 			/** This filter is documented in wp-includes/pluggable.php */
 			do_action( 'wp_mail_failed', new WP_Error( 'wp_mail_failed', $e->getMessage(), $mail_error_data ) );
@@ -476,8 +476,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 
 					if ( preg_match( '/(.*)<(.+)>/', $address, $matches ) ) {
 						if ( count( $matches ) === 3 ) {
-							$recipient_name = $matches[1];
-							$address        = $matches[2];
+							$recipient_name = $matches[ 1 ];
+							$address        = $matches[ 2 ];
 						}
 					}
 
