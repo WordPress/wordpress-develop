@@ -707,4 +707,80 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
 		}
 	}
+
+	/**
+	 * @ticket 64066
+	 *
+	 * @covers ::check_for_page_caching
+	 */
+	public function test_check_for_page_caching_stores_health_check_page_cache_detail_transient() {
+		delete_transient( 'health_check_page_cache_detail' );
+
+		$pre_http_response = function () {
+			return array(
+				'headers'  => array( 'age' => '100' ),
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			);
+		};
+		add_filter( 'pre_http_request', $pre_http_response, 10 );
+
+		$this->instance->get_test_page_cache();
+
+		$detail = get_transient( 'health_check_page_cache_detail' );
+
+		remove_filter( 'pre_http_request', $pre_http_response, 10 );
+
+		$this->assertIsArray( $detail );
+		$this->assertArrayHasKey( 'caching_response_headers', $detail );
+		$this->assertContains( 'age', $detail['caching_response_headers'] );
+	}
+
+	/**
+	 * @ticket 64066
+	 *
+	 * @covers ::get_test_page_cache
+	 */
+	public function test_get_test_page_cache_description_includes_speculative_loading_note() {
+		delete_transient( 'health_check_page_cache_detail' );
+
+		$pre_http_response = function () {
+			return array(
+				'headers'  => array( 'age' => '100' ),
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			);
+		};
+		add_filter( 'pre_http_request', $pre_http_response, 10 );
+
+		$result = $this->instance->get_test_page_cache();
+
+		remove_filter( 'pre_http_request', $pre_http_response, 10 );
+
+		$this->assertStringContainsString( 'Speculative Loading', $result['description'] );
+		$this->assertStringContainsString( 'moderate', $result['description'] );
+		$this->assertStringContainsString( 'conservative', $result['description'] );
+	}
+
+	/**
+	 * @ticket 64066
+	 *
+	 * @covers ::get_test_persistent_object_cache
+	 */
+	public function test_get_test_persistent_object_cache_includes_speculative_loading_note_when_ext_object_cache_enabled() {
+		$initial = wp_using_ext_object_cache();
+		wp_using_ext_object_cache( true );
+
+		$result = $this->instance->get_test_persistent_object_cache();
+
+		wp_using_ext_object_cache( $initial );
+
+		$this->assertStringContainsString( 'Speculative Loading', $result['description'] );
+		$this->assertStringContainsString( 'moderate', $result['description'] );
+		$this->assertStringContainsString( 'conservative', $result['description'] );
+	}
 }

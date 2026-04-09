@@ -12,10 +12,27 @@
  */
 class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_UnitTestCase {
 
+	/**
+	 * Whether an external object cache was in use before each test.
+	 *
+	 * @var bool
+	 */
+	private $initial_using_ext_object_cache;
+
 	public function set_up() {
 		parent::set_up();
 
+		$this->initial_using_ext_object_cache = wp_using_ext_object_cache();
+
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+	}
+
+	public function tear_down() {
+		wp_using_ext_object_cache( $this->initial_using_ext_object_cache );
+		delete_transient( 'health_check_page_cache_detail' );
+		// Reset for following tests: wp_get_environment_type() keeps a static when WP_RUN_CORE_TESTS is defined.
+		putenv( 'WP_ENVIRONMENT_TYPE=production' );
+		parent::tear_down();
 	}
 
 	/**
@@ -262,6 +279,186 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 					'eagerness' => 'conservative',
 				),
 			),
+		);
+	}
+
+	/**
+	 * @ticket 64066
+	 */
+	public function test_wp_get_speculation_rules_configuration_uses_moderate_eagerness_when_production_persistent_object_cache_and_advanced_cache_detected() {
+		putenv( 'WP_ENVIRONMENT_TYPE=production' );
+		wp_using_ext_object_cache( true );
+		set_transient(
+			'health_check_page_cache_detail',
+			array(
+				'advanced_cache_present'        => true,
+				'page_caching_response_headers' => array(),
+				'response_timing'               => array(),
+				'caching_response_headers'      => array(),
+			)
+		);
+
+		$config = wp_get_speculation_rules_configuration();
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'moderate',
+			),
+			$config
+		);
+	}
+
+	/**
+	 * @ticket 64066
+	 */
+	public function test_wp_get_speculation_rules_configuration_uses_moderate_eagerness_when_production_persistent_object_cache_and_caching_headers_detected() {
+		putenv( 'WP_ENVIRONMENT_TYPE=production' );
+		wp_using_ext_object_cache( true );
+		set_transient(
+			'health_check_page_cache_detail',
+			array(
+				'advanced_cache_present'        => false,
+				'page_caching_response_headers' => array(),
+				'response_timing'               => array(),
+				'caching_response_headers'      => array( 'age' ),
+			)
+		);
+
+		$config = wp_get_speculation_rules_configuration();
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'moderate',
+			),
+			$config
+		);
+	}
+
+	/**
+	 * @ticket 64066
+	 */
+	public function test_wp_get_speculation_rules_configuration_remains_conservative_on_staging_even_with_caches_detected() {
+		putenv( 'WP_ENVIRONMENT_TYPE=staging' );
+		wp_using_ext_object_cache( true );
+		set_transient(
+			'health_check_page_cache_detail',
+			array(
+				'advanced_cache_present'        => true,
+				'page_caching_response_headers' => array(),
+				'response_timing'               => array(),
+				'caching_response_headers'      => array(),
+			)
+		);
+
+		$config = wp_get_speculation_rules_configuration();
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'conservative',
+			),
+			$config
+		);
+	}
+
+	/**
+	 * @ticket 64066
+	 */
+	public function test_wp_get_speculation_rules_configuration_remains_conservative_in_non_production_even_with_caches_detected() {
+		putenv( 'WP_ENVIRONMENT_TYPE=development' );
+		wp_using_ext_object_cache( true );
+		set_transient(
+			'health_check_page_cache_detail',
+			array(
+				'advanced_cache_present'        => true,
+				'page_caching_response_headers' => array(),
+				'response_timing'               => array(),
+				'caching_response_headers'      => array(),
+			)
+		);
+
+		$config = wp_get_speculation_rules_configuration();
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'conservative',
+			),
+			$config
+		);
+	}
+
+	/**
+	 * @ticket 64066
+	 */
+	public function test_wp_get_speculation_rules_configuration_remains_conservative_without_persistent_object_cache() {
+		putenv( 'WP_ENVIRONMENT_TYPE=production' );
+		wp_using_ext_object_cache( false );
+		set_transient(
+			'health_check_page_cache_detail',
+			array(
+				'advanced_cache_present'        => true,
+				'page_caching_response_headers' => array(),
+				'response_timing'               => array(),
+				'caching_response_headers'      => array(),
+			)
+		);
+
+		$config = wp_get_speculation_rules_configuration();
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'conservative',
+			),
+			$config
+		);
+	}
+
+	/**
+	 * @ticket 64066
+	 */
+	public function test_wp_get_speculation_rules_configuration_remains_conservative_when_no_health_check_page_cache_detail() {
+		putenv( 'WP_ENVIRONMENT_TYPE=production' );
+		wp_using_ext_object_cache( true );
+
+		$config = wp_get_speculation_rules_configuration();
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'conservative',
+			),
+			$config
+		);
+	}
+
+	/**
+	 * @ticket 64066
+	 */
+	public function test_wp_get_speculation_rules_configuration_remains_conservative_when_page_cache_detail_has_no_signals() {
+		putenv( 'WP_ENVIRONMENT_TYPE=production' );
+		wp_using_ext_object_cache( true );
+		set_transient(
+			'health_check_page_cache_detail',
+			array(
+				'advanced_cache_present'        => false,
+				'page_caching_response_headers' => array(),
+				'response_timing'               => array(),
+				'caching_response_headers'      => array(),
+			)
+		);
+
+		$config = wp_get_speculation_rules_configuration();
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'conservative',
+			),
+			$config
 		);
 	}
 }
