@@ -523,7 +523,7 @@ function wp_register_post_type_get_ability( WP_Post_Type $post_type, string $cat
 				),
 				'additionalProperties' => false,
 			),
-			'execute_callback'    => static function ( $input = array() ) use ( $post_type_slug ): array|WP_Error {
+			'execute_callback'    => static function ( $input = array() ) use ( $post_type_slug ) {
 				$input = is_array( $input ) ? $input : array();
 
 				// Single-post retrieval by ID.

@@ -216,8 +216,8 @@ class Tests_Abilities_API_WpRegisterCorePostTypeAbilities extends WP_UnitTestCas
 	 * @ticket 64606
 	 */
 	public function test_post_get_ability_is_readonly(): void {
-		$ability      = wp_get_ability( 'core/post-type/post/get' );
-		$annotations  = $ability->get_meta_item( 'annotations', array() );
+		$ability     = wp_get_ability( 'core/post-type/post/get' );
+		$annotations = $ability->get_meta_item( 'annotations', array() );
 
 		$this->assertTrue( $annotations['readonly'] );
 		$this->assertFalse( $annotations['destructive'] );
@@ -408,8 +408,18 @@ class Tests_Abilities_API_WpRegisterCorePostTypeAbilities extends WP_UnitTestCas
 	public function test_multi_post_query_returns_published_posts(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$published_id = self::factory()->post->create( array( 'post_status' => 'publish', 'post_type' => 'post' ) );
-		self::factory()->post->create( array( 'post_status' => 'draft', 'post_type' => 'post' ) );
+		$published_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_status' => 'draft',
+				'post_type'   => 'post',
+			)
+		);
 
 		$ability = wp_get_ability( 'core/post-type/post/get' );
 		$result  = $ability->execute( array() );
@@ -436,7 +446,13 @@ class Tests_Abilities_API_WpRegisterCorePostTypeAbilities extends WP_UnitTestCas
 	public function test_multi_post_query_respects_per_page(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		self::factory()->post->create_many( 5, array( 'post_status' => 'publish', 'post_type' => 'post' ) );
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			)
+		);
 
 		$ability = wp_get_ability( 'core/post-type/post/get' );
 		$result  = $ability->execute( array( 'per_page' => 2 ) );
@@ -467,8 +483,18 @@ class Tests_Abilities_API_WpRegisterCorePostTypeAbilities extends WP_UnitTestCas
 	public function test_multi_post_query_search_filter(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$match_id    = self::factory()->post->create( array( 'post_title' => 'Unique Ability Test Post', 'post_status' => 'publish' ) );
-		$no_match_id = self::factory()->post->create( array( 'post_title' => 'Different Title', 'post_status' => 'publish' ) );
+		$match_id    = self::factory()->post->create(
+			array(
+				'post_title'  => 'Unique Ability Test Post',
+				'post_status' => 'publish',
+			)
+		);
+		$no_match_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Different Title',
+				'post_status' => 'publish',
+			)
+		);
 
 		$ability = wp_get_ability( 'core/post-type/post/get' );
 		$result  = $ability->execute( array( 'search' => 'Unique Ability Test' ) );
@@ -518,8 +544,18 @@ class Tests_Abilities_API_WpRegisterCorePostTypeAbilities extends WP_UnitTestCas
 	public function test_multi_post_query_comment_status_filter(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$open_id   = self::factory()->post->create( array( 'comment_status' => 'open', 'post_status' => 'publish' ) );
-		$closed_id = self::factory()->post->create( array( 'comment_status' => 'closed', 'post_status' => 'publish' ) );
+		$open_id   = self::factory()->post->create(
+			array(
+				'comment_status' => 'open',
+				'post_status'    => 'publish',
+			)
+		);
+		$closed_id = self::factory()->post->create(
+			array(
+				'comment_status' => 'closed',
+				'post_status'    => 'publish',
+			)
+		);
 
 		$ability = wp_get_ability( 'core/post-type/post/get' );
 		$result  = $ability->execute( array( 'comment_status' => 'open' ) );
@@ -537,8 +573,18 @@ class Tests_Abilities_API_WpRegisterCorePostTypeAbilities extends WP_UnitTestCas
 	public function test_multi_post_query_ping_status_filter(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$open_id   = self::factory()->post->create( array( 'ping_status' => 'open', 'post_status' => 'publish' ) );
-		$closed_id = self::factory()->post->create( array( 'ping_status' => 'closed', 'post_status' => 'publish' ) );
+		$open_id   = self::factory()->post->create(
+			array(
+				'ping_status' => 'open',
+				'post_status' => 'publish',
+			)
+		);
+		$closed_id = self::factory()->post->create(
+			array(
+				'ping_status' => 'closed',
+				'post_status' => 'publish',
+			)
+		);
 
 		$ability = wp_get_ability( 'core/post-type/post/get' );
 		$result  = $ability->execute( array( 'ping_status' => 'closed' ) );
@@ -622,8 +668,18 @@ class Tests_Abilities_API_WpRegisterCorePostTypeAbilities extends WP_UnitTestCas
 	public function test_page_get_ability_only_returns_pages(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$page_id = self::factory()->post->create( array( 'post_type' => 'page', 'post_status' => 'publish' ) );
-		$post_id = self::factory()->post->create( array( 'post_type' => 'post', 'post_status' => 'publish' ) );
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
 
 		$ability = wp_get_ability( 'core/post-type/page/get' );
 		$result  = $ability->execute( array() );
@@ -642,12 +698,28 @@ class Tests_Abilities_API_WpRegisterCorePostTypeAbilities extends WP_UnitTestCas
 		wp_set_current_user( self::$subscriber_id );
 
 		// Create exactly 3 posts.
-		$ids = self::factory()->post->create_many( 3, array( 'post_status' => 'publish', 'post_type' => 'post' ) );
+		$ids = self::factory()->post->create_many(
+			3,
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			)
+		);
 
 		$ability = wp_get_ability( 'core/post-type/post/get' );
 
-		$page_1 = $ability->execute( array( 'per_page' => 2, 'page' => 1 ) );
-		$page_2 = $ability->execute( array( 'per_page' => 2, 'page' => 2 ) );
+		$page_1 = $ability->execute(
+			array(
+				'per_page' => 2,
+				'page'     => 1,
+			)
+		);
+		$page_2 = $ability->execute(
+			array(
+				'per_page' => 2,
+				'page'     => 2,
+			)
+		);
 
 		$this->assertCount( 2, $page_1['posts'] );
 		$this->assertCount( 1, $page_2['posts'] );
