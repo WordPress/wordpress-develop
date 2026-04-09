@@ -331,6 +331,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 	/**
 	 * Overrides parent views so we can use the filter bar display.
+	 * 
+	 * @global string $tab The current tab.
 	 */
 	public function views() {
 		global $tab;
