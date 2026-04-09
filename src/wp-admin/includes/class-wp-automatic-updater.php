@@ -107,24 +107,34 @@ class WP_Automatic_Updater {
 	}
 
 	/**
-	 * Checks for version control checkouts.
+	 * Discovers version control checkouts without applying filters.
 	 *
-	 * Checks for Subversion, Git, Mercurial, and Bazaar. It recursively looks up the
-	 * filesystem to the top of the drive, erring on the side of detecting a VCS
-	 * checkout somewhere.
+	 * Checks for Subversion, Git, Mercurial, and Bazaar. It walks up from each
+	 * relevant directory to the top of the drive, erring on the side of detecting
+	 * a VCS checkout somewhere.
 	 *
 	 * ABSPATH is always checked in addition to whatever `$context` is (which may be the
 	 * wp-content directory, for example). The underlying assumption is that if you are
 	 * using version control *anywhere*, then you should be making decisions for
 	 * how things get updated.
 	 *
-	 * @since 3.7.0
+	 * @since 7.1.0
 	 *
 	 * @param string $context The filesystem path to check, in addition to ABSPATH.
-	 * @return bool True if a VCS checkout was discovered at `$context` or ABSPATH,
-	 *              or anywhere higher. False otherwise.
+	 * @return array{
+	 *     checkout: bool,
+	 *     check_dir: string,
+	 *     vcs_dir: string
+	 * } {
+	 *     @type bool   $checkout  Whether a VCS checkout was discovered at `$context`
+	 *                             or ABSPATH, or anywhere higher.
+	 *     @type string $check_dir Directory where the VCS metadata directory was found.
+	 *                             Empty string when `$checkout` is false.
+	 *     @type string $vcs_dir   Version control metadata directory name (e.g. `.git`).
+	 *                             Empty string when `$checkout` is false.
+	 * }
 	 */
-	public function is_vcs_checkout( $context ) {
+	public function get_vcs_checkout_details( $context ) {
 		$context_dirs = array( untrailingslashit( $context ) );
 		if ( ABSPATH !== $context ) {
 			$context_dirs[] = untrailingslashit( ABSPATH );
@@ -149,20 +159,52 @@ class WP_Automatic_Updater {
 
 		$check_dirs = array_unique( $check_dirs );
 		$checkout   = false;
+		$check_dir  = '';
+		$vcs_dir    = '';
 
 		// Search all directories we've found for evidence of version control.
-		foreach ( $vcs_dirs as $vcs_dir ) {
-			foreach ( $check_dirs as $check_dir ) {
-				if ( ! $this->is_allowed_dir( $check_dir ) ) {
+		foreach ( $vcs_dirs as $vcs_dir_candidate ) {
+			foreach ( $check_dirs as $check_dir_candidate ) {
+				if ( ! $this->is_allowed_dir( $check_dir_candidate ) ) {
 					continue;
 				}
 
-				$checkout = is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
+				$checkout = is_dir( rtrim( $check_dir_candidate, '\\/' ) . "/$vcs_dir_candidate" );
 				if ( $checkout ) {
+					$check_dir = $check_dir_candidate;
+					$vcs_dir   = $vcs_dir_candidate;
 					break 2;
 				}
 			}
 		}
+
+		return array(
+			'checkout'  => $checkout,
+			'check_dir' => $check_dir,
+			'vcs_dir'   => $vcs_dir,
+		);
+	}
+
+	/**
+	 * Checks for version control checkouts.
+	 *
+	 * Checks for Subversion, Git, Mercurial, and Bazaar. It recursively looks up the
+	 * filesystem to the top of the drive, erring on the side of detecting a VCS
+	 * checkout somewhere.
+	 *
+	 * ABSPATH is always checked in addition to whatever `$context` is (which may be the
+	 * wp-content directory, for example). The underlying assumption is that if you are
+	 * using version control *anywhere*, then you should be making decisions for
+	 * how things get updated.
+	 *
+	 * @since 3.7.0
+	 *
+	 * @param string $context The filesystem path to check, in addition to ABSPATH.
+	 * @return bool True if a VCS checkout was discovered at `$context` or ABSPATH,
+	 *              or anywhere higher. False otherwise.
+	 */
+	public function is_vcs_checkout( $context ) {
+		$details = $this->get_vcs_checkout_details( $context );
 
 		/**
 		 * Filters whether the automatic updater should consider a filesystem
@@ -175,7 +217,7 @@ class WP_Automatic_Updater {
 		 * @param string $context The filesystem context (a path) against which
 		 *                        filesystem status should be checked.
 		 */
-		return apply_filters( 'automatic_updates_is_vcs_checkout', $checkout, $context );
+		return apply_filters( 'automatic_updates_is_vcs_checkout', $details['checkout'], $context );
 	}
 
 	/**

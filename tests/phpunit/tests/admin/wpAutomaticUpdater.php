@@ -733,4 +733,45 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 
 		$this->assertFalse( $updater_mock->is_vcs_checkout( get_temp_dir() ) );
 	}
+
+	/**
+	 * Tests that `WP_Automatic_Updater::get_vcs_checkout_details()` reports no checkout
+	 * when none of the checked directories are allowed.
+	 *
+	 * @ticket 47428
+	 *
+	 * @covers WP_Automatic_Updater::get_vcs_checkout_details
+	 */
+	public function test_get_vcs_checkout_details_should_report_no_checkout_when_no_directories_are_allowed() {
+		$updater_mock = $this->getMockBuilder( 'WP_Automatic_Updater' )
+			->setMethods( array( 'is_allowed_dir' ) )
+			->getMock();
+
+		$updater_mock->expects( $this->any() )->method( 'is_allowed_dir' )->willReturn( false );
+
+		$details = $updater_mock->get_vcs_checkout_details( get_temp_dir() );
+
+		$this->assertIsArray( $details );
+		$this->assertFalse( $details['checkout'] );
+		$this->assertSame( '', $details['check_dir'] );
+		$this->assertSame( '', $details['vcs_dir'] );
+	}
+
+	/**
+	 * Tests that `is_vcs_checkout()` applies the same filter input as a direct
+	 * `apply_filters()` call using raw discovery from `get_vcs_checkout_details()`.
+	 *
+	 * @ticket 47428
+	 *
+	 * @covers WP_Automatic_Updater::get_vcs_checkout_details
+	 * @covers WP_Automatic_Updater::is_vcs_checkout
+	 */
+	public function test_is_vcs_checkout_matches_filtered_get_vcs_checkout_details_checkout() {
+		$context = ABSPATH;
+
+		$details  = self::$updater->get_vcs_checkout_details( $context );
+		$expected = apply_filters( 'automatic_updates_is_vcs_checkout', $details['checkout'], $context );
+
+		$this->assertSame( $expected, self::$updater->is_vcs_checkout( $context ) );
+	}
 }
