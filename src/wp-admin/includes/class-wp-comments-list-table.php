@@ -832,7 +832,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		if ( 'spam' === $the_comment_status || 'trash' === $the_comment_status || ! EMPTY_TRASH_DAYS ) {
 			$actions['delete'] = sprintf(
-				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
+				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js delete-link" aria-label="%s">%s</a>',
 				esc_url( $delete_url ),
 				"delete:the-comment-list:comment-{$comment->comment_ID}::delete=1",
 				esc_attr__( 'Delete this comment permanently' ),
@@ -840,7 +840,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			);
 		} else {
 			$actions['trash'] = sprintf(
-				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
+				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js delete-link" aria-label="%s">%s</a>',
 				esc_url( $trash_url ),
 				"delete:the-comment-list:comment-{$comment->comment_ID}::trash=1",
 				esc_attr__( 'Move this comment to the Trash' ),

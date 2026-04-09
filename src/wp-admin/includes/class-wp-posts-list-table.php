@@ -1561,7 +1561,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				);
 			} elseif ( EMPTY_TRASH_DAYS ) {
 				$actions['trash'] = sprintf(
-					'<a href="%s" class="submitdelete" aria-label="%s">%s</a>',
+					'<a href="%s" class="submitdelete delete-link" aria-label="%s">%s</a>',
 					get_delete_post_link( $post->ID ),
 					/* translators: %s: Post title. */
 					esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $title ) ),
@@ -1571,7 +1571,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			if ( 'trash' === $post->post_status || ! EMPTY_TRASH_DAYS ) {
 				$actions['delete'] = sprintf(
-					'<a href="%s" class="submitdelete" aria-label="%s">%s</a>',
+					'<a href="%s" class="submitdelete delete-link" aria-label="%s">%s</a>',
 					get_delete_post_link( $post->ID, '', true ),
 					/* translators: %s: Post title. */
 					esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $title ) ),

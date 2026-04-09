@@ -1269,7 +1269,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								<span class="delete-action">
 									<?php
 									printf(
-										'<a class="submitdelete deletion menu-delete" href="%1$s">%2$s</a>',
+										'<a class="submitdelete deletion menu-delete delete-link" href="%1$s">%2$s</a>',
 										esc_url(
 											wp_nonce_url(
 												add_query_arg(

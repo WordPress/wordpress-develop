@@ -512,7 +512,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
 			$actions['delete'] = sprintf(
-				'<a href="%s" class="delete-tag aria-button-if-js" aria-label="%s">%s</a>',
+				'<a href="%s" class="delete-tag aria-button-if-js delete-link" aria-label="%s">%s</a>',
 				wp_nonce_url( "edit-tags.php?action=delete&amp;taxonomy=$taxonomy&amp;tag_ID=$tag->term_id", 'delete-tag_' . $tag->term_id ),
 				/* translators: %s: Taxonomy term name. */
 				esc_attr( sprintf( __( 'Delete &#8220;%s&#8221;' ), $tag->name ) ),
