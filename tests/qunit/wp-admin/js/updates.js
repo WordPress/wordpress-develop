@@ -33,6 +33,21 @@ jQuery( function( $ ) {
 		assert.equal( adminItemCount, 1 );
 	});
 
+	QUnit.test( 'decrementCount removes the plugin badge when plugin count reaches zero', function( assert ) {
+		// Arrange: set up 1 plugin update with a non-zero total so the admin bar stays visible.
+		window._wpUpdatesSettings.totals.counts.plugins = 1;
+		window._wpUpdatesSettings.totals.counts.themes  = 2;
+		window._wpUpdatesSettings.totals.counts.total   = 3;
+		wp.updates.refreshCount();
+
+		// Act: update the last plugin.
+		wp.updates.decrementCount( 'plugin' );
+
+		// Assert: plugin badge is removed when its own count hits zero, not when total hits zero.
+		assert.strictEqual( $( '#menu-plugins .plugin-count' ).length, 0, 'Plugin badge is removed when plugin count is zero.' );
+		assert.strictEqual( parseInt( $( '#wp-admin-bar-updates .ab-label' ).text(), 10 ), 2, 'Admin bar total reflects remaining theme updates.' );
+	} );
+
 	QUnit.test( '`beforeunload` should only fire when locked', function( assert ) {
 		wp.updates.ajaxLocked = false;
 		assert.notOk( wp.updates.beforeunload(), '`beforeunload` should not fire.' );
