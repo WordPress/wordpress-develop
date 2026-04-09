@@ -7,6 +7,8 @@
  * @since 5.0.0
  *
  * @group blocks
+ *
+ * @covers WP_Block_Type_Registry
  */
 class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 
@@ -41,51 +43,30 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should reject numbers
+	 * Should reject invalid block names.
 	 *
 	 * @ticket 45097
 	 *
+	 * @dataProvider data_invalid_block_names
 	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
 	 */
-	public function test_invalid_non_string_names() {
-		$result = $this->registry->register( 1, array() );
+	public function test_invalid_block_names( $name ) {
+		$result = $this->registry->register( $name, array() );
 		$this->assertFalse( $result );
 	}
 
 	/**
-	 * Should reject blocks without a namespace
+	 * Data provider for test_invalid_block_names().
 	 *
-	 * @ticket 45097
-	 *
-	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 * @return array<string, array{ 0: mixed }>
 	 */
-	public function test_invalid_names_without_namespace() {
-		$result = $this->registry->register( 'paragraph', array() );
-		$this->assertFalse( $result );
-	}
-
-	/**
-	 * Should reject blocks with invalid characters
-	 *
-	 * @ticket 45097
-	 *
-	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
-	 */
-	public function test_invalid_characters() {
-		$result = $this->registry->register( 'still/_doing_it_wrong', array() );
-		$this->assertFalse( $result );
-	}
-
-	/**
-	 * Should reject blocks with uppercase characters
-	 *
-	 * @ticket 45097
-	 *
-	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
-	 */
-	public function test_uppercase_characters() {
-		$result = $this->registry->register( 'Core/Paragraph', array() );
-		$this->assertFalse( $result );
+	public function data_invalid_block_names(): array {
+		return array(
+			'non-string name'      => array( 1 ),
+			'no namespace'         => array( 'paragraph' ),
+			'invalid characters'   => array( 'still/_doing_it_wrong' ),
+			'uppercase characters' => array( 'Core/Paragraph' ),
+		);
 	}
 
 	/**
