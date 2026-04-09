@@ -496,6 +496,10 @@
 			isSubmitting = true;
 		});
 
+		$( '#your-profile' ).on( 'submit', function() {
+			return window.validateForm( this );
+		} );
+
 		$form = $( '#your-profile, #createuser' );
 		originalFormContent = $form.serialize();
 	});
