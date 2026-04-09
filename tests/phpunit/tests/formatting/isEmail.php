@@ -6,8 +6,21 @@
  * @covers ::is_email
  */
 class Tests_Formatting_IsEmail extends WP_UnitTestCase {
-	public function test_returns_the_email_address_if_it_is_valid() {
-		$data = array(
+
+	/**
+	 * @dataProvider valid_email_provider
+	 */
+	public function test_returns_the_email_address_if_it_is_valid( $email ) {
+		$this->assertSame( $email, is_email( $email ), "is_email() should return the email address for $email." );
+	}
+
+	/**
+	 * Data provider for valid email addresses.
+	 *
+	 * @return array
+	 */
+	public static function valid_email_provider() {
+		$valid_emails = array(
 			'bob@example.com',
 			'phil@example.info',
 			'ace@204.32.222.14',
@@ -15,13 +28,26 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			'a@b.co',
 			'bill+ted@example.com',
 		);
-		foreach ( $data as $datum ) {
-			$this->assertSame( $datum, is_email( $datum ), $datum );
+
+		foreach ( $valid_emails as $email ) {
+			yield $email => array( $email );
 		}
 	}
 
-	public function test_returns_false_if_given_an_invalid_email_address() {
-		$data = array(
+	/**
+	 * @dataProvider invalid_email_provider
+	 */
+	public function test_returns_false_if_given_an_invalid_email_address( $email ) {
+		$this->assertFalse( is_email( $email ), "is_email() should return false for $email." );
+	}
+
+	/**
+	 * Data provider for invalid email addresses.
+	 *
+	 * @return array
+	 */
+	public static function invalid_email_provider() {
+		$invalid_emails = array(
 			'khaaaaaaaaaaaaaaan!',
 			'http://bob.example.com/',
 			"sif i'd give u it, spamer!1",
@@ -29,8 +55,9 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			'bob@your mom',
 			'a@b.c',
 		);
-		foreach ( $data as $datum ) {
-			$this->assertFalse( is_email( $datum ), $datum );
+
+		foreach ( $invalid_emails as $email ) {
+			yield $email => array( $email );
 		}
 	}
 }

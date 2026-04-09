@@ -9,11 +9,8 @@ const local_env_utils = require( './utils' );
 
 dotenvExpand.expand( dotenv.config() );
 
-// Determine if a non-default database authentication plugin needs to be used.
-local_env_utils.determine_auth_option();
-
 // Create wp-config.php.
-wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file=${process.env.LOCAL_DIR}/../wp-config.php` );
+wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"` );
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
@@ -46,9 +43,10 @@ wait_on( {
 		process.exit( 1 );
 	} )
 	.then( () => {
-		wp_cli( 'db reset --yes' );
+		wp_cli( 'db reset --yes --defaults' );
 		const installCommand = process.env.LOCAL_MULTISITE === 'true'  ? 'multisite-install' : 'install';
 		wp_cli( `core ${ installCommand } --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@example.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
+		wp_cli( `rewrite structure '/%year%/%monthnum%/%postname%/'` );
 	} )
 	.catch( err => {
 		console.error( `Error: Unable to reset DB and install WordPress. Message: ${ err.message }` );
@@ -61,7 +59,5 @@ wait_on( {
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	const composeFiles = local_env_utils.get_compose_files();
-
-	execSync( `docker compose ${composeFiles} run --quiet-pull --rm cli ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
+	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
 }

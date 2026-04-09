@@ -147,6 +147,7 @@
 
 		<!-- Unit tests -->
 		<script src="wp-admin/js/password-strength-meter.js"></script>
+		<script src="wp-admin/js/theme.js"></script>
 		<script src="wp-admin/js/customize-base.js"></script>
 		<script src="wp-admin/js/customize-header.js"></script>
 		<script src="wp-admin/js/dashboard.js"></script>
@@ -154,6 +155,7 @@
 		<script src="wp-includes/js/api-request.js"></script>
 		<script src="wp-includes/js/jquery.js"></script>
 		<script src="wp-includes/js/wp-api.js"></script>
+		<script src="wp-includes/js/wp-sanitize.js"></script>
 		<script src="wp-admin/js/customize-controls.js"></script>
 		<script src="wp-admin/js/customize-controls-utils.js"></script>
 		<script src="wp-admin/js/customize-nav-menus.js"></script>
@@ -243,7 +245,7 @@
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.altNotice ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
 				{{{ data.message || data.code }}}
 				<# if ( data.dismissible ) { #>
-					<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+					<button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss</span></button>
 				<# } #>
 			</li>
 		</script>
@@ -393,14 +395,14 @@
 		</script>
 
 		<script type="text/html" id="tmpl-nav-menu-locations-header">
-			<span class="customize-control-title customize-section-title-menu_locations-heading"><?php _e( 'Menu Locations' ); ?></span>
+			<span class="customize-control-title customize-section-title-menu_locations-heading">Menu Locations</span>
 			<p class="customize-control-description customize-section-title-menu_locations-description">Something</p>
 		</script>
 
 		<script type="text/html" id="tmpl-nav-menu-create-menu-section-title">
 			<h3>
 				<button type="button" class="button customize-add-menu-button">
-					<?php _e( 'Create New Menu' ); ?>
+					Create New Menu
 				</button>
 			</h3>
 		</script>
@@ -995,7 +997,7 @@
 	</script>
 	<script type="text/html" id="tmpl-media-modal">
 		<div class="media-modal wp-core-ui">
-			<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text">Close media panel</span></span></button>
+			<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">Close media panel</span></button>
 			<div class="media-modal-content"></div>
 		</div>
 		<div class="media-modal-backdrop"></div>
@@ -1258,11 +1260,11 @@
 				<# } #>
 			</div>
 			<# if ( data.buttons.close ) { #>
-				<button type="button" class="button-link attachment-close media-modal-icon"><span class="screen-reader-text">Remove</span></button>
+				<button type="button" class="button-link attachment-close"><span class="media-modal-icon" aria-hidden="true"></span></span><span class="screen-reader-text">Remove</span></button>
 			<# } #>
 		</div>
 		<# if ( data.buttons.check ) { #>
-			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">Deselect</span></button>
+			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">Deselect</span></button>
 		<# } #>
 		<#
 		var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly';
