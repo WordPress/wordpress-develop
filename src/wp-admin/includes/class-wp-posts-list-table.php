@@ -1146,7 +1146,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param string  $separator The string used to indicate hierarchy level. Default '&#8212; '.
 		 * @param WP_Post $post      The current post object.
 		 */
-		$separator = str_repeat( apply_filters( 'post_title_child_separator', '&#8212; ', $post ), $this->current_level );
+		$separator = apply_filters( 'post_title_child_separator', '&#8212; ', $post );
+		$pad       = str_repeat( $separator, $this->current_level );
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
@@ -1155,13 +1156,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 			printf(
 				'<a class="row-title" href="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
-				$separator,
+				$pad,
 				$title
 			);
 		} else {
 			printf(
 				'<span>%s%s</span>',
-				$separator,
+				$pad,
 				$title
 			);
 		}
