@@ -54,7 +54,7 @@ class Tests_Functions_WpDoingCli extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_doing_cli',
-			function( $doing_cli ) use ( &$filter_called ) {
+			function ( $doing_cli ) use ( &$filter_called ) {
 				$filter_called = true;
 				return $doing_cli;
 			}
