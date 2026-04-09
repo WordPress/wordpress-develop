@@ -10,7 +10,7 @@
 
 /**
  * Renders per-instance state styles on the frontend for blocks that declare
- * `__experimentalStates` support.
+ * `states` support.
  *
  * @param string $block_content The block's rendered HTML.
  * @param array  $block         The block data including blockName and attrs.
@@ -26,7 +26,7 @@ function wp_render_block_states_support( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$supported_states = $block_type->supports['__experimentalStates'] ?? null;
+	$supported_states = $block_type->supports['states'] ?? null;
 	if ( empty( $supported_states ) || ! is_array( $supported_states ) ) {
 		return $block_content;
 	}
@@ -56,17 +56,21 @@ function wp_render_block_states_support( $block_content, $block ) {
 	$css          = '';
 
 	foreach ( $css_rules as $rule ) {
-		// Use !important to override utility classes like
-		// .has-accent-3-background-color which are generated with !important.
+		/*
+		 * Use !important to override utility classes like
+		 * .has-accent-3-background-color which are generated with !important.
+		 */
 		$declarations = str_replace( ';', ' !important;', $rule['css'] );
 		$css         .= ".$unique_class$rule[state] { $declarations }\n";
 	}
 
-	// Add the unique class to the interactive element so that state selectors
-	// like `.$unique_class:hover` match directly without needing a descendant.
-	// If the block declares selectors.root with a descendant (e.g. the button
-	// block's ".wp-block-button .wp-block-button__link"), we extract the last
-	// class and walk to that element. Otherwise we fall back to the wrapper.
+	/*
+	 * Add the unique class to the interactive element so that state selectors
+	 * like `.$unique_class:hover` match directly without needing a descendant.
+	 * If the block declares selectors.root with a descendant (e.g. the button
+	 * block's ".wp-block-button .wp-block-button__link"), we extract the last
+	 * class and walk to that element. Otherwise we fall back to the wrapper.
+	 */
 	$root_selector = $block_type->selectors['root'] ?? null;
 	$target_class  = null;
 	if ( $root_selector && preg_match( '/\.([a-zA-Z0-9_-]+)\s*$/', $root_selector, $matches ) ) {
