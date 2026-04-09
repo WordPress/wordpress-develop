@@ -135,6 +135,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			if ( $wp_rewrite->permalink_structure ) {
 				$this->set_permalink_structure( '' );
 			}
+
+			/*
+			 * Site Health stores page cache probe results in this transient. When a persistent object cache is used
+			 * (common in CI), it would otherwise change the default resolved eagerness for unrelated tests.
+			 *
+			 * @ticket 64066
+			 */
+			delete_transient( 'health_check_page_cache_detail' );
 		}
 
 		$this->start_transaction();

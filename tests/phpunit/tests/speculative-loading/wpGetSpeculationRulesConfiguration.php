@@ -19,19 +19,31 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 	 */
 	private $initial_using_ext_object_cache;
 
+	/**
+	 * getenv( 'WP_ENVIRONMENT_TYPE' ) at the start of the test, for restoration in tear_down().
+	 *
+	 * @var string|false
+	 */
+	private $wp_environment_type_env_before_test;
+
 	public function set_up() {
 		parent::set_up();
 
-		$this->initial_using_ext_object_cache = wp_using_ext_object_cache();
+		$this->initial_using_ext_object_cache     = wp_using_ext_object_cache();
+		$this->wp_environment_type_env_before_test = getenv( 'WP_ENVIRONMENT_TYPE' );
 
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
 	}
 
 	public function tear_down() {
 		wp_using_ext_object_cache( $this->initial_using_ext_object_cache );
-		delete_transient( 'health_check_page_cache_detail' );
-		// Reset for following tests: wp_get_environment_type() keeps a static when WP_RUN_CORE_TESTS is defined.
-		putenv( 'WP_ENVIRONMENT_TYPE=production' );
+
+		if ( false !== $this->wp_environment_type_env_before_test && '' !== $this->wp_environment_type_env_before_test ) {
+			putenv( 'WP_ENVIRONMENT_TYPE=' . $this->wp_environment_type_env_before_test );
+		} else {
+			putenv( 'WP_ENVIRONMENT_TYPE' );
+		}
+
 		parent::tear_down();
 	}
 
