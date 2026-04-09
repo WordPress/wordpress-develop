@@ -372,6 +372,20 @@ final class WP_Post_Type {
 	public $show_in_rest;
 
 	/**
+	 * Whether to expose this post type via the Abilities API.
+	 *
+	 * When true, a `core/post-type/{slug}/get` ability will be registered,
+	 * allowing retrieval of single posts by ID and multi-post queries
+	 * with filters via the Abilities API.
+	 *
+	 * Default false.
+	 *
+	 * @since 6.9.0
+	 * @var bool $show_in_abilities
+	 */
+	public $show_in_abilities = false;
+
+	/**
 	 * The base path for this post type's REST API endpoints.
 	 *
 	 * @since 4.7.4
@@ -551,6 +565,7 @@ final class WP_Post_Type {
 			'can_export'                      => true,
 			'delete_with_user'                => null,
 			'show_in_rest'                    => false,
+			'show_in_abilities'               => false,
 			'rest_base'                       => false,
 			'rest_namespace'                  => false,
 			'rest_controller_class'           => false,
