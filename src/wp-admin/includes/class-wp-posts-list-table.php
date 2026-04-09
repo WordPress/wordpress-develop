@@ -1137,7 +1137,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 			echo '<div class="locked-info"><span class="locked-avatar">' . $locked_avatar . '</span> <span class="locked-text">' . $locked_text . "</span></div>\n";
 		}
 
-		$pad = str_repeat( '&#8212; ', $this->current_level );
+		/**
+		 * Filters the string used to indicate hierarchy level in the posts list table.
+		 *
+		 * The string is repeated once per level, so a child two levels deep will
+		 * have the separator string prepended twice.
+		 *
+		 * @param string  $separator The string used to indicate hierarchy level. Default '&#8212; '.
+		 * @param WP_Post $post      The current post object.
+		 */
+		$separator = str_repeat( apply_filters( 'post_title_child_separator', '&#8212; ', $post ), $this->current_level );
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
@@ -1146,13 +1155,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 			printf(
 				'<a class="row-title" href="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
-				$pad,
+				$separator,
 				$title
 			);
 		} else {
 			printf(
 				'<span>%s%s</span>',
-				$pad,
+				$separator,
 				$title
 			);
 		}
