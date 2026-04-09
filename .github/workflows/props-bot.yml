@@ -70,6 +70,15 @@ jobs:
       ( ! github.event.pull_request.draft && github.event.pull_request.state == 'open' || ! github.event.issue.draft && github.event.issue.state == 'open' )
 
     steps:
+      - name: Output pull request URL
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.issue.number }}"
+          if [ -n "$PR_NUMBER" ]; then
+            echo "=== Props Bot Summary ==="
+            echo "Pull Request: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}"
+            echo "========================"
+          fi
+
       - name: Gather a list of contributors
         uses: WordPress/props-bot-action@trunk
         with:

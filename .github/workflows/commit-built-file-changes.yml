@@ -42,6 +42,32 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Output pull request URL
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const workflowRun = ${{ toJSON(github.event.workflow_run) }};
+            
+            console.log('=== Commit Built File Changes Summary ===');
+            console.log(`Source Workflow Run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${workflowRun.id}`);
+            
+            if (workflowRun.pull_requests && workflowRun.pull_requests.length > 0) {
+              console.log(`Pull Requests:`);
+              for (const pr of workflowRun.pull_requests) {
+                console.log(`  - https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${pr.number}`);
+              }
+            }
+            
+            if (workflowRun.head_branch) {
+              console.log(`Branch: ${workflowRun.head_branch}`);
+            }
+            
+            if (workflowRun.head_repository) {
+              console.log(`Repository: ${workflowRun.head_repository.full_name}`);
+            }
+            
+            console.log('==========================================');
+
       - name: Download artifact
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
