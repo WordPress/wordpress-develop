@@ -316,7 +316,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 */
 	public function test_get_table_classes_returns_default_classes() {
 		$method = new ReflectionMethod( $this->table, 'get_table_classes' );
-		$method->setAccessible( true );
 
 		$classes = $method->invoke( $this->table );
 
@@ -341,7 +340,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		);
 
 		$method = new ReflectionMethod( $this->table, 'get_table_classes' );
-		$method->setAccessible( true );
 
 		$classes = $method->invoke( $this->table );
 
@@ -369,7 +367,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		);
 
 		$method = new ReflectionMethod( $this->table, 'get_table_classes' );
-		$method->setAccessible( true );
 		$method->invoke( $this->table );
 
 		remove_all_filters( 'post_list_table_classes' );
