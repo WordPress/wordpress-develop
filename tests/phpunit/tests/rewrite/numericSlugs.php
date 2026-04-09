@@ -3,6 +3,8 @@
 /**
  * @group rewrite
  * @ticket 5305
+ *
+ * @covers ::url_to_postid
  */
 class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 	private $old_current_user;
