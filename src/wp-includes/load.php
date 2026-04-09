@@ -2047,3 +2047,26 @@ function wp_is_site_protected_by_basic_auth( $context = '' ) {
 	 */
 	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected, $context );
 }
+
+/**
+ * Normalizes an argument array for use with call_user_func_array() across PHP versions.
+ *
+ * PHP 8.0+ interprets string array keys as parameter names. In PHP 7.x, string keys were
+ * ignored when passing arguments positionally.
+ *
+ * @param array $args Arguments for the callback.
+ * @return array Positional argument list.
+ */
+function wp_normalize_call_user_func_args( $args ) {
+	if ( ! is_array( $args ) ) {
+		return $args;
+	}
+
+	foreach ( $args as $key => $unused ) {
+		if ( is_string( $key ) ) {
+			return array_values( $args );
+		}
+	}
+
+	return $args;
+}

@@ -116,12 +116,12 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param WP_Term         $term    Term object.
+	 * @param WP_Term         $item    Term object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $term, $request ) {
-		$nav_menu = wp_get_nav_menu_object( $term );
+	public function prepare_item_for_response( $item, $request ) {
+		$nav_menu = wp_get_nav_menu_object( $item );
 		$response = parent::prepare_item_for_response( $nav_menu, $request );
 
 		$fields = $this->get_fields_for_response( $request );
@@ -142,11 +142,11 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
-			$response->add_links( $this->prepare_links( $term ) );
+			$response->add_links( $this->prepare_links( $item ) );
 		}
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php */
-		return apply_filters( "rest_prepare_{$this->taxonomy}", $response, $term, $request );
+		return apply_filters( "rest_prepare_{$this->taxonomy}", $response, $item, $request );
 	}
 
 	/**

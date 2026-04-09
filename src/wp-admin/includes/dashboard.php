@@ -1212,7 +1212,7 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
 	if ( $callback && is_callable( $callback ) ) {
 		array_unshift( $args, $widget_id, $check_urls );
 		ob_start();
-		call_user_func_array( $callback, $args );
+		call_user_func_array( $callback, wp_normalize_call_user_func_args( $args ) );
 		// Default lifetime in cache of 12 hours (same as the feeds).
 		set_transient( $cache_key, ob_get_flush(), 12 * HOUR_IN_SECONDS );
 	}

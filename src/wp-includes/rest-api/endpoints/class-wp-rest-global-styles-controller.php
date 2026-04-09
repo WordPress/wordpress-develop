@@ -303,12 +303,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 * @since 6.6.0 Added custom relative theme file URIs to `_links`.
 	 *
-	 * @param WP_Post         $post    Global Styles post object.
+	 * @param WP_Post         $item    Global Styles post object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
-		$raw_config                       = json_decode( $post->post_content, true );
+	public function prepare_item_for_response( $item, $request ) {
+		$raw_config                       = json_decode( $item->post_content, true );
 		$is_global_styles_user_theme_json = isset( $raw_config['isGlobalStylesUserThemeJSON'] ) && true === $raw_config['isGlobalStylesUserThemeJSON'];
 		$config                           = array();
 		$theme_json                       = null;
@@ -322,20 +322,20 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		$data   = array();
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
-			$data['id'] = $post->ID;
+			$data['id'] = $item->ID;
 		}
 
 		if ( rest_is_field_included( 'title', $fields ) ) {
 			$data['title'] = array();
 		}
 		if ( rest_is_field_included( 'title.raw', $fields ) ) {
-			$data['title']['raw'] = $post->post_title;
+			$data['title']['raw'] = $item->post_title;
 		}
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
-			$data['title']['rendered'] = get_the_title( $post->ID );
+			$data['title']['rendered'] = get_the_title( $item->ID );
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
@@ -357,7 +357,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
-			$links = $this->prepare_links( $post->ID );
+			$links = $this->prepare_links( $item->ID );
 
 			// Only return resolved URIs for get requests to user theme JSON.
 			if ( $theme_json ) {
@@ -369,7 +369,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 
 			$response->add_links( $links );
 			if ( ! empty( $links['self']['href'] ) ) {
-				$actions = $this->get_available_actions( $post, $request );
+				$actions = $this->get_available_actions( $item, $request );
 				$self    = $links['self']['href'];
 				foreach ( $actions as $rel ) {
 					$response->add_link( $rel, $self );

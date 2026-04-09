@@ -338,7 +338,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 				if ( 0 === $the_['accepted_args'] ) {
 					$value = call_user_func( $the_['function'] );
 				} elseif ( $the_['accepted_args'] >= $num_args ) {
-					$value = call_user_func_array( $the_['function'], $args );
+					$value = call_user_func_array( $the_['function'], wp_normalize_call_user_func_args( $args ) );
 				} else {
 					$value = call_user_func_array( $the_['function'], array_slice( $args, 0, $the_['accepted_args'] ) );
 				}
@@ -378,6 +378,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @param array $args Arguments to pass to the hook callbacks. Passed by reference.
 	 */
 	public function do_all_hook( &$args ) {
+		$callback_args                      = wp_normalize_call_user_func_args( $args );
 		$nesting_level                      = $this->nesting_level++;
 		$this->iterations[ $nesting_level ] = $this->priorities;
 
@@ -385,7 +386,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			$priority = current( $this->iterations[ $nesting_level ] );
 
 			foreach ( $this->callbacks[ $priority ] as $the_ ) {
-				call_user_func_array( $the_['function'], $args );
+				call_user_func_array( $the_['function'], $callback_args );
 			}
 		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
 

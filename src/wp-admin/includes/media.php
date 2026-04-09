@@ -635,7 +635,7 @@ function wp_iframe( $content_func, ...$args ) {
 	</script>
 	<?php
 
-	call_user_func_array( $content_func, $args );
+	call_user_func_array( $content_func, wp_normalize_call_user_func_args( $args ) );
 
 	/** This action is documented in wp-admin/admin-footer.php */
 	do_action( 'admin_print_footer_scripts' );

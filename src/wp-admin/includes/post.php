@@ -437,7 +437,7 @@ function edit_post( $post_data = null ) {
 			$tax_object = get_taxonomy( $taxonomy );
 
 			if ( $tax_object && isset( $tax_object->meta_box_sanitize_cb ) ) {
-				$translated['tax_input'][ $taxonomy ] = call_user_func_array( $tax_object->meta_box_sanitize_cb, array( $taxonomy, $terms ) );
+				$translated['tax_input'][ $taxonomy ] = call_user_func_array( $tax_object->meta_box_sanitize_cb, wp_normalize_call_user_func_args( array( $taxonomy, $terms ) ) );
 			}
 		}
 	}

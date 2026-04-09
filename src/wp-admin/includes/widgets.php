@@ -273,7 +273,7 @@ function wp_widget_control( $sidebar_args ) {
 	<?php echo $before_widget_content; ?>
 	<?php
 	if ( isset( $control['callback'] ) ) {
-		$has_form = call_user_func_array( $control['callback'], $control['params'] );
+		$has_form = call_user_func_array( $control['callback'], wp_normalize_call_user_func_args( $control['params'] ) );
 	} else {
 		echo "\t\t<p>" . __( 'There are no options for this widget.' ) . "</p>\n";
 	}

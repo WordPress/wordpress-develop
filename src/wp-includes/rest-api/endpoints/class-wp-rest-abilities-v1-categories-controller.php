@@ -184,16 +184,16 @@ class WP_REST_Abilities_V1_Categories_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_Ability_Category $category The ability category object.
+	 * @param WP_Ability_Category $item    The ability category object.
 	 * @param WP_REST_Request     $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $category, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
 		$data = array(
-			'slug'        => $category->get_slug(),
-			'label'       => $category->get_label(),
-			'description' => $category->get_description(),
-			'meta'        => $category->get_meta(),
+			'slug'        => $item->get_slug(),
+			'label'       => $item->get_label(),
+			'description' => $item->get_description(),
+			'meta'        => $item->get_meta(),
 		);
 
 		$context = $request['context'] ?? 'view';
@@ -206,13 +206,13 @@ class WP_REST_Abilities_V1_Categories_Controller extends WP_REST_Controller {
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
 			$links = array(
 				'self'       => array(
-					'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $category->get_slug() ) ),
+					'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $item->get_slug() ) ),
 				),
 				'collection' => array(
 					'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 				),
 				'abilities'  => array(
-					'href' => rest_url( sprintf( '%s/abilities?category=%s', $this->namespace, $category->get_slug() ) ),
+					'href' => rest_url( sprintf( '%s/abilities?category=%s', $this->namespace, $item->get_slug() ) ),
 				),
 			);
 

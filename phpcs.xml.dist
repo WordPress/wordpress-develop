@@ -367,4 +367,13 @@
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
 
+	<!-- Enforce PHP 8.0 named parameter compatibility.
+		 Escalated from warning to error to prevent reserved keyword parameter names
+		 (string, list, array, etc.) which break PHP 8.0+ named argument syntax.
+		 See: Trac #59649
+	-->
+	<rule ref="Universal.NamingConventions.NoReservedKeywordParameterNames">
+		<type>error</type>
+	</rule>
+
 </ruleset>
