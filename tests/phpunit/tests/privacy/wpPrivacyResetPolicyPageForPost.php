@@ -100,7 +100,9 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
-		wp_get_current_user()->add_cap( 'manage_privacy_options' );
+		if ( is_multisite() ) {
+			grant_super_admin( $user_id );
+		}
 		set_current_screen( 'post' );
 
 		$post = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
