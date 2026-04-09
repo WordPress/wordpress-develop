@@ -1143,9 +1143,36 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$title = _draft_or_post_title();
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
+			if ( $this->current_level > 0 ) {
+				/*
+				 * When displayed in hierarchical mode, $parent_name is only set for
+				 * the "accidental level 0" code path above. Derive it from the post's
+				 * immediate parent for all other hierarchical cases.
+				 */
+				if ( ! isset( $parent_name ) && $post->post_parent > 0 ) {
+					$immediate_parent = get_post( $post->post_parent );
+					if ( $immediate_parent instanceof WP_Post ) {
+						/** This filter is documented in wp-includes/post-template.php */
+						$parent_name = apply_filters( 'the_title', $immediate_parent->post_title, $immediate_parent->ID );
+					}
+				}
+
+				if ( isset( $parent_name ) ) {
+					/* translators: Accessibility text for a subpage row-title link in the pages list table. 1: Post title. 2: Parent page title. */
+					$aria_label = sprintf( __( '&#8220;%1$s&#8221; (subpage of &#8220;%2$s&#8221;) (Edit)' ), $title, $parent_name );
+				} else {
+					/* translators: Accessibility text for a subpage row-title link when parent title is unavailable. %s: Post title. */
+					$aria_label = sprintf( __( '&#8220;%s&#8221; (subpage) (Edit)' ), $title );
+				}
+			} else {
+				/* translators: Accessibility label for a post row-title link in the list table. %s: Post title. */
+				$aria_label = sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title );
+			}
+
 			printf(
-				'<a class="row-title" href="%s">%s%s</a>',
+				'<a class="row-title" href="%s" aria-label="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
+				esc_attr( $aria_label ),
 				$pad,
 				$title
 			);

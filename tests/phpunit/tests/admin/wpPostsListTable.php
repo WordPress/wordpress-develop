@@ -246,6 +246,128 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a top-level page link has an aria-label with the title and "(Edit)".
+	 *
+	 * @ticket 62006
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_top_level_page_aria_label() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$post  = self::$top[1];
+		$title = apply_filters( 'the_title', $post->post_title, $post->ID );
+
+		// level=0 → top-level page.
+		ob_start();
+		$this->table->single_row( $post, 0 );
+		$output = ob_get_clean();
+
+		// Expected: "Title" (Edit)  — using curly quotes as the translatable string uses &#8220;/&#8221;.
+		$this->assertStringContainsString( 'aria-label=', $output );
+		$this->assertStringContainsString( esc_attr( $title ), $output );
+		$this->assertStringContainsString( '(Edit)', html_entity_decode( $output, ENT_QUOTES | ENT_HTML5 ) );
+		$this->assertStringNotContainsString( 'subpage', $output );
+
+		wp_set_current_user( 0 );
+	}
+
+	/**
+	 * Tests that a child page link includes "subpage of" with the parent page title in its aria-label.
+	 *
+	 * @ticket 62006
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_child_page_aria_label_includes_parent_name() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$child        = self::$children[1][1];
+		$parent       = self::$top[1];
+		$child_title  = apply_filters( 'the_title', $child->post_title, $child->ID );
+		$parent_title = apply_filters( 'the_title', $parent->post_title, $parent->ID );
+
+		// level=1 → direct child page.
+		ob_start();
+		$this->table->single_row( $child, 1 );
+		$output = ob_get_clean();
+
+		$decoded = html_entity_decode( $output, ENT_QUOTES | ENT_HTML5 );
+
+		$this->assertStringContainsString( 'aria-label=', $output );
+		$this->assertStringContainsString( 'subpage of', $decoded );
+		$this->assertStringContainsString( $child_title, $decoded );
+		$this->assertStringContainsString( $parent_title, $decoded );
+		$this->assertStringContainsString( '(Edit)', $decoded );
+
+		wp_set_current_user( 0 );
+	}
+
+	/**
+	 * Tests that a grandchild page link includes "subpage of" with its immediate parent title in its aria-label.
+	 *
+	 * @ticket 62006
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_grandchild_page_aria_label_includes_immediate_parent_name() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$grandchild       = self::$grandchildren[3][1][1];
+		$child            = self::$children[3][1];
+		$grandchild_title = apply_filters( 'the_title', $grandchild->post_title, $grandchild->ID );
+		$parent_title     = apply_filters( 'the_title', $child->post_title, $child->ID );
+
+		// level=2 → grandchild page; immediate parent is the child page.
+		ob_start();
+		$this->table->single_row( $grandchild, 2 );
+		$output = ob_get_clean();
+
+		$decoded = html_entity_decode( $output, ENT_QUOTES | ENT_HTML5 );
+
+		$this->assertStringContainsString( 'aria-label=', $output );
+		$this->assertStringContainsString( 'subpage of', $decoded );
+		$this->assertStringContainsString( $grandchild_title, $decoded );
+		$this->assertStringContainsString( $parent_title, $decoded );
+		$this->assertStringContainsString( '(Edit)', $decoded );
+
+		wp_set_current_user( 0 );
+	}
+
+	/**
+	 * Tests that a non-editable page (trashed) does not receive an aria-label on the title span.
+	 *
+	 * @ticket 62006
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_trashed_page_title_has_no_aria_label() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$trashed = self::factory()->post->create_and_get(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'trash',
+				'post_parent' => self::$top[1]->ID,
+			)
+		);
+
+		ob_start();
+		$this->table->single_row( $trashed, 1 );
+		$output = ob_get_clean();
+
+		// Trashed posts render as <span>, not <a class="row-title">, so no aria-label on the title.
+		$this->assertStringNotContainsString( 'class="row-title"', $output );
+		$this->assertStringNotContainsString( 'aria-label="&#8220;', $output );
+
+		wp_set_current_user( 0 );
+	}
+
+	/**
 	 * @ticket 37407
 	 *
 	 * @covers WP_Posts_List_Table::extra_tablenav
