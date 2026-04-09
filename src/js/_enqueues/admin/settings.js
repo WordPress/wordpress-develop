@@ -2,7 +2,7 @@
  * Warns users about unsaved changes on settings pages.
  *
  * @output wp-admin/js/settings.js
- * @since 6.9.0
+ * @since 7.1.0
  */
 
 /* global wp */

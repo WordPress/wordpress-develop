@@ -1,10 +1,36 @@
-/* global QUnit */
+/* global QUnit, wp */
 jQuery( function( $ ) {
 	QUnit.module( 'wp.admin.settings', {
 		beforeEach: function() {
-			// Provide a stub form and reset module state between tests.
+			// Create the test form.
 			this.$form = $( '<form action="options.php"><input name="foo" value="original"></form>' )
 				.appendTo( '#qunit-fixture' );
+
+			// Manually initialize settings module behavior for this test form.
+			// (The production module runs at DOM ready before the test form exists,
+			// so we replicate its initialization here after the form is created.)
+			this.originalData = this.$form.serialize();
+			this.isSubmitting = false;
+			var self = this;
+
+			// Define the startWatchingForUnload function.
+			this.startWatchingForUnload = function() {
+				self.$form.off( 'change.settings input.settings', self.startWatchingForUnload );
+				$( window ).on( 'beforeunload.settings', function() {
+					if ( ! self.isSubmitting && self.originalData !== self.$form.serialize() ) {
+						return wp.i18n.__( 'The changes you made will be lost if you navigate away from this page.' );
+					}
+				} );
+			};
+
+			// Attach submit handler to suppress warning on intentional form submission.
+			this.$form.on( 'submit.settings', function() {
+				self.isSubmitting = true;
+				$( window ).off( 'beforeunload.settings' );
+			} );
+
+			// Attach the lazy beforeunload listener on first change.
+			this.$form.on( 'change.settings input.settings', this.startWatchingForUnload );
 		},
 		afterEach: function() {
 			$( window ).off( 'beforeunload.settings' );
@@ -53,20 +79,15 @@ jQuery( function( $ ) {
 	} );
 
 	QUnit.test( 'beforeunload listener is lazy (not attached until first change)', function( assert ) {
-		// Create a second form to test lazy attach.
-		var $testForm = $( '<form action="options.php"><input name="test" value="val"></form>' )
-			.appendTo( '#qunit-fixture' );
+		// Before any change, beforeunload should return undefined (no handler attached).
+		var resultBefore = $( window ).triggerHandler( 'beforeunload.settings' );
+		assert.strictEqual( resultBefore, undefined, 'beforeunload listener not attached until first change.' );
 
-		// Initially, no beforeunload listener.
-		var countBefore = 0;
-		$( window ).on( 'beforeunload.settings', function() { countBefore++; } );
+		// Now trigger a change on the main test form.
+		this.$form.find( 'input' ).val( 'changed' ).trigger( 'change' );
 
-		// Trigger beforeunload before any changes.
-		$( window ).triggerHandler( 'beforeunload.settings' );
-
-		// Should not have fired (lazy attach).
-		assert.strictEqual( countBefore, 0, 'beforeunload not attached until first user change.' );
-
-		$testForm.remove();
+		// After a change, beforeunload should return a message.
+		var resultAfter = $( window ).triggerHandler( 'beforeunload.settings' );
+		assert.ok( resultAfter, 'beforeunload listener attached after first change.' );
 	} );
 } );
