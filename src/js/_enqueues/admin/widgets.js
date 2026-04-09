@@ -745,19 +745,3 @@ $( function(){ wpWidgets.init(); } );
 
 })(jQuery);
 
-/**
- * Removed in 5.5.0, needed for back-compatibility.
- *
- * @since 4.9.0
- * @deprecated 5.5.0
- *
- * @type {object}
-*/
-wpWidgets.l10n = wpWidgets.l10n || {
-	save: '',
-	saved: '',
-	saveAlert: '',
-	widgetAdded: ''
-};
-
-wpWidgets.l10n = window.wp.deprecateL10nObject( 'wpWidgets.l10n', wpWidgets.l10n, '5.5.0' );
