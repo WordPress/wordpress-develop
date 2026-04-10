@@ -45,6 +45,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_status' => 'publish',
 			)
 		);
+
 		self::$attached_to_public = $factory->post->create_and_get(
 			array(
 				'post_type'   => 'attachment',
@@ -66,6 +67,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_author' => self::$editor_user,
 			)
 		);
+
 		self::$attached_to_private = $factory->post->create_and_get(
 			array(
 				'post_type'   => 'attachment',
@@ -87,6 +89,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_author' => self::$editor_user,
 			)
 		);
+
 		self::$attached_to_draft = $factory->post->create_and_get(
 			array(
 				'post_type'   => 'attachment',
@@ -140,13 +143,16 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Attachment on a public post should redirect via slug URL.
+	 * Attachment on a public post should redirect via its child slug URL.
+	 *
+	 * With pretty permalinks, child attachment URLs take the form
+	 * /parent-slug/attachment-slug/.
 	 */
 	public function test_attached_to_public_post_slug_url_redirects() {
 		update_option( 'wp_attachment_pages_enabled', 0 );
 		$this->set_permalink_structure( '/%postname%/' );
 
-		$this->assertCanonical( '/public-attached-image/', $this->get_expected_path( self::$attached_to_public->ID ) );
+		$this->assertCanonical( '/public-post/public-attached-image/', $this->get_expected_path( self::$attached_to_public->ID ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -162,7 +168,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 		wp_set_current_user( 0 );
 
-		$this->assertCanonical( '/private-attached-image/', '/private-attached-image/' );
+		$this->assertCanonical( '/private-post/private-attached-image/', '/private-post/private-attached-image/' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -177,7 +183,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 		wp_set_current_user( self::$editor_user );
 
-		$this->assertCanonical( '/private-attached-image/', $this->get_expected_path( self::$attached_to_private->ID ) );
+		$this->assertCanonical( '/private-post/private-attached-image/', $this->get_expected_path( self::$attached_to_private->ID ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -192,7 +198,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 		wp_set_current_user( 0 );
 
-		$this->assertCanonical( '/draft-attached-image/', '/draft-attached-image/' );
+		$this->assertCanonical( '/draft-post/draft-attached-image/', '/draft-post/draft-attached-image/' );
 	}
 
 	// -------------------------------------------------------------------------
