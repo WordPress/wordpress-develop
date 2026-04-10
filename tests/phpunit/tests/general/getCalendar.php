@@ -183,7 +183,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	public function test_get_calendar_backwards_compatibility() {
 		$first_calendar_html = get_echo( 'get_calendar', array( false ) );
 
-		wp_cache_delete( 'get_calendar', 'calendar' );
+		delete_get_calendar_cache();
 
 		$second_calendar_html = get_calendar( false, false );
 
@@ -191,5 +191,76 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<caption>February 2025</caption>', $first_calendar_html, 'Calendar is expected to be captioned February 2025' );
 		$this->assertStringContainsString( '<table id="wp-calendar"', $first_calendar_html, 'Calendar is expected to contain the element table#wp-calendar' );
 		$this->assertSame( $first_calendar_html, $second_calendar_html, 'Both calendars should be identical' );
+	}
+
+	/**
+	 * Test that clean_post_cache invalidates the calendar cache.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_clean_post_cache_invalidates_calendar_cache() {
+		// Populate the cache.
+		get_echo( 'get_calendar' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$queries_cached = get_num_queries() - $num_queries_start;
+
+		$this->assertSame( 0, $queries_cached, 'Second call should be cached with zero queries.' );
+
+		// Simulate clean_post_cache firing.
+		delete_get_calendar_cache();
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$queries_after_flush = get_num_queries() - $num_queries_start;
+
+		$this->assertGreaterThan( 0, $queries_after_flush, 'After cache flush, queries should run again.' );
+	}
+
+	/**
+	 * Test that the calendar uses individual cache keys per variation.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_calendar_uses_individual_cache_keys() {
+		// Generate calendar for 'post' type.
+		get_echo( 'get_calendar' );
+
+		// Generate calendar for 'page' type.
+		get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
+
+		$num_queries_start = get_num_queries();
+
+		// Both should be cached independently.
+		get_echo( 'get_calendar' );
+		get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
+
+		$this->assertSame( 0, get_num_queries() - $num_queries_start, 'Both variations should be served from cache with zero queries.' );
+	}
+
+	/**
+	 * Test that flush_group clears all calendar variations at once.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_flush_group_clears_all_variations() {
+		// Populate caches for two different post types.
+		get_echo( 'get_calendar' );
+		get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
+
+		// Flush all calendar cache.
+		delete_get_calendar_cache();
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$queries_post = get_num_queries() - $num_queries_start;
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
+		$queries_page = get_num_queries() - $num_queries_start;
+
+		$this->assertGreaterThan( 0, $queries_post, 'Post calendar should require queries after flush.' );
+		$this->assertGreaterThan( 0, $queries_page, 'Page calendar should require queries after flush.' );
 	}
 }
