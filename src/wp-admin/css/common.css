@@ -1473,22 +1473,22 @@ div.error p,
 	color: #1e1e1e;
 }
 
-.notice a,
-.error a,
-.updated a {
+div.notice a,
+div.error a,
+div.updated a {
 	color: var(--wp-admin-theme-color-darker-10);
 	text-decoration: underline;
 }
 
-.notice a:hover,
-.error a:hover,
-.updated a:hover {
+div.notice a:hover,
+div.error a:hover,
+div.updated a:hover {
 	color: var(--wp-admin-theme-color-darker-20);
 }
 
-.notice a:focus,
-.error a:focus,
-.updated a:focus {
+div.notice a:focus,
+div.error a:focus,
+div.updated a:focus {
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
 	outline: 2px solid transparent;
 	border-radius: 2px;
@@ -2077,17 +2077,6 @@ p.auto-update-status {
 	box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02), 0 1px 0 rgba(0, 0, 0, 0.02);
 }
 
-.contextual-help-tabs .active::after {
-	content: "";
-	position: absolute;
-	top: 0;
-	right: -1px;
-	width: 2px;
-	height: 100%;
-	background: inherit;
-	z-index: 2;
-}
-
 .contextual-help-tabs .active a {
 	border-color: #c3c4c7;
 	color: #2c3338;
@@ -2292,7 +2281,7 @@ html.wp-toolbar {
 	line-height: 1;
 }
 
-.postbox.closed {
+.postbox.closed .postbox-header {
 	border-bottom: 0;
 }
 
