@@ -2,6 +2,8 @@
 
 /**
  * @group oembed
+ *
+ * @covers WP_Embed
  */
 class Tests_WP_Embed extends WP_UnitTestCase {
 	/**
