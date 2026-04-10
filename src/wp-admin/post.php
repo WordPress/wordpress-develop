@@ -93,7 +93,7 @@ switch ( $action ) {
 
 		$post = get_post( $post_id );
 		if ( ! $post ) {
-			$error_msg = __( 'Unable to submit this form, please refresh and try again' );
+			$error_msg = __( 'Unable to submit this form, please refresh and try again.' );
 		}
 
 		if ( $error_msg ) {
