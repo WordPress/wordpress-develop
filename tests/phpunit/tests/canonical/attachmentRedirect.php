@@ -46,9 +46,10 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 		update_option( 'wp_attachment_pages_enabled', 0 );
 		$this->set_permalink_structure( '/%postname%/' );
 
-		$expected_url = wp_get_attachment_url( self::$attachment->ID );
+		// assertCanonical compares against the path component only.
+		$expected_path = parse_url( wp_get_attachment_url( self::$attachment->ID ), PHP_URL_PATH );
 
-		$this->assertCanonical( '/test-image-jpg/', $expected_url );
+		$this->assertCanonical( '/test-image-jpg/', $expected_path );
 	}
 
 	/**
@@ -58,8 +59,9 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 		update_option( 'wp_attachment_pages_enabled', 0 );
 		$this->set_permalink_structure( '/%postname%/' );
 
-		$expected_url = wp_get_attachment_url( self::$attachment->ID );
+		// assertCanonical compares against the path component only.
+		$expected_path = parse_url( wp_get_attachment_url( self::$attachment->ID ), PHP_URL_PATH );
 
-		$this->assertCanonical( '/?attachment_id=' . self::$attachment->ID, $expected_url );
+		$this->assertCanonical( '/?attachment_id=' . self::$attachment->ID, $expected_path );
 	}
 }
