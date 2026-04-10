@@ -2,6 +2,8 @@
 
 /**
  * @group oembed
+ *
+ * @covers ::get_post_embed_url
  */
 class Tests_Post_Embed_URL extends WP_UnitTestCase {
 	public function test_non_existent_post() {
