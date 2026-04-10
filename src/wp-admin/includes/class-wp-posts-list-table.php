@@ -1018,9 +1018,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @since 4.3.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
+	 * @global string $mode List table view mode.
+	 *
 	 * @param WP_Post $item The current WP_Post object.
 	 */
 	public function column_cb( $item ) {
+		global $mode;
+
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
@@ -1037,13 +1041,23 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param WP_Post $post The current WP_Post object.
 		 */
 		if ( apply_filters( 'wp_list_table_show_post_checkbox', $show, $post ) ) :
+
+			$post_title = _draft_or_post_title();
+
+			// If the post has no title, try adding part of the excerpt.
+			if ( 'excerpt' !== $mode && '' === get_the_title( $post ) && ! post_password_required( $post ) ) {
+				$excerpt = get_the_excerpt( $post );
+				if ( '' !== $excerpt && is_string( $excerpt ) ) {
+					$post_title .= ' ' . esc_html( wp_trim_words( $excerpt, 15, ' &hellip;' ) );
+				}
+			}
 			?>
 			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
 			<label for="cb-select-<?php the_ID(); ?>">
 				<span class="screen-reader-text">
 				<?php
 					/* translators: %s: Post title. */
-					printf( __( 'Select %s' ), _draft_or_post_title() );
+					printf( __( 'Select %s' ), $post_title );
 				?>
 				</span>
 			</label>
@@ -1054,7 +1068,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				printf(
 					/* translators: Hidden accessibility text. %s: Post title. */
 					__( '&#8220;%s&#8221; is locked' ),
-					_draft_or_post_title()
+					$post_title
 				);
 				?>
 				</span>
@@ -1141,6 +1155,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
+
+		// If the post has no title, try adding part of the excerpt.
+		if ( 'excerpt' !== $mode && '' === get_the_title( $post ) && ! post_password_required( $post ) ) {
+			$excerpt = get_the_excerpt( $post );
+			if ( '' !== $excerpt && is_string( $excerpt ) ) {
+				$title .= ' <span class="trimmed-post-excerpt">' . esc_html( wp_trim_words( $excerpt, 15, ' &hellip;' ) ) . '</span>';
+			}
+		}
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
