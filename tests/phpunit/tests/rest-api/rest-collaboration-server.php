@@ -513,6 +513,40 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * Validates that REST accepts client IDs at the column width boundary (32 chars).
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_client_id_accepts_string_at_max_length(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$client_id = str_repeat( 'a', 32 );
+		$this->assertSame( 32, strlen( $client_id ), 'Client ID should be 32 characters.' );
+
+		$rooms    = array( $this->build_room( $this->get_post_room(), $client_id ) );
+		$response = $this->dispatch_collaboration( $rooms );
+
+		$this->assertSame( 200, $response->get_status(), 'REST should accept client IDs at 32 characters.' );
+	}
+
+	/**
+	 * Validates that REST rejects client IDs exceeding the column width (32 chars).
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_client_id_rejects_string_over_max_length(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$client_id = str_repeat( 'a', 33 );
+		$this->assertSame( 33, strlen( $client_id ), 'Client ID should be 33 characters.' );
+
+		$rooms    = array( $this->build_room( $this->get_post_room(), $client_id ) );
+		$response = $this->dispatch_collaboration( $rooms );
+
+		$this->assertSame( 400, $response->get_status(), 'REST should reject client IDs exceeding 32 characters.' );
+	}
+
+	/**
 	 * Verifies that dispatching with an empty rooms array returns HTTP 200.
 	 *
 	 * The schema has no minItems constraint on the rooms array.
