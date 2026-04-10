@@ -21,6 +21,8 @@ window.wp = window.wp || {};
 
 window.inlineEditTax = {
 
+	_beforeUnloadHandler: null,
+
 	/**
 	 * Initializes the inline taxonomy editor by adding event handlers to be able to
 	 * quick edit.
@@ -81,7 +83,11 @@ window.inlineEditTax = {
 		/**
 		 * Saves the inline edits on submitting the inline edit form.
 		 */
-		$( '#posts-filter input[type="submit"]' ).on( 'mousedown', function() {
+		$( '#posts-filter' ).on( 'submit', function( e ) {
+			if ( t._beforeUnloadHandler && ! window.confirm( wp.i18n.__( 'The changes you made will be lost. Do you want to continue?' ) ) ) {
+				e.preventDefault();
+				return;
+			}
 			t.revert();
 		});
 	},
@@ -120,6 +126,11 @@ window.inlineEditTax = {
 	edit : function(id) {
 		var editRow, rowData, val,
 			t = this;
+
+		if ( t._beforeUnloadHandler && ! window.confirm( wp.i18n.__( 'The changes you made will be lost. Do you want to continue?' ) ) ) {
+			return false;
+		}
+
 		t.revert();
 
 		// Makes sure we can pass an HTMLElement as the ID.
@@ -144,6 +155,10 @@ window.inlineEditTax = {
 
 		$(editRow).attr('id', 'edit-'+id).addClass('inline-editor').show();
 		$('.ptitle', editRow).eq(0).trigger( 'focus' );
+
+		$( ':input', editRow ).off( 'change.inlineEdit input.inlineEdit' ).one( 'change.inlineEdit input.inlineEdit', function() {
+			t._guardNavigation();
+		} );
 
 		return false;
 	},
@@ -203,6 +218,7 @@ window.inlineEditTax = {
 
 				if (r) {
 					if ( -1 !== r.indexOf( '<tr' ) ) {
+						inlineEditTax._unguardNavigation();
 						$(inlineEditTax.what+id).siblings('tr.hidden').addBack().remove();
 						new_id = $(r).attr('id');
 
@@ -261,6 +277,7 @@ window.inlineEditTax = {
 		var id = $('table.widefat tr.inline-editor').attr('id');
 
 		if ( id ) {
+			this._unguardNavigation();
 			$( 'table.widefat .spinner' ).removeClass( 'is-active' );
 			$('#'+id).siblings('tr.hidden').addBack().remove();
 			id = id.substr( id.lastIndexOf('-') + 1 );
@@ -286,6 +303,39 @@ window.inlineEditTax = {
 		var id = o.tagName === 'TR' ? o.id : $(o).parents('tr').attr('id'), parts = id.split('-');
 
 		return parts[parts.length - 1];
+	},
+
+	/**
+	 * Sets a beforeunload handler to warn about unsaved Quick Edit changes.
+	 *
+	 * @since x.x.x
+	 * @memberof inlineEditTax
+	 * @return {void}
+	 */
+	_guardNavigation: function() {
+		var t = this;
+		if ( t._beforeUnloadHandler ) {
+			return;
+		}
+		t._beforeUnloadHandler = function( event ) {
+			event.preventDefault();
+			event.returnValue = '';
+		};
+		window.addEventListener( 'beforeunload', t._beforeUnloadHandler );
+	},
+
+	/**
+	 * Removes the beforeunload handler set by _guardNavigation().
+	 *
+	 * @since x.x.x
+	 * @memberof inlineEditTax
+	 * @return {void}
+	 */
+	_unguardNavigation: function() {
+		if ( this._beforeUnloadHandler ) {
+			window.removeEventListener( 'beforeunload', this._beforeUnloadHandler );
+			this._beforeUnloadHandler = null;
+		}
 	}
 };
 

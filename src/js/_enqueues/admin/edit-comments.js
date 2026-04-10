@@ -782,6 +782,7 @@ window.commentReply = {
 	cid : '',
 	act : '',
 	originalContent : '',
+	_beforeUnloadHandler: null,
 
 	/**
 	 * Initializes the comment reply functionality.
@@ -808,9 +809,13 @@ window.commentReply = {
 			commentReply.toggle($(this).parent());
 		});
 
-		$('#doaction, #post-query-submit').on( 'click', function(){
-			if ( $('#the-comment-list #replyrow').length > 0 )
+		$('#doaction, #post-query-submit').on( 'click', function() {
+			if ( $('#the-comment-list #replyrow').length > 0 ) {
+				if ( ! commentReply.discardCommentChanges() ) {
+					return false;
+				}
 				commentReply.close();
+			}
 		});
 
 		this.comments_listing = $('#comments-form > input[name="comment_status"]').val() || '';
@@ -890,6 +895,8 @@ window.commentReply = {
 		if ( replyRow.parent().is( '#com-reply' ) ) {
 			return;
 		}
+
+		this._unguardNavigation();
 
 		if ( this.cid ) {
 			commentRow = $( '#comment-' + this.cid );
@@ -1057,6 +1064,10 @@ window.commentReply = {
 					isComposing = true;
 				} );
 		}, 600);
+
+		$( ':input', editRow ).off( 'change.commentEdit input.commentEdit' ).one( 'change.commentEdit input.commentEdit', function() {
+			t._guardNavigation();
+		} );
 
 		return false;
 	},
@@ -1243,6 +1254,39 @@ window.commentReply = {
 		}
 
 		return window.confirm( __( 'Are you sure you want to do this?\nThe comment changes you made will be lost.' ) );
+	},
+
+	/**
+	 * Sets a beforeunload handler to warn about unsaved comment edit changes.
+	 *
+	 * @since x.x.x
+	 * @memberof commentReply
+	 * @return {void}
+	 */
+	_guardNavigation: function() {
+		var t = this;
+		if ( t._beforeUnloadHandler ) {
+			return;
+		}
+		t._beforeUnloadHandler = function( event ) {
+			event.preventDefault();
+			event.returnValue = '';
+		};
+		window.addEventListener( 'beforeunload', t._beforeUnloadHandler );
+	},
+
+	/**
+	 * Removes the beforeunload handler set by _guardNavigation().
+	 *
+	 * @since x.x.x
+	 * @memberof commentReply
+	 * @return {void}
+	 */
+	_unguardNavigation: function() {
+		if ( this._beforeUnloadHandler ) {
+			window.removeEventListener( 'beforeunload', this._beforeUnloadHandler );
+			this._beforeUnloadHandler = null;
+		}
 	}
 };
 
