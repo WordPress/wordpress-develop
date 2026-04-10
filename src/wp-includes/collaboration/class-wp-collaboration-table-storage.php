@@ -291,10 +291,10 @@ class WP_Collaboration_Table_Storage {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string               $room    Room identifier.
+	 * @param string               $room      Room identifier.
 	 * @param string               $client_id Client identifier.
-	 * @param array<string, mixed> $state   Serializable awareness state for this client.
-	 * @param int                  $user_id WordPress user ID that owns this client.
+	 * @param array<string, mixed> $state     Serializable awareness state for this client.
+	 * @param int                  $user_id   WordPress user ID that owns this client.
 	 * @return bool True on success, false on failure.
 	 */
 	public function set_awareness_state( string $room, string $client_id, array $state, int $user_id ): bool {
