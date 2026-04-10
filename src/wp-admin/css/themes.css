@@ -2053,8 +2053,9 @@ body.full-overlay-active {
 
 	.theme-install-overlay .wp-full-overlay-header .button {
 		font-size: 14px;
-		line-height: 2.71428571;
-		min-height: 40px;
+		line-height: 2.14285714;
+		margin-top: 7px;
+		min-height: 32px;
 		padding: 0 14px;
 	}
 
