@@ -82,6 +82,17 @@ class WP_Script_Modules {
 	private $modules_with_missing_dependencies = array();
 
 	/**
+	 * Holds translation data for script modules, keyed by script module identifier.
+	 *
+	 * Each entry contains 'domain' and 'path' keys for the text domain
+	 * and the path to translation files respectively.
+	 *
+	 * @since x.y.z
+	 * @var array<string, array{domain: string, path: string}>
+	 */
+	private $translations = array();
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
@@ -329,6 +340,74 @@ class WP_Script_Modules {
 	}
 
 	/**
+	 * Sets translated strings for a script module.
+	 *
+	 * Works similar to {@see WP_Scripts::set_translations()} but for script modules.
+	 * The translations will be loaded and output as inline scripts before
+	 * the script modules are printed, calling `wp.i18n.setLocaleData()`.
+	 *
+	 * @since x.y.z
+	 *
+	 * @param string $id     The identifier of the script module.
+	 * @param string $domain Optional. Text domain. Default 'default'.
+	 * @param string $path   Optional. The full file path to the directory containing translation files.
+	 * @return bool True if the text domain was registered, false if the module is not registered.
+	 */
+	public function set_translations( string $id, string $domain = 'default', string $path = '' ): bool {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+
+		$this->translations[ $id ] = array(
+			'domain' => $domain,
+			'path'   => $path,
+		);
+
+		return true;
+	}
+
+	/**
+	 * Prints translations for all enqueued script modules that have translations set.
+	 *
+	 * Outputs inline `<script>` tags that call `wp.i18n.setLocaleData()` with
+	 * the translated strings for each script module. This must run before
+	 * the script modules execute.
+	 *
+	 * @since x.y.z
+	 */
+	public function print_script_module_translations(): void {
+		// Collect all module IDs that will be on the page (enqueued + their dependencies).
+		$module_ids = $this->get_sorted_dependencies( $this->queue );
+
+		foreach ( $module_ids as $id ) {
+			if ( ! isset( $this->translations[ $id ] ) ) {
+				continue;
+			}
+
+			$domain = $this->translations[ $id ]['domain'];
+			$path   = $this->translations[ $id ]['path'];
+
+			$json_translations = load_script_module_textdomain( $id, $domain, $path );
+
+			if ( ! $json_translations ) {
+				continue;
+			}
+
+			$output = <<<JS
+( function( domain, translations ) {
+	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
+	localeData[""].domain = domain;
+	wp.i18n.setLocaleData( localeData, domain );
+} )( "{$domain}", {$json_translations} );
+JS;
+
+			$source_url = rawurlencode( "{$id}-js-module-translations" );
+			$output    .= "\n//# sourceURL={$source_url}";
+			wp_print_inline_script_tag( $output, array( 'id' => "{$id}-js-module-translations" ) );
+		}
+	}
+
+	/**
 	 * Adds the hooks to print the import map, enqueued script modules and script
 	 * module preloads.
 	 *
@@ -352,12 +431,22 @@ class WP_Script_Modules {
 			 */
 			add_action( 'wp_head', array( $this, 'print_head_enqueued_script_modules' ) );
 		}
-		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( $position, array( $this, 'print_script_module_preloads' ) );
 
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ), 9 );
+
+		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
+
+		/*
+		 * Print translations after classic scripts like wp-i18n are loaded (at
+		 * priority 10 via _wp_footer_scripts), but before the script modules
+		 * execute. Script modules with type="module" are deferred by default,
+		 * so inline translation scripts at priority 11 will execute before them.
+		 */
+		add_action( 'wp_footer', array( $this, 'print_script_module_translations' ), 21 );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_translations' ), 11 );
 
 		add_action( 'wp_footer', array( $this, 'print_script_module_data' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_data' ) );
@@ -838,6 +927,26 @@ class WP_Script_Modules {
 		$sorted[] = $id;
 
 		return true;
+	}
+
+	/**
+	 * Gets the raw source URL for a registered script module.
+	 *
+	 * Returns the source URL without version query string appended.
+	 * This is used by {@see load_script_module_textdomain()} to determine
+	 * the relative path for loading translation files.
+	 *
+	 * @since x.y.z
+	 *
+	 * @param string $id The script module identifier.
+	 * @return string|false The script module source URL, or false if not registered.
+	 */
+	public function get_registered_src( string $id ) {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+
+		return $this->registered[ $id ]['src'];
 	}
 
 	/**

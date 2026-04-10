@@ -2566,4 +2566,115 @@ HTML;
 			$this->caught_doing_it_wrong[ $expected_incorrect_usage ]
 		);
 	}
+
+	/**
+	 * Tests that set_translations() returns false for unregistered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::set_translations
+	 */
+	public function test_set_translations_returns_false_for_unregistered_module() {
+		$result = $this->script_modules->set_translations( 'unregistered-module', 'default' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests that set_translations() returns true for registered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::set_translations
+	 */
+	public function test_set_translations_returns_true_for_registered_module() {
+		$this->script_modules->register( 'test-module', '/test-module.js' );
+		$result = $this->script_modules->set_translations( 'test-module', 'test-domain' );
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests that wp_set_script_module_translations() wrapper works.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers ::wp_set_script_module_translations
+	 */
+	public function test_wp_set_script_module_translations_wrapper() {
+		wp_register_script_module( 'test-module', '/test-module.js' );
+		$result = wp_set_script_module_translations( 'test-module', 'test-domain' );
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests that wp_set_script_module_translations() returns false for unregistered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers ::wp_set_script_module_translations
+	 */
+	public function test_wp_set_script_module_translations_returns_false_for_unregistered() {
+		$result = wp_set_script_module_translations( 'unregistered-module', 'default' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests that get_registered_src() returns false for unregistered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::get_registered_src
+	 */
+	public function test_get_registered_src_returns_false_for_unregistered_module() {
+		$result = $this->script_modules->get_registered_src( 'unregistered-module' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests that get_registered_src() returns correct src for registered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::get_registered_src
+	 */
+	public function test_get_registered_src_returns_src_for_registered_module() {
+		$this->script_modules->register( 'test-module', '/test-module.js' );
+		$result = $this->script_modules->get_registered_src( 'test-module' );
+		$this->assertSame( '/test-module.js', $result );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs nothing when no translations are set.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 */
+	public function test_print_script_module_translations_outputs_nothing_when_no_translations() {
+		$this->script_modules->register( 'test-module', '/test-module.js' );
+		$this->script_modules->enqueue( 'test-module' );
+
+		ob_start();
+		$this->script_modules->print_script_module_translations();
+		$output = ob_get_clean();
+
+		$this->assertEmpty( $output );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs nothing for non-enqueued modules.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 */
+	public function test_print_script_module_translations_outputs_nothing_for_non_enqueued() {
+		$this->script_modules->register( 'test-module', '/test-module.js' );
+		$this->script_modules->set_translations( 'test-module', 'default' );
+
+		ob_start();
+		$this->script_modules->print_script_module_translations();
+		$output = ob_get_clean();
+
+		$this->assertEmpty( $output );
+	}
 }

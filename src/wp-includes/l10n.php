@@ -1281,6 +1281,151 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 }
 
 /**
+ * Loads the translation data for a given script module ID and text domain.
+ *
+ * Works like {@see load_script_textdomain()} but for script modules registered
+ * via {@see wp_register_script_module()}.
+ *
+ * @since x.y.z
+ *
+ * @param string $id     The script module identifier.
+ * @param string $domain Optional. Text domain. Default 'default'.
+ * @param string $path   Optional. The full file path to the directory containing translation files.
+ * @return string|false The JSON-encoded translated strings for the given script module and text domain.
+ *                      False if there are none.
+ */
+function load_script_module_textdomain( $id, $domain = 'default', $path = '' ) {
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+	global $wp_textdomain_registry;
+
+	$src = wp_script_modules()->get_registered_src( $id );
+
+	if ( false === $src ) {
+		return false;
+	}
+
+	$locale = determine_locale();
+
+	if ( ! $path ) {
+		$path = $wp_textdomain_registry->get( $domain, $locale );
+	}
+
+	$path = untrailingslashit( $path );
+
+	// If a path was given and the handle file exists simply return it.
+	$file_base       = 'default' === $domain ? $locale : $domain . '-' . $locale;
+	$handle_filename = $file_base . '-' . $id . '.json';
+
+	if ( $path ) {
+		$translations = load_script_translations( $path . '/' . $handle_filename, $id, $domain );
+
+		if ( $translations ) {
+			return $translations;
+		}
+	}
+
+	// Ensure src is an absolute URL for path resolution.
+	if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+		$src = site_url( $src );
+	}
+
+	$relative       = false;
+	$languages_path = WP_LANG_DIR;
+
+	$src_url     = wp_parse_url( $src );
+	$content_url = wp_parse_url( content_url() );
+	$plugins_url = wp_parse_url( plugins_url() );
+	$site_url    = wp_parse_url( site_url() );
+	$theme_root  = get_theme_root();
+
+	// If the host is the same or it's a relative URL.
+	if (
+		( ! isset( $content_url['path'] ) || str_starts_with( $src_url['path'], $content_url['path'] ) ) &&
+		( ! isset( $src_url['host'] ) || ! isset( $content_url['host'] ) || $src_url['host'] === $content_url['host'] )
+	) {
+		// Make the src relative the specific plugin or theme.
+		if ( isset( $content_url['path'] ) ) {
+			$relative = substr( $src_url['path'], strlen( $content_url['path'] ) );
+		} else {
+			$relative = $src_url['path'];
+		}
+		$relative = trim( $relative, '/' );
+		$relative = explode( '/', $relative );
+
+		$theme_dir = array_slice( explode( '/', $theme_root ), -1 );
+		$dirname   = $theme_dir[0] === $relative[0] ? 'themes' : 'plugins';
+
+		$languages_path = WP_LANG_DIR . '/' . $dirname;
+
+		$relative = array_slice( $relative, 2 ); // Remove plugins/<plugin name> or themes/<theme name>.
+		$relative = implode( '/', $relative );
+	} elseif (
+		( ! isset( $plugins_url['path'] ) || str_starts_with( $src_url['path'], $plugins_url['path'] ) ) &&
+		( ! isset( $src_url['host'] ) || ! isset( $plugins_url['host'] ) || $src_url['host'] === $plugins_url['host'] )
+	) {
+		// Make the src relative the specific plugin.
+		if ( isset( $plugins_url['path'] ) ) {
+			$relative = substr( $src_url['path'], strlen( $plugins_url['path'] ) );
+		} else {
+			$relative = $src_url['path'];
+		}
+		$relative = trim( $relative, '/' );
+		$relative = explode( '/', $relative );
+
+		$languages_path = WP_LANG_DIR . '/plugins';
+
+		$relative = array_slice( $relative, 1 ); // Remove <plugin name>.
+		$relative = implode( '/', $relative );
+	} elseif ( ! isset( $src_url['host'] ) || ! isset( $site_url['host'] ) || $src_url['host'] === $site_url['host'] ) {
+		if ( ! isset( $site_url['path'] ) ) {
+			$relative = trim( $src_url['path'], '/' );
+		} elseif ( str_starts_with( $src_url['path'], trailingslashit( $site_url['path'] ) ) ) {
+			// Make the src relative to the WP root.
+			$relative = substr( $src_url['path'], strlen( $site_url['path'] ) );
+			$relative = trim( $relative, '/' );
+		}
+	}
+
+	/**
+	 * Filters the relative path of script module source used for finding translation files.
+	 *
+	 * @since x.y.z
+	 *
+	 * @param string|false $relative The relative path of the script module source. False if it could not be determined.
+	 * @param string       $src      The full source URL of the script module.
+	 */
+	$relative = apply_filters( 'load_script_module_textdomain_relative_path', $relative, $src );
+
+	// If the source is not from WP.
+	if ( false === $relative ) {
+		return load_script_translations( false, $id, $domain );
+	}
+
+	// Translations are always based on the unminified filename.
+	if ( str_ends_with( $relative, '.min.js' ) ) {
+		$relative = substr( $relative, 0, -7 ) . '.js';
+	}
+
+	$md5_filename = $file_base . '-' . md5( $relative ) . '.json';
+
+	if ( $path ) {
+		$translations = load_script_translations( $path . '/' . $md5_filename, $id, $domain );
+
+		if ( $translations ) {
+			return $translations;
+		}
+	}
+
+	$translations = load_script_translations( $languages_path . '/' . $md5_filename, $id, $domain );
+
+	if ( $translations ) {
+		return $translations;
+	}
+
+	return load_script_translations( false, $id, $domain );
+}
+
+/**
  * Loads the translation data for the given script handle and text domain.
  *
  * @since 5.0.2
