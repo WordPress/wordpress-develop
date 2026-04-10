@@ -2344,12 +2344,18 @@ function get_calendar( $args = array() ) {
 	);
 
 	wp_recursive_ksort( $cache_args );
-	$key   = md5( serialize( $cache_args ) );
-	$cache = wp_cache_get( 'get_calendar', 'calendar' );
 
-	if ( $cache && is_array( $cache ) && isset( $cache[ $key ] ) ) {
+	if ( ! wp_cache_supports( 'flush_group' ) ) {
+		$generation                  = wp_cache_get( 'get_calendar_generation', 'calendar' );
+		$cache_args['_generation_'] = $generation ? (int) $generation : 0;
+	}
+
+	$key   = 'get_calendar_' . md5( serialize( $cache_args ) );
+	$cache = wp_cache_get( $key, 'calendar' );
+
+	if ( false !== $cache ) {
 		/** This filter is documented in wp-includes/general-template.php */
-		$output = apply_filters( 'get_calendar', $cache[ $key ], $args );
+		$output = apply_filters( 'get_calendar', $cache, $args );
 
 		if ( $args['display'] ) {
 			echo $output;
@@ -2357,10 +2363,6 @@ function get_calendar( $args = array() ) {
 		}
 
 		return $output;
-	}
-
-	if ( ! is_array( $cache ) ) {
-		$cache = array();
 	}
 
 	$post_type = $args['post_type'];
@@ -2379,8 +2381,7 @@ function get_calendar( $args = array() ) {
 		);
 
 		if ( ! $gotsome ) {
-			$cache[ $key ] = '';
-			wp_cache_set( 'get_calendar', $cache, 'calendar' );
+			wp_cache_set( $key, '', 'calendar' );
 			return;
 		}
 	}
@@ -2393,17 +2394,10 @@ function get_calendar( $args = array() ) {
 		$thismonth = (int) $monthnum;
 		$thisyear  = (int) $year;
 	} elseif ( ! empty( $w ) ) {
-		// We need to get the month from MySQL.
 		$thisyear = (int) substr( $m, 0, 4 );
 		// It seems MySQL's weeks disagree with PHP's.
 		$d         = ( ( $w - 1 ) * 7 ) + 6;
-		$thismonth = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT DATE_FORMAT((DATE_ADD('%d0101', INTERVAL %d DAY) ), '%%m')",
-				$thisyear,
-				$d
-			)
-		);
+		$thismonth = (int) gmdate( 'm', strtotime( "{$thisyear}-01-01 + {$d} days" ) );
 	} elseif ( ! empty( $m ) ) {
 		$thisyear = (int) substr( $m, 0, 4 );
 		if ( strlen( $m ) < 6 ) {
@@ -2586,8 +2580,7 @@ function get_calendar( $args = array() ) {
 	$calendar_output .= '
 	</nav>';
 
-	$cache[ $key ] = $calendar_output;
-	wp_cache_set( 'get_calendar', $cache, 'calendar' );
+	wp_cache_set( $key, $calendar_output, 'calendar' );
 
 	/**
 	 * Filters the HTML calendar output.
@@ -2621,7 +2614,13 @@ function get_calendar( $args = array() ) {
  * @since 2.1.0
  */
 function delete_get_calendar_cache() {
-	wp_cache_delete( 'get_calendar', 'calendar' );
+	if ( wp_cache_supports( 'flush_group' ) ) {
+		wp_cache_flush_group( 'calendar' );
+		return;
+	}
+
+	// Fallback for object cache implementations that do not support flushing groups.
+	wp_cache_incr( 'get_calendar_generation', 1, 'calendar' );
 }
 
 /**
