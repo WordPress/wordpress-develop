@@ -79,7 +79,7 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 	isValidUrlInput: function ( el ) {
 		var url = ( el.value || '' ).trim();
 		try {
-			var url = new URL( url );
+			url = new URL( url );
 			return [ 'http:', 'https:' ].includes(url.protocol);
 		} catch ( e ) {
 			return false;
