@@ -25,7 +25,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 		self::$editor_user = $factory->user->create( array( 'role' => 'editor' ) );
 
 		// Unattached attachment.
-		$unattached_id = $factory->post->create(
+		self::$unattached = $factory->post->create_and_get(
 			array(
 				'post_type'   => 'attachment',
 				'post_title'  => 'Unattached Image',
@@ -34,8 +34,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_parent' => 0,
 			)
 		);
-		update_post_meta( $unattached_id, '_wp_attached_file', '2025/01/unattached-image.jpg' );
-		self::$unattached = get_post( $unattached_id );
+		update_post_meta( self::$unattached->ID, '_wp_attached_file', '2025/01/unattached-image.jpg' );
 
 		// Attachment on a public post.
 		self::$public_parent = $factory->post->create_and_get(
@@ -46,7 +45,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_status' => 'publish',
 			)
 		);
-		$attached_public_id = $factory->post->create(
+		self::$attached_to_public = $factory->post->create_and_get(
 			array(
 				'post_type'   => 'attachment',
 				'post_title'  => 'Public Attached Image',
@@ -55,8 +54,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_parent' => self::$public_parent->ID,
 			)
 		);
-		update_post_meta( $attached_public_id, '_wp_attached_file', '2025/01/public-attached-image.jpg' );
-		self::$attached_to_public = get_post( $attached_public_id );
+		update_post_meta( self::$attached_to_public->ID, '_wp_attached_file', '2025/01/public-attached-image.jpg' );
 
 		// Attachment on a private post.
 		self::$private_parent = $factory->post->create_and_get(
@@ -68,7 +66,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_author' => self::$editor_user,
 			)
 		);
-		$attached_private_id = $factory->post->create(
+		self::$attached_to_private = $factory->post->create_and_get(
 			array(
 				'post_type'   => 'attachment',
 				'post_title'  => 'Private Attached Image',
@@ -77,8 +75,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_parent' => self::$private_parent->ID,
 			)
 		);
-		update_post_meta( $attached_private_id, '_wp_attached_file', '2025/01/private-attached-image.jpg' );
-		self::$attached_to_private = get_post( $attached_private_id );
+		update_post_meta( self::$attached_to_private->ID, '_wp_attached_file', '2025/01/private-attached-image.jpg' );
 
 		// Attachment on a draft post.
 		self::$draft_parent = $factory->post->create_and_get(
@@ -90,7 +87,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_author' => self::$editor_user,
 			)
 		);
-		$attached_draft_id = $factory->post->create(
+		self::$attached_to_draft = $factory->post->create_and_get(
 			array(
 				'post_type'   => 'attachment',
 				'post_title'  => 'Draft Attached Image',
@@ -99,8 +96,7 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 				'post_parent' => self::$draft_parent->ID,
 			)
 		);
-		update_post_meta( $attached_draft_id, '_wp_attached_file', '2025/01/draft-attached-image.jpg' );
-		self::$attached_to_draft = get_post( $attached_draft_id );
+		update_post_meta( self::$attached_to_draft->ID, '_wp_attached_file', '2025/01/draft-attached-image.jpg' );
 	}
 
 	/**
