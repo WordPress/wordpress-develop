@@ -2677,4 +2677,100 @@ HTML;
 
 		$this->assertEmpty( $output );
 	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs an inline script
+	 * calling wp.i18n.setLocaleData() when translations are available.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers ::load_script_module_textdomain
+	 */
+	public function test_print_script_module_translations_outputs_set_locale_data() {
+		$this->script_modules->register( 'test-module', '/wp-includes/js/test-module.js' );
+		$this->script_modules->enqueue( 'test-module' );
+		$this->script_modules->set_translations( 'test-module', 'default' );
+
+		// Provide test translations via the pre_load_script_translations filter
+		// so no fixture files are needed.
+		add_filter(
+			'pre_load_script_translations',
+			static function ( $translations, $file, $handle ) {
+				if ( 'test-module' !== $handle ) {
+					return $translations;
+				}
+				return wp_json_encode(
+					array(
+						'domain'      => 'messages',
+						'locale_data' => array(
+							'messages' => array(
+								''      => array(
+									'domain' => 'messages',
+									'lang'   => 'es',
+								),
+								'Hello' => array( 'Hola' ),
+							),
+						),
+					)
+				);
+			},
+			10,
+			3
+		);
+
+		ob_start();
+		$this->script_modules->print_script_module_translations();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'test-module-js-module-translations', $output, 'Translation inline script should be printed with the expected ID.' );
+		$this->assertStringContainsString( 'wp.i18n.setLocaleData', $output, 'Output should call wp.i18n.setLocaleData().' );
+		$this->assertStringContainsString( 'Hola', $output, 'Output should contain the translated string.' );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() also outputs translations
+	 * for dependencies of enqueued modules (not just directly enqueued ones).
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 */
+	public function test_print_script_module_translations_includes_dependencies() {
+		$this->script_modules->register( 'dep-module', '/wp-includes/js/dep-module.js' );
+		$this->script_modules->register( 'main-module', '/wp-includes/js/main-module.js', array( 'dep-module' ) );
+		$this->script_modules->enqueue( 'main-module' );
+		$this->script_modules->set_translations( 'dep-module', 'default' );
+
+		add_filter(
+			'pre_load_script_translations',
+			static function ( $translations, $file, $handle ) {
+				if ( 'dep-module' !== $handle ) {
+					return $translations;
+				}
+				return wp_json_encode(
+					array(
+						'locale_data' => array(
+							'messages' => array(
+								''      => array(
+									'domain' => 'messages',
+									'lang'   => 'es',
+								),
+								'World' => array( 'Mundo' ),
+							),
+						),
+					)
+				);
+			},
+			10,
+			3
+		);
+
+		ob_start();
+		$this->script_modules->print_script_module_translations();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'dep-module-js-module-translations', $output, 'Dependency module translations should be printed.' );
+		$this->assertStringContainsString( 'Mundo', $output, 'Output should contain the dependency translation.' );
+	}
 }
