@@ -394,12 +394,12 @@ class WP_Script_Modules {
 			}
 
 			$output = <<<JS
-			( ( domain, translations ) => {
-				const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
-				localeData[""].domain = domain;
-				wp.i18n.setLocaleData( localeData, domain );
-			} )( "{$domain}", {$json_translations} );
-			JS;
+( ( domain, translations ) => {
+	const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
+	localeData[""].domain = domain;
+	wp.i18n.setLocaleData( localeData, domain );
+} )( "{$domain}", {$json_translations} );
+JS;
 
 			$source_url = rawurlencode( "{$id}-js-module-translations" );
 			$output    .= "\n//# sourceURL={$source_url}";
