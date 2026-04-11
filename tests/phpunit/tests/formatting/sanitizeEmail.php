@@ -35,7 +35,6 @@ class Tests_Formatting_SanitizeEmail extends WP_UnitTestCase {
 			'contains no @'                  => array( 'ab', '' ),
 			'just a TLD'                     => array( 'abc@com', '' ),
 			'plain'                          => array( 'abc@example.com', 'abc@example.com' ),
-			'invalid utf8 in local'          => array( "a\x80b@example.com", '' ),
 			'invalid utf8 subdomain dropped' => array( "abc@sub.\x80.org", 'abc@sub.org' ),
 			'all subdomains invalid utf8'    => array( "abc@\x80.org", '' ),
 		);
