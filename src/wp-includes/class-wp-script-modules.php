@@ -431,11 +431,10 @@ JS;
 			 */
 			add_action( 'wp_head', array( $this, 'print_head_enqueued_script_modules' ) );
 		}
+		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( $position, array( $this, 'print_script_module_preloads' ) );
 
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ), 9 );
-
-		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
 
