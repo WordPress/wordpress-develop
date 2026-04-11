@@ -7,20 +7,29 @@
  * @covers ::is_email
  */
 class Tests_Formatting_IsEmail extends WP_UnitTestCase {
-
 	/**
-	 * @dataProvider valid_email_provider
+	 * Ensures that valid emails are returned unchanged.
+	 *
+	 * @ticket 31992
+	 *
+	 * @dataProvider data_valid_email_provider
+	 *
+	 * @param string $email Valid email address.
 	 */
 	public function test_returns_the_email_address_if_it_is_valid( $email ) {
-		$this->assertSame( $email, is_email( $email ), "is_email() should return the email address for $email." );
+		$this->assertSame(
+			$email,
+			is_email( $email ),
+			'Should return the given email address unchanged when valid.'
+		);
 	}
 
 	/**
-	 * Data provider for valid email addresses.
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return Generator
 	 */
-	public static function valid_email_provider() {
+	public static function data_valid_email_provider() {
 		$valid_emails = array(
 			'bob@example.com',
 			'phil@example.info',
@@ -38,18 +47,27 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider invalid_email_provider
+	 * Ensures that unrecognized email addresses are rejected.
+	 *
+	 * @ticket 31992
+	 *
+	 * @dataProvider data_invalid_email_provider
+	 *
+	 * @param string $email Invalid or unrecognized-to-WordPress email address.
 	 */
 	public function test_returns_false_if_given_an_invalid_email_address( $email ) {
-		$this->assertFalse( is_email( $email ), "is_email() should return false for $email." );
+		$this->assertFalse(
+			is_email( $email ),
+			'Should have rejected the email as invalid.'
+		);
 	}
 
 	/**
-	 * Data provider for invalid email addresses.
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return Generator
 	 */
-	public static function invalid_email_provider() {
+	public static function data_invalid_email_provider() {
 		$invalid_emails = array(
 			'khaaaaaaaaaaaaaaan!',
 			'http://bob.example.com/',
@@ -78,7 +96,7 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			 * mail sending services. Best not allow users
 			 * to paint themselves into that corner. This also
 			 * avoids security problems like those that were
-			 * used to probe the Wordpress server's local
+			 * used to probe the WordPress server's local
 			 * network.
 			*/
 			'toto@to',
@@ -87,7 +105,7 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			 * Several addresses are best rejected because
 			 * we don't want to allow sending to fe80::, 192.168
 			 * and other special addresses; that too might
-			 * be used to probe the Wordpress server's local
+			 * be used to probe the WordPress server's local
 			 * network.
 			 */
 			'to@[2001:db8::1]',

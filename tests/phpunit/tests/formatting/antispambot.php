@@ -6,62 +6,68 @@
  * @covers ::antispambot
  */
 class Tests_Formatting_Antispambot extends WP_UnitTestCase {
-
 	/**
-	 * This is basically a driveby test. While working on ticket
-	 * 31992 I noticed that there was no unit testing for
-	 * antispambot, so I added a little, just so I'd leave the code
-	 * better than I found it.
+	 * Ensures that antispambot will not produce invalid UTF-8 when hiding email addresses.
+	 *
+	 * Were a non-US-ASCII email address be sent into `antispambot()`, then a naive approach
+	 * to obfuscation could break apart multibyte characters and leave invalid UTF-8 as a
+	 * result.
 	 *
 	 * @ticket 31992
 	 *
 	 * @dataProvider data_returns_valid_utf8
-	 * @param string $address  The email address to obfuscate.
-	 * @param bool   $validity Whether the obfuscated address should be valid UTF-8.
+	 *
+	 * @param string $email    The email address to obfuscate.
 	 */
-	public function test_returns_valid_utf8( $address, $validity ) {
-		$this->assertSame( wp_is_valid_utf8( antispambot( $address ) ), $validity );
+	public function test_returns_valid_utf8( $email ) {
+		$this->assertTrue( wp_is_valid_utf8( antispambot( $email ) ) );
 	}
 
 	/**
-	 * Data provider for test_returns_valid_utf8.
+	 * Data provider.
+	 *
+	 * return array[]
 	 */
 	public function data_returns_valid_utf8() {
 		return array(
-			'plain'                => array( 'bob@example.com', true ),
-			'plain with ip'        => array( 'ace@204.32.222.14', true ),
-			'deep subdomain'       => array( 'kevin@many.subdomains.make.a.happy.man.edu', true ),
-			'short address'        => array( 'a@b.co', true ),
-			'weird but legal dots' => array( '..@example.com', true ),
+			'plain'                => array( 'bob@example.com' ),
+			'plain with ip'        => array( 'ace@204.32.222.14' ),
+			'deep subdomain'       => array( 'kevin@many.subdomains.make.a.happy.man.edu' ),
+			'short address'        => array( 'a@b.co' ),
+			'weird but legal dots' => array( '..@example.com' ),
 		);
 	}
 
 	/**
-	 * This tests that antispambot performs some sort of
-	 * obfuscation, and that its obfuscated form will be rendered
-	 * sensibly by browsers.
+	 * This tests that antispambot performs some sort of obfuscation
+	 * and that the obfuscation maps back to the original value.
+	 *
+	 * @ticket 31992
 	 *
 	 * @dataProvider data_antispambot_obfuscates
-	 * @param string $provided  The email address to obfuscate.
+	 *
+	 * @param string $provided The email address to obfuscate.
 	 */
 	public function test_antispambot_obfuscates( $provided ) {
+		// The only token should be the email address, so advance once and treat as a text node.
 		$obfuscated = antispambot( $provided );
 		$p          = new WP_HTML_Tag_Processor( $obfuscated );
 		$p->next_token();
-		$decoded = $p->get_modifiable_text();
-		$decoded = preg_replace_callback( '~%\d\d~', function () { }, $decoded );
+		$decoded = rawurldecode( $p->get_modifiable_text() );
 
-		$this->assertNotEquals( $provided, $obfuscated );
-		$this->assertSame( $provided, $decoded );
+		$this->assertNotSame( $provided, $obfuscated, 'Should have produced an obfuscated representation.' );
+		$this->assertSame( $provided, $decoded, 'Should have decoded to the original email after restoring.' );
 	}
 
 	/**
-	 * Data provider for test_antispambot_obfuscates.
+	 * Data provider.
+	 *
+	 * @return array[]
 	 */
 	public function data_antispambot_obfuscates() {
 		return array(
-			'example@example.com',
-			'#@example.com',
+			array( 'example@example.com' ),
+			array( '#@example.com' ),
 		);
 	}
 }

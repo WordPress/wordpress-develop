@@ -6,23 +6,30 @@
  * @covers ::sanitize_email
  */
 class Tests_Formatting_SanitizeEmail extends WP_UnitTestCase {
-
 	/**
 	 * This test checks that email addresses are properly sanitized.
 	 *
 	 * @ticket 31992
-	 * @dataProvider data_for_sanitation
+	 *
+	 * @dataProvider data_sanitized_email_pairs
+	 *
 	 * @param string $address  The email address to sanitize.
 	 * @param string $expected The expected sanitized email address.
 	 */
 	public function test_returns_stripped_email_address( $address, $expected ) {
-		$this->assertSame( sanitize_email( $address ), $expected );
+		$this->assertSame(
+			$expected,
+			sanitize_email( $address ),
+			'Should have produced the known sanitized form of the email.'
+		);
 	}
 
 	/**
-	 * Data provider for test_returns_stripped_email_address.
+	 * Data provider.
+	 *
+	 * @return array[]
 	 */
-	public function data_for_sanitation() {
+	public function data_sanitized_email_pairs() {
 		return array(
 			'shorter than 6 characters'      => array( 'a@b', '' ),
 			'contains no @'                  => array( 'ab', '' ),
