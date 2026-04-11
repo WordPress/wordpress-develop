@@ -1300,7 +1300,7 @@ function load_script_module_textdomain( $id, $domain = 'default', $path = '' ) {
 
 	$src = wp_script_modules()->get_registered_src( $id );
 
-	if ( false === $src ) {
+	if ( null === $src ) {
 		return false;
 	}
 

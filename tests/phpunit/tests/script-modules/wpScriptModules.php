@@ -2618,15 +2618,15 @@ HTML;
 	}
 
 	/**
-	 * Tests that get_registered_src() returns false for unregistered module.
+	 * Tests that get_registered_src() returns null for unregistered module.
 	 *
 	 * @ticket 65015
 	 *
 	 * @covers WP_Script_Modules::get_registered_src
 	 */
-	public function test_get_registered_src_returns_false_for_unregistered_module() {
+	public function test_get_registered_src_returns_null_for_unregistered_module() {
 		$result = $this->script_modules->get_registered_src( 'unregistered-module' );
-		$this->assertFalse( $result );
+		$this->assertNull( $result );
 	}
 
 	/**
