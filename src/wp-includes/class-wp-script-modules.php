@@ -938,14 +938,10 @@ JS;
 	 * @since 7.0.0
 	 *
 	 * @param string $id The script module identifier.
-	 * @return string|false The script module source URL, or false if not registered.
+	 * @return string|null The script module source URL, or null if not registered.
 	 */
-	public function get_registered_src( string $id ) {
-		if ( ! isset( $this->registered[ $id ] ) ) {
-			return false;
-		}
-
-		return $this->registered[ $id ]['src'];
+	public function get_registered_src( string $id ): ?string {
+		return $this->registered[ $id ]['src'] ?? null;
 	}
 
 	/**
