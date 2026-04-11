@@ -1286,7 +1286,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
  * Works like {@see load_script_textdomain()} but for script modules registered
  * via {@see wp_register_script_module()}.
  *
- * @since x.y.z
+ * @since 7.0.0
  *
  * @param string $id     The script module identifier.
  * @param string $domain Optional. Text domain. Default 'default'.
@@ -1389,7 +1389,7 @@ function load_script_module_textdomain( $id, $domain = 'default', $path = '' ) {
 	/**
 	 * Filters the relative path of script module source used for finding translation files.
 	 *
-	 * @since x.y.z
+	 * @since 7.0.0
 	 *
 	 * @param string|false $relative The relative path of the script module source. False if it could not be determined.
 	 * @param string       $src      The full source URL of the script module.

@@ -87,7 +87,7 @@ class WP_Script_Modules {
 	 * Each entry contains 'domain' and 'path' keys for the text domain
 	 * and the path to translation files respectively.
 	 *
-	 * @since x.y.z
+	 * @since 7.0.0
 	 * @var array<string, array{domain: string, path: string}>
 	 */
 	private $translations = array();
@@ -346,7 +346,7 @@ class WP_Script_Modules {
 	 * The translations will be loaded and output as inline scripts before
 	 * the script modules are printed, calling `wp.i18n.setLocaleData()`.
 	 *
-	 * @since x.y.z
+	 * @since 7.0.0
 	 *
 	 * @param string $id     The identifier of the script module.
 	 * @param string $domain Optional. Text domain. Default 'default'.
@@ -373,7 +373,7 @@ class WP_Script_Modules {
 	 * the translated strings for each script module. This must run before
 	 * the script modules execute.
 	 *
-	 * @since x.y.z
+	 * @since 7.0.0
 	 */
 	public function print_script_module_translations(): void {
 		// Collect all module IDs that will be on the page (enqueued + their dependencies).
@@ -935,7 +935,7 @@ JS;
 	 * This is used by {@see load_script_module_textdomain()} to determine
 	 * the relative path for loading translation files.
 	 *
-	 * @since x.y.z
+	 * @since 7.0.0
 	 *
 	 * @param string $id The script module identifier.
 	 * @return string|false The script module source URL, or false if not registered.

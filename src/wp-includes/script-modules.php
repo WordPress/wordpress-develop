@@ -144,7 +144,7 @@ function wp_deregister_script_module( string $id ) {
  * Works similar to {@see wp_set_script_translations()} but for script modules
  * registered via {@see wp_register_script_module()}.
  *
- * @since x.y.z
+ * @since 7.0.0
  *
  * @see WP_Script_Modules::set_translations()
  *
