@@ -2406,6 +2406,8 @@ function the_block_editor_meta_boxes() {
 	<?php
 
 	$meta_boxes_per_location = array();
+	$rtc_compatible_ids      = array();
+
 	foreach ( $locations as $location ) {
 		$meta_boxes_per_location[ $location ] = array();
 
@@ -2422,6 +2424,11 @@ function the_block_editor_meta_boxes() {
 			foreach ( $meta_boxes as $meta_box ) {
 				if ( false === $meta_box || ! $meta_box['title'] ) {
 					continue;
+				}
+
+				// Track meta boxes marked as compatible with real-time collaboration.
+				if ( isset( $meta_box['args']['__rtc_compatible_meta_box'] ) && $meta_box['args']['__rtc_compatible_meta_box'] ) {
+					$rtc_compatible_ids[] = $meta_box['id'];
 				}
 
 				// If a meta box is just here for back compat, don't show it in the block editor.
@@ -2457,6 +2464,30 @@ function the_block_editor_meta_boxes() {
 	 */
 	if ( wp_script_is( 'wp-edit-post', 'done' ) ) {
 		printf( "<script>\n%s\n</script>\n", trim( $script ) );
+	}
+
+	/*
+	 * If collaboration is enabled and any meta boxes are marked as RTC-compatible,
+	 * pass their IDs to the editor so it can determine which meta boxes are safe
+	 * to use alongside real-time collaboration.
+	 */
+	if ( wp_is_collaboration_enabled() && ! empty( $rtc_compatible_ids ) ) {
+		$rtc_script = 'window._wpLoadBlockEditor.then( function() {
+			wp.data.dispatch( \'core/edit-post\' ).setRtcCompatibleMetaBoxIds( '
+			. wp_json_encode( array_values( array_unique( $rtc_compatible_ids ) ) )
+			. ' );
+		} );';
+
+		wp_add_inline_script( 'wp-edit-post', $rtc_script );
+
+		/*
+		 * When `wp-edit-post` is output in the `<head>`, the inline script needs to be
+		 * manually printed. Otherwise, inline scripts for `wp-edit-post` will not be
+		 * printed again after this point.
+		 */
+		if ( wp_script_is( 'wp-edit-post', 'done' ) ) {
+			printf( "<script>\n%s\n</script>\n", trim( $rtc_script ) );
+		}
 	}
 
 	/*
