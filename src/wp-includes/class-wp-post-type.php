@@ -652,7 +652,7 @@ final class WP_Post_Type {
 			if ( ! isset( $args['rewrite']['pages'] ) ) {
 				$args['rewrite']['pages'] = true;
 			}
-			if ( ! isset( $args['rewrite']['feeds'] ) || ! $args['has_archive'] ) {
+			if ( ! isset( $args['rewrite']['feeds'] ) ) {
 				$args['rewrite']['feeds'] = (bool) $args['has_archive'];
 			}
 			if ( ! isset( $args['rewrite']['ep_mask'] ) ) {
