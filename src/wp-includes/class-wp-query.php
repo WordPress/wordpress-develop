@@ -3699,7 +3699,12 @@ class WP_Query {
 			if ( $this->is_admin ) {
 				$resolved_statuses = array_merge(
 					$resolved_statuses,
-					get_post_stati( array( 'protected' => true, 'show_in_admin_all_list' => true ) )
+					get_post_stati(
+						array(
+							'protected'              => true,
+							'show_in_admin_all_list' => true,
+						)
+					)
 				);
 			}
 
