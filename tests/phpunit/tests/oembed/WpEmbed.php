@@ -3,7 +3,7 @@
 /**
  * @group oembed
  *
- * @covers WP_Embed
+ * @coversDefaultClass WP_Embed
  */
 class Tests_WP_Embed extends WP_UnitTestCase {
 	/**
@@ -24,11 +24,17 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		return '<b>Embedded content</b>';
 	}
 
+	/**
+	 * @covers ::maybe_run_ajax_cache
+	 */
 	public function test_maybe_run_ajax_cache_should_return_nothing_if_there_is_no_post() {
 		$this->expectOutputString( '' );
 		$this->wp_embed->maybe_run_ajax_cache();
 	}
 
+	/**
+	 * @covers ::maybe_run_ajax_cache
+	 */
 	public function test_maybe_run_ajax_cache_should_return_nothing_if_there_is_no_message() {
 		$GLOBALS['post'] = self::factory()->post->create_and_get(
 			array(
@@ -42,6 +48,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		unset( $GLOBALS['post'] );
 	}
 
+	/**
+	 * @covers ::maybe_run_ajax_cache
+	 */
 	public function test_maybe_run_ajax_cache_should_return_javascript() {
 		$GLOBALS['post'] = self::factory()->post->create_and_get(
 			array(
@@ -59,6 +68,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertStringContainsString( $url, $actual );
 	}
 
+	/**
+	 * @covers ::wp_maybe_load_embeds
+	 */
 	public function test_wp_maybe_load_embeds() {
 		$this->assertSameSets( array( 10, 9999 ), array_keys( $GLOBALS['wp_embed']->handlers ) );
 		$this->assertSameSets(
@@ -76,6 +88,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::wp_embed_register_handler
+	 */
 	public function test_wp_embed_register_handler() {
 		$handle   = __FUNCTION__;
 		$regex    = '#https?://example\.com/embed/([^/]+)#i';
@@ -94,6 +109,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertContains( $expected, $actual );
 	}
 
+	/**
+	 * @covers ::wp_embed_unregister_handler
+	 */
 	public function test_wp_embed_unregister_handler() {
 		$this->assertArrayHasKey( 'youtube_embed_url', $GLOBALS['wp_embed']->handlers[10] );
 
@@ -109,6 +127,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 	/**
 	 * @group external-http
+	 *
+	 * @covers ::autoembed
 	 */
 	public function test_autoembed_should_do_nothing_without_matching_handler() {
 		$content = "\nhttp://example.com/embed/foo\n";
@@ -119,6 +139,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 	/**
 	 * @group external-http
+	 *
+	 * @covers ::autoembed
 	 */
 	public function test_autoembed_should_return_modified_content() {
 		$handle   = __FUNCTION__;
@@ -135,6 +157,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( "\nEmbedded http://example.com/embed/foo\n", $actual );
 	}
 
+	/**
+	 * @covers ::delete_oembed_caches
+	 */
 	public function test_delete_oembed_caches() {
 		$post_id = self::factory()->post->create();
 
@@ -148,6 +173,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( array(), get_post_meta( $post_id, '_oembed_baz' ) );
 	}
 
+	/**
+	 * @covers ::cache_oembed
+	 */
 	public function test_cache_oembed_invalid_post_type() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'nav_menu_item' ) );
 
@@ -155,6 +183,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertNotSame( $post_id, $this->wp_embed->post_ID );
 	}
 
+	/**
+	 * @covers ::cache_oembed
+	 */
 	public function test_cache_oembed_empty_content() {
 		$post_id = self::factory()->post->create( array( 'post_content' => '' ) );
 
@@ -162,6 +193,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertNotSame( $post_id, $this->wp_embed->post_ID );
 	}
 
+	/**
+	 * @covers ::cache_oembed
+	 */
 	public function test_cache_oembed_for_post() {
 		$url           = 'https://example.com/';
 		$expected      = '<b>Embedded content</b>';
@@ -180,6 +214,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_post_meta( $post_id, $cachekey_time, true ) );
 	}
 
+	/**
+	 * @covers ::shortcode
+	 */
 	public function test_shortcode_should_get_cached_data_from_post_meta_for_known_post() {
 		global $post;
 
@@ -207,6 +244,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( $expected, $cached );
 	}
 
+	/**
+	 * @covers ::shortcode
+	 */
 	public function test_shortcode_should_get_cached_failure_from_post_meta_for_known_post() {
 		global $post;
 
@@ -241,6 +281,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34115
+	 *
+	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_cache_data_in_custom_post() {
 		$url        = 'https://example.com/';
@@ -267,6 +309,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34115
+	 *
+	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_cache_failure_in_custom_post() {
 		$url        = 'https://example.com/';
@@ -295,6 +339,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	 * Test that parsing an embed shortcode should cause oembed_cache to be updated.
 	 *
 	 * @ticket 42310
+	 *
+	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_update_custom_post() {
 		add_filter( 'oembed_ttl', '__return_zero' );
@@ -327,6 +373,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 	/**
 	 * @group external-http
+	 *
+	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_get_url_from_src_attribute() {
 		$url    = 'http://example.com/embed/foo';
@@ -337,6 +385,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 	/**
 	 * @group external-http
+	 *
+	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_return_empty_string_for_missing_url() {
 		$this->assertEmpty( $this->wp_embed->shortcode( array() ) );
@@ -344,6 +394,8 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 
 	/**
 	 * @group external-http
+	 *
+	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_make_link_for_unknown_url() {
 		$url    = 'http://example.com/embed/foo';
@@ -353,7 +405,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group external-http
+	 * @covers ::run_shortcode
 	 */
 	public function test_run_shortcode_url_only() {
 		$url    = 'http://example.com/embed/foo';
@@ -361,6 +413,9 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
+	/**
+	 * @covers ::maybe_make_link
+	 */
 	public function test_maybe_make_link() {
 		$url    = 'http://example.com/embed/foo';
 		$actual = $this->wp_embed->maybe_make_link( $url );
@@ -368,11 +423,17 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
+	/**
+	 * @covers ::maybe_make_link
+	 */
 	public function test_maybe_make_link_return_false_on_fail() {
 		$this->wp_embed->return_false_on_fail = true;
 		$this->assertFalse( $this->wp_embed->maybe_make_link( 'http://example.com/' ) );
 	}
 
+	/**
+	 * @covers ::maybe_make_link
+	 */
 	public function test_maybe_make_link_do_not_link_if_unknown() {
 		$url = 'http://example.com/';
 
