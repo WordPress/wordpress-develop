@@ -232,7 +232,40 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 */
 	public function test_get_theme_featured_list_api() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		/*
+		 * Detect and suppress the wp_trigger_error() call that themes_api() fires on an
+		 * HTTPS failure, which PHPUnit would otherwise convert to a test exception.
+		 * Skip instead of fail when the API is unavailable.
+		 */
+		$api_error_message = null;
+
+		$detect_api_error = static function ( $function_name, $message ) use ( &$api_error_message ) {
+			if ( 'themes_api' === $function_name ) {
+				$api_error_message = $message;
+			}
+		};
+		add_action( 'wp_trigger_error_always_run', $detect_api_error, 10, 3 );
+
+		$suppress_api_error = static function ( $trigger, $function_name ) {
+			if ( 'themes_api' === $function_name ) {
+				return false;
+			}
+			return $trigger;
+		};
+		add_filter( 'wp_trigger_error_trigger_error', $suppress_api_error, 10, 2 );
+
 		$featured_list_api = get_theme_feature_list( true );
+
+		remove_action( 'wp_trigger_error_always_run', $detect_api_error );
+		remove_filter( 'wp_trigger_error_trigger_error', $suppress_api_error );
+
+		if ( null !== $api_error_message ) {
+			$this->markTestSkipped(
+				sprintf( 'WordPress.org Themes API is not available: %s', wp_strip_all_tags( $api_error_message ) )
+			);
+		}
+
 		$this->assertNonEmptyMultidimensionalArray( $featured_list_api );
 	}
 
@@ -241,7 +274,6 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 *
 	 * Differences in the structure can also trigger failure by causing PHP notices/warnings.
 	 *
-	 * @group external-http
 	 * @ticket 28121
 	 */
 	public function test_get_theme_featured_list_hardcoded() {
