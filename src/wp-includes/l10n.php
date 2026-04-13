@@ -1153,7 +1153,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$src = $wp_scripts->base_url . $src;
 	}
 
-	return _load_script_textdomain_from_src( $handle, $src, $domain, $path, 'load_script_textdomain_relative_path' );
+	return _load_script_textdomain_from_src( $handle, $src, $domain, $path, false );
 }
 
 /**
@@ -1168,16 +1168,15 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
- * @param string $handle      Name of the script or script module identifier to register a translation domain to.
- * @param string $src         Absolute source URL of the script or script module.
- * @param string $domain      Text domain.
- * @param string $path        The full file path to the directory containing translation files,
- *                            or an empty string to use the default path from the text domain registry.
- * @param string $filter_name Name of the filter to apply to the resolved relative path
- *                            ('load_script_textdomain_relative_path' or 'load_script_module_textdomain_relative_path').
+ * @param string $handle    Name of the script or script module identifier to register a translation domain to.
+ * @param string $src       Absolute source URL of the script or script module.
+ * @param string $domain    Text domain.
+ * @param string $path      The full file path to the directory containing translation files,
+ *                          or an empty string to use the default path from the text domain registry.
+ * @param bool   $is_module Whether the source belongs to a script module (true) or a classic script (false).
  * @return string|false The JSON-encoded translated strings on success, false otherwise.
  */
-function _load_script_textdomain_from_src( string $handle, string $src, string $domain, string $path, string $filter_name ) {
+function _load_script_textdomain_from_src( string $handle, string $src, string $domain, string $path, bool $is_module ) {
 	global $wp_textdomain_registry;
 
 	$locale = determine_locale();
@@ -1264,20 +1263,16 @@ function _load_script_textdomain_from_src( string $handle, string $src, string $
 	}
 
 	/**
-	 * Filters the relative path used for finding translation files.
+	 * Filters the relative path of scripts used for finding translation files.
 	 *
-	 * The filter name is either `load_script_textdomain_relative_path` for
-	 * classic scripts or `load_script_module_textdomain_relative_path` for
-	 * script modules.
+	 * @since 5.0.2
+	 * @since 7.0.0 The `$is_module` parameter was added.
 	 *
-	 * @since 5.0.2 The `load_script_textdomain_relative_path` filter was added.
-	 * @since 7.0.0 The `load_script_module_textdomain_relative_path` filter was added.
-	 *
-	 * @param string|false $relative The relative path of the script or script module source.
-	 *                               False if it could not be determined.
-	 * @param string       $src      The full source URL of the script or script module.
+	 * @param string|false $relative  The relative path of the script. False if it could not be determined.
+	 * @param string       $src       The full source URL of the script.
+	 * @param bool         $is_module Whether the source belongs to a script module (true) or a classic script (false).
 	 */
-	$relative = apply_filters( $filter_name, $relative, $src );
+	$relative = apply_filters( 'load_script_textdomain_relative_path', $relative, $src, $is_module );
 
 	// If the source is not from WP.
 	if ( false === $relative ) {
@@ -1334,7 +1329,7 @@ function load_script_module_textdomain( string $id, string $domain = 'default', 
 		$src = site_url( $src );
 	}
 
-	return _load_script_textdomain_from_src( $id, $src, $domain, $path, 'load_script_module_textdomain_relative_path' );
+	return _load_script_textdomain_from_src( $id, $src, $domain, $path, true );
 }
 
 /**
