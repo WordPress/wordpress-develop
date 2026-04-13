@@ -1288,14 +1288,15 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
  *
  * @since 7.0.0
  *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ *
  * @param string $id     The script module identifier.
  * @param string $domain Optional. Text domain. Default 'default'.
  * @param string $path   Optional. The full file path to the directory containing translation files.
  * @return string|false The JSON-encoded translated strings for the given script module and text domain.
  *                      False if there are none.
  */
-function load_script_module_textdomain( $id, $domain = 'default', $path = '' ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+function load_script_module_textdomain( string $id, string $domain = 'default', string $path = '' ) {
 	global $wp_textdomain_registry;
 
 	$src = wp_script_modules()->get_registered_src( $id );

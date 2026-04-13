@@ -90,7 +90,7 @@ class WP_Script_Modules {
 	 * @since 7.0.0
 	 * @var array<string, array{domain: string, path: string}>
 	 */
-	private $translations = array();
+	private array $translations = array();
 
 	/**
 	 * Registers the script module if no script module with that script module
@@ -393,14 +393,20 @@ class WP_Script_Modules {
 				continue;
 			}
 
-			$output = <<<JS
-( ( domain, translations ) => {
-	const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
-	localeData[""].domain = domain;
-	wp.i18n.setLocaleData( localeData, domain );
-} )( "{$domain}", {$json_translations} );
-JS;
+			$set_local_data_js_function = <<<JS
+			( domain, translations ) => {
+				const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
+				localeData[""].domain = domain;
+				wp.i18n.setLocaleData( localeData, domain );
+			}
+			JS;
 
+			$output     = sprintf(
+				'( %s )( %s, %s );',
+				$set_local_data_js_function,
+				wp_json_encode( $domain ),
+				$json_translations
+			);
 			$source_url = rawurlencode( "{$id}-js-module-translations" );
 			$output    .= "\n//# sourceURL={$source_url}";
 			wp_print_inline_script_tag( $output, array( 'id' => "{$id}-js-module-translations" ) );
