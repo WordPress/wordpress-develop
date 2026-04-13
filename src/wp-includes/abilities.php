@@ -330,12 +330,14 @@ function wp_register_core_abilities(): void {
 				'additionalProperties' => false,
 			),
 			'execute_callback'    => static function ( $input = array() ) {
+				$input = is_array( $input ) ? $input : array();
 				$user = null;
-				if ( ! empty( $input['id'] ) ) {
+
+				if ( isset( $input['id'] ) ) {
 					$user = get_user_by( 'id', $input['id'] );
-				} elseif ( ! empty( $input['username'] ) ) {
+				} elseif ( isset( $input['username'] ) ) {
 					$user = get_user_by( 'login', $input['username'] );
-				} elseif ( ! empty( $input['email'] ) ) {
+				} elseif ( isset( $input['email'] ) ) {
 					$user = get_user_by( 'email', $input['email'] );
 				}
 
@@ -374,26 +376,23 @@ function wp_register_core_abilities(): void {
 
 				return $result;
 			},
-			'permission_callback' => static function ( $input = array() ) {
+			'permission_callback' => static function ( $input = array() ): bool {
 				if ( ! is_user_logged_in() ) {
 					return false;
 				}
 
+				$input = is_array( $input ) ? $input : array();
+
 				$target_user = null;
-				if ( ! empty( $input['id'] ) ) {
+				if ( isset( $input['id'] ) ) {
 					$target_user = get_user_by( 'id', $input['id'] );
-				} elseif ( ! empty( $input['username'] ) ) {
+				} elseif ( isset( $input['username'] ) ) {
 					$target_user = get_user_by( 'login', $input['username'] );
-				} elseif ( ! empty( $input['email'] ) ) {
+				} elseif ( isset( $input['email'] ) ) {
 					$target_user = get_user_by( 'email', $input['email'] );
 				}
 
-				if ( ! $target_user || is_wp_error( $target_user ) ) {
-					return true;
-				}
-
-				$current_user = wp_get_current_user();
-				if ( (int) $target_user->ID === (int) $current_user->ID ) {
+				if ( $target_user instanceof WP_User && get_current_user_id() === $target_user->ID ) {
 					return true;
 				}
 
