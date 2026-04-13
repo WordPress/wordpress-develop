@@ -3975,7 +3975,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			font-size: 14px ;
 		}
 		a {
-			color: #2145e6;
+			color: #3858e9;
 		}
 		a:hover,
 		a:active {
