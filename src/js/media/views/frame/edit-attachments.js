@@ -247,25 +247,28 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		return ( this.getCurrentIndex() - 1 ) > -1;
 	},
 	/**
-	 * Respond to the keyboard events: right arrow, left arrow, except when
-	 * focus is in a textarea or input field.
+	 * Respond to the keyboard events: Alt + right arrow, Alt + left arrow,
+	 * except when focus is in an interactive field. Requires the Alt modifier
+	 * key to avoid interfering with screen reader navigation.
 	 */
 	keyEvent: function( event ) {
-		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName ) && ! event.target.disabled ) {
+		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName || 'SELECT' === event.target.nodeName || 'BUTTON' === event.target.nodeName || 'A' === event.target.nodeName ) && ! event.target.disabled ) {
 			return;
 		}
 
-		// Return if Ctrl + Shift or Shift key pressed
-		if ( event.shiftKey || ( event.ctrlKey && event.shiftKey ) ) {
+		// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
+		if ( ! event.altKey || event.repeat ) {
 			return;
 		}
 
-		// The right arrow key.
+		// Alt + right arrow key.
 		if ( 39 === event.keyCode ) {
+			event.preventDefault();
 			this.nextMediaItem();
 		}
-		// The left arrow key.
+		// Alt + left arrow key.
 		if ( 37 === event.keyCode ) {
+			event.preventDefault();
 			this.previousMediaItem();
 		}
 	},

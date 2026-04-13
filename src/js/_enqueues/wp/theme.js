@@ -909,7 +909,7 @@ themes.view.Preview = themes.view.Details.extend({
 		'click .devices button': 'previewDevice',
 		'click .previous-theme': 'previousTheme',
 		'click .next-theme': 'nextTheme',
-		'keyup': 'keyEvent',
+		'keydown': 'keyEvent',
 		'click .theme-install': 'installTheme'
 	},
 
@@ -1012,18 +1012,20 @@ themes.view.Preview = themes.view.Details.extend({
 			this.close();
 		}
 
-		// Return if Ctrl + Shift or Shift key pressed
-		if ( event.shiftKey || ( event.ctrlKey && event.shiftKey ) ) {
+		// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
+		if ( ! event.altKey || event.repeat ) {
 			return;
 		}
 
 		// The right arrow key, next theme.
 		if ( event.keyCode === 39 ) {
-			_.once( this.nextTheme() );
+			event.preventDefault();
+			this.nextTheme();
 		}
 
 		// The left arrow key, previous theme.
 		if ( event.keyCode === 37 ) {
+			event.preventDefault();
 			this.previousTheme();
 		}
 	},
@@ -1111,7 +1113,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 		} );
 
 		// Bind keyboard events.
-		$( 'body' ).on( 'keyup', function( event ) {
+		$( 'body' ).on( 'keydown.wp-themes', function( event ) {
 			if ( ! self.overlay ) {
 				return;
 			}
@@ -1121,24 +1123,26 @@ themes.view.Themes = wp.Backbone.View.extend({
 				return;
 			}
 
-			// Return if Ctrl + Shift or Shift key pressed
-			if ( event.shiftKey || ( event.ctrlKey && event.shiftKey ) ) {
-				return;
-			}
-
-			// Pressing the right arrow key fires a theme:next event.
-			if ( event.keyCode === 39 ) {
-				self.overlay.nextTheme();
-			}
-
-			// Pressing the left arrow key fires a theme:previous event.
-			if ( event.keyCode === 37 ) {
-				self.overlay.previousTheme();
-			}
-
 			// Pressing the escape key fires a theme:collapse event.
 			if ( event.keyCode === 27 ) {
 				self.overlay.collapse( event );
+			}
+
+			// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
+			if ( ! event.altKey || event.repeat ) {
+				return;
+			}
+
+			// Pressing Alt + right arrow key fires a theme:next event.
+			if ( event.keyCode === 39 ) {
+				event.preventDefault();
+				self.overlay.nextTheme();
+			}
+
+			// Pressing Alt + left arrow key fires a theme:previous event.
+			if ( event.keyCode === 37 ) {
+				event.preventDefault();
+				self.overlay.previousTheme();
 			}
 		});
 	},
