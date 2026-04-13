@@ -1177,7 +1177,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
  *                            ('load_script_textdomain_relative_path' or 'load_script_module_textdomain_relative_path').
  * @return string|false The JSON-encoded translated strings on success, false otherwise.
  */
-function _load_script_textdomain_from_src( $handle, $src, $domain, $path, $filter_name ) {
+function _load_script_textdomain_from_src( string $handle, string $src, string $domain, string $path, string $filter_name ) {
 	global $wp_textdomain_registry;
 
 	$locale = determine_locale();
