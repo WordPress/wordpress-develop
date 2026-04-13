@@ -12582,6 +12582,11 @@ mockedApiResponse.Schema = {
                             "description": "Limit results to abilities in specific ability category.",
                             "type": "string",
                             "required": false
+                        },
+                        "namespace": {
+                            "description": "Limit results to abilities in a specific namespace.",
+                            "type": "string",
+                            "required": false
                         }
                     }
                 }
