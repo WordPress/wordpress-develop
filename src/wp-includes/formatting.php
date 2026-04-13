@@ -3624,6 +3624,28 @@ function is_email( $email, $deprecated = false ) {
 	return apply_filters( 'is_email', $email, $email, null );
 }
 
+$u = new Uri\WhatWg\Url('blar');
+$u->getAsciiHost()
+
+function is_unicode_email_filter( $ignored_filtered_email, $originally_provided_email, $ignored_message ) {
+	remove_filter( 'is_email', 'is_unicode_email_filter' );
+	$result = is_unicode_email( $originally_provided_email );
+	add_filter( 'is_email', 'is_unicode_email_filter', 8, 3 );
+
+	return $result;
+}
+
+function is_unicode_email( $email ) {
+	$email = WP_Email_Address::from_string( $email );
+	if ( null === $email ) {
+		return apply_filters( 'is_email', false, $email, 'non_parsable_email' );
+	}
+
+	...
+
+	return apply_filters( 'is_email', $email, $email, null );
+}
+
 /**
  * Converts to ASCII from email subjects.
  *
