@@ -33,7 +33,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
-wp_enqueue_script( 'wp-admin-options' );
+wp_enqueue_script( 'wp-admin-unsaved-changes-confirmation' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
