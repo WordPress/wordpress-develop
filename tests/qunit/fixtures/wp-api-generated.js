@@ -11134,8 +11134,20 @@ mockedApiResponse.Schema = {
                                 "closed"
                             ],
                             "required": false
-                        }
-                    }
+                        },
+						"site_logo": {
+							"title": "Logo",
+							"description": "Site logo.",
+							"type": "integer",
+							"required": false
+						},
+						"site_icon": {
+							"title": "Icon",
+							"description": "Site icon.",
+							"type": "integer",
+							"required": false
+						}
+					}
                 }
             ],
             "_links": {
@@ -14550,5 +14562,7 @@ mockedApiResponse.settings = {
     "page_on_front": 0,
     "page_for_posts": 0,
     "default_ping_status": "open",
-    "default_comment_status": "open"
+    "default_comment_status": "open",
+	"site_logo": null,
+	"site_icon": 0
 };
