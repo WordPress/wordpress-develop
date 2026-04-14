@@ -69,7 +69,7 @@ $help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/for
 get_current_screen()->set_help_sidebar( $help_sidebar_content );
 unset( $help_sidebar_content );
 
-wp_enqueue_script( 'options' );
+wp_enqueue_script( 'wp-admin-options' );
 
 $home_path           = get_home_path();
 $iis7_permalinks     = iis7_supports_permalinks();

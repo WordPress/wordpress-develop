@@ -55,7 +55,7 @@ get_current_screen()->set_help_sidebar(
 );
 
 wp_enqueue_script( 'user-profile' );
-wp_enqueue_script( 'options' );
+wp_enqueue_script( 'wp-admin-options' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
