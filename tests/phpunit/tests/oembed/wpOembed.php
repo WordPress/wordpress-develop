@@ -276,4 +276,34 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertFalse( $actual );
 		$this->assertSame( $current_blog_id, get_current_blog_id() );
 	}
+
+	/**
+	 * @ticket 65068
+	 *
+	 * @covers ::get_provider
+	 */
+	public function test_get_provider_skips_malformed_provider_entries() {
+		$warnings = array();
+
+		$error_handler = function ( $errno, $errstr ) use ( &$warnings ) {
+			if ( E_WARNING === $errno ) {
+				$warnings[] = $errstr;
+			}
+			return false;
+		};
+
+		set_error_handler( $error_handler );
+
+		$this->oembed->providers['bad_provider'] = array(
+			'url'      => '#https?://example\.site/.*#i',
+			'endpoint' => 'https://example.site/api/oembed',
+		);
+
+		$result = $this->oembed->get_provider( 'https://en.wikipedia.org/wiki/Rickrolling' );
+
+		restore_error_handler();
+
+		$this->assertFalse( $result );
+		$this->assertSame( array(), $warnings, 'PHP warnings were raised: ' . implode( ', ', $warnings ) );
+	}
 }
