@@ -67,7 +67,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
  * Search...............Specific styles for the search block.
  * Separator............Specific styles for the separator block.
  * Table................Specific styles for the table block.
- * Verse................Specific styles for the verse block.
+ * Poetry (Verse).......Specific styles for the poetry block.
  * Video................Specific styles for the video block.
  * Utilities............Block alignments.
  *
@@ -5555,8 +5555,10 @@ h1.page-title {
 	padding: 0;
 	position: absolute !important;
 	width: 1px;
+
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 	word-wrap: normal !important;
-	word-break: normal;
+	word-break: normal !important;
 }
 
 .skip-link:focus {
