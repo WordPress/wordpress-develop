@@ -1599,6 +1599,7 @@ function image_attachment_fields_to_save( $post, $attachment ) {
  */
 function options_discussion_add_js() {
 	_deprecated_function( __FUNCTION__, '7.1.0' );
+	wp_enqueue_script( 'options' );
 }
 
 /**
@@ -1610,6 +1611,8 @@ function options_discussion_add_js() {
  */
 function options_general_add_js() {
 	_deprecated_function( __FUNCTION__, '7.1.0' );
+	wp_enqueue_script( 'options' );
+	wp_localize_script( 'options', 'optionsL10n', array( 'homeURL' => get_home_url() ) );
 }
 
 /**
@@ -1621,4 +1624,5 @@ function options_general_add_js() {
  */
 function options_reading_add_js() {
 	_deprecated_function( __FUNCTION__, '7.1.0' );
+	wp_enqueue_script( 'options' );
 }
