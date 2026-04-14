@@ -691,6 +691,86 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * Test that the 'protected' property is not included in the revision schema's content.
+	 *
+	 * Verifies the fix for the issue where revision schema incorrectly included
+	 * 'protected' properties that don't actually exist in revision responses.
+	 *
+	 * @ticket 53417
+	 */
+	public function test_revision_schema_content_does_not_have_protected() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'content', $properties );
+		$this->assertArrayHasKey( 'properties', $properties['content'] );
+		$this->assertArrayNotHasKey(
+			'protected',
+			$properties['content']['properties'],
+			'The "protected" property should not be present in revision content schema'
+		);
+
+		$this->assertArrayHasKey( 'raw', $properties['content']['properties'] );
+		$this->assertArrayHasKey( 'rendered', $properties['content']['properties'] );
+		$this->assertArrayHasKey( 'block_version', $properties['content']['properties'] );
+	}
+
+	/**
+	 * Test that the 'protected' property is not included in the revision schema's excerpt.
+	 *
+	 * Verifies the fix for the issue where revision schema incorrectly included
+	 * 'protected' properties that don't actually exist in revision responses.
+	 *
+	 * @ticket 53417
+	 */
+	public function test_revision_schema_excerpt_does_not_have_protected() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'excerpt', $properties );
+		$this->assertArrayHasKey( 'properties', $properties['excerpt'] );
+		$this->assertArrayNotHasKey(
+			'protected',
+			$properties['excerpt']['properties'],
+			'The "protected" property should not be present in revision excerpt schema'
+		);
+
+		$this->assertArrayHasKey( 'raw', $properties['excerpt']['properties'] );
+		$this->assertArrayHasKey( 'rendered', $properties['excerpt']['properties'] );
+	}
+
+	/**
+	 * Test that revision response data does not include the 'protected' property in excerpt.
+	 *
+	 * Verifies that actual revision responses don't include the 'protected' property,
+	 * matching the corrected schema.
+	 *
+	 * @ticket 53417
+	 */
+	public function test_revision_response_excerpt_does_not_include_protected() {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayHasKey( 'excerpt', $data );
+		$this->assertArrayNotHasKey(
+			'protected',
+			$data['excerpt'],
+			'The "protected" property should not be present in revision excerpt response'
+		);
+
+		$this->assertArrayHasKey( 'rendered', $data['excerpt'] );
+	}
+
+	/**
 	 * Test the pagination header of the last page.
 	 *
 	 * @dataProvider data_readable_http_methods
