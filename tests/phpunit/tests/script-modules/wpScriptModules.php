@@ -2618,28 +2618,33 @@ HTML;
 	}
 
 	/**
-	 * Tests that get_registered_src() returns null for unregistered module.
+	 * Tests that get_registered() returns null for unregistered module.
 	 *
 	 * @ticket 65015
 	 *
-	 * @covers WP_Script_Modules::get_registered_src
+	 * @covers WP_Script_Modules::get_registered
 	 */
-	public function test_get_registered_src_returns_null_for_unregistered_module() {
-		$result = $this->script_modules->get_registered_src( 'unregistered-module' );
+	public function test_get_registered_returns_null_for_unregistered_module() {
+		$result = $this->script_modules->get_registered( 'unregistered-module' );
 		$this->assertNull( $result );
 	}
 
 	/**
-	 * Tests that get_registered_src() returns correct src for registered module.
+	 * Tests that get_registered() returns correct src for registered module.
 	 *
 	 * @ticket 65015
 	 *
-	 * @covers WP_Script_Modules::get_registered_src
+	 * @covers WP_Script_Modules::get_registered
 	 */
-	public function test_get_registered_src_returns_src_for_registered_module() {
+	public function test_get_registered_returns_array_for_registered_module() {
 		$this->script_modules->register( 'test-module', '/test-module.js' );
-		$result = $this->script_modules->get_registered_src( 'test-module' );
-		$this->assertSame( '/test-module.js', $result );
+		$result = $this->script_modules->get_registered( 'test-module' );
+		$this->assertIsArray( $result );
+		$this->assertSame( '/test-module.js', $result['src'] );
+		$this->assertFalse( $result['version'] );
+		$this->assertSame( array(), $result['dependencies'] );
+		$this->assertFalse( $result['in_footer'] );
+		$this->assertSame( 'auto', $result['fetchpriority'] );
 	}
 
 	/**

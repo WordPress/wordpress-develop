@@ -12,6 +12,14 @@
  * Core class used to register script modules.
  *
  * @since 6.5.0
+ *
+ * @phpstan-type ScriptModule array{
+ *     src: string,
+ *     version: string|false|null,
+ *     dependencies: array<int, array{ id: string, import: 'static'|'dynamic' }>,
+ *     in_footer: bool,
+ *     fetchpriority: 'auto'|'low'|'high',
+ * }
  */
 class WP_Script_Modules {
 	/**
@@ -19,6 +27,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 * @var array<string, array<string, mixed>>
+	 * @phpstan-var array<string, ScriptModule>
 	 */
 	private $registered = array();
 
@@ -725,6 +734,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 *
 	 * @return array<string, array<string, mixed>> Script modules marked for enqueue, keyed by script module identifier.
+	 * @phpstan-return array<string, ScriptModule>
 	 */
 	private function get_marked_for_enqueue(): array {
 		return wp_array_slice_assoc(
@@ -746,6 +756,7 @@ class WP_Script_Modules {
 	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 *                                         Default is both.
 	 * @return array<string, array<string, mixed>> List of dependencies, keyed by script module identifier.
+	 * @phpstan-return array<string, ScriptModule>
 	 */
 	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
 		$all_dependencies = array();
@@ -935,19 +946,16 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Gets the raw source URL for a registered script module.
-	 *
-	 * Returns the source URL without version query string appended.
-	 * This is used by {@see load_script_module_textdomain()} to determine
-	 * the relative path for loading translation files.
+	 * Gets the data for a registered script module.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @param string $id The script module identifier.
-	 * @return string|null The script module source URL, or null if not registered.
+	 * @return array|null The script module data, or null if not registered.
+	 * @phpstan-return ScriptModule|null
 	 */
-	public function get_registered_src( string $id ): ?string {
-		return $this->registered[ $id ]['src'] ?? null;
+	public function get_registered( string $id ): ?array {
+		return $this->registered[ $id ] ?? null;
 	}
 
 	/**

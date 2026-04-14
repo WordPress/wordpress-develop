@@ -1318,11 +1318,11 @@ function _load_script_textdomain_from_src( string $handle, string $src, string $
  *                      False if there are none.
  */
 function load_script_module_textdomain( string $id, string $domain = 'default', string $path = '' ) {
-	$src = wp_script_modules()->get_registered_src( $id );
-
-	if ( null === $src ) {
+	$module = wp_script_modules()->get_registered( $id );
+	if ( null === $module ) {
 		return false;
 	}
+	$src = $module['src'];
 
 	// Ensure src is an absolute URL for path resolution.
 	if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
