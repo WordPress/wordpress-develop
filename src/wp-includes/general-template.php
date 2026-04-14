@@ -2620,7 +2620,11 @@ function delete_get_calendar_cache() {
 	}
 
 	// Fallback for object cache implementations that do not support flushing groups.
-	wp_cache_incr( 'get_calendar_generation', 1, 'calendar' );
+	// wp_cache_incr() returns false when the key does not exist in some backends
+	// (e.g. Memcached), so initialize the counter on the first invalidation.
+	if ( false === wp_cache_incr( 'get_calendar_generation', 1, 'calendar' ) ) {
+		wp_cache_add( 'get_calendar_generation', 1, 'calendar' );
+	}
 }
 
 /**
