@@ -16,7 +16,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 $title       = __( 'Discussion Settings' );
 $parent_file = 'options-general.php';
 
-add_action( 'admin_print_footer_scripts', 'options_discussion_add_js' );
+wp_enqueue_script( 'options' );
 
 get_current_screen()->add_help_tab(
 	array(

@@ -1589,3 +1589,36 @@ function image_attachment_fields_to_save( $post, $attachment ) {
 
 	return $post;
 }
+
+/**
+ * Output JavaScript to toggle display of additional settings if avatars are disabled.
+ *
+ * @since 4.2.0
+ * @deprecated 7.1.0 Inline JavaScript has been moved to wp-admin/js/options.js,
+ *                   enqueued via {@see wp_enqueue_script()}.
+ */
+function options_discussion_add_js() {
+	_deprecated_function( __FUNCTION__, '7.1.0' );
+}
+
+/**
+ * Display JavaScript on the General Settings screen.
+ *
+ * @since 3.5.0
+ * @deprecated 7.1.0 Inline JavaScript has been moved to wp-admin/js/options.js,
+ *                   enqueued via {@see wp_enqueue_script()}.
+ */
+function options_general_add_js() {
+	_deprecated_function( __FUNCTION__, '7.1.0' );
+}
+
+/**
+ * Display JavaScript on the Reading Settings screen.
+ *
+ * @since 3.5.0
+ * @deprecated 7.1.0 Inline JavaScript has been moved to wp-admin/js/options.js,
+ *                   enqueued via {@see wp_enqueue_script()}.
+ */
+function options_reading_add_js() {
+	_deprecated_function( __FUNCTION__, '7.1.0' );
+}

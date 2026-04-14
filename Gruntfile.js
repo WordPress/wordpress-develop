@@ -449,6 +449,7 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-admin/js/tags.js' ]: [ './src/js/_enqueues/admin/tags.js' ],
 					[ WORKING_DIR + 'wp-admin/js/site-health.js' ]: [ './src/js/_enqueues/admin/site-health.js' ],
 					[ WORKING_DIR + 'wp-admin/js/site-icon.js' ]: [ './src/js/_enqueues/admin/site-icon.js' ],
+					[ WORKING_DIR + 'wp-admin/js/options.js' ]: [ './src/js/_enqueues/admin/options.js' ],
 					[ WORKING_DIR + 'wp-admin/js/privacy-tools.js' ]: [ './src/js/_enqueues/admin/privacy-tools.js' ],
 					[ WORKING_DIR + 'wp-admin/js/theme-plugin-editor.js' ]: [ './src/js/_enqueues/wp/theme-plugin-editor.js' ],
 					[ WORKING_DIR + 'wp-admin/js/theme.js' ]: [ './src/js/_enqueues/wp/theme.js' ],

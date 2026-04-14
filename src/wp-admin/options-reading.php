@@ -17,7 +17,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 $title       = __( 'Reading Settings' );
 $parent_file = 'options-general.php';
 
-add_action( 'admin_head', 'options_reading_add_js' );
+wp_enqueue_script( 'options' );
 
 get_current_screen()->add_help_tab(
 	array(
