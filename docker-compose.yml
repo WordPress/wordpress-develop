@@ -70,7 +70,7 @@ services:
       - wpdevnet
 
     ports:
-      - "3306"
+      - "${LOCAL_DB_PORTS-3306}"
 
     environment:
       MYSQL_ROOT_PASSWORD: password
@@ -78,9 +78,6 @@ services:
     volumes:
       - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
       - mysql:/var/lib/mysql
-
-    # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
-    command: ${LOCAL_DB_AUTH_OPTION-}
 
     healthcheck:
       test: [

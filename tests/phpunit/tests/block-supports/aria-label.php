@@ -44,15 +44,16 @@ class Tests_Block_Supports_Aria_Label extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that position block support works as expected.
+	 * Tests that aria-label block support works as expected.
 	 *
 	 * @ticket 62919
+	 * @ticket 64594
 	 *
 	 * @dataProvider data_aria_label_block_support
 	 *
 	 * @param boolean|array $support  Aria label block support configuration.
 	 * @param string        $value    Aria label value for attribute object.
-	 * @param array         $expected Expected aria label block support styles.
+	 * @param array         $expected Expected aria-label attributes.
 	 */
 	public function test_wp_apply_aria_label_support( $support, $value, $expected ) {
 		$block_type  = self::register_aria_label_block_with_support(
@@ -79,6 +80,13 @@ class Tests_Block_Supports_Aria_Label extends WP_UnitTestCase {
 			),
 			'aria-label attribute is not applied if block does not support it' => array(
 				'support'  => false,
+				'value'    => 'Label',
+				'expected' => array(),
+			),
+			'aria-label attribute is not applied when serialization is skipped' => array(
+				'support'  => array(
+					'__experimentalSkipSerialization' => true,
+				),
 				'value'    => 'Label',
 				'expected' => array(),
 			),

@@ -999,6 +999,7 @@ EOF;
 	 * @ticket 56122
 	 * @ticket 58551
 	 * @ticket 60132
+	 * @ticket 64414
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1434,6 +1435,43 @@ EOF;
 			array(
 				'css'      => 'opacity: 10',
 				'expected' => 'opacity: 10',
+			),
+			// `display` introduced in 7.0.0.
+			array(
+				'css'      => 'display: none',
+				'expected' => 'display: none',
+			),
+			array(
+				'css'      => 'display: block',
+				'expected' => 'display: block',
+			),
+			array(
+				'css'      => 'display: inline',
+				'expected' => 'display: inline',
+			),
+			array(
+				'css'      => 'display: inline-block',
+				'expected' => 'display: inline-block',
+			),
+			array(
+				'css'      => 'display: inline-flex',
+				'expected' => 'display: inline-flex',
+			),
+			array(
+				'css'      => 'display: inline-grid',
+				'expected' => 'display: inline-grid',
+			),
+			array(
+				'css'      => 'display: table',
+				'expected' => 'display: table',
+			),
+			array(
+				'css'      => 'display: flex',
+				'expected' => 'display: flex',
+			),
+			array(
+				'css'      => 'display: grid',
+				'expected' => 'display: grid',
 			),
 		);
 	}
