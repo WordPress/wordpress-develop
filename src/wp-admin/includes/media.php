@@ -3192,36 +3192,62 @@ function edit_form_image_editor( $post ) {
 		<?php
 	elseif ( $attachment_id && wp_attachment_is( 'audio', $post ) ) :
 
-		wp_maybe_generate_attachment_metadata( $post );
+		$audio_type = wp_check_filetype( $att_url );
 
-		echo wp_audio_shortcode( array( 'src' => $att_url ) );
+		if ( ! empty( $audio_type['ext'] ) && in_array( strtolower( $audio_type['ext'] ), wp_get_audio_extensions(), true ) ) :
+
+			wp_maybe_generate_attachment_metadata( $post );
+			echo wp_audio_shortcode( array( 'src' => $att_url ) );
+
+		else :
+
+			/** This action is documented in wp-admin/includes/media.php */
+			do_action( 'wp_edit_form_attachment_display', $post );
+
+		endif;
 
 	elseif ( $attachment_id && wp_attachment_is( 'video', $post ) ) :
 
-		wp_maybe_generate_attachment_metadata( $post );
+		$video_type = wp_check_filetype( $att_url );
+		if ( ! empty( $video_type['ext'] ) && in_array( strtolower( $video_type['ext'] ), wp_get_video_extensions(), true ) ) :
 
-		$meta = wp_get_attachment_metadata( $attachment_id );
-		$w    = ! empty( $meta['width'] ) ? min( $meta['width'], 640 ) : 0;
-		$h    = ! empty( $meta['height'] ) ? $meta['height'] : 0;
+			wp_maybe_generate_attachment_metadata( $post );
 
-		if ( $h && $w < $meta['width'] ) {
-			$h = round( ( $meta['height'] * $w ) / $meta['width'] );
-		}
+			$meta = wp_get_attachment_metadata( $attachment_id );
+			$w    = ! empty( $meta['width'] ) ? min( $meta['width'], 640 ) : 0;
+			$h    = ! empty( $meta['height'] ) ? $meta['height'] : 0;
 
-		$attr = array( 'src' => $att_url );
+			if ( $h && $w < $meta['width'] ) {
+				$h = round( ( $meta['height'] * $w ) / $meta['width'] );
+			}
 
-		if ( ! empty( $w ) && ! empty( $h ) ) {
-			$attr['width']  = $w;
-			$attr['height'] = $h;
-		}
+			$attr = array( 'src' => $att_url );
 
-		$thumb_id = get_post_thumbnail_id( $attachment_id );
+			if ( ! empty( $w ) && ! empty( $h ) ) {
+				$attr['width']  = $w;
+				$attr['height'] = $h;
+			}
 
-		if ( ! empty( $thumb_id ) ) {
-			$attr['poster'] = wp_get_attachment_url( $thumb_id );
-		}
+			$thumb_id = get_post_thumbnail_id( $attachment_id );
 
-		echo wp_video_shortcode( $attr );
+			if ( ! empty( $thumb_id ) ) {
+				$attr['poster'] = wp_get_attachment_url( $thumb_id );
+			}
+
+			echo wp_video_shortcode( $attr );
+
+		else :
+
+			/**
+			 * Fires when an attachment type can't be rendered in the edit form.
+			 *
+			 * @since x.x.x
+			 *
+			 * @param WP_Post $post A post object.
+			 */
+			do_action( 'wp_edit_form_attachment_display', $post );
+
+		endif;
 
 	elseif ( isset( $thumb_url[0] ) ) :
 		?>
