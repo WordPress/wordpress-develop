@@ -1,53 +1,31 @@
-( function ( $ ) {
-	var $form,
-		originalFormContent,
-		isSubmitting = false,
-		hasListener = false,
-		__ = wp.i18n.__;
+/* global wp */
+( function () {
+	var form = document.querySelector( 'form[action="options.php"]' );
 
-	function beforeUnloadHandler() {
-		if ( isSubmitting || ! $form || ! $form.length ) {
-			return;
-		}
+	if ( ! form ) {
+		return;
+	}
 
-		if ( originalFormContent !== $form.serialize() ) {
+	var originalFormContent = new URLSearchParams( new FormData( form ) ).toString();
+	var __ = wp.i18n.__;
+
+	function beforeUnloadHandler( event ) {
+		var currentContent = new URLSearchParams( new FormData( form ) ).toString();
+		if ( originalFormContent !== currentContent ) {
+			event.preventDefault();
 			return __(
 				'The changes you made will be lost if you navigate away from this page.'
 			);
 		}
 	}
 
-	function addBeforeUnloadListener() {
-		if ( ! hasListener ) {
-			$( window ).on( 'beforeunload.options', beforeUnloadHandler );
-			hasListener = true;
-		}
-	}
+	// Add the beforeunload listener only once a field is modified, to avoid
+	// breaking bfcache.
+	document.addEventListener( 'change', function () {
+		window.addEventListener( 'beforeunload', beforeUnloadHandler );
+	}, { once: true } );
 
-	function removeBeforeUnloadListener() {
-		if ( hasListener ) {
-			$( window ).off( 'beforeunload.options' );
-			hasListener = false;
-		}
-	}
-
-	$( function () {
-		$form = $( 'form[action="options.php"]' );
-
-		if ( ! $form.length ) {
-			return;
-		}
-
-		originalFormContent = $form.serialize();
-
-		// Add listener only when form is modified
-		$form.on( 'change input', function () {
-			addBeforeUnloadListener();
-		} );
-
-		$form.on( 'submit', function () {
-			isSubmitting = true;
-			removeBeforeUnloadListener();
-		} );
+	form.addEventListener( 'submit', function () {
+		window.removeEventListener( 'beforeunload', beforeUnloadHandler );
 	} );
-} )( jQuery );
+} )();

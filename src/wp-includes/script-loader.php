@@ -1260,8 +1260,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'language-chooser', "/wp-admin/js/language-chooser$suffix.js", array( 'jquery' ), false, 1 );
 
-	$scripts->add( 'options', "/wp-admin/js/options$suffix.js", array( 'jquery', 'wp-i18n' ), false, 1 );
-	$scripts->set_translations( 'options' );
+	$scripts->add( 'wp-admin-options', "/wp-admin/js/options$suffix.js", array( 'jquery', 'wp-i18n' ), false, 1 );
+	$scripts->set_translations( 'wp-admin-options' );
 
 	$scripts->add( 'user-suggest', "/wp-admin/js/user-suggest$suffix.js", array( 'jquery-ui-autocomplete' ), false, 1 );
 
