@@ -35,6 +35,8 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64929
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_edit_form_image_editor_skips_fallback_link_for_non_previewable_video() {
 		$attachment_id = $this->create_upload_attachment_from_contents( 'sample.avi', 'RIFF0000AVI LIST' );
@@ -50,6 +52,8 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64929
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_edit_form_image_editor_keeps_preview_for_supported_video() {
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/uploads/small-video.mp4' );
