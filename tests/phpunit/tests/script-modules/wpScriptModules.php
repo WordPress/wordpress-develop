@@ -2742,9 +2742,12 @@ HTML;
 			$this->assertTrue( $filter_args['is_module'] );
 		}
 
-		$this->assertStringContainsString( 'test-module-js-module-translations', $output, 'Translation inline script should be printed with the expected ID.' );
-		$this->assertStringContainsString( 'wp.i18n.setLocaleData', $output, 'Output should call wp.i18n.setLocaleData().' );
-		$this->assertStringContainsString( 'Hola', $output, 'Output should contain the translated string.' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ) );
+		$script_text = $processor->get_modifiable_text();
+		$this->assertStringContainsString( 'test-module-js-module-translations', $script_text, 'Translation inline script should be printed with the expected ID.' );
+		$this->assertStringContainsString( 'wp.i18n.setLocaleData', $script_text, 'Output should call wp.i18n.setLocaleData().' );
+		$this->assertStringContainsString( 'Hola', $script_text, 'Output should contain the translated string.' );
 	}
 
 	/**
@@ -2805,7 +2808,10 @@ HTML;
 			$this->assertTrue( $filter_args['is_module'] );
 		}
 
-		$this->assertStringContainsString( 'dep-module-js-module-translations', $output, 'Dependency module translations should be printed.' );
-		$this->assertStringContainsString( 'Mundo', $output, 'Output should contain the dependency translation.' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ) );
+		$script_text = $processor->get_modifiable_text();
+		$this->assertStringContainsString( 'dep-module-js-module-translations', $script_text, 'Dependency module translations should be printed.' );
+		$this->assertStringContainsString( 'Mundo', $script_text, 'Output should contain the dependency translation.' );
 	}
 }
