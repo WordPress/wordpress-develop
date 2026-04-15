@@ -2757,6 +2757,7 @@ HTML;
 	 * @ticket 65015
 	 *
 	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers ::load_script_module_textdomain
 	 */
 	public function test_print_script_module_translations_includes_dependencies() {
 		$this->script_modules->register( 'dep-module', '/wp-includes/js/dep-module.js' );
