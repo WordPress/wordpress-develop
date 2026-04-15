@@ -2658,9 +2658,7 @@ HTML;
 		$this->script_modules->register( 'test-module', '/test-module.js' );
 		$this->script_modules->enqueue( 'test-module' );
 
-		ob_start();
-		$this->script_modules->print_script_module_translations();
-		$output = ob_get_clean();
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
 		$this->assertEmpty( $output );
 	}
@@ -2676,9 +2674,7 @@ HTML;
 		$this->script_modules->register( 'test-module', '/test-module.js' );
 		$this->script_modules->set_translations( 'test-module', 'default' );
 
-		ob_start();
-		$this->script_modules->print_script_module_translations();
-		$output = ob_get_clean();
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
 		$this->assertEmpty( $output );
 	}
@@ -2724,9 +2720,7 @@ HTML;
 			3
 		);
 
-		ob_start();
-		$this->script_modules->print_script_module_translations();
-		$output = ob_get_clean();
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
 		$this->assertStringContainsString( 'test-module-js-module-translations', $output, 'Translation inline script should be printed with the expected ID.' );
 		$this->assertStringContainsString( 'wp.i18n.setLocaleData', $output, 'Output should call wp.i18n.setLocaleData().' );
@@ -2771,9 +2765,7 @@ HTML;
 			3
 		);
 
-		ob_start();
-		$this->script_modules->print_script_module_translations();
-		$output = ob_get_clean();
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
 		$this->assertStringContainsString( 'dep-module-js-module-translations', $output, 'Dependency module translations should be printed.' );
 		$this->assertStringContainsString( 'Mundo', $output, 'Output should contain the dependency translation.' );
