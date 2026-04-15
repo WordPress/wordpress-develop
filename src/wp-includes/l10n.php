@@ -1157,6 +1157,35 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 }
 
 /**
+ * Loads the translation data for a given script module ID and text domain.
+ *
+ * Works like {@see load_script_textdomain()} but for script modules registered
+ * via {@see wp_register_script_module()}.
+ *
+ * @since 7.0.0
+ *
+ * @param string $id     The script module identifier.
+ * @param string $domain Optional. Text domain. Default 'default'.
+ * @param string $path   Optional. The full file path to the directory containing translation files.
+ * @return string|false The JSON-encoded translated strings for the given script module and text domain.
+ *                      False if there are none.
+ */
+function load_script_module_textdomain( string $id, string $domain = 'default', string $path = '' ) {
+	$module = wp_script_modules()->get_registered( $id );
+	if ( null === $module ) {
+		return false;
+	}
+	$src = $module['src'];
+
+	// Ensure src is an absolute URL for path resolution.
+	if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+		$src = site_url( $src );
+	}
+
+	return _load_script_textdomain_from_src( $id, $src, $domain, $path, true );
+}
+
+/**
  * Resolves and loads the translation JSON file for a given script or script module source URL.
  *
  * This is a shared implementation used by {@see load_script_textdomain()} and
@@ -1301,35 +1330,6 @@ function _load_script_textdomain_from_src( string $handle, string $src, string $
 	}
 
 	return load_script_translations( false, $handle, $domain );
-}
-
-/**
- * Loads the translation data for a given script module ID and text domain.
- *
- * Works like {@see load_script_textdomain()} but for script modules registered
- * via {@see wp_register_script_module()}.
- *
- * @since 7.0.0
- *
- * @param string $id     The script module identifier.
- * @param string $domain Optional. Text domain. Default 'default'.
- * @param string $path   Optional. The full file path to the directory containing translation files.
- * @return string|false The JSON-encoded translated strings for the given script module and text domain.
- *                      False if there are none.
- */
-function load_script_module_textdomain( string $id, string $domain = 'default', string $path = '' ) {
-	$module = wp_script_modules()->get_registered( $id );
-	if ( null === $module ) {
-		return false;
-	}
-	$src = $module['src'];
-
-	// Ensure src is an absolute URL for path resolution.
-	if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
-		$src = site_url( $src );
-	}
-
-	return _load_script_textdomain_from_src( $id, $src, $domain, $path, true );
 }
 
 /**
