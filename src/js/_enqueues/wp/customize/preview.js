@@ -671,12 +671,16 @@
 				settings[ prop ] = api( 'background_' + prop );
 			} );
 
+			var bgElement  = ( api.settings.theme && api.settings.theme.bgElement ) ? api.settings.theme.bgElement : document.body;
+			var bgClass    = ( api.settings.theme && api.settings.theme.bgClass ) ? api.settings.theme.bgClass : 'custom-background';
+			var bgSelector = ( api.settings.theme && api.settings.theme.bgSelector ) ? api.settings.theme.bgSelector : 'body.custom-background';
+
 			/*
 			 * The body will support custom backgrounds if either the color or image are set.
 			 *
 			 * See get_body_class() in /wp-includes/post-template.php
 			 */
-			$( document.body ).toggleClass( 'custom-background', !! ( settings.color() || settings.image() ) );
+			$( bgElement ).toggleClass( bgClass, !! ( settings.color() || settings.image() ) );
 
 			if ( settings.color() ) {
 				css += 'background-color: ' + settings.color() + ';';
@@ -690,7 +694,7 @@
 				css += 'background-attachment: ' + settings.attachment() + ';';
 			}
 
-			$( '#custom-background-css' ).text( 'body.custom-background { ' + css + ' }' );
+			$( '#custom-background-css' ).text( bgSelector + ' { ' + css + ' }' );
 		}
 	};
 

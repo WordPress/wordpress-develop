@@ -802,7 +802,8 @@ function get_body_class( $css_class = '' ) {
 
 	if ( current_theme_supports( 'custom-background' )
 		&& ( get_background_color() !== get_theme_support( 'custom-background', 'default-color' ) || get_background_image() ) ) {
-		$classes[] = 'custom-background';
+
+		$classes[] = sanitize_html_class( get_theme_support( 'custom-background', 'background-class' ) );
 	}
 
 	if ( has_custom_logo() ) {
