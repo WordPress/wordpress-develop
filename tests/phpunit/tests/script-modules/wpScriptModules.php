@@ -2722,7 +2722,25 @@ HTML;
 			3
 		);
 
+		$filtered = array();
+		add_filter(
+			'load_script_textdomain_relative_path',
+			static function ( $relative, $src, $is_module ) use ( &$filtered ) {
+				$filtered[] = compact( 'relative', 'src', 'is_module' );
+				return $relative;
+			},
+			10,
+			3
+		);
+
 		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertCount( 1, $filtered );
+		foreach ( $filtered as $filter_args ) {
+			$this->assertIsString( $filter_args['relative'] );
+			$this->assertIsString( $filter_args['src'] );
+			$this->assertTrue( $filter_args['is_module'] );
+		}
 
 		$this->assertStringContainsString( 'test-module-js-module-translations', $output, 'Translation inline script should be printed with the expected ID.' );
 		$this->assertStringContainsString( 'wp.i18n.setLocaleData', $output, 'Output should call wp.i18n.setLocaleData().' );
@@ -2767,7 +2785,25 @@ HTML;
 			3
 		);
 
+		$filtered = array();
+		add_filter(
+			'load_script_textdomain_relative_path',
+			static function ( $relative, $src, $is_module ) use ( &$filtered ) {
+				$filtered[] = compact( 'relative', 'src', 'is_module' );
+				return $relative;
+			},
+			10,
+			3
+		);
+
 		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertCount( 1, $filtered );
+		foreach ( $filtered as $filter_args ) {
+			$this->assertIsString( $filter_args['relative'] );
+			$this->assertIsString( $filter_args['src'] );
+			$this->assertTrue( $filter_args['is_module'] );
+		}
 
 		$this->assertStringContainsString( 'dep-module-js-module-translations', $output, 'Dependency module translations should be printed.' );
 		$this->assertStringContainsString( 'Mundo', $output, 'Output should contain the dependency translation.' );
