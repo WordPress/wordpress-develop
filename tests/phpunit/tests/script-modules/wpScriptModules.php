@@ -2598,6 +2598,7 @@ HTML;
 	 * @ticket 65015
 	 *
 	 * @covers ::wp_set_script_module_translations
+	 * @covers WP_Script_Modules::set_translations
 	 */
 	public function test_wp_set_script_module_translations_wrapper() {
 		wp_register_script_module( 'test-module', '/test-module.js' );
@@ -2611,6 +2612,7 @@ HTML;
 	 * @ticket 65015
 	 *
 	 * @covers ::wp_set_script_module_translations
+	 * @covers WP_Script_Modules::set_translations
 	 */
 	public function test_wp_set_script_module_translations_returns_false_for_unregistered() {
 		$result = wp_set_script_module_translations( 'unregistered-module', 'default' );
