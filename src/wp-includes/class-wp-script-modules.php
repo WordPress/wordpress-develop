@@ -402,7 +402,7 @@ class WP_Script_Modules {
 				continue;
 			}
 
-			$set_local_data_js_function = <<<JS
+			$set_locale_data_js_function = <<<JS
 			( domain, translations ) => {
 				const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
 				localeData[""].domain = domain;
@@ -412,7 +412,7 @@ class WP_Script_Modules {
 
 			$output     = sprintf(
 				'( %s )( %s, %s );',
-				$set_local_data_js_function,
+				$set_locale_data_js_function,
 				wp_json_encode( $domain ),
 				$json_translations
 			);
