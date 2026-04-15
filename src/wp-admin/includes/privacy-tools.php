@@ -460,7 +460,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	fwrite( $file, '.return-to-top { text-align: right; }' );
 	fwrite( $file, '</style>' );
 	fwrite( $file, '<title>' );
-	fwrite( $file, esc_html( $title ) );
+	fwrite( $file, wp_html_title( $title ) );
 	fwrite( $file, '</title>' );
 	fwrite( $file, "</head>\n" );
 	fwrite( $file, "<body>\n" );

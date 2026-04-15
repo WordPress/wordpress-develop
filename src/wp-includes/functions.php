@@ -3933,7 +3933,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			wp_robots();
 		}
 		?>
-	<title><?php echo $title; ?></title>
+	<title><?php echo wp_html_title( $title ); ?></title>
 	<style>
 		html {
 			background: #f1f1f1;
