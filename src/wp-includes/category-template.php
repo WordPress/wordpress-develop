@@ -963,7 +963,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	// Assemble the data that will be used to generate the tag cloud markup.
 	$tags_data = array();
 	foreach ( $tags as $key => $tag ) {
-		$tag_id = isset( $tag->id ) ? $tag->id : $key;
+		$tag_id = $tag->id ?? $key;
 
 		$count      = $counts[ $key ];
 		$real_count = $real_counts[ $key ];
@@ -976,7 +976,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 
 		$tags_data[] = array(
 			'id'              => $tag_id,
-			'url'             => ( '#' !== $tag->link ) ? $tag->link : '#',
+			'url'             => $tag->link,
 			'role'            => ( '#' !== $tag->link ) ? '' : ' role="button"',
 			'name'            => $tag->name,
 			'formatted_count' => $formatted_count,
@@ -1258,8 +1258,8 @@ function tag_description( $tag = 0 ) {
  * @since 2.8.0
  * @since 4.9.2 The `$taxonomy` parameter was deprecated.
  *
- * @param int  $term       Optional. Term ID. Defaults to the current term ID.
- * @param null $deprecated Deprecated. Not used.
+ * @param int   $term       Optional. Term ID. Defaults to the current term ID.
+ * @param mixed $deprecated Not used.
  * @return string Term description, if available.
  */
 function term_description( $term = 0, $deprecated = null ) {
@@ -1487,7 +1487,7 @@ function the_terms( $post_id, $taxonomy, $before = '', $sep = ', ', $after = '' 
  *
  * @param string|int|array $category Optional. The category name/term_id/slug,
  *                                   or an array of them to check for. Default empty.
- * @param int|WP_Post      $post     Optional. Post to check. Defaults to the current post.
+ * @param int|WP_Post|null $post     Optional. Post to check. Defaults to the current post.
  * @return bool True if the current post has any of the given categories
  *              (or any category, if no category specified). False otherwise.
  */
@@ -1514,7 +1514,7 @@ function has_category( $category = '', $post = null ) {
  *
  * @param string|int|array $tag  Optional. The tag name/term_id/slug,
  *                               or an array of them to check for. Default empty.
- * @param int|WP_Post      $post Optional. Post to check. Defaults to the current post.
+ * @param int|WP_Post|null $post Optional. Post to check. Defaults to the current post.
  * @return bool True if the current post has any of the given tags
  *              (or any tag, if no tag specified). False otherwise.
  */
@@ -1535,7 +1535,7 @@ function has_tag( $tag = '', $post = null ) {
  * @param string|int|array $term     Optional. The term name/term_id/slug,
  *                                   or an array of them to check for. Default empty.
  * @param string           $taxonomy Optional. Taxonomy name. Default empty.
- * @param int|WP_Post      $post     Optional. Post to check. Defaults to the current post.
+ * @param int|WP_Post|null $post     Optional. Post to check. Defaults to the current post.
  * @return bool True if the current post has any of the given terms
  *              (or any term, if no term specified). False otherwise.
  */

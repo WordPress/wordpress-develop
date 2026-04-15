@@ -118,9 +118,9 @@ final class WP_Internal_Pointers {
 		}
 
 		?>
-		<script type="text/javascript">
+		<script>
 		(function($){
-			var options = <?php echo wp_json_encode( $args ); ?>, setup;
+			var options = <?php echo wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>, setup;
 
 			if ( ! options )
 				return;

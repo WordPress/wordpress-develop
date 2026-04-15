@@ -301,7 +301,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$theme->is_block_theme();
 		$reflection          = new ReflectionClass( $theme );
 		$reflection_property = $reflection->getProperty( 'block_theme' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 
 		$this->assertSame( $expected, $reflection_property->getValue( $theme ) );
 	}
@@ -611,7 +613,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	public function test_should_strip_tags_from_update_uri_header() {
 		$theme           = new WP_Theme( 'twentytwentytwo', $this->theme_root );
 		$sanitize_header = new ReflectionMethod( $theme, 'sanitize_header' );
-		$sanitize_header->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$sanitize_header->setAccessible( true );
+		}
 
 		$actual = $sanitize_header->invoke( $theme, 'UpdateURI', '<?php?><a href="http://example.org">http://example.org</a>' );
 

@@ -62,7 +62,7 @@ function edit_user( $user_id = 0 ) {
 			wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
 		}
 
-		$potential_role = isset( $wp_roles->role_objects[ $new_role ] ) ? $wp_roles->role_objects[ $new_role ] : false;
+		$potential_role = $wp_roles->role_objects[ $new_role ] ?? false;
 
 		/*
 		 * Don't let anyone with 'promote_users' edit their own role to something without it.
@@ -134,7 +134,7 @@ function edit_user( $user_id = 0 ) {
 	if ( $update ) {
 		$user->rich_editing         = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
 		$user->syntax_highlighting  = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
-		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'fresh';
+		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'modern';
 		$user->show_admin_bar_front = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
 	}
 
@@ -306,7 +306,7 @@ function get_user_to_edit( $user_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID.
- * @return array
+ * @return object[] The user's draft posts, with 'ID' and 'post_title' keys.
  */
 function get_users_drafts( $user_id ) {
 	global $wpdb;
@@ -482,7 +482,7 @@ function wp_revoke_user( $id ) {
 /**
  * @since 2.8.0
  *
- * @global int $user_ID
+ * @global int $user_ID Current user ID.
  *
  * @param false $errors Deprecated.
  */
@@ -505,8 +505,8 @@ function default_password_nag_handler( $errors = false ) {
 /**
  * @since 2.8.0
  *
- * @param int     $user_ID
- * @param WP_User $old_data
+ * @param int     $user_ID  User ID.
+ * @param WP_User $old_data The user object before the update.
  */
 function default_password_nag_edit_user( $user_ID, $old_data ) {
 	// Short-circuit it.
@@ -602,8 +602,8 @@ function use_ssl_preference( $user ) {
 /**
  * @since MU (3.0.0)
  *
- * @param string $text
- * @return string
+ * @param string $text The email body text.
+ * @return string User site invitation email message.
  */
 function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
@@ -700,7 +700,10 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 }
 
 /**
- * Validates the redirect URL protocol scheme. The protocol can be anything except `http` and `javascript`.
+ * Validates the redirect URL protocol scheme.
+ *
+ * The `http` scheme is allowed for loopback IP addresses (127.0.0.1, [::1])
+ * and local environments. The `javascript` and `data` protocols are always rejected.
  *
  * @since 6.3.2
  *
@@ -745,7 +748,14 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 		);
 	}
 
-	if ( 'http' === $scheme && ! $is_local ) {
+	// Allow insecure HTTP connections to locally hosted applications.
+	$is_loopback = in_array(
+		strtolower( $host ),
+		array( '127.0.0.1', '[::1]' ),
+		true
+	);
+
+	if ( 'http' === $scheme && ! $is_local && ! $is_loopback ) {
 		return new WP_Error(
 			'invalid_redirect_scheme',
 			__( 'The URL must be served over a secure connection.' )

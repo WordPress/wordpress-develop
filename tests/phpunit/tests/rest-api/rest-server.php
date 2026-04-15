@@ -151,6 +151,21 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( $headers, $enveloped['headers'] );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_envelope_params() {
+		return array(
+			array( '1' ),
+			array( 'true' ),
+			array( false ),
+			array( 'alternate' ),
+			array( array( 'alternate' ) ),
+		);
+	}
+
 	public function test_default_param() {
 
 		register_rest_route(
@@ -590,6 +605,33 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertSame( 'more_data', $response->get_data()['data'] );
 		$this->assertSame( array( array( 'status' => 400 ) ), $response->get_data()['additional_data'] );
+	}
+
+	/**
+	 * @ticket 64901
+	 */
+	public function test_error_to_response_with_stdclass_data() {
+		$error = new WP_Error( 'test', 'test', (object) array( 'status' => 400 ) );
+
+		$response = rest_convert_error_to_response( $error );
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+
+		// stdClass data should not cause a fatal, status should default to 500.
+		$this->assertSame( 500, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64901
+	 */
+	public function test_error_to_response_with_multi_status_non_numeric_status() {
+		$error = new WP_Error( 'test', 'test', array( 'status' => array( 'feeling' => 'happy' ) ) );
+		$error->add_data( array( 'status' => 400 ), 'test' );
+		$error->add_data( array( 'status' => array( 'feeling' => 'bleh' ) ), 'test' );
+
+		$response = rest_convert_error_to_response( $error );
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	public function test_rest_error() {
@@ -1695,6 +1737,32 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Helper to setup a users and auth cookie global for the
+	 * rest_send_refreshed_nonce related tests.
+	 */
+	protected function helper_setup_user_for_rest_send_refreshed_nonce_tests() {
+		$author = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $author );
+
+		global $wp_rest_auth_cookie;
+
+		$wp_rest_auth_cookie = true;
+	}
+
+	/**
+	 * Helper to make the request and get the headers for the
+	 * rest_send_refreshed_nonce related tests.
+	 *
+	 * @return array
+	 */
+	protected function helper_make_request_and_return_headers_for_rest_send_refreshed_nonce_tests() {
+		$request = new WP_REST_Request( 'GET', '/', array() );
+		$result  = rest_get_server()->serve_request( '/' );
+
+		return rest_get_server()->sent_headers;
+	}
+
+	/**
 	 * Refreshed nonce should be present in header when a valid nonce is
 	 * passed for logged in/anonymous user and not present when nonce is not
 	 * passed.
@@ -1722,6 +1790,23 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		} else {
 			$this->assertArrayNotHasKey( 'X-WP-Nonce', $headers );
 		}
+	}
+
+	/**
+	 * @return array {
+	 *     @type array {
+	 *         @type bool $has_logged_in_user Are we registering a user for the test.
+	 *         @type bool $has_nonce          Is the nonce passed.
+	 *     }
+	 * }
+	 */
+	public function data_rest_send_refreshed_nonce() {
+		return array(
+			array( true, true ),
+			array( true, false ),
+			array( false, true ),
+			array( false, false ),
+		);
 	}
 
 	/**
@@ -1761,6 +1846,22 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function _validate_as_integer_123( $value, $request, $key ) {
+		if ( ! is_int( $value ) ) {
+			return new WP_Error( 'some-error', 'This is not valid!' );
+		}
+
+		return true;
+	}
+
+	public function _validate_as_string_foo( $value, $request, $key ) {
+		if ( ! is_string( $value ) ) {
+			return new WP_Error( 'some-error', 'This is not valid!' );
+		}
+
+		return true;
 	}
 
 	/**
@@ -2330,6 +2431,30 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 63502
+	 */
+	public function test_batch_request_with_malformed_url() {
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'method' => 'POST',
+						'path'   => 'http://user@:80',
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data()['responses'][0]['body'] ?? null;
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 'parse_path_failed', $data['code'] );
+	}
+
+	/**
 	 * @ticket 51020
 	 */
 	public function test_get_data_for_route_includes_permitted_schema_keywords() {
@@ -2585,79 +2710,5 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'targetHints', $link );
 		$this->assertArrayHasKey( 'allow', $link['targetHints'] );
 		$this->assertSame( array( 'GET', 'PUT' ), $link['targetHints']['allow'] );
-	}
-
-	public function _validate_as_integer_123( $value, $request, $key ) {
-		if ( ! is_int( $value ) ) {
-			return new WP_Error( 'some-error', 'This is not valid!' );
-		}
-
-		return true;
-	}
-
-	public function _validate_as_string_foo( $value, $request, $key ) {
-		if ( ! is_string( $value ) ) {
-			return new WP_Error( 'some-error', 'This is not valid!' );
-		}
-
-		return true;
-	}
-
-	/**
-	 * @return array {
-	 *     @type array {
-	 *         @type bool $has_logged_in_user Are we registering a user for the test.
-	 *         @type bool $has_nonce          Is the nonce passed.
-	 *     }
-	 * }
-	 */
-	public function data_rest_send_refreshed_nonce() {
-		return array(
-			array( true, true ),
-			array( true, false ),
-			array( false, true ),
-			array( false, false ),
-		);
-	}
-
-	/**
-	 * Helper to setup a users and auth cookie global for the
-	 * rest_send_refreshed_nonce related tests.
-	 */
-	protected function helper_setup_user_for_rest_send_refreshed_nonce_tests() {
-		$author = self::factory()->user->create( array( 'role' => 'author' ) );
-		wp_set_current_user( $author );
-
-		global $wp_rest_auth_cookie;
-
-		$wp_rest_auth_cookie = true;
-	}
-
-	/**
-	 * Helper to make the request and get the headers for the
-	 * rest_send_refreshed_nonce related tests.
-	 *
-	 * @return array
-	 */
-	protected function helper_make_request_and_return_headers_for_rest_send_refreshed_nonce_tests() {
-		$request = new WP_REST_Request( 'GET', '/', array() );
-		$result  = rest_get_server()->serve_request( '/' );
-
-		return rest_get_server()->sent_headers;
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_envelope_params() {
-		return array(
-			array( '1' ),
-			array( 'true' ),
-			array( false ),
-			array( 'alternate' ),
-			array( array( 'alternate' ) ),
-		);
 	}
 }

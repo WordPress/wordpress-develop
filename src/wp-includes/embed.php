@@ -202,7 +202,7 @@ function wp_maybe_load_embeds() {
 		return;
 	}
 
-	wp_embed_register_handler( 'youtube_embed_url', '#https?://(www.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
+	wp_embed_register_handler( 'youtube_embed_url', '#https?://(www\.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
 
 	/**
 	 * Filters the audio embed handler callback.
@@ -332,8 +332,19 @@ function wp_oembed_register_route() {
  *
  * @since 4.4.0
  * @since 6.8.0 Output was adjusted to only embed if the post supports it.
+ * @since 6.9.0 Now runs first at `wp_head` priority 4, with a fallback to priority 10. This helps ensure the discovery links appear within the first 150KB.
  */
 function wp_oembed_add_discovery_links() {
+	if ( doing_action( 'wp_head' ) ) {
+		// For back-compat, short-circuit if a plugin has removed the action at the original priority.
+		if ( ! has_action( 'wp_head', 'wp_oembed_add_discovery_links', 10 ) ) {
+			return;
+		}
+
+		// Prevent running again at the original priority.
+		remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+	}
+
 	$output = '';
 
 	if ( is_singular() && is_post_embeddable() ) {
@@ -402,7 +413,7 @@ function wp_maybe_enqueue_oembed_host_js( $html ) {
  *
  * @since 4.4.0
  *
- * @param int|WP_Post $post Optional. Post ID or object. Defaults to the current post.
+ * @param int|WP_Post|null $post Optional. Post ID or object. Defaults to the current post.
  * @return string|false The post embed URL on success, false if the post doesn't exist.
  */
 function get_post_embed_url( $post = null ) {
@@ -471,9 +482,9 @@ function get_oembed_endpoint_url( $permalink = '', $format = 'json' ) {
  *
  * @since 4.4.0
  *
- * @param int         $width  The width for the response.
- * @param int         $height The height for the response.
- * @param int|WP_Post $post   Optional. Post ID or object. Default is global `$post`.
+ * @param int              $width  The width for the response.
+ * @param int              $height The height for the response.
+ * @param int|WP_Post|null $post   Optional. Post ID or object. Default is global `$post`.
  * @return string|false Embed code on success, false if post doesn't exist.
  */
 function get_post_embed_html( $width, $height, $post = null ) {
@@ -518,8 +529,9 @@ function get_post_embed_html( $width, $height, $post = null ) {
 	 * will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
 	 * back to WordPress 4.4, so in order to not break older installs this script must come at the end.
 	 */
+	$js_path = '/js/wp-embed' . wp_scripts_get_suffix() . '.js';
 	$output .= wp_get_inline_script_tag(
-		file_get_contents( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' )
+		trim( file_get_contents( ABSPATH . WPINC . $js_path ) ) . "\n//# sourceURL=" . esc_url_raw( includes_url( $js_path ) )
 	);
 
 	/**
@@ -681,7 +693,7 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		return false;
 	}
 
-	$width = isset( $args['width'] ) ? $args['width'] : 0;
+	$width = $args['width'] ?? 0;
 
 	$data = get_oembed_response_data( $post_id, $width );
 
@@ -727,10 +739,13 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 	}
 
 	if ( $thumbnail_id ) {
-		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
-		$data['thumbnail_url']                                      = $thumbnail_url;
-		$data['thumbnail_width']                                    = $thumbnail_width;
-		$data['thumbnail_height']                                   = $thumbnail_height;
+		$thumbnail_src = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
+
+		if ( is_array( $thumbnail_src ) ) {
+			$data['thumbnail_url']    = $thumbnail_src[0];
+			$data['thumbnail_width']  = $thumbnail_src[1];
+			$data['thumbnail_height'] = $thumbnail_src[2];
+		}
 	}
 
 	return $data;
@@ -1055,7 +1070,6 @@ function wp_embed_excerpt_attachment( $content ) {
  * @since 4.4.0
  */
 function enqueue_embed_scripts() {
-	wp_enqueue_style( 'wp-embed-template-ie' );
 
 	/**
 	 * Fires when scripts and styles are enqueued for the embed iframe.
@@ -1090,8 +1104,9 @@ function wp_enqueue_embed_styles() {
  * @since 4.4.0
  */
 function print_embed_scripts() {
+	$js_path = '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js';
 	wp_print_inline_script_tag(
-		file_get_contents( ABSPATH . WPINC . '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js' )
+		trim( file_get_contents( ABSPATH . WPINC . $js_path ) ) . "\n//# sourceURL=" . esc_url_raw( includes_url( $js_path ) )
 	);
 }
 

@@ -1,9 +1,9 @@
 === Twenty Fourteen ===
 Contributors: wordpressdotorg
 Requires at least: 3.6
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.2.4
-Stable tag: 4.3
+Stable tag: 4.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, news, two-columns, three-columns, left-sidebar, right-sidebar, custom-background, custom-header, custom-menu, editor-style, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready, accessibility-ready, block-patterns
@@ -23,7 +23,7 @@ For more information about Twenty Fourteen please go to https://codex.wordpress.
 
 == Copyright ==
 
-Twenty Fourteen WordPress Theme, Copyright 2013-2025 WordPress.org, Automattic Inc., and contributors.
+Twenty Fourteen WordPress Theme, Copyright 2013-2026 WordPress.org, Automattic Inc., and contributors.
 Twenty Fourteen is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -40,10 +40,6 @@ Twenty Fourteen Theme is derived from the Further Theme, Copyright 2013 Takashi 
 Further Theme is distributed under the terms of the GNU GPL
 
 Twenty Fourteen Theme bundles the following third-party resources:
-
-HTML5 Shiv v3.7.0, Copyright 2014 Alexander Farkas
-Licenses: MIT/GPL2
-Source: https://github.com/aFarkas/html5shiv
 
 Genericons icon font, Copyright 2013-2017 Automattic Inc.
 License: GNU GPL, Version 2 (or later)
@@ -63,6 +59,11 @@ Source: https://stocksnap.io/photo/fog-mountain-ZKN6UKFKEO
         https://stocksnap.io/photo/guy-man-7CFLDIWXK5
 
 == Changelog ==
+
+= 4.4 =
+* Released: December 2, 2025
+
+https://wordpress.org/documentation/article/twenty-fourteen-changelog/#Version_4.4
 
 = 4.3 =
 * Released: July 15, 2025

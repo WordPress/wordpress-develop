@@ -76,7 +76,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 				data-wp-class--other-class="myPlugin::state.true"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertSame( 'some-class other-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -327,5 +327,26 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 		$html    = '<div data-wp-class--some-class="myPlugin::state.null">Text</div>';
 		list($p) = $this->process_directives( $html );
 		$this->assertNull( $p->get_attribute( 'class' ) );
+	}
+
+	/**
+	 * Tests that classes with several dashes can be used.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_class_can_use_several_dashes() {
+		$html    = '<div data-wp-class--main-bg--color="myPlugin::state.true">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'main-bg--color', $p->get_attribute( 'class' ) );
+
+		$html    = '<div data-wp-class--main-bg---color="myPlugin::state.true">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'main-bg---color', $p->get_attribute( 'class' ) );
+
+		$html    = '<div data-wp-class--main-bg----color="myPlugin::state.true">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'main-bg----color', $p->get_attribute( 'class' ) );
 	}
 }

@@ -1,9 +1,9 @@
 === Twenty Sixteen ===
 Contributors: wordpressdotorg
 Requires at least: 4.4
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.2.4
-Version: 3.6
+Version: 3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: one-column, two-columns, right-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-menu, editor-style, featured-images, flexible-header, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready, blog, block-patterns
@@ -30,7 +30,7 @@ For more information about Twenty Sixteen please go to https://wordpress.org/doc
 
 == Copyright ==
 
-Twenty Sixteen WordPress Theme, Copyright 2014-2025 WordPress.org, and contributors.
+Twenty Sixteen WordPress Theme, Copyright 2014-2026 WordPress.org, and contributors.
 Twenty Sixteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -44,10 +44,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 Twenty Sixteen Theme bundles the following third-party resources:
-
-HTML5 Shiv v3.7.0, Copyright 2014 Alexander Farkas
-Licenses: MIT/GPL2
-Source: https://github.com/aFarkas/html5shiv
 
 Genericons icon font, Copyright 2013-2017 Automattic Inc.
 License: GNU GPL, Version 2 (or later)
@@ -71,6 +67,11 @@ Source: https://fontsource.org/fonts/inconsolata
 Image used in screenshot.png: A photo by Austin Schmid (https://unsplash.com/schmidy/), licensed under Creative Commons Zero(http://creativecommons.org/publicdomain/zero/1.0/)
 
 == Changelog ==
+
+= 3.7 =
+* Released: December 2, 2025
+
+https://wordpress.org/documentation/article/twenty-sixteen-changelog/#Version_3.7
 
 = 3.6 =
 * Released: July 15, 2025
