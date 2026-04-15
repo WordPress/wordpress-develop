@@ -130,3 +130,22 @@ function wp_register_font_library_wp_admin_page_routes() {
 }
 add_action( 'font-library-wp-admin_init', 'wp_register_font_library_wp_admin_page_routes' );
 
+// Page-specific route registration functions for guidelines
+/**
+ * Register routes for guidelines page (full-page mode).
+ */
+function wp_register_guidelines_page_routes() {
+	global $wp_guidelines_routes_data;
+	wp_register_page_routes( $wp_guidelines_routes_data, 'wp_register_guidelines_route' );
+}
+add_action( 'guidelines_init', 'wp_register_guidelines_page_routes' );
+
+/**
+ * Register routes for guidelines page (wp-admin mode).
+ */
+function wp_register_guidelines_wp_admin_page_routes() {
+	global $wp_guidelines_routes_data;
+	wp_register_page_routes( $wp_guidelines_routes_data, 'wp_register_guidelines_wp_admin_route' );
+}
+add_action( 'guidelines-wp-admin_init', 'wp_register_guidelines_wp_admin_page_routes' );
+
