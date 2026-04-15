@@ -2043,6 +2043,26 @@ HTML;
 	}
 
 	/**
+	 * Tests that script concatenation is disabled by default.
+	 *
+	 * @ticket 57548
+	 * @covers ::script_concat_settings
+	 */
+	public function test_concatenation_disabled_by_default() {
+		global $concatenate_scripts;
+
+		// Unset so script_concat_settings() initializes the global fresh.
+		unset( $concatenate_scripts );
+
+		script_concat_settings();
+
+		$this->assertFalse(
+			$concatenate_scripts,
+			'Script concatenation should be disabled by default as of WordPress 7.1.0.'
+		);
+	}
+
+	/**
 	 * Test script concatenation.
 	 */
 	public function test_script_concatenation() {

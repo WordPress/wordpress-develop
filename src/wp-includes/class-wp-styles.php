@@ -58,6 +58,8 @@ class WP_Styles extends WP_Dependencies {
 	 * Holds a list of style handles which will be concatenated.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.1.0 Style concatenation is deprecated. This property has no effect
+	 *                   when CONCATENATE_SCRIPTS is not defined as true.
 	 * @var string
 	 */
 	public $concat = '';
@@ -75,6 +77,8 @@ class WP_Styles extends WP_Dependencies {
 	 * Whether to perform concatenation.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.1.0 Style concatenation is deprecated. This property will always be
+	 *                   false unless CONCATENATE_SCRIPTS is explicitly defined as true.
 	 * @var bool
 	 */
 	public $do_concat = false;
@@ -84,6 +88,7 @@ class WP_Styles extends WP_Dependencies {
 	 * is enabled.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.1.0 Style concatenation is deprecated.
 	 * @var string
 	 */
 	public $print_html = '';
@@ -92,6 +97,7 @@ class WP_Styles extends WP_Dependencies {
 	 * Holds inline styles if concatenation is enabled.
 	 *
 	 * @since 3.3.0
+	 * @deprecated 7.1.0 Style concatenation is deprecated.
 	 * @var string
 	 */
 	public $print_code = '';

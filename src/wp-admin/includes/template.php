@@ -2497,8 +2497,11 @@ function get_media_states( $post ) {
  * has to be deleted.
  *
  * @since 2.8.0
+ * @deprecated 7.1.0 Script concatenation and compression via load-scripts.php are deprecated.
+ *                   The compression test is no longer needed.
  */
 function compression_test() {
+	_deprecated_function( __FUNCTION__, '7.1.0' );
 	?>
 	<script>
 	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;

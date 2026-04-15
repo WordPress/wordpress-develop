@@ -2,16 +2,16 @@
 /**
  * WordPress scripts and styles default loader.
  *
- * Several constants are used to manage the loading, concatenating and compression of scripts and CSS:
- * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS, and disables compression and concatenation,
- * define('CONCATENATE_SCRIPTS', false); disables compression and concatenation of scripts and CSS,
+ * Several constants are used to manage the loading and compression of scripts and CSS:
+ * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS.
+ * define('CONCATENATE_SCRIPTS', true); re-enables the deprecated script/style concatenation via load-scripts.php
+ *   and load-styles.php. Concatenation is disabled by default as of WordPress 7.1.0.
  * define('COMPRESS_SCRIPTS', false); disables compression of scripts,
  * define('COMPRESS_CSS', false); disables compression of CSS,
  * define('ENFORCE_GZIP', true); forces gzip for compression (default is deflate).
  *
  * The globals $concatenate_scripts, $compress_scripts and $compress_css can be set by plugins
- * to temporarily override the above settings. Also a compression test is run once and the result is saved
- * as option 'can_compress_scripts' (0/1). The test will run again if that option is deleted.
+ * to temporarily override the above settings.
  *
  * @package WordPress
  */
@@ -40,27 +40,23 @@ require ABSPATH . WPINC . '/functions.wp-styles.php';
  * @since 5.0.0
  *
  * @global string $tinymce_version
- * @global bool   $concatenate_scripts
- * @global bool   $compress_scripts
  *
  * @param WP_Scripts $scripts            WP_Scripts object.
- * @param bool       $force_uncompressed Whether to forcibly prevent gzip compression. Default false.
+ * @param bool       $force_uncompressed Whether to forcibly prevent loading the pre-built bundle. Default false.
  */
 function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
-	global $tinymce_version, $concatenate_scripts, $compress_scripts;
+	global $tinymce_version;
 
 	$suffix     = wp_scripts_get_suffix();
 	$dev_suffix = wp_scripts_get_suffix( 'dev' );
 
-	script_concat_settings();
-
-	$compressed = $compress_scripts && $concatenate_scripts && ! $force_uncompressed;
-
 	/*
-	 * Load tinymce.js when running from /src, otherwise load wp-tinymce.js (in production)
-	 * or tinymce.min.js (when SCRIPT_DEBUG is true).
+	 * Load the pre-built wp-tinymce.js bundle in production, or the individual development
+	 * files when SCRIPT_DEBUG is enabled or $force_uncompressed is true.
 	 */
-	if ( $compressed ) {
+	$use_bundle = ! $force_uncompressed && ( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG );
+
+	if ( $use_bundle ) {
 		$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . 'wp-tinymce.js', array(), $tinymce_version );
 	} else {
 		$scripts->add( 'wp-tinymce-root', includes_url( 'js/tinymce/' ) . "tinymce$dev_suffix.js", array(), $tinymce_version );
@@ -2213,6 +2209,7 @@ function print_footer_scripts() {
  * Prints scripts (internal use only)
  *
  * @since 2.8.0
+ * @deprecated 7.1.0 Script concatenation via load-scripts.php is deprecated.
  *
  * @ignore
  *
@@ -2402,8 +2399,10 @@ function print_late_styles() {
 /**
  * Prints styles (internal use only).
  *
- * @ignore
  * @since 3.3.0
+ * @deprecated 7.1.0 Style concatenation via load-styles.php is deprecated.
+ *
+ * @ignore
  *
  * @global bool $compress_css
  */
@@ -2466,7 +2465,13 @@ function script_concat_settings() {
 	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
 
 	if ( ! isset( $concatenate_scripts ) ) {
-		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
+		/*
+		 * Script concatenation via load-scripts.php and load-styles.php is deprecated as of
+		 * WordPress 7.1.0. It is disabled by default. Sites that previously relied on
+		 * concatenation can opt back in by defining CONCATENATE_SCRIPTS as true in wp-config.php,
+		 * but should be aware that support will be removed in a future release.
+		 */
+		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : false;
 		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
 			$concatenate_scripts = false;
 		}

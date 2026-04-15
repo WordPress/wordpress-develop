@@ -1,18 +1,12 @@
 <?php
-
-/*
- * The error_reporting() function can be disabled in php.ini. On systems where that is the case,
- * it's best to add a dummy function to the wp-config.php file, but as this call to the function
- * is run prior to wp-config.php loading, it is wrapped in a function_exists() check.
+/**
+ * Concatenated script loader.
+ *
+ * @deprecated 7.1.0 Script concatenation is deprecated. Scripts are now served individually,
+ *                   which works efficiently with HTTP/2. This file remains for sites that have
+ *                   opted back in by defining CONCATENATE_SCRIPTS as true in wp-config.php.
+ *                   Support will be removed in a future release.
  */
-if ( function_exists( 'error_reporting' ) ) {
-	/*
-	 * Disable error reporting.
-	 *
-	 * Set this to error_reporting( -1 ) for debugging.
-	 */
-	error_reporting( 0 );
-}
 
 // Set ABSPATH for execution.
 if ( ! defined( 'ABSPATH' ) ) {
