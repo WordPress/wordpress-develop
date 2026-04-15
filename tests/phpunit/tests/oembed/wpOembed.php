@@ -306,4 +306,32 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertFalse( $result );
 		$this->assertSame( array(), $warnings, 'PHP warnings were raised: ' . implode( ', ', $warnings ) );
 	}
+
+	/**
+	 * @ticket 65068
+	 *
+	 * @covers ::get_provider
+	 */
+	public function test_get_provider_handles_provider_without_regex_flag() {
+		$warnings = array();
+
+		$error_handler = function ( $errno, $errstr ) use ( &$warnings ) {
+			if ( E_WARNING === $errno ) {
+				$warnings[] = $errstr;
+			}
+			return false;
+		};
+
+		set_error_handler( $error_handler );
+
+		// Provider with only index 0 set (no regex flag) — should default $regex to false.
+		$this->oembed->providers['https://example.site/*'] = array( 'https://example.site/api/oembed' );
+
+		$result = $this->oembed->get_provider( 'https://example.site/video/123' );
+
+		restore_error_handler();
+
+		$this->assertSame( 'https://example.site/api/oembed', $result );
+		$this->assertSame( array(), $warnings, 'PHP warnings were raised: ' . implode( ', ', $warnings ) );
+	}
 }

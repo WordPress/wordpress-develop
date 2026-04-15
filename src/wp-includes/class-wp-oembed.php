@@ -273,15 +273,11 @@ class WP_oEmbed {
 		}
 
 		foreach ( $this->providers as $matchmask => $data ) {
-			if (
-				! is_array( $data ) ||
-				count( $data ) < 2 ||
-				! array_key_exists( 0, $data ) ||
-				! array_key_exists( 1, $data )
-			) {
+			if ( ! is_array( $data ) || ! isset( $data[0] ) ) {
 				continue;
 			}
-			list( $providerurl, $regex ) = $data;
+			$providerurl = $data[0];
+			$regex       = $data[1] ?? false;
 
 			// Turn the asterisk-type provider URLs into regex.
 			if ( ! $regex ) {
