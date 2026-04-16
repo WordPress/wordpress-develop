@@ -35,8 +35,10 @@ if ( isset( $_GET['h'] ) && '' !== $_GET['h'] && false !== get_option( 'delete_b
 $blog = get_site();
 $user = wp_get_current_user();
 
+// Used in the HTML title tag.
 $title       = __( 'Delete Site' );
 $parent_file = 'tools.php';
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 echo '<div class="wrap">';
@@ -46,7 +48,7 @@ if ( isset( $_POST['action'] ) && 'deleteblog' === $_POST['action'] && isset( $_
 	check_admin_referer( 'delete-blog' );
 
 	$hash = wp_generate_password( 20, false );
-	update_option( 'delete_blog_hash', $hash );
+	update_option( 'delete_blog_hash', $hash, false );
 
 	$url_delete = esc_url( admin_url( 'ms-delete-site.php?h=' . $hash ) );
 
@@ -63,16 +65,22 @@ If you really want to delete your site, click the link below. You will not
 be asked to confirm again so only click this link if you are absolutely certain:
 ###URL_DELETE###
 
-If you delete your site, please consider opening a new site here
-some time in the future! (But remember your current site and username
-are gone forever.)
+If you delete your site, please consider opening a new site here some time in
+the future! (But remember that your current site and username are gone forever.)
 
-Thanks for using the site,
+Thank you for using the site,
 All at ###SITENAME###
 ###SITEURL###"
 	);
 	/**
 	 * Filters the text for the email sent to the site admin when a request to delete a site in a Multisite network is submitted.
+	 *
+	 * The following strings have a special meaning and will get replaced dynamically:
+	 *
+	 *  - `###USERNAME###`   The current user's username.
+	 *  - `###URL_DELETE###` The link to click on to confirm the site deletion.
+	 *  - `###SITENAME###`   The name of the site.
+	 *  - `###SITEURL###`    The URL to the site.
 	 *
 	 * @since 3.0.0
 	 *

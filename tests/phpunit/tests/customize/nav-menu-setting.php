@@ -15,14 +15,30 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	public $wp_customize;
 
 	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
 	 * Set up a test case.
 	 *
-	 * @see WP_UnitTestCase::setup()
+	 * @see WP_UnitTestCase_Base::set_up()
 	 */
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		global $wp_customize;
 		$this->wp_customize = new WP_Customize_Manager();
@@ -32,7 +48,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	/**
 	 * Delete the $wp_customize global when cleaning up scope.
 	 */
-	function clean_up_global_scope() {
+	public function clean_up_global_scope() {
 		global $wp_customize;
 		$wp_customize = null;
 		parent::clean_up_global_scope();
@@ -43,14 +59,14 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function get_nav_menu_items_option() {
+	private function get_nav_menu_items_option() {
 		return get_option( 'nav_menu_options', array( 'auto_add' => array() ) );
 	}
 
 	/**
 	 * Test constants and statics.
 	 */
-	function test_constants() {
+	public function test_constants() {
 		do_action( 'customize_register', $this->wp_customize );
 		$this->assertTrue( taxonomy_exists( WP_Customize_Nav_Menu_Setting::TAXONOMY ) );
 	}
@@ -60,7 +76,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::__construct()
 	 */
-	function test_construct() {
+	public function test_construct() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$setting = new WP_Customize_Nav_Menu_Setting( $this->wp_customize, 'nav_menu[123]' );
@@ -70,7 +86,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertNull( $setting->previous_term_id );
 		$this->assertNull( $setting->update_status );
 		$this->assertNull( $setting->update_error );
-		$this->assertInternalType( 'array', $setting->default );
+		$this->assertIsArray( $setting->default );
 		foreach ( array( 'name', 'description', 'parent' ) as $key ) {
 			$this->assertArrayHasKey( $key, $setting->default );
 		}
@@ -91,7 +107,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	/**
 	 * Test empty constructor.
 	 */
-	function test_construct_empty_menus() {
+	public function test_construct_empty_menus() {
 		do_action( 'customize_register', $this->wp_customize );
 		$_wp_customize = $this->wp_customize;
 		unset( $_wp_customize->nav_menus );
@@ -111,7 +127,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::__construct()
 	 */
-	function test_construct_placeholder() {
+	public function test_construct_placeholder() {
 		do_action( 'customize_register', $this->wp_customize );
 		$default = array(
 			'name'        => 'Lorem \\o/',
@@ -128,7 +144,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::value()
 	 */
-	function test_value() {
+	public function test_value() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_name      = 'Test 123 \\o/';
@@ -149,7 +165,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$setting    = new WP_Customize_Nav_Menu_Setting( $this->wp_customize, $setting_id );
 
 		$value = $setting->value();
-		$this->assertInternalType( 'array', $value );
+		$this->assertIsArray( $value );
 		foreach ( array( 'name', 'description', 'parent' ) as $key ) {
 			$this->assertArrayHasKey( $key, $value );
 		}
@@ -168,7 +184,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::preview()
 	 */
-	function test_preview_updated() {
+	public function test_preview_updated() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_id    = wp_update_nav_menu_object(
@@ -225,7 +241,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$menus     = wp_get_nav_menus();
 		$menus_ids = wp_list_pluck( $menus, 'term_id' );
 		$i         = array_search( $menu_id, $menus_ids, true );
-		$this->assertInternalType( 'int', $i, 'Update-previewed menu does not appear in wp_get_nav_menus()' );
+		$this->assertIsInt( $i, 'Update-previewed menu does not appear in wp_get_nav_menus()' );
 		$filtered_menu = $menus[ $i ];
 		$this->assertSame( 'Name 2 \\o/', $filtered_menu->name );
 	}
@@ -235,7 +251,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::preview()
 	 */
-	function test_preview_inserted() {
+	public function test_preview_inserted() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_id    = -123;
@@ -270,7 +286,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$menus     = wp_get_nav_menus();
 		$menus_ids = wp_list_pluck( $menus, 'term_id' );
 		$i         = array_search( $menu_id, $menus_ids, true );
-		$this->assertInternalType( 'int', $i, 'Insert-previewed menu was not injected into wp_get_nav_menus()' );
+		$this->assertIsInt( $i, 'Insert-previewed menu was not injected into wp_get_nav_menus()' );
 		$filtered_menu = $menus[ $i ];
 		$this->assertSame( 'New Menu Name 1 \\o/', $filtered_menu->name );
 	}
@@ -280,7 +296,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::preview()
 	 */
-	function test_preview_deleted() {
+	public function test_preview_deleted() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_id                        = wp_update_nav_menu_object(
@@ -304,8 +320,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$this->wp_customize->set_post_value( $setting_id, false );
 
-		$this->assertInternalType( 'array', $setting->value() );
-		$this->assertInternalType( 'object', wp_get_nav_menu_object( $menu_id ) );
+		$this->assertIsArray( $setting->value() );
+		$this->assertIsObject( wp_get_nav_menu_object( $menu_id ) );
 		$setting->preview();
 		$this->assertFalse( $setting->value() );
 		$this->assertFalse( wp_get_nav_menu_object( $menu_id ) );
@@ -319,7 +335,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::sanitize()
 	 */
-	function test_sanitize() {
+	public function test_sanitize() {
 		do_action( 'customize_register', $this->wp_customize );
 		$setting = new WP_Customize_Nav_Menu_Setting( $this->wp_customize, 'nav_menu[123]' );
 
@@ -350,7 +366,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::update()
 	 */
-	function test_save_updated() {
+	public function test_save_updated() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_id                        = wp_update_nav_menu_object(
@@ -415,7 +431,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::update()
 	 */
-	function test_save_inserted() {
+	public function test_save_inserted() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_id    = -123;
@@ -464,7 +480,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::update()
 	 */
-	function test_save_inserted_conflicted_name() {
+	public function test_save_inserted_conflicted_name() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_name = 'Foo';
@@ -489,7 +505,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::update()
 	 */
-	function test_save_deleted() {
+	public function test_save_deleted() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_name                      = 'Lorem Ipsum \\o/';

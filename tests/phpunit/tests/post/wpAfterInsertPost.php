@@ -78,17 +78,17 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		add_action( 'wp_after_insert_post', array( $this, 'action_wp_after_insert_post' ), 10, 4 );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		self::$passed_post_title         = '';
 		self::$passed_post_status        = '';
 		self::$passed_post_before_title  = '';
 		self::$passed_post_before_status = '';
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -100,7 +100,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
 	 *                                  to the update for updated posts.
 	 */
-	function action_wp_after_insert_post( $post_id, $post, $update, $post_before ) {
+	public function action_wp_after_insert_post( $post_id, $post, $update, $post_before ) {
 		self::$passed_post_title  = $post->post_title;
 		self::$passed_post_status = $post->post_status;
 
@@ -166,12 +166,12 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 45114
 	 */
-	public function test_update_via_rest_contoller() {
+	public function test_update_via_rest_controller() {
 		wp_set_current_user( self::$admin_id );
 		$post_id = self::$post_id;
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( array( 'title' => 'new title' ) );
 		rest_get_server()->dispatch( $request );
 
@@ -184,11 +184,11 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 45114
 	 */
-	public function test_new_post_via_rest_contoller() {
+	public function test_new_post_via_rest_controller() {
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts' ) );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params(
 			array(
 				'title'  => 'new title',
@@ -206,12 +206,12 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 45114
 	 */
-	public function test_update_attachment_via_rest_contoller() {
+	public function test_update_attachment_via_rest_controller() {
 		wp_set_current_user( self::$admin_id );
 		$attachment_id = self::$attachment_id;
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/media/%d', $attachment_id ) );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( array( 'title' => 'new attachment title' ) );
 		rest_get_server()->dispatch( $request );
 

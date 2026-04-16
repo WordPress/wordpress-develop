@@ -6,13 +6,13 @@
 class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 	public $post_id;
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getComments( array( 1, 'username', 'password', array() ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'contributor' );
 
 		$result = $this->myxmlrpcserver->wp_getComments( array( 1, 'contributor', 'contributor', array() ) );
@@ -20,7 +20,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 	}
 
-	function test_capable_user() {
+	public function test_capable_user() {
 		$this->post_id = self::factory()->post->create();
 		self::factory()->comment->create_post_comments( $this->post_id, 2 );
 
@@ -28,6 +28,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getComments( array( 1, 'editor', 'editor', array() ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$comment = get_comment( $result['comment_id'], ARRAY_A );
@@ -35,7 +36,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 		}
 	}
 
-	function test_post_filter() {
+	public function test_post_filter() {
 		$this->post_id = self::factory()->post->create();
 		self::factory()->comment->create_post_comments( $this->post_id, 2 );
 
@@ -52,13 +53,14 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$this->assertEquals( $this->post_id, $result['post_id'] );
 		}
 	}
 
-	function test_number_filter() {
+	public function test_number_filter() {
 		$this->post_id = self::factory()->post->create();
 		self::factory()->comment->create_post_comments( $this->post_id, 11 );
 
@@ -94,7 +96,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 		$this->assertCount( 5, $results2 );
 	}
 
-	function test_contributor_capabilities() {
+	public function test_contributor_capabilities() {
 		$this->make_user_by_role( 'contributor' );
 		$author_id      = $this->make_user_by_role( 'author' );
 		$author_post_id = self::factory()->post->create(
@@ -137,7 +139,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 	}
 
-	function test_author_capabilities() {
+	public function test_author_capabilities() {
 		$author_id      = $this->make_user_by_role( 'author' );
 		$author_post_id = self::factory()->post->create(
 			array(
@@ -198,7 +200,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $result2 );
+		$this->assertIsArray( $result2 );
 		$this->assertCount( 1, $result2 );
 
 		$result3 = $this->myxmlrpcserver->wp_getComments(
@@ -225,11 +227,11 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $result4 );
+		$this->assertIsArray( $result4 );
 		$this->assertCount( 1, $result4 );
 	}
 
-	function test_editor_capabilities() {
+	public function test_editor_capabilities() {
 		$author_id      = $this->make_user_by_role( 'author' );
 		$author_post_id = self::factory()->post->create(
 			array(
@@ -276,7 +278,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 				),
 			)
 		);
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertCount( 1, $result );
 
 		$result2 = $this->myxmlrpcserver->wp_getComments(
@@ -291,7 +293,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $result2 );
+		$this->assertIsArray( $result2 );
 		$this->assertCount( 1, $result2 );
 	}
 }

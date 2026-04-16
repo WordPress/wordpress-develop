@@ -8,52 +8,72 @@
 class WP_UnitTest_Factory {
 
 	/**
+	 * Generates post fixtures for use in tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_Post
 	 */
 	public $post;
 
 	/**
+	 * Generates attachment fixtures for use in tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_Attachment
 	 */
 	public $attachment;
 
 	/**
+	 * Generates comment fixtures for use in tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_Comment
 	 */
 	public $comment;
 
 	/**
+	 * Generates user fixtures for use in tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_User
 	 */
 	public $user;
 
 	/**
+	 * Generates taxonomy term fixtures for use in tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_Term
 	 */
 	public $term;
 
 	/**
+	 * Generates category fixtures for use in tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_Term
 	 */
 	public $category;
 
 	/**
+	 * Generates tag fixtures for use in tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_Term
 	 */
 	public $tag;
 
 	/**
+	 * Generates bookmark (link) fixtures for use in tests.
+	 *
 	 * @since 4.6.0
 	 * @var WP_UnitTest_Factory_For_Bookmark
 	 */
 	public $bookmark;
 
 	/**
+	 * Generates blog (site) fixtures for use in Multisite tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_Blog
 	 */
 	public $blog;
 
 	/**
+	 * Generates network fixtures for use in Multisite tests.
+	 *
 	 * @var WP_UnitTest_Factory_For_Network
 	 */
 	public $network;

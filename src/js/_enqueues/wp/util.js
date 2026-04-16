@@ -36,7 +36,11 @@ window.wp = window.wp || {};
 			};
 
 		return function ( data ) {
-			compiled = compiled || _.template( $( '#tmpl-' + id ).html(),  options );
+			var el = document.querySelector( 'script#tmpl-' + id );
+			if ( ! el ) {
+				throw new Error( 'Template not found: ' + '#tmpl-' + id );
+			}
+			compiled = compiled || _.template( $( el ).html(), options );
 			return compiled( data );
 		};
 	});
@@ -115,6 +119,22 @@ window.wp = window.wp || {};
 					}
 
 					if ( _.isObject( response ) && ! _.isUndefined( response.success ) ) {
+
+						// When handling a media attachments request, get the total attachments from response headers.
+						var context = this;
+						deferred.done( function() {
+							if (
+								action &&
+								action.data &&
+								'query-attachments' === action.data.action &&
+								deferred.jqXHR.hasOwnProperty( 'getResponseHeader' ) &&
+								deferred.jqXHR.getResponseHeader( 'X-WP-Total' )
+							) {
+								context.totalAttachments = parseInt( deferred.jqXHR.getResponseHeader( 'X-WP-Total' ), 10 );
+							} else {
+								context.totalAttachments = 0;
+							}
+						} );
 						deferred[ response.success ? 'resolveWith' : 'rejectWith' ]( this, [response.data] );
 					} else {
 						deferred.rejectWith( this, [response] );

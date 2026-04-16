@@ -10,20 +10,19 @@
  * @group formatting
  */
 class Tests_Post_Filtering extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		update_option( 'use_balanceTags', 1 );
 		kses_init_filters();
-
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		kses_remove_filters();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	// A simple test to make sure unclosed tags are fixed.
-	function test_post_content_unknown_tag() {
+	public function test_post_content_unknown_tag() {
 
 		$content = <<<EOF
 <foobar>no such tag</foobar>
@@ -36,11 +35,11 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $expected, $post->post_content );
+		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
 	// A simple test to make sure unbalanced tags are fixed.
-	function test_post_content_unbalanced_tag() {
+	public function test_post_content_unbalanced_tag() {
 
 		$content = <<<EOF
 <i>italics
@@ -53,11 +52,11 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $expected, $post->post_content );
+		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
 	// Test KSES filtering of disallowed attribute.
-	function test_post_content_disallowed_attr() {
+	public function test_post_content_disallowed_attr() {
 
 		$content = <<<EOF
 <img src='foo' width='500' href='shlorp' />
@@ -70,7 +69,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $expected, $post->post_content );
+		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
 	/**
@@ -78,7 +77,7 @@ EOF;
 	 *
 	 * @ticket 12394
 	 */
-	function test_post_content_xhtml_empty_elem() {
+	public function test_post_content_xhtml_empty_elem() {
 		$content = <<<EOF
 <img src='foo' width='500' height='300'/>
 EOF;
@@ -90,11 +89,11 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $expected, $post->post_content );
+		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
 	// Make sure unbalanced tags are untouched when the balance option is off.
-	function test_post_content_nobalance_nextpage_more() {
+	public function test_post_content_nobalance_nextpage_more() {
 
 		update_option( 'use_balanceTags', 0 );
 
@@ -110,6 +109,6 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $content, $post->post_content );
+		$this->assertEqualHTML( $content, $post->post_content );
 	}
 }

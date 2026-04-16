@@ -69,7 +69,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 * @return {void}
 	 */
 	focus: function() {
-		this.$( '.media-modal' ).focus();
+		this.$( '.media-modal' ).trigger( 'focus' );
 	},
 
 	/**

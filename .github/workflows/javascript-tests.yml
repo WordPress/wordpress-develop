@@ -1,70 +1,110 @@
 name: JavaScript Tests
 
 on:
+  # JavaScript testing was introduced in WordPress 3.8.
   push:
     branches:
-      - master
-      - '*.*'
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    tags:
+      - '3.[89]'
+      - '3.[89].[0-9]+'
+      - '[4-9].[0-9]'
+      - '[4-9].[0-9].[0-9]+'
   pull_request:
+    branches:
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    paths:
+      # Any change to a JavaScript file should run tests.
+      - '**.js'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
+      - 'tools/webpack/**'
+      # This file configures ESLint. Changes could affect the outcome.
+      - '.eslintignore'
+      # This file configures JSHint. Changes could affect the outcome.
+      - '.jshintrc'
+      # Any change to the QUnit directory should run tests.
+      - 'tests/qunit/**'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/javascript-tests.yml'
+      - '.github/workflows/reusable-javascript-tests.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
 
 jobs:
-  # Runs the QUnit tests for WordPress.
-  #
-  # Performs the following steps:
-  # - Cancels all previous workflow runs for pull requests that have not completed.
-  # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
-  # - Sets up caching for NPM.
-  # - Logs updated debug information.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
-  # - Run the WordPress QUnit tests.
-  # - todo: Configure Slack notifications for failing tests.
+  # Runs the WordPress Core JavaScript tests.
   test-js:
     name: QUnit Tests
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/reusable-javascript-tests.yml
+    permissions:
+      contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ test-js ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
     steps:
-      - name: Cancel previous runs of this workflow (pull requests only)
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: styfle/cancel-workflow-action@0.5.0
+      - name: Dispatch workflow run
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
-          access_token: ${{ github.token }}
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          git --version
-          svn --version
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14
-
-      - name: Cache NodeJS modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-
-      - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
-
-      - name: Run QUnit tests
-        run: npm run grunt qunit:compiled
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: `${context.runId}`,
+              }
+            });

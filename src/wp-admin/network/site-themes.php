@@ -29,7 +29,7 @@ $wp_list_table = _get_list_table( 'WP_MS_Themes_List_Table' );
 
 $action = $wp_list_table->current_action();
 
-$s = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
+$s = $_REQUEST['s'] ?? '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
 $temp_args              = array( 'enabled', 'disabled', 'error' );
@@ -143,7 +143,7 @@ if ( $action ) {
 			}
 	}
 
-	update_option( 'allowedthemes', $allowed_themes );
+	update_option( 'allowedthemes', $allowed_themes, false );
 	restore_current_blog();
 
 	wp_safe_redirect(
@@ -166,13 +166,15 @@ if ( isset( $_GET['action'] ) && 'update-site' === $_GET['action'] ) {
 add_thickbox();
 add_screen_option( 'per_page' );
 
+// Used in the HTML title tag.
 /* translators: %s: Site title. */
 $title = sprintf( __( 'Edit Site: %s' ), esc_html( $details->blogname ) );
 
 $parent_file  = 'sites.php';
 $submenu_file = 'sites.php';
 
-require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
+require_once ABSPATH . 'wp-admin/admin-header.php';
+?>
 
 <div class="wrap">
 <h1 id="edit-site"><?php echo $title; ?></h1>
@@ -194,7 +196,15 @@ if ( isset( $_GET['enabled'] ) ) {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme enabled.', '%s themes enabled.', $enabled );
 	}
-	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
+
+	wp_admin_notice(
+		sprintf( $message, number_format_i18n( $enabled ) ),
+		array(
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 } elseif ( isset( $_GET['disabled'] ) ) {
 	$disabled = absint( $_GET['disabled'] );
 	if ( 1 === $disabled ) {
@@ -203,16 +213,31 @@ if ( isset( $_GET['enabled'] ) ) {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme disabled.', '%s themes disabled.', $disabled );
 	}
-	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
+
+	wp_admin_notice(
+		sprintf( $message, number_format_i18n( $disabled ) ),
+		array(
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 } elseif ( isset( $_GET['error'] ) && 'none' === $_GET['error'] ) {
-	echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'No theme selected.' ) . '</p></div>';
+	wp_admin_notice(
+		__( 'No theme selected.' ),
+		array(
+			'type'        => 'error',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 }
 ?>
 
 <p><?php _e( 'Network enabled themes are not shown on this screen.' ); ?></p>
 
 <form method="get">
-<?php $wp_list_table->search_box( __( 'Search Installed Themes' ), 'theme' ); ?>
+<?php $wp_list_table->search_box( __( 'Search installed themes' ), 'theme' ); ?>
 <input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
 </form>
 

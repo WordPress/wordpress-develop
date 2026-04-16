@@ -148,7 +148,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 					} ) );
 				}
 			} else if ( 0 !== errorAnnotations.length ) {
-				errorNotice = $( '<div class="inline notice notice-error notice-alt"></div>' );
+				errorNotice = $( '<div class="inline notice notice-error notice-alt" role="alert"></div>' );
 				errorNotice.append( $( '<p></p>', {
 					text: message
 				} ) );
@@ -333,7 +333,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 		 * This ensures that the textarea is visible and the editor can be initialized.
 		 */
 		renderWhenAnimationDone = function() {
-			if ( ! ( wp.customize ? widgetContainer.parent().hasClass( 'expanded' ) : widgetContainer.hasClass( 'open' ) ) ) { // Core merge: The wp.customize condition can be eliminated with this change being in core: https://github.com/xwp/wordpress-develop/pull/247/commits/5322387d
+			if ( ! ( wp.customize ? widgetContainer.parent().hasClass( 'expanded' ) : widgetContainer.hasClass( 'open' ) ) ) { // Core merge: The wp.customize condition can be eliminated with this change being in core: https://core.trac.wordpress.org/changeset/41260
 				setTimeout( renderWhenAnimationDone, animatedCheckDelay );
 			} else {
 				widgetControl.initializeEditor();
@@ -356,7 +356,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 			return;
 		}
 
-		idBase = widgetForm.find( '> .widget-control-actions > .id_base' ).val();
+		idBase = widgetForm.find( '.id_base' ).val();
 		if ( -1 === component.idBases.indexOf( idBase ) ) {
 			return;
 		}
@@ -446,9 +446,15 @@ wp.customHtmlWidgets = ( function( $ ) {
 			});
 
 			// Accessibility mode.
-			$( window ).on( 'load', function() {
+			if ( document.readyState === 'complete' ) {
+				// Page is fully loaded.
 				component.setupAccessibleMode();
-			});
+			} else {
+				// Page is still loading.
+				$( window ).on( 'load', function() {
+					component.setupAccessibleMode();
+				});
+			}
 		});
 	};
 

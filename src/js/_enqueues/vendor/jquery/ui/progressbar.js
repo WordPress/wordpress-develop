@@ -1,40 +1,44 @@
 /*!
- * jQuery UI Progressbar 1.12.1
- * http://jqueryui.com
+ * jQuery UI Progressbar 1.13.3
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Progressbar
 //>>group: Widgets
-// jscs:disable maximumLineLength
+/* eslint-disable max-len */
 //>>description: Displays a status indicator for loading state, standard percentage, and other progress indicators.
-// jscs:enable maximumLineLength
-//>>docs: http://api.jqueryui.com/progressbar/
-//>>demos: http://jqueryui.com/progressbar/
+/* eslint-enable max-len */
+//>>docs: https://api.jqueryui.com/progressbar/
+//>>demos: https://jqueryui.com/progressbar/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/progressbar.css
 //>>css.theme: ../../themes/base/theme.css
 
 ( function( factory ) {
+	"use strict";
+
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./core"
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
 		// Browser globals
 		factory( jQuery );
 	}
-}( function( $ ) {
+} )( function( $ ) {
+"use strict";
 
 return $.widget( "ui.progressbar", {
-	version: "1.12.1",
+	version: "1.13.3",
 	options: {
 		classes: {
 			"ui-progressbar": "ui-corner-all",
@@ -174,4 +178,4 @@ return $.widget( "ui.progressbar", {
 	}
 } );
 
-} ) );
+} );

@@ -4,18 +4,12 @@
  *
  * @package WordPress
  * @since 4.9.9
- */
-
-/**
- * Tests_User_WpSendUserRequest class.
- *
- * @since 4.9.9
  *
  * @group privacy
  * @group user
  * @covers ::wp_send_user_request
  */
-class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
+class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 
 	/**
 	 * Test administrator user.
@@ -63,8 +57,8 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 *
 	 * @since 4.9.9
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		set_current_screen( 'dashboard' );
 		reset_phpmailer_instance();
@@ -75,17 +69,13 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 *
 	 * @since 4.9.9
 	 */
-	public function tearDown() {
-		delete_option( 'WPLANG' );
+	public function tear_down() {
 		reset_phpmailer_instance();
 
 		unset( $GLOBALS['locale'] );
-		unset( $GLOBALS['current_screen'] );
-		unset( $GLOBALS['taxnow'] );
-		unset( $GLOBALS['typenow'] );
 
 		restore_previous_locale();
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -113,9 +103,9 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 
 		$this->assertTrue( $result );
 		$this->assertSame( self::$test_user->user_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Confirm Action: Export Personal Data', $mailer->get_sent()->subject );
-		$this->assertContains( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
-		$this->assertContains( 'Export Personal Data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Confirm Action: Export Personal Data', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Export Personal Data', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -131,9 +121,9 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 
 		$this->assertTrue( $result );
 		$this->assertSame( self::$test_user->user_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Confirm Action: Erase Personal Data', $mailer->get_sent()->subject );
-		$this->assertContains( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
-		$this->assertContains( 'Erase Personal Data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Confirm Action: Erase Personal Data', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Erase Personal Data', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -149,9 +139,9 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 
 		$this->assertTrue( $result );
 		$this->assertSame( self::$test_user->user_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Confirm Action: Export Personal Data', $mailer->get_sent()->subject );
-		$this->assertContains( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
-		$this->assertContains( 'Export Personal Data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Confirm Action: Export Personal Data', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Export Personal Data', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -167,9 +157,9 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 
 		$this->assertTrue( $result );
 		$this->assertSame( self::$test_user->user_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertContains( 'Confirm Action: Erase Personal Data', $mailer->get_sent()->subject );
-		$this->assertContains( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
-		$this->assertContains( 'Erase Personal Data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Confirm Action: Erase Personal Data', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Erase Personal Data', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -213,7 +203,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		$this->assertTrue( $result );
-		$this->assertContains( 'Custom Email Content.', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Custom Email Content.', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -243,7 +233,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+		$this->assertStringContainsString( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
 	}
 
 	/**
@@ -292,7 +282,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -314,7 +304,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Aktion bestätigen', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Aktion bestätigen', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -336,7 +326,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -360,7 +350,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirm Action', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Confirm Action', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -379,7 +369,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirm Action', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Confirm Action', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -401,6 +391,6 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 }

@@ -5,6 +5,7 @@
  * @package WordPress
  * @since 3.1.0
  */
+#[AllowDynamicProperties]
 class WP_HTTP_IXR_Client extends IXR_Client {
 	public $scheme;
 	/**
@@ -22,10 +23,10 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 		if ( ! $path ) {
 			// Assume we have been given a URL instead.
 			$bits         = parse_url( $server );
-			$this->scheme = $bits['scheme'];
-			$this->server = $bits['host'];
-			$this->port   = isset( $bits['port'] ) ? $bits['port'] : $port;
-			$this->path   = ! empty( $bits['path'] ) ? $bits['path'] : '/';
+			$this->scheme = $bits['scheme'] ?? '';
+			$this->server = $bits['host'] ?? '';
+			$this->port   = $bits['port'] ?? $port;
+			$this->path   = $bits['path'] ?? '/';
 
 			// Make absolutely sure we have a path.
 			if ( ! $this->path ) {
@@ -50,7 +51,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 	 * @since 5.5.0 Formalized the existing `...$args` parameter by adding it
 	 *              to the function signature.
 	 *
-	 * @return bool
+	 * @return bool True if the request succeeded, false otherwise.
 	 */
 	public function query( ...$args ) {
 		$method  = array_shift( $args );
@@ -88,7 +89,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 			echo '<pre class="ixr_request">' . htmlspecialchars( $xml ) . "\n</pre>\n\n";
 		}
 
-		$response = wp_remote_post( $url, $args );
+		$response = wp_safe_remote_post( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			$errno       = $response->get_error_code();
@@ -97,7 +98,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 			return false;
 		}
 
-		if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			$this->error = new IXR_Error( -32301, 'transport error - HTTP status code was not 200 (' . wp_remote_retrieve_response_code( $response ) . ')' );
 			return false;
 		}

@@ -17,7 +17,7 @@
 get_header();
 ?>
 
-<main id="site-content" role="main">
+<main id="site-content">
 
 	<?php
 
@@ -25,12 +25,15 @@ get_header();
 	$archive_subtitle = '';
 
 	if ( is_search() ) {
+		/**
+		 * @global WP_Query $wp_query WordPress Query object.
+		 */
 		global $wp_query;
 
 		$archive_title = sprintf(
-			'%1$s %2$s',
+			'%1$s &ldquo;%2$s&rdquo;',
 			'<span class="color-accent">' . __( 'Search:', 'twentytwenty' ) . '</span>',
-			'&ldquo;' . get_search_query() . '&rdquo;'
+			esc_html( get_search_query( false ) )
 		);
 
 		if ( $wp_query->found_posts ) {
@@ -81,7 +84,7 @@ get_header();
 		$i = 0;
 
 		while ( have_posts() ) {
-			$i++;
+			++$i;
 			if ( $i > 1 ) {
 				echo '<hr class="post-separator styled-separator is-style-wide section-inner" aria-hidden="true" />';
 			}
@@ -98,7 +101,7 @@ get_header();
 			<?php
 			get_search_form(
 				array(
-					'label' => __( 'search again', 'twentytwenty' ),
+					'aria_label' => __( 'search again', 'twentytwenty' ),
 				)
 			);
 			?>

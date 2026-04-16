@@ -44,10 +44,10 @@
 	$color_overlay_classes .= ' opacity-' . $color_overlay_opacity;
 	?>
 
-	<div class="cover-header <?php echo $cover_header_classes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?>"<?php echo $cover_header_style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;) ?>>
+	<div class="cover-header <?php echo $cover_header_classes; ?>"<?php echo $cover_header_style; ?>>
 		<div class="cover-header-inner-wrapper screen-height">
 			<div class="cover-header-inner">
-				<div class="cover-color-overlay color-accent<?php echo esc_attr( $color_overlay_classes ); ?>"<?php echo $color_overlay_style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;) ?>></div>
+				<div class="cover-color-overlay color-accent<?php echo esc_attr( $color_overlay_classes ); ?>"<?php echo $color_overlay_style; ?>></div>
 
 					<header class="entry-header has-text-align-center">
 						<div class="entry-header-inner section-inner medium">
@@ -59,7 +59,7 @@
 							 *
 							 * @since Twenty Twenty 1.0
 							 *
-							 * @param bool Whether to show the categories in article header, Default true.
+							 * @param bool $show_categories Whether to show the categories in article header. Default true.
 							 */
 							$show_categories = apply_filters( 'twentytwenty_show_categories_in_entry_header', true );
 
@@ -67,7 +67,12 @@
 								?>
 
 								<div class="entry-categories">
-									<span class="screen-reader-text"><?php _e( 'Categories', 'twentytwenty' ); ?></span>
+									<span class="screen-reader-text">
+										<?php
+										/* translators: Hidden accessibility text. */
+										_e( 'Categories', 'twentytwenty' );
+										?>
+									</span>
 									<div class="entry-categories-inner">
 										<?php the_category( ' ' ); ?>
 									</div><!-- .entry-categories-inner -->
@@ -85,7 +90,12 @@
 
 									<a href="#post-inner" class="to-the-content fill-children-current-color">
 										<?php twentytwenty_the_theme_svg( 'arrow-down' ); ?>
-										<div class="screen-reader-text"><?php _e( 'Scroll Down', 'twentytwenty' ); ?></div>
+										<div class="screen-reader-text">
+											<?php
+											/* translators: Hidden accessibility text. */
+											_e( 'Scroll Down', 'twentytwenty' );
+											?>
+										</div>
 									</a><!-- .to-the-content -->
 
 								</div><!-- .to-the-content-wrapper -->
@@ -162,10 +172,10 @@
 		get_template_part( 'template-parts/navigation' );
 	}
 
-	/**
-	 *  Output comments wrapper if it's a post, or if comments are open,
+	/*
+	 * Output comments wrapper if it's a post, or if comments are open,
 	 * or if there's a comment number – and check for password.
-	 * */
+	 */
 	if ( ( is_single() || is_page() ) && ( comments_open() || get_comments_number() ) && ! post_password_required() ) {
 		?>
 

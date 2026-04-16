@@ -90,8 +90,18 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	 * @since 3.9.0
 	 */
 	activate: function() {
-		this.updateSelection();
+		this.frame.on( 'content:render:browse', this.updateSelection, this );
+
 		Library.prototype.activate.apply( this, arguments );
+	},
+
+	/**
+	 * @since 5.9.0
+	 */
+	deactivate: function() {
+		this.frame.off( 'content:render:browse', this.updateSelection, this );
+
+		Library.prototype.deactivate.apply( this, arguments );
 	},
 
 	/**
