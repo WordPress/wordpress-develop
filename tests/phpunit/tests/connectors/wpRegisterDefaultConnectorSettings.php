@@ -1,5 +1,7 @@
 <?php
 
+require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-mock-provider-trait.php';
+
 /**
  * Tests for _wp_register_default_connector_settings().
  *
@@ -7,6 +9,8 @@
  * @covers ::_wp_register_default_connector_settings
  */
 class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCase {
+
+	use WP_AI_Client_Mock_Provider_Trait;
 
 	/**
 	 * Original connector registry instance.
@@ -16,33 +20,47 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	private ?WP_Connector_Registry $original_registry;
 
 	/**
-	 * Setting names touched during a test.
+	 * Snapshot of registered settings before each test.
 	 *
-	 * @var string[]
+	 * @var array
 	 */
-	private array $touched_settings = array();
+	private array $original_registered_settings = array();
 
 	/**
-	 * Stores the original registry before each test.
+	 * Registers the mock provider once before any tests in this class run.
+	 */
+	public static function set_up_before_class(): void {
+		parent::set_up_before_class();
+		self::register_mock_connectors_provider();
+	}
+
+	/**
+	 * Unregisters the mock provider setting added by `init`.
+	 */
+	public static function tear_down_after_class(): void {
+		self::unregister_mock_connector_setting();
+		parent::tear_down_after_class();
+	}
+
+	/**
+	 * Stores the original registry and settings before each test.
 	 */
 	public function set_up(): void {
 		parent::set_up();
 		$this->original_registry = WP_Connector_Registry::get_instance();
+
+		global $wp_registered_settings;
+		$this->original_registered_settings = $wp_registered_settings;
 	}
 
 	/**
-	 * Restores the original registry and connector settings after each test.
+	 * Restores the original registry and registered settings after each test.
 	 */
 	public function tear_down(): void {
-		foreach ( array_unique( $this->touched_settings ) as $setting_name ) {
-			unregister_setting( 'connectors', $setting_name );
-		}
+		global $wp_registered_settings;
+		$wp_registered_settings = $this->original_registered_settings;
 
 		$this->set_registry_instance( $this->original_registry );
-
-		if ( null !== $this->original_registry ) {
-			_wp_register_default_connector_settings();
-		}
 
 		parent::tear_down();
 	}
@@ -51,18 +69,17 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 * @ticket 64730
 	 */
 	public function test_ai_connector_settings_still_auto_register(): void {
-		$setting_name = 'connectors_ai_openai_api_key';
-		$this->touch_setting( $setting_name );
+		$setting_name = 'connectors_ai_mock_connectors_test_api_key';
 		unregister_setting( 'connectors', $setting_name );
 
-		$openai = wp_get_connector( 'openai' );
-		$this->assertIsArray( $openai );
+		$mock = wp_get_connector( 'mock-connectors-test' );
+		$this->assertIsArray( $mock );
 
 		$registry = new WP_Connector_Registry();
 		$this->set_registered_connectors(
 			$registry,
 			array(
-				'openai' => $openai,
+				'mock-connectors-test' => $mock,
 			)
 		);
 		$this->set_registry_instance( $registry );
@@ -77,7 +94,6 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 */
 	public function test_non_ai_connector_settings_auto_register_when_plugin_is_active_returns_true(): void {
 		$setting_name = 'connectors_spam_filtering_test_active_api_key';
-		$this->touch_setting( $setting_name );
 
 		$registry = $this->create_non_ai_registry(
 			'test-active',
@@ -98,7 +114,6 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 */
 	public function test_non_ai_connector_settings_do_not_auto_register_when_plugin_is_active_missing(): void {
 		$setting_name = 'connectors_spam_filtering_test_missing_api_key';
-		$this->touch_setting( $setting_name );
 
 		$registry = $this->create_non_ai_registry( 'test-missing', $setting_name );
 		$this->set_registry_instance( $registry );
@@ -113,7 +128,6 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 */
 	public function test_non_ai_connector_settings_do_not_auto_register_when_plugin_is_active_returns_false(): void {
 		$setting_name = 'connectors_spam_filtering_test_inactive_api_key';
-		$this->touch_setting( $setting_name );
 
 		$registry = $this->create_non_ai_registry(
 			'test-inactive',
@@ -134,7 +148,6 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 */
 	public function test_non_ai_connector_settings_do_not_auto_register_when_plugin_is_active_not_callable(): void {
 		$setting_name = 'connectors_spam_filtering_test_invalid_api_key';
-		$this->touch_setting( $setting_name );
 
 		$registry = $this->create_non_ai_registry( 'test-invalid', $setting_name, 'not_a_callback' );
 		$this->set_registry_instance( $registry );
@@ -226,12 +239,4 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 		$property->setValue( null, $registry );
 	}
 
-	/**
-	 * Tracks a setting name for cleanup.
-	 *
-	 * @param string $setting_name Setting name.
-	 */
-	private function touch_setting( string $setting_name ): void {
-		$this->touched_settings[] = $setting_name;
-	}
 }
