@@ -419,7 +419,7 @@ https://w.org</a>',
 	 * @dataProvider data_oembed
 	 */
 	function test_oembed_fetch_url( $provider, $url, $args, $result ) {
-		$wp_oembed = new Test_oEmbed;
+		$wp_oembed = new Test_oEmbed();
 
 		$this->assertSame( $wp_oembed->fetch( $provider, $url, $args ), $result );
 	}
