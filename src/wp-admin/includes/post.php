@@ -2429,17 +2429,11 @@ function the_block_editor_meta_boxes() {
 					continue;
 				}
 
-				$meta_box_entry = array(
-					'id'    => $meta_box['id'],
-					'title' => $meta_box['title'],
+				$meta_boxes_per_location[ $location ][] = array(
+					'id'               => $meta_box['id'],
+					'title'            => $meta_box['title'],
+					'__rtc_compatible' => ! empty( $meta_box['args']['__rtc_compatible_meta_box'] ),
 				);
-
-				// Mark meta boxes compatible with real-time collaboration.
-				if ( ! empty( $meta_box['args']['__rtc_compatible_meta_box'] ) ) {
-					$meta_box_entry['__rtc_compatible'] = true;
-				}
-
-				$meta_boxes_per_location[ $location ][] = $meta_box_entry;
 			}
 		}
 	}
