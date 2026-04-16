@@ -12760,6 +12760,7 @@ mockedApiResponse.Schema = {
                                     "client_id": {
                                         "minimum": 1,
                                         "minLength": 1,
+                                        "maxLength": 32,
                                         "required": true,
                                         "type": [
                                             "string",
@@ -12876,6 +12877,7 @@ mockedApiResponse.Schema = {
                                     "client_id": {
                                         "minimum": 1,
                                         "minLength": 1,
+                                        "maxLength": 32,
                                         "required": true,
                                         "type": [
                                             "string",
