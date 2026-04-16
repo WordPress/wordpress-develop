@@ -515,7 +515,7 @@ class WP_oEmbed {
 	 * @return object|false The result in the form of an object on success, false on failure.
 	 */
 	public function fetch( $provider, $url, $args = '' ) {
-		$args = wp_parse_args( $args, wp_embed_defaults( $url ) );
+		$args = wp_parse_args( $args, array_combine( array( 'width', 'height' ), wp_embed_defaults( $url ) ) );
 
 		$provider = add_query_arg( 'maxwidth', (int) $args['width'], $provider );
 		$provider = add_query_arg( 'maxheight', (int) $args['height'], $provider );

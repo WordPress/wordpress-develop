@@ -366,6 +366,64 @@ https://w.org</a>',
 		$this->assertSame( $wp_embed->autoembed( $content ), $result ? $result : $content );
 	}
 
+	function data_oembed() {
+		$default_embed = wp_embed_defaults();
+
+		return array(
+			array(
+				'https://example.org/oembed',
+				'https://youtube.com/?v=xyz',
+				'',
+				add_query_arg(
+					array(
+						'maxwidth' => (int) $default_embed[0],
+						'maxheight' => (int) $default_embed[1],
+						'url' => urlencode( 'https://youtube.com/?v=xyz' ),
+						'dnt' => 1,
+					),
+					'https://example.org/oembed',
+				),
+			),
+			array(
+				'https://example.org/oembed',
+				'https://youtube.com/?v=xyz',
+				'width=1280',
+				add_query_arg(
+					array(
+						'maxwidth' => 1280,
+						'maxheight' => (int) $default_embed[1],
+						'url' => urlencode( 'https://youtube.com/?v=xyz' ),
+						'dnt' => 1,
+					),
+					'https://example.org/oembed',
+				),
+			),
+			array(
+				'https://example.org/oembed',
+				'https://youtube.com/?v=xyz',
+				array( 'width' => 1280 ),
+				add_query_arg(
+					array(
+						'maxwidth' => 1280,
+						'maxheight' => (int) $default_embed[1],
+						'url' => urlencode( 'https://youtube.com/?v=xyz' ),
+						'dnt' => 1,
+					),
+					'https://example.org/oembed',
+				),
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_oembed
+	 */
+	function test_oembed_fetch_url( $provider, $url, $args, $result ) {
+		$wp_oembed = new Test_oEmbed;
+
+		$this->assertSame( $wp_oembed->fetch( $provider, $url, $args ), $result );
+	}
+
 	function test_wp_prepare_attachment_for_js() {
 		// Attachment without media.
 		$id   = wp_insert_attachment(
@@ -3167,5 +3225,14 @@ EOF;
 class Test_Autoembed extends WP_Embed {
 	public function shortcode( $attr, $url = '' ) {
 		return '[embed]';
+	}
+}
+
+/**
+ * Helper class for `test_oembed`.
+ */
+class Test_oEmbed extends WP_oEmbed {
+	private function _fetch_with_format( $provider_url_with_args, $format ) {
+		return $provider_url_with_args;
 	}
 }
