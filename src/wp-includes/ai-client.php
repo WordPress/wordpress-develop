@@ -8,6 +8,8 @@
  */
 
 use WordPress\AiClient\AiClient;
+use WordPress\AiClient\Messages\DTO\Message;
+use WordPress\AiClient\Messages\DTO\MessagePart;
 
 /**
  * Returns whether AI features are supported in the current environment.
