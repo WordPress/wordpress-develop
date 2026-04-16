@@ -203,10 +203,6 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 */
 	private function get_registered_connectors( WP_Connector_Registry $registry ): array {
 		$property = new ReflectionProperty( WP_Connector_Registry::class, 'registered_connectors' );
-		if ( method_exists( $property, 'setAccessible' ) ) {
-			$property->setAccessible( true );
-		}
-
 		return $property->getValue( $registry );
 	}
 
@@ -218,10 +214,6 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 */
 	private function set_registered_connectors( WP_Connector_Registry $registry, array $connectors ): void {
 		$property = new ReflectionProperty( WP_Connector_Registry::class, 'registered_connectors' );
-		if ( method_exists( $property, 'setAccessible' ) ) {
-			$property->setAccessible( true );
-		}
-
 		$property->setValue( $registry, $connectors );
 	}
 
@@ -232,11 +224,6 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 */
 	private function set_registry_instance( ?WP_Connector_Registry $registry ): void {
 		$property = new ReflectionProperty( WP_Connector_Registry::class, 'instance' );
-		if ( method_exists( $property, 'setAccessible' ) ) {
-			$property->setAccessible( true );
-		}
-
 		$property->setValue( null, $registry );
 	}
-
 }
