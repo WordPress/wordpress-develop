@@ -8,11 +8,28 @@
  */
 class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCase {
 
-	const CONNECTOR_ID  = 'wp_test_non_ai_connector';
-	const SETTING_NAME  = 'connectors_test_non_ai_api_key';
+	const CONNECTOR_ID = 'wp_test_non_ai_connector';
+	const SETTING_NAME = 'connectors_test_non_ai_api_key';
 
 	/**
-	 * Removes the test connector and setting after each test.
+	 * Snapshot of registered settings before each test.
+	 *
+	 * @var array
+	 */
+	private array $original_registered_settings = array();
+
+	/**
+	 * Snapshots the registered settings before each test.
+	 */
+	public function set_up(): void {
+		parent::set_up();
+
+		global $wp_registered_settings;
+		$this->original_registered_settings = $wp_registered_settings;
+	}
+
+	/**
+	 * Removes the test connector and restores registered settings.
 	 */
 	public function tear_down(): void {
 		$registry = WP_Connector_Registry::get_instance();
@@ -20,7 +37,8 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 			$registry->unregister( self::CONNECTOR_ID );
 		}
 
-		unregister_setting( 'connectors', self::SETTING_NAME );
+		global $wp_registered_settings;
+		$wp_registered_settings = $this->original_registered_settings;
 
 		parent::tear_down();
 	}
