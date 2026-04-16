@@ -4129,7 +4129,7 @@ img {
 
 	#templateside li:not(.howto) a {
 		display: block;
-		padding: 5px;
+		padding: 5px 0 5px 5px;
 	}
 	#templateside li.howto {
 		padding: 12px;
@@ -4180,7 +4180,7 @@ img {
 	}
 	.wrap #templateside span.notice {
 		margin-left: -5px;
-		width: 100%;
+		width: auto;
 	}
 
 	.fileedit-sub .alignright {
