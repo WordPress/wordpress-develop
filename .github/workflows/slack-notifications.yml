@@ -167,7 +167,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [ prepare ]
-    if: ${{ needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() }}
+    if: ${{ ( needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() ) && needs.prepare.outputs.payload }}
 
     steps:
       - name: Post failure notifications to Slack
@@ -218,7 +218,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
+    if: ${{ ( inputs.calling_status == 'cancelled' || cancelled() ) && needs.prepare.outputs.payload }}
 
     steps:
       - name: Post cancelled notifications to Slack
