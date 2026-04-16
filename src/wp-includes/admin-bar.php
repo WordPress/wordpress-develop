@@ -1466,20 +1466,28 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 	$url   = $color->url ?? '';
 
 	if ( $url ) {
-		$response = wp_remote_get( $url );
-		if ( ! is_wp_error( $response ) ) {
-			$css = $response['body'];
-			if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
-				$start_position = strpos( $css, '#wpadminbar' );
-				$end_position   = strpos( $css, '.wp-pointer' );
-				if ( false !== $end_position && $end_position > $start_position ) {
-					$css = substr( $css, $start_position, $end_position - $start_position );
-					if ( SCRIPT_DEBUG ) {
-						$css = str_replace( '/* Pointers */', '', $css );
-					}
+		// Convert URL to file path for local filesystem read.
+		if ( SCRIPT_DEBUG ) {
+			$css_file = ABSPATH . 'wp-admin/css/colors/' . $color_scheme . '/colors.css';
+		} else {
+			$css_file = ABSPATH . 'wp-admin/css/colors/' . $color_scheme . '/colors.min.css';
+		}
+
+		if ( ! file_exists( $css_file ) ) {
+			return;
+		}
+
+		$css = file_get_contents( $css_file );
+		if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
+			$start_position = strpos( $css, '#wpadminbar' );
+			$end_position   = strpos( $css, '.wp-pointer' );
+			if ( false !== $end_position && $end_position > $start_position ) {
+				$css = substr( $css, $start_position, $end_position - $start_position );
+				if ( SCRIPT_DEBUG ) {
+					$css = str_replace( '/* Pointers */', '', $css );
 				}
-				wp_add_inline_style( 'admin-bar', $css );
 			}
+			wp_add_inline_style( 'admin-bar', $css );
 		}
 	}
 }
