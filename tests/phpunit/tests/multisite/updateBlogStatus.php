@@ -4,6 +4,8 @@
  * @group ms-required
  * @group ms-site
  * @group multisite
+ *
+ * @covers ::update_blog_status
  */
 class Tests_Multisite_UpdateBlogStatus extends WP_UnitTestCase {
 
