@@ -14,6 +14,7 @@
  *
  * @access private
  */
+#[AllowDynamicProperties]
 class WP_Block_Supports {
 
 	/**
@@ -58,7 +59,7 @@ class WP_Block_Supports {
 	}
 
 	/**
-	 * Initializes the block supports. It registes the block supports block attributes.
+	 * Initializes the block supports. It registers the block supports block attributes.
 	 *
 	 * @since 5.6.0
 	 */
@@ -72,7 +73,9 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param string $block_support_name Block support name.
+	 * @link https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
+	 *
+	 * @param string $block_support_name   Block support name.
 	 * @param array  $block_support_config Array containing the properties of the block support.
 	 */
 	public function register( $block_support_name, $block_support_config ) {
@@ -88,11 +91,10 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return array Array of HTML attributes.
+	 * @return string[] Array of HTML attribute values keyed by their name.
 	 */
 	public function apply_block_supports() {
-		$block_attributes = self::$block_to_render['attrs'];
-		$block_type       = WP_Block_Type_Registry::get_instance()->get_registered(
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
 			self::$block_to_render['blockName']
 		);
 
@@ -101,8 +103,12 @@ class WP_Block_Supports {
 			return array();
 		}
 
+		$block_attributes = array_key_exists( 'attrs', self::$block_to_render ) && is_array( self::$block_to_render['attrs'] )
+			? $block_type->prepare_attributes_for_render( self::$block_to_render['attrs'] )
+			: array();
+
 		$output = array();
-		foreach ( $this->block_supports as $name => $block_support_config ) {
+		foreach ( $this->block_supports as $block_support_config ) {
 			if ( ! isset( $block_support_config['apply'] ) ) {
 				continue;
 			}
@@ -136,14 +142,14 @@ class WP_Block_Supports {
 		$block_registry         = WP_Block_Type_Registry::get_instance();
 		$registered_block_types = $block_registry->get_all_registered();
 		foreach ( $registered_block_types as $block_type ) {
-			if ( ! property_exists( $block_type, 'supports' ) ) {
+			if ( ! ( $block_type instanceof WP_Block_Type ) ) {
 				continue;
 			}
 			if ( ! $block_type->attributes ) {
 				$block_type->attributes = array();
 			}
 
-			foreach ( $this->block_supports as $name => $block_support_config ) {
+			foreach ( $this->block_supports as $block_support_config ) {
 				if ( ! isset( $block_support_config['register_attribute'] ) ) {
 					continue;
 				}
@@ -163,9 +169,8 @@ class WP_Block_Supports {
  *
  * @since 5.6.0
  *
- * @param array $extra_attributes Optional. Extra attributes to render on the block wrapper.
- *
- * @return string String of HTML classes.
+ * @param string[] $extra_attributes Optional. Array of extra attributes to render on the block wrapper.
+ * @return string String of HTML attributes.
  */
 function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	$new_attributes = WP_Block_Supports::get_instance()->apply_block_supports();
@@ -174,30 +179,50 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		return '';
 	}
 
-	// This is hardcoded on purpose.
-	// We only support a fixed list of attributes.
-	$attributes_to_merge = array( 'style', 'class' );
-	$attributes          = array();
-	foreach ( $attributes_to_merge as $attribute_name ) {
-		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {
+	// Attribute values are concatenated or overridden depending on the attribute type.
+	// This is hardcoded on purpose, as we only support a fixed list of attributes.
+	$attribute_merge_callbacks = array(
+		'style'      => static function ( $new_attribute, $extra_attribute ) {
+			$styles = array_filter(
+				array(
+					rtrim( trim( $new_attribute ), ';' ),
+					rtrim( trim( $extra_attribute ), ';' ),
+				)
+			);
+			return safecss_filter_attr( implode( ';', array_filter( $styles ) ) );
+		},
+		'class'      => static function ( $new_attribute, $extra_attribute ) {
+			$classes = array_merge(
+				(array) preg_split( '/\s+/', $extra_attribute, -1, PREG_SPLIT_NO_EMPTY ),
+				(array) preg_split( '/\s+/', $new_attribute, -1, PREG_SPLIT_NO_EMPTY )
+			);
+			$classes = array_unique( array_filter( $classes ) );
+			return implode( ' ', $classes );
+		},
+		'id'         => static function ( $new_attribute, $extra_attribute ) {
+			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
+		},
+		'aria-label' => static function ( $new_attribute, $extra_attribute ) {
+			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
+		},
+	);
+
+	$attributes = array();
+	foreach ( $attribute_merge_callbacks as $attribute_name => $merge_callback ) {
+		$new_attribute   = $new_attributes[ $attribute_name ] ?? '';
+		$extra_attribute = $extra_attributes[ $attribute_name ] ?? '';
+		$new_attribute   = is_string( $new_attribute ) ? $new_attribute : '';
+		$extra_attribute = is_string( $extra_attribute ) ? $extra_attribute : '';
+
+		if ( '' === $new_attribute && '' === $extra_attribute ) {
 			continue;
 		}
 
-		if ( empty( $new_attributes[ $attribute_name ] ) ) {
-			$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ];
-			continue;
-		}
-
-		if ( empty( $extra_attributes[ $attribute_name ] ) ) {
-			$attributes[ $attribute_name ] = $new_attributes[ $attribute_name ];
-			continue;
-		}
-
-		$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ] . ' ' . $new_attributes[ $attribute_name ];
+		$attributes[ $attribute_name ] = $merge_callback( $new_attribute, $extra_attribute );
 	}
 
 	foreach ( $extra_attributes as $attribute_name => $value ) {
-		if ( ! in_array( $attribute_name, $attributes_to_merge, true ) ) {
+		if ( ! isset( $attribute_merge_callbacks[ $attribute_name ] ) ) {
 			$attributes[ $attribute_name ] = $value;
 		}
 	}

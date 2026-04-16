@@ -79,6 +79,7 @@ if ( isset( $_GET['update'] ) ) {
 	}
 }
 
+// Used in the HTML title tag.
 /* translators: %s: Site title. */
 $title = sprintf( __( 'Edit Site: %s' ), esc_html( $details->blogname ) );
 
@@ -103,8 +104,14 @@ network_edit_site_nav(
 );
 
 if ( ! empty( $messages ) ) {
+	$notice_args = array(
+		'type'        => 'success',
+		'dismissible' => true,
+		'id'          => 'message',
+	);
+
 	foreach ( $messages as $msg ) {
-		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+		wp_admin_notice( $msg, $notice_args );
 	}
 }
 ?>
@@ -114,15 +121,16 @@ if ( ! empty( $messages ) ) {
 	<table class="form-table" role="presentation">
 		<?php
 		$blog_prefix = $wpdb->get_blog_prefix( $id );
-		$sql         = "SELECT * FROM {$blog_prefix}options
-			WHERE option_name NOT LIKE %s
-			AND option_name NOT LIKE %s";
-		$query       = $wpdb->prepare(
-			$sql,
-			$wpdb->esc_like( '_' ) . '%',
-			'%' . $wpdb->esc_like( 'user_roles' )
+		$options     = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM %i
+				WHERE option_name NOT LIKE %s
+				AND option_name NOT LIKE %s',
+				"{$blog_prefix}options",
+				$wpdb->esc_like( '_' ) . '%',
+				'%' . $wpdb->esc_like( 'user_roles' )
+			)
 		);
-		$options     = $wpdb->get_results( $query );
 
 		foreach ( $options as $option ) {
 			if ( 'default_role' === $option->option_name ) {
@@ -142,17 +150,36 @@ if ( ! empty( $messages ) ) {
 				}
 			}
 
-			if ( strpos( $option->option_value, "\n" ) !== false ) {
+			$ltr_fields = array(
+				'siteurl',
+				'home',
+				'admin_email',
+				'new_admin_email',
+				'mailserver_url',
+				'mailserver_login',
+				'mailserver_pass',
+				'ping_sites',
+				'permalink_structure',
+				'category_base',
+				'tag_base',
+				'upload_path',
+				'upload_url_path',
+			);
+			if ( in_array( $option->option_name, $ltr_fields, true ) ) {
+				$class .= ' ltr';
+			}
+
+			if ( str_contains( $option->option_value, "\n" ) ) {
 				?>
 				<tr class="form-field">
-					<th scope="row"><label for="<?php echo esc_attr( $option->option_name ); ?>"><?php echo ucwords( str_replace( '_', ' ', $option->option_name ) ); ?></label></th>
+					<th scope="row"><label for="<?php echo esc_attr( $option->option_name ); ?>" class="code"><?php echo esc_html( $option->option_name ); ?></label></th>
 					<td><textarea class="<?php echo $class; ?>" rows="5" cols="40" name="option[<?php echo esc_attr( $option->option_name ); ?>]" id="<?php echo esc_attr( $option->option_name ); ?>"<?php disabled( $disabled ); ?>><?php echo esc_textarea( $option->option_value ); ?></textarea></td>
 				</tr>
 				<?php
 			} else {
 				?>
 				<tr class="form-field">
-					<th scope="row"><label for="<?php echo esc_attr( $option->option_name ); ?>"><?php echo esc_html( ucwords( str_replace( '_', ' ', $option->option_name ) ) ); ?></label></th>
+					<th scope="row"><label for="<?php echo esc_attr( $option->option_name ); ?>" class="code"><?php echo esc_html( $option->option_name ); ?></label></th>
 					<?php if ( $is_main_site && in_array( $option->option_name, array( 'siteurl', 'home' ), true ) ) { ?>
 					<td><code><?php echo esc_html( $option->option_value ); ?></code></td>
 					<?php } else { ?>

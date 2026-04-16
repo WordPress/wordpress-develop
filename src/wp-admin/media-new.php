@@ -39,7 +39,8 @@ if ( $_POST ) {
 	exit;
 }
 
-$title       = __( 'Upload New Media' );
+// Used in the HTML title tag.
+$title       = __( 'Upload Media' );
 $parent_file = 'upload.php';
 
 get_current_screen()->add_help_tab(
@@ -57,13 +58,13 @@ get_current_screen()->add_help_tab(
 );
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/media-add-new-screen/">Documentation on Uploading Media Files</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/media-add-new-screen/">Documentation on Uploading Media Files</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
-$form_class = 'media-upload-form type-form validate';
+$form_class = 'wp-upload-form media-upload-form type-form validate';
 
 if ( get_user_setting( 'uploader' ) || isset( $_GET['browser-uploader'] ) ) {
 	$form_class .= ' html-uploader';
@@ -72,11 +73,11 @@ if ( get_user_setting( 'uploader' ) || isset( $_GET['browser-uploader'] ) ) {
 <div class="wrap">
 	<h1><?php echo esc_html( $title ); ?></h1>
 
-	<form enctype="multipart/form-data" method="post" action="<?php echo admin_url( 'media-new.php' ); ?>" class="<?php echo esc_attr( $form_class ); ?>" id="file-form">
+	<form enctype="multipart/form-data" method="post" action="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="<?php echo esc_attr( $form_class ); ?>" id="file-form">
 
 	<?php media_upload_form(); ?>
 
-	<script type="text/javascript">
+	<script>
 	var post_id = <?php echo absint( $post_id ); ?>, shortform = 3;
 	</script>
 	<input type="hidden" name="post_id" id="post_id" value="<?php echo absint( $post_id ); ?>" />

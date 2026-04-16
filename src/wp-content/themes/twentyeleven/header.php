@@ -9,21 +9,10 @@
  * @since Twenty Eleven 1.0
  */
 ?><!DOCTYPE html>
-<!--[if IE 6]>
-<html id="ie6" <?php language_attributes(); ?>>
-<![endif]-->
-<!--[if IE 7]>
-<html id="ie7" <?php language_attributes(); ?>>
-<![endif]-->
-<!--[if IE 8]>
-<html id="ie8" <?php language_attributes(); ?>>
-<![endif]-->
-<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
 <html <?php language_attributes(); ?>>
-<!--<![endif]-->
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>" />
-<meta name="viewport" content="width=device-width" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>
 <?php
 	// Print the <title> tag based on what is being viewed.
@@ -31,10 +20,10 @@
 
 	wp_title( '|', true, 'right' );
 
-	// Add the blog name.
+	// Add the site name.
 	bloginfo( 'name' );
 
-	// Add the blog description for the home/front page.
+	// Add the site description for the home/front page.
 	$site_description = get_bloginfo( 'description', 'display' );
 if ( $site_description && ( is_home() || is_front_page() ) ) {
 	echo " | $site_description";
@@ -49,11 +38,8 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 ?>
 	</title>
 <link rel="profile" href="https://gmpg.org/xfn/11" />
-<link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>?ver=20190507" />
+<link rel="stylesheet" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20251202" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
-<!--[if lt IE 9]>
-<script src="<?php echo get_template_directory_uri(); ?>/js/html5.js?ver=3.7.0" type="text/javascript"></script>
-<![endif]-->
 <?php
 	/*
 	 * We add some JavaScript to pages with the comment form
@@ -76,15 +62,28 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <div id="page" class="hfeed">
-	<header id="branding" role="banner">
+	<header id="branding">
 			<hgroup>
-				<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></span></h1>
-				<h2 id="site-description"><?php bloginfo( 'description' ); ?></h2>
+				<?php
+				$is_front         = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
+				$site_name        = get_bloginfo( 'name', 'display' );
+				$site_description = get_bloginfo( 'description', 'display' );
+
+				if ( $site_name ) :
+					?>
+					<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php echo $site_name; ?></a></span></h1>
+					<?php
+				endif;
+
+				if ( $site_description ) :
+					?>
+					<h2 id="site-description"><?php echo $site_description; ?></h2>
+				<?php endif; ?>
 			</hgroup>
 
 			<?php
-				// Check to see if the header image has been removed.
-				$header_image = get_header_image();
+			// Check to see if the header image has been removed.
+			$header_image = get_header_image();
 			if ( $header_image ) :
 				// Compatibility with versions of WordPress prior to 3.4.
 				if ( function_exists( 'get_custom_header' ) ) {
@@ -97,30 +96,21 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					$header_image_width = HEADER_IMAGE_WIDTH;
 				}
 				?>
-			<a href="<?php echo esc_url( home_url( '/' ) ); ?>">
+			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
 				<?php
 				/*
 				 * The header image.
 				 * Check if this is a post or page, if it has a thumbnail, and if it's a big one
 				 */
+				$image = false;
 				if ( is_singular() && has_post_thumbnail( $post->ID ) ) {
 					$image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), array( $header_image_width, $header_image_width ) );
-					if ( $image && $image[1] >= $header_image_width ) {
-						// Houston, we have a new header image!
-						echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
-					}
+				}
+				if ( $image && $image[1] >= $header_image_width ) {
+					// Houston, we have a new header image!
+					echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
 				} else {
-					// Compatibility with versions of WordPress prior to 3.4.
-					if ( function_exists( 'get_custom_header' ) ) {
-						$header_image_width  = get_custom_header()->width;
-						$header_image_height = get_custom_header()->height;
-					} else {
-						$header_image_width  = HEADER_IMAGE_WIDTH;
-						$header_image_height = HEADER_IMAGE_HEIGHT;
-					}
-					?>
-					<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" />
-					<?php
+					twentyeleven_header_image();
 				} // End check for featured image or standard header.
 				?>
 			</a>
@@ -143,7 +133,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					<?php get_search_form(); ?>
 			<?php endif; ?>
 
-			<nav id="access" role="navigation">
+			<nav id="access">
 				<h3 class="assistive-text"><?php _e( 'Main menu', 'twentyeleven' ); ?></h3>
 				<?php
 				/*

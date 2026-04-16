@@ -29,10 +29,12 @@ if ( wp_is_mobile() ) {
 	wp_enqueue_script( 'jquery-touch-punch' );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Dashboard' );
 $parent_file = 'index.php';
 
-$help = '<p>' . __( 'Welcome to your WordPress Dashboard! This is the screen you will see when you log in to your site, and gives you access to all the site management features of WordPress. You can get help for any screen by clicking the Help tab above the screen title.' ) . '</p>';
+$help  = '<p>' . __( 'Welcome to your WordPress Dashboard!' ) . '</p>';
+$help .= '<p>' . __( 'The Dashboard is the first place you will come to every time you log into your site. It is where you will find all your WordPress tools. If you need help, just click the &#8220;Help&#8221; tab above the screen title.' ) . '</p>';
 
 $screen = get_current_screen();
 
@@ -106,10 +108,30 @@ $screen->add_help_tab(
 
 unset( $help );
 
+$wp_version = get_bloginfo( 'version', 'display' );
+/* translators: %s: WordPress version. */
+$wp_version_text = sprintf( __( 'Version %s' ), $wp_version );
+$is_dev_version  = preg_match( '/alpha|beta|RC/', $wp_version );
+
+if ( ! $is_dev_version ) {
+	$version_url = sprintf(
+		/* translators: %s: WordPress version. */
+		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
+		sanitize_title( $wp_version )
+	);
+
+	$wp_version_text = sprintf(
+		'<a href="%1$s">%2$s</a>',
+		$version_url,
+		$wp_version_text
+	);
+}
+
 $screen->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/dashboard-screen/">Documentation on Dashboard</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/dashboard-screen/">Documentation on Dashboard</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>' .
+	'<p>' . $wp_version_text . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -132,20 +154,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		// Only show the dashboard notice if it's been less than a minute since the message was postponed.
 		if ( $time_passed < MINUTE_IN_SECONDS ) :
-			?>
-		<div class="notice notice-success is-dismissible">
-			<p>
-				<?php
-				printf(
-					/* translators: %s: Human-readable time interval. */
-					__( 'The admin email verification page will reappear after %s.' ),
-					human_time_diff( time() + $remind_interval )
-				);
-				?>
-			</p>
-		</div>
-		<?php endif; ?>
-	<?php endif; ?>
+			$message = sprintf(
+				/* translators: %s: Human-readable time interval. */
+				__( 'The admin email verification page will reappear after %s.' ),
+				human_time_diff( time() + $remind_interval )
+			);
+			wp_admin_notice(
+				$message,
+				array(
+					'type'        => 'success',
+					'dismissible' => true,
+				)
+			);
+		endif;
+	endif;
+	?>
 
 <?php
 if ( has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) ) :
@@ -164,7 +187,7 @@ if ( has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) )
 		<a class="welcome-panel-close" href="<?php echo esc_url( admin_url( '?welcome=0' ) ); ?>" aria-label="<?php esc_attr_e( 'Dismiss the welcome panel' ); ?>"><?php _e( 'Dismiss' ); ?></a>
 		<?php
 		/**
-		 * Add content to the welcome panel on the admin dashboard.
+		 * Fires when adding content to the welcome panel on the admin dashboard.
 		 *
 		 * To remove the default welcome panel, use remove_action():
 		 *

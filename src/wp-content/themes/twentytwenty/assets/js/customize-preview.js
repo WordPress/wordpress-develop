@@ -9,7 +9,9 @@
 
 ( function( $, api, _ ) {
 	/**
-	 * Return a value for our partial refresh.
+	 * Returns a value for our partial refresh.
+	 *
+	 * @since Twenty Twenty 1.0
 	 *
 	 * @param {Object} partial  Current partial.
 	 *
@@ -29,7 +31,9 @@
 	api.selectiveRefresh.partialConstructor.cover_fixed = api.selectiveRefresh.Partial.extend( {
 
 		/**
-		 * Override the refresh method.
+		 * Overrides the refresh method.
+		 *
+		 * @since Twenty Twenty 1.0
 		 *
 		 * @return {jQuery.Promise} Resolved promise.
 		 */
@@ -55,12 +59,15 @@
 		/**
 		 * Input attributes.
 		 *
+		 * @since Twenty Twenty 1.0
 		 * @type {Object}
 		 */
 		attrs: {},
 
 		/**
-		 * Override the refresh method.
+		 * Overrides the refresh method.
+		 *
+		 * @since Twenty Twenty 1.0
 		 *
 		 * @return {jQuery.Promise} Resolved promise.
 		 */
@@ -144,7 +151,7 @@
 	} );
 
 	/**
-	 * Add styles to elements in the preview pane.
+	 * Adds styles to elements in the preview pane.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *
@@ -179,7 +186,7 @@
 		stylesheet.html( styles );
 	}
 	// Generate styles on load. Handles page-changes on the preview pane.
-	$( document ).ready( function() {
+	$( function() {
 		twentyTwentyGenerateColorA11yPreviewStyles( 'content' );
 		twentyTwentyGenerateColorA11yPreviewStyles( 'header-footer' );
 	} );

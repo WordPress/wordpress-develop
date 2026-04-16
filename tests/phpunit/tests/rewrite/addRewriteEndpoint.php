@@ -17,17 +17,17 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 		self::$test_post_id = $factory->post->create();
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$this->qvs = $GLOBALS['wp']->public_query_vars;
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp']->public_query_vars = $this->qvs;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function test_should_register_query_using_name_param_by_default() {
@@ -108,5 +108,4 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 		$this->assertTrue( is_404() );
 		$this->assertSame( '', get_query_var( 'page_endpoint' ) );
 	}
-
 }

@@ -10,7 +10,7 @@
 get_header();
 ?>
 
-<main id="site-content" role="main">
+<main id="site-content">
 
 	<div class="section-inner thin error404-content">
 
@@ -21,7 +21,7 @@ get_header();
 		<?php
 		get_search_form(
 			array(
-				'label' => __( '404 not found', 'twentytwenty' ),
+				'aria_label' => __( '404 not found', 'twentytwenty' ),
 			)
 		);
 		?>

@@ -28,7 +28,7 @@ body {
 	font-size: 16px;
 	font-weight: 400;
 	line-height: 1.75;
-	margin: 20px 40px;
+	margin: auto 20px;
 	max-width: 600px;
 	vertical-align: baseline;
 }
@@ -120,10 +120,6 @@ blockquote {
 	padding: 0 0 0 24px;
 }
 
-blockquote:not(.alignleft):not(.alignright) {
-	margin-left: -28px;
-}
-
 blockquote blockquote:not(.alignleft):not(.alignright) {
 	margin-left: 0;
 }
@@ -188,9 +184,8 @@ pre {
 	font-size: 16px;
 	line-height: 1.3125;
 	margin: 0 0 28px;
-	max-width: 100%;
 	overflow: auto;
-	padding: 14px;
+	padding: 1.75em;
 	white-space: pre;
 	white-space: pre-wrap;
 	word-wrap: break-word;
@@ -318,19 +313,22 @@ table th,
 .mce-item-table th,
 table caption {
 	border-width: 0 1px 1px 0;
-	font-size: 16px;
 	font-weight: 700;
 	padding: 7px;
-	text-align: left;
+	text-align: start;
 	vertical-align: baseline;
+}
+
+table caption {
+	font-weight: normal;
 }
 
 table td,
 .mce-item-table td {
 	border-width: 0 1px 1px 0;
-	font-size: 16px;
 	padding: 7px;
 	vertical-align: baseline;
+	text-align: start;
 }
 
 img {
@@ -507,6 +505,11 @@ fieldset {
  * 8.0 - RTL
  */
 
+body.rtl,
+[dir="rtl"] body {
+	font-family: Arial, Tahoma, sans-serif;
+}
+
 .rtl blockquote {
 	border: 0 solid #1a1a1a;
 	border-right-width: 4px;
@@ -519,7 +522,6 @@ fieldset {
 }
 
 .rtl blockquote:not(.alignleft):not(.alignright) {
-	margin-right: -28px;
 	padding: 0 24px 0 0;
 }
 
@@ -538,10 +540,4 @@ fieldset {
 .rtl blockquote > ol {
 	margin-right: 24px;
 	margin-left: auto;
-}
-
-.rtl table th,
-.rtl .mce-item-table th,
-.rtl table caption {
-	text-align: right;
 }

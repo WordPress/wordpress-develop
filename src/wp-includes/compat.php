@@ -2,14 +2,29 @@
 /**
  * WordPress implementation for PHP functions either missing from older PHP versions or not included by default.
  *
+ * This file is loaded extremely early and the functions can be relied upon by drop-ins.
+ * Ergo, please ensure you do not rely on external functions when writing code for this file.
+ * Only use functions built into PHP or are defined in this file and have adequate testing
+ * and error suppression to ensure the file will run correctly and not break websites.
+ *
  * @package PHP
  * @access private
  */
 
 // If gettext isn't available.
 if ( ! function_exists( '_' ) ) {
-	function _( $string ) {
-		return $string;
+	/**
+	 * Compat function to mimic _(), an alias of gettext().
+	 *
+	 * @since 0.71
+	 *
+	 * @see https://php.net/manual/en/function.gettext.php
+	 *
+	 * @param string $message The message being translated.
+	 * @return string
+	 */
+	function _( $message ) {
+		return $message;
 	}
 }
 
@@ -18,26 +33,81 @@ if ( ! function_exists( '_' ) ) {
  *
  * @ignore
  * @since 4.2.2
+ * @since 6.9.0 Deprecated the `$set` argument.
  * @access private
  *
- * @param bool $set - Used for testing only
- *             null   : default - get PCRE/u capability
- *             false  : Used for testing - return false for future calls to this function
- *             'reset': Used for testing - restore default behavior of this function
+ * @param bool $set Deprecated. This argument is no longer used for testing purposes.
  */
 function _wp_can_use_pcre_u( $set = null ) {
-	static $utf8_pcre = 'reset';
+	static $utf8_pcre = null;
 
-	if ( null !== $set ) {
-		$utf8_pcre = $set;
+	if ( isset( $set ) ) {
+		_deprecated_argument( __FUNCTION__, '6.9.0' );
 	}
 
-	if ( 'reset' === $utf8_pcre ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentional error generated to detect PCRE/u support.
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
+	if ( isset( $utf8_pcre ) ) {
+		return $utf8_pcre;
 	}
+
+	$utf8_pcre = true;
+	set_error_handler(
+		function ( $errno, $errstr ) use ( &$utf8_pcre ) {
+			if ( str_starts_with( $errstr, 'preg_match():' ) ) {
+				$utf8_pcre = false;
+				return true;
+			}
+
+			return false;
+		},
+		E_WARNING
+	);
+
+	/*
+	 * Attempt to compile a PCRE pattern with the PCRE_UTF8 flag. For
+	 * systems lacking Unicode support this will trigger a warning
+	 * during compilation, which the error handler will intercept.
+	 */
+	preg_match( '//u', '' );
+	restore_error_handler();
 
 	return $utf8_pcre;
+}
+
+/**
+ * Indicates if a given slug for a character set represents the UTF-8 text encoding.
+ *
+ * A charset is considered to represent UTF-8 if it is a case-insensitive match
+ * of "UTF-8" with or without the hyphen.
+ *
+ * Example:
+ *
+ *     true  === _is_utf8_charset( 'UTF-8' );
+ *     true  === _is_utf8_charset( 'utf8' );
+ *     false === _is_utf8_charset( 'latin1' );
+ *     false === _is_utf8_charset( 'UTF 8' );
+ *
+ *     // Only strings match.
+ *     false === _is_utf8_charset( [ 'charset' => 'utf-8' ] );
+ *
+ * `is_utf8_charset` should be used outside of this file.
+ *
+ * @ignore
+ * @since 6.6.1
+ *
+ * @param string $charset_slug Slug representing a text character encoding, or "charset".
+ *                             E.g. "UTF-8", "Windows-1252", "ISO-8859-1", "SJIS".
+ *
+ * @return bool Whether the slug represents the UTF-8 encoding.
+ */
+function _is_utf8_charset( $charset_slug ) {
+	if ( ! is_string( $charset_slug ) ) {
+		return false;
+	}
+
+	return (
+		0 === strcasecmp( 'UTF-8', $charset_slug ) ||
+		0 === strcasecmp( 'UTF8', $charset_slug )
+	);
 }
 
 if ( ! function_exists( 'mb_substr' ) ) :
@@ -49,85 +119,73 @@ if ( ! function_exists( 'mb_substr' ) ) :
 	 *
 	 * @see _mb_substr()
 	 *
-	 * @param string      $str      The string to extract the substring from.
-	 * @param int         $start    Position to being extraction from in `$str`.
-	 * @param int|null    $length   Optional. Maximum number of characters to extract from `$str`.
+	 * @param string      $string   The string to extract the substring from.
+	 * @param int         $start    Position to being extraction from in `$string`.
+	 * @param int|null    $length   Optional. Maximum number of characters to extract from `$string`.
 	 *                              Default null.
 	 * @param string|null $encoding Optional. Character encoding to use. Default null.
 	 * @return string Extracted substring.
 	 */
-	function mb_substr( $str, $start, $length = null, $encoding = null ) {
-		return _mb_substr( $str, $start, $length, $encoding );
+	function mb_substr( $string, $start, $length = null, $encoding = null ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
+		return _mb_substr( $string, $start, $length, $encoding );
 	}
 endif;
 
 /**
  * Internal compat function to mimic mb_substr().
  *
- * Only understands UTF-8 and 8bit.  All other character sets will be treated as 8bit.
- * For $encoding === UTF-8, the $str input is expected to be a valid UTF-8 byte sequence.
- * The behavior of this function for invalid inputs is undefined.
+ * Only supports UTF-8 and non-shifting single-byte encodings. For all other encodings
+ * expect the substrings to be misaligned. When the given encoding (or the `blog_charset`
+ * if none is provided) isn’t UTF-8 then the function returns the output of {@see \substr()}.
  *
  * @ignore
  * @since 3.2.0
  *
  * @param string      $str      The string to extract the substring from.
- * @param int         $start    Position to being extraction from in `$str`.
+ * @param int         $start    Character offset at which to start the substring extraction.
  * @param int|null    $length   Optional. Maximum number of characters to extract from `$str`.
  *                              Default null.
  * @param string|null $encoding Optional. Character encoding to use. Default null.
  * @return string Extracted substring.
  */
 function _mb_substr( $str, $start, $length = null, $encoding = null ) {
-	if ( null === $encoding ) {
-		$encoding = get_option( 'blog_charset' );
+	if ( null === $str ) {
+		return '';
 	}
 
-	/*
-	 * The solution below works only for UTF-8, so in case of a different
-	 * charset just use built-in substr().
-	 */
-	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+	// The solution below works only for UTF-8; treat all other encodings as byte streams.
+	if ( ! _is_utf8_charset( $encoding ?? get_option( 'blog_charset' ) ) ) {
 		return is_null( $length ) ? substr( $str, $start ) : substr( $str, $start, $length );
 	}
 
-	if ( _wp_can_use_pcre_u() ) {
-		// Use the regex unicode support to separate the UTF-8 characters into an array.
-		preg_match_all( '/./us', $str, $match );
-		$chars = is_null( $length ) ? array_slice( $match[0], $start ) : array_slice( $match[0], $start, $length );
-		return implode( '', $chars );
-	}
+	$total_length = ( $start < 0 || $length < 0 )
+		? _wp_utf8_codepoint_count( $str )
+		: 0;
 
-	$regex = '/(
-		[\x00-\x7F]                  # single-byte sequences   0xxxxxxx
-		| [\xC2-\xDF][\x80-\xBF]       # double-byte sequences   110xxxxx 10xxxxxx
-		| \xE0[\xA0-\xBF][\x80-\xBF]   # triple-byte sequences   1110xxxx 10xxxxxx * 2
-		| [\xE1-\xEC][\x80-\xBF]{2}
-		| \xED[\x80-\x9F][\x80-\xBF]
-		| [\xEE-\xEF][\x80-\xBF]{2}
-		| \xF0[\x90-\xBF][\x80-\xBF]{2} # four-byte sequences   11110xxx 10xxxxxx * 3
-		| [\xF1-\xF3][\x80-\xBF]{3}
-		| \xF4[\x80-\x8F][\x80-\xBF]{2}
-	)/x';
+	$normalized_start = $start < 0
+		? max( 0, $total_length + $start )
+		: $start;
 
-	// Start with 1 element instead of 0 since the first thing we do is pop.
-	$chars = array( '' );
-	do {
-		// We had some string left over from the last round, but we counted it in that last round.
-		array_pop( $chars );
+	/*
+	 * The starting offset is provided as characters, which means this needs to
+	 * find how many bytes that many characters occupies at the start of the string.
+	 */
+	$starting_byte_offset = _wp_utf8_codepoint_span( $str, 0, $normalized_start );
 
-		/*
-		 * Split by UTF-8 character, limit to 1000 characters (last array element will contain
-		 * the rest of the string).
-		 */
-		$pieces = preg_split( $regex, $str, 1000, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
+	$normalized_length = $length < 0
+		? max( 0, $total_length - $normalized_start + $length )
+		: $length;
 
-		$chars = array_merge( $chars, $pieces );
+	/*
+	 * This is the main step. It finds how many bytes the given length of code points
+	 * occupies in the input, starting at the byte offset calculated above.
+	 */
+	$byte_length = isset( $normalized_length )
+		? _wp_utf8_codepoint_span( $str, $starting_byte_offset, $normalized_length )
+		: ( strlen( $str ) - $starting_byte_offset );
 
-		// If there's anything left over, repeat the loop.
-	} while ( count( $pieces ) > 1 && $str = array_pop( $pieces ) );
-
-	return implode( '', array_slice( $chars, $start, $length ) );
+	// The result is a normal byte-level substring using the computed ranges.
+	return substr( $str, $starting_byte_offset, $byte_length );
 }
 
 if ( ! function_exists( 'mb_strlen' ) ) :
@@ -139,234 +197,355 @@ if ( ! function_exists( 'mb_strlen' ) ) :
 	 *
 	 * @see _mb_strlen()
 	 *
-	 * @param string      $str      The string to retrieve the character length from.
+	 * @param string      $string   The string to retrieve the character length from.
 	 * @param string|null $encoding Optional. Character encoding to use. Default null.
-	 * @return int String length of `$str`.
+	 * @return int String length of `$string`.
 	 */
-	function mb_strlen( $str, $encoding = null ) {
-		return _mb_strlen( $str, $encoding );
+	function mb_strlen( $string, $encoding = null ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
+		return _mb_strlen( $string, $encoding );
 	}
 endif;
 
 /**
  * Internal compat function to mimic mb_strlen().
  *
- * Only understands UTF-8 and 8bit.  All other character sets will be treated as 8bit.
- * For $encoding === UTF-8, the `$str` input is expected to be a valid UTF-8 byte
- * sequence. The behavior of this function for invalid inputs is undefined.
+ * Only supports UTF-8 and non-shifting single-byte encodings. For all other
+ * encodings expect the counts to be wrong. When the given encoding (or the
+ * `blog_charset` if none is provided) isn’t UTF-8 then the function returns
+ * the byte-count of the provided string.
  *
  * @ignore
  * @since 4.2.0
  *
  * @param string      $str      The string to retrieve the character length from.
- * @param string|null $encoding Optional. Character encoding to use. Default null.
- * @return int String length of `$str`.
+ * @param string|null $encoding Optional. Count characters according to this encoding.
+ *                              Default is to consult `blog_charset`.
+ * @return int Count of code points if UTF-8, byte length otherwise.
  */
 function _mb_strlen( $str, $encoding = null ) {
-	if ( null === $encoding ) {
-		$encoding = get_option( 'blog_charset' );
-	}
+	return _is_utf8_charset( $encoding ?? get_option( 'blog_charset' ) )
+		? _wp_utf8_codepoint_count( $str )
+		: strlen( $str );
+}
 
-	/*
-	 * The solution below works only for UTF-8, so in case of a different charset
-	 * just use built-in strlen().
-	 */
-	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
-		return strlen( $str );
-	}
-
-	if ( _wp_can_use_pcre_u() ) {
-		// Use the regex unicode support to separate the UTF-8 characters into an array.
-		preg_match_all( '/./us', $str, $match );
-		return count( $match[0] );
-	}
-
-	$regex = '/(?:
-		[\x00-\x7F]                  # single-byte sequences   0xxxxxxx
-		| [\xC2-\xDF][\x80-\xBF]       # double-byte sequences   110xxxxx 10xxxxxx
-		| \xE0[\xA0-\xBF][\x80-\xBF]   # triple-byte sequences   1110xxxx 10xxxxxx * 2
-		| [\xE1-\xEC][\x80-\xBF]{2}
-		| \xED[\x80-\x9F][\x80-\xBF]
-		| [\xEE-\xEF][\x80-\xBF]{2}
-		| \xF0[\x90-\xBF][\x80-\xBF]{2} # four-byte sequences   11110xxx 10xxxxxx * 3
-		| [\xF1-\xF3][\x80-\xBF]{3}
-		| \xF4[\x80-\x8F][\x80-\xBF]{2}
-	)/x';
-
-	// Start at 1 instead of 0 since the first thing we do is decrement.
-	$count = 1;
-	do {
-		// We had some string left over from the last round, but we counted it in that last round.
-		$count--;
-
-		/*
-		 * Split by UTF-8 character, limit to 1000 characters (last array element will contain
-		 * the rest of the string).
+if ( ! function_exists( 'utf8_encode' ) ) :
+	if ( extension_loaded( 'mbstring' ) ) :
+		/**
+		 * Converts a string from ISO-8859-1 to UTF-8.
+		 *
+		 * @deprecated Use {@see \mb_convert_encoding()} instead.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $iso_8859_1_text Text treated as ISO-8859-1 (latin1) bytes.
+		 * @return string Text converted into a UTF-8.
 		 */
-		$pieces = preg_split( $regex, $str, 1000 );
+		function utf8_encode( $iso_8859_1_text ): string {
+			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
 
-		// Increment.
-		$count += count( $pieces );
-
-		// If there's anything left over, repeat the loop.
-	} while ( $str = array_pop( $pieces ) );
-
-	// Fencepost: preg_split() always returns one extra item in the array.
-	return --$count;
-}
-
-if ( ! function_exists( 'hash_hmac' ) ) :
-	/**
-	 * Compat function to mimic hash_hmac().
-	 *
-	 * The Hash extension is bundled with PHP by default since PHP 5.1.2.
-	 * However, the extension may be explicitly disabled on select servers.
-	 * As of PHP 7.4.0, the Hash extension is a core PHP extension and can no
-	 * longer be disabled.
-	 * I.e. when PHP 7.4.0 becomes the minimum requirement, this polyfill
-	 * and the associated `_hash_hmac()` function can be safely removed.
-	 *
-	 * @ignore
-	 * @since 3.2.0
-	 *
-	 * @see _hash_hmac()
-	 *
-	 * @param string $algo       Hash algorithm. Accepts 'md5' or 'sha1'.
-	 * @param string $data       Data to be hashed.
-	 * @param string $key        Secret key to use for generating the hash.
-	 * @param bool   $raw_output Optional. Whether to output raw binary data (true),
-	 *                           or lowercase hexits (false). Default false.
-	 * @return string|false The hash in output determined by `$raw_output`. False if `$algo`
-	 *                      is unknown or invalid.
-	 */
-	function hash_hmac( $algo, $data, $key, $raw_output = false ) {
-		return _hash_hmac( $algo, $data, $key, $raw_output );
-	}
-endif;
-
-/**
- * Internal compat function to mimic hash_hmac().
- *
- * @ignore
- * @since 3.2.0
- *
- * @param string $algo       Hash algorithm. Accepts 'md5' or 'sha1'.
- * @param string $data       Data to be hashed.
- * @param string $key        Secret key to use for generating the hash.
- * @param bool   $raw_output Optional. Whether to output raw binary data (true),
- *                           or lowercase hexits (false). Default false.
- * @return string|false The hash in output determined by `$raw_output`. False if `$algo`
- *                      is unknown or invalid.
- */
-function _hash_hmac( $algo, $data, $key, $raw_output = false ) {
-	$packs = array(
-		'md5'  => 'H32',
-		'sha1' => 'H40',
-	);
-
-	if ( ! isset( $packs[ $algo ] ) ) {
-		return false;
-	}
-
-	$pack = $packs[ $algo ];
-
-	if ( strlen( $key ) > 64 ) {
-		$key = pack( $pack, $algo( $key ) );
-	}
-
-	$key = str_pad( $key, 64, chr( 0 ) );
-
-	$ipad = ( substr( $key, 0, 64 ) ^ str_repeat( chr( 0x36 ), 64 ) );
-	$opad = ( substr( $key, 0, 64 ) ^ str_repeat( chr( 0x5C ), 64 ) );
-
-	$hmac = $algo( $opad . pack( $pack, $algo( $ipad . $data ) ) );
-
-	if ( $raw_output ) {
-		return pack( $pack, $hmac );
-	}
-	return $hmac;
-}
-
-if ( ! function_exists( 'hash_equals' ) ) :
-	/**
-	 * Timing attack safe string comparison
-	 *
-	 * Compares two strings using the same time whether they're equal or not.
-	 *
-	 * Note: It can leak the length of a string when arguments of differing length are supplied.
-	 *
-	 * This function was added in PHP 5.6.
-	 * However, the Hash extension may be explicitly disabled on select servers.
-	 * As of PHP 7.4.0, the Hash extension is a core PHP extension and can no
-	 * longer be disabled.
-	 * I.e. when PHP 7.4.0 becomes the minimum requirement, this polyfill
-	 * can be safely removed.
-	 *
-	 * @since 3.9.2
-	 *
-	 * @param string $a Expected string.
-	 * @param string $b Actual, user supplied, string.
-	 * @return bool Whether strings are equal.
-	 */
-	function hash_equals( $a, $b ) {
-		$a_length = strlen( $a );
-		if ( strlen( $b ) !== $a_length ) {
-			return false;
-		}
-		$result = 0;
-
-		// Do not attempt to "optimize" this.
-		for ( $i = 0; $i < $a_length; $i++ ) {
-			$result |= ord( $a[ $i ] ) ^ ord( $b[ $i ] );
+			return mb_convert_encoding( $iso_8859_1_text, 'UTF-8', 'ISO-8859-1' );
 		}
 
-		return 0 === $result;
-	}
+	else :
+		/**
+		 * @ignore
+		 * @private
+		 *
+		 * @since 6.9.0
+		 */
+		function utf8_encode( $iso_8859_1_text ): string {
+			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+
+			return _wp_utf8_encode_fallback( $iso_8859_1_text );
+		}
+
+	endif;
 endif;
 
-// random_int() was introduced in PHP 7.0.
-if ( ! function_exists( 'random_int' ) ) {
-	require ABSPATH . WPINC . '/random_compat/random.php';
-}
-// sodium_crypto_box() was introduced in PHP 7.2.
+if ( ! function_exists( 'utf8_decode' ) ) :
+	if ( extension_loaded( 'mbstring' ) ) :
+		/**
+		 * Converts a string from UTF-8 to ISO-8859-1.
+		 *
+		 * @deprecated Use {@see \mb_convert_encoding()} instead.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $utf8_text Text treated as UTF-8.
+		 * @return string Text converted into ISO-8859-1.
+		 */
+		function utf8_decode( $utf8_text ): string {
+			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+
+			return mb_convert_encoding( $utf8_text, 'ISO-8859-1', 'UTF-8' );
+		}
+
+	else :
+		/**
+		 * @ignore
+		 * @private
+		 *
+		 * @since 6.9.0
+		 */
+		function utf8_decode( $utf8_text ): string {
+			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+
+			return _wp_utf8_decode_fallback( $utf8_text );
+		}
+
+	endif;
+endif;
+
+// sodium_crypto_box() was introduced with Sodium in PHP 7.2, but the extension may not be enabled.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
 }
 
-if ( ! function_exists( 'is_countable' ) ) {
+if ( ! function_exists( 'array_is_list' ) ) {
 	/**
-	 * Polyfill for is_countable() function added in PHP 7.3.
+	 * Polyfill for `array_is_list()` function added in PHP 8.1.
 	 *
-	 * Verify that the content of a variable is an array or an object
-	 * implementing the Countable interface.
+	 * Determines if the given array is a list.
 	 *
-	 * @since 4.9.6
+	 * An array is considered a list if its keys consist of consecutive numbers from 0 to count($array)-1.
 	 *
-	 * @param mixed $var The value to check.
-	 * @return bool True if `$var` is countable, false otherwise.
+	 * @see https://github.com/symfony/polyfill-php81/tree/main
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param array<mixed> $arr The array being evaluated.
+	 * @return bool True if array is a list, false otherwise.
 	 */
-	function is_countable( $var ) {
-		return ( is_array( $var )
-			|| $var instanceof Countable
-			|| $var instanceof SimpleXMLElement
-			|| $var instanceof ResourceBundle
-		);
+	function array_is_list( $arr ) {
+		if ( ( array() === $arr ) || ( array_values( $arr ) === $arr ) ) {
+			return true;
+		}
+
+		$next_key = -1;
+
+		foreach ( $arr as $k => $v ) {
+			if ( ++$next_key !== $k ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
 
-if ( ! function_exists( 'is_iterable' ) ) {
+if ( ! function_exists( 'str_contains' ) ) {
 	/**
-	 * Polyfill for is_iterable() function added in PHP 7.1.
+	 * Polyfill for `str_contains()` function added in PHP 8.0.
 	 *
-	 * Verify that the content of a variable is an array or an object
-	 * implementing the Traversable interface.
+	 * Performs a case-sensitive check indicating if needle is
+	 * contained in haystack.
 	 *
-	 * @since 4.9.6
+	 * @since 5.9.0
 	 *
-	 * @param mixed $var The value to check.
-	 * @return bool True if `$var` is iterable, false otherwise.
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The substring to search for in the `$haystack`.
+	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
 	 */
-	function is_iterable( $var ) {
-		return ( is_array( $var ) || $var instanceof Traversable );
+	function str_contains( $haystack, $needle ) {
+		if ( '' === $needle ) {
+			return true;
+		}
+
+		return false !== strpos( $haystack, $needle );
 	}
+}
+
+if ( ! function_exists( 'str_starts_with' ) ) {
+	/**
+	 * Polyfill for `str_starts_with()` function added in PHP 8.0.
+	 *
+	 * Performs a case-sensitive check indicating if
+	 * the haystack begins with needle.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The substring to search for in the `$haystack`.
+	 * @return bool True if `$haystack` starts with `$needle`, otherwise false.
+	 */
+	function str_starts_with( $haystack, $needle ) {
+		if ( '' === $needle ) {
+			return true;
+		}
+
+		return 0 === strpos( $haystack, $needle );
+	}
+}
+
+if ( ! function_exists( 'str_ends_with' ) ) {
+	/**
+	 * Polyfill for `str_ends_with()` function added in PHP 8.0.
+	 *
+	 * Performs a case-sensitive check indicating if
+	 * the haystack ends with needle.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The substring to search for in the `$haystack`.
+	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
+	 */
+	function str_ends_with( $haystack, $needle ) {
+		if ( '' === $haystack ) {
+			return '' === $needle;
+		}
+
+		$len = strlen( $needle );
+
+		return substr( $haystack, -$len, $len ) === $needle;
+	}
+}
+
+if ( ! function_exists( 'array_find' ) ) {
+	/**
+	 * Polyfill for `array_find()` function added in PHP 8.4.
+	 *
+	 * Searches an array for the first element that passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to search.
+	 * @param callable $callback The callback to run for each element.
+	 * @return mixed|null The first element in the array that passes the `$callback`, otherwise null.
+	 */
+	function array_find( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return $value;
+			}
+		}
+
+		return null;
+	}
+}
+
+if ( ! function_exists( 'array_find_key' ) ) {
+	/**
+	 * Polyfill for `array_find_key()` function added in PHP 8.4.
+	 *
+	 * Searches an array for the first key that passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to search.
+	 * @param callable $callback The callback to run for each element.
+	 * @return int|string|null The first key in the array that passes the `$callback`, otherwise null.
+	 */
+	function array_find_key( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return $key;
+			}
+		}
+
+		return null;
+	}
+}
+
+if ( ! function_exists( 'array_any' ) ) {
+	/**
+	 * Polyfill for `array_any()` function added in PHP 8.4.
+	 *
+	 * Checks if any element of an array passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to check.
+	 * @param callable $callback The callback to run for each element.
+	 * @return bool True if any element in the array passes the `$callback`, otherwise false.
+	 */
+	function array_any( array $array, callable $callback ): bool { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'array_all' ) ) {
+	/**
+	 * Polyfill for `array_all()` function added in PHP 8.4.
+	 *
+	 * Checks if all elements of an array pass a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to check.
+	 * @param callable $callback The callback to run for each element.
+	 * @return bool True if all elements in the array pass the `$callback`, otherwise false.
+	 */
+	function array_all( array $array, callable $callback ): bool { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( ! $callback( $value, $key ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'array_first' ) ) {
+	/**
+	 * Polyfill for `array_first()` function added in PHP 8.5.
+	 *
+	 * Returns the first element of an array.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $array The array to get the first element from.
+	 * @return mixed|null The first element of the array, or null if the array is empty.
+	 */
+	function array_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		if ( empty( $array ) ) {
+			return null;
+		}
+
+		foreach ( $array as $value ) {
+			return $value;
+		}
+	}
+}
+
+if ( ! function_exists( 'array_last' ) ) {
+	/**
+	 * Polyfill for `array_last()` function added in PHP 8.5.
+	 *
+	 * Returns the last element of an array.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $array The array to get the last element from.
+	 * @return mixed|null The last element of the array, or null if the array is empty.
+	 */
+	function array_last( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		if ( empty( $array ) ) {
+			return null;
+		}
+
+		return $array[ array_key_last( $array ) ];
+	}
+}
+
+// IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
+if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
+	define( 'IMAGETYPE_AVIF', 19 );
+}
+
+// IMG_AVIF constant is only defined in PHP 8.x or later.
+if ( ! defined( 'IMG_AVIF' ) ) {
+	define( 'IMG_AVIF', IMAGETYPE_AVIF );
+}
+
+// IMAGETYPE_HEIF constant is only defined in PHP 8.5 or later.
+if ( ! defined( 'IMAGETYPE_HEIF' ) ) {
+	define( 'IMAGETYPE_HEIF', 20 );
 }

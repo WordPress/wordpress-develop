@@ -12,7 +12,7 @@ window.communityEventsData = window.communityEventsData || {};
  *
  * @since 2.7.0
  */
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var welcomePanel = $( '#welcome-panel' ),
 		welcomePanelHide = $('#wp_welcome_panel-hide'),
 		updateWelcomePanel;
@@ -27,11 +27,17 @@ jQuery(document).ready( function($) {
 	 * @return {void}
 	 */
 	updateWelcomePanel = function( visible ) {
-		$.post( ajaxurl, {
-			action: 'update-welcome-panel',
-			visible: visible,
-			welcomepanelnonce: $( '#welcomepanelnonce' ).val()
-		});
+		$.post(
+			ajaxurl,
+			{
+				action: 'update-welcome-panel',
+				visible: visible,
+				welcomepanelnonce: $( '#welcomepanelnonce' ).val()
+			},
+			function() {
+				wp.a11y.speak( wp.i18n.__( 'Screen Options updated.' ) );
+			}
+		);
 	};
 
 	// Unhide the welcome panel if the Welcome Option checkbox is checked.
@@ -40,7 +46,7 @@ jQuery(document).ready( function($) {
 	}
 
 	// Hide the welcome panel when the dismiss button or close button is clicked.
-	$('.welcome-panel-close, .welcome-panel-dismiss a', welcomePanel).click( function(e) {
+	$('.welcome-panel-close, .welcome-panel-dismiss a', welcomePanel).on( 'click', function(e) {
 		e.preventDefault();
 		welcomePanel.addClass('hidden');
 		updateWelcomePanel( 0 );
@@ -48,7 +54,7 @@ jQuery(document).ready( function($) {
 	});
 
 	// Set welcome panel visibility based on Welcome Option checkbox value.
-	welcomePanelHide.click( function() {
+	welcomePanelHide.on( 'click', function() {
 		welcomePanel.toggleClass('hidden', ! this.checked );
 		updateWelcomePanel( this.checked ? 1 : 0 );
 	});
@@ -92,7 +98,7 @@ jQuery(document).ready( function($) {
 				setTimeout( function(){
 					// Request the widget content.
 					p.load( ajaxurl + '?action=dashboard-widgets&widget=' + id + '&pagenow=' + pagenow, '', function() {
-						// Hide the parent and slide it out for visual fancyness.
+						// Hide the parent and slide it out for visual fanciness.
 						p.hide().slideDown('normal', function(){
 							$(this).css('display', '');
 						});
@@ -136,7 +142,7 @@ jQuery(document).ready( function($) {
 		// Enable the submit buttons.
 		$( '#quick-press .submit input[type="submit"], #quick-press .submit input[type="reset"]' ).prop( 'disabled' , false );
 
-		t = $('#quick-press').submit( function( e ) {
+		t = $('#quick-press').on( 'submit', function( e ) {
 			e.preventDefault();
 
 			// Show a spinner.
@@ -154,7 +160,7 @@ jQuery(document).ready( function($) {
 				highlightLatestPost();
 
 				// Focus the title to allow for quickly drafting another post.
-				$('#title').focus();
+				$('#title').trigger( 'focus' );
 			});
 
 			/**
@@ -172,7 +178,7 @@ jQuery(document).ready( function($) {
 		} );
 
 		// Change the QuickPost action to the publish value.
-		$('#publish').click( function() { act.val( 'post-quickpress-publish' ); } );
+		$('#publish').on( 'click', function() { act.val( 'post-quickpress-publish' ); } );
 
 		$('#quick-press').on( 'click focusin', function() {
 			wpActiveEditor = 'content';
@@ -328,7 +334,7 @@ jQuery( function( $ ) {
 			 * @return {void}
 			 */
 			$container.on( 'submit', '.community-events-form', function( event ) {
-				var location = $.trim( $( '#community-events-location' ).val() );
+				var location = $( '#community-events-location' ).val().trim();
 
 				event.preventDefault();
 
@@ -391,7 +397,7 @@ jQuery( function( $ ) {
 				 * lose their place.
 				 */
 				if ( $target.hasClass( 'community-events-cancel' ) ) {
-					$toggleButton.focus();
+					$toggleButton.trigger( 'focus' );
 				}
 			} else {
 				$toggleButton.attr( 'aria-expanded', 'true' );
@@ -610,7 +616,7 @@ jQuery( function( $ ) {
 					 * bring the focus back to the toggle button so users relying
 					 * on screen readers don't lose their place.
 					 */
-					$toggleButton.focus();
+					$toggleButton.trigger( 'focus' );
 				}
 			} else {
 				app.toggleLocationForm( 'show' );

@@ -10,7 +10,7 @@
  * Copyright 2004-2010 The Horde Project (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you did
- * not receive this file, see http://opensource.org/licenses/lgpl-license.php.
+ * not receive this file, see https://opensource.org/license/lgpl-2-1/.
  *
  * @package Text_Diff
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
@@ -223,33 +223,10 @@ class Text_Diff {
      * @access protected
      *
      * @return string  A directory name which can be used for temp files.
-     *                 Returns false if one could not be found.
      */
     static function _getTempDir()
     {
-        $tmp_locations = array('/tmp', '/var/tmp', 'c:\WUTemp', 'c:\temp',
-                               'c:\windows\temp', 'c:\winnt\temp');
-
-        /* Try PHP's upload_tmp_dir directive. */
-        $tmp = ini_get('upload_tmp_dir');
-
-        /* Otherwise, try to determine the TMPDIR environment variable. */
-        if (!strlen($tmp)) {
-            $tmp = getenv('TMPDIR');
-        }
-
-        /* If we still cannot determine a value, then cycle through a list of
-         * preset possibilities. */
-        while (!strlen($tmp) && count($tmp_locations)) {
-            $tmp_check = array_shift($tmp_locations);
-            if (@is_dir($tmp_check)) {
-                $tmp = $tmp_check;
-            }
-        }
-
-        /* If it is still empty, we have failed, so return false; otherwise
-         * return the directory determined. */
-        return strlen($tmp) ? $tmp : false;
+        return get_temp_dir();
     }
 
     /**
@@ -260,24 +237,24 @@ class Text_Diff {
     function _check($from_lines, $to_lines)
     {
         if (serialize($from_lines) != serialize($this->getOriginal())) {
-            trigger_error("Reconstructed original doesn't match", E_USER_ERROR);
+            throw new Text_Exception("Reconstructed original does not match");
         }
         if (serialize($to_lines) != serialize($this->getFinal())) {
-            trigger_error("Reconstructed final doesn't match", E_USER_ERROR);
+            throw new Text_Exception("Reconstructed final does not match");
         }
 
         $rev = $this->reverse();
         if (serialize($to_lines) != serialize($rev->getOriginal())) {
-            trigger_error("Reversed original doesn't match", E_USER_ERROR);
+            throw new Text_Exception("Reversed original does not match");
         }
         if (serialize($from_lines) != serialize($rev->getFinal())) {
-            trigger_error("Reversed final doesn't match", E_USER_ERROR);
+            throw new Text_Exception("Reversed final does not match");
         }
 
         $prevtype = null;
         foreach ($this->_edits as $edit) {
-            if ($edit instanceof $prevtype) {
-                trigger_error("Edit sequence is non-optimal", E_USER_ERROR);
+            if ($prevtype !== null && $edit instanceof $prevtype) {
+                throw new Text_Exception("Edit sequence is non-optimal");
             }
             $prevtype = get_class($edit);
         }
@@ -296,7 +273,7 @@ class Text_MappedDiff extends Text_Diff {
     /**
      * Computes a diff between sequences of strings.
      *
-     * This can be used to compute things like case-insensitve diffs, or diffs
+     * This can be used to compute things like case-insensitive diffs, or diffs
      * which ignore changes in white-space.
      *
      * @param array $from_lines         An array of strings.
@@ -350,15 +327,12 @@ class Text_MappedDiff extends Text_Diff {
  *
  * @access private
  */
-class Text_Diff_Op {
+abstract class Text_Diff_Op {
 
     var $orig;
     var $final;
 
-    function &reverse()
-    {
-        trigger_error('Abstract method', E_USER_ERROR);
-    }
+    abstract function &reverse();
 
     function norig()
     {

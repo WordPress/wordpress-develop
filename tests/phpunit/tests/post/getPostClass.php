@@ -7,8 +7,8 @@
 class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	protected $post_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->post_id = self::factory()->post->create();
 	}
 
@@ -121,8 +121,6 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	 * @group cache
 	 */
 	public function test_taxonomy_classes_hit_cache() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		wp_set_post_terms( $this->post_id, array( 'foo', 'bar' ), 'wptests_tax' );
 		wp_set_post_terms( $this->post_id, array( 'footag', 'bartag' ), 'post_tag' );
@@ -131,10 +129,32 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		update_object_term_cache( $this->post_id, 'post' );
 		update_meta_cache( 'post', $this->post_id );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$found = get_post_class( '', $this->post_id );
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
+	}
+
+	/**
+	 * @ticket 64247
+	 */
+	public function test_list_return_value_when_duplicate_classes() {
+
+		// Filter 'post_class' to add a duplicate which should be removed by `array_unique()`.
+		add_filter(
+			'post_class',
+			function ( $classes ) {
+				return array_merge(
+					array( 'duplicate-class', 'duplicate-class' ),
+					$classes
+				);
+			}
+		);
+
+		$class_list = get_post_class( 'original', $this->post_id );
+		$this->assertTrue( array_is_list( $class_list ), 'Expected get_post_class() to return list.' );
+		$this->assertContains( 'duplicate-class', $class_list );
+		$this->assertContains( 'original', $class_list );
 	}
 }

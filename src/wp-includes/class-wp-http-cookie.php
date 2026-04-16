@@ -18,12 +18,14 @@
  *
  * @since 2.8.0
  */
+#[AllowDynamicProperties]
 class WP_Http_Cookie {
 
 	/**
 	 * Cookie name.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $name;
@@ -32,6 +34,7 @@ class WP_Http_Cookie {
 	 * Cookie value.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $value;
@@ -40,6 +43,7 @@ class WP_Http_Cookie {
 	 * When the cookie expires. Unix timestamp or formatted date.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string|int|null
 	 */
 	public $expires;
@@ -48,6 +52,7 @@ class WP_Http_Cookie {
 	 * Cookie URL path.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $path;
@@ -56,14 +61,25 @@ class WP_Http_Cookie {
 	 * Cookie Domain.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $domain;
 
 	/**
+	 * Cookie port or comma-separated list of ports.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @var int|string
+	 */
+	public $port;
+
+	/**
 	 * host-only flag.
 	 *
 	 * @since 5.2.0
+	 *
 	 * @var bool
 	 */
 	public $host_only;
@@ -85,7 +101,7 @@ class WP_Http_Cookie {
 	 *     @type string|int|null $expires   Optional. Unix timestamp or formatted date. Default null.
 	 *     @type string          $path      Optional. Path. Default '/'.
 	 *     @type string          $domain    Optional. Domain. Default host of parsed $requested_url.
-	 *     @type int             $port      Optional. Port. Default null.
+	 *     @type int|string      $port      Optional. Port or comma-separated list of ports. Default null.
 	 *     @type bool            $host_only Optional. host-only storage flag. Default true.
 	 * }
 	 * @param string       $requested_url The URL which the cookie was set on, used for default $domain
@@ -93,13 +109,13 @@ class WP_Http_Cookie {
 	 */
 	public function __construct( $data, $requested_url = '' ) {
 		if ( $requested_url ) {
-			$arrURL = parse_url( $requested_url );
+			$parsed_url = parse_url( $requested_url );
 		}
-		if ( isset( $arrURL['host'] ) ) {
-			$this->domain = $arrURL['host'];
+		if ( isset( $parsed_url['host'] ) ) {
+			$this->domain = $parsed_url['host'];
 		}
-		$this->path = isset( $arrURL['path'] ) ? $arrURL['path'] : '/';
-		if ( '/' !== substr( $this->path, -1 ) ) {
+		$this->path = $parsed_url['path'] ?? '/';
+		if ( ! str_ends_with( $this->path, '/' ) ) {
 			$this->path = dirname( $this->path ) . '/';
 		}
 
@@ -120,7 +136,7 @@ class WP_Http_Cookie {
 			foreach ( $pairs as $pair ) {
 				$pair = rtrim( $pair );
 
-				// Handle the cookie ending in ; which results in a empty final pair.
+				// Handle the cookie ending in ; which results in an empty final pair.
 				if ( empty( $pair ) ) {
 					continue;
 				}
@@ -174,20 +190,20 @@ class WP_Http_Cookie {
 
 		// Get details on the URL we're thinking about sending to.
 		$url         = parse_url( $url );
-		$url['port'] = isset( $url['port'] ) ? $url['port'] : ( 'https' === $url['scheme'] ? 443 : 80 );
-		$url['path'] = isset( $url['path'] ) ? $url['path'] : '/';
+		$url['port'] = $url['port'] ?? ( 'https' === $url['scheme'] ? 443 : 80 );
+		$url['path'] = $url['path'] ?? '/';
 
 		// Values to use for comparison against the URL.
-		$path   = isset( $this->path ) ? $this->path : '/';
-		$port   = isset( $this->port ) ? $this->port : null;
+		$path   = $this->path ?? '/';
+		$port   = $this->port ?? null;
 		$domain = isset( $this->domain ) ? strtolower( $this->domain ) : strtolower( $url['host'] );
 		if ( false === stripos( $domain, '.' ) ) {
 			$domain .= '.local';
 		}
 
 		// Host - very basic check that the request URL ends with the domain restriction (minus leading dot).
-		$domain = ( '.' === substr( $domain, 0, 1 ) ) ? substr( $domain, 1 ) : $domain;
-		if ( substr( $url['host'], -strlen( $domain ) ) != $domain ) {
+		$domain = ( str_starts_with( $domain, '.' ) ) ? substr( $domain, 1 ) : $domain;
+		if ( ! str_ends_with( $url['host'], $domain ) ) {
 			return false;
 		}
 
@@ -197,7 +213,7 @@ class WP_Http_Cookie {
 		}
 
 		// Path - request path must start with path restriction.
-		if ( substr( $url['path'], 0, strlen( $path ) ) != $path ) {
+		if ( ! str_starts_with( $url['path'], $path ) ) {
 			return false;
 		}
 

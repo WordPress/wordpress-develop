@@ -153,7 +153,6 @@ pre {
 pre {
 	border: 1px solid rgba(0, 0, 0, 0.1);
 	margin-bottom: 24px;
-	max-width: 100%;
 	overflow: auto;
 	padding: 12px;
 	white-space: pre;
@@ -293,6 +292,10 @@ a:active,
 a:hover {
 	color: #41a62a;
 	outline: 0;
+}
+
+:where(.mce-content-body[class*="post-type-"], .wp-block-post-content) a {
+	text-decoration: underline;
 }
 
 

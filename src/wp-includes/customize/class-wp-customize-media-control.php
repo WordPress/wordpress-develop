@@ -88,16 +88,19 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 
 		if ( is_object( $this->setting ) ) {
 			if ( $this->setting->default ) {
-				// Fake an attachment model - needs all fields used by template.
-				// Note that the default value must be a URL, NOT an attachment ID.
-				$ext  = substr( $this->setting->default, -3 );
-				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp' ), true ) ? 'image' : 'document';
+				/*
+				 * Fake an attachment model - needs all fields used by template.
+				 * Note that the default value must be a URL, NOT an attachment ID.
+				 */
+				$ext       = wp_check_filetype( $this->setting->default )['ext'];
+				$ext_types = wp_get_ext_types();
+				$type      = isset( $ext_types['image'] ) && in_array( $ext, $ext_types['image'], true ) ? 'image' : 'document';
 
 				$default_attachment = array(
 					'id'    => 1,
 					'url'   => $this->setting->default,
 					'type'  => $type,
-					'icon'  => wp_mime_type_icon( $type ),
+					'icon'  => wp_mime_type_icon( $type, '.svg' ),
 					'title' => wp_basename( $this->setting->default ),
 				);
 
@@ -170,13 +173,13 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 						<p class="attachment-meta">{{ data.attachment.artist || data.attachment.meta.artist }}</p>
 						<# } #>
 						<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
-							<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}"/>
+							<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}" />
 						</audio>
 					<# } else if ( 'video' === data.attachment.type ) { #>
 						<div class="wp-media-wrapper wp-video">
 							<video controls="controls" class="wp-video-shortcode" preload="metadata"
 								<# if ( data.attachment.image && data.attachment.image.src !== data.attachment.icon ) { #>poster="{{ data.attachment.image.src }}"<# } #>>
-								<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}"/>
+								<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}" />
 							</video>
 						</div>
 					<# } else { #>
@@ -194,7 +197,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 		<# } else { #>
 			<div class="attachment-media-view">
 				<# if ( data.canUpload ) { #>
-					<button type="button" class="upload-button button-add-media" {{{ describedByAttr }}}>{{ data.button_labels.select }}</button>
+					<button type="button" class="upload-button button" {{{ describedByAttr }}}>{{ data.button_labels.select }}</button>
 				<# } #>
 				<div class="actions">
 					<# if ( data.defaultAttachment ) { #>
@@ -243,7 +246,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 			case 'image':
 				return array(
 					'select'       => __( 'Select image' ),
-					'site_icon'    => __( 'Select site icon' ),
+					'site_icon'    => __( 'Select Site Icon' ),
 					'change'       => __( 'Change image' ),
 					'default'      => __( 'Default' ),
 					'remove'       => __( 'Remove' ),

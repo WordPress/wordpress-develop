@@ -32,7 +32,7 @@
 
 	@include media(mobile) {
 		margin-right: initial;
-		margin-top: 4px; // Align the baseline of the site title with the primary menu
+		margin-top: calc(var(--primary-nav--padding) - 0.3em); // Align the baseline of the site title with the primary menu
 	}
 }
 
@@ -75,18 +75,6 @@
 	font-family: var(--branding--description--font-family);
 	font-size: var(--branding--description--font-size);
 	line-height: 1.4;
-}
-
-a.custom-logo-link {
-	text-decoration: none;
-
-	&:focus {
-		// Change colors when the body background is white.
-		.has-background-white &,
-		.is-dark-theme & {
-			background: none;
-		}
-	}
 }
 
 .site-title > a {
@@ -185,7 +173,7 @@ a.custom-logo-link {
 						margin-top: calc(0px - var(--button--padding-vertical) + (0.25 * var(--global--spacing-unit)));
 
 						#primary-mobile-menu {
-							// The 4.5px here is to offset the icon size horizontallly
+							// The 4.5px here is to offset the icon size horizontally
 							// (the icon's width is larger than the path's width and has extra space on the sides).
 							padding-left: calc(var(--global--spacing-horizontal) * 0.6 - 4.5px);
 							padding-right: calc(var(--global--spacing-horizontal) * 0.6 - 4.5px);

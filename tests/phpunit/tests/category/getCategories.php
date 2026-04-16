@@ -2,7 +2,9 @@
 
 /**
  * @group taxonomy
- * @group category.php
+ * @group category
+ *
+ * @covers ::get_categories
  */
 class Tests_Category_GetCategories extends WP_UnitTestCase {
 	/**

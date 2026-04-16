@@ -23,24 +23,40 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	public $setting;
 
 	/**
+	 * The user ID to use for the tests.
+	 *
+	 * @var int
+	 */
+	public static $user_id = 0;
+
+	/**
 	 * Set up the test case.
 	 *
-	 * @see WP_UnitTestCase::setup()
+	 * @see WP_UnitTestCase::set_up()
 	 */
-	function setUp() {
-		parent::setUp();
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-
-		$user_id = self::factory()->user->create(
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Create a user to use for the tests.
+		self::$user_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
 			)
 		);
-		if ( is_multisite() ) {
-			grant_super_admin( $user_id );
-		}
 
-		wp_set_current_user( $user_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$user_id );
+		}
+	}
+
+	/**
+	 * Set up the test case.
+	 *
+	 * @see WP_UnitTestCase_Base::set_up()
+	 */
+	public function set_up() {
+		parent::set_up();
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
+
+		wp_set_current_user( self::$user_id );
 
 		global $wp_customize;
 		$this->wp_customize = new WP_Customize_Manager();
@@ -54,15 +70,15 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	/**
 	 * Tear down the test case.
 	 */
-	function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
 		$this->setting = null;
+		parent::tear_down();
 	}
 
 	/**
 	 * Delete the $wp_customize global when cleaning up scope.
 	 */
-	function clean_up_global_scope() {
+	public function clean_up_global_scope() {
 		global $wp_customize;
 		$wp_customize = null;
 		parent::clean_up_global_scope();
@@ -77,7 +93,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Custom_CSS_Setting::__construct
 	 */
-	function test_construct() {
+	public function test_construct() {
 		$this->assertTrue( post_type_exists( 'custom_css' ) );
 		$this->assertSame( 'custom_css', $this->setting->type );
 		$this->assertSame( get_stylesheet(), $this->setting->stylesheet );
@@ -110,7 +126,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 * @covers WP_Customize_Custom_CSS_Setting::preview
 	 * @covers WP_Customize_Custom_CSS_Setting::update
 	 */
-	function test_crud() {
+	public function test_crud() {
 
 		$this->setting->default = '/* Hello World */';
 		$this->assertSame( $this->setting->default, $this->setting->value() );
@@ -120,7 +136,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$this->assertNull( wp_get_custom_css_post( 'twentyten' ) );
 
 		$original_css      = 'body { color: black; }';
-		$post_id           = $this->factory()->post->create(
+		$post_id           = self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,
@@ -130,7 +146,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 			)
 		);
 		$twentyten_css     = 'body { color: red; }';
-		$twentyten_post_id = $this->factory()->post->create(
+		$twentyten_post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'twentyten',
 				'post_name'    => 'twentyten',
@@ -211,7 +227,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @ticket 39032
 	 */
-	function test_custom_css_revision_saved() {
+	public function test_custom_css_revision_saved() {
 		$inserted_css = 'body { background: black; }';
 		$updated_css  = 'body { background: red; }';
 
@@ -245,7 +261,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @ticket 39259
 	 */
-	function test_get_custom_css_post_queries_after_failed_lookup() {
+	public function test_get_custom_css_post_queries_after_failed_lookup() {
 		set_theme_mod( 'custom_css_post_id', -1 );
 		$queries_before = get_num_queries();
 		wp_get_custom_css_post();
@@ -257,7 +273,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @ticket 39259
 	 */
-	function test_update_custom_css_updates_theme_mod() {
+	public function test_update_custom_css_updates_theme_mod() {
 		set_theme_mod( 'custom_css_post_id', -1 );
 		$post = wp_update_custom_css_post( 'body { background: blue; }' );
 		$this->assertSame( $post->ID, get_theme_mod( 'custom_css_post_id' ) );
@@ -268,12 +284,12 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Custom_CSS_Setting::value
 	 */
-	function test_value_filter() {
+	public function test_value_filter() {
 		add_filter( 'customize_value_custom_css', array( $this, 'filter_value' ), 10, 2 );
 		$this->setting->default = '/*default*/';
 		$this->assertSame( '/*default*//*filtered*/', $this->setting->value() );
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,
@@ -297,7 +313,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 * @param WP_Customize_Setting $setting Setting.
 	 * @return string
 	 */
-	function filter_value( $value, $setting ) {
+	public function filter_value( $value, $setting ) {
 		$this->assertInstanceOf( 'WP_Customize_Custom_CSS_Setting', $setting );
 		$value .= '/*filtered*/';
 		return $value;
@@ -308,9 +324,9 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Custom_CSS_Setting::update
 	 */
-	function test_update_filter() {
+	public function test_update_filter() {
 		$original_css = 'body { color:red; }';
-		$post_id      = $this->factory()->post->create(
+		$post_id      = self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,
@@ -331,9 +347,9 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 
 		$post = get_post( $post_id );
 		$this->assertSame( $original_title, $post->post_title );
-		$this->assertContains( $overridden_css, $post->post_content );
-		$this->assertContains( '/* filtered post_content */', $post->post_content );
-		$this->assertContains( '/* filtered post_content_filtered */', $post->post_content_filtered );
+		$this->assertStringContainsString( $overridden_css, $post->post_content );
+		$this->assertStringContainsString( '/* filtered post_content */', $post->post_content );
+		$this->assertStringContainsString( '/* filtered post_content_filtered */', $post->post_content_filtered );
 	}
 
 	/**
@@ -343,11 +359,11 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 * @param string $args Args.
 	 * @return array Data.
 	 */
-	function filter_update_custom_css_data( $data, $args ) {
-		$this->assertInternalType( 'array', $data );
+	public function filter_update_custom_css_data( $data, $args ) {
+		$this->assertIsArray( $data );
 		$this->assertSameSets( array( 'css', 'preprocessed' ), array_keys( $data ) );
 		$this->assertSame( '', $data['preprocessed'] );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertSameSets( array( 'css', 'preprocessed', 'stylesheet' ), array_keys( $args ) );
 		$this->assertSame( $args['css'], $data['css'] );
 		$this->assertSame( $args['preprocessed'], $data['preprocessed'] );
@@ -359,6 +375,31 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that dangerous STYLE tag contents do not break HTML output.
+	 *
+	 * @ticket 64418
+	 * @covers ::wp_update_custom_css_post
+	 * @covers ::wp_custom_css_cb
+	 */
+	public function test_wp_custom_css_cb_escapes_dangerous_html() {
+		wp_update_custom_css_post(
+			'*::before { content: "</style><script>alert(1)</script>"; }',
+			array(
+				'stylesheet' => $this->setting->stylesheet,
+			)
+		);
+		$output   = get_echo( 'wp_custom_css_cb' );
+		$expected =
+			<<<'HTML'
+			<style id="wp-custom-css">
+			*::before { content: "\3c\2fstyle><script>alert(1)</script>"; }
+			</style>
+
+			HTML;
+		$this->assertEqualHTML( $expected, $output );
+	}
+
+	/**
 	 * Tests that validation errors are caught appropriately.
 	 *
 	 * Note that the $validity \WP_Error object must be reset each time
@@ -366,8 +407,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Custom_CSS_Setting::validate
 	 */
-	function test_validate() {
-
+	public function test_validate_basic_css() {
 		// Empty CSS throws no errors.
 		$result = $this->setting->validate( '' );
 		$this->assertTrue( $result );
@@ -377,9 +417,84 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$result    = $this->setting->validate( $basic_css );
 		$this->assertTrue( $result );
 
-		// Check for markup.
+		// Check for illegal closing STYLE tag.
 		$unclosed_comment = $basic_css . '</style>';
 		$result           = $this->setting->validate( $unclosed_comment );
-		$this->assertTrue( array_key_exists( 'illegal_markup', $result->errors ) );
+		$this->assertArrayHasKey( 'illegal_markup', $result->errors );
+	}
+
+	/**
+	 * @ticket 64418
+	 * @covers WP_Customize_Custom_CSS_Setting::validate
+	 */
+	public function test_validate_accepts_css_property_at_rule() {
+		$css =
+			<<<'CSS'
+			@property --animate {
+				syntax: "<custom-ident>";
+				inherits: true;
+				initial-value: false;
+			}
+			CSS;
+		$this->assertTrue( $this->setting->validate( $css ) );
+	}
+
+	/**
+	 * @ticket 64418
+	 * @covers ::wp_update_custom_css_post
+	 * @covers ::wp_custom_css_cb
+	 */
+	public function test_save_and_print_property_at_rule() {
+		$css =
+			<<<'CSS'
+			@property --animate {
+				syntax: "<custom-ident>";
+				inherits: true;
+				initial-value: false;
+			}
+			CSS;
+		wp_update_custom_css_post( $css, array( 'stylesheet' => $this->setting->stylesheet ) );
+		$output   = get_echo( 'wp_custom_css_cb' );
+		$expected = "<style id='wp-custom-css'>\n{$css}\n</style>\n";
+		$this->assertEqualHTML( $expected, $output );
+	}
+
+	/**
+	 * @dataProvider data_custom_css_disallowed
+	 *
+	 * @ticket 64418
+	 * @covers WP_Customize_Custom_CSS_Setting::validate
+	 */
+	public function test_validate_prevents( $css, $expected_error_message ) {
+		$result = $this->setting->validate( $css );
+		$this->assertWPError( $result );
+		$this->assertSame( $expected_error_message, $result->get_error_message() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_custom_css_disallowed(): array {
+		return array(
+			'style close tag'            => array( 'css…</style>…css', 'The CSS must not contain "&lt;/style&gt;".' ),
+			'style close tag upper case' => array( '</STYLE>', 'The CSS must not contain "&lt;/STYLE&gt;".' ),
+			'style close tag mixed case' => array( '</sTyLe>', 'The CSS must not contain "&lt;/sTyLe&gt;".' ),
+			'style close tag in comment' => array( '/*</style>*/', 'The CSS must not contain "&lt;/style&gt;".' ),
+			'style close tag (/)'        => array( '</style/', 'The CSS must not contain "&lt;/style/".' ),
+			'style close tag (\t)'       => array( "</style\t", "The CSS must not contain \"&lt;/style\t\"." ),
+			'style close tag (\f)'       => array( "</style\f", "The CSS must not contain \"&lt;/style\f\"." ),
+			'style close tag (\r)'       => array( "</style\r", "The CSS must not contain \"&lt;/style\r\"." ),
+			'style close tag (\n)'       => array( "</style\n", "The CSS must not contain \"&lt;/style\n\"." ),
+			'style close tag (" ")'      => array( '</style ', 'The CSS must not contain "&lt;/style ".' ),
+			'truncated "<"'              => array( '<', 'The CSS must not end in "&lt;".' ),
+			'truncated "</"'             => array( '</', 'The CSS must not end in "&lt;/".' ),
+			'truncated "</s"'            => array( '</s', 'The CSS must not end in "&lt;/s".' ),
+			'truncated "</ST"'           => array( '</ST', 'The CSS must not end in "&lt;/ST".' ),
+			'truncated "</sty"'          => array( '</sty', 'The CSS must not end in "&lt;/sty".' ),
+			'truncated "</STYL"'         => array( '</STYL', 'The CSS must not end in "&lt;/STYL".' ),
+			'truncated "</stYle"'        => array( '</stYle', 'The CSS must not end in "&lt;/stYle".' ),
+		);
 	}
 }

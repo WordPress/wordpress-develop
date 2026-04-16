@@ -2,7 +2,10 @@ var View = wp.media.View,
 	mediaTrash = wp.media.view.settings.mediaTrash,
 	l10n = wp.media.view.l10n,
 	$ = jQuery,
-	AttachmentsBrowser;
+	AttachmentsBrowser,
+	infiniteScrolling = wp.media.view.settings.infiniteScrolling,
+	__ = wp.i18n.__,
+	sprintf = wp.i18n.sprintf;
 
 /**
  * wp.media.view.AttachmentsBrowser
@@ -68,12 +71,16 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			this.createUploader();
 		}
 
-
 		// Add a heading before the attachments list.
 		this.createAttachmentsHeading();
 
-		// Create the list of attachments.
-		this.createAttachments();
+		// Create the attachments wrapper view.
+		this.createAttachmentsWrapperView();
+
+		if ( ! infiniteScrolling ) {
+			this.$el.addClass( 'has-load-more' );
+			this.createLoadMoreView();
+		}
 
 		// For accessibility reasons, place the normal sidebar after the attachments, see ticket #36909.
 		if ( this.options.sidebar && 'errors' !== this.options.sidebar ) {
@@ -81,6 +88,10 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		this.updateContent();
+
+		if ( ! infiniteScrolling ) {
+			this.updateLoadMoreView();
+		}
 
 		if ( ! this.options.sidebar || 'errors' === this.options.sidebar ) {
 			this.$el.addClass( 'hide-sidebar' );
@@ -91,6 +102,10 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		this.collection.on( 'add remove reset', this.updateContent, this );
+
+		if ( ! infiniteScrolling ) {
+			this.collection.on( 'add remove reset', this.updateLoadMoreView, this );
+		}
 
 		// The non-cached or cached attachments query has completed.
 		this.collection.on( 'attachments:received', this.announceSearchResults, this );
@@ -106,9 +121,16 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 * @return {void}
 	 */
 	announceSearchResults: _.debounce( function() {
-		var count;
+		var count,
+			/* translators: Accessibility text. %d: Number of attachments found in a search. */
+			mediaFoundHasMoreResultsMessage = __( 'Number of media items displayed: %d. Click load more for more results.' );
 
-		if ( this.collection.mirroring.args.s ) {
+		if ( infiniteScrolling ) {
+			/* translators: Accessibility text. %d: Number of attachments found in a search. */
+			mediaFoundHasMoreResultsMessage = __( 'Number of media items displayed: %d. Scroll the page for more results.' );
+		}
+
+		if ( this.collection.mirroring && this.collection.mirroring.args.s ) {
 			count = this.collection.length;
 
 			if ( 0 === count ) {
@@ -117,7 +139,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}
 
 			if ( this.collection.hasMore() ) {
-				wp.a11y.speak( l10n.mediaFoundHasMoreResults.replace( '%d', count ) );
+				wp.a11y.speak( mediaFoundHasMoreResultsMessage.replace( '%d', count ) );
 				return;
 			}
 
@@ -171,37 +193,49 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority:   -100,
 				text:       l10n.filterAttachments,
 				level:      'h2',
-				className:  'media-attachments-filter-heading'
+				className:  'media-attachments-filter-heading screen-reader-text'
 			}).render() );
 		}
 
 		if ( showFilterByType ) {
 			// "Filters" is a <select>, a visually hidden label element needs to be rendered before.
-			this.toolbar.set( 'filtersLabel', new wp.media.view.Label({
+			var filtersLabel = new wp.media.view.Label({
 				value: l10n.filterByType,
 				attributes: {
 					'for':  'media-attachment-filters'
 				},
 				priority:   -80
-			}).render() );
+			});
 
 			if ( 'uploaded' === this.options.filters ) {
-				this.toolbar.set( 'filters', new wp.media.view.AttachmentFilters.Uploaded({
+				Filters = new wp.media.view.AttachmentFilters.Uploaded({
 					controller: this.controller,
 					model:      this.collection.props,
-					priority:   -80
-				}).render() );
+				});
 			} else {
 				Filters = new wp.media.view.AttachmentFilters.All({
 					controller: this.controller,
 					model:      this.collection.props,
-					priority:   -80
 				});
-
-				this.toolbar.set( 'filters', Filters.render() );
 			}
-		}
 
+			var filterContainer = wp.media.View.extend({
+				tagname: 'div',
+				className: 'media-filter-container type-filter',
+
+				initialize: function() {
+					this.views.add( [ filtersLabel, Filters ] );
+				}
+			});
+
+			this.toolbar.set( 'filters', new filterContainer({
+				controller: this.controller,
+				model:      this.controller.props,
+				priority:   -80
+			}).render() );
+		}
+		
+		var dateFilter, dateFilterLabel, dateFilterContainer;
 		/*
 		 * Feels odd to bring the global media library switcher into the Attachment browser view.
 		 * Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
@@ -219,17 +253,30 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}).render() );
 
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
+			dateFilterLabel = new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
 				},
-				priority: -75
-			}).render() );
-			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
+			});
+			dateFilter = new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-				priority: -75
+			});
+
+			dateFilterContainer = wp.media.View.extend({
+				tagname: 'div',
+				className: 'media-filter-container date-filter',
+
+				initialize: function() {
+					this.views.add( [ dateFilterLabel, dateFilter ] );
+				}
+			});
+
+			this.toolbar.set( 'dateFilters', new dateFilterContainer({
+				controller: this.controller,
+				model:      this.collection.props,
+				priority:   -75
 			}).render() );
 
 			// BulkSelection is a <div> with subviews, including screen reader text.
@@ -341,22 +388,35 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		} else if ( this.options.date ) {
 			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
+			dateFilterLabel = new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
 				},
-				priority: -75
-			}).render() );
-			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
+			});
+			dateFilter = new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-				priority: -75
+			});
+
+			dateFilterContainer = wp.media.View.extend({
+				tagname: 'div',
+				className: 'media-filter-container date-filter',
+
+				initialize: function() {
+					this.views.add( [ dateFilterLabel, dateFilter ] );
+				}
+			});
+
+			this.toolbar.set( 'dateFilters', new dateFilterContainer({
+				controller: this.controller,
+				model:      this.collection.props,
+				priority:   -75
 			}).render() );
 		}
 
 		if ( this.options.search ) {
-			// Search is an input, a visually hidden label element needs to be rendered before.
+			// Search is an input, a label element needs to be rendered before.
 			this.toolbar.set( 'searchLabel', new wp.media.view.Label({
 				value: l10n.searchLabel,
 				className: 'media-search-input-label',
@@ -392,13 +452,16 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			noItemsView;
 
 		if ( this.controller.isModeActive( 'grid' ) ) {
+			// Usually the media library.
 			noItemsView = view.attachmentsNoResults;
 		} else {
+			// Usually the media modal.
 			noItemsView = view.uploader;
 		}
 
 		if ( ! this.collection.length ) {
 			this.toolbar.get( 'spinner' ).show();
+			this.toolbar.$( '.media-bg-overlay' ).show();
 			this.dfd = this.collection.more().done( function() {
 				if ( ! view.collection.length ) {
 					noItemsView.$el.removeClass( 'hidden' );
@@ -406,10 +469,12 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 					noItemsView.$el.addClass( 'hidden' );
 				}
 				view.toolbar.get( 'spinner' ).hide();
+				view.toolbar.$( '.media-bg-overlay' ).hide();
 			} );
 		} else {
 			noItemsView.$el.addClass( 'hidden' );
 			view.toolbar.get( 'spinner' ).hide();
+			this.toolbar.$( '.media-bg-overlay' ).hide();
 		}
 	},
 
@@ -433,6 +498,23 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 	},
 
+	/**
+	 * Creates the Attachments wrapper view.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @return {void}
+	 */
+	createAttachmentsWrapperView: function() {
+		this.attachmentsWrapper = new wp.media.View( {
+			className: 'attachments-wrapper'
+		} );
+
+		// Create the list of attachments.
+		this.views.add( this.attachmentsWrapper );
+		this.createAttachments();
+	},
+
 	createAttachments: function() {
 		this.attachments = new wp.media.view.Attachments({
 			controller:           this.controller,
@@ -451,8 +533,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		this.controller.on( 'attachment:keydown:arrow',     _.bind( this.attachments.arrowEvent, this.attachments ) );
 		this.controller.on( 'attachment:details:shift-tab', _.bind( this.attachments.restoreFocus, this.attachments ) );
 
-		this.views.add( this.attachments );
-
+		this.views.add( '.attachments-wrapper', this.attachments );
 
 		if ( this.controller.isModeActive( 'grid' ) ) {
 			this.attachmentsNoResults = new View({
@@ -465,6 +546,156 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 			this.views.add( this.attachmentsNoResults );
 		}
+	},
+
+	/**
+	 * Creates the load more button and attachments counter view.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @return {void}
+	 */
+	createLoadMoreView: function() {
+		var view = this;
+
+		this.loadMoreWrapper = new View( {
+			controller: this.controller,
+			className: 'load-more-wrapper'
+		} );
+
+		this.loadMoreCount = new View( {
+			controller: this.controller,
+			tagName: 'p',
+			className: 'load-more-count hidden'
+		} );
+
+		this.loadMoreButton = new wp.media.view.Button( {
+			text: __( 'Load more' ),
+			className: 'load-more hidden',
+			style: 'primary',
+			size: '',
+			click: function() {
+				view.loadMoreAttachments();
+			}
+		} );
+
+		this.loadMoreSpinner = new wp.media.view.Spinner();
+
+		this.loadMoreJumpToFirst = new wp.media.view.Button( {
+			text: __( 'Jump to first loaded item' ),
+			className: 'load-more-jump hidden',
+			size: '',
+			click: function() {
+				view.jumpToFirstAddedItem();
+			}
+		} );
+
+		this.views.add( '.attachments-wrapper', this.loadMoreWrapper );
+		this.views.add( '.load-more-wrapper', this.loadMoreSpinner );
+		this.views.add( '.load-more-wrapper', this.loadMoreCount );
+		this.views.add( '.load-more-wrapper', this.loadMoreButton );
+		this.views.add( '.load-more-wrapper', this.loadMoreJumpToFirst );
+	},
+
+	/**
+	 * Updates the Load More view. This function is debounced because the
+	 * collection updates multiple times at the add, remove, and reset events.
+	 * We need it to run only once, after all attachments are added or removed.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @return {void}
+	 */
+	updateLoadMoreView: _.debounce( function() {
+		// Ensure the load more view elements are initially hidden at each update.
+		this.loadMoreButton.$el.addClass( 'hidden' );
+		this.loadMoreCount.$el.addClass( 'hidden' );
+		this.loadMoreJumpToFirst.$el.addClass( 'hidden' ).prop( 'disabled', true );
+
+		if ( ! this.collection.getTotalAttachments() ) {
+			return;
+		}
+
+		if ( this.collection.length ) {
+			this.loadMoreCount.$el.text(
+				/* translators: 1: Number of displayed attachments, 2: Number of total attachments. */
+				sprintf(
+					__( 'Showing %1$s of %2$s media items' ),
+					this.collection.length,
+					this.collection.getTotalAttachments()
+				)
+			);
+
+			this.loadMoreCount.$el.removeClass( 'hidden' );
+		}
+
+		/*
+		 * Notice that while the collection updates multiple times hasMore() may
+		 * return true when it's actually not true.
+		 */
+		if ( this.collection.hasMore() ) {
+			this.loadMoreButton.$el.removeClass( 'hidden' );
+		}
+
+		// Find the media item to move focus to. The jQuery `eq()` index is zero-based.
+		this.firstAddedMediaItem = this.$el.find( '.attachment' ).eq( this.firstAddedMediaItemIndex );
+
+		// If there's a media item to move focus to, make the "Jump to" button available.
+		if ( this.firstAddedMediaItem.length ) {
+			this.firstAddedMediaItem.addClass( 'new-media' );
+			this.loadMoreJumpToFirst.$el.removeClass( 'hidden' ).prop( 'disabled', false );
+		}
+
+		// If there are new items added, but no more to be added, move focus to Jump button.
+		if ( this.firstAddedMediaItem.length && ! this.collection.hasMore() ) {
+			this.loadMoreJumpToFirst.$el.trigger( 'focus' );
+		}
+	}, 10 ),
+
+	/**
+	 * Loads more attachments.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @return {void}
+	 */
+	loadMoreAttachments: function() {
+		var view = this;
+
+		if ( ! this.collection.hasMore() ) {
+			return;
+		}
+
+		/*
+		 * The collection index is zero-based while the length counts the actual
+		 * amount of items. Thus the length is equivalent to the position of the
+		 * first added item.
+		 */
+		this.firstAddedMediaItemIndex = this.collection.length;
+
+		this.$el.addClass( 'more-loaded' );
+		this.collection.each( function( attachment ) {
+			var attach_id = attachment.attributes.id;
+			$( '[data-id="' + attach_id + '"]' ).addClass( 'found-media' );
+		});
+
+		view.loadMoreSpinner.show();
+		this.collection.once( 'attachments:received', function() {
+			view.loadMoreSpinner.hide();
+		} );
+		this.collection.more();
+	},
+
+	/**
+	 * Moves focus to the first new added item.	.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @return {void}
+	 */
+	jumpToFirstAddedItem: function() {
+		// Set focus on first added item.
+		this.firstAddedMediaItem.focus();
 	},
 
 	createAttachmentsHeading: function() {
