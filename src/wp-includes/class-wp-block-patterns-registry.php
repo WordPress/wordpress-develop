@@ -174,7 +174,9 @@ final class WP_Block_Patterns_Registry {
 			$patterns = &$this->registered_patterns;
 		}
 
-		$pattern_path = realpath( $patterns[ $pattern_name ]['filePath'] ?? '' );
+		$file_path    = $patterns[ $pattern_name ]['filePath'] ?? '';
+		$is_stringy   = is_string( $file_path ) || ( is_object( $file_path ) && method_exists( $file_path, '__toString' ) );
+		$pattern_path = $is_stringy ? realpath( (string) $file_path ) : null;
 		if (
 			! isset( $patterns[ $pattern_name ]['content'] ) &&
 			is_string( $pattern_path ) &&
@@ -225,10 +227,9 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		$patterns      = $outside_init_only
-				? $this->registered_patterns_outside_init
-				: $this->registered_patterns;
-		$hooked_blocks = get_hooked_blocks();
+		$patterns = $outside_init_only
+			? $this->registered_patterns_outside_init
+			: $this->registered_patterns;
 
 		foreach ( $patterns as $index => $pattern ) {
 			$content                       = $this->get_content( $pattern['name'], $outside_init_only );
