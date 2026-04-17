@@ -653,15 +653,15 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 				'& > test <',
 				'&amp; &gt; test &lt;',
 			),
-			'bare less-than in middle is encoded'           => array(
+			'bare less-than in middle is encoded'        => array(
 				'a < b',
 				'a &lt; b',
 			),
-			'html tags are still stripped by strip_tags'    => array(
+			'html tags are still stripped by strip_tags' => array(
 				'<strong>bold</strong>',
 				'bold',
 			),
-			'plain text passes through unchanged'           => array(
+			'plain text passes through unchanged'        => array(
 				'Hello World',
 				'Hello World',
 			),
