@@ -5,7 +5,7 @@
  *
  * @coversDefaultClass WP_oEmbed
  */
-class Tests_WP_oEmbed extends WP_UnitTestCase {
+class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	/**
 	 * @var WP_oEmbed
 	 */
