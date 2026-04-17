@@ -32,7 +32,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	 */
 	public function data_strips_css_from_blocks() {
 		return array(
-			'single block'                     => array(
+			'single block' => array(
 				'content' => '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->',
 				'message' => 'style.css should be stripped from block attributes.',
 			),
