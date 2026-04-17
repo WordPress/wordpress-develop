@@ -3,7 +3,6 @@
 /**
  * @group block-supports
  *
- * @covers ::wp_strip_custom_css_from_blocks
  */
 class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 
@@ -12,6 +11,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	 *
 	 * @ticket 64771
 	 *
+	 * @covers ::wp_strip_custom_css_from_blocks
 	 * @dataProvider data_strips_css_from_blocks
 	 *
 	 * @param string $content  Post content containing blocks.
@@ -42,6 +42,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that style.css is stripped from nested inner blocks.
 	 *
+	 * @covers ::wp_strip_custom_css_from_blocks
 	 * @ticket 64771
 	 */
 	public function test_strips_css_from_inner_blocks() {
@@ -57,6 +58,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that content without blocks is returned unchanged.
 	 *
+	 * @covers ::wp_strip_custom_css_from_blocks
 	 * @ticket 64771
 	 */
 	public function test_returns_non_block_content_unchanged() {
@@ -70,6 +72,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that content without style.css attributes is returned unchanged.
 	 *
+	 * @covers ::wp_strip_custom_css_from_blocks
 	 * @ticket 64771
 	 */
 	public function test_returns_unchanged_when_no_css_attributes() {
@@ -83,6 +86,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that other style properties are preserved when css is stripped.
 	 *
+	 * @covers ::wp_strip_custom_css_from_blocks
 	 * @ticket 64771
 	 */
 	public function test_preserves_other_style_properties() {
@@ -98,6 +102,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that empty style object is cleaned up after stripping css.
 	 *
+	 * @covers ::wp_strip_custom_css_from_blocks
 	 * @ticket 64771
 	 */
 	public function test_cleans_up_empty_style_object() {
@@ -112,6 +117,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that slashed content is handled correctly.
 	 *
+	 * @covers ::wp_strip_custom_css_from_blocks
 	 * @ticket 64771
 	 */
 	public function test_handles_slashed_content() {
@@ -122,5 +128,89 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 		$blocks = parse_blocks( wp_unslash( $result ) );
 
 		$this->assertArrayNotHasKey( 'css', $blocks[0]['attrs']['style'] ?? array(), 'style.css should be stripped even from slashed content.' );
+	}
+
+	/**
+	 * Tests that the content_save_pre filter is added for a user without edit_css.
+	 *
+	 * @ticket 64771
+	 *
+	 * @covers ::wp_custom_css_kses_init
+	 * @covers ::wp_custom_css_kses_init_filters
+	 */
+	public function test_filter_added_for_user_without_edit_css() {
+		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $author_id );
+		wp_custom_css_kses_init();
+
+		$this->assertSame( 8, has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'content_save_pre filter should be added at priority 8 for users without edit_css.' );
+		$this->assertSame( 8, has_filter( 'content_filtered_save_pre', 'wp_strip_custom_css_from_blocks' ), 'content_filtered_save_pre filter should be added at priority 8 for users without edit_css.' );
+
+		wp_set_current_user( 0 );
+		wp_custom_css_remove_filters();
+	}
+
+	/**
+	 * Tests that the content_save_pre filter is not added for a user with edit_css.
+	 *
+	 * @ticket 64771
+	 *
+	 * @covers ::wp_custom_css_kses_init
+	 * @covers ::wp_custom_css_remove_filters
+	 */
+	public function test_filter_not_added_for_user_with_edit_css() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+		wp_custom_css_kses_init();
+
+		$this->assertFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'content_save_pre filter should not be added for users with edit_css.' );
+		$this->assertFalse( has_filter( 'content_filtered_save_pre', 'wp_strip_custom_css_from_blocks' ), 'content_filtered_save_pre filter should not be added for users with edit_css.' );
+
+		wp_set_current_user( 0 );
+	}
+
+	/**
+	 * Tests that switching to a user with edit_css removes the filter via the set_current_user action.
+	 *
+	 * wp_custom_css_kses_init() is hooked to set_current_user, so wp_set_current_user()
+	 * alone should update the filter state without a manual call.
+	 *
+	 * @ticket 64771
+	 *
+	 * @covers ::wp_custom_css_kses_init
+	 */
+	public function test_set_current_user_action_triggers_reinit() {
+		$admin_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+
+		wp_set_current_user( $author_id );
+		$this->assertNotFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'Filter should be active for user without edit_css.' );
+
+		wp_set_current_user( $admin_id );
+		$this->assertFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'Filter should be removed after switching to a user with edit_css.' );
+
+		wp_set_current_user( 0 );
+	}
+
+	/**
+	 * Tests that the filter is enabled during import regardless of user capability.
+	 *
+	 * @ticket 64771
+	 *
+	 * @covers ::wp_custom_css_force_filtered_html_on_import_filter
+	 */
+	public function test_force_filtered_html_on_import_enables_filter_for_privileged_user() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+		wp_custom_css_kses_init();
+
+		$this->assertFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'Filter should not be active for admin before import.' );
+
+		apply_filters( 'force_filtered_html_on_import', true );
+
+		$this->assertNotFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'Filter should be enabled during import regardless of user capability.' );
+
+		wp_set_current_user( 0 );
+		wp_custom_css_remove_filters();
 	}
 }
