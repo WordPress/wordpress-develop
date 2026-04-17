@@ -498,6 +498,54 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an exception thrown by the execute callback is converted to a WP_Error
+	 * instead of being propagated as an uncaught throwable.
+	 *
+	 * @ticket 65058
+	 */
+	public function test_execute_catches_callback_exception() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): int {
+					throw new RuntimeException( 'boom' );
+				},
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		$this->assertWPError( $result, 'Ability::execute() should return WP_Error when the callback throws.' );
+		$this->assertSame( 'ability_callback_exception', $result->get_error_code() );
+		$this->assertStringContainsString( 'boom', $result->get_error_message() );
+	}
+
+	/**
+	 * Tests that an exception thrown by the permission callback is converted to a WP_Error
+	 * instead of being propagated as an uncaught throwable.
+	 *
+	 * @ticket 65058
+	 */
+	public function test_check_permissions_catches_callback_exception() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'permission_callback' => static function (): bool {
+					throw new RuntimeException( 'permission exploded' );
+				},
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->check_permissions();
+
+		$this->assertWPError( $result, 'Ability::check_permissions() should return WP_Error when the callback throws.' );
+		$this->assertSame( 'ability_callback_exception', $result->get_error_code() );
+		$this->assertStringContainsString( 'permission exploded', $result->get_error_message() );
+	}
+
+	/**
 	 * Tests that before_execute_ability action is fired with correct parameters.
 	 *
 	 * @ticket 64098
