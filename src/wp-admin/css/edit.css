@@ -112,9 +112,9 @@ input#link_url {
 	color: #646970;
 }
 
-#edit-slug-box .button.button-small {
+#edit-slug-box .button.save {
 	vertical-align: middle;
-	height: 36px;
+	min-height: 36px;
 }
 
 #sample-permalink {
