@@ -160,13 +160,20 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	 */
 	public function test_filter_not_added_for_user_with_edit_css() {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin_id );
+		}
 		wp_set_current_user( $admin_id );
 		wp_custom_css_kses_init();
 
 		$this->assertFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'content_save_pre filter should not be added for users with edit_css.' );
 		$this->assertFalse( has_filter( 'content_filtered_save_pre', 'wp_strip_custom_css_from_blocks' ), 'content_filtered_save_pre filter should not be added for users with edit_css.' );
 
+		if ( is_multisite() ) {
+			revoke_super_admin( $admin_id );
+		}
 		wp_set_current_user( 0 );
+		wp_custom_css_remove_filters();
 	}
 
 	/**
@@ -182,14 +189,23 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	public function test_set_current_user_action_triggers_reinit() {
 		$admin_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin_id );
+		}
 
+		// Switching to a user without edit_css should add the filter via the set_current_user action.
 		wp_set_current_user( $author_id );
 		$this->assertNotFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'Filter should be active for user without edit_css.' );
 
+		// Switching to a user with edit_css should remove the filter via the set_current_user action.
 		wp_set_current_user( $admin_id );
 		$this->assertFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'Filter should be removed after switching to a user with edit_css.' );
 
+		if ( is_multisite() ) {
+			revoke_super_admin( $admin_id );
+		}
 		wp_set_current_user( 0 );
+		wp_custom_css_remove_filters();
 	}
 
 	/**
@@ -201,6 +217,9 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	 */
 	public function test_force_filtered_html_on_import_enables_filter_for_privileged_user() {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin_id );
+		}
 		wp_set_current_user( $admin_id );
 		wp_custom_css_kses_init();
 
@@ -210,6 +229,9 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 
 		$this->assertNotFalse( has_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks' ), 'Filter should be enabled during import regardless of user capability.' );
 
+		if ( is_multisite() ) {
+			revoke_super_admin( $admin_id );
+		}
 		wp_set_current_user( 0 );
 		wp_custom_css_remove_filters();
 	}
