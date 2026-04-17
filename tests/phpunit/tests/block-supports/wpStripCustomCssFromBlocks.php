@@ -22,6 +22,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 		$blocks = parse_blocks( $result );
 
 		$this->assertArrayNotHasKey( 'css', $blocks[0]['attrs']['style'] ?? array(), $message );
+		$this->assertArrayNotHasKey( 'style', $blocks[0]['attrs'] ?? array(), 'style key should be fully removed when css was the only property.' );
 	}
 
 	/**
@@ -32,10 +33,6 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	public function data_strips_css_from_blocks() {
 		return array(
 			'single block'                     => array(
-				'content' => '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->',
-				'message' => 'style.css should be stripped from block attributes.',
-			),
-			'empty style object is cleaned up' => array(
 				'content' => '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->',
 				'message' => 'style.css should be stripped from block attributes.',
 			),
