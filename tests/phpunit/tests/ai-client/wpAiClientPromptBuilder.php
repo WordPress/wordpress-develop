@@ -195,12 +195,13 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * Test that the constructor allows overriding the default request timeout with a higher value.
 	 *
 	 * @ticket 64591
+	 * @ticket 65094
 	 */
 	public function test_constructor_allows_overriding_request_timeout_with_higher_value() {
 		add_filter(
 			'wp_ai_client_default_request_timeout',
 			static function () {
-				return 45;
+				return 45.5;
 			}
 		);
 
@@ -210,7 +211,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertEquals( 45, $request_options->getTimeout() );
+		$this->assertEquals( 45.5, $request_options->getTimeout() );
 	}
 
 	/**
