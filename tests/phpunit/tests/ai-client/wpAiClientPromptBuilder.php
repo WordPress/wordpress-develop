@@ -192,11 +192,11 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the constructor allows overriding the default request timeout.
+	 * Test that the constructor allows overriding the default request timeout with a higher value.
 	 *
 	 * @ticket 64591
 	 */
-	public function test_constructor_allows_overriding_request_timeout() {
+	public function test_constructor_allows_overriding_request_timeout_with_higher_value() {
 		add_filter(
 			'wp_ai_client_default_request_timeout',
 			static function () {
@@ -211,6 +211,66 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
 		$this->assertEquals( 45, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Test that the constructor allows overriding the default request timeout with null.
+	 *
+	 * @ticket 65094
+	 */
+	public function test_constructor_allows_overriding_request_timeout_with_null() {
+		add_filter( 'wp_ai_client_default_request_timeout', '__return_null' );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		/** @var RequestOptions $request_options */
+		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
+
+		$this->assertInstanceOf( RequestOptions::class, $request_options );
+		$this->assertNull( $request_options->getTimeout() );
+	}
+
+	/**
+	 * Test that the constructor disallows overriding the default request timeout with a invalid value.
+	 *
+	 * @ticket 65094
+	 *
+	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 */
+	public function test_constructor_disallows_overriding_with_negative_request_timeout() {
+		add_filter(
+			'wp_ai_client_default_request_timeout',
+			static function () {
+				return -1;
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		/** @var RequestOptions $request_options */
+		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
+
+		$this->assertInstanceOf( RequestOptions::class, $request_options );
+		$this->assertEquals( 30, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Test that the constructor disallows overriding the default request timeout with a invalid value.
+	 *
+	 * @ticket 65094
+	 *
+	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 */
+	public function test_constructor_disallows_overriding_with_bad_request_timeout_type() {
+		add_filter( 'wp_ai_client_default_request_timeout', '__return_empty_array' );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		/** @var RequestOptions $request_options */
+		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
+
+		$this->assertInstanceOf( RequestOptions::class, $request_options );
+		$this->assertEquals( 30, $request_options->getTimeout() );
 	}
 
 	/**
