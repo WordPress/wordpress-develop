@@ -127,7 +127,7 @@ function wp_register_custom_css_support( $block_type ) {
 /**
  * Strips `style.css` attributes from all blocks in post content.
  *
- * Uses WP_Block_Parser::next_token() to scan block tokens and surgically
+ * Uses {@see WP_Block_Parser::next_token()} to scan block tokens and surgically
  * replace only the attribute JSON that changed — no parse_blocks() +
  * serialize_blocks() round-trip needed.
  *
@@ -152,11 +152,12 @@ function wp_strip_custom_css_from_blocks( $content ) {
 
 	while ( $parser->offset < $end ) {
 		$next_token = $parser->next_token();
-		list( $token_type, , $attrs, $start_offset, $token_length ) = $next_token;
 
-		if ( 'no-more-tokens' === $token_type ) {
+		if ( 'no-more-tokens' === $next_token[0] ) {
 			break;
 		}
+
+		list( $token_type, , $attrs, $start_offset, $token_length ) = $next_token;
 
 		$parser->offset = $start_offset + $token_length;
 
@@ -214,6 +215,7 @@ function wp_strip_custom_css_from_blocks( $content ) {
 
 /**
  * Adds the filters to strip custom CSS from block content on save.
+ * Priority of 8 to run before wp_filter_global_styles_post (priority 9) and wp_filter_post_kses (priority 10).
  *
  * @since 7.0.0
  * @access private
@@ -225,6 +227,7 @@ function wp_custom_css_kses_init_filters() {
 
 /**
  * Removes the filters that strip custom CSS from block content on save.
+ * Priority of 8 to run before wp_filter_global_styles_post (priority 9) and wp_filter_post_kses (priority 10).
  *
  * @since 7.0.0
  * @access private
@@ -250,7 +253,8 @@ function wp_custom_css_kses_init() {
 /**
  * Initializes custom CSS content filters when imported data should be filtered.
  *
- * This filter is the last being executed on force_filtered_html_on_import.
+ * Runs at priority 999 on {@see 'force_filtered_html_on_import'} to ensure it
+ * fires after general KSES initialization, independently of user capabilities.
  * If the input of the filter is true it means we are in an import situation and should
  * enable the custom CSS filters, independently of the user capabilities.
  *
@@ -267,6 +271,7 @@ function wp_custom_css_force_filtered_html_on_import_filter( $arg ) {
 	return $arg;
 }
 
+// Run before wp_filter_global_styles_post (priority 9) and wp_filter_post_kses (priority 10).
 add_action( 'init', 'wp_custom_css_kses_init', 20 );
 add_action( 'set_current_user', 'wp_custom_css_kses_init' );
 add_filter( 'force_filtered_html_on_import', 'wp_custom_css_force_filtered_html_on_import_filter', 999 );
