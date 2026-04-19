@@ -772,6 +772,23 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @covers WP_REST_Font_Faces_Controller::validate_create_font_face_settings
 	 */
+	public function test_create_item_non_string_settings() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families/' . self::$font_family_id . '/font-faces' );
+		$request->set_param( 'theme_json_version', WP_REST_Font_Faces_Controller::LATEST_THEME_JSON_VERSION_SUPPORTED );
+		$request->set_param( 'font_face_settings', self::$default_settings );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400, 'The response should return an error for "rest_invalid_param" with 400 status.' );
+		$expected_message = 'font_face_settings is not of type string.';
+		$message          = $response->as_error()->get_all_error_data()[0]['params']['font_face_settings'];
+		$this->assertSame( $expected_message, $message, 'The response error message should match.' );
+	}
+
+	/**
+	 * @covers WP_REST_Font_Faces_Controller::validate_create_font_face_settings
+	 */
 	public function test_create_item_invalid_file_src() {
 		$files = $this->setup_font_file_upload( array( 'woff2' ) );
 
