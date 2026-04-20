@@ -54,6 +54,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40319
+	 *
 	 * @covers ::check_comment
 	 */
 	public function test_allow_comment_if_previously_approved_author_name_and_email_contain_apostrophe() {
