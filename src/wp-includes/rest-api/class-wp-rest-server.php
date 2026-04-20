@@ -957,8 +957,9 @@ class WP_REST_Server {
 		 *
 		 * @param array $endpoints The available endpoints. An array of matching regex patterns, each mapped
 		 *                         to an array of callbacks for the endpoint. These take the format
-		 *                         `'/path/regex' => array( $callback, $bitmask )` or
-		 *                         `'/path/regex' => array( array( $callback, $bitmask ).
+		 *                         `'/path/regex' => array( $callback, $bitmask )`,
+		 *                         `'/path/regex' => array( array( $callback, $bitmask ), or
+		 *                         `'/path/regex' => object(WP_REST_Resolvable_Route)
 		 */
 		$endpoints = apply_filters( 'rest_endpoints', $endpoints );
 
