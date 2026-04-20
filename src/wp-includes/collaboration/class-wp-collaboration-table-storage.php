@@ -144,13 +144,14 @@ class WP_Collaboration_Table_Storage {
 
 		$entries = array();
 		foreach ( $rows as $row ) {
-			$decoded = json_decode( $row->data, true );
-			if ( is_array( $decoded ) ) {
+			$date_time     = date_create_from_format( 'Y-m-d H:i:s', $row->date_gmt, new DateTimeZone( 'UTC' ) );
+			$decoded_state = json_decode( $row->data, true );
+			if ( is_array( $decoded_state ) && false !== $date_time ) {
 				$entries[] = array(
 					'client_id' => $row->client_id,
-					'state'     => $decoded,
+					'state'     => $decoded_state,
 					'user_id'   => (int) $row->user_id,
-					'timestamp' => date_create_from_format( 'Y-m-d H:i:s', $row->date_gmt, new DateTimeZone( 'UTC' ) )->getTimestamp(),
+					'timestamp' => $date_time->getTimestamp(),
 				);
 			}
 		}
