@@ -322,12 +322,28 @@ class WP_Collaboration_Table_Storage {
 
 		wp_recursive_ksort( $state );
 
-		/*
-		 * Bucket the timestamp to 5-second intervals so most polls
-		 * short-circuit without a database write. Ceil is used instead
-		 * of floor to prevent the awareness timeout from being hit early.
+		/**
+		 * Filters granularity used for rounding up a client's awareness timestamp.
+		 *
+		 * Modifies the granularity used when recording the latest time a client updates their
+		 * awareness state. This allows implementations to increase or reduce the granularity
+		 * of awareness updates for the desired balance of real-time updates and server load.
+		 *
+		 * The default database granularity of 10 seconds limits the number of writes to the
+		 * database as WordPress only makes the database call if the transient has changed.
+		 * Increasing the granularity by lowering this number will increase the number of
+		 * database writes.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param int $granularity Granularity in seconds. Default 10.
 		 */
-		$now_timestamp = (int) ceil( time() / 5 ) * 5;
+		$granularity = absint( apply_filters( 'wp_sync_awareness_timestamp_granularity', 10 ) );
+		if ( 0 === $granularity ) {
+			$granularity = 1;
+		}
+
+		$now_timestamp = (int) ceil( time() / $granularity ) * $granularity;
 		$now_mysql     = gmdate( 'Y-m-d H:i:s', $now_timestamp );
 
 		if ( wp_using_ext_object_cache() ) {
