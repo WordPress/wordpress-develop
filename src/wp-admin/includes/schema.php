@@ -190,16 +190,25 @@ CREATE TABLE $wpdb->posts (
 CREATE TABLE $wpdb->collaboration (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	room varchar($max_index_length) NOT NULL default '',
-	type varchar(32) NOT NULL default '',
 	client_id varchar(32) NOT NULL default '',
 	user_id bigint(20) unsigned NOT NULL default '0',
 	data longtext NOT NULL,
 	date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (id),
-	KEY type_client_id (type,client_id),
 	KEY room (room,id),
-	KEY room_type_date (room,type,date_gmt),
 	KEY date_gmt (date_gmt)
+) $charset_collate;
+CREATE TABLE $wpdb->presence (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	room varchar($max_index_length) NOT NULL default '',
+	client_id varchar($max_index_length) NOT NULL default '',
+	user_id bigint(20) unsigned NOT NULL default '0',
+	data text NOT NULL,
+	date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY  (id),
+	UNIQUE KEY room_client (room,client_id),
+	KEY date_gmt (date_gmt),
+	KEY user_id (user_id)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.

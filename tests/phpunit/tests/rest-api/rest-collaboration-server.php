@@ -42,6 +42,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// in the test suite. TRUNCATE implicitly commits the transaction.
 		global $wpdb;
 		$wpdb->query( "DELETE FROM {$wpdb->collaboration}" );
+		$wpdb->query( "DELETE FROM {$wpdb->presence}" );
 
 		// Reset the global REST server so rest_get_server() builds a fresh instance based on the option setting.
 		$GLOBALS['wp_rest_server'] = null;
@@ -1275,10 +1276,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_client_reactivates_after_expiry(): void {
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
-		}
-
 		wp_set_current_user( self::$editor_id );
 		global $wpdb;
 
@@ -1292,19 +1289,15 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 
 		// Simulate the client going idle beyond the awareness timeout
-		// by backdating its awareness row.
+		// by backdating its presence row.
 		$wpdb->update(
-			$wpdb->collaboration,
+			$wpdb->presence,
 			array( 'date_gmt' => gmdate( 'Y-m-d H:i:s', time() - 120 ) ),
 			array(
 				'room'      => $room,
-				'type'      => 'awareness',
 				'client_id' => '1',
 			)
 		);
-
-		// Flush the object cache so get_awareness_state() hits the DB.
-		wp_cache_flush();
 
 		// Another client polls — the expired client should not appear.
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
@@ -1318,7 +1311,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		// Original user returns and reconnects with the same client_id.
 		wp_set_current_user( self::$editor_id );
-		wp_cache_flush();
 
 		$response  = $this->dispatch_collaboration(
 			array(
@@ -1334,58 +1326,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Verify no duplicate rows were created.
 		$row_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type = 'awareness' AND room = %s AND client_id = %s",
+				"SELECT COUNT(*) FROM {$wpdb->presence} WHERE room = %s AND client_id = %s",
 				$room,
 				'1'
 			)
 		);
 		$this->assertSame( 1, $row_count, 'Should have exactly one awareness row after reactivation.' );
-	}
-
-	/**
-	 * Ensure awareness updates are not stored in the DB for sites using a persistent cache.
-	 */
-	public function test_awareness_uses_persistent_object_cache() {
-		if ( ! wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is in use.' );
-		}
-
-		$storage          = new WP_Collaboration_Table_Storage();
-		$db_calls_initial = get_num_queries();
-		$storage->set_awareness_state( 'test-room', 'test-client', array( 'name' => 'Test Client' ), 1 );
-		$db_calls_after = get_num_queries();
-
-		$this->assertSame( 0, $db_calls_after - $db_calls_initial, 'Awareness update should not trigger database queries when using persistent object cache.' );
-		$this->assertSame( 0, $this->get_awareness_row_count(), 'Awareness row should not be stored in database when using persistent object cache.' );
-	}
-
-	/**
-	 * Ensure awareness retrieval uses in-memory cache within a single request, even when a persistent cache is in use.
-	 */
-	public function test_awareness_uses_in_memory_cache() {
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
-		}
-
-		$storage          = new WP_Collaboration_Table_Storage();
-		$db_calls_initial = get_num_queries();
-		$storage->set_awareness_state( 'test-room', 'test-client', array( 'name' => 'Test Client' ), 1 );
-		$db_calls_after = get_num_queries();
-
-		$this->assertSame( 2, $db_calls_after - $db_calls_initial, 'Awareness update should not trigger database queries when using persistent object cache.' );
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Awareness row should not be stored in database when using persistent object cache.' );
-
-		$db_calls_initial = get_num_queries();
-		$storage->get_awareness_state( 'test-room' );
-		$db_calls_after = get_num_queries();
-
-		$this->assertSame( 1, $db_calls_after - $db_calls_initial, 'Initial awareness retrieval should query database.' );
-
-		$db_calls_initial = get_num_queries();
-		$storage->get_awareness_state( 'test-room' );
-		$db_calls_after = get_num_queries();
-
-		$this->assertSame( 0, $db_calls_after - $db_calls_initial, 'Subsequent awareness retrieval should use in-memory cache and not query database.' );
 	}
 
 	/**
@@ -1406,35 +1352,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$this->assertContains( 'client-1', $clients, 'Client 1 should be present in awareness state.' );
 		$this->assertContains( 'client-2', $clients, 'Client 2 should be present in awareness state.' );
-	}
-
-	/**
-	 * Ensure awareness does not include out of date clients from cached results.
-	 */
-	public function test_awareness_excludes_expired_clients_from_cached_results() {
-		$storage     = new WP_Collaboration_Table_Storage();
-		$cached_data = array(
-			array(
-				'client_id' => 'client-1',
-				'state'     => array( 'name' => 'Client 1' ),
-				'timestamp' => time() - 120, // Simulate expired client.
-			),
-			array(
-				'client_id' => 'client-2',
-				'state'     => array( 'name' => 'Client 2' ),
-				'timestamp' => time(), // Active client.
-			),
-		);
-
-		// Manually set cached awareness data.
-		wp_cache_set( 'awareness::test-room', $cached_data, 'collaboration', HOUR_IN_SECONDS );
-
-		$awareness = $storage->get_awareness_state( 'test-room' );
-		$clients   = wp_list_pluck( $awareness, 'client_id' );
-
-		$this->assertNotContains( 'client-1', $clients, 'Expired client should not be present in awareness state.' );
-		$this->assertContains( 'client-2', $clients, 'Active client should be present in awareness state.' );
-		$this->assertCount( 1, $awareness, 'Only one active client should be present in awareness state.' );
 	}
 
 	/*
@@ -1840,7 +1757,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Count rows before compaction.
 		$count_before = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s",
 				$room
 			)
 		);
@@ -1859,7 +1776,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Count rows after compaction.
 		$count_after = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s",
 				$room
 			)
 		);
@@ -1941,7 +1858,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			$wpdb->collaboration,
 			array(
 				'room'      => $this->get_post_room(),
-				'type'      => 'update',
 				'client_id' => '1',
 				'user_id'   => self::$editor_id,
 				'data'      => wp_json_encode(
@@ -1952,30 +1868,30 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 				),
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
 			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%s', '%d', '%s', '%s' )
 		);
 	}
 
 	/**
-	 * Returns the number of non-awareness rows in the collaboration table.
+	 * Returns the number of rows in the collaboration table.
 	 *
-	 * @return positive-int Row count.
+	 * @return int Row count.
 	 */
 	private function get_collaboration_row_count(): int {
 		global $wpdb;
 
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type != 'awareness'" );
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->collaboration}" );
 	}
 
 	/**
-	 * Returns the number of awareness rows in the collaboration table.
+	 * Returns the number of rows in the presence table.
 	 *
-	 * @return positive-int Row count.
+	 * @return int Row count.
 	 */
 	private function get_awareness_row_count(): int {
 		global $wpdb;
 
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type = 'awareness'" );
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->presence}" );
 	}
 
 	/**
@@ -2061,22 +1977,21 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Insert a stale sync row (older than 7 days).
 		$this->insert_collaboration_row( 10 * DAY_IN_SECONDS );
 
-		// Insert a stale awareness row (older than 60 seconds).
+		// Insert a stale presence row (older than 60 seconds).
 		$wpdb->insert(
-			$wpdb->collaboration,
+			$wpdb->presence,
 			array(
 				'room'      => $this->get_post_room(),
-				'type'      => 'awareness',
 				'client_id' => '42',
 				'user_id'   => self::$editor_id,
 				'data'      => wp_json_encode( array( 'cursor' => 'stale' ) ),
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%s', '%d', '%s', '%s' )
 		);
 
 		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Should have 1 sync row before cleanup.' );
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Should have 1 awareness row before cleanup.' );
+		$this->assertSame( 1, $this->get_awareness_row_count(), 'Should have 1 presence row before cleanup.' );
 
 		// Schedule the cron event so we can verify it gets cleared.
 		wp_schedule_event( time(), 'hourly', 'wp_delete_old_collaboration_data' );
@@ -2104,25 +2019,24 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_cron_cleanup_preserves_fresh_awareness_rows(): void {
 		global $wpdb;
 
-		// Insert a fresh awareness row (30 seconds old — well within the 60s threshold).
+		// Insert a fresh presence row (30 seconds old — well within the 60s threshold).
 		$wpdb->insert(
-			$wpdb->collaboration,
+			$wpdb->presence,
 			array(
 				'room'      => $this->get_post_room(),
-				'type'      => 'awareness',
 				'client_id' => '1',
 				'user_id'   => self::$editor_id,
 				'data'      => wp_json_encode( array( 'cursor' => 'active' ) ),
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 30 ),
 			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%s', '%d', '%s', '%s' )
 		);
 
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Should have 1 awareness row before cleanup.' );
+		$this->assertSame( 1, $this->get_awareness_row_count(), 'Should have 1 presence row before cleanup.' );
 
 		wp_delete_old_collaboration_data();
 
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Fresh awareness row should survive cron cleanup.' );
+		$this->assertSame( 1, $this->get_awareness_row_count(), 'Fresh presence row should survive cron cleanup.' );
 	}
 
 	/*
@@ -2149,7 +2063,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Reset again so subsequent tests get a server with the correct db_version, done prior to assertion to ensure this runs when an exception is thrown.
 		$GLOBALS['wp_rest_server'] = null;
 
-		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61841.' );
+		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61843.' );
 	}
 
 	/*
@@ -2294,18 +2208,17 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$room = $this->get_post_room();
 
-		// Insert an awareness row clearly older than the 60-second cron threshold.
+		// Insert a presence row clearly older than the 60-second cron threshold.
 		$wpdb->insert(
-			$wpdb->collaboration,
+			$wpdb->presence,
 			array(
 				'room'      => $room,
-				'type'      => 'awareness',
 				'client_id' => '99',
 				'user_id'   => self::$editor_id,
 				'data'      => wp_json_encode( array( 'cursor' => 'stale' ) ),
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%s', '%d', '%s', '%s' )
 		);
 
 		// Client 1 polls — the expired row should not appear in results.
@@ -2322,7 +2235,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// The expired row still exists in the table (no inline DELETE on the read path).
 		$expired_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type = 'awareness' AND room = %s AND client_id = %s",
+				"SELECT COUNT(*) FROM {$wpdb->presence} WHERE room = %s AND client_id = %s",
 				$room,
 				'99'
 			)
@@ -2334,7 +2247,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$post_cron_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type = 'awareness' AND room = %s AND client_id = %s",
+				"SELECT COUNT(*) FROM {$wpdb->presence} WHERE room = %s AND client_id = %s",
 				$room,
 				'99'
 			)
@@ -2350,25 +2263,24 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_cron_cleanup_deletes_expired_awareness_rows(): void {
 		global $wpdb;
 
-		// Insert an awareness row older than 60 seconds.
+		// Insert a presence row older than 60 seconds.
 		$wpdb->insert(
-			$wpdb->collaboration,
+			$wpdb->presence,
 			array(
 				'room'      => $this->get_post_room(),
-				'type'      => 'awareness',
 				'client_id' => '42',
 				'user_id'   => self::$editor_id,
 				'data'      => wp_json_encode( array( 'cursor' => 'old' ) ),
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%s', '%d', '%s', '%s' )
 		);
 
 		// Insert a recent collaboration row (should survive).
 		$this->insert_collaboration_row( HOUR_IN_SECONDS );
 
 		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Collaboration table should have 1 sync row.' );
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Collaboration table should have 1 awareness row.' );
+		$this->assertSame( 1, $this->get_awareness_row_count(), 'Presence table should have 1 row.' );
 
 		wp_delete_old_collaboration_data();
 
@@ -2383,9 +2295,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_user_id_round_trip(): void {
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
-		}
 
 		global $wpdb;
 
@@ -2397,10 +2306,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$response = $this->dispatch_collaboration( $rooms );
 		$this->assertSame( 200, $response->get_status(), 'Dispatch should succeed.' );
 
-		// Query the collaboration table directly for the awareness row.
+		// Query the presence table directly for the awareness row.
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT user_id, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s",
+				"SELECT user_id, data FROM {$wpdb->presence} WHERE room = %s AND client_id = %s",
 				$room,
 				'1'
 			)
@@ -2424,18 +2333,17 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$room = $this->get_post_room();
 
-		// Insert a malformed awareness row with a JSON string (not an array).
+		// Insert a malformed presence row with a JSON string (not an array).
 		$wpdb->insert(
-			$wpdb->collaboration,
+			$wpdb->presence,
 			array(
 				'room'      => $room,
-				'type'      => 'awareness',
 				'client_id' => '99',
 				'user_id'   => self::$editor_id,
 				'data'      => '"hello"',
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
 			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%s', '%d', '%s', '%s' )
 		);
 
 		// Dispatch as a different client so the response includes other clients' awareness.
@@ -2493,9 +2401,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_null_awareness_skips_write(): void {
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
-		}
 
 		global $wpdb;
 
@@ -2516,7 +2421,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( 200, $response->get_status(), 'Null awareness dispatch should succeed.' );
 
 		// Assert collaboration table has exactly 1 awareness row (client 1 only).
-		$row_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type = 'awareness'" );
+		$row_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->presence}" );
 		$this->assertSame( 1, $row_count, 'Only client 1 should have an awareness row.' );
 
 		// Assert response still contains client 1's awareness (read still works).
@@ -2526,62 +2431,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( array( 'cursor' => 'active' ), $awareness['1'], 'Client 1 awareness state should match.' );
 	}
 
-	/*
-	 * Cache tests.
-	 */
-
 	/**
-	 * Verifies that a normal awareness write updates the cache in-place
-	 * so the next client's poll hits the cache instead of the database.
+	 * Verifies that the awareness state reflects the latest write.
 	 *
 	 * @ticket 64696
 	 */
-	public function test_collaboration_awareness_cache_hit_after_write(): void {
-		global $wpdb;
-
-		wp_set_current_user( self::$editor_id );
-
-		$room = $this->get_post_room();
-
-		// Cold-cache baseline: flush the cache and dispatch client 1.
-		wp_cache_flush();
-		$queries_before_cold = $wpdb->num_queries;
-
-		$this->dispatch_collaboration(
-			array(
-				$this->build_room( $room, '1', 0, array( 'cursor' => 'pos-a' ) ),
-			)
-		);
-
-		$queries_cold = $wpdb->num_queries - $queries_before_cold;
-
-		// Warm-cache dispatch: client 2 polls the same room. Client 1's
-		// dispatch primed and updated the cache, so the awareness read
-		// should be served from cache.
-		$queries_before_warm = $wpdb->num_queries;
-
-		$this->dispatch_collaboration(
-			array(
-				$this->build_room( $room, '2', 0, array( 'cursor' => 'pos-b' ) ),
-			)
-		);
-
-		$queries_warm = $wpdb->num_queries - $queries_before_warm;
-
-		$this->assertLessThan(
-			$queries_cold,
-			$queries_warm,
-			'Warm-cache dispatch should use fewer queries than cold-cache dispatch.'
-		);
-	}
-
-	/**
-	 * Verifies that the in-place cache update after a write produces
-	 * correct data, not stale state.
-	 *
-	 * @ticket 64696
-	 */
-	public function test_collaboration_awareness_cache_reflects_latest_write(): void {
+	public function test_collaboration_awareness_reflects_latest_write(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$room = $this->get_post_room();
@@ -2924,9 +2779,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_no_duplicate_rows(): void {
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
-		}
 
 		global $wpdb;
 
@@ -2945,7 +2797,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s",
+				"SELECT COUNT(*) FROM {$wpdb->presence} WHERE room = %s AND client_id = %s",
 				$room,
 				'1'
 			)
@@ -2961,9 +2813,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_one_row_per_client(): void {
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
-		}
 
 		global $wpdb;
 
@@ -2984,12 +2833,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness'",
+				"SELECT COUNT(*) FROM {$wpdb->presence} WHERE room = %s",
 				$room
 			)
 		);
 
-		$this->assertSame( 3, $count, 'Each client should have exactly one awareness row regardless of write frequency.' );
+		$this->assertSame( 3, $count, 'Each client should have exactly one presence row regardless of write frequency.' );
 	}
 
 	/**
@@ -3098,7 +2947,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT id FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' ORDER BY id ASC",
+				"SELECT id FROM {$wpdb->collaboration} WHERE room = %s ORDER BY id ASC",
 				$room
 			)
 		);
@@ -3178,58 +3027,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// LIKE query for all post rooms.
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room LIKE %s AND type != 'awareness'",
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room LIKE %s",
 				'postType/post:%'
 			)
 		);
 
 		$this->assertSame( 2, $count, 'LIKE query should find updates across all post rooms.' );
-	}
-
-	/*
-	 * Table extensibility tests.
-	 *
-	 * The table is designed as a general-purpose primitive
-	 * that supports arbitrary type values for future use cases.
-	 */
-
-	/**
-	 * The table schema should accept arbitrary type values,
-	 * supporting future use cases like CRDT document persistence.
-	 *
-	 * @ticket 64696
-	 */
-	public function test_collaboration_table_accepts_arbitrary_types(): void {
-		global $wpdb;
-
-		$room = $this->get_post_room();
-
-		// Insert a row with a custom type directly (simulating a future use case).
-		$result = $wpdb->insert(
-			$wpdb->collaboration,
-			array(
-				'room'      => $room,
-				'type'      => 'persisted_crdt_doc',
-				'client_id' => '0',
-				'user_id'   => self::$editor_id,
-				'data'      => wp_json_encode( array( 'doc' => 'base64data' ) ),
-				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
-			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
-		);
-
-		$this->assertNotFalse( $result, 'Insert with custom type should succeed.' );
-
-		// Verify the row persists and is queryable.
-		$row = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT type, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'persisted_crdt_doc'",
-				$room
-			)
-		);
-
-		$this->assertNotNull( $row, 'Custom type row should be queryable.' );
-		$this->assertSame( 'persisted_crdt_doc', $row->type, 'Type column should store the custom value.' );
 	}
 
 	/*

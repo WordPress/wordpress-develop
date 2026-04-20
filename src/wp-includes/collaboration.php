@@ -22,7 +22,7 @@ function wp_is_collaboration_enabled() {
 	return (
 		wp_is_collaboration_allowed() &&
 		get_option( 'wp_collaboration_enabled' ) &&
-		get_option( 'db_version' ) >= 61841
+		get_option( 'db_version' ) >= 61843
 	);
 }
 
@@ -89,9 +89,8 @@ function wp_collaboration_inject_setting() {
 /**
  * Deletes stale collaboration data from the collaboration table.
  *
- * Removes non-awareness rows older than 7 days and awareness rows older
- * than 60 seconds. Rows left behind by abandoned collaborative editing
- * sessions are cleaned up to prevent unbounded table growth.
+ * Removes update rows older than 7 days. Presence data is cleaned
+ * separately via wp_delete_expired_presence_data().
  *
  * @since 7.0.0
  */
@@ -107,7 +106,7 @@ function wp_delete_old_collaboration_data() {
 		wp_clear_scheduled_hook( 'wp_delete_old_collaboration_data' );
 	}
 
-	/* Clean up rows older than 7 days. */
+	/* Clean up update rows older than 7 days. */
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->collaboration} WHERE date_gmt < %s",
@@ -115,11 +114,6 @@ function wp_delete_old_collaboration_data() {
 		)
 	);
 
-	// Clean up awareness rows older than 60 seconds.
-	$wpdb->query(
-		$wpdb->prepare(
-			"DELETE FROM {$wpdb->collaboration} WHERE type = 'awareness' AND date_gmt < %s",
-			gmdate( 'Y-m-d H:i:s', time() - 60 )
-		)
-	);
+	/* Clean up expired presence entries. */
+	wp_delete_expired_presence_data();
 }

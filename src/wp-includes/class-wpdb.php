@@ -300,6 +300,7 @@ class wpdb {
 		'termmeta',
 		'commentmeta',
 		'collaboration',
+		'presence',
 	);
 
 	/**
@@ -413,6 +414,15 @@ class wpdb {
 	 * @var string
 	 */
 	public $collaboration;
+
+	/**
+	 * WordPress Presence table.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @var string
+	 */
+	public $presence;
 
 	/**
 	 * WordPress Terms table.
