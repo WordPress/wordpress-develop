@@ -1342,6 +1342,52 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( 1, $row_count, 'Should have exactly one awareness row after reactivation.' );
 	}
 
+	/**
+	 * Ensure awareness updates are not stored in the DB for sites using a persistent cache.
+	 */
+	public function test_awareness_uses_persistent_object_cache() {
+		if ( ! wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is in use.' );
+		}
+
+		$storage = new WP_Collaboration_Table_Storage();
+		$db_calls_initial = get_num_queries();
+		$storage->set_awareness_state( 'test-room', 'test-client', array( 'name' => 'Test Client' ), 1 );
+		$db_calls_after = get_num_queries();
+
+		$this->assertSame( 0, $db_calls_after - $db_calls_initial, 'Awareness update should not trigger database queries when using persistent object cache.' );
+		$this->assertSame( 0, $this->get_awareness_row_count(), 'Awareness row should not be stored in database when using persistent object cache.' );
+	}
+
+	/**
+	 * Ensure awareness retrieval uses in-memory cache within a single request, even when a persistent cache is in use.
+	 */
+	public function test_awareness_uses_in_memory_cache() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		$storage = new WP_Collaboration_Table_Storage();
+		$db_calls_initial = get_num_queries();
+		$storage->set_awareness_state( 'test-room', 'test-client', array( 'name' => 'Test Client' ), 1 );
+		$db_calls_after = get_num_queries();
+
+		$this->assertSame( 2, $db_calls_after - $db_calls_initial, 'Awareness update should not trigger database queries when using persistent object cache.' );
+		$this->assertSame( 1, $this->get_awareness_row_count(), 'Awareness row should not be stored in database when using persistent object cache.' );
+
+		$db_calls_initial = get_num_queries();
+		$storage->get_awareness_state( 'test-room' );
+		$db_calls_after = get_num_queries();
+
+		$this->assertSame( 1, $db_calls_after - $db_calls_initial, 'Initial awareness retrieval should query database.' );
+
+		$db_calls_initial = get_num_queries();
+		$storage->get_awareness_state( 'test-room' );
+		$db_calls_after = get_num_queries();
+
+		$this->assertSame( 0, $db_calls_after - $db_calls_initial, 'Subsequent awareness retrieval should use in-memory cache and not query database.' );
+	}
+
 	/*
 	 * Multiple rooms tests.
 	 */
