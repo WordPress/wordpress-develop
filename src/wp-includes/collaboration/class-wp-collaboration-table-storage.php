@@ -77,6 +77,18 @@ class WP_Collaboration_Table_Storage {
 	}
 
 	/**
+	 * Generates a cache key for awareness data for a given room.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $room Room identifier.
+	 * @return string Cache key for the room's awareness data.
+	 */
+	public function get_awareness_cache_key( string $room ): string {
+		return 'awareness::' . str_replace( '/', ':', $room );
+	}
+
+	/**
 	 * Gets awareness state for a given room.
 	 *
 	 * Checks the persistent object cache first. On a cache miss, queries
@@ -103,7 +115,7 @@ class WP_Collaboration_Table_Storage {
 
 		$cutoff_timestamp = time() - $timeout;
 		$cutoff_mysql     = gmdate( 'Y-m-d H:i:s', $cutoff_timestamp );
-		$cache_key        = 'awareness::' . str_replace( '/', ':', $room );
+		$cache_key        = $this->get_awareness_cache_key( $room );
 		$cached           = wp_cache_get( $cache_key, 'collaboration' );
 
 		if ( false !== $cached && is_array( $cached ) ) {
@@ -350,7 +362,7 @@ class WP_Collaboration_Table_Storage {
 
 		$now_timestamp = (int) ceil( time() / $granularity ) * $granularity;
 		$now_mysql     = gmdate( 'Y-m-d H:i:s', $now_timestamp );
-		$cache_key     = 'awareness::' . str_replace( '/', ':', $room );
+		$cache_key     = $this->get_awareness_cache_key( $room );
 
 		if ( wp_using_ext_object_cache() ) {
 			$awareness = $this->get_awareness_state( $room );
