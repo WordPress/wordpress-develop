@@ -27,6 +27,9 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		self::delete_user( self::$subscriber_id );
 		remove_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 		wp_delete_post( self::$post_id, true );
+
+		// Reset the global REST server so rest_get_server() builds a fresh instance for subsequent test suites.
+		$GLOBALS['wp_rest_server'] = null;
 	}
 
 	public function set_up() {
@@ -39,6 +42,9 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// in the test suite. TRUNCATE implicitly commits the transaction.
 		global $wpdb;
 		$wpdb->query( "DELETE FROM {$wpdb->collaboration}" );
+
+		// Reset the global REST server so rest_get_server() builds a fresh instance based on the option setting.
+		$GLOBALS['wp_rest_server'] = null;
 	}
 
 	/**
