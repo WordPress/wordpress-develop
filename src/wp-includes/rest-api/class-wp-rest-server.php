@@ -940,8 +940,9 @@ class WP_REST_Server {
 	 * @since X.X.0
 	 *
 	 * @param string $route_namespace Optionally, only return routes in the given namespace.
-	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
-	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
+	 * @return array `'/path/regex' => array( $callback, $bitmask )`,
+	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`, or
+	 *               `'/path/regex' => object( WP_REST_Resolvable_Route )`
 	 */
 	public function get_unresolved_routes( $route_namespace = '' ) {
 		$endpoints = $this->endpoints;
@@ -959,7 +960,7 @@ class WP_REST_Server {
 		 *                         to an array of callbacks for the endpoint. These take the format
 		 *                         `'/path/regex' => array( $callback, $bitmask )`,
 		 *                         `'/path/regex' => array( array( $callback, $bitmask ), or
-		 *                         `'/path/regex' => object(WP_REST_Resolvable_Route)
+		 *                         `'/path/regex' => object( WP_REST_Resolvable_Route )`
 		 */
 		$endpoints = apply_filters( 'rest_endpoints', $endpoints );
 
