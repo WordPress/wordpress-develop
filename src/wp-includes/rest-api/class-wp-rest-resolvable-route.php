@@ -75,7 +75,7 @@ class WP_REST_Resolvable_Route implements ArrayAccess, IteratorAggregate, Counta
 	 * @return bool True if the key exists, false otherwise.
 	 */
 	#[ReturnTypeWillChange]
-	public function offsetExists( mixed $k ) {
+	public function offsetExists( $k ) {
 		$this->__invoke();
 		return isset( $this->resolved[ $k ] );
 	}
@@ -89,7 +89,7 @@ class WP_REST_Resolvable_Route implements ArrayAccess, IteratorAggregate, Counta
 	 * @return mixed The value of the key, or null if not set. Returns by reference, so it can be modified if needed.
 	 */
 	#[ReturnTypeWillChange]
-	public function &offsetGet( mixed $k ) {
+	public function &offsetGet( $k ) {
 		$this->__invoke();
 		return $this->resolved[ $k ];
 	}
@@ -103,7 +103,7 @@ class WP_REST_Resolvable_Route implements ArrayAccess, IteratorAggregate, Counta
 	 * @param mixed $value The value to set.
 	 */
 	#[ReturnTypeWillChange]
-	public function offsetSet( mixed $k, mixed $v ) {
+	public function offsetSet( $k, $v ) {
 		$this->__invoke();
 		$this->resolved[ $k ] = $v;
 	}
@@ -116,7 +116,7 @@ class WP_REST_Resolvable_Route implements ArrayAccess, IteratorAggregate, Counta
 	 * @param string $key The key to unset.
 	 */
 	#[ReturnTypeWillChange]
-	public function offsetUnset( mixed $k ) {
+	public function offsetUnset( $k ) {
 		$this->__invoke();
 		unset( $this->resolved[ $k ] );
 	}
