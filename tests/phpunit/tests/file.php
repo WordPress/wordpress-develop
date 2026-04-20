@@ -95,6 +95,30 @@ class Tests_File extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Tests that get_file_data() supports single-line headers with a <?php open tag.
+	 *
+	 * @ticket 42517
+	 * @covers ::get_file_data
+	 */
+	public function test_get_file_data_with_single_line_php_open_tag() {
+		$headers = array( 'TemplateName' => 'Template Name' );
+		$actual  = get_file_data( DIR_TESTDATA . '/themedir1/page-templates/template-header.php', $headers );
+		$this->assertSame( 'This Template Header Is On One Line', $actual['TemplateName'] );
+	}
+
+	/**
+	 * Tests that get_file_data() supports single-line headers with a <? short open tag.
+	 *
+	 * @ticket 42517
+	 * @covers ::get_file_data
+	 */
+	public function test_get_file_data_with_single_line_short_open_tag() {
+		$headers = array( 'TemplateName' => 'Template Name' );
+		$actual  = get_file_data( DIR_TESTDATA . '/themedir1/page-templates/template-header-short-tag.php', $headers );
+		$this->assertSame( 'Short Tag Template', $actual['TemplateName'] );
+	}
+
 	private function is_unique_writable_file( $path, $filename ) {
 		$fullpath = $path . DIRECTORY_SEPARATOR . $filename;
 
