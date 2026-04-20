@@ -927,28 +927,23 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Retrieves the route map.
+	 * Get unresolved route configuration.
 	 *
-	 * The route map is an associative array with path regexes as the keys. The
-	 * value is an indexed array with the callback function/method as the first
-	 * item, and a bitmask of HTTP methods as the second item (see the class
-	 * constants).
+	 * For performance reasons, routes can specify options as a callback instead
+	 * of a direct array. This route specification remains "unresolved" until
+	 * we need to read from the array, at which point we do just-in-time
+	 * normalization of the options.
 	 *
-	 * Each route can be mapped to more than one callback by using an array of
-	 * the indexed arrays. This allows mapping e.g. GET requests to one callback
-	 * and POST requests to another.
+	 * When you don't need the full options (i.e. for routing), using the
+	 * unresolved routes has higher performance.
 	 *
-	 * Note that the path regexes (array keys) must have @ escaped, as this is
-	 * used as the delimiter with preg_match()
-	 *
-	 * @since 4.4.0
-	 * @since 5.4.0 Added `$route_namespace` parameter.
+	 * @since X.X.0
 	 *
 	 * @param string $route_namespace Optionally, only return routes in the given namespace.
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
 	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
 	 */
-	public function get_routes( $route_namespace = '' ) {
+	public function get_unresolved_routes( $route_namespace = '' ) {
 		$endpoints = $this->endpoints;
 
 		if ( $route_namespace ) {
@@ -967,6 +962,25 @@ class WP_REST_Server {
 		 */
 		$endpoints = apply_filters( 'rest_endpoints', $endpoints );
 
+		return $endpoints;
+	}
+
+	/**
+	 * Resolve a route's handlers and options.
+	 *
+	 * When using unresolved routes from WP_REST_Server::get_unresolved_routes(),
+	 * the route handlers and options are not normalized until this method is
+	 * called. This allows for just-in-time normalization of routes, which can
+	 * improve performance when only routing is needed.
+	 *
+	 * @since X.X.0
+	 *
+	 * @param string $route	   The route to normalize.
+	 * @param array  $handlers Route option handlers to normalize.
+	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
+	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
+	 */
+	public function resolve_route_handlers( string $route, array &$handlers ) {
 		// Normalize the endpoints.
 		$defaults = array(
 			'methods'       => '',
@@ -976,44 +990,76 @@ class WP_REST_Server {
 			'args'          => array(),
 		);
 
+		if ( isset( $handlers['callback'] ) ) {
+			// Single endpoint, add one deeper.
+			$handlers = array( $handlers );
+		}
+
+		if ( ! isset( $this->route_options[ $route ] ) ) {
+			$this->route_options[ $route ] = array();
+		}
+
+		foreach ( $handlers as $key => &$handler ) {
+			if ( ! is_numeric( $key ) ) {
+				// Route option, move it to the options.
+				$this->route_options[ $route ][ $key ] = $handler;
+				unset( $handlers[ $key ] );
+				continue;
+			}
+
+			// Resolve any just-in-time resolvable options, and apply defaults.
+			$handler = iterator_to_array( $handler );
+			$handler = wp_parse_args( $handler, $defaults );
+
+			// Allow comma-separated HTTP methods.
+			if ( is_string( $handler['methods'] ) ) {
+				$methods = explode( ',', $handler['methods'] );
+			} elseif ( is_array( $handler['methods'] ) ) {
+				$methods = $handler['methods'];
+			} else {
+				$methods = array();
+			}
+
+			$handler['methods'] = array();
+
+			foreach ( $methods as $method ) {
+				$method                        = strtoupper( trim( $method ) );
+				$handler['methods'][ $method ] = true;
+			}
+		}
+		return $handlers;
+	}
+
+	/**
+	 * Retrieves the route map.
+	 *
+	 * The route map is an associative array with path regexes as the keys. The
+	 * value is an indexed array with the callback function/method as the first
+	 * item, and a bitmask of HTTP methods as the second item (see the class
+	 * constants).
+	 *
+	 * Each route can be mapped to more than one callback by using an array of
+	 * the indexed arrays. This allows mapping e.g. GET requests to one callback
+	 * and POST requests to another.
+	 *
+	 * Note that the path regexes (array keys) must have @ escaped, as this is
+	 * used as the delimiter with preg_match()
+	 *
+	 * For high-level routing purposes, consider using 
+	 *
+	 * @since 4.4.0
+	 * @since 5.4.0 Added `$route_namespace` parameter.
+	 *
+	 * @param string $route_namespace Optionally, only return routes in the given namespace.
+	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
+	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
+	 */
+	public function get_routes( $route_namespace = '' ) {
+		$endpoints = $this->get_unresolved_routes( $route_namespace );
+
+		// Resolve the routes.
 		foreach ( $endpoints as $route => &$handlers ) {
-
-			if ( isset( $handlers['callback'] ) ) {
-				// Single endpoint, add one deeper.
-				$handlers = array( $handlers );
-			}
-
-			if ( ! isset( $this->route_options[ $route ] ) ) {
-				$this->route_options[ $route ] = array();
-			}
-
-			foreach ( $handlers as $key => &$handler ) {
-
-				if ( ! is_numeric( $key ) ) {
-					// Route option, move it to the options.
-					$this->route_options[ $route ][ $key ] = $handler;
-					unset( $handlers[ $key ] );
-					continue;
-				}
-
-				$handler = wp_parse_args( $handler, $defaults );
-
-				// Allow comma-separated HTTP methods.
-				if ( is_string( $handler['methods'] ) ) {
-					$methods = explode( ',', $handler['methods'] );
-				} elseif ( is_array( $handler['methods'] ) ) {
-					$methods = $handler['methods'];
-				} else {
-					$methods = array();
-				}
-
-				$handler['methods'] = array();
-
-				foreach ( $methods as $method ) {
-					$method                        = strtoupper( trim( $method ) );
-					$handler['methods'][ $method ] = true;
-				}
-			}
+			$handlers = $this->resolve_route_handlers( $route, $handlers );
 		}
 
 		return $endpoints;
@@ -1152,17 +1198,17 @@ class WP_REST_Server {
 
 		foreach ( $this->get_namespaces() as $namespace ) {
 			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
-				$with_namespace[] = $this->get_routes( $namespace );
+				$with_namespace[] = $this->get_unresolved_routes( $namespace );
 			}
 		}
 
 		if ( $with_namespace ) {
 			$routes = array_merge( ...$with_namespace );
 		} else {
-			$routes = $this->get_routes();
+			$routes = $this->get_unresolved_routes();
 		}
 
-		foreach ( $routes as $route => $handlers ) {
+		foreach ( $routes as $route => $resolvable ) {
 			$match = preg_match( '@^' . $route . '$@i', $path, $matches );
 
 			if ( ! $match ) {
@@ -1177,6 +1223,7 @@ class WP_REST_Server {
 				}
 			}
 
+			$handlers = $this->resolve_route_handlers( $route, $resolvable );
 			foreach ( $handlers as $handler ) {
 				$callback = $handler['callback'];
 
