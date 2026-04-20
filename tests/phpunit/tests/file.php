@@ -115,7 +115,7 @@ class Tests_File extends WP_UnitTestCase {
 	 */
 	public function test_get_file_data_with_single_line_short_open_tag() {
 		$headers = array( 'TemplateName' => 'Template Name' );
-		$actual  = get_file_data( DIR_TESTDATA . '/themedir1/page-templates/template-header-short-tag.php', $headers );
+		$actual  = get_file_data( DIR_TESTDATA . '/formatting/file-header-short-open-tag.php', $headers );
 		$this->assertSame( 'Short Tag Template', $actual['TemplateName'] );
 	}
 
