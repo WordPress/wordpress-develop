@@ -346,10 +346,8 @@ class WP_Collaboration_Table_Storage {
 		 * awareness state. This allows implementations to increase or reduce the granularity
 		 * of awareness updates for the desired balance of real-time updates and server load.
 		 *
-		 * The default database granularity of 10 seconds limits the number of writes to the
-		 * database as WordPress only makes the database call if the transient has changed.
-		 * Increasing the granularity by lowering this number will increase the number of
-		 * database writes.
+		 * The default awareness granularity of 10 seconds limits the number of writes to the
+		 * database/object cache as the awareness state is only updated if the time has changed.
 		 *
 		 * @since 7.0.0
 		 *
@@ -369,12 +367,12 @@ class WP_Collaboration_Table_Storage {
 
 			foreach ( $awareness as $index => $client_awareness ) {
 				if ( $client_awareness['client_id'] === $client_id && $client_awareness['timestamp'] === $now_timestamp ) {
-					// Cache already has the current client state, consider update a success (avoids cache thrashing).
+					// Cache already has the current client expiry, consider update a success (avoids cache thrashing).
 					return true;
 				}
 
 				if ( $client_awareness['client_id'] === $client_id ) {
-					// Remove stale cache entry for the current client, if it exists.
+					// Remove stale cache entry for the current client.
 					unset( $awareness[ $index ] );
 					break;
 				}
