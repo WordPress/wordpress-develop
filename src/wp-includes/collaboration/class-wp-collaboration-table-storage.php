@@ -106,10 +106,7 @@ class WP_Collaboration_Table_Storage {
 		$cache_key        = 'awareness::' . str_replace( '/', ':', $room );
 		$cached           = wp_cache_get( $cache_key, 'collaboration' );
 
-		if ( false !== $cached && is_string( $cached ) ) {
-			// Room is cached.
-			$cached = json_decode( $cached, true );
-
+		if ( false !== $cached && is_array( $cached ) ) {
 			// Deterministic ordering.
 			$cached_awareness = wp_list_sort( $cached, 'client_id' );
 
@@ -121,6 +118,9 @@ class WP_Collaboration_Table_Storage {
 			}
 
 			return array_values( $cached_awareness );
+		} elseif ( false !== $cached ) {
+			// Cache is corrupted, delete it.
+			wp_cache_delete( $cache_key, 'collaboration' );
 		}
 
 		if ( wp_using_ext_object_cache() ) {
@@ -138,7 +138,7 @@ class WP_Collaboration_Table_Storage {
 
 		if ( ! is_array( $rows ) ) {
 			$entries = array();
-			wp_cache_set( $cache_key, wp_json_encode( $entries ), 'collaboration' );
+			wp_cache_set( $cache_key, $entries, 'collaboration', HOUR_IN_SECONDS );
 			return $entries;
 		}
 
@@ -155,7 +155,7 @@ class WP_Collaboration_Table_Storage {
 			}
 		}
 
-		wp_cache_set( $cache_key, wp_json_encode( $entries ), 'collaboration' );
+		wp_cache_set( $cache_key, $entries, 'collaboration', HOUR_IN_SECONDS );
 		return $entries;
 	}
 
@@ -378,7 +378,7 @@ class WP_Collaboration_Table_Storage {
 
 			// Sort awareness entries by client_id.
 			$awareness = wp_list_sort( $awareness, 'client_id' );
-			wp_cache_set( $cache_key, wp_json_encode( $awareness ), 'collaboration', HOUR_IN_SECONDS );
+			wp_cache_set( $cache_key, $awareness, 'collaboration', HOUR_IN_SECONDS );
 
 			return true;
 		}
