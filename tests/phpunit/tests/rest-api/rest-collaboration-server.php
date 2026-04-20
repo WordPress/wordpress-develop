@@ -1288,6 +1288,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_client_reactivates_after_expiry(): void {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		wp_set_current_user( self::$editor_id );
 		global $wpdb;
 
@@ -2292,6 +2296,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_user_id_round_trip(): void {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		global $wpdb;
 
 		wp_set_current_user( self::$editor_id );
@@ -2398,6 +2406,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_null_awareness_skips_write(): void {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		global $wpdb;
 
 		wp_set_current_user( self::$editor_id );
@@ -2820,6 +2832,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_no_duplicate_rows(): void {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		global $wpdb;
 
 		wp_set_current_user( self::$editor_id );
@@ -2853,6 +2869,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_awareness_one_row_per_client(): void {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		global $wpdb;
 
 		wp_set_current_user( self::$editor_id );
