@@ -103,10 +103,10 @@ class WP_Collaboration_Table_Storage {
 
 		$cutoff_timestamp = time() - $timeout;
 		$cutoff_mysql     = gmdate( 'Y-m-d H:i:s', $cutoff_timestamp );
+		$cache_key        = 'awareness::' . str_replace( '/', ':', $room );
 
 		if ( wp_using_ext_object_cache() ) {
-			$cache_key = 'awareness::' . str_replace( '/', ':', $room );
-			$cached    = wp_cache_get( $cache_key, 'collaboration' );
+			$cached = wp_cache_get( $cache_key, 'collaboration' );
 
 			if ( false === $cached || ! is_string( $cached ) ) {
 				// Room not set/corrupted.
@@ -128,6 +128,16 @@ class WP_Collaboration_Table_Storage {
 			return array_values( $cached_awareness );
 		}
 
+		// Check in-memory cache for sites without a persistent object cache.
+		$cached = wp_cache_get( $cache_key, 'collaboration' );
+		if ( false !== $cached && is_string( $cached ) ) {
+			$cached = json_decode( $cached, true );
+
+			if ( is_array( $cached ) ) {
+				return $cached;
+			}
+		}
+
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT client_id, user_id, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s",
@@ -137,7 +147,9 @@ class WP_Collaboration_Table_Storage {
 		);
 
 		if ( ! is_array( $rows ) ) {
-			return array();
+			$entries = array();
+			wp_cache_set( $cache_key, wp_json_encode( $entries ), 'collaboration' );
+			return $entries;
 		}
 
 		$entries = array();
@@ -152,6 +164,7 @@ class WP_Collaboration_Table_Storage {
 			}
 		}
 
+		wp_cache_set( $cache_key, wp_json_encode( $entries ), 'collaboration' );
 		return $entries;
 	}
 
@@ -345,9 +358,9 @@ class WP_Collaboration_Table_Storage {
 
 		$now_timestamp = (int) ceil( time() / $granularity ) * $granularity;
 		$now_mysql     = gmdate( 'Y-m-d H:i:s', $now_timestamp );
+		$cache_key     = 'awareness::' . str_replace( '/', ':', $room );
 
 		if ( wp_using_ext_object_cache() ) {
-			$cache_key = 'awareness::' . str_replace( '/', ':', $room );
 			$awareness = $this->get_awareness_state( $room );
 
 			foreach ( $awareness as $index => $client_awareness ) {
@@ -423,6 +436,8 @@ class WP_Collaboration_Table_Storage {
 			return false;
 		}
 
+		// Clear in memory cache.
+		wp_cache_delete( $cache_key, 'collaboration' );
 		return true;
 	}
 }
