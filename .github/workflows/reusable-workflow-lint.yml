@@ -35,6 +35,12 @@ jobs:
   #
   # This helps guard against supply chain attacks, unpinned dependencies, excessive permissions,
   # dangerous triggers, credential leaks, and sophisticated security vulnerabilities.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Installs and configures uv.
+  # - Runs a zizmor scan.
+  # - Uploads the SARIF file to GitHub.
   zizmor:
     name: Zizmor
     runs-on: ubuntu-24.04

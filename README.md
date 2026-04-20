@@ -99,9 +99,9 @@ npm run test:php -- --group <group name or ticket number>
 
 #### To lint the workflow files
 
-GitHub Actions workflows operate in a privileged software supply chain environment, therefore the workflow files must be adhere to a high degree of quality and security standards.
+GitHub Actions workflows operate in a privileged software supply chain environment, therefore all workflow files must adhere to a high degree of quality and security standards.
 
-The YAML workflow files in the `.github/workflows` directory are statically scanned during GitHub Actions workflow runs using [Actionlint](https://github.com/rhysd/actionlint) and [Zizmor](https://github.com/zizmorcore/zizmor). If you're making changes to those files then you can install both these tools locally using a package manager for your operating system and then run them to lint the files.
+All YAML workflow files within the `.github/workflows` directory are statically scanned when modified using [Actionlint](https://github.com/rhysd/actionlint) and [Zizmor](https://github.com/zizmorcore/zizmor). It's recommended that you install both of these tools locally using a package manager to run prior to submitting changes to workflow files.
 
 - [Actionlint installations instructions](https://github.com/rhysd/actionlint/blob/main/docs/install.md)
 - [Zizmor installation instructions](https://docs.zizmor.sh/installation/)
@@ -112,13 +112,13 @@ To run Actionlint:
 actionlint
 ```
 
-To run Zizmor (note the trailing period):
+To run Zizmor for all workflow files (note the trailing period):
 
 ```
 zizmor .
 ```
 
-The linting that happens during GitHub Actions workflow runs is connected to GitHub Code Scanning, so linting errors won't cause workflow runs to fail directly. Some linting issues that are reported locally may be ignored in the Code Scanning settings.
+**Note:** A workflow run failure will not occur when issues are detected by Zizmor. Instead, the generated report is submitted to GitHub Code Scanning and surfaced through a status check. Some locally reported issues may be ignored based on the repository's configured Code Scanning settings.
 
 #### Generating a code coverage report
 PHP code coverage reports are [generated daily](https://github.com/WordPress/wordpress-develop/actions/workflows/test-coverage.yml) and [submitted to Codecov.io](https://app.codecov.io/gh/WordPress/wordpress-develop).
