@@ -101,20 +101,38 @@ class WP_Collaboration_Table_Storage {
 	public function get_awareness_state( string $room, int $timeout = 30 ): array {
 		global $wpdb;
 
-		$cache_key = 'awareness:' . str_replace( '/', ':', $room );
-		$cached    = wp_cache_get( $cache_key, 'collaboration' );
+		$cutoff_timestamp = time() - $timeout;
+		$cutoff_mysql     = gmdate( 'Y-m-d H:i:s', $cutoff_timestamp );
 
-		if ( false !== $cached ) {
-			return $cached;
+		if ( wp_using_ext_object_cache() ) {
+			$cache_key = 'awareness::' . str_replace( '/', ':', $room );
+			$cached    = wp_cache_get( $cache_key, 'collaboration' );
+
+			if ( false === $cached || ! is_string( $cached ) ) {
+				// Room not set/corrupted.
+				return array();
+			}
+
+			$cached = json_decode( $cached, true );
+
+			// Deterministic ordering.
+			$cached_awareness = wp_list_sort( $cached, 'client_id' );
+
+			// Remove out of date entries.
+			foreach ( $cached_awareness as $index => $client_awareness ) {
+				if ( empty( $client_awareness['timestamp'] ) || $client_awareness['timestamp'] < $cutoff_timestamp ) {
+					unset( $cached_awareness[ $index ] );
+				}
+			}
+
+			return array_values( $cached_awareness );
 		}
-
-		$cutoff = gmdate( 'Y-m-d H:i:s', time() - $timeout );
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT client_id, user_id, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s",
 				$room,
-				$cutoff
+				$cutoff_mysql
 			)
 		);
 
@@ -133,8 +151,6 @@ class WP_Collaboration_Table_Storage {
 				);
 			}
 		}
-
-		wp_cache_set( $cache_key, $entries, 'collaboration', $timeout );
 
 		return $entries;
 	}
@@ -304,14 +320,50 @@ class WP_Collaboration_Table_Storage {
 			return false;
 		}
 
-		$data = wp_json_encode( $state );
+		wp_recursive_ksort( $state );
 
 		/*
 		 * Bucket the timestamp to 5-second intervals so most polls
 		 * short-circuit without a database write. Ceil is used instead
 		 * of floor to prevent the awareness timeout from being hit early.
 		 */
-		$now = gmdate( 'Y-m-d H:i:s', (int) ceil( time() / 5 ) * 5 );
+		$now_timestamp = (int) ceil( time() / 5 ) * 5;
+		$now_mysql     = gmdate( 'Y-m-d H:i:s', $now_timestamp );
+
+		if ( wp_using_ext_object_cache() ) {
+			$cache_key = 'awareness::' . str_replace( '/', ':', $room );
+			$awareness = $this->get_awareness_state( $room );
+
+			foreach ( $awareness as $index => $client_awareness ) {
+				if ( $client_awareness['client_id'] === $client_id && $client_awareness['timestamp'] === $now_timestamp ) {
+					// Cache already has the current client state, consider update a success (avoids cache thrashing).
+					return true;
+				}
+
+				if ( $client_awareness['client_id'] === $client_id ) {
+					// Remove stale cache entry for the current client, if it exists.
+					unset( $awareness[ $index ] );
+					break;
+				}
+			}
+
+			$client_awareness = array(
+				'client_id' => $client_id,
+				'state'     => $state,
+				'user_id'   => $user_id,
+				'timestamp' => $now_timestamp,
+			);
+
+			$awareness[] = $client_awareness;
+
+			// Sort awareness entries by client_id.
+			$awareness = wp_list_sort( $awareness, 'client_id' );
+			wp_cache_set( $cache_key, wp_json_encode( $awareness ), 'collaboration', HOUR_IN_SECONDS );
+
+			return true;
+		}
+
+		$data = wp_json_encode( $state );
 
 		/* Check if a row already exists. */
 		$exists = $wpdb->get_row(
@@ -322,7 +374,7 @@ class WP_Collaboration_Table_Storage {
 			)
 		);
 
-		if ( $exists && $exists->date_gmt === $now ) {
+		if ( $exists && $exists->date_gmt === $now_mysql ) {
 			// Row already has the current date, consider update a success.
 			return true;
 		}
@@ -333,7 +385,7 @@ class WP_Collaboration_Table_Storage {
 				array(
 					'user_id'  => $user_id,
 					'data'     => $data,
-					'date_gmt' => $now,
+					'date_gmt' => $now_mysql,
 				),
 				array( 'id' => $exists->id )
 			);
@@ -346,45 +398,13 @@ class WP_Collaboration_Table_Storage {
 					'client_id' => $client_id,
 					'user_id'   => $user_id,
 					'data'      => $data,
-					'date_gmt'  => $now,
+					'date_gmt'  => $now_mysql,
 				)
 			);
 		}
 
 		if ( false === $result ) {
 			return false;
-		}
-
-		/*
-		 * Update the cached entries in-place so the next reader in this
-		 * room gets a cache hit with fresh data. If the cache is cold,
-		 * skip — the next get_awareness_state() call will prime it.
-		 */
-		$cache_key = 'awareness:' . str_replace( '/', ':', $room );
-		$cached    = wp_cache_get( $cache_key, 'collaboration' );
-
-		if ( false !== $cached ) {
-			$normalized_state = json_decode( $data, true );
-			$found            = false;
-
-			foreach ( $cached as $i => $entry ) {
-				if ( $client_id === $entry['client_id'] ) {
-					$cached[ $i ]['state']   = $normalized_state;
-					$cached[ $i ]['user_id'] = $user_id;
-					$found                   = true;
-					break;
-				}
-			}
-
-			if ( ! $found ) {
-				$cached[] = array(
-					'client_id' => $client_id,
-					'state'     => $normalized_state,
-					'user_id'   => $user_id,
-				);
-			}
-
-			wp_cache_set( $cache_key, $cached, 'collaboration', 30 );
 		}
 
 		return true;
