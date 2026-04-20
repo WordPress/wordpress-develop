@@ -104,15 +104,10 @@ class WP_Collaboration_Table_Storage {
 		$cutoff_timestamp = time() - $timeout;
 		$cutoff_mysql     = gmdate( 'Y-m-d H:i:s', $cutoff_timestamp );
 		$cache_key        = 'awareness::' . str_replace( '/', ':', $room );
+		$cached           = wp_cache_get( $cache_key, 'collaboration' );
 
-		if ( wp_using_ext_object_cache() ) {
-			$cached = wp_cache_get( $cache_key, 'collaboration' );
-
-			if ( false === $cached || ! is_string( $cached ) ) {
-				// Room not set/corrupted.
-				return array();
-			}
-
+		if ( false !== $cached && is_string( $cached ) ) {
+			// Room is cached.
 			$cached = json_decode( $cached, true );
 
 			// Deterministic ordering.
@@ -128,19 +123,14 @@ class WP_Collaboration_Table_Storage {
 			return array_values( $cached_awareness );
 		}
 
-		// Check in-memory cache for sites without a persistent object cache.
-		$cached = wp_cache_get( $cache_key, 'collaboration' );
-		if ( false !== $cached && is_string( $cached ) ) {
-			$cached = json_decode( $cached, true );
-
-			if ( is_array( $cached ) ) {
-				return $cached;
-			}
+		if ( wp_using_ext_object_cache() ) {
+			// Sites with a persistent cache do not use the database.
+			return array();
 		}
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT client_id, user_id, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s",
+				"SELECT client_id, user_id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s",
 				$room,
 				$cutoff_mysql
 			)
@@ -160,6 +150,7 @@ class WP_Collaboration_Table_Storage {
 					'client_id' => $row->client_id,
 					'state'     => $decoded,
 					'user_id'   => (int) $row->user_id,
+					'timestamp' => date_create_from_format( 'Y-m-d H:i:s', $row->date_gmt, new DateTimeZone( 'UTC' ) )->getTimestamp(),
 				);
 			}
 		}
