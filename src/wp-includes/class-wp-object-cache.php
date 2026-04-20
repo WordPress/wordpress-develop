@@ -637,7 +637,11 @@ class WP_Object_Cache {
 		echo '</p>';
 		echo '<ul>';
 		foreach ( $this->cache as $group => $cache ) {
-			echo '<li><strong>Group:</strong> ' . esc_html( $group ) . ' - ( ' . number_format( strlen( serialize( $cache ) ) / KB_IN_BYTES, 2 ) . 'k )</li>';
+			try {
+				echo '<li><strong>Group:</strong> ' . esc_html( $group ) . ' - ( ' . number_format( strlen( serialize( $cache ) ) / KB_IN_BYTES, 2 ) . 'k )</li>';
+			} catch( Exception $e ) {
+				echo '<li><strong>Group:</strong> ' . esc_html( $group ) . ' - ( ' . number_format( strlen( print_r( $cache, true ) ) / KB_IN_BYTES, 2 ) . 'k )</li>';
+			}
 		}
 		echo '</ul>';
 	}
