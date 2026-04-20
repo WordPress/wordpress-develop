@@ -2020,8 +2020,8 @@ function wp_localize_jquery_ui_datepicker() {
 			'currentText'     => __( 'Today' ),
 			'monthNames'      => array_values( $wp_locale->month ),
 			'monthNamesShort' => array_values( $wp_locale->month_abbrev ),
-			'nextText'        => __( 'Next' ),
-			'prevText'        => __( 'Previous' ),
+			'nextText'        => _x( 'Next', 'datepicker: navigate to next month' ),
+			'prevText'        => _x( 'Previous', 'datepicker: navigate to previous month' ),
 			'dayNames'        => array_values( $wp_locale->weekday ),
 			'dayNamesShort'   => array_values( $wp_locale->weekday_abbrev ),
 			'dayNamesMin'     => array_values( $wp_locale->weekday_initial ),
@@ -2371,13 +2371,13 @@ function print_admin_styles() {
  * @global WP_Styles $wp_styles
  * @global bool      $concatenate_scripts
  *
- * @return string[]|void
+ * @return string[]|null
  */
 function print_late_styles() {
 	global $wp_styles, $concatenate_scripts;
 
 	if ( ! ( $wp_styles instanceof WP_Styles ) ) {
-		return;
+		return null;
 	}
 
 	script_concat_settings();

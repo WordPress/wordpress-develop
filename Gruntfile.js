@@ -1839,6 +1839,7 @@ module.exports = function(grunt) {
 		'clean:js',
 		'build:webpack',
 		'copy:js',
+		'copy-vendor-scripts',
 		'file_append',
 		'uglify:all',
 		'concat:tinymce',
@@ -2135,7 +2136,6 @@ module.exports = function(grunt) {
 				'build:css',
 				'build:codemirror',
 				'build:gutenberg',
-				'copy-vendor-scripts',
 				'build:certificates'
 			] );
 		} else {
@@ -2147,7 +2147,6 @@ module.exports = function(grunt) {
 				'build:css',
 				'build:codemirror',
 				'build:gutenberg',
-				'copy-vendor-scripts',
 				'replace:source-maps',
 				'verify:build'
 			] );
