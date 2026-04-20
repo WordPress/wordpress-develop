@@ -127,12 +127,14 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 /**
  * Normalize the options for a single REST API endpoint.
  *
+ * @since X.X.0
+ *
  * @param string $namespace The route namespace.
  * @param string $route     The route.
  * @param array  $endpoint  The endpoint options.
  * @param array  $common_args Common arguments to merge with endpoint-specific arguments.
  */
-function normalize_rest_endpoint_options( string $namespace, string $route, array $endpoint, array $common_args = [] ) {
+function normalize_rest_endpoint_options( string $namespace, string $route, array $endpoint, array $common_args = array() ) {
 	$defaults = array(
 		'methods'  => 'GET',
 		'callback' => null,

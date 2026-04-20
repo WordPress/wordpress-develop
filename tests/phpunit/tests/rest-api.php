@@ -1112,7 +1112,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		register_rest_route(
 			'my-ns/v1',
 			'/my-route',
-			[ $obj, 'get_options' ]
+			array( $obj, 'get_options' )
 		);
 
 		$routes = rest_get_server()->get_routes( 'my-ns/v1' );

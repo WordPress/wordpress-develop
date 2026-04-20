@@ -977,7 +977,7 @@ class WP_REST_Server {
 	 *
 	 * @since X.X.0
 	 *
-	 * @param string $route	   The route to normalize.
+	 * @param string $route    The route to normalize.
 	 * @param array  $handlers Route option handlers to normalize.
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
 	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
@@ -1047,7 +1047,9 @@ class WP_REST_Server {
 	 * Note that the path regexes (array keys) must have @ escaped, as this is
 	 * used as the delimiter with preg_match()
 	 *
-	 * For high-level routing purposes, consider using 
+	 * For high-level routing purposes, consider using
+	 * WP_REST_Server::get_unresolved_routes() instead, which can be more
+	 * performant when you only need a list of registered routes.
 	 *
 	 * @since 4.4.0
 	 * @since 5.4.0 Added `$route_namespace` parameter.

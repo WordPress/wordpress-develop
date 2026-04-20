@@ -140,7 +140,7 @@ class WP_REST_Resolvable_Route implements ArrayAccess, IteratorAggregate, Counta
 	 *
 	 * @return int The number of elements in the resolved route definition.
 	 */
-	public function count() : int {
+	public function count(): int {
 		$this->__invoke();
 		return count( $this->resolved );
 	}
