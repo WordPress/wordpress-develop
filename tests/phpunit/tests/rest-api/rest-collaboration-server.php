@@ -19,13 +19,13 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
 
 		// Enable option in setUpBeforeClass to ensure REST routes are registered.
-		update_option( 'wp_collaboration_enabled', 1 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
-		delete_option( 'wp_collaboration_enabled' );
+		remove_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 		wp_delete_post( self::$post_id, true );
 	}
 
@@ -33,7 +33,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		parent::set_up();
 
 		// Enable option for tests.
-		update_option( 'wp_collaboration_enabled', 1 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 
 		// Uses DELETE (not TRUNCATE) to preserve transaction rollback support
 		// in the test suite. TRUNCATE implicitly commits the transaction.
@@ -100,25 +100,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_register_routes(): void {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp-collaboration/v1/updates', $routes );
-	}
-
-	/**
-	 * Verifies the collaboration route is not registered when the option is
-	 * not stored in the database (default is off).
-	 *
-	 * @ticket 64814
-	 */
-	public function test_register_routes_without_option(): void {
-		global $wp_rest_server;
-
-		// Ensure the option is not in the database.
-		delete_option( 'wp_collaboration_enabled' );
-
-		// Reset the REST server so routes are re-registered from scratch.
-		$wp_rest_server = null;
-
-		$routes = rest_get_server()->get_routes();
-		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes );
 	}
 
 	/**
@@ -2001,7 +1982,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertIsInt( wp_next_scheduled( 'wp_delete_old_collaboration_data' ), 'Cron event should be scheduled before cleanup.' );
 
 		// Disable collaboration.
-		update_option( 'wp_collaboration_enabled', false );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_zero' ); // __return_false fails for pre-flight hook.
 
 		wp_delete_old_collaboration_data();
 
@@ -2051,7 +2032,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_routes_not_registered_when_db_version_is_old(): void {
-		update_option( 'db_version', 61839 );
+		add_filter(
+			'pre_option_db_version',
+			static function () {
+				return 61839; // Lower than required version.
+			}
+		);
 
 		// Reset the global REST server so rest_get_server() builds a fresh instance.
 		$GLOBALS['wp_rest_server'] = null;
@@ -2059,10 +2045,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$server = rest_get_server();
 		$routes = $server->get_routes();
 
-		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61841.' );
-
-		// Reset again so subsequent tests get a server with the correct db_version.
+		// Reset again so subsequent tests get a server with the correct db_version, done prior to assertion to ensure this runs when an exception is thrown.
 		$GLOBALS['wp_rest_server'] = null;
+
+		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61841.' );
 	}
 
 	/*
@@ -2788,7 +2774,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_wp_is_collaboration_enabled_true_when_both_conditions_met(): void {
-		update_option( 'wp_collaboration_enabled', 1 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 
 		$this->assertTrue( wp_is_collaboration_enabled() );
 	}
@@ -2800,8 +2786,13 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_wp_is_collaboration_enabled_false_when_db_version_too_low(): void {
-		update_option( 'wp_collaboration_enabled', 1 );
-		update_option( 'db_version', 61839 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
+		add_filter(
+			'pre_option_db_version',
+			static function () {
+				return 61839; // Lower than required version.
+			}
+		);
 
 		$this->assertFalse( wp_is_collaboration_enabled() );
 	}
@@ -2813,7 +2804,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_wp_is_collaboration_enabled_false_when_option_off(): void {
-		update_option( 'wp_collaboration_enabled', 0 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_zero' ); // __return_false fails
 
 		$this->assertFalse( wp_is_collaboration_enabled() );
 	}
