@@ -1408,6 +1408,35 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertContains( 'client-2', $clients, 'Client 2 should be present in awareness state.' );
 	}
 
+	/**
+	 * Ensure awareness does not include out of date clients from cached results.
+	 */
+	public function test_awareness_excludes_expired_clients_from_cached_results() {
+		$storage     = new WP_Collaboration_Table_Storage();
+		$cached_data = array(
+			array(
+				'client_id' => 'client-1',
+				'state'     => array( 'name' => 'Client 1' ),
+				'timestamp' => time() - 120, // Simulate expired client.
+			),
+			array(
+				'client_id' => 'client-2',
+				'state'     => array( 'name' => 'Client 2' ),
+				'timestamp' => time(), // Active client.
+			),
+		);
+
+		// Manually set cached awareness data.
+		wp_cache_set( 'awareness::test-room', $cached_data, 'collaboration', HOUR_IN_SECONDS );
+
+		$awareness = $storage->get_awareness_state( 'test-room' );
+		$clients   = wp_list_pluck( $awareness, 'client_id' );
+
+		$this->assertNotContains( 'client-1', $clients, 'Expired client should not be present in awareness state.' );
+		$this->assertContains( 'client-2', $clients, 'Active client should be present in awareness state.' );
+		$this->assertCount( 1, $awareness, 'Only one active client should be present in awareness state.' );
+	}
+
 	/*
 	 * Multiple rooms tests.
 	 */
