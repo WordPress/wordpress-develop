@@ -1350,7 +1350,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			$this->markTestSkipped( 'This test requires that an external object cache is in use.' );
 		}
 
-		$storage = new WP_Collaboration_Table_Storage();
+		$storage          = new WP_Collaboration_Table_Storage();
 		$db_calls_initial = get_num_queries();
 		$storage->set_awareness_state( 'test-room', 'test-client', array( 'name' => 'Test Client' ), 1 );
 		$db_calls_after = get_num_queries();
@@ -1367,7 +1367,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
-		$storage = new WP_Collaboration_Table_Storage();
+		$storage          = new WP_Collaboration_Table_Storage();
 		$db_calls_initial = get_num_queries();
 		$storage->set_awareness_state( 'test-room', 'test-client', array( 'name' => 'Test Client' ), 1 );
 		$db_calls_after = get_num_queries();
