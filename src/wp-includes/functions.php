@@ -6957,7 +6957,7 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	// Make sure we catch CR-only line endings and strip PHP open/close tags.
 	$file_data = str_replace(
 		array( "\r", '<?php', '<?', '?>' ),
-		array( "\n",     '',    '',   '' ),
+		array( "\n", '', '', '' ),
 		$file_data
 	);
 
