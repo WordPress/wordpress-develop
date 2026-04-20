@@ -1388,6 +1388,26 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( 0, $db_calls_after - $db_calls_initial, 'Subsequent awareness retrieval should use in-memory cache and not query database.' );
 	}
 
+	/**
+	 * Ensure adding subsequent client does not remove existing clients from room.
+	 */
+	public function test_awareness_updates_for_multiple_users() {
+		$storage = new WP_Collaboration_Table_Storage();
+
+		// User 1 sets awareness.
+		$storage->set_awareness_state( 'test-room', 'client-1', array( 'name' => 'Client 1' ), 1 );
+
+		// User 2 sets awareness.
+		$storage->set_awareness_state( 'test-room', 'client-2', array( 'name' => 'Client 2' ), 2 );
+
+		// Retrieve awareness state and verify both users are present.
+		$awareness = $storage->get_awareness_state( 'test-room' );
+		$clients   = wp_list_pluck( $awareness, 'client_id' );
+
+		$this->assertContains( 'client-1', $clients, 'Client 1 should be present in awareness state.' );
+		$this->assertContains( 'client-2', $clients, 'Client 2 should be present in awareness state.' );
+	}
+
 	/*
 	 * Multiple rooms tests.
 	 */
