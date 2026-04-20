@@ -232,7 +232,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the constructor disallows overriding the default request timeout with a invalid value.
+	 * Test that the constructor disallows overriding the default request timeout with an invalid value.
 	 *
 	 * @ticket 65094
 	 *
@@ -256,7 +256,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the constructor disallows overriding the default request timeout with a invalid value.
+	 * Test that the constructor disallows overriding the default request timeout with an invalid value.
 	 *
 	 * @ticket 65094
 	 *
