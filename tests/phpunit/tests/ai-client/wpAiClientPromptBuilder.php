@@ -236,13 +236,17 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 *
 	 * @ticket 65094
 	 *
+	 * @dataProvider data_invalid_request_timeouts
+	 *
 	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 *
+	 * @param mixed $timeout The invalid timeout value returned by the filter.
 	 */
-	public function test_constructor_disallows_overriding_with_negative_request_timeout() {
+	public function test_constructor_disallows_overriding_with_invalid_request_timeout( $timeout ) {
 		add_filter(
 			'wp_ai_client_default_request_timeout',
-			static function () {
-				return -1;
+			static function () use ( $timeout ) {
+				return $timeout;
 			}
 		);
 
@@ -256,22 +260,15 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the constructor disallows overriding the default request timeout with an invalid value.
+	 * Data provider for test_constructor_disallows_overriding_with_invalid_request_timeout().
 	 *
-	 * @ticket 65094
-	 *
-	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 * @return array<string, array{0: mixed}>
 	 */
-	public function test_constructor_disallows_overriding_with_bad_request_timeout_type() {
-		add_filter( 'wp_ai_client_default_request_timeout', '__return_empty_array' );
-
-		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-
-		/** @var RequestOptions $request_options */
-		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
-
-		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertEquals( 30, $request_options->getTimeout() );
+	public function data_invalid_request_timeouts(): array {
+		return array(
+			'negative number' => array( -1 ),
+			'array'           => array( array() ),
+		);
 	}
 
 	/**
