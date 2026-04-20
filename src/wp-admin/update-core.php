@@ -813,8 +813,8 @@ function list_theme_updates() {
  * @since 3.7.0
  */
 function list_translation_updates() {
-	$updates = wp_get_translation_updates();
-	if ( ! $updates ) {
+	$translation_updates = wp_get_translation_update_data();
+	if ( ! $translation_updates ) {
 		if ( 'en_US' !== get_locale() ) {
 			echo '<h2>' . __( 'Translations' ) . '</h2>';
 			echo '<p>' . __( 'Your translations are all up to date.' ) . '</p>';
@@ -822,11 +822,35 @@ function list_translation_updates() {
 		return;
 	}
 
-	$form_action = 'update-core.php?action=do-translation-upgrade';
+	$form_action   = 'update-core.php?action=do-translation-upgrade';
+	$updates_count = count( $translation_updates );
 	?>
-	<h2><?php _e( 'Translations' ); ?></h2>
+	<h2>
+	<?php
+	printf(
+		'%s <span class="count">(%d)</span>',
+		__( 'Translations' ),
+		number_format_i18n( $updates_count )
+	);
+	?>
+	</h2>
 	<form method="post" action="<?php echo esc_url( $form_action ); ?>" name="upgrade-translations" class="upgrade">
-		<p><?php _e( 'New translations are available.' ); ?></p>
+		<p><?php _e( 'The following translation updates are available. Update Translations to install them.' ); ?></p>
+		<ul class="ul-disc">
+			<?php foreach ( $translation_updates as $translation_update ) : ?>
+				<li>
+					<strong><?php echo esc_html( $translation_update['name'] ); ?></strong>:
+					<?php
+					printf(
+						/* translators: 1: Language name or locale, 2: Version number. */
+						__( '%1$s translation is available for version %2$s.' ),
+						esc_html( $translation_update['language'] ),
+						esc_html( $translation_update['version'] )
+					);
+					?>
+				</li>
+			<?php endforeach; ?>
+		</ul>
 		<?php wp_nonce_field( 'upgrade-translations' ); ?>
 		<p><input class="button" type="submit" value="<?php esc_attr_e( 'Update Translations' ); ?>" name="upgrade" /></p>
 	</form>
