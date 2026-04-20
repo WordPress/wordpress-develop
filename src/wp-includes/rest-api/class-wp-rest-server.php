@@ -1010,7 +1010,7 @@ class WP_REST_Server {
 			}
 
 			// Resolve any just-in-time resolvable options, and apply defaults.
-			$handler = iterator_to_array( $handler );
+			$handler = is_array( $handler ) ? $handler : iterator_to_array( $handler );
 			$handler = wp_parse_args( $handler, $defaults );
 
 			// Allow comma-separated HTTP methods.
