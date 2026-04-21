@@ -151,11 +151,6 @@ blockquote cite {
 	font-style: normal;
 }
 
-blockquote strong,
-blockquote b {
-	font-weight: 400;
-}
-
 blockquote.alignleft,
 blockquote.alignright {
 	border: 0 solid #1a1a1a;
