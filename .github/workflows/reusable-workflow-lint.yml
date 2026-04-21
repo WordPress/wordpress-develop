@@ -67,4 +67,3 @@ jobs:
         with:
           sarif_file: results.sarif
           category: zizmor
-          wait-for-processing: false
