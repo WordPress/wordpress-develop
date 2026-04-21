@@ -82,8 +82,8 @@ on:
 
 env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
-  LOCAL_PHP_XDEBUG: ${{ inputs.coverage-report || false }}
-  LOCAL_PHP_XDEBUG_MODE: ${{ inputs.coverage-report && 'coverage' || 'develop,debug' }}
+  LOCAL_PHP_XDEBUG: false
+  LOCAL_PHP_XDEBUG_MODE: 'develop,debug'
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
@@ -201,10 +201,21 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
+      - name: Install PCOV coverage driver
+        if: ${{ inputs.coverage-report }}
+        run: |
+          docker compose exec -T -u 0 php sh -c '
+            apt-get update -qq &&
+            apt-get install -y -qq --no-install-recommends $PHPIZE_DEPS &&
+            pecl install pcov &&
+            docker-php-ext-enable pcov &&
+            php -m | grep -i pcov
+          '
+
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: |
-          node ./tools/local-env/scripts/docker.js run \
+          node ./tools/local-env/scripts/docker.js ${{ inputs.coverage-report && 'exec' || 'run' }} \
             php ./vendor/bin/phpunit \
             --verbose \
             -c "${PHPUNIT_CONFIG}" \

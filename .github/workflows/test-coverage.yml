@@ -38,8 +38,6 @@ concurrency:
 permissions: {}
 
 env:
-  LOCAL_PHP_XDEBUG: true
-  LOCAL_PHP_XDEBUG_MODE: 'coverage'
   LOCAL_PHP_MEMCACHED: ${{ false }}
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
@@ -52,7 +50,7 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    # if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
       matrix:
