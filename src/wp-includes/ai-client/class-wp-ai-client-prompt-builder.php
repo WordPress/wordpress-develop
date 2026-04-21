@@ -197,20 +197,17 @@ class WP_AI_Client_Prompt_Builder {
 		 *
 		 * @since 7.0.0
 		 *
-		 * @param float|null $default_timeout The default timeout in seconds, or null to disable the timeout.
-		 *                                    If not null, must be greater than or equal to zero.
+		 * @param float $default_timeout The default timeout in seconds.
 		 */
 		$timeout = apply_filters( 'wp_ai_client_default_request_timeout', $default_timeout );
 		if ( is_numeric( $timeout ) && (float) $timeout >= 0.0 ) {
 			$default_timeout = (float) $timeout;
-		} elseif ( null === $timeout ) {
-			$default_timeout = null;
 		} else {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
 					/* translators: %s: wp_ai_client_default_request_timeout */
-					__( 'The %s filter must return a non-negative number or null.' ),
+					__( 'The %s filter must return a non-negative number.' ),
 					'<code>wp_ai_client_default_request_timeout</code>'
 				),
 				'7.0.0'

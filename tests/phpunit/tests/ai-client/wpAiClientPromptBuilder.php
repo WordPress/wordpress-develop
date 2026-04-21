@@ -215,23 +215,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the constructor allows overriding the default request timeout with null.
-	 *
-	 * @ticket 65094
-	 */
-	public function test_constructor_allows_overriding_request_timeout_with_null() {
-		add_filter( 'wp_ai_client_default_request_timeout', '__return_null' );
-
-		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-
-		/** @var RequestOptions $request_options */
-		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
-
-		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertNull( $request_options->getTimeout() );
-	}
-
-	/**
 	 * Test that the constructor disallows overriding the default request timeout with an invalid value.
 	 *
 	 * @ticket 65094
@@ -256,7 +239,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertSame( 30, $request_options->getTimeout() );
+		$this->assertSame( 30.0, $request_options->getTimeout() );
 	}
 
 	/**
@@ -268,6 +251,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		return array(
 			'negative number' => array( -1 ),
 			'array'           => array( array() ),
+			'null'            => array( null ),
 		);
 	}
 
