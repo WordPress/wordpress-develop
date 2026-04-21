@@ -308,6 +308,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 				'client_id' => '1',
 				'user_id'   => 1,
 				'data'      => wp_json_encode( array( 'name' => 'Stale' ) ),
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() ),
 			),
 			array( '%s', '%s', '%s', '%d', '%s' )
 		);
@@ -320,6 +321,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 				'client_id' => '1',
 				'user_id'   => 1,
 				'data'      => wp_json_encode( array( 'name' => 'Latest' ) ),
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() ),
 			),
 			array( '%s', '%s', '%s', '%d', '%s' )
 		);
