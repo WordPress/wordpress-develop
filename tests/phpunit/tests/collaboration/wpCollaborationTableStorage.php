@@ -374,7 +374,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		// get_awareness_state and set_awareness_state should target the latest row.
 		$awareness = $storage->get_awareness_state( $room );
 		$this->assertCount( 1, $awareness, 'Only one awareness state should be returned for the client.' );
-		$this->assertSame( array( 'name' => 'Latest' ), $awareness[0]['state'] );
+		$this->assertSame( array( 'name' => 'Cached Latest' ), $awareness[0]['state'] );
 		$storage->set_awareness_state( $room, '1', array( 'name' => 'Current' ), 1 );
 		$awareness = $storage->get_awareness_state( $room );
 		$this->assertCount( 1, $awareness, 'Only one awareness state should be returned for the client.' );
