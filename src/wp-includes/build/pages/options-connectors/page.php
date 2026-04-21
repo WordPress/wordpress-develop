@@ -159,12 +159,22 @@ function wp_options_connectors_render_page() {
 		// 2. It initializes the boot module as an inline script.
 		wp_register_script( 'options-connectors-prerequisites', '', $asset['dependencies'], $asset['version'], true );
 
-		// Add inline script to initialize the app
+		/*
+		 * Add inline script to initialize the app.
+		 *
+		 * The call is deferred until DOMContentLoaded so that all classic script
+		 * dependencies of @wordpress/boot (wp-private-apis, wp-components, wp-theme,
+		 * etc.) have finished parsing and executing before the dynamic module import
+		 * resolves. Without this, a modulepreloaded @wordpress/boot can win the race
+		 * against the classic-script-printing pass on fast CDN-fronted hosts in
+		 * Chrome, evaluating before wp.theme.privateApis is defined and throwing
+		 * "Cannot unlock an undefined object". See Trac #65103.
+		 */
 		$init_modules = [];
 		wp_add_inline_script(
 			'options-connectors-prerequisites',
 			sprintf(
-				'import("@wordpress/boot").then(mod => mod.init({mountId: "%s", menuItems: %s, routes: %s, initModules: %s, dashboardLink: "%s"}));',
+				'(function(){var run=function(){import("@wordpress/boot").then(function(mod){mod.init({mountId: "%s", menuItems: %s, routes: %s, initModules: %s, dashboardLink: "%s"});});};if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",run);}else{run();}})();',
 				'options-connectors-app',
 				wp_json_encode( $menu_items, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
 				wp_json_encode( $routes, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
