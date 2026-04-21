@@ -35,7 +35,7 @@ async function globalSetup( config ) {
 		requestUtils.deleteAllPosts(),
 		requestUtils.deleteAllBlocks(),
 		requestUtils.resetPreferences(),
-		requestUtils.updateSiteSettings({ wp_collaboration_enabled: '1' })
+		requestUtils.updateSiteSettings({ wp_collaboration_enabled: true })
 	] );
 
 	await requestContext.dispose();
