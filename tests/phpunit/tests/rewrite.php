@@ -520,4 +520,23 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			$this->assertTrue( $wp_rewrite->use_verbose_page_rules, "Expected true for: $structure" );
 		}
 	}
+
+	public function test_verbose_page_rules_disabled_with_stub() {
+		global $wp_rewrite;
+
+		$structures_expecting_false = array(
+			'/news/%postname%/',
+			'/blog/%postname%/',
+			'/news-and-events/%postname%/',
+			'/articles/%category%/%postname%/',
+			'/%year%/%monthnum%/%postname%/',
+			'/%year%/%postname%/',
+			'/archives/%post_id%',
+		);
+
+		foreach ( $structures_expecting_false as $structure ) {
+			$this->set_permalink_structure( $structure );
+			$this->assertFalse( $wp_rewrite->use_verbose_page_rules, "Expected false for: $structure" );
+		}
+	}
 }
