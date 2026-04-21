@@ -207,6 +207,7 @@ jobs:
           docker compose exec -T -u 0 php sh -c '
             pecl install pcov &&
             docker-php-ext-enable pcov &&
+            echo "pcov.directory=/var/www/src" >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
             php -m | grep -i pcov
           '
 
