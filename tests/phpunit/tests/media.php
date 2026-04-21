@@ -1733,6 +1733,31 @@ EOF;
 	}
 
 	/**
+	 * @ticket 64742
+	 */
+	public function test_wp_get_attachment_image_src_with_icon_when_icon_file_size_cannot_be_read() {
+		$post_id       = self::factory()->post->create();
+		$attachment_id = self::factory()->attachment->create_object(
+			'test.pdf',
+			$post_id,
+			array(
+				'post_mime_type' => 'application/pdf',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$filter = static function () {
+			return 'https://example.org/wp-includes/images/media/missing-icon.png';
+		};
+
+		add_filter( 'wp_mime_type_icon', $filter );
+
+		$this->assertFalse( wp_get_attachment_image_src( $attachment_id, 'thumbnail', true ) );
+
+		remove_filter( 'wp_mime_type_icon', $filter );
+	}
+
+	/**
 	 * @ticket 12235
 	 */
 	public function test_wp_get_attachment_caption() {
