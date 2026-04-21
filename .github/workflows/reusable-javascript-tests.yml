@@ -55,7 +55,7 @@ jobs:
       - name: Install npm Dependencies
         run: npm ci
 
-      # Older branches using outdated versions of Puppeteer fail on newer versions of the `ubuntu-24` image.
+      # Branches prior to 6.1 using outdated versions of Puppeteer fail on newer versions of the `ubuntu-24` image.
       # This disables AppArmor in order to work around those failures.
       #
       # See https://issues.chromium.org/issues/373753919
