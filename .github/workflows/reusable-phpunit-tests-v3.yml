@@ -201,13 +201,28 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
+      # Installs PCOV as the code coverage driver for the PHPUnit run below.
+      #
+      # The INI directives tune PCOV for WordPress's codebase:
+      # - `pcov.enabled` keeps the Zend hooks active (this is the default, but
+      #   stated explicitly for clarity).
+      # - `pcov.directory` restricts instrumentation to `src/`, so PCOV does not
+      #   record hits for `vendor/`, `tests/`, or WordPress test fixtures that
+      #   PHPUnit would discard at report time anyway.
+      # - `pcov.initial.files` pre-sizes the internal file tracking array for
+      #   the thousands of files under `src/`, avoiding reallocation churn
+      #   during test warmup. The default of 64 is far too low here.
       - name: Install PCOV coverage driver
         if: ${{ inputs.coverage-report }}
         run: |
           docker compose exec -T -u 0 php sh -c '
             pecl install pcov &&
             docker-php-ext-enable pcov &&
-            echo "pcov.directory=/var/www/src" >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
+            {
+              echo "pcov.enabled=1"
+              echo "pcov.directory=/var/www/src"
+              echo "pcov.initial.files=2000"
+            } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
             php -m | grep -i pcov
           '
 
