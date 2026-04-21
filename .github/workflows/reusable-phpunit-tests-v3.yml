@@ -113,7 +113,6 @@ jobs:
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Upload the code coverage report to Codecov.io.
-  # - Upload the HTML code coverage report as an artifact.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
@@ -234,7 +233,7 @@ jobs:
             --verbose \
             -c "${PHPUNIT_CONFIG}" \
             ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
-            ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml" --coverage-html "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}"' || '' }}
+            ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml"' || '' }}
         env:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
           MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
@@ -268,14 +267,6 @@ jobs:
           files: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}.xml
           flags: ${{ inputs.multisite && 'multisite' || 'single' }},php
           fail_ci_if_error: true
-
-      - name: Upload HTML coverage report as artifact
-        if: ${{ inputs.coverage-report }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
-          path: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
-          overwrite: true
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
