@@ -1349,6 +1349,7 @@ function WpLogoDecoration() {
 
 // routes/connectors-home/ai-plugin-callout.tsx
 var AI_PLUGIN_SLUG = "ai";
+var AI_PLUGIN_PAGE_SLUG = "ai-wp-admin";
 var AI_PLUGIN_ID = "ai/ai";
 var AI_PLUGIN_URL = "https://wordpress.org/plugins/ai/";
 var connectorDataValues = Object.values(getConnectorData());
@@ -1527,7 +1528,7 @@ function AiPluginCallout() {
       variant: "secondary",
       size: "compact",
       href: (0, import_url.addQueryArgs)("options-general.php", {
-        page: AI_PLUGIN_SLUG
+        page: AI_PLUGIN_PAGE_SLUG
       })
     },
     (0, import_i18n3.__)("Control features in the AI plugin")
