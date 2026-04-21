@@ -280,31 +280,23 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	/**
 	 * @ticket 65068
 	 *
-	 * @covers ::get_provider
+	 * @covers WP_oEmbed::__construct
 	 */
-	public function test_get_provider_skips_malformed_provider_entries() {
-		$warnings = array();
-
-		$error_handler = function ( $errno, $errstr ) use ( &$warnings ) {
-			if ( E_WARNING === $errno ) {
-				$warnings[] = $errstr;
-			}
-			return false;
+	public function test_malformed_provider_triggers_doing_it_wrong_and_is_removed() {
+		$filter = static function ( $providers ) {
+			$providers['bad_provider'] = array(
+				'url'      => '#https?://example\.site/.*#i',
+				'endpoint' => 'https://example.site/api/oembed',
+			);
+			return $providers;
 		};
 
-		set_error_handler( $error_handler );
+		add_filter( 'oembed_providers', $filter );
+		$this->setExpectedIncorrectUsage( 'oembed_providers' );
+		$oembed = new WP_oEmbed();
+		remove_filter( 'oembed_providers', $filter );
 
-		$this->oembed->providers['bad_provider'] = array(
-			'url'      => '#https?://example\.site/.*#i',
-			'endpoint' => 'https://example.site/api/oembed',
-		);
-
-		$result = $this->oembed->get_provider( 'https://en.wikipedia.org/wiki/Rickrolling' );
-
-		restore_error_handler();
-
-		$this->assertFalse( $result );
-		$this->assertSame( array(), $warnings, 'PHP warnings were raised: ' . implode( ', ', $warnings ) );
+		$this->assertArrayNotHasKey( 'bad_provider', $oembed->providers );
 	}
 
 	/**
@@ -313,25 +305,11 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 * @covers ::get_provider
 	 */
 	public function test_get_provider_handles_provider_without_regex_flag() {
-		$warnings = array();
-
-		$error_handler = function ( $errno, $errstr ) use ( &$warnings ) {
-			if ( E_WARNING === $errno ) {
-				$warnings[] = $errstr;
-			}
-			return false;
-		};
-
-		set_error_handler( $error_handler );
-
 		// Provider with only index 0 set (no regex flag) — should default $regex to false.
 		$this->oembed->providers['https://example.site/*'] = array( 'https://example.site/api/oembed' );
 
 		$result = $this->oembed->get_provider( 'https://example.site/video/123' );
 
-		restore_error_handler();
-
 		$this->assertSame( 'https://example.site/api/oembed', $result );
-		$this->assertSame( array(), $warnings, 'PHP warnings were raised: ' . implode( ', ', $warnings ) );
 	}
 }

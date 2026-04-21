@@ -221,9 +221,27 @@ class WP_oEmbed {
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param array[] $providers An array of arrays containing data about popular oEmbed providers.
+		 * @param array<string, array{ 0: string, 1?: bool }> $providers An associative array mapping URL patterns to
+		 *                                                                provider data. Each value must be an array
+		 *                                                                with a provider endpoint URL string at index 0
+		 *                                                                and an optional boolean regex flag at index 1.
 		 */
 		$this->providers = apply_filters( 'oembed_providers', $providers );
+
+		foreach ( $this->providers as $matchmask => $data ) {
+			if ( ! is_array( $data ) || ! isset( $data[0] ) || ! is_string( $data[0] ) ) {
+				_doing_it_wrong(
+					'oembed_providers',
+					sprintf(
+						/* translators: %s: The oEmbed provider URL pattern. */
+						__( 'The oEmbed provider data for %s is malformed. Each provider must be an array with a provider endpoint URL string at index 0 and an optional boolean regex flag at index 1.' ),
+						'<code>' . esc_html( (string) $matchmask ) . '</code>'
+					),
+					'7.1.0'
+				);
+				unset( $this->providers[ $matchmask ] );
+			}
+		}
 
 		// Fix any embeds that contain new lines in the middle of the HTML which breaks wpautop().
 		add_filter( 'oembed_dataparse', array( $this, '_strip_newlines' ), 10, 3 );
@@ -273,9 +291,6 @@ class WP_oEmbed {
 		}
 
 		foreach ( $this->providers as $matchmask => $data ) {
-			if ( ! is_array( $data ) || ! isset( $data[0] ) ) {
-				continue;
-			}
 			$providerurl = $data[0];
 			$regex       = $data[1] ?? false;
 
