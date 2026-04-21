@@ -226,7 +226,7 @@ function wp_options_connectors_wp_admin_render_page() {
 			overflow-y: auto;
 		}
 		body {
-			background: #fff;
+			background: #f0f0f1;
 		}
 
 		/* Reset wp-admin padding */
