@@ -1991,6 +1991,7 @@ p.auto-update-status {
 .metabox-prefs .screen-options .screen-per-page {
 	margin-right: 15px;
 	padding-right: 0;
+	padding-left: 8px;
 }
 
 .metabox-prefs .screen-options label {
