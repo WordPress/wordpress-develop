@@ -122,14 +122,16 @@ class WP_Collaboration_Table_Storage {
 			// Deterministic ordering.
 			$cached_awareness = wp_list_sort( $cached, 'client_id' );
 
-			// Remove out of date entries.
+			// Remove out of date entries and duplicate entries.
+			$entries = array();
 			foreach ( $cached_awareness as $index => $client_awareness ) {
 				if ( empty( $client_awareness['timestamp'] ) || $client_awareness['timestamp'] < $cutoff_timestamp ) {
-					unset( $cached_awareness[ $index ] );
+					continue;
 				}
+				$entries[ $client_awareness['client_id'] ] = $client_awareness;
 			}
 
-			return array_values( $cached_awareness );
+			return array_values( $entries );
 		} elseif ( false !== $cached ) {
 			// Cache is corrupted, delete it.
 			wp_cache_delete( $cache_key, 'collaboration' );
@@ -142,7 +144,7 @@ class WP_Collaboration_Table_Storage {
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT client_id, user_id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s",
+				"SELECT client_id, user_id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s ORDER BY id ASC",
 				$room,
 				$cutoff_mysql
 			)
@@ -159,7 +161,7 @@ class WP_Collaboration_Table_Storage {
 			$date_time     = date_create_from_format( 'Y-m-d H:i:s', $row->date_gmt, new DateTimeZone( 'UTC' ) );
 			$decoded_state = json_decode( $row->data, true );
 			if ( is_array( $decoded_state ) && false !== $date_time ) {
-				$entries[] = array(
+				$entries[ $row->client_id ] = array(
 					'client_id' => $row->client_id,
 					'state'     => $decoded_state,
 					'user_id'   => (int) $row->user_id,
@@ -168,6 +170,9 @@ class WP_Collaboration_Table_Storage {
 			}
 		}
 
+		$entries = array_values( $entries );
+		// Deterministic ordering.
+		$entries = wp_list_sort( $entries, 'client_id' );
 		wp_cache_set( $cache_key, $entries, 'collaboration', HOUR_IN_SECONDS );
 		return $entries;
 	}
