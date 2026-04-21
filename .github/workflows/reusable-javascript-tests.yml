@@ -5,6 +5,12 @@ name: JavaScript tests
 
 on:
   workflow_call:
+    inputs:
+      disable-apparmor:
+        description: 'Whether to disable AppArmor.'
+        required: false
+        type: 'boolean'
+        default: false
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -48,6 +54,15 @@ jobs:
 
       - name: Install npm Dependencies
         run: npm ci
+
+      # Older branches using outdated versions of Puppeteer fail on newer versions of the `ubuntu-24` image.
+      # This disables AppArmor in order to work around those failures.
+      #
+      # See https://issues.chromium.org/issues/373753919
+      # and https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+      - name: Disable AppArmor
+        if: ${{ inputs.disable-apparmor }}
+        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
 
       - name: Run QUnit tests
         run: npm run grunt qunit:compiled
