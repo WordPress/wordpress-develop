@@ -4,9 +4,14 @@
  * @group admin
  * @group upgrade
  *
+ * @covers ::wp_get_deferred_translation_updates
  * @covers ::wp_get_translation_update_data
+ * @covers ::wp_get_translation_update_id
  * @covers ::wp_get_translation_update_language
  * @covers ::wp_get_translation_update_name
+ * @covers ::wp_get_translation_updates_by_id
+ * @covers ::wp_is_translation_update_deferred
+ * @covers ::wp_set_deferred_translation_updates
  */
 class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	/**
@@ -17,6 +22,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		delete_site_option( 'deferred_translation_updates' );
 		delete_site_transient( 'available_translations' );
 		delete_site_transient( 'update_core' );
 		delete_site_transient( 'update_plugins' );
@@ -30,6 +36,27 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	 * @ticket 42281
 	 */
 	public function test_wp_get_translation_update_data_returns_display_ready_translation_updates() {
+		$core_update = (object) array(
+			'type'     => 'core',
+			'slug'     => 'default',
+			'language' => 'de_DE',
+			'version'  => '6.7-beta3',
+		);
+
+		$plugin_update = (object) array(
+			'type'     => 'plugin',
+			'slug'     => 'custom-internationalized-plugin',
+			'language' => 'de_DE',
+			'version'  => '1.0.0',
+		);
+
+		$theme_update = (object) array(
+			'type'     => 'theme',
+			'slug'     => 'custom-internationalized-theme',
+			'language' => 'de_DE',
+			'version'  => '1.0.0',
+		);
+
 		set_site_transient(
 			'available_translations',
 			array(
@@ -43,12 +70,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 			'update_core',
 			(object) array(
 				'translations' => array(
-					array(
-						'type'     => 'core',
-						'slug'     => 'default',
-						'language' => 'de_DE',
-						'version'  => '6.7-beta3',
-					),
+					(array) $core_update,
 				),
 			)
 		);
@@ -57,12 +79,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 			'update_plugins',
 			(object) array(
 				'translations' => array(
-					array(
-						'type'     => 'plugin',
-						'slug'     => 'custom-internationalized-plugin',
-						'language' => 'de_DE',
-						'version'  => '1.0.0',
-					),
+					(array) $plugin_update,
 				),
 			)
 		);
@@ -71,12 +88,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 			'update_themes',
 			(object) array(
 				'translations' => array(
-					array(
-						'type'     => 'theme',
-						'slug'     => 'custom-internationalized-theme',
-						'language' => 'de_DE',
-						'version'  => '1.0.0',
-					),
+					(array) $theme_update,
 				),
 			)
 		);
@@ -84,6 +96,9 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
+					'checked'       => true,
+					'deferred'      => false,
+					'id'            => wp_get_translation_update_id( $core_update ),
 					'language'      => 'Deutsch (de_DE)',
 					'language_code' => 'de_DE',
 					'name'          => 'WordPress',
@@ -92,6 +107,9 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 					'version'       => '6.7-beta3',
 				),
 				array(
+					'checked'       => true,
+					'deferred'      => false,
+					'id'            => wp_get_translation_update_id( $plugin_update ),
 					'language'      => 'Deutsch (de_DE)',
 					'language_code' => 'de_DE',
 					'name'          => 'Custom Dummy Plugin',
@@ -100,6 +118,9 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 					'version'       => '1.0.0',
 				),
 				array(
+					'checked'       => true,
+					'deferred'      => false,
+					'id'            => wp_get_translation_update_id( $theme_update ),
 					'language'      => 'Deutsch (de_DE)',
 					'language_code' => 'de_DE',
 					'name'          => 'Custom Internationalized Theme',
@@ -116,16 +137,18 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	 * @ticket 42281
 	 */
 	public function test_wp_get_translation_update_data_falls_back_to_locale_and_slug() {
+		$plugin_update = (object) array(
+			'type'     => 'plugin',
+			'slug'     => 'missing-plugin',
+			'language' => 'it_IT',
+			'version'  => '2.0.0',
+		);
+
 		set_site_transient(
 			'update_plugins',
 			(object) array(
 				'translations' => array(
-					array(
-						'type'     => 'plugin',
-						'slug'     => 'missing-plugin',
-						'language' => 'it_IT',
-						'version'  => '2.0.0',
-					),
+					(array) $plugin_update,
 				),
 			)
 		);
@@ -133,6 +156,9 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
+					'checked'       => true,
+					'deferred'      => false,
+					'id'            => wp_get_translation_update_id( $plugin_update ),
 					'language'      => 'it_IT',
 					'language_code' => 'it_IT',
 					'name'          => 'missing-plugin',
@@ -149,6 +175,13 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	 * @ticket 42281
 	 */
 	public function test_wp_get_translation_update_data_matches_plugin_update_slug_to_plugin_file() {
+		$plugin_update = (object) array(
+			'type'     => 'plugin',
+			'slug'     => 'hello-dolly',
+			'language' => 'de_DE',
+			'version'  => '1.7.2',
+		);
+
 		add_filter(
 			'all_plugins',
 			static function () {
@@ -164,12 +197,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 			'update_plugins',
 			(object) array(
 				'translations' => array(
-					array(
-						'type'     => 'plugin',
-						'slug'     => 'hello-dolly',
-						'language' => 'de_DE',
-						'version'  => '1.7.2',
-					),
+					(array) $plugin_update,
 				),
 				'no_update'    => array(
 					'hello.php' => (object) array(
@@ -182,6 +210,9 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
+					'checked'       => true,
+					'deferred'      => false,
+					'id'            => wp_get_translation_update_id( $plugin_update ),
 					'language'      => 'de_DE',
 					'language_code' => 'de_DE',
 					'name'          => 'Hello Dolly',
@@ -191,6 +222,110 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 				),
 			),
 			wp_get_translation_update_data()
+		);
+	}
+
+	/**
+	 * @ticket 42281
+	 */
+	public function test_wp_get_translation_updates_by_id_keys_updates_by_identifier() {
+		$core_update = (object) array(
+			'type'     => 'core',
+			'slug'     => 'default',
+			'language' => 'de_DE',
+			'version'  => '6.7-beta3',
+		);
+
+		$this->assertSame(
+			array(
+				wp_get_translation_update_id( $core_update ) => $core_update,
+			),
+			wp_get_translation_updates_by_id( array( $core_update ) )
+		);
+	}
+
+	/**
+	 * @ticket 42281
+	 */
+	public function test_wp_get_translation_update_data_marks_deferred_translation_updates() {
+		$plugin_update = (object) array(
+			'type'     => 'plugin',
+			'slug'     => 'deferred-plugin',
+			'language' => 'de_DE',
+			'version'  => '1.0.0',
+		);
+
+		set_site_transient(
+			'update_plugins',
+			(object) array(
+				'translations' => array(
+					(array) $plugin_update,
+				),
+			)
+		);
+
+		wp_set_deferred_translation_updates( array( $plugin_update ) );
+
+		$this->assertSame(
+			array(
+				array(
+					'checked'       => false,
+					'deferred'      => true,
+					'id'            => wp_get_translation_update_id( $plugin_update ),
+					'language'      => 'de_DE',
+					'language_code' => 'de_DE',
+					'name'          => 'deferred-plugin',
+					'slug'          => 'deferred-plugin',
+					'type'          => 'plugin',
+					'version'       => '1.0.0',
+				),
+			),
+			wp_get_translation_update_data()
+		);
+	}
+
+	/**
+	 * @ticket 42281
+	 */
+	public function test_wp_get_deferred_translation_updates_filters_to_available_updates() {
+		$available_update = (object) array(
+			'type'     => 'plugin',
+			'slug'     => 'available-plugin',
+			'language' => 'de_DE',
+			'version'  => '1.0.0',
+		);
+
+		$stale_update = (object) array(
+			'type'     => 'plugin',
+			'slug'     => 'stale-plugin',
+			'language' => 'de_DE',
+			'version'  => '1.0.0',
+		);
+
+		wp_set_deferred_translation_updates( array( $available_update, $stale_update ) );
+
+		$this->assertSame(
+			array(
+				wp_get_translation_update_id( $available_update ) => array(
+					'type'     => 'plugin',
+					'slug'     => 'available-plugin',
+					'language' => 'de_DE',
+					'version'  => '1.0.0',
+				),
+			),
+			wp_get_deferred_translation_updates( array( $available_update ) )
+		);
+
+		$this->assertTrue( wp_is_translation_update_deferred( $available_update ) );
+		$this->assertFalse(
+			wp_is_translation_update_deferred(
+				(object) array(
+					'type'     => 'plugin',
+					'slug'     => 'different-plugin',
+					'language' => 'de_DE',
+					'version'  => '1.0.0',
+				)
+			)
 		);
 	}
 }

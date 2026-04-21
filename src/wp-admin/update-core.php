@@ -835,24 +835,66 @@ function list_translation_updates() {
 	?>
 	</h2>
 	<form method="post" action="<?php echo esc_url( $form_action ); ?>" name="upgrade-translations" class="upgrade">
-		<p><?php _e( 'The following translation updates are available. Update Translations to install them.' ); ?></p>
-		<ul class="ul-disc">
-			<?php foreach ( $translation_updates as $translation_update ) : ?>
-				<li>
-					<strong><?php echo esc_html( $translation_update['name'] ); ?></strong>:
-					<?php
-					printf(
-						/* translators: 1: Language name or locale, 2: Version number. */
-						__( '%1$s translation is available for version %2$s.' ),
-						esc_html( $translation_update['language'] ),
-						esc_html( $translation_update['version'] )
-					);
-					?>
-				</li>
-			<?php endforeach; ?>
-		</ul>
+		<p><?php _e( 'The following translation updates are available. Leave any translation updates unchecked if you want to install them later, then click &#8220;Update Translations&#8221;.' ); ?></p>
+		<p><?php _e( 'Translation updates you leave unchecked will remain available until you select them.' ); ?></p>
 		<?php wp_nonce_field( 'upgrade-translations' ); ?>
-		<p><input class="button" type="submit" value="<?php esc_attr_e( 'Update Translations' ); ?>" name="upgrade" /></p>
+		<p><input id="upgrade-translations" class="button" type="submit" value="<?php esc_attr_e( 'Update Translations' ); ?>" name="upgrade" /></p>
+		<table class="widefat updates-table" id="update-translations-table">
+			<thead>
+			<tr>
+				<td class="manage-column check-column"><input type="checkbox" id="translations-select-all" /></td>
+				<td class="manage-column"><label for="translations-select-all"><?php _e( 'Select All' ); ?></label></td>
+			</tr>
+			</thead>
+
+			<tbody class="plugins">
+			<?php foreach ( $translation_updates as $translation_update ) : ?>
+				<?php $checkbox_id = 'checkbox_' . md5( $translation_update['id'] ); ?>
+				<tr>
+					<td class="check-column">
+						<input type="hidden" name="translations[]" value="<?php echo esc_attr( $translation_update['id'] ); ?>" />
+						<input type="checkbox" name="checked[]" id="<?php echo esc_attr( $checkbox_id ); ?>" value="<?php echo esc_attr( $translation_update['id'] ); ?>" <?php checked( $translation_update['checked'] ); ?> />
+						<label for="<?php echo esc_attr( $checkbox_id ); ?>">
+							<span class="screen-reader-text">
+							<?php
+							printf(
+								/* translators: 1: Project name, 2: Language name or locale. */
+								esc_html__( 'Select the translation update for %1$s in %2$s' ),
+								esc_html( $translation_update['name'] ),
+								esc_html( $translation_update['language'] )
+							);
+							?>
+							</span>
+						</label>
+					</td>
+					<td class="plugin-title"><p>
+						<strong><?php echo esc_html( $translation_update['name'] ); ?></strong>
+						<?php
+						printf(
+							/* translators: 1: Language name or locale, 2: Version number. */
+							esc_html__( '%1$s translation is available for version %2$s.' ),
+							esc_html( $translation_update['language'] ),
+							esc_html( $translation_update['version'] )
+						);
+
+						if ( $translation_update['deferred'] ) {
+							echo ' ';
+							esc_html_e( 'This translation update will remain available until you select it.' );
+						}
+						?>
+					</p></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+
+			<tfoot>
+			<tr>
+				<td class="manage-column check-column"><input type="checkbox" id="translations-select-all-2" /></td>
+				<td class="manage-column"><label for="translations-select-all-2"><?php _e( 'Select All' ); ?></label></td>
+			</tr>
+			</tfoot>
+		</table>
+		<p><input id="upgrade-translations-2" class="button" type="submit" value="<?php esc_attr_e( 'Update Translations' ); ?>" name="upgrade" /></p>
 	</form>
 	<?php
 }
@@ -1026,7 +1068,7 @@ $updates_howto  = '<p>' . __( '<strong>WordPress</strong> &mdash; Updating your 
 $updates_howto .= '<p>' . __( '<strong>Themes and Plugins</strong> &mdash; To update individual themes or plugins from this screen, use the checkboxes to make your selection, then <strong>click on the appropriate &#8220;Update&#8221; button</strong>. To update all of your themes or plugins at once, you can check the box at the top of the section to select all before clicking the update button.' ) . '</p>';
 
 if ( 'en_US' !== get_locale() ) {
-	$updates_howto .= '<p>' . __( '<strong>Translations</strong> &mdash; The files translating WordPress into your language are updated for you whenever any other updates occur. But if these files are out of date, you can <strong>click the &#8220;Update Translations&#8221;</strong> button.' ) . '</p>';
+	$updates_howto .= '<p>' . __( '<strong>Translations</strong> &mdash; Translation updates are selected for installation by default. Leave any translation updates unchecked if you want to install them later, then <strong>click the &#8220;Update Translations&#8221;</strong> button. Translation updates you leave unchecked will remain available until you select them.' ) . '</p>';
 }
 
 get_current_screen()->add_help_tab(
@@ -1114,6 +1156,15 @@ if ( 'upgrade-core' === $action ) {
 				);
 			}
 		}
+	}
+
+	if ( isset( $_GET['translation_updates'] ) && 'deferred' === $_GET['translation_updates'] ) {
+		wp_admin_notice(
+			__( 'The unchecked translation updates will remain available until you select them.' ),
+			array(
+				'type' => 'success',
+			)
+		);
 	}
 
 	$last_update_check = false;
@@ -1299,6 +1350,55 @@ if ( 'upgrade-core' === $action ) {
 
 	check_admin_referer( 'upgrade-translations' );
 
+	if ( empty( $_POST['translations'] ) ) {
+		wp_redirect( self_admin_url( 'update-core.php' ) );
+		exit;
+	}
+
+	$translation_updates = wp_get_translation_updates_by_id();
+
+	$translation_update_ids = array_unique(
+		array_map(
+			'sanitize_text_field',
+			wp_unslash( (array) $_POST['translations'] )
+		)
+	);
+
+	$translation_updates = array_intersect_key( $translation_updates, array_flip( $translation_update_ids ) );
+
+	if ( empty( $translation_updates ) ) {
+		wp_redirect( self_admin_url( 'update-core.php' ) );
+		exit;
+	}
+
+	$selected_translation_updates = array();
+
+	if ( ! empty( $_POST['checked'] ) ) {
+		$selected_translation_update_ids = array_unique(
+			array_map(
+				'sanitize_text_field',
+				wp_unslash( (array) $_POST['checked'] )
+			)
+		);
+
+		$selected_translation_updates = array_intersect_key( $translation_updates, array_flip( $selected_translation_update_ids ) );
+	}
+
+	$current_translation_updates   = wp_get_translation_updates_by_id();
+	$deferred_translation_updates  = array_intersect_key(
+		$current_translation_updates,
+		wp_get_deferred_translation_updates( $current_translation_updates )
+	);
+	$deferred_translation_updates  = array_diff_key( $deferred_translation_updates, $translation_updates );
+	$deferred_translation_updates += array_diff_key( $translation_updates, $selected_translation_updates );
+
+	wp_set_deferred_translation_updates( $deferred_translation_updates );
+
+	if ( empty( $selected_translation_updates ) ) {
+		wp_redirect( add_query_arg( 'translation_updates', 'deferred', self_admin_url( 'update-core.php' ) ) );
+		exit;
+	}
+
 	require_once ABSPATH . 'wp-admin/admin-header.php';
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
@@ -1308,7 +1408,7 @@ if ( 'upgrade-core' === $action ) {
 	$context = WP_LANG_DIR;
 
 	$upgrader = new Language_Pack_Upgrader( new Language_Pack_Upgrader_Skin( compact( 'url', 'nonce', 'title', 'context' ) ) );
-	$result   = $upgrader->bulk_upgrade();
+	$result   = $upgrader->bulk_upgrade( array_values( $selected_translation_updates ) );
 
 	wp_localize_script(
 		'updates',
