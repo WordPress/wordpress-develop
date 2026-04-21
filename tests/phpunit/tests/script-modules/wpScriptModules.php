@@ -2800,7 +2800,8 @@ HTML;
 
 		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
-		$this->assertCount( 1, $filtered );
+		// With auto-detection, the filter fires for every enqueued module and its dependencies.
+		$this->assertCount( 2, $filtered );
 		foreach ( $filtered as $filter_args ) {
 			$this->assertIsString( $filter_args['relative'] );
 			$this->assertIsString( $filter_args['src'] );
