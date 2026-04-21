@@ -644,7 +644,7 @@ function get_theme_updates() {
 /**
  * Gets the display name for a translation update.
  *
- * @since 6.7.0
+ * @since 7.1.0
  *
  * @param object $update Translation update object.
  * @return string The translation update name.
@@ -716,7 +716,7 @@ function wp_get_translation_update_name( $update ) {
 /**
  * Gets the display language for a translation update.
  *
- * @since 6.7.0
+ * @since 7.1.0
  *
  * @param string $locale Translation update locale.
  * @return string The translation update language.
@@ -739,11 +739,14 @@ function wp_get_translation_update_language( $locale ) {
 /**
  * Gets display data for available translation updates.
  *
- * @since 6.7.0
+ * @since 7.1.0
  *
  * @return array[] {
  *     An array of translation update display data.
  *
+ *     @type bool   $checked       Whether the translation update is selected for installation.
+ *     @type bool   $deferred      Whether the translation update has been deferred.
+ *     @type string $id            Translation update identifier.
  *     @type string $language      Translation update language.
  *     @type string $language_code Translation update locale.
  *     @type string $name          Translation update name.
@@ -753,12 +756,19 @@ function wp_get_translation_update_language( $locale ) {
  * }
  */
 function wp_get_translation_update_data() {
-	$translation_updates = array();
+	$available_updates            = wp_get_translation_updates();
+	$deferred_translation_updates = wp_get_deferred_translation_updates( $available_updates );
+	$translation_updates          = array();
 
-	foreach ( wp_get_translation_updates() as $update ) {
-		$language = isset( $update->language ) ? $update->language : '';
+	foreach ( $available_updates as $update ) {
+		$translation_update_id = wp_get_translation_update_id( $update );
+		$language              = isset( $update->language ) ? $update->language : '';
+		$deferred              = isset( $deferred_translation_updates[ $translation_update_id ] );
 
 		$translation_updates[] = array(
+			'checked'       => ! $deferred,
+			'deferred'      => $deferred,
+			'id'            => $translation_update_id,
 			'language'      => wp_get_translation_update_language( $language ),
 			'language_code' => $language,
 			'name'          => wp_get_translation_update_name( $update ),
