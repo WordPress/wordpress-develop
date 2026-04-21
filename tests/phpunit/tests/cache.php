@@ -539,6 +539,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		// any object-clone logic in set(), simulating a real-world scenario where
 		// a non-serializable object ends up in the cache.
 		$cache_property = new ReflectionProperty( $this->cache, 'cache' );
+		if ( PHP_VERSION_ID < 80500 ) {
+			$cache_property->setAccessible( true );
+		}
 		$cache_data                       = $cache_property->getValue( $this->cache );
 		$cache_data['xml-group']['item1'] = $xml_object;
 		$cache_property->setValue( $this->cache, $cache_data );
