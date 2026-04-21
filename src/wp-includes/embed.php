@@ -1238,7 +1238,7 @@ function the_embed_site_title() {
 	$icon_img = '';
 	if ( $site_icon_url ) {
 		$site_icon_url_2x = get_site_icon_url( 64, includes_url( 'images/w-logo-blue.png' ) );
-		$srcset           = $site_icon_url_2x ? sprintf( ' srcset="%s 2x"', esc_url( $site_icon_url_2x ) ) : '';
+		$srcset           = ( $site_icon_url_2x && $site_icon_url !== $site_icon_url_2x ) ? sprintf( ' srcset="%s 2x"', esc_url( $site_icon_url_2x ) ) : '';
 		$icon_img         = sprintf(
 			'<img src="%s"%s width="32" height="32" alt="" class="wp-embed-site-icon" />',
 			esc_url( $site_icon_url ),
