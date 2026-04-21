@@ -155,14 +155,13 @@ function wp_font_library_wp_admin_enqueue_scripts( $hook_suffix ) {
 
 		/*
 		 * Add inline script to initialize the app using initSinglePage (no menuItems).
-		 *
-		 * The call is deferred until DOMContentLoaded so that all classic script
-		 * dependencies of @wordpress/boot (wp-private-apis, wp-components, wp-theme,
-		 * etc.) have finished parsing and executing before the dynamic module import
-		 * resolves. Without this, a modulepreloaded @wordpress/boot can win the race
+		 * The dynamic import is deferred until DOMContentLoaded so that all classic
+		 * script dependencies of @wordpress/boot (wp-private-apis, wp-components,
+		 * wp-theme, etc.) have finished parsing and executing before the boot module
+		 * evaluates. Otherwise, a modulepreloaded @wordpress/boot can win the race
 		 * against the classic-script-printing pass on fast CDN-fronted hosts in
 		 * Chrome, evaluating before wp.theme.privateApis is defined and throwing
-		 * "Cannot unlock an undefined object". See Trac #65103.
+		 * "Cannot unlock an undefined object". See #65103.
 		 */
 		wp_add_inline_script(
 			'font-library-wp-admin-prerequisites',
