@@ -500,6 +500,10 @@ class Tests_Cache extends WP_UnitTestCase {
 	 * @covers WP_Object_Cache::stats
 	 */
 	public function test_stats_with_serializable_data() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		$this->cache->set( 'key1', 'value1', 'test-group' );
 		$this->cache->set( 'key2', array( 'a', 'b', 'c' ), 'test-group' );
 
@@ -521,6 +525,10 @@ class Tests_Cache extends WP_UnitTestCase {
 	 * @covers WP_Object_Cache::stats
 	 */
 	public function test_stats_with_non_serializable_simplexml_data() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		if ( ! class_exists( 'SimpleXMLElement' ) ) {
 			$this->markTestSkipped( 'SimpleXMLElement class is not available.' );
 		}
