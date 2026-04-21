@@ -233,6 +233,11 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 	 * Data integrity tests.
 	 */
 
+	/**
+	 * Ensure malformed updates are ignored.
+	 *
+	 * @ticket 64696
+	 */
 	public function test_get_updates_after_cursor_drops_malformed_json() {
 		global $wpdb;
 
@@ -279,6 +284,11 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		$this->assertSame( $valid_update_2, $updates[1] );
 	}
 
+	/**
+	 * Ensure awareness getter returns the latest row when duplicate rows exist.
+	 *
+	 * @ticket 64696
+	 */
 	public function test_duplicate_awareness_rows_coalesces_on_latest_row() {
 		if ( ! wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
@@ -291,7 +301,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 
 		// Simulate a race: insert two awareness rows directly.
 		$wpdb->insert(
-			$wpdb->postmeta,
+			$wpdb->collaboration,
 			array(
 				'room'      => $room,
 				'type'      => 'awareness',
@@ -303,7 +313,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		);
 
 		$wpdb->insert(
-			$wpdb->postmeta,
+			$wpdb->collaboration,
 			array(
 				'room'      => $room,
 				'type'      => 'awareness',
@@ -315,6 +325,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		);
 
 		// get_awareness_state and set_awareness_state should target the latest row.
+		wp_cache_flush();
 		$awareness = $storage->get_awareness_state( $room );
 		$this->assertSame( array( 'name' => 'Latest' ), $awareness[0] );
 		$storage->set_awareness_state( $room, '1', array( 'name' => 'Current' ), 1 );
