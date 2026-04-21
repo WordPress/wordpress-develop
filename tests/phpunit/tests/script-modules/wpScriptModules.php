@@ -2682,8 +2682,8 @@ HTML;
 	}
 
 	/**
-	 * Tests that print_script_module_translations() outputs an inline script
-	 * calling wp.i18n.setLocaleData() when translations are available.
+	 * Tests that print_script_module_translations() auto-detects translations
+	 * for enqueued modules without requiring an explicit set_translations() call.
 	 *
 	 * @ticket 65015
 	 *
@@ -2693,7 +2693,6 @@ HTML;
 	public function test_print_script_module_translations_outputs_set_locale_data() {
 		$this->script_modules->register( 'test-module', '/wp-includes/js/test-module.js' );
 		$this->script_modules->enqueue( 'test-module' );
-		$this->script_modules->set_translations( 'test-module', 'default' );
 
 		// Provide test translations via the pre_load_script_translations filter
 		// so no fixture files are needed.
@@ -2763,7 +2762,6 @@ HTML;
 		$this->script_modules->register( 'dep-module', '/wp-includes/js/dep-module.js' );
 		$this->script_modules->register( 'main-module', '/wp-includes/js/main-module.js', array( 'dep-module' ) );
 		$this->script_modules->enqueue( 'main-module' );
-		$this->script_modules->set_translations( 'dep-module', 'default' );
 
 		add_filter(
 			'pre_load_script_translations',
@@ -2814,5 +2812,50 @@ HTML;
 		$script_text = $processor->get_modifiable_text();
 		$this->assertStringContainsString( 'dep-module-js-module-translations', $script_text, 'Dependency module translations should be printed.' );
 		$this->assertStringContainsString( 'Mundo', $script_text, 'Output should contain the dependency translation.' );
+	}
+
+	/**
+	 * Tests that set_translations() can override the auto-detected text domain.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers WP_Script_Modules::set_translations
+	 */
+	public function test_print_script_module_translations_respects_set_translations_override() {
+		$this->script_modules->register( 'test-module', '/wp-includes/js/test-module.js' );
+		$this->script_modules->enqueue( 'test-module' );
+		$this->script_modules->set_translations( 'test-module', 'my-plugin' );
+
+		$seen_domain = null;
+		add_filter(
+			'pre_load_script_translations',
+			static function ( $translations, $file, $handle, $domain ) use ( &$seen_domain ) {
+				if ( 'test-module' !== $handle ) {
+					return $translations;
+				}
+				$seen_domain = $domain;
+				return wp_json_encode(
+					array(
+						'locale_data' => array(
+							'messages' => array(
+								''      => array(
+									'domain' => 'my-plugin',
+									'lang'   => 'es',
+								),
+								'Hello' => array( 'Hola' ),
+							),
+						),
+					)
+				);
+			},
+			10,
+			4
+		);
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertSame( 'my-plugin', $seen_domain, 'load_script_module_textdomain() should be called with the overridden domain.' );
+		$this->assertStringContainsString( 'Hola', $output );
 	}
 }

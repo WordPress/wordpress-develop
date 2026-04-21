@@ -349,11 +349,13 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Sets translated strings for a script module.
+	 * Overrides the text domain and path used to load translations for a script module.
 	 *
-	 * Works similar to {@see WP_Scripts::set_translations()} but for script modules.
-	 * The translations will be loaded and output as inline scripts before
-	 * the script modules are printed, calling `wp.i18n.setLocaleData()`.
+	 * This is only needed for modules whose text domain differs from 'default'
+	 * or whose translation files live outside the standard locations, for
+	 * example plugin modules that register their own text domain. Translations
+	 * for modules that use the default domain are loaded automatically by
+	 * {@see WP_Script_Modules::print_script_module_translations()}.
 	 *
 	 * @since 7.0.0
 	 *
@@ -376,11 +378,16 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Prints translations for all enqueued script modules that have translations set.
+	 * Prints translations for all enqueued script modules.
 	 *
 	 * Outputs inline `<script>` tags that call `wp.i18n.setLocaleData()` with
 	 * the translated strings for each script module. This must run before
 	 * the script modules execute.
+	 *
+	 * Auto-detects the text domain and translation path for each module from
+	 * its source URL. Modules whose text domain or path differs from the
+	 * defaults can opt into a specific domain/path via
+	 * {@see WP_Script_Modules::set_translations()}.
 	 *
 	 * @since 7.0.0
 	 */
@@ -389,12 +396,13 @@ class WP_Script_Modules {
 		$module_ids = $this->get_sorted_dependencies( $this->queue );
 
 		foreach ( $module_ids as $id ) {
-			if ( ! isset( $this->translations[ $id ] ) ) {
-				continue;
+			if ( isset( $this->translations[ $id ] ) ) {
+				$domain = $this->translations[ $id ]['domain'];
+				$path   = $this->translations[ $id ]['path'];
+			} else {
+				$domain = 'default';
+				$path   = '';
 			}
-
-			$domain = $this->translations[ $id ]['domain'];
-			$path   = $this->translations[ $id ]['path'];
 
 			$json_translations = load_script_module_textdomain( $id, $domain, $path );
 
