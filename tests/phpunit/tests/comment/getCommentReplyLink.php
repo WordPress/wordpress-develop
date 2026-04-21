@@ -95,7 +95,7 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 		$post_id    = self::factory()->post->create();
 		$comment_id = self::factory()->comment->create(
 			array(
-				'comment_post_ID' => $post_id,
+				'comment_post_ID'  => $post_id,
 				'comment_approved' => '1',
 			)
 		);
@@ -116,7 +116,7 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 		$post_id    = self::factory()->post->create();
 		$comment_id = self::factory()->comment->create(
 			array(
-				'comment_post_ID' => $post_id,
+				'comment_post_ID'  => $post_id,
 				'comment_approved' => '1',
 			)
 		);
@@ -137,7 +137,7 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 		$post_id    = self::factory()->post->create( array( 'comment_status' => 'closed' ) );
 		$comment_id = self::factory()->comment->create(
 			array(
-				'comment_post_ID' => $post_id,
+				'comment_post_ID'  => $post_id,
 				'comment_approved' => '1',
 			)
 		);
