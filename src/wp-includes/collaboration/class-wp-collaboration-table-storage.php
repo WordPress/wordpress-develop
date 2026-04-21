@@ -124,10 +124,11 @@ class WP_Collaboration_Table_Storage {
 
 			// Remove out of date entries and duplicate entries.
 			$entries = array();
-			foreach ( $cached_awareness as $index => $client_awareness ) {
+			foreach ( $cached_awareness as $client_awareness ) {
 				if ( empty( $client_awareness['timestamp'] ) || $client_awareness['timestamp'] < $cutoff_timestamp ) {
 					continue;
 				}
+				// Account for duplicates added by race conditions.
 				$entries[ $client_awareness['client_id'] ] = $client_awareness;
 			}
 
@@ -401,17 +402,21 @@ class WP_Collaboration_Table_Storage {
 
 		$data = wp_json_encode( $state );
 
-		/* Check if a row already exists. */
+		/*
+		 * Check if a row already exists.
+		 *
+		 * In the event of a race condition, the latest row will be returned as the update target.
+		 */
 		$exists = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, date_gmt FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s LIMIT 1",
+				"SELECT id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s  ORDER BY id DESC LIMIT 1",
 				$room,
 				$client_id
 			)
 		);
 
-		if ( $exists && $exists->date_gmt === $now_mysql ) {
-			// Row already has the current date, consider update a success.
+		if ( $exists && $exists->date_gmt === $now_mysql && $exists->data === $data ) {
+			// Row already has the current date & state, consider update a success.
 			return true;
 		}
 
