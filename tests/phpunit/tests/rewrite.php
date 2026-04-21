@@ -505,6 +505,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertNotEmpty( $rewrite_rules );
 	}
 
+	/**
+	 *
+	 * @ticket 9824
+	 */
 	public function test_verbose_page_rules_enabled_without_stub() {
 		global $wp_rewrite;
 
@@ -521,6 +525,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 *
+	 * @ticket 9824
+	 */
 	public function test_verbose_page_rules_disabled_with_stub() {
 		global $wp_rewrite;
 
