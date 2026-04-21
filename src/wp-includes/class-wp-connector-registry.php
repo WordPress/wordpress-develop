@@ -110,8 +110,8 @@ final class WP_Connector_Registry {
 	 *     @type array  $plugin         {
 	 *         Optional. Plugin data for install/activate UI.
 	 *
-	 *         @type string $file The plugin's main file path relative to the plugins
-	 *                            directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
+	 *         @type string $file        The plugin's main file path relative to the plugins
+	 *                                   directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
 	 *         @type callable $is_active Optional callback to determine whether the plugin
 	 *                                   is active. Receives no arguments and must return bool.
 	 *     }
