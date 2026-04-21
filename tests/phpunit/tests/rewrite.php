@@ -504,4 +504,20 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertIsArray( $rewrite_rules );
 		$this->assertNotEmpty( $rewrite_rules );
 	}
+
+	public function test_verbose_page_rules_enabled_without_stub() {
+		global $wp_rewrite;
+
+		$structures_expecting_true = array(
+			'/%postname%/',
+			'/%category%/%postname%/',
+			'/%tag%/%postname%/',
+			'/%author%/%postname%/',
+		);
+
+		foreach ( $structures_expecting_true as $structure ) {
+			$this->set_permalink_structure( $structure );
+			$this->assertTrue( $wp_rewrite->use_verbose_page_rules, "Expected true for: $structure" );
+		}
+	}
 }
