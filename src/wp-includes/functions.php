@@ -3930,6 +3930,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			// Prevent warnings because of $wp_query not existing.
 			remove_filter( 'wp_robots', 'wp_robots_noindex_embeds' );
 			remove_filter( 'wp_robots', 'wp_robots_noindex_search' );
+			remove_filter( 'wp_robots', 'wp_robots_noindex_404' );
 			wp_robots();
 		}
 		?>
