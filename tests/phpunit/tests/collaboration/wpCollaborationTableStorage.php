@@ -307,7 +307,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 				'type'      => 'awareness',
 				'client_id' => '1',
 				'user_id'   => 1,
-				'data'      => wp_json_encode( array( 1 => array( 'name' => 'Stale' ) ) ),
+				'data'      => wp_json_encode( array( 'name' => 'Stale' ) ),
 			),
 			array( '%s', '%s', '%s', '%d', '%s' )
 		);
@@ -319,7 +319,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 				'type'      => 'awareness',
 				'client_id' => '1',
 				'user_id'   => 1,
-				'data'      => wp_json_encode( array( 1 => array( 'name' => 'Latest' ) ) ),
+				'data'      => wp_json_encode( array( 'name' => 'Latest' ) ),
 			),
 			array( '%s', '%s', '%s', '%d', '%s' )
 		);
@@ -327,9 +327,11 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		// get_awareness_state and set_awareness_state should target the latest row.
 		wp_cache_flush();
 		$awareness = $storage->get_awareness_state( $room );
+		$this->assertCount( 1, $awareness, 'Only one awareness state should be returned for the client.' );
 		$this->assertSame( array( 'name' => 'Latest' ), $awareness[0] );
 		$storage->set_awareness_state( $room, '1', array( 'name' => 'Current' ), 1 );
 		$awareness = $storage->get_awareness_state( $room );
+		$this->assertCount( 1, $awareness, 'Only one awareness state should be returned for the client.' );
 		$this->assertSame( array( 'name' => 'Current' ), $awareness[0] );
 	}
 }
