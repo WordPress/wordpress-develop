@@ -94,8 +94,11 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		$result  = $storage->set_awareness_state( 'postType/post:1', '', array( 'user' => 'test' ), 1 );
 		$this->assertFalse( $result, 'set_awareness_state should reject an empty client_id.' );
 	}
+
 	/**
 	 * Ensure awareness updates are not stored in the DB for sites using a persistent cache.
+	 *
+	 * @ticket 64696
 	 */
 	public function test_awareness_uses_persistent_object_cache() {
 		if ( ! wp_using_ext_object_cache() ) {
@@ -113,6 +116,8 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 
 	/**
 	 * Ensure awareness retrieval uses in-memory cache within a single request, even when a persistent cache is in use.
+	 *
+	 * @ticket 64696
 	 */
 	public function test_awareness_uses_in_memory_cache() {
 		if ( wp_using_ext_object_cache() ) {
@@ -142,6 +147,8 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 
 	/**
 	 * Ensure adding subsequent client does not remove existing clients from room.
+	 *
+	 * @ticket 64696
 	 */
 	public function test_awareness_updates_for_multiple_users() {
 		$storage = new WP_Collaboration_Table_Storage();
@@ -158,10 +165,13 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 
 		$this->assertContains( 'client-1', $clients, 'Client 1 should be present in awareness state.' );
 		$this->assertContains( 'client-2', $clients, 'Client 2 should be present in awareness state.' );
+		$this->assertCount( 2, $awareness, 'There should be two clients present in awareness state.' );
 	}
 
 	/**
 	 * Ensure awareness does not include out of date clients from cached results.
+	 *
+	 * @ticket 64696
 	 */
 	public function test_awareness_excludes_expired_clients_from_cached_results() {
 		$storage     = new WP_Collaboration_Table_Storage();
@@ -187,5 +197,35 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		$this->assertNotContains( 'client-1', $clients, 'Expired client should not be present in awareness state.' );
 		$this->assertContains( 'client-2', $clients, 'Active client should be present in awareness state.' );
 		$this->assertCount( 1, $awareness, 'Only one active client should be present in awareness state.' );
+	}
+
+	/**
+	 * Ensure awareness getter returns data of the correct shape.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_awareness_getter_is_of_correct_shape() {
+		$storage = new WP_Collaboration_Table_Storage();
+		$storage->set_awareness_state( 'test-room', 'client-1', array( 'name' => 'Client 1' ), 1 );
+
+		$awareness = $storage->get_awareness_state( 'test-room' );
+
+		$this->assertIsArray( $awareness, 'Awareness state should be an array.' );
+		$this->assertCount( 1, $awareness, 'There should be one client state in awareness.' );
+		$this->assertArrayHasKey( 0, $awareness, 'Awareness state should be an array of client states.' );
+
+		$expected_keys = array(
+			'client_id',
+			'state',
+			'timestamp',
+			'user_id',
+		);
+
+		$this->assertSameSets( $expected_keys, array_keys( $awareness[0] ), 'Client state should have expected keys.' );
+		$this->assertSame( 'client-1', $awareness[0]['client_id'], 'Client ID should match what was set.' );
+		$this->assertIsArray( $awareness[0]['state'], 'Client state should be an array.' );
+		$this->assertSame( 'Client 1', $awareness[0]['state']['name'], 'Client state should match what was set.' );
+		$this->assertIsInt( $awareness[0]['user_id'], 'Client state user_id should be an integer.' );
+		$this->assertIsInt( $awareness[0]['timestamp'], 'Client state timestamp should be an integer.' );
 	}
 }
