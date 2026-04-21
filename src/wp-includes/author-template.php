@@ -334,7 +334,7 @@ function get_the_author_posts_link() {
 
 	$author = get_the_author();
 	/* translators: %s: Author's display name. */
-	$title  = sprintf( __( 'Posts by %s' ), $author );
+	$title = sprintf( __( 'Posts by %s' ), $author );
 
 	$link = sprintf(
 		'<a href="%1$s" rel="author">%2$s</a>',
@@ -489,8 +489,7 @@ function wp_list_authors( $args = '' ) {
 	 */
 	$query_args = apply_filters( 'wp_list_authors_args', $query_args, $parsed_args );
 
-	$authors     = get_users( $query_args );
-	$post_counts = array();
+	$authors = get_users( $query_args );
 
 	/**
 	 * Filters whether to short-circuit performing the query for author post counts.

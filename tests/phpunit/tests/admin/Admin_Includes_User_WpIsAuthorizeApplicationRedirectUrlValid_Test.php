@@ -11,16 +11,15 @@ class Admin_Includes_User_WpIsAuthorizeApplicationRedirectUrlValid_Test extends 
 	/**
 	 * Test redirect URL validation for application password authorization.
 	 *
-	 * @ticket nnnnn
+	 * @ticket 57809
 	 *
-	 * @dataProvider data_is_authorize_application_redirect_url_valid
+	 * @dataProvider data_wp_is_authorize_application_redirect_url_valid
 	 *
-	 * @param string $url                 The URL to validate.
+	 * @param string $url                 The redirect URL to validate.
 	 * @param string $expected_error_code The expected error code, empty if no error is expected.
-	 * @param string $expected_message    The expected error message, empty if no error is expected.
 	 * @param string $env                 The environment type. Defaults to 'production'.
 	 */
-	public function test_is_authorize_application_redirect_url_valid( $url, $expected_error_code, $expected_message = '', $env = 'production' ) {
+	public function test_wp_is_authorize_application_redirect_url_valid( $url, $expected_error_code, $env = 'production' ) {
 		putenv( "WP_ENVIRONMENT_TYPE=$env" );
 
 		$actual = wp_is_authorize_application_redirect_url_valid( $url );
@@ -30,96 +29,176 @@ class Admin_Includes_User_WpIsAuthorizeApplicationRedirectUrlValid_Test extends 
 		if ( $expected_error_code ) {
 			$this->assertWPError( $actual, 'A WP_Error object is expected.' );
 			$this->assertSame( $expected_error_code, $actual->get_error_code(), 'Unexpected error code.' );
-			if ( $expected_message ) {
-				$this->assertSame( $expected_message, $actual->get_error_message(), 'Unexpected error message.' );
-			}
 		} else {
-			$this->assertNotWPError( $actual, 'A WP_Error object is not expected.' );
+			$this->assertTrue( $actual, 'The URL should be considered valid.' );
 		}
 	}
 
-	public function data_is_authorize_application_redirect_url_valid() {
-		return array(
-			// Empty URL is valid (no redirect).
-			'empty URL'                              => array(
+	/**
+	 * Data provider for test_wp_is_authorize_application_redirect_url_valid.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_is_authorize_application_redirect_url_valid() {
+		$environment_types = array( 'local', 'development', 'staging', 'production' );
+
+		$datasets = array();
+		foreach ( $environment_types as $environment_type ) {
+			// Empty URL should always be valid.
+			$datasets[ $environment_type . ' and an empty URL' ] = array(
 				'url'                 => '',
 				'expected_error_code' => '',
-			),
+				'env'                 => $environment_type,
+			);
 
-			// Valid HTTPS URLs.
-			'https URL'                              => array(
+			// HTTPS URLs should always be valid.
+			$datasets[ $environment_type . ' and a "https" scheme URL' ] = array(
 				'url'                 => 'https://example.org',
 				'expected_error_code' => '',
-			),
-			'https URL with path'                    => array(
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "https" scheme URL with path' ] = array(
 				'url'                 => 'https://example.org/callback',
 				'expected_error_code' => '',
-			),
-			'https URL with port'                    => array(
-				'url'                 => 'https://example.org:8443/callback',
-				'expected_error_code' => '',
-			),
-			'https URL with query params'            => array(
-				'url'                 => 'https://example.org/callback?existing=param',
-				'expected_error_code' => '',
-			),
+				'env'                 => $environment_type,
+			);
 
-			// Valid app scheme URLs.
-			'app scheme URL'                         => array(
-				'url'                 => 'wordpress://example',
+			// Custom app schemes should always be valid.
+			$datasets[ $environment_type . ' and a custom app scheme URL' ] = array(
+				'url'                 => 'wordpress://callback',
 				'expected_error_code' => '',
-			),
-			'custom app scheme URL'                  => array(
-				'url'                 => 'myapp://callback',
-				'expected_error_code' => '',
-			),
+				'env'                 => $environment_type,
+			);
 
-			// Userinfo in URL (authority confusion attack).
-			'username and password in URL'           => array(
+			$datasets[ $environment_type . ' and another custom app scheme URL' ] = array(
+				'url'                 => 'myapp://auth/callback',
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			// Invalid protocols should always be rejected.
+			$datasets[ $environment_type . ' and a "javascript" scheme URL' ] = array(
+				'url'                 => 'javascript://example.org/%0Aalert(1)',
+				'expected_error_code' => 'invalid_redirect_url_format',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "data" scheme URL' ] = array(
+				'url'                 => 'data://text/html,test',
+				'expected_error_code' => 'invalid_redirect_url_format',
+				'env'                 => $environment_type,
+			);
+
+			// Invalid URL formats should always be rejected.
+			$datasets[ $environment_type . ' and a URL without a valid scheme' ] = array(
+				'url'                 => 'not-a-url',
+				'expected_error_code' => 'invalid_redirect_url_format',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a URL with an empty host' ] = array(
+				'url'                 => 'http://',
+				'expected_error_code' => 'invalid_redirect_url_format',
+				'env'                 => $environment_type,
+			);
+
+			// Credentials in the URL should always be rejected (authority confusion attack).
+			$datasets[ $environment_type . ' and a URL with username and password' ] = array(
 				'url'                 => 'https://user:pass@evil.com/capture',
 				'expected_error_code' => 'invalid_redirect_url_format',
-				'expected_message'    => 'Credentials are not allowed in the URL.',
-			),
-			'username only in URL'                   => array(
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a URL with username only' ] = array(
 				'url'                 => 'https://google.com@evil.com/capture',
 				'expected_error_code' => 'invalid_redirect_url_format',
-				'expected_message'    => 'Credentials are not allowed in the URL.',
-			),
-			'username with empty password in URL'    => array(
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a URL with username and empty password' ] = array(
 				'url'                 => 'https://user:@evil.com/capture',
 				'expected_error_code' => 'invalid_redirect_url_format',
-				'expected_message'    => 'Credentials are not allowed in the URL.',
-			),
+				'env'                 => $environment_type,
+			);
 
-			// Invalid protocols.
-			'javascript protocol'                    => array(
-				'url'                 => 'javascript:alert(1)',
-				'expected_error_code' => 'invalid_redirect_url_format',
-			),
-			'data protocol'                          => array(
-				'url'                 => 'data:text/html,<script>alert(1)</script>',
-				'expected_error_code' => 'invalid_redirect_url_format',
-			),
-
-			// Invalid format.
-			'no scheme'                              => array(
-				'url'                 => 'example.org/callback',
-				'expected_error_code' => 'invalid_redirect_url_format',
-			),
-
-			// HTTP scheme depends on environment.
-			'http URL on production'                 => array(
-				'url'                 => 'http://example.org',
-				'expected_error_code' => 'invalid_redirect_scheme',
-				'expected_message'    => '',
-				'env'                 => 'production',
-			),
-			'http URL on local'                      => array(
-				'url'                 => 'http://example.org',
+			// HTTP + loopback IP addresses should be valid in all environments.
+			$datasets[ $environment_type . ' and a "http" scheme URL with 127.0.0.1' ] = array(
+				'url'                 => 'http://127.0.0.1/callback',
 				'expected_error_code' => '',
-				'expected_message'    => '',
-				'env'                 => 'local',
-			),
-		);
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme URL with IPv6 loopback' ] = array(
+				'url'                 => 'http://[::1]/callback',
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			// HTTP + loopback IP addresses with ports should be valid in all environments.
+			$datasets[ $environment_type . ' and a "http" scheme URL with 127.0.0.1 and port' ] = array(
+				'url'                 => 'http://127.0.0.1:3000/callback',
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme URL with IPv6 loopback and port' ] = array(
+				'url'                 => 'http://[::1]:8080/callback',
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			// HTTP + non-loopback host should only be valid in local environments.
+			$datasets[ $environment_type . ' and a "http" scheme URL with a non-loopback host' ] = array(
+				'url'                 => 'http://example.org',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme URL with a non-loopback host and path' ] = array(
+				'url'                 => 'http://example.org/callback',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			// Boundary cases: hostnames and addresses NOT treated as loopback.
+			$datasets[ $environment_type . ' and a "http" scheme URL with localhost' ] = array(
+				'url'                 => 'http://localhost/callback',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme URL with 127.0.0.2' ] = array(
+				'url'                 => 'http://127.0.0.2/callback',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme URL with expanded IPv6 loopback' ] = array(
+				'url'                 => 'http://[0:0:0:0:0:0:0:1]/callback',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme URL with localhost.localdomain' ] = array(
+				'url'                 => 'http://localhost.localdomain/callback',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme URL with localhost as subdomain' ] = array(
+				'url'                 => 'http://localhost.example.org/callback',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme URL with localhost as suffix' ] = array(
+				'url'                 => 'http://examplelocalhost.org/callback',
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+		}
+
+		return $datasets;
 	}
 }

@@ -75,6 +75,18 @@ class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test exte
 				'expected_error_code' => 'invalid_redirect_url_format',
 				'env'                 => $environment_type,
 			);
+
+			$datasets[ $environment_type . ' and a "http" loopback "success_url"' ] = array(
+				'request'             => array( 'success_url' => 'http://127.0.0.1:8080/callback' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" loopback "reject_url"' ] = array(
+				'request'             => array( 'reject_url' => 'http://127.0.0.1/callback' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
 		}
 
 		return $datasets;
