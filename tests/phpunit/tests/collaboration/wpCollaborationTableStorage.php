@@ -290,7 +290,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 	 * @ticket 64696
 	 */
 	public function test_duplicate_awareness_rows_coalesces_on_latest_row() {
-		if ( ! wp_using_ext_object_cache() ) {
+		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
@@ -328,10 +328,54 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		wp_cache_flush();
 		$awareness = $storage->get_awareness_state( $room );
 		$this->assertCount( 1, $awareness, 'Only one awareness state should be returned for the client.' );
-		$this->assertSame( array( 'name' => 'Latest' ), $awareness[0] );
+		$this->assertSame( array( 'name' => 'Latest' ), $awareness[0]['state'] );
 		$storage->set_awareness_state( $room, '1', array( 'name' => 'Current' ), 1 );
 		$awareness = $storage->get_awareness_state( $room );
 		$this->assertCount( 1, $awareness, 'Only one awareness state should be returned for the client.' );
-		$this->assertSame( array( 'name' => 'Current' ), $awareness[0] );
+		$this->assertSame( array( 'name' => 'Current' ), $awareness[0]['state'] );
+	}
+
+
+	/**
+	 * Ensure awareness getter returns the last client entry when duplicates exist.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_duplicate_awareness_rows_coalesces_on_latest_entry_with_object_cache() {
+		if ( ! wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is in use.' );
+		}
+
+		global $wpdb;
+
+		$storage = new WP_Collaboration_Table_Storage();
+		$room    = __FUNCTION__;
+
+		wp_cache_set(
+			'awareness::' . $room,
+			array(
+				array(
+					'client_id' => '1',
+					'state'     => array( 'name' => 'Cached Stale' ),
+					'timestamp' => time(),
+				),
+				array(
+					'client_id' => '1',
+					'state'     => array( 'name' => 'Cached Latest' ),
+					'timestamp' => time(),
+				),
+			),
+			'collaboration',
+			HOUR_IN_SECONDS
+		);
+
+		// get_awareness_state and set_awareness_state should target the latest row.
+		$awareness = $storage->get_awareness_state( $room );
+		$this->assertCount( 1, $awareness, 'Only one awareness state should be returned for the client.' );
+		$this->assertSame( array( 'name' => 'Latest' ), $awareness[0]['state'] );
+		$storage->set_awareness_state( $room, '1', array( 'name' => 'Current' ), 1 );
+		$awareness = $storage->get_awareness_state( $room );
+		$this->assertCount( 1, $awareness, 'Only one awareness state should be returned for the client.' );
+		$this->assertSame( array( 'name' => 'Current' ), $awareness[0]['state'] );
 	}
 }
