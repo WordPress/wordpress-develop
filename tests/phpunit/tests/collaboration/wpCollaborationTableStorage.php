@@ -281,7 +281,7 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 
 	public function test_duplicate_awareness_rows_coalesces_on_latest_row() {
 		if ( ! wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is in use.' );
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
 		global $wpdb;
