@@ -228,4 +228,97 @@ class Tests_Collaboration_WpCollaborationTableStorage extends WP_UnitTestCase {
 		$this->assertIsInt( $awareness[0]['user_id'], 'Client state user_id should be an integer.' );
 		$this->assertIsInt( $awareness[0]['timestamp'], 'Client state timestamp should be an integer.' );
 	}
+
+	/*
+	 * Data integrity tests.
+	 */
+
+	public function test_get_updates_after_cursor_drops_malformed_json() {
+		global $wpdb;
+
+		$storage = new WP_Collaboration_Table_Storage();
+		$room    = __FUNCTION__;
+
+		// Advance cursor past the seed update from create_storage_post().
+		$storage->get_updates_after_cursor( $room, 0 );
+		$cursor = $storage->get_cursor( $room );
+
+		// Insert a valid update.
+		$valid_update = array(
+			'type'      => 'update',
+			'data'      => 'dGVzdA==',
+			'client_id' => '1',
+		);
+		$this->assertTrue( $storage->add_update( $room, $valid_update ) );
+
+		// Insert a malformed JSON row directly into the database.
+		$wpdb->insert(
+			$wpdb->collaboration,
+			array(
+				'room'      => $room,
+				'type'      => 'update',
+				'client_id' => '1',
+				'data'      => '{invalid json',
+			),
+			array( '%s', '%s', '%s', '%s' )
+		);
+
+		// Insert another valid update after the malformed one.
+		$valid_update_2 = array(
+			'type'      => 'sync_step1',
+			'client_id' => '1',
+			'data'      => 'c3RlcDE=',
+		);
+		$this->assertTrue( $storage->add_update( $room, $valid_update_2 ) );
+
+		$updates = $storage->get_updates_after_cursor( $room, $cursor );
+
+		// The malformed row should be dropped; only the valid updates should appear.
+		$this->assertCount( 2, $updates );
+		$this->assertSame( $valid_update, $updates[0] );
+		$this->assertSame( $valid_update_2, $updates[1] );
+	}
+
+	public function test_duplicate_awareness_rows_coalesces_on_latest_row() {
+		if ( ! wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is in use.' );
+		}
+
+		global $wpdb;
+
+		$storage = new WP_Collaboration_Table_Storage();
+		$room    = __FUNCTION__;
+
+		// Simulate a race: insert two awareness rows directly.
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'room'      => $room,
+				'type'      => 'awareness',
+				'client_id' => '1',
+				'user_id'   => 1,
+				'data'      => wp_json_encode( array( 1 => array( 'name' => 'Stale' ) ) ),
+			),
+			array( '%s', '%s', '%s', '%d', '%s' )
+		);
+
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'room'      => $room,
+				'type'      => 'awareness',
+				'client_id' => '1',
+				'user_id'   => 1,
+				'data'      => wp_json_encode( array( 1 => array( 'name' => 'Latest' ) ) ),
+			),
+			array( '%s', '%s', '%s', '%d', '%s' )
+		);
+
+		// get_awareness_state and set_awareness_state should target the latest row.
+		$awareness = $storage->get_awareness_state( $room );
+		$this->assertSame( array( 'name' => 'Latest' ), $awareness[0] );
+		$storage->set_awareness_state( $room, '1', array( 'name' => 'Current' ), 1 );
+		$awareness = $storage->get_awareness_state( $room );
+		$this->assertSame( array( 'name' => 'Current' ), $awareness[0] );
+	}
 }
