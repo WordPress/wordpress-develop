@@ -372,8 +372,12 @@ class WP_Collaboration_Table_Storage {
 			$awareness = $this->get_awareness_state( $room );
 
 			foreach ( $awareness as $index => $client_awareness ) {
-				if ( $client_awareness['client_id'] === $client_id && $client_awareness['timestamp'] === $now_timestamp ) {
-					// Cache already has the current client expiry, consider update a success (avoids cache thrashing).
+				if (
+					$client_awareness['client_id'] === $client_id
+					&& $client_awareness['timestamp'] === $now_timestamp
+					&& $client_awareness['state'] === $state
+				) {
+					// Cache already has the current client expiry and state, consider update a success (avoids cache thrashing).
 					return true;
 				}
 
