@@ -157,7 +157,7 @@ class WP_On_This_Day {
 
 		$by_year = array();
 		foreach ( $posts as $post ) {
-			$year                = (int) get_the_date( 'Y', $post );
+			$year               = (int) get_the_date( 'Y', $post );
 			$by_year[ $year ][] = $post;
 		}
 		krsort( $by_year );
@@ -168,12 +168,14 @@ class WP_On_This_Day {
 		<p class="on-this-day-intro">
 			<?php
 			printf(
-				/* translators: 1: Number of posts. 2: Number of years. */
-				esc_html( _n(
-					'You published %1$s post on this day across %2$s year.',
-					'You published %1$s posts on this day across %2$s years.',
-					$post_count
-				) ),
+				esc_html(
+					/* translators: 1: Number of posts. 2: Number of years. */
+					_n(
+						'You published %1$s post on this day across %2$s year.',
+						'You published %1$s posts on this day across %2$s years.',
+						$post_count
+					)
+				),
 				'<strong>' . esc_html( number_format_i18n( $post_count ) ) . '</strong>',
 				'<strong>' . esc_html( number_format_i18n( $year_count ) ) . '</strong>'
 			);
@@ -181,7 +183,8 @@ class WP_On_This_Day {
 		</p>
 
 		<ul class="on-this-day-timeline">
-			<?php foreach ( $by_year as $year => $year_posts ) :
+			<?php
+			foreach ( $by_year as $year => $year_posts ) :
 				$years_ago = $current_year - (int) $year;
 				?>
 				<li class="on-this-day-year-group">
@@ -247,7 +250,11 @@ class WP_On_This_Day {
 			<?php endif; ?>
 			<div class="on-this-day-post-body">
 				<h4 class="on-this-day-post-title">
-					<a href="<?php echo esc_url( $edit_link ); ?>"><?php echo esc_html( $title ); ?></a><?php if ( 'private' === $status ) : ?> <span class="on-this-day-chip on-this-day-chip-private"><?php _e( 'Private' ); ?></span><?php endif; ?>
+					<a href="<?php echo esc_url( $edit_link ); ?>"><?php echo esc_html( $title ); ?></a>
+					<?php
+					if ( 'private' === $status ) :
+						?>
+						<span class="on-this-day-chip on-this-day-chip-private"><?php _e( 'Private' ); ?></span><?php endif; ?>
 				</h4>
 				<?php if ( $excerpt ) : ?>
 					<p class="on-this-day-post-excerpt"><?php echo esc_html( $excerpt ); ?></p>
