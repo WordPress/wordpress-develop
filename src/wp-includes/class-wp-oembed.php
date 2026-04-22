@@ -23,7 +23,9 @@ class WP_oEmbed {
 	 * A list of oEmbed providers.
 	 *
 	 * @since 2.9.0
-	 * @var array
+	 * @var array<string, array{ 0: string, 1: bool }> An associative array mapping URL patterns to provider data.
+	 *                                                     Each entry's value is an array with the provider endpoint URL
+	 *                                                     string at index 0 and a boolean regex flag at index 1.
 	 */
 	public $providers = array();
 
@@ -222,16 +224,15 @@ class WP_oEmbed {
 		 * @since 2.9.0
 		 *
 		 * @param array<string, array{ 0: string, 1?: bool }> $providers An associative array mapping URL patterns to
-		 *                                                                provider data. Each value must be an array
-		 *                                                                with a provider endpoint URL string at index 0
-		 *                                                                and an optional boolean regex flag at index 1.
+		 *                                                               provider data. Each value must be an array
+		 *                                                               with a provider endpoint URL string at index 0
+		 *                                                               and an optional boolean regex flag at index 1.
 		 */
-		$this->providers = apply_filters( 'oembed_providers', $providers );
-
-		foreach ( $this->providers as $matchmask => $data ) {
+		$providers = apply_filters( 'oembed_providers', $providers );
+		foreach ( $providers as $matchmask => $data ) {
 			if ( ! is_array( $data ) || ! isset( $data[0] ) || ! is_string( $data[0] ) ) {
 				_doing_it_wrong(
-					'oembed_providers',
+					__METHOD__,
 					sprintf(
 						/* translators: %s: The oEmbed provider URL pattern. */
 						__( 'The oEmbed provider data for %s is malformed. Each provider must be an array with a provider endpoint URL string at index 0 and an optional boolean regex flag at index 1.' ),
@@ -239,7 +240,9 @@ class WP_oEmbed {
 					),
 					'7.1.0'
 				);
-				unset( $this->providers[ $matchmask ] );
+			} else {
+				$data[1]                       = (bool) ( $data[1] ?? false );
+				$this->providers[ $matchmask ] = $data;
 			}
 		}
 

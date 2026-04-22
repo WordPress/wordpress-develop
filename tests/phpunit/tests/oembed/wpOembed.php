@@ -282,7 +282,7 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 *
 	 * @covers WP_oEmbed::__construct
 	 */
-	public function test_malformed_provider_triggers_doing_it_wrong_and_is_removed() {
+	public function test_malformed_provider_triggers_doing_it_wrong() {
 		$filter = static function ( $providers ) {
 			$providers['bad_provider'] = array(
 				'url'      => '#https?://example\.site/.*#i',
@@ -292,7 +292,7 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 		};
 
 		add_filter( 'oembed_providers', $filter );
-		$this->setExpectedIncorrectUsage( 'oembed_providers' );
+		$this->setExpectedIncorrectUsage( 'WP_oEmbed::__construct' );
 		$oembed = new WP_oEmbed();
 		remove_filter( 'oembed_providers', $filter );
 
