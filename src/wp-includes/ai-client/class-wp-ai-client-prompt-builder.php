@@ -199,9 +199,9 @@ class WP_AI_Client_Prompt_Builder {
 		 *
 		 * @param float $default_timeout The default timeout in seconds.
 		 */
-		$timeout = apply_filters( 'wp_ai_client_default_request_timeout', $default_timeout );
-		if ( is_numeric( $timeout ) && (float) $timeout >= 0.0 ) {
-			$default_timeout = (float) $timeout;
+		$filtered_default_timeout = apply_filters( 'wp_ai_client_default_request_timeout', $default_timeout );
+		if ( is_numeric( $filtered_default_timeout ) && (float) $filtered_default_timeout >= 0.0 ) {
+			$default_timeout = (float) $filtered_default_timeout;
 		} else {
 			_doing_it_wrong(
 				__METHOD__,
