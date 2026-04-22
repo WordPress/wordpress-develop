@@ -641,9 +641,10 @@ switch ( $action ) {
 			}
 
 			/**
-			 * Filters the interval for redirecting the user to the admin email confirmation screen.
+			 * Filters the interval for redirecting the user to the admin email verification screen.
 			 *
-			 * If `0` (zero) is returned, the user will not be redirected.
+			 * If `0` or a negative value is returned, the email verification screen will
+			 * be shown again next time an administrator logs in.
 			 *
 			 * @since 5.3.0
 			 *
@@ -651,9 +652,7 @@ switch ( $action ) {
 			 */
 			$admin_email_check_interval = (int) apply_filters( 'admin_email_check_interval', 6 * MONTH_IN_SECONDS );
 
-			if ( $admin_email_check_interval > 0 ) {
-				update_option( 'admin_email_lifespan', time() + $admin_email_check_interval );
-			}
+			update_option( 'admin_email_lifespan', time() + $admin_email_check_interval );
 
 			wp_safe_redirect( $redirect_to );
 			exit;
@@ -1386,25 +1385,31 @@ switch ( $action ) {
 				exit;
 			}
 
-			// Check if it is time to add a redirect to the admin email confirmation screen.
+			// Check if it is time to add a redirect to the admin email verification screen.
 			if ( $user instanceof WP_User && $user->exists() && $user->has_cap( 'manage_options' ) ) {
-				$admin_email_lifespan = (int) get_option( 'admin_email_lifespan' );
-
-				/*
-				 * If `0` (or anything "falsey" as it is cast to int) is returned, the user will not be redirected
-				 * to the admin email confirmation screen.
+				/**
+				 * Filters whether the user should be redirected to the verification screen. Can also be used
+				 * to disable this functionality completely.
+				 *
+				 * @since 5.3.0
+				 *
+				 * @param bool    True to redirect, false otherwise.
+				 * @param WP_User WP_User object.
 				 */
-				/** This filter is documented in wp-login.php */
-				$admin_email_check_interval = (int) apply_filters( 'admin_email_check_interval', 6 * MONTH_IN_SECONDS );
+				$show_verification = (bool) apply_filters( 'show_admin_email_verification', true, $user );
 
-				if ( $admin_email_check_interval > 0 && time() > $admin_email_lifespan ) {
-					$redirect_to = add_query_arg(
-						array(
-							'action'  => 'confirm_admin_email',
-							'wp_lang' => get_user_locale( $user ),
-						),
-						wp_login_url( $redirect_to )
-					);
+				if ( $show_verification ) {
+					$admin_email_lifespan = (int) get_option( 'admin_email_lifespan' );
+
+					if ( time() > $admin_email_lifespan ) {
+						$redirect_to = add_query_arg(
+							array(
+								'action'  => 'confirm_admin_email',
+								'wp_lang' => get_user_locale( $user ),
+							),
+							wp_login_url( $redirect_to )
+						);
+					}
 				}
 			}
 
