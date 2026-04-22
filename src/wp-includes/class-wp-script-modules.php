@@ -412,9 +412,9 @@ class WP_Script_Modules {
 				wp_json_encode( $domain, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
 				$json_translations
 			);
-			$source_url = rawurlencode( "wp-script-module-translation-data-{$id}" );
-			$output    .= "\n//# sourceURL={$source_url}";
-			wp_print_inline_script_tag( $output, array( 'id' => "wp-script-module-translation-data-{$id}" ) );
+			$script_id  = "wp-script-module-translation-data-{$id}";
+			$output    .= "\n//# sourceURL=" . rawurlencode( $script_id );
+			wp_print_inline_script_tag( $output, array( 'id' => $script_id ) );
 		}
 	}
 
