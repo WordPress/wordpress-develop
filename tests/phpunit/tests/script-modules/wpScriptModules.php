@@ -1987,6 +1987,23 @@ HTML;
 	}
 
 	/**
+	 * Returns the inline text of the first SCRIPT tag with the given id, or null if not found.
+	 *
+	 * @param string $markup The HTML markup to search.
+	 * @param string $id     The id attribute to match.
+	 * @return string|null The inline script text, or null if no matching tag was found.
+	 */
+	private function get_inline_script_text( string $markup, string $id ): ?string {
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		while ( $processor->next_tag( 'SCRIPT' ) ) {
+			if ( $id === $processor->get_attribute( 'id' ) ) {
+				return $processor->get_modifiable_text();
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
@@ -2741,10 +2758,8 @@ HTML;
 			$this->assertTrue( $filter_args['is_module'] );
 		}
 
-		$processor = new WP_HTML_Tag_Processor( $output );
-		$this->assertTrue( $processor->next_tag( 'SCRIPT' ) );
-		$script_text = $processor->get_modifiable_text();
-		$this->assertStringContainsString( 'wp-script-module-translation-data-test-module', $script_text, 'Translation inline script should be printed with the expected ID.' );
+		$script_text = $this->get_inline_script_text( $output, 'wp-script-module-translation-data-test-module' );
+		$this->assertNotNull( $script_text, 'Translation inline script should be printed with the expected ID.' );
 		$this->assertStringContainsString( 'wp.i18n.setLocaleData', $script_text, 'Output should call wp.i18n.setLocaleData().' );
 		$this->assertStringContainsString( 'Hola', $script_text, 'Output should contain the translated string.' );
 	}
@@ -2808,10 +2823,8 @@ HTML;
 			$this->assertTrue( $filter_args['is_module'] );
 		}
 
-		$processor = new WP_HTML_Tag_Processor( $output );
-		$this->assertTrue( $processor->next_tag( 'SCRIPT' ) );
-		$script_text = $processor->get_modifiable_text();
-		$this->assertStringContainsString( 'wp-script-module-translation-data-dep-module', $script_text, 'Dependency module translations should be printed.' );
+		$script_text = $this->get_inline_script_text( $output, 'wp-script-module-translation-data-dep-module' );
+		$this->assertNotNull( $script_text, 'Dependency module translations should be printed.' );
 		$this->assertStringContainsString( 'Mundo', $script_text, 'Output should contain the dependency translation.' );
 	}
 
