@@ -9,10 +9,10 @@
  * @package WordPress
  */
 
-const child_process = require( 'child_process' );
 const fs = require( 'fs' );
 const path = require( 'path' );
 const json2php = require( 'json2php' );
+const { fromString } = require( 'php-array-reader' );
 
 // Paths.
 const rootDir = path.resolve( __dirname, '../..' );
@@ -78,36 +78,14 @@ const COPY_CONFIG = {
  * Given a path to a PHP file which returns a single value, converts that
  * value into a native JavaScript value (limited by JSON serialization).
  *
- * @throws Error when PHP source file unable to be read, or PHP is unavailable.
+ * @throws Error when PHP source file unable to be read or parsed.
  *
  * @param {string} phpFilepath Absolute path of PHP file returning a single value.
  * @return {Object|Array} JavaScript representation of value from input file.
  */
 function readReturnedValueFromPHPFile( phpFilepath ) {
-	const results = child_process.spawnSync(
-		'php',
-		[ '-r', '$path = file_get_contents( "php://stdin" ); if ( ! is_file( $path ) ) { die( 1 ); } try { $data = require $path; } catch ( \\Throwable $e ) { die( 2 ); } $json = json_encode( $data ); if ( ! is_string( $json ) ) { die( 3 ); } echo $json;' ],
-		{
-			encoding: 'utf8',
-			input: phpFilepath,
-		}
-	);
-
-	switch ( results.status ) {
-		case 0:
-			return JSON.parse( results.stdout );
-
-		case 1:
-			throw new Error( `Could not read PHP source file: '${ phpFilepath }'` );
-
-		case 2:
-			throw new Error( `PHP source file did not return value when imported: '${ phpFilepath }'` );
-
-		case 3:
-			throw new Error( `Could not serialize PHP source value into JSON: '${ phpFilepath }'` );
-	}
-
-	throw new Error( `Unknown error while reading PHP source file: '${ phpFilepath }'` );
+	const content = fs.readFileSync( phpFilepath, 'utf8' );
+	return fromString( content );
 }
 
 /**
@@ -259,6 +237,10 @@ function generateScriptModulesPackages() {
 			const fullPath = path.join( dir, entry.name );
 
 			if ( entry.isDirectory() ) {
+				// Skip plugin-only packages (e.g., vips/wasm) that should not be in Core.
+				if ( entry.name === 'vips' ) {
+					continue;
+				}
 				processDirectory( fullPath, baseDir );
 			} else if ( entry.name.endsWith( '.min.asset.php' ) ) {
 				const relativePath = path.relative( baseDir, fullPath );
@@ -342,6 +324,17 @@ function generateScriptLoaderPackages() {
 			// For regular scripts, use dependencies as-is.
 			if ( ! assetData.dependencies ) {
 				assetData.dependencies = [];
+			}
+
+			// Strip plugin-only module dependencies (e.g., vips) that are not in Core.
+			if ( Array.isArray( assetData.module_dependencies ) ) {
+				assetData.module_dependencies =
+					assetData.module_dependencies.filter(
+						( dep ) =>
+							! ( dep.id || dep ).startsWith(
+								'@wordpress/vips'
+							)
+					);
 			}
 
 			assets[ `${ entry.name }.js` ] = assetData;
