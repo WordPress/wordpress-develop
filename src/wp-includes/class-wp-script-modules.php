@@ -385,6 +385,14 @@ class WP_Script_Modules {
 		// Collect all module IDs that will be on the page (enqueued + their dependencies).
 		$module_ids = $this->get_sorted_dependencies( $this->queue );
 
+		$set_locale_data_js_function = <<<'JS'
+		( domain, translations ) => {
+			const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
+			localeData[""].domain = domain;
+			wp.i18n.setLocaleData( localeData, domain );
+		}
+		JS;
+
 		foreach ( $module_ids as $id ) {
 			if ( isset( $this->registered[ $id ]['translations'] ) ) {
 				$domain = $this->registered[ $id ]['translations']['textdomain'];
@@ -399,14 +407,6 @@ class WP_Script_Modules {
 			if ( ! $json_translations ) {
 				continue;
 			}
-
-			$set_locale_data_js_function = <<<JS
-			( domain, translations ) => {
-				const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
-				localeData[""].domain = domain;
-				wp.i18n.setLocaleData( localeData, domain );
-			}
-			JS;
 
 			$output     = sprintf(
 				'( %s )( %s, %s );',
