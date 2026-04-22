@@ -394,13 +394,8 @@ class WP_Script_Modules {
 		JS;
 
 		foreach ( $module_ids as $id ) {
-			if ( isset( $this->registered[ $id ]['translations'] ) ) {
-				$domain = $this->registered[ $id ]['translations']['textdomain'];
-				$path   = $this->registered[ $id ]['translations']['path'];
-			} else {
-				$domain = 'default';
-				$path   = '';
-			}
+			$domain = $this->registered[ $id ]['translations']['textdomain'] ?? 'default';
+			$path   = $this->registered[ $id ]['translations']['path'] ?? '';
 
 			$json_translations = load_script_module_textdomain( $id, $domain, $path );
 
