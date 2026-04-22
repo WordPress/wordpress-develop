@@ -22,10 +22,6 @@
    exposes at runtime (see src/wp-admin/css/colors/_tokens.scss), so the widget
    follows the user's selected admin color scheme (Blue, Modern, Coffee, etc.).
    Fallback values match the classic "Fresh" scheme.
-
-   Neutrals: the Figma design-system grays are intentionally NOT exposed as
-   CSS custom properties, so we reuse the classic wp-admin palette already
-   shared by dashboard.css / site-health.css for visual consistency.
    ----------------------------------------------------------------------------- */
 
 #dashboard_on_this_day,
@@ -72,7 +68,6 @@
 /* -----------------------------------------------------------------------------
    2. Postbox chrome
    ----------------------------------------------------------------------------- */
-
 #dashboard_on_this_day {
 	& .inside {
 		margin: 0;
@@ -94,7 +89,6 @@
 /* -----------------------------------------------------------------------------
    3. Widget body — title
    ----------------------------------------------------------------------------- */
-
 .on-this-day-title-main {
 	display: inline-flex;
 	align-items: center;
@@ -136,7 +130,6 @@
 /* -----------------------------------------------------------------------------
    3. Widget body — intro + timeline
    ----------------------------------------------------------------------------- */
-
 .on-this-day-intro {
 	margin: 0;
 	padding: 14px 16px 12px;
@@ -230,7 +223,6 @@
 /* -----------------------------------------------------------------------------
    3. Widget body — post card
    ----------------------------------------------------------------------------- */
-
 .on-this-day-post-list {
 	display: flex;
 	flex-direction: column;
@@ -374,7 +366,6 @@
 /* -----------------------------------------------------------------------------
    3. Widget body — empty state
    ----------------------------------------------------------------------------- */
-
 .on-this-day-empty {
 	text-align: center;
 	padding: 26px 20px 22px;
@@ -414,7 +405,6 @@
 /* -----------------------------------------------------------------------------
    4. Adaptive rules
    ----------------------------------------------------------------------------- */
-
 @media (prefers-reduced-motion: reduce) {
 	.on-this-day-post {
 		transition: none;
