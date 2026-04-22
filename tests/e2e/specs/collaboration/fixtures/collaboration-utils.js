@@ -105,8 +105,7 @@ export default class CollaborationUtils {
 		// Retry filling if the page resets during a cold Docker start.
 		await expect( async () => {
 			await page.locator( '#user_login' ).fill( userInfo.username );
-			await page.locator( '#user_pass' ).clear();
-			await page.locator( '#user_pass' ).pressSequentially( userInfo.password );
+			await page.locator( '#user_pass' ).fill( userInfo.password, { force: true } );
 			await expect( page.locator( '#user_pass' ) ).toHaveValue(
 				userInfo.password
 			);
