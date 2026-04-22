@@ -414,9 +414,9 @@ class WP_Script_Modules {
 				wp_json_encode( $domain ),
 				$json_translations
 			);
-			$source_url = rawurlencode( "{$id}-js-module-translations" );
+			$source_url = rawurlencode( "wp-script-module-translation-data-{$id}" );
 			$output    .= "\n//# sourceURL={$source_url}";
-			wp_print_inline_script_tag( $output, array( 'id' => "{$id}-js-module-translations" ) );
+			wp_print_inline_script_tag( $output, array( 'id' => "wp-script-module-translation-data-{$id}" ) );
 		}
 	}
 
