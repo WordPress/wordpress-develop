@@ -170,7 +170,6 @@ test.describe( 'Collaboration - Sync', () => {
 			.toBe( 'New Title from User A' );
 	} );
 
-	// Skipped: User C returning to editor triggers too many collaborators, causing failures.
 	test( 'User C joins late and sees existing content from A and B', async ( {
 		collaborationUtils,
 		editor,
