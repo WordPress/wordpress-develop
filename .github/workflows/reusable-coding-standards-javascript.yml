@@ -7,7 +7,7 @@ on:
   workflow_call:
 
 env:
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
