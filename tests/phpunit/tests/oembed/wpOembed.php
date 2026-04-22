@@ -279,7 +279,6 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65068
-	 *
 	 * @covers WP_oEmbed::__construct
 	 */
 	public function test_malformed_provider_triggers_doing_it_wrong() {
@@ -301,7 +300,6 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65068
-	 *
 	 * @covers ::get_provider
 	 */
 	public function test_get_provider_handles_provider_without_regex_flag() {
