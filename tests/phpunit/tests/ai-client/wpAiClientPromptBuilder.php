@@ -192,16 +192,21 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the constructor allows overriding the default request timeout with a higher value.
+	 * Test that the constructor allows overriding the default request timeout with a valid value.
 	 *
 	 * @ticket 64591
 	 * @ticket 65094
+	 *
+	 * @dataProvider data_valid_request_timeout_overrides
+	 *
+	 * @param mixed $input    The timeout value returned by the filter.
+	 * @param float $expected The expected timeout stored on the request options.
 	 */
-	public function test_constructor_allows_overriding_request_timeout_with_higher_value() {
+	public function test_constructor_allows_overriding_request_timeout_with_valid_timeout( $input, float $expected ) {
 		add_filter(
 			'wp_ai_client_default_request_timeout',
-			static function () {
-				return 45.5;
+			static function () use ( $input ) {
+				return $input;
 			}
 		);
 
@@ -211,7 +216,22 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertSame( 45.5, $request_options->getTimeout() );
+		$this->assertSame( $expected, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_allows_overriding_request_timeout_with_valid_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed, 1: float}>
+	 */
+	public function data_valid_request_timeout_overrides(): array {
+		return array(
+			'float'    => array( 45.5, 45.5 ),
+			'integer'  => array( 67, 67.0 ),
+			'string'   => array( '20', 20.0 ),
+			'infinity' => array( INF, INF ),
+			'zero'     => array( 0.0, 0.0 ),
+		);
 	}
 
 	/**
@@ -243,7 +263,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_constructor_disallows_overriding_with_invalid_request_timeout().
+	 * Data provider for {@see self::test_constructor_disallows_overriding_with_invalid_request_timeout()}.
 	 *
 	 * @return array<string, array{0: mixed}>
 	 */
