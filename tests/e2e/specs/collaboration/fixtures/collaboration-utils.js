@@ -100,19 +100,26 @@ export default class CollaborationUtils {
 	 * @param {Object}                          userInfo User credentials.
 	 */
 	async loginUser( page, userInfo ) {
-		await page.goto( '/wp-login.php' );
+		// Login to admin using request context.
+		let response = await page.request.post( 'wp-login.php', {
+			failOnStatusCode: true,
+			form: {
+				log: userInfo.username,
+				pwd: userInfo.password,
+			},
+		} );
+		await response.dispose();
 
-		// Retry filling if the page resets during a cold Docker start.
-		await expect( async () => {
-			await page.locator( '#user_login' ).fill( userInfo.username );
-			await page.locator( '#user_pass' ).fill( userInfo.password, { force: true } );
-			await expect( page.locator( '#user_pass' ) ).toHaveValue(
-				userInfo.password
-			);
-		} ).toPass( { timeout: 15_000 } );
+		// Get the nonce.
+		response = await page.request.get(
+			'wp-admin/admin-ajax.php?action=rest-nonce',
+			{
+				failOnStatusCode: true,
+			}
+		);
+		const nonce = await response.text();
 
-		await page.getByRole( 'button', { name: 'Log In' } ).click();
-		await page.waitForURL( '**/wp-admin/**' );
+		return nonce;
 	}
 
 	/**
