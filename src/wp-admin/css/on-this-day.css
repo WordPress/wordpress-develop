@@ -1,81 +1,170 @@
-/* On This Day dashboard widget
-   ========================================================================== */
+/* =============================================================================
+   On This Day dashboard widget
+   =============================================================================
+   Organised as:
+     1. Design tokens (custom properties on the widget root)
+     2. Postbox chrome (#dashboard_on_this_day)
+     3. Widget body (.on-this-day-widget)
+        - Title, intro
+        - Timeline (year groups + badges)
+        - Post card (thumbnail, body, meta, actions)
+        - Empty state
+     4. Adaptive rules (reduced motion, small viewports)
+   ============================================================================= */
 
-#dashboard_on_this_day .inside {
-	margin: 0;
-	padding: 0;
-	max-height: 560px;
-	overflow: auto;
+/* -----------------------------------------------------------------------------
+   1. Design tokens
+
+   Scoped to the postbox so the title spans (rendered in `.hndle`, outside the
+   `.on-this-day-widget` wrapper) can reference the same variables as the body.
+
+   Accent: `--wp-admin-theme-color*` are the only color custom properties core
+   exposes at runtime (see src/wp-admin/css/colors/_tokens.scss), so the widget
+   follows the user's selected admin color scheme (Blue, Modern, Coffee, etc.).
+   Fallback values match the classic "Fresh" scheme.
+
+   Neutrals: the Figma design-system grays are intentionally NOT exposed as
+   CSS custom properties, so we reuse the classic wp-admin palette already
+   shared by dashboard.css / site-health.css for visual consistency.
+   ----------------------------------------------------------------------------- */
+
+#dashboard_on_this_day,
+.on-this-day-widget {
+	/* Accent — theme-color aware, follows the user's admin color scheme. */
+	--otd-accent:        var(--wp-admin-theme-color, #2271b1);
+	--otd-accent-dark:   var(--wp-admin-theme-color-darker-10, #135e96);
+	--otd-accent-darker: var(--wp-admin-theme-color-darker-20, #0a4b78);
+	--otd-accent-rgb:    var(--wp-admin-theme-color--rgb, 34, 113, 177);
+	--otd-accent-4:      rgba(var(--otd-accent-rgb), 0.04);
+	--otd-accent-8:      rgba(var(--otd-accent-rgb), 0.08);
+	--otd-accent-15:     rgba(var(--otd-accent-rgb), 0.15);
+	--otd-accent-35:     rgba(var(--otd-accent-rgb), 0.35);
+
+	/* Neutrals — classic wp-admin palette. */
+	--otd-ink:          #1d2327;
+	--otd-text:         #50575e;
+	--otd-muted:        #646970;
+	--otd-border:       #dcdcde;
+	--otd-border-soft:  #f0f0f1;
+	--otd-surface:      #ffffff;
+	--otd-surface-2:    #f6f7f7;
+
+	/* Composed gradients + semantic (non-theme-dependent) colors. */
+	--otd-intro-bg:     linear-gradient(180deg, var(--otd-accent-4) 0%, var(--otd-surface) 100%);
+	--otd-badge-hi:     linear-gradient(135deg, var(--otd-accent) 0%, var(--otd-accent-darker) 100%);
+	--otd-track:        linear-gradient(180deg, #c3c4c7 0%, var(--otd-border) 60%, transparent 100%);
+	--otd-empty-bg:     radial-gradient(circle at 30% 30%, var(--otd-accent-8) 0%, var(--otd-accent-4) 60%, var(--otd-surface) 100%);
+	--otd-private-bg:   #fcf0f1;
+	--otd-private-fg:   #b32d2e;
+	--otd-private-bd:   #f5c9cc;
+
+	/* Shape + motion tokens — radii aligned with core's $radius scale. */
+	--otd-pill:         9999px; /* $radius-full */
+	--otd-radius-sm:    4px;    /* $radius-m   */
+	--otd-radius:       8px;    /* $radius-l — dashboard widgets */
+	--otd-radius-lg:    12px;   /* $radius-30  */
+	--otd-ease:         0.15s ease;
+
+	/* Calendar icon used by the widget title (re-used via mask). */
+	--otd-icon-calendar: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='3'/><path d='M16 2v4M8 2v4M3 10h18'/><circle cx='12' cy='15' r='1.5' fill='black' stroke='none'/></svg>");
 }
 
-#dashboard_on_this_day .hndle {
-	gap: 0;
+/* -----------------------------------------------------------------------------
+   2. Postbox chrome
+   ----------------------------------------------------------------------------- */
+
+#dashboard_on_this_day {
+	& .inside {
+		margin: 0;
+		padding: 0;
+		max-height: 560px;
+		overflow: auto;
+	}
+
+	& .hndle {
+		gap: 0;
+	}
 }
+
+.on-this-day-widget {
+	font-size: 13px;
+	color: var(--otd-ink);
+}
+
+/* -----------------------------------------------------------------------------
+   3. Widget body — title
+   ----------------------------------------------------------------------------- */
 
 .on-this-day-title-main {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
+
+	&::before {
+		content: "";
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+		background-color: currentColor;
+		opacity: 0.85;
+		-webkit-mask: var(--otd-icon-calendar) center / contain no-repeat;
+		        mask: var(--otd-icon-calendar) center / contain no-repeat;
+	}
 }
 
-.on-this-day-title-main::before {
-	content: "";
+/* Shared pill shape for title date, private chip, and category tag. */
+.on-this-day-title-date,
+.on-this-day-chip,
+.on-this-day-post-categories {
 	display: inline-block;
-	width: 16px;
-	height: 16px;
-	background-color: currentColor;
-	opacity: 0.85;
-	-webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='3'/><path d='M16 2v4M8 2v4M3 10h18'/><circle cx='12' cy='15' r='1.5' fill='black' stroke='none'/></svg>") center/contain no-repeat;
-	mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='3'/><path d='M16 2v4M8 2v4M3 10h18'/><circle cx='12' cy='15' r='1.5' fill='black' stroke='none'/></svg>") center/contain no-repeat;
+	border-radius: var(--otd-pill);
+	white-space: nowrap;
 }
 
 .on-this-day-title-date {
-	display: inline-block;
 	margin-left: 10px;
 	padding: 2px 9px;
 	font-weight: 600;
 	font-size: 11px;
 	letter-spacing: 0.3px;
 	text-transform: uppercase;
-	color: #135e96;
-	background: #e7f1fb;
-	border-radius: 999px;
+	color: var(--otd-accent-dark);
+	background: var(--otd-accent-8);
 	vertical-align: 1px;
 }
 
-.on-this-day-widget {
-	font-size: 13px;
-	color: #1d2327;
-}
+/* -----------------------------------------------------------------------------
+   3. Widget body — intro + timeline
+   ----------------------------------------------------------------------------- */
 
 .on-this-day-intro {
 	margin: 0;
 	padding: 14px 16px 12px;
-	color: #50575e;
-	background: linear-gradient(180deg, #f6f7ff 0%, #ffffff 100%);
-	border-bottom: 1px solid #f0f0f1;
-}
+	color: var(--otd-text);
+	background: var(--otd-intro-bg);
+	border-bottom: 1px solid var(--otd-border-soft);
 
-.on-this-day-intro strong {
-	color: #1d2327;
+	& strong {
+		color: var(--otd-ink);
+	}
 }
 
 .on-this-day-timeline {
+	position: relative;
 	margin: 0;
 	padding: 6px 16px 16px;
-	position: relative;
 	list-style: none;
-}
 
-.on-this-day-timeline::before {
-	content: "";
-	position: absolute;
-	left: 38px;
-	top: 16px;
-	bottom: 8px;
-	width: 2px;
-	background: linear-gradient(180deg, #c3c4c7 0%, #dcdcde 60%, transparent 100%);
-	border-radius: 2px;
+	&::before {
+		content: "";
+		position: absolute;
+		left: 38px;
+		top: 16px;
+		bottom: 8px;
+		width: 2px;
+		background: var(--otd-track);
+		border-radius: 2px;
+	}
 }
 
 .on-this-day-year-group {
@@ -83,16 +172,30 @@
 	margin: 14px 0 0;
 	padding-left: 64px;
 	list-style: none;
-}
 
-.on-this-day-year-group:first-child {
-	margin-top: 8px;
+	&:first-child {
+		margin-top: 8px;
+	}
+
+	&.is-latest {
+		& .on-this-day-year-badge {
+			background: var(--otd-badge-hi);
+			border-color: transparent;
+			color: var(--otd-surface);
+			box-shadow: 0 2px 6px var(--otd-accent-35);
+		}
+
+		& .on-this-day-year-ago {
+			color: rgba(255, 255, 255, 0.85);
+		}
+	}
 }
 
 .on-this-day-year-badge {
 	position: absolute;
 	left: 0;
 	top: 0;
+	box-sizing: border-box;
 	width: 54px;
 	height: 44px;
 	display: flex;
@@ -100,23 +203,11 @@
 	align-items: center;
 	justify-content: center;
 	padding: 0;
-	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 10px;
+	background: var(--otd-surface);
+	border: 1px solid var(--otd-border);
+	border-radius: var(--otd-radius-lg);
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 	z-index: 1;
-	box-sizing: border-box;
-}
-
-.on-this-day-year-group:first-child .on-this-day-year-badge {
-	background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
-	border-color: transparent;
-	color: #fff;
-	box-shadow: 0 2px 6px rgba(34, 113, 177, 0.35);
-}
-
-.on-this-day-year-group:first-child .on-this-day-year-ago {
-	color: rgba(255, 255, 255, 0.85);
 }
 
 .on-this-day-year-number {
@@ -129,52 +220,56 @@
 .on-this-day-year-ago {
 	margin-top: 1px;
 	font-size: 10px;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
-	color: #646970;
 	font-weight: 500;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
 	white-space: nowrap;
+	color: var(--otd-muted);
 }
 
+/* -----------------------------------------------------------------------------
+   3. Widget body — post card
+   ----------------------------------------------------------------------------- */
+
 .on-this-day-post-list {
-	margin: 0;
-	padding: 0;
-	list-style: none;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
 .on-this-day-post {
 	display: flex;
 	gap: 12px;
 	padding: 10px 12px;
-	background: #fff;
-	border: 1px solid #f0f0f1;
-	border-radius: 8px;
-	transition: border-color .15s ease, box-shadow .15s ease;
-}
+	background: var(--otd-surface);
+	border: 1px solid var(--otd-border-soft);
+	border-radius: var(--otd-radius);
+	transition: border-color var(--otd-ease), box-shadow var(--otd-ease);
 
-.on-this-day-post:hover {
-	border-color: #c3c4c7;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	&:hover {
+		border-color: #c3c4c7;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	}
 }
 
 .on-this-day-post-thumbnail {
+	display: block;
 	flex: 0 0 52px;
 	width: 52px;
 	height: 52px;
-	border-radius: 6px;
 	overflow: hidden;
-	background: #f0f0f1;
-	display: block;
-}
+	background: var(--otd-border-soft);
+	border-radius: var(--otd-radius-sm);
 
-.on-this-day-post-thumbnail img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	display: block;
+	& img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
 }
 
 .on-this-day-post-body {
@@ -187,100 +282,99 @@
 	font-size: 13px;
 	font-weight: 600;
 	line-height: 1.35;
-}
 
-.on-this-day-post-title a {
-	color: #1d2327;
-	text-decoration: none;
-	box-shadow: none;
-}
+	& a {
+		color: var(--otd-ink);
+		text-decoration: none;
+		box-shadow: none;
 
-.on-this-day-post-title a:hover,
-.on-this-day-post-title a:focus {
-	color: #2271b1;
+		&:hover,
+		&:focus {
+			color: var(--otd-accent);
+		}
+	}
 }
 
 .on-this-day-chip {
-	display: inline-block;
 	margin-left: 4px;
 	padding: 1px 7px;
 	font-size: 10px;
 	font-weight: 600;
 	letter-spacing: 0.3px;
 	text-transform: uppercase;
-	border-radius: 999px;
 	vertical-align: 2px;
-	white-space: nowrap;
 }
 
 .on-this-day-chip-private {
-	background: #fcf0f1;
-	color: #b32d2e;
-	border: 1px solid #f5c9cc;
+	background: var(--otd-private-bg);
+	color: var(--otd-private-fg);
+	border: 1px solid var(--otd-private-bd);
 }
 
 .on-this-day-post-excerpt {
 	margin: 0 0 6px;
-	color: #50575e;
+	color: var(--otd-text);
 	line-height: 1.5;
 	display: -webkit-box;
-	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
 	overflow: hidden;
 }
 
 .on-this-day-post-meta {
 	display: flex;
 	align-items: center;
-	gap: 10px;
 	flex-wrap: wrap;
-	color: #646970;
+	gap: 10px;
 	font-size: 12px;
+	color: var(--otd-muted);
 }
 
 .on-this-day-post-time {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	color: #646970;
-}
+	color: var(--otd-muted);
 
-.on-this-day-post-time svg {
-	vertical-align: middle;
-	opacity: 0.85;
+	& svg {
+		vertical-align: middle;
+		opacity: 0.85;
+	}
 }
 
 .on-this-day-post-categories {
-	padding: 1px 8px;
-	background: #f6f7f7;
-	border-radius: 999px;
-	color: #50575e;
-	font-size: 11px;
 	max-width: 200px;
-	white-space: nowrap;
+	padding: 1px 8px;
+	font-size: 11px;
+	color: var(--otd-text);
+	background: var(--otd-surface-2);
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 .on-this-day-post-actions {
-	margin-left: auto;
 	display: inline-flex;
 	gap: 10px;
+	margin-left: auto;
 }
 
 .on-this-day-post-action {
-	color: #2271b1;
-	text-decoration: none;
 	font-weight: 500;
+	color: var(--otd-accent);
+	text-decoration: none;
+
+	&:hover,
+	&:focus {
+		color: var(--otd-accent-dark);
+		text-decoration: underline;
+	}
 }
 
-.on-this-day-post-action:hover,
-.on-this-day-post-action:focus {
-	color: #135e96;
-	text-decoration: underline;
-}
+/* -----------------------------------------------------------------------------
+   3. Widget body — empty state
+   ----------------------------------------------------------------------------- */
 
-/* Empty state */
 .on-this-day-empty {
 	text-align: center;
 	padding: 26px 20px 22px;
@@ -292,30 +386,34 @@
 	justify-content: center;
 	width: 64px;
 	height: 64px;
-	border-radius: 50%;
-	color: #2271b1;
-	background: radial-gradient(circle at 30% 30%, #e7f1fb 0%, #f6f7ff 60%, #ffffff 100%);
-	box-shadow: inset 0 0 0 1px #e0eaf5;
 	margin-bottom: 10px;
+	color: var(--otd-accent);
+	background: var(--otd-empty-bg);
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 1px var(--otd-accent-15);
 }
 
 .on-this-day-empty-title {
 	margin: 6px 0 4px;
 	font-size: 15px;
 	font-weight: 600;
-	color: #1d2327;
+	color: var(--otd-ink);
 }
 
 .on-this-day-empty-text {
 	max-width: 340px;
 	margin: 0 auto 12px;
-	color: #50575e;
+	color: var(--otd-text);
 	line-height: 1.55;
 }
 
 .on-this-day-empty-cta {
 	margin: 0;
 }
+
+/* -----------------------------------------------------------------------------
+   4. Adaptive rules
+   ----------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
 	.on-this-day-post {
@@ -327,10 +425,10 @@
 	.on-this-day-timeline {
 		padding-left: 12px;
 		padding-right: 12px;
-	}
 
-	.on-this-day-timeline::before {
-		left: 34px;
+		&::before {
+			left: 34px;
+		}
 	}
 
 	.on-this-day-year-group {

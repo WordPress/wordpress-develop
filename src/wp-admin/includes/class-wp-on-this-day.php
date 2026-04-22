@@ -184,10 +184,16 @@ class WP_On_This_Day {
 
 		<ul class="on-this-day-timeline">
 			<?php
+			$is_latest = true;
 			foreach ( $by_year as $year => $year_posts ) :
-				$years_ago = $current_year - (int) $year;
+				$years_ago     = $current_year - (int) $year;
+				$group_classes = 'on-this-day-year-group';
+				if ( $is_latest ) {
+					$group_classes .= ' is-latest';
+					$is_latest      = false;
+				}
 				?>
-				<li class="on-this-day-year-group">
+				<li class="<?php echo esc_attr( $group_classes ); ?>">
 					<div class="on-this-day-year-badge">
 						<span class="on-this-day-year-number"><?php echo esc_html( $year ); ?></span>
 						<span class="on-this-day-year-ago">
