@@ -88,6 +88,23 @@ function wp_dashboard_setup() {
 		wp_add_dashboard_widget( 'dashboard_quick_press', $quick_draft_title, 'wp_dashboard_quick_press' );
 	}
 
+	// On This Day.
+	if ( is_blog_admin() && current_user_can( 'edit_posts' ) ) {
+		if ( ! class_exists( 'WP_On_This_Day' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-on-this-day.php';
+		}
+
+		wp_enqueue_style( 'on-this-day' );
+
+		$on_this_day_title = sprintf(
+			'<span class="on-this-day-title-main">%1$s</span><span class="on-this-day-title-date">%2$s</span>',
+			__( 'On This Day' ),
+			esc_html( date_i18n( 'F j' ) )
+		);
+
+		wp_add_dashboard_widget( 'dashboard_on_this_day', $on_this_day_title, array( 'WP_On_This_Day', 'render_dashboard_widget' ) );
+	}
+
 	// WordPress Events and News.
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress Events and News' ), 'wp_dashboard_events_news' );
 
