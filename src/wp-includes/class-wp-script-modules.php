@@ -409,7 +409,7 @@ class WP_Script_Modules {
 			$output     = sprintf(
 				'( %s )( %s, %s );',
 				$set_locale_data_js_function,
-				wp_json_encode( $domain ),
+				wp_json_encode( $domain, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
 				$json_translations
 			);
 			$source_url = rawurlencode( "wp-script-module-translation-data-{$id}" );
