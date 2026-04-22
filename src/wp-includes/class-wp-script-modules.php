@@ -19,7 +19,7 @@
  *     dependencies: array<int, array{ id: string, import: 'static'|'dynamic' }>,
  *     in_footer: bool,
  *     fetchpriority: 'auto'|'low'|'high',
- *     translations?: array{ textdomain: string, translations_path: string },
+ *     translations?: array{ textdomain: string, path: string },
  * }
  */
 class WP_Script_Modules {
@@ -360,8 +360,8 @@ class WP_Script_Modules {
 		}
 
 		$this->registered[ $id ]['translations'] = array(
-			'textdomain'        => $domain,
-			'translations_path' => $path,
+			'textdomain' => $domain,
+			'path'       => $path,
 		);
 
 		return true;
@@ -388,7 +388,7 @@ class WP_Script_Modules {
 		foreach ( $module_ids as $id ) {
 			if ( isset( $this->registered[ $id ]['translations'] ) ) {
 				$domain = $this->registered[ $id ]['translations']['textdomain'];
-				$path   = $this->registered[ $id ]['translations']['translations_path'];
+				$path   = $this->registered[ $id ]['translations']['path'];
 			} else {
 				$domain = 'default';
 				$path   = '';
