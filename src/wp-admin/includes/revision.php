@@ -454,7 +454,12 @@ function wp_print_revision_templates() {
 						<# } #>
 					<?php } ?>
 					<# if ( data.attributes.autosave ) { #>
-						type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Autosave' ); ?>" />
+						type="button" class="restore-revision button button-primary" value="<?php
+						$restore_autosave_label = in_array( $post->post_status, array( 'publish', 'future', 'private' ), true )
+							? __( 'Load This Autosave in Editor' )
+							: __( 'Restore This Autosave' );
+						echo esc_attr( $restore_autosave_label );
+						?>" />
 					<# } else { #>
 						type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Revision' ); ?>" />
 					<# } #>

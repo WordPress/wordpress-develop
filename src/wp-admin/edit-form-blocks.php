@@ -147,6 +147,19 @@ if ( 'auto-draft' === $post->post_status ) {
 	}
 }
 
+// If an autosave was restored from the revision screen, load it as initial edits.
+$restored_autosave_id = ! empty( $_GET['restored_autosave'] ) ? absint( $_GET['restored_autosave'] ) : 0;
+if ( $restored_autosave_id ) {
+	$restored_autosave = wp_get_post_revision( $restored_autosave_id );
+	if ( $restored_autosave && $restored_autosave->post_parent === $post->ID && wp_is_post_autosave( $restored_autosave ) ) {
+		$initial_edits = array(
+			'title'   => $restored_autosave->post_title,
+			'content' => $restored_autosave->post_content,
+			'excerpt' => $restored_autosave->post_excerpt,
+		);
+	}
+}
+
 // Preload server-registered block schemas.
 wp_add_inline_script(
 	'wp-blocks',
@@ -297,6 +310,10 @@ if ( $autosave ) {
 	} else {
 		wp_delete_post_revision( $autosave->ID );
 	}
+}
+
+if ( $restored_autosave_id && ! empty( $initial_edits ) ) {
+	unset( $editor_settings['autosave'] );
 }
 
 if ( ! empty( $post_type_object->template ) ) {
