@@ -19,7 +19,7 @@ jobs:
   # - Parse fixed ticket numbers from the commit message.
   # - Parse the SVN revision from the commit message.
   # - Searches for pull requests referencing any fixed tickets.
-  # - Leaves a comment on each PR before closing.
+# - Comments on pull requests referencing any fixed tickets before closing.
   close-prs:
     name: Find and close PRs
     runs-on: ubuntu-24.04
@@ -43,13 +43,17 @@ jobs:
           COMMIT_MESSAGE="$(echo "$COMMIT_MSG_RAW" | sed -n '$p')"
           echo "svn_revision_number=$(echo "$COMMIT_MESSAGE" | sed -n 's/.*git-svn-id: https:\/\/develop.svn.wordpress.org\/[^@]*@\([0-9]*\) .*/\1/p')" >> "$GITHUB_OUTPUT"
 
-      - name: Find pull requests
-        id: linked-prs
+      - name: Find, comment on, and close pull requests
         if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          FIXED_LIST: ${{ steps.trac-tickets.outputs.fixed_list }}
+          SVN_REVISION_NUMBER: ${{ steps.git-svn-id.outputs.svn_revision_number }}
         with:
           script: |
-            const fixedList = "${{ steps.trac-tickets.outputs.fixed_list }}".split(' ').filter(Boolean);
+            const fixedList = process.env.FIXED_LIST.split(' ').filter(Boolean);
+            const svnRevisionNumber = process.env.SVN_REVISION_NUMBER;
+            const githubSha = process.env.GITHUB_SHA;
             let prNumbers = [];
 
             for (const ticket of fixedList) {
@@ -86,19 +90,10 @@ jobs:
               prNumbers.push(...matchingPRs);
             }
 
-            return prNumbers;
-
-      - name: Comment and close pull requests
-        if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        with:
-          script: |
-            const prNumbers = ${{ steps.linked-prs.outputs.result }};
-
             const commentBody = `A commit was made that fixes the Trac ticket referenced in the description of this pull request.
 
-            SVN changeset: [${{ steps.git-svn-id.outputs.svn_revision_number }}](https://core.trac.wordpress.org/changeset/${{ steps.git-svn-id.outputs.svn_revision_number }})
-            GitHub commit: https://github.com/WordPress/wordpress-develop/commit/${{ github.sha }}
+            SVN changeset: [${svnRevisionNumber}](https://core.trac.wordpress.org/changeset/${svnRevisionNumber})
+            GitHub commit: https://github.com/WordPress/wordpress-develop/commit/${githubSha}
 
             This PR will be closed, but please confirm the accuracy of this and reopen if there is more work to be done.`;
 
