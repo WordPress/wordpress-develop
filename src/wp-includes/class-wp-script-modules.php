@@ -19,6 +19,7 @@
  *     dependencies: array<int, array{ id: string, import: 'static'|'dynamic' }>,
  *     in_footer: bool,
  *     fetchpriority: 'auto'|'low'|'high',
+ *     translations?: array{ textdomain: string, translations_path: string },
  * }
  */
 class WP_Script_Modules {
@@ -89,17 +90,6 @@ class WP_Script_Modules {
 	 * @var string[]
 	 */
 	private $modules_with_missing_dependencies = array();
-
-	/**
-	 * Holds translation data for script modules, keyed by script module identifier.
-	 *
-	 * Each entry contains 'domain' and 'path' keys for the text domain
-	 * and the path to translation files respectively.
-	 *
-	 * @since 7.0.0
-	 * @var array<string, array{domain: string, path: string}>
-	 */
-	private array $translations = array();
 
 	/**
 	 * Registers the script module if no script module with that script module
@@ -369,9 +359,9 @@ class WP_Script_Modules {
 			return false;
 		}
 
-		$this->translations[ $id ] = array(
-			'domain' => $domain,
-			'path'   => $path,
+		$this->registered[ $id ]['translations'] = array(
+			'textdomain'        => $domain,
+			'translations_path' => $path,
 		);
 
 		return true;
@@ -396,9 +386,9 @@ class WP_Script_Modules {
 		$module_ids = $this->get_sorted_dependencies( $this->queue );
 
 		foreach ( $module_ids as $id ) {
-			if ( isset( $this->translations[ $id ] ) ) {
-				$domain = $this->translations[ $id ]['domain'];
-				$path   = $this->translations[ $id ]['path'];
+			if ( isset( $this->registered[ $id ]['translations'] ) ) {
+				$domain = $this->registered[ $id ]['translations']['textdomain'];
+				$path   = $this->registered[ $id ]['translations']['translations_path'];
 			} else {
 				$domain = 'default';
 				$path   = '';
