@@ -3274,7 +3274,17 @@ function edit_form_image_editor( $post ) {
 	<?php endif; ?>
 
 		<p>
-			<label for="attachment_caption"><strong><?php _e( 'Caption' ); ?></strong></label><br />
+			<label for="attachment_caption"><strong>
+				<?php
+				if ( str_starts_with( $post->post_mime_type, 'video' ) ) {
+					_e( 'Video Description' );
+				} elseif ( str_starts_with( $post->post_mime_type, 'image' ) ) {
+					_e( 'Image Caption' );
+				} else {
+					_e( 'Caption' );
+				}
+				?>
+			</strong></label><br />
 			<textarea class="widefat" name="excerpt" id="attachment_caption"><?php echo $post->post_excerpt; ?></textarea>
 		</p>
 
