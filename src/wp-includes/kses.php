@@ -1693,7 +1693,7 @@ function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $mult
 		 * Parse srcset-style attributes using the descriptor to find entry boundaries.
 		 *
 		 * Srcset entries are: URL [descriptor], URL [descriptor], ...
-		 * Descriptors match patterns like "480w" or "2x".
+		 * Descriptors match patterns like "480w", "2x", or "1.5x".
 		 *
 		 * A naive split on commas breaks URLs that contain commas internally
 		 * (e.g. CDN image resizer URLs like cdn-cgi/image/format=auto,quality=80/...).
@@ -1701,21 +1701,26 @@ function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $mult
 		 * Instead, split on: whitespace + descriptor + comma (+ optional whitespace).
 		 * This correctly identifies only the commas that separate srcset entries.
 		 */
-		$parts  = preg_split( '/(\s+\d+[wx]\s*,\s*)/i', $attrvalue, -1, PREG_SPLIT_DELIM_CAPTURE );
+		$descriptor     = '\d+(?:\.\d+)?[wx]';
+		$delim_pattern  = '/(\s+' . $descriptor . '\s*,\s*)/i';
+		$delim_anchored = '/^\s+' . $descriptor . '\s*,\s*$/i';
+		$entry_pattern  = '/^(\s*)(.*?)(\s+' . $descriptor . ')?\s*$/i';
+
+		$parts  = preg_split( $delim_pattern, $attrvalue, -1, PREG_SPLIT_DELIM_CAPTURE );
 		$result = '';
 
 		for ( $i = 0, $len = count( $parts ); $i < $len; $i++ ) {
-			if ( preg_match( '/^\s+\d+[wx]\s*,\s*$/i', $parts[ $i ] ) ) {
+			if ( preg_match( $delim_anchored, $parts[ $i ] ) ) {
 				// This is a delimiter: space + descriptor + comma. Append it as-is.
 				$result .= $parts[ $i ];
 			} else {
 				// This is a URL (possibly with a trailing descriptor for the last entry).
 				$entry = $parts[ $i ];
-				if ( preg_match( '/^(\s*)(.*?)(\s+\d+[wx])?\s*$/i', $entry, $m ) ) {
-					$leading_ws = $m[1];
-					$url        = $m[2];
-					$descriptor = isset( $m[3] ) ? $m[3] : '';
-					$result    .= $leading_ws . wp_kses_bad_protocol( $url, $allowed_protocols ) . $descriptor;
+				if ( preg_match( $entry_pattern, $entry, $m ) ) {
+					$leading_ws    = $m[1];
+					$url           = $m[2];
+					$trailing_desc = isset( $m[3] ) ? $m[3] : '';
+					$result       .= $leading_ws . wp_kses_bad_protocol( $url, $allowed_protocols ) . $trailing_desc;
 				} else {
 					$result .= wp_kses_bad_protocol( $entry, $allowed_protocols );
 				}
