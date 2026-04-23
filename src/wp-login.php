@@ -602,6 +602,14 @@ switch ( $action ) {
 		}
 
 		if ( current_user_can( 'manage_options' ) ) {
+			/** This filter is documented in wp-login.php */
+			$show_verification = (bool) apply_filters( 'show_admin_email_verification', true, wp_get_current_user() );
+
+			if ( ! $show_verification ) {
+				wp_safe_redirect( $redirect_to );
+				exit;
+			}
+
 			$admin_email = get_option( 'admin_email' );
 		} else {
 			wp_safe_redirect( $redirect_to );
@@ -1388,13 +1396,13 @@ switch ( $action ) {
 			// Check if it is time to add a redirect to the admin email verification screen.
 			if ( $user instanceof WP_User && $user->exists() && $user->has_cap( 'manage_options' ) ) {
 				/**
-				 * Filters whether the user should be redirected to the verification screen. Can also be used
-				 * to disable this functionality completely.
+				 * Filters whether the user should be redirected to the admin email verification screen.
+				 * Can also be used to disable this functionality completely.
 				 *
-				 * @since 5.3.0
+				 * @since 7.1.0
 				 *
-				 * @param bool    True to redirect, false otherwise.
-				 * @param WP_User WP_User object.
+				 * @param bool    $show Whether to show the admin email verification screen. Default true.
+				 * @param WP_User $user The current user object.
 				 */
 				$show_verification = (bool) apply_filters( 'show_admin_email_verification', true, $user );
 
