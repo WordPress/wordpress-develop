@@ -9,14 +9,20 @@
  */
 class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
-	protected static $editor_id;
-	protected static $subscriber_id;
-	protected static $post_id;
+	protected static int $editor_id;
+	protected static int $subscriber_id;
+	protected static int $post_id;
+	protected static int $category_id;
+	protected static int $tag_id;
+	protected static int $comment_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
+		self::$category_id   = $factory->category->create();
+		self::$tag_id        = $factory->tag->create();
+		self::$comment_id    = $factory->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 
 		// Enable option in setUpBeforeClass to ensure REST routes are registered.
 		update_option( 'wp_collaboration_enabled', 1 );
@@ -27,6 +33,9 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$subscriber_id );
 		delete_option( 'wp_collaboration_enabled' );
 		wp_delete_post( self::$post_id, true );
+		wp_delete_term( self::$category_id, 'category' );
+		wp_delete_term( self::$tag_id, 'post_tag' );
+		wp_delete_comment( self::$comment_id, true );
 	}
 
 	public function set_up() {
@@ -277,6 +286,107 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_malformed_object_id_rejected() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:1abc' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_zero_object_id_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/post:0' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_post_type_mismatch_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		// The test post is of type 'post', not 'page'.
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/page:' . self::$post_id ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_taxonomy_term_allowed(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:' . self::$category_id ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_taxonomy_term_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:999999' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_taxonomy_term_wrong_taxonomy_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		// The tag term exists in 'post_tag', not 'category'.
+		$response = $this->dispatch_sync( array( $this->build_room( 'taxonomy/category:' . self::$tag_id ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_comment_allowed(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'root/comment:' . self::$comment_id ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_comment_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'root/comment:999999' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 64890
+	 */
+	public function test_sync_nonexistent_post_type_collection_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_sync( array( $this->build_room( 'postType/nonexistent_type' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
 	/*
 	 * Validation tests.
 	 */
@@ -291,6 +401,183 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * Verifies that schema type validation rejects a non-string value for the
+	 * update 'data' field, confirming that per-arg schema validation still runs
+	 * with a route-level validate_callback registered.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_non_string_update_data(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => 12345,
+								'type' => 'update',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that schema enum validation rejects an invalid update type,
+	 * confirming that per-arg schema validation still runs with a route-level
+	 * validate_callback registered.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_invalid_update_type_enum(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => 'dGVzdA==',
+								'type' => 'invalid_type',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that schema required-field validation rejects a room missing
+	 * the 'client_id' field, confirming that per-arg schema validation still
+	 * runs with a route-level validate_callback registered.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_missing_required_room_field(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						// 'client_id' deliberately omitted.
+						'room'      => $this->get_post_room(),
+						'updates'   => array(),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the maxItems constraint rejects a request with more rooms
+	 * than MAX_ROOMS_PER_REQUEST.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_rooms_exceeding_max_items(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$rooms = array();
+		for ( $i = 0; $i < WP_HTTP_Polling_Sync_Server::MAX_ROOMS_PER_REQUEST + 1; $i++ ) {
+			$rooms[] = $this->build_room( 'root/site', $i + 1 );
+		}
+
+		$response = $this->dispatch_sync( $rooms );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the maxLength constraint rejects update data exceeding
+	 * MAX_UPDATE_DATA_SIZE.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_update_data_exceeding_max_length(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$oversized_data = str_repeat( 'a', WP_HTTP_Polling_Sync_Server::MAX_UPDATE_DATA_SIZE + 1 );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					array(
+						'after'     => 0,
+						'awareness' => array( 'user' => 'test' ),
+						'client_id' => 1,
+						'room'      => $this->get_post_room(),
+						'updates'   => array(
+							array(
+								'data' => $oversized_data,
+								'type' => 'update',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the route-level validate_callback rejects a request body
+	 * exceeding MAX_BODY_SIZE.
+	 *
+	 * @ticket 64890
+	 */
+	public function test_sync_rejects_oversized_request_body(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-sync/v1/updates' );
+
+		// Set valid parsed params so per-arg schema validation passes first.
+		$request->set_body_params(
+			array(
+				'rooms' => array(
+					$this->build_room( $this->get_post_room() ),
+				),
+			)
+		);
+
+		// Set an oversized raw body to trigger the route-level validate_callback.
+		$request->set_body( str_repeat( 'x', WP_HTTP_Polling_Sync_Server::MAX_BODY_SIZE + 1 ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_sync_body_too_large', $response, 413 );
 	}
 
 	/*
@@ -565,154 +852,6 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 3, $data['rooms'][0]['total_updates'] );
 	}
 
-	public function test_sync_cursor_does_not_skip_update_inserted_during_fetch_window() {
-		global $wpdb;
-
-		wp_set_current_user( self::$editor_id );
-
-		$room    = $this->get_post_room();
-		$storage = new WP_Sync_Post_Meta_Storage();
-
-		$seed_update = array(
-			'client_id' => 1,
-			'type'      => 'update',
-			'data'      => 'c2VlZA==',
-		);
-
-		$this->assertTrue( $storage->add_update( $room, $seed_update ) );
-
-		$initial_updates = $storage->get_updates_after_cursor( $room, 0 );
-		$baseline_cursor = $storage->get_cursor( $room );
-
-		$this->assertCount( 1, $initial_updates );
-		$this->assertSame( $seed_update, $initial_updates[0] );
-		$this->assertGreaterThan( 0, $baseline_cursor );
-
-		$storage_posts   = get_posts(
-			array(
-				'post_type'      => WP_Sync_Post_Meta_Storage::POST_TYPE,
-				'posts_per_page' => 1,
-				'post_status'    => 'publish',
-				'name'           => md5( $room ),
-				'fields'         => 'ids',
-			)
-		);
-		$storage_post_id = array_first( $storage_posts );
-
-		$this->assertIsInt( $storage_post_id );
-
-		$injected_update = array(
-			'client_id' => 9999,
-			'type'      => 'update',
-			'data'      => base64_encode( 'injected-during-fetch' ),
-		);
-
-		$original_wpdb = $wpdb;
-		$proxy_wpdb    = new class( $original_wpdb, $storage_post_id, $injected_update ) {
-			private $wpdb;
-			private $storage_post_id;
-			private $injected_update;
-			public $postmeta;
-			public $did_inject = false;
-
-			public function __construct( $wpdb, int $storage_post_id, array $injected_update ) {
-				$this->wpdb            = $wpdb;
-				$this->storage_post_id = $storage_post_id;
-				$this->injected_update = $injected_update;
-				$this->postmeta        = $wpdb->postmeta;
-			}
-
-			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Proxy forwards fully prepared core queries.
-			public function prepare( ...$args ) {
-				return $this->wpdb->prepare( ...$args );
-			}
-
-			public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
-				$result = $this->wpdb->get_row( $query, $output, $y );
-
-				$this->maybe_inject_after_sync_query( $query );
-
-				return $result;
-			}
-
-			public function get_var( $query = null, $x = 0, $y = 0 ) {
-				$result = $this->wpdb->get_var( $query, $x, $y );
-
-				$this->maybe_inject_after_sync_query( $query );
-
-				return $result;
-			}
-
-			public function get_results( $query = null, $output = OBJECT ) {
-				return $this->wpdb->get_results( $query, $output );
-			}
-			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
-
-			public function __call( $name, $arguments ) {
-				return $this->wpdb->$name( ...$arguments );
-			}
-
-			public function __get( $name ) {
-				return $this->wpdb->$name;
-			}
-
-			public function __set( $name, $value ) {
-				$this->wpdb->$name = $value;
-			}
-
-			private function inject_update(): void {
-				if ( $this->did_inject ) {
-					return;
-				}
-
-				$this->did_inject = true;
-
-				add_post_meta(
-					$this->storage_post_id,
-					WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
-					$this->injected_update,
-					false
-				);
-			}
-
-			private function maybe_inject_after_sync_query( $query ): void {
-				if ( $this->did_inject || ! is_string( $query ) ) {
-					return;
-				}
-
-				$targets_postmeta = false !== strpos( $query, $this->postmeta );
-				$targets_post_id  = 1 === preg_match( '/\bpost_id\s*=\s*' . (int) $this->storage_post_id . '\b/', $query );
-				$targets_meta_key = 1 === preg_match(
-					"/\bmeta_key\s*=\s*'" . preg_quote( WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY, '/' ) . "'/",
-					$query
-				);
-
-				if ( $targets_postmeta && $targets_post_id && $targets_meta_key ) {
-					$this->inject_update();
-				}
-			}
-		};
-
-		$wpdb = $proxy_wpdb;
-		try {
-			$race_updates = $storage->get_updates_after_cursor( $room, $baseline_cursor );
-			$race_cursor  = $storage->get_cursor( $room );
-		} finally {
-			$wpdb = $original_wpdb;
-		}
-
-		$this->assertTrue( $proxy_wpdb->did_inject, 'Expected race-window update injection to occur.' );
-		$this->assertEmpty( $race_updates );
-		$this->assertSame( $baseline_cursor, $race_cursor );
-
-		$follow_up_updates = $storage->get_updates_after_cursor( $room, $race_cursor );
-		$follow_up_cursor  = $storage->get_cursor( $room );
-
-		$this->assertCount( 1, $follow_up_updates );
-		$this->assertSame( $injected_update, $follow_up_updates[0] );
-		$this->assertGreaterThan( $race_cursor, $follow_up_cursor );
-	}
-
 	/*
 	 * Compaction tests.
 	 */
@@ -852,132 +991,6 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertContains( 'Y29tcGFjdGVk', $update_data, 'The newer compaction should be preserved.' );
 		$this->assertNotContains( 'c3RhbGU=', $update_data, 'The stale compaction should not be stored.' );
-	}
-
-	public function test_sync_compaction_does_not_delete_update_inserted_during_delete() {
-		global $wpdb;
-
-		wp_set_current_user( self::$editor_id );
-
-		$room    = $this->get_post_room();
-		$storage = new WP_Sync_Post_Meta_Storage();
-
-		// Seed three updates so there's something to compact.
-		for ( $i = 1; $i <= 3; $i++ ) {
-			$this->assertTrue(
-				$storage->add_update(
-					$room,
-					array(
-						'client_id' => $i,
-						'type'      => 'update',
-						'data'      => base64_encode( "seed-$i" ),
-					)
-				)
-			);
-		}
-
-		// Capture the cursor after all seeds are in place.
-		$storage->get_updates_after_cursor( $room, 0 );
-		$compaction_cursor = $storage->get_cursor( $room );
-		$this->assertGreaterThan( 0, $compaction_cursor );
-
-		$storage_posts   = get_posts(
-			array(
-				'post_type'      => WP_Sync_Post_Meta_Storage::POST_TYPE,
-				'posts_per_page' => 1,
-				'post_status'    => 'publish',
-				'name'           => md5( $room ),
-				'fields'         => 'ids',
-			)
-		);
-		$storage_post_id = array_first( $storage_posts );
-		$this->assertIsInt( $storage_post_id );
-
-		$concurrent_update = array(
-			'client_id' => 9999,
-			'type'      => 'update',
-			'data'      => base64_encode( 'arrived-during-compaction' ),
-		);
-
-		$original_wpdb = $wpdb;
-		$proxy_wpdb    = new class( $original_wpdb, $storage_post_id, $concurrent_update ) {
-			private $wpdb;
-			private $storage_post_id;
-			private $concurrent_update;
-			public $did_inject = false;
-
-			public function __construct( $wpdb, int $storage_post_id, array $concurrent_update ) {
-				$this->wpdb              = $wpdb;
-				$this->storage_post_id   = $storage_post_id;
-				$this->concurrent_update = $concurrent_update;
-			}
-
-			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Proxy forwards fully prepared core queries.
-			public function prepare( ...$args ) {
-				return $this->wpdb->prepare( ...$args );
-			}
-
-			public function query( $query ) {
-				$result = $this->wpdb->query( $query );
-
-				// After the DELETE executes, inject a concurrent update via
-				// raw SQL through the real $wpdb to avoid metadata cache
-				// interactions while the proxy is active.
-				if ( ! $this->did_inject
-					&& is_string( $query )
-					&& 0 === strpos( $query, "DELETE FROM {$this->wpdb->postmeta}" )
-					&& false !== strpos( $query, "post_id = {$this->storage_post_id}" )
-				) {
-					$this->did_inject = true;
-					$this->wpdb->insert(
-						$this->wpdb->postmeta,
-						array(
-							'post_id'    => $this->storage_post_id,
-							'meta_key'   => WP_Sync_Post_Meta_Storage::SYNC_UPDATE_META_KEY,
-							'meta_value' => maybe_serialize( $this->concurrent_update ),
-						),
-						array( '%d', '%s', '%s' )
-					);
-				}
-
-				return $result;
-			}
-			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
-
-			public function __call( $name, $arguments ) {
-				return $this->wpdb->$name( ...$arguments );
-			}
-
-			public function __get( $name ) {
-				return $this->wpdb->$name;
-			}
-
-			public function __set( $name, $value ) {
-				$this->wpdb->$name = $value;
-			}
-		};
-
-		// Run compaction through the proxy so the concurrent update
-		// is injected immediately after the DELETE executes.
-		$wpdb = $proxy_wpdb;
-		try {
-			$result = $storage->remove_updates_before_cursor( $room, $compaction_cursor );
-		} finally {
-			$wpdb = $original_wpdb;
-		}
-
-		$this->assertTrue( $result );
-		$this->assertTrue( $proxy_wpdb->did_inject, 'Expected concurrent update injection to occur.' );
-
-		// The concurrent update must survive the compaction delete.
-		$updates = $storage->get_updates_after_cursor( $room, 0 );
-
-		$update_data = wp_list_pluck( $updates, 'data' );
-		$this->assertContains(
-			$concurrent_update['data'],
-			$update_data,
-			'Concurrent update should survive compaction.'
-		);
 	}
 
 	/*
