@@ -192,15 +192,21 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the constructor allows overriding the default request timeout.
+	 * Test that the constructor allows overriding the default request timeout with a valid value.
 	 *
 	 * @ticket 64591
+	 * @ticket 65094
+	 *
+	 * @dataProvider data_valid_request_timeout_overrides
+	 *
+	 * @param mixed $input    The timeout value returned by the filter.
+	 * @param float $expected The expected timeout stored on the request options.
 	 */
-	public function test_constructor_allows_overriding_request_timeout() {
+	public function test_constructor_allows_overriding_request_timeout_with_valid_timeout( $input, float $expected ) {
 		add_filter(
 			'wp_ai_client_default_request_timeout',
-			static function () {
-				return 45;
+			static function () use ( $input ) {
+				return $input;
 			}
 		);
 
@@ -210,7 +216,63 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertSame( 45.0, $request_options->getTimeout() );
+		$this->assertSame( $expected, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_allows_overriding_request_timeout_with_valid_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed, 1: float}>
+	 */
+	public function data_valid_request_timeout_overrides(): array {
+		return array(
+			'float'    => array( 45.5, 45.5 ),
+			'integer'  => array( 67, 67.0 ),
+			'string'   => array( '20', 20.0 ),
+			'infinity' => array( INF, INF ),
+			'zero'     => array( 0.0, 0.0 ),
+		);
+	}
+
+	/**
+	 * Test that the constructor disallows overriding the default request timeout with an invalid value.
+	 *
+	 * @ticket 65094
+	 *
+	 * @dataProvider data_invalid_request_timeouts
+	 *
+	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 *
+	 * @param mixed $timeout The invalid timeout value returned by the filter.
+	 */
+	public function test_constructor_disallows_overriding_with_invalid_request_timeout( $timeout ) {
+		add_filter(
+			'wp_ai_client_default_request_timeout',
+			static function () use ( $timeout ) {
+				return $timeout;
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		/** @var RequestOptions $request_options */
+		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
+
+		$this->assertInstanceOf( RequestOptions::class, $request_options );
+		$this->assertSame( 30.0, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_disallows_overriding_with_invalid_request_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_request_timeouts(): array {
+		return array(
+			'negative number' => array( -1 ),
+			'array'           => array( array() ),
+			'null'            => array( null ),
+		);
 	}
 
 	/**
