@@ -133,12 +133,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 		$fallback = 'https://example.com/fallback-icon.png';
 		add_filter( 'wp_get_attachment_image_src', '__return_false' );
-
-		try {
-			$url = get_site_icon_url( 32, $fallback );
-		} finally {
-			remove_filter( 'wp_get_attachment_image_src', '__return_false' );
-		}
+		$url = get_site_icon_url( 32, $fallback );
 
 		$this->assertSame( $fallback, $url, 'Fallback URL should be returned when attachment URL lookup fails.' );
 	}
@@ -841,9 +836,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$url_32 = get_site_icon_url( 32 );
 		$url_64 = get_site_icon_url( 64 );
 
-		ob_start();
-		the_embed_site_title();
-		$output = ob_get_clean();
+		$output = get_echo( 'the_embed_site_title' );
 
 		$this->assertStringContainsString( 'wp-embed-site-icon', $output, 'Output should contain site icon img tag.' );
 		$this->assertStringContainsString( esc_url( $url_32 ), $output, 'Output should contain 32px site icon URL.' );
@@ -861,14 +854,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 		// Simulate wp_get_attachment_image_url() failing.
 		add_filter( 'wp_get_attachment_image_src', '__return_false' );
-
-		try {
-			ob_start();
-			the_embed_site_title();
-			$output = ob_get_clean();
-		} finally {
-			remove_filter( 'wp_get_attachment_image_src', '__return_false' );
-		}
+		$output = get_echo( 'the_embed_site_title' );
 
 		$fallback = includes_url( 'images/w-logo-blue.png' );
 		$this->assertStringContainsString( 'wp-embed-site-icon', $output, 'Output should contain site icon img tag with fallback.' );
@@ -884,14 +870,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function test_the_embed_site_title_omits_img_when_url_is_empty() {
 		// Force get_site_icon_url() to return empty string via filter.
 		add_filter( 'get_site_icon_url', '__return_empty_string' );
-
-		try {
-			ob_start();
-			the_embed_site_title();
-			$output = ob_get_clean();
-		} finally {
-			remove_filter( 'get_site_icon_url', '__return_empty_string' );
-		}
+		$output = get_echo( 'the_embed_site_title' );
 
 		$this->assertStringNotContainsString( 'wp-embed-site-icon', $output, 'img tag should be omitted when URL is empty.' );
 		$this->assertStringNotContainsString( 'src=""', $output, 'Output should not contain empty src attribute.' );
@@ -911,14 +890,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		};
 
 		add_filter( 'get_site_icon_url', $filter );
-
-		try {
-			ob_start();
-			the_embed_site_title();
-			$output = ob_get_clean();
-		} finally {
-			remove_filter( 'get_site_icon_url', $filter );
-		}
+		$output = get_echo( 'the_embed_site_title' );
 
 		$this->assertStringNotContainsString( 'srcset=', $output, 'srcset should be omitted when 1x and 2x URLs are identical.' );
 		$this->assertStringContainsString( esc_url( $svg_url ), $output, '1x URL should still be present in src.' );
@@ -930,10 +902,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::the_embed_site_title
 	 */
 	public function test_the_embed_site_title_uses_fallback_without_srcset_when_no_site_icon_set() {
-		ob_start();
-		the_embed_site_title();
-		$output = ob_get_clean();
-
+		$output   = get_echo( 'the_embed_site_title' );
 		$fallback = includes_url( 'images/w-logo-blue.png' );
 
 		$this->assertStringContainsString( 'wp-embed-site-icon', $output, 'Fallback icon img should be present when no site icon is set.' );
