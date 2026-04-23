@@ -319,17 +319,3 @@
 	}
 }
 
-@media screen and (max-width: 600px) {
-	.on-this-day-timeline {
-		padding-left: 16px;
-		padding-right: 16px;
-
-		&::before {
-			left: 30px;
-		}
-	}
-
-	.on-this-day-year-header {
-		padding-left: 42px;
-	}
-}
