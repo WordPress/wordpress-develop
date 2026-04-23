@@ -24,8 +24,8 @@ class WP_oEmbed {
 	 *
 	 * @since 2.9.0
 	 * @var array<string, array{ 0: string, 1: bool }> An associative array mapping URL patterns to provider data.
-	 *                                                     Each entry's value is an array with the provider endpoint URL
-	 *                                                     string at index 0 and a boolean regex flag at index 1.
+	 *                                                 Each entry's value is an array with the provider endpoint URL
+	 *                                                 string at index 0 and a boolean regex flag at index 1.
 	 */
 	public $providers = array();
 
@@ -230,7 +230,8 @@ class WP_oEmbed {
 		 */
 		$providers = apply_filters( 'oembed_providers', $providers );
 		foreach ( $providers as $matchmask => $data ) {
-			if ( ! is_array( $data ) || ! isset( $data[0] ) || ! is_string( $data[0] ) ) {
+			$provider = $this->sanitize_provider( $data );
+			if ( null === $provider ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
@@ -241,8 +242,7 @@ class WP_oEmbed {
 					'7.1.0'
 				);
 			} else {
-				$data[1]                       = (bool) ( $data[1] ?? false );
-				$this->providers[ $matchmask ] = $data;
+				$this->providers[ $matchmask ] = array( $provider['endpoint'], $provider['is_regex'] );
 			}
 		}
 
@@ -265,6 +265,28 @@ class WP_oEmbed {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Sanitizes and normalizes a single oEmbed provider entry.
+	 *
+	 * Validates that the provider data is an array with a string endpoint URL at index 0,
+	 * and normalizes the optional regex flag at index 1 to a boolean.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $data The raw provider data to sanitize.
+	 * @return array{ endpoint: string, is_regex: bool }|null Normalized provider array, or null if malformed.
+	 */
+	private function sanitize_provider( $data ) {
+		if ( ! is_array( $data ) || ! isset( $data[0] ) || ! is_string( $data[0] ) ) {
+			return null;
+		}
+
+		return array(
+			'endpoint' => $data[0],
+			'is_regex' => (bool) ( $data[1] ?? false ),
+		);
 	}
 
 	/**
@@ -294,17 +316,19 @@ class WP_oEmbed {
 		}
 
 		foreach ( $this->providers as $matchmask => $data ) {
-			$providerurl = $data[0];
-			$regex       = $data[1] ?? false;
+			$provider_data = $this->sanitize_provider( $data );
+			if ( null === $provider_data ) {
+				continue;
+			}
 
 			// Turn the asterisk-type provider URLs into regex.
-			if ( ! $regex ) {
+			if ( ! $provider_data['is_regex'] ) {
 				$matchmask = '#' . str_replace( '___wildcard___', '(.+)', preg_quote( str_replace( '*', '___wildcard___', $matchmask ), '#' ) ) . '#i';
 				$matchmask = preg_replace( '|^#http\\\://|', '#https?\://', $matchmask );
 			}
 
 			if ( preg_match( $matchmask, $url ) ) {
-				$provider = str_replace( '{format}', 'json', $providerurl ); // JSON is easier to deal with than XML.
+				$provider = str_replace( '{format}', 'json', $provider_data['endpoint'] ); // JSON is easier to deal with than XML.
 				break;
 			}
 		}
