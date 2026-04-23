@@ -387,9 +387,6 @@ class WP_Script_Modules {
 
 		$set_locale_data_js_function = <<<'JS'
 		( domain, translations ) => {
-			if ( ! window.wp?.i18n?.setLocaleData ) {
-				return;
-			}
 			const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
 			localeData[""].domain = domain;
 			wp.i18n.setLocaleData( localeData, domain );
@@ -414,6 +411,12 @@ class WP_Script_Modules {
 			);
 			$script_id  = "wp-script-module-translation-data-{$id}";
 			$output    .= "\n//# sourceURL=" . rawurlencode( $script_id );
+
+			// Ensure wp-i18n is printed; the inline script below relies on wp.i18n.setLocaleData().
+			if ( ! wp_script_is( 'wp-i18n', 'done' ) ) {
+				wp_scripts()->do_items( array( 'wp-i18n' ) );
+			}
+
 			wp_print_inline_script_tag( $output, array( 'id' => $script_id ) );
 		}
 	}
