@@ -2641,12 +2641,12 @@ HTML;
 	public function test_get_registered_returns_array_for_registered_module() {
 		$this->script_modules->register( 'test-module', '/test-module.js' );
 		$result = $this->script_modules->get_registered( 'test-module' );
-		$this->assertIsArray( $result );
-		$this->assertSame( '/test-module.js', $result['src'] );
-		$this->assertFalse( $result['version'] );
-		$this->assertSame( array(), $result['dependencies'] );
-		$this->assertFalse( $result['in_footer'] );
-		$this->assertSame( 'auto', $result['fetchpriority'] );
+		$this->assertIsArray( $result, 'get_registered() should return an array for a registered module.' );
+		$this->assertSame( '/test-module.js', $result['src'], 'src should match the value passed to register().' );
+		$this->assertFalse( $result['version'], 'version should default to false.' );
+		$this->assertSame( array(), $result['dependencies'], 'dependencies should default to an empty array.' );
+		$this->assertFalse( $result['in_footer'], 'in_footer should default to false.' );
+		$this->assertSame( 'auto', $result['fetchpriority'], 'fetchpriority should default to auto.' );
 	}
 
 	/**
@@ -2734,15 +2734,15 @@ HTML;
 
 		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
-		$this->assertCount( 1, $filtered );
+		$this->assertCount( 1, $filtered, 'load_script_textdomain_relative_path filter should fire once for the enqueued module.' );
 		foreach ( $filtered as $filter_args ) {
-			$this->assertIsString( $filter_args['relative'] );
-			$this->assertIsString( $filter_args['src'] );
-			$this->assertTrue( $filter_args['is_module'] );
+			$this->assertIsString( $filter_args['relative'], 'Filter should receive a string $relative argument.' );
+			$this->assertIsString( $filter_args['src'], 'Filter should receive a string $src argument.' );
+			$this->assertTrue( $filter_args['is_module'], 'Filter should receive $is_module=true for script modules.' );
 		}
 
 		$processor = new WP_HTML_Tag_Processor( $output );
-		$this->assertTrue( $processor->next_tag( 'SCRIPT' ) );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'Output should contain a SCRIPT tag.' );
 		$script_text = $processor->get_modifiable_text();
 		$this->assertStringContainsString( 'wp-script-module-translation-data-test-module', $script_text, 'Translation inline script should be printed with the expected ID.' );
 		$this->assertStringContainsString( 'wp.i18n.setLocaleData', $script_text, 'Output should call wp.i18n.setLocaleData().' );
@@ -2801,15 +2801,15 @@ HTML;
 		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
 		// With auto-detection, the filter fires for every enqueued module and its dependencies.
-		$this->assertCount( 2, $filtered );
+		$this->assertCount( 2, $filtered, 'load_script_textdomain_relative_path filter should fire for the enqueued module and its dependency.' );
 		foreach ( $filtered as $filter_args ) {
-			$this->assertIsString( $filter_args['relative'] );
-			$this->assertIsString( $filter_args['src'] );
-			$this->assertTrue( $filter_args['is_module'] );
+			$this->assertIsString( $filter_args['relative'], 'Filter should receive a string $relative argument.' );
+			$this->assertIsString( $filter_args['src'], 'Filter should receive a string $src argument.' );
+			$this->assertTrue( $filter_args['is_module'], 'Filter should receive $is_module=true for script modules.' );
 		}
 
 		$processor = new WP_HTML_Tag_Processor( $output );
-		$this->assertTrue( $processor->next_tag( 'SCRIPT' ) );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'Output should contain a SCRIPT tag.' );
 		$script_text = $processor->get_modifiable_text();
 		$this->assertStringContainsString( 'wp-script-module-translation-data-dep-module', $script_text, 'Dependency module translations should be printed.' );
 		$this->assertStringContainsString( 'Mundo', $script_text, 'Output should contain the dependency translation.' );
@@ -2857,6 +2857,6 @@ HTML;
 		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
 		$this->assertSame( 'my-plugin', $seen_domain, 'load_script_module_textdomain() should be called with the overridden domain.' );
-		$this->assertStringContainsString( 'Hola', $output );
+		$this->assertStringContainsString( 'Hola', $output, 'Output should contain the translated string loaded under the overridden domain.' );
 	}
 }
