@@ -34,6 +34,15 @@ class WP_On_This_Day {
 	const CACHE_GROUP = 'on_this_day';
 
 	/**
+	 * Cache version. Bump when the rendered markup changes so stale
+	 * entries from older releases are naturally ignored.
+	 *
+	 * @since 7.1.0
+	 * @var int
+	 */
+	const CACHE_VERSION = 2;
+
+	/**
 	 * Renders the dashboard widget output.
 	 *
 	 * The rendered HTML is cached per user, locale, and site date. The
@@ -42,7 +51,7 @@ class WP_On_This_Day {
 	 * invalidates the entry on the next read, and entries roll over
 	 * naturally at midnight.
 	 *
-	 * Note: I made the trade-off to ignore `time_format` option changes,
+	 * Note: I made the trade-off to ignore `time_format` option changes.
 	 * They do not bust the cache; stale time strings clear on the next
 	 * post mutation or at midnight.
 	 *
@@ -52,7 +61,8 @@ class WP_On_This_Day {
 		$user_id = get_current_user_id();
 
 		$cache_key = sprintf(
-			'render:%d:%s:%s:%s',
+			'render:v%d:%d:%s:%s:%s',
+			self::CACHE_VERSION,
 			$user_id,
 			determine_locale(),
 			current_time( 'Y-m-d' ),
@@ -61,7 +71,7 @@ class WP_On_This_Day {
 
 		$cached = wp_cache_get( $cache_key, self::CACHE_GROUP );
 		if ( is_string( $cached ) ) {
-			// HTML is built and escaped by this class at write time.
+			// Already escaped at write time by the render_* methods below.
 			echo $cached; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			return;
 		}
@@ -80,6 +90,7 @@ class WP_On_This_Day {
 
 		wp_cache_set( $cache_key, $html, self::CACHE_GROUP, DAY_IN_SECONDS );
 
+		// Already escaped at write time by the render_* methods below.
 		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
@@ -157,7 +168,7 @@ class WP_On_This_Day {
 		?>
 		<div class="on-this-day-empty">
 			<div class="on-this-day-empty-icon" aria-hidden="true">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
 					<rect x="3" y="4" width="18" height="18" rx="3"></rect>
 					<path d="M16 2v4M8 2v4M3 10h18"></path>
 					<circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"></circle>
@@ -198,27 +209,7 @@ class WP_On_This_Day {
 			$by_year[ $year ][] = $post;
 		}
 		krsort( $by_year );
-
-		$post_count = count( $posts );
-		$year_count = count( $by_year );
 		?>
-		<p class="on-this-day-intro">
-			<?php
-			printf(
-				esc_html(
-					/* translators: 1: Number of posts. 2: Number of years. */
-					_n(
-						'You published %1$s post on this day across %2$s year.',
-						'You published %1$s posts on this day across %2$s years.',
-						$post_count
-					)
-				),
-				'<strong>' . esc_html( number_format_i18n( $post_count ) ) . '</strong>',
-				'<strong>' . esc_html( number_format_i18n( $year_count ) ) . '</strong>'
-			);
-			?>
-		</p>
-
 		<ul class="on-this-day-timeline">
 			<?php
 			$is_latest = true;
@@ -231,18 +222,18 @@ class WP_On_This_Day {
 				}
 				?>
 				<li class="<?php echo esc_attr( $group_classes ); ?>">
-					<div class="on-this-day-year-badge">
+					<h3 class="on-this-day-year-header">
 						<span class="on-this-day-year-number"><?php echo esc_html( $year ); ?></span>
 						<span class="on-this-day-year-ago">
 							<?php
 							printf(
-								/* translators: %s: Number of years, e.g. "1 yr" or "5 yrs". */
-								esc_html( _n( '%s yr', '%s yrs', $years_ago ) ),
+								/* translators: %s: Number of years, e.g. "1 year ago" or "5 years ago". */
+								esc_html( _n( '%s year ago', '%s years ago', $years_ago ) ),
 								esc_html( number_format_i18n( $years_ago ) )
 							);
 							?>
 						</span>
-					</div>
+					</h3>
 					<ul class="on-this-day-post-list">
 						<?php foreach ( $year_posts as $post ) : ?>
 							<?php self::render_post( $post ); ?>
@@ -255,16 +246,19 @@ class WP_On_This_Day {
 	}
 
 	/**
-	 * Renders a single post card.
+	 * Renders a single post row.
 	 *
 	 * @since 7.1.0
 	 *
 	 * @param WP_Post $post Post object to render.
 	 */
 	protected static function render_post( $post ) {
-		$edit_link = get_edit_post_link( $post->ID );
-		$view_link = get_permalink( $post->ID );
-		$title     = get_the_title( $post );
+		$edit_link  = get_edit_post_link( $post->ID );
+		$view_link  = get_permalink( $post->ID );
+		$status     = get_post_status( $post );
+		$is_private = ( 'private' === $status );
+
+		$title = get_the_title( $post );
 		if ( '' === trim( $title ) ) {
 			$title = __( '(no title)' );
 		}
@@ -274,41 +268,46 @@ class WP_On_This_Day {
 		$excerpt = preg_replace( '/\s+/', ' ', $excerpt );
 		$excerpt = wp_trim_words( trim( $excerpt ), 24, '&hellip;' );
 
-		$time_str      = get_the_time( get_option( 'time_format' ), $post );
-		$time_iso      = get_the_time( 'Y-m-d H:i', $post );
-		$status        = get_post_status( $post );
-		$thumbnail_url = has_post_thumbnail( $post ) ? get_the_post_thumbnail_url( $post, 'thumbnail' ) : '';
-		$categories    = get_the_category( $post->ID );
+		$time_str   = get_the_time( get_option( 'time_format' ), $post );
+		$time_iso   = get_the_time( 'Y-m-d H:i', $post );
+		$categories = get_the_category( $post->ID );
 
-		$classes = array( 'on-this-day-post' );
-		if ( $thumbnail_url ) {
-			$classes[] = 'has-thumbnail';
+		$row_classes = 'on-this-day-post';
+		if ( $is_private ) {
+			$row_classes .= ' is-private';
 		}
 		?>
-		<li class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
-			<?php if ( $thumbnail_url ) : ?>
-				<a class="on-this-day-post-thumbnail" href="<?php echo esc_url( $edit_link ); ?>" tabindex="-1" aria-hidden="true">
-					<img src="<?php echo esc_url( $thumbnail_url ); ?>" alt="" loading="lazy" />
-				</a>
+		<li class="<?php echo esc_attr( $row_classes ); ?>">
+			<?php if ( $is_private ) : ?>
+				<span class="on-this-day-post-icon dashicons-before dashicons-lock" aria-hidden="true">
+			<?php else : ?>
+				<span class="on-this-day-post-icon dashicons-before dashicons-edit" aria-hidden="true">
 			<?php endif; ?>
+			</span>
 			<div class="on-this-day-post-body">
+				<span class="screen-reader-text">
+					<?php echo $is_private ? esc_html__( 'Private post' ) : esc_html__( 'Published post' ); ?>
+				</span>
+
 				<h4 class="on-this-day-post-title">
-					<a href="<?php echo esc_url( $edit_link ); ?>"><?php echo esc_html( $title ); ?></a>
-					<?php
-					if ( 'private' === $status ) :
-						?>
-						<span class="on-this-day-chip on-this-day-chip-private"><?php _e( 'Private' ); ?></span><?php endif; ?>
+					<?php if ( $edit_link ) : ?>
+						<a href="<?php echo esc_url( $edit_link ); ?>"><?php echo esc_html( $title ); ?></a>
+					<?php else : ?>
+						<?php echo esc_html( $title ); ?>
+					<?php endif; ?>
 				</h4>
+
 				<?php if ( $excerpt ) : ?>
 					<p class="on-this-day-post-excerpt"><?php echo esc_html( $excerpt ); ?></p>
 				<?php endif; ?>
+
 				<div class="on-this-day-post-meta">
-					<span class="on-this-day-post-time" title="<?php echo esc_attr( $time_iso ); ?>">
-						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+					<time class="on-this-day-post-time" datetime="<?php echo esc_attr( $time_iso ); ?>">
 						<?php echo esc_html( $time_str ); ?>
-					</span>
+					</time>
 
 					<?php if ( ! empty( $categories ) ) : ?>
+						<span class="on-this-day-post-sep" aria-hidden="true">&middot;</span>
 						<span class="on-this-day-post-categories">
 							<?php
 							$names = wp_list_pluck( array_slice( $categories, 0, 3 ), 'name' );
@@ -317,14 +316,21 @@ class WP_On_This_Day {
 						</span>
 					<?php endif; ?>
 
-					<span class="on-this-day-post-actions">
-						<?php if ( $edit_link ) : ?>
-							<a class="on-this-day-post-action" href="<?php echo esc_url( $edit_link ); ?>"><?php _e( 'Edit' ); ?></a>
-						<?php endif; ?>
-						<?php if ( 'publish' === $status ) : ?>
-							<a class="on-this-day-post-action" href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener"><?php _e( 'View' ); ?></a>
-						<?php endif; ?>
-					</span>
+					<?php if ( $is_private ) : ?>
+						<span class="on-this-day-post-sep" aria-hidden="true">&middot;</span>
+						<span class="on-this-day-post-private"><?php _e( 'Private' ); ?></span>
+					<?php endif; ?>
+
+					<?php if ( $edit_link || ( 'publish' === $status && $view_link ) ) : ?>
+						<span class="on-this-day-post-actions">
+							<?php if ( $edit_link ) : ?>
+								<a class="on-this-day-post-action" href="<?php echo esc_url( $edit_link ); ?>"><?php _e( 'Edit' ); ?></a>
+							<?php endif; ?>
+							<?php if ( 'publish' === $status && $view_link ) : ?>
+								<a class="on-this-day-post-action" href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener"><?php _e( 'View' ); ?></a>
+							<?php endif; ?>
+						</span>
+					<?php endif; ?>
 				</div>
 			</div>
 		</li>

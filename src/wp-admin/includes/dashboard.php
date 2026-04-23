@@ -97,7 +97,7 @@ function wp_dashboard_setup() {
 		wp_enqueue_style( 'on-this-day' );
 
 		$on_this_day_title = sprintf(
-			'<span class="on-this-day-title-main">%1$s</span><span class="on-this-day-title-date">%2$s</span>',
+			'<span class="on-this-day-title-main dashicons-before dashicons-calendar-alt">%1$s</span><span class="on-this-day-title-date">%2$s</span>',
 			__( 'On This Day' ),
 			esc_html( date_i18n( 'F j' ) )
 		);

@@ -4,12 +4,11 @@
    Organised as:
      1. Design tokens (custom properties on the widget root)
      2. Postbox chrome (#dashboard_on_this_day)
-     3. Widget body (.on-this-day-widget)
-        - Title, intro
-        - Timeline (year groups + badges)
-        - Post card (thumbnail, body, meta, actions)
-        - Empty state
-     4. Adaptive rules (reduced motion, small viewports)
+     3. Widget title accents (calendar icon + date pill in `.hndle`)
+     4. Timeline (year headers, vertical line, post rows)
+     5. Post row (icon circle, title, excerpt, meta row)
+     6. Empty state
+     7. Adaptive rules (reduced motion, small viewports)
    ============================================================================= */
 
 /* -----------------------------------------------------------------------------
@@ -23,46 +22,28 @@
    follows the user's selected admin color scheme (Blue, Modern, Coffee, etc.).
    Fallback values match the classic "Fresh" scheme.
    ----------------------------------------------------------------------------- */
-
 #dashboard_on_this_day,
 .on-this-day-widget {
 	/* Accent — theme-color aware, follows the user's admin color scheme. */
 	--otd-accent:        var(--wp-admin-theme-color, #2271b1);
 	--otd-accent-dark:   var(--wp-admin-theme-color-darker-10, #135e96);
-	--otd-accent-darker: var(--wp-admin-theme-color-darker-20, #0a4b78);
 	--otd-accent-rgb:    var(--wp-admin-theme-color--rgb, 34, 113, 177);
-	--otd-accent-4:      rgba(var(--otd-accent-rgb), 0.04);
 	--otd-accent-8:      rgba(var(--otd-accent-rgb), 0.08);
 	--otd-accent-15:     rgba(var(--otd-accent-rgb), 0.15);
-	--otd-accent-35:     rgba(var(--otd-accent-rgb), 0.35);
 
 	/* Neutrals — classic wp-admin palette. */
-	--otd-ink:          #1d2327;
-	--otd-text:         #50575e;
-	--otd-muted:        #646970;
-	--otd-border:       #dcdcde;
-	--otd-border-soft:  #f0f0f1;
-	--otd-surface:      #ffffff;
-	--otd-surface-2:    #f6f7f7;
+	--otd-ink:      #1d2327;
+	--otd-text:     #2c3338;
+	--otd-muted:    #646970;
+	--otd-subtle:   #8c8f94;
+	--otd-line:     #dcdcde;
 
-	/* Composed gradients + semantic (non-theme-dependent) colors. */
-	--otd-intro-bg:     linear-gradient(180deg, var(--otd-accent-4) 0%, var(--otd-surface) 100%);
-	--otd-badge-hi:     linear-gradient(135deg, var(--otd-accent) 0%, var(--otd-accent-darker) 100%);
-	--otd-track:        linear-gradient(180deg, #c3c4c7 0%, var(--otd-border) 60%, transparent 100%);
-	--otd-empty-bg:     radial-gradient(circle at 30% 30%, var(--otd-accent-8) 0%, var(--otd-accent-4) 60%, var(--otd-surface) 100%);
-	--otd-private-bg:   #fcf0f1;
-	--otd-private-fg:   #b32d2e;
-	--otd-private-bd:   #f5c9cc;
+	/* Semantic (theme-independent). */
+	--otd-private:  #b32d2e;
 
-	/* Shape + motion tokens — radii aligned with core's $radius scale. */
-	--otd-pill:         9999px; /* $radius-full */
-	--otd-radius-sm:    4px;    /* $radius-m   */
-	--otd-radius:       8px;    /* $radius-l — dashboard widgets */
-	--otd-radius-lg:    12px;   /* $radius-30  */
-	--otd-ease:         0.15s ease;
-
-	/* Calendar icon used by the widget title (re-used via mask). */
-	--otd-icon-calendar: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='3'/><path d='M16 2v4M8 2v4M3 10h18'/><circle cx='12' cy='15' r='1.5' fill='black' stroke='none'/></svg>");
+	/* Shape + motion. */
+	--otd-pill:     9999px;
+	--otd-ease:     0.15s ease;
 }
 
 /* -----------------------------------------------------------------------------
@@ -84,38 +65,20 @@
 .on-this-day-widget {
 	font-size: 13px;
 	color: var(--otd-ink);
+	line-height: 1.5;
 }
 
 /* -----------------------------------------------------------------------------
-   3. Widget body — title
+   3. Widget title (in .hndle)
    ----------------------------------------------------------------------------- */
 .on-this-day-title-main {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-
-	&::before {
-		content: "";
-		display: inline-block;
-		width: 16px;
-		height: 16px;
-		background-color: currentColor;
-		opacity: 0.85;
-		-webkit-mask: var(--otd-icon-calendar) center / contain no-repeat;
-		        mask: var(--otd-icon-calendar) center / contain no-repeat;
-	}
-}
-
-/* Shared pill shape for title date, private chip, and category tag. */
-.on-this-day-title-date,
-.on-this-day-chip,
-.on-this-day-post-categories {
-	display: inline-block;
-	border-radius: var(--otd-pill);
-	white-space: nowrap;
 }
 
 .on-this-day-title-date {
+	display: inline-block;
 	margin-left: 10px;
 	padding: 2px 9px;
 	font-weight: 600;
@@ -124,156 +87,117 @@
 	text-transform: uppercase;
 	color: var(--otd-accent-dark);
 	background: var(--otd-accent-8);
+	border-radius: var(--otd-pill);
+	white-space: nowrap;
 	vertical-align: 1px;
 }
 
 /* -----------------------------------------------------------------------------
-   3. Widget body — intro + timeline
+   4. Timeline
+   -----------------------------------------------------------------------------
+   Layout math (reused below):
+     padding-left of .on-this-day-timeline = 20px
+     icon width = 28px  ->  centers at 20 + 14 = 34px
+     gap between icon and body = 14px  ->  body column starts at 20 + 28 + 14 = 62px
    ----------------------------------------------------------------------------- */
-.on-this-day-intro {
-	margin: 0;
-	padding: 14px 16px 12px;
-	color: var(--otd-text);
-	background: var(--otd-intro-bg);
-	border-bottom: 1px solid var(--otd-border-soft);
-
-	& strong {
-		color: var(--otd-ink);
-	}
-}
-
 .on-this-day-timeline {
-	position: relative;
 	margin: 0;
-	padding: 6px 16px 16px;
+	padding: 12px 20px 16px;
 	list-style: none;
-
-	&::before {
-		content: "";
-		position: absolute;
-		left: 38px;
-		top: 16px;
-		bottom: 8px;
-		width: 2px;
-		background: var(--otd-track);
-		border-radius: 2px;
-	}
 }
 
 .on-this-day-year-group {
-	position: relative;
-	margin: 14px 0 0;
-	padding-left: 64px;
 	list-style: none;
-
-	&:first-child {
-		margin-top: 8px;
-	}
-
-	&.is-latest {
-		& .on-this-day-year-badge {
-			background: var(--otd-badge-hi);
-			border-color: transparent;
-			color: var(--otd-surface);
-			box-shadow: 0 2px 6px var(--otd-accent-35);
-		}
-
-		& .on-this-day-year-ago {
-			color: rgba(255, 255, 255, 0.85);
-		}
-	}
+	margin: 0;
+	padding: 0;
 }
 
-.on-this-day-year-badge {
-	position: absolute;
-	left: 0;
-	top: 0;
-	box-sizing: border-box;
-	width: 54px;
-	height: 44px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 0;
-	background: var(--otd-surface);
-	border: 1px solid var(--otd-border);
-	border-radius: var(--otd-radius-lg);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-	z-index: 1;
+.on-this-day-year-header {
+	margin: 0 0 8px;
+	padding-left: 42px; /* aligns with the body text column */
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: var(--otd-subtle);
 }
 
 .on-this-day-year-number {
-	font-weight: 700;
-	font-size: 14px;
-	letter-spacing: 0.2px;
-	line-height: 1.15;
-}
-
-.on-this-day-year-ago {
-	margin-top: 1px;
-	font-size: 10px;
-	font-weight: 500;
-	letter-spacing: 0.5px;
-	text-transform: uppercase;
-	white-space: nowrap;
 	color: var(--otd-muted);
 }
 
-/* -----------------------------------------------------------------------------
-   3. Widget body — post card
-   ----------------------------------------------------------------------------- */
+.on-this-day-year-ago {
+	margin-left: 6px;
+	color: var(--otd-subtle);
+}
+
 .on-this-day-post-list {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
+	position: relative;
 	margin: 0;
 	padding: 0;
 	list-style: none;
-}
 
-.on-this-day-post {
-	display: flex;
-	gap: 12px;
-	padding: 10px 12px;
-	background: var(--otd-surface);
-	border: 1px solid var(--otd-border-soft);
-	border-radius: var(--otd-radius);
-	transition: border-color var(--otd-ease), box-shadow var(--otd-ease);
-
-	&:hover {
-		border-color: #c3c4c7;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	/* Vertical guide line, scoped per year group so the year header
+	   naturally interrupts the line between groups. The halo on each
+	   icon circle (see below) punches ~3px gaps around every circle. */
+	&::before {
+		content: "";
+		position: absolute;
+		left: 14px; /* center of the 28px icon column */
+		top: 6px;
+		bottom: 14px;
+		width: 1px;
+		background: var(--otd-line);
 	}
 }
 
-.on-this-day-post-thumbnail {
-	display: block;
-	flex: 0 0 52px;
-	width: 52px;
-	height: 52px;
-	overflow: hidden;
-	background: var(--otd-border-soft);
-	border-radius: var(--otd-radius-sm);
+/* -----------------------------------------------------------------------------
+   5. Post row
+   ----------------------------------------------------------------------------- */
+.on-this-day-post {
+	display: grid;
+	grid-template-columns: 28px 1fr;
+	gap: 14px;
+	padding: 6px 0 14px;
 
-	& img {
-		display: block;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
+	/* Icon circle on the left. */
+	& .on-this-day-post-icon {
+		position: relative;
+		z-index: 1; /* sits above the vertical line */
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		background: #fff;
+		border: 1px solid var(--otd-line);
+		color: var(--otd-muted);
+
+		/* 3px white halo so the timeline line appears to stop short of
+		   the circle on both sides rather than butting right into it. */
+		box-shadow: 0 0 0 3px #fff;
+
+		& svg {
+			display: block;
+		}
+	}
+
+	&.is-private .on-this-day-post-icon {
+		color: var(--otd-private);
+		border-color: #f5c9cc;
+		background: #fcf0f1;
 	}
 }
 
 .on-this-day-post-body {
-	flex: 1 1 auto;
 	min-width: 0;
 }
 
 .on-this-day-post-title {
-	margin: 0 0 3px;
+	margin: 0 0 2px;
 	font-size: 13px;
 	font-weight: 600;
-	line-height: 1.35;
+	line-height: 1.4;
 
 	& a {
 		color: var(--otd-ink);
@@ -285,22 +209,6 @@
 			color: var(--otd-accent);
 		}
 	}
-}
-
-.on-this-day-chip {
-	margin-left: 4px;
-	padding: 1px 7px;
-	font-size: 10px;
-	font-weight: 600;
-	letter-spacing: 0.3px;
-	text-transform: uppercase;
-	vertical-align: 2px;
-}
-
-.on-this-day-chip-private {
-	background: var(--otd-private-bg);
-	color: var(--otd-private-fg);
-	border: 1px solid var(--otd-private-bd);
 }
 
 .on-this-day-post-excerpt {
@@ -318,41 +226,40 @@
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 10px;
+	gap: 6px;
 	font-size: 12px;
-	color: var(--otd-muted);
+	color: var(--otd-subtle);
+	line-height: 1.5;
 }
 
 .on-this-day-post-time {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
 	color: var(--otd-muted);
+}
 
-	& svg {
-		vertical-align: middle;
-		opacity: 0.85;
-	}
+.on-this-day-post-sep {
+	color: var(--otd-line);
 }
 
 .on-this-day-post-categories {
-	max-width: 200px;
-	padding: 1px 8px;
-	font-size: 11px;
-	color: var(--otd-text);
-	background: var(--otd-surface-2);
+	max-width: 240px;
+	color: var(--otd-muted);
 	overflow: hidden;
 	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.on-this-day-post-private {
+	color: var(--otd-private);
+	font-weight: 500;
 }
 
 .on-this-day-post-actions {
 	display: inline-flex;
-	gap: 10px;
-	margin-left: auto;
+	gap: 12px;
+	margin-left: auto; /* push to the right edge of the meta row */
 }
 
 .on-this-day-post-action {
-	font-weight: 500;
 	color: var(--otd-accent);
 	text-decoration: none;
 
@@ -364,22 +271,22 @@
 }
 
 /* -----------------------------------------------------------------------------
-   3. Widget body — empty state
+   6. Empty state
    ----------------------------------------------------------------------------- */
 .on-this-day-empty {
 	text-align: center;
-	padding: 26px 20px 22px;
+	padding: 28px 20px 24px;
 }
 
 .on-this-day-empty-icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 64px;
-	height: 64px;
+	width: 60px;
+	height: 60px;
 	margin-bottom: 10px;
 	color: var(--otd-accent);
-	background: var(--otd-empty-bg);
+	background: var(--otd-accent-8);
 	border-radius: 50%;
 	box-shadow: inset 0 0 0 1px var(--otd-accent-15);
 }
@@ -403,31 +310,26 @@
 }
 
 /* -----------------------------------------------------------------------------
-   4. Adaptive rules
+   7. Adaptive rules
    ----------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-	.on-this-day-post {
+	.on-this-day-post-title a,
+	.on-this-day-post-action {
 		transition: none;
 	}
 }
 
 @media screen and (max-width: 600px) {
 	.on-this-day-timeline {
-		padding-left: 12px;
-		padding-right: 12px;
+		padding-left: 16px;
+		padding-right: 16px;
 
 		&::before {
-			left: 34px;
+			left: 30px;
 		}
 	}
 
-	.on-this-day-year-group {
-		padding-left: 58px;
-	}
-
-	.on-this-day-post-thumbnail {
-		flex-basis: 44px;
-		width: 44px;
-		height: 44px;
+	.on-this-day-year-header {
+		padding-left: 42px;
 	}
 }
