@@ -105,7 +105,7 @@ p {
 	border: 1px solid transparent;
 	box-shadow: none;
 	font-size: 14px;
-	line-height: 2;
+	line-height: normal;
 	width: 2.5rem;
 	height: 2.5rem;
 	min-width: 40px;
@@ -333,7 +333,7 @@ p {
 .login #nav a:hover,
 .login #backtoblog a:hover,
 .login h1 a:hover {
-	color: #135e96;
+	color: var(--wp-admin-theme-color-darker-20);
 }
 
 .login #nav a:focus,
