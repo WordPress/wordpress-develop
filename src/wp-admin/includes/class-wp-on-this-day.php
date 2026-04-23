@@ -26,23 +26,61 @@ class WP_On_This_Day {
 	const POSTS_PER_PAGE = 50;
 
 	/**
+	 * Object cache group used for storing widget results.
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	const CACHE_GROUP = 'on_this_day';
+
+	/**
 	 * Renders the dashboard widget output.
+	 *
+	 * The rendered HTML is cached per user, locale, and site date. The
+	 * cache key also incorporates the posts group's `last_changed` token,
+	 * so any post mutation (publish, edit, delete, trash) automatically
+	 * invalidates the entry on the next read, and entries roll over
+	 * naturally at midnight.
+	 *
+	 * Note: I made the trade-off to ignore `time_format` option changes,
+	 * They do not bust the cache; stale time strings clear on the next
+	 * post mutation or at midnight.
 	 *
 	 * @since 7.1.0
 	 */
 	public static function render_dashboard_widget() {
 		$user_id = get_current_user_id();
-		$posts   = self::get_posts( $user_id );
 
+		$cache_key = sprintf(
+			'render:%d:%s:%s:%s',
+			$user_id,
+			determine_locale(),
+			current_time( 'Y-m-d' ),
+			wp_cache_get_last_changed( 'posts' )
+		);
+
+		$cached = wp_cache_get( $cache_key, self::CACHE_GROUP );
+		if ( is_string( $cached ) ) {
+			// HTML is built and escaped by this class at write time.
+			echo $cached; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			return;
+		}
+
+		$posts = self::get_posts( $user_id );
+
+		ob_start();
 		echo '<div class="on-this-day-widget">';
-
 		if ( empty( $posts ) ) {
 			self::render_empty_state();
 		} else {
 			self::render_posts( $posts );
 		}
-
 		echo '</div>';
+		$html = ob_get_clean();
+
+		wp_cache_set( $cache_key, $html, self::CACHE_GROUP, DAY_IN_SECONDS );
+
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
