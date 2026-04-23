@@ -544,7 +544,13 @@ function wp_print_media_templates() {
 				<?php endforeach; ?>
 				<# } #>
 				<span class="setting" data-setting="caption">
+					<# if ( 'video' === data.type ) { #>
+					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Video Description' ); ?></label>
+					<# } else if ( 'image' === data.type ) { #>
+					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Image Caption' ); ?></label>
+					<# } else { #>
 					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Caption' ); ?></label>
+					<# } #>
 					<textarea id="attachment-details-two-column-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 				</span>
 				<span class="setting" data-setting="description">
@@ -796,7 +802,13 @@ function wp_print_media_templates() {
 		<?php endforeach; ?>
 		<# } #>
 		<span class="setting" data-setting="caption">
+			<# if ( 'video' === data.type ) { #>
+			<label for="attachment-details-caption" class="name"><?php _e( 'Video Description' ); ?></label>
+			<# } else if ( 'image' === data.type ) { #>
+			<label for="attachment-details-caption" class="name"><?php _e( 'Image Caption' ); ?></label>
+			<# } else { #>
 			<label for="attachment-details-caption" class="name"><?php _e( 'Caption' ); ?></label>
+			<# } #>
 			<textarea id="attachment-details-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 		</span>
 		<span class="setting" data-setting="description">
