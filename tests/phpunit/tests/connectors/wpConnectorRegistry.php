@@ -294,12 +294,12 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_includes_plugin_data() {
 		$args           = self::$default_args;
-		$args['plugin'] = array( 'slug' => 'my-plugin' );
+		$args['plugin'] = array( 'file' => 'my-plugin/my-plugin.php' );
 
 		$result = $this->registry->register( 'with-plugin', $args );
 
 		$this->assertArrayHasKey( 'plugin', $result );
-		$this->assertSame( array( 'slug' => 'my-plugin' ), $result['plugin'] );
+		$this->assertSame( array( 'file' => 'my-plugin/my-plugin.php' ), $result['plugin'] );
 	}
 
 	/**
