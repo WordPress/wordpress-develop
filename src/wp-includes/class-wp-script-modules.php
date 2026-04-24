@@ -359,10 +359,16 @@ class WP_Script_Modules {
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
 
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_import_map' ) );
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
+
 		add_action( 'wp_footer', array( $this, 'print_script_module_data' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_data' ) );
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_script_module_data' ) );
 		add_action( 'wp_footer', array( $this, 'print_a11y_script_module_html' ), 20 );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_a11y_script_module_html' ), 20 );
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_a11y_script_module_html' ), 20 );
 	}
 
 	/**

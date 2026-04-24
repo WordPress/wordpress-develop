@@ -595,6 +595,7 @@ add_action( 'set_current_user', 'kses_init' );
 add_action( 'wp_default_scripts', 'wp_default_scripts' );
 add_action( 'wp_default_scripts', 'wp_default_packages' );
 add_action( 'wp_default_scripts', 'wp_default_script_modules' );
+add_action( 'wp_default_scripts', 'wp_default_core_script_modules' );
 
 add_action( 'wp_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'wp_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
@@ -701,6 +702,11 @@ add_action( 'wp_body_open', 'wp_admin_bar_render', 0 );
 add_action( 'wp_footer', 'wp_admin_bar_render', 1000 ); // Back-compat for themes not using `wp_body_open`.
 add_action( 'in_admin_header', 'wp_admin_bar_render', 0 );
 add_action( 'admin_bar_init', 'wp_admin_bar_add_color_scheme_to_front_end', 0 );
+
+// Back/forward Cache (bfcache).
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_bfcache_script_module' );
+add_action( 'admin_enqueue_scripts', 'wp_enqueue_bfcache_script_module' );
+add_action( 'customize_controls_enqueue_scripts', 'wp_enqueue_bfcache_script_module' );
 
 // Former admin filters that can also be hooked on the front end.
 add_action( 'media_buttons', 'media_buttons' );

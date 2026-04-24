@@ -1497,11 +1497,14 @@ function status_header( $code, $description = '' ) {
  *              `no-store` and `private` directives.
  * @since 6.8.0 The `Cache-Control` header now includes the `no-store` and `private`
  *              directives regardless of whether a user is logged in.
+ * @since 6.9.0 The `no-store` directive is removed, with bfcache privacy for
+ *              authenticated pages in browser history implemented via a `pageshow`
+ *              event handler in the `bfcache.js` script module.
  *
  * @return array The associative array of header names and field values.
  */
 function wp_get_nocache_headers() {
-	$cache_control = 'no-cache, must-revalidate, max-age=0, no-store, private';
+	$cache_control = 'no-cache, must-revalidate, max-age=0, private';
 
 	$headers = array(
 		'Expires'       => 'Wed, 11 Jan 1984 05:00:00 GMT',
@@ -1522,6 +1525,28 @@ function wp_get_nocache_headers() {
 	}
 	$headers['Last-Modified'] = false;
 	return $headers;
+}
+
+/**
+ * Enqueues the bfcache script module when a user is logged in.
+ *
+ * @since 6.9.0
+ */
+function wp_enqueue_bfcache_script_module(): void {
+	if ( ! is_user_logged_in() ) {
+		return;
+	}
+
+	$module_id = '@wordpress/bfcache';
+	wp_enqueue_script_module( $module_id );
+	add_filter(
+		"script_module_data_{$module_id}",
+		static function (): array {
+			return array(
+				'cookieName' => BFCACHE_SESSION_TOKEN_COOKIE,
+			);
+		}
+	);
 }
 
 /**

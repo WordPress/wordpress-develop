@@ -1190,11 +1190,25 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 			return;
 		}
 
+		/*
+		 * Generate a token for representing the current "bfcache session". This session token is stored in a cookie
+		 * which MUST not be HTTP-only since it has to be read in JavaScript. When an authenticated page is loaded,
+		 * JavaScript is used to read the session token from the cookie. A `pageshow` event handler is then added which
+		 * checks for whether the event object's `persisted` property is true, which indicates that bfcache restored the
+		 * page. When bfcache restores an authenticated page, the `pageshow` event handler gets the current cookie value
+		 * and compares it with the original cookie value when the page was first loaded. If there is a mismatch in the
+		 * token, then the page event handler clears out the page contents and reloads it to protect the privacy of the
+		 * authenticated page.
+		 */
+		$bfcache_session_token = wp_generate_password( 43, false, false );
+
 		setcookie( $auth_cookie_name, $auth_cookie, $expire, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
 		setcookie( $auth_cookie_name, $auth_cookie, $expire, ADMIN_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
 		setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, COOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
+		setcookie( BFCACHE_SESSION_TOKEN_COOKIE, $bfcache_session_token, $expire, COOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, false /* must be read by JS */ );
 		if ( COOKIEPATH !== SITECOOKIEPATH ) {
 			setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, SITECOOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
+			setcookie( BFCACHE_SESSION_TOKEN_COOKIE, $bfcache_session_token, $expire, SITECOOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, false /* must be read by JS */ );
 		}
 	}
 endif;
@@ -1225,6 +1239,8 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN );
 		setcookie( LOGGED_IN_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
 		setcookie( LOGGED_IN_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+		setcookie( BFCACHE_SESSION_TOKEN_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+		setcookie( BFCACHE_SESSION_TOKEN_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
 
 		// Settings cookies.
 		setcookie( 'wp-settings-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
