@@ -983,7 +983,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 * a website.
 	 */
 	$script  = <<<'JS'
-		(( shortCutLabels ) => {
+		(( shortcutLabels ) => {
 			let userAgent = '';
 			// Assigning agent may error if the HTTP header is blocked at the browser level.
 			try {
@@ -993,7 +993,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 				return;
 			}
 			const isAppleOS = /Macintosh|Mac OS X|Mac_PowerPC/i.test( userAgent );
-			const shortcutLabel = isAppleOS ? shortCutLabels.appleOS : shortCutLabels.default;
+			const shortcutLabel = isAppleOS ? shortcutLabels.appleOS : shortcutLabels.default;
 			const commandPaletteNode = document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' );
 			if ( commandPaletteNode ) {
 				commandPaletteNode.textContent = shortcutLabel;
