@@ -20,13 +20,9 @@ mockedApiResponse.Schema = {
         "wp/v2",
         "wp-site-health/v1",
         "wp-block-editor/v1",
-<<<<<<< HEAD
-        "wp-abilities/v1"
-=======
         "wp-abilities/v1",
         "wp-collaboration/v1",
         "wp-sync/v1"
->>>>>>> 886f0b1270 (Tests: Add collaboration server tests and remove legacy sync tests)
     ],
     "authentication": {
         "application-passwords": {
@@ -3670,74 +3666,6 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-<<<<<<< HEAD
-=======
-        "/wp/v2/media/(?P<id>[\\d]+)/sideload": {
-            "namespace": "wp/v2",
-            "methods": [
-                "POST"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "POST"
-                    ],
-                    "args": {
-                        "id": {
-                            "description": "Unique identifier for the attachment.",
-                            "type": "integer",
-                            "required": false
-                        },
-                        "image_size": {
-                            "description": "Image size.",
-                            "type": "string",
-                            "enum": [
-                                "thumbnail",
-                                "medium",
-                                "medium_large",
-                                "large",
-                                "1536x1536",
-                                "2048x2048",
-                                "original",
-                                "full",
-                                "scaled"
-                            ],
-                            "required": true
-                        },
-                        "convert_format": {
-                            "type": "boolean",
-                            "default": true,
-                            "description": "Whether to convert image formats.",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
-<<<<<<< HEAD
->>>>>>> 886f0b1270 (Tests: Add collaboration server tests and remove legacy sync tests)
-=======
-        "/wp/v2/media/(?P<id>[\\d]+)/finalize": {
-            "namespace": "wp/v2",
-            "methods": [
-                "POST"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "POST"
-                    ],
-                    "args": {
-                        "id": {
-                            "description": "Unique identifier for the attachment.",
-                            "type": "integer",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
->>>>>>> 09d0b86326 (Tests: Remove erroneous connector fixtures from merge artifact)
         "/wp/v2/menu-items": {
             "namespace": "wp/v2",
             "methods": [
@@ -12772,8 +12700,6 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
-<<<<<<< HEAD
-=======
         },
         "/wp-collaboration/v1": {
             "namespace": "wp-collaboration/v1",
@@ -13000,7 +12926,6 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
->>>>>>> 886f0b1270 (Tests: Add collaboration server tests and remove legacy sync tests)
         }
     },
     "site_logo": 0,
