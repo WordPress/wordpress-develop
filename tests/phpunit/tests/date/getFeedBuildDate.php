@@ -48,30 +48,30 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 * @ticket 59956
 	 */
 	public function test_should_not_error_when_modified_times_is_empty() {
-		global $wp_query;
-
 		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
 		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 
-		// Create a real post so the fallback has something to return.
-		self::factory()->post->create(
+		$id = self::factory()->post->create(
 			array(
 				'post_date' => $datetime->format( 'Y-m-d H:i:s' ),
 			)
 		);
 
-		// Simulate a query where have_posts() is true but wp_list_pluck()
+		// Use a query where have_posts() is true but wp_list_pluck()
 		// returns an empty array because the posts array contains scalar
 		// values (neither objects nor arrays). This triggers the _doing_it_wrong
 		// notice in WP_List_Util::pluck() and produces an empty result.
-		$wp_query = new WP_Query();
-
-		$wp_query->posts      = array( 1 );
-		$wp_query->post_count = 1;
+		query_posts(
+			array(
+				'posts__in' => array( $id ),
+				'fields'    => 'ids',
+			)
+		);
 
 		$this->setExpectedIncorrectUsage( 'WP_List_Util::pluck' );
 
 		$result = get_feed_build_date( DATE_RFC3339 );
+		$this->assertIsString( $result );
 
 		$this->assertEqualsWithDelta(
 			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),

@@ -733,7 +733,7 @@ function get_feed_build_date( $format ) {
 		}
 
 		// Determine the maximum modified time.
-		if ( ! empty( $modified_times ) ) {
+		if ( $modified_times ) {
 			$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', max( $modified_times ), $utc );
 		}
 	}
