@@ -949,11 +949,13 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		return;
 	}
 
-	$is_apple_os    = (bool) preg_match( '/Macintosh|Mac OS X|Mac_PowerPC/i', $_SERVER['HTTP_USER_AGENT'] ?? '' );
-	$shortcut_label = $is_apple_os
-		? _x( '⌘K', 'keyboard shortcut to open the command palette' )
-		: _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' );
-	$title          = sprintf(
+	$shortcut_labels = array(
+		'appleOS' => _x( '⌘K', 'keyboard shortcut to open the command palette' ),
+		'default' => _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' ),
+	);
+	$is_apple_os     = (bool) preg_match( '/Macintosh|Mac OS X|Mac_PowerPC/i', $_SERVER['HTTP_USER_AGENT'] ?? '' );
+	$shortcut_label  = $is_apple_os ? $shortcut_labels['appleOS'] : $shortcut_labels['default'];
+	$title           = sprintf(
 		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
 		$shortcut_label,
 		/* translators: Hidden accessibility text. */
@@ -970,6 +972,27 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 			),
 		)
 	);
+
+	$script  = <<<JS
+		(( shortCutLabels ) => {
+			let userAgent = '';
+			// Assigning agent may error if the HTTP header is blocked at the browser level.
+			try {
+				userAgent = navigator.userAgent;
+			} catch (error) {
+				// Make no change to the default shortcut label.
+				return;
+			}
+			const isAppleOS = /Macintosh|Mac OS X|Mac_PowerPC/i.test( userAgent );
+			const shortcutLabel = isAppleOS ? shortCutLabels.appleOS : shortCutLabels.default;
+			const commandPaletteNode = document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' );
+			if ( commandPaletteNode ) {
+				commandPaletteNode.textContent = shortcutLabel;
+			}
+		})
+JS;
+	$script .= '(' . wp_json_encode( $shortcut_labels ) . ');';
+	wp_add_inline_script( 'admin-bar', $script );
 }
 
 /**
