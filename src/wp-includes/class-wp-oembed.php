@@ -25,7 +25,8 @@ class WP_oEmbed {
 	 * @since 2.9.0
 	 * @var array<string, array{ 0: string, 1: bool }> An associative array mapping URL patterns to provider data.
 	 *                                                 Each entry's value is an array with the provider endpoint URL
-	 *                                                 string at index 0 and a boolean regex flag at index 1.
+	 *                                                 string at index 0 and a boolean at index 1 indicating whether
+	 *                                                 the URL pattern (array key) is a regular expression.
 	 */
 	public $providers = array();
 
@@ -228,9 +229,9 @@ class WP_oEmbed {
 		 *                                                               with a provider endpoint URL string at index 0
 		 *                                                               and an optional boolean regex flag at index 1.
 		 */
-		$providers = apply_filters( 'oembed_providers', $providers );
+		$providers = (array) apply_filters( 'oembed_providers', $providers );
 		foreach ( $providers as $matchmask => $data ) {
-			$provider = $this->sanitize_provider( $data );
+			$provider = $this->sanitize_provider( $matchmask, $data );
 			if ( null === $provider ) {
 				_doing_it_wrong(
 					__METHOD__,
@@ -242,7 +243,7 @@ class WP_oEmbed {
 					'7.1.0'
 				);
 			} else {
-				$this->providers[ $matchmask ] = array( $provider['endpoint'], $provider['is_regex'] );
+				$this->providers[ $provider['match_mask'] ] = array( $provider['endpoint'], $provider['is_regex'] );
 			}
 		}
 
@@ -270,23 +271,32 @@ class WP_oEmbed {
 	/**
 	 * Sanitizes and normalizes a single oEmbed provider entry.
 	 *
-	 * Validates that the provider data is an array with a string endpoint URL at index 0,
-	 * and normalizes the optional regex flag at index 1 to a boolean.
+	 * Validates that the match mask is a non-empty string and that the provider data
+	 * is an array with a non-empty string endpoint URL at index 0. Normalizes the
+	 * optional regex flag at index 1 to a boolean.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param mixed $data The raw provider data to sanitize.
-	 * @return array{ endpoint: string, is_regex: bool }|null Normalized provider array, or null if malformed.
+	 * @param int|string $match_mask The URL pattern used to match against URLs.
+	 * @param mixed      $data       The raw provider data to sanitize.
+	 * @return array{ match_mask: non-empty-string, endpoint: non-empty-string, is_regex: bool }|null Normalized provider array, or null if malformed.
 	 */
-	private function sanitize_provider( $data ) {
-		if ( ! is_array( $data ) || ! isset( $data[0] ) || ! is_string( $data[0] ) ) {
-			return null;
+	private function sanitize_provider( $match_mask, $data ): ?array {
+		if (
+			is_string( $match_mask ) &&
+			'' !== $match_mask &&
+			is_array( $data ) &&
+			isset( $data[0] ) &&
+			is_string( $data[0] ) &&
+			'' !== $data[0]
+		) {
+			return array(
+				'match_mask' => $match_mask,
+				'endpoint'   => $data[0],
+				'is_regex'   => (bool) ( $data[1] ?? false ),
+			);
 		}
-
-		return array(
-			'endpoint' => $data[0],
-			'is_regex' => (bool) ( $data[1] ?? false ),
-		);
+		return null;
 	}
 
 	/**
@@ -316,10 +326,11 @@ class WP_oEmbed {
 		}
 
 		foreach ( $this->providers as $matchmask => $data ) {
-			$provider_data = $this->sanitize_provider( $data );
+			$provider_data = $this->sanitize_provider( $matchmask, $data );
 			if ( null === $provider_data ) {
 				continue;
 			}
+			$matchmask = $provider_data['match_mask'];
 
 			// Turn the asterisk-type provider URLs into regex.
 			if ( ! $provider_data['is_regex'] ) {
