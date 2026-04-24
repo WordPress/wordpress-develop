@@ -973,6 +973,15 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		)
 	);
 
+	/*
+	 * The script is added as an inline script to avoid an additional dependency.
+	 *
+	 * Adding the code within the admin-bar script would require the wp-i18n script to be loaded
+	 * as a dependency. While this is widely available in the admin, the wp-i18n script is not
+	 * commonly required on the front end of the site. As the command palette is not available
+	 * on the front-end, the script would be loaded but remain unused on the front-end of
+	 * a website.
+	 */
 	$script  = <<<JS
 		(( shortCutLabels ) => {
 			// Assigning agent may error if the HTTP header is blocked at the browser level.
