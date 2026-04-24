@@ -22,13 +22,7 @@ mockedApiResponse.Schema = {
         "wp-block-editor/v1",
         "wp-abilities/v1"
     ],
-    "authentication": {
-        "application-passwords": {
-            "endpoints": {
-                "authorization": "http://example.org/wp-admin/authorize-application.php"
-            }
-        }
-    },
+    "authentication": [],
     "routes": {
         "/": {
             "namespace": "",
