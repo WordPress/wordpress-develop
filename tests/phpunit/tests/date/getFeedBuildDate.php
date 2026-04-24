@@ -57,10 +57,12 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 			)
 		);
 
-		// Use a query where have_posts() is true but wp_list_pluck()
-		// returns an empty array because the posts array contains scalar
-		// values (neither objects nor arrays). This triggers the _doing_it_wrong
-		// notice in WP_List_Util::pluck() and produces an empty result.
+		/*
+		 * Use a query where have_posts() is true but wp_list_pluck()
+		 * returns an empty array because the posts array contains scalar
+		 * values (neither objects nor arrays). This triggers the _doing_it_wrong
+		 * notice in WP_List_Util::pluck() and produces an empty result.
+		 */
 		query_posts(
 			array(
 				'posts__in' => array( $id ),
