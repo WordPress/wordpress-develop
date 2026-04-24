@@ -236,8 +236,9 @@ class WP_oEmbed {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
-						/* translators: %s: The oEmbed provider URL pattern. */
-						__( 'The oEmbed provider data for %s is malformed. Each provider must be an array with a provider endpoint URL string at index 0 and an optional boolean regex flag at index 1.' ),
+						/* translators: 1: oembed_providers, 2: The oEmbed provider URL pattern. */
+						__( 'The oEmbed provider data returned by the %1$s filter at key %2$s is malformed. The providers array must be a mapping of provider URL patterns to a tuple array consisting of a provider endpoint URL string at index 0 and an optional boolean regex flag at index 1.' ),
+						'<code>oembed_providers</code>',
 						'<code>' . esc_html( (string) $match_mask ) . '</code>'
 					),
 					'7.1.0'
