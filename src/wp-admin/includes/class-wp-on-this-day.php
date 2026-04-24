@@ -40,7 +40,7 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 * @var int
 	 */
-	const CACHE_VERSION = 2;
+	const CACHE_VERSION = 5;
 
 	/**
 	 * Renders the dashboard widget output.
@@ -222,7 +222,7 @@ class WP_On_This_Day {
 				}
 				?>
 				<li class="<?php echo esc_attr( $group_classes ); ?>">
-					<h3 class="on-this-day-year-header">
+					<p class="on-this-day-year-header">
 						<span class="on-this-day-year-number"><?php echo esc_html( $year ); ?></span>
 						<span class="on-this-day-year-ago">
 							<?php
@@ -233,7 +233,7 @@ class WP_On_This_Day {
 							);
 							?>
 						</span>
-					</h3>
+					</p>
 					<ul class="on-this-day-post-list">
 						<?php foreach ( $year_posts as $post ) : ?>
 							<?php self::render_post( $post ); ?>
@@ -279,11 +279,23 @@ class WP_On_This_Day {
 		?>
 		<li class="<?php echo esc_attr( $row_classes ); ?>">
 			<?php if ( $is_private ) : ?>
-				<span class="on-this-day-post-icon dashicons-before dashicons-lock" aria-hidden="true">
+				<span class="on-this-day-post-icon dashicons-before dashicons-lock" aria-hidden="true"></span>
+			<?php elseif ( has_post_thumbnail( $post ) ) : ?>
+				<span class="on-this-day-post-icon has-thumbnail" aria-hidden="true">
+					<?php
+					echo get_the_post_thumbnail(
+						$post,
+						array( 56, 56 ),
+						array(
+							'alt'     => '',
+							'loading' => 'lazy',
+						)
+					);
+					?>
+				</span>
 			<?php else : ?>
-				<span class="on-this-day-post-icon dashicons-before dashicons-edit" aria-hidden="true">
+				<span class="on-this-day-post-icon dashicons-before dashicons-edit" aria-hidden="true"></span>
 			<?php endif; ?>
-			</span>
 			<div class="on-this-day-post-body">
 				<span class="screen-reader-text">
 					<?php echo $is_private ? esc_html__( 'Private post' ) : esc_html__( 'Published post' ); ?>
@@ -320,18 +332,18 @@ class WP_On_This_Day {
 						<span class="on-this-day-post-sep" aria-hidden="true">&middot;</span>
 						<span class="on-this-day-post-private"><?php _e( 'Private' ); ?></span>
 					<?php endif; ?>
-
-					<?php if ( $edit_link || ( 'publish' === $status && $view_link ) ) : ?>
-						<span class="on-this-day-post-actions">
-							<?php if ( $edit_link ) : ?>
-								<a class="on-this-day-post-action" href="<?php echo esc_url( $edit_link ); ?>"><?php _e( 'Edit' ); ?></a>
-							<?php endif; ?>
-							<?php if ( 'publish' === $status && $view_link ) : ?>
-								<a class="on-this-day-post-action" href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener"><?php _e( 'View' ); ?></a>
-							<?php endif; ?>
-						</span>
-					<?php endif; ?>
 				</div>
+
+				<?php if ( $edit_link || ( 'publish' === $status && $view_link ) ) : ?>
+					<div class="on-this-day-post-actions">
+						<?php if ( $edit_link ) : ?>
+							<a class="on-this-day-post-action button button-secondary button-compact" href="<?php echo esc_url( $edit_link ); ?>"><?php _e( 'Edit' ); ?></a>
+						<?php endif; ?>
+						<?php if ( 'publish' === $status && $view_link ) : ?>
+							<a class="on-this-day-post-action button-link is-compact" href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener"><?php _e( 'View' ); ?></a>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
 			</div>
 		</li>
 		<?php
