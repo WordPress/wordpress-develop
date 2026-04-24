@@ -198,6 +198,7 @@ CREATE TABLE $wpdb->collaboration (
 	PRIMARY KEY  (id),
 	KEY type_client_id (type,client_id),
 	KEY room (room,id),
+	KEY room_type_date (room,type,date_gmt),
 	KEY date_gmt (date_gmt)
 ) $charset_collate;\n";
 

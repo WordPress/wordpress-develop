@@ -56,6 +56,10 @@ class WP_Collaboration_Table_Storage {
 	public function add_update( string $room, $update ): bool {
 		global $wpdb;
 
+		if ( '' === $room || empty( $update['type'] ) || empty( $update['client_id'] ) ) {
+			return false;
+		}
+
 		$result = $wpdb->insert(
 			$wpdb->collaboration,
 			array(
@@ -64,8 +68,9 @@ class WP_Collaboration_Table_Storage {
 				'client_id' => $update['client_id'] ?? '',
 				'data'      => wp_json_encode( $update ),
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
+				'user_id'   => get_current_user_id(),
 			),
-			array( '%s', '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%d' )
 		);
 
 		return false !== $result;
@@ -286,26 +291,41 @@ class WP_Collaboration_Table_Storage {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string               $room    Room identifier.
+	 * @param string               $room      Room identifier.
 	 * @param string               $client_id Client identifier.
-	 * @param array<string, mixed> $state   Serializable awareness state for this client.
-	 * @param int                  $user_id WordPress user ID that owns this client.
+	 * @param array<string, mixed> $state     Serializable awareness state for this client.
+	 * @param int                  $user_id   WordPress user ID that owns this client.
 	 * @return bool True on success, false on failure.
 	 */
 	public function set_awareness_state( string $room, string $client_id, array $state, int $user_id ): bool {
 		global $wpdb;
 
+		if ( '' === $room || '' === $client_id ) {
+			return false;
+		}
+
 		$data = wp_json_encode( $state );
-		$now  = gmdate( 'Y-m-d H:i:s' );
+
+		/*
+		 * Bucket the timestamp to 5-second intervals so most polls
+		 * short-circuit without a database write. Ceil is used instead
+		 * of floor to prevent the awareness timeout from being hit early.
+		 */
+		$now = gmdate( 'Y-m-d H:i:s', (int) ceil( time() / 5 ) * 5 );
 
 		/* Check if a row already exists. */
-		$exists = $wpdb->get_var(
+		$exists = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s LIMIT 1",
+				"SELECT id, date_gmt FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s LIMIT 1",
 				$room,
 				$client_id
 			)
 		);
+
+		if ( $exists && $exists->date_gmt === $now ) {
+			// Row already has the current date, consider update a success.
+			return true;
+		}
 
 		if ( $exists ) {
 			$result = $wpdb->update(
@@ -315,7 +335,7 @@ class WP_Collaboration_Table_Storage {
 					'data'     => $data,
 					'date_gmt' => $now,
 				),
-				array( 'id' => $exists )
+				array( 'id' => $exists->id )
 			);
 		} else {
 			$result = $wpdb->insert(

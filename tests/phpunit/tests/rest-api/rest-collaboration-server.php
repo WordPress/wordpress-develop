@@ -17,16 +17,23 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
+
+		// Enable option in setUpBeforeClass to ensure REST routes are registered.
+		update_option( 'wp_collaboration_enabled', 1 );
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
+		delete_option( 'wp_collaboration_enabled' );
 		wp_delete_post( self::$post_id, true );
 	}
 
 	public function set_up() {
 		parent::set_up();
+
+		// Enable option for tests.
+		update_option( 'wp_collaboration_enabled', 1 );
 
 		// Uses DELETE (not TRUNCATE) to preserve transaction rollback support
 		// in the test suite. TRUNCATE implicitly commits the transaction.
@@ -96,25 +103,22 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 * Verifies the collaboration route is registered when relying on the option's default
-	 * value (option not stored in the database).
-	 *
-	 * This covers the upgrade scenario where a site has never explicitly saved
-	 * the collaboration setting.
+	 * Verifies the collaboration route is not registered when the option is
+	 * not stored in the database (default is off).
 	 *
 	 * @ticket 64814
 	 */
-	public function test_register_routes_with_default_option(): void {
+	public function test_register_routes_without_option(): void {
 		global $wp_rest_server;
 
 		// Ensure the option is not in the database.
-		delete_option( 'wp_enable_real_time_collaboration' );
+		delete_option( 'wp_collaboration_enabled' );
 
 		// Reset the REST server so routes are re-registered from scratch.
 		$wp_rest_server = null;
 
 		$routes = rest_get_server()->get_routes();
-		$this->assertArrayHasKey( '/wp-collaboration/v1/updates', $routes );
+		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes );
 	}
 
 	/**
@@ -175,6 +179,88 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 */
 	public function test_get_item_schema() {
 		// Not applicable for collaboration endpoint.
+	}
+
+	/*
+	 * HTTP method and request format tests.
+	 */
+
+	/**
+	 * GET requests should return 404 because the route is registered
+	 * for POST only and does not exist for other methods.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_get_returns_404(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp-collaboration/v1/updates' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 404, $response->get_status(), 'GET should return 404 on a POST-only route.' );
+	}
+
+	/**
+	 * PUT requests should return 404 because the route is registered
+	 * for POST only.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_put_returns_404(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'PUT', '/wp-collaboration/v1/updates' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 404, $response->get_status(), 'PUT should return 404 on a POST-only route.' );
+	}
+
+	/**
+	 * DELETE requests should return 404 because the route is registered
+	 * for POST only.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_delete_returns_404(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'DELETE', '/wp-collaboration/v1/updates' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 404, $response->get_status(), 'DELETE should return 404 on a POST-only route.' );
+	}
+
+	/**
+	 * A POST with an invalid JSON body should return 400.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_malformed_json_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-collaboration/v1/updates' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body( '{"rooms": [invalid json}' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'Malformed JSON should return 400.' );
+	}
+
+	/**
+	 * A POST with a missing rooms parameter should return a 400 error.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_missing_rooms_parameter(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp-collaboration/v1/updates' );
+		$request->set_body_params( array() );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'Missing rooms parameter should return 400.' );
 	}
 
 	/*
@@ -424,6 +510,40 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( '42', $data['rooms'][0]['awareness'], 'Numeric client_id should be coerced to string key in awareness.' );
+	}
+
+	/**
+	 * Validates that REST accepts client IDs at the column width boundary (32 chars).
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_client_id_accepts_string_at_max_length(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$client_id = str_repeat( 'a', 32 );
+		$this->assertSame( 32, strlen( $client_id ), 'Client ID should be 32 characters.' );
+
+		$rooms    = array( $this->build_room( $this->get_post_room(), $client_id ) );
+		$response = $this->dispatch_collaboration( $rooms );
+
+		$this->assertSame( 200, $response->get_status(), 'REST should accept client IDs at 32 characters.' );
+	}
+
+	/**
+	 * Validates that REST rejects client IDs exceeding the column width (32 chars).
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_client_id_rejects_string_over_max_length(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$client_id = str_repeat( 'a', 33 );
+		$this->assertSame( 33, strlen( $client_id ), 'Client ID should be 33 characters.' );
+
+		$rooms    = array( $this->build_room( $this->get_post_room(), $client_id ) );
+		$response = $this->dispatch_collaboration( $rooms );
+
+		$this->assertSame( 400, $response->get_status(), 'REST should reject client IDs exceeding 32 characters.' );
 	}
 
 	/**
@@ -1540,6 +1660,184 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertLessThan( 10, $data['rooms'][0]['total_updates'], 'Compaction should reduce the total update count.' );
 	}
 
+	/**
+	 * Verifies that the lowest client ID is correctly identified as the compactor
+	 * and that compaction actually removes old rows from the database.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_compactor_is_lowest_client_id(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Client 10 and client 5 both join and send updates.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					$room,
+					'10',
+					0,
+					array( 'user' => 'c10' ),
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'update-from-10' ),
+						),
+					)
+				),
+			)
+		);
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					$room,
+					'5',
+					0,
+					array( 'user' => 'c5' ),
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'update-from-5' ),
+						),
+					)
+				),
+			)
+		);
+
+		$data = $response->get_data();
+
+		// Client 5 is the lowest ID, so it should be the compactor candidate.
+		// Verify both clients appear in awareness (keys are client IDs).
+		$this->assertArrayHasKey( '5', $data['rooms'][0]['awareness'], 'Client 5 should appear in awareness.' );
+		$this->assertArrayHasKey( '10', $data['rooms'][0]['awareness'], 'Client 10 should appear in awareness.' );
+
+		// Now add enough updates to exceed the compaction threshold.
+		$updates = array();
+		for ( $i = 0; $i < 51; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "bulk-$i" ),
+			);
+		}
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '10', 0, array( 'user' => 'c10' ), $updates ),
+			)
+		);
+
+		// Client 5 (lowest) polls — should be told to compact.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '5', 0, array( 'user' => 'c5' ) ),
+			)
+		);
+
+		$data   = $response->get_data();
+		$cursor = $data['rooms'][0]['end_cursor'];
+		$this->assertTrue( $data['rooms'][0]['should_compact'], 'Lowest client ID should be nominated as compactor.' );
+
+		// Client 10 (higher) polls — should NOT be told to compact.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '10', 0, array( 'user' => 'c10' ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertFalse( $data['rooms'][0]['should_compact'], 'Higher client ID should not be nominated as compactor.' );
+
+		// Count rows before compaction.
+		$count_before = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
+				$room
+			)
+		);
+
+		// Client 5 sends a compaction update.
+		$compaction = array(
+			'type' => 'compaction',
+			'data' => base64_encode( 'compacted-state' ),
+		);
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '5', $cursor, array( 'user' => 'c5' ), array( $compaction ) ),
+			)
+		);
+
+		// Count rows after compaction.
+		$count_after = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
+				$room
+			)
+		);
+
+		$this->assertLessThan( $count_before, $count_after, 'Compaction should delete old rows from the database.' );
+	}
+
+	/**
+	 * Verifies that compaction works when client IDs are integers.
+	 *
+	 * JSON payloads may decode numeric client IDs as integers rather
+	 * than strings. The compactor comparison must handle both types.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_compaction_with_integer_client_ids(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Both clients join with integer client IDs.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					$room,
+					10,
+					0,
+					array( 'user' => 'c10' ),
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'update-from-10' ),
+						),
+					)
+				),
+			)
+		);
+
+		// Add enough updates to exceed the compaction threshold.
+		$updates = array();
+		for ( $i = 0; $i < 51; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "bulk-$i" ),
+			);
+		}
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 10, 0, array( 'user' => 'c10' ), $updates ),
+			)
+		);
+
+		// Client 5 (lowest, integer) polls — should be told to compact.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, 5, 0, array( 'user' => 'c5' ) ),
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['rooms'][0]['should_compact'], 'Integer client ID should be correctly identified as compactor.' );
+	}
+
 	/*
 	 * Cron cleanup tests.
 	 */
@@ -1699,7 +1997,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertIsInt( wp_next_scheduled( 'wp_delete_old_collaboration_data' ), 'Cron event should be scheduled before cleanup.' );
 
 		// Disable collaboration.
-		update_option( 'wp_enable_real_time_collaboration', false );
+		update_option( 'wp_collaboration_enabled', false );
 
 		wp_delete_old_collaboration_data();
 
@@ -2211,6 +2509,83 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		);
 	}
 
+	/**
+	 * Verifies that sync update writes do not invalidate the awareness cache.
+	 *
+	 * With post meta storage, add_post_meta() unconditionally calls
+	 * wp_cache_delete() on the object's entire meta cache (meta.php:145),
+	 * which would blow away cached awareness state on the same storage post.
+	 * The dedicated table avoids this because sync writes and awareness
+	 * reads use separate cache keys.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_sync_write_does_not_invalidate_awareness_cache(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		/* Prime the awareness cache by dispatching client 1. */
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, array( 'cursor' => 'pos-a' ) ),
+			)
+		);
+
+		/* Send a sync update from client 2 — this is the write that would
+		 * invalidate the awareness cache under post meta storage. */
+		$update = array(
+			'type' => 'update',
+			'data' => base64_encode( 'sync-payload' ),
+		);
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '2', 0, null, array( $update ) ),
+			)
+		);
+
+		/* Now client 3 polls for awareness only. If the cache survived the
+		 * sync write, this should require fewer queries than a cold start. */
+		wp_cache_delete( 'last_changed', 'posts' );
+
+		$queries_before = $wpdb->num_queries;
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '3', 0, array( 'cursor' => 'pos-c' ) ),
+			)
+		);
+
+		$queries_after = $wpdb->num_queries;
+
+		/* Verify awareness data is intact. */
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+		$this->assertArrayHasKey( '1', $awareness, 'Client 1 awareness should survive a sync write from client 2.' );
+
+		/* Flush cache and measure a cold-start dispatch for comparison. */
+		wp_cache_flush();
+
+		$queries_before_cold = $wpdb->num_queries;
+
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '4', 0, array( 'cursor' => 'pos-d' ) ),
+			)
+		);
+
+		$queries_cold = $wpdb->num_queries - $queries_before_cold;
+		$queries_warm = $queries_after - $queries_before;
+
+		$this->assertLessThan(
+			$queries_cold,
+			$queries_warm,
+			'Awareness read after a sync write should hit cache, not the database.'
+		);
+	}
+
 	/*
 	 * Deprecated route tests.
 	 */
@@ -2384,6 +2759,152 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/*
+	 * Feature gate tests.
+	 *
+	 * Verifies that wp_is_collaboration_enabled() properly gates
+	 * functionality when the db_version requirement is not met,
+	 * even if the option is enabled. This covers the multisite
+	 * scenario where a sub-site admin enables RTC from the Writing
+	 * settings page but the network upgrade has not been performed.
+	 */
+
+	/**
+	 * wp_is_collaboration_enabled() should return true when both the
+	 * option and db_version conditions are met.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_wp_is_collaboration_enabled_true_when_both_conditions_met(): void {
+		update_option( 'wp_collaboration_enabled', 1 );
+
+		$this->assertTrue( wp_is_collaboration_enabled() );
+	}
+
+	/**
+	 * wp_is_collaboration_enabled() should return false when the
+	 * option is enabled but db_version is below the threshold.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_wp_is_collaboration_enabled_false_when_db_version_too_low(): void {
+		update_option( 'wp_collaboration_enabled', 1 );
+		update_option( 'db_version', 61839 );
+
+		$this->assertFalse( wp_is_collaboration_enabled() );
+	}
+
+	/**
+	 * wp_is_collaboration_enabled() should return false when the
+	 * option is off, even if db_version is sufficient.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_wp_is_collaboration_enabled_false_when_option_off(): void {
+		update_option( 'wp_collaboration_enabled', 0 );
+
+		$this->assertFalse( wp_is_collaboration_enabled() );
+	}
+
+	/*
+	 * Awareness deduplication tests.
+	 *
+	 * Verifies the UPDATE-then-INSERT pattern does not produce
+	 * duplicate awareness rows for the same client in the same room.
+	 */
+
+	/**
+	 * Rapid sequential awareness writes for the same client should
+	 * produce exactly one row, not duplicates.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_no_duplicate_rows(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Simulate rapid sequential awareness writes from the same client.
+		for ( $i = 0; $i < 5; $i++ ) {
+			$this->dispatch_collaboration(
+				array(
+					$this->build_room( $room, '1', 0, array( 'cursor' => "pos-$i" ) ),
+				)
+			);
+		}
+
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s",
+				$room,
+				'1'
+			)
+		);
+
+		$this->assertSame( 1, $count, 'Rapid awareness writes should produce exactly one row per client per room.' );
+	}
+
+	/**
+	 * Multiple clients in the same room should each have exactly one
+	 * awareness row after multiple write cycles.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_one_row_per_client(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Three clients each write awareness three times.
+		for ( $cycle = 0; $cycle < 3; $cycle++ ) {
+			for ( $client = 1; $client <= 3; $client++ ) {
+				$this->dispatch_collaboration(
+					array(
+						$this->build_room( $room, (string) $client, 0, array( 'cursor' => "cycle-$cycle" ) ),
+					)
+				);
+			}
+		}
+
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness'",
+				$room
+			)
+		);
+
+		$this->assertSame( 3, $count, 'Each client should have exactly one awareness row regardless of write frequency.' );
+	}
+
+	/**
+	 * Awareness state should reflect the most recent write, not an older value.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_awareness_reflects_latest_state(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Write awareness three times with different state.
+		$this->dispatch_collaboration(
+			array( $this->build_room( $room, '1', 0, array( 'cursor' => 'first' ) ) )
+		);
+		$this->dispatch_collaboration(
+			array( $this->build_room( $room, '1', 0, array( 'cursor' => 'second' ) ) )
+		);
+		$response = $this->dispatch_collaboration(
+			array( $this->build_room( $room, '1', 0, array( 'cursor' => 'third' ) ) )
+		);
+
+		$awareness = $response->get_data()['rooms'][0]['awareness'];
+		$this->assertSame( array( 'cursor' => 'third' ), $awareness['1'], 'Awareness should reflect the most recent write.' );
+	}
+
 	/**
 	 * An idle poll (no new updates, awareness already primed) should use
 	 * fewer queries than the initial poll that seeds the room.
@@ -2425,5 +2946,250 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			$queries_idle,
 			'Idle poll should not use more queries than the initial poll.'
 		);
+	}
+
+	/*
+	 * Cursor ID uniqueness tests.
+	 *
+	 * Auto-increment IDs guarantee unique ordering even when
+	 * multiple updates arrive within the same millisecond.
+	 * This was a known bug with the timestamp-based cursors
+	 * used in the post meta implementation.
+	 */
+
+	/**
+	 * Updates stored in rapid succession must receive distinct,
+	 * monotonically increasing cursor IDs.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_cursor_ids_are_unique_and_ordered(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$room = $this->get_post_room();
+
+		// Send 10 updates as fast as possible from the same client.
+		$updates = array();
+		for ( $i = 0; $i < 10; $i++ ) {
+			$updates[] = array(
+				'type' => 'update',
+				'data' => base64_encode( "rapid-$i" ),
+			);
+		}
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room( $room, '1', 0, null, $updates ),
+			)
+		);
+
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' ORDER BY id ASC",
+				$room
+			)
+		);
+
+		$this->assertCount( 10, $ids, 'All 10 updates should be stored.' );
+
+		// Verify all IDs are unique.
+		$this->assertSame( count( $ids ), count( array_unique( $ids ) ), 'Every update should have a unique cursor ID.' );
+
+		// Verify IDs are strictly increasing.
+		$id_count = count( $ids );
+		for ( $i = 1; $i < $id_count; $i++ ) {
+			$this->assertGreaterThan(
+				(int) $ids[ $i - 1 ],
+				(int) $ids[ $i ],
+				'Cursor IDs must be strictly increasing.'
+			);
+		}
+	}
+
+	/*
+	 * Room name tests.
+	 *
+	 * Room identifiers are stored unhashed so they remain
+	 * human-readable and LIKE-queryable.
+	 */
+
+	/**
+	 * Room names stored in the table should be queryable with LIKE.
+	 *
+	 * Matt explicitly noted that unhashed, LIKE-able room names are
+	 * a desirable property of the table design (comment 34).
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_room_names_are_likeable(): void {
+		global $wpdb;
+
+		wp_set_current_user( self::$editor_id );
+
+		$post_id_2 = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+
+		// Write updates to two different post rooms.
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'postType/post:' . self::$post_id,
+					'1',
+					0,
+					null,
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'a' ),
+						),
+					)
+				),
+			)
+		);
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'postType/post:' . $post_id_2,
+					'1',
+					0,
+					null,
+					array(
+						array(
+							'type' => 'update',
+							'data' => base64_encode( 'b' ),
+						),
+					)
+				),
+			)
+		);
+
+		// LIKE query for all post rooms.
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE room LIKE %s AND type != 'awareness'",
+				'postType/post:%'
+			)
+		);
+
+		$this->assertSame( 2, $count, 'LIKE query should find updates across all post rooms.' );
+	}
+
+	/*
+	 * Table extensibility tests.
+	 *
+	 * The table is designed as a general-purpose primitive
+	 * that supports arbitrary type values for future use cases.
+	 */
+
+	/**
+	 * The table schema should accept arbitrary type values,
+	 * supporting future use cases like CRDT document persistence.
+	 *
+	 * @ticket 64696
+	 */
+	public function test_collaboration_table_accepts_arbitrary_types(): void {
+		global $wpdb;
+
+		$room = $this->get_post_room();
+
+		// Insert a row with a custom type directly (simulating a future use case).
+		$result = $wpdb->insert(
+			$wpdb->collaboration,
+			array(
+				'room'      => $room,
+				'type'      => 'persisted_crdt_doc',
+				'client_id' => '0',
+				'user_id'   => self::$editor_id,
+				'data'      => wp_json_encode( array( 'doc' => 'base64data' ) ),
+				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
+			),
+			array( '%s', '%s', '%s', '%d', '%s', '%s' )
+		);
+
+		$this->assertNotFalse( $result, 'Insert with custom type should succeed.' );
+
+		// Verify the row persists and is queryable.
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT type, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'persisted_crdt_doc'",
+				$room
+			)
+		);
+
+		$this->assertNotNull( $row, 'Custom type row should be queryable.' );
+		$this->assertSame( 'persisted_crdt_doc', $row->type, 'Type column should store the custom value.' );
+	}
+
+	/*
+	 * Storage validation tests.
+	 *
+	 * Verify that storage methods reject empty required fields
+	 * rather than inserting rows with default empty values.
+	 */
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_add_update_rejects_empty_room(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->add_update(
+			'',
+			array(
+				'type'      => 'update',
+				'client_id' => '1',
+				'data'      => 'test',
+			)
+		);
+		$this->assertFalse( $result, 'add_update should reject an empty room.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_add_update_rejects_empty_type(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->add_update(
+			'postType/post:1',
+			array(
+				'type'      => '',
+				'client_id' => '1',
+				'data'      => 'test',
+			)
+		);
+		$this->assertFalse( $result, 'add_update should reject an empty type.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_add_update_rejects_empty_client_id(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->add_update(
+			'postType/post:1',
+			array(
+				'type'      => 'update',
+				'client_id' => '',
+				'data'      => 'test',
+			)
+		);
+		$this->assertFalse( $result, 'add_update should reject an empty client_id.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_set_awareness_rejects_empty_room(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->set_awareness_state( '', '1', array( 'user' => 'test' ), 1 );
+		$this->assertFalse( $result, 'set_awareness_state should reject an empty room.' );
+	}
+
+	/**
+	 * @ticket 64696
+	 */
+	public function test_collaboration_storage_set_awareness_rejects_empty_client_id(): void {
+		$storage = new WP_Collaboration_Table_Storage();
+		$result  = $storage->set_awareness_state( 'postType/post:1', '', array( 'user' => 'test' ), 1 );
+		$this->assertFalse( $result, 'set_awareness_state should reject an empty client_id.' );
 	}
 }

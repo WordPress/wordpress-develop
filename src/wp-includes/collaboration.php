@@ -7,18 +7,54 @@
  */
 
 /**
- * Checks whether real-time collaboration is enabled.
+ * Determines whether real-time collaboration is enabled.
  *
- * The feature requires both the site option and the database schema
- * introduced in db_version 61841.
+ * If the WP_ALLOW_COLLABORATION constant is false,
+ * collaboration is always disabled regardless of the database option.
+ * Otherwise, the feature requires both the 'wp_collaboration_enabled'
+ * option and the database schema introduced in db_version 61841.
  *
  * @since 7.0.0
  *
- * @return bool True if collaboration is enabled, false otherwise.
+ * @return bool Whether real-time collaboration is enabled.
  */
 function wp_is_collaboration_enabled() {
-	return get_option( 'wp_enable_real_time_collaboration' )
-		&& get_option( 'db_version' ) >= 61841;
+	return (
+		wp_is_collaboration_allowed() &&
+		get_option( 'wp_collaboration_enabled' ) &&
+		get_option( 'db_version' ) >= 61841
+	);
+}
+
+/**
+ * Determines whether real-time collaboration is allowed.
+ *
+ * If the WP_ALLOW_COLLABORATION constant is false,
+ * collaboration is not allowed and cannot be enabled.
+ * The constant defaults to true, unless the WP_ALLOW_COLLABORATION
+ * environment variable is set to string "false".
+ *
+ * @since 7.0.0
+ *
+ * @return bool Whether real-time collaboration is allowed.
+ */
+function wp_is_collaboration_allowed() {
+	if ( ! defined( 'WP_ALLOW_COLLABORATION' ) ) {
+		$env_value = getenv( 'WP_ALLOW_COLLABORATION' );
+		if ( false === $env_value ) {
+			// Environment variable is not defined, default to allowing collaboration.
+			define( 'WP_ALLOW_COLLABORATION', true );
+		} else {
+			/*
+			 * Environment variable is defined, let's confirm it is actually set to
+			 * "true" as it may still have a string value "false" – the preceeding
+			 * `if` branch only tests for the boolean `false`.
+			 */
+			define( 'WP_ALLOW_COLLABORATION', 'true' === $env_value );
+		}
+	}
+
+	return WP_ALLOW_COLLABORATION;
 }
 
 /**
@@ -65,25 +101,10 @@ function wp_delete_old_collaboration_data() {
 	if ( ! wp_is_collaboration_enabled() ) {
 		/*
 		 * Collaboration was enabled in the past but has since been disabled.
-		 * Clean up any remaining stale data and unschedule the cron job
-		 * so this callback does not continue to run.
+		 * Unschedule the cron job prior to clean up so this callback does not
+		 * continue to run.
 		 */
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE date_gmt < %s",
-				gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
-			)
-		);
-
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE type = 'awareness' AND date_gmt < %s",
-				gmdate( 'Y-m-d H:i:s', time() - 60 )
-			)
-		);
-
 		wp_clear_scheduled_hook( 'wp_delete_old_collaboration_data' );
-		return;
 	}
 
 	/* Clean up rows older than 7 days. */

@@ -151,7 +151,15 @@ class WP_HTTP_Polling_Collaboration_Server {
 				'required' => true,
 				'type'     => array( 'object', 'null' ),
 			),
+			/*
+			 * client_id accepts both string and integer values:
+			 *  - 'minimum' bounds the integer form.
+			 *  - 'minLength' / 'maxLength' bound the string form.
+			 */
 			'client_id' => array(
+				'minimum'           => 1,
+				'minLength'         => 1,
+				'maxLength'         => 32, // Matches the client_id column width in wp-admin/includes/schema.php.
 				'required'          => true,
 				'type'              => array( 'string', 'integer' ),
 				'sanitize_callback' => function ( $value ) {
@@ -315,7 +323,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 			// The lowest client ID is nominated to perform compaction when needed.
 			$is_compactor = false;
 			if ( count( $merged_awareness ) > 0 ) {
-				$is_compactor = (string) min( array_keys( $merged_awareness ) ) === $client_id;
+				$is_compactor = (string) min( array_keys( $merged_awareness ) ) === (string) $client_id;
 			}
 
 			// Process each update according to its type.
