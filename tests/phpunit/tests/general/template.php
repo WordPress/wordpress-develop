@@ -128,7 +128,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_site_icon_url
 	 * @requires function imagejpeg
 	 */
-	public function test_get_site_icon_url_returns_fallback_when_attachment_url_fails() {
+	public function test_get_site_icon_url_returns_fallback_when_attachment_url_fails(): void {
 		$this->set_site_icon();
 
 		$fallback = 'https://example.com/fallback-icon.png';
@@ -830,7 +830,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::the_embed_site_title
 	 * @requires function imagejpeg
 	 */
-	public function test_the_embed_site_title_contains_site_icon_when_set() {
+	public function test_the_embed_site_title_contains_site_icon_when_set(): void {
 		$this->set_site_icon();
 
 		$url_32 = get_site_icon_url( 32 );
@@ -842,7 +842,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_tag( 'IMG' ), 'Expected IMG tag.' );
 		$this->assertTrue( $processor->has_class( 'wp-embed-site-icon' ), 'Expected IMG to have wp-embed-site-icon class.' );
 		$this->assertSame( $url_32, $processor->get_attribute( 'src' ), 'Output should contain 32px site icon URL in src.' );
-		$this->assertStringContainsString( $url_64, $processor->get_attribute( 'srcset' ), 'Output should contain 64px site icon URL in srcset.' );
+		$srcset = $processor->get_attribute( 'srcset' );
+		$this->assertIsString( $srcset, 'Expected srcset to be present.' );
+		$this->assertStringContainsString( $url_64, $srcset, 'Output should contain 64px site icon URL in srcset.' );
 	}
 
 	/**
@@ -851,7 +853,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::the_embed_site_title
 	 * @requires function imagejpeg
 	 */
-	public function test_the_embed_site_title_uses_fallback_when_attachment_url_fails() {
+	public function test_the_embed_site_title_uses_fallback_when_attachment_url_fails(): void {
 		$this->set_site_icon();
 
 		// Simulate wp_get_attachment_image_url() failing.
@@ -871,7 +873,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group site_icon
 	 * @covers ::the_embed_site_title
 	 */
-	public function test_the_embed_site_title_omits_img_when_url_is_empty() {
+	public function test_the_embed_site_title_omits_img_when_url_is_empty(): void {
 		// Force get_site_icon_url() to return empty string via filter.
 		add_filter( 'get_site_icon_url', '__return_empty_string' );
 		$output = get_echo( 'the_embed_site_title' );
@@ -887,7 +889,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group site_icon
 	 * @covers ::the_embed_site_title
 	 */
-	public function test_the_embed_site_title_omits_srcset_when_1x_and_2x_urls_are_identical() {
+	public function test_the_embed_site_title_omits_srcset_when_1x_and_2x_urls_are_identical(): void {
 		// Force both sizes to return the same URL.
 		$svg_url = 'https://example.com/icon.svg';
 		$filter  = static function () use ( $svg_url ) {
@@ -909,7 +911,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @group site_icon
 	 * @covers ::the_embed_site_title
 	 */
-	public function test_the_embed_site_title_uses_fallback_without_srcset_when_no_site_icon_set() {
+	public function test_the_embed_site_title_uses_fallback_without_srcset_when_no_site_icon_set(): void {
 		$output   = get_echo( 'the_embed_site_title' );
 		$fallback = includes_url( 'images/w-logo-blue.png' );
 
