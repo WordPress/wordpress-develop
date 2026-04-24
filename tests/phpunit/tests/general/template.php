@@ -836,11 +836,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$url_32 = get_site_icon_url( 32 );
 		$url_64 = get_site_icon_url( 64 );
 
-		$output = get_echo( 'the_embed_site_title' );
+		$output    = get_echo( 'the_embed_site_title' );
+		$processor = new WP_HTML_Tag_Processor( $output );
 
-		$this->assertStringContainsString( 'wp-embed-site-icon', $output, 'Output should contain site icon img tag.' );
-		$this->assertStringContainsString( esc_url( $url_32 ), $output, 'Output should contain 32px site icon URL.' );
-		$this->assertStringContainsString( esc_url( $url_64 ), $output, 'Output should contain 64px site icon URL in srcset.' );
+		$this->assertTrue( $processor->next_tag( 'IMG' ), 'Expected IMG tag.' );
+		$this->assertTrue( $processor->has_class( 'wp-embed-site-icon' ), 'Expected IMG to have wp-embed-site-icon class.' );
+		$this->assertSame( $url_32, $processor->get_attribute( 'src' ), 'Output should contain 32px site icon URL in src.' );
+		$this->assertStringContainsString( $url_64, $processor->get_attribute( 'srcset' ), 'Output should contain 64px site icon URL in srcset.' );
 	}
 
 	/**
@@ -856,10 +858,12 @@ class Tests_General_Template extends WP_UnitTestCase {
 		add_filter( 'wp_get_attachment_image_src', '__return_false' );
 		$output = get_echo( 'the_embed_site_title' );
 
-		$fallback = includes_url( 'images/w-logo-blue.png' );
-		$this->assertStringContainsString( 'wp-embed-site-icon', $output, 'Output should contain site icon img tag with fallback.' );
-		$this->assertStringContainsString( esc_url( $fallback ), $output, 'Output should contain fallback URL when attachment URL fails.' );
-		$this->assertStringNotContainsString( 'src=""', $output, 'Output should not contain empty src attribute.' );
+		$fallback  = includes_url( 'images/w-logo-blue.png' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'IMG' ), 'Expected IMG tag with fallback.' );
+		$this->assertTrue( $processor->has_class( 'wp-embed-site-icon' ), 'Expected IMG to have wp-embed-site-icon class.' );
+		$this->assertSame( $fallback, $processor->get_attribute( 'src' ), 'Output should contain fallback URL in src when attachment URL fails.' );
 	}
 
 	/**
@@ -872,8 +876,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 		add_filter( 'get_site_icon_url', '__return_empty_string' );
 		$output = get_echo( 'the_embed_site_title' );
 
-		$this->assertStringNotContainsString( 'wp-embed-site-icon', $output, 'img tag should be omitted when URL is empty.' );
-		$this->assertStringNotContainsString( 'src=""', $output, 'Output should not contain empty src attribute.' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertFalse( $processor->next_tag( 'IMG' ), 'IMG tag should be omitted when URL is empty.' );
 		$this->assertStringContainsString( get_bloginfo( 'name' ), $output, 'Site name should still be present.' );
 	}
 
@@ -892,8 +897,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 		add_filter( 'get_site_icon_url', $filter );
 		$output = get_echo( 'the_embed_site_title' );
 
-		$this->assertStringNotContainsString( 'srcset=', $output, 'srcset should be omitted when 1x and 2x URLs are identical.' );
-		$this->assertStringContainsString( esc_url( $svg_url ), $output, '1x URL should still be present in src.' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'IMG' ), 'Expected IMG tag.' );
+		$this->assertSame( $svg_url, $processor->get_attribute( 'src' ), '1x URL should be present in src.' );
+		$this->assertNull( $processor->get_attribute( 'srcset' ), 'srcset should be omitted when 1x and 2x URLs are identical.' );
 	}
 
 	/**
@@ -905,8 +913,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$output   = get_echo( 'the_embed_site_title' );
 		$fallback = includes_url( 'images/w-logo-blue.png' );
 
-		$this->assertStringContainsString( 'wp-embed-site-icon', $output, 'Fallback icon img should be present when no site icon is set.' );
-		$this->assertStringContainsString( esc_url( $fallback ), $output, 'Output should contain fallback icon URL.' );
-		$this->assertStringNotContainsString( 'srcset=', $output, 'srcset should be omitted when 1x and 2x fallback URLs are identical.' );
+		$processor = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $processor->next_tag( 'IMG' ), 'Expected IMG tag with fallback.' );
+		$this->assertTrue( $processor->has_class( 'wp-embed-site-icon' ), 'Expected IMG to have wp-embed-site-icon class.' );
+		$this->assertSame( $fallback, $processor->get_attribute( 'src' ), 'Output should contain fallback icon URL in src.' );
+		$this->assertNull( $processor->get_attribute( 'srcset' ), 'srcset should be omitted when 1x and 2x fallback URLs are identical.' );
 	}
 }
