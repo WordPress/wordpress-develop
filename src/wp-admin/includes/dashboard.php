@@ -96,13 +96,15 @@ function wp_dashboard_setup() {
 
 		wp_enqueue_style( 'on-this-day' );
 
-		$on_this_day_title = sprintf(
-			'<span class="on-this-day-title-main dashicons-before dashicons-calendar-alt">%1$s</span><span class="on-this-day-title-date">%2$s</span>',
-			__( 'On This Day' ),
-			esc_html( date_i18n( 'F j' ) )
+		wp_add_inline_style(
+			'on-this-day',
+			sprintf(
+				'#dashboard_on_this_day{--otd-today:%s;}',
+				wp_json_encode( date_i18n( 'F j' ) )
+			)
 		);
 
-		wp_add_dashboard_widget( 'dashboard_on_this_day', $on_this_day_title, array( 'WP_On_This_Day', 'render_dashboard_widget' ) );
+		wp_add_dashboard_widget( 'dashboard_on_this_day', __( 'On This Day' ), array( 'WP_On_This_Day', 'render_dashboard_widget' ) );
 	}
 
 	// WordPress Events and News.

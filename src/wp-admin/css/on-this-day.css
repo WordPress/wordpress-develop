@@ -4,7 +4,7 @@
    Organised as:
      1. Design tokens (custom properties on the widget root)
      2. Postbox chrome (#dashboard_on_this_day)
-     3. Widget title accents (calendar icon + date pill in `.hndle`)
+     3. Widget title date pill (`.hndle::after`)
      4. Timeline (year headers, vertical line, post rows)
      5. Post row (icon circle, title, excerpt, meta row)
      6. Empty state
@@ -69,15 +69,16 @@
 }
 
 /* -----------------------------------------------------------------------------
-   3. Widget title (in .hndle)
-   ----------------------------------------------------------------------------- */
-.on-this-day-title-main {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-}
+   3. Widget title date pill
 
-.on-this-day-title-date {
+   The widget is registered with a plain-text title ("On This Day") so that
+   Screen Options and box-order preferences stay clean. The current date
+   ("F j") is injected into `--otd-today` as a quoted CSS string by PHP and
+   rendered here as a pseudo-element pill. The `none` fallback keeps the
+   pseudo-element hidden in contexts where the variable isn't set.
+   ----------------------------------------------------------------------------- */
+#dashboard_on_this_day .hndle::after {
+	content: var(--otd-today, none);
 	display: inline-block;
 	margin-left: 10px;
 	padding: 2px 9px;
