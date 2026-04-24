@@ -40,7 +40,7 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 * @var int
 	 */
-	const CACHE_VERSION = 5;
+	const CACHE_VERSION = 6;
 
 	/**
 	 * Renders the dashboard widget output.
@@ -98,12 +98,20 @@ class WP_On_This_Day {
 	 * Retrieves posts by a given author that were published on this
 	 * same month and day in previous years.
 	 *
+	 * The "same month/day, prior year" constraint is expressed as a
+	 * `date_query`: a clause pinning `month`/`day`, combined with a
+	 * `before` clause anchored to January 1 of the current year.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param int $user_id Author ID to query posts for.
 	 * @return WP_Post[] Array of posts ordered by newest first.
 	 */
 	public static function get_posts( $user_id ) {
+		$month = (int) current_time( 'n' );
+		$day   = (int) current_time( 'j' );
+		$year  = (int) current_time( 'Y' );
+
 		$args = array(
 			'author'              => (int) $user_id,
 			'post_type'           => 'post',
@@ -113,6 +121,15 @@ class WP_On_This_Day {
 			'orderby'             => 'date',
 			'order'               => 'DESC',
 			'no_found_rows'       => true,
+			'date_query'          => array(
+				array(
+					'month' => $month,
+					'day'   => $day,
+				),
+				array(
+					'before' => array( 'year' => $year ),
+				),
+			),
 		);
 
 		/**
@@ -125,38 +142,9 @@ class WP_On_This_Day {
 		 */
 		$args = apply_filters( 'dashboard_on_this_day_query_args', $args, $user_id );
 
-		add_filter( 'posts_where', array( __CLASS__, 'filter_posts_where' ) );
 		$query = new WP_Query( $args );
-		remove_filter( 'posts_where', array( __CLASS__, 'filter_posts_where' ) );
 
 		return $query->posts;
-	}
-
-	/**
-	 * Restricts the widget's query to the current month and day in prior years.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @param string $where SQL WHERE clause.
-	 * @return string Filtered WHERE clause.
-	 */
-	public static function filter_posts_where( $where ) {
-		global $wpdb;
-
-		$month = (int) current_time( 'n' );
-		$day   = (int) current_time( 'j' );
-		$year  = (int) current_time( 'Y' );
-
-		$where .= $wpdb->prepare(
-			" AND MONTH({$wpdb->posts}.post_date) = %d AND DAY({$wpdb->posts}.post_date) = %d AND YEAR({$wpdb->posts}.post_date) < %d",
-			$month,
-			$day,
-			$year
-		);
-
-		return $where;
 	}
 
 	/**
@@ -269,7 +257,7 @@ class WP_On_This_Day {
 		$excerpt = wp_trim_words( trim( $excerpt ), 24, '&hellip;' );
 
 		$time_str   = get_the_time( get_option( 'time_format' ), $post );
-		$time_iso   = get_the_time( 'Y-m-d H:i', $post );
+		$time_iso   = get_the_time( 'c', $post );
 		$categories = get_the_category( $post->ID );
 
 		$row_classes = 'on-this-day-post';
