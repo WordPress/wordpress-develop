@@ -432,10 +432,19 @@ function dmp_filter( $a ) {
 	return $a;
 }
 
-function get_echo( $callback, $args = array() ) {
+/**
+ * Gets the output of a given callback via output buffering.
+ *
+ * The return value of the callback is disregarded.
+ *
+ * @param callable          $callback Callback to capture the output from.
+ * @param array<int, mixed> $args     The positional params to pass to the callback.
+ * @return string Output buffer.
+ */
+function get_echo( callable $callback, array $args = array() ): string {
 	ob_start();
 	call_user_func_array( $callback, $args );
-	return ob_get_clean();
+	return (string) ob_get_clean();
 }
 
 // Recursively generate some quick assertEquals() tests based on an array.
