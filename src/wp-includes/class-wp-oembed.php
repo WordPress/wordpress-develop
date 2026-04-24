@@ -230,15 +230,15 @@ class WP_oEmbed {
 		 *                                                               and an optional boolean regex flag at index 1.
 		 */
 		$providers = (array) apply_filters( 'oembed_providers', $providers );
-		foreach ( $providers as $matchmask => $data ) {
-			$provider = $this->sanitize_provider( $matchmask, $data );
+		foreach ( $providers as $match_mask => $data ) {
+			$provider = $this->sanitize_provider( $match_mask, $data );
 			if ( null === $provider ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
 						/* translators: %s: The oEmbed provider URL pattern. */
 						__( 'The oEmbed provider data for %s is malformed. Each provider must be an array with a provider endpoint URL string at index 0 and an optional boolean regex flag at index 1.' ),
-						'<code>' . esc_html( (string) $matchmask ) . '</code>'
+						'<code>' . esc_html( (string) $match_mask ) . '</code>'
 					),
 					'7.1.0'
 				);
@@ -325,20 +325,20 @@ class WP_oEmbed {
 			$args['discover'] = true;
 		}
 
-		foreach ( $this->providers as $matchmask => $data ) {
-			$provider_data = $this->sanitize_provider( $matchmask, $data );
+		foreach ( $this->providers as $match_mask => $data ) {
+			$provider_data = $this->sanitize_provider( $match_mask, $data );
 			if ( null === $provider_data ) {
 				continue;
 			}
-			$matchmask = $provider_data['match_mask'];
+			$match_mask = $provider_data['match_mask'];
 
 			// Turn the asterisk-type provider URLs into regex.
 			if ( ! $provider_data['is_regex'] ) {
-				$matchmask = '#' . str_replace( '___wildcard___', '(.+)', preg_quote( str_replace( '*', '___wildcard___', $matchmask ), '#' ) ) . '#i';
-				$matchmask = preg_replace( '|^#http\\\://|', '#https?\://', $matchmask );
+				$match_mask = '#' . str_replace( '___wildcard___', '(.+)', preg_quote( str_replace( '*', '___wildcard___', $match_mask ), '#' ) ) . '#i';
+				$match_mask = preg_replace( '|^#http\\\://|', '#https?\://', $match_mask );
 			}
 
-			if ( preg_match( $matchmask, $url ) ) {
+			if ( preg_match( $match_mask, $url ) ) {
 				$provider = str_replace( '{format}', 'json', $provider_data['endpoint'] ); // JSON is easier to deal with than XML.
 				break;
 			}
