@@ -24,13 +24,7 @@ mockedApiResponse.Schema = {
         "wp-collaboration/v1",
         "wp-sync/v1"
     ],
-    "authentication": {
-        "application-passwords": {
-            "endpoints": {
-                "authorization": "http://example.org/wp-admin/authorize-application.php"
-            }
-        }
-    },
+    "authentication": [],
     "routes": {
         "/": {
             "namespace": "",
