@@ -984,9 +984,10 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 */
 	$script  = <<<JS
 		(( shortCutLabels ) => {
+			let userAgent = '';
 			// Assigning agent may error if the HTTP header is blocked at the browser level.
 			try {
-				const userAgent = navigator.userAgent;
+				userAgent = navigator.userAgent;
 			} catch (error) {
 				// Make no change to the default shortcut label.
 				return;
