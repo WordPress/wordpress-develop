@@ -982,7 +982,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 * on the front-end, the script would be loaded but remain unused on the front-end of
 	 * a website.
 	 */
-	$script  = <<<JS
+	$script  = <<<'JS'
 		(( shortCutLabels ) => {
 			let userAgent = '';
 			// Assigning agent may error if the HTTP header is blocked at the browser level.
@@ -999,7 +999,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 				commandPaletteNode.textContent = shortcutLabel;
 			}
 		})
-JS;
+	JS;
 	$script .= '(' . wp_json_encode( $shortcut_labels ) . ');';
 	wp_add_inline_script( 'admin-bar', $script );
 }
