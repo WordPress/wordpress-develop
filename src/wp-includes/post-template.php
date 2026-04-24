@@ -1809,9 +1809,19 @@ function get_the_password_form( $post = 0 ) {
 		);
 	}
 
+	$button_class         = '';
+	$button_wrapper_open  = '';
+	$button_wrapper_close = '';
+
+	if ( wp_is_block_theme() ) {
+		$button_class         = ' class="wp-block-button__link ' . wp_theme_get_element_class_name( 'button' ) . '"';
+		$button_wrapper_open  = '<span class="wp-block-button">';
+		$button_wrapper_close = '</span>';
+	}
+
 	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form' . $class . '" method="post">' . $redirect_field . $invalid_password_html . '
 	<p>' . __( 'This content is password-protected. To view it, please enter the password below.' ) . '</p>
-	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> <input type="submit" name="Submit" value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
+	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> ' . $button_wrapper_open . '<input type="submit" name="Submit"' . $button_class . ' value="' . esc_attr_x( 'Enter', 'post password form' ) . '" />' . $button_wrapper_close . '</p></form>
 	';
 
 	/**
@@ -1825,6 +1835,7 @@ function get_the_password_form( $post = 0 ) {
 	 * @since 2.7.0
 	 * @since 5.8.0 Added the `$post` parameter.
 	 * @since 6.8.0 Added the `$invalid_password` parameter.
+	 * @since 7.1.0 Block button classes are added to the submit button for block themes.
 	 *
 	 * @param string  $output           The password form HTML output.
 	 * @param WP_Post $post             Post object.
