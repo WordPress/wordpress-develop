@@ -979,7 +979,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		}
 	JS;
 	$script   = sprintf( '( %s )( %s );', $function, wp_json_encode( $shortcut_labels, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
-	$script .= "\n//# sourceURL=wp_admin_bar_command_palette_menu";
+	$script  .= "\n//# sourceURL=wp_admin_bar_command_palette_menu";
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'command-palette',
