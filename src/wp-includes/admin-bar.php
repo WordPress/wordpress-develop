@@ -962,33 +962,24 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		__( 'Open command palette' ),
 	);
 	/*
-	 * The script is added as an inline script to avoid an additional dependency.
+	 * Detect Apple OS via JavaScript for users behind a CDN blocking the UA header.
 	 *
-	 * Adding the code within the admin-bar script would require the wp-i18n script to be loaded
-	 * as a dependency. While this is widely available in the admin, the wp-i18n script is not
-	 * commonly required on the front end of the site. As the command palette is not available
-	 * on the front-end, the script would be loaded but remain unused on the front-end of
-	 * a website.
+	 * Running the script as the admin bar is rendered avoids a flash of incorrect content
+	 * for users with Apple OS when the UA header is blocked. It also prevents the need for
+	 * wp-i18n to be loaded as a dependency as it is most likely not included on the front
+	 * end of a site.
 	 */
 	$script  = <<<'JS'
 		(( shortcutLabels ) => {
-			let userAgent = '';
-			// Assigning agent may error if the HTTP header is blocked at the browser level.
-			try {
-				userAgent = navigator.userAgent;
-			} catch (error) {
-				// Make no change to the default shortcut label.
+			const isAppleOS = navigator.platform.startsWith("Mac") || navigator.platform === "iPhone" || navigator.platform === "iPad";
+			if ( ! isAppleOS ) {
 				return;
 			}
-			const isAppleOS = /Macintosh|Mac OS X|Mac_PowerPC/i.test( userAgent );
-			const shortcutLabel = isAppleOS ? shortcutLabels.appleOS : shortcutLabels.default;
-			const commandPaletteNode = document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' );
-			if ( commandPaletteNode ) {
-				commandPaletteNode.textContent = shortcutLabel;
-			}
+			document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' ).textContent = shortcutLabels.appleOS;
 		})
 	JS;
-	$script .= '(' . wp_json_encode( $shortcut_labels ) . ');';
+	$script .= '(' . wp_json_encode( $shortcut_labels, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ');';
+	$script .= "\n//# sourceURL=wp_admin_bar_command_palette_menu";
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'command-palette',
@@ -997,6 +988,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 			'meta'  => array(
 				'class'   => 'hide-if-no-js',
 				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
+				'html'    => '<script>' . $script . '</script>',
 			),
 		)
 	);
