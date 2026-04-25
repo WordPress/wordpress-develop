@@ -222,7 +222,7 @@ class Tests_AI_Client_Cache extends WP_UnitTestCase {
 	/**
 	 * Test that the cache group filter is respected.
 	 *
-	 * @ticket 64591
+	 * @ticket 65127
 	 */
 	public function test_cache_group_filter_is_respected() {
         add_filter( 'wp_ai_client_cache_group', function( $group ) {
@@ -240,7 +240,7 @@ class Tests_AI_Client_Cache extends WP_UnitTestCase {
 	/**
 	 * Test that a non-string cache group filter value is cast to string.
 	 * 
-	 * @ticket 64591
+	 * @ticket 65127
 	 */
 	public function test_cache_group_filter_returns_non_string() {
 		add_filter( 'wp_ai_client_cache_group', function( $group ) {
