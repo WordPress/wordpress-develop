@@ -38,10 +38,11 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 */
 	private function get_cache_group(): string {
 		/**
-		 * Filter the cache group used by the WP AI Client cache adapter.
+		 * Filters the cache group used by the WP AI Client cache adapter.
 		 *
 		 * Allows integrators to change the object cache group under which AI client
-		 * items are stored.
+		 * items are stored. This is useful for avoiding key collisions, creating
+		 * environment-specific caches, or adapting to backend constraints.
 		 *
 		 * @since 7.1.0
 		 *
