@@ -36,7 +36,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 *
 	 * @return string Cache group name.
 	 */
-	private function get_cache_group(): string {		
+	private function get_cache_group(): string {
 		/**
 		 * Filter the cache group used by the WP AI Client cache adapter.
 		 *
