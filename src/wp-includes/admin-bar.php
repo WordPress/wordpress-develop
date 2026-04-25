@@ -961,18 +961,6 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		/* translators: Hidden accessibility text. */
 		__( 'Open command palette' ),
 	);
-	$wp_admin_bar->add_node(
-		array(
-			'id'    => 'command-palette',
-			'title' => $title,
-			'href'  => '#',
-			'meta'  => array(
-				'class'   => 'hide-if-no-js',
-				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
-			),
-		)
-	);
-
 	/*
 	 * The script is added as an inline script to avoid an additional dependency.
 	 *
@@ -1001,7 +989,17 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		})
 	JS;
 	$script .= '(' . wp_json_encode( $shortcut_labels ) . ');';
-	wp_add_inline_script( 'admin-bar', $script );
+	$wp_admin_bar->add_node(
+		array(
+			'id'    => 'command-palette',
+			'title' => $title,
+			'href'  => '#',
+			'meta'  => array(
+				'class'   => 'hide-if-no-js',
+				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
+			),
+		)
+	);
 }
 
 /**
