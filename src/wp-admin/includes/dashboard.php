@@ -94,17 +94,7 @@ function wp_dashboard_setup() {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-on-this-day.php';
 		}
 
-		wp_enqueue_style( 'on-this-day' );
-
-		wp_add_inline_style(
-			'on-this-day',
-			sprintf(
-				'#dashboard_on_this_day{--otd-today:%s;}',
-				wp_json_encode( date_i18n( 'F j' ) )
-			)
-		);
-
-		wp_add_dashboard_widget( 'dashboard_on_this_day', __( 'On This Day' ), array( 'WP_On_This_Day', 'render_dashboard_widget' ) );
+		WP_On_This_Day::register_widget();
 	}
 
 	// WordPress Events and News.

@@ -10,8 +10,8 @@
 /**
  * Core class used by the "On This Day" dashboard widget.
  *
- * Renders the current user's posts that were published on this same
- * month and day in previous years, grouped by year.
+ * Renders the current user's posts that were published in the selected
+ * date window in previous years, grouped by year.
  *
  * @since 7.1.0
  */
@@ -23,6 +23,38 @@ class WP_On_This_Day {
 	 * @var int
 	 */
 	const POSTS_PER_PAGE = 50;
+
+	/**
+	 * Minimum number of days included in the widget's date window.
+	 *
+	 * @since 7.1.0
+	 * @var int
+	 */
+	const MIN_WINDOW_DAYS = 1;
+
+	/**
+	 * Maximum number of days included in the widget's date window.
+	 *
+	 * @since 7.1.0
+	 * @var int
+	 */
+	const MAX_WINDOW_DAYS = 7;
+
+	/**
+	 * Default number of days included in the widget's date window.
+	 *
+	 * @since 7.1.0
+	 * @var int
+	 */
+	const DEFAULT_WINDOW_DAYS = 1;
+
+	/**
+	 * User meta key used to persist the date window preference.
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	const WINDOW_DAYS_META_KEY = 'dashboard_on_this_day_window_days';
 
 	/**
 	 * Object cache group used for storing widget results.
@@ -39,7 +71,38 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 * @var int
 	 */
-	const CACHE_VERSION = 6;
+	const CACHE_VERSION = 7;
+
+	/**
+	 * Registers the dashboard widget and its supporting hooks and assets.
+	 *
+	 * Designed to be the single entry point called from the dashboard
+	 * setup routine. It processes any pending preference submission,
+	 * registers the success notice, enqueues styles with the dynamic
+	 * date label, and adds the widget itself.
+	 *
+	 * @since 7.1.0
+	 */
+	public static function register_widget() {
+		self::handle_window_days_submission();
+
+		add_action( 'admin_notices', array( __CLASS__, 'render_window_updated_notice' ) );
+
+		wp_enqueue_style( 'on-this-day' );
+		wp_add_inline_style(
+			'on-this-day',
+			sprintf(
+				'#dashboard_on_this_day{--otd-today:%s;}',
+				wp_json_encode( self::get_window_label( self::get_window_days() ) )
+			)
+		);
+
+		wp_add_dashboard_widget(
+			'dashboard_on_this_day',
+			__( 'On This Day' ),
+			array( __CLASS__, 'render_dashboard_widget' )
+		);
+	}
 
 	/**
 	 * Renders the dashboard widget output.
@@ -57,59 +120,70 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 */
 	public static function render_dashboard_widget() {
-		$user_id = get_current_user_id();
+		$user_id     = get_current_user_id();
+		$window_days = self::get_window_days( $user_id );
 
 		$cache_key = sprintf(
-			'render:v%d:%d:%s:%s:%s',
+			'render:v%d:%d:%d:%s:%s:%s',
 			self::CACHE_VERSION,
 			$user_id,
+			$window_days,
 			determine_locale(),
 			current_time( 'Y-m-d' ),
 			wp_cache_get_last_changed( 'posts' )
 		);
 
 		$cached = wp_cache_get( $cache_key, self::CACHE_GROUP );
-		if ( is_string( $cached ) ) {
-			// Already escaped at write time by the render_* methods below.
-			echo $cached; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			return;
+		if ( ! is_string( $cached ) ) {
+			$posts = self::get_posts( $user_id, $window_days );
+
+			ob_start();
+			if ( empty( $posts ) ) {
+				self::render_empty_state( $window_days );
+			} else {
+				self::render_posts( $posts, $window_days );
+			}
+			$cached = ob_get_clean();
+
+			wp_cache_set( $cache_key, $cached, self::CACHE_GROUP, DAY_IN_SECONDS );
 		}
 
-		$posts = self::get_posts( $user_id );
-
-		ob_start();
 		echo '<div class="on-this-day-widget">';
-		if ( empty( $posts ) ) {
-			self::render_empty_state();
-		} else {
-			self::render_posts( $posts );
-		}
-		echo '</div>';
-		$html = ob_get_clean();
-
-		wp_cache_set( $cache_key, $html, self::CACHE_GROUP, DAY_IN_SECONDS );
-
+		echo '<div class="on-this-day-scroll">';
 		// Already escaped at write time by the render_* methods below.
-		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $cached; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '</div>';
+		self::render_window_control( $window_days );
+		echo '</div>';
 	}
 
 	/**
-	 * Retrieves posts by a given author that were published on this
-	 * same month and day in previous years.
+	 * Retrieves posts by a given author that were published in the
+	 * selected date window in previous years.
 	 *
-	 * The "same month/day, prior year" constraint is expressed as a
-	 * `date_query`: a clause pinning `month`/`day`, combined with a
+	 * The "selected date window, prior year" constraint is expressed as a
+	 * `date_query`: clauses pinning each `month`/`day`, combined with a
 	 * `before` clause anchored to January 1 of the current year.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param int $user_id Author ID to query posts for.
+	 * @param int $user_id     Author ID to query posts for.
+	 * @param int $window_days Number of days to include, starting with today.
 	 * @return WP_Post[] Array of posts ordered by newest first.
 	 */
-	public static function get_posts( $user_id ) {
-		$month = (int) current_time( 'n' );
-		$day   = (int) current_time( 'j' );
-		$year  = (int) current_time( 'Y' );
+	public static function get_posts( $user_id, $window_days = self::DEFAULT_WINDOW_DAYS ) {
+		$window_days = self::sanitize_window_days( $window_days );
+		$year        = (int) current_time( 'Y' );
+		$date_query  = array(
+			'relation' => 'AND',
+			array(
+				'before' => array( 'year' => $year ),
+			),
+			array_merge(
+				array( 'relation' => 'OR' ),
+				self::get_window_date_query_clauses( $window_days )
+			),
+		);
 
 		$args = array(
 			'author'              => (int) $user_id,
@@ -120,15 +194,7 @@ class WP_On_This_Day {
 			'orderby'             => 'date',
 			'order'               => 'DESC',
 			'no_found_rows'       => true,
-			'date_query'          => array(
-				array(
-					'month' => $month,
-					'day'   => $day,
-				),
-				array(
-					'before' => array( 'year' => $year ),
-				),
-			),
+			'date_query'          => $date_query,
 		);
 
 		/**
@@ -136,10 +202,11 @@ class WP_On_This_Day {
 		 *
 		 * @since 7.1.0
 		 *
-		 * @param array $args    WP_Query arguments.
-		 * @param int   $user_id The author ID the query is scoped to.
+		 * @param array $args        WP_Query arguments.
+		 * @param int   $user_id     The author ID the query is scoped to.
+		 * @param int   $window_days Number of days included in the date window.
 		 */
-		$args = apply_filters( 'dashboard_on_this_day_query_args', $args, $user_id );
+		$args = apply_filters( 'dashboard_on_this_day_query_args', $args, $user_id, $window_days );
 
 		$query = new WP_Query( $args );
 
@@ -147,11 +214,164 @@ class WP_On_This_Day {
 	}
 
 	/**
-	 * Renders the empty state shown when no matching posts exist.
+	 * Handles date window preference form submissions.
 	 *
 	 * @since 7.1.0
 	 */
-	protected static function render_empty_state() {
+	public static function handle_window_days_submission() {
+		if (
+			'POST' !== $_SERVER['REQUEST_METHOD'] ||
+			! isset( $_POST['action'] ) ||
+			'set_on_this_day_window' !== sanitize_text_field( wp_unslash( $_POST['action'] ) )
+		) {
+			return;
+		}
+
+		check_admin_referer( 'set-on-this-day-window' );
+
+		$window_days = isset( $_POST['on_this_day_window_days'] ) ? wp_unslash( $_POST['on_this_day_window_days'] ) : self::DEFAULT_WINDOW_DAYS;
+		$window_days = self::sanitize_window_days( $window_days );
+
+		update_user_meta( get_current_user_id(), self::WINDOW_DAYS_META_KEY, $window_days );
+
+		wp_safe_redirect(
+			add_query_arg(
+				'on-this-day-window-updated',
+				'1',
+				admin_url( 'index.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Renders the success admin notice after the date window preference is saved.
+	 *
+	 * Hooked to the `admin_notices` action and only outputs when the
+	 * `on-this-day-window-updated` query argument is present.
+	 *
+	 * @since 7.1.0
+	 */
+	public static function render_window_updated_notice() {
+		if ( ! isset( $_GET['on-this-day-window-updated'] ) ) {
+			return;
+		}
+
+		$window_days = self::get_window_days();
+
+		wp_admin_notice(
+			sprintf(
+				/* translators: %s: Number of days. */
+				__( 'On This Day duration updated to %s.' ),
+				sprintf(
+					/* translators: %s: Number of days. */
+					_n( '%s day', '%s days', $window_days ),
+					number_format_i18n( $window_days )
+				)
+			),
+			array(
+				'id'          => 'message',
+				'type'        => 'success',
+				'dismissible' => true,
+			)
+		);
+	}
+
+	/**
+	 * Retrieves the current user's date window preference.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int $user_id User ID.
+	 * @return int Number of days to include, between 1 and 7.
+	 */
+	public static function get_window_days( $user_id = 0 ) {
+		if ( ! $user_id ) {
+			$user_id = get_current_user_id();
+		}
+
+		$window_days = get_user_meta( $user_id, self::WINDOW_DAYS_META_KEY, true );
+
+		return self::sanitize_window_days( $window_days );
+	}
+
+	/**
+	 * Returns a human-readable label for the active date window.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int $window_days Number of days included in the date window.
+	 * @return string Date or date range label.
+	 */
+	public static function get_window_label( $window_days ) {
+		$window_days = self::sanitize_window_days( $window_days );
+		$start       = current_datetime();
+		$start_label = wp_date( 'F j', $start->getTimestamp(), $start->getTimezone() );
+
+		if ( self::MIN_WINDOW_DAYS === $window_days ) {
+			return $start_label;
+		}
+
+		$end       = $start->modify( '+' . ( $window_days - 1 ) . ' days' );
+		$end_label = wp_date( 'F j', $end->getTimestamp(), $end->getTimezone() );
+
+		return sprintf(
+			/* translators: 1: Start date, 2: End date. */
+			__( '%1$s - %2$s' ),
+			$start_label,
+			$end_label
+		);
+	}
+
+	/**
+	 * Sanitizes the date window size.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $window_days Raw window size.
+	 * @return int Number of days to include, between 1 and 7.
+	 */
+	protected static function sanitize_window_days( $window_days ) {
+		$window_days = absint( $window_days );
+
+		if ( $window_days < self::MIN_WINDOW_DAYS || $window_days > self::MAX_WINDOW_DAYS ) {
+			return self::DEFAULT_WINDOW_DAYS;
+		}
+
+		return $window_days;
+	}
+
+	/**
+	 * Builds date query clauses for each day in the active window.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int $window_days Number of days included in the date window.
+	 * @return array[] Date query clauses.
+	 */
+	protected static function get_window_date_query_clauses( $window_days ) {
+		$date    = current_datetime();
+		$clauses = array();
+
+		for ( $offset = 0; $offset < $window_days; $offset++ ) {
+			$day_date  = $date->modify( '+' . $offset . ' days' );
+			$clauses[] = array(
+				'month' => (int) $day_date->format( 'n' ),
+				'day'   => (int) $day_date->format( 'j' ),
+			);
+		}
+
+		return $clauses;
+	}
+
+	/**
+	 * Renders the empty state shown when no matching posts exist.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int $window_days Number of days included in the date window.
+	 */
+	protected static function render_empty_state( $window_days ) {
 		?>
 		<div class="on-this-day-empty">
 			<div class="on-this-day-empty-icon" aria-hidden="true">
@@ -165,9 +385,9 @@ class WP_On_This_Day {
 			<p class="on-this-day-empty-text">
 				<?php
 				printf(
-					/* translators: %s: Current date, e.g. "April 22". */
+					/* translators: %s: Current date or date range, e.g. "April 22" or "April 22 - April 28". */
 					__( 'You haven&#8217;t published anything on %s in previous years. Write something today and check back next year!' ),
-					'<strong>' . esc_html( date_i18n( 'F j' ) ) . '</strong>'
+					'<strong>' . esc_html( self::get_window_label( $window_days ) ) . '</strong>'
 				);
 				?>
 			</p>
@@ -185,9 +405,10 @@ class WP_On_This_Day {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param WP_Post[] $posts Posts to render, most recent first.
+	 * @param WP_Post[] $posts       Posts to render, most recent first.
+	 * @param int       $window_days Number of days included in the date window.
 	 */
-	protected static function render_posts( $posts ) {
+	protected static function render_posts( $posts, $window_days ) {
 		$current_year = (int) current_time( 'Y' );
 
 		$by_year = array();
@@ -223,7 +444,7 @@ class WP_On_This_Day {
 					</p>
 					<ul class="on-this-day-post-list">
 						<?php foreach ( $year_posts as $post ) : ?>
-							<?php self::render_post( $post ); ?>
+							<?php self::render_post( $post, $window_days ); ?>
 						<?php endforeach; ?>
 					</ul>
 				</li>
@@ -237,9 +458,10 @@ class WP_On_This_Day {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param WP_Post $post Post object to render.
+	 * @param WP_Post $post        Post object to render.
+	 * @param int     $window_days Number of days included in the date window.
 	 */
-	protected static function render_post( $post ) {
+	protected static function render_post( $post, $window_days ) {
 		$edit_link  = get_edit_post_link( $post->ID );
 		$view_link  = get_permalink( $post->ID );
 		$status     = get_post_status( $post );
@@ -255,6 +477,7 @@ class WP_On_This_Day {
 		$excerpt = preg_replace( '/\s+/', ' ', $excerpt );
 		$excerpt = wp_trim_words( trim( $excerpt ), 24, '&hellip;' );
 
+		$date_str   = get_the_date( 'F j', $post );
 		$time_str   = get_the_time( get_option( 'time_format' ), $post );
 		$time_iso   = get_the_time( 'c', $post );
 		$categories = get_the_category( $post->ID );
@@ -302,7 +525,20 @@ class WP_On_This_Day {
 
 				<div class="on-this-day-post-meta">
 					<time class="on-this-day-post-time" datetime="<?php echo esc_attr( $time_iso ); ?>">
-						<?php echo esc_html( $time_str ); ?>
+						<?php
+						if ( self::MIN_WINDOW_DAYS === $window_days ) {
+							echo esc_html( $time_str );
+						} else {
+							echo esc_html(
+								sprintf(
+									/* translators: 1: Post date, 2: Post time. */
+									__( '%1$s at %2$s' ),
+									$date_str,
+									$time_str
+								)
+							);
+						}
+						?>
 					</time>
 
 					<?php if ( ! empty( $categories ) ) : ?>
@@ -333,6 +569,38 @@ class WP_On_This_Day {
 				<?php endif; ?>
 			</div>
 		</li>
+		<?php
+	}
+
+	/**
+	 * Renders the date window slider.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int $window_days Number of days included in the date window.
+	 */
+	protected static function render_window_control( $window_days ) {
+		?>
+		<form class="on-this-day-window-form" method="post" action="<?php echo esc_url( admin_url( 'index.php' ) ); ?>">
+			<?php wp_nonce_field( 'set-on-this-day-window', '_wpnonce', false ); ?>
+			<input type="hidden" name="action" value="set_on_this_day_window" />
+			<div class="on-this-day-window-control">
+				<span class="on-this-day-window-scale" aria-hidden="true"><?php _e( '1 day' ); ?></span>
+				<input
+					type="range"
+					id="on-this-day-window-days"
+					name="on_this_day_window_days"
+					min="<?php echo esc_attr( self::MIN_WINDOW_DAYS ); ?>"
+					max="<?php echo esc_attr( self::MAX_WINDOW_DAYS ); ?>"
+					step="1"
+					value="<?php echo esc_attr( $window_days ); ?>"
+					title="<?php esc_attr_e( 'Duration' ); ?>"
+					aria-label="<?php esc_attr_e( 'Duration' ); ?>"
+					onchange="this.form.submit();"
+				/>
+				<span class="on-this-day-window-scale" aria-hidden="true"><?php _e( '7 days' ); ?></span>
+			</div>
+		</form>
 		<?php
 	}
 }

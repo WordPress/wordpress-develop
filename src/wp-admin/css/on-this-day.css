@@ -7,8 +7,9 @@
      3. Widget title date pill (`.hndle::after`)
      4. Timeline (year headers, vertical line, post rows)
      5. Post row (icon circle, title, excerpt, meta row)
-     6. Empty state
-     7. Adaptive rules (reduced motion, small viewports)
+     6. Window control
+     7. Empty state
+     8. Adaptive rules (reduced motion, small viewports)
    ============================================================================= */
 
 /* -----------------------------------------------------------------------------
@@ -50,11 +51,16 @@
    2. Postbox chrome
    ----------------------------------------------------------------------------- */
 #dashboard_on_this_day {
+	/* To honour the postbox border-radius. */
+	overflow: hidden;
+
 	& .inside {
 		margin: 0;
 		padding: 0;
 		max-height: 560px;
-		overflow: auto;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
 	}
 
 	& .hndle {
@@ -63,9 +69,21 @@
 }
 
 .on-this-day-widget {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
 	font-size: 13px;
 	color: var(--otd-ink);
 	line-height: 1.5;
+}
+
+/* Scrollable content area — keeps the timeline / empty state contained
+   so the window control below pins to the bottom of the postbox body. */
+.on-this-day-scroll {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: auto;
 }
 
 /* -----------------------------------------------------------------------------
@@ -282,7 +300,37 @@
 }
 
 /* -----------------------------------------------------------------------------
-   6. Empty state
+   6. Window control
+   ----------------------------------------------------------------------------- */
+.on-this-day-window-form {
+	flex: 0 0 auto;
+	padding: 12px 20px 14px;
+	border-top: 1px solid var(--otd-line);
+	background: #fff;
+}
+
+.on-this-day-window-control {
+	display: grid;
+	grid-template-columns: auto minmax(120px, 1fr) auto;
+	align-items: center;
+	gap: 8px;
+}
+
+.on-this-day-window-control input[type="range"] {
+	width: 100%;
+	margin: 0;
+	accent-color: var(--otd-accent);
+}
+
+.on-this-day-window-scale {
+	color: var(--otd-subtle);
+	font-size: 11px;
+	line-height: 1.4;
+	white-space: nowrap;
+}
+
+/* -----------------------------------------------------------------------------
+   7. Empty state
    ----------------------------------------------------------------------------- */
 .on-this-day-empty {
 	text-align: center;
@@ -321,7 +369,7 @@
 }
 
 /* -----------------------------------------------------------------------------
-   7. Adaptive rules
+   8. Adaptive rules
    ----------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
 	.on-this-day-post-title a,
