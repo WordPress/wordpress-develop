@@ -15,7 +15,6 @@
  *
  * @since 7.1.0
  */
-#[AllowDynamicProperties]
 class WP_On_This_Day {
 	/**
 	 * Number of posts to fetch for the widget.
