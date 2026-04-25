@@ -45,7 +45,7 @@ Images
 == Changelog ==
 
 = 5.1 =
-* Released: April 9, 2026
+* Released: May 20, 2026
 
 https://wordpress.org/documentation/article/twenty-eleven-changelog/#Version_5.1
 

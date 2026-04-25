@@ -69,7 +69,7 @@ Image used in screenshot.png: A photo by Austin Schmid (https://unsplash.com/sch
 == Changelog ==
 
 = 3.8 =
-* Released: April 9, 2026
+* Released: May 20, 2026
 
 https://wordpress.org/documentation/article/twenty-sixteen-changelog/#Version_3.8
 

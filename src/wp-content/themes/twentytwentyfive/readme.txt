@@ -15,7 +15,7 @@ Twenty Twenty-Five emphasizes simplicity and adaptability. It offers flexible de
 == Changelog ==
 
 = 1.5 =
-* Released: April 9, 2026
+* Released: May 20, 2026
 
 https://wordpress.org/documentation/article/twenty-twenty-five-changelog/#Version_1.5
 

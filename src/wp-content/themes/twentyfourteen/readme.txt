@@ -61,7 +61,7 @@ Source: https://stocksnap.io/photo/fog-mountain-ZKN6UKFKEO
 == Changelog ==
 
 = 4.5 =
-* Released: April 9, 2026
+* Released: May 20, 2026
 
 https://wordpress.org/documentation/article/twenty-fourteen-changelog/#Version_4.5
 

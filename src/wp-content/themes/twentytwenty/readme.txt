@@ -25,7 +25,7 @@ you pick, ensuring a high, accessible color contrast for your visitors.
 == Changelog ==
 
 = 3.1 =
-* Released: April 9, 2026
+* Released: May 20, 2026
 
 https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_3.1
 
