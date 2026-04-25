@@ -982,15 +982,15 @@ function wp_write_post() {
  *
  * @since 2.0.0
  *
- * @return int|void Post ID on success, void on failure.
+ * @return int Post ID on success. Dies on failure.
  */
 function write_post() {
 	$result = wp_write_post();
 	if ( is_wp_error( $result ) ) {
 		wp_die( $result->get_error_message() );
-	} else {
-		return $result;
 	}
+
+	return $result;
 }
 
 //
@@ -2564,7 +2564,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	$classic_output = ob_get_clean();
 
 	$classic_elements = wp_html_split( $classic_output );
-	$hidden_inputs    = '';
+
 	foreach ( $classic_elements as $element ) {
 		if ( ! str_starts_with( $element, '<input ' ) ) {
 			continue;
