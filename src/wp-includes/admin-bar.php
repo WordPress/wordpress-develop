@@ -971,11 +971,9 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 */
 	$function = <<<'JS'
 		( shortcutLabels ) => {
-			const isAppleOS = navigator.platform.startsWith("Mac") || navigator.platform === "iPhone" || navigator.platform === "iPad";
-			if ( ! isAppleOS ) {
-				return;
+			if ( navigator.platform.startsWith("Mac") || navigator.platform === "iPhone" || navigator.platform === "iPad" ) {
+				document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' ).textContent = shortcutLabels.appleOS;
 			}
-			document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' ).textContent = shortcutLabels.appleOS;
 		}
 	JS;
 	$script   = sprintf( '( %s )( %s );', $function, wp_json_encode( $shortcut_labels, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
