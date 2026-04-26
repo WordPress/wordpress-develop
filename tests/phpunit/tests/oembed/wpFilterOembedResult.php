@@ -2,8 +2,11 @@
 
 /**
  * @group oembed
+ *
+ * @covers ::wp_filter_oembed_result
  */
-class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
+class Tests_oEmbed_wpFilterOembedResult extends WP_UnitTestCase {
+
 	public function test_filter_oembed_result_trusted_malicious_iframe() {
 		$html = '<p></p><iframe onload="alert(1)"></iframe>';
 
@@ -154,6 +157,19 @@ EOD;
 		$this->assertEqualHTML( '<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;"></iframe>', $actual );
 	}
 
+	/**
+	 * @dataProvider data_wp_filter_pre_oembed_custom_result
+	 */
+	public function test_wp_filter_pre_oembed_custom_result( $html, $expected ) {
+		$data   = (object) array(
+			'type'  => 'rich',
+			'title' => 'Hola',
+			'html'  => $html,
+		);
+		$actual = _wp_oembed_get_object()->data2html( $data, 'https://untrusted.localhost' );
+		$this->assertEqualHTML( $expected, $actual );
+	}
+
 	public function data_wp_filter_pre_oembed_custom_result() {
 		return array(
 			array(
@@ -173,19 +189,6 @@ EOD;
 				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title=" width=&quot;"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title=" width=&quot;" height=\' title=\' width="\'\' height=\'123\'"></iframe>',
 			),
 		);
-	}
-
-	/**
-	 * @dataProvider data_wp_filter_pre_oembed_custom_result
-	 */
-	public function test_wp_filter_pre_oembed_custom_result( $html, $expected ) {
-		$data   = (object) array(
-			'type'  => 'rich',
-			'title' => 'Hola',
-			'html'  => $html,
-		);
-		$actual = _wp_oembed_get_object()->data2html( $data, 'https://untrusted.localhost' );
-		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
