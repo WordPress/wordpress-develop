@@ -108,7 +108,7 @@ input#link_url {
 	line-height: 1.84615384;
 	min-height: 25px;
 	margin-top: 5px;
-	padding: 0 10px;
+	padding: 0;
 	color: #646970;
 }
 
@@ -1063,10 +1063,6 @@ form#tags-filter {
 	.wp-core-ui button.privacy-text-copy {
 		white-space: normal;
 		line-height: 1.8;
-	}
-
-	#edit-slug-box {
-		padding: 0;
 	}
 }
 
