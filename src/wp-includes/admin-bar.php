@@ -966,8 +966,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 *
 	 * Running the script as the admin bar is rendered avoids a flash of incorrect content
 	 * for users with Apple OS when the UA header is blocked. It also prevents the need for
-	 * wp-i18n to be loaded as a dependency as it is most likely not included on the front
-	 * end of a site.
+	 * wp-i18n to be loaded as a dependency.
 	 */
 	$function = <<<'JS'
 		( shortcutLabels ) => {
