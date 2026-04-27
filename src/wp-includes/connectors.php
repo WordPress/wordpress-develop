@@ -638,10 +638,6 @@ add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
 function _wp_connectors_get_connector_script_module_data( array $data ): array {
 	$registry = AiClient::defaultRegistry();
 
-	if ( ! function_exists( 'is_plugin_active' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-	}
-
 	$connectors = array();
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth     = $connector_data['authentication'];
@@ -674,17 +670,7 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 
 		if ( ! empty( $connector_data['plugin']['file'] ) ) {
 			$file         = $connector_data['plugin']['file'];
-			$is_installed = false;
-			$is_activated = false;
-
-			if ( ! empty( $connector_data['plugin']['is_active'] ) && is_callable( $connector_data['plugin']['is_active'] ) ) {
-				$is_activated = (bool) call_user_func( $connector_data['plugin']['is_active'] );
-			}
-
-			if ( ! $is_activated ) {
-				$is_activated = is_plugin_active( $file );
-			}
-
+			$is_activated = (bool) call_user_func( $connector_data['plugin']['is_active'] );
 			$is_installed = $is_activated || file_exists( WP_PLUGIN_DIR . '/' . $file );
 
 			$connector_out['plugin'] = array(
