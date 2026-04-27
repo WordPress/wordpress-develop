@@ -2864,7 +2864,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found && $color_attr ) {
-			$css_value = trim( $parts[1] );
+			$css_value    = trim( $parts[1] );
 			$comma_syntax = '/^rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*(?:,\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i';
 			$space_syntax = '/^rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s*(?:\/\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i';
 
