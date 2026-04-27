@@ -2758,7 +2758,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	/*
 	 * CSS attributes that accept rgb(a) color data types.
-	 *
 	 */
 	$css_color_data_types = array(
 		'color',
