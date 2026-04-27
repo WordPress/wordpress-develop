@@ -71,7 +71,7 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 * @var int
 	 */
-	const CACHE_VERSION = 7;
+	const CACHE_VERSION = 8;
 
 	/**
 	 * Registers the dashboard widget and its supporting hooks and assets.
@@ -89,11 +89,13 @@ class WP_On_This_Day {
 		add_action( 'admin_notices', array( __CLASS__, 'render_window_updated_notice' ) );
 
 		wp_enqueue_style( 'on-this-day' );
+
+		// Apply the date range label to the widget header via CSS.
 		wp_add_inline_style(
 			'on-this-day',
 			sprintf(
 				'#dashboard_on_this_day{--otd-today:%s;}',
-				wp_json_encode( self::get_window_label( self::get_window_days() ) )
+				self::esc_css_string( self::get_window_label( self::get_window_days() ) )
 			)
 		);
 
@@ -172,7 +174,7 @@ class WP_On_This_Day {
 	 * @return WP_Post[] Array of posts ordered by newest first.
 	 */
 	public static function get_posts( $user_id, $window_days = self::DEFAULT_WINDOW_DAYS ) {
-		$window_days = self::sanitize_window_days( $window_days );
+		$window_days = self::clamp_window_days( $window_days );
 		$year        = (int) current_time( 'Y' );
 		$date_query  = array(
 			'relation' => 'AND',
@@ -230,7 +232,7 @@ class WP_On_This_Day {
 		check_admin_referer( 'set-on-this-day-window' );
 
 		$window_days = isset( $_POST['on_this_day_window_days'] ) ? wp_unslash( $_POST['on_this_day_window_days'] ) : self::DEFAULT_WINDOW_DAYS;
-		$window_days = self::sanitize_window_days( $window_days );
+		$window_days = self::clamp_window_days( $window_days );
 
 		update_user_meta( get_current_user_id(), self::WINDOW_DAYS_META_KEY, $window_days );
 
@@ -292,7 +294,7 @@ class WP_On_This_Day {
 
 		$window_days = get_user_meta( $user_id, self::WINDOW_DAYS_META_KEY, true );
 
-		return self::sanitize_window_days( $window_days );
+		return self::clamp_window_days( $window_days );
 	}
 
 	/**
@@ -304,7 +306,7 @@ class WP_On_This_Day {
 	 * @return string Date or date range label.
 	 */
 	public static function get_window_label( $window_days ) {
-		$window_days = self::sanitize_window_days( $window_days );
+		$window_days = self::clamp_window_days( $window_days );
 		$start       = current_datetime();
 		$start_label = wp_date( 'F j', $start->getTimestamp(), $start->getTimezone() );
 
@@ -324,21 +326,37 @@ class WP_On_This_Day {
 	}
 
 	/**
-	 * Sanitizes the date window size.
+	 * Clamps the date window size to the supported range.
 	 *
 	 * @since 7.1.0
 	 *
 	 * @param mixed $window_days Raw window size.
 	 * @return int Number of days to include, between 1 and 7.
 	 */
-	protected static function sanitize_window_days( $window_days ) {
-		$window_days = absint( $window_days );
+	protected static function clamp_window_days( $window_days ) {
+		return min(
+			max( (int) $window_days, self::MIN_WINDOW_DAYS ),
+			self::MAX_WINDOW_DAYS
+		);
+	}
 
-		if ( $window_days < self::MIN_WINDOW_DAYS || $window_days > self::MAX_WINDOW_DAYS ) {
-			return self::DEFAULT_WINDOW_DAYS;
-		}
+	/**
+	 * Escapes a string for use as a quoted CSS string token.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $value String to escape.
+	 * @return string Quoted CSS string.
+	 */
+	protected static function esc_css_string( $value ) {
+		$value = wp_check_invalid_utf8( (string) $value );
+		$value = str_replace(
+			array( '\\', '"', "\n", "\r", "\f" ),
+			array( '\\\\', '\"', '\a ', '\d ', '\c ' ),
+			$value
+		);
 
-		return $window_days;
+		return '"' . $value . '"';
 	}
 
 	/**
@@ -372,6 +390,10 @@ class WP_On_This_Day {
 	 * @param int $window_days Number of days included in the date window.
 	 */
 	protected static function render_empty_state( $window_days ) {
+		$window_days = self::clamp_window_days( $window_days );
+		$start       = current_datetime();
+		$start_date  = wp_date( 'Y-m-d', $start->getTimestamp(), $start->getTimezone() );
+		$start_label = wp_date( 'F j', $start->getTimestamp(), $start->getTimezone() );
 		?>
 		<div class="on-this-day-empty">
 			<div class="on-this-day-empty-icon" aria-hidden="true">
@@ -381,19 +403,41 @@ class WP_On_This_Day {
 					<circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"></circle>
 				</svg>
 			</div>
-			<h3 class="on-this-day-empty-title"><?php _e( 'Your story starts here.' ); ?></h3>
+			<h3 class="on-this-day-empty-title"><?php esc_html_e( 'Your story starts here.' ); ?></h3>
 			<p class="on-this-day-empty-text">
 				<?php
-				printf(
-					/* translators: %s: Current date or date range, e.g. "April 22" or "April 22 - April 28". */
-					__( 'You haven&#8217;t published anything on %s in previous years. Write something today and check back next year!' ),
-					'<strong>' . esc_html( self::get_window_label( $window_days ) ) . '</strong>'
+				$start_time = sprintf(
+					'<time datetime="%1$s">%2$s</time>',
+					esc_attr( $start_date ),
+					esc_html( $start_label )
 				);
+
+				if ( self::MIN_WINDOW_DAYS === $window_days ) {
+					printf(
+						/* translators: %s: Current date, e.g. "April 22". */
+						esc_html__( 'You haven\'t published anything on %s in previous years. Write something today and check back next year!' ),
+						'<strong>' . $start_time . '</strong>'
+					);
+				} else {
+					$end      = $start->modify( '+' . ( $window_days - 1 ) . ' days' );
+					$end_time = sprintf(
+						'<time datetime="%1$s">%2$s</time>',
+						esc_attr( wp_date( 'Y-m-d', $end->getTimestamp(), $end->getTimezone() ) ),
+						esc_html( wp_date( 'F j', $end->getTimestamp(), $end->getTimezone() ) )
+					);
+
+					printf(
+						/* translators: 1: Start date, 2: End date. */
+						esc_html__( 'You haven\'t published anything between %1$s and %2$s in previous years. Write something today and check back next year!' ),
+						'<strong>' . $start_time . '</strong>',
+						'<strong>' . $end_time . '</strong>'
+					);
+				}
 				?>
 			</p>
 			<p class="on-this-day-empty-cta">
 				<a href="<?php echo esc_url( admin_url( 'post-new.php' ) ); ?>" class="button button-primary">
-					<?php _e( 'Write a new post' ); ?>
+					<?php esc_html_e( 'Write a new post' ); ?>
 				</a>
 			</p>
 		</div>
@@ -553,17 +597,17 @@ class WP_On_This_Day {
 
 					<?php if ( $is_private ) : ?>
 						<span class="on-this-day-post-sep" aria-hidden="true">&middot;</span>
-						<span class="on-this-day-post-private"><?php _e( 'Private' ); ?></span>
+						<span class="on-this-day-post-private"><?php esc_html_e( 'Private' ); ?></span>
 					<?php endif; ?>
 				</div>
 
 				<?php if ( $edit_link || ( 'publish' === $status && $view_link ) ) : ?>
 					<div class="on-this-day-post-actions">
 						<?php if ( $edit_link ) : ?>
-							<a class="on-this-day-post-action button button-secondary button-compact" href="<?php echo esc_url( $edit_link ); ?>"><?php _e( 'Edit' ); ?></a>
+							<a class="on-this-day-post-action button button-secondary button-compact" href="<?php echo esc_url( $edit_link ); ?>"><?php esc_html_e( 'Edit' ); ?></a>
 						<?php endif; ?>
 						<?php if ( 'publish' === $status && $view_link ) : ?>
-							<a class="on-this-day-post-action button-link is-compact" href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener"><?php _e( 'View' ); ?></a>
+							<a class="on-this-day-post-action button-link is-compact" href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View' ); ?></a>
 						<?php endif; ?>
 					</div>
 				<?php endif; ?>
@@ -585,7 +629,7 @@ class WP_On_This_Day {
 			<?php wp_nonce_field( 'set-on-this-day-window', '_wpnonce', false ); ?>
 			<input type="hidden" name="action" value="set_on_this_day_window" />
 			<div class="on-this-day-window-control">
-				<span class="on-this-day-window-scale" aria-hidden="true"><?php _e( '1 day' ); ?></span>
+				<span class="on-this-day-window-scale" aria-hidden="true"><?php esc_html_e( '1 day' ); ?></span>
 				<input
 					type="range"
 					id="on-this-day-window-days"
@@ -598,7 +642,7 @@ class WP_On_This_Day {
 					aria-label="<?php esc_attr_e( 'Duration' ); ?>"
 					onchange="this.form.submit();"
 				/>
-				<span class="on-this-day-window-scale" aria-hidden="true"><?php _e( '7 days' ); ?></span>
+				<span class="on-this-day-window-scale" aria-hidden="true"><?php esc_html_e( '7 days' ); ?></span>
 			</div>
 		</form>
 		<?php
