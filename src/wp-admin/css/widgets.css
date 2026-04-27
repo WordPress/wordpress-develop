@@ -500,18 +500,17 @@ div#widgets-right .closed .widgets-sortables {
 	margin-bottom: 0;
 }
 
-.sidebar-name .spinner,
-.remove-inactive-widgets .spinner {
-	float: none;
-	position: relative;
-	top: -2px;
-	margin: -5px 5px;
-}
-
 .sidebar-name .spinner {
+	float: none;
 	position: absolute;
 	top: 18px;
 	right: 30px;
+	margin: -5px 5px;
+}
+
+.remove-inactive-widgets .spinner {
+	float: none;
+	margin: 10px 5px 0;
 }
 
 /* Dragging a widget over a closed sidebar */

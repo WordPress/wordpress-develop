@@ -302,6 +302,7 @@
 	float: none;
 	left: 105px;
 	position: absolute;
+	top: 10px; /* Vertically center 20px spinner in 40px input: ( 40 - 20 ) / 2 */
 }
 
 .find-box-search,

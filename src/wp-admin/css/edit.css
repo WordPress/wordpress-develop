@@ -1535,7 +1535,7 @@ p.popular-tags a {
 
 #addtag .spinner {
 	float: none;
-	vertical-align: top;
+	vertical-align: middle;
 }
 
 #edittag {
