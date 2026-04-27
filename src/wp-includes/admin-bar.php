@@ -969,16 +969,16 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 * wp-i18n to be loaded as a dependency.
 	 */
 	$function = <<<'JS'
-		( shortcutLabels ) => {
+		( appleOSLabel ) => {
 			if ( navigator.platform.startsWith("Mac") || navigator.platform === "iPhone" || navigator.platform === "iPad" ) {
-				document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' ).textContent = shortcutLabels.appleOS;
+				document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' ).textContent = appleOSLabel;
 			}
 		}
 	JS;
 	$script   = sprintf(
 		'( %s )( %s );',
 		$function,
-		wp_json_encode( $shortcut_labels, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+		wp_json_encode( $shortcut_labels['appleOS'], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 	);
 	$script  .= "\n//# sourceURL=wp_admin_bar_command_palette_menu";
 	$wp_admin_bar->add_node(
