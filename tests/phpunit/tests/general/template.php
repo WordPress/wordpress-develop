@@ -123,6 +123,20 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65098
+	 * @group site_icon
+	 * @covers ::get_site_icon_url
+	 */
+	public function test_get_site_icon_url_uses_fallback_when_site_icon_url_is_unavailable() {
+		update_option( 'site_icon', 999999 );
+
+		$this->assertSame(
+			'https://example.org/fallback.png',
+			get_site_icon_url( 32, 'https://example.org/fallback.png' )
+		);
+	}
+
+	/**
 	 * @group site_icon
 	 * @covers ::site_icon_url
 	 * @requires function imagejpeg

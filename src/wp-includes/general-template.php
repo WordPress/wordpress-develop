@@ -978,7 +978,11 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		} else {
 			$size_data = array( $size, $size );
 		}
-		$url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+
+		$site_icon_url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		if ( $site_icon_url ) {
+			$url = $site_icon_url;
+		}
 	}
 
 	if ( $switched_blog ) {
