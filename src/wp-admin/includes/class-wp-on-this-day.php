@@ -263,18 +263,12 @@ class WP_On_This_Day {
 
 		wp_admin_notice(
 			sprintf(
-				/* translators: %s: Number of days. */
-				__( 'On This Day duration updated to %s.' ),
-				sprintf(
-					/* translators: %s: Number of days. */
-					_n( '%s day', '%s days', $window_days ),
-					number_format_i18n( $window_days )
-				)
-			),
-			array(
-				'id'          => 'message',
-				'type'        => 'success',
-				'dismissible' => true,
+				_n(
+					'On This Day duration updated to %d day.',
+					'On This Day duration updated to %d days.',
+					$window_days
+				),
+				number_format_i18n( $window_days )
 			)
 		);
 	}
