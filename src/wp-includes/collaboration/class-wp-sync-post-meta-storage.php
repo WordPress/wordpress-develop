@@ -86,7 +86,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		// Use direct database operation to avoid cache invalidation performed by
 		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
 		// `wp_cache_delete()` calls).
-		return (bool) $wpdb->insert(
+		$result = $wpdb->insert(
 			$wpdb->postmeta,
 			array(
 				'post_id'    => $post_id,
@@ -95,6 +95,13 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			),
 			array( '%d', '%s', '%s' )
 		);
+
+		if ( $result ) {
+			$room_hash                            = md5( $room );
+			self::$storage_post_ids[ $room_hash ] = $this->merge_duplicate_storage_posts( $room_hash, $post_id );
+		}
+
+		return (bool) $result;
 	}
 
 	/**
@@ -153,7 +160,8 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	public function set_awareness_state( string $room, array $awareness ): bool {
 		global $wpdb;
 
-		$post_id = $this->get_storage_post_id( $room );
+		$room_hash = md5( $room );
+		$post_id   = $this->get_storage_post_id( $room );
 		if ( null === $post_id ) {
 			return false;
 		}
@@ -174,16 +182,22 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		);
 
 		if ( $meta_id ) {
-			return (bool) $wpdb->update(
+			$result = $wpdb->update(
 				$wpdb->postmeta,
 				array( 'meta_value' => wp_json_encode( $awareness ) ),
 				array( 'meta_id' => $meta_id ),
 				array( '%s' ),
 				array( '%d' )
 			);
+
+			if ( false !== $result ) {
+				self::$storage_post_ids[ $room_hash ] = $this->merge_duplicate_storage_posts( $room_hash, $post_id );
+			}
+
+			return false !== $result;
 		}
 
-		return (bool) $wpdb->insert(
+		$result = $wpdb->insert(
 			$wpdb->postmeta,
 			array(
 				'post_id'    => $post_id,
@@ -192,6 +206,12 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			),
 			array( '%d', '%s', '%s' )
 		);
+
+		if ( $result ) {
+			self::$storage_post_ids[ $room_hash ] = $this->merge_duplicate_storage_posts( $room_hash, $post_id );
+		}
+
+		return (bool) $result;
 	}
 
 	/**
@@ -256,12 +276,153 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			)
 		);
 
-		if ( is_int( $post_id ) ) {
-			self::$storage_post_ids[ $room_hash ] = $post_id;
-			return $post_id;
+		if ( is_int( $post_id ) && $post_id > 0 ) {
+			$canonical_post_id = $this->resolve_canonical_storage_post_id_after_insert( $room_hash, $post_id );
+			if ( null === $canonical_post_id ) {
+				return null;
+			}
+
+			self::$storage_post_ids[ $room_hash ] = $canonical_post_id;
+			return $canonical_post_id;
 		}
 
 		return null;
+	}
+
+	/**
+	 * Resolves the canonical room storage post after inserting a new post.
+	 *
+	 * Two concurrent first writers can both miss the lookup above and create
+	 * storage posts for the same room hash. Depending on the exact interleaving,
+	 * WordPress may create either a duplicate exact slug or a suffixed slug.
+	 * When this request receives a non-canonical post, redirect it to the
+	 * canonical storage before any sync or awareness data is written.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $room_hash        MD5 hash of the room identifier.
+	 * @param int    $inserted_post_id Post ID returned by wp_insert_post().
+	 * @return int|null Canonical storage post ID.
+	 */
+	private function resolve_canonical_storage_post_id_after_insert( string $room_hash, int $inserted_post_id ): ?int {
+		$canonical_post_id = $this->find_canonical_storage_post_id( $room_hash );
+		if ( null === $canonical_post_id ) {
+			$canonical_post_id = $this->promote_storage_post_to_canonical_slug( $room_hash, $inserted_post_id );
+		}
+
+		if ( null === $canonical_post_id ) {
+			wp_delete_post( $inserted_post_id, true );
+			return null;
+		}
+
+		if ( $inserted_post_id !== $canonical_post_id ) {
+			/*
+			 * This request just created a duplicate empty storage post because
+			 * another first writer won the exact-slug race. Delete only that
+			 * just-created empty post and write this request's data to canonical
+			 * storage.
+			 *
+			 * Do not merge or delete older duplicate storage posts here. A stale
+			 * request may already hold a duplicate post ID, and MySQL advisory
+			 * locks/raw transactions are not a reliable cross-server fence under
+			 * HyperDB or database proxies. Future historical repair should be
+			 * bounded and idempotent, or run out of band with primary-pinned
+			 * verification and a grace period before deleting duplicates.
+			 */
+			wp_delete_post( $inserted_post_id, true );
+		}
+
+		return $canonical_post_id;
+	}
+
+	/**
+	 * Finds the canonical storage post for a room hash.
+	 *
+	 * The canonical post is the oldest published storage post with the exact
+	 * room hash slug. Suffixed slugs are repair candidates, not canonical.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $room_hash MD5 hash of the room identifier.
+	 * @return int|null Canonical storage post ID.
+	 */
+	private function find_canonical_storage_post_id( string $room_hash ): ?int {
+		$post_id = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'posts_per_page' => 1,
+				'post_status'    => 'publish',
+				'name'           => $room_hash,
+				'fields'         => 'ids',
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+			)
+		);
+
+		return is_numeric( $post_id ) ? (int) $post_id : null;
+	}
+
+	/**
+	 * Promotes a storage post to the canonical room slug.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $room_hash MD5 hash of the room identifier.
+	 * @param int    $post_id   Post ID to promote.
+	 * @return int|null Promoted post ID on success.
+	 */
+	private function promote_storage_post_to_canonical_slug( string $room_hash, int $post_id ): ?int {
+		global $wpdb;
+
+		/*
+		 * @todo Could this be replaced by {@see wp_update_post()}? Could we experience
+		 *       a race with other posts having a different post type or post status?
+		 */
+		$result = $wpdb->update(
+			$wpdb->posts,
+			array( 'post_name' => $room_hash ),
+			array(
+				'ID'          => $post_id,
+				'post_type'   => self::POST_TYPE,
+				'post_status' => 'publish',
+			),
+			array( '%s' ),
+			array( '%d', '%s', '%s' )
+		);
+
+		if ( false === $result ) {
+			return null;
+		}
+
+		clean_post_cache( $post_id );
+		return $post_id;
+	}
+
+	/**
+	 * Lists storage posts belonging to a room hash, including suffixed duplicates.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $room_hash MD5 hash of the room identifier.
+	 * @return array<int> Storage post IDs.
+	 */
+	private function get_storage_post_ids_for_room_hash( string $room_hash ): array {
+		global $wpdb;
+
+		$post_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts}
+				WHERE post_type = %s
+					AND post_status = 'publish'
+					AND ( post_name = %s OR post_name LIKE %s )
+				ORDER BY ID ASC",
+				self::POST_TYPE,
+				$room_hash,
+				$wpdb->esc_like( $room_hash . '-' ) . '%'
+			)
+		);
+
+		return array_map( 'intval', $post_ids );
 	}
 
 	/**
