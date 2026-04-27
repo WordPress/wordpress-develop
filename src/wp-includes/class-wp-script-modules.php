@@ -402,14 +402,14 @@ class WP_Script_Modules {
 				continue;
 			}
 
-			$output     = sprintf(
+			$output    = sprintf(
 				'( %s )( %s, %s );',
 				$set_locale_data_js_function,
 				wp_json_encode( $domain, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
 				$json_translations
 			);
-			$script_id  = "wp-script-module-translation-data-{$id}";
-			$output    .= "\n//# sourceURL=" . rawurlencode( $script_id );
+			$script_id = "wp-script-module-translation-data-{$id}";
+			$output   .= "\n//# sourceURL=" . rawurlencode( $script_id );
 
 			// Ensure wp-i18n is printed; the inline script below relies on wp.i18n.setLocaleData().
 			if ( ! wp_script_is( 'wp-i18n', 'done' ) ) {
