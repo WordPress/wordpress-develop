@@ -989,7 +989,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 			'meta'  => array(
 				'class'   => 'hide-if-no-js',
 				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
-				'html'    => "<script>{$script}</script>",
+				'html'    => wp_get_inline_script_tag( $script ),
 			),
 		)
 	);
