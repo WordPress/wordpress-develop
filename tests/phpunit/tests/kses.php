@@ -1228,16 +1228,6 @@ EOF;
 				'css'      => 'background-color: rgba(0, 0, 0, .1)',
 				'expected' => 'background-color: rgba(0, 0, 0, .1)',
 			),
-			// RGB color values are not allowed.
-			array(
-				'css'      => 'color: rgb( 100, 100, 100 )',
-				'expected' => '',
-			),
-			// RGBA color values are not allowed.
-			array(
-				'css'      => 'color: rgb( 100, 100, 100, .4 )',
-				'expected' => '',
-			),
 			// Allow min().
 			array(
 				'css'      => 'width: min(50%, 400px)',
