@@ -980,7 +980,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		$function,
 		wp_json_encode( $shortcut_labels['appleOS'], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 	);
-	$script  .= "\n//# sourceURL=" . esc_url_raw( __FUNCTION__ );
+	$script  .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'command-palette',
