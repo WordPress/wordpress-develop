@@ -343,7 +343,7 @@ class WP_On_This_Day {
 	 * @return string Quoted CSS string.
 	 */
 	protected static function esc_css_string( $value ) {
-		$value = wp_check_invalid_utf8( (string) $value );
+		$value = wp_scrub_utf8( (string) $value );
 		$value = str_replace(
 			array( '\\', '"', "\n", "\r", "\f" ),
 			array( '\\\\', '\"', '\a ', '\d ', '\c ' ),
