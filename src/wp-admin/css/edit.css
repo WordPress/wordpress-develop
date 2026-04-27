@@ -649,7 +649,7 @@ form#tags-filter {
 	float: left;
 	margin-right: 25px;
 	font-size: 13px;
-	line-height: 1.8;
+	line-height: 2.2;
 	cursor: default;
 	max-width: 100%;
 	overflow: hidden;
@@ -1953,7 +1953,7 @@ table.links-table {
 
 	.tagchecklist > li {
 		font-size: 16px;
-		line-height: 1.4;
+		line-height: 1.7;
 	}
 
 	/* Discussion */
