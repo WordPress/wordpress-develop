@@ -269,6 +269,11 @@ class WP_On_This_Day {
 					$window_days
 				),
 				number_format_i18n( $window_days )
+			),
+			array(
+				'id'          => 'otd-message',
+				'type'        => 'success',
+				'dismissible' => true,
 			)
 		);
 	}
