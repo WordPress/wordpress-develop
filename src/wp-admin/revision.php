@@ -61,6 +61,14 @@ switch ( $action ) {
 
 		check_admin_referer( "restore-post_{$revision->ID}" );
 
+		if ( wp_is_post_autosave( $revision ) && in_array( $post->post_status, array( 'publish', 'future', 'private' ), true ) ) {
+			$redirect = add_query_arg(
+				array( 'restored_autosave' => $revision->ID ),
+				get_edit_post_link( $post->ID, 'url' )
+			);
+			break;
+		}
+
 		/*
 		 * Ensure the global $post remains the same after revision is restored.
 		 * Because wp_insert_post() and wp_transition_post_status() are called

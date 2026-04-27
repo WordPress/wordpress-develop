@@ -237,6 +237,20 @@ $form_action  = 'editpost';
 $nonce_action = 'update-post_' . $post->ID;
 $form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "' />";
 
+// If an autosave was restored from the revision screen, load it into the editor.
+$restored_autosave = false;
+if ( ! empty( $_GET['restored_autosave'] ) ) {
+	$restored_autosave_id = absint( $_GET['restored_autosave'] );
+	$restored_autosave    = wp_get_post_revision( $restored_autosave_id );
+	if ( $restored_autosave && $restored_autosave->post_parent === $post->ID && wp_is_post_autosave( $restored_autosave ) ) {
+		$post->post_title   = $restored_autosave->post_title;
+		$post->post_content = $restored_autosave->post_content;
+		$post->post_excerpt = $restored_autosave->post_excerpt;
+
+		$notice = __( 'The autosave has been loaded into the editor. Review your changes and click Update to publish them.' );
+	}
+}
+
 // Detect if there exists an autosave newer than the post and if that autosave is different than the post.
 if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
 	foreach ( _wp_post_revision_fields( $post ) as $autosave_field => $_autosave_field ) {
@@ -251,7 +265,10 @@ if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql
 	}
 	// If this autosave isn't different from the current post, begone.
 	if ( ! $notice ) {
-		wp_delete_post_revision( $autosave->ID );
+		// Don't delete the autosave if it's the one we just restored.
+		if ( ! $restored_autosave || $restored_autosave->ID !== $autosave->ID ) {
+			wp_delete_post_revision( $autosave->ID );
+		}
 	}
 	unset( $autosave_field, $_autosave_field );
 }
