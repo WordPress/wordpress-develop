@@ -58,7 +58,7 @@ env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
   # Controls which npm script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
   PHPUNIT_SCRIPT: php
   SLOW_TESTS: 'external-http,media'
