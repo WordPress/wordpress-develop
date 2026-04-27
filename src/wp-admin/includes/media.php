@@ -269,6 +269,7 @@ function _cleanup_image_add_caption( $matches ) {
  * @since 2.5.0
  *
  * @param string $html
+ * @return never
  */
 function media_send_to_editor( $html ) {
 	?>
@@ -319,6 +320,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$title   = sanitize_text_field( $name );
 	$content = '';
 	$excerpt = '';
+	$alt     = '';
 
 	if ( preg_match( '#^audio#', $type ) ) {
 		$meta = wp_read_audio_metadata( $file );
@@ -399,6 +401,10 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 			if ( trim( $image_meta['caption'] ) ) {
 				$excerpt = $image_meta['caption'];
 			}
+
+			if ( trim( $image_meta['alt'] ) ) {
+				$alt = $image_meta['alt'];
+			}
 		}
 	}
 
@@ -420,6 +426,10 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 
 	// Save the data.
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
+
+	if ( trim( $alt ) ) {
+		update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+	}
 
 	if ( ! is_wp_error( $attachment_id ) ) {
 		/*
@@ -477,6 +487,7 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 	$file    = $file['file'];
 	$title   = preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
 	$content = '';
+	$alt     = '';
 
 	// Use image exif/iptc data for title and caption defaults if possible.
 	$image_meta = wp_read_image_metadata( $file );
@@ -488,6 +499,9 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 
 		if ( trim( $image_meta['caption'] ) ) {
 			$content = $image_meta['caption'];
+		}
+		if ( trim( $image_meta['alt'] ) ) {
+			$alt = $image_meta['alt'];
 		}
 	}
 
@@ -512,6 +526,10 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 
 	// Save the attachment metadata.
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
+
+	if ( trim( $alt ) ) {
+		update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+	}
 
 	if ( ! is_wp_error( $attachment_id ) ) {
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
@@ -611,7 +629,7 @@ function wp_iframe( $content_func, ...$args ) {
 
 	?>
 	</head>
-	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js">
+	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js <?php echo 'admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' ); ?>">
 	<script>
 	document.body.className = document.body.className.replace('no-js', 'js');
 	</script>
@@ -736,7 +754,7 @@ function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
  *
  * @since 2.5.0
  *
- * @return null|array|void Array of error messages keyed by attachment ID, null or void on success.
+ * @return null|array Array of error messages keyed by attachment ID, null on success, or exit.
  */
 function media_upload_form_handler() {
 	check_admin_referer( 'media-form' );
@@ -857,7 +875,7 @@ function media_upload_form_handler() {
 		 */
 		$html = apply_filters( 'media_send_to_editor', $html, $send_id, $attachment );
 
-		return media_send_to_editor( $html );
+		media_send_to_editor( $html );
 	}
 
 	return $errors;
@@ -959,7 +977,7 @@ function wp_media_upload_handler() {
 			$html = apply_filters( 'image_send_to_editor_url', $html, sanitize_url( $src ), $alt, $align );
 		}
 
-		return media_send_to_editor( $html );
+		media_send_to_editor( $html );
 	}
 
 	if ( isset( $_POST['save'] ) ) {
@@ -3362,7 +3380,7 @@ function attachment_submitbox_metadata() {
 
 	<div class="misc-pub-section misc-pub-attachment">
 		<label for="attachment_url"><?php _e( 'File URL:' ); ?></label>
-		<input type="text" class="widefat urlfield" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
+		<input type="text" class="widefat urlfield ltr" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
 		<span class="copy-to-clipboard-container">
 			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL to clipboard' ); ?></button>
 			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>

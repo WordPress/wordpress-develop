@@ -1904,6 +1904,25 @@ HTML;
 	}
 
 	/**
+	 * Tests that VIPS script modules are not registered in Core.
+	 *
+	 * The wasm-vips library is plugin-only and should not be included
+	 * in WordPress Core builds due to its large size (~16MB per file).
+	 *
+	 * @ticket 64906
+	 *
+	 * @covers ::wp_default_script_modules
+	 */
+	public function test_vips_script_modules_not_registered_in_core() {
+		wp_default_script_modules();
+		wp_enqueue_script_module( '@wordpress/vips/loader' );
+
+		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertStringNotContainsString( 'vips', $actual );
+	}
+
+	/**
 	 * Normalizes markup for snapshot.
 	 *
 	 * @param string $markup Markup.
