@@ -19,7 +19,8 @@
  *     dependencies: array<int, array{ id: string, import: 'static'|'dynamic' }>,
  *     in_footer: bool,
  *     fetchpriority: 'auto'|'low'|'high',
- *     translations?: array{ textdomain: string, path: string },
+ *     textdomain?: string,
+ *     translations_path?: string,
  * }
  */
 class WP_Script_Modules {
@@ -359,10 +360,8 @@ class WP_Script_Modules {
 			return false;
 		}
 
-		$this->registered[ $id ]['translations'] = array(
-			'textdomain' => $domain,
-			'path'       => $path,
-		);
+		$this->registered[ $id ]['textdomain']        = $domain;
+		$this->registered[ $id ]['translations_path'] = $path;
 
 		return true;
 	}
@@ -394,8 +393,8 @@ class WP_Script_Modules {
 		JS;
 
 		foreach ( $module_ids as $id ) {
-			$domain = $this->registered[ $id ]['translations']['textdomain'] ?? 'default';
-			$path   = $this->registered[ $id ]['translations']['path'] ?? '';
+			$domain = $this->registered[ $id ]['textdomain'] ?? 'default';
+			$path   = $this->registered[ $id ]['translations_path'] ?? '';
 
 			$json_translations = load_script_module_textdomain( $id, $domain, $path );
 
