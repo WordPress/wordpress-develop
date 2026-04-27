@@ -50,13 +50,13 @@ on:
         type: boolean
         default: false
 env:
-  COMPOSER_INSTALL: ${{ false }}
+  COMPOSER_INSTALL: false
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_PHPUNIT: ${{ inputs.phpunit && inputs.phpunit || inputs.php }}-fpm
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
   PHPUNIT_SCRIPT: php
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
   SLOW_TESTS: 'external-http,media'
 
 # Disable permissions for all available scopes by default.
