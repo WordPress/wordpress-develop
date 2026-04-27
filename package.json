@@ -142,7 +142,6 @@
 		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan",
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
-		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg --dev",
-		"vendor:copy": "node tools/vendors/copy-vendors.js"
+		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg --dev"
 	}
 }
