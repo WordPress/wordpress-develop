@@ -131,11 +131,12 @@ jobs:
           path: 'pr-repo'
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           token: ${{ env.ACCESS_TOKEN }}
+          persist-credentials: true
 
       - name: Apply patch
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}
         working-directory: 'pr-repo'
-        run: git apply ${{ github.workspace }}/changes.diff
+        run: git apply "$GITHUB_WORKSPACE/changes.diff"
 
       - name: Display changes to versioned files
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}
@@ -149,7 +150,7 @@ jobs:
           GH_APP_ID: ${{ secrets.GH_PR_BUILT_FILES_APP_ID }}
         run: |
           git config user.name "wordpress-develop-pr-bot[bot]"
-          git config user.email ${{ env.GH_APP_ID }}+wordpress-develop-pr-bot[bot]@users.noreply.github.com
+          git config user.email "${GH_APP_ID}+wordpress-develop-pr-bot[bot]@users.noreply.github.com"
 
       - name: Stage changes
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}
