@@ -44,11 +44,17 @@ class Tests_extract_from_markers extends WP_UnitTestCase {
 		$this->assertSame( $expected, extract_from_markers( $this->temp_file, $marker ) );
 	}
 
-	/**
-	 * Data provider for test_extract_from_markers.
-	 *
-	 * @return array[]
-	 */
+ /**
+  * Data provider for test_extract_from_markers.
+  *
+  * @return array[]
+  *
+  * @phpstan-return array<string, array{
+  *     expected: string[],
+  *     content:  string,
+  *     marker:   string,
+  * }>
+  */
 	public function data_extract_from_markers() {
 		return array(
 			'Empty file'                          => array(
