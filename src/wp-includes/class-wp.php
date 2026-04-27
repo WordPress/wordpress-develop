@@ -382,7 +382,10 @@ class WP {
 					unset( $this->query_vars['post_type'] );
 				}
 			} else {
-				$this->query_vars['post_type'] = array_intersect( $this->query_vars['post_type'], $queryable_post_types );
+				$this->query_vars['post_type'] = array_intersect(
+					array_filter( $this->query_vars['post_type'], 'is_scalar' ),
+					$queryable_post_types
+				);
 			}
 		}
 

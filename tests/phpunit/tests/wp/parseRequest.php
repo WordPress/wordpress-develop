@@ -56,4 +56,70 @@ class Tests_WP_ParseRequest extends WP_UnitTestCase {
 		$this->wp->parse_request();
 		$this->assertSame( '', $this->wp->request );
 	}
+
+	/**
+	 * @ticket 65123
+	 */
+	public function test_parse_request_ignores_non_scalar_post_type_values_from_get() {
+		$original_get     = $_GET;
+		$original_post    = $_POST;
+		$original_request = $_SERVER['REQUEST_URI'] ?? null;
+		$original_self    = $_SERVER['PHP_SELF'] ?? null;
+
+		$_GET['post_type']      = array( array( 'page' ), 'post' );
+		$_SERVER['REQUEST_URI'] = '/?post_type[][]=page&post_type[]=post';
+		$_SERVER['PHP_SELF']    = '/index.php';
+
+		$this->wp->parse_request();
+
+		$this->assertSame( array( 'post' ), array_values( $this->wp->query_vars['post_type'] ) );
+
+		$_GET  = $original_get;
+		$_POST = $original_post;
+
+		if ( null === $original_request ) {
+			unset( $_SERVER['REQUEST_URI'] );
+		} else {
+			$_SERVER['REQUEST_URI'] = $original_request;
+		}
+
+		if ( null === $original_self ) {
+			unset( $_SERVER['PHP_SELF'] );
+		} else {
+			$_SERVER['PHP_SELF'] = $original_self;
+		}
+	}
+
+	/**
+	 * @ticket 65123
+	 */
+	public function test_parse_request_ignores_non_scalar_post_type_values_from_post() {
+		$original_get     = $_GET;
+		$original_post    = $_POST;
+		$original_request = $_SERVER['REQUEST_URI'] ?? null;
+		$original_self    = $_SERVER['PHP_SELF'] ?? null;
+
+		$_POST['post_type']     = array( array( 'page' ), 'post' );
+		$_SERVER['REQUEST_URI'] = '/';
+		$_SERVER['PHP_SELF']    = '/index.php';
+
+		$this->wp->parse_request();
+
+		$this->assertSame( array( 'post' ), array_values( $this->wp->query_vars['post_type'] ) );
+
+		$_GET  = $original_get;
+		$_POST = $original_post;
+
+		if ( null === $original_request ) {
+			unset( $_SERVER['REQUEST_URI'] );
+		} else {
+			$_SERVER['REQUEST_URI'] = $original_request;
+		}
+
+		if ( null === $original_self ) {
+			unset( $_SERVER['PHP_SELF'] );
+		} else {
+			$_SERVER['PHP_SELF'] = $original_self;
+		}
+	}
 }
