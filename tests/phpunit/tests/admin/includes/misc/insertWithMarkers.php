@@ -59,11 +59,18 @@ class Tests_insert_with_markers extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual_content );
 	}
 
-	/**
-	 * Data provider for test_insert_with_markers.
-	 *
-	 * @return array[]
-	 */
+ /**
+  * Data provider for test_insert_with_markers.
+  *
+  * @return array[]
+  *
+  * @phpstan-return array<string, array{
+  *     initial_content: string,
+  *     marker:          string,
+  *     insertion:       string|string[],
+  *     expected:        string,
+  * }>
+  */
 	public function data_insert_with_markers() {
 		$wp_comments = array(
 			'# The directives (lines) between "BEGIN %s" and "END %s" are',
@@ -103,7 +110,7 @@ class Tests_insert_with_markers extends WP_UnitTestCase {
 			'String insertion instead of array'          => array(
 				'initial_content' => '',
 				'marker'          => 'StringTest',
-				'insertion'       => "Single Line",
+				'insertion'       => 'Single Line',
 				'expected'        => "\n# BEGIN StringTest\n{$string_desc}\nSingle Line\n# END StringTest",
 			),
 		);
