@@ -545,11 +545,11 @@ function wp_print_media_templates() {
 				<# } #>
 				<span class="setting" data-setting="caption">
 					<# if ( 'video' === data.type ) { #>
-					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Video Description' ); ?></label>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Video Description' ); ?></label>
 					<# } else if ( 'image' === data.type ) { #>
-					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Image Caption' ); ?></label>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
 					<# } else { #>
-					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Caption' ); ?></label>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Caption' ); ?></label>
 					<# } #>
 					<textarea id="attachment-details-two-column-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 				</span>
@@ -803,11 +803,11 @@ function wp_print_media_templates() {
 		<# } #>
 		<span class="setting" data-setting="caption">
 			<# if ( 'video' === data.type ) { #>
-			<label for="attachment-details-caption" class="name"><?php _e( 'Video Description' ); ?></label>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Video Description' ); ?></label>
 			<# } else if ( 'image' === data.type ) { #>
-			<label for="attachment-details-caption" class="name"><?php _e( 'Image Caption' ); ?></label>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
 			<# } else { #>
-			<label for="attachment-details-caption" class="name"><?php _e( 'Caption' ); ?></label>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Caption' ); ?></label>
 			<# } #>
 			<textarea id="attachment-details-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 		</span>

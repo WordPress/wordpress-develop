@@ -3277,11 +3277,11 @@ function edit_form_image_editor( $post ) {
 			<label for="attachment_caption"><strong>
 				<?php
 				if ( str_starts_with( $post->post_mime_type, 'video' ) ) {
-					_e( 'Video Description' );
+					esc_html_e( 'Video Description' );
 				} elseif ( str_starts_with( $post->post_mime_type, 'image' ) ) {
-					_e( 'Image Caption' );
+					esc_html_e( 'Image Caption' );
 				} else {
-					_e( 'Caption' );
+					esc_html_e( 'Caption' );
 				}
 				?>
 			</strong></label><br />
