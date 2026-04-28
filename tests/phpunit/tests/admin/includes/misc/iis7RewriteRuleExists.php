@@ -47,7 +47,8 @@ class Tests_iis7_rewrite_rule_exists extends WP_UnitTestCase {
 	public function test_iis7_rewrite_rule_exists( $expected, $content ) {
 		if ( 'Not XML' === $content ) {
 			file_put_contents( $this->temp_file, $content );
-			$this->assertSame( $expected, iis7_rewrite_rule_exists( $this->temp_file ) );
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			$this->assertSame( $expected, @iis7_rewrite_rule_exists( $this->temp_file ) );
 		} else {
 			file_put_contents( $this->temp_file, $content );
 			$this->assertSame( $expected, iis7_rewrite_rule_exists( $this->temp_file ) );
