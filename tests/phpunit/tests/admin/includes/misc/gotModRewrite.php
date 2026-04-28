@@ -10,11 +10,6 @@
  */
 class Tests_got_mod_rewrite extends WP_UnitTestCase {
 
-	public function tear_down() {
-		remove_all_filters( 'got_rewrite' );
-		parent::tear_down();
-	}
-
 	/**
 	 * Tests that got_mod_rewrite() correctly detects mod_rewrite based on server and filters.
 	 *
