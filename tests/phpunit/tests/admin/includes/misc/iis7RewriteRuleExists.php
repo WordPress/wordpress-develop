@@ -46,8 +46,8 @@ class Tests_iis7_rewrite_rule_exists extends WP_UnitTestCase {
 	 */
 	public function test_iis7_rewrite_rule_exists( $expected, $content ) {
 		if ( 'Not XML' === $content ) {
-			@file_put_contents( $this->temp_file, $content );
-			$this->assertSame( $expected, @iis7_rewrite_rule_exists( $this->temp_file ) );
+			file_put_contents( $this->temp_file, $content );
+			$this->assertSame( $expected, iis7_rewrite_rule_exists( $this->temp_file ) );
 		} else {
 			file_put_contents( $this->temp_file, $content );
 			$this->assertSame( $expected, iis7_rewrite_rule_exists( $this->temp_file ) );
@@ -61,11 +61,11 @@ class Tests_iis7_rewrite_rule_exists extends WP_UnitTestCase {
 	 */
 	public function data_iis7_rewrite_rule_exists(): array {
 		return array(
-			'Rule with name "wordpress" exists' => array(
+			'Rule with name "wordpress" exists'               => array(
 				'expected' => true,
 				'content'  => '<configuration><system.webServer><rewrite><rules><rule name="wordpress" /></rules></rewrite></system.webServer></configuration>',
 			),
-			'Rule with name "WordPress" exists' => array(
+			'Rule with name "WordPress" exists'               => array(
 				'expected' => true,
 				'content'  => '<configuration><system.webServer><rewrite><rules><rule name="WordPress" /></rules></rewrite></system.webServer></configuration>',
 			),
@@ -73,15 +73,15 @@ class Tests_iis7_rewrite_rule_exists extends WP_UnitTestCase {
 				'expected' => true,
 				'content'  => '<configuration><system.webServer><rewrite><rules><rule name="wordpress-rules" /></rules></rewrite></system.webServer></configuration>',
 			),
-			'Rule does not exist' => array(
+			'Rule does not exist'                             => array(
 				'expected' => false,
 				'content'  => '<configuration><system.webServer><rewrite><rules><rule name="other-rule" /></rules></rewrite></system.webServer></configuration>',
 			),
-			'Empty configuration' => array(
+			'Empty configuration'                             => array(
 				'expected' => false,
 				'content'  => '<configuration />',
 			),
-			'Invalid XML' => array(
+			'Invalid XML'                                     => array(
 				'expected' => false,
 				'content'  => 'Not XML',
 			),
