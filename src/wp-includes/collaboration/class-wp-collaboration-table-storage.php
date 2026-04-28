@@ -56,7 +56,7 @@ class WP_Collaboration_Table_Storage {
 	public function add_update( string $room, $update ): bool {
 		global $wpdb;
 
-		if ( '' === $room || empty( $update['type'] ) || empty( $update['client_id'] ) ) {
+		if ( '' === $room || ! is_array( $update ) || empty( $update['type'] ) || empty( $update['client_id'] ) ) {
 			return false;
 		}
 
@@ -64,8 +64,8 @@ class WP_Collaboration_Table_Storage {
 			$wpdb->collaboration,
 			array(
 				'room'      => $room,
-				'type'      => $update['type'] ?? '',
-				'client_id' => $update['client_id'] ?? '',
+				'type'      => $update['type'],
+				'client_id' => $update['client_id'],
 				'data'      => wp_json_encode( $update ),
 				'date_gmt'  => gmdate( 'Y-m-d H:i:s' ),
 				'user_id'   => get_current_user_id(),
@@ -120,6 +120,7 @@ class WP_Collaboration_Table_Storage {
 
 		if ( false !== $cached && is_array( $cached ) ) {
 			// Deterministic ordering.
+			/** @var AwarenessState[] $cached_awareness */
 			$cached_awareness = wp_list_sort( $cached, 'client_id' );
 
 			// Remove out of date entries and duplicate entries.
@@ -143,6 +144,7 @@ class WP_Collaboration_Table_Storage {
 			return array();
 		}
 
+		/** @var array<object{ client_id: string, user_id: string, date_gmt: string, data: string }> $rows */
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT client_id, user_id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s ORDER BY collaboration_id ASC",
@@ -150,12 +152,6 @@ class WP_Collaboration_Table_Storage {
 				$cutoff_mysql
 			)
 		);
-
-		if ( ! is_array( $rows ) ) {
-			$entries = array();
-			wp_cache_set( $cache_key, $entries, 'collaboration', HOUR_IN_SECONDS );
-			return $entries;
-		}
 
 		$entries = array();
 		foreach ( $rows as $row ) {
@@ -228,7 +224,8 @@ class WP_Collaboration_Table_Storage {
 		 * separately via get_awareness_state().
 		 */
 
-		/* Snapshot the current max ID and total row count in a single query. */
+		// Snapshot the current max ID and total row count in a single query.
+		/** @var object{ max_id: int, total: int } $snapshot */
 		$snapshot = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT COALESCE( MAX( collaboration_id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
@@ -236,16 +233,12 @@ class WP_Collaboration_Table_Storage {
 			)
 		);
 
-		if ( ! $snapshot ) {
-			$this->room_cursors[ $room ]       = 0;
-			$this->room_update_counts[ $room ] = 0;
-			return array();
-		}
-
 		$max_id = (int) $snapshot->max_id;
 		$total  = (int) $snapshot->total;
 
 		$this->room_cursors[ $room ] = $max_id;
+
+		$this->room_update_counts[ $room ] = $total;
 
 		if ( 0 === $max_id || $max_id <= $cursor ) {
 			/*
@@ -253,13 +246,11 @@ class WP_Collaboration_Table_Storage {
 			 * trigger compaction when updates have accumulated but
 			 * no new ones arrived since the client's last poll.
 			 */
-			$this->room_update_counts[ $room ] = $total;
 			return array();
 		}
 
-		$this->room_update_counts[ $room ] = $total;
-
-		/* Fetch updates after the cursor up to the snapshot boundary. */
+		// Fetch updates after the cursor up to the snapshot boundary.
+		/** @var array<object{ data: string }> $rows */
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT data FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND collaboration_id > %d AND collaboration_id <= %d ORDER BY collaboration_id ASC",
@@ -268,10 +259,6 @@ class WP_Collaboration_Table_Storage {
 				$max_id
 			)
 		);
-
-		if ( ! is_array( $rows ) ) {
-			return array();
-		}
 
 		$updates = array();
 		foreach ( $rows as $row ) {
