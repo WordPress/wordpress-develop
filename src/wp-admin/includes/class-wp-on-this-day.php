@@ -92,7 +92,11 @@ class WP_On_This_Day {
 
 		wp_add_dashboard_widget(
 			'dashboard_on_this_day',
-			'<span class="on-this-day-title" data-otd-window-label="' . esc_attr( self::get_window_label( self::get_window_days() ) ) . '">' . __( 'On This Day' ) . '</span>',
+			sprintf(
+				'<span class="on-this-day-title" data-otd-window-label="%s">%s</span>',
+				esc_attr( self::get_window_label( self::get_window_days() ) ),
+				__( 'On This Day' )
+			),
 			array( __CLASS__, 'render_dashboard_widget' )
 		);
 	}
