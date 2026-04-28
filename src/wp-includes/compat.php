@@ -535,6 +535,71 @@ if ( ! function_exists( 'array_last' ) ) {
 	}
 }
 
+/**
+ * Throws a ValueError (PHP 8.0+) or an InvalidArgumentException (PHP 7.x) with the given message.
+ *
+ * Helper for polyfills that need to throw ValueError but must also run on PHP 7.4.
+ *
+ * @ignore
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $message The error message.
+ * @throws ValueError               On PHP 8.0 and later.
+ * @throws InvalidArgumentException On PHP 7.x as a fallback.
+ */
+function _wp_throw_value_error( $message ) {
+	if ( ! class_exists( 'ValueError' ) ) {
+		throw new InvalidArgumentException( $message );
+	}
+
+	throw new ValueError( $message );
+}
+
+if ( ! function_exists( 'clamp' ) ) {
+	/**
+	 * Polyfill for `clamp()` function added in PHP 8.6.
+	 *
+	 * Clamps a value to be within the range of a given minimum and maximum.
+	 *
+	 * If the value is within the bounds, the original value is returned.
+	 * If it is not within the bounds, the closest bound is returned.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $value The value to clamp.
+	 * @param mixed $min   The minimum bound. Must be less than or equal to `$max`.
+	 * @param mixed $max   The maximum bound. Must be greater than or equal to `$min`.
+	 * @return mixed The clamped value.
+	 *
+	 * @throws ValueError               On PHP 8.0+: if `$min` is greater than `$max`, or if `$min` or `$max` is NAN.
+	 * @throws InvalidArgumentException On PHP 7.x: if `$min` is greater than `$max`, or if `$min` or `$max` is NAN.
+	 */
+	function clamp( $value, $min, $max ) {
+		if ( is_float( $min ) && is_nan( $min ) ) {
+			_wp_throw_value_error( 'clamp(): Argument #2 ($min) cannot be NAN' );
+		}
+
+		if ( is_float( $max ) && is_nan( $max ) ) {
+			_wp_throw_value_error( 'clamp(): Argument #3 ($max) cannot be NAN' );
+		}
+
+		if ( $max < $min ) {
+			_wp_throw_value_error( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
+		}
+
+		if ( $value < $min ) {
+			return $min;
+		}
+
+		if ( $value > $max ) {
+			return $max;
+		}
+
+		return $value;
+	}
+}
+
 // IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
 if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 	define( 'IMAGETYPE_AVIF', 19 );
