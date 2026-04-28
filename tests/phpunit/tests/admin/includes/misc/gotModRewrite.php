@@ -27,8 +27,9 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 		// without a framework, we rely on the filter for full control.
 
 		if ( null !== $filter_value ) {
-			add_filter( 'got_rewrite', array( $this, 'filter_got_rewrite' ) );
-			$this->temp_filter_value = $filter_value;
+			add_filter( 'got_rewrite', function() use ( $filter_value ) {
+				return $filter_value;
+			} );
 		}
 
 		// If we are NOT filtering, we need to be aware of the environment.
@@ -38,11 +39,6 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 		// we use the filter to simulate the different outcomes of the internal check.
 
 		$this->assertSame( $expected, got_mod_rewrite() );
-
-		if ( null !== $filter_value ) {
-			remove_filter( 'got_rewrite', array( $this, 'filter_got_rewrite' ) );
-			unset( $this->temp_filter_value );
-		}
 	}
 
 	/**
@@ -53,6 +49,12 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 	 *     @type bool      $apache_loaded Whether mod_rewrite is loaded (simulated via filter).
 	 *     @type bool|null $filter_value  The value to return from the filter.
 	 * }
+	 *
+	 * @phpstan-return array<string, array{
+	 *     expected:      bool,
+	 *     apache_loaded: bool,
+	 *     filter_value:  bool|null,
+	 * }>
 	 */
 	public function data_got_mod_rewrite() {
 		return array(
@@ -72,20 +74,5 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 				'filter_value'  => true,
 			),
 		);
-	}
-
-	/**
-	 * Temporary property for filter value.
-	 * @var bool
-	 */
-	private $temp_filter_value;
-
-	/**
-	 * Filter callback for 'got_rewrite'.
-	 *
-	 * @return bool
-	 */
-	public function filter_got_rewrite() {
-		return $this->temp_filter_value;
 	}
 }
