@@ -90,18 +90,9 @@ class WP_On_This_Day {
 
 		wp_enqueue_style( 'on-this-day' );
 
-		// Apply the date range label to the widget header via CSS.
-		wp_add_inline_style(
-			'on-this-day',
-			sprintf(
-				'#dashboard_on_this_day{--otd-today:%s;}',
-				self::esc_css_string( self::get_window_label( self::get_window_days() ) )
-			)
-		);
-
 		wp_add_dashboard_widget(
 			'dashboard_on_this_day',
-			__( 'On This Day' ),
+			'<span class="on-this-day-title" data-otd-window-label="' . esc_attr( self::get_window_label( self::get_window_days() ) ) . '">' . __( 'On This Day' ) . '</span>',
 			array( __CLASS__, 'render_dashboard_widget' )
 		);
 	}
@@ -337,25 +328,6 @@ class WP_On_This_Day {
 			max( (int) $window_days, self::MIN_WINDOW_DAYS ),
 			self::MAX_WINDOW_DAYS
 		);
-	}
-
-	/**
-	 * Escapes a string for use as a quoted CSS string token.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param string $value String to escape.
-	 * @return string Quoted CSS string.
-	 */
-	protected static function esc_css_string( $value ) {
-		$value = wp_scrub_utf8( (string) $value );
-		$value = str_replace(
-			array( '\\', '"', "\n", "\r", "\f" ),
-			array( '\\\\', '\"', '\a ', '\d ', '\c ' ),
-			$value
-		);
-
-		return '"' . $value . '"';
 	}
 
 	/**

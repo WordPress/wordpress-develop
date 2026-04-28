@@ -4,7 +4,7 @@
    Organised as:
      1. Design tokens (custom properties on the widget root)
      2. Postbox chrome (#dashboard_on_this_day)
-     3. Widget title date pill (`.hndle::after`)
+     3. Widget title date pill (`.on-this-day-title::after`)
      4. Timeline (year headers, vertical line, post rows)
      5. Post row (icon circle, title, excerpt, meta row)
      6. Window control
@@ -23,8 +23,7 @@
    follows the user's selected admin color scheme (Blue, Modern, Coffee, etc.).
    Fallback values match the classic "Fresh" scheme.
    ----------------------------------------------------------------------------- */
-#dashboard_on_this_day,
-.on-this-day-widget {
+#dashboard_on_this_day {
 	/* Accent — theme-color aware, follows the user's admin color scheme. */
 	--otd-accent:        var(--wp-admin-theme-color, #2271b1);
 	--otd-accent-dark:   var(--wp-admin-theme-color-darker-10, #135e96);
@@ -45,12 +44,11 @@
 	/* Shape + motion. */
 	--otd-pill:     9999px;
 	--otd-ease:     0.15s ease;
-}
 
-/* -----------------------------------------------------------------------------
-   2. Postbox chrome
-   ----------------------------------------------------------------------------- */
-#dashboard_on_this_day {
+	/* -------------------------------------------------------------------------
+	   2. Postbox chrome
+	   ------------------------------------------------------------------------- */
+
 	/* To honour the postbox border-radius. */
 	overflow: hidden;
 
@@ -66,315 +64,322 @@
 	& .hndle {
 		gap: 0;
 	}
-}
 
-.on-this-day-widget {
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 auto;
-	min-height: 0;
-	font-size: 13px;
-	color: var(--otd-ink);
-	line-height: 1.5;
-}
-
-/* Scrollable content area — keeps the timeline / empty state contained
-   so the window control below pins to the bottom of the postbox body. */
-.on-this-day-scroll {
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow: auto;
-}
-
-/* -----------------------------------------------------------------------------
-   3. Widget title date pill
-
-   The widget is registered with a plain-text title ("On This Day") so that
-   Screen Options and box-order preferences stay clean. The current date
-   ("F j") is injected into `--otd-today` as a quoted CSS string by PHP and
-   rendered here as a pseudo-element pill. The `none` fallback keeps the
-   pseudo-element hidden in contexts where the variable isn't set.
-   ----------------------------------------------------------------------------- */
-#dashboard_on_this_day .hndle::after {
-	content: var(--otd-today, none);
-	display: inline-block;
-	margin-left: 10px;
-	padding: 2px 9px;
-	font-weight: 600;
-	font-size: 11px;
-	letter-spacing: 0.3px;
-	text-transform: uppercase;
-	color: var(--otd-accent-dark);
-	background: var(--otd-accent-8);
-	border-radius: var(--otd-pill);
-	white-space: nowrap;
-	vertical-align: 1px;
-}
-
-/* -----------------------------------------------------------------------------
-   4. Timeline
-   -----------------------------------------------------------------------------
-   Layout math (reused below):
-     padding-left of .on-this-day-timeline = 20px
-     icon width = 28px  ->  centers at 20 + 14 = 34px
-     gap between icon and body = 14px  ->  body column starts at 20 + 28 + 14 = 62px
-   ----------------------------------------------------------------------------- */
-.on-this-day-timeline {
-	margin: 0;
-	padding: 12px 20px 16px;
-	list-style: none;
-}
-
-.on-this-day-year-group {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-}
-
-.on-this-day-year-header {
-	margin: 8px 0 8px;
-	font-size: 15px;
-	font-weight: 500;
-	line-height: 1.4;
-	color: var(--otd-subtle);
-}
-
-.on-this-day-year-number {
-	color: var(--otd-muted);
-}
-
-.on-this-day-year-ago {
-	margin-left: 6px;
-	color: var(--otd-subtle);
-}
-
-.on-this-day-post-list {
-	position: relative;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-
-	/* Vertical guide line, scoped per year group so the year header
-	   naturally interrupts the line between groups. The halo on each
-	   icon circle (see below) punches ~3px gaps around every circle. */
-	&::before {
-		content: "";
-		position: absolute;
-		left: 14px; /* center of the 28px icon column */
-		top: 6px;
-		bottom: 14px;
-		width: 1px;
-		background: var(--otd-line);
+	& .on-this-day-widget {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 auto;
+		min-height: 0;
+		font-size: 13px;
+		color: var(--otd-ink);
+		line-height: 1.5;
 	}
-}
 
-/* -----------------------------------------------------------------------------
-   5. Post row
-   ----------------------------------------------------------------------------- */
-.on-this-day-post {
-	display: grid;
-	grid-template-columns: 28px 1fr;
-	gap: 14px;
-	padding: 6px 0 14px;
+	/* Scrollable content area — keeps the timeline / empty state contained
+	   so the window control below pins to the bottom of the postbox body. */
+	& .on-this-day-scroll {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow: auto;
+	}
 
-	/* Icon circle on the left. */
-	& .on-this-day-post-icon {
+	/* -------------------------------------------------------------------------
+	   3. Widget title date pill
+
+	   The widget is registered with a plain-text title ("On This Day") so that
+	   Screen Options and box-order preferences stay clean. The current date
+	   window label is rendered from `data-otd-window-label` on the title span.
+	   ------------------------------------------------------------------------- */
+	& .on-this-day-title {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+
+		&::after {
+			content: attr(data-otd-window-label);
+			display: inline-block;
+			margin-left: 10px;
+			padding: 2px 9px;
+			font-weight: 600;
+			font-size: 11px;
+			letter-spacing: 0.3px;
+			text-transform: uppercase;
+			color: var(--otd-accent-dark);
+			background: var(--otd-accent-8);
+			border-radius: var(--otd-pill);
+			white-space: nowrap;
+			vertical-align: 1px;
+		}
+	}
+
+	/* -------------------------------------------------------------------------
+	   4. Timeline
+	   -------------------------------------------------------------------------
+	   Layout math (reused below):
+	     padding-left of .on-this-day-timeline = 20px
+	     icon width = 28px  ->  centers at 20 + 14 = 34px
+	     gap between icon and body = 14px  ->  body column starts at 20 + 28 + 14 = 62px
+	   ------------------------------------------------------------------------- */
+	& .on-this-day-timeline {
+		margin: 0;
+		padding: 12px 20px 16px;
+		list-style: none;
+	}
+
+	& .on-this-day-year-group {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	& .on-this-day-year-header {
+		margin: 8px 0 8px;
+		font-size: 15px;
+		font-weight: 500;
+		line-height: 1.4;
+		color: var(--otd-subtle);
+	}
+
+	& .on-this-day-year-number {
+		color: var(--otd-muted);
+	}
+
+	& .on-this-day-year-ago {
+		margin-left: 6px;
+		color: var(--otd-subtle);
+	}
+
+	& .on-this-day-post-list {
 		position: relative;
-		z-index: 1; /* sits above the vertical line */
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		/* Vertical guide line, scoped per year group so the year header
+		   naturally interrupts the line between groups. The halo on each
+		   icon circle (see below) punches ~3px gaps around every circle. */
+		&::before {
+			content: "";
+			position: absolute;
+			left: 14px; /* center of the 28px icon column */
+			top: 6px;
+			bottom: 14px;
+			width: 1px;
+			background: var(--otd-line);
+		}
+	}
+
+	/* -------------------------------------------------------------------------
+	   5. Post row
+	   ------------------------------------------------------------------------- */
+	& .on-this-day-post {
+		display: grid;
+		grid-template-columns: 28px 1fr;
+		gap: 14px;
+		padding: 6px 0 14px;
+
+		/* Icon circle on the left. */
+		& .on-this-day-post-icon {
+			position: relative;
+			z-index: 1; /* sits above the vertical line */
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 28px;
+			height: 28px;
+			border-radius: 50%;
+			background: #fff;
+			border: 1px solid var(--otd-line);
+			color: var(--otd-muted);
+
+			/* 3px white halo so the timeline line appears to stop short of
+			   the circle on both sides rather than butting right into it. */
+			box-shadow: 0 0 0 3px #fff;
+
+			& svg {
+				display: block;
+			}
+		}
+
+		/* Featured-image variant: the thumbnail fills the circle.
+		   Border is hidden so the image reads as the "chip" itself,
+		   while the 3px white halo still separates it from the
+		   timeline line behind it. */
+		& .on-this-day-post-icon.has-thumbnail {
+			overflow: hidden;
+			border-color: transparent;
+			background: var(--otd-line); /* shown briefly before the image loads */
+
+			& img {
+				display: block;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+
+		&.is-private .on-this-day-post-icon {
+			color: var(--otd-private);
+			border-color: #f5c9cc;
+			background: #fcf0f1;
+		}
+	}
+
+	& .on-this-day-post-body {
+		min-width: 0;
+	}
+
+	& .on-this-day-post-title {
+		margin: 0 0 2px;
+		font-size: 13px;
+		font-weight: 600;
+		line-height: 1.4;
+
+		& a {
+			color: var(--otd-ink);
+			text-decoration: none;
+			box-shadow: none;
+
+			&:hover,
+			&:focus {
+				color: var(--otd-accent);
+			}
+		}
+	}
+
+	& .on-this-day-post-excerpt {
+		margin: 0 0 6px;
+		color: var(--otd-text);
+		line-height: 1.5;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
+	}
+
+	& .on-this-day-post-meta {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 6px;
+		font-size: 12px;
+		color: var(--otd-subtle);
+		line-height: 1.5;
+	}
+
+	& .on-this-day-post-time {
+		color: var(--otd-muted);
+	}
+
+	& .on-this-day-post-sep {
+		color: var(--otd-line);
+	}
+
+	& .on-this-day-post-categories {
+		max-width: 240px;
+		color: var(--otd-muted);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	& .on-this-day-post-private {
+		color: var(--otd-private);
+		font-weight: 500;
+	}
+
+	/* Actions row sits on its own line below the meta, left-aligned
+	   with the post body column. Uses core `.button` styling so it
+	   picks up the user's admin color scheme automatically. */
+	& .on-this-day-post-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 8px;
+		align-items: center;
+	}
+
+	/* -------------------------------------------------------------------------
+	   6. Window control
+	   ------------------------------------------------------------------------- */
+	& .on-this-day-window-form {
+		flex: 0 0 auto;
+		padding: 12px 20px 14px;
+		border-top: 1px solid var(--otd-line);
+		background: #fff;
+	}
+
+	& .on-this-day-window-control {
+		display: grid;
+		grid-template-columns: auto minmax(120px, 1fr) auto;
+		align-items: center;
+		gap: 8px;
+
+		& input[type="range"] {
+			width: 100%;
+			margin: 0;
+			accent-color: var(--otd-accent);
+		}
+	}
+
+	& .on-this-day-window-scale {
+		color: var(--otd-subtle);
+		font-size: 11px;
+		line-height: 1.4;
+		white-space: nowrap;
+	}
+
+	/* -------------------------------------------------------------------------
+	   7. Empty state
+	   ------------------------------------------------------------------------- */
+	& .on-this-day-empty {
+		text-align: center;
+		padding: 28px 20px 24px;
+	}
+
+	& .on-this-day-empty-icon {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 28px;
-		height: 28px;
+		width: 60px;
+		height: 60px;
+		margin-bottom: 10px;
+		color: var(--otd-accent);
+		background: var(--otd-accent-8);
 		border-radius: 50%;
-		background: #fff;
-		border: 1px solid var(--otd-line);
-		color: var(--otd-muted);
-
-		/* 3px white halo so the timeline line appears to stop short of
-		   the circle on both sides rather than butting right into it. */
-		box-shadow: 0 0 0 3px #fff;
-
-		& svg {
-			display: block;
-		}
+		box-shadow: inset 0 0 0 1px var(--otd-accent-15);
 	}
 
-	/* Featured-image variant: the thumbnail fills the circle.
-	   Border is hidden so the image reads as the "chip" itself,
-	   while the 3px white halo still separates it from the
-	   timeline line behind it. */
-	& .on-this-day-post-icon.has-thumbnail {
-		overflow: hidden;
-		border-color: transparent;
-		background: var(--otd-line); /* shown briefly before the image loads */
-
-		& img {
-			display: block;
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-		}
-	}
-
-	&.is-private .on-this-day-post-icon {
-		color: var(--otd-private);
-		border-color: #f5c9cc;
-		background: #fcf0f1;
-	}
-}
-
-.on-this-day-post-body {
-	min-width: 0;
-}
-
-.on-this-day-post-title {
-	margin: 0 0 2px;
-	font-size: 13px;
-	font-weight: 600;
-	line-height: 1.4;
-
-	& a {
+	& .on-this-day-empty-title {
+		margin: 6px 0 4px;
+		font-size: 15px;
+		font-weight: 600;
 		color: var(--otd-ink);
-		text-decoration: none;
-		box-shadow: none;
-
-		&:hover,
-		&:focus {
-			color: var(--otd-accent);
-		}
 	}
-}
 
-.on-this-day-post-excerpt {
-	margin: 0 0 6px;
-	color: var(--otd-text);
-	line-height: 1.5;
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
-	line-clamp: 2;
-	overflow: hidden;
-}
+	& .on-this-day-empty-text {
+		max-width: 340px;
+		margin: 0 auto 12px;
+		color: var(--otd-text);
+		line-height: 1.55;
+	}
 
-.on-this-day-post-meta {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 6px;
-	font-size: 12px;
-	color: var(--otd-subtle);
-	line-height: 1.5;
-}
-
-.on-this-day-post-time {
-	color: var(--otd-muted);
-}
-
-.on-this-day-post-sep {
-	color: var(--otd-line);
-}
-
-.on-this-day-post-categories {
-	max-width: 240px;
-	color: var(--otd-muted);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.on-this-day-post-private {
-	color: var(--otd-private);
-	font-weight: 500;
-}
-
-/* Actions row sits on its own line below the meta, left-aligned
-   with the post body column. Uses core `.button` styling so it
-   picks up the user's admin color scheme automatically. */
-.on-this-day-post-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 8px;
-	align-items: center;
-}
-
-/* -----------------------------------------------------------------------------
-   6. Window control
-   ----------------------------------------------------------------------------- */
-.on-this-day-window-form {
-	flex: 0 0 auto;
-	padding: 12px 20px 14px;
-	border-top: 1px solid var(--otd-line);
-	background: #fff;
-}
-
-.on-this-day-window-control {
-	display: grid;
-	grid-template-columns: auto minmax(120px, 1fr) auto;
-	align-items: center;
-	gap: 8px;
-}
-
-.on-this-day-window-control input[type="range"] {
-	width: 100%;
-	margin: 0;
-	accent-color: var(--otd-accent);
-}
-
-.on-this-day-window-scale {
-	color: var(--otd-subtle);
-	font-size: 11px;
-	line-height: 1.4;
-	white-space: nowrap;
-}
-
-/* -----------------------------------------------------------------------------
-   7. Empty state
-   ----------------------------------------------------------------------------- */
-.on-this-day-empty {
-	text-align: center;
-	padding: 28px 20px 24px;
-}
-
-.on-this-day-empty-icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 60px;
-	height: 60px;
-	margin-bottom: 10px;
-	color: var(--otd-accent);
-	background: var(--otd-accent-8);
-	border-radius: 50%;
-	box-shadow: inset 0 0 0 1px var(--otd-accent-15);
-}
-
-.on-this-day-empty-title {
-	margin: 6px 0 4px;
-	font-size: 15px;
-	font-weight: 600;
-	color: var(--otd-ink);
-}
-
-.on-this-day-empty-text {
-	max-width: 340px;
-	margin: 0 auto 12px;
-	color: var(--otd-text);
-	line-height: 1.55;
-}
-
-.on-this-day-empty-cta {
-	margin: 0;
+	& .on-this-day-empty-cta {
+		margin: 0;
+	}
 }
 
 /* -----------------------------------------------------------------------------
    8. Adaptive rules
    ----------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-	.on-this-day-post-title a,
-	.on-this-day-post-action {
-		transition: none;
+	#dashboard_on_this_day {
+		& .on-this-day-post-title a,
+		& .on-this-day-post-action {
+			transition: none;
+		}
 	}
 }
 
