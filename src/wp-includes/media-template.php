@@ -522,6 +522,12 @@ function wp_print_media_templates() {
 						<label for="attachment-details-two-column-alt-text" class="name"><?php _e( 'Alternative Text' ); ?></label>
 						<textarea id="attachment-details-two-column-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
 					</span>
+					<?php
+					/**
+					 * Fires after the Alternative Text field in the two-column attachment details template.
+					 */
+					do_action( 'attachment_details_two_column_after_alt_text' );
+					?>
 					<p class="description" id="alt-text-description"><?php echo $alt_text_description; ?></p>
 				<# } #>
 				<?php if ( post_type_supports( 'attachment', 'title' ) ) : ?>
@@ -529,6 +535,12 @@ function wp_print_media_templates() {
 					<label for="attachment-details-two-column-title" class="name"><?php _e( 'Title' ); ?></label>
 					<input type="text" id="attachment-details-two-column-title" value="{{ data.title }}" {{ maybeReadOnly }} />
 				</span>
+				<?php
+				/**
+				 * Fires after the Title field in the two-column attachment details template.
+				 */
+				do_action( 'attachment_details_two_column_after_title' );
+				?>
 				<?php endif; ?>
 				<# if ( 'audio' === data.type ) { #>
 				<?php
@@ -547,10 +559,22 @@ function wp_print_media_templates() {
 					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Caption' ); ?></label>
 					<textarea id="attachment-details-two-column-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 				</span>
+				<?php
+				/**
+				 * Fires after the Caption field in the two-column attachment details template.
+				 */
+				do_action( 'attachment_details_two_column_after_caption' );
+				?>
 				<span class="setting" data-setting="description">
 					<label for="attachment-details-two-column-description" class="name"><?php _e( 'Description' ); ?></label>
 					<textarea id="attachment-details-two-column-description" {{ maybeReadOnly }}>{{ data.description }}</textarea>
 				</span>
+				<?php
+				/**
+				 * Fires after the Description field in the two-column attachment details template.
+				 */
+				do_action( 'attachment_details_two_column_after_description' );
+				?>
 				<span class="setting" data-setting="url">
 					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
 					<input type="text" class="attachment-details-copy-link ltr" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
@@ -774,6 +798,12 @@ function wp_print_media_templates() {
 				<label for="attachment-details-alt-text" class="name"><?php _e( 'Alt Text' ); ?></label>
 				<textarea id="attachment-details-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
 			</span>
+			<?php
+			/**
+			 * Fires after the Alt Text field in the attachment details template.
+			 */
+			do_action( 'attachment_details_after_alt_text' );
+			?>
 			<p class="description" id="alt-text-description"><?php echo $alt_text_description; ?></p>
 		<# } #>
 		<?php if ( post_type_supports( 'attachment', 'title' ) ) : ?>
@@ -781,6 +811,12 @@ function wp_print_media_templates() {
 			<label for="attachment-details-title" class="name"><?php _e( 'Title' ); ?></label>
 			<input type="text" id="attachment-details-title" value="{{ data.title }}" {{ maybeReadOnly }} />
 		</span>
+		<?php
+		/**
+		 * Fires after the Title field in the attachment details template.
+		 */
+		do_action( 'attachment_details_after_title' );
+		?>
 		<?php endif; ?>
 		<# if ( 'audio' === data.type ) { #>
 		<?php
@@ -799,10 +835,22 @@ function wp_print_media_templates() {
 			<label for="attachment-details-caption" class="name"><?php _e( 'Caption' ); ?></label>
 			<textarea id="attachment-details-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 		</span>
+		<?php
+		/**
+		 * Fires after the Caption field in the attachment details template.
+		 */
+		do_action( 'attachment_details_after_caption' );
+		?>
 		<span class="setting" data-setting="description">
 			<label for="attachment-details-description" class="name"><?php _e( 'Description' ); ?></label>
 			<textarea id="attachment-details-description" {{ maybeReadOnly }}>{{ data.description }}</textarea>
 		</span>
+		<?php
+		/**
+		 * Fires after the Description field in the attachment details template.
+		 */
+		do_action( 'attachment_details_after_description' );
+		?>
 		<span class="setting" data-setting="url">
 			<label for="attachment-details-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
 			<input type="text" class="attachment-details-copy-link ltr" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
