@@ -3,10 +3,6 @@
 		navigation: auto;
 	}
 
-	#adminmenuback {
-		view-transition-name: adminmenuback;
-	}
-
 	#adminmenuwrap {
 		view-transition-name: adminmenuwrap;
 	}
