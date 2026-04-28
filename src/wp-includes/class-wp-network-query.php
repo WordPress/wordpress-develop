@@ -21,7 +21,7 @@ class WP_Network_Query {
 	 * SQL for database query.
 	 *
 	 * @since 4.6.0
-	 * @var string
+	 * @var string SQL statement for the last performed network query.
 	 */
 	public $request;
 
@@ -29,7 +29,15 @@ class WP_Network_Query {
 	 * SQL query clauses.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var array{
+	 *     select: string,
+	 *     from: string,
+	 *     where: array,
+	 *     groupby: string,
+	 *     orderby: string,
+	 *     limits: string
+	 * }
+	 * Associative array of SQL query clauses used to build the request.
 	 */
 	protected $sql_clauses = array(
 		'select'  => '',
@@ -44,7 +52,7 @@ class WP_Network_Query {
 	 * Query vars set by the user.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var array<string, mixed> Query variables for the current query.
 	 */
 	public $query_vars;
 
@@ -52,7 +60,7 @@ class WP_Network_Query {
 	 * Default values for query vars.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var array<string, mixed> Default values for query variables.
 	 */
 	public $query_var_defaults;
 
@@ -60,7 +68,7 @@ class WP_Network_Query {
 	 * List of networks located by the query.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var WP_Network[]|int[] Array of WP_Network objects or network IDs, depending on 'fields' parameter.
 	 */
 	public $networks;
 
@@ -68,7 +76,7 @@ class WP_Network_Query {
 	 * The amount of found networks for the current query.
 	 *
 	 * @since 4.6.0
-	 * @var int
+	 * @var int Number of networks found for the current query.
 	 */
 	public $found_networks = 0;
 
@@ -76,7 +84,7 @@ class WP_Network_Query {
 	 * The number of pages.
 	 *
 	 * @since 4.6.0
-	 * @var int
+	 * @var int Number of pages of results for the current query.
 	 */
 	public $max_num_pages = 0;
 
