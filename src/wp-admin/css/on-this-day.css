@@ -54,7 +54,7 @@
 	/* To honour the postbox border-radius. */
 	overflow: hidden;
 
-	& .inside {
+	&:not(.closed) .inside {
 		margin: 0;
 		padding: 0;
 		max-height: 560px;
