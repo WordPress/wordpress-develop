@@ -145,7 +145,7 @@ class WP_Collaboration_Table_Storage {
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT client_id, user_id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s ORDER BY id ASC",
+				"SELECT client_id, user_id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND date_gmt >= %s ORDER BY collaboration_id ASC",
 				$room,
 				$cutoff_mysql
 			)
@@ -231,7 +231,7 @@ class WP_Collaboration_Table_Storage {
 		/* Snapshot the current max ID and total row count in a single query. */
 		$snapshot = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT COALESCE( MAX( id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
+				"SELECT COALESCE( MAX( collaboration_id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
 				$room
 			)
 		);
@@ -262,7 +262,7 @@ class WP_Collaboration_Table_Storage {
 		/* Fetch updates after the cursor up to the snapshot boundary. */
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT data FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND id > %d AND id <= %d ORDER BY id ASC",
+				"SELECT data FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND collaboration_id > %d AND collaboration_id <= %d ORDER BY collaboration_id ASC",
 				$room,
 				$cursor,
 				$max_id
@@ -302,7 +302,7 @@ class WP_Collaboration_Table_Storage {
 		// "delete all, re-add some" pattern.
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND id <= %d",
+				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND collaboration_id <= %d",
 				$room,
 				$cursor
 			)
@@ -413,7 +413,7 @@ class WP_Collaboration_Table_Storage {
 		 */
 		$exists = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s  ORDER BY id DESC LIMIT 1",
+				"SELECT collaboration_id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s  ORDER BY collaboration_id DESC LIMIT 1",
 				$room,
 				$client_id
 			)
@@ -432,7 +432,7 @@ class WP_Collaboration_Table_Storage {
 					'data'     => $data,
 					'date_gmt' => $now_mysql,
 				),
-				array( 'id' => $exists->id )
+				array( 'collaboration_id' => $exists->collaboration_id )
 			);
 		} else {
 			$result = $wpdb->insert(

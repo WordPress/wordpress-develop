@@ -3003,7 +3003,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT id FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' ORDER BY id ASC",
+				"SELECT collaboration_id FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' ORDER BY collaboration_id ASC",
 				$room
 			)
 		);
