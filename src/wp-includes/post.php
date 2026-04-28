@@ -6,6 +6,8 @@
  * @subpackage Post
  */
 
+// TODO: remove me
+
 //
 // Post Type registration.
 //
