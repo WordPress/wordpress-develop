@@ -11,9 +11,8 @@ class Tests_insert_with_markers extends WP_UnitTestCase {
 
 	/**
 	 * Path to the temporary file used for testing.
-	 * @var string
 	 */
-	private $temp_file;
+	private string $temp_file;
 
 	public function set_up() {
 		parent::set_up();
