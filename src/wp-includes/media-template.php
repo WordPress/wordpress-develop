@@ -535,12 +535,12 @@ function wp_print_media_templates() {
 					<label for="attachment-details-two-column-title" class="name"><?php _e( 'Title' ); ?></label>
 					<input type="text" id="attachment-details-two-column-title" value="{{ data.title }}" {{ maybeReadOnly }} />
 				</span>
-				<?php
-				/**
-				 * Fires after the Title field in the two-column attachment details template.
-				 */
-				do_action( 'attachment_details_two_column_after_title' );
-				?>
+					<?php
+					/**
+					 * Fires after the Title field in the two-column attachment details template.
+					 */
+					do_action( 'attachment_details_two_column_after_title' );
+					?>
 				<?php endif; ?>
 				<# if ( 'audio' === data.type ) { #>
 				<?php
@@ -811,12 +811,12 @@ function wp_print_media_templates() {
 			<label for="attachment-details-title" class="name"><?php _e( 'Title' ); ?></label>
 			<input type="text" id="attachment-details-title" value="{{ data.title }}" {{ maybeReadOnly }} />
 		</span>
-		<?php
-		/**
-		 * Fires after the Title field in the attachment details template.
-		 */
-		do_action( 'attachment_details_after_title' );
-		?>
+			<?php
+			/**
+			 * Fires after the Title field in the attachment details template.
+			 */
+			do_action( 'attachment_details_after_title' );
+			?>
 		<?php endif; ?>
 		<# if ( 'audio' === data.type ) { #>
 		<?php
