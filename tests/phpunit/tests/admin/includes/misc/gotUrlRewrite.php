@@ -99,7 +99,7 @@ class Tests_got_url_rewrite extends WP_UnitTestCase {
   *     filter_val?: bool|null,
   * }>
   */
-	public function data_got_url_rewrite() {
+	public function data_got_url_rewrite(): array {
 		return array(
 			'All false'                    => array(
 				'expected'    => false,
