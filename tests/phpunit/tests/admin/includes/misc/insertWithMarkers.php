@@ -66,7 +66,7 @@ class Tests_insert_with_markers extends WP_UnitTestCase {
   *     expected:        string,
   * }>
   */
-	public function data_insert_with_markers() {
+	public function data_insert_with_markers(): array {
 		$wp_comments = array(
 			'# The directives (lines) between "BEGIN %s" and "END %s" are',
 			'# dynamically generated, and should only be modified via WordPress filters.',
