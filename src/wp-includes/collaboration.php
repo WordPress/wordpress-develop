@@ -18,7 +18,7 @@
  *
  * @return bool Whether real-time collaboration is enabled.
  */
-function wp_is_collaboration_enabled() {
+function wp_is_collaboration_enabled(): bool {
 	return (
 		wp_is_collaboration_allowed() &&
 		get_option( 'wp_collaboration_enabled' ) &&
@@ -38,7 +38,7 @@ function wp_is_collaboration_enabled() {
  *
  * @return bool Whether real-time collaboration is allowed.
  */
-function wp_is_collaboration_allowed() {
+function wp_is_collaboration_allowed(): bool {
 	if ( ! defined( 'WP_ALLOW_COLLABORATION' ) ) {
 		$env_value = getenv( 'WP_ALLOW_COLLABORATION' );
 		if ( false === $env_value ) {
@@ -47,14 +47,14 @@ function wp_is_collaboration_allowed() {
 		} else {
 			/*
 			 * Environment variable is defined, let's confirm it is actually set to
-			 * "true" as it may still have a string value "false" – the preceeding
+			 * "true" as it may still have a string value "false" – the preceding
 			 * `if` branch only tests for the boolean `false`.
 			 */
 			define( 'WP_ALLOW_COLLABORATION', 'true' === $env_value );
 		}
 	}
 
-	return WP_ALLOW_COLLABORATION;
+	return (bool) WP_ALLOW_COLLABORATION;
 }
 
 /**
@@ -66,7 +66,7 @@ function wp_is_collaboration_allowed() {
  *
  * @global string $pagenow The filename of the current screen.
  */
-function wp_collaboration_inject_setting() {
+function wp_collaboration_inject_setting(): void {
 	global $pagenow;
 
 	if ( ! wp_is_collaboration_enabled() ) {
@@ -94,8 +94,10 @@ function wp_collaboration_inject_setting() {
  * sessions are cleaned up to prevent unbounded table growth.
  *
  * @since 7.0.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
-function wp_delete_old_collaboration_data() {
+function wp_delete_old_collaboration_data(): void {
 	global $wpdb;
 
 	if ( ! wp_is_collaboration_enabled() ) {
@@ -107,7 +109,7 @@ function wp_delete_old_collaboration_data() {
 		wp_clear_scheduled_hook( 'wp_delete_old_collaboration_data' );
 	}
 
-	/* Clean up rows older than 7 days. */
+	// Clean up rows older than 7 days.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->collaboration} WHERE date_gmt < %s",
