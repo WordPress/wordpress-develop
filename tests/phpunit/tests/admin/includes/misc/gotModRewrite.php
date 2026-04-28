@@ -27,9 +27,7 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 		// without a framework, we rely on the filter for full control.
 
 		if ( null !== $filter_value ) {
-			add_filter( 'got_rewrite', function() use ( $filter_value ) {
-				return $filter_value;
-			} );
+			add_filter( 'got_rewrite', function() use ( $filter_value ) { return $filter_value;	} );
 		}
 
 		// If we are NOT filtering, we need to be aware of the environment.
