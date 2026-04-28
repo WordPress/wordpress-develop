@@ -41,10 +41,6 @@ class Tests_insert_with_markers extends WP_UnitTestCase {
 	public function test_insert_with_markers( $initial_content, $marker, $insertion, $expected ) {
 		if ( '' !== $initial_content ) {
 			file_put_contents( $this->temp_file, str_replace( "\n", PHP_EOL, $initial_content ) );
-		} else {
-			if ( file_exists( $this->temp_file ) ) {
-				unlink( $this->temp_file );
-			}
 		}
 
 		$result = insert_with_markers( $this->temp_file, $marker, $insertion );
