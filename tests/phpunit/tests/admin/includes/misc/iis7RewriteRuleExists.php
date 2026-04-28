@@ -59,7 +59,7 @@ class Tests_iis7_rewrite_rule_exists extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{expected: bool, content: string}>
 	 */
-	public function data_iis7_rewrite_rule_exists() {
+	public function data_iis7_rewrite_rule_exists(): array {
 		return array(
 			'Rule with name "wordpress" exists' => array(
 				'expected' => true,
