@@ -114,7 +114,7 @@ class Response {
 	/**
 	 * Throws an exception if the request was not successful
 	 *
-	 * @param boolean $allow_redirects Set to false to throw on a 3xx as well
+	 * @param bool $allow_redirects Set to false to throw on a 3xx as well
 	 *
 	 * @throws \WpOrg\Requests\Exception If `$allow_redirects` is false, and code is 3xx (`response.no_redirects`)
 	 * @throws \WpOrg\Requests\Exception\Http On non-successful status code. Exception class corresponds to "Status" + code (e.g. {@see \WpOrg\Requests\Exception\Http\Status404})

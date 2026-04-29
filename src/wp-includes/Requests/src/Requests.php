@@ -601,7 +601,7 @@ class Requests {
 	 * Get the default options
 	 *
 	 * @see \WpOrg\Requests\Requests::request() for values returned by this method
-	 * @param boolean $multirequest Is this a multirequest?
+	 * @param bool $multirequest Is this a multirequest?
 	 * @return array Default option values
 	 */
 	protected static function get_default_options($multirequest = false) {
