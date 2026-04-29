@@ -153,6 +153,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 			),
 			'client_id' => array(
 				'minimum'  => 1,
+				'maximum'  => str_repeat( '9', 32 ), // Max 32-digit integer (avoids PHP_INT_MAX).
 				'required' => true,
 				'type'     => 'integer',
 			),
