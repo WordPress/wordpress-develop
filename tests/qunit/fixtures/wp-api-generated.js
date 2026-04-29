@@ -12759,19 +12759,14 @@ mockedApiResponse.Schema = {
                                     },
                                     "client_id": {
                                         "minimum": 1,
-                                        "minLength": 1,
-                                        "maxLength": 32,
+                                        "maximum": "99999999999999999999999999999999",
                                         "required": true,
-                                        "type": [
-                                            "string",
-                                            "integer"
-                                        ],
-                                        "sanitize_callback": {}
+                                        "type": "integer"
                                     },
                                     "room": {
                                         "required": true,
                                         "type": "string",
-                                        "pattern": "^[^/]+/[^/:]+(?::\\S+)?$",
+                                        "pattern": "^[^/]+/[^/:]+(?::[1-9][0-9]*)?$",
                                         "maxLength": 191
                                     },
                                     "updates": {
@@ -12876,19 +12871,14 @@ mockedApiResponse.Schema = {
                                     },
                                     "client_id": {
                                         "minimum": 1,
-                                        "minLength": 1,
-                                        "maxLength": 32,
+                                        "maximum": "99999999999999999999999999999999",
                                         "required": true,
-                                        "type": [
-                                            "string",
-                                            "integer"
-                                        ],
-                                        "sanitize_callback": {}
+                                        "type": "integer"
                                     },
                                     "room": {
                                         "required": true,
                                         "type": "string",
-                                        "pattern": "^[^/]+/[^/:]+(?::\\S+)?$",
+                                        "pattern": "^[^/]+/[^/:]+(?::[1-9][0-9]*)?$",
                                         "maxLength": 191
                                     },
                                     "updates": {
