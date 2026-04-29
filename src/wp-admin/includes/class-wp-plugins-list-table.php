@@ -1200,6 +1200,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$plugin_meta[] = sprintf( __( 'By %s' ), $author );
 					}
 
+					/* translators: %s: Plugin slug. */
+					$plugin_meta[] = sprintf( __( 'Slug: %s' ), esc_html( $plugin_slug ) );
+
 					// Details link using API info, if available.
 					if ( isset( $plugin_data['slug'] ) && current_user_can( 'install_plugins' ) ) {
 						$plugin_meta[] = sprintf(
