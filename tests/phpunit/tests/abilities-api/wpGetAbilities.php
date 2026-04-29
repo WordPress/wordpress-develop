@@ -281,15 +281,30 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 
 		$this->register_test_ability(
 			'test/ability-both',
-			array( 'meta' => array( 'show_in_rest' => true, 'public' => true ) )
+			array(
+				'meta' => array(
+					'show_in_rest' => true,
+					'public'       => true,
+				),
+			)
 		);
 		$this->register_test_ability(
 			'test/ability-one-key',
-			array( 'meta' => array( 'show_in_rest' => true, 'public' => false ) )
+			array(
+				'meta' => array(
+					'show_in_rest' => true,
+					'public'       => false,
+				),
+			)
 		);
 
 		$result = wp_get_abilities(
-			array( 'meta' => array( 'show_in_rest' => true, 'public' => true ) )
+			array(
+				'meta' => array(
+					'show_in_rest' => true,
+					'public'       => true,
+				),
+			)
 		);
 		$names  = array_map(
 			static function ( WP_Ability $a ) {
@@ -483,7 +498,10 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 			bool $include,
 			WP_Ability $ability,
 			array $args
-		) use ( &$received_ability, &$received_args ): bool {
+		) use (
+			&$received_ability,
+			&$received_args
+		): bool {
 			$received_ability = $ability;
 			$received_args    = $args;
 			return $include;
@@ -622,15 +640,24 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 
 		$this->register_test_ability(
 			'test/math-rest',
-			array( 'category' => 'math', 'meta' => array( 'show_in_rest' => true ) )
+			array(
+				'category' => 'math',
+				'meta'     => array( 'show_in_rest' => true ),
+			)
 		);
 		$this->register_test_ability(
 			'test/math-no-rest',
-			array( 'category' => 'math', 'meta' => array( 'show_in_rest' => false ) )
+			array(
+				'category' => 'math',
+				'meta'     => array( 'show_in_rest' => false ),
+			)
 		);
 		$this->register_test_ability(
 			'test/text-rest',
-			array( 'category' => 'text', 'meta' => array( 'show_in_rest' => true ) )
+			array(
+				'category' => 'text',
+				'meta'     => array( 'show_in_rest' => true ),
+			)
 		);
 
 		$result = wp_get_abilities(
