@@ -12,15 +12,13 @@ class Tests_got_url_rewrite extends WP_UnitTestCase {
 
 	/**
 	 * Saved value of the $is_nginx global.
-	 * @var bool
 	 */
-	private $prev_nginx;
+	private bool $prev_nginx;
 
 	/**
 	 * Saved value of the $is_caddy global.
-	 * @var bool
 	 */
-	private $prev_caddy;
+	private bool $prev_caddy;
 
 	public function set_up() {
 		parent::set_up();
@@ -75,22 +73,12 @@ class Tests_got_url_rewrite extends WP_UnitTestCase {
 		remove_filter( 'got_rewrite', $mod_rewrite ? '__return_true' : '__return_false' );
 		if ( null !== $filter_val ) {
 			remove_filter( 'got_url_rewrite', $filter_val ? '__return_true' : '__return_false' );
-		}
 	}
 
   /**
   * Data provider for test_got_url_rewrite.
   *
-  * @return array[] {
-  *     @type bool      $expected    The expected result.
-  *     @type bool      $mod_rewrite Whether mod_rewrite is supported.
-  *     @type bool      $is_nginx    Whether server is nginx.
-  *     @type bool      $is_caddy    Whether server is Caddy.
-  *     @type bool      $iis7_perm   Whether IIS7 supports permalinks.
-  *     @type bool|null $filter_val  Optional filter value.
-  * }
-  *
-  * @phpstan-return array<string, array{
+  * @return array<string, array{
   *     expected:    bool,
   *     mod_rewrite: bool,
   *     is_nginx:    bool,
