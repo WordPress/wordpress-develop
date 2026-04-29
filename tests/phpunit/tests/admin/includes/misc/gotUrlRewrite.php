@@ -78,7 +78,7 @@ class Tests_got_url_rewrite extends WP_UnitTestCase {
 		}
 	}
 
- /**
+  /**
   * Data provider for test_got_url_rewrite.
   *
   * @return array[] {
