@@ -151,20 +151,10 @@ class WP_HTTP_Polling_Collaboration_Server {
 				'required' => true,
 				'type'     => array( 'object', 'null' ),
 			),
-			/*
-			 * client_id accepts both string and integer values:
-			 *  - 'minimum' bounds the integer form.
-			 *  - 'minLength' / 'maxLength' bound the string form.
-			 */
 			'client_id' => array(
-				'minimum'           => 1,
-				'minLength'         => 1,
-				'maxLength'         => 32, // Matches the client_id column width in wp-admin/includes/schema.php.
-				'required'          => true,
-				'type'              => array( 'string', 'integer' ),
-				'sanitize_callback' => function ( $value ) {
-					return (string) $value;
-				},
+				'minimum'  => 1,
+				'required' => true,
+				'type'     => 'integer',
 			),
 			'room'      => array(
 				'required'  => true,
