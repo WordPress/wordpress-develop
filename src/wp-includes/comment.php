@@ -306,7 +306,7 @@ function get_comment_statuses() {
  *
  * @return string[] List of internal comment type slugs.
  */
-function wp_get_internal_comment_types() {
+function wp_get_internal_comment_types(): array {
 	/**
 	 * Filters the list of internal comment types.
 	 *
@@ -314,7 +314,7 @@ function wp_get_internal_comment_types() {
 	 *
 	 * @param string[] $types List of internal comment type slugs.
 	 */
-	return apply_filters( 'wp_internal_comment_types', array( 'note', 'reaction' ) );
+	return (array) apply_filters( 'wp_internal_comment_types', array( 'note', 'reaction' ) );
 }
 
 /**
