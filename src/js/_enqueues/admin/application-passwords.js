@@ -5,7 +5,8 @@
 ( function( $ ) {
 	var $appPassSection = $( '#application-passwords-section' ),
 		$newAppPassForm = $appPassSection.find( '.create-application-password' ),
-		$newAppPassField = $newAppPassForm.find( '.input' ),
+		$newAppPassField = $newAppPassForm.find( '#new_application_password_name' ),
+		$newAppPassExpiresField = $newAppPassForm.find( '#new_application_password_expires' ),
 		$newAppPassButton = $newAppPassForm.find( '.button' ),
 		$appPassTwrapper = $appPassSection.find( '.application-passwords-list-table-wrapper' ),
 		$appPassTbody = $appPassSection.find( 'tbody' ),
@@ -35,6 +36,15 @@
 		var request = {
 			name: name
 		};
+
+		var expires = $newAppPassExpiresField.val();
+		if ( expires ) {
+		    var expiresDate = new Date( expires );
+
+		    if ( ! isNaN( expiresDate.getTime() ) ) {
+		        request.expires = expiresDate.toISOString();
+		    }
+		}
 
 		/**
 		 * Filters the request data used to create a new Application Password.
