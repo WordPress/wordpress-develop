@@ -457,13 +457,15 @@ class WP_On_This_Day {
 				<li class="<?php echo esc_attr( $group_classes ); ?>">
 					<p class="on-this-day-year-header">
 						<span class="on-this-day-year-number"><?php echo esc_html( $year ); ?></span>
-						<span class="on-this-day-year-ago"><?php
+						<span class="on-this-day-year-ago">
+						<?php
 							printf(
 								/* translators: %s: Number of years, e.g. "1 year ago" or "5 years ago". */
 								esc_html( _n( '%s year ago', '%s years ago', $years_ago ) ),
 								esc_html( number_format_i18n( $years_ago ) )
 							);
-						?></span>
+						?>
+						</span>
 					</p>
 					<ul class="on-this-day-post-list">
 						<?php foreach ( $year_posts as $post ) : ?>
@@ -548,27 +550,31 @@ class WP_On_This_Day {
 				<?php endif; ?>
 
 				<div class="on-this-day-post-meta">
-					<time class="on-this-day-post-time" datetime="<?php echo esc_attr( $time_iso ); ?>"><?php
-						if ( 1 === $window_days ) {
-							echo esc_html( $time_str );
-						} else {
-							echo esc_html(
-								sprintf(
-									/* translators: 1: Post date, 2: Post time. */
-									__( '%1$s at %2$s' ),
-									$date_str,
-									$time_str
-								)
-							);
-						}
-					?></time>
+					<time class="on-this-day-post-time" datetime="<?php echo esc_attr( $time_iso ); ?>">
+					<?php
+					if ( 1 === $window_days ) {
+						echo esc_html( $time_str );
+					} else {
+						echo esc_html(
+							sprintf(
+								/* translators: 1: Post date, 2: Post time. */
+								__( '%1$s at %2$s' ),
+								$date_str,
+								$time_str
+							)
+						);
+					}
+					?>
+					</time>
 
 					<?php if ( ! empty( $categories ) ) : ?>
 						<span class="on-this-day-post-sep" aria-hidden="true">&middot;</span>
-						<span class="on-this-day-post-categories"><?php
+						<span class="on-this-day-post-categories">
+						<?php
 							$names = wp_list_pluck( array_slice( $categories, 0, 3 ), 'name' );
 							echo esc_html( implode( ', ', $names ) );
-						?></span>
+						?>
+						</span>
 					<?php endif; ?>
 
 					<?php if ( $is_private ) : ?>
