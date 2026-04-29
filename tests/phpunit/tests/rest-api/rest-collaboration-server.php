@@ -504,10 +504,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @ticket 64696
 	 */
-	public function test_collaboration_client_id_accepts_string_at_max_length(): void {
+	public function test_collaboration_client_id_accepts_numeric_string_at_max_length(): void {
 		wp_set_current_user( self::$editor_id );
 
-		$client_id = str_repeat( 'a', 32 );
+		$client_id = str_repeat( '1', 32 );
 		$this->assertSame( 32, strlen( $client_id ), 'Client ID should be 32 characters.' );
 
 		$rooms    = array( $this->build_room( $this->get_post_room(), $client_id ) );
@@ -521,10 +521,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @ticket 64696
 	 */
-	public function test_collaboration_client_id_rejects_string_over_max_length(): void {
+	public function test_collaboration_client_id_rejects_numeric_string_over_max_length(): void {
 		wp_set_current_user( self::$editor_id );
 
-		$client_id = str_repeat( 'a', 33 );
+		$client_id = str_repeat( '1', 33 );
 		$this->assertSame( 33, strlen( $client_id ), 'Client ID should be 33 characters.' );
 
 		$rooms    = array( $this->build_room( $this->get_post_room(), $client_id ) );
@@ -2694,17 +2694,33 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * Verifies that a non-numeric object ID in a room name is rejected.
 	 *
 	 * @ticket 64696
+	 *
+	 * @dataProvider data_collaboration_invalid_object_id_rejected
 	 */
-	public function test_collaboration_non_numeric_object_id_rejected(): void {
+	public function test_collaboration_invalid_object_id_rejected( $object_id ): void {
 		wp_set_current_user( self::$editor_id );
 
 		$response = $this->dispatch_collaboration(
 			array(
-				$this->build_room( 'postType/post:abc' ),
+				$this->build_room( "postType/post:{$object_id}" ),
 			)
 		);
 
-		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Data provider for invalid test_collaboration_invalid_object_id_rejected.
+	 *
+	 * @return string[][]
+	 */
+	public function data_collaboration_invalid_object_id_rejected(): array {
+		return array(
+			'non-numeric' => array( 'abc' ),
+			'negative'    => array( '-1' ),
+			'zero'        => array( '0' ),
+			'float'       => array( '3.14' ),
+		);
 	}
 
 	/**
