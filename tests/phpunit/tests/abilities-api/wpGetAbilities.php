@@ -461,7 +461,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$this->register_test_ability( 'test/ability-one' );
 		$this->register_test_ability( 'test/ability-two' );
 
-		$filter = static function ( bool $include, WP_Ability $ability ): bool {
+		$filter = static function ( bool $should_include, WP_Ability $ability ): bool {
 			return 'test/ability-two' !== $ability->get_name();
 		};
 
@@ -495,7 +495,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$query_args       = array( 'namespace' => 'test' );
 
 		$filter = static function (
-			bool $include,
+			bool $should_include,
 			WP_Ability $ability,
 			array $args
 		) use (
@@ -504,7 +504,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		): bool {
 			$received_ability = $ability;
 			$received_args    = $args;
-			return $include;
+			return $should_include;
 		};
 
 		add_filter( 'wp_get_abilities_match', $filter, 10, 3 );
