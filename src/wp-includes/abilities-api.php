@@ -513,7 +513,7 @@ function wp_get_abilities( array $args = array() ): array {
 		}
 
 		// Step 1c: Filter by meta key/value pairs (AND logic, supports nested arrays).
-		if ( ! empty( $meta ) && ! wp_get_abilities_match_meta( $ability->get_meta(), $meta ) ) {
+		if ( ! empty( $meta ) && ! _wp_get_abilities_match_meta( $ability->get_meta(), $meta ) ) {
 			continue;
 		}
 
@@ -575,14 +575,14 @@ function wp_get_abilities( array $args = array() ): array {
  * @param array $conditions The required key/value conditions to match against.
  * @return bool True if all conditions match, false otherwise.
  */
-function wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
+function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
 	foreach ( $conditions as $key => $value ) {
 		if ( ! array_key_exists( $key, $meta ) ) {
 			return false;
 		}
 
 		if ( is_array( $value ) ) {
-			if ( ! is_array( $meta[ $key ] ) || ! wp_get_abilities_match_meta( $meta[ $key ], $value ) ) {
+			if ( ! is_array( $meta[ $key ] ) || ! _wp_get_abilities_match_meta( $meta[ $key ], $value ) ) {
 				return false;
 			}
 		} elseif ( $meta[ $key ] !== $value ) {
