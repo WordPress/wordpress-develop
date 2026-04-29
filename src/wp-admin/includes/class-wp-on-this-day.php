@@ -95,7 +95,7 @@ class WP_On_This_Day {
 			sprintf(
 				'<span class="on-this-day-title" data-otd-window-label="%s">%s</span>',
 				esc_attr( self::get_window_label( self::get_window_days() ) ),
-				__( 'On This Day' )
+				esc_html__( 'On This Day' )
 			),
 			array( __CLASS__, 'render_dashboard_widget' )
 		);
@@ -304,7 +304,7 @@ class WP_On_This_Day {
 		$start       = current_datetime();
 		$start_label = wp_date( 'F j', $start->getTimestamp(), $start->getTimezone() );
 
-		if ( self::MIN_WINDOW_DAYS === $window_days ) {
+		if ( 1 === $window_days ) {
 			return $start_label;
 		}
 
@@ -360,6 +360,9 @@ class WP_On_This_Day {
 	/**
 	 * Renders the empty state shown when no matching posts exist.
 	 *
+	 * Outputs rendered HTML that has already been escaped at write time.
+	 * Callers must echo the captured buffer as-is to avoid double-escaping.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param int $window_days Number of days included in the date window.
@@ -387,7 +390,7 @@ class WP_On_This_Day {
 					esc_html( $start_label )
 				);
 
-				if ( self::MIN_WINDOW_DAYS === $window_days ) {
+				if ( 1 === $window_days ) {
 					printf(
 						/* translators: %s: Current date, e.g. "April 22". */
 						esc_html__( 'You haven\'t published anything on %s in previous years. Write something today and check back next year!' ),
@@ -422,6 +425,9 @@ class WP_On_This_Day {
 	/**
 	 * Renders the grouped post list for the widget.
 	 *
+	 * Outputs rendered HTML that has already been escaped at write time.
+	 * Callers must echo the captured buffer as-is to avoid double-escaping.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param WP_Post[] $posts       Posts to render, most recent first.
@@ -451,15 +457,13 @@ class WP_On_This_Day {
 				<li class="<?php echo esc_attr( $group_classes ); ?>">
 					<p class="on-this-day-year-header">
 						<span class="on-this-day-year-number"><?php echo esc_html( $year ); ?></span>
-						<span class="on-this-day-year-ago">
-							<?php
+						<span class="on-this-day-year-ago"><?php
 							printf(
 								/* translators: %s: Number of years, e.g. "1 year ago" or "5 years ago". */
 								esc_html( _n( '%s year ago', '%s years ago', $years_ago ) ),
 								esc_html( number_format_i18n( $years_ago ) )
 							);
-							?>
-						</span>
+						?></span>
 					</p>
 					<ul class="on-this-day-post-list">
 						<?php foreach ( $year_posts as $post ) : ?>
@@ -474,6 +478,9 @@ class WP_On_This_Day {
 
 	/**
 	 * Renders a single post row.
+	 *
+	 * Outputs rendered HTML that has already been escaped at write time.
+	 * Callers must echo the captured buffer as-is to avoid double-escaping.
 	 *
 	 * @since 7.1.0
 	 *
@@ -526,9 +533,7 @@ class WP_On_This_Day {
 				<span class="on-this-day-post-icon dashicons-before dashicons-edit" aria-hidden="true"></span>
 			<?php endif; ?>
 			<div class="on-this-day-post-body">
-				<span class="screen-reader-text">
-					<?php echo $is_private ? esc_html__( 'Private post' ) : esc_html__( 'Published post' ); ?>
-				</span>
+				<span class="screen-reader-text"><?php echo $is_private ? esc_html__( 'Private post' ) : esc_html__( 'Published post' ); ?></span>
 
 				<h4 class="on-this-day-post-title">
 					<?php if ( $edit_link ) : ?>
@@ -543,9 +548,8 @@ class WP_On_This_Day {
 				<?php endif; ?>
 
 				<div class="on-this-day-post-meta">
-					<time class="on-this-day-post-time" datetime="<?php echo esc_attr( $time_iso ); ?>">
-						<?php
-						if ( self::MIN_WINDOW_DAYS === $window_days ) {
+					<time class="on-this-day-post-time" datetime="<?php echo esc_attr( $time_iso ); ?>"><?php
+						if ( 1 === $window_days ) {
 							echo esc_html( $time_str );
 						} else {
 							echo esc_html(
@@ -557,17 +561,14 @@ class WP_On_This_Day {
 								)
 							);
 						}
-						?>
-					</time>
+					?></time>
 
 					<?php if ( ! empty( $categories ) ) : ?>
 						<span class="on-this-day-post-sep" aria-hidden="true">&middot;</span>
-						<span class="on-this-day-post-categories">
-							<?php
+						<span class="on-this-day-post-categories"><?php
 							$names = wp_list_pluck( array_slice( $categories, 0, 3 ), 'name' );
 							echo esc_html( implode( ', ', $names ) );
-							?>
-						</span>
+						?></span>
 					<?php endif; ?>
 
 					<?php if ( $is_private ) : ?>
