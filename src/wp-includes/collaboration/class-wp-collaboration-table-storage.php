@@ -23,7 +23,7 @@
  *
  * @access private
  *
- * @phpstan-type AwarenessState array{client_id: string, state: array<string, mixed>, user_id: int}
+ * @phpstan-type AwarenessState array{client_id: string, state: array<string, mixed>, user_id: int, timestamp: int}
  */
 class WP_Collaboration_Table_Storage {
 	/**
