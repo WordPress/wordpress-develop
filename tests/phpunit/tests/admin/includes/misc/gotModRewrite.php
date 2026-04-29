@@ -27,7 +27,12 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 		// without a framework, we rely on the filter for full control.
 
 		if ( null !== $filter_value ) {
-			add_filter( 'got_rewrite', function() use ( $filter_value ) { return $filter_value;	} );
+			add_filter(
+				'got_rewrite',
+				static function () use ( $filter_value ) {
+					return $filter_value;
+				}
+			);
 		}
 
 		// If we are NOT filtering, we need to be aware of the environment.
@@ -42,13 +47,7 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_got_mod_rewrite.
 	 *
-	 * @return array[] {
-	 *     @type bool      $expected      The expected result.
-	 *     @type bool      $apache_loaded Whether mod_rewrite is loaded (simulated via filter).
-	 *     @type bool|null $filter_value  The value to return from the filter.
-	 * }
-	 *
-	 * @phpstan-return array<string, array{
+	 * @return array<string, array{
 	 *     expected:      bool,
 	 *     apache_loaded: bool,
 	 *     filter_value:  bool|null,
