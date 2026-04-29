@@ -612,7 +612,10 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$filter = static function (
 			array $abilities,
 			array $args
-		) use ( &$received_abilities, &$received_args ): array {
+		) use (
+			&$received_abilities,
+			&$received_args
+		): array {
 			$received_abilities = $abilities;
 			$received_args      = $args;
 			return $abilities;
