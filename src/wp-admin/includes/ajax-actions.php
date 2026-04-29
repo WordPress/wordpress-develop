@@ -339,10 +339,12 @@ function wp_ajax_autocomplete_user() {
 		)
 	) : array() );
 
+	$term = isset( $_REQUEST['term'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ) : '';
+
 	$users = get_users(
 		array(
 			'blog_id'        => false,
-			'search'         => '*' . $_REQUEST['term'] . '*',
+			'search'         => '*' . $term . '*',
 			'include'        => $include_blog_users,
 			'exclude'        => $exclude_blog_users,
 			'search_columns' => array( 'user_login', 'user_nicename', 'user_email' ),
