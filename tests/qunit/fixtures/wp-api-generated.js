@@ -11085,6 +11085,12 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "wp_collaboration_enabled": {
+                            "title": "",
+                            "description": "Enable Real-Time Collaboration",
+                            "type": "boolean",
+                            "required": false
+                        },
                         "posts_per_page": {
                             "title": "Maximum posts per page",
                             "description": "Blog pages show at most.",
@@ -13506,6 +13512,8 @@ mockedApiResponse.MediaCollection = [
         "media_details": {},
         "post": null,
         "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg",
+        "filename": "canola.jpg",
+        "filesize": null,
         "_links": {
             "self": [
                 {
@@ -13583,7 +13591,9 @@ mockedApiResponse.MediaModel = {
     "mime_type": "image/jpeg",
     "media_details": {},
     "post": null,
-    "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg"
+    "source_url": "http://example.org/wp-content/uploads//tmp/canola.jpg",
+    "filename": "canola.jpg",
+    "filesize": null
 };
 
 mockedApiResponse.TypesCollection = {
@@ -14546,6 +14556,7 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
+    "wp_collaboration_enabled": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,

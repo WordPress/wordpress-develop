@@ -1019,30 +1019,6 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 27317
-	 * @dataProvider data_illegal_user_logins
-	 */
-	public function test_illegal_user_logins_single( $user_login ) {
-		$user_data = array(
-			'user_login' => $user_login,
-			'user_email' => 'testuser@example.com',
-			'user_pass'  => wp_generate_password(),
-		);
-
-		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
-
-		$response = wp_insert_user( $user_data );
-		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertSame( 'invalid_username', $response->get_error_code() );
-
-		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
-
-		$user_id = wp_insert_user( $user_data );
-		$user    = get_user_by( 'id', $user_id );
-		$this->assertInstanceOf( 'WP_User', $user );
-	}
-
-	/**
 	 * @ticket 61175
 	 * @covers ::wp_insert_user
 	 */
@@ -1179,6 +1155,30 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertIsInt( $user_id, 'Expected user to be created.' );
 		$user = new WP_User( $user_id );
 		$this->assertSame( $internal_data['user_login'], $user->user_login );
+	}
+
+	/**
+	 * @ticket 27317
+	 * @dataProvider data_illegal_user_logins
+	 */
+	public function test_illegal_user_logins_single( $user_login ) {
+		$user_data = array(
+			'user_login' => $user_login,
+			'user_email' => 'testuser@example.com',
+			'user_pass'  => wp_generate_password(),
+		);
+
+		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
+
+		$response = wp_insert_user( $user_data );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertSame( 'invalid_username', $response->get_error_code() );
+
+		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
+
+		$user_id = wp_insert_user( $user_data );
+		$user    = get_user_by( 'id', $user_id );
+		$this->assertInstanceOf( 'WP_User', $user );
 	}
 
 	/**
