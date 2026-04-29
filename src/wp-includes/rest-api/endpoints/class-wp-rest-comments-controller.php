@@ -123,7 +123,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		$is_note          = in_array( $request['type'], array( 'note', 'reaction' ), true );
+		$is_note          = in_array( $request['type'], wp_get_internal_comment_types(), true );
 		$is_edit_context  = 'edit' === $request['context'];
 		$protected_params = array( 'author', 'author_exclude', 'author_email', 'type', 'status' );
 		$forbidden_params = array();
@@ -438,7 +438,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Re-map edit context capabilities when requesting `note` or `reaction` type.
-		$edit_cap = in_array( $comment->comment_type, array( 'note', 'reaction' ), true ) ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
+		$edit_cap = in_array( $comment->comment_type, wp_get_internal_comment_types(), true ) ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( ...$edit_cap ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
@@ -497,7 +497,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		$is_note = ! empty( $request['type'] ) && in_array( $request['type'], array( 'note', 'reaction' ), true );
+		$is_note = ! empty( $request['type'] ) && in_array( $request['type'], wp_get_internal_comment_types(), true );
 
 		if ( ! is_user_logged_in() && $is_note ) {
 			return new WP_Error(
@@ -657,7 +657,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Do not allow comments to be created with a non-core type.
-		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array( 'comment', 'note', 'reaction' ), true ) ) {
+		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array_merge( array( 'comment' ), wp_get_internal_comment_types() ), true ) ) {
 			return new WP_Error(
 				'rest_invalid_comment_type',
 				__( 'Cannot create a comment with that type.' ),
@@ -796,7 +796,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		// Don't check for duplicates or flooding for notes or reactions.
 		$prepared_comment['comment_approved'] =
-			in_array( $prepared_comment['comment_type'], array( 'note', 'reaction' ), true ) ?
+			in_array( $prepared_comment['comment_type'], wp_get_internal_comment_types(), true ) ?
 			'1' :
 			wp_allow_comment( $prepared_comment, true );
 
@@ -1356,7 +1356,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Embedding children for notes requires `type` and `status` inheritance.
-		if ( isset( $links['children'] ) && in_array( $comment->comment_type, array( 'note', 'reaction' ), true ) ) {
+		if ( isset( $links['children'] ) && in_array( $comment->comment_type, wp_get_internal_comment_types(), true ) ) {
 			$args = array(
 				'parent' => $comment->comment_ID,
 				'type'   => $comment->comment_type,
@@ -1970,7 +1970,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool Whether the comment can be read.
 	 */
 	protected function check_read_permission( $comment, $request ) {
-		if ( ! in_array( $comment->comment_type, array( 'note', 'reaction' ), true ) && ! empty( $comment->comment_post_ID ) ) {
+		if ( ! in_array( $comment->comment_type, wp_get_internal_comment_types(), true ) && ! empty( $comment->comment_post_ID ) ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( $post ) {
 				if ( $this->check_read_post_permission( $post, $request ) && 1 === (int) $comment->comment_approved ) {

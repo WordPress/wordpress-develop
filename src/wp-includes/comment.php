@@ -295,6 +295,29 @@ function get_comment_statuses() {
 }
 
 /**
+ * Retrieves the list of internal comment types.
+ *
+ * Internal comment types are used by core features (such as block notes
+ * and emoji reactions) and are not user-authored discussion comments.
+ * They should typically be excluded from front-end and admin comment
+ * listings, counts, and similar contexts that target user discussion.
+ *
+ * @since 7.0.0
+ *
+ * @return string[] List of internal comment type slugs.
+ */
+function wp_get_internal_comment_types() {
+	/**
+	 * Filters the list of internal comment types.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string[] $types List of internal comment type slugs.
+	 */
+	return apply_filters( 'wp_internal_comment_types', array( 'note', 'reaction' ) );
+}
+
+/**
  * Gets the default comment status for a post type.
  *
  * @since 4.3.0
@@ -2876,7 +2899,14 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type != 'note' AND comment_type != 'reaction'", $post_id ) );
+		$internal_comment_types = wp_get_internal_comment_types();
+		$type_placeholders      = implode( ', ', array_fill( 0, count( $internal_comment_types ), '%s' ) );
+		$new                    = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type NOT IN ( $type_placeholders )", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				array_merge( array( $post_id ), $internal_comment_types )
+			)
+		);
 	} else {
 		$new = (int) $new;
 	}
