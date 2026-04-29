@@ -57,9 +57,7 @@ class Tests_insert_with_markers extends WP_UnitTestCase {
  /**
   * Data provider for test_insert_with_markers.
   *
-  * @return array[]
-  *
-  * @phpstan-return array<string, array{
+  * @return array<string, array{
   *     initial_content: string,
   *     marker:          string,
   *     insertion:       string|string[],
