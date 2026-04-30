@@ -4014,4 +4014,60 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			'string default'  => array( 'string', 'string', 'string2' ),
 		);
 	}
+
+	/**
+	 * Tests that the Meta fields handle an empty object (stdClass) correctly.
+	 *
+	 * This verifies the compatibility of filter_response_by_context with object types
+	 * when meta is cast to an object (e.g., in specific PHP versions or filter modifications).
+	 *
+	 * @ticket 54484
+	 */
+	public function test_filter_response_by_context_with_empty_object_meta() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		register_post_meta(
+			'post',
+			'test_object_compat_meta',
+			array(
+				'single'       => true,
+				'type'         => 'string',
+				'show_in_rest' => true,
+			)
+		);
+
+		add_filter(
+			'rest_prepare_post',
+			function ( $response ) {
+				$data = $response->get_data();
+				// Inject an empty object for meta to test type compatibility
+				$data['meta'] = new stdClass();
+				$response->set_data( $data );
+				return $response;
+			},
+			10
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'meta', $data );
+
+		// Use a more robust check for both array and object types
+		$meta_data = $data['meta'];
+
+		if ( is_object( $meta_data ) ) {
+			$this->assertFalse(
+				property_exists( $meta_data, 'test_object_compat_meta' ),
+				'Failed asserting that the meta object does not have the property "test_object_compat_meta".'
+			);
+		} else {
+			$this->assertArrayNotHasKey(
+				'test_object_compat_meta',
+				$meta_data,
+				'Failed asserting that the meta array does not have the key "test_object_compat_meta".'
+			);
+		}
+	}
 }
