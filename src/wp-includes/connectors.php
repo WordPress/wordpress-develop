@@ -210,6 +210,27 @@ function _wp_connectors_init(): void {
 		_wp_connectors_register_default_ai_providers( $registry );
 	}
 
+	// Non-AI default connectors.
+	$registry->register(
+		'akismet',
+		array(
+			'name'           => __( 'Akismet Anti-spam' ),
+			'description'    => __( 'Protect your site from spam.' ),
+			'type'           => 'spam_filtering',
+			'plugin'         => array(
+				'file' => 'akismet/akismet.php',
+				// If the plugin is active, it will pass its its own is_active callback.
+				'is_active' => '__return_false',
+			),
+			'authentication' => array(
+				'method'          => 'api_key',
+				'credentials_url' => 'https://akismet.com/get/',
+				'setting_name'    => 'wordpress_api_key',
+				'constant_name'   => 'WPCOM_API_KEY',
+			),
+		)
+	);
+
 	/**
 	 * Fires when the connector registry is ready for plugins to register connectors.
 	 *
