@@ -68,7 +68,7 @@ class WP_Network_Query {
 	 * List of networks located by the query.
 	 *
 	 * @since 4.6.0
-	 * @var WP_Network[]|int[] Array of WP_Network objects or network IDs, depending on 'fields' parameter.
+	 * @var WP_Network[]|int[]
 	 */
 	public $networks;
 
