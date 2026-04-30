@@ -257,6 +257,7 @@
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
 		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	& .on-this-day-post-meta {

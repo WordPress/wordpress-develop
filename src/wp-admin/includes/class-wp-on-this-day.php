@@ -71,7 +71,15 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 * @var int
 	 */
-	const CACHE_VERSION = 8;
+	const CACHE_VERSION = 10;
+
+	/**
+	 * Approximate maximum number of characters shown in each post excerpt.
+	 *
+	 * @since 7.1.0
+	 * @var int
+	 */
+	const EXCERPT_CHAR_COUNT = 160;
 
 	/**
 	 * Registers the dashboard widget and its supporting hooks and assets.
@@ -258,6 +266,7 @@ class WP_On_This_Day {
 
 		wp_admin_notice(
 			sprintf(
+				/* translators: %d: Number of days. */
 				_n(
 					'On This Day duration updated to %d day.',
 					'On This Day duration updated to %d days.',
@@ -332,6 +341,60 @@ class WP_On_This_Day {
 			max( (int) $window_days, self::MIN_WINDOW_DAYS ),
 			self::MAX_WINDOW_DAYS
 		);
+	}
+
+	/**
+	 * Extracts a plain-text excerpt from HTML source using the HTML API.
+	 *
+	 * Walks the input as HTML5 tokens, collecting the contents of `#text`
+	 * nodes only, so script, style, and comment contents are skipped by
+	 * construction rather than via regex stripping. A space is emitted on
+	 * every tag boundary to keep word boundaries between adjacent block
+	 * elements (e.g. `<p>One</p><p>Two</p>` -> "One Two").
+	 *
+	 * Length is measured in Unicode characters via `mb_strlen()`, which
+	 * is more language-fair than word counting (CJK languages do not
+	 * separate words with whitespace).
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $source    HTML source to extract text from.
+	 * @param int    $max_chars Approximate character limit before truncation.
+	 * @return string Plain-text excerpt.
+	 */
+	protected static function extract_excerpt_text( $source, $max_chars ) {
+		$source = strip_shortcodes( (string) $source );
+
+		if ( '' === trim( $source ) ) {
+			return '';
+		}
+
+		$processor = new WP_HTML_Tag_Processor( $source );
+		$parts     = array();
+		$length    = 0;
+
+		while ( $processor->next_token() ) {
+			$token_type = $processor->get_token_type();
+
+			if ( '#tag' === $token_type ) {
+				$parts[] = ' ';
+				continue;
+			}
+
+			if ( '#text' !== $token_type ) {
+				continue;
+			}
+
+			$chunk   = $processor->get_modifiable_text();
+			$parts[] = $chunk;
+			$length += mb_strlen( $chunk );
+
+			if ( $length >= $max_chars ) {
+				break;
+			}
+		}
+		$separator = _wp_can_use_pcre_u() ? '~\p{Z}+~u' : '~\s+~';
+		return trim( preg_replace( $separator, ' ', implode( '', $parts ) ) );
 	}
 
 	/**
@@ -500,10 +563,10 @@ class WP_On_This_Day {
 			$title = __( '(no title)' );
 		}
 
-		$excerpt = has_excerpt( $post ) ? $post->post_excerpt : $post->post_content;
-		$excerpt = wp_strip_all_tags( strip_shortcodes( $excerpt ) );
-		$excerpt = preg_replace( '/\s+/', ' ', $excerpt );
-		$excerpt = wp_trim_words( trim( $excerpt ), 24, '&hellip;' );
+		$excerpt = self::extract_excerpt_text(
+			has_excerpt( $post ) ? $post->post_excerpt : $post->post_content,
+			self::EXCERPT_CHAR_COUNT
+		);
 
 		$date_str   = get_the_date( 'F j', $post );
 		$time_str   = get_the_time( get_option( 'time_format' ), $post );
