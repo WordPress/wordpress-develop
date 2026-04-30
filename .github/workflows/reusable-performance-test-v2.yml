@@ -19,7 +19,7 @@ on:
         description: 'The version being used for baseline measurements.'
         required: false
         type: 'string'
-        default: '6.8.0'
+        default: '6.7.0'
       TARGET_SHA:
         description: 'SHA hash of the target commit used for "before" measurements.'
         required: true
