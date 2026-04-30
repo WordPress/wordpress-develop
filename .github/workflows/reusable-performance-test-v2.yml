@@ -49,7 +49,7 @@ on:
         required: false
 
 env:
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
 
   # Prevent wp-scripts from downloading extra Playwright browsers,
   # since Chromium will be installed in its dedicated step already.
