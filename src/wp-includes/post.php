@@ -4849,8 +4849,6 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$post_name = wp_add_trashed_suffix_to_post_name_for_post( $post_id );
 	}
 
-	$post_name = wp_unique_post_slug( $post_name, $post_id, $post_status, $post_type, $post_parent );
-
 	// Don't unslash.
 	$post_mime_type = $postarr['post_mime_type'] ?? '';
 
@@ -4927,6 +4925,81 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	$data  = wp_unslash( $data );
 	$where = array( 'ID' => $post_id );
 
+	if ( ! $update ) {
+		// If there is a suggested ID, use it if not already present.
+		if ( ! empty( $import_id ) ) {
+			$import_id = (int) $import_id;
+
+			if ( ! $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE ID = %d", $import_id ) ) ) {
+				$data['ID'] = $import_id;
+			}
+		}
+	}
+
+	$data_post_status = $data['post_status'];
+	$data_post_type   = $data['post_type'];
+	$data_post_parent = (int) $data['post_parent'];
+
+	/*
+	 * Acquire a MySQL advisory lock to eliminate the TOCTOU race between the
+	 * wp_unique_post_slug() SELECT and the INSERT/UPDATE below. Without this lock
+	 * two concurrent requests can both observe the same slug as free and write
+	 * duplicate post_name values.
+	 *
+	 * A single posts-table-scoped lock is used because attachment slug uniqueness
+	 * overlaps all post types: using narrower locks allows an attachment and another
+	 * post type to miss each other and write the same slug concurrently.
+	 *
+	 * The lock is skipped for statuses and post types where wp_unique_post_slug()
+	 * performs no DB query (draft, pending, auto-draft, revisions, user_request,
+	 * nav_menu_item), since no slug allocation race is possible there.
+	 */
+	$needs_slug_lock = ! (
+		in_array( $data_post_status, array( 'draft', 'pending', 'auto-draft' ), true )
+		|| ( 'inherit' === $data_post_status && 'revision' === $data_post_type )
+		|| 'user_request' === $data_post_type
+		|| 'nav_menu_item' === $data_post_type
+	);
+
+	$slug_lock_name = '';
+	$lock_acquired  = false;
+
+	if ( $needs_slug_lock ) {
+		$slug_lock_name = 'wp_post_slug_' . md5( $wpdb->posts );
+
+		/**
+		 * Filters the timeout in seconds for the advisory slug lock used during wp_insert_post().
+		 *
+		 * When the lock cannot be acquired within this many seconds the insertion or update
+		 * fails closed to preserve slug uniqueness under concurrent load.
+		 *
+		 * @since x.x.x
+		 *
+		 * @param int    $timeout        Lock wait timeout in seconds. Default 10.
+		 * @param string $slug_lock_name Advisory lock name, scoped to the posts table.
+		 * @param string $post_type      Post type being inserted or updated.
+		 */
+		$timeout       = max( 0, (int) apply_filters( 'wp_post_slug_lock_timeout', 10, $slug_lock_name, $data_post_type ) );
+		$lock_result   = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $slug_lock_name, $timeout ) );
+		$lock_acquired = '1' === (string) $lock_result;
+
+		if ( ! $lock_acquired ) {
+			if ( $wp_error ) {
+				return new WP_Error( 'db_lock_error', __( 'Could not acquire post slug lock.' ), $wpdb->last_error );
+			}
+
+			return 0;
+		}
+	}
+
+	$data['post_name'] = wp_unique_post_slug(
+		$data['post_name'],
+		$post_id,
+		$data_post_status,
+		$data_post_type,
+		$data_post_parent
+	);
+
 	if ( $update ) {
 		/**
 		 * Fires immediately before an existing post is updated in the database.
@@ -4937,8 +5010,23 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 * @param array $data    Array of unslashed post data.
 		 */
 		do_action( 'pre_post_update', $post_id, $data );
+	} else {
+		/**
+		 * Fires immediately before a new post is inserted in the database.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param array $data Array of unslashed post data.
+		 */
+		do_action( 'pre_post_insert', $data );
+	}
 
+	if ( $update ) {
 		if ( false === $wpdb->update( $wpdb->posts, $data, $where ) ) {
+			if ( $lock_acquired ) {
+				$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $slug_lock_name ) );
+			}
+
 			if ( $wp_error ) {
 				if ( 'attachment' === $post_type ) {
 					$message = __( 'Could not update attachment in the database.' );
@@ -4952,25 +5040,11 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 			}
 		}
 	} else {
-		// If there is a suggested ID, use it if not already present.
-		if ( ! empty( $import_id ) ) {
-			$import_id = (int) $import_id;
-
-			if ( ! $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE ID = %d", $import_id ) ) ) {
-				$data['ID'] = $import_id;
-			}
-		}
-
-		/**
-		 * Fires immediately before a new post is inserted in the database.
-		 *
-		 * @since 6.9.0
-		 *
-		 * @param array $data Array of unslashed post data.
-		 */
-		do_action( 'pre_post_insert', $data );
-
 		if ( false === $wpdb->insert( $wpdb->posts, $data ) ) {
+			if ( $lock_acquired ) {
+				$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $slug_lock_name ) );
+			}
+
 			if ( $wp_error ) {
 				if ( 'attachment' === $post_type ) {
 					$message = __( 'Could not insert attachment into the database.' );
@@ -4991,10 +5065,14 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	if ( empty( $data['post_name'] ) && ! in_array( $data['post_status'], array( 'draft', 'pending', 'auto-draft' ), true ) ) {
-		$data['post_name'] = wp_unique_post_slug( sanitize_title( $data['post_title'], $post_id ), $post_id, $data['post_status'], $post_type, $post_parent );
+		$data['post_name'] = wp_unique_post_slug( sanitize_title( $data['post_title'], $post_id ), $post_id, $data_post_status, $data_post_type, $data_post_parent );
 
 		$wpdb->update( $wpdb->posts, array( 'post_name' => $data['post_name'] ), $where );
 		clean_post_cache( $post_id );
+	}
+
+	if ( $lock_acquired ) {
+		$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $slug_lock_name ) );
 	}
 
 	if ( is_object_in_taxonomy( $post_type, 'category' ) ) {
