@@ -79,6 +79,12 @@ function wp_enqueue_block_custom_css() {
  */
 function wp_render_custom_css_class_name( $block_content, $block ) {
 	$class_string = $block['attrs']['className'] ?? '';
+
+	/* If there is no class string, there is no custom CSS class to add, so return early. */
+	if ( '' === $class_string ) {
+		return $block_content;
+	}
+
 	preg_match( '/\bwp-custom-css-\S+\b/', $class_string, $matches );
 
 	if ( empty( $matches ) ) {
