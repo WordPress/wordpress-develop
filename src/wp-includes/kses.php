@@ -2864,12 +2864,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found && $color_attr ) {
-			$css_value    = trim( $parts[1] );
-			$comma_syntax = '/^rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*(?:,\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i';
-			$space_syntax = '/^rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s*(?:\/\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i';
+			// Simplified: matches the sequence `rgb(*)` or `rgba(*)`.
+			$comma_syntax = '/rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*(?:,\s*([+-]?\d*\.?\d+)(%)?\s*)?\)/i';
+			$space_syntax = '/rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s*(?:\/\s*([+-]?\d*\.?\d+)(%)?\s*)?\)/i';
 
-			if ( preg_match( $comma_syntax, $css_value ) || preg_match( $space_syntax, $css_value ) ) {
-				$css_test_string = str_replace( $css_value, '', $css_test_string );
+			preg_match_all( $comma_syntax, $parts[1], $color_matches_comma );
+			preg_match_all( $space_syntax, $parts[1], $color_matches_space );
+
+			foreach ( array_merge( $color_matches_comma[0], $color_matches_space[0] ) as $color_match ) {
+				// Remove the whole `rgb(*)` or `rgba(*)` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $color_match, '', $css_test_string );
 			}
 		}
 

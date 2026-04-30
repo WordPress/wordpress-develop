@@ -1389,6 +1389,21 @@ EOF;
 				'css'      => 'border-color: rgba(100, 200, 300, 0.8)',
 				'expected' => 'border-color: rgba(100, 200, 300, 0.8)',
 			),
+			// RGB color in `border` shorthand.
+			array(
+				'css'      => 'border: 1px solid rgb(0, 0, 0)',
+				'expected' => 'border: 1px solid rgb(0, 0, 0)',
+			),
+			// RGBA color in `border` shorthand.
+			array(
+				'css'      => 'border: 1px solid rgba(0, 0, 0, 0.5)',
+				'expected' => 'border: 1px solid rgba(0, 0, 0, 0.5)',
+			),
+			// RGB color in `background` shorthand.
+			array(
+				'css'      => 'background: rgb(0, 0, 0) center',
+				'expected' => 'background: rgb(0, 0, 0) center',
+			),
 			// Malformed RGB color, invalid number of values.
 			array(
 				'css'      => 'color: rgb(255, 128, 0, 0.5, 100)',
