@@ -84,7 +84,7 @@ class WP_Network_Query {
 	 * The number of pages.
 	 *
 	 * @since 4.6.0
-	 * @var int Number of pages of results for the current query.
+	 * @var int
 	 */
 	public $max_num_pages = 0;
 
