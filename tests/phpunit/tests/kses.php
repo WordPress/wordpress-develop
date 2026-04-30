@@ -1362,8 +1362,8 @@ EOF;
 				'expected' => 'color: rgb(100%, 0%, 50%)',
 			),
 			array(
-				'css'      => 'color: rgb(255, 50%, 0)',
-				'expected' => 'color: rgb(255, 50%, 0)',
+				'css'      => 'color: rgb(255 50% 0)',
+				'expected' => 'color: rgb(255 50% 0)',
 			),
 			// RGBA color.
 			array(
@@ -1386,8 +1386,8 @@ EOF;
 			),
 			// RGBA border color.
 			array(
-				'css'      => 'border-color: rgba(100, 200, 300, 0.8)',
-				'expected' => 'border-color: rgba(100, 200, 300, 0.8)',
+				'css'      => 'border-color: rgba(100, 200, 250, 0.8)',
+				'expected' => 'border-color: rgba(100, 200, 250, 0.8)',
 			),
 			// RGB color in `border` shorthand.
 			array(
