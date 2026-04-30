@@ -52,7 +52,7 @@ class WP_Network_Query {
 	 * Query vars set by the user.
 	 *
 	 * @since 4.6.0
-	 * @var array<string, mixed> Query variables for the current query.
+	 * @var array<string, mixed>
 	 */
 	public $query_vars;
 
