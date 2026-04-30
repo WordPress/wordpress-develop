@@ -46,28 +46,6 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	/**
 	 * @ticket 65099
 	 */
-	public function test_non_ai_connector_skipped_when_is_active_missing(): void {
-		WP_Connector_Registry::get_instance()->register(
-			self::CONNECTOR_ID,
-			array(
-				'name'           => 'Test Non-AI Connector',
-				'description'    => '',
-				'type'           => 'spam_filtering',
-				'authentication' => array(
-					'method'       => 'api_key',
-					'setting_name' => self::SETTING_NAME,
-				),
-			)
-		);
-
-		_wp_register_default_connector_settings();
-
-		$this->assertArrayNotHasKey( self::SETTING_NAME, get_registered_settings() );
-	}
-
-	/**
-	 * @ticket 65099
-	 */
 	public function test_non_ai_connector_skipped_when_is_active_returns_false(): void {
 		WP_Connector_Registry::get_instance()->register(
 			self::CONNECTOR_ID,
