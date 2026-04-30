@@ -37,7 +37,6 @@ class WP_Network_Query {
 	 *     orderby: string,
 	 *     limits: string
 	 * }
-	 * Associative array of SQL query clauses used to build the request.
 	 */
 	protected $sql_clauses = array(
 		'select'  => '',
