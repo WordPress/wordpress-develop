@@ -60,7 +60,7 @@ class WP_Network_Query {
 	 * Default values for query vars.
 	 *
 	 * @since 4.6.0
-	 * @var array<string, mixed> Default values for query variables.
+	 * @var array<string, mixed>
 	 */
 	public $query_var_defaults;
 
