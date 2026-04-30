@@ -76,7 +76,7 @@ class WP_Network_Query {
 	 * The amount of found networks for the current query.
 	 *
 	 * @since 4.6.0
-	 * @var int Number of networks found for the current query.
+	 * @var int
 	 */
 	public $found_networks = 0;
 
