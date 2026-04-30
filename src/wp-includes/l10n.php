@@ -1236,13 +1236,13 @@ function _load_script_textdomain_from_src( string $handle, string $src, string $
 
 	$src_url = wp_parse_url( $src );
 	if ( ! $src_url ) {
-		return false;
+		return load_script_translations( false, $handle, $domain );
 	}
 	$src_url['path'] ??= '';
 
 	$content_url = wp_parse_url( content_url() );
 	if ( ! $content_url ) {
-		return false;
+		return load_script_translations( false, $handle, $domain );
 	}
 
 	$plugins_url = wp_parse_url( plugins_url() );
