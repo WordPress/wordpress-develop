@@ -669,7 +669,7 @@ function wp_get_typography_font_size_value( $preset, $settings = array() ) {
 		 * For a - b * log2(), lower values of b will make the curve move towards the minimum faster.
 		 * The scale factor is constrained between min and max values.
 		 */
-		$minimum_font_size_factor     = min( max( 1 - 0.075 * log( $preferred_font_size_in_px, 2 ), $default_minimum_font_size_factor_min ), $default_minimum_font_size_factor_max );
+		$minimum_font_size_factor     = clamp( 1 - 0.075 * log( $preferred_font_size_in_px, 2 ), $default_minimum_font_size_factor_min, $default_minimum_font_size_factor_max );
 		$calculated_minimum_font_size = round( $preferred_size['value'] * $minimum_font_size_factor, 3 );
 
 		// Only use calculated min font size if it's > $minimum_font_size_limit value.
