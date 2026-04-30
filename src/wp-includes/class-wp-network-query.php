@@ -21,7 +21,7 @@ class WP_Network_Query {
 	 * SQL for database query.
 	 *
 	 * @since 4.6.0
-	 * @var string SQL statement for the last performed network query.
+	 * @var string
 	 */
 	public $request;
 
