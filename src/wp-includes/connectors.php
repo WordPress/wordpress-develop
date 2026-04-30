@@ -219,8 +219,9 @@ function _wp_connectors_init(): void {
 			'type'           => 'spam_filtering',
 			'plugin'         => array(
 				'file' => 'akismet/akismet.php',
-				// If the plugin is active, it will pass its its own is_active callback.
-				'is_active' => '__return_false',
+				'is_active' => function () {
+					return defined( 'AKISMET_VERSION' );
+				},
 			),
 			'authentication' => array(
 				'method'          => 'api_key',
