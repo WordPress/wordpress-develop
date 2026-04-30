@@ -353,10 +353,12 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 64791
 	 */
-	public function test_register_omits_plugin_when_not_provided() {
+	public function test_register_defaults_plugin_when_not_provided() {
 		$result = $this->registry->register( 'no-plugin', self::$default_args );
 
-		$this->assertArrayNotHasKey( 'plugin', $result );
+		$this->assertArrayHasKey( 'plugin', $result );
+		$this->assertArrayNotHasKey( 'file', $result['plugin'] );
+		$this->assertSame( '__return_true', $result['plugin']['is_active'] );
 	}
 
 	/**

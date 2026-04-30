@@ -367,6 +367,17 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 				}
 			}
 		}
+
+		if ( ! isset( $args['plugin']['is_active'] ) ) {
+			$args['plugin']['is_active'] = static function () use ( $ai_registry, $id ): bool {
+				try {
+					return $ai_registry->hasProvider( $id );
+				} catch ( Exception $e ) {
+					return false;
+				}
+			};
+		}
+
 		$registry->register( $id, $args );
 	}
 }
@@ -671,7 +682,7 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 		if ( ! empty( $connector_data['plugin']['file'] ) ) {
 			$file         = $connector_data['plugin']['file'];
 			$is_activated = (bool) call_user_func( $connector_data['plugin']['is_active'] );
-			$is_installed = $is_activated || file_exists( WP_PLUGIN_DIR . '/' . $file );
+			$is_installed = $is_activated || file_exists( wp_normalize_path( WP_PLUGIN_DIR . '/' . $file ) );
 
 			$connector_out['plugin'] = array(
 				'file'        => $file,
