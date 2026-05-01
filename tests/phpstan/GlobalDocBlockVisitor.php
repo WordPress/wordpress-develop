@@ -44,7 +44,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 *
 	 * Each frame maps variable names (without `$`) to their declared type.
 	 *
-	 * @var list<array<string, string>>
+	 * @var list<array<non-empty-string, non-empty-string>>
 	 */
 	private array $stack = array();
 
@@ -140,13 +140,15 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 * Whitespace inside the type is collapsed.
 	 *
 	 * @param string $docblock Raw docblock text including `/**` markers.
-	 * @return array<string, string> Map of variable name (no `$`) to type.
+	 * @return array<non-empty-string, non-empty-string> Map of variable name (no `$`) to type.
 	 */
 	private function parse_global_tags( string $docblock ): array {
 		$map = array();
-		if ( preg_match_all( '/@global\s+(\S+(?:\s*\|\s*\S+)*)\s+\$(\w+)/', $docblock, $matches, PREG_SET_ORDER ) > 0 ) {
+		if ( preg_match_all( '/@global\s+(?P<type>\S+(?:\s*\|\s*\S+)*)\s+\$(?P<variable>\w+)/', $docblock, $matches, PREG_SET_ORDER ) > 0 ) {
 			foreach ( $matches as $match ) {
-				$map[ $match[2] ] = (string) preg_replace( '/\s+/', '', $match[1] );
+				$type = preg_replace( '/\s+/', '', $match['type'] );
+				assert( is_string( $type ) && '' !== $type );
+				$map[ $match['variable'] ] = $type;
 			}
 		}
 		return $map;
