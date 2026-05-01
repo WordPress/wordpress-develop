@@ -47,7 +47,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 * Resets state at the start of each parser traversal.
 	 *
 	 * @param array<int, Node> $nodes Top-level nodes about to be traversed.
-	 * @return null
+	 * @return array<int, Node>|null
 	 */
 	public function beforeTraverse( array $nodes ): ?array {
 		$this->stack = array();
@@ -126,7 +126,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 		$map = array();
 		if ( preg_match_all( '/@global\s+(\S+(?:\s*\|\s*\S+)*)\s+\$(\w+)/', $docblock, $matches, PREG_SET_ORDER ) > 0 ) {
 			foreach ( $matches as $match ) {
-				$map[ $match[2] ] = preg_replace( '/\s+/', '', $match[1] );
+				$map[ $match[2] ] = (string) preg_replace( '/\s+/', '', $match[1] );
 			}
 		}
 		return $map;
