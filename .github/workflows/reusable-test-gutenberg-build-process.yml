@@ -19,7 +19,7 @@ on:
 
 env:
   GUTENBERG_DIRECTORY: ${{ inputs.directory == 'build' && 'build' || 'src' }}/wp-content/plugins/gutenberg
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
   NODE_OPTIONS: '--max-old-space-size=8192'
 
 # Disable permissions for all available scopes by default.
