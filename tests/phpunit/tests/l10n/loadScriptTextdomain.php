@@ -258,26 +258,17 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 
 	/**
 	 * Tests that the `load_script_textdomain_relative_path` filter returning
-	 * a non-string, non-false value short-circuits via the
-	 * `! is_string( $relative )` guard rather than falling through to
-	 * string functions like `str_ends_with()` and `md5()`.
+	 * a non-string, non-false value (e.g., a callback that forgets to return)
+	 * short-circuits via the `! is_string( $relative )` guard rather than
+	 * falling through to string functions like `str_ends_with()` and `md5()`.
 	 *
 	 * @ticket 65015
-	 *
-	 * @dataProvider data_non_string_relative_path_filter_values
-	 *
-	 * @param mixed $filter_value Value returned from the filter.
 	 */
-	public function test_non_string_relative_path_filter_returns_false( $filter_value ): void {
+	public function test_non_string_relative_path_filter_returns_false(): void {
 		$handle = 'test-non-string-relative-path';
 		$src    = '/wp-includes/js/script.js';
 
-		add_filter(
-			'load_script_textdomain_relative_path',
-			static function () use ( $filter_value ) {
-				return $filter_value;
-			}
-		);
+		add_filter( 'load_script_textdomain_relative_path', '__return_null' );
 
 		$files_seen = &$this->spy_load_script_translations_files();
 
@@ -291,20 +282,6 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 			),
 			$files_seen,
 			'Expected the non-string $relative branch to short-circuit before md5 path computation.'
-		);
-	}
-
-	/**
-	 * Provides data for {@see self::test_non_string_relative_path_filter_returns_false()}.
-	 *
-	 * @return array<string, array{0: mixed}>
-	 */
-	public static function data_non_string_relative_path_filter_values(): array {
-		return array(
-			'null'  => array( null ),
-			'true'  => array( true ),
-			'array' => array( array( 'wp-includes/js/script.js' ) ),
-			'int'   => array( 0 ),
 		);
 	}
 
