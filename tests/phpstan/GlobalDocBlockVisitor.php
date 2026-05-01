@@ -82,9 +82,11 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 			return null;
 		}
 
-		// Collect variable names that already have a hand-written `@var` on this
-		// statement so we can leave them alone but still inject `@var` lines for
-		// the remaining variables in a multi-variable `global $a, $b;` statement.
+		/*
+		 * Collect variable names that already have a handwritten `@var` on this
+		 * statement so we can leave them alone but still inject `@var` lines for
+		 * the remaining variables in a multi-variable `global $a, $b;` statement.
+		 */
 		$existing       = $node->getDocComment();
 		$existing_text  = $existing !== null ? $existing->getText() : '';
 		$already_typed  = array();
