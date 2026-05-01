@@ -32,7 +32,7 @@ class WP_Network_Query {
 	 * @var array{
 	 *     select: string,
 	 *     from: string,
-	 *     where: array,
+	 *     where: array<string, string>,
 	 *     groupby: string,
 	 *     orderby: string,
 	 *     limits: string
