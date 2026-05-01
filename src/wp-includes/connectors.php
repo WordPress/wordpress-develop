@@ -218,8 +218,8 @@ function _wp_connectors_init(): void {
 			'description'    => __( 'Protect your site from spam.' ),
 			'type'           => 'spam_filtering',
 			'plugin'         => array(
-				'file' => 'akismet/akismet.php',
-				'is_active' => function () {
+				'file'      => 'akismet/akismet.php',
+				'is_active' => static function () {
 					return defined( 'AKISMET_VERSION' );
 				},
 			),
