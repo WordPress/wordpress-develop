@@ -98,6 +98,7 @@ parameters:
 		- ../../src/wp-signup.php
 		- ../../src/wp-trackback.php
 		- ../../src/xmlrpc.php
+		- GlobalDocBlockVisitor.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:
