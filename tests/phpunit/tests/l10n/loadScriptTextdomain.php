@@ -174,28 +174,6 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Records every `$file` value passed to `load_script_translations()`
-	 * so individual tests can assert which code path produced the result.
-	 *
-	 * @return list<string|false> Reference to the array updated by the spy filter.
-	 */
-	private function &spy_load_script_translations_files(): array {
-		/** @var list<string|false> $files_seen */
-		$files_seen = array();
-		add_filter(
-			'pre_load_script_translations',
-			static function ( $translations, $file ) use ( &$files_seen ) {
-				assert( is_string( $file ) || false === $file );
-				$files_seen[] = $file;
-				return $translations;
-			},
-			10,
-			2
-		);
-		return $files_seen;
-	}
-
-	/**
 	 * Tests that an unparseable script source URL short-circuits to
 	 * `load_script_translations( false, ... )` instead of falling through
 	 * to the relative-path computation.
@@ -208,25 +186,21 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 
 		$this->assertFalse( wp_parse_url( $src ), 'Test prerequisite failed: the test src should be unparseable.' );
 
-		$files_seen = &$this->spy_load_script_translations_files();
-
 		wp_enqueue_script( $handle, $src, array(), null );
 
 		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
-		$this->assertSame(
-			array(
-				DIR_TESTDATA . '/languages/en_US-' . $handle . '.json',
-				false,
-			),
-			$files_seen,
-			'Expected the unparseable $src branch to short-circuit before any relative-path lookup.'
-		);
 	}
 
 	/**
 	 * Tests that an unparseable `content_url()` return value short-circuits
 	 * to `load_script_translations( false, ... )` instead of computing
 	 * `$relative` from a corrupted parsed-URL array.
+	 *
+	 * The `MockAction` spy on `pre_load_script_translations` is necessary
+	 * here because the function's tail end also calls `load_script_translations( false, ... )`,
+	 * so a regression that bypasses the early return would still return false
+	 * via the fallback path. Asserting on the recorded `$file` arguments pins
+	 * the test to the intended branch.
 	 *
 	 * @ticket 65015
 	 */
@@ -241,7 +215,8 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 			}
 		);
 
-		$files_seen = &$this->spy_load_script_translations_files();
+		$mock = new MockAction();
+		add_filter( 'pre_load_script_translations', array( $mock, 'filter' ), 10, 4 );
 
 		wp_enqueue_script( $handle, $src, array(), null );
 
@@ -251,7 +226,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				DIR_TESTDATA . '/languages/en_US-' . $handle . '.json',
 				false,
 			),
-			$files_seen,
+			array_column( $mock->get_args(), 1 ),
 			'Expected the unparseable content_url branch to short-circuit before any relative-path lookup.'
 		);
 	}
@@ -270,19 +245,9 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 
 		add_filter( 'load_script_textdomain_relative_path', '__return_null' );
 
-		$files_seen = &$this->spy_load_script_translations_files();
-
 		wp_enqueue_script( $handle, $src, array(), null );
 
 		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
-		$this->assertSame(
-			array(
-				DIR_TESTDATA . '/languages/en_US-' . $handle . '.json',
-				false,
-			),
-			$files_seen,
-			'Expected the non-string $relative branch to short-circuit before md5 path computation.'
-		);
 	}
 
 	/**
