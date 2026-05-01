@@ -14,15 +14,16 @@
  * @return array The same parsed block with custom CSS class name added if appropriate.
  */
 function wp_render_custom_css_support_styles( $parsed_block ) {
-	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $parsed_block['blockName'] );
+	// Check if the custom CSS attribute even exists.
+	$custom_css = $parsed_block['attrs']['style']['css'] ?? '';
 
-	if ( ! block_has_support( $block_type, 'customCSS', true ) ) {
+	if ( empty( trim( $custom_css ) ) ) {
 		return $parsed_block;
 	}
 
-	$custom_css = trim( $parsed_block['attrs']['style']['css'] ?? '' );
+	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $parsed_block['blockName'] );
 
-	if ( empty( $custom_css ) ) {
+	if ( ! block_has_support( $block_type, 'customCSS', true ) ) {
 		return $parsed_block;
 	}
 
