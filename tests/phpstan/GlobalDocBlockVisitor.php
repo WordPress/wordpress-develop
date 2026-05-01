@@ -144,7 +144,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 */
 	private function parse_global_tags( string $docblock ): array {
 		$map = array();
-		if ( preg_match_all( '/@global\s+(?P<type>\S+(?:\s*\|\s*\S+)*)\s+\$(?P<variable>\w+)/', $docblock, $matches, PREG_SET_ORDER ) > 0 ) {
+		if ( preg_match_all( '/@global\s+(?P<type>\S.*?)\s+\$(?P<variable>\w+)/', $docblock, $matches, PREG_SET_ORDER ) > 0 ) {
 			foreach ( $matches as $match ) {
 				$type = preg_replace( '/\s+/', '', $match['type'] );
 				assert( is_string( $type ) && '' !== $type );
