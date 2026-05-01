@@ -172,4 +172,160 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 		$expected = file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' );
 		$this->assertSame( $expected, load_script_textdomain( $handle ) );
 	}
+
+	/**
+	 * Records every `$file` value passed to `load_script_translations()`
+	 * so individual tests can assert which code path produced the result.
+	 *
+	 * @return list<string|false> Reference to the array updated by the spy filter.
+	 */
+	private function &spy_load_script_translations_files(): array {
+		/** @var list<string|false> $files_seen */
+		$files_seen = array();
+		add_filter(
+			'pre_load_script_translations',
+			static function ( $translations, $file ) use ( &$files_seen ) {
+				assert( is_string( $file ) || false === $file );
+				$files_seen[] = $file;
+				return $translations;
+			},
+			10,
+			2
+		);
+		return $files_seen;
+	}
+
+	/**
+	 * Tests that an unparseable script source URL short-circuits to
+	 * `load_script_translations( false, ... )` instead of falling through
+	 * to the relative-path computation.
+	 *
+	 * @ticket 65015
+	 */
+	public function test_unparseable_src_returns_false(): void {
+		$handle = 'test-unparseable-src';
+		$src    = 'http:///example';
+
+		$this->assertFalse( wp_parse_url( $src ), 'Test prerequisite failed: the test src should be unparseable.' );
+
+		$files_seen = &$this->spy_load_script_translations_files();
+
+		wp_enqueue_script( $handle, $src, array(), null );
+
+		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame(
+			array(
+				DIR_TESTDATA . '/languages/en_US-' . $handle . '.json',
+				false,
+			),
+			$files_seen,
+			'Expected the unparseable $src branch to short-circuit before any relative-path lookup.'
+		);
+	}
+
+	/**
+	 * Tests that an unparseable `content_url()` return value short-circuits
+	 * to `load_script_translations( false, ... )` instead of computing
+	 * `$relative` from a corrupted parsed-URL array.
+	 *
+	 * @ticket 65015
+	 */
+	public function test_unparseable_content_url_returns_false(): void {
+		$handle = 'test-unparseable-content-url';
+		$src    = '/wp-includes/js/script.js';
+
+		add_filter(
+			'content_url',
+			static function () {
+				return 'http:///example';
+			}
+		);
+
+		$files_seen = &$this->spy_load_script_translations_files();
+
+		wp_enqueue_script( $handle, $src, array(), null );
+
+		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame(
+			array(
+				DIR_TESTDATA . '/languages/en_US-' . $handle . '.json',
+				false,
+			),
+			$files_seen,
+			'Expected the unparseable content_url branch to short-circuit before any relative-path lookup.'
+		);
+	}
+
+	/**
+	 * Tests that the `load_script_textdomain_relative_path` filter returning
+	 * a non-string, non-false value short-circuits via the
+	 * `! is_string( $relative )` guard rather than falling through to
+	 * string functions like `str_ends_with()` and `md5()`.
+	 *
+	 * @ticket 65015
+	 *
+	 * @dataProvider data_non_string_relative_path_filter_values
+	 *
+	 * @param mixed $filter_value Value returned from the filter.
+	 */
+	public function test_non_string_relative_path_filter_returns_false( $filter_value ): void {
+		$handle = 'test-non-string-relative-path';
+		$src    = '/wp-includes/js/script.js';
+
+		add_filter(
+			'load_script_textdomain_relative_path',
+			static function () use ( $filter_value ) {
+				return $filter_value;
+			}
+		);
+
+		$files_seen = &$this->spy_load_script_translations_files();
+
+		wp_enqueue_script( $handle, $src, array(), null );
+
+		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame(
+			array(
+				DIR_TESTDATA . '/languages/en_US-' . $handle . '.json',
+				false,
+			),
+			$files_seen,
+			'Expected the non-string $relative branch to short-circuit before md5 path computation.'
+		);
+	}
+
+	/**
+	 * Provides data for {@see self::test_non_string_relative_path_filter_returns_false()}.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public static function data_non_string_relative_path_filter_values(): array {
+		return array(
+			'null'  => array( null ),
+			'true'  => array( true ),
+			'array' => array( array( 'wp-includes/js/script.js' ) ),
+			'int'   => array( 0 ),
+		);
+	}
+
+	/**
+	 * Tests that a script source URL with no path component does not trigger
+	 * an undefined index warning when the path is read further down in the
+	 * function. The result is reached via the regular fallback path
+	 * (no host/path match) rather than an early return.
+	 *
+	 * @ticket 65015
+	 */
+	public function test_src_without_path_component_does_not_warn(): void {
+		$handle = 'test-src-without-path';
+		$src    = 'https://example.com';
+
+		$parsed = wp_parse_url( $src );
+		$this->assertIsArray( $parsed, 'Test prerequisite failed: the test src should parse.' );
+		$this->assertArrayNotHasKey( 'path', $parsed, 'Test prerequisite failed: the test src should have no path component.' );
+
+		wp_enqueue_script( $handle, $src, array(), null );
+
+		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
+	}
 }
