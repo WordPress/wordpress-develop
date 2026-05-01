@@ -30,6 +30,11 @@ use PhpParser\NodeVisitorAbstract;
  * function docblock does not list, are left untouched and continue to
  * resolve as `mixed` — preserving PHPStan's safety guarantees.
  *
+ * Hand-written `@var` annotations on a `global` statement are honored
+ * per-variable: in `global $a, $b;`, an existing `@var Foo $a` is left
+ * alone, but `$b` will still receive a synthetic `@var` if the function
+ * documents it via `@global`.
+ *
  * Registered as `phpstan.parser.richParserNodeVisitor` in `base.neon`.
  */
 final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
@@ -77,10 +82,14 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 			return null;
 		}
 
-		// Respect a hand-written `@var` already on the statement.
-		$existing = $node->getDocComment();
-		if ( $existing !== null && str_contains( $existing->getText(), '@var' ) ) {
-			return null;
+		// Collect variable names that already have a hand-written `@var` on this
+		// statement so we can leave them alone but still inject `@var` lines for
+		// the remaining variables in a multi-variable `global $a, $b;` statement.
+		$existing       = $node->getDocComment();
+		$existing_text  = $existing !== null ? $existing->getText() : '';
+		$already_typed  = array();
+		if ( $existing_text !== '' && preg_match_all( '/@(?:phpstan-)?var\s+[^\n]*?\$(\w+)/', $existing_text, $existing_matches ) > 0 ) {
+			$already_typed = array_flip( $existing_matches[1] );
 		}
 
 		$lines = array();
@@ -88,13 +97,22 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 			if ( ! $var instanceof Node\Expr\Variable || ! is_string( $var->name ) ) {
 				continue;
 			}
-			if ( isset( $map[ $var->name ] ) ) {
-				$lines[] = sprintf( ' * @var %s $%s', $map[ $var->name ], $var->name );
+			if ( isset( $already_typed[ $var->name ] ) || ! isset( $map[ $var->name ] ) ) {
+				continue;
 			}
+			$lines[] = sprintf( ' * @var %s $%s', $map[ $var->name ], $var->name );
 		}
 
-		if ( $lines !== array() ) {
+		if ( $lines === array() ) {
+			return null;
+		}
+
+		if ( $existing_text === '' ) {
 			$node->setDocComment( new Doc( "/**\n" . implode( "\n", $lines ) . "\n */" ) );
+		} else {
+			// Insert the new `@var` lines just before the closing `*/`.
+			$merged = preg_replace( '#\s*\*/\s*$#', "\n" . implode( "\n", $lines ) . "\n */", $existing_text, 1 );
+			$node->setDocComment( new Doc( (string) $merged ) );
 		}
 
 		return null;
