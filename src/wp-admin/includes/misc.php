@@ -1646,3 +1646,42 @@ function wp_check_php_version() {
 
 	return $response;
 }
+
+/**
+ * Returns the URL of the current admin page.
+ *
+ * @since 6.8.0
+ *
+ * @return string|false The URL of the current admin page, or false if not on an admin page.
+ */
+function get_current_admin_page_url() {
+	if ( ! is_admin() ) {
+		return false;
+	}
+
+	global $pagenow;
+
+	$url          = $pagenow;
+	$query_string = $_SERVER['QUERY_STRING'];
+
+	if ( ! empty( $query_string ) ) {
+		$url .= '?' . $query_string;
+	}
+
+	return $url;
+}
+
+/**
+ * Returns the current admin hook.
+ *
+ * @since 6.8.0
+ *
+ * @return string|false The current admin hook, or false if not on an admin page.
+ */
+function get_current_admin_hook() {
+	if ( ! is_admin() ) {
+		return false;
+	}
+
+	return current_filter();
+}
