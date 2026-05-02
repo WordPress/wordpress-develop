@@ -2032,13 +2032,12 @@ class Tests_User extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$admin_id );
 
-		$existing_email = get_option( 'admin_email' );
-		$new_email      = 'new-admin-email@test.dev';
+		$new_email = 'new-admin-email@test.dev';
 
 		// Give the site a name containing HTML entities.
 		update_option( 'blogname', '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;' );
 
-		update_option_new_admin_email( $existing_email, $new_email );
+		update_option_new_admin_email( '', $new_email );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
@@ -2063,7 +2062,7 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_new_admin_email_confirmation_not_sent_when_email_invalid( $email, $message ) {
 		reset_phpmailer_instance();
 
-		update_option_new_admin_email( get_option( 'admin_email' ), $email );
+		update_option_new_admin_email( '', $email );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 

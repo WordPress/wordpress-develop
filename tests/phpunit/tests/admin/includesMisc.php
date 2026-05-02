@@ -34,7 +34,7 @@ class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
 	public function test_new_admin_email_subject_filter() {
 		// Default value.
 		$mailer = tests_retrieve_phpmailer_instance();
-		update_option_new_admin_email( 'old@example.com', 'new@example.com' );
+		update_option_new_admin_email( '', 'new@example.com' );
 		$this->assertSame( '[Test Blog] New Admin Email Address', $mailer->get_sent()->subject );
 
 		// Filtered value.
@@ -50,7 +50,7 @@ class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
 		$mailer->mock_sent = array();
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		update_option_new_admin_email( 'old@example.com', 'new@example.com' );
+		update_option_new_admin_email( '', 'new@example.com' );
 		$this->assertSame( 'Filtered Admin Email Address', $mailer->get_sent()->subject );
 	}
 }

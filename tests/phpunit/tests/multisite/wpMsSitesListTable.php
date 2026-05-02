@@ -236,8 +236,8 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 	 */
 	public function test_get_views_should_return_views_by_default() {
 		$expected = array(
-			'all'    => '<a href="sites.php" class="current" aria-current="page">All <span class="count">(14)</span></a>',
-			'public' => '<a href="sites.php?status=public">Public <span class="count">(14)</span></a>',
+			'all'    => '<a href="sites.php" class="current" aria-current="page">All <span class="count">(15)</span></a>',
+			'public' => '<a href="sites.php?status=public">Public <span class="count">(15)</span></a>',
 		);
 
 		$this->assertSame( $expected, $this->table->get_views() );

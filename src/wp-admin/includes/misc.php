@@ -1453,10 +1453,10 @@ function wp_page_reload_on_back_button_js() {
  * @since 3.0.0
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
  *
- * @param string $old_value The old site admin email address.
- * @param string $value     The proposed new site admin email address.
+ * @param mixed  $deprecated Not used.
+ * @param string $value      The proposed new site admin email address.
  */
-function update_option_new_admin_email( $old_value, $value ) {
+function update_option_new_admin_email( $deprecated, $value ) {
 	if ( get_option( 'admin_email' ) === $value || ! is_email( $value ) ) {
 		return;
 	}
