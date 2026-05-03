@@ -2017,7 +2017,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @covers WP_REST_Server::get_routes
 	 */
 	public function test_get_routes_caches_result() {
-		$filter_count = 0;
+		$filter_count    = 0;
 		$counting_filter = static function ( $endpoints ) use ( &$filter_count ) {
 			++$filter_count;
 			return $endpoints;
@@ -2042,7 +2042,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function test_get_routes_cache_is_keyed_by_namespace() {
 		$server = rest_get_server();
 
-		$all_routes       = $server->get_routes();
+		$all_routes        = $server->get_routes();
 		$namespaced_routes = $server->get_routes( 'oembed/1.0' );
 
 		$this->assertNotEquals( $all_routes, $namespaced_routes, 'Cached routes for different namespaces should differ.' );
