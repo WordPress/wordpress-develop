@@ -1094,7 +1094,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'origin'          => array(
 					'description' => __( 'Source of a customized template' ),
-					'type'        => 'string',
+					'type'        => array( 'string', 'null' ),
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),

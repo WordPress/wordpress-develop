@@ -1022,6 +1022,38 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'plugin', $properties );
 	}
 
+	/**
+	 * @ticket 64168
+	 * @covers WP_REST_Templates_Controller::get_item_schema
+	 */
+	public function test_get_item_schema_origin_allows_null() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'origin', $properties );
+		$this->assertSame(
+			array( 'string', 'null' ),
+			$properties['origin']['type'],
+			'The origin property type should allow string and null.'
+		);
+	}
+
+
+	/**
+	 * @ticket 64168
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_with_theme_template_returns_null_origin() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertNull( $data['origin'], 'Theme template origin should be null.' );
+	}
+
 	protected function find_and_normalize_template_by_id( $templates, $id ) {
 		foreach ( $templates as $template ) {
 			if ( $template['id'] === $id ) {
