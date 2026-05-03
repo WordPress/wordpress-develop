@@ -2805,6 +2805,73 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertTrue( array_is_list( $data['class_list'] ), 'Expected class_list to be a list.' );
 	}
 
+	/**
+	 * @ticket 43502
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_restores_global_post() {
+		$post_1 = self::factory()->post->create_and_get();
+		$post_2 = self::factory()->post->create_and_get();
+
+		// Set up a known global $post state.
+		$GLOBALS['post'] = $post_1;
+		setup_postdata( $post_1 );
+
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_2->ID );
+		$endpoint->prepare_item_for_response( $post_2, $request );
+
+		$this->assertSame(
+			$post_1->ID,
+			$GLOBALS['post']->ID,
+			'Global $post should be restored after prepare_item_for_response().'
+		);
+	}
+
+	/**
+	 * @ticket 43502
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_restores_null_global_post() {
+		unset( $GLOBALS['post'] );
+
+		$post = self::factory()->post->create_and_get();
+
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post->ID );
+		$endpoint->prepare_item_for_response( $post, $request );
+
+		$this->assertNull(
+			$GLOBALS['post'],
+			'Global $post should be restored to null when it was not set before prepare_item_for_response().'
+		);
+	}
+
+	/**
+	 * @ticket 43502
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_restores_global_post_on_head_request() {
+		$post_1 = self::factory()->post->create_and_get();
+		$post_2 = self::factory()->post->create_and_get();
+
+		$GLOBALS['post'] = $post_1;
+		setup_postdata( $post_1 );
+
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . $post_2->ID );
+		$endpoint->prepare_item_for_response( $post_2, $request );
+
+		$this->assertSame(
+			$post_1->ID,
+			$GLOBALS['post']->ID,
+			'Global $post should be restored after a HEAD request to prepare_item_for_response().'
+		);
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 
