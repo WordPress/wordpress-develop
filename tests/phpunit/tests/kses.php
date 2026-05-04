@@ -1203,7 +1203,7 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => '',
 			),
-			// RGBA background color are allowed.
+			// RGBA background colors are allowed.
 			array(
 				'css'      => 'background-color: rgba(0,0,0,0)',
 				'expected' => 'background-color: rgba(0,0,0,0)',
