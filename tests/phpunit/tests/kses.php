@@ -1404,6 +1404,32 @@ EOF;
 				'css'      => 'background: rgb(0, 0, 0) center',
 				'expected' => 'background: rgb(0, 0, 0) center',
 			),
+			// RGB color with `none` keyword in modern syntax.
+			array(
+				'css'      => 'color: rgb(none none none)',
+				'expected' => 'color: rgb(none none none)',
+			),
+			array(
+				'css'      => 'color: rgb(255 none 0)',
+				'expected' => 'color: rgb(255 none 0)',
+			),
+			array(
+				'css'      => 'color: rgb(255 0 0 / none)',
+				'expected' => 'color: rgb(255 0 0 / none)',
+			),
+			array(
+				'css'      => 'color: rgb(none 50% none / 0.5)',
+				'expected' => 'color: rgb(none 50% none / 0.5)',
+			),
+			// RGB color with `none` keyword is not allowed in legacy syntax.
+			array(
+				'css'      => 'color: rgb(none, none, none)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'color: rgba(255, 0, 0, none)',
+				'expected' => '',
+			),
 			// Malformed RGB color, invalid number of values.
 			array(
 				'css'      => 'color: rgb(255, 128, 0, 0.5, 100)',

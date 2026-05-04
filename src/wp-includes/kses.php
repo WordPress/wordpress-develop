@@ -2867,8 +2867,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 		if ( $found && $color_attr ) {
 			// Simplified: matches the sequence `rgb(*)` or `rgba(*)`.
-			$comma_syntax = '/rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*(?:,\s*([+-]?\d*\.?\d+)(%)?\s*)?\)/i';
-			$space_syntax = '/rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s*(?:\/\s*([+-]?\d*\.?\d+)(%)?\s*)?\)/i';
+			$term         = '(?:[+-]?\d*\.?\d+)%?';
+			$comma_syntax = '/rgba?\(\s*' . join( '\s*,\s*', array_fill( 0, 3, $term ) ) . '\s*(?:,\s*' . $term . '\s*)?\)/i';
+			// The `none` keyword is only allowed in modern (space-separated) syntax.
+			$term         = '(?:(?:[+-]?\d*\.?\d+)%?|none)';
+			$space_syntax = '/rgba?\(\s*' . join( '\s+', array_fill( 0, 3, $term ) ) . '\s*(?:\/\s*' . $term . '\s*)?\)/i';
 
 			preg_match_all( $comma_syntax, $parts[1], $color_matches_comma );
 			preg_match_all( $space_syntax, $parts[1], $color_matches_space );
