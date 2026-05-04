@@ -2058,9 +2058,9 @@ HTML;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$expected = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two,three&amp;ver={$wp_version}'></script>\n";
+		$expected = "<script src=\"/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two,three&#038;ver={$wp_version}\"></script>\n";
 
-		$this->assertSame( $expected, $print_scripts );
+		$this->assertEqualHTML( $expected, $print_scripts );
 	}
 
 	/**
@@ -4093,12 +4093,11 @@ HTML;
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected = <<<HTML
-
 <script>
 var one = {"key":"val"};var two = {"key":"val"};
 //# sourceURL=js-inline-concat-one%2Ctwo
 </script>
-<script src="/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=one,two&ver={$wp_version}"></script>
+<script src="/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two&#038;ver={$wp_version}"></script>
 
 HTML;
 

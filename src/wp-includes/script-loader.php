@@ -2231,10 +2231,9 @@ function _print_scripts() {
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
-			echo "\n<script>\n";
-			echo $wp_scripts->print_code;
-			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
-			echo "</script>\n";
+			$inline_code = $wp_scripts->print_code
+				. sprintf( "\n//# sourceURL=%s", rawurlencode( 'js-inline-concat-' . $concat ) );
+			wp_print_inline_script_tag( $inline_code );
 		}
 
 		$concat       = str_split( $concat, 128 );
@@ -2245,7 +2244,7 @@ function _print_scripts() {
 		}
 
 		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		echo "<script src='" . esc_attr( $src ) . "'></script>\n";
+		wp_print_script_tag( array( 'src' => $src ) );
 	}
 
 	if ( ! empty( $wp_scripts->print_html ) ) {
