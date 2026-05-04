@@ -4,9 +4,11 @@
  *
  * @package WordPress
  * @group unicode
+ *
+ * @covers ::wp_has_noncharacters
  */
+class Tests_Unicode_WpHasNoncharacters extends WP_UnitTestCase {
 
-class Tests_WpHasNoncharacters extends WP_UnitTestCase {
 	/**
 	 * Ensures that a noncharacter inside a string will be properly detected.
 	 *

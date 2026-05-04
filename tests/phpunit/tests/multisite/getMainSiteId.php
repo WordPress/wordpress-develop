@@ -6,6 +6,8 @@
  * @group ms-required
  * @group ms-site
  * @group multisite
+ *
+ * @covers ::get_main_site_id
  */
 class Tests_Multisite_GetMainSiteId extends WP_UnitTestCase {
 
