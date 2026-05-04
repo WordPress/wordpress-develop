@@ -489,6 +489,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertTrue( in_category( $term['term_id'], $post ) );
 	}
 
+	/**
+	 * @expectedDeprecated wp_insert_category
+	 */
 	public function test_insert_category_create() {
 		$cat = array(
 			'cat_ID'   => 0,
@@ -498,6 +501,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertIsNumeric( wp_insert_category( $cat, true ) );
 	}
 
+	/**
+	 * @expectedDeprecated wp_insert_category
+	 */
 	public function test_insert_category_update() {
 		$cat = array(
 			'cat_ID'   => 1,
@@ -507,6 +513,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSame( 1, wp_insert_category( $cat ) );
 	}
 
+	/**
+	 * @expectedDeprecated wp_insert_category
+	 */
 	public function test_insert_category_force_error_handle() {
 		$cat = array(
 			'cat_ID'   => 0,
@@ -516,6 +525,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', wp_insert_category( $cat, true ) );
 	}
 
+	/**
+	 * @expectedDeprecated wp_insert_category
+	 */
 	public function test_insert_category_force_error_no_handle() {
 		$cat = array(
 			'cat_ID'   => 0,
@@ -523,6 +535,45 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			'cat_name' => 'Error',
 		);
 		$this->assertSame( 0, wp_insert_category( $cat, false ) );
+	}
+
+	/**
+	 * @ticket 18448
+	 */
+	public function test_wp_update_category() {
+		$cat_id = self::factory()->category->create( array( 'name' => 'Original Name' ) );
+
+		// Update name.
+		$result = wp_update_category(
+			array(
+				'cat_ID'   => $cat_id,
+				'cat_name' => 'Updated Name',
+			)
+		);
+		$this->assertSame( $cat_id, $result );
+		$this->assertSame( 'Updated Name', get_term( $cat_id, 'category' )->name );
+
+		// Self-parent returns false.
+		$this->assertFalse(
+			wp_update_category(
+				array(
+					'cat_ID'          => $cat_id,
+					'cat_name'        => 'Updated Name',
+					'category_parent' => $cat_id,
+				)
+			)
+		);
+
+		// Circular parent is reset to 0.
+		$child_id = self::factory()->category->create( array( 'name' => 'Child', 'parent' => $cat_id ) );
+		wp_update_category(
+			array(
+				'cat_ID'          => $cat_id,
+				'cat_name'        => 'Updated Name',
+				'category_parent' => $child_id,
+			)
+		);
+		$this->assertSame( 0, (int) get_term( $cat_id, 'category' )->parent );
 	}
 
 	public function test_get_ancestors_taxonomy_non_hierarchical() {

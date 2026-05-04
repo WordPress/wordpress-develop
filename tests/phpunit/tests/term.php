@@ -147,6 +147,9 @@ class Tests_Term extends WP_UnitTestCase {
 		wp_delete_term( $t2['term_id'], 'category' );
 	}
 
+	/**
+	 * @expectedDeprecated wp_insert_category
+	 */
 	public function test_wp_insert_delete_category() {
 		$term = rand_str();
 		$this->assertNull( category_exists( $term ) );

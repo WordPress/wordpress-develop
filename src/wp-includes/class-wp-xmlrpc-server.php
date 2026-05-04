@@ -3454,23 +3454,22 @@ class wp_xmlrpc_server extends IXR_Server {
 			$category['description'] = '';
 		}
 
-		$new_category = array(
-			'cat_name'             => $category['name'],
-			'category_nicename'    => $category['slug'],
-			'category_parent'      => $category['parent_id'],
-			'category_description' => $category['description'],
+		$args = array(
+			'slug'        => $category['slug'],
+			'parent'      => $category['parent_id'],
+			'description' => $category['description'],
 		);
 
-		$cat_id = wp_insert_category( $new_category, true );
+		$cat_id = wp_insert_term( $category['name'], 'category', $args );
 		if ( is_wp_error( $cat_id ) ) {
 			if ( 'term_exists' === $cat_id->get_error_code() ) {
 				return (int) $cat_id->get_error_data();
 			} else {
 				return new IXR_Error( 500, __( 'Sorry, the category could not be created.' ) );
 			}
-		} elseif ( ! $cat_id ) {
-			return new IXR_Error( 500, __( 'Sorry, the category could not be created.' ) );
 		}
+
+		$cat_id = (int) $cat_id['term_id'];
 
 		/**
 		 * Fires after a new category has been successfully created via XML-RPC.
