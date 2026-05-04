@@ -270,10 +270,6 @@ final class WP_Connector_Registry {
 			}
 		}
 
-		if ( ! isset( $connector['plugin']['is_active'] ) ) {
-			$connector['plugin']['is_active'] = '__return_true';
-		}
-
 		$this->registered_connectors[ $id ] = $connector;
 		return $connector;
 	}
