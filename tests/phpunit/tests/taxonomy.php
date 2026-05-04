@@ -565,7 +565,12 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		);
 
 		// Circular parent is reset to 0.
-		$child_id = self::factory()->category->create( array( 'name' => 'Child', 'parent' => $cat_id ) );
+		$child_id = self::factory()->category->create(
+			array(
+				'name'   => 'Child',
+				'parent' => $cat_id,
+			)
+		);
 		wp_update_category(
 			array(
 				'cat_ID'          => $cat_id,
