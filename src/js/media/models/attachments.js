@@ -310,6 +310,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 
 		// Bind total attachment count tracking only to the mirrored query
 		// collection, not to additional observed collections (e.g. selection).
+		// See Trac #65053.
 		attachments.on( 'add', this._addToTotalAttachments, this );
 		attachments.on( 'remove', this._removeFromTotalAttachments, this );
 
