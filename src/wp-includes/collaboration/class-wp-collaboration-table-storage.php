@@ -130,15 +130,15 @@ class WP_Collaboration_Table_Storage {
 		global $wpdb;
 
 		/*
-		 * Uses a snapshot approach: captures MAX(id) and COUNT(*) in a single
-		 * query, then fetches rows WHERE id > cursor AND id <= max_id. Updates
+		 * Uses a snapshot approach: captures MAX(collaboration_id) and COUNT(*)
+		 * in a single query, then fetches rows bounded by the snapshot. Updates
 		 * arriving after the snapshot are deferred to the next poll, never lost.
 		 */
 
 		/* Snapshot the current max ID and total row count in a single query. */
 		$snapshot = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT COALESCE( MAX( id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s",
+				"SELECT COALESCE( MAX( collaboration_id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s",
 				$room
 			)
 		);
@@ -169,7 +169,7 @@ class WP_Collaboration_Table_Storage {
 		/* Fetch updates after the cursor up to the snapshot boundary. */
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT data FROM {$wpdb->collaboration} WHERE room = %s AND id > %d AND id <= %d ORDER BY id ASC",
+				"SELECT data FROM {$wpdb->collaboration} WHERE room = %s AND collaboration_id > %d AND collaboration_id <= %d ORDER BY collaboration_id ASC",
 				$room,
 				$cursor,
 				$max_id
@@ -207,7 +207,7 @@ class WP_Collaboration_Table_Storage {
 
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND id <= %d",
+				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND collaboration_id <= %d",
 				$room,
 				$cursor
 			)
