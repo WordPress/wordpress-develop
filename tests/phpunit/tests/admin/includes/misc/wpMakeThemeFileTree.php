@@ -31,11 +31,11 @@ class Tests_wp_make_theme_file_tree extends WP_UnitTestCase {
 	 */
 	public function data_wp_make_theme_file_tree(): array {
 		return array(
-			'empty_list'          => array(
+			'empty_list'         => array(
 				'allowed_files' => array(),
 				'expected'      => array(),
 			),
-			'flat_list'           => array(
+			'flat_list'          => array(
 				'allowed_files' => array(
 					'style.css' => '/path/to/theme/style.css',
 					'index.php' => '/path/to/theme/index.php',
@@ -45,7 +45,7 @@ class Tests_wp_make_theme_file_tree extends WP_UnitTestCase {
 					'index.php' => 'index.php',
 				),
 			),
-			'nested_list'         => array(
+			'nested_list'        => array(
 				'allowed_files' => array(
 					'style.css'       => '/path/to/theme/style.css',
 					'inc/header.php'  => '/path/to/theme/inc/header.php',
@@ -63,7 +63,7 @@ class Tests_wp_make_theme_file_tree extends WP_UnitTestCase {
 					),
 				),
 			),
-			'deeply_nested_list'  => array(
+			'deeply_nested_list' => array(
 				'allowed_files' => array(
 					'a/b/c/d.php' => '/path/to/theme/a/b/c/d.php',
 				),
@@ -77,7 +77,7 @@ class Tests_wp_make_theme_file_tree extends WP_UnitTestCase {
 					),
 				),
 			),
-			'mixed_nesting'       => array(
+			'mixed_nesting'      => array(
 				'allowed_files' => array(
 					'index.php'       => '/path/to/theme/index.php',
 					'inc/header.php'  => '/path/to/theme/inc/header.php',
