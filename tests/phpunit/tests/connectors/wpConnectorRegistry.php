@@ -299,16 +299,66 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$result = $this->registry->register( 'with-plugin', $args );
 
 		$this->assertArrayHasKey( 'plugin', $result );
-		$this->assertSame( array( 'file' => 'my-plugin/my-plugin.php' ), $result['plugin'] );
+		$this->assertSame( 'my-plugin/my-plugin.php', $result['plugin']['file'] );
+	}
+
+	/**
+	 * @ticket 65020
+	 */
+	public function test_register_stores_plugin_is_active_callback() {
+		$args           = self::$default_args;
+		$args['plugin'] = array(
+			'file'      => 'my-plugin/my-plugin.php',
+			'is_active' => '__return_true',
+		);
+
+		$result = $this->registry->register( 'with-callback', $args );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'is_active', $result['plugin'] );
+		$this->assertIsCallable( $result['plugin']['is_active'] );
+	}
+
+	/**
+	 * @ticket 65020
+	 */
+	public function test_register_rejects_non_callable_plugin_is_active() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args           = self::$default_args;
+		$args['plugin'] = array(
+			'file'      => 'my-plugin/my-plugin.php',
+			'is_active' => 'not_a_real_function_name',
+		);
+
+		$result = $this->registry->register( 'bad-callback', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 65020
+	 */
+	public function test_register_defaults_plugin_is_active_to_return_true() {
+		$args           = self::$default_args;
+		$args['plugin'] = array( 'file' => 'my-plugin/my-plugin.php' );
+
+		$result = $this->registry->register( 'default-callback', $args );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'is_active', $result['plugin'] );
+		$this->assertSame( '__return_true', $result['plugin']['is_active'] );
 	}
 
 	/**
 	 * @ticket 64791
 	 */
-	public function test_register_omits_plugin_when_not_provided() {
+	public function test_register_defaults_plugin_when_not_provided() {
 		$result = $this->registry->register( 'no-plugin', self::$default_args );
 
-		$this->assertArrayNotHasKey( 'plugin', $result );
+		$this->assertArrayHasKey( 'plugin', $result );
+		$this->assertArrayNotHasKey( 'file', $result['plugin'] );
+		$this->assertSame( '__return_true', $result['plugin']['is_active'] );
 	}
 
 	/**
