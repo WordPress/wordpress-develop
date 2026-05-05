@@ -11,8 +11,6 @@
  *
  * If the WP_ALLOW_COLLABORATION constant is false,
  * collaboration is always disabled regardless of the database option.
- * Otherwise, the feature requires both the 'wp_collaboration_enabled'
- * option and the database schema introduced in db_version 62282.
  *
  * @since 7.0.0
  *
@@ -21,8 +19,7 @@
 function wp_is_collaboration_enabled(): bool {
 	return (
 		wp_is_collaboration_allowed() &&
-		get_option( 'wp_collaboration_enabled' ) &&
-		get_option( 'db_version' ) >= 62282
+		get_option( 'wp_collaboration_enabled' )
 	);
 }
 
@@ -34,11 +31,17 @@ function wp_is_collaboration_enabled(): bool {
  * The constant defaults to true, unless the WP_ALLOW_COLLABORATION
  * environment variable is set to string "false".
  *
+ * Also requires the database schema introduced in db_version 62282.
+ *
  * @since 7.0.0
  *
  * @return bool Whether real-time collaboration is allowed.
  */
 function wp_is_collaboration_allowed(): bool {
+	if ( get_option( 'db_version' ) < 62282 ) {
+		return false;
+	}
+
 	if ( ! defined( 'WP_ALLOW_COLLABORATION' ) ) {
 		$env_value = getenv( 'WP_ALLOW_COLLABORATION' );
 		if ( false === $env_value ) {
