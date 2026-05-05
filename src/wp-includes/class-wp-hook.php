@@ -150,6 +150,16 @@ final class WP_Hook implements Iterator, ArrayAccess {
 				}
 			}
 
+			/*
+			 * If $current's bucket was emptied during iteration, the iterator now
+			 * sits on the first remaining priority greater than $current. The
+			 * trailing next() in ::apply_filters() would skip past it, so step
+			 * back one so that next() lands on it instead.
+			 */
+			if ( false !== current( $iteration ) && ! isset( $this->callbacks[ $current ] ) ) {
+				prev( $iteration );
+			}
+
 			// If we have a new priority that didn't exist, but ::apply_filters() or ::do_action() thinks it's the current priority...
 			if ( $new_priority === $this->current_priority[ $index ] && ! $priority_existed ) {
 				/*

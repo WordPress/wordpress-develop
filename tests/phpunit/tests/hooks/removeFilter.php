@@ -86,6 +86,44 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 		$this->check_priority_exists( $hook, $priority + 1, 'Should priority of 3' );
 	}
 
+	/**
+	 * Removing the last callback at the currently iterating priority must not
+	 * cause the next remaining priority to be silently skipped.
+	 *
+	 * @ticket 65167
+	 *
+	 * @covers WP_Hook::remove_filter
+	 * @covers WP_Hook::apply_filters
+	 */
+	public function test_remove_filter_during_iteration_does_not_skip_next_priority() {
+		$hook  = new WP_Hook();
+		$fired = array();
+
+		$early = static function ( $value ) use ( &$fired ) {
+			$fired[] = 'early';
+			return $value;
+		};
+
+		$self_removing = static function ( $value ) use ( &$hook, &$self_removing, &$fired ) {
+			$fired[] = 'self_removing';
+			$hook->remove_filter( __FUNCTION__, $self_removing, 10 );
+			return $value;
+		};
+
+		$later = static function ( $value ) use ( &$fired ) {
+			$fired[] = 'later';
+			return $value;
+		};
+
+		$hook->add_filter( __FUNCTION__, $early, 5, 1 );
+		$hook->add_filter( __FUNCTION__, $self_removing, 10, 1 );
+		$hook->add_filter( __FUNCTION__, $later, 20, 1 );
+
+		$hook->apply_filters( null, array( null ) );
+
+		$this->assertSame( array( 'early', 'self_removing', 'later' ), $fired );
+	}
+
 	protected function check_priority_non_existent( $hook, $priority ) {
 		$priorities = $this->get_priorities( $hook );
 
