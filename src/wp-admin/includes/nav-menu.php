@@ -361,7 +361,13 @@ function wp_nav_menu_item_link_meta_box() {
 
 	?>
 	<div class="customlinkdiv" id="customlinkdiv">
-		<input type="hidden" value="custom" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" />
+		<input type="hidden" id="custom-menu-item-type" value="custom" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" />
+		<p id="menu-item-placeholder-wrap" class="wp-clearfix">
+			<label>
+				<input type="checkbox" id="custom-menu-item-placeholder"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> />
+				<?php _e( 'No URL (use as a section label)' ); ?>
+			</label>
+		</p>
 		<p id="menu-item-url-wrap" class="wp-clearfix">
 			<label for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
 			<input id="custom-menu-item-url" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-url]"
@@ -1159,11 +1165,11 @@ function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
 				(
 					// And item type either isn't set.
 					! isset( $_item_object_data['menu-item-type'] ) ||
-					// Or URL is the default.
-					in_array( $_item_object_data['menu-item-url'], array( 'https://', 'http://', '' ), true ) ||
-					// Or it's not a custom menu item (but not the custom home page).
-					! ( 'custom' === $_item_object_data['menu-item-type'] && ! isset( $_item_object_data['menu-item-db-id'] ) ) ||
-					// Or it *is* a custom menu item that already exists.
+					// Or URL is the default (placeholders are exempt — they intentionally have no URL).
+					( in_array( $_item_object_data['menu-item-url'], array( 'https://', 'http://', '' ), true ) && 'placeholder' !== $_item_object_data['menu-item-type'] ) ||
+					// Or it's not a custom or placeholder menu item (but not the custom home page).
+					! ( in_array( $_item_object_data['menu-item-type'], array( 'custom', 'placeholder' ), true ) && ! isset( $_item_object_data['menu-item-db-id'] ) ) ||
+					// Or it *is* a custom/placeholder menu item that already exists.
 					! empty( $_item_object_data['menu-item-db-id'] )
 				)
 			) {
