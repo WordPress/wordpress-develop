@@ -111,22 +111,22 @@ class Tests_update_recently_edited extends WP_UnitTestCase {
 	 */
 	public function data_update_recently_edited() {
 		return array(
-			'empty_option'          => array(
+			'empty_option'           => array(
 				'initial_option' => false,
 				'new_file'       => 'new.php',
 				'expected'       => array( 'new.php' ),
 			),
-			'one_item'              => array(
+			'one_item'               => array(
 				'initial_option' => array( 'old.php' ),
 				'new_file'       => 'new.php',
 				'expected'       => array( 'new.php', 'old.php' ),
 			),
-			'duplicate_item'        => array(
+			'duplicate_item'         => array(
 				'initial_option' => array( 'old.php', 'new.php' ),
 				'new_file'       => 'new.php',
 				'expected'       => array( 'new.php', 'old.php' ),
 			),
-			'max_items_at_limit'    => array(
+			'max_items_at_limit'     => array(
 				'initial_option' => array( '1.php', '2.php', '3.php', '4.php' ),
 				'new_file'       => '5.php',
 				'expected'       => array( '5.php', '1.php', '2.php', '3.php', '4.php' ),
