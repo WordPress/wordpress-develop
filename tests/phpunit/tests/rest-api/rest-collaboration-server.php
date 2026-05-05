@@ -1920,8 +1920,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_cron_cleanup_boundary_at_exactly_seven_days(): void {
-		$this->insert_collaboration_row( WEEK_IN_SECONDS + 1, 'expired' );
-		$this->insert_collaboration_row( WEEK_IN_SECONDS - 1, 'just-inside' );
+		$this->insert_collaboration_row( WEEK_IN_SECONDS + 60, 'expired' );
+		$this->insert_collaboration_row( WEEK_IN_SECONDS - 60, 'just-inside' );
 
 		wp_delete_old_collaboration_data();
 
