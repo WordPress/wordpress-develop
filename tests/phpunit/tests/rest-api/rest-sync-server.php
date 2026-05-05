@@ -966,12 +966,14 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		// Client 3 sends a stale compaction at cursor 0 (mirroring two offline
-		// clients that reconnect from the same baseline cursor). The server
-		// cannot run remove_updates_before_cursor because client 2 has already
-		// advanced the frontier, but the bytes must still be stored as a
-		// regular update so client 3's operations can propagate to other
-		// clients via Yjs state-as-update merging.
+		/*
+		 * Client 3 sends a stale compaction at cursor 0 (mirroring two offline
+		 * clients that reconnect from the same baseline cursor). The server
+		 * cannot run remove_updates_before_cursor because client 2 has already
+		 * advanced the frontier, but the bytes must still be stored as a
+		 * regular update so client 3's operations can propagate to other
+		 * clients via Yjs state-as-update merging.
+		 */
 		$stale_compaction = array(
 			'type' => 'compaction',
 			'data' => 'c3RhbGU=',
@@ -984,9 +986,11 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertSame( 200, $response->get_status() );
 
-		// Verify the newer compaction is preserved AND the stale compaction's
-		// bytes were persisted (now as type=update so subsequent compactions
-		// don't trip the has_newer_compaction check).
+		/*
+		 * Verify the newer compaction is preserved AND the stale compaction's
+		 * bytes were persisted (now as type=update so subsequent compactions
+		 * don't trip the has_newer_compaction check).
+		 */
 		$response = $this->dispatch_sync(
 			array(
 				$this->build_room( $room, 4, 0, array( 'user' => 'c4' ) ),
