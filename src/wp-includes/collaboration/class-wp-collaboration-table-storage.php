@@ -306,12 +306,26 @@ class WP_Collaboration_Table_Storage {
 
 		$data = wp_json_encode( $state );
 
-		/*
-		 * Bucket the timestamp to 5-second intervals so most polls
-		 * short-circuit without a database write. Ceil is used instead
-		 * of floor to prevent the awareness timeout from being hit early.
+		/**
+		 * Filters granularity used for rounding up a client's awareness timestamp.
+		 *
+		 * Modifies the granularity used when recording the latest time a client updates their
+		 * awareness state. This allows implementations to increase or reduce the granularity
+		 * of awareness updates for the desired balance of real-time updates and server load.
+		 *
+		 * The default awareness granularity of 10 seconds limits the number of writes to the
+		 * database/object cache as the awareness state is only updated if the time has changed.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param int $granularity Granularity in seconds. Default 10.
 		 */
-		$now = gmdate( 'Y-m-d H:i:s', (int) ceil( time() / 5 ) * 5 );
+		$granularity = absint( apply_filters( 'wp_sync_awareness_timestamp_granularity', 10 ) );
+		if ( 0 === $granularity ) {
+			$granularity = 1;
+		}
+
+		$now = gmdate( 'Y-m-d H:i:s', (int) ceil( time() / $granularity ) * $granularity );
 
 		/* Check if a row already exists. */
 		$exists = $wpdb->get_row(
