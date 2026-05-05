@@ -38,11 +38,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Enable option for tests.
 		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 
-		// Uses DELETE (not TRUNCATE) to preserve transaction rollback support
-		// in the test suite. TRUNCATE implicitly commits the transaction.
-		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->collaboration}" );
-
 		// Reset the global REST server so rest_get_server() builds a fresh instance based on the option setting.
 		$GLOBALS['wp_rest_server'] = null;
 	}
@@ -359,7 +354,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_collaboration_nonexistent_post_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_collaboration( array( $this->build_room( 'postType/post:999999' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'postType/post:' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
