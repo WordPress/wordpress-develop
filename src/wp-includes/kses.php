@@ -2763,7 +2763,10 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 * See https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/rgb
 	 */
 	$css_color_data_types = array(
-		'color',
+		'background',
+		'background-color',
+
+		'box-shadow',
 
 		'border',
 		'border-color',
@@ -2776,8 +2779,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		'border-top',
 		'border-top-color',
 
-		'background',
-		'background-color',
+		'color',
 	);
 
 	/*

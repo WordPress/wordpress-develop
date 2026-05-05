@@ -1404,6 +1404,11 @@ EOF;
 				'css'      => 'background: rgb(0, 0, 0) center',
 				'expected' => 'background: rgb(0, 0, 0) center',
 			),
+			// RGB color in `box-shadow` shorthand.
+			array(
+				'css'      => 'box-shadow: 0 0 5px rgb(0, 0, 0)',
+				'expected' => 'box-shadow: 0 0 5px rgb(0, 0, 0)',
+			),
 			// RGB color with `none` keyword in modern syntax.
 			array(
 				'css'      => 'color: rgb(none none none)',
