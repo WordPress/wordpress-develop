@@ -34,7 +34,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		// Enable option for tests.
 		update_option( 'wp_collaboration_enabled', 1 );
-
 	}
 
 	/**
@@ -1838,7 +1837,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 * @ticket 64696
 	 */
 	public function test_collaboration_routes_not_registered_when_db_version_is_old(): void {
-		add_filter( 'pre_option_db_version', static function () { return '61839'; } );
+		add_filter(
+			'pre_option_db_version',
+			static function () {
+				return '61839';
+			}
+		);
 
 		// Reset the global REST server so rest_get_server() builds a fresh instance.
 		$GLOBALS['wp_rest_server'] = null;
@@ -2580,7 +2584,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 */
 	public function test_wp_is_collaboration_enabled_false_when_db_version_too_low(): void {
 		update_option( 'wp_collaboration_enabled', 1 );
-		add_filter( 'pre_option_db_version', static function () { return '61839'; } );
+		add_filter(
+			'pre_option_db_version',
+			static function () {
+				return '61839';
+			}
+		);
 
 		$this->assertFalse( wp_is_collaboration_enabled() );
 	}
