@@ -596,9 +596,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$data = $response->get_data();
-		$this->assertIsInt( $data['rooms'][0]['end_cursor'] );
-		// Cursor is 0 for an empty room (no rows in the table yet).
-		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'] );
+		$this->assertIsInt( $data['rooms'][0]['end_cursor'], 'end_cursor should be an integer.' );
+		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'], 'end_cursor should be 0 or greater for an empty room.' );
 	}
 
 	/**
