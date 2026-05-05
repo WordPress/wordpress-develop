@@ -962,7 +962,7 @@ class WP_Test_REST_Sync_Server extends WP_Test_REST_Controller_Testcase {
 
 		$this->dispatch_sync(
 			array(
-				$this->build_room( $room, 2, $end_cursor, array( 'user' => 'c2' ), array( $compaction ) )
+				$this->build_room( $room, 2, $end_cursor, array( 'user' => 'c2' ), array( $compaction ) ),
 			)
 		);
 
