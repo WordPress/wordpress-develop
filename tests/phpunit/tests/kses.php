@@ -1477,6 +1477,22 @@ EOF;
 				'expected' => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
 			),
 			array(
+				'css'      => '--with-rgb: rgb(255, 0, 0);',
+				'expected' => '--with-rgb: rgb(255, 0, 0)',
+			),
+			array(
+				'css'      => '--with-rgba: rgba(255, 0, 0, 0.5);',
+				'expected' => '--with-rgba: rgba(255, 0, 0, 0.5)',
+			),
+			array(
+				'css'      => '--with-rgb-modern: rgb(255 0 0 / 50%);',
+				'expected' => '--with-rgb-modern: rgb(255 0 0 / 50%)',
+			),
+			array(
+				'css'      => '--with-invalid-rgb: rgb(foo, bar, baz);',
+				'expected' => '',
+			),
+			array(
 				'css'      => '--?><.%-not-allowed: red;',
 				'expected' => '',
 			),

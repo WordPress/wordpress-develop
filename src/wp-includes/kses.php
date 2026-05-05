@@ -2829,6 +2829,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$css_value     = trim( $parts[1] );
 				$url_attr      = str_starts_with( $css_value, 'url(' );
 				$gradient_attr = str_contains( $css_value, '-gradient(' );
+				$color_attr    = (bool) preg_match( '/\brgba?\(/i', $css_value );
 			}
 		}
 
