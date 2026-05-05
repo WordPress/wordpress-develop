@@ -2720,6 +2720,8 @@ add_shortcode( 'gallery', 'gallery_shortcode' );
  *     @type int          $columns    Number of columns of images to display. Default 3.
  *     @type string|int[] $size       Size of the images to display. Accepts any registered image size name, or an array
  *                                    of width and height values in pixels (in that order). Default 'thumbnail'.
+ *     @type int          $limit      Maximum number of images to display. Values less than 1 display all images.
+ *                                    Default -1.
  *     @type string       $ids        A comma-separated list of IDs of attachments to display. Default empty.
  *     @type string       $include    A comma-separated list of IDs of attachments to include. Default empty.
  *     @type string       $exclude    A comma-separated list of IDs of attachments to exclude. Default empty.
@@ -2774,6 +2776,7 @@ function gallery_shortcode( $attr ) {
 			'captiontag' => $html5 ? 'figcaption' : 'dd',
 			'columns'    => 3,
 			'size'       => 'thumbnail',
+			'limit'      => -1,
 			'include'    => '',
 			'exclude'    => '',
 			'link'       => '',
@@ -2782,7 +2785,11 @@ function gallery_shortcode( $attr ) {
 		'gallery'
 	);
 
-	$id = (int) $atts['id'];
+	$id    = (int) $atts['id'];
+	$limit = (int) $atts['limit'];
+	if ( $limit < 1 ) {
+		$limit = -1;
+	}
 
 	if ( ! empty( $atts['include'] ) ) {
 		$_attachments = get_posts(
@@ -2800,6 +2807,12 @@ function gallery_shortcode( $attr ) {
 		foreach ( $_attachments as $key => $val ) {
 			$attachments[ $val->ID ] = $_attachments[ $key ];
 		}
+
+		// Limit is applied via array_slice because get_posts() ignores
+		// the numberposts parameter when include is specified.
+		if ( $limit > 0 ) {
+			$attachments = array_slice( $attachments, 0, $limit, true );
+		}
 	} elseif ( ! empty( $atts['exclude'] ) ) {
 		$post_parent_id = $id;
 		$attachments    = get_children(
@@ -2811,6 +2824,7 @@ function gallery_shortcode( $attr ) {
 				'post_mime_type' => 'image',
 				'order'          => $atts['order'],
 				'orderby'        => $atts['orderby'],
+				'numberposts'    => $limit,
 			)
 		);
 	} else {
@@ -2823,6 +2837,7 @@ function gallery_shortcode( $attr ) {
 				'post_mime_type' => 'image',
 				'order'          => $atts['order'],
 				'orderby'        => $atts['orderby'],
+				'numberposts'    => $limit,
 			)
 		);
 	}
@@ -6446,4 +6461,3 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
 }
-
