@@ -69,7 +69,7 @@ class Tests_iis7_delete_rewrite_rule extends WP_UnitTestCase {
 	 */
 	public function data_iis7_delete_rewrite_rule(): array {
 		return array(
-			'Rule with name "wordpress" exists'               => array(
+			'Rule with name "wordpress" exists'            => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="wordpress" /></rules></rewrite></system.webServer></configuration>',
 				'expected_content' => '<configuration><system.webServer><rewrite><rules/></rewrite></system.webServer></configuration>',
 			),
@@ -77,7 +77,7 @@ class Tests_iis7_delete_rewrite_rule extends WP_UnitTestCase {
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="wordpress-rules" /></rules></rewrite></system.webServer></configuration>',
 				'expected_content' => '<configuration><system.webServer><rewrite><rules/></rewrite></system.webServer></configuration>',
 			),
-			'Rule with name "WordPress" exists'               => array(
+			'Rule with name "WordPress" exists'            => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="WordPress" /></rules></rewrite></system.webServer></configuration>',
 				'expected_content' => '<configuration><system.webServer><rewrite><rules/></rewrite></system.webServer></configuration>',
 			),
@@ -85,15 +85,15 @@ class Tests_iis7_delete_rewrite_rule extends WP_UnitTestCase {
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="other-rule" /><rule name="wordpress" /></rules></rewrite></system.webServer></configuration>',
 				'expected_content' => '<configuration><system.webServer><rewrite><rules><rule name="other-rule" /></rules></rewrite></system.webServer></configuration>',
 			),
-			'WordPress rule is first among multiple rules'   => array(
+			'WordPress rule is first among multiple rules' => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="wordpress" /><rule name="other-rule" /></rules></rewrite></system.webServer></configuration>',
 				'expected_content' => '<configuration><system.webServer><rewrite><rules><rule name="other-rule" /></rules></rewrite></system.webServer></configuration>',
 			),
-			'No WordPress rule exists'                        => array(
+			'No WordPress rule exists'                     => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="other-rule" /></rules></rewrite></system.webServer></configuration>',
 				'expected_content' => '<configuration><system.webServer><rewrite><rules><rule name="other-rule" /></rules></rewrite></system.webServer></configuration>',
 			),
-			'Empty rules tag'                                 => array(
+			'Empty rules tag'                              => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules/></rewrite></system.webServer></configuration>',
 				'expected_content' => '<configuration><system.webServer><rewrite><rules/></rewrite></system.webServer></configuration>',
 			),
