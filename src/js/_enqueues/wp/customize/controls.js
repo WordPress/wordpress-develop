@@ -5070,6 +5070,13 @@
 		 * switch to the cropper state.
 		 */
 		onSelect: function() {
+			var attachment = this.frame.state().get( 'selection' ).first().toJSON();
+
+			if ( 'image' !== attachment.type ) {
+				window.alert( wp.i18n.__( 'The uploaded file is not a valid image. Please select a valid file format.' ) );
+				return;
+			}
+
 			this.frame.setState('cropper');
 		},
 
