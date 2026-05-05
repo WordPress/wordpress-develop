@@ -573,19 +573,19 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
 
 		$data = $response->get_data();
-		$this->assertArrayHasKey( 'rooms', $data );
-		$this->assertCount( 1, $data['rooms'] );
+		$this->assertArrayHasKey( 'rooms', $data, 'Response should contain rooms key.' );
+		$this->assertCount( 1, $data['rooms'], 'Response should contain exactly one room.' );
 
 		$room_data = $data['rooms'][0];
-		$this->assertArrayHasKey( 'room', $room_data );
-		$this->assertArrayHasKey( 'awareness', $room_data );
-		$this->assertArrayHasKey( 'updates', $room_data );
-		$this->assertArrayHasKey( 'end_cursor', $room_data );
-		$this->assertArrayHasKey( 'total_updates', $room_data );
-		$this->assertArrayHasKey( 'should_compact', $room_data );
+		$this->assertArrayHasKey( 'room', $room_data, 'Room data should contain room key.' );
+		$this->assertArrayHasKey( 'awareness', $room_data, 'Room data should contain awareness key.' );
+		$this->assertArrayHasKey( 'updates', $room_data, 'Room data should contain updates key.' );
+		$this->assertArrayHasKey( 'end_cursor', $room_data, 'Room data should contain end_cursor key.' );
+		$this->assertArrayHasKey( 'total_updates', $room_data, 'Room data should contain total_updates key.' );
+		$this->assertArrayHasKey( 'should_compact', $room_data, 'Room data should contain should_compact key.' );
 	}
 
 	/**
@@ -623,8 +623,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$data = $response->get_data();
-		$this->assertSame( 0, $data['rooms'][0]['total_updates'] );
-		$this->assertEmpty( $data['rooms'][0]['updates'] );
+		$this->assertSame( 0, $data['rooms'][0]['total_updates'], 'total_updates should be 0 for an empty room.' );
+		$this->assertEmpty( $data['rooms'][0]['updates'], 'updates should be empty for an empty room.' );
 	}
 
 	/*
@@ -660,10 +660,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$data    = $response->get_data();
 		$updates = $data['rooms'][0]['updates'];
 
-		$this->assertNotEmpty( $updates );
+		$this->assertNotEmpty( $updates, 'Updates should not be empty after a sync update.' );
 
 		$types = wp_list_pluck( $updates, 'type' );
-		$this->assertContains( 'update', $types );
+		$this->assertContains( 'update', $types, 'Updates should contain an entry with type update.' );
 	}
 
 	/**
@@ -833,8 +833,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$data         = $response->get_data();
 		$room_updates = $data['rooms'][0]['updates'];
 
-		$this->assertCount( 2, $room_updates );
-		$this->assertSame( 2, $data['rooms'][0]['total_updates'] );
+		$this->assertCount( 2, $room_updates, 'Should receive both updates.' );
+		$this->assertSame( 2, $data['rooms'][0]['total_updates'], 'total_updates should reflect both updates.' );
 	}
 
 	/**
@@ -866,8 +866,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$data         = $response->get_data();
 		$room_updates = $data['rooms'][0]['updates'];
 
-		$this->assertSame( 'cHJlc2VydmVkIGRhdGE=', $room_updates[0]['data'] );
-		$this->assertSame( 'update', $room_updates[0]['type'] );
+		$this->assertSame( 'cHJlc2VydmVkIGRhdGE=', $room_updates[0]['data'], 'Update data should be preserved verbatim.' );
+		$this->assertSame( 'update', $room_updates[0]['type'], 'Update type should be preserved.' );
 	}
 
 	/**
@@ -1212,10 +1212,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$data      = $response->get_data();
 		$awareness = $data['rooms'][0]['awareness'];
 
-		$this->assertArrayHasKey( '1', $awareness );
-		$this->assertArrayHasKey( '2', $awareness );
-		$this->assertSame( array( 'name' => 'Client 1' ), $awareness['1'] );
-		$this->assertSame( array( 'name' => 'Client 2' ), $awareness['2'] );
+		$this->assertArrayHasKey( '1', $awareness, 'Client 1 should be present in awareness.' );
+		$this->assertArrayHasKey( '2', $awareness, 'Client 2 should be present in awareness.' );
+		$this->assertSame( array( 'name' => 'Client 1' ), $awareness['1'], 'Client 1 awareness state should match.' );
+		$this->assertSame( array( 'name' => 'Client 2' ), $awareness['2'], 'Client 2 awareness state should match.' );
 	}
 
 	/**
@@ -1244,8 +1244,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$awareness = $data['rooms'][0]['awareness'];
 
 		// Should have exactly one entry for client 1 with updated state.
-		$this->assertCount( 1, $awareness );
-		$this->assertSame( array( 'cursor' => 'updated' ), $awareness['1'] );
+		$this->assertCount( 1, $awareness, 'Should have exactly one awareness entry.' );
+		$this->assertSame( array( 'cursor' => 'updated' ), $awareness['1'], 'Awareness state should reflect the latest update.' );
 	}
 
 	/**
@@ -1366,12 +1366,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status(), 'Multi-room request should return 200.' );
 
 		$data = $response->get_data();
-		$this->assertCount( 2, $data['rooms'] );
-		$this->assertSame( $room1, $data['rooms'][0]['room'] );
-		$this->assertSame( $room2, $data['rooms'][1]['room'] );
+		$this->assertCount( 2, $data['rooms'], 'Response should contain both rooms.' );
+		$this->assertSame( $room1, $data['rooms'][0]['room'], 'First room identifier should match.' );
+		$this->assertSame( $room2, $data['rooms'][1]['room'], 'Second room identifier should match.' );
 	}
 
 	/**
@@ -1406,11 +1406,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$data = $response->get_data();
 
-		// Room 1 should have the update.
-		$this->assertNotEmpty( $data['rooms'][0]['updates'] );
-
-		// Room 2 should have no updates.
-		$this->assertEmpty( $data['rooms'][1]['updates'] );
+		$this->assertNotEmpty( $data['rooms'][0]['updates'], 'Room 1 should have the update.' );
+		$this->assertEmpty( $data['rooms'][1]['updates'], 'Room 2 should have no updates.' );
 	}
 
 	/*
@@ -1893,11 +1890,11 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_cron_cleanup_deletes_old_rows(): void {
 		$this->insert_collaboration_row( 8 * DAY_IN_SECONDS );
 
-		$this->assertSame( 1, $this->get_collaboration_row_count() );
+		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Old row should exist before cleanup.' );
 
 		wp_delete_old_collaboration_data();
 
-		$this->assertSame( 0, $this->get_collaboration_row_count() );
+		$this->assertSame( 0, $this->get_collaboration_row_count(), 'Old row should be deleted after cleanup.' );
 	}
 
 	/**
@@ -2088,8 +2085,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$this->assertArrayHasKey( '1', $awareness, 'Client 1 awareness should be present.' );
 		$this->assertArrayHasKey( '2', $awareness, 'Client 2 awareness should be present.' );
-		$this->assertSame( array( 'cursor' => 'pos-a' ), $awareness['1'] );
-		$this->assertSame( array( 'cursor' => 'pos-b' ), $awareness['2'] );
+		$this->assertSame( array( 'cursor' => 'pos-a' ), $awareness['1'], 'Client 1 awareness state should be preserved.' );
+		$this->assertSame( array( 'cursor' => 'pos-b' ), $awareness['2'], 'Client 2 awareness state should be preserved.' );
 	}
 
 	/**
@@ -2657,9 +2654,9 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$result = $server->validate_request( $request );
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'rest_collaboration_body_too_large', $result->get_error_code() );
-		$this->assertSame( 413, $result->get_error_data()['status'] );
+		$this->assertWPError( $result, 'Oversized body should return a WP_Error.' );
+		$this->assertSame( 'rest_collaboration_body_too_large', $result->get_error_code(), 'Error code should indicate body too large.' );
+		$this->assertSame( 413, $result->get_error_data()['status'], 'HTTP status should be 413.' );
 	}
 
 	/**
