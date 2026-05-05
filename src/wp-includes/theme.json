@@ -380,10 +380,6 @@
 		},
 		"elements": {
 			"button": {
-				"color": {
-					"text": "#fff",
-					"background": "#32373c"
-				},
 				"spacing": {
 					"padding": {
 						"top": "calc(0.667em + 2px)",
