@@ -4791,6 +4791,11 @@
 			var attachment = this.frame.state().get( 'selection' ).first().toJSON(),
 				controller = this;
 
+			if ( 'image' !== attachment.type ) {
+				window.alert( wp.i18n.__( 'The uploaded file is not a valid image. Please select a valid file format.' ) );
+				return;
+			}
+
 			if ( this.params.width === attachment.width && this.params.height === attachment.height && ! this.params.flex_width && ! this.params.flex_height ) {
 				wp.ajax.post( 'crop-image', {
 					nonce: attachment.nonces.edit,
