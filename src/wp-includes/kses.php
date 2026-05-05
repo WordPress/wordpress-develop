@@ -2871,11 +2871,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 		if ( $found && $color_attr ) {
 			// Simplified: matches the sequence `rgb(*)` or `rgba(*)`.
-			$term         = '(?:[+-]?\d*\.?\d+)%?';
-			$comma_syntax = '/rgba?\(\s*' . join( '\s*,\s*', array_fill( 0, 3, $term ) ) . '\s*(?:,\s*' . $term . '\s*)?\)/i';
+			$number_term         = '(?:[+-]?\d*\.?\d+)%?';
+			$comma_syntax        = '/rgba?\(\s*' . implode( '\s*,\s*', array_fill( 0, 3, $number_term ) ) . '\s*(?:,\s*' . $number_term . '\s*)?\)/i';
 			// The `none` keyword is only allowed in modern (space-separated) syntax.
-			$term         = '(?:(?:[+-]?\d*\.?\d+)%?|none)';
-			$space_syntax = '/rgba?\(\s*' . join( '\s+', array_fill( 0, 3, $term ) ) . '\s*(?:\/\s*' . $term . '\s*)?\)/i';
+			$number_or_none_term = '(?:(?:[+-]?\d*\.?\d+)%?|none)';
+			$space_syntax        = '/rgba?\(\s*' . implode( '\s+', array_fill( 0, 3, $number_or_none_term ) ) . '\s*(?:\/\s*' . $number_or_none_term . '\s*)?\)/i';
 
 			preg_match_all( $comma_syntax, $parts[1], $color_matches_comma );
 			preg_match_all( $space_syntax, $parts[1], $color_matches_space );
