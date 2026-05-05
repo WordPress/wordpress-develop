@@ -96,17 +96,18 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 	 * @covers WP_Hook::apply_filters
 	 */
 	public function test_remove_filter_during_iteration_does_not_skip_next_priority() {
-		$hook  = new WP_Hook();
-		$fired = array();
+		$hook      = new WP_Hook();
+		$hook_name = __FUNCTION__;
+		$fired     = array();
 
 		$early = static function ( $value ) use ( &$fired ) {
 			$fired[] = 'early';
 			return $value;
 		};
 
-		$self_removing = static function ( $value ) use ( &$hook, &$self_removing, &$fired ) {
+		$self_removing = static function ( $value ) use ( &$hook, $hook_name, &$self_removing, &$fired ) {
 			$fired[] = 'self_removing';
-			$hook->remove_filter( __FUNCTION__, $self_removing, 10 );
+			$hook->remove_filter( $hook_name, $self_removing, 10 );
 			return $value;
 		};
 
@@ -115,9 +116,9 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 			return $value;
 		};
 
-		$hook->add_filter( __FUNCTION__, $early, 5, 1 );
-		$hook->add_filter( __FUNCTION__, $self_removing, 10, 1 );
-		$hook->add_filter( __FUNCTION__, $later, 20, 1 );
+		$hook->add_filter( $hook_name, $early, 5, 1 );
+		$hook->add_filter( $hook_name, $self_removing, 10, 1 );
+		$hook->add_filter( $hook_name, $later, 20, 1 );
 
 		$hook->apply_filters( null, array( null ) );
 
