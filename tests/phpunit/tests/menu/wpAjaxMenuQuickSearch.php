@@ -192,6 +192,6 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 		$this->assertCount( 1, $results );
 
 		$results_json = array_map( 'json_decode', $results );
-		$this->assertEquals( 'wptests_123', $results_json[0]->post_type );
+		$this->assertSame( 'wptests_123', $results_json[0]->post_type );
 	}
 }

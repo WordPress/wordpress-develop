@@ -57,4 +57,34 @@ class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 		$this->assertSame( $user, wp_get_current_user() );
 		$this->assertSame( self::$user_id2, get_current_user_id() );
 	}
+
+	/**
+	 * Ensure user switching doesn't occur for the same user, even if type is non-int.
+	 *
+	 * @ticket 64628
+	 *
+	 * @dataProvider data_should_not_switch_to_same_user_type_equivalency
+	 */
+	public function test_should_not_switch_to_same_user_type_equivalency( string $type_function ) {
+		wp_set_current_user( self::$user_id );
+		$this->assertSame( self::$user_id, get_current_user_id(), "Current user's ID should match the ID of the user switched to." );
+
+		$action = new MockAction();
+		add_action( 'set_current_user', array( $action, 'action' ) );
+
+		wp_set_current_user( $type_function( self::$user_id ) );
+		$this->assertSame( 0, $action->get_call_count(), 'set_current_user should not be fired when switching to the same user.' );
+	}
+
+	/**
+	 * Data provider for test_should_not_switch_to_same_user_type_equivalency.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_should_not_switch_to_same_user_type_equivalency(): array {
+		return array(
+			'integer' => array( 'type_function' => 'intval' ),
+			'string'  => array( 'type_function' => 'strval' ),
+		);
+	}
 }

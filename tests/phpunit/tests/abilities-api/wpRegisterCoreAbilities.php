@@ -174,4 +174,93 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'wp_version', $ability_data );
 		$this->assertSame( $environment, $ability_data['environment'] );
 	}
+
+	/**
+	 * Tests that all core ability schemas only use valid JSON Schema keywords.
+	 *
+	 * This prevents regressions where invalid keywords like 'examples' are used
+	 * in schema properties (not valid in JSON Schema draft-04 used by WordPress).
+	 *
+	 * @ticket 64384
+	 */
+	public function test_core_abilities_schemas_use_only_valid_keywords(): void {
+		$allowed_keywords = rest_get_allowed_schema_keywords();
+		// Add 'required' which is valid at the property level for draft-04.
+		$allowed_keywords[] = 'required';
+
+		$abilities = wp_get_abilities();
+
+		$this->assertNotEmpty( $abilities, 'Core abilities should be registered.' );
+
+		foreach ( $abilities as $ability ) {
+			$this->assert_schema_uses_valid_keywords(
+				$ability->get_input_schema(),
+				$allowed_keywords,
+				$ability->get_name() . ' input_schema'
+			);
+			$this->assert_schema_uses_valid_keywords(
+				$ability->get_output_schema(),
+				$allowed_keywords,
+				$ability->get_name() . ' output_schema'
+			);
+		}
+	}
+
+	/**
+	 * Recursively validates that a schema only uses allowed keywords.
+	 *
+	 * @param array|null $schema           The schema to validate.
+	 * @param string[]   $allowed_keywords List of allowed schema keywords.
+	 * @param string     $context          Context for error messages.
+	 */
+	private function assert_schema_uses_valid_keywords( ?array $schema, array $allowed_keywords, string $context ): void {
+		if ( null === $schema ) {
+			return;
+		}
+
+		foreach ( $schema as $key => $value ) {
+			// Skip integer keys (array indices).
+			if ( is_int( $key ) ) {
+				continue;
+			}
+
+			// These keywords contain nested schemas that we recurse into.
+			$nesting_keywords = array( 'properties', 'items', 'additionalProperties', 'patternProperties', 'anyOf', 'oneOf' );
+
+			if ( ! in_array( $key, $nesting_keywords, true ) && ! in_array( $key, $allowed_keywords, true ) ) {
+				$this->fail( "Invalid schema keyword '{$key}' found in {$context}. Valid keywords are: " . implode( ', ', $allowed_keywords ) );
+			}
+
+			// Recursively check nested schemas.
+			if ( 'properties' === $key && is_array( $value ) ) {
+				foreach ( $value as $prop_name => $prop_schema ) {
+					$this->assert_schema_uses_valid_keywords(
+						$prop_schema,
+						$allowed_keywords,
+						"{$context}.properties.{$prop_name}"
+					);
+				}
+			} elseif ( 'items' === $key && is_array( $value ) ) {
+				$this->assert_schema_uses_valid_keywords(
+					$value,
+					$allowed_keywords,
+					"{$context}.items"
+				);
+			} elseif ( ( 'anyOf' === $key || 'oneOf' === $key ) && is_array( $value ) ) {
+				foreach ( $value as $index => $sub_schema ) {
+					$this->assert_schema_uses_valid_keywords(
+						$sub_schema,
+						$allowed_keywords,
+						"{$context}.{$key}[{$index}]"
+					);
+				}
+			} elseif ( 'additionalProperties' === $key && is_array( $value ) ) {
+				$this->assert_schema_uses_valid_keywords(
+					$value,
+					$allowed_keywords,
+					"{$context}.additionalProperties"
+				);
+			}
+		}
+	}
 }

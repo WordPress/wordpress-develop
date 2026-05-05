@@ -72,7 +72,7 @@ $menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
 
 $menu[10] = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
 
-	$submenu['upload.php'][5]  = array( __( 'Library' ), 'upload_files', 'upload.php' );
+	$submenu['upload.php'][5]  = array( _x( 'Library', 'media library menu item' ), 'upload_files', 'upload.php' );
 	$submenu['upload.php'][10] = array( __( 'Add Media File' ), 'upload_files', 'media-new.php' );
 	$submenu_index             = 15;
 
@@ -235,6 +235,9 @@ if ( wp_is_block_theme() ) {
 		$submenu['themes.php'][6] = array( _x( 'Patterns', 'patterns menu item' ), 'edit_theme_options', 'site-editor.php?p=/pattern' );
 	}
 }
+
+// Font Library menu item.
+$submenu['themes.php'][9] = array( __( 'Fonts' ), 'edit_theme_options', 'font-library.php' );
 
 $customize_url = add_query_arg( 'return', urlencode( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ), 'customize.php' );
 
@@ -401,6 +404,7 @@ if ( ! is_multisite() && defined( 'WP_ALLOW_MULTISITE' ) && WP_ALLOW_MULTISITE )
 
 $menu[80]                               = array( __( 'Settings' ), 'manage_options', 'options-general.php', '', 'menu-top menu-icon-settings', 'menu-settings', 'dashicons-admin-settings' );
 	$submenu['options-general.php'][10] = array( _x( 'General', 'settings screen' ), 'manage_options', 'options-general.php' );
+	$submenu['options-general.php'][12] = array( __( 'Connectors' ), 'manage_options', 'options-connectors.php' );
 	$submenu['options-general.php'][15] = array( __( 'Writing' ), 'manage_options', 'options-writing.php' );
 	$submenu['options-general.php'][20] = array( __( 'Reading' ), 'manage_options', 'options-reading.php' );
 	$submenu['options-general.php'][25] = array( __( 'Discussion' ), 'manage_options', 'options-discussion.php' );

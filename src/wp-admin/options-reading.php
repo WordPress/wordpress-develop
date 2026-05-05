@@ -90,12 +90,12 @@ else :
 <td id="front-static-pages"><fieldset>
 	<legend class="screen-reader-text"><span><?php echo $your_homepage_displays_title; ?></span></legend>
 	<p><label>
-		<input name="show_on_front" type="radio" value="posts" class="tog" <?php checked( 'posts', get_option( 'show_on_front' ) ); ?> />
+		<input name="show_on_front" type="radio" value="posts" <?php checked( 'posts', get_option( 'show_on_front' ) ); ?> />
 		<?php _e( 'Your latest posts' ); ?>
 	</label>
 	</p>
 	<p><label>
-		<input name="show_on_front" type="radio" value="page" class="tog" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
+		<input name="show_on_front" type="radio" value="page" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
 		<?php
 		printf(
 			/* translators: %s: URL to Pages screen. */
@@ -142,7 +142,9 @@ else :
 </label></li>
 </ul>
 	<?php
-	if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) === get_option( 'page_on_front' ) ) :
+	if ( 'page' === get_option( 'show_on_front' )
+		&& get_option( 'page_for_posts' ) === get_option( 'page_on_front' )
+	) :
 		wp_admin_notice(
 			__( '<strong>Warning:</strong> these pages should not be the same!' ),
 			array(
@@ -152,7 +154,13 @@ else :
 			)
 		);
 	endif;
-	if ( get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_for_posts' ) || get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_on_front' ) ) :
+
+	$privacy_policy_page = get_option( 'wp_page_for_privacy_policy' );
+
+	if ( $privacy_policy_page
+		&& ( get_option( 'page_for_posts' ) === $privacy_policy_page
+			|| get_option( 'page_on_front' ) === $privacy_policy_page )
+	) :
 		wp_admin_notice(
 			__( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ),
 			array(
