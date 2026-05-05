@@ -57,7 +57,7 @@ class Tests_saveDomDocument extends WP_UnitTestCase {
 	public function test_saveDomDocument_converts_line_endings() {
 		$doc = new DOMDocument();
 		// Create a multi-line XML.
-		$root = $doc->createElement( 'root' );
+		$root   = $doc->createElement( 'root' );
 		$child1 = $doc->createElement( 'child', 'one' );
 		$child2 = $doc->createElement( 'child', 'two' );
 		$root->appendChild( $child1 );
