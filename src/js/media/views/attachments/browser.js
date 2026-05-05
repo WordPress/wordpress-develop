@@ -234,7 +234,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority:   -80
 			}).render() );
 		}
-		
+
 		var dateFilter, dateFilterLabel, dateFilterContainer;
 		/*
 		 * Feels odd to bring the global media library switcher into the Attachment browser view.
@@ -294,9 +294,10 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				controller: this.controller,
 				priority: -80,
 				click: function() {
-					var changed = [], removed = [],
+					var changed = [], removed = [], destroy = [],
 						selection = this.controller.state().get( 'selection' ),
-						library = this.controller.state().get( 'library' );
+						library = this.controller.state().get( 'library' ),
+						spinner = this.controller.content.get().toolbar.get( 'spinner' );
 
 					if ( ! selection.length ) {
 						return;
@@ -328,7 +329,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 							changed.push( model.save() );
 							removed.push( model );
 						} else {
-							model.destroy({wait: true});
+							destroy.push( model );
 						}
 					} );
 
@@ -339,6 +340,14 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 							library._requery( true );
 							this.controller.trigger( 'selection:action:done' );
 						}, this ) );
+					} else if ( destroy.length ) {
+						this.controller.trigger( 'selection:action:done' );
+						spinner.show();
+						wp.media.model.Attachment.batchDestroy( destroy ).always( function() {
+							spinner.hide();
+						}).fail( function() {
+							window.alert( l10n.errorDeleting );
+						});
 					} else {
 						this.controller.trigger( 'selection:action:done' );
 					}
@@ -356,7 +365,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 					click: function() {
 						var removed = [],
 							destroy = [],
-							selection = this.controller.state().get( 'selection' );
+							selection = this.controller.state().get( 'selection' ),
+							spinner = this.controller.content.get().toolbar.get( 'spinner' );
 
 						if ( ! selection.length || ! window.confirm( l10n.warnBulkDelete ) ) {
 							return;
@@ -376,11 +386,13 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 						}
 
 						if ( destroy.length ) {
-							$.when.apply( null, destroy.map( function (item) {
-								return item.destroy();
-							} ) ).then( _.bind( function() {
-								this.controller.trigger( 'selection:action:done' );
-							}, this ) );
+							this.controller.trigger( 'selection:action:done' );
+							spinner.show();
+							wp.media.model.Attachment.batchDestroy( destroy ).always( function() {
+								spinner.hide();
+							}).fail( function() {
+								window.alert( l10n.errorDeleting );
+							});
 						}
 					}
 				}).render() );
