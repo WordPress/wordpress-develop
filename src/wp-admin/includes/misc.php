@@ -356,6 +356,41 @@ function update_recently_edited( $file ) {
 }
 
 /**
+ * Sorts a file tree array with folders before files, both in alphabetical order.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @param array $tree File tree to sort, as returned by wp_make_theme_file_tree()
+ *                    or wp_make_plugin_file_tree(). Directory nodes are arrays,
+ *                    file nodes are strings.
+ * @return array Sorted file tree.
+ */
+function _wp_sort_file_tree( $tree ) {
+	uksort(
+		$tree,
+		function ( $a, $b ) use ( $tree ) {
+			$a_is_dir = is_array( $tree[ $a ] );
+			$b_is_dir = is_array( $tree[ $b ] );
+
+			if ( $a_is_dir !== $b_is_dir ) {
+				return $a_is_dir ? -1 : 1;
+			}
+
+			return strcasecmp( $a, $b );
+		}
+	);
+
+	foreach ( $tree as $key => $subtree ) {
+		if ( is_array( $subtree ) ) {
+			$tree[ $key ] = _wp_sort_file_tree( $subtree );
+		}
+	}
+
+	return $tree;
+}
+
+/**
  * Makes a tree structure for the theme file editor's file list.
  *
  * @since 4.9.0
@@ -376,6 +411,17 @@ function wp_make_theme_file_tree( $allowed_files ) {
 		}
 
 		$last_dir = $file_name;
+	}
+
+	$tree_list = _wp_sort_file_tree( $tree_list );
+
+	// Move the main theme files to the top of the list, preserving the order
+	// established by theme-editor.php (style.css first, then functions.php).
+	if ( isset( $tree_list['functions.php'] ) ) {
+		$tree_list = array( 'functions.php' => $tree_list['functions.php'] ) + $tree_list;
+	}
+	if ( isset( $tree_list['style.css'] ) ) {
+		$tree_list = array( 'style.css' => $tree_list['style.css'] ) + $tree_list;
 	}
 
 	return $tree_list;
@@ -481,6 +527,16 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
 		}
 
 		$last_dir = $plugin_file;
+	}
+
+	$tree_list = _wp_sort_file_tree( $tree_list );
+
+	// Move the main plugin file to the top of the list.
+	if ( ! empty( $plugin_editable_files ) ) {
+		$main_file_key = wp_basename( $plugin_editable_files[0] );
+		if ( isset( $tree_list[ $main_file_key ] ) ) {
+			$tree_list = array( $main_file_key => $tree_list[ $main_file_key ] ) + $tree_list;
+		}
 	}
 
 	return $tree_list;
