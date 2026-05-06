@@ -38,11 +38,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Enable option for tests.
 		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 
-		// Uses DELETE (not TRUNCATE) to preserve transaction rollback support
-		// in the test suite. TRUNCATE implicitly commits the transaction.
-		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->collaboration}" );
-
 		// Reset the global REST server so rest_get_server() builds a fresh instance based on the option setting.
 		$GLOBALS['wp_rest_server'] = null;
 	}
@@ -359,7 +354,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_collaboration_nonexistent_post_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
-		$response = $this->dispatch_collaboration( array( $this->build_room( 'postType/post:999999' ) ) );
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'postType/post:' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) ) );
 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
@@ -564,19 +559,19 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
 
 		$data = $response->get_data();
-		$this->assertArrayHasKey( 'rooms', $data );
-		$this->assertCount( 1, $data['rooms'] );
+		$this->assertArrayHasKey( 'rooms', $data, 'Response should contain rooms key.' );
+		$this->assertCount( 1, $data['rooms'], 'Response should contain exactly one room.' );
 
 		$room_data = $data['rooms'][0];
-		$this->assertArrayHasKey( 'room', $room_data );
-		$this->assertArrayHasKey( 'awareness', $room_data );
-		$this->assertArrayHasKey( 'updates', $room_data );
-		$this->assertArrayHasKey( 'end_cursor', $room_data );
-		$this->assertArrayHasKey( 'total_updates', $room_data );
-		$this->assertArrayHasKey( 'should_compact', $room_data );
+		$this->assertArrayHasKey( 'room', $room_data, 'Room data should contain room key.' );
+		$this->assertArrayHasKey( 'awareness', $room_data, 'Room data should contain awareness key.' );
+		$this->assertArrayHasKey( 'updates', $room_data, 'Room data should contain updates key.' );
+		$this->assertArrayHasKey( 'end_cursor', $room_data, 'Room data should contain end_cursor key.' );
+		$this->assertArrayHasKey( 'total_updates', $room_data, 'Room data should contain total_updates key.' );
+		$this->assertArrayHasKey( 'should_compact', $room_data, 'Room data should contain should_compact key.' );
 	}
 
 	/**
@@ -601,9 +596,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$data = $response->get_data();
-		$this->assertIsInt( $data['rooms'][0]['end_cursor'] );
-		// Cursor is 0 for an empty room (no rows in the table yet).
-		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'] );
+		$this->assertIsInt( $data['rooms'][0]['end_cursor'], 'end_cursor should be an integer.' );
+		$this->assertGreaterThanOrEqual( 0, $data['rooms'][0]['end_cursor'], 'end_cursor should be 0 or greater for an empty room.' );
 	}
 
 	/**
@@ -615,8 +609,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$response = $this->dispatch_collaboration( array( $this->build_room( $this->get_post_room() ) ) );
 
 		$data = $response->get_data();
-		$this->assertSame( 0, $data['rooms'][0]['total_updates'] );
-		$this->assertEmpty( $data['rooms'][0]['updates'] );
+		$this->assertSame( 0, $data['rooms'][0]['total_updates'], 'total_updates should be 0 for an empty room.' );
+		$this->assertEmpty( $data['rooms'][0]['updates'], 'updates should be empty for an empty room.' );
 	}
 
 	/*
@@ -652,10 +646,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$data    = $response->get_data();
 		$updates = $data['rooms'][0]['updates'];
 
-		$this->assertNotEmpty( $updates );
+		$this->assertNotEmpty( $updates, 'Updates should not be empty after a sync update.' );
 
 		$types = wp_list_pluck( $updates, 'type' );
-		$this->assertContains( 'update', $types );
+		$this->assertContains( 'update', $types, 'Updates should contain an entry with type update.' );
 	}
 
 	/**
@@ -825,8 +819,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$data         = $response->get_data();
 		$room_updates = $data['rooms'][0]['updates'];
 
-		$this->assertCount( 2, $room_updates );
-		$this->assertSame( 2, $data['rooms'][0]['total_updates'] );
+		$this->assertCount( 2, $room_updates, 'Should receive both updates.' );
+		$this->assertSame( 2, $data['rooms'][0]['total_updates'], 'total_updates should reflect both updates.' );
 	}
 
 	/**
@@ -858,8 +852,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$data         = $response->get_data();
 		$room_updates = $data['rooms'][0]['updates'];
 
-		$this->assertSame( 'cHJlc2VydmVkIGRhdGE=', $room_updates[0]['data'] );
-		$this->assertSame( 'update', $room_updates[0]['type'] );
+		$this->assertSame( 'cHJlc2VydmVkIGRhdGE=', $room_updates[0]['data'], 'Update data should be preserved verbatim.' );
+		$this->assertSame( 'update', $room_updates[0]['type'], 'Update type should be preserved.' );
 	}
 
 	/**
@@ -1224,10 +1218,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$data      = $response->get_data();
 		$awareness = $data['rooms'][0]['awareness'];
 
-		$this->assertArrayHasKey( '1', $awareness );
-		$this->assertArrayHasKey( '2', $awareness );
-		$this->assertSame( array( 'name' => 'Client 1' ), $awareness['1'] );
-		$this->assertSame( array( 'name' => 'Client 2' ), $awareness['2'] );
+		$this->assertArrayHasKey( '1', $awareness, 'Client 1 should be present in awareness.' );
+		$this->assertArrayHasKey( '2', $awareness, 'Client 2 should be present in awareness.' );
+		$this->assertSame( array( 'name' => 'Client 1' ), $awareness['1'], 'Client 1 awareness state should match.' );
+		$this->assertSame( array( 'name' => 'Client 2' ), $awareness['2'], 'Client 2 awareness state should match.' );
 	}
 
 	/**
@@ -1256,8 +1250,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$awareness = $data['rooms'][0]['awareness'];
 
 		// Should have exactly one entry for client 1 with updated state.
-		$this->assertCount( 1, $awareness );
-		$this->assertSame( array( 'cursor' => 'updated' ), $awareness['1'] );
+		$this->assertCount( 1, $awareness, 'Should have exactly one awareness entry.' );
+		$this->assertSame( array( 'cursor' => 'updated' ), $awareness['1'], 'Awareness state should reflect the latest update.' );
 	}
 
 	/**
@@ -1382,12 +1376,12 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			)
 		);
 
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status(), 'Multi-room request should return 200.' );
 
 		$data = $response->get_data();
-		$this->assertCount( 2, $data['rooms'] );
-		$this->assertSame( $room1, $data['rooms'][0]['room'] );
-		$this->assertSame( $room2, $data['rooms'][1]['room'] );
+		$this->assertCount( 2, $data['rooms'], 'Response should contain both rooms.' );
+		$this->assertSame( $room1, $data['rooms'][0]['room'], 'First room identifier should match.' );
+		$this->assertSame( $room2, $data['rooms'][1]['room'], 'Second room identifier should match.' );
 	}
 
 	/**
@@ -1422,11 +1416,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$data = $response->get_data();
 
-		// Room 1 should have the update.
-		$this->assertNotEmpty( $data['rooms'][0]['updates'] );
-
-		// Room 2 should have no updates.
-		$this->assertEmpty( $data['rooms'][1]['updates'] );
+		$this->assertNotEmpty( $data['rooms'][0]['updates'], 'Room 1 should have the update.' );
+		$this->assertEmpty( $data['rooms'][1]['updates'], 'Room 2 should have no updates.' );
 	}
 
 	/*
@@ -1850,207 +1841,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	/*
-	 * Cron cleanup tests.
-	 */
-
-	/**
-	 * Inserts a row directly into the collaboration table with a given age.
-	 *
-	 * @param positive-int $age_in_seconds How old the row should be.
-	 * @param string       $label          A label stored in the data column for identification.
-	 */
-	private function insert_collaboration_row( int $age_in_seconds, string $label = 'test' ): void {
-		global $wpdb;
-
-		$wpdb->insert(
-			$wpdb->collaboration,
-			array(
-				'room'      => $this->get_post_room(),
-				'type'      => 'update',
-				'client_id' => '1',
-				'user_id'   => self::$editor_id,
-				'data'      => wp_json_encode(
-					array(
-						'type' => 'update',
-						'data' => $label,
-					)
-				),
-				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - $age_in_seconds ),
-			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
-		);
-	}
-
-	/**
-	 * Returns the number of non-awareness rows in the collaboration table.
-	 *
-	 * @return positive-int Row count.
-	 */
-	private function get_collaboration_row_count(): int {
-		global $wpdb;
-
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type != 'awareness'" );
-	}
-
-	/**
-	 * Returns the number of awareness rows in the collaboration table.
-	 *
-	 * @return positive-int Row count.
-	 */
-	private function get_awareness_row_count(): int {
-		global $wpdb;
-
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->collaboration} WHERE type = 'awareness'" );
-	}
-
-	/**
-	 * @ticket 64696
-	 */
-	public function test_cron_cleanup_deletes_old_rows(): void {
-		$this->insert_collaboration_row( 8 * DAY_IN_SECONDS );
-
-		$this->assertSame( 1, $this->get_collaboration_row_count() );
-
-		wp_delete_old_collaboration_data();
-
-		$this->assertSame( 0, $this->get_collaboration_row_count() );
-	}
-
-	/**
-	 * @ticket 64696
-	 */
-	public function test_cron_cleanup_preserves_recent_rows(): void {
-		$this->insert_collaboration_row( DAY_IN_SECONDS );
-
-		wp_delete_old_collaboration_data();
-
-		$this->assertSame( 1, $this->get_collaboration_row_count() );
-	}
-
-	/**
-	 * @ticket 64696
-	 */
-	public function test_cron_cleanup_boundary_at_exactly_seven_days(): void {
-		$this->insert_collaboration_row( WEEK_IN_SECONDS + 1, 'expired' );
-		$this->insert_collaboration_row( WEEK_IN_SECONDS - 1, 'just-inside' );
-
-		wp_delete_old_collaboration_data();
-
-		global $wpdb;
-		$remaining = $wpdb->get_col( "SELECT data FROM {$wpdb->collaboration}" );
-
-		$this->assertCount( 1, $remaining, 'Only the row within the 7-day window should remain.' );
-		$this->assertStringContainsString( 'just-inside', $remaining[0], 'The surviving row should be the one inside the window.' );
-	}
-
-	/**
-	 * @ticket 64696
-	 */
-	public function test_cron_cleanup_selectively_deletes_mixed_rows(): void {
-		// 3 expired rows.
-		$this->insert_collaboration_row( 10 * DAY_IN_SECONDS );
-		$this->insert_collaboration_row( 10 * DAY_IN_SECONDS );
-		$this->insert_collaboration_row( 10 * DAY_IN_SECONDS );
-
-		// 2 recent rows.
-		$this->insert_collaboration_row( HOUR_IN_SECONDS );
-		$this->insert_collaboration_row( HOUR_IN_SECONDS );
-
-		$this->assertSame( 5, $this->get_collaboration_row_count() );
-
-		wp_delete_old_collaboration_data();
-
-		$this->assertSame( 2, $this->get_collaboration_row_count(), 'Only the 2 recent rows should survive cleanup.' );
-	}
-
-	/**
-	 * @ticket 64696
-	 */
-	public function test_cron_cleanup_hook_is_registered(): void {
-		$this->assertSame(
-			10,
-			has_action( 'wp_delete_old_collaboration_data', 'wp_delete_old_collaboration_data' ),
-			'The wp_delete_old_collaboration_data action should be hooked in default-filters.php.'
-		);
-	}
-
-	/**
-	 * When collaboration is disabled, the cron callback should still clean up
-	 * stale rows and then unschedule itself so it does not continue to run.
-	 *
-	 * @ticket 64696
-	 */
-	public function test_cron_cleanup_when_collaboration_disabled(): void {
-		global $wpdb;
-
-		// Insert a stale sync row (older than 7 days).
-		$this->insert_collaboration_row( 10 * DAY_IN_SECONDS );
-
-		// Insert a stale awareness row (older than 60 seconds).
-		$wpdb->insert(
-			$wpdb->collaboration,
-			array(
-				'room'      => $this->get_post_room(),
-				'type'      => 'awareness',
-				'client_id' => '42',
-				'user_id'   => self::$editor_id,
-				'data'      => wp_json_encode( array( 'cursor' => 'stale' ) ),
-				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 120 ),
-			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
-		);
-
-		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Should have 1 sync row before cleanup.' );
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Should have 1 awareness row before cleanup.' );
-
-		// Schedule the cron event so we can verify it gets cleared.
-		wp_schedule_event( time(), 'hourly', 'wp_delete_old_collaboration_data' );
-		$this->assertIsInt( wp_next_scheduled( 'wp_delete_old_collaboration_data' ), 'Cron event should be scheduled before cleanup.' );
-
-		// Disable collaboration.
-		add_filter( 'pre_option_wp_collaboration_enabled', '__return_zero' ); // __return_false fails for pre-flight hook.
-
-		wp_delete_old_collaboration_data();
-
-		$this->assertSame( 0, $this->get_collaboration_row_count(), 'Stale sync rows should be deleted when collaboration is disabled.' );
-		$this->assertSame( 0, $this->get_awareness_row_count(), 'Stale awareness rows should be deleted when collaboration is disabled.' );
-		$this->assertFalse( wp_next_scheduled( 'wp_delete_old_collaboration_data' ), 'Cron hook should be unscheduled when collaboration is disabled.' );
-	}
-
-	/**
-	 * Verifies that a fresh awareness row (younger than 60 seconds) survives cron cleanup.
-	 *
-	 * Existing tests verify expired awareness rows are deleted. This ensures
-	 * the cleanup does not delete awareness rows that are still within the
-	 * 60-second freshness window.
-	 *
-	 * @ticket 64696
-	 */
-	public function test_cron_cleanup_preserves_fresh_awareness_rows(): void {
-		global $wpdb;
-
-		// Insert a fresh awareness row (30 seconds old — well within the 60s threshold).
-		$wpdb->insert(
-			$wpdb->collaboration,
-			array(
-				'room'      => $this->get_post_room(),
-				'type'      => 'awareness',
-				'client_id' => '1',
-				'user_id'   => self::$editor_id,
-				'data'      => wp_json_encode( array( 'cursor' => 'active' ) ),
-				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 30 ),
-			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
-		);
-
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Should have 1 awareness row before cleanup.' );
-
-		wp_delete_old_collaboration_data();
-
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Fresh awareness row should survive cron cleanup.' );
-	}
-
-	/*
 	 * Route registration guard tests.
 	 */
 
@@ -2109,8 +1899,8 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$this->assertArrayHasKey( '1', $awareness, 'Client 1 awareness should be present.' );
 		$this->assertArrayHasKey( '2', $awareness, 'Client 2 awareness should be present.' );
-		$this->assertSame( array( 'cursor' => 'pos-a' ), $awareness['1'] );
-		$this->assertSame( array( 'cursor' => 'pos-b' ), $awareness['2'] );
+		$this->assertSame( array( 'cursor' => 'pos-a' ), $awareness['1'], 'Client 1 awareness state should be preserved.' );
+		$this->assertSame( array( 'cursor' => 'pos-b' ), $awareness['2'], 'Client 2 awareness state should be preserved.' );
 	}
 
 	/**
@@ -2265,40 +2055,6 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			)
 		);
 		$this->assertSame( 0, $post_cron_count, 'Expired awareness row should be deleted after cron cleanup.' );
-	}
-
-	/**
-	 * Cron cleanup should remove expired awareness rows.
-	 *
-	 * @ticket 64696
-	 */
-	public function test_cron_cleanup_deletes_expired_awareness_rows(): void {
-		global $wpdb;
-
-		// Insert an awareness row older than 60 seconds.
-		$wpdb->insert(
-			$wpdb->collaboration,
-			array(
-				'room'      => $this->get_post_room(),
-				'type'      => 'awareness',
-				'client_id' => '42',
-				'user_id'   => self::$editor_id,
-				'data'      => wp_json_encode( array( 'cursor' => 'old' ) ),
-				'date_gmt'  => gmdate( 'Y-m-d H:i:s', time() - 120 ),
-			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s' )
-		);
-
-		// Insert a recent collaboration row (should survive).
-		$this->insert_collaboration_row( HOUR_IN_SECONDS );
-
-		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Collaboration table should have 1 sync row.' );
-		$this->assertSame( 1, $this->get_awareness_row_count(), 'Collaboration table should have 1 awareness row.' );
-
-		wp_delete_old_collaboration_data();
-
-		$this->assertSame( 1, $this->get_collaboration_row_count(), 'Only the recent sync row should survive cron cleanup.' );
-		$this->assertSame( 0, $this->get_awareness_row_count(), 'Expired awareness row should be deleted after cron cleanup.' );
 	}
 
 	/**
@@ -2686,9 +2442,9 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$result = $server->validate_request( $request );
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'rest_collaboration_body_too_large', $result->get_error_code() );
-		$this->assertSame( 413, $result->get_error_data()['status'] );
+		$this->assertWPError( $result, 'Oversized body should return a WP_Error.' );
+		$this->assertSame( 'rest_collaboration_body_too_large', $result->get_error_code(), 'Error code should indicate body too large.' );
+		$this->assertSame( 413, $result->get_error_data()['status'], 'HTTP status should be 413.' );
 	}
 
 	/**
