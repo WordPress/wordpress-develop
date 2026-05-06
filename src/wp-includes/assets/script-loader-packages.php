@@ -519,7 +519,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '802fb559fa0abfe26970'
+		'version' => '63782008412a6163c9f0'
 	),
 	'element.js' => array(
 		'dependencies' => array(
@@ -703,7 +703,7 @@
 			'wp-primitives',
 			'wp-private-apis'
 		),
-		'version' => '41ab6cb7d553434296c6'
+		'version' => '035813168e404aa30193'
 	),
 	'preferences-persistence.js' => array(
 		'dependencies' => array(
