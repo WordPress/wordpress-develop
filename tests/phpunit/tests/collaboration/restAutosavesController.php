@@ -82,6 +82,9 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 		return rest_get_server()->dispatch( $request );
 	}
 
+	/**
+	 * @ticket 65138
+	 */
 	public function test_auto_draft_autosave_promotes_parent_post_when_collaboration_is_disabled() {
 		update_option( 'wp_collaboration_enabled', 0 );
 
@@ -98,6 +101,9 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 		$this->assertSame( $content, $post->post_content );
 	}
 
+	/**
+	 * @ticket 65138
+	 */
 	public function test_auto_draft_autosave_promotes_parent_post_when_collaboration_is_enabled() {
 		update_option( 'wp_collaboration_enabled', 1 );
 
@@ -114,6 +120,9 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 		$this->assertSame( $content, $post->post_content );
 	}
 
+	/**
+	 * @ticket 65138
+	 */
 	public function test_collaborator_auto_draft_autosave_promotes_parent_post_when_collaboration_is_enabled() {
 		update_option( 'wp_collaboration_enabled', 1 );
 
@@ -131,6 +140,9 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 		$this->assertSame( $content, $post->post_content );
 	}
 
+	/**
+	 * @ticket 65138
+	 */
 	public function test_draft_autosave_creates_revision_when_collaboration_is_enabled() {
 		update_option( 'wp_collaboration_enabled', 1 );
 
