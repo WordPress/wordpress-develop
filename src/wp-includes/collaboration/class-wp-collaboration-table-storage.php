@@ -23,7 +23,7 @@
  *
  * @access private
  *
- * @phpstan-type AwarenessState array{client_id: string, state: array<string, mixed>, user_id: int, timestamp: int}
+ * @phpstan-type AwarenessState array{client_id: string, state: array<mixed, mixed>, user_id: int, timestamp: int}
  */
 class WP_Collaboration_Table_Storage {
 	/**
@@ -225,7 +225,7 @@ class WP_Collaboration_Table_Storage {
 		 */
 
 		// Snapshot the current max ID and total row count in a single query.
-		/** @var object{ max_id: int, total: int } $snapshot */
+		/** @var object{ max_id: string, total: string } $snapshot */
 		$snapshot = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT COALESCE( MAX( collaboration_id ), 0 ) AS max_id, COUNT(*) AS total FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness'",
@@ -398,6 +398,7 @@ class WP_Collaboration_Table_Storage {
 		 *
 		 * In the event of a race condition, the latest row will be returned as the update target.
 		 */
+		/** @var object{ collaboration_id: string, date_gmt: string, data: string }|null $exists */
 		$exists = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT collaboration_id, date_gmt, data FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s  ORDER BY collaboration_id DESC LIMIT 1",
