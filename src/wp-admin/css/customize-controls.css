@@ -70,7 +70,7 @@ body {
 
 #customize-save-button-wrapper {
 	float: right;
-	margin-top: 3px; /* Vertically center 40px button in 45px header */
+	margin-top: 7px; /* Vertically center 32px button in 45px header */
 }
 
 body:not(.ready) #customize-save-button-wrapper .save {
@@ -2996,9 +2996,8 @@ body.adding-widget .add-new-widget:before,
 	}
 
 	.wp-core-ui.wp-customizer .button {
-		min-height: 30px;
 		padding: 0 14px;
-		line-height: 2;
+		line-height: 2.14285714; /* 30px */
 		font-size: 14px;
 		vertical-align: middle;
 	}
