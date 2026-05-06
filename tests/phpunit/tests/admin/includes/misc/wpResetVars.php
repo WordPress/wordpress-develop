@@ -115,8 +115,8 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 			'multiple_vars'        => array(
 				'vars'            => array( 'v1', 'v2', 'v3' ),
 				'get'             => array( 
-					'v1' => 'g1', 
-					'v2' => 'g2' 
+					'v1' => 'g1',
+					'v2' => 'g2',
 				),
 				'post'            => array( 'v1' => 'p1' ),
 				'expected_values' => array(
