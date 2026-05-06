@@ -623,4 +623,22 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 			'Pagination links should not contain the raw HTTP_HOST value.'
 		);
 	}
+
+	public function test_print_column_headers_should_not_use_http_host_for_urls() {
+		$fake_host     = 'internal.proxy.example.local';
+		$original_host = $_SERVER['HTTP_HOST'] ?? '';
+
+		$_SERVER['HTTP_HOST']   = $fake_host;
+		$_SERVER['REQUEST_URI'] = '/wp-admin/edit.php?post_type=post';
+
+		$actual = get_echo( array( $this->list_table, 'print_column_headers' ) );
+
+		$_SERVER['HTTP_HOST'] = $original_host;
+
+		$this->assertStringNotContainsString(
+			$fake_host,
+			$actual,
+			'Column header links should not contain the raw HTTP_HOST value.'
+		);
+	}
 }
