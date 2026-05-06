@@ -16,19 +16,17 @@ class Tests_Collaboration_wpDeleteOldCollaborationData extends WP_UnitTestCase {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$post_id   = $factory->post->create( array( 'post_author' => self::$editor_id ) );
 
-		update_option( 'wp_collaboration_enabled', 1 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 	}
 
 	public static function wpTearDownAfterClass() {
-		self::delete_user( self::$editor_id );
-		delete_option( 'wp_collaboration_enabled' );
-		wp_delete_post( self::$post_id, true );
+		remove_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 	}
 
 	public function set_up() {
 		parent::set_up();
 
-		update_option( 'wp_collaboration_enabled', 1 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 	}
 
 	/**
@@ -195,7 +193,7 @@ class Tests_Collaboration_wpDeleteOldCollaborationData extends WP_UnitTestCase {
 		$this->assertIsInt( wp_next_scheduled( 'wp_delete_old_collaboration_data' ), 'Cron event should be scheduled before cleanup.' );
 
 		// Disable collaboration.
-		update_option( 'wp_collaboration_enabled', false );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_zero' );
 
 		wp_delete_old_collaboration_data();
 
