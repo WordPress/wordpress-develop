@@ -25,7 +25,7 @@
  *
  * @phpstan-type AwarenessState array{client_id: string, state: array<mixed, mixed>, user_id: int, timestamp: int}
  */
-class WP_Collaboration_Table_Storage {
+class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 	/**
 	 * Cache of cursors by room.
 	 *
