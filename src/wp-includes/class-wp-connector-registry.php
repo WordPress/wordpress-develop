@@ -41,7 +41,7 @@
  *     },
  *     plugin?: array{
  *         file: non-empty-string,
- *         is_active?: callable(): bool
+ *         is_active: callable(): bool
  *     }
  * }
  */
@@ -115,9 +115,7 @@ final class WP_Connector_Registry {
 	 *                                   'hello.php').
 	 *         @type callable $is_active Optional callback to determine whether the plugin
 	 *                                   is active. Receives no arguments and must return bool.
-	 *                                   When omitted and `file` is provided, the connector is
-	 *                                   treated as active on the assumption that the plugin
-	 *                                   must be loaded in order to register itself.
+	 *                                   Defaults to `__return_true`.
 	 *     }
 	 * }
 	 * @return array|null The registered connector data on success, null on failure.
@@ -270,6 +268,10 @@ final class WP_Connector_Registry {
 
 				$connector['plugin']['is_active'] = $args['plugin']['is_active'];
 			}
+		}
+
+		if ( ! isset( $connector['plugin']['is_active'] ) ) {
+			$connector['plugin']['is_active'] = '__return_true';
 		}
 
 		$this->registered_connectors[ $id ] = $connector;
