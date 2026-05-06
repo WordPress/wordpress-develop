@@ -200,7 +200,7 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 		$dom->loadHTML( $output );
 		libxml_clear_errors();
 
-		$inputs = $dom->getElementsByTagName( 'input' );
+		$inputs       = $dom->getElementsByTagName( 'input' );
 		$found_colors = array();
 		foreach ( $inputs as $input ) {
 			if ( 'radio' === $input->getAttribute( 'type' ) ) {
