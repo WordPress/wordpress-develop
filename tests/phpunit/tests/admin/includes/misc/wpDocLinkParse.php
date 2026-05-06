@@ -35,39 +35,39 @@ class Tests_wp_doc_link_parse extends WP_UnitTestCase {
 				'content'  => '',
 				'expected' => array(),
 			),
-			'null (invalid type)'             => array(
+			'null (invalid type)'       => array(
 				'content'  => null,
 				'expected' => array(),
 			),
-			'simple function call'            => array(
+			'simple function call'      => array(
 				'content'  => '<?php get_header(); ?>',
 				'expected' => array( 'get_header' ),
 			),
-			'multiple unique functions'       => array(
+			'multiple unique functions' => array(
 				'content'  => '<?php get_header(); wp_footer(); ?>',
 				'expected' => array( 'get_header', 'wp_footer' ),
 			),
-			'duplicate functions'             => array(
+			'duplicate functions'       => array(
 				'content'  => '<?php _e("test"); _e("again"); ?>',
 				'expected' => array( '_e' ),
 			),
-			'sorted output'                   => array(
+			'sorted output'             => array(
 				'content'  => '<?php zeta(); alpha(); ?>',
 				'expected' => array( 'alpha', 'zeta' ),
 			),
-			'local function definition'       => array(
+			'local function definition' => array(
 				'content'  => '<?php function my_local_func() {} my_local_func(); ?>',
 				'expected' => array(),
 			),
-			'class method call'               => array(
+			'class method call'         => array(
 				'content'  => '<?php $obj->my_method(); ?>',
 				'expected' => array(),
 			),
-			'static class method call'        => array(
+			'static class method call'  => array(
 				'content'  => '<?php MyClass::my_static_method(); ?>',
 				'expected' => array( 'my_static_method' ), // token_get_all handles :: differently.
 			),
-			'mixed content'                   => array(
+			'mixed content'             => array(
 				'content'  => '<?php
 					function local_f() {}
 					local_f();
@@ -77,7 +77,7 @@ class Tests_wp_doc_link_parse extends WP_UnitTestCase {
 				?>',
 				'expected' => array( 'esc_html', 'wp_remote_get' ),
 			),
-			'function call with space'        => array(
+			'function call with space'  => array(
 				'content'  => '<?php is_array ( $val ); ?>',
 				'expected' => array( 'is_array' ),
 			),
