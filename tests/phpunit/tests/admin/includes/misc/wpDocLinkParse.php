@@ -31,7 +31,7 @@ class Tests_wp_doc_link_parse extends WP_UnitTestCase {
 	 */
 	public function data_wp_doc_link_parse(): array {
 		return array(
-			'empty string'                    => array(
+			'empty string'              => array(
 				'content'  => '',
 				'expected' => array(),
 			),
