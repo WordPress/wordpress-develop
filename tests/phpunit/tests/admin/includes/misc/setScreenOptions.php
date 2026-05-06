@@ -138,7 +138,7 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
-		$_POST['wp_screen_options'] = array(
+		$_POST['wp_screen_options']    = array(
 			'option' => 'custom_per_page',
 			'value'  => '25',
 		);
