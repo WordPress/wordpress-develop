@@ -681,24 +681,28 @@ class WP_Ability {
 		/**
 		 * Filters whether to short-circuit ability execution.
 		 *
-		 * Returning a non-null value bypasses the rest of `execute()` — input normalization, input
-		 * validation, permission checks, the registered execute callback, output validation, and
-		 * the surrounding actions — and the value is returned to the caller as-is. Useful for
-		 * cached responses, rate limiting, maintenance mode, and test mocking.
+		 * Returning a value other than the received default bypasses the rest of `execute()` —
+		 * input normalization, input validation, permission checks, the registered execute callback,
+		 * output validation, and the surrounding actions — and the value is returned to the caller
+		 * as-is. Useful for cached responses, rate limiting, maintenance mode, and test mocking.
+		 *
+		 * To continue with normal execution, return `$pre` unchanged. This preserves `null` as a
+		 * valid short-circuit result.
 		 *
 		 * Because validation is bypassed, callers that short-circuit are responsible for the
 		 * integrity of any value they consume from `$input`.
 		 *
 		 * @since 7.1.0
 		 *
-		 * @param mixed      $pre          The pre-computed result. Returning non-null short-circuits execution.
-		 *                                 Default `null`.
+		 * @param mixed      $pre          The pre-computed result. Return this value unchanged to continue execution.
+		 *                                 Default internal sentinel object.
 		 * @param string     $ability_name The name of the ability.
 		 * @param mixed      $input        The raw input passed to `execute()`.
 		 * @param WP_Ability $ability      The ability instance.
 		 */
-		$pre = apply_filters( 'wp_pre_execute_ability', null, $this->name, $input, $this );
-		if ( null !== $pre ) {
+		$pre_execute_sentinel = new stdClass();
+		$pre                  = apply_filters( 'wp_pre_execute_ability', $pre_execute_sentinel, $this->name, $input, $this );
+		if ( $pre !== $pre_execute_sentinel ) {
 			return $pre;
 		}
 

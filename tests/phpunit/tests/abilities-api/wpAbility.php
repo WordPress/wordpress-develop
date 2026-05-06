@@ -1054,10 +1054,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that returning a non-null value from wp_pre_execute_ability short-circuits the
-	 * pipeline cleanly. The pipeline is configured to fail (permission denial) so a real run
-	 * would surface a WP_Error; receiving the short-circuit value proves the bypass. Filter
-	 * args are verified via args-as-guards on the short-circuit value.
+	 * Tests that returning a custom value from wp_pre_execute_ability short-circuits the
+	 * pipeline. The pipeline is configured to fail (permission denial) so a real run would
+	 * surface a WP_Error; receiving the short-circuit value proves the bypass. Filter args
+	 * are verified via args-as-guards on the short-circuit value.
 	 *
 	 * @ticket 64989
 	 */
@@ -1080,9 +1080,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		);
 
 		$filter = static function ( $pre, $ability_name, $input, $ability ) {
-			if ( null !== $pre ) {
-				return $pre;
-			}
 			if ( self::$test_ability_name !== $ability_name || 99 !== $input || ! $ability instanceof WP_Ability ) {
 				return $pre;
 			}
@@ -1100,16 +1097,48 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that returning null explicitly from wp_pre_execute_ability lets the pipeline run.
+	 * Tests that returning the default value from wp_pre_execute_ability lets the pipeline run.
 	 *
 	 * @ticket 64989
 	 */
-	public function test_pre_execute_ability_filter_null_runs_pipeline() {
+	public function test_pre_execute_ability_filter_default_value_runs_pipeline() {
 		$args = array_merge(
 			self::$test_ability_properties,
 			array(
 				'execute_callback' => static function (): int {
 					return 5;
+				},
+			)
+		);
+
+		$filter = static function ( $pre ) {
+			return $pre;
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_pre_execute_ability', $filter );
+
+		$this->assertSame( 5, $result, 'Pipeline should run and return the execute_callback value when filter returns the default value.' );
+	}
+
+	/**
+	 * Tests that returning null explicitly from wp_pre_execute_ability short-circuits with null.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_null_short_circuits() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): bool {
+					return false;
 				},
 			)
 		);
@@ -1125,7 +1154,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		remove_filter( 'wp_pre_execute_ability', $filter );
 
-		$this->assertSame( 5, $result, 'Pipeline should run and return the execute_callback value when filter returns null.' );
+		$this->assertNull( $result, 'Null from filter should be returned as-is and bypass the pipeline.' );
 	}
 
 	/**
