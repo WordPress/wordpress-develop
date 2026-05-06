@@ -253,7 +253,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			(int) $post->post_author === $user_id &&
 			! $is_collaboration_enabled
 		);
-		$can_promote_auto_draft_post  = (
+
+		$can_promote_auto_draft_post = (
 			$is_auto_draft &&
 			$is_collaboration_enabled &&
 			current_user_can( 'edit_post', $post->ID )
