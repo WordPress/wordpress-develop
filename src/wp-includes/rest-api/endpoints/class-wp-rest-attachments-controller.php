@@ -2015,7 +2015,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// 'full' size (PDF thumbnails) and 'scaled': no further constraints.
-		if ( 'full' === $image_size || 'scaled' === $image_size ) {
+		if ( in_array( $image_size, array( 'full', 'scaled' ), true ) ) {
 			return true;
 		}
 
@@ -2038,7 +2038,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Allow 1px tolerance for rounding differences.
 		$tolerance = 1;
 
-		if ( $max_width > 0 && $width > $max_width + $tolerance ) {
+		if ( $this->dimension_exceeds_max( $width, $max_width, $tolerance ) ) {
 			return new WP_Error(
 				'rest_upload_dimension_mismatch',
 				sprintf(
@@ -2052,7 +2052,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		if ( $max_height > 0 && $height > $max_height + $tolerance ) {
+		if ( $this->dimension_exceeds_max( $height, $max_height, $tolerance ) ) {
 			return new WP_Error(
 				'rest_upload_dimension_mismatch',
 				sprintf(
@@ -2067,6 +2067,22 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks whether a dimension exceeds the maximum allowed value.
+	 *
+	 * A maximum of zero means the dimension is unconstrained.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param int $value     The actual dimension in pixels.
+	 * @param int $max       The maximum allowed dimension in pixels. Zero means no constraint.
+	 * @param int $tolerance Pixel tolerance allowed for rounding differences.
+	 * @return bool True if the value exceeds the maximum plus tolerance.
+	 */
+	private function dimension_exceeds_max( int $value, int $max, int $tolerance ): bool {
+		return $max > 0 && $value > $max + $tolerance;
 	}
 
 	/**
