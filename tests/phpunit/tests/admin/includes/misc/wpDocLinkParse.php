@@ -90,7 +90,7 @@ class Tests_wp_doc_link_parse extends WP_UnitTestCase {
 	 * @ticket 65182
 	 */
 	public function test_wp_doc_link_parse_filter() {
-		$filter = function( $ignore ) {
+		$filter = function ( $ignore ) {
 			$ignore[] = 'wp_remote_get';
 			return $ignore;
 		};
