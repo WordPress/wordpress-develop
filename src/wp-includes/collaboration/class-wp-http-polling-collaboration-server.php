@@ -98,18 +98,18 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * Storage backend for collaboration updates.
 	 *
 	 * @since 7.0.0
-	 * @var WP_Collaboration_Table_Storage
+	 * @var WP_Collaboration_Storage
 	 */
-	private WP_Collaboration_Table_Storage $storage;
+	private WP_Collaboration_Storage $storage;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param WP_Collaboration_Table_Storage $storage Storage backend for collaboration updates.
+	 * @param WP_Collaboration_Storage $storage Storage backend for collaboration updates.
 	 */
-	public function __construct( WP_Collaboration_Table_Storage $storage ) {
+	public function __construct( WP_Collaboration_Storage $storage ) {
 		$this->storage = $storage;
 	}
 
