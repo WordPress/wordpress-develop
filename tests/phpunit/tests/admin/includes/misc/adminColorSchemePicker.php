@@ -38,13 +38,21 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 				'name'        => 'Default',
 				'url'         => 'fresh.css',
 				'colors'      => array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
-				'icon_colors' => array( 'base' => '#a7aaad', 'focus' => '#72aee6', 'current' => '#fff' ),
+				'icon_colors' => array(
+					'base' => '#a7aaad',
+					'focus' => '#72aee6',
+					'current' => '#fff',
+				),
 			),
 			'modern' => (object) array(
 				'name'        => 'Modern',
 				'url'         => 'modern.css',
 				'colors'      => array( '#1e1e1e', '#383838', '#007cba', '#e0e0e0' ),
-				'icon_colors' => array( 'base' => '#f0f0f1', 'focus' => '#fff', 'current' => '#fff' ),
+				'icon_colors' => array(
+					'base' => '#f0f0f1',
+					'focus' => '#fff',
+					'current' => '#fff',
+				),
 			),
 		);
 
@@ -144,11 +152,36 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 		global $_wp_admin_css_colors;
 
 		$_wp_admin_css_colors = array(
-			'ocean'  => (object) array( 'name' => 'Ocean', 'url' => '', 'colors' => array(), 'icon_colors' => array() ),
-			'fresh'  => (object) array( 'name' => 'Default', 'url' => '', 'colors' => array(), 'icon_colors' => array() ),
-			'light'  => (object) array( 'name' => 'Light', 'url' => '', 'colors' => array(), 'icon_colors' => array() ),
-			'modern' => (object) array( 'name' => 'Modern', 'url' => '', 'colors' => array(), 'icon_colors' => array() ),
-			'coffee' => (object) array( 'name' => 'Coffee', 'url' => '', 'colors' => array(), 'icon_colors' => array() ),
+			'ocean'  => (object) array(
+				'name' => 'Ocean',
+				'url' => '',
+				'colors' => array(),
+				'icon_colors' => array(),
+			),
+			'fresh'  => (object) array(
+				'name' => 'Default',
+				'url' => '',
+				'colors' => array(),
+				'icon_colors' => array(),
+			),
+			'light'  => (object) array(
+				'name' => 'Light',
+				'url' => '',
+				'colors' => array(),
+				'icon_colors' => array(),
+			),
+			'modern' => (object) array(
+				'name' => 'Modern',
+				'url' => '',
+				'colors' => array(),
+				'icon_colors' => array(),
+			),
+			'coffee' => (object) array(
+				'name' => 'Coffee',
+				'url' => '',
+				'colors' => array(),
+				'icon_colors' => array(),
+			),
 		);
 
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
