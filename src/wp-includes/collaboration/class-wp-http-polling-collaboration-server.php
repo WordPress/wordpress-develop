@@ -614,7 +614,20 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * } Response data for this room.
 	 */
 	private function get_updates( string $room, string $client_id, int $cursor, bool $is_compactor ): array {
-		$updates_after_cursor = $this->storage->get_updates_after_cursor( $room, $cursor );
+		$updates_after_cursor = array_filter(
+			$this->storage->get_updates_after_cursor( $room, $cursor ),
+			static function ( $update ): bool {
+				return (
+					is_array( $update )
+					&&
+					isset( $update['client_id'], $update['type'], $update['data'] )
+					&&
+					is_string( $update['type'] )
+					&&
+					is_string( $update['data'] )
+				);
+			}
+		);
 		$total_updates        = $this->storage->get_update_count( $room );
 
 		// Filter out this client's updates, except compaction updates.
