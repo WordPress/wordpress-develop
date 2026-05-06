@@ -463,9 +463,12 @@ class WP_Admin_Bar {
 		/*
 		 * Add browser classes.
 		 * We have to do this here since admin bar shows on the front end.
+		 * The 'mobile' class is only added for logged-in users to avoid cache poisoning:
+		 * logged-out pages are commonly served from a full-page cache, so a device-specific
+		 * class set by the first visitor would be served to all subsequent visitors.
 		 */
-		$class = 'nojq nojs';
-		if ( wp_is_mobile() ) {
+		$class = 'nojs';
+		if ( is_user_logged_in() && wp_is_mobile() ) {
 			$class .= ' mobile';
 		}
 

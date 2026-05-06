@@ -823,6 +823,56 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the 'mobile' class is not added to the admin bar for logged-out users on mobile,
+	 * preventing cache poisoning when full-page caching is active.
+	 *
+	 * @ticket 28117
+	 * @covers WP_Admin_Bar::render
+	 */
+	public function test_admin_bar_does_not_add_mobile_class_for_logged_out_users() {
+		add_filter( 'wp_is_mobile', '__return_true' );
+
+		$admin_bar      = new WP_Admin_Bar();
+		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
+
+		remove_filter( 'wp_is_mobile', '__return_true' );
+
+		$this->assertStringNotContainsString( 'class="nojs mobile"', $admin_bar_html, 'The "mobile" class should not be present for logged-out users.' );
+	}
+
+	/**
+	 * Tests that the 'mobile' class is added to the admin bar for logged-in users on mobile.
+	 *
+	 * @ticket 28117
+	 * @covers WP_Admin_Bar::render
+	 */
+	public function test_admin_bar_adds_mobile_class_for_logged_in_users_on_mobile() {
+		wp_set_current_user( self::$admin_id );
+		add_filter( 'wp_is_mobile', '__return_true' );
+
+		$admin_bar      = new WP_Admin_Bar();
+		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
+
+		remove_filter( 'wp_is_mobile', '__return_true' );
+		wp_set_current_user( 0 );
+
+		$this->assertStringContainsString( 'class="nojs mobile"', $admin_bar_html, 'The "mobile" class should be present for logged-in users on mobile.' );
+	}
+
+	/**
+	 * Tests that the 'nojq' class is never present in the admin bar output.
+	 *
+	 * @ticket 28117
+	 * @covers WP_Admin_Bar::render
+	 */
+	public function test_admin_bar_does_not_output_nojq_class() {
+		$admin_bar      = new WP_Admin_Bar();
+		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringNotContainsString( 'nojq', $admin_bar_html, 'The "nojq" class should not be present in the admin bar output.' );
+	}
+
+	/**
 	 * This test ensures that WP_Admin_Bar::$menu is declared as a "regular" class property.
 	 *
 	 * @ticket 56876
