@@ -2649,6 +2649,8 @@ function wp_enqueue_global_styles() {
 /**
  * Declares a flag that the Classic block is necessary for the current post.
  *
+ * @global WP_Post $post Global post object.
+ *
  * @since 7.1.0
  */
 function wp_declare_classic_block_necessary() {
