@@ -7,7 +7,7 @@
  *
  * @group collaboration
  */
-class Tests_Collaboration_Cron_Cleanup extends WP_UnitTestCase {
+class Tests_Collaboration_wpDeleteOldCollaborationData extends WP_UnitTestCase {
 
 	protected static $editor_id;
 	protected static $post_id;
