@@ -15,6 +15,8 @@ class Tests_Customizer_Mobile_Viewport_Meta extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_customizer_mobile_viewport_meta
 	 *
+	 * @ticket 65186
+	 *
 	 * @param string $viewport_meta Original viewport meta.
 	 * @param string $expected      Expected viewport meta.
 	 */
