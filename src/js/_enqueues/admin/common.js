@@ -1357,7 +1357,7 @@ $( function() {
 
 		var errorMessage = value !== '-1' ?
 			__( 'Please select at least one item to perform this action on.' ) :
-			noSelectionMessages[ submitterName ] || noSelectionMessages['bulk_action'];
+			noSelectionMessages[ submitterName ] || noSelectionMessages.bulk_action;
 
 		addAdminNotice( {
 			id: value !== '-1' ? 'no-items-selected' : 'no-bulk-action-selected',
