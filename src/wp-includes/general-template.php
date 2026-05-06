@@ -4864,6 +4864,7 @@ function paginate_links( $args = '' ) {
  *     ) );
  *
  * @since 2.5.0
+ * @since 7.0.0 The `$admin_bar_url` parameter was added.
  *
  * @global array $_wp_admin_css_colors
  *
@@ -4879,8 +4880,10 @@ function paginate_links( $args = '' ) {
  *     @type string $focus   SVG icon color on focus.
  *     @type string $current SVG icon color of current admin menu link.
  * }
+ * @param string|false $admin_bar_url Optional. The URL of the CSS file containing admin bar color
+ *                                    overrides for use on the front end. Default false.
  */
-function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = array() ) {
+function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = array(), $admin_bar_url = false ) {
 	global $_wp_admin_css_colors;
 
 	if ( ! isset( $_wp_admin_css_colors ) ) {
@@ -4888,10 +4891,11 @@ function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = arra
 	}
 
 	$_wp_admin_css_colors[ $key ] = (object) array(
-		'name'        => $name,
-		'url'         => $url,
-		'colors'      => $colors,
-		'icon_colors' => $icons,
+		'name'          => $name,
+		'url'           => $url,
+		'colors'        => $colors,
+		'icon_colors'   => $icons,
+		'admin_bar_url' => $admin_bar_url,
 	);
 }
 
@@ -4909,6 +4913,8 @@ function register_admin_color_schemes() {
 	$suffix  = is_rtl() ? '-rtl' : '';
 	$suffix .= SCRIPT_DEBUG ? '' : '.min';
 
+	$ab_suffix = SCRIPT_DEBUG ? '' : '.min';
+
 	wp_admin_css_color(
 		'modern',
 		_x( 'Default', 'admin color scheme' ),
@@ -4918,7 +4924,8 @@ function register_admin_color_schemes() {
 			'base'    => '#f3f1f1',
 			'focus'   => '#fff',
 			'current' => '#fff',
-		)
+		),
+		admin_url( "css/colors/modern/admin-bar$ab_suffix.css" )
 	);
 
 	wp_admin_css_color(
@@ -4942,7 +4949,8 @@ function register_admin_color_schemes() {
 			'base'    => '#999',
 			'focus'   => '#ccc',
 			'current' => '#ccc',
-		)
+		),
+		admin_url( "css/colors/light/admin-bar$ab_suffix.css" )
 	);
 
 	wp_admin_css_color(
@@ -4954,7 +4962,8 @@ function register_admin_color_schemes() {
 			'base'    => '#e5f8ff',
 			'focus'   => '#fff',
 			'current' => '#fff',
-		)
+		),
+		admin_url( "css/colors/blue/admin-bar$ab_suffix.css" )
 	);
 
 	wp_admin_css_color(
@@ -4966,7 +4975,8 @@ function register_admin_color_schemes() {
 			'base'    => '#f1f2f3',
 			'focus'   => '#fff',
 			'current' => '#fff',
-		)
+		),
+		admin_url( "css/colors/midnight/admin-bar$ab_suffix.css" )
 	);
 
 	wp_admin_css_color(
@@ -4978,7 +4988,8 @@ function register_admin_color_schemes() {
 			'base'    => '#f3f1f1',
 			'focus'   => '#fff',
 			'current' => '#fff',
-		)
+		),
+		admin_url( "css/colors/sunrise/admin-bar$ab_suffix.css" )
 	);
 
 	wp_admin_css_color(
@@ -4990,7 +5001,8 @@ function register_admin_color_schemes() {
 			'base'    => '#ece6f6',
 			'focus'   => '#fff',
 			'current' => '#fff',
-		)
+		),
+		admin_url( "css/colors/ectoplasm/admin-bar$ab_suffix.css" )
 	);
 
 	wp_admin_css_color(
@@ -5002,7 +5014,8 @@ function register_admin_color_schemes() {
 			'base'    => '#f2fcff',
 			'focus'   => '#fff',
 			'current' => '#fff',
-		)
+		),
+		admin_url( "css/colors/ocean/admin-bar$ab_suffix.css" )
 	);
 
 	wp_admin_css_color(
@@ -5014,7 +5027,8 @@ function register_admin_color_schemes() {
 			'base'    => '#f3f2f1',
 			'focus'   => '#fff',
 			'current' => '#fff',
-		)
+		),
+		admin_url( "css/colors/coffee/admin-bar$ab_suffix.css" )
 	);
 }
 
