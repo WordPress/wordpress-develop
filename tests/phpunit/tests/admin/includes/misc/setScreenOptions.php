@@ -39,10 +39,10 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 
 		// Set referer and nonce.
-		$_SERVER['HTTP_REFERER']    = admin_url( 'edit.php?pagenum=2' );
-		$_POST['screenoptionnonce'] = wp_create_nonce( 'screen-options-nonce' );
+		$_SERVER['HTTP_REFERER']       = admin_url( 'edit.php?pagenum=2' );
+		$_POST['screenoptionnonce']    = wp_create_nonce( 'screen-options-nonce' );
 		$_REQUEST['screenoptionnonce'] = $_POST['screenoptionnonce'];
-		$_REQUEST['_wp_http_referer'] = $_SERVER['HTTP_REFERER'];
+		$_REQUEST['_wp_http_referer']  = $_SERVER['HTTP_REFERER'];
 
 		if ( 'my_custom_page' === $option || 'layout_columns' === $option ) {
 			add_filter( 'set-screen-option', array( $this, 'filter_set_screen_option_custom' ), 10, 3 );
@@ -101,27 +101,27 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 	 */
 	public function data_set_screen_options(): array {
 		return array(
-			'edit_per_page'                  => array(
+			'edit_per_page'             => array(
 				'option'   => 'edit_per_page',
 				'value'    => '20',
 				'expected' => 20,
 			),
-			'edit_per_page_invalid'          => array(
+			'edit_per_page_invalid'     => array(
 				'option'   => 'edit_per_page',
 				'value'    => '1000', // Max is 999.
 				'expected' => '',
 			),
-			'upload_per_page'                => array(
+			'upload_per_page'           => array(
 				'option'   => 'upload_per_page',
 				'value'    => '50',
 				'expected' => 50,
 			),
-			'custom_option_with_filter'      => array(
+			'custom_option_with_filter' => array(
 				'option'   => 'my_custom_page',
 				'value'    => '10',
 				'expected' => 10,
 			),
-			'layout_columns'                 => array(
+			'layout_columns'            => array(
 				'option'   => 'layout_columns',
 				'value'    => '2',
 				'expected' => 2,
@@ -142,10 +142,10 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 			'option' => 'custom_per_page',
 			'value'  => '25',
 		);
-		$_SERVER['HTTP_REFERER']    = admin_url( 'admin.php' );
-		$_SERVER['REQUEST_METHOD']  = 'POST';
+		$_SERVER['HTTP_REFERER']       = admin_url( 'admin.php' );
+		$_SERVER['REQUEST_METHOD']     = 'POST';
 		$_REQUEST['screenoptionnonce'] = wp_create_nonce( 'screen-options-nonce' );
-		$_REQUEST['_wp_http_referer'] = $_SERVER['HTTP_REFERER'];
+		$_REQUEST['_wp_http_referer']  = $_SERVER['HTTP_REFERER'];
 
 		// Intercept redirect to prevent exit.
 		add_filter( 'wp_redirect', array( $this, 'intercept_redirect' ) );
