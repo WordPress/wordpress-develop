@@ -1157,4 +1157,147 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Error::class, $result, 'WP_Error from filter should be returned as-is.' );
 		$this->assertSame( 'pre_short_circuit', $result->get_error_code() );
 	}
+
+	/**
+	 * Tests that the wp_ability_execute_result filter can transform the result, with all
+	 * filter args verified via args-as-guards.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_execute_result_filter_can_transform_result() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+					'required'    => true,
+				),
+				'execute_callback' => static function ( int $input ): int {
+					return $input * 2;
+				},
+			)
+		);
+
+		$filter = static function ( $result, $ability_name, $input, $ability ) {
+			if ( 10 !== $result ) {
+				return $result;
+			}
+			if ( self::$test_ability_name !== $ability_name || 5 !== $input || ! $ability instanceof WP_Ability ) {
+				return $result;
+			}
+			return 99;
+		};
+
+		add_filter( 'wp_ability_execute_result', $filter, 10, 4 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 5 );
+
+		remove_filter( 'wp_ability_execute_result', $filter, 10 );
+
+		$this->assertSame( 99, $result, 'Filter received expected args and transformed the result.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_execute_result filter can repair an invalid execute result so
+	 * output validation passes — also proves the filter runs before output validation.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_execute_result_filter_can_fix_invalid_output() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): string {
+					return 'not-a-number';
+				},
+			)
+		);
+
+		$filter = static function () {
+			return 42;
+		};
+
+		add_filter( 'wp_ability_execute_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_execute_result', $filter );
+
+		$this->assertSame( 42, $result, 'Filter should repair invalid output before validation runs.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_execute_result filter runs before the wp_after_execute_ability action.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_execute_result_filter_runs_before_after_execute_action() {
+		$order = array();
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): int {
+					return 1;
+				},
+			)
+		);
+
+		$filter = static function ( $result ) use ( &$order ) {
+			$order[] = 'filter';
+			return $result;
+		};
+
+		$action = static function () use ( &$order ) {
+			$order[] = 'action';
+		};
+
+		add_filter( 'wp_ability_execute_result', $filter );
+		add_action( 'wp_after_execute_ability', $action );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute();
+
+		remove_filter( 'wp_ability_execute_result', $filter );
+		remove_action( 'wp_after_execute_ability', $action );
+
+		$this->assertSame( array( 'filter', 'action' ), $order, 'execute_result filter must run before wp_after_execute_ability action.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_execute_result filter receives a WP_Error from the execute
+	 * callback and can pass it through (verified via args-as-guards on the WP_Error code).
+	 *
+	 * @ticket 64989
+	 */
+	public function test_execute_result_filter_receives_wp_error_from_do_execute() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function () {
+					return new WP_Error( 'execute_failed', 'Something went wrong.' );
+				},
+			)
+		);
+
+		$filter = static function ( $result ) {
+			if ( ! is_wp_error( $result ) || 'execute_failed' !== $result->get_error_code() ) {
+				return new WP_Error( 'unexpected_input' );
+			}
+			return $result;
+		};
+
+		add_filter( 'wp_ability_execute_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_execute_result', $filter );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'execute_failed', $result->get_error_code(), 'Filter saw the expected WP_Error and passed it through.' );
+	}
 }

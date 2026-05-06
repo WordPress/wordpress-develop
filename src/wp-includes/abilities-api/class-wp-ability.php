@@ -595,21 +595,46 @@ class WP_Ability {
 	/**
 	 * Executes the ability callback.
 	 *
+	 * The {@see 'wp_ability_execute_result'} filter fires before this method returns, allowing
+	 * plugins to transform the result produced by the registered `execute_callback`.
+	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `wp_ability_execute_result` filter.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	protected function do_execute( $input = null ) {
 		if ( ! is_callable( $this->execute_callback ) ) {
-			return new WP_Error(
+			$result = new WP_Error(
 				'ability_invalid_execute_callback',
 				/* translators: %s ability name. */
 				sprintf( __( 'Ability "%s" does not have a valid execute callback.' ), esc_html( $this->name ) )
 			);
+		} else {
+			$result = $this->invoke_callback( $this->execute_callback, $input );
 		}
 
-		return $this->invoke_callback( $this->execute_callback, $input );
+		/**
+		 * Filters the result returned by an ability's execute callback.
+		 *
+		 * Fires after the registered execute callback runs. Plugins can use this to transform the
+		 * result — response formatting, stripping internal metadata, content safety filtering,
+		 * response enrichment, or recovering from a failure by returning a successful value.
+		 *
+		 * The filter receives whatever the registered callback produced, including a `WP_Error`
+		 * if execution failed. Filters may pass the `WP_Error` through unchanged, override it with
+		 * a recovered result, or convert a successful result into a `WP_Error`.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param mixed      $result       The result returned by the registered `execute_callback`,
+		 *                                 or a `WP_Error` if execution failed.
+		 * @param string     $ability_name The name of the ability.
+		 * @param mixed      $input        The normalized input data.
+		 * @param WP_Ability $ability      The ability instance.
+		 */
+		return apply_filters( 'wp_ability_execute_result', $result, $this->name, $input, $this );
 	}
 
 	/**
