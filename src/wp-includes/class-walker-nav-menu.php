@@ -248,7 +248,9 @@ class Walker_Nav_Menu extends Walker {
 		 */
 		$title = apply_filters( 'nav_menu_item_title', $title, $menu_item, $args, $depth );
 
-		if ( 'placeholder' === $menu_item->type ) {
+		$menu_item_type = isset( $menu_item->type ) ? $menu_item->type : '';
+
+		if ( 'placeholder' === $menu_item_type ) {
 			/*
 			 * Placeholder items render as a non-interactive `<span>` rather than an `<a>`.
 			 * Because most themes style nav links via selectors like `> a`, the `<span>`
