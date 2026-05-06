@@ -593,6 +593,9 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$this->assertStringContainsString( $expected_html, $actual );
 	}
 
+	/**
+	 * @ticket 16858
+	 */
 	public function test_pagination_should_not_use_http_host_for_urls() {
 		$fake_host     = 'internal.proxy.example.local';
 		$original_host = $_SERVER['HTTP_HOST'] ?? '';
@@ -624,6 +627,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		);
 	}
 
+
+	/**
+	 * @ticket 16858
+	 */
 	public function test_print_column_headers_should_not_use_http_host_for_urls() {
 		$fake_host     = 'internal.proxy.example.local';
 		$original_host = $_SERVER['HTTP_HOST'] ?? '';
