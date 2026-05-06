@@ -1464,47 +1464,32 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 }
 
 /**
- * Adds CSS from the administration color scheme stylesheet on the front end.
+ * Enqueues the admin bar color scheme stylesheet on the front end.
  *
  * @since 7.0.0
- *
- * @global array $_wp_admin_css_colors Registered administration color schemes.
  */
 function wp_admin_bar_add_color_scheme_to_front_end() {
 	if ( is_admin() ) {
 		return;
 	}
 
-	global $_wp_admin_css_colors;
-
-	if ( empty( $_wp_admin_css_colors ) ) {
-		register_admin_color_schemes();
-	}
-
 	$color_scheme = get_user_option( 'admin_color' );
+	$core_list    = array( 'modern', 'light', 'blue', 'coffee', 'ectoplasm', 'midnight', 'ocean', 'sunrise' );
 
-	if ( empty( $color_scheme ) || ! isset( $_wp_admin_css_colors[ $color_scheme ] ) ) {
-		$color_scheme = 'modern';
+	if ( empty( $color_scheme ) || ! in_array( $color_scheme, $core_list, true ) ) {
+		return;
 	}
 
-	$color = $_wp_admin_css_colors[ $color_scheme ] ?? null;
-	$url   = $color->url ?? '';
+	$suffix        = SCRIPT_DEBUG ? '' : '.min';
+	$admin_bar_url = admin_url( "css/colors/{$color_scheme}/admin-bar{$suffix}.css" );
 
-	if ( $url ) {
-		$response = wp_remote_get( $url );
-		if ( ! is_wp_error( $response ) ) {
-			$css = $response['body'];
-			if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
-				$start_position = strpos( $css, '#wpadminbar' );
-				$end_position   = strpos( $css, '.wp-pointer' );
-				if ( false !== $end_position && $end_position > $start_position ) {
-					$css = substr( $css, $start_position, $end_position - $start_position );
-					if ( SCRIPT_DEBUG ) {
-						$css = str_replace( '/* Pointers */', '', $css );
-					}
-				}
-				wp_add_inline_style( 'admin-bar', $css );
-			}
-		}
+	if ( ! $admin_bar_url ) {
+		return;
 	}
+
+	wp_enqueue_style(
+		'admin-bar-color-scheme',
+		$admin_bar_url,
+		array( 'admin-bar' )
+	);
 }
