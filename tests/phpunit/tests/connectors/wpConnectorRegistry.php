@@ -339,14 +339,15 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 65020
 	 */
-	public function test_register_omits_plugin_is_active_when_not_provided() {
+	public function test_register_defaults_plugin_is_active_to_return_true() {
 		$args           = self::$default_args;
 		$args['plugin'] = array( 'file' => 'my-plugin/my-plugin.php' );
 
 		$result = $this->registry->register( 'default-callback', $args );
 
 		$this->assertIsArray( $result );
-		$this->assertArrayNotHasKey( 'is_active', $result['plugin'] );
+		$this->assertArrayHasKey( 'is_active', $result['plugin'] );
+		$this->assertSame( '__return_true', $result['plugin']['is_active'] );
 	}
 
 	/**
@@ -357,7 +358,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'plugin', $result );
 		$this->assertArrayNotHasKey( 'file', $result['plugin'] );
-		$this->assertArrayNotHasKey( 'is_active', $result['plugin'] );
+		$this->assertSame( '__return_true', $result['plugin']['is_active'] );
 	}
 
 	/**
