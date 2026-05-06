@@ -1197,7 +1197,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo '</td>';
 					break;
 				case 'slug':
-					echo "<td class='column-slug{$extra_classes}'>" . esc_html( $plugin_file ) . "</td>";
+					echo "<td class='column-slug{$extra_classes}'>$plugin_file</td>";
 					break;
 				case 'description':
 					$classes = 'column-description desc';
