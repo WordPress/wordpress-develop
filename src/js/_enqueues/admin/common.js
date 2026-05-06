@@ -1351,8 +1351,8 @@ $( function() {
 		$( 'html, body' ).animate( { scrollTop: 0 } );
 
 		var noSelectionMessages = {
-			'changeit': __( 'Please select a role to change.' ),
-			'bulk_action': __( 'Please select a bulk action to perform.' )
+			'bulk_action': __( 'Please select a bulk action to perform.' ),
+			'changeit': __( 'Please select a role to change.' )
 		};
 
 		var errorMessage = value !== '-1' ?
