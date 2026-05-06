@@ -1052,4 +1052,109 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertFalse( $result, 'check_permissions() should return the filtered value when called directly.' );
 	}
+
+	/**
+	 * Tests that returning a non-null value from wp_pre_execute_ability short-circuits the
+	 * pipeline cleanly. The pipeline is configured to fail (permission denial) so a real run
+	 * would surface a WP_Error; receiving the short-circuit value proves the bypass. Filter
+	 * args are verified via args-as-guards on the short-circuit value.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_short_circuits_pipeline() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'        => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+					'required'    => true,
+				),
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+
+		$filter = static function ( $pre, $ability_name, $input, $ability ) {
+			if ( null !== $pre ) {
+				return $pre;
+			}
+			if ( self::$test_ability_name !== $ability_name || 99 !== $input || ! $ability instanceof WP_Ability ) {
+				return $pre;
+			}
+			return 'short-circuited';
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter, 10, 4 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 99 );
+
+		remove_filter( 'wp_pre_execute_ability', $filter, 10 );
+
+		$this->assertSame( 'short-circuited', $result, 'Short-circuit value bypasses the pipeline; matching args allowed the filter to set it.' );
+	}
+
+	/**
+	 * Tests that returning null explicitly from wp_pre_execute_ability lets the pipeline run.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_null_runs_pipeline() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): int {
+					return 5;
+				},
+			)
+		);
+
+		$filter = static function () {
+			return null;
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_pre_execute_ability', $filter );
+
+		$this->assertSame( 5, $result, 'Pipeline should run and return the execute_callback value when filter returns null.' );
+	}
+
+	/**
+	 * Tests that returning a WP_Error from wp_pre_execute_ability short-circuits with the error.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_wp_error_short_circuits() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): int {
+					return 1;
+				},
+			)
+		);
+
+		$filter = static function () {
+			return new WP_Error( 'pre_short_circuit', 'Cached error.' );
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_pre_execute_ability', $filter );
+
+		$this->assertInstanceOf( WP_Error::class, $result, 'WP_Error from filter should be returned as-is.' );
+		$this->assertSame( 'pre_short_circuit', $result->get_error_code() );
+	}
 }

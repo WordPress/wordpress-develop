@@ -647,11 +647,36 @@ class WP_Ability {
 	 * Before returning the return value, it also validates the output.
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `wp_pre_execute_ability` filter.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
+		/**
+		 * Filters whether to short-circuit ability execution.
+		 *
+		 * Returning a non-null value bypasses the rest of `execute()` — input normalization, input
+		 * validation, permission checks, the registered execute callback, output validation, and
+		 * the surrounding actions — and the value is returned to the caller as-is. Useful for
+		 * cached responses, rate limiting, maintenance mode, and test mocking.
+		 *
+		 * Because validation is bypassed, callers that short-circuit are responsible for the
+		 * integrity of any value they consume from `$input`.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param mixed      $pre          The pre-computed result. Returning non-null short-circuits execution.
+		 *                                 Default `null`.
+		 * @param string     $ability_name The name of the ability.
+		 * @param mixed      $input        The raw input passed to `execute()`.
+		 * @param WP_Ability $ability      The ability instance.
+		 */
+		$pre = apply_filters( 'wp_pre_execute_ability', null, $this->name, $input, $this );
+		if ( null !== $pre ) {
+			return $pre;
+		}
+
 		$input = $this->normalize_input( $input );
 		if ( is_wp_error( $input ) ) {
 			return $input;
