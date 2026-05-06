@@ -114,7 +114,7 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 			),
 			'multiple_vars'        => array(
 				'vars'            => array( 'v1', 'v2', 'v3' ),
-				'get'             => array( 
+				'get'             => array(
 					'v1' => 'g1',
 					'v2' => 'g2',
 				),
