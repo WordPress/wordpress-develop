@@ -826,4 +826,82 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired when output validation fails' );
 		$this->assertInstanceOf( WP_Error::class, $result, 'Should return WP_Error for output validation failure' );
 	}
+
+	/**
+	 * Tests that the wp_ability_normalize_input filter can transform input and receives the
+	 * expected ability name and instance (verified via args-as-guards on the transformation).
+	 *
+	 * @ticket 64989
+	 */
+	public function test_normalize_input_filter_can_transform_input() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'string',
+					'description' => 'Test input string.',
+					'required'    => true,
+				),
+				'output_schema'    => array(
+					'type'        => 'integer',
+					'description' => 'Result integer.',
+					'required'    => true,
+				),
+				'execute_callback' => static function ( string $input ): int {
+					return strlen( $input );
+				},
+			)
+		);
+
+		$callback = static function ( $input, $ability_name, $ability ) {
+			if ( self::$test_ability_name !== $ability_name || ! $ability instanceof WP_Ability ) {
+				return $input;
+			}
+			return $input . '-transformed';
+		};
+
+		add_filter( 'wp_ability_normalize_input', $callback, 10, 3 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 'hello' );
+
+		remove_filter( 'wp_ability_normalize_input', $callback, 10 );
+
+		$this->assertSame( strlen( 'hello-transformed' ), $result, 'Result should reflect the transformed input flowing through the execute callback.' );
+	}
+
+	/**
+	 * Tests that returning a WP_Error from wp_ability_normalize_input halts execution.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_normalize_input_filter_wp_error_halts_execution() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'string',
+					'description' => 'Test input string.',
+					'required'    => true,
+				),
+				'execute_callback' => static function ( string $input ) {
+					return strlen( $input );
+				},
+			)
+		);
+
+		$filter = static function () {
+			return new WP_Error( 'normalize_halt', 'Halted from filter.' );
+		};
+
+		add_filter( 'wp_ability_normalize_input', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 'hello' );
+
+		remove_filter( 'wp_ability_normalize_input', $filter );
+
+		$this->assertInstanceOf( WP_Error::class, $result, 'Filter returning WP_Error should propagate as the execute() result.' );
+		$this->assertSame( 'normalize_halt', $result->get_error_code(), 'WP_Error code should be preserved.' );
+	}
 }

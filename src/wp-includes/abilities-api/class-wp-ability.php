@@ -436,22 +436,41 @@ class WP_Ability {
 	 * the value of that key. If the input schema does not define a `default`, or if the input schema is empty,
 	 * this method returns null. If input is provided, it is returned as-is.
 	 *
+	 * The {@see 'wp_ability_normalize_input'} filter fires after the built-in default-value handling,
+	 * allowing plugins to transform the result.
+	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `wp_ability_normalize_input` filter.
 	 *
 	 * @param mixed $input Optional. The raw input provided for the ability. Default `null`.
-	 * @return mixed The same input, or the default from schema, or `null` if default not set.
+	 * @return mixed The normalized input, or a `WP_Error` if a filter returned one.
 	 */
 	public function normalize_input( $input = null ) {
-		if ( null !== $input ) {
-			return $input;
+		if ( null === $input ) {
+			$input_schema = $this->get_input_schema();
+			if ( ! empty( $input_schema ) && array_key_exists( 'default', $input_schema ) ) {
+				$input = $input_schema['default'];
+			}
 		}
 
-		$input_schema = $this->get_input_schema();
-		if ( ! empty( $input_schema ) && array_key_exists( 'default', $input_schema ) ) {
-			return $input_schema['default'];
-		}
-
-		return null;
+		/**
+		 * Filters the normalized input for an ability.
+		 *
+		 * Fires after `normalize_input()` has applied any default value declared in the input schema,
+		 * giving plugins a chance to adjust the input before it is consumed downstream. Common uses
+		 * include defaulting beyond what JSON Schema can express, prompt enrichment, and injecting
+		 * caller metadata.
+		 *
+		 * Returning a `WP_Error` causes callers that propagate it (such as `execute()`) to halt
+		 * before validation, permission checks, and the registered execute callback.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param mixed      $input        The normalized input data.
+		 * @param string     $ability_name The name of the ability.
+		 * @param WP_Ability $ability      The ability instance.
+		 */
+		return apply_filters( 'wp_ability_normalize_input', $input, $this->name, $this );
 	}
 
 	/**
@@ -610,7 +629,11 @@ class WP_Ability {
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
-		$input    = $this->normalize_input( $input );
+		$input = $this->normalize_input( $input );
+		if ( is_wp_error( $input ) ) {
+			return $input;
+		}
+
 		$is_valid = $this->validate_input( $input );
 		if ( is_wp_error( $is_valid ) ) {
 			return $is_valid;
