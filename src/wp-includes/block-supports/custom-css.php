@@ -14,10 +14,9 @@
  * @return array The same parsed block with custom CSS class name added if appropriate.
  */
 function wp_render_custom_css_support_styles( $parsed_block ) {
-	// Check if the custom CSS attribute even exists.
-	$custom_css = $parsed_block['attrs']['style']['css'] ?? '';
+	$custom_css = trim( $parsed_block['attrs']['style']['css'] ?? '' );
 
-	if ( empty( trim( $custom_css ) ) ) {
+	if ( empty( $custom_css ) ) {
 		return $parsed_block;
 	}
 
@@ -81,7 +80,6 @@ function wp_enqueue_block_custom_css() {
 function wp_render_custom_css_class_name( $block_content, $block ) {
 	$class_string = $block['attrs']['className'] ?? '';
 
-	/* If there is no class string, there is no custom CSS class to add, so return early. */
 	if ( '' === $class_string ) {
 		return $block_content;
 	}
