@@ -175,7 +175,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			// The table should exist.
 			$this->assertNotEmpty( $table_fields );
 
-			// And the table should not be empty, unless commentmeta, termmeta, or links.
+			// And the table should not be empty, unless commentmeta, termmeta, collaboration or links.
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$result = $wpdb->get_results( "SELECT * FROM $prefix$table LIMIT 1" );
 
