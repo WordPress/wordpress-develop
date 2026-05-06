@@ -21,7 +21,7 @@ class Tests_wp_admin_viewport_meta extends WP_UnitTestCase {
 		if ( null !== $filter_value ) {
 			add_filter(
 				'admin_viewport_meta',
-				function() use ( $filter_value ) {
+				function () use ( $filter_value ) {
 					return $filter_value;
 				}
 			);
