@@ -686,7 +686,7 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 		);
 
 		if ( ! empty( $connector_data['plugin']['file'] ) ) {
-			$file = $connector_data['plugin']['file'];
+			$file         = $connector_data['plugin']['file'];
 			$is_activated = (bool) call_user_func( $connector_data['plugin']['is_active'] );
 			$is_installed = $is_activated || 0 === validate_plugin( $file );
 
