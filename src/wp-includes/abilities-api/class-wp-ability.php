@@ -550,7 +550,11 @@ class WP_Ability {
 	 * Please note that input is not automatically validated against the input schema.
 	 * Use `validate_input()` method to validate input before calling this method if needed.
 	 *
+	 * The {@see 'wp_ability_permission_result'} filter fires after the registered
+	 * `permission_callback` returns, allowing plugins to override the result.
+	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `wp_ability_permission_result` filter.
 	 *
 	 * @see validate_input()
 	 *
@@ -566,7 +570,26 @@ class WP_Ability {
 			);
 		}
 
-		return $this->invoke_callback( $this->permission_callback, $input );
+		$permission = $this->invoke_callback( $this->permission_callback, $input );
+
+		/**
+		 * Filters the result of an ability's permission check.
+		 *
+		 * Fires after the registered `permission_callback` returns. Plugins can use this to layer
+		 * additional authorization rules on top of the ability's own permission logic — for example,
+		 * multi-factor authorization gates or temporary permission elevation for trusted contexts.
+		 *
+		 * Filters can return `true` to grant, `false` to deny, or a `WP_Error` to deny with a specific
+		 * error code and message. The filter receives whatever the `permission_callback` produced.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param bool|WP_Error $permission   The permission result returned by `permission_callback`.
+		 * @param string        $ability_name The name of the ability.
+		 * @param mixed         $input        The input data for the permission check.
+		 * @param WP_Ability    $ability      The ability instance.
+		 */
+		return apply_filters( 'wp_ability_permission_result', $permission, $this->name, $input, $this );
 	}
 
 	/**

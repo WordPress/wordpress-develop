@@ -904,4 +904,152 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Error::class, $result, 'Filter returning WP_Error should propagate as the execute() result.' );
 		$this->assertSame( 'normalize_halt', $result->get_error_code(), 'WP_Error code should be preserved.' );
 	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter can grant permission that the
+	 * callback denied, with the filter's args verified via args-as-guards.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_can_grant_permission() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'        => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+					'required'    => true,
+				),
+				'output_schema'       => array(
+					'type'        => 'integer',
+					'description' => 'Result integer.',
+					'required'    => true,
+				),
+				'execute_callback'    => static function ( int $input ): int {
+					return $input;
+				},
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+
+		$filter = static function ( $permission, $ability_name, $input, $ability ) {
+			if ( false !== $permission ) {
+				return $permission;
+			}
+			if ( self::$test_ability_name !== $ability_name || 7 !== $input || ! $ability instanceof WP_Ability ) {
+				return $permission;
+			}
+			return true;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter, 10, 4 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 7 );
+
+		remove_filter( 'wp_ability_permission_result', $filter, 10 );
+
+		$this->assertSame( 7, $result, 'Filter should override the permission denial; reaching the execute callback proves all args matched expectations.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter can deny permission granted by the callback.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_can_deny_permission() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): bool {
+					return true;
+				},
+			)
+		);
+
+		$filter = static function () {
+			return false;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_permission_result', $filter );
+
+		$this->assertInstanceOf( WP_Error::class, $result, 'Denied permission should produce a WP_Error.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter can convert a WP_Error denial from the
+	 * callback into a grant, proving the filter receives the WP_Error verbatim.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_can_convert_wp_error_to_grant() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): WP_Error {
+					return new WP_Error( 'callback_denied', 'Denied by callback.' );
+				},
+			)
+		);
+
+		$filter = static function ( $permission ) {
+			if ( ! is_wp_error( $permission ) || 'callback_denied' !== $permission->get_error_code() ) {
+				return $permission;
+			}
+			return true;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_permission_result', $filter );
+
+		$this->assertSame( 1, $result, 'Filter received the WP_Error denial and converted it to a grant; execute callback returned its value.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter fires when check_permissions() is
+	 * called directly (not via execute()).
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_fires_on_direct_check_permissions_call() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'permission_callback' => static function (): bool {
+					return true;
+				},
+			)
+		);
+
+		$filter = static function () {
+			return false;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->check_permissions();
+
+		remove_filter( 'wp_ability_permission_result', $filter );
+
+		$this->assertFalse( $result, 'check_permissions() should return the filtered value when called directly.' );
+	}
 }
