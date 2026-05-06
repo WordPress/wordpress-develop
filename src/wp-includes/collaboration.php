@@ -12,6 +12,8 @@
  * If the WP_ALLOW_COLLABORATION constant is false,
  * collaboration is always disabled regardless of the database option.
  * Otherwise, falls back to the 'wp_collaboration_enabled' option.
+ * Collaboration is also disabled when post revisions are turned off
+ * site-wide (see {@see wp_revisions_are_globally_supported()}).
  *
  * @since 7.0.0
  *
@@ -20,7 +22,8 @@
 function wp_is_collaboration_enabled() {
 	return (
 		wp_is_collaboration_allowed() &&
-		(bool) get_option( 'wp_collaboration_enabled' )
+		(bool) get_option( 'wp_collaboration_enabled' ) &&
+		wp_revisions_are_globally_supported()
 	);
 }
 
@@ -53,6 +56,29 @@ function wp_is_collaboration_allowed() {
 	}
 
 	return WP_ALLOW_COLLABORATION;
+}
+
+/**
+ * Determines whether post revisions are enabled site-wide.
+ *
+ * When {@see WP_POST_REVISIONS} is false or 0, WordPress does not store
+ * revisions. Real-time collaboration depends on revision-related flows and
+ * must remain off in that configuration.
+ *
+ * @since 7.1.0
+ *
+ * @return bool Whether revisions are globally supported.
+ */
+function wp_revisions_are_globally_supported() {
+	if ( ! defined( 'WP_POST_REVISIONS' ) ) {
+		return true;
+	}
+
+	if ( false === WP_POST_REVISIONS ) {
+		return false;
+	}
+
+	return 0 !== (int) WP_POST_REVISIONS;
 }
 
 /**
