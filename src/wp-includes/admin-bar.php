@@ -971,7 +971,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 */
 	$function = <<<'JS'
 		( applePattern, appleOSLabel ) => {
-			if ( ( new RegExp( applePattern ) ).test( navigator.userAgent ) ) {
+			if ( ( new RegExp( applePattern, 'i' ) ).test( navigator.userAgent ) ) {
 				document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' ).textContent = appleOSLabel;
 			}
 		}
