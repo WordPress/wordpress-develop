@@ -39,8 +39,8 @@
  *         constant_name?: non-empty-string,
  *         env_var_name?: non-empty-string
  *     },
- *     plugin?: array{
- *         file: non-empty-string,
+ *     plugin: array{
+ *         file?: non-empty-string,
  *         is_active: callable(): bool
  *     }
  * }
