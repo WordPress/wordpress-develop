@@ -65,7 +65,7 @@ function wp_is_collaboration_allowed() {
  * revisions. Real-time collaboration depends on revision-related flows and
  * must remain off in that configuration.
  *
- * @since 7.1.0
+ * @since 7.0.0
  *
  * @return bool Whether revisions are globally supported.
  */
