@@ -63,6 +63,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	box-shadow: none;
 }
 
+#wpadminbar a {
+	outline: 0;
+}
+
 #wpadminbar a:focus,
 #wpadminbar a:active,
 #wpadminbar input[type="text"],
