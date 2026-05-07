@@ -145,7 +145,7 @@ class Tests_Admin_Includes_Misc_WpRefreshPostLock extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'wp-refresh-post-lock', $result );
 		$this->assertArrayHasKey( 'lock_error', $result['wp-refresh-post-lock'] );
 
-		$error = $result['wp-refresh-post-lock']['lock_error'];
+		$error      = $result['wp-refresh-post-lock']['lock_error'];
 		$other_user = get_userdata( self::$other_user_id );
 
 		$this->assertSame( $other_user->display_name, $error['name'] );
