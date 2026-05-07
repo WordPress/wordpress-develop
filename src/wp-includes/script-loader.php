@@ -2231,9 +2231,7 @@ function _print_scripts() {
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
-			$inline_code = $wp_scripts->print_code
-				. sprintf( "\n//# sourceURL=%s", rawurlencode( 'js-inline-concat-' . $concat ) );
-			wp_print_inline_script_tag( $inline_code );
+			wp_print_inline_script_tag( $wp_scripts->print_code . "\n//# sourceURL=" . rawurlencode( 'js-inline-concat-' . $concat ) );
 		}
 
 		$concat       = str_split( $concat, 128 );
