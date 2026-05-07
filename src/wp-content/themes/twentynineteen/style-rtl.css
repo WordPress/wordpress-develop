@@ -4114,6 +4114,11 @@ body.page .main-navigation {
   /* Browsers supporting mix-blend-mode don't need opacity < 1 */
 }
 
+.wp-block-embed__wrapper iframe[src*="youtube.com/shorts"] {
+    aspect-ratio: 9 / 16;
+    height: auto;
+}
+
 @supports (mix-blend-mode: multiply) {
   .image-filters-enabled .site-header.featured-image .site-featured-image:after {
     opacity: 1;
