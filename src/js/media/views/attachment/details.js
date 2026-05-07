@@ -272,6 +272,63 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 			var el = wp.media.view.MediaDetails.prepareSrc( elem );
 			new window.MediaElementPlayer( el, wp.media.mixin.mejsSettings );
 		} );
+
+		this.renderFieldControls();
+	},
+
+	/**
+	 * Fires the `media.view.attachment.renderFieldAfter` action for each
+	 * rendered field, allowing plugins to append controls adjacent to fields
+	 * without relying on brittle DOM manipulation.
+	 *
+	 * Called automatically at the end of {@see wp.media.view.Attachment.Details#render}.
+	 *
+	 * @since x.x.x
+	 *
+	 * @fires media.view.attachment.renderFieldAfter
+	 *
+	 * @return {void}
+	 */
+	renderFieldControls: function() {
+		var view = this,
+			attachment = this.model,
+			fields = [ 'alt', 'title', 'caption', 'description', 'artist', 'album', 'url' ];
+
+		_.each( fields, function( field ) {
+			var $setting = view.$( '[data-setting="' + field + '"]' );
+
+			if ( ! $setting.length ) {
+				return;
+			}
+
+			/**
+			 * Fires after a field is rendered in the Attachment Details panel.
+			 *
+			 * Allows plugins to append additional controls (e.g. buttons) directly
+			 * inside the `.setting` container for a specific attachment field.
+			 *
+			 * The action fires for every field key that is present in the rendered
+			 * template. Fields currently emitted: `alt`, `title`, `caption`,
+			 * `description`, `artist`, `album`, `url`.
+			 *
+			 * @since x.x.x
+			 *
+			 * @param {jQuery}  $setting              The `.setting` container element.
+			 * @param {Object}  context               Context object.
+			 * @param {string}  context.field         Field key, e.g. `'alt'`, `'caption'`.
+			 * @param {wp.media.model.Attachment} context.attachment  Attachment model.
+			 * @param {wp.media.view.Attachment.Details} context.view  This view instance.
+			 */
+			wp.hooks.doAction(
+				'media.view.attachment.renderFieldAfter',
+				$setting,
+				{
+					field: field,
+					attachment: attachment,
+					view: view,
+				}
+			);
+		} );
 	}
 });
 
