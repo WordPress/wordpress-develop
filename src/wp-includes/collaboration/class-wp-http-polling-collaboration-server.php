@@ -453,7 +453,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 		 * @param int|null    $object_id   Object ID for single-entity rooms, null for collections.
 		 */
 		return (bool) apply_filters(
-			'wp_collaborate_can_user_sync_entity_type',
+			'wp_collaborate_can_user_collaborate_on_entity_type',
 			false,
 			$entity_kind,
 			$entity_name,

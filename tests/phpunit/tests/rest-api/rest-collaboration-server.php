@@ -3125,13 +3125,13 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$callback = static function ( $allowed, $entity_kind ) {
 			return 'myplugin' === $entity_kind ? true : $allowed;
 		};
-		add_filter( 'wp_collaborate_can_user_sync_entity_type', $callback, 10, 4 );
+		add_filter( 'wp_collaborate_can_user_collaborate_on_entity_type', $callback, 10, 4 );
 
 		try {
 			$response = $this->dispatch_collaboration( array( $this->build_room( 'myplugin/thing' ) ) );
 			$this->assertSame( 200, $response->get_status() );
 		} finally {
-			remove_filter( 'wp_collaborate_can_user_sync_entity_type', $callback, 10 );
+			remove_filter( 'wp_collaborate_can_user_collaborate_on_entity_type', $callback, 10 );
 		}
 	}
 
@@ -3142,7 +3142,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$read_callback = static function ( $allowed, $entity_kind ) {
 			return 'myplugin' === $entity_kind ? true : $allowed;
 		};
-		add_filter( 'wp_collaborate_can_user_sync_entity_type', $read_callback, 10, 4 );
+		add_filter( 'wp_collaborate_can_user_collaborate_on_entity_type', $read_callback, 10, 4 );
 
 		try {
 			$response = $this->dispatch_collaboration(
@@ -3163,7 +3163,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			);
 			$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 		} finally {
-			remove_filter( 'wp_collaborate_can_user_sync_entity_type', $read_callback, 10 );
+			remove_filter( 'wp_collaborate_can_user_collaborate_on_entity_type', $read_callback, 10 );
 		}
 	}
 
@@ -3176,7 +3176,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		$write_callback = static function ( $allowed, $entity_kind ) {
 			return 'myplugin' === $entity_kind ? true : $allowed;
 		};
-		add_filter( 'wp_collaborate_can_user_sync_entity_type', $read_callback, 10, 4 );
+		add_filter( 'wp_collaborate_can_user_collaborate_on_entity_type', $read_callback, 10, 4 );
 		add_filter( 'wp_collaborate_can_user_write_entity_type', $write_callback, 10, 3 );
 
 		try {
@@ -3198,7 +3198,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			);
 			$this->assertSame( 200, $response->get_status() );
 		} finally {
-			remove_filter( 'wp_collaborate_can_user_sync_entity_type', $read_callback, 10 );
+			remove_filter( 'wp_collaborate_can_user_collaborate_on_entity_type', $read_callback, 10 );
 			remove_filter( 'wp_collaborate_can_user_write_entity_type', $write_callback, 10 );
 		}
 	}
