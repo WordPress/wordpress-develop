@@ -86,7 +86,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		// Use direct database operation to avoid cache invalidation performed by
 		// post meta functions (`wp_cache_set_posts_last_changed()` and direct
 		// `wp_cache_delete()` calls).
-		$result = $wpdb->insert(
+		return (bool) $wpdb->insert(
 			$wpdb->postmeta,
 			array(
 				'post_id'    => $post_id,
@@ -95,13 +95,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			),
 			array( '%d', '%s', '%s' )
 		);
-
-		if ( $result ) {
-			$room_hash                            = md5( $room );
-			self::$storage_post_ids[ $room_hash ] = $this->merge_duplicate_storage_posts( $room_hash, $post_id );
-		}
-
-		return (bool) $result;
 	}
 
 	/**
@@ -160,8 +153,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	public function set_awareness_state( string $room, array $awareness ): bool {
 		global $wpdb;
 
-		$room_hash = md5( $room );
-		$post_id   = $this->get_storage_post_id( $room );
+		$post_id = $this->get_storage_post_id( $room );
 		if ( null === $post_id ) {
 			return false;
 		}
@@ -182,22 +174,16 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 		);
 
 		if ( $meta_id ) {
-			$result = $wpdb->update(
+			return (bool) $wpdb->update(
 				$wpdb->postmeta,
 				array( 'meta_value' => wp_json_encode( $awareness ) ),
 				array( 'meta_id' => $meta_id ),
 				array( '%s' ),
 				array( '%d' )
 			);
-
-			if ( false !== $result ) {
-				self::$storage_post_ids[ $room_hash ] = $this->merge_duplicate_storage_posts( $room_hash, $post_id );
-			}
-
-			return false !== $result;
 		}
 
-		$result = $wpdb->insert(
+		return (bool) $wpdb->insert(
 			$wpdb->postmeta,
 			array(
 				'post_id'    => $post_id,
@@ -206,12 +192,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			),
 			array( '%d', '%s', '%s' )
 		);
-
-		if ( $result ) {
-			self::$storage_post_ids[ $room_hash ] = $this->merge_duplicate_storage_posts( $room_hash, $post_id );
-		}
-
-		return (bool) $result;
 	}
 
 	/**
@@ -400,33 +380,6 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 
 		clean_post_cache( $post_id );
 		return $post_id;
-	}
-
-	/**
-	 * Lists storage posts belonging to a room hash, including suffixed duplicates.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param string $room_hash MD5 hash of the room identifier.
-	 * @return array<int> Storage post IDs.
-	 */
-	private function get_storage_post_ids_for_room_hash( string $room_hash ): array {
-		global $wpdb;
-
-		$post_ids = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT ID FROM {$wpdb->posts}
-				WHERE post_type = %s
-					AND post_status = 'publish'
-					AND ( post_name = %s OR post_name LIKE %s )
-				ORDER BY ID ASC",
-				self::POST_TYPE,
-				$room_hash,
-				$wpdb->esc_like( $room_hash . '-' ) . '%'
-			)
-		);
-
-		return array_map( 'intval', $post_ids );
 	}
 
 	/**
