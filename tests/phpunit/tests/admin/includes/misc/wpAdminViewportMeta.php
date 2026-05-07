@@ -4,11 +4,15 @@
  *
  * @group admin
  * @group misc
+ *
+ * @covers ::wp_admin_viewport_meta
  */
 class Tests_wp_admin_viewport_meta extends WP_UnitTestCase {
 
 	/**
 	 * Test wp_admin_viewport_meta() output.
+	 *
+	 * @ticket 65187
 	 *
 	 * @dataProvider data_wp_admin_viewport_meta
 	 *
