@@ -473,7 +473,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 			}
 
 			$filtered = array();
-			foreach ( $cached as $entry ) {
+			foreach ( array_filter( $cached, 'is_array' ) as $entry ) {
 				if ( isset( $entry['client_id'] ) && $entry['client_id'] === $client_id ) {
 					continue;
 				}
@@ -491,7 +491,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 		}
 
 		$wpdb->query(
-			$wpdb->prepare(
+			(string) $wpdb->prepare(
 				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND type = 'awareness' AND client_id = %s",
 				$room,
 				$client_id
