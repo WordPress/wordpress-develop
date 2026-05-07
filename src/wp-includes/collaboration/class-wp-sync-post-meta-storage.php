@@ -347,7 +347,7 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 	 * @return int|null Canonical storage post ID.
 	 */
 	private function find_canonical_storage_post_id( string $room_hash ): ?int {
-		$post_id = get_posts(
+		$posts = get_posts(
 			array(
 				'post_type'      => self::POST_TYPE,
 				'posts_per_page' => 1,
@@ -359,7 +359,11 @@ class WP_Sync_Post_Meta_Storage implements WP_Sync_Storage {
 			)
 		);
 
-		return is_numeric( $post_id ) ? (int) $post_id : null;
+		if ( empty( $posts ) ) {
+			return null;
+		}
+
+		return $posts[0];
 	}
 
 	/**
