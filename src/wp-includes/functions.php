@@ -5416,6 +5416,11 @@ function wp_list_pluck( $input_list, $field, $index_key = null ) {
  *                                    is a string. Default 'ASC'.
  * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
  * @return array The sorted array.
+ *
+ * @phpstan-template TKey of array-key
+ * @phpstan-template TValue
+ * @phpstan-param array<TKey, TValue> $input_list
+ * @phpstan-return ($preserve_keys is true ? array<TKey, TValue> : list<TValue>)
  */
 function wp_list_sort( $input_list, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
 	if ( ! is_array( $input_list ) ) {
@@ -5424,7 +5429,9 @@ function wp_list_sort( $input_list, $orderby = array(), $order = 'ASC', $preserv
 
 	$util = new WP_List_Util( $input_list );
 
-	return $util->sort( $orderby, $order, $preserve_keys );
+	/** @phpstan-var ($preserve_keys is true ? array<TKey, TValue> : list<TValue>) $sorted */
+	$sorted = $util->sort( $orderby, $order, $preserve_keys );
+	return $sorted;
 }
 
 /**
