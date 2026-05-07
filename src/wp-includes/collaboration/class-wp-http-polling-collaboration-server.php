@@ -261,9 +261,11 @@ class WP_HTTP_Polling_Collaboration_Server {
 				);
 			}
 
-			// Writes to a collection room require the entity's mutation cap,
-			// not just the read cap above. Empty `updates: []` polls only need
-			// the read cap and are allowed for any user that passed it.
+		/*
+		 * Writes to a collection room require the entity's mutation cap,
+		 * not just the read cap above. Empty `updates: []` polls only need
+		 * the read cap and are allowed for any user that passed it.
+		 */
 			if ( null === $object_id && ! empty( $room_data['updates'] ) ) {
 				if ( ! $this->can_user_write_entity_type( $entity_kind, $entity_name ) ) {
 					return new WP_Error(
@@ -278,8 +280,10 @@ class WP_HTTP_Polling_Collaboration_Server {
 				}
 			}
 
-			// Skip client_id collision checks on collection rooms — their
-			// awareness is stripped server-side, so client_id ownership is moot.
+			/*
+			 * Skip client_id collision checks on collection rooms — their
+			 * awareness is stripped server-side, so client_id ownership is moot.
+			 */
 			if ( null !== $object_id ) {
 				$existing_awareness = $this->storage->get_awareness_state( $room );
 				foreach ( $existing_awareness as $entry ) {
@@ -474,9 +478,11 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 */
 	private function can_user_write_entity_type( string $entity_kind, string $entity_name ): bool {
 		if ( 'postType' === $entity_kind ) {
-			// Post collections: same cap as read. Posts have no entity-wide
-			// "manage" cap distinct from per-post checks; contributors
-			// legitimately create posts and need to broadcast it.
+			/*
+			 * Post collections: same cap as read. Posts have no entity-wide
+			 * "manage" cap distinct from per-post checks; contributors
+			 * legitimately create posts and need to broadcast it.
+			 */
 			$post_type_object = get_post_type_object( $entity_name );
 			if ( ! isset( $post_type_object->cap->edit_posts ) ) {
 				return false;
@@ -484,8 +490,10 @@ class WP_HTTP_Polling_Collaboration_Server {
 			return current_user_can( $post_type_object->cap->edit_posts );
 		}
 		if ( 'taxonomy' === $entity_kind ) {
-			// Taxonomy collections: writing requires the mutation cap so
-			// contributors cannot inject collection-room update payloads.
+			/*
+			 * Taxonomy collections: writing requires the mutation cap so
+			 * contributors cannot inject collection-room update payloads.
+			 */
 			$taxonomy = get_taxonomy( $entity_name );
 			if ( ! $taxonomy ) {
 				return false;
@@ -534,9 +542,11 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * @return array<string, array<string, mixed>>|WP_Error Map of client ID to awareness state, or WP_Error if client_id is owned by another user.
 	 */
 	private function process_awareness_update( string $room, string $client_id, ?array $awareness_update ) {
-		// Awareness is meaningless on collection rooms (no `:id` suffix).
-		// Discard inbound awareness and return empty state so awareness is
-		// never exchanged across consumers in shared collection rooms.
+		/*
+		 * Awareness is meaningless on collection rooms (no `:id` suffix).
+		 * Discard inbound awareness and return empty state so awareness is
+		 * never exchanged across consumers in shared collection rooms.
+		 */
 		if ( ! str_contains( $room, ':' ) ) {
 			return array();
 		}
@@ -566,8 +576,10 @@ class WP_HTTP_Polling_Collaboration_Server {
 		$response = array();
 		foreach ( $entries as $entry ) {
 			if ( $client_id === $entry['client_id'] ) {
-				// Skip the current client, it is added below from the
-				// request payload or removed on disconnect.
+				/*
+				 * Skip the current client, it is added below from the
+				 * request payload or removed on disconnect.
+				 */
 				continue;
 			}
 
