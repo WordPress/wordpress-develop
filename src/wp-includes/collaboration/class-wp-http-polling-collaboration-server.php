@@ -468,6 +468,8 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 *
 	 * @since 7.0.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param string                            $room      Room identifier.
 	 * @param string                            $client_id Client identifier.
 	 * @param int                               $cursor    Client cursor (marker of last seen update).
@@ -563,6 +565,8 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * Adds an update to a room's update list via storage.
 	 *
 	 * @since 7.0.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $room      Room identifier.
 	 * @param string $client_id Client identifier.
