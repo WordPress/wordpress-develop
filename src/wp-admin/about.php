@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', wp_get_wp_version() );
-$display_major_version   = '6.9';
+$display_major_version   = '7.0';
 
 $release_notes_url = sprintf(
 	/* translators: %s: WordPress version number. */
@@ -62,17 +62,17 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column">
-				<h2><?php _e( 'Welcome to WordPress 6.9' ); ?></h2>
-				<p class="is-subheading"><?php _e( 'WordPress 6.9 introduces a more intuitive way to create content, together. Every detail is designed to fit your creative flow, from Notes that let you collaborate directly in the editor to a powerful Command Palette that helps you reach every part of your site.' ); ?></p>
+				<h2><?php _e( 'Welcome to WordPress 7.0' ); ?></h2>
+				<p class="is-subheading"><?php _e( 'WordPress 7.0 introduces the foundation for AI across the platform. Connect your preferred AI provider and make it available throughout your site. It also brings early access to real-time collaboration to the editor for the first time, letting multiple editors work on the same page simultaneously. It also introduces a simpler way to build with patterns, a fully customizable navigation overlay, responsive block visibility tools, and a light visual refresh across the admin.' ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _ex( 'Notes', 'about page section title' ); ?></h3>
+				<h3><?php _e( 'Real-time collaboration', 'about page section title' ); ?></h3>
 				<p>
-					<strong><?php _e( 'Leave feedback right where you’re working.' ); ?></strong><br />
-					<?php _e( 'With notes attached directly to blocks, your team can stay aligned, track changes, and turn feedback into action all in one place. Whether you&#8217;re working on copy or refining design, collaboration happens seamlessly on the canvas itself.' ); ?>
+					<strong><?php _e( 'Work together, directly in the editor.' ); ?></strong><br />
+					<?php _e( 'If your host has it enabled, you can preview the next generation of collaborative editing, with early access to real-time editing with multiple people at once. No more "someone else is editing this" warnings. Whether you&#8217;re co-writing a post, reviewing a layout, or making last-minute edits before publishing, everyone stays in sync without leaving the editor.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -89,20 +89,20 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Visual drag and drop' ); ?></h3>
+				<h3><?php _e( 'Design your navigation overlay' ); ?></h3>
 				<p>
-					<strong><?php _e( 'Design flows naturally.' ); ?></strong><br />
-					<?php _e( 'Building layouts is now more intuitive and flexible with clear drag handles and a live preview that shows exactly what you&#8217;re moving—a faster way to build pages.' ); ?>
+					<strong><?php _e( 'A dedicated canvas for your menu.' ); ?></strong><br />
+					<?php _e( 'Build the navigation overlay you want visitors to see. Go beyond a simple list of links: add columns, increase the font size, and align everything to your liking. Start from a pre-built template, or design your own from scratch.' ); ?>
 				</p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Command Palette, everywhere' ); ?></h3>
+				<h3><?php _e( 'A simpler way to build with patterns' ); ?></h3>
 				<p>
-					<strong><?php _e( 'Your tools are always at hand.' ); ?></strong><br />
-					<?php _e( 'Access the Command Palette from any part of your site, whether you&#8217;re writing your latest post, deep in design in the Site Editor, or browsing your plugins. Everything you need, just a few keystrokes away.' ); ?>
+					<strong><?php _e( 'Patterns as single blocks.' ); ?></strong><br />
+					<?php _e( 'Drop a pattern onto your page and it behaves like one block, so you don’t have to hunt through nested blocks for the element you want to change. Swap the text and images, adjust styles from the inspector, and keep moving. For any advanced edits, a single click to "edit pattern" gives you access to all available tools.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -119,10 +119,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Fit text to container' ); ?></h3>
+				<h3><?php _e( 'AI foundations' ); ?></h3>
 				<p>
-					<strong><?php _e( 'Content that adapts.' ); ?></strong><br />
-					<?php _e( 'A new typography option for text-based blocks, starting with the Paragraph and Heading blocks, that automatically adjusts font size to fill its container perfectly. Ideal for banners, callouts, and standout moments in your design. No manual tweaks, just an instant clean design.' ); ?>
+					<strong><?php _e( 'A centralized hub for your connections.' ); ?></strong><br />
+					<?php _e( 'The Connectors screen introduces a single hub for managing a range of external service integrations, including AI providers. Opt in by connecting your preferred AI provider, then put it to work across your site. The optional AI plugin adds a growing set of tools directly into the editor: create titles and excerpts, generate and edit images, and suggest alt text. Any plugin that needs to connect to an outside service can tap into this standardized connection management system, making it easy for users and developers alike.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -138,7 +138,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Performance updates' ); ?></h3>
-				<p><?php _e( 'WordPress 6.9 includes a broad set of performance enhancements. A better <abbr>LCP</abbr> (Largest Contentful Paint) metric is achieved through improved loading of conditional and inlined stylesheets, script loading with fetchpriority support, and additional core optimizations. Editor advances include fixes for layout shifts caused by the Video block and faster loading of the terms selector.' ); ?></p>
+				<p><?php _e( 'WordPress 7.0 improves the accuracy of image loading prioritization, preventing hidden images in navigation overlays or interactive blocks from degrading the loading of critical resources. On-demand block stylesheet loading in classic themes is more reliable, and the ability is added for scripts to depend on script modules to reduce render-blocking.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
@@ -147,7 +147,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Accessibility improvements' ); ?></h3>
-				<p><?php _e( '70+ accessibility fixes and enhancements focus on central areas of the WordPress experience. From globally hiding CSS-generated content from assistive technology and improvements to screen reader announcements and user experience, to fixing cursor position and keeping typing focus when clicking on an autocomplete suggestion item.' ); ?></p>
+				<p><?php _e( 'WordPress continues to polish accessibility across WordPress Core and Gutenberg, advancing the goals to meet accessibility standards. WordPress 7.0 includes fixes across the platform, improving media management, usability for voice control, and improvements to color contrast with the new admin color scheme. The editor ships with new blocks and improvements to editor navigation and interaction.' ); ?></p>
 			</div>
 		</div>
 
@@ -176,8 +176,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr class="is-large" style="margin-top:calc(2 * var(--gap));" />
 
 		<div class="about__section has-3-columns">
-			<div class="column about__image is-vertically-aligned-top">
-				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.9' ) ); ?>" alt="" height="280" width="280" />
+			<div class="column about__section-title textcenter is-align-content-center" style="background-color:var(--background);border-radius:var(--border-radius);">
+				<?php
+				printf(
+					/* translators: %s: Version number. */
+					__( '%s' ),
+					$display_major_version
+				);
+				?>
 			</div>
 			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
