@@ -69,7 +69,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Real-time collaboration', 'about page section title' ); ?></h3>
+				<h3><?php _e( 'Real-time collaboration' ); ?></h3>
 				<p>
 					<strong><?php _e( 'Work together, directly in the editor.' ); ?></strong><br />
 					<?php _e( 'If your host has it enabled, you can preview the next generation of collaborative editing, with early access to real-time editing with multiple people at once. No more "someone else is editing this" warnings. Whether you&#8217;re co-writing a post, reviewing a layout, or making last-minute edits before publishing, everyone stays in sync without leaving the editor.' ); ?>
