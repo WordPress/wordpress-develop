@@ -43,25 +43,25 @@ class Tests_Admin_Includes_Misc_WpPrivacySettingsFilterDraftPageTitles extends W
 	 */
 	public function data_wp_privacy_settings_filter_draft_page_titles(): array {
 		return array(
-			'draft page on privacy screen'     => array(
+			'draft page on privacy screen'   => array(
 				'expected'    => 'Privacy Policy (Draft)',
 				'title'       => 'Privacy Policy',
 				'post_status' => 'draft',
 				'screen_id'   => 'privacy',
 			),
-			'publish page on privacy screen'   => array(
+			'publish page on privacy screen' => array(
 				'expected'    => 'Privacy Policy',
 				'title'       => 'Privacy Policy',
 				'post_status' => 'publish',
 				'screen_id'   => 'privacy',
 			),
-			'draft page on other screen'       => array(
+			'draft page on other screen'     => array(
 				'expected'    => 'About Us',
 				'title'       => 'About Us',
 				'post_status' => 'draft',
 				'screen_id'   => 'edit-page',
 			),
-			'pending page on privacy screen'   => array(
+			'pending page on privacy screen' => array(
 				'expected'    => 'Privacy Policy',
 				'title'       => 'Privacy Policy',
 				'post_status' => 'pending',
