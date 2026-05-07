@@ -58,7 +58,8 @@ function wp_is_connector_registered( string $id ): bool {
  *     @type array  $plugin         {
  *         Optional. Plugin data for install/activate UI.
  *
- *         @type string $slug The WordPress.org plugin slug.
+ *         @type string $file The plugin's main file path relative to the plugins
+ *                            directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
  *     }
  * }
  * @phpstan-return ?array{
@@ -74,7 +75,7 @@ function wp_is_connector_registered( string $id ): bool {
  *         env_var_name?: non-empty-string
  *     },
  *     plugin?: array{
- *         slug: non-empty-string
+ *         file: non-empty-string
  *     }
  * }
  */
@@ -118,7 +119,8 @@ function wp_get_connector( string $id ): ?array {
  *         @type array       $plugin         {
  *             Optional. Plugin data for install/activate UI.
  *
- *             @type string $slug The WordPress.org plugin slug.
+ *             @type string $file The plugin's main file path relative to the plugins
+ *                                directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
  *         }
  *     }
  * }
@@ -135,7 +137,7 @@ function wp_get_connector( string $id ): ?array {
  *         env_var_name?: non-empty-string
  *     },
  *     plugin?: array{
- *         slug: non-empty-string
+ *         file: non-empty-string
  *     }
  * }>
  */
@@ -208,6 +210,28 @@ function _wp_connectors_init(): void {
 		_wp_connectors_register_default_ai_providers( $registry );
 	}
 
+	// Non-AI default connectors.
+	$registry->register(
+		'akismet',
+		array(
+			'name'           => __( 'Akismet Anti-spam' ),
+			'description'    => __( 'Protect your site from spam.' ),
+			'type'           => 'spam_filtering',
+			'plugin'         => array(
+				'file'      => 'akismet/akismet.php',
+				'is_active' => static function () {
+					return defined( 'AKISMET_VERSION' );
+				},
+			),
+			'authentication' => array(
+				'method'          => 'api_key',
+				'credentials_url' => 'https://akismet.com/get/',
+				'setting_name'    => 'wordpress_api_key',
+				'constant_name'   => 'WPCOM_API_KEY',
+			),
+		)
+	);
+
 	/**
 	 * Fires when the connector registry is ready for plugins to register connectors.
 	 *
@@ -256,7 +280,7 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 			'description'    => __( 'Text generation with Claude.' ),
 			'type'           => 'ai_provider',
 			'plugin'         => array(
-				'slug' => 'ai-provider-for-anthropic',
+				'file' => 'ai-provider-for-anthropic/plugin.php',
 			),
 			'authentication' => array(
 				'method'          => 'api_key',
@@ -268,7 +292,7 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 			'description'    => __( 'Text and image generation with Gemini and Imagen.' ),
 			'type'           => 'ai_provider',
 			'plugin'         => array(
-				'slug' => 'ai-provider-for-google',
+				'file' => 'ai-provider-for-google/plugin.php',
 			),
 			'authentication' => array(
 				'method'          => 'api_key',
@@ -280,7 +304,7 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 			'description'    => __( 'Text and image generation with GPT and Dall-E.' ),
 			'type'           => 'ai_provider',
 			'plugin'         => array(
-				'slug' => 'ai-provider-for-openai',
+				'file' => 'ai-provider-for-openai/plugin.php',
 			),
 			'authentication' => array(
 				'method'          => 'api_key',
@@ -365,6 +389,17 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 				}
 			}
 		}
+
+		if ( ! isset( $args['plugin']['is_active'] ) ) {
+			$args['plugin']['is_active'] = static function () use ( $ai_registry, $id ): bool {
+				try {
+					return $ai_registry->hasProvider( $id );
+				} catch ( Exception $e ) {
+					return false;
+				}
+			};
+		}
+
 		$registry->register( $id, $args );
 	}
 }
@@ -396,9 +431,9 @@ function _wp_connectors_mask_api_key( string $key ): string {
  * @since 7.0.0
  * @access private
  *
- * @param string $setting_name  The option name for the API key (e.g., 'connectors_spam_filtering_akismet_api_key').
- * @param string $env_var_name  Optional. Environment variable name to check (e.g., 'AKISMET_API_KEY').
- * @param string $constant_name Optional. PHP constant name to check (e.g., 'AKISMET_API_KEY').
+ * @param string $setting_name  The option name for the API key (e.g., 'connectors_spam_filtering_my_plugin_api_key').
+ * @param string $env_var_name  Optional. Environment variable name to check (e.g., 'MY_PLUGIN_API_KEY').
+ * @param string $constant_name Optional. PHP constant name to check (e.g., 'MY_PLUGIN_API_KEY').
  * @return string The key source: 'env', 'constant', 'database', or 'none'.
  */
 function _wp_connectors_get_api_key_source( string $setting_name, string $env_var_name = '', string $constant_name = '' ): string {
@@ -536,10 +571,9 @@ add_filter( 'rest_post_dispatch', '_wp_connectors_rest_settings_dispatch', 10, 3
  * @access private
  */
 function _wp_register_default_connector_settings(): void {
-	$ai_registry         = AiClient::defaultRegistry();
 	$registered_settings = get_registered_settings();
 
-	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
+	foreach ( wp_get_connectors() as $connector_data ) {
 		$auth = $connector_data['authentication'];
 		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
@@ -550,8 +584,11 @@ function _wp_register_default_connector_settings(): void {
 			continue;
 		}
 
-		// For AI providers, skip if the provider is not in the AI Client registry.
-		if ( 'ai_provider' === $connector_data['type'] && ! $ai_registry->hasProvider( $connector_id ) ) {
+		if ( ! isset( $connector_data['plugin']['is_active'] ) || ! is_callable( $connector_data['plugin']['is_active'] ) ) {
+			continue;
+		}
+
+		if ( ! call_user_func( $connector_data['plugin']['is_active'] ) ) {
 			continue;
 		}
 
@@ -636,16 +673,6 @@ add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
 function _wp_connectors_get_connector_script_module_data( array $data ): array {
 	$registry = AiClient::defaultRegistry();
 
-	// Build a slug-to-file map for plugin installation status.
-	if ( ! function_exists( 'get_plugins' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-	}
-	$plugin_files_by_slug = array();
-	foreach ( array_keys( get_plugins() ) as $plugin_file ) {
-		$slug                          = str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : str_replace( '.php', '', $plugin_file );
-		$plugin_files_by_slug[ $slug ] = $plugin_file;
-	}
-
 	$connectors = array();
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth     = $connector_data['authentication'];
@@ -676,18 +703,14 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 			'authentication' => $auth_out,
 		);
 
-		if ( ! empty( $connector_data['plugin']['slug'] ) ) {
-			$plugin_slug = $connector_data['plugin']['slug'];
-			$plugin_file = $plugin_files_by_slug[ $plugin_slug ] ?? null;
-
-			$is_installed = null !== $plugin_file;
-			$is_activated = $is_installed && is_plugin_active( $plugin_file );
+		if ( ! empty( $connector_data['plugin']['file'] ) ) {
+			$file         = $connector_data['plugin']['file'];
+			$is_activated = (bool) call_user_func( $connector_data['plugin']['is_active'] );
+			$is_installed = $is_activated || file_exists( wp_normalize_path( WP_PLUGIN_DIR . '/' . $file ) );
 
 			$connector_out['plugin'] = array(
-				'slug'        => $plugin_slug,
-				'pluginFile'  => $is_installed
-					? ( str_ends_with( $plugin_file, '.php' ) ? substr( $plugin_file, 0, -4 ) : $plugin_file )
-					: null,
+				'file'        => $file,
+				'isInstalled' => $is_installed,
 				'isActivated' => $is_activated,
 			);
 		}
