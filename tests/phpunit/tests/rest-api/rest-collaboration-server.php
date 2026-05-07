@@ -1313,8 +1313,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 			)
 		);
 
-		// Simulate the client going idle beyond the awareness timeout
-		// by backdating its awareness row.
+		/*
+		 * Simulate the client going idle beyond the awareness timeout
+		 * by backdating its awareness row.
+		 */
 		$wpdb->update(
 			$wpdb->collaboration,
 			array( 'date_gmt' => gmdate( 'Y-m-d H:i:s', time() - 120 ) ),
@@ -1720,8 +1722,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$data = $response->get_data();
 
-		// Client 5 is the lowest ID, so it should be the compactor candidate.
-		// Verify both clients appear in awareness (keys are client IDs).
+		/*
+		 * Client 5 is the lowest ID, so it should be the compactor candidate.
+		 * Verify both clients appear in awareness (keys are client IDs).
+		 */
 		$this->assertArrayHasKey( '5', $data['rooms'][0]['awareness'], 'Client 5 should appear in awareness.' );
 		$this->assertArrayHasKey( '10', $data['rooms'][0]['awareness'], 'Client 10 should appear in awareness.' );
 
@@ -2244,9 +2248,11 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$queries_cold = $wpdb->num_queries - $queries_before_cold;
 
-		// Warm-cache dispatch: client 2 polls the same room. Client 1's
-		// dispatch primed and updated the cache, so the awareness read
-		// should be served from cache.
+		/*
+		 * Warm-cache dispatch: client 2 polls the same room. Client 1's
+		 * dispatch primed and updated the cache, so the awareness read
+		 * should be served from cache.
+		 */
 		$queries_before_warm = $wpdb->num_queries;
 
 		$this->dispatch_collaboration(
@@ -2948,8 +2954,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_collaboration_taxonomy_collection_read_allowed_for_contributor(): void {
 		wp_set_current_user( self::$contributor_id );
 
-		// Contributors have `assign_terms` for built-in `category`, so polling
-		// the collection (with empty updates) is allowed.
+		/*
+		 * Contributors have `assign_terms` for built-in `category`, so polling
+		 * the collection (with empty updates) is allowed.
+		 */
 		$response = $this->dispatch_collaboration( array( $this->build_room( 'taxonomy/category' ) ) );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -3198,8 +3206,10 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_collaboration_storage_post_not_created_when_unauthorised(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		// Subscribers fail the global `edit_posts` floor — the request never
-		// reaches storage, so no `wp_sync_storage` post should be created.
+		/*
+		 * Subscribers fail the global `edit_posts` floor — the request never
+		 * reaches storage, so no `wp_sync_storage` post should be created.
+		 */
 		$response = $this->dispatch_collaboration( array( $this->build_room( 'taxonomy/noexiste' ) ) );
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 
@@ -3271,9 +3281,11 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	}
 
 	public function test_collaboration_post_type_collection_write_allowed_for_contributor(): void {
-		// By design: contributors have `edit_posts` and legitimately broadcast
-		// to the post collection when they save their own drafts. See the
-		// class docblock on WP_HTTP_Polling_Sync_Server before tightening.
+		/*
+		 * By design: contributors have `edit_posts` and legitimately broadcast
+		 * to the post collection when they save their own drafts. See the
+		 * class docblock on WP_HTTP_Polling_Sync_Server before tightening.
+		 */
 		wp_set_current_user( self::$contributor_id );
 
 		$response = $this->dispatch_collaboration(
