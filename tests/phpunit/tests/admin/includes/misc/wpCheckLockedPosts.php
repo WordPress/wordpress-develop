@@ -138,12 +138,12 @@ class Tests_Admin_Includes_Misc_WpCheckLockedPosts extends WP_UnitTestCase {
 	 */
 	public function data_wp_check_locked_posts_locked(): array {
 		return array(
-			'collaboration enabled'          => array(
+			'collaboration enabled'                    => array(
 				'is_rtc_enabled' => true,
 				'show_avatars'   => true,
 				'expected_keys'  => array( 'text', 'collaborative' ),
 			),
-			'collaboration disabled, avatars enabled' => array(
+			'collaboration disabled, avatars enabled'  => array(
 				'is_rtc_enabled' => false,
 				'show_avatars'   => true,
 				'expected_keys'  => array( 'name', 'text', 'avatar_src', 'avatar_src_2x' ),
