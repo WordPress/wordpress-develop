@@ -177,13 +177,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-3-columns">
 			<div class="column about__section-title textcenter is-align-content-center" style="background-color:var(--background);border-radius:var(--border-radius);">
-				<?php
-				printf(
-					/* translators: %s: Version number. */
-					__( '%s' ),
-					$display_major_version
-				);
-				?>
+				<?php echo esc_html( $display_major_version ); ?>
 			</div>
 			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
