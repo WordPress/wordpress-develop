@@ -6,17 +6,20 @@
  * @subpackage REST API
  *
  * @group restapi
+ * @group collaboration
  */
 class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase {
 
 	protected static $editor_id;
 	protected static $subscriber_id;
+	protected static $contributor_id;
 	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
-		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
-		self::$post_id       = $factory->post->create( array( 'post_author' => self::$editor_id ) );
+		self::$editor_id      = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$subscriber_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
+		self::$contributor_id = $factory->user->create( array( 'role' => 'contributor' ) );
+		self::$post_id        = $factory->post->create( array( 'post_author' => self::$editor_id ) );
 
 		// Enable option in setUpBeforeClass to ensure REST routes are registered.
 		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
@@ -25,6 +28,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
+		self::delete_user( self::$contributor_id );
 		remove_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 		wp_delete_post( self::$post_id, true );
 
@@ -307,12 +311,16 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	/**
 	 * @ticket 64696
 	 */
-	public function test_collaboration_root_collection_allowed(): void {
+	public function test_collaboration_root_collection_rejected(): void {
 		wp_set_current_user( self::$editor_id );
 
+		/*
+		 * `root/site` is not a built-in collection room; it has no entity-name
+		 * validation and no per-cap mapping, so it must be rejected.
+		 */
 		$response = $this->dispatch_collaboration( array( $this->build_room( 'root/site' ) ) );
 
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	/**
@@ -2927,5 +2935,364 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 
 		$this->assertNotNull( $row, 'Custom type row should be queryable.' );
 		$this->assertSame( 'persisted_crdt_doc', $row->type, 'Type column should store the custom value.' );
+	}
+
+	/*
+	 * Collection-room read/write authorisation tests.
+	 *
+	 * These cover the cap split introduced for collection rooms: reads (polls
+	 * with empty `updates`) require the entity's read cap; writes (any
+	 * non-empty `updates`) require the entity's mutation cap.
+	 */
+
+	public function test_collaboration_taxonomy_collection_read_allowed_for_contributor(): void {
+		wp_set_current_user( self::$contributor_id );
+
+		// Contributors have `assign_terms` for built-in `category`, so polling
+		// the collection (with empty updates) is allowed.
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'taxonomy/category' ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function test_collaboration_taxonomy_collection_write_rejected_for_contributor(): void {
+		wp_set_current_user( self::$contributor_id );
+
+		// Sending an update payload requires `manage_terms`, which contributors lack.
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'taxonomy/category',
+					1,
+					0,
+					array(),
+					array(
+						array(
+							'type' => 'update',
+							'data' => 'Y29udHJpYi13cml0ZQ==',
+						),
+					)
+				),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	public function test_collaboration_taxonomy_collection_strips_editor_awareness_from_response(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'taxonomy/category',
+					1,
+					0,
+					array(
+						'name'      => 'Editor',
+						'selection' => 'Top secret',
+					)
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( array(), $data['rooms'][0]['awareness'] );
+	}
+
+	public function test_collaboration_taxonomy_collection_does_not_echo_editor_awareness_to_contributor(): void {
+		// Editor writes awareness with sensitive content.
+		wp_set_current_user( self::$editor_id );
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'taxonomy/category',
+					1,
+					0,
+					array(
+						'name'      => 'Editor',
+						'selection' => 'Top secret',
+					)
+				),
+			)
+		);
+
+		// Contributor polls — awareness should be empty.
+		wp_set_current_user( self::$contributor_id );
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'taxonomy/category',
+					2,
+					0,
+					array( 'name' => 'Contributor' )
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( array(), $data['rooms'][0]['awareness'] );
+	}
+
+	public function test_collaboration_taxonomy_collection_rejects_contributor_update_injection(): void {
+		// Contributor tries to inject an update payload — must be 403.
+		wp_set_current_user( self::$contributor_id );
+		$contributor_update = array(
+			array(
+				'type' => 'update',
+				'data' => 'Y29udHJpYi1pbmplY3Rpb24=',
+			),
+		);
+		$response           = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'taxonomy/category',
+					9,
+					0,
+					array( 'name' => 'Contributor' ),
+					$contributor_update
+				),
+			)
+		);
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+
+		// Editor polls — must not see the contributor's injected update.
+		wp_set_current_user( self::$editor_id );
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'taxonomy/category',
+					10,
+					0,
+					array( 'name' => 'Editor' )
+				),
+			)
+		);
+		$this->assertSame( 200, $response->get_status() );
+		$data    = $response->get_data();
+		$updates = $data['rooms'][0]['updates'];
+		foreach ( $updates as $update ) {
+			$this->assertNotSame( 'Y29udHJpYi1pbmplY3Rpb24=', $update['data'] );
+		}
+	}
+
+	public function test_collaboration_nonexistent_taxonomy_collection_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'taxonomy/noexiste' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	public function test_collaboration_root_comment_collection_allowed(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'root/comment' ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function test_collaboration_root_other_collections_rejected(): void {
+		wp_set_current_user( self::$editor_id );
+
+		foreach ( array( 'root/widget', 'root/menu', 'root/user', 'root/site' ) as $room ) {
+			$response = $this->dispatch_collaboration( array( $this->build_room( $room ) ) );
+			$this->assertErrorResponse( 'rest_cannot_edit', $response, 403, "Expected 403 for $room" );
+		}
+	}
+
+	public function test_collaboration_unknown_kind_read_filter_default_deny(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'myplugin/thing' ) ) );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	public function test_collaboration_unknown_kind_read_filter_allows_when_hooked(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$callback = static function ( $allowed, $entity_kind ) {
+			return 'myplugin' === $entity_kind ? true : $allowed;
+		};
+		add_filter( 'wp_sync_can_user_sync_entity_type', $callback, 10, 4 );
+
+		try {
+			$response = $this->dispatch_collaboration( array( $this->build_room( 'myplugin/thing' ) ) );
+			$this->assertSame( 200, $response->get_status() );
+		} finally {
+			remove_filter( 'wp_sync_can_user_sync_entity_type', $callback, 10 );
+		}
+	}
+
+	public function test_collaboration_unknown_kind_write_filter_default_deny(): void {
+		wp_set_current_user( self::$editor_id );
+
+		// Read filter allows; write filter is not hooked, so writes default-deny.
+		$read_callback = static function ( $allowed, $entity_kind ) {
+			return 'myplugin' === $entity_kind ? true : $allowed;
+		};
+		add_filter( 'wp_sync_can_user_sync_entity_type', $read_callback, 10, 4 );
+
+		try {
+			$response = $this->dispatch_collaboration(
+				array(
+					$this->build_room(
+						'myplugin/thing',
+						1,
+						0,
+						array(),
+						array(
+							array(
+								'type' => 'update',
+								'data' => 'cGx1Z2luLXVwZGF0ZQ==',
+							),
+						)
+					),
+				)
+			);
+			$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+		} finally {
+			remove_filter( 'wp_sync_can_user_sync_entity_type', $read_callback, 10 );
+		}
+	}
+
+	public function test_collaboration_unknown_kind_write_filter_allows_when_hooked(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$read_callback  = static function ( $allowed, $entity_kind ) {
+			return 'myplugin' === $entity_kind ? true : $allowed;
+		};
+		$write_callback = static function ( $allowed, $entity_kind ) {
+			return 'myplugin' === $entity_kind ? true : $allowed;
+		};
+		add_filter( 'wp_sync_can_user_sync_entity_type', $read_callback, 10, 4 );
+		add_filter( 'wp_sync_can_user_write_entity_type', $write_callback, 10, 3 );
+
+		try {
+			$response = $this->dispatch_collaboration(
+				array(
+					$this->build_room(
+						'myplugin/thing',
+						1,
+						0,
+						array(),
+						array(
+							array(
+								'type' => 'update',
+								'data' => 'cGx1Z2luLXVwZGF0ZQ==',
+							),
+						)
+					),
+				)
+			);
+			$this->assertSame( 200, $response->get_status() );
+		} finally {
+			remove_filter( 'wp_sync_can_user_sync_entity_type', $read_callback, 10 );
+			remove_filter( 'wp_sync_can_user_write_entity_type', $write_callback, 10 );
+		}
+	}
+
+	public function test_collaboration_storage_post_not_created_when_unauthorised(): void {
+		wp_set_current_user( self::$subscriber_id );
+
+		// Subscribers fail the global `edit_posts` floor — the request never
+		// reaches storage, so no `wp_sync_storage` post should be created.
+		$response = $this->dispatch_collaboration( array( $this->build_room( 'taxonomy/noexiste' ) ) );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+
+		$posts = get_posts(
+			array(
+				'post_type'      => 'wp_sync_storage',
+				'posts_per_page' => 1,
+				'post_status'    => 'publish',
+				'name'           => md5( 'taxonomy/noexiste' ),
+				'fields'         => 'ids',
+			)
+		);
+		$this->assertEmpty( $posts, 'Storage post must not be created for unauthorised rooms.' );
+	}
+
+	public function test_collaboration_post_type_collection_strips_editor_awareness_from_response(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'postType/post',
+					1,
+					0,
+					array(
+						'name'      => 'Editor',
+						'selection' => 'Confidential note',
+					)
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( array(), $data['rooms'][0]['awareness'] );
+	}
+
+	public function test_collaboration_post_type_collection_does_not_echo_editor_awareness_to_contributor(): void {
+		wp_set_current_user( self::$editor_id );
+		$this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'postType/post',
+					1,
+					0,
+					array(
+						'name'      => 'Editor',
+						'selection' => 'Confidential note',
+					)
+				),
+			)
+		);
+
+		wp_set_current_user( self::$contributor_id );
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'postType/post',
+					2,
+					0,
+					array( 'name' => 'Contributor' )
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( array(), $data['rooms'][0]['awareness'] );
+	}
+
+	public function test_collaboration_post_type_collection_write_allowed_for_contributor(): void {
+		// By design: contributors have `edit_posts` and legitimately broadcast
+		// to the post collection when they save their own drafts. See the
+		// class docblock on WP_HTTP_Polling_Sync_Server before tightening.
+		wp_set_current_user( self::$contributor_id );
+
+		$response = $this->dispatch_collaboration(
+			array(
+				$this->build_room(
+					'postType/post',
+					1,
+					0,
+					array( 'name' => 'Contributor' ),
+					array(
+						array(
+							'type' => 'update',
+							'data' => 'cG9zdC1jb2xsZWN0aW9uLXdyaXRl',
+						),
+					)
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
 	}
 }
