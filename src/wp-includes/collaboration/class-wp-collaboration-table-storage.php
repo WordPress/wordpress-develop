@@ -288,7 +288,7 @@ class WP_Collaboration_Table_Storage implements WP_Collaboration_Storage {
 		// Uses a single atomic DELETE query, avoiding the race-prone
 		// "delete all, re-add some" pattern.
 		$result = $wpdb->query(
-			$wpdb->prepare(
+			(string) $wpdb->prepare(
 				"DELETE FROM {$wpdb->collaboration} WHERE room = %s AND type != 'awareness' AND collaboration_id <= %d",
 				$room,
 				$cursor
