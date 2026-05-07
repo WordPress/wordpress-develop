@@ -626,11 +626,11 @@ class WP_HTTP_Polling_Collaboration_Server {
 				 * Check for a newer compaction update first. If one exists, skip this
 				 * compaction to avoid overwriting it.
 				 */
-				$updates_after_cursor = $this->storage->get_updates_after_cursor( $room, $cursor );
+				$updates_after_cursor = array_filter( $this->storage->get_updates_after_cursor( $room, $cursor ), 'is_array' );
 				$has_newer_compaction = false;
 
 				foreach ( $updates_after_cursor as $existing ) {
-					if ( self::UPDATE_TYPE_COMPACTION === $existing['type'] ) {
+					if ( isset( $existing['type'] ) && self::UPDATE_TYPE_COMPACTION === $existing['type'] ) {
 						$has_newer_compaction = true;
 						break;
 					}
