@@ -114,7 +114,7 @@ function wp_delete_old_collaboration_data(): void {
 
 	// Clean up rows older than 7 days.
 	$wpdb->query(
-		$wpdb->prepare(
+		(string) $wpdb->prepare(
 			"DELETE FROM {$wpdb->collaboration} WHERE date_gmt < %s",
 			gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS )
 		)
@@ -122,7 +122,7 @@ function wp_delete_old_collaboration_data(): void {
 
 	// Clean up awareness rows older than 60 seconds.
 	$wpdb->query(
-		$wpdb->prepare(
+		(string) $wpdb->prepare(
 			"DELETE FROM {$wpdb->collaboration} WHERE type = 'awareness' AND date_gmt < %s",
 			gmdate( 'Y-m-d H:i:s', time() - 60 )
 		)
