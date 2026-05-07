@@ -4,6 +4,8 @@
  *
  * @group admin
  * @group misc
+ *
+ * @covers ::wp_admin_canonical_url
  */
 class Tests_Admin_Includes_Misc_WpAdminCanonicalUrl extends WP_UnitTestCase {
 
@@ -26,6 +28,8 @@ class Tests_Admin_Includes_Misc_WpAdminCanonicalUrl extends WP_UnitTestCase {
 
 	/**
 	 * Tests wp_admin_canonical_url().
+	 *
+	 * @ticket 65192
 	 *
 	 * @dataProvider data_wp_admin_canonical_url
 	 *
@@ -55,7 +59,7 @@ class Tests_Admin_Includes_Misc_WpAdminCanonicalUrl extends WP_UnitTestCase {
 	 */
 	public function data_wp_admin_canonical_url(): array {
 		return array(
-			'no removable query args'           => array(
+			'no removable query args'          => array(
 				'server_vars' => array(
 					'HTTP_HOST'   => 'example.org',
 					'REQUEST_URI' => '/wp-admin/index.php',
@@ -89,6 +93,8 @@ class Tests_Admin_Includes_Misc_WpAdminCanonicalUrl extends WP_UnitTestCase {
 
 	/**
 	 * Tests wp_admin_canonical_url() when removable query args are filtered to be empty.
+	 *
+	 * @ticket 65192
 	 */
 	public function test_wp_admin_canonical_url_empty_removable_args() {
 		add_filter( 'removable_query_args', '__return_empty_array' );
@@ -104,6 +110,8 @@ class Tests_Admin_Includes_Misc_WpAdminCanonicalUrl extends WP_UnitTestCase {
 
 	/**
 	 * Tests the wp_admin_canonical_url filter.
+	 *
+	 * @ticket 65192
 	 */
 	public function test_wp_admin_canonical_url_filter() {
 		$_SERVER['HTTP_HOST']   = 'example.org';
