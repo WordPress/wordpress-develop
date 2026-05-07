@@ -55,7 +55,7 @@ class Tests_Admin_Includes_Misc_WpAdminCanonicalUrl extends WP_UnitTestCase {
 	 */
 	public function data_wp_admin_canonical_url(): array {
 		return array(
-			'no removable query args'           => array(
+			'no removable query args'          => array(
 				'server_vars' => array(
 					'HTTP_HOST'   => 'example.org',
 					'REQUEST_URI' => '/wp-admin/index.php',
