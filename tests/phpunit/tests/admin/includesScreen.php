@@ -630,4 +630,23 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $screen->is_block_editor );
 	}
+
+	public function test_show_screen_options_enqueues_postbox_script_when_meta_boxes_exist() {
+		global $wp_meta_boxes;
+
+		set_current_screen( 'tools.php' );
+		$screen = get_current_screen();
+
+		add_meta_box( 'testbox-17704', 'Test Meta Box', '__return_false', $screen );
+
+		$screen->show_screen_options();
+
+		$this->assertTrue(
+			wp_script_is( 'postbox', 'enqueued' ),
+			'The postbox script should be enqueued when meta boxes are registered for the screen.'
+		);
+
+		remove_meta_box( 'testbox-17704', $screen, 'advanced' );
+		wp_dequeue_script( 'postbox' );
+	}
 }
