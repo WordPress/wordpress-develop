@@ -314,6 +314,11 @@ p.wp-embed-share-description {
 	cursor: text;
 }
 
+.wp-block-embed__wrapper iframe[src*="youtube.com/shorts"] {
+    aspect-ratio: 9 / 16;
+    height: auto;
+}
+
 textarea.wp-embed-share-input {
 	height: 72px;
 }
