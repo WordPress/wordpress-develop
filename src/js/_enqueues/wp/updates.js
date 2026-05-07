@@ -1377,6 +1377,11 @@
 				 * @type {Object}
 				 */
 				plugins          = settings.plugins,
+				knownKeys        = [
+					'all', 'search', 'upgrade', 'active', 'inactive',
+					'recently_activated', 'mustuse', 'dropins', 'paused',
+					'auto-update-enabled', 'auto-update-disabled'
+				],
 				remainingCount;
 
 			// Add a success message after deleting a plugin.
@@ -1444,6 +1449,29 @@
 					$views.find( '.auto-update-disabled' ).remove();
 				}
 			}
+
+			// Decrement counts for any custom group added through the
+			// `plugins_list` filter (e.g. a tab whose label is supplied
+			// via `plugins_list_status_text`, introduced in #60495).
+			_.each( _.keys( plugins ), function( key ) {
+				if ( -1 !== _.indexOf( knownKeys, key ) ) {
+					return;
+				}
+				if ( ! _.isArray( plugins[ key ] ) ) {
+					return;
+				}
+				if ( -1 === _.indexOf( plugins[ key ], response.plugin ) ) {
+					return;
+				}
+
+				plugins[ key ] = _.without( plugins[ key ], response.plugin );
+
+				if ( plugins[ key ].length ) {
+					$views.find( '.' + key + ' .count' ).text( '(' + plugins[ key ].length + ')' );
+				} else {
+					$views.find( '.' + key ).remove();
+				}
+			} );
 
 			plugins.all = _.without( plugins.all, response.plugin );
 
