@@ -2152,6 +2152,18 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	public function test_collaboration_room_name_at_max_length_accepted(): void {
 		wp_set_current_user( self::$editor_id );
 
+		add_filter(
+			'wp_collaborate_can_user_collaborate_on_entity_type',
+			static function ( $can_collaborate, $entity_type, $entity_name ) {
+				if ( 'root' === $entity_type && $entity_name === str_repeat( 'a', 186 ) ) {
+					return true;
+				}
+				return $can_collaborate;
+			},
+			10,
+			3
+		);
+
 		// 191 characters using a collection room: 'root/' (5) + 186 chars.
 		$room = 'root/' . str_repeat( 'a', 186 );
 		$this->assertSame( 191, strlen( $room ), 'Room name should be 191 characters.' );
@@ -2169,6 +2181,18 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 	 */
 	public function test_collaboration_room_name_max_length_rejected(): void {
 		wp_set_current_user( self::$editor_id );
+
+		add_filter(
+			'wp_collaborate_can_user_collaborate_on_entity_type',
+			static function ( $can_collaborate, $entity_type, $entity_name ) {
+				if ( 'postType' === $entity_type && $entity_name === str_repeat( 'a', 183 ) ) {
+					return true;
+				}
+				return $can_collaborate;
+			},
+			10,
+			3
+		);
 
 		// 192 characters: 'postType/' (9) + 183 chars.
 		$long_room = 'postType/' . str_repeat( 'a', 183 );
