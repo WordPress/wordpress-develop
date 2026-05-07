@@ -88,9 +88,9 @@ class Tests_Admin_Includes_Misc_HeartbeatAutosave extends WP_UnitTestCase {
 		$response = array();
 		$data     = array(
 			'wp_autosave' => array(
-				'post_id'      => $post_id,
-				'post_type'    => 'post',
-				'_wpnonce'     => wp_create_nonce( 'update-post_' . $post_id ),
+				'post_id'   => $post_id,
+				'post_type' => 'post',
+				'_wpnonce'  => wp_create_nonce( 'update-post_' . $post_id ),
 			),
 		);
 
