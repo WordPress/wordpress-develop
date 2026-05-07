@@ -441,12 +441,21 @@ class WP_HTTP_Polling_Collaboration_Server {
 			}
 		}
 
-		if ( null !== $awareness_update ) {
+		if ( null === $awareness_update ) {
+			// Client signalled disconnect, remove the awareness entry.
+			$this->storage->remove_awareness_state( $room, $client_id );
+		} else {
 			$this->storage->set_awareness_state( $room, $client_id, $awareness_update, $wp_user_id );
 		}
 
 		$response = array();
 		foreach ( $entries as $entry ) {
+			if ( $client_id === $entry['client_id'] ) {
+				// Skip the current client, it is added below from the
+				// request payload or removed on disconnect.
+				continue;
+			}
+
 			$response[ $entry['client_id'] ] = $entry['state'];
 		}
 
