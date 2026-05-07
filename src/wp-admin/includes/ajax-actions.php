@@ -3333,10 +3333,14 @@ function wp_ajax_media_grid_bulk_action() {
 		wp_send_json_error( array( 'message' => __( 'Invalid bulk action.' ) ) );
 	}
 
-	// Verify current user can edit each of the requested attachments.
-	$post_ids = array_filter( $post_ids, function( $id ) {
-		return current_user_can( 'edit_post', $id );
-	} );
+	// Verify each ID is a real attachment the current user can edit.
+	$post_ids = array_filter(
+		$post_ids,
+		function ( $id ) {
+			return 'attachment' === get_post_type( $id )
+				&& current_user_can( 'edit_post', $id );
+		}
+	);
 
 	if ( empty( $post_ids ) ) {
 		wp_send_json_error( array( 'message' => __( 'No valid attachments found.' ) ) );

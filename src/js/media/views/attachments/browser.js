@@ -421,7 +421,6 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 */
 	addCustomBulkActions: function() {
 		var toolbar = this.toolbar,
-			selection = this.options.selection,
 			controller = this.controller,
 			settings = window._wpMediaGridSettings || {},
 			bulkActions = settings.bulkActions || {},
