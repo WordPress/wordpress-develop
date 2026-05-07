@@ -631,6 +631,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertSame( $expected, $screen->is_block_editor );
 	}
 
+	/**
+	 * @ticket 17704
+	 */
 	public function test_show_screen_options_enqueues_postbox_script_when_meta_boxes_exist() {
 		global $wp_meta_boxes;
 
@@ -650,6 +653,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		wp_dequeue_script( 'postbox' );
 	}
 
+	/**
+	 * @ticket 17704
+	 */
 	public function test_show_screen_options_does_not_enqueue_postbox_script_when_no_meta_boxes() {
 		global $wp_meta_boxes;
 
