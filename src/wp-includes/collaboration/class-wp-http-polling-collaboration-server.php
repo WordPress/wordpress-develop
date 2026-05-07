@@ -216,13 +216,9 @@ class WP_HTTP_Polling_Collaboration_Server {
 		);
 	}
 
+
 	/**
 	 * Checks if the current user has permission to access a room.
-	 *
-	 * Requires `edit_posts` (contributor+), then delegates to
-	 * can_user_collaborate_on_entity_type() for per-entity checks.
-	 * There is no dedicated `collaborate` capability; access follows
-	 * existing edit capabilities for the entity type.
 	 *
 	 * @since 7.0.0
 	 *
@@ -234,15 +230,17 @@ class WP_HTTP_Polling_Collaboration_Server {
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			return new WP_Error(
 				'rest_cannot_edit',
-				__( 'You do not have permission to perform this action.' ),
+				__( 'You do not have permission to perform this action' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
 
-		$rooms = $request['rooms'];
+		$rooms      = $request['rooms'];
+		$wp_user_id = get_current_user_id();
 
-		foreach ( $rooms as $room ) {
-			$room = $room['room'];
+		foreach ( $rooms as $room_data ) {
+			$client_id = $room_data['client_id'];
+			$room      = $room_data['room'];
 
 			$type_parts   = explode( '/', $room, 2 );
 			$object_parts = explode( ':', $type_parts[1] ?? '', 2 );
@@ -255,18 +253,49 @@ class WP_HTTP_Polling_Collaboration_Server {
 				return new WP_Error(
 					'rest_cannot_edit',
 					sprintf(
-						/* translators: %s: The room name identifying the collaborative editing session. */
-						__( 'You do not have permission to collaborate on this entity: %s.' ),
-						esc_html( $room )
+						/* translators: %s: The room name encodes the current entity being synced. */
+						__( 'You do not have permission to sync this entity: %s.' ),
+						$room
 					),
 					array( 'status' => rest_authorization_required_code() )
 				);
+			}
+
+			// Writes to a collection room require the entity's mutation cap,
+			// not just the read cap above. Empty `updates: []` polls only need
+			// the read cap and are allowed for any user that passed it.
+			if ( null === $object_id && ! empty( $room_data['updates'] ) ) {
+				if ( ! $this->can_user_write_entity_type( $entity_kind, $entity_name ) ) {
+					return new WP_Error(
+						'rest_cannot_edit',
+						sprintf(
+							/* translators: %s: The room name encodes the current entity being synced. */
+							__( 'You do not have permission to write to this entity: %s.' ),
+							$room
+						),
+						array( 'status' => rest_authorization_required_code() )
+					);
+				}
+			}
+
+			// Skip client_id collision checks on collection rooms — their
+			// awareness is stripped server-side, so client_id ownership is moot.
+			if ( null !== $object_id ) {
+				$existing_awareness = $this->storage->get_awareness_state( $room );
+				foreach ( $existing_awareness as $entry ) {
+					if ( $client_id === $entry['client_id'] && $wp_user_id !== $entry['wp_user_id'] ) {
+						return new WP_Error(
+							'rest_cannot_edit',
+							__( 'Client ID is already in use by another user.' ),
+							array( 'status' => rest_authorization_required_code() )
+						);
+					}
+				}
 			}
 		}
 
 		return true;
 	}
-
 	/**
 	 * Validates the incoming REST request.
 	 *
@@ -347,67 +376,146 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * @since 7.0.0
 	 *
 	 * @param string      $entity_kind The entity kind, e.g. 'postType', 'taxonomy', 'root'.
-	 * @param string      $entity_name The entity name, e.g. 'post', 'category', 'site'.
-	 * @param string|null $object_id   The object ID / entity key for single entities, null for collections.
-	 * @return bool True if user has permission, otherwise false.
+	 * @param string      $entity_name The entity name, e.g. 'post', 'category', 'comment'.
+	 * @param string|null $object_id   Numeric object ID / entity key for single entities, null for collections.
+	 * @return bool True if user has read permission, otherwise false.
 	 */
 	private function can_user_collaborate_on_entity_type( string $entity_kind, string $entity_name, ?string $object_id ): bool {
-		// Reject non-numeric object IDs early.
-		if ( ! is_null( $object_id ) && ! is_numeric( $object_id ) ) {
+		if ( is_string( $object_id ) ) {
+			if ( ! ctype_digit( $object_id ) ) {
+				return false;
+			}
+			$object_id = (int) $object_id;
+		}
+		if ( null !== $object_id && $object_id <= 0 ) {
+			// Object ID must be a positive integer if provided.
 			return false;
 		}
 
-		// Handle single post type entities with a defined object ID.
-		if ( 'postType' === $entity_kind && is_numeric( $object_id ) ) {
-			if ( get_post_type( $object_id ) !== $entity_name ) {
-				return false;
+		// Single-entity rooms: read cap == write cap.
+		if ( is_int( $object_id ) ) {
+			if ( 'postType' === $entity_kind ) {
+				if ( get_post_type( $object_id ) !== $entity_name ) {
+					return false;
+				}
+				return current_user_can( 'edit_post', $object_id );
 			}
-			return current_user_can( 'edit_post', (int) $object_id );
-		}
-
-		// Handle single taxonomy term entities with a defined object ID.
-		if ( 'taxonomy' === $entity_kind && is_numeric( $object_id ) ) {
-			if ( ! term_exists( (int) $object_id, $entity_name ) ) {
-				return false;
+			if ( 'taxonomy' === $entity_kind ) {
+				$term_exists = term_exists( $object_id, $entity_name );
+				if ( ! is_array( $term_exists ) || ! isset( $term_exists['term_id'] ) ) {
+					return false;
+				}
+				return current_user_can( 'edit_term', $object_id );
 			}
-			return current_user_can( 'assign_term', (int) $object_id );
+			if ( 'root' === $entity_kind && 'comment' === $entity_name ) {
+				return current_user_can( 'edit_comment', $object_id );
+			}
+			// Unknown single-entity kind — fall through to the filter below.
+		} else {
+			// Collection rooms: read cap (lower than write cap for taxonomies).
+			if ( 'postType' === $entity_kind ) {
+				$post_type_object = get_post_type_object( $entity_name );
+				if ( ! isset( $post_type_object->cap->edit_posts ) ) {
+					return false;
+				}
+				return current_user_can( $post_type_object->cap->edit_posts );
+			}
+			if ( 'taxonomy' === $entity_kind ) {
+				$taxonomy = get_taxonomy( $entity_name );
+				if ( ! $taxonomy ) {
+					return false;
+				}
+				return current_user_can( $taxonomy->cap->assign_terms );
+			}
+			if ( 'root' === $entity_kind && 'comment' === $entity_name ) {
+				return current_user_can( 'edit_posts' );
+			}
+			// Unknown collection kind — fall through to the filter below.
 		}
 
-		// Handle single comment entities with a defined object ID.
-		if ( 'root' === $entity_kind && 'comment' === $entity_name && is_numeric( $object_id ) ) {
-			return current_user_can( 'edit_comment', (int) $object_id );
-		}
-
-		/*
-		 * All the remaining checks are for collections. If an object ID is
-		 * provided, reject the request.
+		/**
+		 * Filters whether the current user can read a sync entity type room.
+		 *
+		 * Built-in entity kinds (`postType/*`, `taxonomy/*`, `root/comment`)
+		 * are checked above and bypass this filter. Plugins that register
+		 * custom entity types should hook here and return true only when the
+		 * current user has the appropriate read capability.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param bool        $allowed     Whether the current user can read the entity. Default false.
+		 * @param string      $entity_kind The entity kind.
+		 * @param string      $entity_name The entity name.
+		 * @param int|null    $object_id   Object ID for single-entity rooms, null for collections.
 		 */
-		if ( null !== $object_id ) {
-			return false;
-		}
+		return (bool) apply_filters(
+			'wp_collaborate_can_user_sync_entity_type',
+			false,
+			$entity_kind,
+			$entity_name,
+			$object_id
+		);
+	}
 
-		// For postType collections, check if the user can edit posts of this type.
+	/**
+	 * Checks if the current user can write update payloads to a collection
+	 * room of a specific entity type.
+	 *
+	 * Single-entity rooms reuse the read cap from
+	 * ::can_user_collaborate_on_entity_type(); this method is only consulted for
+	 * collection rooms (no object ID), where writes broadcast that the
+	 * collection has changed and therefore need the entity's mutation cap.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $entity_kind The entity kind, e.g. 'postType', 'taxonomy', 'root'.
+	 * @param string $entity_name The entity name.
+	 * @return bool True if the user can write to the collection, otherwise false.
+	 */
+	private function can_user_write_entity_type( string $entity_kind, string $entity_name ): bool {
 		if ( 'postType' === $entity_kind ) {
+			// Post collections: same cap as read. Posts have no entity-wide
+			// "manage" cap distinct from per-post checks; contributors
+			// legitimately create posts and need to broadcast it.
 			$post_type_object = get_post_type_object( $entity_name );
 			if ( ! isset( $post_type_object->cap->edit_posts ) ) {
 				return false;
 			}
-
 			return current_user_can( $post_type_object->cap->edit_posts );
 		}
+		if ( 'taxonomy' === $entity_kind ) {
+			// Taxonomy collections: writing requires the mutation cap so
+			// contributors cannot inject collection-room update payloads.
+			$taxonomy = get_taxonomy( $entity_name );
+			if ( ! $taxonomy ) {
+				return false;
+			}
+			return current_user_can( $taxonomy->cap->manage_terms );
+		}
+		if ( 'root' === $entity_kind && 'comment' === $entity_name ) {
+			return current_user_can( 'edit_posts' );
+		}
 
-		/*
-		 * Collection collaboration does not exchange entity data. It only
-		 * signals if another user has updated an entity in the collection.
-		 * Therefore, we only compare against an allow list of collection types.
+		/**
+		 * Filters whether the current user can write to a sync collection
+		 * room of a plugin-registered entity type.
+		 *
+		 * Built-in entity kinds bypass this filter. Plugins should hook
+		 * here only when the current user has the appropriate mutation
+		 * capability for the entity collection.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param bool   $allowed     Whether the current user can write to the collection. Default false.
+		 * @param string $entity_kind The entity kind.
+		 * @param string $entity_name The entity name.
 		 */
-		$allowed_collection_entity_kinds = array(
-			'postType',
-			'root',
-			'taxonomy',
+		return (bool) apply_filters(
+			'wp_collaborate_can_user_write_entity_type',
+			false,
+			$entity_kind,
+			$entity_name
 		);
-
-		return in_array( $entity_kind, $allowed_collection_entity_kinds, true );
 	}
 
 	/**
@@ -426,6 +534,13 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * @return array<string, array<string, mixed>>|WP_Error Map of client ID to awareness state, or WP_Error if client_id is owned by another user.
 	 */
 	private function process_awareness_update( string $room, string $client_id, ?array $awareness_update ) {
+		// Awareness is meaningless on collection rooms (no `:id` suffix).
+		// Discard inbound awareness and return empty state so awareness is
+		// never exchanged across consumers in shared collection rooms.
+		if ( ! str_contains( $room, ':' ) ) {
+			return array();
+		}
+
 		$wp_user_id = get_current_user_id();
 
 		// Check ownership before upserting so a hijacked client_id is rejected.
