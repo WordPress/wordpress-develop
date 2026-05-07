@@ -49,7 +49,6 @@ jobs:
     uses: ./.github/workflows/reusable-support-json-reader-v1.yml
     permissions:
       contents: read
-    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     with:
       wp-version: ${{ inputs.wp-version }}
@@ -118,7 +117,7 @@ jobs:
 
     steps:
       - name: Set up PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # 2.37.0
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
