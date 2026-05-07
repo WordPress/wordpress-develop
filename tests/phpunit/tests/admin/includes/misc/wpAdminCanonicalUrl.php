@@ -55,28 +55,28 @@ class Tests_Admin_Includes_Misc_WpAdminCanonicalUrl extends WP_UnitTestCase {
 	 */
 	public function data_wp_admin_canonical_url(): array {
 		return array(
-			'no removable query args'            => array(
+			'no removable query args'           => array(
 				'server_vars' => array(
 					'HTTP_HOST'   => 'example.org',
 					'REQUEST_URI' => '/wp-admin/index.php',
 				),
 				'expected'    => 'href="http://example.org/wp-admin/index.php"',
 			),
-			'with removable query args'           => array(
+			'with removable query args'          => array(
 				'server_vars' => array(
 					'HTTP_HOST'   => 'example.org',
 					'REQUEST_URI' => '/wp-admin/index.php?settings-updated=true&other=arg',
 				),
 				'expected'    => 'href="http://example.org/wp-admin/index.php?other=arg"',
 			),
-			'with multiple removable query args'  => array(
+			'with multiple removable query args' => array(
 				'server_vars' => array(
 					'HTTP_HOST'   => 'example.org',
 					'REQUEST_URI' => '/wp-admin/edit.php?trashed=1&locked=1&paged=2',
 				),
 				'expected'    => 'href="http://example.org/wp-admin/edit.php?paged=2"',
 			),
-			'with https'                          => array(
+			'with https'                         => array(
 				'server_vars' => array(
 					'HTTP_HOST'   => 'example.org',
 					'REQUEST_URI' => '/wp-admin/index.php',
