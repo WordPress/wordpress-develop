@@ -1864,7 +1864,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		// Reset again so subsequent tests get a server with the correct db_version, done prior to assertion to ensure this runs when an exception is thrown.
 		$GLOBALS['wp_rest_server'] = null;
 
-		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 61841.' );
+		$this->assertArrayNotHasKey( '/wp-collaboration/v1/updates', $routes, 'Collaboration routes should not be registered when db_version is below 62315.' );
 	}
 
 	/*
