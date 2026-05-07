@@ -42,7 +42,7 @@
 	--nav-color: var(--text);
 	--nav-current: var(--accent-1);
 
-	--border-radius: 0;
+	--border-radius: 1rem;
 
 	--gap: 2rem;
 }
@@ -106,6 +106,24 @@
 
 .about__container .is-vertically-aligned-bottom {
 	align-self: end;
+}
+
+.about__container .about__section-title {
+	margin: 0;
+	padding: 0;
+	/* Fluid font size scales on browser size 960px - 1200px. */
+	font-size: clamp(2rem, 20vw - 9rem, 4rem);
+	line-height: 1;
+	font-weight: 600;
+	color: var(--accent-1);
+}
+
+.about__container .is-align-content-center {
+	align-content: center;
+}
+
+.about__container .textcenter {
+	text-align: center;
 }
 
 .about__section {
