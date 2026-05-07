@@ -2155,7 +2155,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		add_filter(
 			'wp_collaborate_can_user_collaborate_on_entity_type',
 			static function ( $can_collaborate, $entity_type, $entity_name ) {
-				if ( 'root' === $entity_type && $entity_name === str_repeat( 'a', 186 ) ) {
+				if ( 'root' === $entity_type && str_repeat( 'a', 186 ) === $entity_name ) {
 					return true;
 				}
 				return $can_collaborate;
@@ -2185,7 +2185,7 @@ class WP_Test_REST_Collaboration_Server extends WP_Test_REST_Controller_Testcase
 		add_filter(
 			'wp_collaborate_can_user_collaborate_on_entity_type',
 			static function ( $can_collaborate, $entity_type, $entity_name ) {
-				if ( 'postType' === $entity_type && $entity_name === str_repeat( 'a', 183 ) ) {
+				if ( 'postType' === $entity_type && str_repeat( 'a', 183 ) === $entity_name ) {
 					return true;
 				}
 				return $can_collaborate;

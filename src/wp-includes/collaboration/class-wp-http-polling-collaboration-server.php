@@ -261,11 +261,11 @@ class WP_HTTP_Polling_Collaboration_Server {
 				);
 			}
 
-		/*
-		 * Writes to a collection room require the entity's mutation cap,
-		 * not just the read cap above. Empty `updates: []` polls only need
-		 * the read cap and are allowed for any user that passed it.
-		 */
+			/*
+			* Writes to a collection room require the entity's mutation cap,
+			* not just the read cap above. Empty `updates: []` polls only need
+			* the read cap and are allowed for any user that passed it.
+			*/
 			if ( null === $object_id && ! empty( $room_data['updates'] ) ) {
 				if ( ! $this->can_user_write_entity_type( $entity_kind, $entity_name ) ) {
 					return new WP_Error(
