@@ -605,7 +605,7 @@ if ( $tab ) {
 			</div>
 		</div>
 		<div class="wp-full-overlay-main">
-		<iframe src="{{ data.preview_url }}" title="<?php echo esc_attr_x( 'Preview', 'noun, iframe title for the theme preview pane' ); ?>"></iframe>
+		<iframe src="{{ data.preview_url }}" title="<?php echo esc_attr_x( 'Preview', 'noun' ); ?>"></iframe>
 	</div>
 </script>
 
