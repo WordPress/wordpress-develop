@@ -76,7 +76,7 @@ function wp_is_connector_registered( string $id ): bool {
  *         constant_name?: non-empty-string,
  *         env_var_name?: non-empty-string
  *     },
- *     plugin?: array{
+ *     plugin: array{
  *         file?: non-empty-string,
  *         is_active: callable(): bool,
  *     }
@@ -141,7 +141,7 @@ function wp_get_connector( string $id ): ?array {
  *         constant_name?: non-empty-string,
  *         env_var_name?: non-empty-string
  *     },
- *     plugin?: array{
+ *     plugin: array{
  *         file?: non-empty-string,
  *         is_active: callable(): bool,
  *     }
