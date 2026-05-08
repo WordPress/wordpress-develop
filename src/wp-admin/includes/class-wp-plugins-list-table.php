@@ -60,6 +60,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$this->show_autoupdates = wp_is_auto_update_enabled_for_type( 'plugin' )
 			&& current_user_can( 'update_plugins' )
 			&& ( ! is_multisite() || $this->screen->in_admin( 'network' ) );
+
+		add_filter( 'default_hidden_columns', array( $this, 'get_default_hidden_columns' ), 10, 2 );
 	}
 
 	/**
@@ -476,7 +478,30 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$columns['auto-updates'] = __( 'Automatic Updates' );
 		}
 
+		$columns['file'] = _x( 'File', 'plugin screen column name' );
+
 		return $columns;
+	}
+
+	/**
+	 * Filters the default hidden columns for the plugins list table.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param string[]  $hidden Array of IDs of columns hidden by default.
+	 * @param WP_Screen $screen WP_Screen object of the current screen.
+	 * @return string[] Array of IDs of columns hidden by default.
+	 */
+	public function get_default_hidden_columns( $hidden, $screen ) {
+		if ( ! in_array( $screen->id, array( 'plugins', 'plugins-network' ), true ) ) {
+			return $hidden;
+		}
+
+		if ( ! in_array( 'file', $hidden, true ) ) {
+			$hidden[] = 'file';
+		}
+
+		return $hidden;
 	}
 
 	/**
@@ -1174,6 +1199,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo "<td class='plugin-title column-primary'><strong>$plugin_name</strong>";
 					echo $this->row_actions( $actions, true );
 					echo '</td>';
+					break;
+				case 'file':
+					echo "<td class='column-file{$extra_classes}'><code>" . esc_html( $plugin_file ) . '</code></td>';
 					break;
 				case 'description':
 					$classes = 'column-description desc';

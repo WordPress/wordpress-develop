@@ -65,6 +65,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+		set_current_screen( 'plugins.php' );
 		$this->table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins' ) );
 	}
 
@@ -75,6 +76,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		global $s;
 
 		$s = self::$original_s;
+		set_current_screen( 'front' );
 
 		parent::tear_down();
 	}
@@ -118,6 +120,42 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$totals = $totals_backup;
 
 		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::get_columns() adds the file column.
+	 *
+	 * @ticket 65145
+	 *
+	 * @covers WP_Plugins_List_Table::get_columns
+	 */
+	public function test_get_columns_should_add_the_file_column() {
+		global $status;
+
+		$original_status = $status;
+		$status          = 'all';
+
+		$actual = $this->table->get_columns();
+
+		$status = $original_status;
+
+		$this->assertSame(
+			array( 'cb', 'name', 'description', 'file' ),
+			array_keys( $actual )
+		);
+	}
+
+	/**
+	 * Tests that the file column is hidden by default in Screen Options.
+	 *
+	 * @ticket 65145
+	 *
+	 * @covers WP_Plugins_List_Table::get_default_hidden_columns
+	 */
+	public function test_get_default_hidden_columns_should_hide_the_file_column() {
+		$hidden = get_hidden_columns( get_current_screen() );
+
+		$this->assertContains( 'file', $hidden );
 	}
 
 	/**
@@ -284,6 +322,45 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$this->assertIsString( $actual, 'Output was not captured.' );
 		$this->assertNotEmpty( $actual, 'The output string was empty.' );
 		$this->assertStringNotContainsString( 'column-auto-updates', $actual, 'The auto-updates column was output.' );
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::single_row() outputs the file column.
+	 *
+	 * @ticket 65145
+	 *
+	 * @covers WP_Plugins_List_Table::single_row
+	 */
+	public function test_single_row_should_output_the_file_column() {
+		global $status;
+
+		$original_status = $status;
+		$status          = 'all';
+
+		$column_info = array(
+			array(
+				'name'        => 'Plugin',
+				'description' => 'Description',
+				'file'        => 'File',
+			),
+			array(),
+			array(),
+			'name',
+		);
+
+		$list_table_mock = $this->getMockBuilder( 'WP_Plugins_List_Table' )
+			->setMethods( array( 'get_column_info' ) )
+			->getMock();
+
+		$list_table_mock->expects( $this->once() )->method( 'get_column_info' )->willReturn( $column_info );
+
+		ob_start();
+		$list_table_mock->single_row( array( 'fake-plugin.php', $this->fake_plugin['fake-plugin.php'] ) );
+		$actual = ob_get_clean();
+
+		$status = $original_status;
+
+		$this->assertStringContainsString( "<td class='column-file'><code>fake-plugin.php</code></td>", $actual );
 	}
 
 	/**

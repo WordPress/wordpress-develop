@@ -2292,6 +2292,11 @@ div.action-links,
 		display: table-cell;
 	}
 
+	/* Plugin columns hidden via Screen Options */
+	#wpbody-content .wp-list-table.plugins td.hidden {
+		display: none;
+	}
+
 	/* Plugin description hidden via Screen Options */
 	#wpbody-content .wp-list-table.plugins .desc.hidden {
 		display: none;
