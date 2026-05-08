@@ -445,7 +445,7 @@ if ( $tab ) {
 					$aria_label = sprintf( _x( 'Install %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button button-primary theme-install" data-name="{{ data.name }}" data-slug="{{ data.id }}" href="{{ data.install_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Install' ); ?></a>
-					<button class="button preview install-theme-preview"><?php echo esc_html_x( 'Preview', 'verb, theme install action button' ); ?></button>
+					<button class="button preview install-theme-preview"><?php echo esc_html_x( 'Preview', 'verb' ); ?></button>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
