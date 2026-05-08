@@ -336,6 +336,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 
 		$original_status = $status;
 		$status          = 'all';
+		$plugins         = get_plugins();
 
 		$column_info = array(
 			array(
@@ -355,12 +356,12 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$list_table_mock->expects( $this->once() )->method( 'get_column_info' )->willReturn( $column_info );
 
 		ob_start();
-		$list_table_mock->single_row( array( 'fake-plugin.php', $this->fake_plugin['fake-plugin.php'] ) );
+		$list_table_mock->single_row( array( 'hello.php', $plugins['hello.php'] ) );
 		$actual = ob_get_clean();
 
 		$status = $original_status;
 
-		$this->assertStringContainsString( "<td class='column-file'><code>fake-plugin.php</code></td>", $actual );
+		$this->assertStringContainsString( "<td class='column-file'><code>hello.php</code></td>", $actual );
 	}
 
 	/**
