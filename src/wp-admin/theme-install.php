@@ -452,7 +452,7 @@ if ( $tab ) {
 					$aria_label = sprintf( _x( 'Cannot Install %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button button-primary disabled" data-name="{{ data.name }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Install', 'theme' ); ?></a>
-					<button class="button disabled"><?php echo esc_html_x( 'Preview', 'verb, theme install action button' ); ?></button>
+					<button class="button disabled"><?php echo esc_html_x( 'Preview', 'verb' ); ?></button>
 				<# } #>
 			<# } #>
 		</div>
