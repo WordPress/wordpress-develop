@@ -495,6 +495,34 @@ https://w.org</a>',
 	}
 
 	/**
+	 * @ticket 65169
+	 */
+	public function test_wp_print_media_templates_hides_attachment_page_link_options_when_disabled() {
+		update_option( 'wp_attachment_pages_enabled', 0 );
+
+		ob_start();
+		wp_print_media_templates();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( '<option value="post">', $output );
+		$this->assertStringContainsString( 'Media File', $output );
+	}
+
+	/**
+	 * @ticket 57913
+	 */
+	public function test_wp_print_media_templates_shows_attachment_page_link_options_when_enabled() {
+		update_option( 'wp_attachment_pages_enabled', 1 );
+
+		ob_start();
+		wp_print_media_templates();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<option value="post">', $output );
+		$this->assertStringContainsString( 'Attachment Page', $output );
+	}
+
+	/**
 	 * @ticket 19067
 	 * @expectedDeprecated wp_convert_bytes_to_hr
 	 */

@@ -707,6 +707,23 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65169
+	 */
+	public function test_get_sample_permalink_html_should_use_attachment_file_url_when_attachment_pages_are_disabled() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		wp_set_current_user( self::$admin_id );
+		update_option( 'wp_attachment_pages_enabled', 0 );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$found = get_sample_permalink_html( $attachment_id );
+
+		$this->assertStringContainsString( 'href="' . wp_get_attachment_url( $attachment_id ) . '"', $found );
+		$this->assertStringNotContainsString( 'href="' . get_permalink( $attachment_id ) . '"', $found );
+	}
+
+	/**
 	 * @ticket 32954
 	 * @ticket 18306
 	 */
