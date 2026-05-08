@@ -237,6 +237,30 @@ $preload_paths = array(
 	),
 );
 
+$template_parts = get_block_templates( array(), 'wp_template_part' );
+foreach ( $template_parts as $template_part ) {
+	if ( ! empty( $template_part->id ) ) {
+		$preload_paths[] = '/wp/v2/template-parts/' . $template_part->id . '?context=edit';
+	}
+}
+
+$post_rest_route = rest_get_route_for_post_type_items( 'post' );
+foreach ( array( 10, 3 ) as $per_page ) {
+	$preload_paths[] = add_query_arg(
+		array(
+			'context'       => 'edit',
+			'offset'        => 0,
+			'order'         => 'desc',
+			'orderby'       => 'date',
+			'per_page'      => $per_page,
+			'ignore_sticky' => 'false',
+		),
+		$post_rest_route
+	);
+}
+
+$preload_paths[] = '/wp/v2/taxonomies?context=view';
+
 if ( $block_editor_context->post ) {
 	$route_for_post = rest_get_route_for_post( $block_editor_context->post );
 	if ( $route_for_post ) {
