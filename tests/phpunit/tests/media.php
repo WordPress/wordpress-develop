@@ -509,7 +509,7 @@ https://w.org</a>',
 	}
 
 	/**
-	 * @ticket 57913
+	 * @ticket 65169
 	 */
 	public function test_wp_print_media_templates_shows_attachment_page_link_options_when_enabled() {
 		update_option( 'wp_attachment_pages_enabled', 1 );
