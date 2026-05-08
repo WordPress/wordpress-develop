@@ -11,6 +11,18 @@
  *
  * @since 7.0.0
  * @access private
+ *
+ * @phpstan-type Update array{
+ *     data: string,
+ *     type: 'compaction'|'sync_step1'|'sync_step2'|'update',
+ * }
+ * @phpstan-type Room array{
+ *     after: non-negative-int,
+ *     awareness: array<string, mixed>|null,
+ *     client_id: non-empty-string,
+ *     room: non-empty-string,
+ *     updates: Update[],
+ * }
  */
 class WP_HTTP_Polling_Collaboration_Server {
 	/**
@@ -234,6 +246,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 			);
 		}
 
+		/** @var Room[] $rooms */
 		$rooms      = $request['rooms'];
 		$wp_user_id = get_current_user_id();
 
@@ -331,6 +344,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * @return WP_REST_Response|WP_Error Response object or error.
 	 */
 	public function handle_request( WP_REST_Request $request ) {
+		/** @var Room[] $rooms */
 		$rooms    = $request['rooms'];
 		$response = array(
 			'rooms' => array(),
