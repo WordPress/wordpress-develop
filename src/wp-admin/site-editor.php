@@ -239,9 +239,7 @@ $preload_paths = array(
 
 $template_parts = get_block_templates( array(), 'wp_template_part' );
 foreach ( $template_parts as $template_part ) {
-	if ( ! empty( $template_part->id ) ) {
-		$preload_paths[] = '/wp/v2/template-parts/' . $template_part->id . '?context=edit';
-	}
+	$preload_paths[] = '/wp/v2/template-parts/' . $template_part->id . '?context=edit';
 }
 
 $post_rest_route = rest_get_route_for_post_type_items( 'post' );
