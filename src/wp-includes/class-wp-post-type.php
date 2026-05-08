@@ -339,6 +339,24 @@ final class WP_Post_Type {
 	 *
 	 * @since 4.6.0
 	 * @var stdClass $cap
+	 *
+	 * @phpstan-var object{
+	 *     edit_post: string,
+	 *     read_post: string,
+	 *     delete_post: string,
+	 *     edit_posts: string,
+	 *     edit_others_posts: string,
+	 *     delete_posts: string,
+	 *     publish_posts: string,
+	 *     read_private_posts: string,
+	 *     create_posts: string,
+	 *     read?: string,
+	 *     delete_private_posts?: string,
+	 *     delete_published_posts?: string,
+	 *     delete_others_posts?: string,
+	 *     edit_private_posts?: string,
+	 *     edit_published_posts?: string,
+	 * }
 	 */
 	public $cap;
 

@@ -162,6 +162,13 @@ final class WP_Taxonomy {
 	 *
 	 * @since 4.7.0
 	 * @var stdClass
+	 *
+	 * @phpstan-var object{
+	 *     manage_terms: string,
+	 *     edit_terms: string,
+	 *     delete_terms: string,
+	 *     assign_terms: string,
+	 * }
 	 */
 	public $cap;
 
