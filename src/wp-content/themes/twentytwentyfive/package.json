@@ -13,8 +13,8 @@
 	},
 	"homepage": "https://wordpress.org/themes/twentytwentyfive/",
 	"engines": {
-		"node": ">=20.10.0",
-		"npm": ">=10.2.3"
+		"node": ">=24.15.0",
+		"npm": ">=11.12.1"
 	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^6.34.0",
