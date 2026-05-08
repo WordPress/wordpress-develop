@@ -26,6 +26,7 @@
  * @since 6.5.0 Added support for background.backgroundPosition,
  *              background.backgroundRepeat and dimensions.aspectRatio.
  * @since 6.7.0 Added support for typography.writingMode.
+ * @since 7.0.0 Added support for typography.textIndent.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -210,13 +211,31 @@ final class WP_Style_Engine {
 					'has-aspect-ratio' => true,
 				),
 			),
+			'height'      => array(
+				'property_keys' => array(
+					'default' => 'height',
+				),
+				'path'          => array( 'dimensions', 'height' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
 			'minHeight'   => array(
 				'property_keys' => array(
 					'default' => 'min-height',
 				),
 				'path'          => array( 'dimensions', 'minHeight' ),
 				'css_vars'      => array(
-					'spacing' => '--wp--preset--spacing--$slug',
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
+			'width'       => array(
+				'property_keys' => array(
+					'default' => 'width',
+				),
+				'path'          => array( 'dimensions', 'width' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
 				),
 			),
 		),
@@ -296,6 +315,12 @@ final class WP_Style_Engine {
 					'default' => 'text-decoration',
 				),
 				'path'          => array( 'typography', 'textDecoration' ),
+			),
+			'textIndent'     => array(
+				'property_keys' => array(
+					'default' => 'text-indent',
+				),
+				'path'          => array( 'typography', 'textIndent' ),
 			),
 			'textTransform'  => array(
 				'property_keys' => array(

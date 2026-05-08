@@ -101,7 +101,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 			tabPanelEl = this.$el.find( '.media-frame-tab-panel' ),
 			ariaLabelledby;
 
-		tabPanelEl.removeAttr( 'role aria-labelledby tabindex' );
+		tabPanelEl.removeAttr( 'role aria-labelledby' );
 
 		if ( this.state().get( 'menu' ) && this.menuView && this.menuView.isVisible ) {
 			ariaLabelledby = 'menu-item-' + stateId;
@@ -111,7 +111,6 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 				.attr( {
 					role: 'tabpanel',
 					'aria-labelledby': ariaLabelledby,
-					tabIndex: '0'
 				} );
 		}
 	},
@@ -127,7 +126,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		var tabPanelEl = this.$el.find( '.media-frame-content' ),
 			ariaLabelledby;
 
-		tabPanelEl.removeAttr( 'role aria-labelledby tabindex' );
+		tabPanelEl.removeAttr( 'role aria-labelledby' );
 
 		// Set the tab panel attributes only if the tabs are visible.
 		if ( this.state().get( 'router' ) && this.routerView && this.routerView.isVisible && this.content._mode ) {
@@ -137,7 +136,6 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 				.attr( {
 					role: 'tabpanel',
 					'aria-labelledby': ariaLabelledby,
-					tabIndex: '0'
 				} );
 		}
 	},
