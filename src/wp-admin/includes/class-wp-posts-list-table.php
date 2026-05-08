@@ -1119,7 +1119,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$lock_holder = wp_check_post_lock( $post->ID );
 
 			if ( $lock_holder ) {
-				if ( get_option( 'wp_collaboration_enabled' ) ) {
+				if ( wp_is_collaboration_enabled() ) {
 					$locked_avatar = '';
 					/* translators: Collaboration status message for a singular post in the post list. Can be any type of post. */
 					$locked_text   = esc_html_x( 'Currently being edited', 'post list' );
@@ -1433,7 +1433,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$lock_holder = wp_check_post_lock( $post->ID );
 
 		if ( $lock_holder ) {
-			if ( get_option( 'wp_collaboration_enabled' ) ) {
+			if ( wp_is_collaboration_enabled() ) {
 				$classes .= ' wp-collaborative-editing';
 			} else {
 				$classes .= ' wp-locked';
@@ -1491,7 +1491,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$title            = _draft_or_post_title();
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
-			$is_rtc_enabled = (bool) get_option( 'wp_collaboration_enabled' );
+			$is_rtc_enabled = wp_is_collaboration_enabled();
 
 			/*
 			 * When RTC is enabled, both "Edit" and "Join" labels are rendered.

@@ -1137,7 +1137,7 @@ function _customizer_mobile_viewport_meta( $viewport_meta ) {
  */
 function wp_check_locked_posts( $response, $data, $screen_id ) {
 	$checked        = array();
-	$is_rtc_enabled = (bool) get_option( 'wp_collaboration_enabled' );
+	$is_rtc_enabled = wp_is_collaboration_enabled();
 
 	if ( array_key_exists( 'wp-check-locked-posts', $data ) && is_array( $data['wp-check-locked-posts'] ) ) {
 		foreach ( $data['wp-check-locked-posts'] as $key ) {

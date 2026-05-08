@@ -9,19 +9,15 @@
 /**
  * Determines whether real-time collaboration is enabled.
  *
- * If the WP_ALLOW_COLLABORATION constant is false,
- * collaboration is always disabled regardless of the database option.
- * Otherwise, falls back to the 'wp_collaboration_enabled' option.
+ * Real-time collaboration is not enabled in this release; this function
+ * always returns false regardless of configuration.
  *
  * @since 7.0.0
  *
  * @return bool Whether real-time collaboration is enabled.
  */
 function wp_is_collaboration_enabled() {
-	return (
-		wp_is_collaboration_allowed() &&
-		(bool) get_option( 'wp_collaboration_enabled' )
-	);
+	return false;
 }
 
 /**
