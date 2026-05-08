@@ -9,14 +9,22 @@
 /**
  * Determines whether real-time collaboration is enabled.
  *
- * Real-time collaboration is not enabled in this release; this function
- * always returns false regardless of configuration.
+ * Real-time collaboration is not enabled in this release for normal sites.
+ * When {@see WP_RUN_CORE_TESTS} is set (PHPUnit), the original option-based
+ * logic runs so core tests can still exercise collaboration code paths.
  *
  * @since 7.0.0
  *
  * @return bool Whether real-time collaboration is enabled.
  */
 function wp_is_collaboration_enabled() {
+	if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+		return (
+			wp_is_collaboration_allowed() &&
+			(bool) get_option( 'wp_collaboration_enabled' )
+		);
+	}
+
 	return false;
 }
 
