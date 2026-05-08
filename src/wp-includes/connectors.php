@@ -58,8 +58,10 @@ function wp_is_connector_registered( string $id ): bool {
  *     @type array  $plugin         {
  *         Optional. Plugin data for install/activate UI.
  *
- *         @type string $file The plugin's main file path relative to the plugins
- *                            directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
+ *         @type string   $file      The plugin's main file path relative to the plugins
+ *                                   directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
+ *         @type callable $is_active Callback to determine whether the plugin is active. Receives no arguments and must return bool.
+ *                                   Defaults to `__return_true`.
  *     }
  * }
  * @phpstan-return ?array{
@@ -120,8 +122,10 @@ function wp_get_connector( string $id ): ?array {
  *         @type array       $plugin         {
  *             Optional. Plugin data for install/activate UI.
  *
- *             @type string $file The plugin's main file path relative to the plugins
- *                                directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
+ *             @type string   $file      The plugin's main file path relative to the plugins
+ *                                       directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
+ *             @type callable $is_active Callback to determine whether the plugin is active. Receives no arguments and must return bool.
+ *                                       Defaults to `__return_true`.
  *         }
  *     }
  * }
