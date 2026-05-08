@@ -251,6 +251,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 		$wp_user_id = get_current_user_id();
 
 		foreach ( $rooms as $room_data ) {
+			// TODO: $client_id is actually an int<1, max> here, even though the type says it is non-empty-string (to correspond with the client_id as varchar(32) in the schema).
 			$client_id = $room_data['client_id'];
 			$room      = $room_data['room'];
 
@@ -352,6 +353,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 
 		foreach ( $rooms as $room_request ) {
 			$awareness = $room_request['awareness'];
+			// TODO: $client_id is actually an int<1, max> here, even though the type says it is non-empty-string (to correspond with the client_id as varchar(32) in the schema).
 			$client_id = $room_request['client_id'];
 			$cursor    = $room_request['after'];
 			$room      = $room_request['room'];
