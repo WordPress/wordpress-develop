@@ -1462,3 +1462,27 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 
 	return 'true' === $pref;
 }
+
+/**
+ * Applies the default "modern" admin color scheme to the front-end admin bar.
+ *
+ * Per-user color schemes are not honored on the front end to avoid the
+ * per-request cost of resolving them.
+ *
+ * @since 7.0.0
+ */
+function wp_admin_bar_add_color_scheme_to_front_end() {
+	if ( is_admin() ) {
+		return;
+	}
+
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	$css    = @file_get_contents( ABSPATH . "wp-admin/css/colors/modern/colors$suffix.css" );
+
+	// Extract only rule blocks whose selector contains `#wpadminbar`.
+	if ( ! $css || ! preg_match_all( '/[^{}]*#wpadminbar[^{}]*\{[^{}]+\}/s', $css, $matches ) ) {
+		return;
+	}
+
+	wp_add_inline_style( 'admin-bar', implode( '', $matches[0] ) );
+}
