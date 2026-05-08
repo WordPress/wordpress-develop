@@ -229,6 +229,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			require_once ABSPATH . 'wp-admin/includes/post.php';
 		}
 
+<<<<<<< HEAD
 		$post_lock = wp_check_post_lock( $post->ID );
 		$is_draft  = 'draft' === $post->post_status || 'auto-draft' === $post->post_status;
 
@@ -257,6 +258,25 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$is_collaboration_enabled = wp_is_collaboration_enabled();
 
 		if ( $is_draft && (int) $post->post_author === $user_id && ! $post_lock && ! $is_collaboration_enabled ) {
+=======
+		$post_lock_is_active = wp_check_post_lock( $post->ID );
+		$is_draft            = 'draft' === $post->post_status || 'auto-draft' === $post->post_status;
+
+		/*
+		 * When a post is still in draft form, updates from the author can directly update the post.
+		 * Other autosaves must be stored as per-user autosave revisions.
+		 */
+		$can_update_author_draft_post = (
+			$is_draft &&
+			(int) $post->post_author === $user_id
+		);
+
+		$should_update_parent_draft_post = (
+			! $post_lock_is_active && $can_update_author_draft_post
+		);
+
+		if ( $should_update_parent_draft_post ) {
+>>>>>>> 73c3d9c5a9 (Remove real-time collaboration.)
 			/*
 			 * Draft posts for the same author: autosaving updates the post and does not create a revision.
 			 * Convert the post object to an array and add slashes, wp_update_post() expects escaped array.
