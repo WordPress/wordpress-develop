@@ -2473,6 +2473,20 @@ class WP_Query {
 			$clauses = $this->meta_query->get_sql( 'post', $wpdb->posts, 'ID', $this );
 			$join   .= $clauses['join'];
 			$where  .= $clauses['where'];
+
+			/*
+			 * Determine if meta queries require just-in-time cache invalidation.
+			 *
+			 * If the most recent modification of post meta (addition, update or deletion) was of a meta key
+			 * that uses jit cache invalidation, then the meta query cache will be considered stale and the
+			 * post-query cache group flushed by changing the posts' last changed time.
+			 *
+			 * The cache is considered up to date if the `wp_query_meta_query_updated` cache key in the `post_meta`
+			 * group returns `true`, otherwise the cache will be considered stale.
+			 */
+			if ( ! wp_cache_get( 'wp_query_meta_query_updated', 'post_meta' ) ) {
+				wp_cache_set_posts_last_changed();
+			}
 		}
 
 		$rand = ( isset( $query_vars['orderby'] ) && 'rand' === $query_vars['orderby'] );

@@ -429,12 +429,33 @@ class WP_HTTP_Polling_Sync_Server {
 			$updated_awareness[] = $entry;
 		}
 
+		/**
+		 * Filters granularity used for rounding up a client's awareness timestamp.
+		 *
+		 * Modifies the granularity used when recording the latest time a client updates their
+		 * awareness state. This allows implementations to increase or reduce the granularity
+		 * of awareness updates for the desired balance of real-time updates and server load.
+		 *
+		 * The default database granularity of 10 seconds limits the number of writes to the
+		 * database as WordPress only makes the database call if the transient has changed.
+		 * Increasing the granularity by lowering this number will increase the number of
+		 * database writes.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param int $granularity Granularity in seconds. Default 10.
+		 */
+		$granularity = absint( apply_filters( 'wp_sync_awareness_timestamp_granularity', 10 ) );
+		if ( 0 === $granularity ) {
+			$granularity = 1;
+		}
+
 		// Add this client's awareness state.
 		if ( null !== $awareness_update ) {
 			$updated_awareness[] = array(
 				'client_id'  => $client_id,
 				'state'      => $awareness_update,
-				'updated_at' => $current_time,
+				'updated_at' => ceil( $current_time / $granularity ) * $granularity, // Round up to nearest granularity to reduce database churn.
 				'wp_user_id' => get_current_user_id(),
 			);
 		}
