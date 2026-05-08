@@ -422,7 +422,7 @@ if ( $tab ) {
 							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
 						<# } #>
 					<# } else { #>
-						<button class="button preview install-theme-preview"><?php echo esc_html_x( 'Preview', 'verb, theme install action button' ); ?></button>
+						<button class="button preview install-theme-preview"><?php echo esc_html_x( 'Preview', 'verb' ); ?></button>
 					<# } #>
 				<# } else { #>
 					<?php
