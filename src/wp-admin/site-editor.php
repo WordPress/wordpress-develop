@@ -294,10 +294,7 @@ $walk_blocks       = static function ( $blocks ) use ( &$walk_blocks, &$template
 };
 
 if ( ! empty( $templates ) && ! empty( $templates[0]->content ) ) {
-	$blocks = parse_blocks( $templates[0]->content );
-	if ( function_exists( 'resolve_pattern_blocks' ) ) {
-		$blocks = resolve_pattern_blocks( $blocks );
-	}
+	$blocks = resolve_pattern_blocks( parse_blocks( $templates[0]->content ) );
 	$walk_blocks( $blocks );
 }
 
