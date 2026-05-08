@@ -454,6 +454,7 @@ add_action( 'wp_scheduled_auto_draft_delete', 'wp_delete_auto_drafts' );
 add_action( 'importer_scheduled_cleanup', 'wp_delete_attachment' );
 add_action( 'upgrader_scheduled_cleanup', 'wp_delete_attachment' );
 add_action( 'delete_expired_transients', 'delete_expired_transients' );
+add_action( 'wp_delete_old_collaboration_data', 'wp_delete_old_collaboration_data' );
 
 // Navigation menu actions.
 add_action( 'delete_post', '_wp_delete_post_menu_item' );

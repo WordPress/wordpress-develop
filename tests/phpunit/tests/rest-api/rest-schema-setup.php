@@ -16,6 +16,12 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	public function set_up() {
 		parent::set_up();
 
+		// Ensure client-side media processing is enabled so the sideload route is registered.
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		// Ensure collaboration routes are registered.
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
@@ -203,6 +209,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\-\/]+?)/run',
 			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\-\/]+)',
 			'/wp-abilities/v1/abilities',
+			'/wp-collaboration/v1',
+			'/wp-collaboration/v1/updates',
+			'/wp-sync/v1',
+			'/wp-sync/v1/updates',
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );
@@ -214,7 +224,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			preg_match( '#^/oembed/1\.0(/.+)?$#', $route ) ||
 			preg_match( '#^/wp/v2(/.+)?$#', $route ) ||
 			preg_match( '#^/wp-site-health/v1(/.+)?$#', $route ) ||
-			preg_match( '#^/wp-abilities/v1(/.+)?$#', $route )
+			preg_match( '#^/wp-abilities/v1(/.+)?$#', $route ) ||
+			preg_match( '#^/wp-collaboration/v1(/.+)?$#', $route ) ||
+			preg_match( '#^/wp-sync/v1(/.+)?$#', $route )
 		);
 	}
 

@@ -21,7 +21,6 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$author_id );
 		self::delete_user( self::$editor_id );
-		delete_option( 'wp_collaboration_enabled' );
 	}
 
 	public function set_up() {
@@ -86,7 +85,7 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 	 * @ticket 65138
 	 */
 	public function test_auto_draft_autosave_promotes_parent_post_when_collaboration_is_disabled() {
-		update_option( 'wp_collaboration_enabled', 0 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_zero' );
 
 		$post_id = $this->create_auto_draft();
 		$title   = 'No RTC autosaved title';
@@ -105,7 +104,7 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 	 * @ticket 65138
 	 */
 	public function test_auto_draft_autosave_promotes_parent_post_when_collaboration_is_enabled() {
-		update_option( 'wp_collaboration_enabled', 1 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 
 		$post_id = $this->create_auto_draft();
 		$title   = 'RTC autosaved title';
@@ -124,7 +123,7 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 	 * @ticket 65138
 	 */
 	public function test_collaborator_auto_draft_autosave_promotes_parent_post_when_collaboration_is_enabled() {
-		update_option( 'wp_collaboration_enabled', 1 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 
 		$post_id = $this->create_auto_draft();
 		$title   = 'RTC collaborator autosaved title';
@@ -144,7 +143,7 @@ class Tests_Collaboration_RestAutosavesController extends WP_UnitTestCase {
 	 * @ticket 65138
 	 */
 	public function test_draft_autosave_creates_revision_when_collaboration_is_enabled() {
-		update_option( 'wp_collaboration_enabled', 1 );
+		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
 
 		$original_title   = 'Original RTC draft title';
 		$original_content = '<!-- wp:paragraph --><p>Original RTC draft content</p><!-- /wp:paragraph -->';
