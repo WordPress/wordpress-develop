@@ -9,7 +9,7 @@
  * Get the template HTML.
  * This needs to run before <head> so that blocks can add scripts and styles in wp_head().
  */
-$template_html = get_the_block_template_html();
+$template_html = function_exists( 'get_the_block_template_html' ) ? get_the_block_template_html() : '';
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
