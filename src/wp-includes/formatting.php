@@ -2279,6 +2279,9 @@ function sanitize_title_for_query( $title ) {
  * @return string The sanitized title.
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
+	if ( ! is_string( $title ) ) {
+		return '';
+	}
 	$title = strip_tags( $title );
 	// Preserve escaped octets.
 	$title = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '---$1---', $title );
