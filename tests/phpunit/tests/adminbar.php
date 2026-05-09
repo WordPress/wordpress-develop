@@ -811,6 +811,37 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 */
+	public function test_site_name_menu_has_no_site_icon_when_unset() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_includes_site_icon_when_set() {
+		wp_set_current_user( self::$editor_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertStringContainsString( '<img class="site-icon"', $node_site_name->title );
+		$this->assertStringContainsString( esc_url( get_site_icon_url( 64 ) ), $node_site_name->title );
+		$this->assertSame( 'has-site-icon', $node_site_name->meta['class'] );
+	}
+
+	/**
 	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
 	 *
 	 * @ticket 56876
