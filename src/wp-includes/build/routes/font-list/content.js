@@ -810,7 +810,7 @@ var { Fill: SidebarToggleFill, Slot: SidebarToggleSlot } = (0, import_components
 // packages/admin-ui/build-module/page/header.mjs
 var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
 function Header({
-  headingLevel = 1,
+  headingLevel = 2,
   breadcrumbs,
   badges,
   title,
@@ -824,6 +824,7 @@ function Header({
     {
       direction: "column",
       className: "admin-ui-page__header",
+      render: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("header", {}),
       children: [
         /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(Stack, { direction: "row", justify: "space-between", gap: "sm", children: [
           /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(Stack, { direction: "row", gap: "sm", align: "center", justify: "start", children: [
@@ -15479,7 +15480,7 @@ function FontLibraryPage() {
       }))
     );
   }
-  return /* @__PURE__ */ React.createElement(page_default, { title: (0, import_i18n46.__)("Fonts") }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement(page_default, { headingLevel: 1, title: (0, import_i18n46.__)("Fonts") }, /* @__PURE__ */ React.createElement(
     Tabs3,
     {
       selectedTabId: activeTab,
