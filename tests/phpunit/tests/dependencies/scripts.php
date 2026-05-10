@@ -1397,6 +1397,203 @@ HTML
 	}
 
 	/**
+	 * Tests that registering a script with `module_dependencies` triggers `_doing_it_wrong`
+	 * when the script is not printed in the footer and does not use the `defer` strategy.
+	 *
+	 * @ticket 65165
+	 *
+	 * @covers ::wp_register_script
+	 * @covers ::wp_enqueue_script
+	 * @covers ::_wp_scripts_add_args_data
+	 *
+	 * @dataProvider data_module_dependencies_require_footer_or_defer
+	 *
+	 * @param string $function_name Function name to call.
+	 * @param array  $args          Arguments to pass to the function.
+	 * @param bool   $should_warn   Whether the call is expected to trigger a `_doing_it_wrong` warning.
+	 */
+	public function test_module_dependencies_require_footer_or_defer( string $function_name, array $args, bool $should_warn ) {
+		if ( $should_warn ) {
+			$this->setExpectedIncorrectUsage( $function_name );
+		}
+
+		call_user_func_array( $function_name, $args );
+
+		if ( $should_warn ) {
+			$this->assertStringContainsString(
+				'module_dependencies',
+				$this->caught_doing_it_wrong[ $function_name ],
+				'The _doing_it_wrong message should reference module_dependencies.'
+			);
+			$this->assertStringContainsString(
+				'in_footer',
+				$this->caught_doing_it_wrong[ $function_name ],
+				'The _doing_it_wrong message should reference the in_footer requirement.'
+			);
+			$this->assertStringContainsString(
+				'defer',
+				$this->caught_doing_it_wrong[ $function_name ],
+				'The _doing_it_wrong message should reference the defer strategy.'
+			);
+		} else {
+			$this->assertArrayNotHasKey(
+				$function_name,
+				$this->caught_doing_it_wrong,
+				'No _doing_it_wrong warning should be triggered when in_footer is true or strategy is defer.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider for test_module_dependencies_require_footer_or_defer.
+	 *
+	 * @return array<string, array{function_name: string, args: array, should_warn: bool}>
+	 */
+	public function data_module_dependencies_require_footer_or_defer(): array {
+		$base_args = array(
+			'/script.js',
+			array(),
+			null,
+		);
+
+		return array(
+			'register_blocking_warns'             => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-blocking-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+						),
+					)
+				),
+				'should_warn'   => true,
+			),
+			'enqueue_blocking_warns'              => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array_merge(
+					array( 'module-deps-blocking-enqueue' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+						),
+					)
+				),
+				'should_warn'   => true,
+			),
+			'register_async_warns'                => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-async-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'strategy'            => 'async',
+						),
+					)
+				),
+				'should_warn'   => true,
+			),
+			'register_in_footer_does_not_warn'    => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-footer-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'in_footer'           => true,
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'enqueue_in_footer_does_not_warn'     => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array_merge(
+					array( 'module-deps-footer-enqueue' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'in_footer'           => true,
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'register_defer_does_not_warn'        => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-defer-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'strategy'            => 'defer',
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'enqueue_defer_does_not_warn'         => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array_merge(
+					array( 'module-deps-defer-enqueue' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'strategy'            => 'defer',
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'register_footer_and_defer_no_warn'   => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-footer-defer-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'in_footer'           => true,
+							'strategy'            => 'defer',
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'register_no_module_deps_no_warn'     => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'no-module-deps-register' ),
+					$base_args,
+					array( array() )
+				),
+				'should_warn'   => false,
+			),
+			'register_empty_module_deps_no_warn'  => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'empty-module-deps-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array(),
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array<string, array{enqueues: string[], expected: string}>

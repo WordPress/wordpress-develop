@@ -108,6 +108,32 @@ function _wp_scripts_add_args_data( WP_Scripts $wp_scripts, string $handle, arra
 	}
 	if ( ! empty( $args['module_dependencies'] ) ) {
 		$wp_scripts->add_data( $handle, 'module_dependencies', $args['module_dependencies'] );
+
+		/*
+		 * A classic script with module dependencies must either be printed in the
+		 * footer or use the 'defer' loading strategy. Otherwise, the script may be
+		 * evaluated before the script modules import map is printed, causing
+		 * dynamic imports to fail with a "Failed to resolve module specifier" error.
+		 */
+		$is_in_footer = ! empty( $args['in_footer'] );
+		$is_deferred  = isset( $args['strategy'] ) && 'defer' === $args['strategy'];
+		if ( ! $is_in_footer && ! $is_deferred ) {
+			$trace         = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 );
+			$function_name = ( $trace[1]['class'] ?? '' ) . ( $trace[1]['type'] ?? '' ) . $trace[1]['function'];
+			_doing_it_wrong(
+				$function_name,
+				sprintf(
+					/* translators: 1: 'module_dependencies', 2: Script handle, 3: 'in_footer', 4: 'strategy', 5: 'defer'. */
+					__( 'When the %1$s arg is provided, the "%2$s" script must either be printed in the footer (%3$s set to true) or use a deferred loading %4$s (%5$s) so that the import map is printed before the script is evaluated.' ),
+					'<code>module_dependencies</code>',
+					$handle,
+					'<code>in_footer</code>',
+					'<code>strategy</code>',
+					'<code>defer</code>'
+				),
+				'7.0.0'
+			);
+		}
 	}
 }
 
@@ -221,6 +247,10 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *     @type string                              $fetchpriority       Optional. The fetch priority for the script. Default 'auto'.
  *     @type array<string|array<string, string>> $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default empty array.
  *                                                                    For the full data format, see the `$deps` param of {@see wp_register_script_module()}.
+ *                                                                    When provided, the script must either be printed in the footer (with
+ *                                                                    `in_footer` set to true) or use a deferred loading `strategy` (`defer`),
+ *                                                                    so that the script modules import map is printed before the script
+ *                                                                    is evaluated. Otherwise dynamic imports may fail to resolve.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -403,6 +433,10 @@ function wp_deregister_script( $handle ) {
  *     @type string                              $fetchpriority       Optional. The fetch priority for the script. Default 'auto'.
  *     @type array<string|array<string, string>> $module_dependencies Optional. IDs for module dependencies loaded via dynamic import. Default empty array.
  *                                                                    For the full data format, see the `$deps` param of {@see wp_register_script_module()}.
+ *                                                                    When provided, the script must either be printed in the footer (with
+ *                                                                    `in_footer` set to true) or use a deferred loading `strategy` (`defer`),
+ *                                                                    so that the script modules import map is printed before the script
+ *                                                                    is evaluated. Otherwise dynamic imports may fail to resolve.
  * }
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
