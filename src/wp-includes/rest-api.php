@@ -2930,9 +2930,13 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
  *
  * @since 5.0.0
  *
- * @param array  $memo Reduce accumulator.
- * @param string $path REST API path to preload.
+ * @param array        $memo Reduce accumulator.
+ * @param string|array $path REST API path to preload.
  * @return array Modified reduce accumulator.
+ *
+ * @phpstan-param array<string, array{ body: array<mixed>, headers: array<string, string> } | array<string, array{ body: array<mixed>, headers: array<string, string> }> > $memo
+ * @phpstan-param string|array{ 0: string, 1?: 'GET'|'OPTIONS' } $path
+ * @phpstan-return array<string, array{ body: array<mixed>, headers: array<string, string> } | array<string, array{ body: array<mixed>, headers: array<string, string> }> >
  */
 function rest_preload_api_request( $memo, $path ) {
 	/*
@@ -2948,10 +2952,13 @@ function rest_preload_api_request( $memo, $path ) {
 	}
 
 	$method = 'GET';
-	if ( is_array( $path ) && 2 === count( $path ) ) {
-		$method = end( $path );
-		$path   = reset( $path );
-
+	if ( is_array( $path ) ) {
+		$path_array = $path;
+		$path       = array_shift( $path_array );
+		if ( ! is_string( $path ) ) {
+			return $memo;
+		}
+		$method = array_shift( $path_array );
 		if ( ! in_array( $method, array( 'GET', 'OPTIONS' ), true ) ) {
 			$method = 'GET';
 		}
@@ -2964,11 +2971,11 @@ function rest_preload_api_request( $memo, $path ) {
 	}
 
 	$path_parts = parse_url( $path );
-	if ( false === $path_parts ) {
+	if ( false === $path_parts || ! isset( $path_parts['path'] ) ) {
 		return $memo;
 	}
 
-	if ( isset( $path_parts['path'] ) && '/' !== $path_parts['path'] ) {
+	if ( '/' !== $path_parts['path'] ) {
 		// Remove trailing slashes from the "path" part of the REST API path.
 		$path_parts['path'] = untrailingslashit( $path_parts['path'] );
 		$path               = str_contains( $path, '?' ) ?
@@ -2987,8 +2994,16 @@ function rest_preload_api_request( $memo, $path ) {
 		$server = rest_get_server();
 		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
-		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data     = (array) $server->response_to_data( $response, $embed );
+		if ( ! $response instanceof WP_REST_Response ) {
+			return $memo;
+		}
+
+		if ( $request->has_param( '_embed' ) && ( is_array( $request['_embed'] ) || is_string( $request['_embed'] ) ) ) {
+			$embed = rest_parse_embed_param( $request['_embed'] );
+		} else {
+			$embed = false;
+		}
+		$data = (array) $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$memo[ $method ][ $path ] = array(
