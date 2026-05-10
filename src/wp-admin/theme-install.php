@@ -435,7 +435,7 @@ if ( $tab ) {
 					<# if ( data.customize_url ) { #>
 						<a class="button disabled"><?php _e( 'Live Preview' ); ?></a>
 					<# } else { #>
-						<button class="button disabled"><?php echo esc_html_x( 'Preview', 'verb, theme install action button' ); ?></button>
+						<button class="button disabled"><?php echo esc_html_x( 'Preview', 'verb' ); ?></button>
 					<# } #>
 				<# } #>
 			<# } else { #>
