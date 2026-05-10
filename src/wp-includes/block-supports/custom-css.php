@@ -23,9 +23,7 @@
  *         },
  *         ...
  *     },
- *     innerBlocks: array<int, array<string, mixed>>,
- *     innerHTML: string,
- *     innerContent: array<string|null>,
+ *     ...
  * } $parsed_block
  */
 function wp_render_custom_css_support_styles( $parsed_block ) {
