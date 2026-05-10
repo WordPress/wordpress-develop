@@ -45,9 +45,10 @@ function wp_render_custom_css_support_styles( $parsed_block ) {
 	}
 
 	// Generate a unique class name for this block instance.
-	$class_name         = wp_unique_id_from_values( $parsed_block, 'wp-custom-css-' );
-	$updated_class_name = isset( $parsed_block['attrs']['className'] )
-		? $parsed_block['attrs']['className'] . " $class_name"
+	$class_name          = wp_unique_id_from_values( $parsed_block, 'wp-custom-css-' );
+	$existing_class_name = $parsed_block['attrs']['className'] ?? null;
+	$updated_class_name  = is_string( $existing_class_name )
+		? "$existing_class_name $class_name"
 		: $class_name;
 
 	_wp_array_set( $parsed_block, array( 'attrs', 'className' ), $updated_class_name );
