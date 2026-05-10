@@ -584,7 +584,7 @@ var { Fill: SidebarToggleFill, Slot: SidebarToggleSlot } = (0, import_components
 // packages/admin-ui/build-module/page/header.mjs
 var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
 function Header({
-  headingLevel = 2,
+  headingLevel = 1,
   breadcrumbs,
   badges,
   title,
@@ -598,7 +598,6 @@ function Header({
     {
       direction: "column",
       className: "admin-ui-page__header",
-      render: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("header", {}),
       children: [
         /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Stack, { direction: "row", justify: "space-between", gap: "sm", children: [
           /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Stack, { direction: "row", gap: "sm", align: "center", justify: "start", children: [
@@ -1604,7 +1603,6 @@ function ConnectorsPage() {
     page_default,
     {
       title: (0, import_i18n4.__)("Connectors"),
-      headingLevel: 1,
       subTitle: (0, import_i18n4.__)(
         "All of your API keys and credentials are stored here and shared across plugins. Configure once and use everywhere."
       )
