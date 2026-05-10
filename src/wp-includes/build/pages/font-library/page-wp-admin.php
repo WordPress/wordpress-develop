@@ -163,11 +163,25 @@ function wp_font_library_wp_admin_enqueue_scripts( $hook_suffix ) {
 		 * Chrome, evaluating before wp.theme.privateApis is defined and throwing
 		 * "Cannot unlock an undefined object". See #65103.
 		 */
+		$init_js_function = <<<'JS'
+( mountId, routes ) => {
+	const run = async () => {
+		const mod = await import( "@wordpress/boot" );
+		mod.initSinglePage( { mountId, routes } );
+	};
+	if ( document.readyState === "loading" ) {
+		document.addEventListener( "DOMContentLoaded", run );
+	} else {
+		run();
+	}
+}
+JS;
 		wp_add_inline_script(
 			'font-library-wp-admin-prerequisites',
 			sprintf(
-				'(function(){var run=function(){import("@wordpress/boot").then(function(mod){mod.initSinglePage({mountId: "%s", routes: %s});});};if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",run);}else{run();}})();',
-				'font-library-wp-admin-app',
+				'( %s )( %s, %s );',
+				$init_js_function,
+				wp_json_encode( 'font-library-wp-admin-app', JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
 				wp_json_encode( $routes, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
