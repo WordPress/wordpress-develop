@@ -54,7 +54,7 @@ function _wp_connectors_preload_paths( array $preload_paths ): array {
 
 	// AiPluginCallout in routes/connectors-home/ai-plugin-callout.tsx queries this
 	// hardcoded ID to check whether the WP AI plugin is installed/active.
-	$preload_paths[] = '/wp/v2/plugins/ai/ai?context=edit';
+	$preload_paths[] = array( '/wp/v2/plugins/ai/ai?context=edit', 'GET', array( 200, 404 ) );
 
 	// getEntityRecord( 'root', 'plugin', <basename> ) per connector in use-connector-plugin.ts.
 	foreach ( wp_get_connectors() as $connector_data ) {
@@ -64,7 +64,7 @@ function _wp_connectors_preload_paths( array $preload_paths ): array {
 		// core-data's plugin entity uses the basename with `.php` stripped
 		// as the record key (see routes/connectors-home/use-connector-plugin.ts).
 		$basename        = preg_replace( '/\.php$/', '', plugin_basename( $connector_data['plugin']['file'] ) );
-		$preload_paths[] = '/wp/v2/plugins/' . $basename . '?context=edit';
+		$preload_paths[] = array( '/wp/v2/plugins/' . $basename . '?context=edit', 'GET', array( 200, 404 ) );
 	}
 
 	return $preload_paths;
