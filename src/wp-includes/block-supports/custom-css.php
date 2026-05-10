@@ -90,11 +90,19 @@ function wp_enqueue_block_custom_css() {
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
  * @return string               Filtered block content.
+ *
+ * @phpstan-param array{
+ *     attrs: array{
+ *         className?: string,
+ *         ...
+ *     },
+ *     ...
+ * } $block
  */
 function wp_render_custom_css_class_name( $block_content, $block ) {
-	$class_string = $block['attrs']['className'] ?? '';
+	$class_string = $block['attrs']['className'] ?? null;
 
-	if ( '' === $class_string ) {
+	if ( ! is_string( $class_string ) || '' === $class_string ) {
 		return $block_content;
 	}
 
