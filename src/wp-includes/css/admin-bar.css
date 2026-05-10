@@ -581,7 +581,11 @@ html:lang(he-il) .rtl #wpadminbar * {
 	content: "\f102" / '';
 }
 
-
+/* Hide the duplicated mobile-only menus on desktop viewport */
+#wpadminbar #wp-admin-bar-mobile-site-shortcuts,
+#wpadminbar #wp-admin-bar-mobile-command-palette {
+	display: none;
+}
 
 /**
  * Comments
@@ -697,7 +701,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 /**
  * Command Palette
  */
-#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
+#wpadminbar #wp-admin-bar-command-palette .ab-icon:before,
+#wpadminbar #wp-admin-bar-mobile-command-palette .ab-icon:before {
 	content: "\f179";
 	content: "\f179" / '';
 	top: 3px;
@@ -840,7 +845,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 		padding-right: 30px;
 	}
 
-	#wpadminbar .menupop .menupop > .ab-item:before {
+	#wpadminbar .menupop .menupop > .ab-item:before,
+	#wpadminbar .menupop .menupop > .ab-item .wp-admin-bar-arrow:before {
 		top: 10px;
 		right: 6px;
 	}
@@ -877,9 +883,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 		padding: 0;
 	}
 
-	/* My Sites and "Site Title" menu */
+	/* My Sites menu */
 	#wpadminbar #wp-admin-bar-my-sites > .ab-item,
-	#wpadminbar #wp-admin-bar-site-name > .ab-item,
 	#wpadminbar #wp-admin-bar-site-editor > .ab-item,
 	#wpadminbar #wp-admin-bar-customize > .ab-item,
 	#wpadminbar #wp-admin-bar-edit > .ab-item,
@@ -951,12 +956,14 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 	/* Comments and Command Palette */
 	#wpadminbar #wp-admin-bar-comments .ab-icon,
-	#wpadminbar #wp-admin-bar-command-palette .ab-icon {
+	#wpadminbar #wp-admin-bar-command-palette .ab-icon,
+	#wpadminbar #wp-admin-bar-mobile-command-palette .ab-icon {
 		margin: 0;
 	}
 
 	#wpadminbar #wp-admin-bar-comments .ab-icon:before,
-	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before {
+	#wpadminbar #wp-admin-bar-command-palette .ab-icon:before,
+	#wpadminbar #wp-admin-bar-mobile-command-palette .ab-icon:before {
 		display: block;
 		font-size: 34px;
 		height: 46px;
@@ -1018,16 +1025,62 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar li#wp-admin-bar-menu-toggle,
 	#wpadminbar li#wp-admin-bar-wp-logo,
 	#wpadminbar li#wp-admin-bar-my-sites,
-	#wpadminbar li#wp-admin-bar-updates,
 	#wpadminbar li#wp-admin-bar-site-name,
-	#wpadminbar li#wp-admin-bar-site-editor,
-	#wpadminbar li#wp-admin-bar-customize,
-	#wpadminbar li#wp-admin-bar-new-content,
-	#wpadminbar li#wp-admin-bar-edit,
-	#wpadminbar li#wp-admin-bar-comments,
-	#wpadminbar li#wp-admin-bar-my-account,
-	#wpadminbar li#wp-admin-bar-command-palette {
+	#wpadminbar li#wp-admin-bar-my-account {
 		display: block;
+	}
+
+	#wpadminbar li#wp-admin-bar-site-name > .ab-item {
+		position: relative;
+		padding: 0 12px 0 52px;
+	}
+
+	#wpadminbar li#wp-admin-bar-site-name > .ab-item:before {
+		position: absolute;
+		left: 0;
+		top: 7px;
+	}
+
+	/* Show the duplicated mobile-only menus on mobile viewport */
+	#wpadminbar #wp-admin-bar-mobile-site-shortcuts,
+	#wpadminbar #wp-admin-bar-mobile-command-palette {
+		display: block;
+	}
+
+	/* Allow the root left nodes to overflow past the viewport */
+	#wpadminbar .ab-top-menu {
+		min-width: max-content;
+	}
+
+	#wpadminbar {
+		overflow-x: clip;
+	}
+
+	/* Pin the secondary group to the right edge instead of letting it float,
+	 * covering the root left nodes when they overflow */
+	#wpadminbar #wp-admin-bar-top-secondary {
+		float: none;
+		position: absolute;
+		right: 0;
+	}
+
+	/* Add a fade-out effect to the left edge of the right-pinned secondary group */
+	#wpadminbar .quicklinks,
+	#wpadminbar .quicklinks #wp-admin-bar-top-secondary {
+		background-color: inherit;
+	}
+
+	#wpadminbar #wp-admin-bar-top-secondary::before {
+		content: '';
+		position: absolute;
+		right: 100%;
+		top: 0;
+		bottom: 0;
+		width: 24px;
+		background-color: inherit;
+		-webkit-mask-image: linear-gradient(to left, black, transparent);
+		mask-image: linear-gradient(to left, black, transparent);
+		pointer-events: none;
 	}
 
 	/* Allow dropdown list items to appear normally */
@@ -1119,8 +1172,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 		display: list-item;
 	}
 
-	#wpadminbar li#wp-admin-bar-wp-logo,
-	#wpadminbar li#wp-admin-bar-updates {
+	#wpadminbar li#wp-admin-bar-wp-logo {
 		display: none;
 	}
 
@@ -1129,12 +1181,5 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar .ab-top-menu > .menupop li > .ab-sub-wrapper {
 		position: static;
 		box-shadow: none;
-	}
-}
-
-/* Very narrow screens */
-@media screen and (max-width: 400px) {
-	#wpadminbar li#wp-admin-bar-comments {
-		display: none;
 	}
 }

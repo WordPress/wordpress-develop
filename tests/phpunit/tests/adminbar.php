@@ -811,6 +811,25 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_admin_bar_duplicate_shortcut_menus
+	 */
+	public function test_site_name_menu_contains_duplicated_shortcut_menus() {
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$shortcuts = $wp_admin_bar->get_node( 'mobile-site-shortcuts' );
+		$this->assertNotNull( $shortcuts );
+		$this->assertSame( 'site-name', $shortcuts->parent );
+
+		foreach ( array( 'comments', 'new-content' ) as $node_id ) {
+			$clone = $wp_admin_bar->get_node( 'mobile-site-shortcut-' . $node_id );
+			$this->assertNotNull( $clone );
+			$this->assertSame( 'mobile-site-shortcuts', $clone->parent );
+		}
+	}
+
+	/**
 	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
 	 *
 	 * @ticket 56876
