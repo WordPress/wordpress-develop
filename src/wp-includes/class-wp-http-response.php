@@ -27,7 +27,7 @@ class WP_HTTP_Response {
 	 * Response headers.
 	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var array<string, string>
 	 */
 	public $headers;
 
