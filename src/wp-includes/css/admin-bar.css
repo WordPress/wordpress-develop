@@ -649,7 +649,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 #wpadminbar #wp-admin-bar-command-palette-trigger .ab-item {
 	width: 200px;
-	background: #757575;
+	background: #3c434a;
 	height: 24px;
 	display: flex;
 	justify-content: space-between;
@@ -668,6 +668,21 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-command-palette-trigger .ab-icon:before {
 	content: "\f179";
 	content: "\f179" / '';
+}
+
+#wpadminbar #wp-admin-bar-command-palette-trigger:hover .ab-item,
+#wpadminbar #wp-admin-bar-command-palette-trigger > .ab-item:focus-visible {
+	background: #2c3338;
+}
+
+#wpadminbar #wp-admin-bar-command-palette-trigger:hover .ab-icon:before,
+#wpadminbar #wp-admin-bar-command-palette-trigger > .ab-item:focus .ab-icon:before {
+	color: rgba(240, 246, 252, 0.6);
+}
+
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette-trigger:hover span.ab-label,
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette-trigger > .ab-item:focus span.ab-label {
+	color: #f0f0f1;
 }
 
 /**
