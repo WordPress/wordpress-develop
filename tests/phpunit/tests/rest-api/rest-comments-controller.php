@@ -3310,7 +3310,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 17, $properties );
+		$this->assertCount( 19, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'author_avatar_urls', $properties );
@@ -3326,6 +3326,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 'meta', $properties );
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'post', $properties );
+		$this->assertArrayHasKey( 'reaction_emojis', $properties );
+		$this->assertArrayHasKey( 'reaction_summary', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
 
@@ -4080,7 +4082,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Test children link for note comment type. Based on test_get_comment_with_children_link.
 	 *
+	 * Notes expose a `children` link that targets their reaction children
+	 * (not nested notes), so embedded children resolve to reactions.
+	 *
 	 * @ticket 64152
+	 * @ticket 63191
 	 */
 	public function test_get_note_with_children_link() {
 		$parent_comment_id = self::factory()->comment->create(
@@ -4099,8 +4105,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $parent_comment_id,
 				'comment_post_ID'  => self::$post_id,
 				'user_id'          => self::$admin_id,
-				'comment_type'     => 'note',
-				'comment_content'  => 'First child note comment',
+				'comment_type'     => 'reaction',
+				'comment_content'  => 'heart',
 			)
 		);
 
@@ -4131,7 +4137,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// Verify the href attribute contains the expected status and type parameters.
 		$this->assertStringContainsString( 'status=all', $children[0]['href'] );
-		$this->assertStringContainsString( 'type=note', $children[0]['href'] );
+		$this->assertStringContainsString( 'type=reaction', $children[0]['href'] );
 	}
 
 	/**
@@ -4519,5 +4525,253 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_login_required', $response, 401 );
+	}
+
+	/**
+	 * A hex-codepoint sequence (e.g. `1f44d` for 👍) is accepted as a
+	 * reaction slug, supporting emojis outside the curated set.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_create_reaction_accepts_hex_codepoint_slug() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'parent'  => $note_id,
+					'content' => '1f468-200d-1f4bb',
+					'type'    => 'reaction',
+					'author'  => self::$editor_id,
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
+
+		$new_comment = get_comment( $response->get_data()['id'] );
+		$this->assertSame( '1f468-200d-1f4bb', $new_comment->comment_content );
+	}
+
+	/**
+	 * Raw emoji bytes must be rejected — clients are expected to normalize
+	 * to a curated slug or hex-codepoint sequence before submitting.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_create_reaction_rejects_raw_emoji() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'parent'  => $note_id,
+					'content' => '👍',
+					'type'    => 'reaction',
+					'author'  => self::$editor_id,
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_reaction_invalid_emoji', $response, 400 );
+	}
+
+	/**
+	 * After trashing a reaction, the same user may re-add the same emoji
+	 * to the same note. Trashed reactions are invisible and must not block
+	 * re-adding.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_create_reaction_after_trashing_previous_one() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		// Existing reaction in trash should not block re-adding.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 'trash',
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'heart',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'parent'  => $note_id,
+					'content' => 'heart',
+					'type'    => 'reaction',
+					'author'  => self::$editor_id,
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
+	}
+
+	/**
+	 * The note response exposes a `reaction_summary` field aggregating
+	 * counts per emoji slug, plus per-user `reacted` and `my_reaction_id`.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_note_response_includes_reaction_summary() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$heart_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'heart',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$subscriber_id,
+				'comment_content'  => 'rocket',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'reaction_summary', $data );
+		$this->assertArrayHasKey( 'heart', $data['reaction_summary'] );
+		$this->assertSame( 1, $data['reaction_summary']['heart']['count'] );
+		$this->assertTrue( $data['reaction_summary']['heart']['reacted'] );
+		$this->assertSame( $heart_id, $data['reaction_summary']['heart']['my_reaction_id'] );
+
+		$this->assertArrayHasKey( 'rocket', $data['reaction_summary'] );
+		$this->assertSame( 1, $data['reaction_summary']['rocket']['count'] );
+		$this->assertFalse( $data['reaction_summary']['rocket']['reacted'] );
+		$this->assertSame( 0, $data['reaction_summary']['rocket']['my_reaction_id'] );
+	}
+
+	/**
+	 * Comment schema exposes the curated reaction emoji list so clients
+	 * can discover which slugs the server accepts.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_comment_schema_exposes_reaction_emojis() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
+		$response = rest_get_server()->dispatch( $request );
+		$schema   = $response->get_data()['schema'];
+
+		$this->assertArrayHasKey( 'reaction_emojis', $schema['properties'] );
+		$slugs = wp_list_pluck( $schema['properties']['reaction_emojis']['default'], 'value' );
+		$this->assertSame( array( 'heart', 'celebration', 'smile', 'eyes', 'rocket' ), $slugs );
+	}
+
+	/**
+	 * The `children` link on a note response points at reaction children,
+	 * not at notes — so embedded children resolve to reactions.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_note_children_link_targets_reactions() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		// Create a reaction child so the note exposes a children link.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'heart',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'children', $links );
+		$href = $links['children'][0]['href'];
+		$this->assertStringContainsString( 'type=reaction', $href );
+		$this->assertStringNotContainsString( 'type=note', $href );
 	}
 }
