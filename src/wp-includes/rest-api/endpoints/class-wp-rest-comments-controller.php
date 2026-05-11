@@ -2111,7 +2111,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$id_placeholders = implode( ',', array_fill( 0, count( $note_ids ), '%d' ) );
 
 		// Query 1: aggregated counts per emoji per note.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$counts = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT comment_parent, comment_content, COUNT(*) AS reaction_count
@@ -2127,7 +2127,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// Query 2: the current user's own reaction IDs (only when logged in).
 		$my_reactions = array();
 		if ( $current_user_id ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 			$user_rows = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT comment_ID, comment_parent, comment_content

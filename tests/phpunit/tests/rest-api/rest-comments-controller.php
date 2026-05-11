@@ -4699,7 +4699,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
