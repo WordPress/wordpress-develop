@@ -691,6 +691,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	color: #f0f0f1;
 }
 
+body .commands-command-menu {
+	top: 4px;
+}
+
 /**
  * Search
  */
