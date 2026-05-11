@@ -318,6 +318,7 @@ if ( $front_page instanceof WP_Post ) {
 
 if ( $has_query ) {
 	$post_rest_route = rest_get_route_for_post_type_items( 'post' );
+	$preload_paths[] = '/wp/v2/types/post?context=edit';
 	foreach ( array( 10, 3 ) as $per_page ) {
 		$preload_paths[] = add_query_arg(
 			array(
@@ -332,6 +333,17 @@ if ( $has_query ) {
 		);
 	}
 }
+
+$preload_paths[] = add_query_arg(
+	array(
+		'context'  => 'edit',
+		'per_page' => 100,
+		'_fields'  => 'id,link,menu_order,parent,title,type',
+		'orderby'  => 'menu_order',
+		'order'    => 'asc',
+	),
+	rest_get_route_for_post_type_items( 'page' )
+);
 
 $preload_paths[] = '/wp/v2/taxonomies?context=view';
 
