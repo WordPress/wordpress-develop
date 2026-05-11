@@ -71,7 +71,7 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 * @var int
 	 */
-	const CACHE_VERSION = 10;
+	const CACHE_VERSION = 11;
 
 	/**
 	 * Approximate maximum number of characters shown in each post excerpt.
@@ -349,8 +349,9 @@ class WP_On_This_Day {
 	 * Walks the input as HTML5 tokens, collecting the contents of `#text`
 	 * nodes only, so script, style, and comment contents are skipped by
 	 * construction rather than via regex stripping. A space is emitted on
-	 * every tag boundary to keep word boundaries between adjacent block
-	 * elements (e.g. `<p>One</p><p>Two</p>` -> "One Two").
+	 * non-inline tag boundaries to keep word boundaries between adjacent
+	 * block elements (e.g. `<p>One</p><p>Two</p>` -> "One Two") without
+	 * adding artificial spaces around inline formatting.
 	 *
 	 * Length is measured in Unicode characters via `mb_strlen()`, which
 	 * is more language-fair than word counting (CJK languages do not
@@ -373,11 +374,39 @@ class WP_On_This_Day {
 		$parts     = array();
 		$length    = 0;
 
+		$inline_tags = array(
+			'A',
+			'ABBR',
+			'B',
+			'BIG',
+			'CODE',
+			'DEL',
+			'EM',
+			'FONT',
+			'I',
+			'INS',
+			'MARK',
+			'Q',
+			'S',
+			'SAMP',
+			'SMALL',
+			'SPAN',
+			'STRONG',
+			'SUB',
+			'SUP',
+			'TIME',
+			'VAR',
+		);
+
 		while ( $processor->next_token() ) {
 			$token_type = $processor->get_token_type();
 
 			if ( '#tag' === $token_type ) {
-				$parts[] = ' ';
+				$tag_name = $processor->get_tag();
+
+				if ( ! in_array( $tag_name, $inline_tags, true ) ) {
+					$parts[] = ' ';
+				}
 				continue;
 			}
 
@@ -393,7 +422,7 @@ class WP_On_This_Day {
 				break;
 			}
 		}
-		$separator = _wp_can_use_pcre_u() ? '~\p{Z}+~u' : '~\s+~';
+		$separator = _wp_can_use_pcre_u() ? '~[\s\p{Z}]+~u' : '~\s+~';
 		return trim( preg_replace( $separator, ' ', implode( '', $parts ) ) );
 	}
 
