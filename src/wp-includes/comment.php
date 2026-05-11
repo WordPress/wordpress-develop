@@ -318,6 +318,63 @@ function wp_get_internal_comment_types(): array {
 }
 
 /**
+ * Retrieves the list of curated emoji reactions allowed for note comments.
+ *
+ * Each entry is an associative array with:
+ * - `emoji` (string) The emoji character.
+ * - `label` (string) A human-readable label.
+ * - `value` (string) The slug used as the storage key in `comment_content`.
+ *
+ * Reactions submitted to the REST API may also use a lowercase
+ * hex-codepoint sequence (e.g. `1f44d`) to represent emojis outside the
+ * curated set; see WP_REST_Comments_Controller::create_item().
+ *
+ * @since 7.0.0
+ *
+ * @return array[] List of emoji definitions, each with `emoji`, `label`,
+ *                 and `value` keys.
+ */
+function wp_get_note_reaction_emojis(): array {
+	$default_emojis = array(
+		array(
+			'emoji' => '❤️',
+			'label' => __( 'Heart' ),
+			'value' => 'heart',
+		),
+		array(
+			'emoji' => '🎉',
+			'label' => __( 'Celebration' ),
+			'value' => 'celebration',
+		),
+		array(
+			'emoji' => '😄',
+			'label' => __( 'Smile' ),
+			'value' => 'smile',
+		),
+		array(
+			'emoji' => '👀',
+			'label' => __( 'Eyes' ),
+			'value' => 'eyes',
+		),
+		array(
+			'emoji' => '🚀',
+			'label' => __( 'Rocket' ),
+			'value' => 'rocket',
+		),
+	);
+
+	/**
+	 * Filters the curated list of allowed emojis for note reactions.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array[] $emojis List of emoji definitions. Each item has
+	 *                        `emoji`, `label`, and `value` keys.
+	 */
+	return (array) apply_filters( 'wp_note_reaction_emojis', $default_emojis );
+}
+
+/**
  * Gets the default comment status for a post type.
  *
  * @since 4.3.0
