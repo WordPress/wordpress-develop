@@ -310,7 +310,7 @@
 	left: 0;
 	right: 0;
 	z-index: 100;
-	height: 48px;
+	height: 60px;
 	padding: 0 16px;
 	border: 0 solid #dcdcde;
 	overflow: auto;
@@ -1273,7 +1273,7 @@ select#media-attachment-date-filters {
 .attachments-browser.has-load-more .attachments-wrapper,
 .attachments-browser .uploader-inline {
 	position: absolute;
-	top: 72px;
+	top: 84px;
 	left: 0;
 	right: 300px;
 	bottom: 0;
