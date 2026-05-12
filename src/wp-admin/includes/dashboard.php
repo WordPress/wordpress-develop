@@ -89,7 +89,7 @@ function wp_dashboard_setup() {
 	}
 
 	// On This Day.
-	if ( is_blog_admin() && current_user_can( 'edit_posts' ) ) {
+	if ( current_user_can( 'edit_posts' ) ) {
 		if ( ! class_exists( 'WP_On_This_Day' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-on-this-day.php';
 		}

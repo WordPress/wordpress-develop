@@ -71,7 +71,7 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 * @var int
 	 */
-	const CACHE_VERSION = 11;
+	const CACHE_VERSION = 0;
 
 	/**
 	 * Approximate maximum number of characters shown in each post excerpt.
@@ -243,7 +243,7 @@ class WP_On_This_Day {
 			add_query_arg(
 				'on-this-day-window-updated',
 				'1',
-				admin_url( 'index.php' )
+				admin_url( 'index.php#dashboard_on_this_day' )
 			)
 		);
 		exit;
@@ -498,7 +498,7 @@ class WP_On_This_Day {
 
 					printf(
 						/* translators: 1: Start date, 2: End date. */
-						esc_html__( 'You haven\'t published anything between %1$s and %2$s in previous years. Write something today and check back next year!' ),
+						esc_html__( "You haven't published anything between %1$s and %2$s in previous years. Write something today and check back next year!" ),
 						'<strong>' . $start_time . '</strong>',
 						'<strong>' . $end_time . '</strong>'
 					);

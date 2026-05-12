@@ -24,14 +24,14 @@
    Fallback values match the classic "Fresh" scheme.
    ----------------------------------------------------------------------------- */
 #dashboard_on_this_day {
-	/* Accent — theme-color aware, follows the user's admin color scheme. */
+	/* Accent - theme-color aware, follows the user's admin color scheme. */
 	--otd-accent:        var(--wp-admin-theme-color, #2271b1);
 	--otd-accent-dark:   var(--wp-admin-theme-color-darker-10, #135e96);
 	--otd-accent-rgb:    var(--wp-admin-theme-color--rgb, 34, 113, 177);
 	--otd-accent-8:      rgba(var(--otd-accent-rgb), 0.08);
 	--otd-accent-15:     rgba(var(--otd-accent-rgb), 0.15);
 
-	/* Neutrals — classic wp-admin palette. */
+	/* Neutrals - classic wp-admin palette. */
 	--otd-ink:      #1d2327;
 	--otd-text:     #2c3338;
 	--otd-muted:    #646970;
@@ -45,340 +45,338 @@
 	--otd-pill:     9999px;
 	--otd-ease:     0.15s ease;
 
-	/* -------------------------------------------------------------------------
-	   2. Postbox chrome
-	   ------------------------------------------------------------------------- */
 	/* To honour the postbox border-radius. */
 	overflow: hidden;
+}
 
-	&:not(.closed) .inside {
-		margin: 0;
-		padding: 0;
-		max-height: 560px;
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-	}
+/* -----------------------------------------------------------------------------
+   2. Postbox chrome
+   ----------------------------------------------------------------------------- */
+#dashboard_on_this_day:not(.closed) .inside {
+	margin: 0;
+	padding: 0;
+	max-height: 560px;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
 
-	& .hndle {
-		gap: 0;
-	}
+#dashboard_on_this_day .hndle {
+	gap: 0;
+}
 
-	& .on-this-day-widget {
-		display: flex;
-		flex-direction: column;
-		flex: 1 1 auto;
-		min-height: 0;
-		font-size: 13px;
-		color: var(--otd-ink);
-		line-height: 1.5;
-	}
+#dashboard_on_this_day .on-this-day-widget {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	font-size: 13px;
+	color: var(--otd-ink);
+	line-height: 1.5;
+}
 
-	/* Scrollable content area — keeps the timeline / empty state contained
-	   so the window control below pins to the bottom of the postbox body. */
-	& .on-this-day-scroll {
-		flex: 1 1 auto;
-		min-height: 0;
-		overflow: auto;
-	}
+/* Scrollable content area - keeps the timeline / empty state contained
+   so the window control below pins to the bottom of the postbox body. */
+#dashboard_on_this_day .on-this-day-scroll {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: auto;
+}
 
-	/* -------------------------------------------------------------------------
-	   3. Widget title date pill
+/* -----------------------------------------------------------------------------
+   3. Widget title date pill
 
-	   The widget is registered with a plain-text title ("On This Day") so that
-	   Screen Options and box-order preferences stay clean. The current date
-	   window label is rendered from `data-otd-window-label` on the title span.
-	   ------------------------------------------------------------------------- */
-	& .on-this-day-title {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		width: 100%;
+   The widget is registered with a plain-text title ("On This Day") so that
+   Screen Options and box-order preferences stay clean. The current date
+   window label is rendered from `data-otd-window-label` on the title span.
+   ----------------------------------------------------------------------------- */
+#dashboard_on_this_day .on-this-day-title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
 
-		&::after {
-			content: attr(data-otd-window-label);
-			display: inline-block;
-			margin-left: 10px;
-			padding: 2px 9px;
-			font-weight: 600;
-			font-size: 11px;
-			letter-spacing: 0.3px;
-			text-transform: uppercase;
-			color: var(--otd-accent-dark);
-			background: var(--otd-accent-8);
-			border-radius: var(--otd-pill);
-			white-space: nowrap;
-			vertical-align: 1px;
-		}
-	}
+#dashboard_on_this_day .on-this-day-title::after {
+	content: attr(data-otd-window-label);
+	display: inline-block;
+	margin-left: 10px;
+	padding: 2px 9px;
+	font-weight: 600;
+	font-size: 11px;
+	letter-spacing: 0.3px;
+	text-transform: uppercase;
+	color: var(--otd-accent-dark);
+	background: var(--otd-accent-8);
+	border-radius: var(--otd-pill);
+	white-space: nowrap;
+	vertical-align: 1px;
+}
 
-	/* -------------------------------------------------------------------------
-	   4. Timeline
-	   -------------------------------------------------------------------------
-	   Layout math (reused below):
-	     padding-left of .on-this-day-timeline = 20px
-	     icon width = 28px  ->  centers at 20 + 14 = 34px
-	     gap between icon and body = 14px  ->  body column starts at 20 + 28 + 14 = 62px
-	   ------------------------------------------------------------------------- */
-	& .on-this-day-timeline {
-		margin: 0;
-		padding: 12px 20px 16px;
-		list-style: none;
-	}
+/* -----------------------------------------------------------------------------
+   4. Timeline
+   -----------------------------------------------------------------------------
+   Layout math (reused below):
+     padding-left of .on-this-day-timeline = 20px
+     icon width = 28px  ->  centers at 20 + 14 = 34px
+     gap between icon and body = 14px  ->  body column starts at 20 + 28 + 14 = 62px
+   ----------------------------------------------------------------------------- */
+#dashboard_on_this_day .on-this-day-timeline {
+	margin: 0;
+	padding: 12px 20px 16px;
+	list-style: none;
+}
 
-	& .on-this-day-year-group {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
+#dashboard_on_this_day .on-this-day-year-group {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
 
-	& .on-this-day-year-header {
-		margin: 8px 0 8px;
-		font-size: 15px;
-		font-weight: 500;
-		line-height: 1.4;
-		color: var(--otd-subtle);
-	}
+#dashboard_on_this_day .on-this-day-year-header {
+	margin: 8px 0 8px;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: var(--otd-subtle);
+}
 
-	& .on-this-day-year-number {
-		color: var(--otd-muted);
-	}
+#dashboard_on_this_day .on-this-day-year-number {
+	color: var(--otd-muted);
+}
 
-	& .on-this-day-year-ago {
-		margin-left: 6px;
-		color: var(--otd-subtle);
-	}
+#dashboard_on_this_day .on-this-day-year-ago {
+	margin-left: 6px;
+	color: var(--otd-subtle);
+}
 
-	& .on-this-day-post-list {
-		position: relative;
-		margin: 0;
-		padding: 0;
-		list-style: none;
+#dashboard_on_this_day .on-this-day-post-list {
+	position: relative;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
 
-		/* Vertical guide line, scoped per year group so the year header
-		   naturally interrupts the line between groups. The halo on each
-		   icon circle (see below) punches ~3px gaps around every circle. */
-		&::before {
-			content: "";
-			position: absolute;
-			left: 14px; /* center of the 28px icon column */
-			top: 6px;
-			bottom: 14px;
-			width: 1px;
-			background: var(--otd-line);
-		}
-	}
+/* Vertical guide line, scoped per year group so the year header
+   naturally interrupts the line between groups. The halo on each
+   icon circle (see below) punches ~3px gaps around every circle. */
+#dashboard_on_this_day .on-this-day-post-list::before {
+	content: "";
+	position: absolute;
+	left: 14px; /* center of the 28px icon column */
+	top: 6px;
+	bottom: 14px;
+	width: 1px;
+	background: var(--otd-line);
+}
 
-	/* -------------------------------------------------------------------------
-	   5. Post row
-	   ------------------------------------------------------------------------- */
-	& .on-this-day-post {
-		display: grid;
-		grid-template-columns: 28px 1fr;
-		gap: 14px;
-		padding: 6px 0 14px;
+/* -----------------------------------------------------------------------------
+   5. Post row
+   ----------------------------------------------------------------------------- */
+#dashboard_on_this_day .on-this-day-post {
+	display: grid;
+	grid-template-columns: 28px 1fr;
+	gap: 14px;
+	padding: 6px 0 14px;
+}
 
-		/* Icon circle on the left. */
-		& .on-this-day-post-icon {
-			position: relative;
-			z-index: 1; /* sits above the vertical line */
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			width: 28px;
-			height: 28px;
-			border-radius: 50%;
-			background: #fff;
-			border: 1px solid var(--otd-line);
-			color: var(--otd-muted);
+/* Icon circle on the left. */
+#dashboard_on_this_day .on-this-day-post .on-this-day-post-icon {
+	position: relative;
+	z-index: 1; /* sits above the vertical line */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: #fff;
+	border: 1px solid var(--otd-line);
+	color: var(--otd-muted);
 
-			/* 3px white halo so the timeline line appears to stop short of
-			   the circle on both sides rather than butting right into it. */
-			box-shadow: 0 0 0 3px #fff;
+	/* 3px white halo so the timeline line appears to stop short of
+	   the circle on both sides rather than butting right into it. */
+	box-shadow: 0 0 0 3px #fff;
+}
 
-			& svg {
-				display: block;
-			}
-		}
+#dashboard_on_this_day .on-this-day-post .on-this-day-post-icon svg {
+	display: block;
+}
 
-		/* Featured-image variant: the thumbnail fills the circle.
-		   Border is hidden so the image reads as the "chip" itself,
-		   while the 3px white halo still separates it from the
-		   timeline line behind it. */
-		& .on-this-day-post-icon.has-thumbnail {
-			overflow: hidden;
-			border-color: transparent;
-			background: var(--otd-line); /* shown briefly before the image loads */
+/* Featured-image variant: the thumbnail fills the circle.
+   Border is hidden so the image reads as the "chip" itself,
+   while the 3px white halo still separates it from the
+   timeline line behind it. */
+#dashboard_on_this_day .on-this-day-post .on-this-day-post-icon.has-thumbnail {
+	overflow: hidden;
+	border-color: transparent;
+	background: var(--otd-line); /* shown briefly before the image loads */
+}
 
-			& img {
-				display: block;
-				width: 100%;
-				height: 100%;
-				object-fit: cover;
-			}
-		}
+#dashboard_on_this_day .on-this-day-post .on-this-day-post-icon.has-thumbnail img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
 
-		&.is-private .on-this-day-post-icon {
-			color: var(--otd-private);
-			border-color: #f5c9cc;
-			background: #fcf0f1;
-		}
-	}
+#dashboard_on_this_day .on-this-day-post.is-private .on-this-day-post-icon {
+	color: var(--otd-private);
+	border-color: #f5c9cc;
+	background: #fcf0f1;
+}
 
-	& .on-this-day-post-body {
-		min-width: 0;
-	}
+#dashboard_on_this_day .on-this-day-post-body {
+	min-width: 0;
+}
 
-	& .on-this-day-post-title {
-		margin: 0 0 2px;
-		font-size: 13px;
-		font-weight: 600;
-		line-height: 1.4;
+#dashboard_on_this_day .on-this-day-post-title {
+	margin: 0 0 2px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+}
 
-		& a {
-			color: var(--otd-ink);
-			text-decoration: none;
-			box-shadow: none;
+#dashboard_on_this_day .on-this-day-post-title a {
+	color: var(--otd-ink);
+	text-decoration: none;
+	box-shadow: none;
+}
 
-			&:hover,
-			&:focus {
-				color: var(--otd-accent);
-			}
-		}
-	}
+#dashboard_on_this_day .on-this-day-post-title a:hover,
+#dashboard_on_this_day .on-this-day-post-title a:focus {
+	color: var(--otd-accent);
+}
 
-	& .on-this-day-post-excerpt {
-		margin: 0 0 6px;
-		color: var(--otd-text);
-		line-height: 1.5;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
+#dashboard_on_this_day .on-this-day-post-excerpt {
+	margin: 0 0 6px;
+	color: var(--otd-text);
+	line-height: 1.5;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 
-	& .on-this-day-post-meta {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 6px;
-		font-size: 12px;
-		color: var(--otd-subtle);
-		line-height: 1.5;
-	}
+#dashboard_on_this_day .on-this-day-post-meta {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	font-size: 12px;
+	color: var(--otd-subtle);
+	line-height: 1.5;
+}
 
-	& .on-this-day-post-time {
-		color: var(--otd-muted);
-	}
+#dashboard_on_this_day .on-this-day-post-time {
+	color: var(--otd-muted);
+}
 
-	& .on-this-day-post-sep {
-		color: var(--otd-line);
-	}
+#dashboard_on_this_day .on-this-day-post-sep {
+	color: var(--otd-line);
+}
 
-	& .on-this-day-post-categories {
-		max-width: 240px;
-		color: var(--otd-muted);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
+#dashboard_on_this_day .on-this-day-post-categories {
+	max-width: 240px;
+	color: var(--otd-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
 
-	& .on-this-day-post-private {
-		color: var(--otd-private);
-		font-weight: 500;
-	}
+#dashboard_on_this_day .on-this-day-post-private {
+	color: var(--otd-private);
+	font-weight: 500;
+}
 
-	/* Actions row sits on its own line below the meta, left-aligned
-	   with the post body column. Uses core `.button` styling so it
-	   picks up the user's admin color scheme automatically. */
-	& .on-this-day-post-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		margin-top: 8px;
-		align-items: center;
-	}
+/* Actions row sits on its own line below the meta, left-aligned
+   with the post body column. Uses core `.button` styling so it
+   picks up the user's admin color scheme automatically. */
+#dashboard_on_this_day .on-this-day-post-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+	align-items: center;
+}
 
-	/* -------------------------------------------------------------------------
-	   6. Window control
-	   ------------------------------------------------------------------------- */
-	& .on-this-day-window-form {
-		flex: 0 0 auto;
-		padding: 12px 20px 14px;
-		border-top: 1px solid var(--otd-line);
-		background: #fff;
-	}
+/* -----------------------------------------------------------------------------
+   6. Window control
+   ----------------------------------------------------------------------------- */
+#dashboard_on_this_day .on-this-day-window-form {
+	flex: 0 0 auto;
+	padding: 12px 20px 14px;
+	border-top: 1px solid var(--otd-line);
+	background: #fff;
+}
 
-	& .on-this-day-window-control {
-		display: grid;
-		grid-template-columns: auto minmax(120px, 1fr) auto;
-		align-items: center;
-		gap: 8px;
+#dashboard_on_this_day .on-this-day-window-control {
+	display: grid;
+	grid-template-columns: auto minmax(120px, 1fr) auto;
+	align-items: center;
+	gap: 8px;
+}
 
-		& input[type="range"] {
-			width: 100%;
-			margin: 0;
-			accent-color: var(--otd-accent);
-		}
-	}
+#dashboard_on_this_day .on-this-day-window-control input[type="range"] {
+	width: 100%;
+	margin: 0;
+	accent-color: var(--otd-accent);
+}
 
-	& .on-this-day-window-scale {
-		color: var(--otd-subtle);
-		font-size: 11px;
-		line-height: 1.4;
-		white-space: nowrap;
-	}
+#dashboard_on_this_day .on-this-day-window-scale {
+	color: var(--otd-subtle);
+	font-size: 11px;
+	line-height: 1.4;
+	white-space: nowrap;
+}
 
-	/* -------------------------------------------------------------------------
-	   7. Empty state
-	   ------------------------------------------------------------------------- */
-	& .on-this-day-empty {
-		text-align: center;
-		padding: 28px 20px 24px;
-	}
+/* -----------------------------------------------------------------------------
+   7. Empty state
+   ----------------------------------------------------------------------------- */
+#dashboard_on_this_day .on-this-day-empty {
+	text-align: center;
+	padding: 28px 20px 24px;
+}
 
-	& .on-this-day-empty-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 60px;
-		height: 60px;
-		margin-bottom: 10px;
-		color: var(--otd-accent);
-		background: var(--otd-accent-8);
-		border-radius: 50%;
-		box-shadow: inset 0 0 0 1px var(--otd-accent-15);
-	}
+#dashboard_on_this_day .on-this-day-empty-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 60px;
+	height: 60px;
+	margin-bottom: 10px;
+	color: var(--otd-accent);
+	background: var(--otd-accent-8);
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 1px var(--otd-accent-15);
+}
 
-	& .on-this-day-empty-title {
-		margin: 6px 0 4px;
-		font-size: 15px;
-		font-weight: 600;
-		color: var(--otd-ink);
-	}
+#dashboard_on_this_day .on-this-day-empty-title {
+	margin: 6px 0 4px;
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--otd-ink);
+}
 
-	& .on-this-day-empty-text {
-		max-width: 340px;
-		margin: 0 auto 12px;
-		color: var(--otd-text);
-		line-height: 1.55;
-	}
+#dashboard_on_this_day .on-this-day-empty-text {
+	max-width: 340px;
+	margin: 0 auto 12px;
+	color: var(--otd-text);
+	line-height: 1.55;
+}
 
-	& .on-this-day-empty-cta {
-		margin: 0;
-	}
+#dashboard_on_this_day .on-this-day-empty-cta {
+	margin: 0;
 }
 
 /* -----------------------------------------------------------------------------
    8. Adaptive rules
    ----------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-	#dashboard_on_this_day {
-		& .on-this-day-post-title a,
-		& .on-this-day-post-action {
-			transition: none;
-		}
+	#dashboard_on_this_day .on-this-day-post-title a,
+	#dashboard_on_this_day .on-this-day-post-action {
+		transition: none;
 	}
 }
