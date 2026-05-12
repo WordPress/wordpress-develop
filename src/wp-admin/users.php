@@ -213,6 +213,11 @@ switch ( $wp_list_table->current_action() ) {
 				continue;
 			}
 
+			if ( 'reassign' === $_REQUEST['delete_option'][ $id ] && empty( $_REQUEST['reassign_user'][ $id ] ) ) {
+				$update = 'err_missing_reassign';
+				continue;
+			}
+
 			switch ( $_REQUEST['delete_option'][ $id ] ) {
 				case 'delete':
 					wp_delete_user( $id );
@@ -428,11 +433,12 @@ switch ( $wp_list_table->current_action() ) {
 							<?php
 							wp_dropdown_users(
 								array(
-									'show_option_none' => __( 'Select a user' ),
-									'name'             => 'reassign_user[' . $id . ']',
-									'id'               => 'reassign_user_' . $id,
-									'exclude'          => $user_ids,
-									'show'             => 'display_name_with_login',
+									'show_option_none'  => __( 'Select a user' ),
+									'option_none_value' => '',
+									'name'              => 'reassign_user[' . $id . ']',
+									'id'                => 'reassign_user_' . $id,
+									'exclude'           => $user_ids,
+									'show'              => 'display_name_with_login',
 								)
 							);
 							?>
@@ -629,10 +635,11 @@ switch ( $wp_list_table->current_action() ) {
 
 		$messages = array();
 		if ( isset( $_GET['update'] ) ) :
+			$delete_count = isset( $_GET['delete_count'] ) ? (int) $_GET['delete_count'] : 0;
+
 			switch ( $_GET['update'] ) {
 				case 'del':
 				case 'del_many':
-					$delete_count = isset( $_GET['delete_count'] ) ? (int) $_GET['delete_count'] : 0;
 					if ( 1 === $delete_count ) {
 						$message = __( 'User deleted.' );
 					} else {
@@ -712,14 +719,16 @@ switch ( $wp_list_table->current_action() ) {
 							'dismissible'        => true,
 						)
 					);
-					$messages[] = wp_get_admin_notice(
-						__( 'Other user roles have been changed.' ),
-						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'updated' ),
-							'dismissible'        => true,
-						)
-					);
+					if ( $delete_count > 0 ) {
+						$messages[] = wp_get_admin_notice(
+							__( 'Other user roles have been changed.' ),
+							array(
+								'id'                 => 'message',
+								'additional_classes' => array( 'updated' ),
+								'dismissible'        => true,
+							)
+						);
+					}
 					break;
 				case 'err_admin_del':
 					$messages[] = wp_get_admin_notice(
@@ -730,14 +739,36 @@ switch ( $wp_list_table->current_action() ) {
 							'dismissible'        => true,
 						)
 					);
+					if ( $delete_count > 0 ) {
+						$messages[] = wp_get_admin_notice(
+							__( 'Other users have been deleted.' ),
+							array(
+								'id'                 => 'message',
+								'additional_classes' => array( 'updated' ),
+								'dismissible'        => true,
+							)
+						);
+					}
+					break;
+				case 'err_missing_reassign':
 					$messages[] = wp_get_admin_notice(
-						__( 'Other users have been deleted.' ),
+						__( 'Users could not be deleted because no user was selected for content reassignment.' ),
 						array(
 							'id'                 => 'message',
-							'additional_classes' => array( 'updated' ),
+							'additional_classes' => array( 'error' ),
 							'dismissible'        => true,
 						)
 					);
+					if ( $delete_count > 0 ) {
+						$messages[] = wp_get_admin_notice(
+							__( 'Other users have been deleted.' ),
+							array(
+								'id'                 => 'message',
+								'additional_classes' => array( 'updated' ),
+								'dismissible'        => true,
+							)
+						);
+					}
 					break;
 				case 'remove':
 					$messages[] = wp_get_admin_notice(
