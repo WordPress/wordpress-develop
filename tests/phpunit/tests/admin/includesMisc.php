@@ -53,4 +53,32 @@ class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
 		update_option_new_admin_email( 'old@example.com', 'new@example.com' );
 		$this->assertSame( 'Filtered Admin Email Address', $mailer->get_sent()->subject );
 	}
+
+	/**
+	 * @ticket 65181
+	 * @covers ::show_message
+	 */
+	public function test_show_message_returns_formatted_html_for_string() {
+		$this->assertSame( "<p>A message.</p>\n", show_message( 'A message.', false ) );
+	}
+
+	/**
+	 * @ticket 65181
+	 * @covers ::show_message
+	 */
+	public function test_show_message_returns_formatted_html_for_wp_error_with_string_data() {
+		$error = new WP_Error( 'test_error', 'A message.', 'Error details.' );
+
+		$this->assertSame( "<p>A message.: Error details.</p>\n", show_message( $error, false ) );
+	}
+
+	/**
+	 * @ticket 65181
+	 * @covers ::show_message
+	 */
+	public function test_show_message_returns_formatted_html_for_wp_error_without_string_data() {
+		$error = new WP_Error( 'test_error', 'A message.', array( 'Error details.' ) );
+
+		$this->assertSame( "<p>A message.</p>\n", show_message( $error, false ) );
+	}
 }
