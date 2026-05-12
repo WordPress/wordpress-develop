@@ -109,13 +109,6 @@ class Tests_wp_ajax_date_format extends WP_Ajax_UnitTestCase {
 	 * }>
 	 */
 	public function data_date_format(): array {
-		// Set a fixed time for testing.
-		$time = strtotime( '2023-05-12 18:00:00' );
-
-		// We need to mock date_i18n or use a fixed environment.
-		// Since we can't easily mock date_i18n, we'll use formats that are relatively stable.
-		// Actually, date_i18n uses the 'timezone_string' or 'gmt_offset' option.
-
 		return array(
 			'standard_date' => array(
 				'payload'  => array(
