@@ -652,7 +652,6 @@ class WP_Admin_Bar {
 		add_action( 'admin_bar_menu', 'wp_admin_bar_my_account_menu', 0 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_my_account_item', 9991 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_recovery_mode_menu', 9992 );
-		add_action( 'admin_bar_menu', 'wp_admin_bar_search_menu', 9999 );
 
 		// Site-related.
 		add_action( 'admin_bar_menu', 'wp_admin_bar_sidebar_toggle', 0 );
@@ -663,8 +662,9 @@ class WP_Admin_Bar {
 		add_action( 'admin_bar_menu', 'wp_admin_bar_customize_menu', 40 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_updates_menu', 50 );
 
-		// Command palette.
+		// Command palette and search.
 		add_action( 'admin_bar_menu', 'wp_admin_bar_command_palette_menu', 55 );
+		add_action( 'admin_bar_menu', 'wp_admin_bar_search_menu', 55 );
 
 		// Content-related.
 		if ( ! is_network_admin() && ! is_user_admin() ) {

@@ -1261,9 +1261,17 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 	$form .= '<input type="submit" class="adminbar-button" value="' . __( 'Search' ) . '" />';
 	$form .= '</form>';
 
+	$wp_admin_bar->add_group(
+		array(
+			'id'   => 'search-group',
+			'meta' => array(
+				'class' => 'ab-search',
+			),
+		)
+	);
 	$wp_admin_bar->add_node(
 		array(
-			'parent' => 'top-secondary',
+			'parent' => 'search-group',
 			'id'     => 'search',
 			'title'  => $form,
 			'meta'   => array(

@@ -374,8 +374,22 @@ html:lang(he-il) .rtl #wpadminbar * {
 	color: #000;
 }
 
+#wpadminbar .quicklinks {
+	display: flex;
+	align-items: center;
+}
+
+#wpadminbar #wp-admin-bar-root-default {
+	flex: 1 1 0;
+	min-width: fit-content;
+}
+
 #wpadminbar .ab-top-secondary {
 	float: right;
+	flex: 1 1 0;
+	min-width: fit-content;
+	display: flex;
+	justify-content: flex-end;
 }
 
 #wpadminbar ul li:last-child,
@@ -629,24 +643,40 @@ html:lang(he-il) .rtl #wpadminbar * {
  * Search
  */
 
+#wpadminbar .ab-search {
+	flex: 0 1 200px;
+	min-width: fit-content;
+	padding: 4px 0;
+}
+
+#wpadminbar .ab-search > #wp-admin-bar-search {
+	width: 100%;
+}
+
 #wpadminbar #wp-admin-bar-search .ab-item {
+	width: 100%;
+	height: 24px;
 	padding: 0;
 	background: transparent;
+	display: flex;
+	align-items: center;
 }
 
 #wpadminbar #adminbarsearch {
 	position: relative;
-	height: 32px;
-	padding: 0 2px;
+	width: 100%;
+	height: 24px;
 	z-index: 1;
 }
 
 #wpadminbar #adminbarsearch:before {
 	position: absolute;
-	top: 6px;
-	left: 5px;
-	z-index: 20;
-	font: normal 20px/1 dashicons !important;
+	top: 50%;
+	left: 6px;
+	z-index: 30;
+	pointer-events: none;
+	transform: translateY(-50%) scaleX(-1);
+	font: normal 18px/1 dashicons !important;
 	content: "\f179";
 	content: "\f179" / '';
 	speak: never;
@@ -655,39 +685,46 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 /* The admin bar search field needs to reset many styles that might be inherited from the active Theme CSS. See ticket #40313. */
-#wpadminbar > #wp-toolbar > #wp-admin-bar-top-secondary > #wp-admin-bar-search #adminbarsearch input.adminbar-input {
-	display: inline-block;
+#wpadminbar #adminbarsearch input.adminbar-input {
+	display: block;
 	float: none;
 	position: relative;
-	z-index: 30;
+	z-index: 20;
 	font-size: 13px;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	line-height: 1.84615384;
 	text-indent: 0;
 	height: 24px;
-	width: 24px;
+	width: 100%;
 	max-width: none;
-	padding: 0 3px 0 24px;
+	padding: 0 6px 0 28px;
 	margin: 0;
-	color: #c3c4c7;
-	background-color: rgba(255, 255, 255, 0);
+	color: #f0f0f1;
+	background: #3c434a;
 	border: none;
 	outline: none;
-	cursor: pointer;
+	cursor: text;
 	box-shadow: none;
 	box-sizing: border-box;
-	transition-duration: 400ms;
-	transition-property: width, background;
-	transition-timing-function: ease;
+	border-radius: 2px;
 }
 
-#wpadminbar > #wp-toolbar > #wp-admin-bar-top-secondary > #wp-admin-bar-search #adminbarsearch input.adminbar-input:focus {
-	z-index: 10;
-	color: #000;
-	width: 200px;
-	background-color: rgba(255, 255, 255, 0.9);
-	cursor: text;
-	border: 0;
+#wpadminbar #adminbarsearch:hover input.adminbar-input,
+#wpadminbar #adminbarsearch:focus-within input.adminbar-input {
+	background: #2c3338;
+}
+
+#wpadminbar #adminbarsearch input.adminbar-input:-webkit-autofill,
+#wpadminbar #adminbarsearch input.adminbar-input:-webkit-autofill:hover,
+#wpadminbar #adminbarsearch input.adminbar-input:-webkit-autofill:focus {
+	-webkit-text-fill-color: #f0f0f1;
+	-webkit-transition: background-color 9999s ease-out 0s;
+	transition: background-color 9999s ease-out 0s;
+}
+
+#wpadminbar li:hover #adminbarsearch:before,
+#wpadminbar li #adminbarsearch.adminbar-focused:before {
+	color: rgba(240, 246, 252, 0.6);
 }
 
 #wpadminbar #adminbarsearch .adminbar-button {
@@ -926,8 +963,56 @@ html:lang(he-il) .rtl #wpadminbar * {
 	}
 
 	/* Search */
-	#wpadminbar #wp-admin-bar-search {
-		display: none;
+	#wpadminbar .ab-search {
+		flex: 0 0 auto;
+		padding: 0;
+	}
+
+	#wpadminbar .ab-top-secondary {
+		flex: 0 0 auto;
+	}
+
+	#wpadminbar #wp-admin-bar-search .ab-item {
+		position: relative;
+		width: 34px;
+		height: 32px;
+		padding: 0;
+		margin-right: 4px;
+	}
+
+	#wpadminbar #adminbarsearch {
+		position: absolute;
+		top: 0;
+		right: 0;
+		height: 32px;
+		width: 34px;
+		transition: width 400ms ease;
+	}
+
+	#wpadminbar #adminbarsearch:focus-within {
+		width: 200px;
+		z-index: 2;
+	}
+
+	#wpadminbar #adminbarsearch:before {
+		top: 50%;
+		left: 2px;
+		width: 30px;
+		font: 30px/1 dashicons !important;
+		text-align: center;
+	}
+
+	#wpadminbar #adminbarsearch input.adminbar-input {
+		width: 100%;
+		height: 32px;
+		padding: 0 4px 0 30px;
+		cursor: pointer;
+		border-radius: 4px;
+	}
+
+	#wpadminbar #adminbarsearch input.adminbar-input:focus {
+		padding-left: 38px;
+		cursor: text;
 	}
 
 	/* New Content */
@@ -1025,8 +1110,9 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar li#wp-admin-bar-new-content,
 	#wpadminbar li#wp-admin-bar-edit,
 	#wpadminbar li#wp-admin-bar-comments,
-	#wpadminbar li#wp-admin-bar-my-account,
-	#wpadminbar li#wp-admin-bar-command-palette {
+	#wpadminbar li#wp-admin-bar-command-palette,
+	#wpadminbar li#wp-admin-bar-search,
+	#wpadminbar li#wp-admin-bar-my-account {
 		display: block;
 	}
 
