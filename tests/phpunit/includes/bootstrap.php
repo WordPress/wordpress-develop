@@ -366,9 +366,9 @@ class WP_PHPUnit_Util_Getopt {
 	 */
 	protected static function get_default_skipped_groups() {
 		$skipped_groups = array(
-			'ajax'                   => true,
-			'ms-files'               => true,
-			'external-http'          => true,
+			'ajax'                    => true,
+			'ms-files'                => true,
+			'external-http'           => true,
 			'html-api-html5lib-tests' => true,
 		);
 
@@ -386,7 +386,7 @@ class WP_PHPUnit_Util_Getopt {
 	 * Resets the parsed command line state.
 	 */
 	public static function reset() {
-		self::$skipped_groups  = self::get_default_skipped_groups();
+		self::$skipped_groups   = self::get_default_skipped_groups();
 		self::$requested_groups = array();
 	}
 
