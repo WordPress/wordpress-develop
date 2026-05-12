@@ -79,6 +79,10 @@ add_filter( 'heartbeat_received', 'wp_check_locked_posts', 10, 3 );
 add_filter( 'heartbeat_received', 'wp_refresh_post_lock', 10, 3 );
 add_filter( 'heartbeat_received', 'heartbeat_autosave', 500, 2 );
 
+// Site Editor post lock acquisition during REST edit-context reads.
+add_filter( 'rest_prepare_wp_template', 'wp_set_site_editor_post_lock_on_rest_prepare', 10, 3 );
+add_filter( 'rest_prepare_wp_template_part', 'wp_set_site_editor_post_lock_on_rest_prepare', 10, 3 );
+
 add_filter( 'wp_refresh_nonces', 'wp_refresh_post_nonces', 10, 3 );
 add_filter( 'wp_refresh_nonces', 'wp_refresh_metabox_loader_nonces', 10, 2 );
 add_filter( 'wp_refresh_nonces', 'wp_refresh_heartbeat_nonces' );
