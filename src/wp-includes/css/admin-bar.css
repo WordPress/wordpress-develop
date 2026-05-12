@@ -594,7 +594,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	margin: 0 6px 0 0;
 	vertical-align: -5px;
 	background: #f0f0f1;
-	border-radius: 4px;
+	border-radius: 2px;
 }
 
 
@@ -940,6 +940,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 		width: 28px;
 		height: 28px;
 		margin: 0;
+		border-radius: 4px;
 	}
 
 	#wpadminbar #wp-admin-bar-appearance {
