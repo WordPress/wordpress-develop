@@ -422,7 +422,9 @@ switch ( $wp_list_table->current_action() ) {
 						</li>
 						<li>
 							<input type="radio" id="reassign_option_<?php echo esc_attr( $id ); ?>" name="delete_option[<?php echo esc_attr( $id ); ?>]" value="reassign" required />
-							<label for="reassign_option_<?php echo esc_attr( $id ); ?>"><?php _e( 'Attribute all content to:' ); ?></label>
+							<label for="reassign_option_<?php echo esc_attr( $id ); ?>"><?php _e( 'Attribute all content to another user.' ); ?></label>
+
+							<label for="reassign_user_<?php echo esc_attr( $id ); ?>" class="screen-reader-text"><?php _e( 'Select a user to attribute the content to.' ); ?></label>
 							<?php
 							wp_dropdown_users(
 								array(
