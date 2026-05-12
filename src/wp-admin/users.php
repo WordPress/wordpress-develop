@@ -355,12 +355,6 @@ switch ( $wp_list_table->current_action() ) {
 					'<input type="hidden" name="users[]" value="%s" />',
 					esc_attr( $id )
 				);
-				printf(
-					/* translators: 1: User ID, 2: User login. */
-					__( 'ID #%1$s: %2$s' ),
-					$id,
-					$user->user_login
-				);
 
 				/**
 				 * Filters whether the users being deleted have additional content
@@ -398,12 +392,28 @@ switch ( $wp_list_table->current_action() ) {
 				if ( ! $user_has_content ) {
 					?>
 					<input type="hidden" name="delete_option[<?php echo esc_attr( $id ); ?>]" value="delete" required />
-					<p><legend><?php _e( 'This user does not have any content.' ); ?></legend></p>
+					<p>
+					<?php
+					printf(
+						/* translators: %s: User login. */
+						__( '%s: This user does not have any content.' ),
+						$user->user_login
+					);
+					?>
+					</p>
 					<?php
 				} else {
 					?>
 					<fieldset>
-					<p><legend><?php _e( 'What should be done with content owned by this user?' ); ?></legend></p>
+					<legend>
+					<?php
+					printf(
+						/* translators: %s: User login. */
+						__( '%s: What should be done with the content owned by this user?' ),
+						$user->user_login
+					);
+					?>
+					</legend>
 
 					<ul style="list-style:none;">
 						<li>

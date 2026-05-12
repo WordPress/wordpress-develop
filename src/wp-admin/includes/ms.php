@@ -914,15 +914,15 @@ function confirm_delete_users( $users ) {
 
 			if ( ! empty( $blogs ) ) {
 				?>
-				<td><fieldset><p><legend>
+				<td><fieldset><legend>
 				<?php
 				printf(
 					/* translators: %s: User login. */
-					__( 'What should be done with content owned by %s?' ),
-					'<em>' . $delete_user->user_login . '</em>'
+					__( '%s: What should be done with the content owned by this user?' ),
+					$delete_user->user_login
 				);
 				?>
-				</legend></p>
+				</legend>
 				<?php
 				foreach ( (array) $blogs as $key => $details ) {
 					$blog_users = get_users(
