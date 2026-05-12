@@ -95,18 +95,15 @@ jobs:
           GH_APP_ID: ${{ secrets.GH_PR_BUILT_FILES_APP_ID }}
           GH_APP_PRIVATE_KEY: ${{ secrets.GH_PR_BUILT_FILES_PRIVATE_KEY }}
         run: |
-          echo "$GH_APP_PRIVATE_KEY" > private-key.pem
-
           # Generate JWT
           JWT=$(python3 - <<EOF
-          import jwt, time
-          private_key = open("private-key.pem", "r").read()
+          import jwt, time, os
           payload = {
               "iat": int(time.time()),
               "exp": int(time.time()) + 600,  # 10-minute expiration
               "iss": $GH_APP_ID
           }
-          print(jwt.encode(payload, private_key, algorithm="RS256"))
+          print(jwt.encode(payload, os.environ["GH_APP_PRIVATE_KEY"], algorithm="RS256"))
           EOF
           )
 
@@ -121,8 +118,6 @@ jobs:
             "https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens" | jq -r '.token')
 
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
-
-          rm -f private-key.pem
 
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
