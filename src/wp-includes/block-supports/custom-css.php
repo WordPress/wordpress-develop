@@ -100,13 +100,11 @@ function wp_enqueue_block_custom_css() {
 function wp_render_custom_css_class_name( $block_content, $block ) {
 	$class_string = $block['attrs']['className'] ?? null;
 
-	if ( ! is_string( $class_string ) || '' === $class_string ) {
-		return $block_content;
-	}
-
-	preg_match( '/\bwp-custom-css-\S+\b/', $class_string, $matches );
-
-	if ( empty( $matches ) ) {
+	if (
+		! is_string( $class_string ) ||
+		! str_contains( $class_string, 'wp-custom-css-' ) ||
+		! preg_match( '/\bwp-custom-css-\S+\b/', $class_string, $matches )
+	) {
 		return $block_content;
 	}
 
