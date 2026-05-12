@@ -8,8 +8,13 @@
  * existing gutenberg directory is removed before extraction.
  *
  * The artifact is identified by the "gutenberg.sha" value in the root
- * package.json, which is used as the OCI image tag for the gutenberg-build
- * package on GitHub Container Registry.
+ * package.json, which is used as the OCI tag for the gutenberg-wp-develop-build
+ * package on GitHub Container Registry. The value is normally a Git SHA, but
+ * may also be a mutable tag (e.g. "trunk", "pr-12345") in a pull request that
+ * wants to track the latest build of a stream. When the ref is a mutable tag,
+ * the script resolves it to the immutable SHA tag for the actual blob fetch
+ * and falls back to the mutable tag's manifest when the immutable tag is
+ * unavailable.
  *
  * @package WordPress
  */
@@ -19,7 +24,58 @@ const fs = require( 'fs' );
 const { Writable } = require( 'stream' );
 const { pipeline } = require( 'stream/promises' );
 const zlib = require( 'zlib' );
-const { gutenbergDir, readGutenbergConfig } = require( './utils' );
+const {
+	gutenbergDir,
+	readGutenbergConfig,
+	fetchGhcrToken,
+	fetchManifest,
+} = require( './utils' );
+
+/**
+ * Resolve the manifest to use for downloading.
+ *
+ * For immutable refs (SHA values), the ref is used directly.
+ *
+ * For mutable refs, the mutable tag's manifest is fetched first and the
+ * `image.revision` annotation is read. The corresponding immutable SHA tag is
+ * then preferred. If the immutable SHA tag is unavailable, fall back to the
+ * manifest already fetched via the mutable tag.
+ *
+ * @param {{ ref: string, ghcrRepo: string, isMutable: boolean }} config
+ * @param {string} token
+ * @return {Promise<{ manifest: Object, resolvedRef: string }>}
+ */
+async function resolveDownloadManifest( config, token ) {
+	const { ref, ghcrRepo, isMutable } = config;
+
+	const initialManifest = await fetchManifest( ref, ghcrRepo, token );
+
+	if ( ! isMutable ) {
+		return { manifest: initialManifest, resolvedRef: ref };
+	}
+
+	const revision =
+		initialManifest?.annotations?.[ 'org.opencontainers.image.revision' ];
+	if ( ! revision ) {
+		console.log(
+			`ℹ️  No image.revision annotation on "${ ref }"; using mutable tag for download.`
+		);
+		return { manifest: initialManifest, resolvedRef: ref };
+	}
+
+	try {
+		const immutableManifest = await fetchManifest( revision, ghcrRepo, token );
+		return { manifest: immutableManifest, resolvedRef: revision };
+	} catch ( error ) {
+		if ( error.status === 404 ) {
+			console.log(
+				`ℹ️  Immutable SHA tag ${ revision } unavailable; falling back to mutable tag "${ ref }".`
+			);
+			return { manifest: initialManifest, resolvedRef: ref };
+		}
+		throw error;
+	}
+}
 
 /**
  * Main execution function.
@@ -31,13 +87,17 @@ async function main() {
 	 * Read Gutenberg configuration from package.json.
 	 *
 	 * Note: ghcr stands for GitHub Container Registry where wordpress-develop ready builds of the Gutenberg plugin
-	 * are published on every repository push event.
+	 * are published by the Gutenberg build-plugin-zip workflow.
 	 */
-	let sha, ghcrRepo;
+	let config;
 	try {
-		( { sha, ghcrRepo } = readGutenbergConfig() );
-		console.log( `   SHA: ${ sha }` );
-		console.log( `   GHCR repository: ${ ghcrRepo }` );
+		config = readGutenbergConfig();
+		console.log(
+			`   Ref: ${ config.ref }${
+				config.isMutable ? ' (mutable tag)' : ''
+			}`
+		);
+		console.log( `   GHCR repository: ${ config.ghcrRepo }` );
 	} catch ( error ) {
 		console.error( '❌ Error reading package.json:', error.message );
 		process.exit( 1 );
@@ -47,44 +107,35 @@ async function main() {
 	console.log( '\n🔑 Fetching GHCR token...' );
 	let token;
 	try {
-		const response = await fetch( `https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io` );
-		if ( ! response.ok ) {
-			throw new Error( `Failed to fetch token: ${ response.status } ${ response.statusText }` );
-		}
-		const data = await response.json();
-		token = data.token;
-		if ( ! token ) {
-			throw new Error( 'No token in response' );
-		}
+		token = await fetchGhcrToken( config.ghcrRepo );
 		console.log( '✅ Token acquired' );
 	} catch ( error ) {
 		console.error( '❌ Failed to fetch token:', error.message );
 		process.exit( 1 );
 	}
 
-	// Step 2: Get the manifest to find the blob digest.
-	console.log( `\n📋 Fetching manifest for ${ sha }...` );
-	let digest;
+	// Step 2: Resolve the manifest to use for download.
+	console.log( `\n📋 Fetching manifest for ${ config.ref }...` );
+	let manifest, resolvedRef;
 	try {
-		const response = await fetch( `https://ghcr.io/v2/${ ghcrRepo }/manifests/${ sha }`, {
-			headers: {
-				Authorization: `Bearer ${ token }`,
-				Accept: 'application/vnd.oci.image.manifest.v1+json',
-			},
-		} );
-		if ( ! response.ok ) {
-			throw new Error( `Failed to fetch manifest: ${ response.status } ${ response.statusText }` );
+		( { manifest, resolvedRef } = await resolveDownloadManifest(
+			config,
+			token
+		) );
+		if ( resolvedRef !== config.ref ) {
+			console.log( `   Resolved to immutable SHA tag: ${ resolvedRef }` );
 		}
-		const manifest = await response.json();
-		digest = manifest?.layers?.[ 0 ]?.digest;
-		if ( ! digest ) {
-			throw new Error( 'No layer digest found in manifest' );
-		}
-		console.log( `✅ Blob digest: ${ digest }` );
 	} catch ( error ) {
 		console.error( '❌ Failed to fetch manifest:', error.message );
 		process.exit( 1 );
 	}
+
+	const digest = manifest?.layers?.[ 0 ]?.digest;
+	if ( ! digest ) {
+		console.error( '❌ No layer digest found in manifest' );
+		process.exit( 1 );
+	}
+	console.log( `✅ Blob digest: ${ digest }` );
 
 	// Remove existing gutenberg directory so the extraction is clean.
 	if ( fs.existsSync( gutenbergDir ) ) {
@@ -100,7 +151,7 @@ async function main() {
 	 */
 	console.log( `\n📥 Downloading and extracting artifact...` );
 	try {
-		const response = await fetch( `https://ghcr.io/v2/${ ghcrRepo }/blobs/${ digest }`, {
+		const response = await fetch( `https://ghcr.io/v2/${ config.ghcrRepo }/blobs/${ digest }`, {
 			headers: {
 				Authorization: `Bearer ${ token }`,
 			},
