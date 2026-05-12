@@ -351,7 +351,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					?>
 					</label>
 					<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
-					<input id="search-submit" type="submit" class="button" value="<?php esc_attr_e( 'Search Media' ); ?>">
+					<input id="search-submit" type="submit" class="button button-compact" value="<?php esc_attr_e( 'Search Media' ); ?>">
 				</p>
 			</div>
 		</div>
