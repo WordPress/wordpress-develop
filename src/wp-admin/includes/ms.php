@@ -1006,7 +1006,6 @@ function confirm_delete_users( $users ) {
 									?>
 
 								</li>
-							</li>
 							</ul>
 							<?php
 						}
