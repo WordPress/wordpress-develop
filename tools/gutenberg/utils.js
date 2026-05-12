@@ -85,7 +85,7 @@ async function fetchGhcrToken( ghcrRepo ) {
  * @param {string} ref      The tag (SHA or mutable tag).
  * @param {string} ghcrRepo The "owner/repo/package" path on ghcr.io.
  * @param {string} token    Bearer token from fetchGhcrToken.
- * @return {Promise<Object>} Parsed manifest JSON.
+ * @return {Promise<Record<string, any>>} Parsed manifest JSON.
  */
 async function fetchManifest( ref, ghcrRepo, token ) {
 	const response = await fetch(
@@ -98,8 +98,10 @@ async function fetchManifest( ref, ghcrRepo, token ) {
 		}
 	);
 	if ( ! response.ok ) {
-		const error = new Error(
-			`Failed to fetch manifest for "${ ref }": ${ response.status } ${ response.statusText }`
+		const error = /** @type {Error & { status?: number }} */ (
+			new Error(
+				`Failed to fetch manifest for "${ ref }": ${ response.status } ${ response.statusText }`
+			)
 		);
 		error.status = response.status;
 		throw error;
@@ -168,7 +170,7 @@ async function verifyGutenbergVersion() {
 	try {
 		config = readGutenbergConfig();
 	} catch ( error ) {
-		console.error( '❌ Error reading package.json:', error.message );
+		console.error( '❌ Error reading package.json:', /** @type {Error} */ ( error ).message );
 		process.exit( 1 );
 	}
 
@@ -181,7 +183,7 @@ async function verifyGutenbergVersion() {
 	try {
 		expectedSha = await resolveExpectedSha( config );
 	} catch ( error ) {
-		console.error( '❌ Failed to resolve expected SHA:', error.message );
+		console.error( '❌ Failed to resolve expected SHA:', /** @type {Error} */ ( error ).message );
 		process.exit( 1 );
 	}
 
@@ -198,8 +200,9 @@ async function verifyGutenbergVersion() {
 		try {
 			installedHash = fs.readFileSync( hashFilePath, 'utf8' ).trim();
 		} catch ( error ) {
-			if ( error.code !== 'ENOENT' ) {
-				console.error( `❌ ${ error.message }` );
+			const err = /** @type {NodeJS.ErrnoException} */ ( error );
+			if ( err.code !== 'ENOENT' ) {
+				console.error( `❌ ${ err.message }` );
 				process.exit( 1 );
 			}
 		}
@@ -221,10 +224,11 @@ async function verifyGutenbergVersion() {
 			process.exit( 1 );
 		}
 	} catch ( error ) {
-		if ( error.code === 'ENOENT' ) {
+		const err = /** @type {NodeJS.ErrnoException} */ ( error );
+		if ( err.code === 'ENOENT' ) {
 			console.error( '❌ .gutenberg-hash not found after download. This is unexpected.' );
 		} else {
-			console.error( `❌ ${ error.message }` );
+			console.error( `❌ ${ err.message }` );
 		}
 		process.exit( 1 );
 	}

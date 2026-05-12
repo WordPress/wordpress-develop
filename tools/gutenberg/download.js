@@ -21,7 +21,7 @@
 
 const { spawn } = require( 'child_process' );
 const fs = require( 'fs' );
-const { Writable } = require( 'stream' );
+const { Readable } = require( 'stream' );
 const { pipeline } = require( 'stream/promises' );
 const zlib = require( 'zlib' );
 const {
@@ -43,7 +43,7 @@ const {
  *
  * @param {{ ref: string, ghcrRepo: string, isMutable: boolean }} config
  * @param {string} token
- * @return {Promise<{ manifest: Object, resolvedRef: string }>}
+ * @return {Promise<{ manifest: Record<string, any>, resolvedRef: string }>}
  */
 async function resolveDownloadManifest( config, token ) {
 	const { ref, ghcrRepo, isMutable } = config;
@@ -67,7 +67,7 @@ async function resolveDownloadManifest( config, token ) {
 		const immutableManifest = await fetchManifest( revision, ghcrRepo, token );
 		return { manifest: immutableManifest, resolvedRef: revision };
 	} catch ( error ) {
-		if ( error.status === 404 ) {
+		if ( /** @type {{ status?: number }} */ ( error ).status === 404 ) {
 			console.log(
 				`ℹ️  Immutable SHA tag ${ revision } unavailable; falling back to mutable tag "${ ref }".`
 			);
@@ -99,7 +99,7 @@ async function main() {
 		);
 		console.log( `   GHCR repository: ${ config.ghcrRepo }` );
 	} catch ( error ) {
-		console.error( '❌ Error reading package.json:', error.message );
+		console.error( '❌ Error reading package.json:', /** @type {Error} */ ( error ).message );
 		process.exit( 1 );
 	}
 
@@ -110,7 +110,7 @@ async function main() {
 		token = await fetchGhcrToken( config.ghcrRepo );
 		console.log( '✅ Token acquired' );
 	} catch ( error ) {
-		console.error( '❌ Failed to fetch token:', error.message );
+		console.error( '❌ Failed to fetch token:', /** @type {Error} */ ( error ).message );
 		process.exit( 1 );
 	}
 
@@ -126,7 +126,7 @@ async function main() {
 			console.log( `   Resolved to immutable SHA tag: ${ resolvedRef }` );
 		}
 	} catch ( error ) {
-		console.error( '❌ Failed to fetch manifest:', error.message );
+		console.error( '❌ Failed to fetch manifest:', /** @type {Error} */ ( error ).message );
 		process.exit( 1 );
 	}
 
@@ -159,6 +159,9 @@ async function main() {
 		if ( ! response.ok ) {
 			throw new Error( `Failed to download blob: ${ response.status } ${ response.statusText }` );
 		}
+		if ( ! response.body ) {
+			throw new Error( 'Blob response has no body' );
+		}
 
 		/*
 		 * Spawn tar to read from stdin and extract into gutenbergDir.
@@ -168,6 +171,7 @@ async function main() {
 			stdio: [ 'pipe', 'inherit', 'inherit' ],
 		} );
 
+		/** @type {Promise<void>} */
 		const tarDone = new Promise( ( resolve, reject ) => {
 			tar.on( 'close', ( code ) => {
 				if ( code !== 0 ) {
@@ -185,16 +189,18 @@ async function main() {
 		 * consistent and means tar only sees plain tar data on stdin.
 		 */
 		await pipeline(
-			response.body,
+			Readable.fromWeb(
+				/** @type {import('stream/web').ReadableStream} */ ( response.body )
+			),
 			zlib.createGunzip(),
-			Writable.toWeb( tar.stdin ),
+			tar.stdin,
 		);
 
 		await tarDone;
 
 		console.log( '✅ Download and extraction complete' );
 	} catch ( error ) {
-		console.error( '❌ Download/extraction failed:', error.message );
+		console.error( '❌ Download/extraction failed:', /** @type {Error} */ ( error ).message );
 		process.exit( 1 );
 	}
 
