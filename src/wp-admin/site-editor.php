@@ -167,6 +167,26 @@ if ( $site_editor_post && ! empty( $_GET['get-post-lock'] ) ) {
 	exit;
 }
 
+/*
+ * Render the shared post lock dialog markup in the Site Editor footer.
+ *
+ * The classic editor hooks _admin_notice_post_locked() from
+ * wp-admin/edit-form-advanced.php; templates never go through that path, so
+ * the same hook is registered here with the resolved template post swapped
+ * into $GLOBALS['post'] for the duration of the callback.
+ */
+if ( $site_editor_post && $site_editor_post_lock_enabled ) {
+	add_action(
+		'admin_footer',
+		static function () use ( $site_editor_post ) {
+			$previous_post   = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+			$GLOBALS['post'] = $site_editor_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restored below.
+			_admin_notice_post_locked();
+			$GLOBALS['post'] = $previous_post;
+		}
+	);
+}
+
 // Used in the HTML title tag.
 $title       = _x( 'Editor', 'site editor title tag' );
 $parent_file = 'themes.php';
