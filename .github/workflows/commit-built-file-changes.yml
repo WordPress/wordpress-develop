@@ -101,7 +101,7 @@ jobs:
           payload = {
               "iat": int(time.time()),
               "exp": int(time.time()) + 600,  # 10-minute expiration
-              "iss": $GH_APP_ID
+              "iss": int(os.environ["GH_APP_ID"]),
           }
           print(jwt.encode(payload, os.environ["GH_APP_PRIVATE_KEY"], algorithm="RS256"))
           EOF
