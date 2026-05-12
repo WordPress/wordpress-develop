@@ -98,13 +98,24 @@ function wp_enqueue_block_custom_css() {
  * } $block
  */
 function wp_render_custom_css_class_name( $block_content, $block ) {
-	$class_string = $block['attrs']['className'] ?? null;
+	$class_name_attr = $block['attrs']['className'] ?? null;
 
-	if (
-		! is_string( $class_string ) ||
-		! str_contains( $class_string, 'wp-custom-css-' ) ||
-		! preg_match( '/(?:^|\s)(wp-custom-css-\S+)\b/', $class_string, $matches )
-	) {
+	if ( ! is_string( $class_name_attr ) || ! str_contains( $class_name_attr, 'wp-custom-css-' ) ) {
+		return $block_content;
+	}
+
+	// Parse out the 'wp-custom-css-*' class name added by wp_render_custom_css_support_styles().
+	$tag = new WP_HTML_Tag_Processor( '<div>' );
+	$tag->next_tag(); // Advance to the DIV.
+	$tag->set_attribute( 'class', $class_name_attr );
+	$custom_class_name = null;
+	foreach ( $tag->class_list() as $class_name ) {
+		if ( str_starts_with( $class_name, 'wp-custom-css-' ) ) {
+			$custom_class_name = $class_name;
+			break;
+		}
+	}
+	if ( null === $custom_class_name ) {
 		return $block_content;
 	}
 
@@ -112,7 +123,7 @@ function wp_render_custom_css_class_name( $block_content, $block ) {
 
 	if ( $tags->next_tag() ) {
 		$tags->add_class( 'has-custom-css' );
-		$tags->add_class( $matches[1] );
+		$tags->add_class( $custom_class_name );
 	}
 
 	return $tags->get_updated_html();
