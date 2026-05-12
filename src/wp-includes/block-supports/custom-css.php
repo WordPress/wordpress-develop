@@ -103,7 +103,7 @@ function wp_render_custom_css_class_name( $block_content, $block ) {
 	if (
 		! is_string( $class_string ) ||
 		! str_contains( $class_string, 'wp-custom-css-' ) ||
-		! preg_match( '/\bwp-custom-css-\S+\b/', $class_string, $matches )
+		! preg_match( '/(?:^|\s)(wp-custom-css-\S+)\b/', $class_string, $matches )
 	) {
 		return $block_content;
 	}
@@ -112,7 +112,7 @@ function wp_render_custom_css_class_name( $block_content, $block ) {
 
 	if ( $tags->next_tag() ) {
 		$tags->add_class( 'has-custom-css' );
-		$tags->add_class( $matches[0] );
+		$tags->add_class( $matches[1] );
 	}
 
 	return $tags->get_updated_html();
