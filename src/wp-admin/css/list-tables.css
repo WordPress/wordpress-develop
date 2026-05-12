@@ -1541,6 +1541,7 @@ div.action-links,
 .plugin-action-buttons li .button {
 	min-height: 32px;
 	line-height: 2.30769231; /* 30px for 32px min-height */
+	font-size: 13px;
 	padding: 0 12px;
 }
 
