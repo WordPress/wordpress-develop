@@ -1594,9 +1594,9 @@ function image_attachment_fields_to_save( $post, $attachment ) {
  * Was used to add JavaScript to the delete users form.
  *
  * @since 3.5.0
- * @deprecated 6.9.0
+ * @deprecated 7.0.0
  * @access private
  */
 function delete_users_add_js() {
-	_deprecated_function( __FUNCTION__, '6.9.0' );
+	_deprecated_function( __FUNCTION__, '7.0.0' );
 }
