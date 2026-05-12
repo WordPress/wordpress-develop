@@ -974,7 +974,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 			if ( ! ( new RegExp( applePattern, 'i' ) ).test( navigator.userAgent ) ) {
 				return;
 			}
-			const kbd = document.querySelector( '#wp-admin-bar-command-palette-trigger .ab-label kbd' );
+			const kbd = document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' );
 			if ( kbd ) {
 				kbd.textContent = appleOSLabel;
 			}
@@ -989,7 +989,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	$script  .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
 	$wp_admin_bar->add_group(
 		array(
-			'id'   => 'command-palette',
+			'id'   => 'command-palette-group',
 			'meta' => array(
 				'class' => 'ab-command-palette hide-if-no-js',
 			),
@@ -997,8 +997,8 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	);
 	$wp_admin_bar->add_node(
 		array(
-			'parent' => 'command-palette',
-			'id'     => 'command-palette-trigger',
+			'parent' => 'command-palette-group',
+			'id'     => 'command-palette',
 			'title'  => $title,
 			'href'   => '#',
 			'meta'   => array(
