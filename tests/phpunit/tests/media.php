@@ -1144,9 +1144,10 @@ VIDEO;
 
 	/**
 	 * @ticket 40866
+	 * @ticket 54924
 	 * @depends test_video_shortcode_body
 	 */
-	public function test_wp_video_shortcode_vimeo_force_ssl_remove_query_args() {
+	public function test_wp_video_shortcode_vimeo_force_ssl_preserves_query_args() {
 		$actual = wp_video_shortcode(
 			array(
 				'src' => 'http://vimeo.com/76979871?blah=meh',
@@ -1154,36 +1155,22 @@ VIDEO;
 		);
 
 		$this->assertStringContainsString( 'src="https://vimeo.com/76979871', $actual );
-		$this->assertStringNotContainsString( 'blah=meh', $actual );
+		$this->assertStringContainsString( 'blah=meh', $actual );
 	}
 
 	/**
-	 * @ticket 40977
+	 * @ticket 54924
 	 * @depends test_video_shortcode_body
 	 */
-	public function test_wp_video_shortcode_vimeo_adds_loop() {
+	public function test_wp_video_shortcode_vimeo_preserves_signature() {
 		$actual = wp_video_shortcode(
 			array(
-				'src' => 'http://vimeo.com/76979871',
+				'src' => 'https://player.vimeo.com/progressive_redirect/playback/667848247/rendition/1080p/1080p.mp4?loc=external&signature=f059d7229d1c838389dc3cc145b2072e2b8c18439b26aeaba0c55658a2837d7e',
 			)
 		);
 
-		$this->assertStringContainsString( 'src="https://vimeo.com/76979871?loop=0', $actual );
-	}
-
-	/**
-	 * @ticket 40977
-	 * @depends test_video_shortcode_body
-	 */
-	public function test_wp_video_shortcode_vimeo_force_adds_loop_true() {
-		$actual = wp_video_shortcode(
-			array(
-				'src'  => 'http://vimeo.com/76979871',
-				'loop' => true,
-			)
-		);
-
-		$this->assertStringContainsString( 'src="https://vimeo.com/76979871?loop=1', $actual );
+		$this->assertStringContainsString( 'signature=f059d7229d1c838389dc3cc145b2072e2b8c18439b26aeaba0c55658a2837d7e', $actual );
+		$this->assertStringContainsString( 'loc=external', $actual );
 	}
 
 	/**
