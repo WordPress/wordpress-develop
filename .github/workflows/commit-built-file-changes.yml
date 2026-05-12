@@ -117,7 +117,7 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens" | jq -r '.token')
 
-          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
+          echo "access-token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -127,7 +127,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_branch }}
           path: 'pr-repo'
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-          token: ${{ env.ACCESS_TOKEN }}
+          token: ${{ steps.generate_token.outputs.access-token }}
           persist-credentials: true
 
       - name: Apply patch
