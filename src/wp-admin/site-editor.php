@@ -168,6 +168,16 @@ if ( $site_editor_post && ! empty( $_GET['get-post-lock'] ) ) {
 }
 
 /*
+ * Acquire (or refresh) the post lock for the current user when no other user
+ * holds it. Mirrors the wp-admin/post.php:191-192 pattern.
+ */
+$site_editor_active_post_lock = null;
+
+if ( $site_editor_post_lock_enabled && ! wp_check_post_lock( $site_editor_post->ID ) ) {
+	$site_editor_active_post_lock = wp_set_post_lock( $site_editor_post );
+}
+
+/*
  * Render the shared post lock dialog markup in the Site Editor footer.
  *
  * The classic editor hooks _admin_notice_post_locked() from
@@ -372,6 +382,37 @@ wp_enqueue_script( 'wp-format-library' );
 wp_enqueue_style( 'wp-edit-site' );
 wp_enqueue_style( 'wp-format-library' );
 wp_enqueue_media();
+
+// Site Editor post lock bridge.
+if ( $site_editor_post && $site_editor_post_lock_enabled ) {
+	wp_enqueue_script( 'heartbeat' );
+	wp_enqueue_script( 'site-editor-post-lock' );
+
+	wp_localize_script(
+		'site-editor-post-lock',
+		'wpSiteEditorPostLockL10n',
+		array(
+			'enabled'     => true,
+			'postId'      => $site_editor_post->ID,
+			'postType'    => $site_editor_post->post_type,
+			'lock'        => is_array( $site_editor_active_post_lock ) ? implode( ':', $site_editor_active_post_lock ) : '',
+			'takeOverUrl' => add_query_arg(
+				'get-post-lock',
+				'1',
+				wp_nonce_url(
+					add_query_arg(
+						array(
+							'p'      => '/' . $site_editor_post->post_type . '/' . $site_editor_post->ID,
+							'canvas' => 'edit',
+						),
+						admin_url( 'site-editor.php' )
+					),
+					'lock-post_' . $site_editor_post->ID
+				)
+			),
+		)
+	);
+}
 
 if (
 	current_theme_supports( 'wp-block-styles' ) &&
