@@ -80,7 +80,7 @@ function wp_enqueue_block_custom_css() {
 /**
  * Applies the custom CSS class name to the block's rendered HTML.
  *
- * The class name is generated in `wp_render_custom_css_support_styles`
+ * The class name is generated in {@see wp_render_custom_css_support_styles()}
  * and stored in block attributes. This filter adds it to the actual markup.
  *
  * @since 7.0.0
