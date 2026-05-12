@@ -448,7 +448,7 @@ class WP_Ability {
 	public function normalize_input( $input = null ) {
 		if ( null === $input ) {
 			$input_schema = $this->get_input_schema();
-			if ( ! empty( $input_schema ) && array_key_exists( 'default', $input_schema ) ) {
+			if ( array_key_exists( 'default', $input_schema ) ) {
 				$input = $input_schema['default'];
 			}
 		}
