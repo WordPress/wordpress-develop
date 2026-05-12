@@ -44,9 +44,11 @@ class Tests_PHPUnit_GroupFilters extends WP_UnitTestCase {
 		);
 		ob_end_clean();
 
+		$multisite_excluded_group = is_multisite() ? 'ms-excluded' : 'ms-required';
+
 		$this->assertSame(
-			array( 'ajax', 'ms-required' ),
-			WP_UnitTestCase_Base::get_default_excluded_groups_for_test( array( 'ajax', 'ms-required' ) )
+			array( 'ajax', $multisite_excluded_group ),
+			WP_UnitTestCase_Base::get_default_excluded_groups_for_test( array( 'ajax', $multisite_excluded_group ) )
 		);
 	}
 }
