@@ -92,7 +92,7 @@ jobs:
         id: generate_token
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}
         env:
-          GH_APP_ID: ${{ secrets.GH_PR_BUILT_FILES_APP_ID }}
+          GH_APP_ID: ${{ vars.GH_PR_BUILT_FILES_APP_ID }}
           GH_APP_PRIVATE_KEY: ${{ secrets.GH_PR_BUILT_FILES_PRIVATE_KEY }}
         run: |
           # Generate JWT
@@ -144,7 +144,7 @@ jobs:
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}
         working-directory: 'pr-repo'
         env:
-          GH_APP_ID: ${{ secrets.GH_PR_BUILT_FILES_APP_ID }}
+          GH_APP_ID: ${{ vars.GH_PR_BUILT_FILES_APP_ID }}
         run: |
           git config user.name "wordpress-develop-pr-bot[bot]"
           git config user.email "${GH_APP_ID}+wordpress-develop-pr-bot[bot]@users.noreply.github.com"
