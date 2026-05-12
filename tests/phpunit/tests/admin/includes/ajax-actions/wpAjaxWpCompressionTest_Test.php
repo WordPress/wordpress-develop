@@ -17,7 +17,7 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @group ajax
  *
  */
-class wpAjaxWpCompressionTest_Test extends WP_Ajax_UnitTestCase {
+class WpAjaxWpCompressionTest_Test extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test as a logged out user
