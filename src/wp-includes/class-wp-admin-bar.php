@@ -169,7 +169,7 @@ class WP_Admin_Bar {
 			'my-blogs'               => array( 'my-sites', '3.3' ),
 		);
 
-		if ( isset( $back_compat_parents[ $args['parent'] ] ) ) {
+		if ( is_string( $args['parent'] ) && isset( $back_compat_parents[ $args['parent'] ] ) ) {
 			list( $new_parent, $version ) = $back_compat_parents[ $args['parent'] ];
 			_deprecated_argument( __METHOD__, $version, sprintf( 'Use <code>%s</code> as the parent for the <code>%s</code> admin bar node instead of <code>%s</code>.', $new_parent, $args['id'], $args['parent'] ) );
 			$args['parent'] = $new_parent;
@@ -193,24 +193,25 @@ class WP_Admin_Bar {
 	 * @since 3.3.0
 	 *
 	 * @param string $id
-	 * @return object|void Node.
+	 * @return object|null Node.
 	 */
 	final public function get_node( $id ) {
 		$node = $this->_get_node( $id );
 		if ( $node ) {
 			return clone $node;
 		}
+		return null;
 	}
 
 	/**
 	 * @since 3.3.0
 	 *
 	 * @param string $id
-	 * @return object|void
+	 * @return object|null
 	 */
 	final protected function _get_node( $id ) {
 		if ( $this->bound ) {
-			return;
+			return null;
 		}
 
 		if ( empty( $id ) ) {
@@ -220,17 +221,18 @@ class WP_Admin_Bar {
 		if ( isset( $this->nodes[ $id ] ) ) {
 			return $this->nodes[ $id ];
 		}
+		return null;
 	}
 
 	/**
 	 * @since 3.3.0
 	 *
-	 * @return array|void
+	 * @return array|null
 	 */
 	final public function get_nodes() {
 		$nodes = $this->_get_nodes();
 		if ( ! $nodes ) {
-			return;
+			return null;
 		}
 
 		foreach ( $nodes as &$node ) {
@@ -242,11 +244,11 @@ class WP_Admin_Bar {
 	/**
 	 * @since 3.3.0
 	 *
-	 * @return array|void
+	 * @return array|null
 	 */
 	final protected function _get_nodes() {
 		if ( $this->bound ) {
-			return;
+			return null;
 		}
 
 		return $this->nodes;
@@ -307,11 +309,11 @@ class WP_Admin_Bar {
 	/**
 	 * @since 3.3.0
 	 *
-	 * @return object|void
+	 * @return object|null
 	 */
 	final protected function _bind() {
 		if ( $this->bound ) {
-			return;
+			return null;
 		}
 
 		/*
@@ -660,6 +662,9 @@ class WP_Admin_Bar {
 		add_action( 'admin_bar_menu', 'wp_admin_bar_edit_site_menu', 40 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_customize_menu', 40 );
 		add_action( 'admin_bar_menu', 'wp_admin_bar_updates_menu', 50 );
+
+		// Command palette.
+		add_action( 'admin_bar_menu', 'wp_admin_bar_command_palette_menu', 55 );
 
 		// Content-related.
 		if ( ! is_network_admin() && ! is_user_admin() ) {
