@@ -947,7 +947,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		$exiting_post_id  = self::factory()->post->create();
 		$missing_post1_id = 10001;
-		$missing_post2_id = 10001;
+		$missing_post2_id = 10002;
 		$this->assertNull( get_post( $missing_post1_id ), "Expected post with ID $missing_post1_id to not exist." );
 		$this->assertNull( get_post( $missing_post2_id ), "Expected post with ID $missing_post1_id to not exist." );
 
