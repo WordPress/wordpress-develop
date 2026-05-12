@@ -40,7 +40,9 @@ jobs:
     if: ${{ github.repository == 'wordpress/wordpress-develop' }}
     timeout-minutes: 10
     permissions:
-      contents: write
+      # The actual `git push` is authenticated via a dedicated GitHub App installation token
+      # generated below, so `GITHUB_TOKEN` only needs read access to the triggering workflow's artifacts.
+      actions: read # Required to list and download the artifact uploaded by the triggering workflow run.
     steps:
       - name: Download artifact
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
