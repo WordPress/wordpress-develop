@@ -152,18 +152,11 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 		$proposed_content = '<!-- wp:paragraph --><p>Retry proof normal REST save content.</p><!-- /wp:paragraph -->';
 		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
 		$request->set_body_params(
-			array(
-				'content'                              => $proposed_content,
-				'client_base_version'                  => '7',
-				'accepted_proof_server_version'        => '7',
-				'rebased_from_version'                 => '4',
-				'pending_change_count'                 => 2,
-				'proposed_post_content'                => $proposed_content,
-				'proposed_post_content_hash'           => hash( 'sha256', $proposed_content ),
-				'accepted_proof_saves_post'            => false,
-				'accepted_proof_mutates_post_content' => false,
-				'accepted_proof_creates_revision'      => false,
-				'accepted_proof_claims_saved'          => false,
+			array_merge(
+				$this->get_retry_save_proof_fields( $proposed_content, 7 ),
+				array(
+					'content' => $proposed_content,
+				)
 			)
 		);
 
@@ -263,6 +256,43 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
+	 */
+	public function test_page_update_retry_save_proof_fields_without_stale_base_probe_remains_normal_rest_save() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Retry proof normal page current content.</p><!-- /wp:paragraph -->',
+			13
+		);
+		$page_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC retry proof normal save path page',
+				'post_type'    => 'page',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Retry proof normal REST page content.</p><!-- /wp:paragraph -->';
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/pages/' . $page_id );
+		$request->set_body_params(
+			array_merge(
+				$this->get_retry_save_proof_fields( $proposed_content, 13 ),
+				array(
+					'content' => $proposed_content,
+				)
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$after_page = get_post( $page_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_page->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $proposed_content, $after_page->post_content );
+		$this->assertNull( $parsed['sync_meta'] );
+		$this->assertNull( $parsed['sync_meta_format'] );
+		$this->assertNull( $parsed['sync_meta_position'] );
+	}
+
+	/**
 	 * @covers ::WP_REST_Autosaves_Controller::create_item
 	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
 	 * @covers ::wp_de_rtc_get_rest_save_probe_response_route
@@ -327,6 +357,51 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 	 * @covers ::WP_REST_Autosaves_Controller::create_item
 	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
 	 */
+	public function test_autosave_parent_draft_retry_save_proof_fields_without_stale_base_probe_updates_parent_normally() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Autosave retry proof draft current content.</p><!-- /wp:paragraph -->',
+			14
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$admin_user_id,
+				'post_status'  => 'draft',
+				'post_title'   => 'DE-RTC autosave retry proof draft post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Autosave retry proof draft update.</p><!-- /wp:paragraph -->';
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+		$request->set_body_params(
+			array_merge(
+				$this->get_retry_save_proof_fields( $proposed_content, 14 ),
+				array(
+					'id'      => $post_id,
+					'content' => $proposed_content,
+					'title'   => 'DE-RTC autosave retry proof draft post updated',
+				)
+			)
+		);
+
+		$response      = rest_get_server()->dispatch( $request );
+		$response_data = $response->get_data();
+		$after_post    = get_post( $post_id );
+		$parsed        = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $post_id, $response_data['id'] );
+		$this->assertSame( $proposed_content, $after_post->post_content );
+		$this->assertSame( 'DE-RTC autosave retry proof draft post updated', $after_post->post_title );
+		$this->assertFalse( wp_get_post_autosave( $post_id, self::$admin_user_id ) );
+		$this->assertNull( $parsed['sync_meta'] );
+		$this->assertNull( $parsed['sync_meta_format'] );
+		$this->assertNull( $parsed['sync_meta_position'] );
+	}
+
+	/**
+	 * @covers ::WP_REST_Autosaves_Controller::create_item
+	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
+	 */
 	public function test_autosave_revision_stale_base_probe_rejects_before_revision_creation() {
 		$current_content  = $this->add_sync_meta_to_content(
 			'<!-- wp:paragraph --><p>Autosave published current content.</p><!-- /wp:paragraph -->',
@@ -377,6 +452,69 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::WP_REST_Autosaves_Controller::create_item
+	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
+	 */
+	public function test_autosave_revision_retry_save_proof_fields_without_stale_base_probe_creates_autosave_normally() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Autosave retry proof published current content.</p><!-- /wp:paragraph -->',
+			15
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$admin_user_id,
+				'post_status'  => 'publish',
+				'post_title'   => 'DE-RTC autosave retry proof published post',
+				'post_content' => $current_content,
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Autosave retry proof published update.</p><!-- /wp:paragraph -->';
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+		$request->set_body_params(
+			array_merge(
+				$this->get_retry_save_proof_fields( $proposed_content, 15 ),
+				array(
+					'id'      => $post_id,
+					'content' => $proposed_content,
+				)
+			)
+		);
+
+		$response        = rest_get_server()->dispatch( $request );
+		$response_data   = $response->get_data();
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$autosave        = wp_get_post_autosave( $post_id, self::$admin_user_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNotSame( $post_id, $response_data['id'] );
+		$this->assertSame( $post_id, $response_data['parent'] );
+		$this->assertSame( $before_post->post_content, $after_post->post_content );
+		$this->assertInstanceOf( 'WP_Post', $autosave );
+
+		$parsed_autosave = wp_de_rtc_parse_post_content_sync_meta( $autosave->post_content );
+
+		$this->assertSame( $proposed_content, $autosave->post_content );
+		$this->assertArrayHasKey( $autosave->ID, $after_revisions );
+		$this->assertArrayNotHasKey( $autosave->ID, $before_revisions );
+		$this->assertNull( $parsed_autosave['sync_meta'] );
+		$this->assertNull( $parsed_autosave['sync_meta_format'] );
+		$this->assertNull( $parsed_autosave['sync_meta_position'] );
+	}
+
+	/**
 	 * Adds synthetic sync metadata with a version to content.
 	 *
 	 * @param string $content Post content.
@@ -395,5 +533,27 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 		$this->assertIsString( $content_with_sync_meta );
 
 		return $content_with_sync_meta;
+	}
+
+	/**
+	 * Returns retry-save proof-shaped fields for normal REST save requests.
+	 *
+	 * @param string $proposed_content Proposed post content.
+	 * @param int    $version          Sync metadata version.
+	 * @return array Retry-save proof-shaped request fields.
+	 */
+	private function get_retry_save_proof_fields( $proposed_content, $version ) {
+		return array(
+			'client_base_version'                  => (string) $version,
+			'accepted_proof_server_version'        => (string) $version,
+			'rebased_from_version'                 => (string) ( $version - 1 ),
+			'pending_change_count'                 => 2,
+			'proposed_post_content'                => $proposed_content,
+			'proposed_post_content_hash'           => hash( 'sha256', $proposed_content ),
+			'accepted_proof_saves_post'            => false,
+			'accepted_proof_mutates_post_content' => false,
+			'accepted_proof_creates_revision'      => false,
+			'accepted_proof_claims_saved'          => false,
+		);
 	}
 }
