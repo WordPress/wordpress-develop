@@ -194,12 +194,17 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertTrue( $data['permission_contract']['authorship_review_required'] );
 		$this->assertTrue( $data['permission_contract']['content_capability_review_required'] );
 		$this->assertSame( 'de_rtc_unfiltered_html_would_change_content', $data['permission_contract']['unfiltered_html_rejection_code'] );
+		$this->assertSame( 'request_unfiltered_html_reviewer', $data['permission_contract']['unfiltered_html_review_action'] );
+		$this->assertSame( 'unfiltered_html', $data['permission_contract']['unfiltered_html_review_capability'] );
+		$this->assertSame( 'collaborative_post_content', $data['permission_contract']['unfiltered_html_review_scope'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
 	/**
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
 	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_kses_post_content_review_evidence
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_escalation_reason
 	 * @covers ::wp_de_rtc_get_unfiltered_html_review_rejection_error
 	 * @covers ::wp_de_rtc_get_rest_recovery_permission_contract
 	 */
@@ -207,7 +212,8 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$post_id          = $this->create_sync_meta_post( 'author retry-save current content', 7, self::$author_user_id );
 		$before_post      = get_post( $post_id );
 		$before_revisions = $this->get_post_revisions( $post_id );
-		$proposed_content = '<!-- wp:paragraph --><p>Author retry-save proposed content.</p><!-- /wp:paragraph -->';
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com"></iframe><!-- /wp:html -->';
+		$filtered_content = wp_unslash( wp_filter_post_kses( wp_slash( $proposed_content ) ) );
 		$request          = $this->create_distributed_editing_request(
 			'posts',
 			$post_id,
@@ -236,6 +242,43 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['unfiltered_html_allowed'] );
 		$this->assertTrue( $data['authorship_review_required'] );
 		$this->assertTrue( $data['content_capability_review_required'] );
+		$this->assertTrue( $data['requires_reviewer_escalation'] );
+		$this->assertSame( 'request_unfiltered_html_reviewer', $data['review_action'] );
+		$this->assertSame( 'unfiltered_html', $data['review_required_capability'] );
+		$this->assertSame( 'collaborative_post_content', $data['review_scope'] );
+		$this->assertSame( 'requires_reviewer_escalation', $data['review_status'] );
+		$this->assertSame( 'unfiltered_html', $data['reviewer_capability'] );
+		$this->assertTrue( $data['escalation_required'] );
+		$this->assertSame( 'proposed_content_and_retry_save_candidate_would_change_by_kses', $data['escalation_reason'] );
+		$this->assertSame( 'wp_filter_post_kses', $data['content_filter'] );
+		$this->assertSame( 'content_save_pre', $data['content_filter_context'] );
+		$this->assertTrue( $data['content_would_change_by_kses'] );
+		$this->assertSame( hash( 'sha256', $proposed_content ), $data['proposed_content_hash'] );
+		$this->assertSame( hash( 'sha256', $filtered_content ), $data['kses_filtered_proposed_content_hash'] );
+		$this->assertNotSame( $data['proposed_content_hash'], $data['kses_filtered_proposed_content_hash'] );
+		$this->assertIsString( $data['candidate_content_hash'] );
+		$this->assertIsString( $data['kses_filtered_candidate_content_hash'] );
+		$this->assertNotSame( $data['candidate_content_hash'], $data['kses_filtered_candidate_content_hash'] );
+		$this->assertFalse( $data['raw_content_included'] );
+		$this->assertSame( 'requires_reviewer_escalation', $data['review_contract']['status'] );
+		$this->assertSame( 'unfiltered_html_content_capability_review', $data['review_contract']['type'] );
+		$this->assertSame( 'unfiltered_html', $data['review_contract']['reviewer_capability'] );
+		$this->assertTrue( $data['review_contract']['escalation_required'] );
+		$this->assertSame( 'proposed_content_and_retry_save_candidate_would_change_by_kses', $data['review_contract']['escalation_reason'] );
+		$this->assertTrue( $data['review_contract']['content_would_change_by_kses'] );
+		$this->assertTrue( $data['review_contract']['proposed_content_would_change_by_kses'] );
+		$this->assertTrue( $data['review_contract']['candidate_content_would_change_by_kses'] );
+		$this->assertFalse( $data['review_contract']['raw_content_included'] );
+		$this->assertArrayNotHasKey( 'proposed_post_content', $data );
+		$this->assertArrayNotHasKey( 'candidate_post_content', $data );
+		$this->assertSame(
+			array(
+				'export_local_updates',
+				'request_unfiltered_html_reviewer',
+				'refetch_server_state',
+			),
+			$data['recovery_actions']
+		);
 		$this->assertTrue( $data['requires_manual_conflict_resolution'] );
 		$this->assertTrue( $data['can_export_local_updates'] );
 		$this->assertFalse( $data['saves_post'] );
@@ -244,10 +287,61 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['claims_saved'] );
 		$this->assertFalse( $data['permission_contract']['unfiltered_html_allowed'] );
 		$this->assertSame( 'de_rtc_unfiltered_html_would_change_content', $data['permission_contract']['unfiltered_html_rejection_code'] );
+		$this->assertSame( 'request_unfiltered_html_reviewer', $data['permission_contract']['unfiltered_html_review_action'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_kses_post_content_review_evidence
+	 */
+	public function test_retry_save_allows_author_when_kses_would_not_change_content() {
+		$post_id          = $this->create_sync_meta_post( 'author safe retry-save current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$proposed_content = '<!-- wp:paragraph --><p>Author safe retry-save proposed content.</p><!-- /wp:paragraph -->';
+		$request          = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'           => '7',
+				'accepted_proof_server_version' => '7',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+			)
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		$response     = rest_get_server()->dispatch( $request );
+		$data         = $response->get_data();
+		$after_post   = get_post( $post_id );
+		$parsed_saved = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_applied', $data['result'] );
+		$this->assertTrue( $data['retry_save_accepted'] );
+		$this->assertSame( '7', $data['client_base_version'] );
+		$this->assertSame( '7', $data['accepted_proof_server_version'] );
+		$this->assertSame( '8', $data['server_version'] );
+		$this->assertTrue( $data['saves_post'] );
+		$this->assertTrue( $data['mutates_post_content'] );
+		$this->assertTrue( $data['claims_saved'] );
+		$this->assertFalse( $data['can_export_local_updates'] );
+		$this->assertFalse( $data['permission_contract']['unfiltered_html_allowed'] );
+		$this->assertTrue( $data['permission_contract']['unfiltered_html_review_required'] );
+		$this->assertNotSame( $before_post->post_content, $after_post->post_content );
+		$this->assertIsArray( $parsed_saved );
+		$this->assertSame( $proposed_content, $parsed_saved['content'] );
+		$this->assertSame( '8', $parsed_saved['sync_meta']['version'] );
+		$this->assertSame( '7', $parsed_saved['sync_meta']['previous_version'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_get_kses_post_content_review_evidence
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_escalation_reason
 	 * @covers ::wp_de_rtc_get_unfiltered_html_review_rejection_error
 	 * @covers ::wp_de_rtc_get_rest_recovery_permission_contract
 	 */
@@ -255,14 +349,34 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$post_id          = $this->create_sync_meta_post( 'unfiltered review current content', 7, self::$author_user_id );
 		$before_post      = get_post( $post_id );
 		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com"></iframe><!-- /wp:html -->';
+		$candidate_content = wp_de_rtc_add_sync_meta_to_post_content(
+			$proposed_content,
+			'diff-match-patch',
+			array(
+				'version'          => '8',
+				'previous_version' => '7',
+			)
+		);
+		$proposed_review  = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_content );
+		$candidate_review = wp_de_rtc_get_kses_post_content_review_evidence(
+			$candidate_content,
+			array(
+				'allow_sync_meta_script' => true,
+			)
+		);
 
 		wp_set_current_user( self::$author_user_id );
 
 		$error = wp_de_rtc_get_unfiltered_html_review_rejection_error(
 			$post_id,
 			array(
-				'pending_change_count' => 2,
-				'rest_route'           => 'post_retry_save',
+				'pending_change_count'               => 2,
+				'rest_route'                         => 'post_retry_save',
+				'proposed_post_content_hash'         => hash( 'sha256', $proposed_content ),
+				'candidate_post_content_hash'        => hash( 'sha256', $candidate_content ),
+				'proposed_post_content_kses_review'  => $proposed_review,
+				'candidate_post_content_kses_review' => $candidate_review,
 			)
 		);
 		$data  = $error->get_error_data( 'de_rtc_unfiltered_html_would_change_content' );
@@ -280,6 +394,33 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['unfiltered_html_allowed'] );
 		$this->assertTrue( $data['authorship_review_required'] );
 		$this->assertTrue( $data['content_capability_review_required'] );
+		$this->assertTrue( $data['requires_reviewer_escalation'] );
+		$this->assertSame( 'request_unfiltered_html_reviewer', $data['review_action'] );
+		$this->assertSame( 'unfiltered_html', $data['review_required_capability'] );
+		$this->assertSame( 'collaborative_post_content', $data['review_scope'] );
+		$this->assertSame( 'requires_reviewer_escalation', $data['review_status'] );
+		$this->assertSame( 'unfiltered_html', $data['reviewer_capability'] );
+		$this->assertTrue( $data['escalation_required'] );
+		$this->assertSame( 'proposed_content_and_retry_save_candidate_would_change_by_kses', $data['escalation_reason'] );
+		$this->assertSame( 'wp_filter_post_kses', $data['content_filter'] );
+		$this->assertSame( 'content_save_pre', $data['content_filter_context'] );
+		$this->assertTrue( $data['content_would_change_by_kses'] );
+		$this->assertSame( hash( 'sha256', $proposed_content ), $data['proposed_content_hash'] );
+		$this->assertSame( $proposed_review['filtered_content_hash'], $data['kses_filtered_proposed_content_hash'] );
+		$this->assertSame( hash( 'sha256', $candidate_content ), $data['candidate_content_hash'] );
+		$this->assertSame( $candidate_review['filtered_content_hash'], $data['kses_filtered_candidate_content_hash'] );
+		$this->assertFalse( $data['raw_content_included'] );
+		$this->assertSame( 'requires_reviewer_escalation', $data['review_contract']['status'] );
+		$this->assertSame( 'unfiltered_html_content_capability_review', $data['review_contract']['type'] );
+		$this->assertSame( 'unfiltered_html', $data['review_contract']['reviewer_capability'] );
+		$this->assertTrue( $data['review_contract']['escalation_required'] );
+		$this->assertSame( 'proposed_content_and_retry_save_candidate_would_change_by_kses', $data['review_contract']['escalation_reason'] );
+		$this->assertSame( $data['proposed_content_hash'], $data['review_contract']['proposed_content_hash'] );
+		$this->assertSame( $data['candidate_content_hash'], $data['review_contract']['candidate_content_hash'] );
+		$this->assertFalse( $data['review_contract']['raw_content_included'] );
+		$this->assertContains( 'export_local_updates', $data['recovery_actions'] );
+		$this->assertContains( 'request_unfiltered_html_reviewer', $data['recovery_actions'] );
+		$this->assertContains( 'refetch_server_state', $data['recovery_actions'] );
 		$this->assertTrue( $data['requires_manual_conflict_resolution'] );
 		$this->assertTrue( $data['can_export_local_updates'] );
 		$this->assertFalse( $data['saves_post'] );
@@ -288,6 +429,7 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['claims_saved'] );
 		$this->assertFalse( $data['permission_contract']['unfiltered_html_allowed'] );
 		$this->assertSame( 'de_rtc_unfiltered_html_would_change_content', $data['permission_contract']['unfiltered_html_rejection_code'] );
+		$this->assertSame( 'request_unfiltered_html_reviewer', $data['permission_contract']['unfiltered_html_review_action'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 

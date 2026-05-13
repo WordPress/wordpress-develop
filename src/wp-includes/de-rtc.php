@@ -1118,16 +1118,6 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		);
 	}
 
-	if ( ! current_user_can( 'unfiltered_html' ) ) {
-		return wp_de_rtc_get_unfiltered_html_review_rejection_error(
-			$post,
-			array(
-				'pending_change_count' => $pending_change_count,
-				'rest_route'           => 'post_retry_save',
-			)
-		);
-	}
-
 	$next_version   = wp_de_rtc_get_next_sync_meta_version( $server_version, $proposed_post_content_hash );
 	$next_sync_meta = $current['sync_meta'];
 
@@ -1154,17 +1144,57 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		return $candidate_post_content;
 	}
 
-	$revision_ids_before_save = wp_de_rtc_get_post_revision_ids( $post->ID );
-	$candidate_hash           = wp_de_rtc_hash_content( $candidate_post_content );
-	$updated_post_id          = wp_update_post(
-		wp_slash(
+	$candidate_hash = wp_de_rtc_hash_content( $candidate_post_content );
+
+	if ( ! current_user_can( 'unfiltered_html' ) ) {
+		$proposed_post_content_kses_review  = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_post_content );
+		$candidate_post_content_kses_review = wp_de_rtc_get_kses_post_content_review_evidence(
+			$candidate_post_content,
 			array(
-				'ID'           => (int) $post->ID,
-				'post_content' => $candidate_post_content,
+				'allow_sync_meta_script' => true,
 			)
-		),
-		true
-	);
+		);
+
+		if (
+			! empty( $proposed_post_content_kses_review['would_change_content'] ) ||
+			! empty( $candidate_post_content_kses_review['would_change_content'] )
+		) {
+			return wp_de_rtc_get_unfiltered_html_review_rejection_error(
+				$post,
+				array(
+					'pending_change_count'               => $pending_change_count,
+					'rest_route'                         => 'post_retry_save',
+					'proposed_post_content_hash'         => $proposed_post_content_hash,
+					'candidate_post_content_hash'        => $candidate_hash,
+					'proposed_post_content_kses_review'  => $proposed_post_content_kses_review,
+					'candidate_post_content_kses_review' => $candidate_post_content_kses_review,
+				)
+			);
+		}
+	}
+
+	$revision_ids_before_save = wp_de_rtc_get_post_revision_ids( $post->ID );
+	$allow_sync_meta_script_during_save = ! current_user_can( 'unfiltered_html' );
+
+	if ( $allow_sync_meta_script_during_save ) {
+		wp_de_rtc_enable_sync_meta_script_kses_allowance();
+	}
+
+	try {
+		$updated_post_id = wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => (int) $post->ID,
+					'post_content' => $candidate_post_content,
+				)
+			),
+			true
+		);
+	} finally {
+		if ( $allow_sync_meta_script_during_save ) {
+			wp_de_rtc_disable_sync_meta_script_kses_allowance();
+		}
+	}
 
 	if ( is_wp_error( $updated_post_id ) ) {
 		return $updated_post_id;
@@ -1414,6 +1444,126 @@ function wp_de_rtc_get_stale_base_rejection_error( $post, $args = array() ) {
 }
 
 /**
+ * Returns KSES comparison evidence for post content.
+ *
+ * This helper mirrors the post-content KSES save filter in memory so DE-RTC can
+ * reject before persistence when a non-unfiltered user submits content that the
+ * save path would alter. It does not save, update posts, or create revisions.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $post_content Post content to inspect.
+ * @param array  $args {
+ *     Optional KSES review behavior.
+ *
+ *     @type bool $allow_sync_meta_script Whether to allow server-owned sync-meta SCRIPT markup.
+ *                                        Default false.
+ * }
+ * @return array KSES comparison evidence.
+ */
+function wp_de_rtc_get_kses_post_content_review_evidence( $post_content, $args = array() ) {
+	$post_content           = (string) $post_content;
+	$allow_sync_meta_script = ! empty( $args['allow_sync_meta_script'] );
+
+	if ( $allow_sync_meta_script ) {
+		wp_de_rtc_enable_sync_meta_script_kses_allowance();
+	}
+
+	try {
+		$filtered_post_content = wp_unslash( wp_filter_post_kses( wp_slash( $post_content ) ) );
+	} finally {
+		if ( $allow_sync_meta_script ) {
+			wp_de_rtc_disable_sync_meta_script_kses_allowance();
+		}
+	}
+
+	return array(
+		'filter'                  => 'wp_filter_post_kses',
+		'filter_context'          => 'content_save_pre',
+		'allows_sync_meta_script' => $allow_sync_meta_script,
+		'would_change_content'    => $filtered_post_content !== $post_content,
+		'content_hash'            => wp_de_rtc_hash_content( $post_content ),
+		'filtered_content_hash'   => wp_de_rtc_hash_content( $filtered_post_content ),
+	);
+}
+
+/**
+ * Adds the scoped KSES allowance for server-owned sync metadata SCRIPT markup.
+ *
+ * @since 7.1.0
+ * @access private
+ */
+function wp_de_rtc_enable_sync_meta_script_kses_allowance() {
+	add_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance', 10, 2 );
+}
+
+/**
+ * Removes the scoped KSES allowance for server-owned sync metadata SCRIPT markup.
+ *
+ * @since 7.1.0
+ * @access private
+ */
+function wp_de_rtc_disable_sync_meta_script_kses_allowance() {
+	remove_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance', 10 );
+}
+
+/**
+ * Allows the DE-RTC sync-meta SCRIPT element through post KSES in guarded saves.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array[]|string $tags    Allowed HTML tags.
+ * @param string         $context KSES context.
+ * @return array[]|string Filtered allowed HTML tags.
+ */
+function wp_de_rtc_filter_sync_meta_script_kses_allowance( $tags, $context ) {
+	if ( 'post' !== $context || ! is_array( $tags ) ) {
+		return $tags;
+	}
+
+	$tags['script'] = array(
+		'type'                  => true,
+		'data-sync-meta-format' => true,
+	);
+
+	return $tags;
+}
+
+/**
+ * Returns the escalation reason for an unfiltered HTML review rejection.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array|null $proposed_post_content_kses_review  Proposed-content KSES evidence.
+ * @param array|null $candidate_post_content_kses_review Retry-save candidate KSES evidence.
+ * @return string Escalation reason.
+ */
+function wp_de_rtc_get_unfiltered_html_review_escalation_reason(
+	$proposed_post_content_kses_review,
+	$candidate_post_content_kses_review
+) {
+	$proposed_would_change  = is_array( $proposed_post_content_kses_review ) && ! empty( $proposed_post_content_kses_review['would_change_content'] );
+	$candidate_would_change = is_array( $candidate_post_content_kses_review ) && ! empty( $candidate_post_content_kses_review['would_change_content'] );
+
+	if ( $proposed_would_change && $candidate_would_change ) {
+		return 'proposed_content_and_retry_save_candidate_would_change_by_kses';
+	}
+
+	if ( $proposed_would_change ) {
+		return 'proposed_content_would_change_by_kses';
+	}
+
+	if ( $candidate_would_change ) {
+		return 'retry_save_candidate_would_change_by_kses';
+	}
+
+	return 'content_capability_review_required';
+}
+
+/**
  * Returns the canonical unfiltered HTML review rejection error.
  *
  * This helper only defines the rejection vocabulary for collaborative content
@@ -1426,8 +1576,12 @@ function wp_de_rtc_get_stale_base_rejection_error( $post, $args = array() ) {
  * @param array       $args {
  *     Optional rejection data.
  *
- *     @type mixed  $pending_change_count Pending local change count. Default 1.
- *     @type string $rest_route           Response route label. Default 'post_content_capability_review'.
+ *     @type mixed  $pending_change_count               Pending local change count. Default 1.
+ *     @type string $rest_route                         Response route label. Default 'post_content_capability_review'.
+ *     @type string $proposed_post_content_hash         Proposed stripped post-content hash.
+ *     @type string $candidate_post_content_hash        Retry-save candidate post-content hash.
+ *     @type array  $proposed_post_content_kses_review  Proposed-content KSES comparison evidence.
+ *     @type array  $candidate_post_content_kses_review Retry-save candidate KSES comparison evidence.
  * }
  * @return WP_Error Unfiltered HTML review rejection error with normalized DE-RTC data.
  */
@@ -1437,6 +1591,71 @@ function wp_de_rtc_get_unfiltered_html_review_rejection_error( $post, $args = ar
 	$pending_change_count = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
 	$rest_route           = isset( $args['rest_route'] ) ? sanitize_key( $args['rest_route'] ) : 'post_content_capability_review';
 	$permission_contract  = wp_de_rtc_get_rest_recovery_permission_contract( $post );
+
+	$proposed_post_content_kses_review = null;
+	if ( isset( $args['proposed_post_content_kses_review'] ) && is_array( $args['proposed_post_content_kses_review'] ) ) {
+		$proposed_post_content_kses_review = $args['proposed_post_content_kses_review'];
+	}
+
+	$candidate_post_content_kses_review = null;
+	if ( isset( $args['candidate_post_content_kses_review'] ) && is_array( $args['candidate_post_content_kses_review'] ) ) {
+		$candidate_post_content_kses_review = $args['candidate_post_content_kses_review'];
+	}
+
+	$proposed_would_change = null;
+	if ( is_array( $proposed_post_content_kses_review ) && array_key_exists( 'would_change_content', $proposed_post_content_kses_review ) ) {
+		$proposed_would_change = (bool) $proposed_post_content_kses_review['would_change_content'];
+	}
+
+	$candidate_would_change = null;
+	if ( is_array( $candidate_post_content_kses_review ) && array_key_exists( 'would_change_content', $candidate_post_content_kses_review ) ) {
+		$candidate_would_change = (bool) $candidate_post_content_kses_review['would_change_content'];
+	}
+
+	$content_would_change = true === $proposed_would_change || true === $candidate_would_change;
+	$escalation_reason    = wp_de_rtc_get_unfiltered_html_review_escalation_reason( $proposed_post_content_kses_review, $candidate_post_content_kses_review );
+
+	$proposed_hash = null;
+	if ( isset( $args['proposed_post_content_hash'] ) ) {
+		$proposed_hash = sanitize_text_field( (string) $args['proposed_post_content_hash'] );
+	} elseif ( is_array( $proposed_post_content_kses_review ) && isset( $proposed_post_content_kses_review['content_hash'] ) ) {
+		$proposed_hash = sanitize_text_field( (string) $proposed_post_content_kses_review['content_hash'] );
+	}
+
+	$filtered_proposed_hash = null;
+	if ( is_array( $proposed_post_content_kses_review ) && isset( $proposed_post_content_kses_review['filtered_content_hash'] ) ) {
+		$filtered_proposed_hash = sanitize_text_field( (string) $proposed_post_content_kses_review['filtered_content_hash'] );
+	}
+
+	$candidate_hash = null;
+	if ( isset( $args['candidate_post_content_hash'] ) ) {
+		$candidate_hash = sanitize_text_field( (string) $args['candidate_post_content_hash'] );
+	} elseif ( is_array( $candidate_post_content_kses_review ) && isset( $candidate_post_content_kses_review['content_hash'] ) ) {
+		$candidate_hash = sanitize_text_field( (string) $candidate_post_content_kses_review['content_hash'] );
+	}
+
+	$filtered_candidate_hash = null;
+	if ( is_array( $candidate_post_content_kses_review ) && isset( $candidate_post_content_kses_review['filtered_content_hash'] ) ) {
+		$filtered_candidate_hash = sanitize_text_field( (string) $candidate_post_content_kses_review['filtered_content_hash'] );
+	}
+
+	$review_contract = array(
+		'status'                                 => 'requires_reviewer_escalation',
+		'type'                                   => 'unfiltered_html_content_capability_review',
+		'reviewer_capability'                    => 'unfiltered_html',
+		'escalation_required'                    => true,
+		'escalation_reason'                      => $escalation_reason,
+		'content_filter'                         => 'wp_filter_post_kses',
+		'content_filter_context'                 => 'content_save_pre',
+		'content_would_change_by_kses'           => $content_would_change,
+		'proposed_content_would_change_by_kses'  => $proposed_would_change,
+		'candidate_content_would_change_by_kses' => $candidate_would_change,
+		'proposed_content_hash'                  => $proposed_hash,
+		'kses_filtered_proposed_content_hash'    => $filtered_proposed_hash,
+		'candidate_content_hash'                 => $candidate_hash,
+		'kses_filtered_candidate_content_hash'   => $filtered_candidate_hash,
+		'raw_content_included'                   => false,
+	);
 
 	return wp_de_rtc_get_reason_error(
 		'de_rtc_unfiltered_html_would_change_content',
@@ -1451,6 +1670,28 @@ function wp_de_rtc_get_unfiltered_html_review_rejection_error( $post, $args = ar
 			'unfiltered_html_allowed'             => current_user_can( 'unfiltered_html' ),
 			'authorship_review_required'          => true,
 			'content_capability_review_required'  => true,
+			'review_status'                       => 'requires_reviewer_escalation',
+			'reviewer_capability'                 => 'unfiltered_html',
+			'escalation_required'                 => true,
+			'escalation_reason'                   => $escalation_reason,
+			'requires_reviewer_escalation'        => true,
+			'review_action'                       => 'request_unfiltered_html_reviewer',
+			'review_required_capability'          => 'unfiltered_html',
+			'review_scope'                        => 'collaborative_post_content',
+			'content_filter'                      => 'wp_filter_post_kses',
+			'content_filter_context'              => 'content_save_pre',
+			'content_would_change_by_kses'        => $content_would_change,
+			'proposed_content_hash'               => $proposed_hash,
+			'kses_filtered_proposed_content_hash' => $filtered_proposed_hash,
+			'candidate_content_hash'              => $candidate_hash,
+			'kses_filtered_candidate_content_hash' => $filtered_candidate_hash,
+			'raw_content_included'                => false,
+			'review_contract'                     => $review_contract,
+			'recovery_actions'                    => array(
+				'export_local_updates',
+				'request_unfiltered_html_reviewer',
+				'refetch_server_state',
+			),
 			'requires_manual_conflict_resolution' => true,
 			'can_export_local_updates'            => $pending_change_count > 0,
 			'saves_post'                          => false,
@@ -1553,6 +1794,9 @@ function wp_de_rtc_get_rest_recovery_permission_contract( $post ) {
 			'authorship_review_required'         => true,
 			'content_capability_review_required' => true,
 			'unfiltered_html_rejection_code'     => 'de_rtc_unfiltered_html_would_change_content',
+			'unfiltered_html_review_action'      => 'request_unfiltered_html_reviewer',
+			'unfiltered_html_review_capability'  => 'unfiltered_html',
+			'unfiltered_html_review_scope'       => 'collaborative_post_content',
 		);
 	}
 
@@ -1567,6 +1811,9 @@ function wp_de_rtc_get_rest_recovery_permission_contract( $post ) {
 		'authorship_review_required'         => true,
 		'content_capability_review_required' => true,
 		'unfiltered_html_rejection_code'     => 'de_rtc_unfiltered_html_would_change_content',
+		'unfiltered_html_review_action'      => 'request_unfiltered_html_reviewer',
+		'unfiltered_html_review_capability'  => 'unfiltered_html',
+		'unfiltered_html_review_scope'       => 'collaborative_post_content',
 	);
 }
 
