@@ -157,6 +157,10 @@ TABLE OF CONTENTS:
 	vertical-align: baseline;
 }
 
+.wp-core-ui .wrap.plugin-install-tab-favorites p .button {
+	vertical-align: top;
+}
+
 .wp-core-ui .button.hover,
 .wp-core-ui .button:hover,
 .wp-core-ui .button-secondary:hover {
