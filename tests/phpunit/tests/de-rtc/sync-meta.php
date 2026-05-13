@@ -60,6 +60,31 @@ class Tests_DE_RTC_Sync_Meta extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_de_rtc_add_sync_meta_to_post_content
 	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_match_edge_sync_meta_script
+	 */
+	public function test_parses_trailing_sync_meta_after_content_script_block() {
+		$content   = '<!-- wp:html --><script>alert("existing")</script><!-- /wp:html -->'
+			. "\n"
+			. '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$metadata  = array(
+			'baseVersion' => 9,
+			'hash'        => 'script-content-base',
+		);
+		$combined  = wp_de_rtc_add_sync_meta_to_post_content( $content, 'diff-match-patch', $metadata, 'trailer' );
+		$extracted = wp_de_rtc_parse_post_content_sync_meta( $combined );
+
+		$this->assertIsArray( $extracted );
+		$this->assertSame( $content, $extracted['content'] );
+		$this->assertSame( $metadata, $extracted['sync_meta'] );
+		$this->assertSame( 'diff-match-patch', $extracted['sync_meta_format'] );
+		$this->assertSame( 'trailer', $extracted['sync_meta_position'] );
+		$this->assertStringContainsString( 'type="wp/post-sync-meta"', $extracted['raw_sync_meta'] );
+		$this->assertStringNotContainsString( 'alert("existing")', $extracted['raw_sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_add_sync_meta_to_post_content
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
 	 */
 	public function test_parses_prefix_sync_meta_and_returns_content_without_meta() {
 		$content   = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';

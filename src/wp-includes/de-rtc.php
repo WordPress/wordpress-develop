@@ -1953,6 +1953,404 @@ function wp_de_rtc_get_kses_post_content_review_evidence( $post_content, $args =
 }
 
 /**
+ * Classifies block-level KSES review items for proposed post content.
+ *
+ * This helper compares the current stripped post content with proposed stripped
+ * content and returns hash-only evidence for changed blocks that intersect
+ * unfiltered HTML capability boundaries. It does not return raw block content,
+ * save posts, create revisions, register REST behavior, replace post locks, or
+ * claim saved state.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post                  Post ID or object.
+ * @param string      $proposed_post_content Proposed post content without sync metadata.
+ * @param array       $args {
+ *     Optional classification arguments.
+ *
+ *     @type string|null $base_post_content        Base post content without sync metadata. Defaults to the current post content.
+ *     @type mixed       $client_base_version      Client base version. Defaults to the current sync-meta version.
+ *     @type mixed       $server_version           Server version. Defaults to the current sync-meta version.
+ *     @type bool        $user_can_unfiltered_html Whether the editing user can publish unfiltered HTML. Defaults to current user capability.
+ *     @type int|null    $author_id                Author of the proposed changes, when known.
+ * }
+ * @return array|WP_Error Hash-only risky block review classification.
+ */
+function wp_de_rtc_classify_kses_risky_block_review_items( $post, $proposed_post_content, $args = array() ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! is_string( $proposed_post_content ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not classify KSES review items because proposed post content is missing.' ),
+			array(
+				'detail'               => 'missing_kses_block_review_proposed_content',
+				'post_id'              => (int) $post->ID,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$current = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
+
+	if ( is_wp_error( $current ) ) {
+		return $current;
+	}
+
+	$base_post_content = isset( $args['base_post_content'] ) && is_string( $args['base_post_content'] )
+		? $args['base_post_content']
+		: $current['content'];
+	$server_version    = isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : wp_de_rtc_get_post_sync_meta_version( $post );
+	$client_base_version = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : $server_version;
+	$user_can_unfiltered_html = array_key_exists( 'user_can_unfiltered_html', $args )
+		? (bool) $args['user_can_unfiltered_html']
+		: current_user_can( 'unfiltered_html' );
+	$author_id         = isset( $args['author_id'] ) ? (int) $args['author_id'] : get_current_user_id();
+
+	$review_items = array();
+
+	if ( ! $user_can_unfiltered_html ) {
+		$base_records     = wp_de_rtc_get_kses_block_review_records( $base_post_content );
+		$proposed_records = wp_de_rtc_get_kses_block_review_records( $proposed_post_content );
+		$base_records_by_hash = wp_de_rtc_get_kses_block_review_records_by_hash( $base_records );
+		$matched_base_record_keys = array();
+		$matched_proposed_record_keys = array();
+
+		foreach ( $proposed_records as $path_key => $proposed_record ) {
+			$base_record = isset( $base_records[ $path_key ] ) ? $base_records[ $path_key ] : null;
+
+			if ( is_array( $base_record ) && $base_record['serialized_block'] === $proposed_record['serialized_block'] ) {
+				$matched_base_record_keys[ $path_key ]     = true;
+				$matched_proposed_record_keys[ $path_key ] = true;
+			}
+		}
+
+		foreach ( $proposed_records as $path_key => $proposed_record ) {
+			if ( isset( $matched_proposed_record_keys[ $path_key ] ) ) {
+				continue;
+			}
+
+			$matched_base_record_key = wp_de_rtc_find_matching_kses_block_review_record_key(
+				$base_records_by_hash,
+				wp_de_rtc_hash_content( $proposed_record['serialized_block'] ),
+				$matched_base_record_keys
+			);
+
+			if ( null !== $matched_base_record_key ) {
+				$matched_base_record_keys[ $matched_base_record_key ] = true;
+				$matched_proposed_record_keys[ $path_key ]            = true;
+			}
+		}
+
+		foreach ( $proposed_records as $path_key => $proposed_record ) {
+			if ( isset( $matched_proposed_record_keys[ $path_key ] ) ) {
+				continue;
+			}
+
+			$base_record = isset( $base_records[ $path_key ] ) && ! isset( $matched_base_record_keys[ $path_key ] ) ? $base_records[ $path_key ] : null;
+
+			$proposed_review = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_record['serialized_block'] );
+			$base_review     = is_array( $base_record ) ? wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_block'] ) : null;
+
+			if (
+				empty( $proposed_review['would_change_content'] ) &&
+				( ! is_array( $base_review ) || empty( $base_review['would_change_content'] ) )
+			) {
+				continue;
+			}
+
+			$change_kind = is_array( $base_record ) ? 'modified_block' : 'added_block';
+			$review_items[] = wp_de_rtc_create_kses_block_review_item(
+				$proposed_record,
+				array(
+					'change_kind'                 => $change_kind,
+					'risk_reason'                 => wp_de_rtc_get_kses_block_review_risk_reason( $change_kind, $base_review, $proposed_review, $proposed_record['serialized_block'] ),
+					'author_id'                   => $author_id,
+					'base_version'                => $client_base_version,
+					'server_version'              => $server_version,
+					'base_content_hash'           => is_array( $base_record ) ? wp_de_rtc_hash_content( $base_record['serialized_block'] ) : wp_de_rtc_hash_content( '' ),
+					'proposed_content_hash'       => $proposed_review['content_hash'],
+					'kses_filtered_content_hash'  => $proposed_review['filtered_content_hash'],
+				)
+			);
+
+			if ( is_array( $base_record ) ) {
+				$matched_base_record_keys[ $path_key ] = true;
+			}
+		}
+
+		foreach ( $base_records as $path_key => $base_record ) {
+			if ( isset( $matched_base_record_keys[ $path_key ] ) ) {
+				continue;
+			}
+
+			$base_review = wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_block'] );
+
+			if ( empty( $base_review['would_change_content'] ) ) {
+				continue;
+			}
+
+			$review_items[] = wp_de_rtc_create_kses_block_review_item(
+				$base_record,
+				array(
+					'change_kind'                 => 'deleted_block',
+					'risk_reason'                 => 'unfiltered_html_block_deleted',
+					'author_id'                   => $author_id,
+					'base_version'                => $client_base_version,
+					'server_version'              => $server_version,
+					'base_content_hash'           => $base_review['content_hash'],
+					'proposed_content_hash'       => wp_de_rtc_hash_content( '' ),
+					'kses_filtered_content_hash'  => $base_review['filtered_content_hash'],
+				)
+			);
+		}
+	}
+
+	$review_required = ! $user_can_unfiltered_html && ! empty( $review_items );
+
+	return array(
+		'result'                      => $review_required ? 'block_review_required' : 'no_review_required',
+		'reason_code'                 => $review_required ? 'de_rtc_unfiltered_html_would_change_content' : null,
+		'post_id'                     => (int) $post->ID,
+		'rest_base'                   => wp_de_rtc_get_post_type_rest_base( $post->post_type ),
+		'user_can_unfiltered_html'    => $user_can_unfiltered_html,
+		'required_capability'         => 'unfiltered_html',
+		'content_review_policy'       => 'kses',
+		'review_evidence_type'        => 'kses_block_hash_only_change',
+		'server_version'              => $server_version,
+		'client_base_version'         => $client_base_version,
+		'review_items'                => $review_items,
+		'review_item_count'           => count( $review_items ),
+		'pending_review_item_count'   => $review_required ? count( $review_items ) : 0,
+		'pre_publish_review_required' => $review_required,
+		'save_action'                 => $review_required ? 'open_pre_publish_review' : 'continue_save',
+		'raw_content_included'        => false,
+		'exposes_raw_content'         => false,
+		'saves_post'                  => false,
+		'mutates_post_content'        => false,
+		'creates_revision'            => false,
+		'claims_saved'                => false,
+	);
+}
+
+/**
+ * Returns block review records keyed by serialized block hash.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array[] $records Block records.
+ * @return array[] Block record keys grouped by serialized block hash.
+ */
+function wp_de_rtc_get_kses_block_review_records_by_hash( $records ) {
+	$records_by_hash = array();
+
+	foreach ( $records as $path_key => $record ) {
+		$hash = wp_de_rtc_hash_content( $record['serialized_block'] );
+
+		if ( ! isset( $records_by_hash[ $hash ] ) ) {
+			$records_by_hash[ $hash ] = array();
+		}
+
+		$records_by_hash[ $hash ][] = $path_key;
+	}
+
+	return $records_by_hash;
+}
+
+/**
+ * Finds an unmatched base block record with the same serialized block hash.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array[] $records_by_hash          Block record keys grouped by hash.
+ * @param string  $hash                     Serialized proposed block hash.
+ * @param bool[]  $matched_base_record_keys Matched base record keys.
+ * @return string|null Matching record key, or null when none is available.
+ */
+function wp_de_rtc_find_matching_kses_block_review_record_key( $records_by_hash, $hash, $matched_base_record_keys ) {
+	if ( empty( $records_by_hash[ $hash ] ) || ! is_array( $records_by_hash[ $hash ] ) ) {
+		return null;
+	}
+
+	foreach ( $records_by_hash[ $hash ] as $path_key ) {
+		if ( empty( $matched_base_record_keys[ $path_key ] ) ) {
+			return $path_key;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Returns flattened block records for KSES block review classification.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $post_content Post content.
+ * @return array[] Block records keyed by path.
+ */
+function wp_de_rtc_get_kses_block_review_records( $post_content ) {
+	$records = array();
+
+	wp_de_rtc_collect_kses_block_review_records(
+		parse_blocks( (string) $post_content ),
+		array(),
+		$records
+	);
+
+	return $records;
+}
+
+/**
+ * Collects flattened block records for KSES block review classification.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $blocks  Parsed block list.
+ * @param int[] $path    Current block path.
+ * @param array $records Collected block records.
+ */
+function wp_de_rtc_collect_kses_block_review_records( $blocks, $path, &$records ) {
+	foreach ( (array) $blocks as $index => $block ) {
+		if ( ! is_array( $block ) ) {
+			continue;
+		}
+
+		$block_path       = array_merge( $path, array( (int) $index ) );
+		$block_name       = ! empty( $block['blockName'] ) && is_string( $block['blockName'] ) ? $block['blockName'] : 'core/freeform';
+		$serialized_block = serialize_block( $block );
+		$path_key         = implode( '.', $block_path );
+
+		$records[ $path_key ] = array(
+			'path_key'         => $path_key,
+			'block_path'       => $block_path,
+			'block_name'       => $block_name,
+			'block_label'      => wp_de_rtc_get_kses_block_review_label( $block_name ),
+			'serialized_block' => $serialized_block,
+		);
+
+		if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
+			wp_de_rtc_collect_kses_block_review_records( $block['innerBlocks'], $block_path, $records );
+		}
+	}
+}
+
+/**
+ * Creates a hash-only risky block review item.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $block_record Block record.
+ * @param array $args         Review item arguments.
+ * @return array Hash-only review item.
+ */
+function wp_de_rtc_create_kses_block_review_item( $block_record, $args ) {
+	$id_source = implode( '/', $block_record['block_path'] ) . '|' . $block_record['block_name'] . '|' . $args['base_content_hash'] . '|' . $args['proposed_content_hash'];
+
+	return array(
+		'id'                         => 'kses-review-' . substr( hash( 'sha256', $id_source ), 0, 16 ),
+		'block_client_id'            => 'server-block-' . str_replace( '.', '-', $block_record['path_key'] ),
+		'block_name'                 => $block_record['block_name'],
+		'block_label'                => $block_record['block_label'],
+		'block_path'                 => $block_record['block_path'],
+		'change_kind'                => $args['change_kind'],
+		'risk_reason'                => $args['risk_reason'],
+		'author_id'                  => $args['author_id'],
+		'base_version'               => null === $args['base_version'] ? null : (string) $args['base_version'],
+		'server_version'             => null === $args['server_version'] ? null : (string) $args['server_version'],
+		'base_content_hash'          => $args['base_content_hash'],
+		'proposed_content_hash'      => $args['proposed_content_hash'],
+		'kses_filtered_content_hash' => $args['kses_filtered_content_hash'],
+		'review_status'              => 'pending_review',
+		'review_evidence_type'       => 'kses_block_hash_only_change',
+		'content_review_policy'      => 'kses',
+		'raw_content_included'       => false,
+		'exposes_raw_content'        => false,
+	);
+}
+
+/**
+ * Returns a readable block label for KSES review output.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $block_name Block name.
+ * @return string Block label.
+ */
+function wp_de_rtc_get_kses_block_review_label( $block_name ) {
+	if ( 'core/freeform' === $block_name ) {
+		return 'Classic';
+	}
+
+	if ( 'core/html' === $block_name ) {
+		return 'HTML';
+	}
+
+	if ( 0 === strpos( $block_name, 'core/' ) ) {
+		$core_label = substr( $block_name, 5 );
+		$core_label = str_replace( array( '-', '_' ), ' ', $core_label );
+
+		return ucwords( $core_label );
+	}
+
+	return $block_name;
+}
+
+/**
+ * Returns the risk reason for a block-level KSES review item.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string     $change_kind     Change kind.
+ * @param array|null $base_review     Base block KSES evidence.
+ * @param array      $proposed_review Proposed block KSES evidence.
+ * @param string     $block_content   Serialized proposed block content.
+ * @return string Risk reason.
+ */
+function wp_de_rtc_get_kses_block_review_risk_reason( $change_kind, $base_review, $proposed_review, $block_content ) {
+	if ( 'deleted_block' === $change_kind ) {
+		return 'unfiltered_html_block_deleted';
+	}
+
+	if ( ! empty( $proposed_review['would_change_content'] ) ) {
+		if ( false !== stripos( $block_content, '<script' ) ) {
+			return 'kses_would_remove_script';
+		}
+
+		if ( false !== stripos( $block_content, 'javascript:' ) || preg_match( '/\son[a-z]+\s*=/i', $block_content ) ) {
+			return 'kses_would_alter_attributes';
+		}
+
+		return 'kses_would_modify_html';
+	}
+
+	if ( is_array( $base_review ) && ! empty( $base_review['would_change_content'] ) ) {
+		return 'unfiltered_html_block_modified';
+	}
+
+	return 'kses_would_modify_html';
+}
+
+/**
  * Adds the scoped KSES allowance for server-owned sync metadata SCRIPT markup.
  *
  * @since 7.1.0
@@ -3557,16 +3955,38 @@ function wp_de_rtc_match_edge_sync_meta_script( $content, $position ) {
 
 	if ( 'prefix' === $position ) {
 		$pattern = '~\A[ \t\r\n]*' . $script_pattern . '[ \t\r\n]*~is';
-	} else {
-		$pattern = '~[ \t\r\n]*' . $script_pattern . '[ \t\r\n]*\z~is';
+
+		if ( ! preg_match( $pattern, $content, $matches ) ) {
+			return false;
+		}
+
+		return array(
+			'match'  => $matches[0],
+			'script' => $matches[1],
+			'json'   => $matches[2],
+		);
 	}
 
-	if ( ! preg_match( $pattern, $content, $matches ) ) {
+	$trimmed_content = rtrim( $content );
+	$script_start    = strripos( $trimmed_content, '<script' );
+
+	if ( false === $script_start ) {
+		return false;
+	}
+
+	while ( $script_start > 0 && preg_match( '/[ \t\r\n]/', $content[ $script_start - 1 ] ) ) {
+		--$script_start;
+	}
+
+	$trailer = substr( $content, $script_start );
+	$pattern = '~\A[ \t\r\n]*' . $script_pattern . '[ \t\r\n]*\z~is';
+
+	if ( ! preg_match( $pattern, $trailer, $matches ) ) {
 		return false;
 	}
 
 	return array(
-		'match'  => $matches[0],
+		'match'  => $trailer,
 		'script' => $matches[1],
 		'json'   => $matches[2],
 	);
