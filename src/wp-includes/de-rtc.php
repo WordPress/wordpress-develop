@@ -476,6 +476,275 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 }
 
 /**
+ * Plans a read-only Distributed Editing sync-meta recovery update.
+ *
+ * This helper accepts either a recovery decision array from
+ * wp_de_rtc_get_post_sync_meta_recovery_decision() or a post ID/object from
+ * which the decision should be derived. It only returns candidate data for a
+ * later write path; it does not update posts, restore revisions, create
+ * revisions, change locks, register REST behavior, or save.
+ *
+ * @since 7.1.0
+ *
+ * @param array|int|WP_Post|WP_Error $decision_or_post Recovery decision, post ID/object, or existing error.
+ * @return array|WP_Error {
+ *     Read-only recovery update plan on success, or a WP_Error when the source decision is invalid.
+ *
+ *     @type string      $plan                              Plan label.
+ *     @type string      $decision                          Source recovery decision label.
+ *     @type int         $post_id                           Post ID.
+ *     @type bool        $can_apply                         Whether a later mutation path may apply this plan.
+ *     @type bool        $recovery_required                 Whether recovery is required.
+ *     @type bool        $manual_resolution_required        Whether manual resolution is required.
+ *     @type array|null  $reason                            Canonical reason data, or null for no-op plans.
+ *     @type string|null $reason_code                       Canonical reason code, or null for no-op plans.
+ *     @type string      $current_content                   Current post content without sync metadata.
+ *     @type string      $current_content_hash              SHA-256 hash of current content without sync metadata.
+ *     @type string      $content_hash_algorithm            Content hash algorithm.
+ *     @type string|null $base_revision_content_hash        SHA-256 hash of base revision content, if available.
+ *     @type string|null $candidate_stripped_content        Candidate content without sync metadata.
+ *     @type string|null $candidate_stripped_content_hash   SHA-256 hash of candidate stripped content.
+ *     @type string|null $candidate_post_content            Candidate post_content, or null when blocked.
+ *     @type string|null $candidate_post_content_hash       SHA-256 hash of candidate post_content.
+ *     @type array|null  $restored_sync_meta                Restored sync metadata, if available.
+ *     @type string|null $restored_sync_meta_format         Restored sync metadata format, if available.
+ *     @type string|null $restored_sync_meta_position       Restored sync metadata position, if available.
+ *     @type string|null $restored_raw_sync_meta            Generated restored sync metadata SCRIPT, if available.
+ *     @type array|null  $external_change                   External-change evidence for later persistence.
+ * }
+ */
+function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
+	if ( is_wp_error( $decision_or_post ) ) {
+		return $decision_or_post;
+	}
+
+	$current_post_content = null;
+
+	if ( is_array( $decision_or_post ) && isset( $decision_or_post['decision'] ) ) {
+		$decision = $decision_or_post;
+	} else {
+		$post = get_post( $decision_or_post );
+
+		if ( $post ) {
+			$current_post_content = $post->post_content;
+		}
+
+		$decision = wp_de_rtc_get_post_sync_meta_recovery_decision( $decision_or_post );
+	}
+
+	if ( is_wp_error( $decision ) ) {
+		return $decision;
+	}
+
+	if (
+		! is_array( $decision ) ||
+		empty( $decision['decision'] ) ||
+		! isset( $decision['post_id'], $decision['current_content'] ) ||
+		! is_string( $decision['decision'] ) ||
+		! is_string( $decision['current_content'] )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_unrecoverable',
+			__( 'Distributed Editing could not plan sync metadata recovery because the recovery decision is invalid.' ),
+			array(
+				'detail' => 'invalid_recovery_decision',
+			)
+		);
+	}
+
+	$current_content      = $decision['current_content'];
+	$current_content_hash = isset( $decision['current_content_hash'] ) && is_string( $decision['current_content_hash'] )
+		? $decision['current_content_hash']
+		: wp_de_rtc_hash_content( $current_content );
+
+	if ( 'no_recovery_required' === $decision['decision'] ) {
+		if ( null === $current_post_content ) {
+			if (
+				isset( $decision['current_raw_sync_meta'], $decision['current_sync_meta_position'] ) &&
+				is_string( $decision['current_raw_sync_meta'] ) &&
+				is_string( $decision['current_sync_meta_position'] )
+			) {
+				if ( 'prefix' === $decision['current_sync_meta_position'] ) {
+					$current_post_content = $decision['current_raw_sync_meta'] . $current_content;
+				} elseif ( 'trailer' === $decision['current_sync_meta_position'] ) {
+					$current_post_content = $current_content . $decision['current_raw_sync_meta'];
+				}
+			}
+
+			if ( null === $current_post_content ) {
+				$current_post_content = $current_content;
+			}
+		}
+
+		return array(
+			'plan'                            => 'sync_meta_recovery_update',
+			'decision'                        => $decision['decision'],
+			'post_id'                         => (int) $decision['post_id'],
+			'can_apply'                       => false,
+			'recovery_required'               => false,
+			'manual_resolution_required'      => false,
+			'reason'                          => null,
+			'reason_code'                     => null,
+			'current_content'                 => $current_content,
+			'current_content_hash'            => $current_content_hash,
+			'content_hash_algorithm'          => 'sha256',
+			'base_revision_content_hash'      => null,
+			'candidate_stripped_content'      => $current_content,
+			'candidate_stripped_content_hash' => wp_de_rtc_hash_content( $current_content ),
+			'candidate_post_content'          => $current_post_content,
+			'candidate_post_content_hash'     => wp_de_rtc_hash_content( $current_post_content ),
+			'restored_sync_meta'              => null,
+			'restored_sync_meta_format'       => null,
+			'restored_sync_meta_position'     => null,
+			'restored_raw_sync_meta'          => null,
+			'external_change'                 => null,
+		);
+	}
+
+	if ( 'manual_resolution_required' === $decision['decision'] ) {
+		$reason      = isset( $decision['reason'] ) && is_array( $decision['reason'] )
+			? $decision['reason']
+			: wp_de_rtc_get_reason_data(
+				'de_rtc_sync_meta_unrecoverable',
+				array(
+					'detail' => 'manual_resolution_required',
+				)
+			);
+		$reason_code = isset( $reason['reason_code'] ) && is_string( $reason['reason_code'] ) ? $reason['reason_code'] : null;
+
+		return array(
+			'plan'                            => 'sync_meta_recovery_update',
+			'decision'                        => $decision['decision'],
+			'post_id'                         => (int) $decision['post_id'],
+			'can_apply'                       => false,
+			'recovery_required'               => true,
+			'manual_resolution_required'      => true,
+			'reason'                          => $reason,
+			'reason_code'                     => $reason_code,
+			'current_content'                 => $current_content,
+			'current_content_hash'            => $current_content_hash,
+			'content_hash_algorithm'          => 'sha256',
+			'base_revision_content_hash'      => null,
+			'candidate_stripped_content'      => null,
+			'candidate_stripped_content_hash' => null,
+			'candidate_post_content'          => null,
+			'candidate_post_content_hash'     => null,
+			'restored_sync_meta'              => null,
+			'restored_sync_meta_format'       => null,
+			'restored_sync_meta_position'     => null,
+			'restored_raw_sync_meta'          => null,
+			'external_change'                 => null,
+		);
+	}
+
+	if (
+		'recovery_required_restorable' !== $decision['decision'] ||
+		empty( $decision['base_revision'] ) ||
+		! is_array( $decision['base_revision'] ) ||
+		empty( $decision['base_revision']['sync_meta_format'] ) ||
+		empty( $decision['base_revision']['sync_meta_position'] ) ||
+		! isset( $decision['base_revision']['sync_meta'] ) ||
+		! is_string( $decision['base_revision']['sync_meta_format'] ) ||
+		! is_string( $decision['base_revision']['sync_meta_position'] )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_unrecoverable',
+			__( 'Distributed Editing could not plan sync metadata recovery because the restorable decision is invalid.' ),
+			array(
+				'detail'   => 'invalid_restorable_recovery_decision',
+				'decision' => $decision['decision'],
+			)
+		);
+	}
+
+	$base_revision          = $decision['base_revision'];
+	$restored_raw_sync_meta = wp_de_rtc_format_sync_meta( $base_revision['sync_meta_format'], $base_revision['sync_meta'] );
+
+	if ( is_wp_error( $restored_raw_sync_meta ) ) {
+		return $restored_raw_sync_meta;
+	}
+
+	$restored_raw_sync_meta = rtrim( $restored_raw_sync_meta );
+
+	$candidate_post_content = wp_de_rtc_add_sync_meta_to_post_content(
+		$current_content,
+		$base_revision['sync_meta_format'],
+		$base_revision['sync_meta'],
+		$base_revision['sync_meta_position']
+	);
+
+	if ( is_wp_error( $candidate_post_content ) ) {
+		return $candidate_post_content;
+	}
+
+	$candidate_stripped_content_hash = wp_de_rtc_hash_content( $current_content );
+	$candidate_post_content_hash     = wp_de_rtc_hash_content( $candidate_post_content );
+	$base_revision_content_hash      = isset( $decision['base_revision_content_hash'] ) && is_string( $decision['base_revision_content_hash'] )
+		? $decision['base_revision_content_hash']
+		: null;
+
+	if ( null === $base_revision_content_hash && isset( $base_revision['content'] ) && is_string( $base_revision['content'] ) ) {
+		$base_revision_content_hash = wp_de_rtc_hash_content( $base_revision['content'] );
+	}
+
+	$source_reason_code = null;
+
+	if ( isset( $decision['reason']['reason_code'] ) && is_string( $decision['reason']['reason_code'] ) ) {
+		$source_reason_code = $decision['reason']['reason_code'];
+	}
+
+	$reason = wp_de_rtc_get_reason_data(
+		'de_rtc_sync_meta_restored_from_revision',
+		array_filter(
+			array(
+				'detail'             => 'planned_sync_meta_recovery_update',
+				'source_reason_code' => $source_reason_code,
+				'base_revision_id'   => isset( $base_revision['revision_id'] ) ? (int) $base_revision['revision_id'] : null,
+			)
+		)
+	);
+
+	$external_change = isset( $decision['external_change'] ) && is_array( $decision['external_change'] )
+		? $decision['external_change']
+		: array();
+
+	$external_change = array_merge(
+		$external_change,
+		array(
+			'candidate_stripped_content_hash' => $candidate_stripped_content_hash,
+			'candidate_post_content_hash'     => $candidate_post_content_hash,
+			'candidate_sync_meta_format'      => $base_revision['sync_meta_format'],
+			'candidate_sync_meta_position'    => $base_revision['sync_meta_position'],
+			'candidate_reason_code'           => 'de_rtc_sync_meta_restored_from_revision',
+		)
+	);
+
+	return array(
+		'plan'                            => 'sync_meta_recovery_update',
+		'decision'                        => $decision['decision'],
+		'post_id'                         => (int) $decision['post_id'],
+		'can_apply'                       => true,
+		'recovery_required'               => true,
+		'manual_resolution_required'      => false,
+		'reason'                          => $reason,
+		'reason_code'                     => 'de_rtc_sync_meta_restored_from_revision',
+		'current_content'                 => $current_content,
+		'current_content_hash'            => $current_content_hash,
+		'content_hash_algorithm'          => 'sha256',
+		'base_revision_content_hash'      => $base_revision_content_hash,
+		'candidate_stripped_content'      => $current_content,
+		'candidate_stripped_content_hash' => $candidate_stripped_content_hash,
+		'candidate_post_content'          => $candidate_post_content,
+		'candidate_post_content_hash'     => $candidate_post_content_hash,
+		'restored_sync_meta'              => $base_revision['sync_meta'],
+		'restored_sync_meta_format'       => $base_revision['sync_meta_format'],
+		'restored_sync_meta_position'     => $base_revision['sync_meta_position'],
+		'restored_raw_sync_meta'          => $restored_raw_sync_meta,
+		'external_change'                 => $external_change,
+	);
+}
+
+/**
  * Creates a WP_Error with canonical Distributed Editing reason data.
  *
  * @since 7.1.0

@@ -1,0 +1,330 @@
+<?php
+/**
+ * Tests for Distributed Editing sync-meta recovery update plans.
+ *
+ * @package WordPress
+ * @subpackage UnitTests
+ *
+ * @group de-rtc
+ */
+
+class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
+
+	protected static $admin_user_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	public function set_up() {
+		parent::set_up();
+
+		wp_set_current_user( self::$admin_user_id );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_plan_sync_meta_recovery_update
+	 */
+	public function test_restorable_post_id_returns_apply_plan_with_candidate_content_and_does_not_mutate() {
+		$current_content  = '<!-- wp:paragraph --><p>Externally changed current content.</p><!-- /wp:paragraph -->';
+		$base_content     = '<!-- wp:paragraph --><p>Confirmed base content.</p><!-- /wp:paragraph -->';
+		$base_metadata    = array(
+			'version' => 9,
+			'hash'    => 'base-plan',
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'    => 'DE-RTC restorable plan post',
+				'post_content'  => $current_content,
+				'post_modified' => '2026-05-13 13:00:00',
+			)
+		);
+		$revision_content = wp_de_rtc_add_sync_meta_to_post_content( $base_content, 'automerge', $base_metadata, 'prefix' );
+
+		$this->assertIsString( $revision_content );
+
+		$revision_id = $this->insert_revision( $post_id, $revision_content, '2026-05-13 13:10:00' );
+
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$plan = wp_de_rtc_plan_sync_meta_recovery_update( $post_id );
+
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$this->assertIsArray( $plan );
+		$this->assertSame( 'sync_meta_recovery_update', $plan['plan'] );
+		$this->assertSame( 'recovery_required_restorable', $plan['decision'] );
+		$this->assertSame( $post_id, $plan['post_id'] );
+		$this->assertTrue( $plan['can_apply'] );
+		$this->assertTrue( $plan['recovery_required'] );
+		$this->assertFalse( $plan['manual_resolution_required'] );
+		$this->assertSame( 'de_rtc_sync_meta_restored_from_revision', $plan['reason_code'] );
+		$this->assertSame(
+			array(
+				'status'             => 409,
+				'reason_code'        => 'de_rtc_sync_meta_restored_from_revision',
+				'detail'             => 'planned_sync_meta_recovery_update',
+				'source_reason_code' => 'de_rtc_missing_sync_meta',
+				'base_revision_id'   => $revision_id,
+			),
+			$plan['reason']
+		);
+		$this->assertSame( $current_content, $plan['current_content'] );
+		$this->assertSame( hash( 'sha256', $current_content ), $plan['current_content_hash'] );
+		$this->assertSame( 'sha256', $plan['content_hash_algorithm'] );
+		$this->assertSame( $current_content, $plan['candidate_stripped_content'] );
+		$this->assertSame( hash( 'sha256', $current_content ), $plan['candidate_stripped_content_hash'] );
+		$this->assertSame( hash( 'sha256', $base_content ), $plan['base_revision_content_hash'] );
+		$this->assertSame( hash( 'sha256', $plan['candidate_post_content'] ), $plan['candidate_post_content_hash'] );
+		$this->assertSame( $base_metadata, $plan['restored_sync_meta'] );
+		$this->assertSame( 'automerge', $plan['restored_sync_meta_format'] );
+		$this->assertSame( 'prefix', $plan['restored_sync_meta_position'] );
+		$this->assertStringContainsString( 'type="wp/post-sync-meta"', $plan['restored_raw_sync_meta'] );
+
+		$parsed_candidate = wp_de_rtc_parse_post_content_sync_meta( $plan['candidate_post_content'] );
+
+		$this->assertIsArray( $parsed_candidate );
+		$this->assertSame( $current_content, $parsed_candidate['content'] );
+		$this->assertSame( $base_metadata, $parsed_candidate['sync_meta'] );
+		$this->assertSame( 'automerge', $parsed_candidate['sync_meta_format'] );
+		$this->assertSame( 'prefix', $parsed_candidate['sync_meta_position'] );
+		$this->assertSame( $plan['restored_raw_sync_meta'], $parsed_candidate['raw_sync_meta'] );
+		$this->assertSame( $revision_id, $plan['external_change']['base_revision_id'] );
+		$this->assertSame( $base_content, $plan['external_change']['base_content'] );
+		$this->assertSame( $current_content, $plan['external_change']['current_content'] );
+		$this->assertSame( hash( 'sha256', $base_content ), $plan['external_change']['base_content_hash'] );
+		$this->assertSame( hash( 'sha256', $current_content ), $plan['external_change']['current_content_hash'] );
+		$this->assertSame( hash( 'sha256', $current_content ), $plan['external_change']['candidate_stripped_content_hash'] );
+		$this->assertSame( hash( 'sha256', $plan['candidate_post_content'] ), $plan['external_change']['candidate_post_content_hash'] );
+		$this->assertSame( 'de_rtc_sync_meta_restored_from_revision', $plan['external_change']['candidate_reason_code'] );
+
+		$this->assertSame( $before_post->post_content, $after_post->post_content );
+		$this->assertSame( $current_content, $after_post->post_content );
+		$this->assertSame( $before_post->post_modified_gmt, $after_post->post_modified_gmt );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_plan_sync_meta_recovery_update
+	 */
+	public function test_accepts_recovery_decision_array_for_restorable_plan() {
+		$current_content  = '<!-- wp:paragraph --><p>Current content for decision array.</p><!-- /wp:paragraph -->';
+		$base_content     = '<!-- wp:paragraph --><p>Base content for decision array.</p><!-- /wp:paragraph -->';
+		$base_metadata    = array(
+			'version' => 10,
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC decision-array plan post',
+				'post_content' => $current_content,
+			)
+		);
+		$revision_content = wp_de_rtc_add_sync_meta_to_post_content( $base_content, 'yjs', $base_metadata );
+
+		$this->assertIsString( $revision_content );
+
+		$this->insert_revision( $post_id, $revision_content, '2026-05-13 13:20:00' );
+
+		$decision = wp_de_rtc_get_post_sync_meta_recovery_decision( $post_id );
+		$plan     = wp_de_rtc_plan_sync_meta_recovery_update( $decision );
+
+		$this->assertIsArray( $decision );
+		$this->assertIsArray( $plan );
+		$this->assertTrue( $plan['can_apply'] );
+		$this->assertSame( 'recovery_required_restorable', $plan['decision'] );
+		$this->assertSame( $current_content, $plan['candidate_stripped_content'] );
+		$this->assertSame( 'yjs', $plan['restored_sync_meta_format'] );
+		$this->assertSame( $base_metadata, $plan['restored_sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_plan_sync_meta_recovery_update
+	 */
+	public function test_no_recovery_required_returns_noop_plan_with_current_content_unchanged() {
+		$stripped_content = '<!-- wp:paragraph --><p>Already has current sync metadata.</p><!-- /wp:paragraph -->';
+		$metadata         = array(
+			'version' => 11,
+			'hash'    => 'current-plan',
+		);
+		$post_content     = wp_de_rtc_add_sync_meta_to_post_content( $stripped_content, 'diff-match-patch', $metadata );
+
+		$this->assertIsString( $post_content );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC no-op plan post',
+				'post_content' => $post_content,
+			)
+		);
+
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$plan = wp_de_rtc_plan_sync_meta_recovery_update( get_post( $post_id ) );
+
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$this->assertIsArray( $plan );
+		$this->assertSame( 'no_recovery_required', $plan['decision'] );
+		$this->assertFalse( $plan['can_apply'] );
+		$this->assertFalse( $plan['recovery_required'] );
+		$this->assertFalse( $plan['manual_resolution_required'] );
+		$this->assertNull( $plan['reason'] );
+		$this->assertNull( $plan['reason_code'] );
+		$this->assertSame( $stripped_content, $plan['current_content'] );
+		$this->assertSame( hash( 'sha256', $stripped_content ), $plan['current_content_hash'] );
+		$this->assertSame( $stripped_content, $plan['candidate_stripped_content'] );
+		$this->assertSame( hash( 'sha256', $stripped_content ), $plan['candidate_stripped_content_hash'] );
+		$this->assertSame( $post_content, $plan['candidate_post_content'] );
+		$this->assertSame( hash( 'sha256', $post_content ), $plan['candidate_post_content_hash'] );
+		$this->assertNull( $plan['base_revision_content_hash'] );
+		$this->assertNull( $plan['restored_sync_meta'] );
+		$this->assertNull( $plan['external_change'] );
+
+		$this->assertSame( $before_post->post_content, $after_post->post_content );
+		$this->assertSame( $post_content, $after_post->post_content );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_plan_sync_meta_recovery_update
+	 */
+	public function test_manual_resolution_returns_blocked_plan_without_candidate_post_content() {
+		$current_content = '<!-- wp:paragraph --><p>No restorable sync metadata.</p><!-- /wp:paragraph -->';
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC manual plan post',
+				'post_content' => $current_content,
+			)
+		);
+
+		$this->insert_revision(
+			$post_id,
+			'<!-- wp:paragraph --><p>Revision also has no sync metadata.</p><!-- /wp:paragraph -->',
+			'2026-05-13 13:30:00'
+		);
+
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$plan = wp_de_rtc_plan_sync_meta_recovery_update( $post_id );
+
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$this->assertIsArray( $plan );
+		$this->assertSame( 'manual_resolution_required', $plan['decision'] );
+		$this->assertFalse( $plan['can_apply'] );
+		$this->assertTrue( $plan['recovery_required'] );
+		$this->assertTrue( $plan['manual_resolution_required'] );
+		$this->assertSame( 'de_rtc_sync_meta_unrecoverable', $plan['reason_code'] );
+		$this->assertSame(
+			array(
+				'status'                 => 409,
+				'reason_code'            => 'de_rtc_sync_meta_unrecoverable',
+				'detail'                 => 'missing_sync_meta_no_restorable_revision',
+				'scanned_revisions'      => 1,
+				'malformed_revision_ids' => array(),
+			),
+			$plan['reason']
+		);
+		$this->assertSame( $current_content, $plan['current_content'] );
+		$this->assertSame( hash( 'sha256', $current_content ), $plan['current_content_hash'] );
+		$this->assertNull( $plan['candidate_stripped_content'] );
+		$this->assertNull( $plan['candidate_post_content'] );
+		$this->assertNull( $plan['candidate_post_content_hash'] );
+		$this->assertNull( $plan['restored_sync_meta_format'] );
+		$this->assertNull( $plan['external_change'] );
+
+		$this->assertSame( $before_post->post_content, $after_post->post_content );
+		$this->assertSame( $current_content, $after_post->post_content );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_plan_sync_meta_recovery_update
+	 */
+	public function test_malformed_current_sync_meta_propagates_existing_parse_error() {
+		$content = '<script type="wp/post-sync-meta" data-sync-meta-format="diff-match-patch">{bad json</script><!-- wp:paragraph --><p>Current.</p><!-- /wp:paragraph -->';
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC malformed current plan post',
+				'post_content' => $content,
+			)
+		);
+
+		$before_post = get_post( $post_id );
+		$result      = wp_de_rtc_plan_sync_meta_recovery_update( $post_id );
+		$after_post  = get_post( $post_id );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'de_rtc_malformed_sync_payload', $result->get_error_code() );
+		$this->assertSame(
+			array(
+				'status'          => 400,
+				'reason_code'     => 'de_rtc_malformed_sync_payload',
+				'detail'          => 'malformed_json',
+				'json_error_code' => JSON_ERROR_SYNTAX,
+			),
+			$result->get_error_data()
+		);
+		$this->assertSame( $before_post->post_content, $after_post->post_content );
+	}
+
+	/**
+	 * Inserts a revision for a post with controlled content and dates.
+	 *
+	 * @param int    $post_id      Parent post ID.
+	 * @param string $post_content Revision content.
+	 * @param string $date_gmt     GMT date.
+	 * @return int Revision ID.
+	 */
+	private function insert_revision( $post_id, $post_content, $date_gmt ) {
+		$post                 = (array) get_post( $post_id );
+		$post_revision_fields = _wp_post_revision_data( $post );
+
+		$post_revision_fields['post_content']  = $post_content;
+		$post_revision_fields['post_date']     = $date_gmt;
+		$post_revision_fields['post_date_gmt'] = $date_gmt;
+
+		$revision_id = wp_insert_post( wp_slash( $post_revision_fields ), true );
+
+		$this->assertNotWPError( $revision_id );
+		$this->assertIsInt( $revision_id );
+
+		return $revision_id;
+	}
+}
