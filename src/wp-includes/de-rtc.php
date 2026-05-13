@@ -180,6 +180,76 @@ function wp_de_rtc_register_rest_routes() {
 				),
 			)
 		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/retry-save',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => 'wp_de_rtc_rest_retry_save_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_retry_save_permissions_check',
+					'args'                => array(
+						'client_base_version'          => array(
+							'description' => __( 'Distributed Editing sync version that the rebased client edits are based on.' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'accepted_proof_server_version' => array(
+							'description' => __( 'Server sync version from the accepted retry-submit proof.' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'rebased_from_version'         => array(
+							'description' => __( 'Original stale Distributed Editing sync version that the client rebased from.' ),
+							'type'        => 'string',
+						),
+						'pending_change_count'         => array(
+							'description' => __( 'Number of pending local change groups the client is saving.' ),
+							'type'        => 'integer',
+							'minimum'     => 0,
+							'default'     => 1,
+						),
+						'proposed_post_content'        => array(
+							'description' => __( 'Client-proposed post content without Distributed Editing sync metadata.' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'proposed_post_content_hash'   => array(
+							'description' => __( 'SHA-256 hash of the proposed post content without sync metadata.' ),
+							'type'        => 'string',
+							'pattern'     => '^[a-f0-9]{64}$',
+						),
+						'accepted_proof_saves_post'    => array(
+							'description' => __( 'Whether the accepted proof claimed to save the post.' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
+						'accepted_proof_mutates_post_content' => array(
+							'description' => __( 'Whether the accepted proof claimed to mutate post content.' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
+						'accepted_proof_creates_revision' => array(
+							'description' => __( 'Whether the accepted proof claimed to create a revision.' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
+						'accepted_proof_claims_saved'  => array(
+							'description' => __( 'Whether the accepted proof claimed saved state.' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
+					),
+				),
+			)
+		);
 	}
 }
 add_action( 'rest_api_init', 'wp_de_rtc_register_rest_routes' );
@@ -430,6 +500,47 @@ function wp_de_rtc_rest_retry_submit_permissions_check( $request ) {
 }
 
 /**
+ * Checks permissions for the retry-save REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_retry_save_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || ! wp_de_rtc_rest_retry_save_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'  => 'feature_disabled_for_post',
+				'post_id' => (int) $post->ID,
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
  * Returns whether the REST recovery request matches the post type route.
  *
  * @since 7.1.0
@@ -562,6 +673,50 @@ function wp_de_rtc_get_rest_retry_submit_request_rest_base( $request ) {
 }
 
 /**
+ * Returns whether the REST retry-save request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_retry_save_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_retry_save_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a retry-save request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_retry_save_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/retry-save$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
  * Handles the sync-meta recovery REST endpoint.
  *
  * @since 7.1.0
@@ -663,6 +818,43 @@ function wp_de_rtc_rest_retry_submit_endpoint( $request ) {
 }
 
 /**
+ * Handles the retry-save REST endpoint.
+ *
+ * This endpoint is the first explicit write boundary for a retry after stale-
+ * base local rebase. It requires evidence from an accepted retry-submit proof,
+ * verifies the server version is still current, and lets the server own the
+ * updated sync metadata embedded in post_content.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response|WP_Error REST response on success, otherwise an error.
+ */
+function wp_de_rtc_rest_retry_save_endpoint( $request ) {
+	$result = wp_de_rtc_save_retry_submitted_post(
+		(int) $request['id'],
+		array(
+			'client_base_version'                 => $request->get_param( 'client_base_version' ),
+			'accepted_proof_server_version'      => $request->get_param( 'accepted_proof_server_version' ),
+			'rebased_from_version'               => $request->get_param( 'rebased_from_version' ),
+			'pending_change_count'               => $request->get_param( 'pending_change_count' ),
+			'proposed_post_content'              => $request->get_param( 'proposed_post_content' ),
+			'proposed_post_content_hash'         => $request->get_param( 'proposed_post_content_hash' ),
+			'accepted_proof_saves_post'          => $request->get_param( 'accepted_proof_saves_post' ),
+			'accepted_proof_mutates_post_content' => $request->get_param( 'accepted_proof_mutates_post_content' ),
+			'accepted_proof_creates_revision'    => $request->get_param( 'accepted_proof_creates_revision' ),
+			'accepted_proof_claims_saved'        => $request->get_param( 'accepted_proof_claims_saved' ),
+		)
+	);
+
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+
+	return rest_ensure_response( $result );
+}
+
+/**
  * Returns a proof-only retry-submit acceptance result.
  *
  * @since 7.1.0
@@ -727,6 +919,260 @@ function wp_de_rtc_get_retry_submit_acceptance_result( $post, $args = array() ) 
 		'mutates_post_content'                => false,
 		'creates_revision'                    => false,
 		'claims_saved'                        => false,
+		'permission_contract'                 => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
+	);
+}
+
+/**
+ * Applies an accepted retry-save request.
+ *
+ * The client sends stripped proposed post content and proof metadata. The
+ * server validates the proof against the current sync-meta version, rejects
+ * contradictory proof flags, creates the next sync meta, and persists the
+ * combined post_content with revision evidence.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args {
+ *     Retry-save request arguments.
+ *
+ *     @type mixed $client_base_version                 Client base version after local rebase.
+ *     @type mixed $accepted_proof_server_version       Server version from accepted proof.
+ *     @type mixed $rebased_from_version                Original stale version that was rebased from.
+ *     @type mixed $pending_change_count                Pending local change count. Default 1.
+ *     @type mixed $proposed_post_content               Proposed content without sync metadata.
+ *     @type mixed $proposed_post_content_hash          Hash of proposed content without sync metadata.
+ *     @type mixed $accepted_proof_saves_post           Whether proof claimed to save.
+ *     @type mixed $accepted_proof_mutates_post_content Whether proof claimed to mutate content.
+ *     @type mixed $accepted_proof_creates_revision     Whether proof claimed to create a revision.
+ *     @type mixed $accepted_proof_claims_saved         Whether proof claimed saved state.
+ * }
+ * @return array|WP_Error Retry-save result, or rejection.
+ */
+function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	$client_base_version            = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
+	$accepted_proof_server_version = isset( $args['accepted_proof_server_version'] ) ? sanitize_text_field( (string) $args['accepted_proof_server_version'] ) : '';
+	$server_version                 = wp_de_rtc_get_post_sync_meta_version( $post );
+	$pending_change_count           = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
+	$rebased_from_version           = isset( $args['rebased_from_version'] ) ? sanitize_text_field( (string) $args['rebased_from_version'] ) : null;
+	$accepted_proof_saves_post      = ! empty( $args['accepted_proof_saves_post'] ) && wp_validate_boolean( $args['accepted_proof_saves_post'] );
+	$accepted_proof_mutates_content = ! empty( $args['accepted_proof_mutates_post_content'] ) && wp_validate_boolean( $args['accepted_proof_mutates_post_content'] );
+	$accepted_proof_creates_revision = ! empty( $args['accepted_proof_creates_revision'] ) && wp_validate_boolean( $args['accepted_proof_creates_revision'] );
+	$accepted_proof_claims_saved    = ! empty( $args['accepted_proof_claims_saved'] ) && wp_validate_boolean( $args['accepted_proof_claims_saved'] );
+
+	if (
+		$accepted_proof_saves_post ||
+		$accepted_proof_mutates_content ||
+		$accepted_proof_creates_revision ||
+		$accepted_proof_claims_saved
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because the accepted proof claimed persistence.' ),
+			array(
+				'detail'      => 'retry_save_proof_claimed_persistence',
+				'post_id'     => (int) $post->ID,
+				'rest_route'  => 'post_retry_save',
+				'saves_post'  => false,
+				'claims_saved' => false,
+			)
+		);
+	}
+
+	if (
+		'' === $client_base_version ||
+		'' === $accepted_proof_server_version ||
+		null === $server_version ||
+		$client_base_version !== $server_version ||
+		$accepted_proof_server_version !== $server_version
+	) {
+		return wp_de_rtc_get_stale_base_rejection_error(
+			$post,
+			array(
+				'client_base_version'      => $client_base_version,
+				'server_version'           => $server_version,
+				'pending_change_count'     => $pending_change_count,
+				'remote_change_count'      => 1,
+				'can_attempt_local_rebase' => false,
+				'rest_route'               => 'post_retry_save_stale_base',
+			)
+		);
+	}
+
+	if ( ! array_key_exists( 'proposed_post_content', $args ) || ! is_string( $args['proposed_post_content'] ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the retry save because proposed post content is missing.' ),
+			array(
+				'detail'     => 'missing_retry_save_proposed_content',
+				'post_id'    => (int) $post->ID,
+				'rest_route' => 'post_retry_save',
+			)
+		);
+	}
+
+	$proposed_post_content      = (string) $args['proposed_post_content'];
+	$proposed_post_content_hash = wp_de_rtc_hash_content( $proposed_post_content );
+	$expected_content_hash      = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : null;
+
+	if ( null !== $expected_content_hash && ! hash_equals( $expected_content_hash, $proposed_post_content_hash ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because the proposed content hash does not match.' ),
+			array(
+				'detail'                       => 'retry_save_proposed_content_hash_mismatch',
+				'post_id'                      => (int) $post->ID,
+				'rest_route'                   => 'post_retry_save',
+				'proposed_post_content_hash'   => $proposed_post_content_hash,
+				'expected_post_content_hash'   => $expected_content_hash,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+			)
+		);
+	}
+
+	$current = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
+
+	if ( is_wp_error( $current ) ) {
+		return $current;
+	}
+
+	$proposed = wp_de_rtc_parse_post_content_sync_meta( $proposed_post_content );
+
+	if ( is_wp_error( $proposed ) ) {
+		return $proposed;
+	}
+
+	if ( null !== $proposed['sync_meta'] ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because clients may not submit altered sync metadata.' ),
+			array(
+				'detail'               => 'retry_save_client_submitted_sync_meta',
+				'post_id'              => (int) $post->ID,
+				'rest_route'           => 'post_retry_save',
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if (
+		! is_array( $current['sync_meta'] ) ||
+		! is_string( $current['sync_meta_format'] ) ||
+		! is_string( $current['sync_meta_position'] )
+	) {
+		return wp_de_rtc_get_stale_base_rejection_error(
+			$post,
+			array(
+				'client_base_version'      => $client_base_version,
+				'server_version'           => null,
+				'pending_change_count'     => $pending_change_count,
+				'remote_change_count'      => 1,
+				'can_attempt_local_rebase' => false,
+				'rest_route'               => 'post_retry_save_stale_base',
+			)
+		);
+	}
+
+	$next_version   = wp_de_rtc_get_next_sync_meta_version( $server_version, $proposed_post_content_hash );
+	$next_sync_meta = $current['sync_meta'];
+
+	$next_sync_meta['version']           = $next_version;
+	$next_sync_meta['previous_version']  = $server_version;
+	$next_sync_meta['last_server_update'] = array(
+		'type'                         => 'retry_save',
+		'user_id'                      => get_current_user_id(),
+		'client_base_version'          => $client_base_version,
+		'accepted_proof_server_version' => $accepted_proof_server_version,
+		'rebased_from_version'         => $rebased_from_version,
+		'pending_change_count'         => $pending_change_count,
+		'proposed_post_content_hash'   => $proposed_post_content_hash,
+	);
+
+	$candidate_post_content = wp_de_rtc_add_sync_meta_to_post_content(
+		$proposed_post_content,
+		$current['sync_meta_format'],
+		$next_sync_meta,
+		$current['sync_meta_position']
+	);
+
+	if ( is_wp_error( $candidate_post_content ) ) {
+		return $candidate_post_content;
+	}
+
+	$revision_ids_before_save = wp_de_rtc_get_post_revision_ids( $post->ID );
+	$candidate_hash           = wp_de_rtc_hash_content( $candidate_post_content );
+	$updated_post_id          = wp_update_post(
+		wp_slash(
+			array(
+				'ID'           => (int) $post->ID,
+				'post_content' => $candidate_post_content,
+			)
+		),
+		true
+	);
+
+	if ( is_wp_error( $updated_post_id ) ) {
+		return $updated_post_id;
+	}
+
+	if ( ! $updated_post_id ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing could not save the retry update because the post update failed.' ),
+			array(
+				'detail'  => 'retry_save_post_update_failed',
+				'post_id' => (int) $post->ID,
+			)
+		);
+	}
+
+	$revision_ids_after_save = wp_de_rtc_get_post_revision_ids( $post->ID );
+	$created_revision_ids    = array_values( array_diff( $revision_ids_after_save, $revision_ids_before_save ) );
+
+	return array(
+		'mode'                                => 'retry_save',
+		'result'                              => 'retry_save_applied',
+		'retry_save_accepted'                 => true,
+		'rest_route'                          => 'post_retry_save',
+		'post_id'                             => (int) $post->ID,
+		'updated_post_id'                     => (int) $updated_post_id,
+		'client_base_version'                 => $client_base_version,
+		'accepted_proof_server_version'       => $accepted_proof_server_version,
+		'previous_server_version'             => $server_version,
+		'server_version'                      => $next_version,
+		'rebased_from_version'                => $rebased_from_version,
+		'pending_change_count'                => $pending_change_count,
+		'proposed_post_content_hash'          => $proposed_post_content_hash,
+		'saved_post_content_hash'             => $candidate_hash,
+		'requires_server_state_refetch'       => false,
+		'requires_manual_conflict_resolution' => false,
+		'can_export_local_updates'            => false,
+		'save_path_required'                  => false,
+		'saves_post'                          => true,
+		'mutates_post_content'                => true,
+		'creates_revision'                    => ! empty( $created_revision_ids ),
+		'claims_saved'                        => true,
+		'revision_ids_before_save'            => $revision_ids_before_save,
+		'revision_ids_after_save'             => $revision_ids_after_save,
+		'created_revision_ids'                => $created_revision_ids,
+		'revision_created'                    => ! empty( $created_revision_ids ),
 		'permission_contract'                 => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
 	);
 }
@@ -2172,6 +2618,27 @@ function wp_de_rtc_validate_recovery_update_candidate( $plan ) {
  */
 function wp_de_rtc_hash_content( $content ) {
 	return hash( 'sha256', $content );
+}
+
+/**
+ * Returns the next sync-meta version label for a retry save.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $current_version Current sync-meta version.
+ * @param string $content_hash    Proposed stripped content hash.
+ * @return string Next sync-meta version.
+ */
+function wp_de_rtc_get_next_sync_meta_version( $current_version, $content_hash ) {
+	$current_version = (string) $current_version;
+	$content_hash    = (string) $content_hash;
+
+	if ( ctype_digit( $current_version ) ) {
+		return (string) ( (int) $current_version + 1 );
+	}
+
+	return substr( hash( 'sha256', $current_version . '|' . $content_hash ), 0, 16 );
 }
 
 /**
