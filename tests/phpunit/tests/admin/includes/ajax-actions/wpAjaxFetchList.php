@@ -29,7 +29,7 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 
 		// Set up the $_GET request.
 		$list_class = 'WP_Posts_List_Table';
-		
+
 		$_GET = array(
 			'list_args'  => array(
 				'class'  => $list_class,
@@ -76,7 +76,8 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
 
 		$list_class = 'WP_Posts_List_Table';
-		$_GET       = array(
+
+		$_GET = array(
 			'list_args'  => array(
 				'class'  => $list_class,
 				'screen' => array(
@@ -111,7 +112,8 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		$list_class = 'WP_Posts_List_Table';
-		$_GET       = array(
+
+		$_GET = array(
 			'list_args' => array(
 				'class' => $list_class,
 			),
@@ -133,7 +135,8 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		$list_class = 'Invalid_List_Table';
-		$_GET       = array(
+
+		$_GET = array(
 			'list_args' => array(
 				'class' => $list_class,
 			),
@@ -156,7 +159,8 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'subscriber' );
 
 		$list_class = 'WP_Posts_List_Table';
-		$_GET       = array(
+
+		$_GET = array(
 			'list_args'  => array(
 				'class'  => $list_class,
 				'screen' => array(
