@@ -745,6 +745,122 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 }
 
 /**
+ * Dry-runs a Distributed Editing sync-meta recovery update plan.
+ *
+ * This helper validates candidate recovery output from
+ * wp_de_rtc_plan_sync_meta_recovery_update() but never applies it. It creates
+ * an explicit dry-run boundary for a later apply helper and does not update
+ * posts, restore revisions, create revisions, change locks, register REST
+ * behavior, or save.
+ *
+ * @since 7.1.0
+ *
+ * @param array|int|WP_Post|WP_Error $plan_decision_or_post Recovery plan, recovery decision, post ID/object, or existing error.
+ * @return array|WP_Error {
+ *     Dry-run result on success, or a WP_Error when the plan cannot be validated.
+ *
+ *     @type string      $mode                    Dry-run mode label.
+ *     @type string      $result                  Dry-run result label.
+ *     @type string      $validation_status       Validation status label.
+ *     @type string      $decision                Source recovery decision label.
+ *     @type int         $post_id                 Post ID.
+ *     @type bool        $valid                   Whether the candidate is valid.
+ *     @type bool        $can_apply               Whether a later apply helper may apply the plan.
+ *     @type bool        $would_apply             Always false for this dry-run helper.
+ *     @type bool        $recovery_required       Whether recovery is required.
+ *     @type bool        $manual_resolution_required Whether manual resolution is required.
+ *     @type array|null  $reason                  Canonical reason data, or null for no-op results.
+ *     @type string|null $reason_code             Canonical reason code, or null for no-op results.
+ *     @type array       $checks                  Validation checks.
+ *     @type array       $plan                    Source recovery update plan.
+ * }
+ */
+function wp_de_rtc_dry_run_sync_meta_recovery_update( $plan_decision_or_post ) {
+	if ( is_wp_error( $plan_decision_or_post ) ) {
+		return $plan_decision_or_post;
+	}
+
+	if ( is_array( $plan_decision_or_post ) && isset( $plan_decision_or_post['plan'] ) ) {
+		$plan = $plan_decision_or_post;
+	} else {
+		$plan = wp_de_rtc_plan_sync_meta_recovery_update( $plan_decision_or_post );
+	}
+
+	if ( is_wp_error( $plan ) ) {
+		return $plan;
+	}
+
+	if (
+		! is_array( $plan ) ||
+		empty( $plan['plan'] ) ||
+		'sync_meta_recovery_update' !== $plan['plan'] ||
+		empty( $plan['decision'] ) ||
+		! isset( $plan['post_id'], $plan['current_content'] ) ||
+		! is_string( $plan['decision'] ) ||
+		! is_string( $plan['current_content'] )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_unrecoverable',
+			__( 'Distributed Editing could not dry-run sync metadata recovery because the recovery plan is invalid.' ),
+			array(
+				'detail' => 'invalid_recovery_update_plan',
+			)
+		);
+	}
+
+	if ( 'no_recovery_required' === $plan['decision'] ) {
+		return wp_de_rtc_create_recovery_dry_run_result(
+			$plan,
+			'no_update_required',
+			'noop',
+			true,
+			false,
+			array(
+				'candidate_required'     => false,
+				'candidate_content_safe' => true,
+			)
+		);
+	}
+
+	if ( 'manual_resolution_required' === $plan['decision'] ) {
+		return wp_de_rtc_create_recovery_dry_run_result(
+			$plan,
+			'manual_resolution_required',
+			'blocked',
+			false,
+			false,
+			array(
+				'candidate_required'     => false,
+				'candidate_content_safe' => false,
+			)
+		);
+	}
+
+	if ( 'recovery_required_restorable' !== $plan['decision'] ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_unrecoverable',
+			__( 'Distributed Editing could not dry-run sync metadata recovery because the plan decision is unsupported.' ),
+			array(
+				'detail'   => 'unsupported_recovery_update_plan',
+				'decision' => $plan['decision'],
+			)
+		);
+	}
+
+	$checks = wp_de_rtc_validate_recovery_update_candidate( $plan );
+	$valid  = ! in_array( false, $checks, true );
+
+	return wp_de_rtc_create_recovery_dry_run_result(
+		$plan,
+		$valid ? 'candidate_update_valid' : 'candidate_update_invalid',
+		$valid ? 'valid_candidate' : 'invalid_candidate',
+		$valid,
+		$valid && ! empty( $plan['can_apply'] ),
+		$checks
+	);
+}
+
+/**
  * Creates a WP_Error with canonical Distributed Editing reason data.
  *
  * @since 7.1.0
@@ -793,6 +909,104 @@ function wp_de_rtc_get_reason_data( $reason_code, $data = array() ) {
 		),
 		$data
 	);
+}
+
+/**
+ * Creates a DE-RTC dry-run result for a recovery update plan.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $plan              Recovery update plan.
+ * @param string $result            Result label.
+ * @param string $validation_status Validation status label.
+ * @param bool   $valid             Whether the dry run validated successfully.
+ * @param bool   $can_apply         Whether a later apply helper may apply the plan.
+ * @param array  $checks            Validation checks.
+ * @return array Dry-run result.
+ */
+function wp_de_rtc_create_recovery_dry_run_result( $plan, $result, $validation_status, $valid, $can_apply, $checks ) {
+	return array(
+		'mode'                       => 'dry_run',
+		'result'                     => $result,
+		'validation_status'          => $validation_status,
+		'decision'                   => $plan['decision'],
+		'post_id'                    => (int) $plan['post_id'],
+		'valid'                      => $valid,
+		'can_apply'                  => $can_apply,
+		'would_apply'                => false,
+		'recovery_required'          => ! empty( $plan['recovery_required'] ),
+		'manual_resolution_required' => ! empty( $plan['manual_resolution_required'] ),
+		'reason'                     => isset( $plan['reason'] ) && is_array( $plan['reason'] ) ? $plan['reason'] : null,
+		'reason_code'                => isset( $plan['reason_code'] ) && is_string( $plan['reason_code'] ) ? $plan['reason_code'] : null,
+		'checks'                     => $checks,
+		'plan'                       => $plan,
+	);
+}
+
+/**
+ * Validates candidate post content from a recovery update plan.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $plan Recovery update plan.
+ * @return bool[] Validation checks.
+ */
+function wp_de_rtc_validate_recovery_update_candidate( $plan ) {
+	$checks = array(
+		'candidate_post_content_present'          => isset( $plan['candidate_post_content'] ) && is_string( $plan['candidate_post_content'] ) && '' !== $plan['candidate_post_content'],
+		'candidate_post_content_hash_matches'     => false,
+		'candidate_stripped_content_hash_matches' => false,
+		'candidate_parseable'                     => false,
+		'candidate_stripped_content_matches'      => false,
+		'candidate_sync_meta_matches'             => false,
+		'candidate_sync_meta_format_matches'      => false,
+	);
+
+	if ( ! $checks['candidate_post_content_present'] ) {
+		return $checks;
+	}
+
+	$checks['candidate_post_content_hash_matches'] = (
+		isset( $plan['candidate_post_content_hash'] ) &&
+		is_string( $plan['candidate_post_content_hash'] ) &&
+		hash_equals( $plan['candidate_post_content_hash'], wp_de_rtc_hash_content( $plan['candidate_post_content'] ) )
+	);
+
+	$checks['candidate_stripped_content_hash_matches'] = (
+		isset( $plan['candidate_stripped_content'], $plan['candidate_stripped_content_hash'] ) &&
+		is_string( $plan['candidate_stripped_content'] ) &&
+		is_string( $plan['candidate_stripped_content_hash'] ) &&
+		hash_equals( $plan['candidate_stripped_content_hash'], wp_de_rtc_hash_content( $plan['candidate_stripped_content'] ) )
+	);
+
+	$parsed = wp_de_rtc_parse_post_content_sync_meta( $plan['candidate_post_content'] );
+
+	if ( is_wp_error( $parsed ) || ! is_array( $parsed ) ) {
+		return $checks;
+	}
+
+	$checks['candidate_parseable'] = true;
+
+	$checks['candidate_stripped_content_matches'] = (
+		isset( $plan['candidate_stripped_content'] ) &&
+		is_string( $plan['candidate_stripped_content'] ) &&
+		$parsed['content'] === $plan['candidate_stripped_content']
+	);
+
+	$checks['candidate_sync_meta_matches'] = (
+		isset( $plan['restored_sync_meta'] ) &&
+		$parsed['sync_meta'] === $plan['restored_sync_meta']
+	);
+
+	$checks['candidate_sync_meta_format_matches'] = (
+		isset( $plan['restored_sync_meta_format'] ) &&
+		is_string( $plan['restored_sync_meta_format'] ) &&
+		$parsed['sync_meta_format'] === $plan['restored_sync_meta_format']
+	);
+
+	return $checks;
 }
 
 /**
