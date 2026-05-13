@@ -861,6 +861,112 @@ function wp_de_rtc_dry_run_sync_meta_recovery_update( $plan_decision_or_post ) {
 }
 
 /**
+ * Applies a Distributed Editing sync-meta recovery update plan when explicitly requested.
+ *
+ * This helper creates the first guarded write boundary for sync-meta recovery.
+ * It always dry-runs and validates the candidate first. It does not write
+ * unless the caller passes an options array with `mode` set to `apply`.
+ *
+ * @since 7.1.0
+ *
+ * @param array|int|WP_Post|WP_Error $plan_decision_or_post Recovery plan, recovery decision, post ID/object, or existing error.
+ * @param array                      $options               Optional. Apply options. Requires `mode => 'apply'` to persist.
+ * @return array|WP_Error Apply result on success, guarded no-op result when apply was not requested, or a WP_Error.
+ */
+function wp_de_rtc_apply_sync_meta_recovery_update( $plan_decision_or_post, $options = array() ) {
+	if ( is_wp_error( $plan_decision_or_post ) ) {
+		return $plan_decision_or_post;
+	}
+
+	if ( ! is_array( $options ) ) {
+		$options = array();
+	}
+
+	$dry_run = wp_de_rtc_dry_run_sync_meta_recovery_update( $plan_decision_or_post );
+
+	if ( is_wp_error( $dry_run ) ) {
+		return $dry_run;
+	}
+
+	$requested_mode = isset( $options['mode'] ) && is_string( $options['mode'] ) ? $options['mode'] : 'dry_run';
+
+	if ( 'apply' !== $requested_mode ) {
+		return wp_de_rtc_create_recovery_apply_result(
+			$dry_run,
+			'apply_not_requested',
+			false,
+			array(
+				'requested_mode' => $requested_mode,
+			)
+		);
+	}
+
+	if ( empty( $dry_run['valid'] ) || empty( $dry_run['can_apply'] ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing could not apply sync metadata recovery because the dry-run candidate is not valid.' ),
+			array(
+				'detail'                => 'invalid_recovery_update_candidate',
+				'dry_run_result'        => isset( $dry_run['result'] ) ? $dry_run['result'] : null,
+				'dry_run_valid'         => ! empty( $dry_run['valid'] ),
+				'dry_run_can_apply'     => ! empty( $dry_run['can_apply'] ),
+				'dry_run_reason_code'   => isset( $dry_run['reason_code'] ) ? $dry_run['reason_code'] : null,
+				'dry_run_check_results' => isset( $dry_run['checks'] ) ? $dry_run['checks'] : array(),
+			)
+		);
+	}
+
+	if (
+		! isset( $dry_run['plan']['candidate_post_content'], $dry_run['plan']['candidate_post_content_hash'] ) ||
+		! is_string( $dry_run['plan']['candidate_post_content'] ) ||
+		! is_string( $dry_run['plan']['candidate_post_content_hash'] )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_unrecoverable',
+			__( 'Distributed Editing could not apply sync metadata recovery because the candidate post content is missing.' ),
+			array(
+				'detail' => 'missing_recovery_update_candidate',
+			)
+		);
+	}
+
+	$updated_post_id = wp_update_post(
+		wp_slash(
+			array(
+				'ID'           => (int) $dry_run['post_id'],
+				'post_content' => $dry_run['plan']['candidate_post_content'],
+			)
+		),
+		true
+	);
+
+	if ( is_wp_error( $updated_post_id ) ) {
+		return $updated_post_id;
+	}
+
+	if ( ! $updated_post_id ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing could not apply sync metadata recovery because the post update failed.' ),
+			array(
+				'detail'  => 'post_update_failed',
+				'post_id' => (int) $dry_run['post_id'],
+			)
+		);
+	}
+
+	return wp_de_rtc_create_recovery_apply_result(
+		$dry_run,
+		'candidate_update_applied',
+		true,
+		array(
+			'updated_post_id'             => (int) $updated_post_id,
+			'candidate_post_content_hash' => $dry_run['plan']['candidate_post_content_hash'],
+		)
+	);
+}
+
+/**
  * Creates a WP_Error with canonical Distributed Editing reason data.
  *
  * @since 7.1.0
@@ -941,6 +1047,41 @@ function wp_de_rtc_create_recovery_dry_run_result( $plan, $result, $validation_s
 		'reason_code'                => isset( $plan['reason_code'] ) && is_string( $plan['reason_code'] ) ? $plan['reason_code'] : null,
 		'checks'                     => $checks,
 		'plan'                       => $plan,
+	);
+}
+
+/**
+ * Creates a DE-RTC apply result for a recovery update dry run.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $dry_run Apply source dry-run result.
+ * @param string $result  Apply result label.
+ * @param bool   $applied Whether the candidate was applied.
+ * @param array  $extra   Optional. Additional result data.
+ * @return array Apply result.
+ */
+function wp_de_rtc_create_recovery_apply_result( $dry_run, $result, $applied, $extra = array() ) {
+	return array_merge(
+		array(
+			'mode'                       => 'apply',
+			'result'                     => $result,
+			'validation_status'          => isset( $dry_run['validation_status'] ) ? $dry_run['validation_status'] : null,
+			'decision'                   => isset( $dry_run['decision'] ) ? $dry_run['decision'] : null,
+			'post_id'                    => isset( $dry_run['post_id'] ) ? (int) $dry_run['post_id'] : 0,
+			'valid'                      => ! empty( $dry_run['valid'] ),
+			'can_apply'                  => ! empty( $dry_run['can_apply'] ),
+			'would_apply'                => $applied,
+			'applied'                    => $applied,
+			'recovery_required'          => ! empty( $dry_run['recovery_required'] ),
+			'manual_resolution_required' => ! empty( $dry_run['manual_resolution_required'] ),
+			'reason'                     => isset( $dry_run['reason'] ) && is_array( $dry_run['reason'] ) ? $dry_run['reason'] : null,
+			'reason_code'                => isset( $dry_run['reason_code'] ) && is_string( $dry_run['reason_code'] ) ? $dry_run['reason_code'] : null,
+			'checks'                     => isset( $dry_run['checks'] ) && is_array( $dry_run['checks'] ) ? $dry_run['checks'] : array(),
+			'dry_run'                    => $dry_run,
+		),
+		$extra
 	);
 }
 
