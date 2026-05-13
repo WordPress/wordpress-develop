@@ -53,6 +53,192 @@ function wp_de_rtc_get_supported_sync_meta_formats() {
 }
 
 /**
+ * Registers Distributed Editing REST routes.
+ *
+ * The current route is an internal proof boundary for sync-meta recovery. It is
+ * feature-gated and is not yet wired to Gutenberg save flows or post-lock
+ * replacement.
+ *
+ * @since 7.1.0
+ */
+function wp_de_rtc_register_rest_routes() {
+	register_rest_route(
+		'wp/v2',
+		'/posts/(?P<id>[\d]+)/distributed-editing/recovery',
+		array(
+			'args' => array(
+				'id' => array(
+					'description' => __( 'Unique identifier for the post.' ),
+					'type'        => 'integer',
+				),
+			),
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => 'wp_de_rtc_rest_recovery_endpoint',
+				'permission_callback' => 'wp_de_rtc_rest_recovery_permissions_check',
+				'args'                => array(
+					'mode'                        => array(
+						'description' => __( 'Recovery execution mode.' ),
+						'type'        => 'string',
+						'enum'        => array( 'dry_run', 'apply' ),
+						'default'     => 'dry_run',
+					),
+					'candidate_post_content_hash' => array(
+						'description' => __( 'Expected SHA-256 hash of the server-derived recovery candidate.' ),
+						'type'        => 'string',
+						'pattern'     => '^[a-f0-9]{64}$',
+					),
+				),
+			),
+		)
+	);
+}
+add_action( 'rest_api_init', 'wp_de_rtc_register_rest_routes' );
+
+/**
+ * Checks permissions for the sync-meta recovery REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_recovery_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || 'post' !== $post->post_type ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'  => 'feature_disabled_for_post',
+				'post_id' => (int) $post->ID,
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
+ * Handles the sync-meta recovery REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response|WP_Error REST response on success, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_recovery_endpoint( $request ) {
+	$post_id = (int) $request['id'];
+	$mode    = $request->get_param( 'mode' );
+	$mode    = is_string( $mode ) ? $mode : 'dry_run';
+	$plan    = wp_de_rtc_plan_sync_meta_recovery_update( $post_id );
+
+	if ( is_wp_error( $plan ) ) {
+		return $plan;
+	}
+
+	if ( $request->has_param( 'candidate_post_content_hash' ) ) {
+		$plan['candidate_post_content_hash'] = (string) $request->get_param( 'candidate_post_content_hash' );
+	}
+
+	if ( 'apply' === $mode ) {
+		$result = wp_de_rtc_apply_sync_meta_recovery_update(
+			$plan,
+			array(
+				'mode' => 'apply',
+			)
+		);
+	} else {
+		$result = wp_de_rtc_dry_run_sync_meta_recovery_update( $plan );
+	}
+
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+
+	$result['rest_route']          = 'post_sync_meta_recovery';
+	$result['permission_contract'] = wp_de_rtc_get_rest_recovery_permission_contract( $post_id );
+
+	return rest_ensure_response( $result );
+}
+
+/**
+ * Returns whether Distributed Editing is enabled for a post.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @return bool Whether Distributed Editing is enabled.
+ */
+function wp_de_rtc_is_enabled_for_post( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	$enabled = (bool) get_option( 'wp_de_rtc_enabled', false );
+
+	/**
+	 * Filters whether Distributed Editing is enabled for a post.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool    $enabled Whether Distributed Editing is enabled.
+	 * @param WP_Post $post    Post object.
+	 */
+	return (bool) apply_filters( 'wp_de_rtc_enabled_for_post', $enabled, $post );
+}
+
+/**
+ * Returns the current recovery endpoint permission contract.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @return array Permission contract metadata.
+ */
+function wp_de_rtc_get_rest_recovery_permission_contract( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return array(
+			'post_id'                         => 0,
+			'requires_edit_post'              => true,
+			'feature_enabled'                 => false,
+			'unfiltered_html_review_required' => true,
+			'unfiltered_html_allowed'         => current_user_can( 'unfiltered_html' ),
+		);
+	}
+
+	return array(
+		'post_id'                         => (int) $post->ID,
+		'requires_edit_post'              => true,
+		'feature_enabled'                 => wp_de_rtc_is_enabled_for_post( $post ),
+		'unfiltered_html_review_required' => true,
+		'unfiltered_html_allowed'         => current_user_can( 'unfiltered_html' ),
+	);
+}
+
+/**
  * Formats Distributed Editing sync metadata as a SCRIPT element.
  *
  * The JSON is encoded so that user-controlled values cannot produce a literal
