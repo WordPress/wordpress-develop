@@ -140,6 +140,46 @@ function wp_de_rtc_register_rest_routes() {
 				),
 			)
 		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/retry-submit',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => 'wp_de_rtc_rest_retry_submit_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_retry_submit_permissions_check',
+					'args'                => array(
+						'client_base_version'        => array(
+							'description' => __( 'Distributed Editing sync version that the rebased client edits are based on.' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'rebased_from_version'       => array(
+							'description' => __( 'Original stale Distributed Editing sync version that the client rebased from.' ),
+							'type'        => 'string',
+						),
+						'pending_change_count'       => array(
+							'description' => __( 'Number of pending local change groups the client is retrying.' ),
+							'type'        => 'integer',
+							'minimum'     => 0,
+							'default'     => 1,
+						),
+						'proposed_post_content_hash' => array(
+							'description' => __( 'SHA-256 hash of the client proposed post content.' ),
+							'type'        => 'string',
+							'pattern'     => '^[a-f0-9]{64}$',
+						),
+					),
+				),
+			)
+		);
 	}
 }
 add_action( 'rest_api_init', 'wp_de_rtc_register_rest_routes' );
@@ -349,6 +389,47 @@ function wp_de_rtc_rest_stale_base_permissions_check( $request ) {
 }
 
 /**
+ * Checks permissions for the retry-submit proof REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_retry_submit_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || ! wp_de_rtc_rest_retry_submit_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'  => 'feature_disabled_for_post',
+				'post_id' => (int) $post->ID,
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
  * Returns whether the REST recovery request matches the post type route.
  *
  * @since 7.1.0
@@ -437,6 +518,50 @@ function wp_de_rtc_get_rest_stale_base_request_rest_base( $request ) {
 }
 
 /**
+ * Returns whether the REST retry-submit request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_retry_submit_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_retry_submit_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a retry-submit request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_retry_submit_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/retry-submit$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
  * Handles the sync-meta recovery REST endpoint.
  *
  * @since 7.1.0
@@ -502,6 +627,107 @@ function wp_de_rtc_rest_stale_base_endpoint( $request ) {
 			'can_attempt_local_rebase' => $request->get_param( 'can_attempt_local_rebase' ),
 			'rest_route'               => 'post_stale_base_rejection',
 		)
+	);
+}
+
+/**
+ * Handles the retry-submit proof REST endpoint.
+ *
+ * This endpoint proves the server-side acceptance gate for a rebased client
+ * retry. It compares the client base version against the current sync metadata
+ * version and returns either an accepted-for-future-save response or the
+ * canonical stale-base rejection. It does not save, mutate post content, create
+ * revisions, replace post locks, or claim the post is persisted.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response|WP_Error REST response on success, otherwise a stale-base error.
+ */
+function wp_de_rtc_rest_retry_submit_endpoint( $request ) {
+	$result = wp_de_rtc_get_retry_submit_acceptance_result(
+		(int) $request['id'],
+		array(
+			'client_base_version'        => $request->get_param( 'client_base_version' ),
+			'rebased_from_version'       => $request->get_param( 'rebased_from_version' ),
+			'pending_change_count'       => $request->get_param( 'pending_change_count' ),
+			'proposed_post_content_hash' => $request->get_param( 'proposed_post_content_hash' ),
+		)
+	);
+
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+
+	return rest_ensure_response( $result );
+}
+
+/**
+ * Returns a proof-only retry-submit acceptance result.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args {
+ *     Retry-submit proof arguments.
+ *
+ *     @type mixed $client_base_version        Client base version after local rebase.
+ *     @type mixed $rebased_from_version       Original stale version that was rebased from.
+ *     @type mixed $pending_change_count       Pending local change count. Default 1.
+ *     @type mixed $proposed_post_content_hash Hash of the proposed post content.
+ * }
+ * @return array|WP_Error Retry-submit acceptance result, or stale-base rejection.
+ */
+function wp_de_rtc_get_retry_submit_acceptance_result( $post, $args = array() ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	$client_base_version        = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
+	$server_version             = wp_de_rtc_get_post_sync_meta_version( $post );
+	$pending_change_count       = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
+	$rebased_from_version       = isset( $args['rebased_from_version'] ) ? sanitize_text_field( (string) $args['rebased_from_version'] ) : null;
+	$proposed_post_content_hash = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : null;
+
+	if ( '' === $client_base_version || null === $server_version || $client_base_version !== $server_version ) {
+		return wp_de_rtc_get_stale_base_rejection_error(
+			$post,
+			array(
+				'client_base_version'      => $client_base_version,
+				'server_version'           => $server_version,
+				'pending_change_count'     => $pending_change_count,
+				'remote_change_count'      => 1,
+				'can_attempt_local_rebase' => false,
+				'rest_route'               => 'post_retry_submit_stale_base',
+			)
+		);
+	}
+
+	return array(
+		'result'                              => 'retry_submit_accepted_for_future_save',
+		'retry_submit_accepted'               => true,
+		'rest_route'                          => 'post_retry_submit',
+		'post_id'                             => (int) $post->ID,
+		'client_base_version'                 => $client_base_version,
+		'server_version'                      => $server_version,
+		'rebased_from_version'                => $rebased_from_version,
+		'pending_change_count'                => $pending_change_count,
+		'proposed_post_content_hash'          => $proposed_post_content_hash,
+		'requires_server_state_refetch'       => false,
+		'requires_manual_conflict_resolution' => false,
+		'can_export_local_updates'            => $pending_change_count > 0,
+		'save_path_required'                  => true,
+		'saves_post'                          => false,
+		'mutates_post_content'                => false,
+		'creates_revision'                    => false,
+		'claims_saved'                        => false,
+		'permission_contract'                 => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
 	);
 }
 

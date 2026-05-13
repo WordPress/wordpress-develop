@@ -56,6 +56,8 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( '/wp/v2/pages/(?P<id>[\d]+)/distributed-editing/recovery', $routes );
 		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/stale-base', $routes );
 		$this->assertArrayHasKey( '/wp/v2/pages/(?P<id>[\d]+)/distributed-editing/stale-base', $routes );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/retry-submit', $routes );
+		$this->assertArrayHasKey( '/wp/v2/pages/(?P<id>[\d]+)/distributed-editing/retry-submit', $routes );
 	}
 
 	/**
