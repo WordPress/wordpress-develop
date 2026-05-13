@@ -10,7 +10,7 @@
 /**
  * Customize Nav Menus Panel Class
  *
- * Needed to add screen options.
+ * Needed to add display options.
  *
  * @since 4.3.0
  *
@@ -27,16 +27,16 @@ class WP_Customize_Nav_Menus_Panel extends WP_Customize_Panel {
 	public $type = 'nav_menus';
 
 	/**
-	 * Render screen options for Menus.
+	 * Render display options for Menus.
 	 *
 	 * @since 4.3.0
 	 */
 	public function render_screen_options() {
-		// Adds the screen options.
+		// Adds the display options.
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 		add_filter( 'manage_nav-menus_columns', 'wp_nav_menu_manage_columns' );
 
-		// Display screen options.
+		// Display display options.
 		$screen = WP_Screen::get( 'nav-menus.php' );
 		$screen->render_screen_options( array( 'wrap' => false ) );
 	}

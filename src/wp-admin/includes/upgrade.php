@@ -1719,7 +1719,7 @@ function upgrade_300() {
 		add_site_option( 'siteurl', '' );
 	}
 
-	// 3.0 screen options key name changes.
+	// 3.0 display options key name changes.
 	if ( wp_should_upgrade_global_tables() ) {
 		$sql    = "DELETE FROM $wpdb->usermeta
 			WHERE meta_key LIKE %s

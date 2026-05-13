@@ -53,7 +53,7 @@ get_current_screen()->add_help_tab(
 		'content' =>
 				'<p>' . __( 'If you want to remove the widget but save its setting for possible future use, just drag it into the Inactive Widgets area. You can add them back anytime from there. This is especially helpful when you switch to a theme with fewer or different widget areas.' ) . '</p>
 	<p>' . __( 'Widgets may be used multiple times. You can give each widget a title, to display on your site, but it&#8217;s not required.' ) . '</p>
-	<p>' . __( 'Enabling Accessibility Mode, via Screen Options, allows you to use Add and Edit buttons instead of using drag and drop.' ) . '</p>',
+	<p>' . __( 'Enabling Accessibility Mode, via Display Options, allows you to use Add and Edit buttons instead of using drag and drop.' ) . '</p>',
 	)
 );
 get_current_screen()->add_help_tab(

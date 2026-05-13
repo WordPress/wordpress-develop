@@ -21,7 +21,7 @@ $action = $wp_list_table->current_action();
 $plugin = isset( $_REQUEST['plugin'] ) ? wp_unslash( $_REQUEST['plugin'] ) : '';
 $s      = isset( $_REQUEST['s'] ) ? urlencode( wp_unslash( $_REQUEST['s'] ) ) : '';
 
-// Clean up request URI from temporary args for screen options/paging uri's to work as expected.
+// Clean up request URI from temporary args for display options/paging uri's to work as expected.
 $query_args_to_remove = array(
 	'error',
 	'deleted',
