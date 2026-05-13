@@ -39,7 +39,7 @@
 }
 
 #dashboard-widgets-wrap {
-	overflow: hidden;
+	overflow: visible;
 	margin: 0 -8px;
 }
 
@@ -55,14 +55,25 @@
 }
 
 #dashboard-widgets .postbox-container .empty-container {
-	outline: 3px dashed #c3c4c7;
-	height: 250px;
+	height: auto;
+	min-height: 100px;
 }
 
-/* Only highlight drop zones when dragging and only in the 2 columns layout. */
+#dashboard-widgets .postbox-container .empty-container,
+#dashboard-widgets .sortable-placeholder,
 .is-dragging-metaboxes #dashboard-widgets .meta-box-sortables {
-	outline: 3px dashed #646970;
+	outline: 3px dashed #8c8f94;
+	outline-offset: -3px;
+}
+
+#dashboard-widgets .sortable-placeholder {
+	box-sizing: border-box;
+	margin-bottom: 20px;
+}
+
+.is-dragging-metaboxes #dashboard-widgets .meta-box-sortables {
 	/* Prevent margin on the child from collapsing with margin on the parent. */
+	background: transparent;
 	display: flow-root;
 }
 
