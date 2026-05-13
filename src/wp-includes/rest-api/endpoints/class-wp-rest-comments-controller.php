@@ -438,7 +438,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Re-map edit context capabilities when requesting `note` type.
-		$edit_cap = 'note' === $comment->comment_type ? array( 'edit_post', $comment->comment_post_ID ) : array( 'moderate_comments' );
+		$edit_cap = 'note' === $comment->comment_type && ! empty( $comment->comment_post_ID ) ? array( 'edit_post', $comment->comment_post_ID ) : array( 'moderate_comments' );
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( ...$edit_cap ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
