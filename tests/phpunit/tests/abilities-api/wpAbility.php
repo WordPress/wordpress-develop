@@ -1179,6 +1179,41 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that returning a freshly constructed object from wp_pre_execute_ability is treated as a
+	 * short-circuit value, not confused with the WP_Filter_Sentinel default. This proves the
+	 * sentinel disambiguates arbitrary object returns.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_object_short_circuits() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+
+		$envelope = (object) array( 'status' => 'approval_pending' );
+		$filter   = static function () use ( $envelope ) {
+			return $envelope;
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_pre_execute_ability', $filter );
+
+		$this->assertSame( $envelope, $result, 'Object from filter is returned as-is; WP_Filter_Sentinel keeps it distinct from the default.' );
+	}
+
+	/**
 	 * Tests that returning a WP_Error from wp_pre_execute_ability short-circuits with the error.
 	 *
 	 * @ticket 64989

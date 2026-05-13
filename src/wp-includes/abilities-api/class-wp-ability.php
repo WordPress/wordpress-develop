@@ -691,8 +691,8 @@ class WP_Ability {
 		 * output validation, and the surrounding actions — and the value is returned to the caller
 		 * as-is. Useful for cached responses, rate limiting, maintenance mode, and test mocking.
 		 *
-		 * To continue with normal execution, return `$pre` unchanged. This preserves `null` as a
-		 * valid short-circuit result.
+		 * To continue with normal execution, return `$pre` unchanged. This preserves any value
+		 * (including `null`, `false`, or arbitrary objects) as a valid short-circuit result.
 		 *
 		 * Because validation is bypassed, callers that short-circuit are responsible for the
 		 * integrity of any value they consume from `$input`.
@@ -700,12 +700,12 @@ class WP_Ability {
 		 * @since 7.1.0
 		 *
 		 * @param mixed      $pre          The pre-computed result. Return this value unchanged to continue execution.
-		 *                                 Default internal sentinel object.
+		 *                                 Default `WP_Filter_Sentinel` instance unique to this invocation.
 		 * @param string     $ability_name The name of the ability.
 		 * @param mixed      $input        The raw input passed to `execute()`.
 		 * @param WP_Ability $ability      The ability instance.
 		 */
-		$pre_execute_sentinel = new stdClass();
+		$pre_execute_sentinel = new WP_Filter_Sentinel();
 		$pre                  = apply_filters( 'wp_pre_execute_ability', $pre_execute_sentinel, $this->name, $input, $this );
 		if ( $pre !== $pre_execute_sentinel ) {
 			return $pre;
