@@ -2,9 +2,10 @@
 
 /**
  * @group oembed
+ *
  * @covers ::get_oembed_response_data
  */
-class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
+class Tests_oEmbed_GetOembedResponseData extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
