@@ -62,38 +62,95 @@ function wp_de_rtc_get_supported_sync_meta_formats() {
  * @since 7.1.0
  */
 function wp_de_rtc_register_rest_routes() {
-	register_rest_route(
-		'wp/v2',
-		'/posts/(?P<id>[\d]+)/distributed-editing/recovery',
-		array(
-			'args' => array(
-				'id' => array(
-					'description' => __( 'Unique identifier for the post.' ),
-					'type'        => 'integer',
-				),
-			),
+	foreach ( wp_de_rtc_get_rest_recovery_post_type_rest_bases() as $rest_base ) {
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/recovery',
 			array(
-				'methods'             => WP_REST_Server::CREATABLE,
-				'callback'            => 'wp_de_rtc_rest_recovery_endpoint',
-				'permission_callback' => 'wp_de_rtc_rest_recovery_permissions_check',
-				'args'                => array(
-					'mode'                        => array(
-						'description' => __( 'Recovery execution mode.' ),
-						'type'        => 'string',
-						'enum'        => array( 'dry_run', 'apply' ),
-						'default'     => 'dry_run',
-					),
-					'candidate_post_content_hash' => array(
-						'description' => __( 'Expected SHA-256 hash of the server-derived recovery candidate.' ),
-						'type'        => 'string',
-						'pattern'     => '^[a-f0-9]{64}$',
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
 					),
 				),
-			),
-		)
-	);
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => 'wp_de_rtc_rest_recovery_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_recovery_permissions_check',
+					'args'                => array(
+						'mode'                        => array(
+							'description' => __( 'Recovery execution mode.' ),
+							'type'        => 'string',
+							'enum'        => array( 'dry_run', 'apply' ),
+							'default'     => 'dry_run',
+						),
+						'candidate_post_content_hash' => array(
+							'description' => __( 'Expected SHA-256 hash of the server-derived recovery candidate.' ),
+							'type'        => 'string',
+							'pattern'     => '^[a-f0-9]{64}$',
+						),
+					),
+				),
+			)
+		);
+	}
 }
 add_action( 'rest_api_init', 'wp_de_rtc_register_rest_routes' );
+
+/**
+ * Returns REST bases that currently support Distributed Editing recovery.
+ *
+ * @since 7.1.0
+ *
+ * @return string[] REST bases keyed by post type.
+ */
+function wp_de_rtc_get_rest_recovery_post_type_rest_bases() {
+	$post_types = array( 'post', 'page' );
+	$rest_bases = array();
+
+	foreach ( $post_types as $post_type ) {
+		$rest_base = wp_de_rtc_get_post_type_rest_base( $post_type );
+
+		if ( $rest_base ) {
+			$rest_bases[ $post_type ] = $rest_base;
+		}
+	}
+
+	/**
+	 * Filters REST bases that support Distributed Editing recovery routes.
+	 *
+	 * Keys are post type names and values are REST bases.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string[] $rest_bases REST bases keyed by post type.
+	 */
+	$rest_bases = apply_filters( 'wp_de_rtc_rest_recovery_post_type_rest_bases', $rest_bases );
+
+	return array_filter( array_map( 'sanitize_key', (array) $rest_bases ) );
+}
+
+/**
+ * Returns the REST base for a post type.
+ *
+ * @since 7.1.0
+ *
+ * @param string $post_type Post type name.
+ * @return string REST base, or empty string when unsupported.
+ */
+function wp_de_rtc_get_post_type_rest_base( $post_type ) {
+	$post_type_object = get_post_type_object( $post_type );
+
+	if ( ! $post_type_object || ! $post_type_object->show_in_rest ) {
+		return '';
+	}
+
+	if ( ! empty( $post_type_object->rest_base ) ) {
+		return sanitize_key( $post_type_object->rest_base );
+	}
+
+	return sanitize_key( $post_type_object->name );
+}
 
 /**
  * Registers Distributed Editing settings.
@@ -151,7 +208,7 @@ function wp_de_rtc_render_enabled_setting() {
 	?>
 	<label for="wp_de_rtc_enabled">
 		<input name="wp_de_rtc_enabled" type="checkbox" id="wp_de_rtc_enabled" value="1" <?php checked( true, wp_de_rtc_is_enabled() ); ?> />
-		<?php _e( 'Enable Distributed Editing for posts.' ); ?>
+		<?php _e( 'Enable Distributed Editing for posts and pages.' ); ?>
 	</label>
 	<p class="description">
 		<?php _e( 'Distributed Editing is experimental and can increase server activity. Keep it disabled on constrained hosting unless the site has been evaluated for collaborative editing traffic.' ); ?>
@@ -170,7 +227,7 @@ function wp_de_rtc_render_enabled_setting() {
 function wp_de_rtc_rest_recovery_permissions_check( $request ) {
 	$post = get_post( (int) $request['id'] );
 
-	if ( ! $post || 'post' !== $post->post_type ) {
+	if ( ! $post || ! wp_de_rtc_rest_recovery_request_matches_post_type( $request, $post ) ) {
 		return new WP_Error(
 			'rest_post_invalid_id',
 			__( 'Invalid post ID.' ),
@@ -198,6 +255,50 @@ function wp_de_rtc_rest_recovery_permissions_check( $request ) {
 	}
 
 	return true;
+}
+
+/**
+ * Returns whether the REST recovery request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_recovery_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_recovery_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a recovery request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_recovery_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/recovery$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
 }
 
 /**
@@ -306,6 +407,8 @@ function wp_de_rtc_get_rest_recovery_permission_contract( $post ) {
 
 	return array(
 		'post_id'                         => (int) $post->ID,
+		'post_type'                       => $post->post_type,
+		'post_type_rest_base'             => wp_de_rtc_get_post_type_rest_base( $post->post_type ),
 		'requires_edit_post'              => true,
 		'feature_enabled'                 => wp_de_rtc_is_enabled_for_post( $post ),
 		'unfiltered_html_review_required' => true,

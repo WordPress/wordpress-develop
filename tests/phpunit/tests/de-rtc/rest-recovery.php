@@ -47,11 +47,13 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_register_rest_routes
+	 * @covers ::wp_de_rtc_get_rest_recovery_post_type_rest_bases
 	 */
-	public function test_registers_post_recovery_route() {
+	public function test_registers_post_and_page_recovery_routes() {
 		$routes = rest_get_server()->get_routes();
 
 		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/recovery', $routes );
+		$this->assertArrayHasKey( '/wp/v2/pages/(?P<id>[\d]+)/distributed-editing/recovery', $routes );
 	}
 
 	/**
@@ -93,9 +95,79 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 		$this->assertSame( 'post_sync_meta_recovery', $data['rest_route'] );
 		$this->assertFalse( $data['would_apply'] );
 		$this->assertTrue( $data['permission_contract']['feature_enabled'] );
+		$this->assertSame( 'post', $data['permission_contract']['post_type'] );
+		$this->assertSame( 'posts', $data['permission_contract']['post_type_rest_base'] );
 		$this->assertSame( $before_post->post_content, $after_post->post_content );
 		$this->assertSame( $current_content, $after_post->post_content );
 		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_recovery_endpoint
+	 * @covers ::wp_de_rtc_rest_recovery_permissions_check
+	 * @covers ::wp_de_rtc_rest_recovery_request_matches_post_type
+	 * @covers ::wp_de_rtc_get_rest_recovery_request_rest_base
+	 * @covers ::wp_de_rtc_get_post_type_rest_base
+	 */
+	public function test_page_request_dry_runs_without_mutating() {
+		$current_content  = '<!-- wp:paragraph --><p>REST page dry-run current content.</p><!-- /wp:paragraph -->';
+		$page_id          = $this->create_restorable_post(
+			$current_content,
+			'<!-- wp:paragraph --><p>REST page dry-run base content.</p><!-- /wp:paragraph -->',
+			array(
+				'version' => 34,
+			),
+			'diff-match-patch',
+			'page'
+		);
+		$before_page      = get_post( $page_id );
+		$before_revisions = wp_get_post_revisions(
+			$page_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/pages/' . $page_id . '/distributed-editing/recovery' );
+
+		$response        = rest_get_server()->dispatch( $request );
+		$data            = $response->get_data();
+		$after_page      = get_post( $page_id );
+		$after_revisions = wp_get_post_revisions(
+			$page_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'dry_run', $data['mode'] );
+		$this->assertSame( 'candidate_update_valid', $data['result'] );
+		$this->assertSame( 'page', $data['permission_contract']['post_type'] );
+		$this->assertSame( 'pages', $data['permission_contract']['post_type_rest_base'] );
+		$this->assertFalse( $data['would_apply'] );
+		$this->assertSame( $before_page->post_content, $after_page->post_content );
+		$this->assertSame( $current_content, $after_page->post_content );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_recovery_permissions_check
+	 * @covers ::wp_de_rtc_rest_recovery_request_matches_post_type
+	 */
+	public function test_recovery_route_requires_matching_post_type_rest_base() {
+		$post_id = $this->create_restorable_post(
+			'<!-- wp:paragraph --><p>REST route mismatch current content.</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p>REST route mismatch base content.</p><!-- /wp:paragraph -->',
+			array(
+				'version' => 35,
+			),
+			'automerge'
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . $post_id . '/distributed-editing/recovery' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
 	/**
@@ -231,12 +303,14 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 	 * @param string $base_content    Base revision content.
 	 * @param array  $base_metadata   Base revision sync metadata.
 	 * @param string $format          Sync-meta format.
+	 * @param string $post_type       Optional post type. Default 'post'.
 	 * @return int Post ID.
 	 */
-	private function create_restorable_post( $current_content, $base_content, $base_metadata, $format ) {
+	private function create_restorable_post( $current_content, $base_content, $base_metadata, $format, $post_type = 'post' ) {
 		$post_id          = self::factory()->post->create(
 			array(
 				'post_title'    => 'DE-RTC REST recovery post',
+				'post_type'     => $post_type,
 				'post_content'  => $current_content,
 				'post_modified' => '2026-05-13 16:00:00',
 			)
