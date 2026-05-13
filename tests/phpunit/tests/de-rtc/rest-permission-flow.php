@@ -56,6 +56,7 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_rest_stale_base_permissions_check
 	 * @covers ::wp_de_rtc_rest_retry_submit_permissions_check
 	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
+	 * @covers ::wp_de_rtc_rest_review_approval_permissions_check
 	 *
 	 * @param string $endpoint Endpoint suffix.
 	 * @param array  $params   Body parameters.
@@ -81,6 +82,7 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_rest_stale_base_permissions_check
 	 * @covers ::wp_de_rtc_rest_retry_submit_permissions_check
 	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
+	 * @covers ::wp_de_rtc_rest_review_approval_permissions_check
 	 * @covers ::wp_de_rtc_is_enabled_for_post
 	 *
 	 * @param string $endpoint Endpoint suffix.
@@ -112,6 +114,7 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_rest_stale_base_request_matches_post_type
 	 * @covers ::wp_de_rtc_rest_retry_submit_request_matches_post_type
 	 * @covers ::wp_de_rtc_rest_retry_save_request_matches_post_type
+	 * @covers ::wp_de_rtc_rest_review_approval_request_matches_post_type
 	 *
 	 * @param string $endpoint Endpoint suffix.
 	 * @param array  $params   Body parameters.
@@ -630,6 +633,17 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 					'accepted_proof_server_version' => '7',
 					'proposed_post_content'         => $proposed_content,
 					'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+				),
+			),
+			'review-approval' => array(
+				'review-approval',
+				array(
+					'client_base_version'            => '7',
+					'accepted_proof_server_version'  => '7',
+					'proposed_post_content_hash'     => hash( 'sha256', $proposed_content ),
+					'reviewed_proposed_content_hash' => hash( 'sha256', $proposed_content ),
+					'candidate_post_content_hash'    => hash( 'sha256', 'candidate post content' ),
+					'reviewed_candidate_content_hash' => hash( 'sha256', 'candidate post content' ),
 				),
 			),
 		);
