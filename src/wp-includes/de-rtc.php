@@ -930,10 +930,14 @@ function wp_de_rtc_apply_sync_meta_recovery_update( $plan_decision_or_post, $opt
 		);
 	}
 
+	$post_id                     = (int) $dry_run['post_id'];
+	$revision_ids_before_apply   = wp_de_rtc_get_post_revision_ids( $post_id );
+	$candidate_post_content_hash = $dry_run['plan']['candidate_post_content_hash'];
+
 	$updated_post_id = wp_update_post(
 		wp_slash(
 			array(
-				'ID'           => (int) $dry_run['post_id'],
+				'ID'           => $post_id,
 				'post_content' => $dry_run['plan']['candidate_post_content'],
 			)
 		),
@@ -950,10 +954,13 @@ function wp_de_rtc_apply_sync_meta_recovery_update( $plan_decision_or_post, $opt
 			__( 'Distributed Editing could not apply sync metadata recovery because the post update failed.' ),
 			array(
 				'detail'  => 'post_update_failed',
-				'post_id' => (int) $dry_run['post_id'],
+				'post_id' => $post_id,
 			)
 		);
 	}
+
+	$revision_ids_after_apply = wp_de_rtc_get_post_revision_ids( $post_id );
+	$created_revision_ids     = array_values( array_diff( $revision_ids_after_apply, $revision_ids_before_apply ) );
 
 	return wp_de_rtc_create_recovery_apply_result(
 		$dry_run,
@@ -961,7 +968,11 @@ function wp_de_rtc_apply_sync_meta_recovery_update( $plan_decision_or_post, $opt
 		true,
 		array(
 			'updated_post_id'             => (int) $updated_post_id,
-			'candidate_post_content_hash' => $dry_run['plan']['candidate_post_content_hash'],
+			'candidate_post_content_hash' => $candidate_post_content_hash,
+			'revision_ids_before_apply'   => $revision_ids_before_apply,
+			'revision_ids_after_apply'    => $revision_ids_after_apply,
+			'created_revision_ids'        => $created_revision_ids,
+			'revision_created'            => ! empty( $created_revision_ids ),
 		)
 	);
 }
@@ -1082,6 +1093,29 @@ function wp_de_rtc_create_recovery_apply_result( $dry_run, $result, $applied, $e
 			'dry_run'                    => $dry_run,
 		),
 		$extra
+	);
+}
+
+/**
+ * Returns current revision IDs for a post.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int $post_id Post ID.
+ * @return int[] Revision IDs in WordPress revision query order.
+ */
+function wp_de_rtc_get_post_revision_ids( $post_id ) {
+	return array_map(
+		'intval',
+		array_keys(
+			wp_get_post_revisions(
+				$post_id,
+				array(
+					'check_enabled' => false,
+				)
+			)
+		)
 	);
 }
 

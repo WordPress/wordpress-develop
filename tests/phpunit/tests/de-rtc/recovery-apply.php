@@ -26,8 +26,8 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 	 * @covers ::wp_de_rtc_apply_sync_meta_recovery_update
 	 */
 	public function test_apply_requires_explicit_mode_without_mutating() {
-		$current_content = '<!-- wp:paragraph --><p>Guarded apply current content.</p><!-- /wp:paragraph -->';
-		$post_id         = $this->create_restorable_post(
+		$current_content  = '<!-- wp:paragraph --><p>Guarded apply current content.</p><!-- /wp:paragraph -->';
+		$post_id          = $this->create_restorable_post(
 			$current_content,
 			'<!-- wp:paragraph --><p>Guarded apply base content.</p><!-- /wp:paragraph -->',
 			array(
@@ -35,10 +35,22 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 			),
 			'diff-match-patch'
 		);
-		$before_post     = get_post( $post_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
 
-		$apply_result = wp_de_rtc_apply_sync_meta_recovery_update( $post_id );
-		$after_post   = get_post( $post_id );
+		$apply_result    = wp_de_rtc_apply_sync_meta_recovery_update( $post_id );
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
 
 		$this->assertIsArray( $apply_result );
 		$this->assertSame( 'apply', $apply_result['mode'] );
@@ -53,6 +65,7 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 		$this->assertSame( $before_post->post_content, $after_post->post_content );
 		$this->assertSame( $current_content, $after_post->post_content );
 		$this->assertSame( $before_post->post_modified_gmt, $after_post->post_modified_gmt );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
 	}
 
 	/**
@@ -73,6 +86,12 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 		$this->assertIsArray( $plan );
 
 		$before_post                         = get_post( $post_id );
+		$before_revisions                    = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
 		$plan['candidate_post_content_hash'] = hash( 'sha256', 'invalid apply candidate' );
 		$apply_result                        = wp_de_rtc_apply_sync_meta_recovery_update(
 			$plan,
@@ -81,6 +100,12 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 			)
 		);
 		$after_post                          = get_post( $post_id );
+		$after_revisions                     = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
 
 		$this->assertWPError( $apply_result );
 		$this->assertSame( 'de_rtc_sync_meta_tampered', $apply_result->get_error_code() );
@@ -90,32 +115,45 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 		$this->assertFalse( $apply_result->get_error_data()['dry_run_can_apply'] );
 		$this->assertSame( $before_post->post_content, $after_post->post_content );
 		$this->assertSame( $current_content, $after_post->post_content );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
 	}
 
 	/**
 	 * @covers ::wp_de_rtc_apply_sync_meta_recovery_update
 	 */
 	public function test_apply_with_explicit_mode_persists_valid_candidate() {
-		$current_content = '<!-- wp:paragraph --><p>Apply current content.</p><!-- /wp:paragraph -->';
-		$base_metadata   = array(
+		$current_content  = '<!-- wp:paragraph --><p>Apply current content.</p><!-- /wp:paragraph -->';
+		$base_metadata    = array(
 			'version' => 23,
 			'hash'    => 'apply-base',
 		);
-		$post_id         = $this->create_restorable_post(
+		$post_id          = $this->create_restorable_post(
 			$current_content,
 			'<!-- wp:paragraph --><p>Apply base content.</p><!-- /wp:paragraph -->',
 			$base_metadata,
 			'diff-match-patch'
 		);
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
 
-		$apply_result = wp_de_rtc_apply_sync_meta_recovery_update(
+		$apply_result    = wp_de_rtc_apply_sync_meta_recovery_update(
 			$post_id,
 			array(
 				'mode' => 'apply',
 			)
 		);
-		$after_post   = get_post( $post_id );
-		$parsed       = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$parsed          = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
 
 		$this->assertIsArray( $apply_result );
 		$this->assertSame( 'apply', $apply_result['mode'] );
@@ -126,10 +164,16 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 		$this->assertTrue( $apply_result['would_apply'] );
 		$this->assertTrue( $apply_result['applied'] );
 		$this->assertSame( $post_id, $apply_result['updated_post_id'] );
+		$this->assertTrue( $apply_result['revision_created'] );
+		$this->assertSame( array_map( 'intval', array_keys( $before_revisions ) ), $apply_result['revision_ids_before_apply'] );
+		$this->assertSame( array_map( 'intval', array_keys( $after_revisions ) ), $apply_result['revision_ids_after_apply'] );
+		$this->assertCount( 1, $apply_result['created_revision_ids'] );
+		$this->assertContains( $apply_result['created_revision_ids'][0], array_map( 'intval', array_keys( $after_revisions ) ) );
 		$this->assertSame(
 			$apply_result['candidate_post_content_hash'],
 			hash( 'sha256', $after_post->post_content )
 		);
+		$this->assertGreaterThan( count( $before_revisions ), count( $after_revisions ) );
 		$this->assertIsArray( $parsed );
 		$this->assertSame( $current_content, $parsed['content'] );
 		$this->assertSame( $base_metadata, $parsed['sync_meta'] );
