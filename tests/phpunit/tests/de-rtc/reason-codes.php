@@ -31,6 +31,7 @@ class Tests_DE_RTC_Reason_Codes extends WP_UnitTestCase {
 				'de_rtc_unfiltered_html_would_change_content',
 				'de_rtc_feature_disabled',
 				'de_rtc_malformed_sync_payload',
+				'de_rtc_unknown_sync_meta_format',
 				'de_rtc_storage_failure',
 			),
 			array_keys( $codes )
@@ -70,6 +71,7 @@ class Tests_DE_RTC_Reason_Codes extends WP_UnitTestCase {
 			'unfiltered html would change content'  => array( 'de_rtc_unfiltered_html_would_change_content', 403 ),
 			'feature disabled'                      => array( 'de_rtc_feature_disabled', 403 ),
 			'malformed sync payload'                => array( 'de_rtc_malformed_sync_payload', 400 ),
+			'unknown sync meta format'              => array( 'de_rtc_unknown_sync_meta_format', 400 ),
 			'storage failure'                       => array( 'de_rtc_storage_failure', 500 ),
 		);
 	}
