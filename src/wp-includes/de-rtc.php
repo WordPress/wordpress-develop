@@ -311,6 +311,171 @@ function wp_de_rtc_find_latest_revision_with_sync_meta( $post ) {
 }
 
 /**
+ * Gets the Distributed Editing sync-meta recovery decision for a post.
+ *
+ * This helper is intentionally inert and read-only. It parses the current post
+ * content and, only when sync metadata is missing, consumes the latest-revision
+ * scan helper output. It does not restore revisions, update posts, repair
+ * content, create revisions, change locks, register REST behavior, or save.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @return array|WP_Error {
+ *     Recovery decision on success, or a WP_Error when current sync metadata is malformed.
+ *
+ *     @type string      $decision                   Decision label.
+ *     @type int         $post_id                    Post ID.
+ *     @type bool        $recovery_required          Whether recovery is required.
+ *     @type bool        $restorable                 Whether automatic restoration data is available.
+ *     @type bool        $manual_resolution_required Whether manual resolution is required.
+ *     @type array|null  $reason                     Canonical reason data, or null when no recovery is required.
+ *     @type string      $current_content            Current post content without sync metadata.
+ *     @type string      $current_content_hash       SHA-256 hash of current content without sync metadata.
+ *     @type string      $content_hash_algorithm     Content hash algorithm.
+ *     @type array|null  $current_sync_meta          Parsed current sync metadata, or null when missing.
+ *     @type string|null $current_sync_meta_format   Current sync metadata format, or null when missing.
+ *     @type string|null $current_sync_meta_position Current sync metadata position, or null when missing.
+ *     @type string|null $current_raw_sync_meta      Current raw sync metadata SCRIPT, or null when missing.
+ *     @type array|null  $base_revision              Restorable revision data, or null when unavailable.
+ *     @type string|null $base_revision_content_hash SHA-256 hash of base revision content, or null when unavailable.
+ *     @type array|null  $revision_scan              Revision scan result, or null when no scan was needed.
+ *     @type array|null  $external_change            Data for a later mutation helper to reconstruct the external change.
+ * }
+ */
+function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post || empty( $post->ID ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_unrecoverable',
+			__( 'Distributed Editing could not decide sync metadata recovery because the post does not exist.' ),
+			array(
+				'detail' => 'invalid_post',
+			)
+		);
+	}
+
+	$current = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
+
+	if ( is_wp_error( $current ) ) {
+		return $current;
+	}
+
+	$current_content_hash = wp_de_rtc_hash_content( $current['content'] );
+
+	if ( null !== $current['sync_meta'] ) {
+		return array(
+			'decision'                   => 'no_recovery_required',
+			'post_id'                    => (int) $post->ID,
+			'recovery_required'          => false,
+			'restorable'                 => false,
+			'manual_resolution_required' => false,
+			'reason'                     => null,
+			'current_content'            => $current['content'],
+			'current_content_hash'       => $current_content_hash,
+			'content_hash_algorithm'     => 'sha256',
+			'current_sync_meta'          => $current['sync_meta'],
+			'current_sync_meta_format'   => $current['sync_meta_format'],
+			'current_sync_meta_position' => $current['sync_meta_position'],
+			'current_raw_sync_meta'      => $current['raw_sync_meta'],
+			'base_revision'              => null,
+			'base_revision_content_hash' => null,
+			'revision_scan'              => null,
+			'external_change'            => null,
+		);
+	}
+
+	$revision_scan = wp_de_rtc_find_latest_revision_with_sync_meta( $post );
+
+	if ( is_wp_error( $revision_scan ) ) {
+		return $revision_scan;
+	}
+
+	if ( $revision_scan['found'] ) {
+		$base_revision_content_hash = wp_de_rtc_hash_content( $revision_scan['content'] );
+
+		return array(
+			'decision'                   => 'recovery_required_restorable',
+			'post_id'                    => (int) $post->ID,
+			'recovery_required'          => true,
+			'restorable'                 => true,
+			'manual_resolution_required' => false,
+			'reason'                     => wp_de_rtc_get_reason_data(
+				'de_rtc_missing_sync_meta',
+				array(
+					'detail'               => 'restorable_revision_found',
+					'recovery_reason_code' => 'de_rtc_sync_meta_restored_from_revision',
+				)
+			),
+			'current_content'            => $current['content'],
+			'current_content_hash'       => $current_content_hash,
+			'content_hash_algorithm'     => 'sha256',
+			'current_sync_meta'          => null,
+			'current_sync_meta_format'   => null,
+			'current_sync_meta_position' => null,
+			'current_raw_sync_meta'      => null,
+			'base_revision'              => array(
+				'revision_id'            => $revision_scan['revision_id'],
+				'revision_date_gmt'      => $revision_scan['revision_date_gmt'],
+				'content'                => $revision_scan['content'],
+				'content_hash'           => $base_revision_content_hash,
+				'sync_meta'              => $revision_scan['sync_meta'],
+				'sync_meta_format'       => $revision_scan['sync_meta_format'],
+				'sync_meta_position'     => $revision_scan['sync_meta_position'],
+				'raw_sync_meta'          => $revision_scan['raw_sync_meta'],
+				'scanned_revisions'      => $revision_scan['scanned_revisions'],
+				'malformed_revision_ids' => $revision_scan['malformed_revision_ids'],
+			),
+			'base_revision_content_hash' => $base_revision_content_hash,
+			'revision_scan'              => $revision_scan,
+			'external_change'            => array(
+				'base_revision_id'              => $revision_scan['revision_id'],
+				'base_revision_date_gmt'        => $revision_scan['revision_date_gmt'],
+				'base_content'                  => $revision_scan['content'],
+				'base_content_hash'             => $base_revision_content_hash,
+				'current_content'               => $current['content'],
+				'current_content_hash'          => $current_content_hash,
+				'content_hash_algorithm'        => 'sha256',
+				'restored_sync_meta'            => $revision_scan['sync_meta'],
+				'restored_sync_meta_format'     => $revision_scan['sync_meta_format'],
+				'restored_sync_meta_position'   => $revision_scan['sync_meta_position'],
+				'restored_raw_sync_meta'        => $revision_scan['raw_sync_meta'],
+				'recovery_reason_code'          => 'de_rtc_sync_meta_restored_from_revision',
+				'missing_sync_meta_reason_code' => 'de_rtc_missing_sync_meta',
+			),
+		);
+	}
+
+	return array(
+		'decision'                   => 'manual_resolution_required',
+		'post_id'                    => (int) $post->ID,
+		'recovery_required'          => true,
+		'restorable'                 => false,
+		'manual_resolution_required' => true,
+		'reason'                     => wp_de_rtc_get_reason_data(
+			'de_rtc_sync_meta_unrecoverable',
+			array(
+				'detail'                 => 'missing_sync_meta_no_restorable_revision',
+				'scanned_revisions'      => $revision_scan['scanned_revisions'],
+				'malformed_revision_ids' => $revision_scan['malformed_revision_ids'],
+			)
+		),
+		'current_content'            => $current['content'],
+		'current_content_hash'       => $current_content_hash,
+		'content_hash_algorithm'     => 'sha256',
+		'current_sync_meta'          => null,
+		'current_sync_meta_format'   => null,
+		'current_sync_meta_position' => null,
+		'current_raw_sync_meta'      => null,
+		'base_revision'              => null,
+		'base_revision_content_hash' => null,
+		'revision_scan'              => $revision_scan,
+		'external_change'            => null,
+	);
+}
+
+/**
  * Creates a WP_Error with canonical Distributed Editing reason data.
  *
  * @since 7.1.0
@@ -336,6 +501,42 @@ function wp_de_rtc_get_reason_error( $reason_code, $message, $data = array() ) {
 			$data
 		)
 	);
+}
+
+/**
+ * Creates canonical Distributed Editing reason data.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $reason_code Canonical DE-RTC reason code.
+ * @param array  $data        Optional. Additional reason data.
+ * @return array Reason data with status and reason-code fields.
+ */
+function wp_de_rtc_get_reason_data( $reason_code, $data = array() ) {
+	$codes  = wp_de_rtc_get_reason_codes();
+	$status = isset( $codes[ $reason_code ] ) ? $codes[ $reason_code ] : 500;
+
+	return array_merge(
+		array(
+			'status'      => $status,
+			'reason_code' => $reason_code,
+		),
+		$data
+	);
+}
+
+/**
+ * Hashes stripped post content for DE-RTC base-evidence comparisons.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $content Post content without sync metadata.
+ * @return string SHA-256 content hash.
+ */
+function wp_de_rtc_hash_content( $content ) {
+	return hash( 'sha256', $content );
 }
 
 /**
