@@ -89,4 +89,83 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Distributed Editing is experimental', $output );
 		$this->assertStringContainsString( 'constrained hosting', $output );
 	}
+
+	/**
+	 * @covers ::wp_de_rtc_add_block_editor_settings
+	 */
+	public function test_block_editor_settings_expose_disabled_post_gate_by_default() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC disabled editor settings post',
+				'post_content' => '<!-- wp:paragraph --><p>Disabled.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$context = new WP_Block_Editor_Context(
+			array(
+				'post' => get_post( $post_id ),
+			)
+		);
+
+		$settings = wp_de_rtc_add_block_editor_settings( array(), $context );
+
+		$this->assertSame(
+			array(
+				'enabled'          => false,
+				'retrySaveHandoff' => false,
+			),
+			$settings['distributedEditing']
+		);
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_add_block_editor_settings
+	 */
+	public function test_block_editor_settings_expose_enabled_post_gate_after_opt_in() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC enabled editor settings post',
+				'post_content' => '<!-- wp:paragraph --><p>Enabled.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$context = new WP_Block_Editor_Context(
+			array(
+				'post' => get_post( $post_id ),
+			)
+		);
+
+		update_option( 'wp_de_rtc_enabled', true );
+
+		$settings = wp_de_rtc_add_block_editor_settings( array(), $context );
+
+		$this->assertSame(
+			array(
+				'enabled'          => true,
+				'retrySaveHandoff' => true,
+			),
+			$settings['distributedEditing']
+		);
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_add_block_editor_settings
+	 */
+	public function test_block_editor_settings_keep_non_post_editor_gate_disabled() {
+		$context = new WP_Block_Editor_Context(
+			array(
+				'name' => 'core/edit-widgets',
+			)
+		);
+
+		update_option( 'wp_de_rtc_enabled', true );
+
+		$settings = wp_de_rtc_add_block_editor_settings( array(), $context );
+
+		$this->assertSame(
+			array(
+				'enabled'          => false,
+				'retrySaveHandoff' => false,
+			),
+			$settings['distributedEditing']
+		);
+	}
 }

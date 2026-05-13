@@ -347,6 +347,35 @@ function wp_de_rtc_register_settings() {
 add_action( 'admin_init', 'wp_de_rtc_register_settings' );
 
 /**
+ * Adds Distributed Editing settings to the post block editor.
+ *
+ * The site option remains hidden from the REST settings controller. The editor
+ * only receives the derived fact it needs to decide whether the guarded
+ * Distributed Editing retry-save handoff should be active for the current post.
+ *
+ * @since 7.1.0
+ *
+ * @param array                   $editor_settings      Default editor settings.
+ * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
+ * @return array Block editor settings with Distributed Editing facts.
+ */
+function wp_de_rtc_add_block_editor_settings( $editor_settings, $block_editor_context ) {
+	$enabled = false;
+
+	if ( ! empty( $block_editor_context->post ) ) {
+		$enabled = wp_de_rtc_is_enabled_for_post( $block_editor_context->post );
+	}
+
+	$editor_settings['distributedEditing'] = array(
+		'enabled'          => $enabled,
+		'retrySaveHandoff' => $enabled,
+	);
+
+	return $editor_settings;
+}
+add_filter( 'block_editor_settings_all', 'wp_de_rtc_add_block_editor_settings', 10, 2 );
+
+/**
  * Sanitizes the site-level Distributed Editing enablement setting.
  *
  * @since 7.1.0
