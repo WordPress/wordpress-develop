@@ -23,6 +23,7 @@ function wp_de_rtc_get_reason_codes() {
 		'de_rtc_sync_meta_unrecoverable'               => 409,
 		'de_rtc_external_content_mismatch'             => 409,
 		'de_rtc_base_version_stale'                    => 409,
+		'stale_base_version_rejected'                  => 409,
 		'de_rtc_live_session_newer_than_restored_meta' => 409,
 		'de_rtc_rebase_failed'                         => 409,
 		'de_rtc_sync_meta_tampered'                    => 403,
@@ -88,6 +89,52 @@ function wp_de_rtc_register_rest_routes() {
 							'description' => __( 'Expected SHA-256 hash of the server-derived recovery candidate.' ),
 							'type'        => 'string',
 							'pattern'     => '^[a-f0-9]{64}$',
+						),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/stale-base',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => 'wp_de_rtc_rest_stale_base_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_stale_base_permissions_check',
+					'args'                => array(
+						'client_base_version'      => array(
+							'description' => __( 'Distributed Editing sync version that the client edited from.' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'server_version'           => array(
+							'description' => __( 'Current server-side Distributed Editing sync version, when already known to the caller.' ),
+							'type'        => 'string',
+						),
+						'pending_change_count'     => array(
+							'description' => __( 'Number of pending local change groups the client believes are unconfirmed.' ),
+							'type'        => 'integer',
+							'minimum'     => 0,
+							'default'     => 1,
+						),
+						'remote_change_count'      => array(
+							'description' => __( 'Number of remote change groups the server is reporting since the client base version.' ),
+							'type'        => 'integer',
+							'minimum'     => 0,
+							'default'     => 1,
+						),
+						'can_attempt_local_rebase' => array(
+							'description' => __( 'Whether the client may attempt a local rebase without first refetching server state.' ),
+							'type'        => 'boolean',
+							'default'     => false,
 						),
 					),
 				),
@@ -258,6 +305,47 @@ function wp_de_rtc_rest_recovery_permissions_check( $request ) {
 }
 
 /**
+ * Checks permissions for the stale-base rejection REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_stale_base_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || ! wp_de_rtc_rest_stale_base_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'  => 'feature_disabled_for_post',
+				'post_id' => (int) $post->ID,
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
  * Returns whether the REST recovery request matches the post type route.
  *
  * @since 7.1.0
@@ -295,6 +383,50 @@ function wp_de_rtc_get_rest_recovery_request_rest_base( $request ) {
 	}
 
 	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/recovery$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
+ * Returns whether the REST stale-base request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_stale_base_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_stale_base_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a stale-base request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_stale_base_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/stale-base$#', $route, $matches ) ) {
 		return '';
 	}
 
@@ -342,6 +474,80 @@ function wp_de_rtc_rest_recovery_endpoint( $request ) {
 	$result['permission_contract'] = wp_de_rtc_get_rest_recovery_permission_contract( $post_id );
 
 	return rest_ensure_response( $result );
+}
+
+/**
+ * Handles the stale-base rejection REST endpoint.
+ *
+ * This proof endpoint models the future save-path response contract only. It
+ * does not save, rebase, refetch, repair sync metadata, replace post locks, or
+ * create revisions.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_Error Stale-base rejection error with normalized DE-RTC data.
+ */
+function wp_de_rtc_rest_stale_base_endpoint( $request ) {
+	$post_id                  = (int) $request['id'];
+	$pending_change_count     = max( 0, (int) $request->get_param( 'pending_change_count' ) );
+	$remote_change_count      = max( 0, (int) $request->get_param( 'remote_change_count' ) );
+	$can_attempt_local_rebase = wp_validate_boolean( $request->get_param( 'can_attempt_local_rebase' ) );
+	$requires_server_refetch  = true;
+	$client_base_version      = sanitize_text_field( (string) $request->get_param( 'client_base_version' ) );
+	$server_version           = $request->get_param( 'server_version' );
+	$server_version           = is_string( $server_version ) && '' !== $server_version
+		? sanitize_text_field( $server_version )
+		: wp_de_rtc_get_post_sync_meta_version( $post_id );
+	$can_attempt_local_rebase = $can_attempt_local_rebase && ! $requires_server_refetch;
+	$permission_contract      = wp_de_rtc_get_rest_recovery_permission_contract( $post_id );
+
+	return wp_de_rtc_get_reason_error(
+		'stale_base_version_rejected',
+		__( 'Distributed Editing rejected the update because the client base version is stale.' ),
+		array(
+			'detail'                              => 'stale_base_version_rejected',
+			'post_id'                             => $post_id,
+			'client_base_version'                 => $client_base_version,
+			'server_version'                      => $server_version,
+			'pending_change_count'                => $pending_change_count,
+			'remote_change_count'                 => $remote_change_count,
+			'requires_server_state_refetch'       => $requires_server_refetch,
+			'can_attempt_local_rebase'            => $can_attempt_local_rebase,
+			'requires_manual_conflict_resolution' => false,
+			'can_export_local_updates'            => $pending_change_count > 0,
+			'rest_route'                          => 'post_stale_base_rejection',
+			'permission_contract'                 => $permission_contract,
+		)
+	);
+}
+
+/**
+ * Returns the current sync-meta version for a post.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @return string|null Sync-meta version, or null when no version is available.
+ */
+function wp_de_rtc_get_post_sync_meta_version( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return null;
+	}
+
+	$parsed = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
+
+	if ( is_wp_error( $parsed ) || ! isset( $parsed['sync_meta'] ) || ! is_array( $parsed['sync_meta'] ) ) {
+		return null;
+	}
+
+	if ( ! array_key_exists( 'version', $parsed['sync_meta'] ) ) {
+		return null;
+	}
+
+	return (string) $parsed['sync_meta']['version'];
 }
 
 /**

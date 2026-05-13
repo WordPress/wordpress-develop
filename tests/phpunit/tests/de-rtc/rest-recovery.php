@@ -54,6 +54,124 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 
 		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/recovery', $routes );
 		$this->assertArrayHasKey( '/wp/v2/pages/(?P<id>[\d]+)/distributed-editing/recovery', $routes );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/stale-base', $routes );
+		$this->assertArrayHasKey( '/wp/v2/pages/(?P<id>[\d]+)/distributed-editing/stale-base', $routes );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_stale_base_endpoint
+	 * @covers ::wp_de_rtc_rest_stale_base_permissions_check
+	 */
+	public function test_stale_base_route_returns_rejection_contract_without_mutating() {
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC stale base REST post',
+				'post_content' => '<!-- wp:paragraph --><p>Stale base current content.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/stale-base' );
+		$request->set_param( 'client_base_version', '4' );
+		$request->set_param( 'server_version', '6' );
+		$request->set_param( 'pending_change_count', 2 );
+		$request->set_param( 'remote_change_count', 3 );
+		$request->set_param( 'can_attempt_local_rebase', true );
+
+		$response        = rest_get_server()->dispatch( $request );
+		$error           = $response->as_error();
+		$data            = $error->get_error_data( 'stale_base_version_rejected' );
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$this->assertErrorResponse( 'stale_base_version_rejected', $response, 409 );
+		$this->assertSame( 'stale_base_version_rejected', $data['reason_code'] );
+		$this->assertSame( 'stale_base_version_rejected', $data['detail'] );
+		$this->assertSame( $post_id, $data['post_id'] );
+		$this->assertSame( '4', $data['client_base_version'] );
+		$this->assertSame( '6', $data['server_version'] );
+		$this->assertSame( 2, $data['pending_change_count'] );
+		$this->assertSame( 3, $data['remote_change_count'] );
+		$this->assertTrue( $data['requires_server_state_refetch'] );
+		$this->assertFalse( $data['can_attempt_local_rebase'] );
+		$this->assertFalse( $data['requires_manual_conflict_resolution'] );
+		$this->assertTrue( $data['can_export_local_updates'] );
+		$this->assertSame( 'post_stale_base_rejection', $data['rest_route'] );
+		$this->assertTrue( $data['permission_contract']['feature_enabled'] );
+		$this->assertSame( 'post', $data['permission_contract']['post_type'] );
+		$this->assertSame( 'posts', $data['permission_contract']['post_type_rest_base'] );
+		$this->assertSame( $before_post->post_content, $after_post->post_content );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_stale_base_permissions_check
+	 * @covers ::wp_de_rtc_rest_stale_base_request_matches_post_type
+	 * @covers ::wp_de_rtc_get_rest_stale_base_request_rest_base
+	 */
+	public function test_stale_base_route_requires_matching_post_type_rest_base() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC stale base route mismatch post',
+				'post_content' => '<!-- wp:paragraph --><p>Stale base route mismatch.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . $post_id . '/distributed-editing/stale-base' );
+		$request->set_param( 'client_base_version', '4' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_stale_base_permissions_check
+	 */
+	public function test_stale_base_route_requires_feature_enablement() {
+		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC disabled stale base REST post',
+				'post_content' => '<!-- wp:paragraph --><p>Disabled stale base feature.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/stale-base' );
+		$request->set_param( 'client_base_version', '4' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'de_rtc_feature_disabled', $response, 403 );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_stale_base_permissions_check
+	 */
+	public function test_stale_base_route_requires_edit_post_capability() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC stale base permission REST post',
+				'post_content' => '<!-- wp:paragraph --><p>Stale base permission denied.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/stale-base' );
+		$request->set_param( 'client_base_version', '4' );
+
+		wp_set_current_user( self::$subscriber_user_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	/**
