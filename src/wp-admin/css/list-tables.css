@@ -1836,7 +1836,11 @@ div.action-links,
 	.plugin-card .action-links {
 		position: static;
 		margin-left: 148px;
-		width: auto;
+		width: calc(100% - 148px);
+	}
+
+	.plugin-card .desc > p {
+		margin-left: 0;
 	}
 
 	.plugin-action-buttons {
