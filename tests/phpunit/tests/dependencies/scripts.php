@@ -1457,7 +1457,7 @@ HTML
 		);
 
 		return array(
-			'register_blocking_warns'             => array(
+			'register_blocking_warns'            => array(
 				'function_name' => 'wp_register_script',
 				'args'          => array_merge(
 					array( 'module-deps-blocking-register' ),
@@ -1470,7 +1470,7 @@ HTML
 				),
 				'should_warn'   => true,
 			),
-			'enqueue_blocking_warns'              => array(
+			'enqueue_blocking_warns'             => array(
 				'function_name' => 'wp_enqueue_script',
 				'args'          => array_merge(
 					array( 'module-deps-blocking-enqueue' ),
@@ -1483,7 +1483,7 @@ HTML
 				),
 				'should_warn'   => true,
 			),
-			'register_async_warns'                => array(
+			'register_async_warns'               => array(
 				'function_name' => 'wp_register_script',
 				'args'          => array_merge(
 					array( 'module-deps-async-register' ),
@@ -1497,7 +1497,7 @@ HTML
 				),
 				'should_warn'   => true,
 			),
-			'register_in_footer_does_not_warn'    => array(
+			'register_in_footer_does_not_warn'   => array(
 				'function_name' => 'wp_register_script',
 				'args'          => array_merge(
 					array( 'module-deps-footer-register' ),
@@ -1511,7 +1511,7 @@ HTML
 				),
 				'should_warn'   => false,
 			),
-			'enqueue_in_footer_does_not_warn'     => array(
+			'enqueue_in_footer_does_not_warn'    => array(
 				'function_name' => 'wp_enqueue_script',
 				'args'          => array_merge(
 					array( 'module-deps-footer-enqueue' ),
@@ -1525,7 +1525,7 @@ HTML
 				),
 				'should_warn'   => false,
 			),
-			'register_defer_does_not_warn'        => array(
+			'register_defer_does_not_warn'       => array(
 				'function_name' => 'wp_register_script',
 				'args'          => array_merge(
 					array( 'module-deps-defer-register' ),
@@ -1539,7 +1539,7 @@ HTML
 				),
 				'should_warn'   => false,
 			),
-			'enqueue_defer_does_not_warn'         => array(
+			'enqueue_defer_does_not_warn'        => array(
 				'function_name' => 'wp_enqueue_script',
 				'args'          => array_merge(
 					array( 'module-deps-defer-enqueue' ),
@@ -1553,7 +1553,7 @@ HTML
 				),
 				'should_warn'   => false,
 			),
-			'register_footer_and_defer_no_warn'   => array(
+			'register_footer_and_defer_no_warn'  => array(
 				'function_name' => 'wp_register_script',
 				'args'          => array_merge(
 					array( 'module-deps-footer-defer-register' ),
@@ -1568,7 +1568,7 @@ HTML
 				),
 				'should_warn'   => false,
 			),
-			'register_no_module_deps_no_warn'     => array(
+			'register_no_module_deps_no_warn'    => array(
 				'function_name' => 'wp_register_script',
 				'args'          => array_merge(
 					array( 'no-module-deps-register' ),
@@ -1577,7 +1577,7 @@ HTML
 				),
 				'should_warn'   => false,
 			),
-			'register_empty_module_deps_no_warn'  => array(
+			'register_empty_module_deps_no_warn' => array(
 				'function_name' => 'wp_register_script',
 				'args'          => array_merge(
 					array( 'empty-module-deps-register' ),
