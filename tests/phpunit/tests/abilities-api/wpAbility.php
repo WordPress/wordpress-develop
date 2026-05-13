@@ -1054,6 +1054,27 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-bool, non-WP_Error return from the wp_ability_permission_result filter is
+	 * coerced to false so check_permissions() honors its documented bool|WP_Error return type.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_invalid_value_coerced_to_false() {
+		$filter = static function () {
+			return 'not-a-bool';
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+		$result  = $ability->check_permissions();
+
+		remove_filter( 'wp_ability_permission_result', $filter );
+
+		$this->assertFalse( $result, 'Non-bool, non-WP_Error filter return is coerced to false.' );
+	}
+
+	/**
 	 * Tests that returning a custom value from wp_pre_execute_ability short-circuits the
 	 * pipeline. The pipeline is configured to fail (permission denial) so a real run would
 	 * surface a WP_Error; receiving the short-circuit value proves the bypass. Filter args

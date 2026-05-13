@@ -581,6 +581,7 @@ class WP_Ability {
 		 *
 		 * Filters can return `true` to grant, `false` to deny, or a `WP_Error` to deny with a specific
 		 * error code and message. The filter receives whatever the `permission_callback` produced.
+		 * Any other return value is coerced to `false`.
 		 *
 		 * @since 7.1.0
 		 *
