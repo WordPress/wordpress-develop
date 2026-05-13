@@ -986,6 +986,7 @@ function _wp_call_all_hook( $args ) {
  * @since 5.3.0 Removed workarounds for spl_object_hash().
  *              `$hook_name` and `$priority` are no longer used,
  *              and the function always returns a string.
+ * @since 6.9.0 Added support for PHP 8.1's first-class callable syntax.
  *
  * @access private
  *
@@ -1003,6 +1004,54 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
 	}
 
 	if ( is_object( $callback ) ) {
+		// Handle first-class callables (PHP 8.1+) and other closures.
+		if ( $callback instanceof Closure ) {
+			try {
+				$ref = new ReflectionFunction( $callback );
+
+				// For closures with a "this" scope (instance methods as first-class callables).
+				$this_obj = $ref->getClosureThis();
+				if ( $this_obj ) {
+					return spl_object_hash( $this_obj ) . $ref->getName();
+				}
+
+				// For closures with a scope class (static methods or class methods as first-class callables).
+				$scope_class = $ref->getClosureScopeClass();
+				if ( $scope_class ) {
+					$scope_name = $scope_class->getName();
+
+					if ( str_contains( $ref->getName(), '{closure}' ) ) {
+						// Extract function name from backtrace for first-class callables.
+						$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 4 );
+						if ( isset( $trace[2]['file'] ) && isset( $trace[2]['line'] ) ) {
+							$source_file = $trace[2]['file'];
+							$source_line = $trace[2]['line'];
+
+							if ( file_exists( $source_file ) ) {
+								$source = file( $source_file );
+								if ( isset( $source[ $source_line - 1 ] ) ) {
+									$line = $source[ $source_line - 1 ];
+									if ( preg_match( '/([a-zA-Z0-9_\\\\]+)::([a-zA-Z0-9_]+)\(\.\.\.\)/', $line, $matches ) ) {
+										return $matches[1] . '::' . $matches[2];
+									}
+								}
+							}
+						}
+
+						if ( $ref->getClosureScopeClass() && ! $ref->getClosureThis() ) {
+							return $scope_name . '::' . $hook_name . '::' . spl_object_hash( $callback );
+						}
+					}
+
+					return $scope_name . '::' . $ref->getName();
+				}
+
+				return 'closure:' . spl_object_hash( $callback );
+			} catch ( Exception $e ) {
+				return spl_object_hash( $callback );
+			}
+		}
+
 		// Closures are currently implemented as objects.
 		$callback = array( $callback, '' );
 	} else {
