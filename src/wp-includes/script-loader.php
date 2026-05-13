@@ -1507,6 +1507,8 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'dashboard', "/wp-admin/js/dashboard$suffix.js", array( 'common', 'jquery', 'admin-comments', 'postbox', 'wp-util', 'wp-a11y', 'wp-date' ), false, 1 );
 		$scripts->set_translations( 'dashboard' );
 
+		$scripts->add( 'on-this-day', "/wp-admin/js/on-this-day$suffix.js", array( 'jquery' ), false, 1 );
+
 		$scripts->add( 'list-revisions', "/wp-includes/js/wp-list-revisions$suffix.js" );
 
 		$scripts->add( 'media-grid', "/wp-includes/js/media-grid$suffix.js", array( 'media-editor' ), false, 1 );
