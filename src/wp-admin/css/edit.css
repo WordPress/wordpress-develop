@@ -1542,6 +1542,8 @@ p.popular-tags a {
 }
 
 .edit-tag-actions {
+	display: flex;
+	align-items: center;
 	margin-top: 20px;
 }
 
