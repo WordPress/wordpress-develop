@@ -211,6 +211,106 @@ function wp_de_rtc_parse_post_content_sync_meta( $content ) {
 }
 
 /**
+ * Finds the most recent revision containing parseable Distributed Editing sync metadata.
+ *
+ * This helper only scans confirmed revision content. It skips autosave
+ * revisions and does not restore revisions, update the parent post, repair
+ * missing metadata, or create new revisions.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @return array|WP_Error {
+ *     Revision scan result on success, or a WP_Error when the post is invalid.
+ *
+ *     @type bool        $found                    Whether parseable sync metadata was found.
+ *     @type int         $post_id                  Parent post ID.
+ *     @type int         $revision_id              Revision ID containing sync metadata, or 0 when none was found.
+ *     @type string|null $revision_date_gmt        Revision GMT date, or null when none was found.
+ *     @type array|null  $sync_meta                Parsed sync metadata, or null when none was found.
+ *     @type string|null $sync_meta_format         Sync metadata format, or null when none was found.
+ *     @type string|null $sync_meta_position       Sync metadata position, or null when none was found.
+ *     @type string|null $raw_sync_meta            Raw sync metadata SCRIPT element, or null when none was found.
+ *     @type string|null $content                  Revision content without sync metadata, or null when none was found.
+ *     @type int         $scanned_revisions        Number of revisions inspected.
+ *     @type int[]       $malformed_revision_ids   Revision IDs skipped because sync metadata could not be parsed.
+ * }
+ */
+function wp_de_rtc_find_latest_revision_with_sync_meta( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post || empty( $post->ID ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_unrecoverable',
+			__( 'Distributed Editing could not scan revisions because the post does not exist.' ),
+			array(
+				'detail' => 'invalid_post',
+			)
+		);
+	}
+
+	$revisions = wp_get_post_revisions(
+		$post,
+		array(
+			'check_enabled' => false,
+			'numberposts'   => -1,
+			'order'         => 'DESC',
+			'orderby'       => 'date ID',
+		)
+	);
+
+	$scanned_revisions      = 0;
+	$malformed_revision_ids = array();
+
+	foreach ( $revisions as $revision ) {
+		++$scanned_revisions;
+
+		if ( wp_is_post_autosave( $revision ) ) {
+			continue;
+		}
+
+		$parsed = wp_de_rtc_parse_post_content_sync_meta( $revision->post_content );
+
+		if ( is_wp_error( $parsed ) ) {
+			$malformed_revision_ids[] = (int) $revision->ID;
+			continue;
+		}
+
+		if ( null === $parsed['sync_meta'] ) {
+			continue;
+		}
+
+		return array(
+			'found'                  => true,
+			'post_id'                => (int) $post->ID,
+			'revision_id'            => (int) $revision->ID,
+			'revision_date_gmt'      => $revision->post_date_gmt,
+			'sync_meta'              => $parsed['sync_meta'],
+			'sync_meta_format'       => $parsed['sync_meta_format'],
+			'sync_meta_position'     => $parsed['sync_meta_position'],
+			'raw_sync_meta'          => $parsed['raw_sync_meta'],
+			'content'                => $parsed['content'],
+			'scanned_revisions'      => $scanned_revisions,
+			'malformed_revision_ids' => $malformed_revision_ids,
+		);
+	}
+
+	return array(
+		'found'                  => false,
+		'post_id'                => (int) $post->ID,
+		'revision_id'            => 0,
+		'revision_date_gmt'      => null,
+		'sync_meta'              => null,
+		'sync_meta_format'       => null,
+		'sync_meta_position'     => null,
+		'raw_sync_meta'          => null,
+		'content'                => null,
+		'scanned_revisions'      => $scanned_revisions,
+		'malformed_revision_ids' => $malformed_revision_ids,
+	);
+}
+
+/**
  * Creates a WP_Error with canonical Distributed Editing reason data.
  *
  * @since 7.1.0

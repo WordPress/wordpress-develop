@@ -276,6 +276,7 @@ require ABSPATH . WPINC . '/html-api/class-wp-html-token.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-stack-event.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor-state.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor.php';
+require ABSPATH . WPINC . '/de-rtc.php';
 require ABSPATH . WPINC . '/class-wp-block-processor.php';
 require ABSPATH . WPINC . '/class-wp-http.php';
 require ABSPATH . WPINC . '/class-wp-http-streams.php';
