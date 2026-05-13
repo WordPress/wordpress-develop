@@ -138,6 +138,49 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 	/**
 	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
 	 */
+	public function test_post_update_retry_save_proof_fields_without_stale_base_probe_remains_normal_rest_save() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Retry proof normal save current content.</p><!-- /wp:paragraph -->',
+			7
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC retry proof normal save path post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Retry proof normal REST save content.</p><!-- /wp:paragraph -->';
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+		$request->set_body_params(
+			array(
+				'content'                              => $proposed_content,
+				'client_base_version'                  => '7',
+				'accepted_proof_server_version'        => '7',
+				'rebased_from_version'                 => '4',
+				'pending_change_count'                 => 2,
+				'proposed_post_content'                => $proposed_content,
+				'proposed_post_content_hash'           => hash( 'sha256', $proposed_content ),
+				'accepted_proof_saves_post'            => false,
+				'accepted_proof_mutates_post_content' => false,
+				'accepted_proof_creates_revision'      => false,
+				'accepted_proof_claims_saved'          => false,
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $proposed_content, $after_post->post_content );
+		$this->assertNull( $parsed['sync_meta'] );
+		$this->assertNull( $parsed['sync_meta_format'] );
+		$this->assertNull( $parsed['sync_meta_position'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
+	 */
 	public function test_post_update_stale_base_probe_requires_feature_enablement() {
 		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
 
