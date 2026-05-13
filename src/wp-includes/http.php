@@ -548,7 +548,7 @@ function send_origin_headers() {
  *
  * - `http://192.168.0.1/caniload.php` - IP address from LAN network.
  *   This can be changed with the {@see 'http_request_host_is_external'} filter.
- * - `http://198.143.164.252:81/caniload.php` - By default, only ports 80, 443, and 8080 are allowed.
+ * - `http://198.51.100.50:81/caniload.php` - By default, only ports 80, 443, and 8080 are allowed.
  *   This can be changed with the {@see 'http_allowed_safe_ports'} filter.
  *
  * @since 3.5.2
