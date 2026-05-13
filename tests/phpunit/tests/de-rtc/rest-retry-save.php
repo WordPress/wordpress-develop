@@ -59,6 +59,294 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_retry_submit_endpoint
+	 * @covers ::wp_de_rtc_get_retry_submit_acceptance_result
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_next_sync_meta_version
+	 */
+	public function test_retry_save_applies_after_current_retry_submit_proof_and_records_authority_evidence() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Board demo current server content.</p><!-- /wp:paragraph -->',
+			21,
+			array(
+				'hash' => 'server-owned-base',
+			)
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC board demo retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Board demo rebased local content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$proof_request    = $this->create_retry_submit_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'        => '21',
+				'rebased_from_version'       => '18',
+				'pending_change_count'       => 3,
+				'proposed_post_content_hash' => $proposed_hash,
+			)
+		);
+
+		$proof_response = rest_get_server()->dispatch( $proof_request );
+		$proof_data     = $proof_response->get_data();
+
+		$this->assertSame( 200, $proof_response->get_status() );
+		$this->assertSame( 'retry_submit_accepted_for_future_save', $proof_data['result'] );
+		$this->assertTrue( $proof_data['retry_submit_accepted'] );
+		$this->assertSame( '21', $proof_data['client_base_version'] );
+		$this->assertSame( '21', $proof_data['server_version'] );
+		$this->assertSame( $proposed_hash, $proof_data['proposed_post_content_hash'] );
+		$this->assertTrue( $proof_data['save_path_required'] );
+		$this->assertFalse( $proof_data['saves_post'] );
+		$this->assertFalse( $proof_data['mutates_post_content'] );
+		$this->assertFalse( $proof_data['creates_revision'] );
+		$this->assertFalse( $proof_data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+
+		$save_request = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'                 => $proof_data['client_base_version'],
+				'accepted_proof_server_version'       => $proof_data['server_version'],
+				'rebased_from_version'                => $proof_data['rebased_from_version'],
+				'pending_change_count'                => $proof_data['pending_change_count'],
+				'proposed_post_content'               => $proposed_content,
+				'proposed_post_content_hash'          => $proof_data['proposed_post_content_hash'],
+				'accepted_proof_saves_post'           => $proof_data['saves_post'],
+				'accepted_proof_mutates_post_content' => $proof_data['mutates_post_content'],
+				'accepted_proof_creates_revision'     => $proof_data['creates_revision'],
+				'accepted_proof_claims_saved'         => $proof_data['claims_saved'],
+			)
+		);
+
+		$save_response   = rest_get_server()->dispatch( $save_request );
+		$save_data       = $save_response->get_data();
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$parsed_proposed = wp_de_rtc_parse_post_content_sync_meta( $proposed_content );
+		$parsed_saved    = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $save_response->get_status() );
+		$this->assertSame( 'retry_save_applied', $save_data['result'] );
+		$this->assertTrue( $save_data['retry_save_accepted'] );
+		$this->assertSame( '21', $save_data['client_base_version'] );
+		$this->assertSame( '21', $save_data['accepted_proof_server_version'] );
+		$this->assertSame( '21', $save_data['previous_server_version'] );
+		$this->assertSame( '22', $save_data['server_version'] );
+		$this->assertSame( '18', $save_data['rebased_from_version'] );
+		$this->assertSame( 3, $save_data['pending_change_count'] );
+		$this->assertSame( $proposed_hash, $save_data['proposed_post_content_hash'] );
+		$this->assertSame( hash( 'sha256', $after_post->post_content ), $save_data['saved_post_content_hash'] );
+		$this->assertTrue( $save_data['saves_post'] );
+		$this->assertTrue( $save_data['mutates_post_content'] );
+		$this->assertTrue( $save_data['claims_saved'] );
+		$this->assertTrue( $save_data['revision_created'] );
+		$this->assertSame( array_map( 'intval', array_keys( $before_revisions ) ), $save_data['revision_ids_before_save'] );
+		$this->assertSame( array_map( 'intval', array_keys( $after_revisions ) ), $save_data['revision_ids_after_save'] );
+		$this->assertSame(
+			array_values( array_diff( $save_data['revision_ids_after_save'], $save_data['revision_ids_before_save'] ) ),
+			$save_data['created_revision_ids']
+		);
+		$this->assertNotEmpty( $save_data['created_revision_ids'] );
+		$this->assertIsArray( $parsed_proposed );
+		$this->assertNull( $parsed_proposed['sync_meta'] );
+		$this->assertIsArray( $parsed_saved );
+		$this->assertSame( $proposed_content, $parsed_saved['content'] );
+		$this->assertSame( '22', $parsed_saved['sync_meta']['version'] );
+		$this->assertSame( '21', $parsed_saved['sync_meta']['previous_version'] );
+		$this->assertSame( 'server-owned-base', $parsed_saved['sync_meta']['hash'] );
+		$this->assertSame( 'retry_save', $parsed_saved['sync_meta']['last_server_update']['type'] );
+		$this->assertSame( self::$admin_user_id, $parsed_saved['sync_meta']['last_server_update']['user_id'] );
+		$this->assertSame( '21', $parsed_saved['sync_meta']['last_server_update']['client_base_version'] );
+		$this->assertSame( '21', $parsed_saved['sync_meta']['last_server_update']['accepted_proof_server_version'] );
+		$this->assertSame( '18', $parsed_saved['sync_meta']['last_server_update']['rebased_from_version'] );
+		$this->assertSame( 3, $parsed_saved['sync_meta']['last_server_update']['pending_change_count'] );
+		$this->assertSame( $proposed_hash, $parsed_saved['sync_meta']['last_server_update']['proposed_post_content_hash'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_submit_endpoint
+	 * @covers ::wp_de_rtc_get_retry_submit_acceptance_result
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 */
+	public function test_retry_save_rejects_when_server_changes_after_accepted_proof_without_mutating() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Board demo stale proof current content.</p><!-- /wp:paragraph -->',
+			30
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC board demo stale proof post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Board demo stale proof proposed content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$proof_request    = $this->create_retry_submit_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'        => '30',
+				'rebased_from_version'       => '27',
+				'pending_change_count'       => 1,
+				'proposed_post_content_hash' => $proposed_hash,
+			)
+		);
+
+		$proof_response = rest_get_server()->dispatch( $proof_request );
+		$proof_data     = $proof_response->get_data();
+
+		$this->assertSame( 200, $proof_response->get_status() );
+		$this->assertSame( '30', $proof_data['server_version'] );
+
+		$advanced_content = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Board demo intervening server content.</p><!-- /wp:paragraph -->',
+			31,
+			array(
+				'previous_version' => '30',
+			)
+		);
+
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $advanced_content,
+					)
+				)
+			)
+		);
+
+		$before_retry_post      = get_post( $post_id );
+		$before_retry_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$save_request           = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'                 => $proof_data['client_base_version'],
+				'accepted_proof_server_version'       => $proof_data['server_version'],
+				'rebased_from_version'                => $proof_data['rebased_from_version'],
+				'pending_change_count'                => $proof_data['pending_change_count'],
+				'proposed_post_content'               => $proposed_content,
+				'proposed_post_content_hash'          => $proof_data['proposed_post_content_hash'],
+				'accepted_proof_saves_post'           => $proof_data['saves_post'],
+				'accepted_proof_mutates_post_content' => $proof_data['mutates_post_content'],
+				'accepted_proof_creates_revision'     => $proof_data['creates_revision'],
+				'accepted_proof_claims_saved'         => $proof_data['claims_saved'],
+			)
+		);
+
+		$save_response = rest_get_server()->dispatch( $save_request );
+		$error         = $save_response->as_error();
+		$data          = $error->get_error_data( 'stale_base_version_rejected' );
+
+		$this->assertErrorResponse( 'stale_base_version_rejected', $save_response, 409 );
+		$this->assertSame( 'post_retry_save_stale_base', $data['rest_route'] );
+		$this->assertSame( '30', $data['client_base_version'] );
+		$this->assertSame( '31', $data['server_version'] );
+		$this->assertTrue( $data['requires_server_state_refetch'] );
+		$this->assertTrue( $data['can_export_local_updates'] );
+		$this->assert_post_unchanged( $post_id, $before_retry_post->post_content, $before_retry_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_submit_endpoint
+	 * @covers ::wp_de_rtc_get_retry_submit_acceptance_result
+	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
+	 * @covers ::wp_de_rtc_is_enabled_for_post
+	 */
+	public function test_retry_save_requires_setting_enabled_after_accepted_proof_without_mutating() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Board demo setting current content.</p><!-- /wp:paragraph -->',
+			40
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC board demo setting gate post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Board demo setting gated proposed content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$proof_request    = $this->create_retry_submit_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'        => '40',
+				'pending_change_count'       => 1,
+				'proposed_post_content_hash' => $proposed_hash,
+			)
+		);
+
+		$proof_response = rest_get_server()->dispatch( $proof_request );
+		$proof_data     = $proof_response->get_data();
+
+		$this->assertSame( 200, $proof_response->get_status() );
+		$this->assertSame( '40', $proof_data['server_version'] );
+
+		update_option( 'wp_de_rtc_enabled', false );
+
+		$before_retry_post      = get_post( $post_id );
+		$before_retry_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$save_request           = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'                 => $proof_data['client_base_version'],
+				'accepted_proof_server_version'       => $proof_data['server_version'],
+				'pending_change_count'                => $proof_data['pending_change_count'],
+				'proposed_post_content'               => $proposed_content,
+				'proposed_post_content_hash'          => $proof_data['proposed_post_content_hash'],
+				'accepted_proof_saves_post'           => $proof_data['saves_post'],
+				'accepted_proof_mutates_post_content' => $proof_data['mutates_post_content'],
+				'accepted_proof_creates_revision'     => $proof_data['creates_revision'],
+				'accepted_proof_claims_saved'         => $proof_data['claims_saved'],
+			)
+		);
+
+		$save_response = rest_get_server()->dispatch( $save_request );
+		$error         = $save_response->as_error();
+		$data          = $error->get_error_data( 'de_rtc_feature_disabled' );
+
+		$this->assertErrorResponse( 'de_rtc_feature_disabled', $save_response, 403 );
+		$this->assertSame( 'feature_disabled_for_post', $data['detail'] );
+		$this->assertSame( $post_id, $data['post_id'] );
+		$this->assert_post_unchanged( $post_id, $before_retry_post->post_content, $before_retry_revisions );
+	}
+
+	/**
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
 	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
 	 * @covers ::wp_de_rtc_save_retry_submitted_post
@@ -692,6 +980,21 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	 */
 	private function create_retry_save_request( $rest_base, $post_id, $params ) {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $post_id . '/distributed-editing/retry-save' );
+		$request->set_body_params( $params );
+
+		return $request;
+	}
+
+	/**
+	 * Creates a retry-submit proof REST request.
+	 *
+	 * @param string $rest_base Post type REST base.
+	 * @param int    $post_id   Post ID.
+	 * @param array  $params    Body parameters.
+	 * @return WP_REST_Request REST request.
+	 */
+	private function create_retry_submit_request( $rest_base, $post_id, $params ) {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $post_id . '/distributed-editing/retry-submit' );
 		$request->set_body_params( $params );
 
 		return $request;
