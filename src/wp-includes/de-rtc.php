@@ -1118,6 +1118,16 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		);
 	}
 
+	if ( ! current_user_can( 'unfiltered_html' ) ) {
+		return wp_de_rtc_get_unfiltered_html_review_rejection_error(
+			$post,
+			array(
+				'pending_change_count' => $pending_change_count,
+				'rest_route'           => 'post_retry_save',
+			)
+		);
+	}
+
 	$next_version   = wp_de_rtc_get_next_sync_meta_version( $server_version, $proposed_post_content_hash );
 	$next_sync_meta = $current['sync_meta'];
 
@@ -1404,6 +1414,55 @@ function wp_de_rtc_get_stale_base_rejection_error( $post, $args = array() ) {
 }
 
 /**
+ * Returns the canonical unfiltered HTML review rejection error.
+ *
+ * This helper only defines the rejection vocabulary for collaborative content
+ * authority. It does not inspect content, save posts, create revisions,
+ * register REST behavior, replace post locks, or wire normal save paths.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args {
+ *     Optional rejection data.
+ *
+ *     @type mixed  $pending_change_count Pending local change count. Default 1.
+ *     @type string $rest_route           Response route label. Default 'post_content_capability_review'.
+ * }
+ * @return WP_Error Unfiltered HTML review rejection error with normalized DE-RTC data.
+ */
+function wp_de_rtc_get_unfiltered_html_review_rejection_error( $post, $args = array() ) {
+	$post                 = get_post( $post );
+	$post_id              = $post ? (int) $post->ID : 0;
+	$pending_change_count = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
+	$rest_route           = isset( $args['rest_route'] ) ? sanitize_key( $args['rest_route'] ) : 'post_content_capability_review';
+	$permission_contract  = wp_de_rtc_get_rest_recovery_permission_contract( $post );
+
+	return wp_de_rtc_get_reason_error(
+		'de_rtc_unfiltered_html_would_change_content',
+		__( 'Distributed Editing rejected the update because collaborative content changes require unfiltered HTML review.' ),
+		array(
+			'detail'                              => 'collaborative_unfiltered_html_review_required',
+			'post_id'                             => $post_id,
+			'rest_route'                          => $rest_route,
+			'pending_change_count'                => $pending_change_count,
+			'requires_edit_post'                  => true,
+			'requires_unfiltered_html'            => true,
+			'unfiltered_html_allowed'             => current_user_can( 'unfiltered_html' ),
+			'authorship_review_required'          => true,
+			'content_capability_review_required'  => true,
+			'requires_manual_conflict_resolution' => true,
+			'can_export_local_updates'            => $pending_change_count > 0,
+			'saves_post'                          => false,
+			'mutates_post_content'                => false,
+			'creates_revision'                    => false,
+			'claims_saved'                        => false,
+			'permission_contract'                 => $permission_contract,
+		)
+	);
+}
+
+/**
  * Returns the current sync-meta version for a post.
  *
  * @since 7.1.0
@@ -1486,22 +1545,28 @@ function wp_de_rtc_get_rest_recovery_permission_contract( $post ) {
 
 	if ( ! $post ) {
 		return array(
-			'post_id'                         => 0,
-			'requires_edit_post'              => true,
-			'feature_enabled'                 => false,
-			'unfiltered_html_review_required' => true,
-			'unfiltered_html_allowed'         => current_user_can( 'unfiltered_html' ),
+			'post_id'                            => 0,
+			'requires_edit_post'                 => true,
+			'feature_enabled'                    => false,
+			'unfiltered_html_review_required'    => true,
+			'unfiltered_html_allowed'            => current_user_can( 'unfiltered_html' ),
+			'authorship_review_required'         => true,
+			'content_capability_review_required' => true,
+			'unfiltered_html_rejection_code'     => 'de_rtc_unfiltered_html_would_change_content',
 		);
 	}
 
 	return array(
-		'post_id'                         => (int) $post->ID,
-		'post_type'                       => $post->post_type,
-		'post_type_rest_base'             => wp_de_rtc_get_post_type_rest_base( $post->post_type ),
-		'requires_edit_post'              => true,
-		'feature_enabled'                 => wp_de_rtc_is_enabled_for_post( $post ),
-		'unfiltered_html_review_required' => true,
-		'unfiltered_html_allowed'         => current_user_can( 'unfiltered_html' ),
+		'post_id'                            => (int) $post->ID,
+		'post_type'                          => $post->post_type,
+		'post_type_rest_base'                => wp_de_rtc_get_post_type_rest_base( $post->post_type ),
+		'requires_edit_post'                 => true,
+		'feature_enabled'                    => wp_de_rtc_is_enabled_for_post( $post ),
+		'unfiltered_html_review_required'    => true,
+		'unfiltered_html_allowed'            => current_user_can( 'unfiltered_html' ),
+		'authorship_review_required'         => true,
+		'content_capability_review_required' => true,
+		'unfiltered_html_rejection_code'     => 'de_rtc_unfiltered_html_would_change_content',
 	);
 }
 
