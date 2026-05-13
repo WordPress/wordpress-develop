@@ -262,15 +262,34 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['raw_content_included'] );
 		$this->assertSame( 'requires_reviewer_escalation', $data['review_contract']['status'] );
 		$this->assertSame( 'unfiltered_html_content_capability_review', $data['review_contract']['type'] );
+		$this->assertSame( 'request_unfiltered_html_reviewer', $data['review_contract']['review_action'] );
+		$this->assertSame( 'unfiltered_html', $data['review_contract']['review_required_capability'] );
+		$this->assertSame( 'collaborative_post_content', $data['review_contract']['review_scope'] );
 		$this->assertSame( 'unfiltered_html', $data['review_contract']['reviewer_capability'] );
+		$this->assertSame( $data['reviewer_capability'], $data['review_contract']['reviewer_capability'] );
+		$this->assertSame( $data['review_required_capability'], $data['review_contract']['review_required_capability'] );
+		$this->assertSame( $data['review_scope'], $data['review_contract']['review_scope'] );
 		$this->assertTrue( $data['review_contract']['escalation_required'] );
 		$this->assertSame( 'proposed_content_and_retry_save_candidate_would_change_by_kses', $data['review_contract']['escalation_reason'] );
+		$this->assertSame( $data['escalation_reason'], $data['review_contract']['escalation_reason'] );
 		$this->assertTrue( $data['review_contract']['content_would_change_by_kses'] );
 		$this->assertTrue( $data['review_contract']['proposed_content_would_change_by_kses'] );
 		$this->assertTrue( $data['review_contract']['candidate_content_would_change_by_kses'] );
 		$this->assertFalse( $data['review_contract']['raw_content_included'] );
 		$this->assertArrayNotHasKey( 'proposed_post_content', $data );
 		$this->assertArrayNotHasKey( 'candidate_post_content', $data );
+		$this->assertArrayNotHasKey( 'proposed_post_content_kses_review', $data );
+		$this->assertArrayNotHasKey( 'candidate_post_content_kses_review', $data );
+		$this->assert_review_rejection_omits_raw_content(
+			$response->get_data(),
+			array(
+				'iframe',
+				'example.com',
+				'wp:html',
+				'post-sync-meta',
+				'data-sync-meta-format',
+			)
+		);
 		$this->assertSame(
 			array(
 				'export_local_updates',
@@ -288,6 +307,8 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['permission_contract']['unfiltered_html_allowed'] );
 		$this->assertSame( 'de_rtc_unfiltered_html_would_change_content', $data['permission_contract']['unfiltered_html_rejection_code'] );
 		$this->assertSame( 'request_unfiltered_html_reviewer', $data['permission_contract']['unfiltered_html_review_action'] );
+		$this->assertSame( 'unfiltered_html', $data['permission_contract']['unfiltered_html_review_capability'] );
+		$this->assertSame( 'collaborative_post_content', $data['permission_contract']['unfiltered_html_review_scope'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
@@ -412,12 +433,29 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['raw_content_included'] );
 		$this->assertSame( 'requires_reviewer_escalation', $data['review_contract']['status'] );
 		$this->assertSame( 'unfiltered_html_content_capability_review', $data['review_contract']['type'] );
+		$this->assertSame( 'request_unfiltered_html_reviewer', $data['review_contract']['review_action'] );
+		$this->assertSame( 'unfiltered_html', $data['review_contract']['review_required_capability'] );
+		$this->assertSame( 'collaborative_post_content', $data['review_contract']['review_scope'] );
 		$this->assertSame( 'unfiltered_html', $data['review_contract']['reviewer_capability'] );
+		$this->assertSame( $data['reviewer_capability'], $data['review_contract']['reviewer_capability'] );
+		$this->assertSame( $data['review_required_capability'], $data['review_contract']['review_required_capability'] );
+		$this->assertSame( $data['review_scope'], $data['review_contract']['review_scope'] );
 		$this->assertTrue( $data['review_contract']['escalation_required'] );
 		$this->assertSame( 'proposed_content_and_retry_save_candidate_would_change_by_kses', $data['review_contract']['escalation_reason'] );
+		$this->assertSame( $data['escalation_reason'], $data['review_contract']['escalation_reason'] );
 		$this->assertSame( $data['proposed_content_hash'], $data['review_contract']['proposed_content_hash'] );
 		$this->assertSame( $data['candidate_content_hash'], $data['review_contract']['candidate_content_hash'] );
 		$this->assertFalse( $data['review_contract']['raw_content_included'] );
+		$this->assert_review_rejection_omits_raw_content(
+			$data,
+			array(
+				'iframe',
+				'example.com',
+				'wp:html',
+				'post-sync-meta',
+				'data-sync-meta-format',
+			)
+		);
 		$this->assertContains( 'export_local_updates', $data['recovery_actions'] );
 		$this->assertContains( 'request_unfiltered_html_reviewer', $data['recovery_actions'] );
 		$this->assertContains( 'refetch_server_state', $data['recovery_actions'] );
@@ -430,6 +468,8 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['permission_contract']['unfiltered_html_allowed'] );
 		$this->assertSame( 'de_rtc_unfiltered_html_would_change_content', $data['permission_contract']['unfiltered_html_rejection_code'] );
 		$this->assertSame( 'request_unfiltered_html_reviewer', $data['permission_contract']['unfiltered_html_review_action'] );
+		$this->assertSame( 'unfiltered_html', $data['permission_contract']['unfiltered_html_review_capability'] );
+		$this->assertSame( 'collaborative_post_content', $data['permission_contract']['unfiltered_html_review_scope'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
@@ -543,6 +583,46 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 				'check_enabled' => false,
 			)
 		);
+	}
+
+	/**
+	 * Asserts that reviewer rejection evidence does not carry raw post content.
+	 *
+	 * @param mixed    $payload       Error payload to inspect.
+	 * @param string[] $raw_fragments Raw content fragments that must be absent.
+	 */
+	private function assert_review_rejection_omits_raw_content( $payload, $raw_fragments ) {
+		$encoded_payload = wp_json_encode( $payload );
+
+		$this->assertIsString( $encoded_payload );
+
+		foreach ( $raw_fragments as $raw_fragment ) {
+			$this->assertStringNotContainsString( $raw_fragment, $encoded_payload );
+		}
+
+		$this->assert_review_rejection_omits_raw_content_keys( $payload );
+	}
+
+	/**
+	 * Asserts that raw-content fields are absent at every payload nesting level.
+	 *
+	 * @param mixed $payload Payload value.
+	 */
+	private function assert_review_rejection_omits_raw_content_keys( $payload ) {
+		if ( ! is_array( $payload ) ) {
+			return;
+		}
+
+		foreach ( $payload as $key => $value ) {
+			if ( is_string( $key ) ) {
+				$this->assertNotSame( 'proposed_post_content', $key );
+				$this->assertNotSame( 'candidate_post_content', $key );
+				$this->assertNotSame( 'proposed_post_content_kses_review', $key );
+				$this->assertNotSame( 'candidate_post_content_kses_review', $key );
+			}
+
+			$this->assert_review_rejection_omits_raw_content_keys( $value );
+		}
 	}
 
 	/**
