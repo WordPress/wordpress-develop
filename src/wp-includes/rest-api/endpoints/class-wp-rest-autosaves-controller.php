@@ -220,7 +220,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		$prepared_post     = $this->parent_controller->prepare_item_for_database( $request );
+		$prepared_post = $this->parent_controller->prepare_item_for_database( $request );
+		if ( is_wp_error( $prepared_post ) ) {
+			return $prepared_post;
+		}
+
 		$prepared_post->ID = $post->ID;
 		$user_id           = get_current_user_id();
 

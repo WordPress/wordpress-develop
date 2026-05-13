@@ -220,6 +220,120 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::WP_REST_Autosaves_Controller::create_item
+	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
+	 * @covers ::wp_de_rtc_get_rest_save_probe_response_route
+	 */
+	public function test_autosave_parent_draft_stale_base_probe_rejects_before_parent_update() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Autosave draft current content.</p><!-- /wp:paragraph -->',
+			10
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$admin_user_id,
+				'post_status'  => 'draft',
+				'post_title'   => 'DE-RTC autosave draft stale base post',
+				'post_content' => $current_content,
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+		$request->set_body_params(
+			array(
+				'id'                       => $post_id,
+				'content'                  => '<!-- wp:paragraph --><p>Rejected autosave draft update.</p><!-- /wp:paragraph -->',
+				'de_rtc_stale_base_probe'  => true,
+				'client_base_version'      => '8',
+				'pending_change_count'     => 1,
+				'remote_change_count'      => 2,
+				'can_attempt_local_rebase' => true,
+			)
+		);
+
+		$response        = rest_get_server()->dispatch( $request );
+		$error           = $response->as_error();
+		$data            = $error->get_error_data( 'stale_base_version_rejected' );
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$this->assertErrorResponse( 'stale_base_version_rejected', $response, 409 );
+		$this->assertSame( 'post_autosave_stale_base_probe', $data['rest_route'] );
+		$this->assertSame( '8', $data['client_base_version'] );
+		$this->assertSame( '10', $data['server_version'] );
+		$this->assertSame( 1, $data['pending_change_count'] );
+		$this->assertSame( 2, $data['remote_change_count'] );
+		$this->assertTrue( $data['requires_server_state_refetch'] );
+		$this->assertFalse( $data['can_attempt_local_rebase'] );
+		$this->assertSame( $before_post->post_content, $after_post->post_content );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * @covers ::WP_REST_Autosaves_Controller::create_item
+	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
+	 */
+	public function test_autosave_revision_stale_base_probe_rejects_before_revision_creation() {
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Autosave published current content.</p><!-- /wp:paragraph -->',
+			12
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$admin_user_id,
+				'post_status'  => 'publish',
+				'post_title'   => 'DE-RTC autosave published stale base post',
+				'post_content' => $current_content,
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+		$request->set_body_params(
+			array(
+				'id'                      => $post_id,
+				'content'                 => '<!-- wp:paragraph --><p>Rejected autosave revision update.</p><!-- /wp:paragraph -->',
+				'de_rtc_stale_base_probe' => true,
+				'client_base_version'     => '11',
+			)
+		);
+
+		$response        = rest_get_server()->dispatch( $request );
+		$error           = $response->as_error();
+		$data            = $error->get_error_data( 'stale_base_version_rejected' );
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		$this->assertErrorResponse( 'stale_base_version_rejected', $response, 409 );
+		$this->assertSame( 'post_autosave_stale_base_probe', $data['rest_route'] );
+		$this->assertSame( '11', $data['client_base_version'] );
+		$this->assertSame( '12', $data['server_version'] );
+		$this->assertSame( $before_post->post_content, $after_post->post_content );
+		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
 	 * Adds synthetic sync metadata with a version to content.
 	 *
 	 * @param string $content Post content.

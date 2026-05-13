@@ -570,7 +570,7 @@ function wp_de_rtc_rest_pre_insert_stale_base_probe( $prepared_post, $request ) 
 			'pending_change_count'     => $request->get_param( 'pending_change_count' ),
 			'remote_change_count'      => $request->get_param( 'remote_change_count' ),
 			'can_attempt_local_rebase' => $request->get_param( 'can_attempt_local_rebase' ),
-			'rest_route'               => 'post_save_stale_base_probe',
+			'rest_route'               => wp_de_rtc_get_rest_save_probe_response_route( $request ),
 		)
 	);
 }
@@ -624,11 +624,29 @@ function wp_de_rtc_get_rest_save_probe_request_rest_base( $request ) {
 		return '';
 	}
 
-	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+$#', $route, $matches ) ) {
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+(?:/autosaves)?$#', $route, $matches ) ) {
 		return '';
 	}
 
 	return sanitize_key( $matches[1] );
+}
+
+/**
+ * Returns the response route label for a REST save probe request.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Request object.
+ * @return string Response route label.
+ */
+function wp_de_rtc_get_rest_save_probe_response_route( $request ) {
+	$route = $request->get_route();
+
+	if ( is_string( $route ) && preg_match( '#/autosaves$#', $route ) ) {
+		return 'post_autosave_stale_base_probe';
+	}
+
+	return 'post_save_stale_base_probe';
 }
 
 /**
