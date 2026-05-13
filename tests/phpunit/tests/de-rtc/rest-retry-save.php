@@ -31,11 +31,13 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		wp_set_current_user( self::$admin_user_id );
-		add_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+		update_option( 'wp_de_rtc_enabled', true );
 	}
 
 	public function tear_down() {
+		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_false' );
 		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+		delete_option( 'wp_de_rtc_enabled' );
 
 		global $wp_rest_server;
 
@@ -554,9 +556,11 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
+	 * @covers ::wp_de_rtc_is_enabled_for_post
 	 */
-	public function test_retry_save_requires_feature_enablement() {
-		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+	public function test_retry_save_requires_site_enablement_without_mutating() {
+		update_option( 'wp_de_rtc_enabled', false );
+		add_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
 
 		$current_content  = $this->add_sync_meta_to_content(
 			'<!-- wp:paragraph --><p>Retry save disabled current content.</p><!-- /wp:paragraph -->',
@@ -582,6 +586,50 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 				'client_base_version'           => '7',
 				'accepted_proof_server_version' => '7',
 				'proposed_post_content'         => '<!-- wp:paragraph --><p>Retry save disabled proposed content.</p><!-- /wp:paragraph -->',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_feature_disabled' );
+
+		$this->assertErrorResponse( 'de_rtc_feature_disabled', $response, 403 );
+		$this->assertSame( 'feature_disabled_for_post', $data['detail'] );
+		$this->assertSame( $post_id, $data['post_id'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
+	 * @covers ::wp_de_rtc_is_enabled_for_post
+	 */
+	public function test_retry_save_requires_post_filter_enablement_without_mutating() {
+		add_filter( 'wp_de_rtc_enabled_for_post', '__return_false' );
+
+		$current_content  = $this->add_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Retry save filtered current content.</p><!-- /wp:paragraph -->',
+			7
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC filtered retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '7',
+				'accepted_proof_server_version' => '7',
+				'proposed_post_content'         => '<!-- wp:paragraph --><p>Retry save filtered proposed content.</p><!-- /wp:paragraph -->',
 			)
 		);
 

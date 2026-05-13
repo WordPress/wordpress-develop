@@ -29,11 +29,13 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		wp_set_current_user( self::$admin_user_id );
-		add_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+		update_option( 'wp_de_rtc_enabled', true );
 	}
 
 	public function tear_down() {
+		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_false' );
 		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+		delete_option( 'wp_de_rtc_enabled' );
 
 		global $wp_rest_server;
 
@@ -175,7 +177,7 @@ class Tests_DE_RTC_REST_Save_Stale_Base extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_rest_pre_insert_stale_base_probe
 	 */
 	public function test_post_update_stale_base_probe_requires_feature_enablement() {
-		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+		update_option( 'wp_de_rtc_enabled', false );
 
 		$post_id          = self::factory()->post->create(
 			array(

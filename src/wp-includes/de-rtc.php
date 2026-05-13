@@ -1457,17 +1457,19 @@ function wp_de_rtc_is_enabled_for_post( $post ) {
 		return false;
 	}
 
-	$enabled = wp_de_rtc_is_enabled();
+	if ( ! wp_de_rtc_is_enabled() ) {
+		return false;
+	}
 
 	/**
 	 * Filters whether Distributed Editing is enabled for a post.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param bool    $enabled Whether Distributed Editing is enabled.
+	 * @param bool    $enabled Whether Distributed Editing is enabled for the post.
 	 * @param WP_Post $post    Post object.
 	 */
-	return (bool) apply_filters( 'wp_de_rtc_enabled_for_post', $enabled, $post );
+	return (bool) apply_filters( 'wp_de_rtc_enabled_for_post', true, $post );
 }
 
 /**
