@@ -1608,8 +1608,16 @@ div.action-links,
 }
 
 @media (min-width: 1101px) {
-	.plugin-card .name, .plugin-card .desc > p {
-		margin-right: 128px;
+	.plugin-card .action-links {
+		top: 152px;
+		left: 20px;
+		right: auto;
+		width: 128px;
+	}
+
+	.plugin-card .name,
+	.plugin-card .desc > p {
+		margin-right: 0;
 	}
 }
 
