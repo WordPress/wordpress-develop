@@ -508,15 +508,20 @@ class WP_Scripts extends WP_Dependencies {
 	 * Adds extra code to a registered script.
 	 *
 	 * @since 4.5.0
+	 * @since x.x.x Added the `$type` parameter.
 	 *
 	 * @param string $handle   Name of the script to add the inline script to.
 	 *                         Must be lowercase.
 	 * @param string $data     String containing the JavaScript to be added.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
+	 * @param string $type     Optional. Value of the type attribute for the inline script tag.
+	 *                         Use this to set a custom type such as 'application/json' or
+	 *                         'application/ld+json'. Scripts with a custom type are rendered
+	 *                         in their own script tag separate from JavaScript. Default empty string.
 	 * @return bool True on success, false on failure.
 	 */
-	public function add_inline_script( $handle, $data, $position = 'after' ) {
+	public function add_inline_script( $handle, $data, $position = 'after', $type = '' ) {
 		if ( ! $data ) {
 			return false;
 		}
@@ -527,6 +532,17 @@ class WP_Scripts extends WP_Dependencies {
 
 		$script   = (array) $this->get_data( $handle, $position );
 		$script[] = $data;
+
+		// Store the type for this specific inline script if provided.
+		if ( '' !== $type ) {
+			$types_key = "{$position}_types";
+			$types     = $this->get_data( $handle, $types_key );
+			if ( ! is_array( $types ) ) {
+				$types = array();
+			}
+			$types[ count( $script ) - 1 ] = $type;
+			$this->add_data( $handle, $types_key, $types );
+		}
 
 		return $this->add_data( $handle, $position, $script );
 	}
@@ -562,7 +578,12 @@ class WP_Scripts extends WP_Dependencies {
 	/**
 	 * Gets data for inline scripts registered for a specific handle.
 	 *
+	 * Returns only the JavaScript inline scripts (those without a custom type).
+	 * Scripts with a custom type are excluded as they are not JavaScript and
+	 * should not be concatenated with JS code.
+	 *
 	 * @since 6.3.0
+	 * @since x.x.x Scripts with a custom type are excluded from the returned data.
 	 *
 	 * @param string $handle   Name of the script to get data for.
 	 *                         Must be lowercase.
@@ -573,6 +594,25 @@ class WP_Scripts extends WP_Dependencies {
 	public function get_inline_script_data( $handle, $position = 'after' ) {
 		$data = $this->get_data( $handle, $position );
 		if ( empty( $data ) || ! is_array( $data ) ) {
+			return '';
+		}
+
+		// Exclude scripts that have a custom type (non-JavaScript).
+		$types = $this->get_data( $handle, "{$position}_types" );
+		if ( is_array( $types ) && ! empty( $types ) ) {
+			$data = array_filter(
+				$data,
+				static function ( $index ) use ( $types ) {
+					return ! isset( $types[ $index ] ) || '' === $types[ $index ];
+				},
+				ARRAY_FILTER_USE_KEY
+			);
+		}
+
+		// Remove empty entries that may be artifacts of data initialization.
+		$data = array_filter( $data );
+
+		if ( empty( $data ) ) {
 			return '';
 		}
 
@@ -593,7 +633,11 @@ class WP_Scripts extends WP_Dependencies {
 	/**
 	 * Gets tags for inline scripts registered for a specific handle.
 	 *
+	 * Scripts with a custom type are rendered in separate script tags
+	 * from the default JavaScript inline scripts.
+	 *
 	 * @since 6.3.0
+	 * @since x.x.x Scripts with a custom type are rendered in their own script tag.
 	 *
 	 * @param string $handle   Name of the script to get associated inline script tag for.
 	 *                         Must be lowercase.
@@ -602,14 +646,38 @@ class WP_Scripts extends WP_Dependencies {
 	 * @return string Inline script, which may be empty string.
 	 */
 	public function get_inline_script_tag( $handle, $position = 'after' ) {
-		$js = $this->get_inline_script_data( $handle, $position );
-		if ( empty( $js ) ) {
+		$data = $this->get_data( $handle, $position );
+		if ( empty( $data ) || ! is_array( $data ) ) {
 			return '';
 		}
 
-		$id = "{$handle}-js-{$position}";
+		$types = $this->get_data( $handle, "{$position}_types" );
+		if ( ! is_array( $types ) ) {
+			$types = array();
+		}
 
-		return wp_get_inline_script_tag( $js, compact( 'id' ) );
+		$output = '';
+
+		// Render the default JavaScript inline scripts (concatenated).
+		$js = $this->get_inline_script_data( $handle, $position );
+		if ( ! empty( $js ) ) {
+			$id      = "{$handle}-js-{$position}";
+			$output .= wp_get_inline_script_tag( $js, compact( 'id' ) );
+		}
+
+		// Render scripts with custom types in their own separate script tags.
+		if ( ! empty( $types ) ) {
+			foreach ( $types as $index => $type ) {
+				if ( '' === $type || ! isset( $data[ $index ] ) ) {
+					continue;
+				}
+
+				$id      = "{$handle}-js-{$position}-{$index}";
+				$output .= wp_get_inline_script_tag( $data[ $index ], compact( 'id', 'type' ) );
+			}
+		}
+
+		return $output;
 	}
 
 	/**

@@ -161,6 +161,7 @@ function wp_print_scripts( $handles = false ) {
  * they were added, i.e. the latter added code can redeclare the previous.
  *
  * @since 4.5.0
+ * @since x.x.x Added the `$type` parameter.
  *
  * @see WP_Scripts::add_inline_script()
  *
@@ -168,9 +169,13 @@ function wp_print_scripts( $handles = false ) {
  * @param string $data     String containing the JavaScript to be added.
  * @param string $position Optional. Whether to add the inline script before the handle
  *                         or after. Default 'after'.
+ * @param string $type     Optional. Value of the type attribute for the inline script tag.
+ *                         Use this to set a custom type such as 'application/json' or
+ *                         'application/ld+json'. Scripts with a custom type are rendered
+ *                         in their own script tag separate from JavaScript. Default empty string.
  * @return bool True on success, false on failure.
  */
-function wp_add_inline_script( $handle, $data, $position = 'after' ) {
+function wp_add_inline_script( $handle, $data, $position = 'after', $type = '' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	if ( false !== stripos( $data, '</script>' ) ) {
@@ -187,7 +192,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 		$data = trim( (string) preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
 	}
 
-	return wp_scripts()->add_inline_script( $handle, $data, $position );
+	return wp_scripts()->add_inline_script( $handle, $data, $position, $type );
 }
 
 /**

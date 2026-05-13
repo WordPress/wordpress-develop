@@ -4308,6 +4308,74 @@ HTML;
 	}
 
 	/**
+	 * @ticket 51124
+	 *
+	 * @covers ::wp_add_inline_script
+	 * @covers WP_Scripts::add_inline_script
+	 * @covers WP_Scripts::get_inline_script_tag
+	 */
+	public function test_wp_add_inline_script_with_custom_type() {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_add_inline_script( 'test-example', '{"key":"value"}', 'after', 'application/json' );
+		wp_add_inline_script( 'test-example', '{"config":true}', 'before', 'application/json' );
+
+		$expected  = "<script id='test-example-js-before-1' type='application/json'>\n{\"config\":true}\n</script>\n";
+		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
+		$expected .= "<script id='test-example-js-after-1' type='application/json'>\n{\"key\":\"value\"}\n</script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 51124
+	 *
+	 * @covers ::wp_add_inline_script
+	 * @covers WP_Scripts::get_inline_script_data
+	 * @covers WP_Scripts::get_inline_script_tag
+	 */
+	public function test_wp_add_inline_script_custom_type_separated_from_js() {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_add_inline_script( 'test-example', 'console.log("js");', 'after' );
+		wp_add_inline_script( 'test-example', '{"key":"value"}', 'after', 'application/json' );
+		wp_add_inline_script( 'test-example', 'console.log("more js");', 'after' );
+
+		$expected  = "<script src='http://example.com' id='test-example-js'></script>\n";
+		$expected .= "<script id='test-example-js-after'>\nconsole.log(\"js\");\nconsole.log(\"more js\");\n//# sourceURL=test-example-js-after\n</script>\n";
+		$expected .= "<script id='test-example-js-after-2' type='application/json'>\n{\"key\":\"value\"}\n</script>\n";
+
+		$output = get_echo( 'wp_print_scripts' );
+		$this->assertEqualHTML( $expected, $output );
+
+		// Typed scripts must not appear in get_inline_script_data() output.
+		wp_enqueue_script( 'test-verify', 'example2.com', array(), null );
+		wp_add_inline_script( 'test-verify', 'var x = 1;', 'after' );
+		wp_add_inline_script( 'test-verify', '{"excluded":true}', 'after', 'application/ld+json' );
+
+		global $wp_scripts;
+		$data = $wp_scripts->get_inline_script_data( 'test-verify', 'after' );
+		$this->assertStringContainsString( 'var x = 1;', $data );
+		$this->assertStringNotContainsString( '{"excluded":true}', $data );
+	}
+
+	/**
+	 * @ticket 51124
+	 *
+	 * @covers ::wp_add_inline_script
+	 * @covers WP_Scripts::get_inline_script_tag
+	 */
+	public function test_wp_add_inline_script_multiple_custom_types() {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_add_inline_script( 'test-example', '{"config":1}', 'after', 'application/json' );
+		wp_add_inline_script( 'test-example', '{"@type":"Thing"}', 'after', 'application/ld+json' );
+
+		$expected  = "<script src='http://example.com' id='test-example-js'></script>\n";
+		$expected .= "<script id='test-example-js-after-1' type='application/json'>\n{\"config\":1}\n</script>\n";
+		$expected .= "<script id='test-example-js-after-2' type='application/ld+json'>\n{\"@type\":\"Thing\"}\n</script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
 	 * Normalizes markup for snapshot.
 	 *
 	 * @param string $markup Markup.
