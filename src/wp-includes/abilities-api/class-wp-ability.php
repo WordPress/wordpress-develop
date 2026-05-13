@@ -589,7 +589,11 @@ class WP_Ability {
 		 * @param mixed         $input        The input data for the permission check.
 		 * @param WP_Ability    $ability      The ability instance.
 		 */
-		return apply_filters( 'wp_ability_permission_result', $permission, $this->name, $input, $this );
+		$result = apply_filters( 'wp_ability_permission_result', $permission, $this->name, $input, $this );
+		if ( ! is_bool( $result ) && ! is_wp_error( $result ) ) {
+			$result = false;
+		}
+		return $result;
 	}
 
 	/**
