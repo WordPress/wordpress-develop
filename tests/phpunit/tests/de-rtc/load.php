@@ -21,5 +21,6 @@ class Tests_DE_RTC_Load extends WP_UnitTestCase {
 		$this->assertTrue( function_exists( 'wp_de_rtc_dry_run_sync_meta_recovery_update' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_apply_sync_meta_recovery_update' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_is_enabled' ) );
+		$this->assertTrue( function_exists( 'wp_de_rtc_rest_pre_insert_stale_base_probe' ) );
 	}
 }

@@ -144,6 +144,9 @@ function wp_de_rtc_register_rest_routes() {
 }
 add_action( 'rest_api_init', 'wp_de_rtc_register_rest_routes' );
 
+add_filter( 'rest_pre_insert_post', 'wp_de_rtc_rest_pre_insert_stale_base_probe', 10, 2 );
+add_filter( 'rest_pre_insert_page', 'wp_de_rtc_rest_pre_insert_stale_base_probe', 10, 2 );
+
 /**
  * Returns REST bases that currently support Distributed Editing recovery.
  *
@@ -489,18 +492,178 @@ function wp_de_rtc_rest_recovery_endpoint( $request ) {
  * @return WP_Error Stale-base rejection error with normalized DE-RTC data.
  */
 function wp_de_rtc_rest_stale_base_endpoint( $request ) {
-	$post_id                  = (int) $request['id'];
-	$pending_change_count     = max( 0, (int) $request->get_param( 'pending_change_count' ) );
-	$remote_change_count      = max( 0, (int) $request->get_param( 'remote_change_count' ) );
-	$can_attempt_local_rebase = wp_validate_boolean( $request->get_param( 'can_attempt_local_rebase' ) );
+	return wp_de_rtc_get_stale_base_rejection_error(
+		(int) $request['id'],
+		array(
+			'client_base_version'      => $request->get_param( 'client_base_version' ),
+			'server_version'           => $request->get_param( 'server_version' ),
+			'pending_change_count'     => $request->get_param( 'pending_change_count' ),
+			'remote_change_count'      => $request->get_param( 'remote_change_count' ),
+			'can_attempt_local_rebase' => $request->get_param( 'can_attempt_local_rebase' ),
+			'rest_route'               => 'post_stale_base_rejection',
+		)
+	);
+}
+
+/**
+ * Rejects explicit stale-base probes in the REST post update save path.
+ *
+ * This is a proof-only save-path boundary. It recognizes only explicit
+ * `de_rtc_stale_base_probe` requests and otherwise returns the prepared post
+ * unchanged so ordinary REST saves continue through the existing controller.
+ *
+ * @since 7.1.0
+ *
+ * @param stdClass|WP_Error $prepared_post Prepared post object or an earlier error.
+ * @param WP_REST_Request   $request       Request object.
+ * @return stdClass|WP_Error Prepared post when no probe is present, otherwise a stale-base error.
+ */
+function wp_de_rtc_rest_pre_insert_stale_base_probe( $prepared_post, $request ) {
+	if ( ! wp_de_rtc_is_rest_save_stale_base_probe_request( $request ) || is_wp_error( $prepared_post ) ) {
+		return $prepared_post;
+	}
+
+	$post_id = 0;
+
+	if ( is_object( $prepared_post ) && isset( $prepared_post->ID ) ) {
+		$post_id = (int) $prepared_post->ID;
+	}
+
+	if ( ! $post_id && isset( $request['id'] ) ) {
+		$post_id = (int) $request['id'];
+	}
+
+	$post = get_post( $post_id );
+
+	if ( ! $post || ! wp_de_rtc_rest_save_probe_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'  => 'feature_disabled_for_post',
+				'post_id' => (int) $post->ID,
+			)
+		);
+	}
+
+	return wp_de_rtc_get_stale_base_rejection_error(
+		$post,
+		array(
+			'client_base_version'      => $request->get_param( 'client_base_version' ),
+			'server_version'           => $request->get_param( 'server_version' ),
+			'pending_change_count'     => $request->get_param( 'pending_change_count' ),
+			'remote_change_count'      => $request->get_param( 'remote_change_count' ),
+			'can_attempt_local_rebase' => $request->get_param( 'can_attempt_local_rebase' ),
+			'rest_route'               => 'post_save_stale_base_probe',
+		)
+	);
+}
+
+/**
+ * Returns whether a REST post save request explicitly asks for stale-base proof.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Request object.
+ * @return bool Whether the request is a stale-base proof probe.
+ */
+function wp_de_rtc_is_rest_save_stale_base_probe_request( $request ) {
+	return wp_validate_boolean( $request->get_param( 'de_rtc_stale_base_probe' ) );
+}
+
+/**
+ * Returns whether the REST save request route matches the post type REST base.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Request object.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_save_probe_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_save_probe_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a REST save probe request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Request object.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_save_probe_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
+ * Returns the canonical stale-base rejection error.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args {
+ *     Optional stale-base rejection data.
+ *
+ *     @type mixed  $client_base_version      Client base version.
+ *     @type mixed  $server_version           Server version known to the caller.
+ *     @type mixed  $pending_change_count     Pending local change count. Default 1.
+ *     @type mixed  $remote_change_count      Remote change count. Default 1.
+ *     @type mixed  $can_attempt_local_rebase Whether the client thinks it can rebase. Default false.
+ *     @type string $rest_route               Response route label. Default 'post_stale_base_rejection'.
+ * }
+ * @return WP_Error Stale-base rejection error with normalized DE-RTC data.
+ */
+function wp_de_rtc_get_stale_base_rejection_error( $post, $args = array() ) {
+	$post                     = get_post( $post );
+	$post_id                  = $post ? (int) $post->ID : 0;
+	$pending_change_count     = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
+	$remote_change_count      = array_key_exists( 'remote_change_count', $args ) ? max( 0, (int) $args['remote_change_count'] ) : 1;
+	$can_attempt_local_rebase = ! empty( $args['can_attempt_local_rebase'] ) && wp_validate_boolean( $args['can_attempt_local_rebase'] );
 	$requires_server_refetch  = true;
-	$client_base_version      = sanitize_text_field( (string) $request->get_param( 'client_base_version' ) );
-	$server_version           = $request->get_param( 'server_version' );
+	$client_base_version      = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
+	$server_version           = isset( $args['server_version'] ) ? $args['server_version'] : null;
 	$server_version           = is_string( $server_version ) && '' !== $server_version
 		? sanitize_text_field( $server_version )
-		: wp_de_rtc_get_post_sync_meta_version( $post_id );
+		: ( $post ? wp_de_rtc_get_post_sync_meta_version( $post ) : null );
 	$can_attempt_local_rebase = $can_attempt_local_rebase && ! $requires_server_refetch;
-	$permission_contract      = wp_de_rtc_get_rest_recovery_permission_contract( $post_id );
+	$permission_contract      = wp_de_rtc_get_rest_recovery_permission_contract( $post );
+	$rest_route               = isset( $args['rest_route'] ) ? sanitize_key( $args['rest_route'] ) : 'post_stale_base_rejection';
 
 	return wp_de_rtc_get_reason_error(
 		'stale_base_version_rejected',
@@ -516,7 +679,7 @@ function wp_de_rtc_rest_stale_base_endpoint( $request ) {
 			'can_attempt_local_rebase'            => $can_attempt_local_rebase,
 			'requires_manual_conflict_resolution' => false,
 			'can_export_local_updates'            => $pending_change_count > 0,
-			'rest_route'                          => 'post_stale_base_rejection',
+			'rest_route'                          => $rest_route,
 			'permission_contract'                 => $permission_contract,
 		)
 	);
