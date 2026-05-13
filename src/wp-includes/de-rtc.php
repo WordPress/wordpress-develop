@@ -219,7 +219,6 @@ function wp_de_rtc_register_rest_routes() {
 						'proposed_post_content'        => array(
 							'description' => __( 'Client-proposed post content without Distributed Editing sync metadata.' ),
 							'type'        => 'string',
-							'required'    => true,
 						),
 						'proposed_post_content_hash'   => array(
 							'description' => __( 'SHA-256 hash of the proposed post content without sync metadata.' ),
