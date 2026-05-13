@@ -96,6 +96,70 @@ function wp_de_rtc_register_rest_routes() {
 add_action( 'rest_api_init', 'wp_de_rtc_register_rest_routes' );
 
 /**
+ * Registers Distributed Editing settings.
+ *
+ * Distributed Editing remains disabled by default. The setting exists so the
+ * REST proof endpoint has an explicit opt-in path before any editor save path
+ * or post-lock replacement work is introduced.
+ *
+ * @since 7.1.0
+ */
+function wp_de_rtc_register_settings() {
+	register_setting(
+		'writing',
+		'wp_de_rtc_enabled',
+		array(
+			'type'              => 'boolean',
+			'label'             => __( 'Distributed Editing' ),
+			'description'       => __( 'Enable Distributed Editing recovery and collaboration endpoints for editable posts on this site.' ),
+			'sanitize_callback' => 'wp_de_rtc_sanitize_enabled_setting',
+			'default'           => false,
+			'show_in_rest'      => false,
+		)
+	);
+
+	if ( function_exists( 'add_settings_field' ) ) {
+		add_settings_field(
+			'wp_de_rtc_enabled',
+			__( 'Distributed Editing' ),
+			'wp_de_rtc_render_enabled_setting',
+			'writing',
+			'default'
+		);
+	}
+}
+add_action( 'admin_init', 'wp_de_rtc_register_settings' );
+
+/**
+ * Sanitizes the site-level Distributed Editing enablement setting.
+ *
+ * @since 7.1.0
+ *
+ * @param mixed $value Submitted setting value.
+ * @return bool Sanitized setting value.
+ */
+function wp_de_rtc_sanitize_enabled_setting( $value ) {
+	return wp_validate_boolean( $value );
+}
+
+/**
+ * Renders the Distributed Editing Writing setting field.
+ *
+ * @since 7.1.0
+ */
+function wp_de_rtc_render_enabled_setting() {
+	?>
+	<label for="wp_de_rtc_enabled">
+		<input name="wp_de_rtc_enabled" type="checkbox" id="wp_de_rtc_enabled" value="1" <?php checked( true, wp_de_rtc_is_enabled() ); ?> />
+		<?php _e( 'Enable Distributed Editing for posts.' ); ?>
+	</label>
+	<p class="description">
+		<?php _e( 'Distributed Editing is experimental and can increase server activity. Keep it disabled on constrained hosting unless the site has been evaluated for collaborative editing traffic.' ); ?>
+	</p>
+	<?php
+}
+
+/**
  * Checks permissions for the sync-meta recovery REST endpoint.
  *
  * @since 7.1.0
@@ -180,6 +244,17 @@ function wp_de_rtc_rest_recovery_endpoint( $request ) {
 }
 
 /**
+ * Returns whether Distributed Editing is enabled for the site.
+ *
+ * @since 7.1.0
+ *
+ * @return bool Whether Distributed Editing is enabled.
+ */
+function wp_de_rtc_is_enabled() {
+	return (bool) get_option( 'wp_de_rtc_enabled', false );
+}
+
+/**
  * Returns whether Distributed Editing is enabled for a post.
  *
  * @since 7.1.0
@@ -194,7 +269,7 @@ function wp_de_rtc_is_enabled_for_post( $post ) {
 		return false;
 	}
 
-	$enabled = (bool) get_option( 'wp_de_rtc_enabled', false );
+	$enabled = wp_de_rtc_is_enabled();
 
 	/**
 	 * Filters whether Distributed Editing is enabled for a post.
