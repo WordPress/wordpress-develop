@@ -13,6 +13,9 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_registered_settings, $wp_settings_fields;
 
+		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_false' );
+		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+
 		delete_option( 'wp_de_rtc_enabled' );
 		unregister_setting( 'writing', 'wp_de_rtc_enabled' );
 		unset( $wp_registered_settings['wp_de_rtc_enabled'] );
@@ -63,6 +66,44 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 		update_option( 'wp_de_rtc_enabled', false );
 
 		$this->assertFalse( wp_de_rtc_is_enabled() );
+		$this->assertFalse( wp_de_rtc_is_enabled_for_post( $post_id ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_is_enabled
+	 * @covers ::wp_de_rtc_is_enabled_for_post
+	 */
+	public function test_site_option_remains_authoritative_before_post_filter() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC disabled site filter post',
+				'post_content' => '<!-- wp:paragraph --><p>Disabled site filter.</p><!-- /wp:paragraph -->',
+			)
+		);
+
+		update_option( 'wp_de_rtc_enabled', false );
+		add_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
+
+		$this->assertFalse( wp_de_rtc_is_enabled() );
+		$this->assertFalse( wp_de_rtc_is_enabled_for_post( $post_id ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_is_enabled
+	 * @covers ::wp_de_rtc_is_enabled_for_post
+	 */
+	public function test_post_filter_can_disable_enabled_site_option() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC enabled site disabled post filter',
+				'post_content' => '<!-- wp:paragraph --><p>Enabled site disabled post filter.</p><!-- /wp:paragraph -->',
+			)
+		);
+
+		update_option( 'wp_de_rtc_enabled', true );
+		add_filter( 'wp_de_rtc_enabled_for_post', '__return_false' );
+
+		$this->assertTrue( wp_de_rtc_is_enabled() );
 		$this->assertFalse( wp_de_rtc_is_enabled_for_post( $post_id ) );
 	}
 
