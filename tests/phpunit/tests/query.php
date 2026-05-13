@@ -17,6 +17,9 @@ class Tests_Query extends WP_UnitTestCase {
 		$nested_post_id = self::factory()->post->create();
 
 		$first_query = new WP_Query( array( 'post__in' => array( $post_id ) ) );
+
+		$this->assertTrue( $first_query->have_posts() );
+
 		while ( $first_query->have_posts() ) {
 			$first_query->the_post();
 			$second_query = new WP_Query( array( 'post__in' => array( $nested_post_id ) ) );

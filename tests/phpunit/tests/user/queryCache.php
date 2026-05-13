@@ -771,7 +771,9 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$request_without_placeholder = $wpdb->remove_placeholder_escape( $query1->request );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request_with_placeholder );
 		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_without_placeholder );

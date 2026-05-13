@@ -40,18 +40,19 @@ function get_sitestats() {
  * @since MU (3.0.0)
  *
  * @param int $user_id The unique ID of the user
- * @return WP_Site|void The blog object
+ * @return WP_Site|object|null|false The blog object
  */
 function get_active_blog_for_user( $user_id ) {
 	$blogs = get_blogs_of_user( $user_id );
 	if ( empty( $blogs ) ) {
-		return;
+		return null;
 	}
 
 	if ( ! is_multisite() ) {
 		return $blogs[ get_current_blog_id() ];
 	}
 
+	$primary      = null;
 	$primary_blog = get_user_meta( $user_id, 'primary_blog', true );
 	$first_blog   = current( $blogs );
 	if ( false !== $primary_blog ) {
@@ -100,7 +101,7 @@ function get_active_blog_for_user( $user_id ) {
 				}
 			}
 		} else {
-			return;
+			return null;
 		}
 
 		return $ret;
@@ -570,7 +571,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete( $wpdb->signups, array( 'user_email' => $user_email ) );
 		} else {
-			$errors->add( 'user_email', __( 'That email address has already been used. Please check your inbox for an activation email. It will become available in a couple of days if you do nothing.' ) );
+			$errors->add( 'user_email', __( 'That email address is pending activation and is not available for new registration. If you made a previous attempt with this email address, please check your inbox for an activation email. If left unconfirmed, it will become available in a couple of days.' ) );
 		}
 	}
 
@@ -730,7 +731,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	 * unless it's the user's own username.
 	 */
 	if ( username_exists( $blogname ) ) {
-		if ( ! is_object( $user ) || ( is_object( $user ) && $user->user_login !== $blogname ) ) {
+		if ( ! $user instanceof WP_User || $user->user_login !== $blogname ) {
 			$errors->add( 'blogname', __( 'Sorry, that site is reserved!' ) );
 		}
 	}
@@ -2269,8 +2270,8 @@ function maybe_add_existing_user_to_blog() {
  *     @type int    $user_id The ID of the user being added to the current blog.
  *     @type string $role    The role to be assigned to the user.
  * }
- * @return true|WP_Error|void True on success or a WP_Error object if the user doesn't exist
- *                            or could not be added. Void if $details array was not provided.
+ * @return true|WP_Error|null True on success or a WP_Error object if the user doesn't exist
+ *                            or could not be added. Null if $details array was not provided.
  */
 function add_existing_user_to_blog( $details = false ) {
 	if ( is_array( $details ) ) {
@@ -2290,6 +2291,7 @@ function add_existing_user_to_blog( $details = false ) {
 
 		return $result;
 	}
+	return null;
 }
 
 /**

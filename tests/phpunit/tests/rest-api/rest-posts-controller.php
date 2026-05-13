@@ -661,19 +661,24 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 'Search Result', $data[0]['title']['rendered'] );
 	}
 
+	/**
+	 * @ticket 63307
+	 */
 	public function test_get_items_slug_query() {
-		self::factory()->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple',
 				'post_status' => 'publish',
 			)
 		);
-		self::factory()->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_title'  => 'Banana',
 				'post_status' => 'publish',
 			)
 		);
+
+		update_option( 'sticky_posts', array( $id2 ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'slug', 'apple' );
@@ -681,7 +686,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertSame( 'Apple', $data[0]['title']['rendered'] );
+		$this->assertSame( 'Apple', $data[0]['title']['rendered'], 'Return the post with the given slug' );
 	}
 
 	public function test_get_items_multiple_slugs_array_query() {
@@ -871,6 +876,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 
 		$all_data = $response->get_data();
+
+		$this->assertNotEmpty( $all_data );
+
 		foreach ( $all_data as $post ) {
 			$this->assertNotEquals( $draft_id, $post['id'] );
 		}
@@ -2767,6 +2775,36 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		);
 	}
 
+	/**
+	 * Test that the `class_list` property is a list.
+	 *
+	 * @ticket 64247
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
+	public function test_class_list_is_list() {
+		$post_id = self::factory()->post->create();
+
+		// Filter 'post_class' to add a duplicate which should be removed by `array_unique()`.
+		add_filter(
+			'post_class',
+			function ( $classes ) {
+				return array_merge(
+					array( 'duplicate-class', 'duplicate-class' ),
+					$classes
+				);
+			}
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'class_list', $data );
+		$this->assertContains( 'duplicate-class', $data['class_list'] );
+		$this->assertTrue( array_is_list( $data['class_list'] ), 'Expected class_list to be a list.' );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 
@@ -3290,6 +3328,111 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$data     = $response->get_data();
 		$this->assertSame( 0, $data['featured_media'] );
 		$this->assertSame( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
+	}
+
+	/**
+	 * Data provider for featured media link permission tests.
+	 *
+	 * @return array
+	 */
+	public function data_featured_media_link_permissions() {
+		return array(
+			'unauthenticated user with draft parent attachment' => array(
+				'attachment_parent_status' => 'draft',
+				'attachment_status'        => 'inherit',
+				'user_id'                  => 0,
+				'expect_link'              => false,
+			),
+			'authenticated editor with draft parent attachment' => array(
+				'attachment_parent_status' => 'draft',
+				'attachment_status'        => 'inherit',
+				'user_id'                  => 'editor',
+				'expect_link'              => true,
+			),
+			'unauthenticated user with published attachment' => array(
+				'attachment_parent_status' => null,
+				'attachment_status'        => 'publish',
+				'user_id'                  => 0,
+				'expect_link'              => true,
+			),
+		);
+	}
+
+	/**
+	 * Tests that featured media links respect attachment permissions.
+	 *
+	 * @ticket 64183
+	 * @dataProvider data_featured_media_link_permissions
+	 *
+	 * @param string|null $attachment_parent_status Status of the attachment's parent post, or null for no parent.
+	 * @param string      $attachment_status Status to set on the attachment.
+	 * @param int|string  $user_id User ID (0 for unauthenticated) or 'editor' for editor role.
+	 * @param bool        $expect_link Whether the featured media link should be included.
+	 */
+	public function test_get_item_featured_media_link_permissions( $attachment_parent_status, $attachment_status, $user_id, $expect_link ) {
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		// Create attachment parent if needed.
+		$parent_post_id = 0;
+		if ( null !== $attachment_parent_status ) {
+			$parent_post_id = self::factory()->post->create(
+				array(
+					'post_title'  => 'Parent Post',
+					'post_status' => $attachment_parent_status,
+				)
+			);
+		}
+
+		// Create attachment.
+		$attachment_id = self::factory()->attachment->create_object(
+			$file,
+			$parent_post_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		// Set attachment status if different from default.
+		if ( 'publish' === $attachment_status ) {
+			wp_update_post(
+				array(
+					'ID'          => $attachment_id,
+					'post_status' => 'publish',
+				)
+			);
+		}
+
+		// Create published post with featured media.
+		$published_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Published Post',
+				'post_status' => 'publish',
+			)
+		);
+		set_post_thumbnail( $published_post_id, $attachment_id );
+
+		// Set current user.
+		if ( 'editor' === $user_id ) {
+			wp_set_current_user( self::$editor_id );
+		} else {
+			wp_set_current_user( $user_id );
+		}
+
+		// Make request.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $published_post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		// Assert link presence based on expectation.
+		if ( $expect_link ) {
+			$this->assertArrayHasKey( 'https://api.w.org/featuredmedia', $links );
+			$this->assertSame(
+				rest_url( '/wp/v2/media/' . $attachment_id ),
+				$links['https://api.w.org/featuredmedia'][0]['href']
+			);
+		} else {
+			$this->assertArrayNotHasKey( 'https://api.w.org/featuredmedia', $links );
+		}
 	}
 
 	public function test_create_post_invalid_author() {
@@ -5970,13 +6113,14 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
-	 * Test the REST API support for `ignore_sticky_posts`.
+	 * Test the REST API doesn't prioritize sticky posts by default.
 	 *
 	 * @ticket 35907
+	 * @ticket 63307
 	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 */
-	public function test_get_posts_ignore_sticky_default_prepends_sticky_posts() {
+	public function test_get_posts_ignore_sticky_by_default() {
 		$id1 = self::$post_id;
 		// Create more recent post to avoid automatically placing other at the top.
 		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
@@ -5986,40 +6130,54 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
 
-		$this->assertSame( $data[0]['id'], $id1, 'Response has sticky post at the top.' );
-		$this->assertSame( $data[1]['id'], $id2, 'It is followed by most recent post.' );
+		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
+
+		$posts_query = new WP_Query( array( 'ignore_sticky_posts' => true ) );
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=true.' );
 	}
 
 	/**
 	 * Test the REST API support for `ignore_sticky_posts`.
 	 *
 	 * @ticket 35907
+	 * @ticket 63307
 	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 */
-	public function test_get_posts_ignore_sticky_ignores_post_stickiness() {
+	public function test_get_posts_ignore_sticky_false_prepends_sticky_posts() {
 		$id1 = self::$post_id;
+		// Create more recent post to avoid automatically placing other at the top.
 		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		update_option( 'sticky_posts', array( $id1 ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'ignore_sticky', true );
+		$request->set_param( 'ignore_sticky', false );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
 
-		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
+		$this->assertSame( $data[0]['id'], $id1, 'Response has sticky post at the top.' );
+		$this->assertSame( $data[1]['id'], $id2, 'It is followed by most recent post.' );
+
+		$posts_query = new WP_Query();
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=false.' );
 	}
 
 	/**
 	 * Test the REST API support for `ignore_sticky_posts`.
 	 *
 	 * @ticket 35907
+	 * @ticket 63307
 	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 */
 	public function test_get_posts_ignore_sticky_honors_include() {
+
 		$id1 = self::$post_id;
 		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
@@ -6029,9 +6187,19 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request->set_param( 'include', array( $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
 
 		$this->assertCount( 1, $data, 'Only one post is expected to be returned.' );
 		$this->assertSame( $data[0]['id'], $id2, 'Returns the included post.' );
+
+		$posts_query = new WP_Query(
+			array(
+				'post__in'            => array( $id2 ),
+				'ignore_sticky_posts' => true,
+			)
+		);
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=truehas no sticky post at the top.' );
 	}
 
 	/**

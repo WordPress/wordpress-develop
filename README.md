@@ -7,20 +7,6 @@ Welcome to the WordPress development repository! Please check out the [contribut
 
 ## Getting Started
 
-### Using GitHub Codespaces
-
-To get started, create a codespace for this repository by clicking this 👇 
-
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=trunk&repo=75645659)
-
-A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with software needed for this project.
-
-**Note**: Dev containers is an open spec which is supported by [GitHub Codespaces](https://github.com/codespaces) and [other tools](https://containers.dev/supporting).
-
-In some browsers the keyboard shortcut for opening the command palette (Ctrl/Command + Shift + P) may collide with a browser shortcut. The command palette can be opened via the `F1` key or via the cog icon in the bottom left of the editor.
-
-When opening your codespace, be sure to wait for the `postCreateCommand` to finish running to ensure your WordPress install is successfully set up. This can take a few minutes.
-
 ### Local development
 
 WordPress is a PHP, MySQL, and JavaScript based project, and uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
@@ -37,15 +23,32 @@ If you are not using a package manager, see the [Node.js download page](https://
 
 **Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
 
-You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
+You will also need a container environment such as [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running on your computer. The container environment is the virtualization software that powers the local development environment and can be installed just like any other regular application.
+
+**Note:** WordPress currently only officially supports Docker but several container environments are available and should generally be compatible, such as [Colima](https://github.com/abiosoft/colima), [OrbStack](https://orbstack.dev/), [Podman Desktop](https://podman-desktop.io/), and [Rancher Desktop](https://rancherdesktop.io/).
 
 ### Development Environment Commands
 
-Ensure [Docker](https://www.docker.com/products/docker-desktop) is running before using these commands.
+Ensure your container environment is running before using these commands.
 
 #### To start the development environment for the first time
 
-Clone the current repository using `git clone https://github.com/WordPress/wordpress-develop.git`. Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
+You can get started using the local development environment with these steps:
+
+1. Go to https://github.com/WordPress/wordpress-develop and fork the repository to your own GitHub account. 
+1. Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`.
+1. Navigate into the directory for the cloned repository using `cd wordpress-develop`.
+1. Add the origin repo as an `upstream` remote via `git remote add upstream https://github.com/WordPress/wordpress-develop.git`.
+1. Then you can keep your branches up to date via `git pull --ff upstream/trunk`, for example.
+
+Alternatively, if you have the [GitHub CLI](https://cli.github.com/) installed, you can simply run `gh repo fork WordPress/wordpress-develop --clone --remote` ([docs](https://cli.github.com/manual/gh_repo_fork)). This command will:
+1. Fork the repository to your account (use the `--org` flag to clone into an organization).
+1. Clone the repository to your machine. 
+1. Add `WordPress/wordpress-develop` as `upstream` and set it to the default `remote` repository
+
+After this, remember to run `cd wordpress-develop`.
+
+Once you have forked and cloned the repository to your computer, run the following commands in a terminal:
 
 ```
 npm install
@@ -94,10 +97,33 @@ npm run test:php -- --filter <test name>
 npm run test:php -- --group <group name or ticket number>
 ```
 
+#### To lint the workflow files
+
+GitHub Actions workflows operate in a privileged software supply chain environment, therefore all workflow files must adhere to a high degree of quality and security standards.
+
+All YAML workflow files within the `.github/workflows` directory are statically scanned when modified using [Actionlint](https://github.com/rhysd/actionlint) and [Zizmor](https://github.com/zizmorcore/zizmor). It's recommended that you install both of these tools locally using a package manager to run prior to submitting changes to workflow files.
+
+- [Actionlint installations instructions](https://github.com/rhysd/actionlint/blob/main/docs/install.md)
+- [Zizmor installation instructions](https://docs.zizmor.sh/installation/)
+
+To run Actionlint:
+
+```
+actionlint
+```
+
+To run Zizmor for all workflow files (note the trailing period):
+
+```
+zizmor .
+```
+
+**Note:** A workflow run failure will not occur when issues are detected by Zizmor. Instead, the generated report is submitted to GitHub Code Scanning and surfaced through a status check. Some locally reported issues may be ignored based on the repository's configured Code Scanning settings.
+
 #### Generating a code coverage report
 PHP code coverage reports are [generated daily](https://github.com/WordPress/wordpress-develop/actions/workflows/test-coverage.yml) and [submitted to Codecov.io](https://app.codecov.io/gh/WordPress/wordpress-develop).
 
-After the local Docker environment has [been installed and started](#to-start-the-development-environment-for-the-first-time), the following command can be used to generate a code coverage report. 
+After the local container environment has [been installed and started](#to-start-the-development-environment-for-the-first-time), the following command can be used to generate a code coverage report. 
 
 ```
 npm run test:coverage
@@ -133,7 +159,7 @@ npm run env:start
 
 #### Resetting the development environment
 
-The development environment can be reset. This will destroy the database and attempt to remove the pulled Docker images.
+The development environment can be reset. This will destroy the database and attempt to remove the pulled container images.
 
 ```
 npm run env:reset
@@ -141,7 +167,7 @@ npm run env:reset
 
 ### Apple Silicon machines and old MySQL/MariaDB versions
 
-Older MySQL and MariaDB Docker images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
+Older MySQL and MariaDB container images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
 
 - MySQL versions 5.7 and earlier
 - MariaDB 5.5
@@ -155,7 +181,7 @@ services:
     platform: linux/amd64
 ```
 
-Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.
+Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in your container environment (if applicable) needs to be disabled for this workaround.
 
 ## Credentials
 

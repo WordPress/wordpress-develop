@@ -32,7 +32,29 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public static $home_page_id;
 
+	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * ID of the author user.
+	 *
+	 * @var int
+	 */
+	public static $author_id;
+
+	/**
+	 * Set up the shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$author_id        = $factory->user->create( array( 'role' => 'author' ) );
+
 		/*
 		 * Declare theme support for custom logo.
 		 *
@@ -212,7 +234,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_wp_site_icon_empty() {
 		global $wp_customize;
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
@@ -230,7 +252,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_wp_site_icon_dirty() {
 		global $wp_customize;
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
@@ -763,16 +785,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_the_archive_title
 	 */
 	public function test_get_the_archive_title_is_correct_for_author_queries() {
-		$user_with_posts    = self::factory()->user->create_and_get(
-			array(
-				'role' => 'author',
-			)
-		);
-		$user_with_no_posts = self::factory()->user->create_and_get(
-			array(
-				'role' => 'author',
-			)
-		);
+		$user_with_posts    = get_user_by( 'id', self::$administrator_id );
+		$user_with_no_posts = get_user_by( 'id', self::$author_id );
 
 		self::factory()->post->create(
 			array(

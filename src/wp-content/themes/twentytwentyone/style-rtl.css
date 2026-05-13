@@ -7,9 +7,9 @@ Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Twenty-One is a blank canvas for your ideas and it makes the block editor your best brush. With new block patterns, which allow you to create a beautiful layout in a matter of seconds, this theme’s soft colors and eye-catching — yet timeless — design will let your work shine. Take it for a spin! See how Twenty Twenty-One elevates your portfolio, business website, or personal blog.
 Requires at least: 5.3
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 5.6
-Version: 2.5
+Version: 2.8
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
@@ -67,7 +67,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
  * Search...............Specific styles for the search block.
  * Separator............Specific styles for the separator block.
  * Table................Specific styles for the table block.
- * Verse................Specific styles for the verse block.
+ * Poetry (Verse).......Specific styles for the poetry block.
  * Video................Specific styles for the video block.
  * Utilities............Block alignments.
  *
@@ -2274,11 +2274,13 @@ h6,
 }
 
 .wp-block-image .alignright {
-	margin-right: var(--global--spacing-horizontal);
+	margin-left: var(--global--spacing-horizontal);
+	margin-right: 0;
 }
 
 .wp-block-image .alignleft {
-	margin-left: var(--global--spacing-horizontal);
+	margin-right: var(--global--spacing-horizontal);
+	margin-left: 0;
 }
 
 .wp-block-image a:focus img {
@@ -2318,6 +2320,19 @@ h6,
 	.entry-content > .wp-block-image > .alignright {
 		margin-right: 0;
 		margin-left: 0;
+	}
+
+	.entry-content > .wp-block-image > .alignleft:after,
+	.entry-content > .wp-block-image > .alignright:after {
+		content: "";
+		display: block;
+		height: 1px;
+		width: 1em;
+		float: right;
+	}
+
+	.entry-content > .wp-block-image > .alignright:after {
+		float: left;
 	}
 }
 
@@ -5492,8 +5507,10 @@ h1.page-title {
 	padding: 0;
 	position: absolute !important;
 	width: 1px;
+
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 	word-wrap: normal !important;
-	word-break: normal;
+	word-break: normal !important;
 }
 
 .skip-link:focus {
@@ -5820,59 +5837,4 @@ main,
 section,
 footer {
 	max-width: none;
-}
-
-.is-IE.is-dark-theme {
-	color: #fff;
-}
-
-.is-IE.is-dark-theme *,
-.is-IE.is-dark-theme a,
-.is-IE.is-dark-theme .site-description,
-.is-IE.is-dark-theme .entry-title,
-.is-IE.is-dark-theme .entry-footer,
-.is-IE.is-dark-theme .widget-area,
-.is-IE.is-dark-theme .post-navigation .meta-nav,
-.is-IE.is-dark-theme .footer-navigation-wrapper li a:link,
-.is-IE.is-dark-theme .site-footer > .site-info,
-.is-IE.is-dark-theme .site-footer > .site-info a,
-.is-IE.is-dark-theme .site-footer > .site-info a:visited {
-	color: #fff;
-}
-
-.is-IE.is-dark-theme .sub-menu-toggle svg,
-.is-IE.is-dark-theme .sub-menu-toggle path,
-.is-IE.is-dark-theme .post-navigation .meta-nav svg,
-.is-IE.is-dark-theme .post-navigation .meta-nav path {
-	fill: #fff;
-}
-
-.is-IE.is-dark-theme .primary-navigation > div > .menu-wrapper > li > .sub-menu li {
-	background: #000;
-}
-@media only screen and (max-width: 481.98px) {
-
-	.is-IE.is-dark-theme.primary-navigation-open .primary-navigation > .primary-menu-container,
-	.is-IE.is-dark-theme.primary-navigation-open .menu-button-container {
-		background-color: #000;
-	}
-}
-
-.is-IE.is-dark-theme .skip-link:focus {
-	color: #21759b;
-}
-
-.is-IE .navigation .nav-links {
-	display: block;
-}
-
-.is-IE .post-thumbnail .wp-post-image {
-	min-width: auto;
-}
-
-.is-IE .wp-block-group:before,
-.is-IE .wp-block-group:after {
-	content: "";
-	display: block;
-	clear: both;
 }
