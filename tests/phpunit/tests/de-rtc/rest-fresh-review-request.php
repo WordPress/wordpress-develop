@@ -753,6 +753,332 @@ class Tests_DE_RTC_REST_Fresh_Review_Request extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result
+	 * @covers ::wp_de_rtc_record_opaque_fresh_review_decision_retry_save_consumed
+	 */
+	public function test_retry_save_consumes_approved_fresh_review_decision_and_records_revision_evidence() {
+		$post_id          = $this->create_sync_meta_post( 'post', 45 );
+		$proposed_content = '<!-- wp:paragraph --><p>Fresh review retry-save approved content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$request_data     = $this->create_approved_fresh_review_decision_record( $post_id, '45', $proposed_hash );
+		$consume_data     = $this->get_validated_fresh_review_consume_evidence( 'posts', $post_id, '45', $request_data['fresh_review_request_record_id'], $proposed_hash );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$save_request     = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '45',
+				'accepted_proof_server_version' => '45',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'accepted_fresh_review_decision' => $consume_data,
+			)
+		);
+
+		$save_response   = rest_get_server()->dispatch( $save_request );
+		$save_data       = $save_response->get_data();
+		$after_post      = get_post( $post_id );
+		$after_revisions = $this->get_post_revisions( $post_id );
+		$parsed_saved    = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+		$record          = wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] );
+
+		$this->assertSame( 200, $save_response->get_status() );
+		$this->assertSame( 'retry_save_applied', $save_data['result'] );
+		$this->assertTrue( $save_data['retry_save_accepted'] );
+		$this->assertTrue( $save_data['fresh_review_decision_consumed'] );
+		$this->assertTrue( $save_data['fresh_review_decision_consumption_recorded'] );
+		$this->assertSame( $request_data['fresh_review_request_record_id'], $save_data['fresh_review_request_record_id'] );
+		$this->assertSame( '45', $save_data['previous_server_version'] );
+		$this->assertSame( '46', $save_data['server_version'] );
+		$this->assertSame( array_map( 'intval', array_keys( $before_revisions ) ), $save_data['revision_ids_before_save'] );
+		$this->assertSame( array_map( 'intval', array_keys( $after_revisions ) ), $save_data['revision_ids_after_save'] );
+		$this->assertSame(
+			array_values( array_diff( $save_data['revision_ids_after_save'], $save_data['revision_ids_before_save'] ) ),
+			$save_data['created_revision_ids']
+		);
+		$this->assertTrue( $save_data['revision_created'] );
+		$this->assertNotEmpty( $save_data['created_revision_ids'] );
+		$this->assertIsArray( $parsed_saved );
+		$this->assertSame( $proposed_content, $parsed_saved['content'] );
+		$this->assertSame( '46', $parsed_saved['sync_meta']['version'] );
+		$this->assertIsArray( $record );
+		$this->assertTrue( $record['fresh_review_decision_consumed'] );
+		$this->assertTrue( $record['consumes_review_decision'] );
+		$this->assertTrue( $record['retry_save_applied'] );
+		$this->assertSame( 'retry_save_consumed', $record['status'] );
+		$this->assertSame( '46', $record['saved_server_version'] );
+		$this->assert_payload_omits_private_fields( $save_data, array( 'Fresh review retry-save approved content.' ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result
+	 */
+	public function test_retry_save_rejects_fresh_review_decision_stale_after_validation_without_consuming() {
+		$post_id          = $this->create_sync_meta_post( 'post', 46 );
+		$proposed_content = '<!-- wp:paragraph --><p>Fresh review retry-save stale content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$request_data     = $this->create_approved_fresh_review_decision_record( $post_id, '46', $proposed_hash );
+		$consume_data     = $this->get_validated_fresh_review_consume_evidence( 'posts', $post_id, '46', $request_data['fresh_review_request_record_id'], $proposed_hash );
+		$advanced_content = wp_de_rtc_add_sync_meta_to_post_content(
+			'<!-- wp:paragraph --><p>Fresh review intervening server content.</p><!-- /wp:paragraph -->',
+			'diff-match-patch',
+			array(
+				'version'          => 47,
+				'previous_version' => '46',
+			)
+		);
+
+		$this->assertIsString( $advanced_content );
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $advanced_content,
+					)
+				)
+			)
+		);
+
+		$before_retry_post      = get_post( $post_id );
+		$before_retry_revisions = $this->get_post_revisions( $post_id );
+		$record_before          = wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] );
+		$save_request           = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '47',
+				'accepted_proof_server_version' => '47',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'accepted_fresh_review_decision' => $consume_data,
+			)
+		);
+
+		$save_response = rest_get_server()->dispatch( $save_request );
+		$data          = $save_response->as_error()->get_error_data( 'stale_base_version_rejected' );
+
+		$this->assertErrorResponse( 'stale_base_version_rejected', $save_response, 409 );
+		$this->assertSame( 'post_retry_save_fresh_review_consumption_stale_base', $data['rest_route'] );
+		$this->assertSame( '47', $data['client_base_version'] );
+		$this->assertSame( '47', $data['server_version'] );
+		$this->assertTrue( $data['fresh_review_decision_stale'] );
+		$this->assertTrue( $data['fresh_review_requires_new_review'] );
+		$this->assertFalse( $data['fresh_review_decision_consumed'] );
+		$this->assertSame( $record_before, wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] ) );
+		$this->assert_post_unchanged( $post_id, $before_retry_post->post_content, $before_retry_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result
+	 */
+	public function test_retry_save_rejects_rejected_fresh_review_decision_without_consuming() {
+		$post_id          = $this->create_sync_meta_post( 'post', 48 );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:paragraph --><p>Fresh review rejected retry-save content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$request_data     = $this->create_rejected_fresh_review_decision_record( $post_id, '48', $proposed_hash );
+		$record_before    = wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] );
+		$save_request     = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '48',
+				'accepted_proof_server_version' => '48',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'accepted_fresh_review_decision' => $this->get_fresh_review_retry_save_evidence(
+					$request_data['fresh_review_request_record_id'],
+					'48',
+					$proposed_hash
+				),
+			)
+		);
+
+		$save_response = rest_get_server()->dispatch( $save_request );
+		$data          = $save_response->as_error()->get_error_data( 'de_rtc_malformed_sync_payload' );
+
+		$this->assertErrorResponse( 'de_rtc_malformed_sync_payload', $save_response, 400 );
+		$this->assertSame( 'fresh_review_decision_not_approved_for_retry_save', $data['detail'] );
+		$this->assertSame( 'post_retry_save', $data['rest_route'] );
+		$this->assertFalse( $data['fresh_review_decision_consumed'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assertSame( $record_before, wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
+	 */
+	public function test_retry_save_fresh_review_decision_requires_matching_route_without_consuming() {
+		$post_id          = $this->create_sync_meta_post( 'post', 49 );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:paragraph --><p>Fresh review retry-save route mismatch content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$request_data     = $this->create_approved_fresh_review_decision_record( $post_id, '49', $proposed_hash );
+		$consume_data     = $this->get_validated_fresh_review_consume_evidence( 'posts', $post_id, '49', $request_data['fresh_review_request_record_id'], $proposed_hash );
+		$save_request     = $this->create_retry_save_request(
+			'pages',
+			$post_id,
+			array(
+				'client_base_version'           => '49',
+				'accepted_proof_server_version' => '49',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'accepted_fresh_review_decision' => $consume_data,
+			)
+		);
+
+		$save_response = rest_get_server()->dispatch( $save_request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $save_response, 404 );
+		$this->assertFalse( wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] )['fresh_review_decision_consumed'] ?? false );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result
+	 */
+	public function test_retry_save_rejects_fresh_review_hash_mismatch_without_consuming() {
+		$post_id          = $this->create_sync_meta_post( 'post', 50 );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$reviewed_content = '<!-- wp:paragraph --><p>Fresh review reviewed retry-save content.</p><!-- /wp:paragraph -->';
+		$reviewed_hash    = hash( 'sha256', $reviewed_content );
+		$proposed_content = '<!-- wp:paragraph --><p>Fresh review tampered retry-save content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$request_data     = $this->create_approved_fresh_review_decision_record( $post_id, '50', $reviewed_hash );
+		$record_before    = wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] );
+		$save_request     = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '50',
+				'accepted_proof_server_version' => '50',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'accepted_fresh_review_decision' => $this->get_fresh_review_retry_save_evidence(
+					$request_data['fresh_review_request_record_id'],
+					'50',
+					$proposed_hash
+				),
+			)
+		);
+
+		$save_response = rest_get_server()->dispatch( $save_request );
+		$data          = $save_response->as_error()->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $save_response, 403 );
+		$this->assertSame( 'retry_save_fresh_review_hash_evidence_mismatch', $data['detail'] );
+		$this->assertSame( 'post_retry_save', $data['rest_route'] );
+		$this->assertContains( 'accepted_fresh_review_decision.proposed_post_content_hash', $data['mismatched_hash_evidence_fields'] );
+		$this->assertFalse( $data['fresh_review_decision_consumed'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assertSame( $record_before, wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result
+	 * @covers ::wp_de_rtc_find_raw_post_content_param_paths
+	 * @covers ::wp_de_rtc_find_private_proof_param_paths
+	 */
+	public function test_retry_save_rejects_fresh_review_raw_content_and_proof_leakage_without_exposing_or_consuming() {
+		$post_id          = $this->create_sync_meta_post( 'post', 51 );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:paragraph --><p>Fresh review leakage retry-save content.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$request_data     = $this->create_approved_fresh_review_decision_record( $post_id, '51', $proposed_hash );
+		$record_before    = wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] );
+		$secret_proof     = 'fresh-review-proof-secret-must-not-echo';
+		$proof_evidence   = array_merge(
+			$this->get_fresh_review_retry_save_evidence( $request_data['fresh_review_request_record_id'], '51', $proposed_hash ),
+			array(
+				'proof_signature' => $secret_proof,
+			)
+		);
+		$proof_request    = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '51',
+				'accepted_proof_server_version' => '51',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'accepted_fresh_review_decision' => $proof_evidence,
+			)
+		);
+
+		$proof_response = rest_get_server()->dispatch( $proof_request );
+		$proof_data     = $proof_response->as_error()->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $proof_response, 403 );
+		$this->assertSame( 'retry_save_fresh_review_proof_leakage_rejected', $proof_data['detail'] );
+		$this->assertSame( array( 'accepted_fresh_review_decision.proof_signature' ), $proof_data['proof_leakage_param_paths'] );
+		$this->assertFalse( $proof_data['fresh_review_decision_consumed'] );
+		$this->assertStringNotContainsString( $secret_proof, wp_json_encode( $proof_data ) );
+		$this->assertSame( $record_before, wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+
+		$raw_content  = 'fresh-review-raw-content-must-not-echo';
+		$raw_evidence = array_merge(
+			$this->get_fresh_review_retry_save_evidence( $request_data['fresh_review_request_record_id'], '51', $proposed_hash ),
+			array(
+				'raw_content' => $raw_content,
+			)
+		);
+		$raw_request  = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '51',
+				'accepted_proof_server_version' => '51',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'accepted_fresh_review_decision' => $raw_evidence,
+			)
+		);
+
+		$raw_response = rest_get_server()->dispatch( $raw_request );
+		$raw_data     = $raw_response->as_error()->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $raw_response, 403 );
+		$this->assertSame( 'retry_save_fresh_review_raw_content_rejected', $raw_data['detail'] );
+		$this->assertSame( array( 'accepted_fresh_review_decision.raw_content' ), $raw_data['raw_content_param_paths'] );
+		$this->assertFalse( $raw_data['fresh_review_decision_consumed'] );
+		$this->assertStringNotContainsString( $raw_content, wp_json_encode( $raw_data ) );
+		$this->assertSame( $record_before, wp_de_rtc_get_opaque_fresh_review_request_record( $request_data['fresh_review_request_record_id'] ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
 	 * @covers ::wp_de_rtc_rest_fresh_review_decision_permissions_check
 	 */
 	public function test_fresh_review_decision_requires_unfiltered_html_reviewer_without_mutating() {
@@ -1045,6 +1371,42 @@ class Tests_DE_RTC_REST_Fresh_Review_Request extends WP_Test_REST_TestCase {
 				'reviewed_proposed_content_hash' => $proposed_hash,
 			)
 		);
+	}
+
+	private function get_validated_fresh_review_consume_evidence( $rest_base, $post_id, $version, $record_id, $proposed_hash ) {
+		$response = rest_get_server()->dispatch(
+			$this->create_valid_fresh_review_consume_request( $rest_base, $post_id, $version, $record_id, $proposed_hash )
+		);
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'fresh_review_decision_eligible_for_retry_save_handoff', $data['result'] );
+		$this->assertTrue( $data['fresh_review_decision_consumption_validated'] );
+
+		return $this->get_fresh_review_retry_save_evidence( $record_id, $version, $proposed_hash );
+	}
+
+	private function get_fresh_review_retry_save_evidence( $record_id, $version, $proposed_hash ) {
+		return array(
+			'result'                                      => 'fresh_review_decision_eligible_for_retry_save_handoff',
+			'fresh_review_decision_consumption_validated' => true,
+			'fresh_review_decision_eligible_for_retry_save' => true,
+			'fresh_review_decision_status'                => 'approved',
+			'fresh_review_request_status'                 => 'decision_recorded',
+			'fresh_review_request_record_id'              => $record_id,
+			'rest_route'                                  => 'post_fresh_review_consume',
+			'client_base_version'                         => (string) $version,
+			'server_version'                              => (string) $version,
+			'proposed_post_content_hash'                  => $proposed_hash,
+			'reviewed_proposed_content_hash'              => $proposed_hash,
+		);
+	}
+
+	private function create_retry_save_request( $rest_base, $post_id, $params ) {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $post_id . '/distributed-editing/retry-save' );
+		$request->set_body_params( $params );
+
+		return $request;
 	}
 
 	private function create_fresh_review_decision_request( $rest_base, $post_id, $params ) {

@@ -254,6 +254,10 @@ function wp_de_rtc_register_rest_routes() {
 							'description' => __( 'Hash-only unfiltered HTML review approval proof for guarded retry-save.' ),
 							'type'        => 'object',
 						),
+						'accepted_fresh_review_decision' => array(
+							'description' => __( 'Accepted hash-only fresh-review consumption evidence for guarded retry-save.' ),
+							'type'        => 'object',
+						),
 					),
 				),
 			)
@@ -1627,6 +1631,8 @@ function wp_de_rtc_rest_retry_save_endpoint( $request ) {
 			'accepted_proof_creates_revision'    => $request->get_param( 'accepted_proof_creates_revision' ),
 			'accepted_proof_claims_saved'        => $request->get_param( 'accepted_proof_claims_saved' ),
 			'review_approval_proof'              => $request->has_param( 'accepted_review_approval_proof' ) ? $request->get_param( 'accepted_review_approval_proof' ) : $request->get_param( 'review_approval_proof' ),
+			'accepted_fresh_review_decision'     => $request->get_param( 'accepted_fresh_review_decision' ),
+			'post_type_rest_base'                => wp_de_rtc_get_rest_retry_save_request_rest_base( $request ),
 		)
 	);
 
@@ -2613,6 +2619,405 @@ function wp_de_rtc_get_fresh_review_consume_result( $post, $args = array() ) {
 }
 
 /**
+ * Returns retry-save fresh-review decision consumption evidence.
+ *
+ * This helper is the retry-save write-boundary reader for the no-write
+ * fresh-review consume handoff. It validates the client-carried hash/version
+ * envelope against the durable request record and the current retry-save
+ * candidate, but it does not mutate the record. Record mutation happens only
+ * after wp_update_post() succeeds.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Post $post Post object.
+ * @param array   $args {
+ *     Retry-save fresh-review evidence arguments.
+ *
+ *     @type array  $accepted_fresh_review_decision Hash-only fresh-review consume evidence.
+ *     @type string $client_base_version            Retry-save client base version.
+ *     @type string $accepted_proof_server_version  Retry-save accepted proof server version.
+ *     @type string $server_version                 Current server sync-meta version.
+ *     @type int    $pending_change_count           Pending local change count.
+ *     @type string $proposed_post_content_hash     Hash of stripped proposed post content.
+ *     @type string $candidate_post_content_hash    Hash of server candidate post content.
+ * }
+ * @return array|WP_Error Fresh-review consumption evidence, or rejection.
+ */
+function wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result( $post, $args ) {
+	$post    = get_post( $post );
+	$post_id = $post ? (int) $post->ID : 0;
+	$proof   = isset( $args['accepted_fresh_review_decision'] ) ? $args['accepted_fresh_review_decision'] : null;
+
+	if ( is_object( $proof ) ) {
+		$proof = get_object_vars( $proof );
+	}
+
+	if ( ! $post || ! is_array( $proof ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the retry save because fresh-review evidence is malformed.' ),
+			array(
+				'detail'                         => 'malformed_retry_save_fresh_review_decision_evidence',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'fresh_review_decision_consumed' => false,
+				'raw_content_included'           => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	$raw_content_param_paths = wp_de_rtc_find_raw_post_content_param_paths( $proof, 'accepted_fresh_review_decision' );
+
+	if ( ! empty( $proof['raw_content_included'] ) || ! empty( $proof['exposes_raw_content'] ) || ! empty( $raw_content_param_paths ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because fresh-review evidence included raw content.' ),
+			array(
+				'detail'                         => 'retry_save_fresh_review_raw_content_rejected',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'request_raw_content_included'   => true,
+				'raw_content_included'           => false,
+				'raw_content_param_paths'        => $raw_content_param_paths,
+				'fresh_review_decision_consumed' => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	$proof_leakage_param_paths = wp_de_rtc_find_private_proof_param_paths( $proof, 'accepted_fresh_review_decision' );
+
+	if ( ! empty( $proof_leakage_param_paths ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because fresh-review evidence included proof internals.' ),
+			array(
+				'detail'                         => 'retry_save_fresh_review_proof_leakage_rejected',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'proof_leakage_param_paths'      => $proof_leakage_param_paths,
+				'raw_content_included'           => false,
+				'fresh_review_decision_consumed' => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	if ( ! current_user_can( 'unfiltered_html' ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_review_approval_requires_unfiltered_html',
+			__( 'Distributed Editing requires an unfiltered HTML reviewer to consume fresh-review evidence.' ),
+			array(
+				'detail'                             => 'retry_save_fresh_review_requires_unfiltered_html_saver',
+				'post_id'                            => $post_id,
+				'rest_route'                         => 'post_retry_save',
+				'requires_edit_post'                 => true,
+				'requires_unfiltered_html'           => true,
+				'unfiltered_html_allowed'            => false,
+				'authorship_review_required'         => true,
+				'content_capability_review_required' => true,
+				'review_status'                      => 'reviewer_capability_missing',
+				'review_action'                      => 'consume_fresh_review_decision',
+				'review_required_capability'         => 'unfiltered_html',
+				'reviewer_capability'                => 'unfiltered_html',
+				'review_scope'                       => 'collaborative_post_content',
+				'fresh_review_decision_consumed'     => false,
+				'raw_content_included'               => false,
+				'saves_post'                         => false,
+				'mutates_post_content'               => false,
+				'creates_revision'                   => false,
+				'claims_saved'                       => false,
+				'permission_contract'                => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
+			)
+		);
+	}
+
+	$record_id = isset( $proof['fresh_review_request_record_id'] ) ? sanitize_text_field( (string) $proof['fresh_review_request_record_id'] ) : '';
+
+	if ( '' === $record_id && isset( $proof['fresh_review_request_record'] ) && is_array( $proof['fresh_review_request_record'] ) && isset( $proof['fresh_review_request_record']['record_id'] ) ) {
+		$record_id = sanitize_text_field( (string) $proof['fresh_review_request_record']['record_id'] );
+	}
+
+	$record = wp_de_rtc_get_opaque_fresh_review_request_record( $record_id );
+
+	if (
+		! is_array( $record ) ||
+		(int) $record['post_id'] !== $post_id ||
+		(string) $record['post_type'] !== (string) $post->post_type
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the retry save because the fresh-review decision record is unavailable.' ),
+			array(
+				'detail'                         => 'fresh_review_decision_record_unavailable',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'fresh_review_request_record_id' => $record_id,
+				'raw_content_included'           => false,
+				'fresh_review_decision_consumed' => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	if (
+		! empty( $record['fresh_review_decision_consumed'] ) ||
+		! empty( $record['consumes_review_decision'] ) ||
+		! empty( $record['retry_save_applied'] )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because the fresh-review decision was already consumed.' ),
+			array(
+				'detail'                         => 'fresh_review_decision_already_consumed_for_retry_save',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'fresh_review_request_record_id' => $record['public_record_id'],
+				'fresh_review_decision_consumed' => false,
+				'raw_content_included'           => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	if (
+		empty( $record['decision_recorded'] ) ||
+		! isset( $record['fresh_review_decision'] ) ||
+		'approved' !== wp_de_rtc_normalize_fresh_review_decision( $record['fresh_review_decision'] )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the retry save because the recorded fresh-review decision is not approved.' ),
+			array(
+				'detail'                         => 'fresh_review_decision_not_approved_for_retry_save',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'fresh_review_request_record_id' => $record['public_record_id'],
+				'fresh_review_decision_status'   => isset( $record['fresh_review_decision_status'] ) ? sanitize_key( (string) $record['fresh_review_decision_status'] ) : '',
+				'raw_content_included'           => false,
+				'fresh_review_decision_consumed' => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	$proof_result     = isset( $proof['result'] ) ? sanitize_key( (string) $proof['result'] ) : '';
+	$proof_rest_route = isset( $proof['rest_route'] ) ? sanitize_key( (string) $proof['rest_route'] ) : '';
+	$proof_status     = isset( $proof['fresh_review_decision_status'] ) ? sanitize_key( (string) $proof['fresh_review_decision_status'] ) : '';
+	$proof_validated  = ! empty( $proof['fresh_review_decision_consumption_validated'] ) && wp_validate_boolean( $proof['fresh_review_decision_consumption_validated'] );
+	$proof_eligible   = ! empty( $proof['fresh_review_decision_eligible_for_retry_save'] ) && wp_validate_boolean( $proof['fresh_review_decision_eligible_for_retry_save'] );
+
+	if (
+		'fresh_review_decision_eligible_for_retry_save_handoff' !== $proof_result ||
+		'post_fresh_review_consume' !== $proof_rest_route ||
+		'approved' !== $proof_status ||
+		! $proof_validated ||
+		! $proof_eligible
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because fresh-review consumption evidence was not accepted.' ),
+			array(
+				'detail'                         => 'retry_save_fresh_review_consumption_evidence_rejected',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'fresh_review_request_record_id' => $record['public_record_id'],
+				'fresh_review_decision_consumed' => false,
+				'raw_content_included'           => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	$client_base_version            = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
+	$accepted_proof_server_version = isset( $args['accepted_proof_server_version'] ) ? sanitize_text_field( (string) $args['accepted_proof_server_version'] ) : '';
+	$server_version                 = isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : '';
+	$proof_client_base_version      = isset( $proof['client_base_version'] ) ? sanitize_text_field( (string) $proof['client_base_version'] ) : '';
+	$proof_server_version           = isset( $proof['server_version'] ) ? sanitize_text_field( (string) $proof['server_version'] ) : '';
+	$record_client_base_version     = isset( $record['client_base_version_at_decision'] ) ? sanitize_text_field( (string) $record['client_base_version_at_decision'] ) : '';
+	$record_server_version          = isset( $record['server_version_at_decision'] ) ? sanitize_text_field( (string) $record['server_version_at_decision'] ) : '';
+	$pending_change_count           = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
+
+	if (
+		'' === $proof_client_base_version ||
+		'' === $proof_server_version ||
+		$proof_client_base_version !== $client_base_version ||
+		$proof_server_version !== $accepted_proof_server_version ||
+		$proof_client_base_version !== $record_client_base_version ||
+		$proof_server_version !== $record_server_version ||
+		$proof_server_version !== $server_version
+	) {
+		$error = wp_de_rtc_get_stale_base_rejection_error(
+			$post,
+			array(
+				'client_base_version'      => $client_base_version,
+				'server_version'           => $server_version,
+				'pending_change_count'     => $pending_change_count,
+				'remote_change_count'      => 1,
+				'can_attempt_local_rebase' => false,
+				'rest_route'               => 'post_retry_save_fresh_review_consumption_stale_base',
+				'saves_post'               => false,
+				'mutates_post_content'     => false,
+				'creates_revision'         => false,
+				'claims_saved'             => false,
+			)
+		);
+		$data  = $error->get_error_data( 'stale_base_version_rejected' );
+
+		if ( is_array( $data ) ) {
+			$data['fresh_review_decision_consumed']       = false;
+			$data['fresh_review_decision_stale']          = true;
+			$data['fresh_review_requires_new_review']     = true;
+			$data['fresh_review_request_record_id']       = $record['public_record_id'];
+			$data['fresh_review_client_base_version']     = $proof_client_base_version;
+			$data['fresh_review_server_version']          = $proof_server_version;
+			$data['fresh_review_record_server_version']   = $record_server_version;
+			$data['fresh_review_current_server_version']  = $server_version;
+			$error->add_data( $data, 'stale_base_version_rejected' );
+		}
+
+		return $error;
+	}
+
+	$proposed_post_content_hash       = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : '';
+	$candidate_post_content_hash     = isset( $args['candidate_post_content_hash'] ) ? sanitize_text_field( (string) $args['candidate_post_content_hash'] ) : '';
+	$proof_proposed_hash             = wp_de_rtc_get_request_hash_evidence( $proof, 'proposed_post_content_hash' );
+	$proof_reviewed_proposed_hash    = wp_de_rtc_get_request_hash_evidence( $proof, 'reviewed_proposed_content_hash' );
+	$proof_candidate_hash            = wp_de_rtc_get_request_hash_evidence( $proof, 'candidate_post_content_hash' );
+	$proof_reviewed_candidate_hash   = wp_de_rtc_get_request_hash_evidence( $proof, 'reviewed_candidate_content_hash' );
+	$record_proposed_hash            = isset( $record['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $record['proposed_post_content_hash'] ) : '';
+	$record_reviewed_proposed_hash   = isset( $record['reviewed_proposed_content_hash'] ) ? sanitize_text_field( (string) $record['reviewed_proposed_content_hash'] ) : '';
+	$record_candidate_hash           = isset( $record['candidate_post_content_hash'] ) ? sanitize_text_field( (string) $record['candidate_post_content_hash'] ) : '';
+	$record_reviewed_candidate_hash  = isset( $record['reviewed_candidate_content_hash'] ) ? sanitize_text_field( (string) $record['reviewed_candidate_content_hash'] ) : '';
+	$missing_hash_fields             = array();
+	$requires_candidate_hash_evidence = '' !== $record_candidate_hash || '' !== $record_reviewed_candidate_hash || null !== $proof_candidate_hash || null !== $proof_reviewed_candidate_hash;
+
+	foreach (
+		array(
+			'accepted_fresh_review_decision.proposed_post_content_hash'          => $proof_proposed_hash,
+			'accepted_fresh_review_decision.reviewed_proposed_content_hash'     => $proof_reviewed_proposed_hash,
+			'fresh_review_record.proposed_post_content_hash'                    => $record_proposed_hash,
+			'fresh_review_record.reviewed_proposed_content_hash'                => $record_reviewed_proposed_hash,
+		) as $field => $hash
+	) {
+		if ( ! wp_de_rtc_is_sha256_hash( $hash ) ) {
+			$missing_hash_fields[] = $field;
+		}
+	}
+
+	if ( $requires_candidate_hash_evidence ) {
+		foreach (
+			array(
+				'accepted_fresh_review_decision.candidate_post_content_hash'          => $proof_candidate_hash,
+				'accepted_fresh_review_decision.reviewed_candidate_content_hash'     => $proof_reviewed_candidate_hash,
+				'fresh_review_record.candidate_post_content_hash'                    => $record_candidate_hash,
+				'fresh_review_record.reviewed_candidate_content_hash'                => $record_reviewed_candidate_hash,
+			) as $field => $hash
+		) {
+			if ( ! wp_de_rtc_is_sha256_hash( $hash ) ) {
+				$missing_hash_fields[] = $field;
+			}
+		}
+	}
+
+	if ( ! empty( $missing_hash_fields ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the retry save because fresh-review hash evidence is incomplete.' ),
+			array(
+				'detail'                         => 'missing_retry_save_fresh_review_hash_evidence',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'fresh_review_request_record_id' => $record['public_record_id'],
+				'missing_hash_evidence_fields'   => $missing_hash_fields,
+				'fresh_review_decision_consumed' => false,
+				'raw_content_included'           => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	$mismatched_hash_fields = array();
+
+	if ( ! hash_equals( $proposed_post_content_hash, $proof_proposed_hash ) || ! hash_equals( $record_proposed_hash, $proof_proposed_hash ) ) {
+		$mismatched_hash_fields[] = 'accepted_fresh_review_decision.proposed_post_content_hash';
+	}
+
+	if ( ! hash_equals( $proposed_post_content_hash, $proof_reviewed_proposed_hash ) || ! hash_equals( $record_reviewed_proposed_hash, $proof_reviewed_proposed_hash ) ) {
+		$mismatched_hash_fields[] = 'accepted_fresh_review_decision.reviewed_proposed_content_hash';
+	}
+
+	if ( $requires_candidate_hash_evidence ) {
+		if ( ! hash_equals( $candidate_post_content_hash, $proof_candidate_hash ) || ! hash_equals( $record_candidate_hash, $proof_candidate_hash ) ) {
+			$mismatched_hash_fields[] = 'accepted_fresh_review_decision.candidate_post_content_hash';
+		}
+
+		if ( ! hash_equals( $candidate_post_content_hash, $proof_reviewed_candidate_hash ) || ! hash_equals( $record_reviewed_candidate_hash, $proof_reviewed_candidate_hash ) ) {
+			$mismatched_hash_fields[] = 'accepted_fresh_review_decision.reviewed_candidate_content_hash';
+		}
+	}
+
+	if ( ! empty( $mismatched_hash_fields ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because fresh-review hash evidence does not match.' ),
+			array(
+				'detail'                          => 'retry_save_fresh_review_hash_evidence_mismatch',
+				'post_id'                         => $post_id,
+				'rest_route'                      => 'post_retry_save',
+				'fresh_review_request_record_id'  => $record['public_record_id'],
+				'mismatched_hash_evidence_fields' => $mismatched_hash_fields,
+				'fresh_review_decision_consumed'  => false,
+				'raw_content_included'            => false,
+				'saves_post'                      => false,
+				'mutates_post_content'            => false,
+				'creates_revision'                => false,
+				'claims_saved'                    => false,
+			)
+		);
+	}
+
+	return array(
+		'fresh_review_decision_ready_for_retry_save' => true,
+		'fresh_review_request_record_id'             => $record['public_record_id'],
+		'fresh_review_decision_status'               => 'approved',
+		'fresh_review_request_status'                => 'decision_recorded',
+		'fresh_review_reviewed_block_item_count'     => isset( $record['reviewed_block_item_count'] ) ? max( 0, (int) $record['reviewed_block_item_count'] ) : 0,
+		'fresh_review_reviewed_block_decision_counts' => isset( $record['reviewed_block_decision_counts'] ) && is_array( $record['reviewed_block_decision_counts'] ) ? $record['reviewed_block_decision_counts'] : array(
+			'approved' => 0,
+			'rejected' => 0,
+		),
+		'_fresh_review_request_record'               => $record,
+	);
+}
+
+/**
  * Creates a durable opaque fresh-review request record.
  *
  * @since 7.1.0
@@ -2798,6 +3203,79 @@ function wp_de_rtc_record_opaque_fresh_review_decision( $record, $post, $args ) 
 }
 
 /**
+ * Records that retry-save consumed an approved fresh-review decision.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array   $record Fresh-review request record.
+ * @param WP_Post $post   Post object.
+ * @param array   $args   Retry-save result evidence.
+ * @return array Public, non-sensitive record evidence.
+ */
+function wp_de_rtc_record_opaque_fresh_review_decision_retry_save_consumed( $record, $post, $args ) {
+	$post        = get_post( $post );
+	$option_name = isset( $record['public_record_id'] ) ? wp_de_rtc_get_opaque_fresh_review_request_record_option_name( $record['public_record_id'] ) : '';
+
+	if ( ! $post || '' === $option_name || ! is_array( $record ) || ! is_array( $args ) ) {
+		return array(
+			'storage'                => 'option',
+			'recorded'               => false,
+			'record_found'           => false,
+			'record_id'              => isset( $record['public_record_id'] ) ? sanitize_text_field( (string) $record['public_record_id'] ) : '',
+			'status'                 => 'consumption_record_unavailable',
+			'consumption_recorded'   => false,
+			'decision_consumed'      => false,
+			'raw_content_included'   => false,
+			'proof_internals_exposed' => false,
+		);
+	}
+
+	$now = time();
+
+	$record['status']                          = 'retry_save_consumed';
+	$record['fresh_review_request_status']     = 'retry_save_consumed';
+	$record['fresh_review_decision_consumed']  = true;
+	$record['fresh_review_decision_consumed_at'] = $now;
+	$record['updated_at']                      = $now;
+	$record['updated_post_id']                 = isset( $args['updated_post_id'] ) ? (int) $args['updated_post_id'] : (int) $post->ID;
+	$record['previous_server_version']         = isset( $args['previous_server_version'] ) ? sanitize_text_field( (string) $args['previous_server_version'] ) : '';
+	$record['saved_server_version']            = isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : '';
+	$record['saved_post_content_hash']         = isset( $args['saved_post_content_hash'] ) ? sanitize_text_field( (string) $args['saved_post_content_hash'] ) : '';
+	$record['retry_save_proposed_post_content_hash'] = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : '';
+	$record['retry_save_attempted']            = true;
+	$record['retry_save_applied']              = true;
+	$record['consumes_review_decision']        = true;
+	$record['saves_post']                      = true;
+	$record['mutates_post_content']            = true;
+	$record['creates_revision']                = ! empty( $args['revision_created'] ) && wp_validate_boolean( $args['revision_created'] );
+	$record['created_revision_count']          = isset( $args['created_revision_count'] ) ? max( 0, (int) $args['created_revision_count'] ) : 0;
+	$record['claims_saved']                    = true;
+	$record['raw_content_included']            = false;
+	$record['resolves_proof']                  = false;
+	$record['resolves_proof_token']            = false;
+	$record['approves_review_proof']           = false;
+	$record['normal_save_attempted']           = false;
+	$record['applies_recovery']                = false;
+	$record['changes_locks']                   = false;
+
+	$recorded = update_option( $option_name, $record, false );
+
+	if ( ! $recorded ) {
+		$stored_record = get_option( $option_name, null );
+		$recorded      = $stored_record === $record;
+	}
+
+	$public_evidence = wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record );
+	$public_evidence['consumption_recorded']    = (bool) $recorded;
+	$public_evidence['decision_consumed']       = (bool) $recorded;
+	$public_evidence['proof_internals_exposed'] = false;
+	$public_evidence['raw_content_included']    = false;
+
+	return $public_evidence;
+}
+
+/**
  * Returns a stored opaque fresh-review request record.
  *
  * @since 7.1.0
@@ -2895,6 +3373,10 @@ function wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record ) {
 
 	if ( isset( $record['reviewed_block_item_count'] ) ) {
 		$evidence['reviewed_block_item_count'] = max( 0, (int) $record['reviewed_block_item_count'] );
+	}
+
+	if ( ! empty( $record['fresh_review_decision_consumed'] ) ) {
+		$evidence['decision_consumed'] = true;
 	}
 
 	return $evidence;
@@ -5455,6 +5937,8 @@ function wp_de_rtc_get_retry_submit_acceptance_result( $post, $args = array() ) 
  *     @type mixed $accepted_proof_creates_revision     Whether proof claimed to create a revision.
  *     @type mixed $accepted_proof_claims_saved         Whether proof claimed saved state.
  *     @type array $review_approval_proof               Hash-only unfiltered HTML review approval proof.
+ *     @type array $accepted_fresh_review_decision      Hash-only fresh-review consume evidence.
+ *     @type mixed $post_type_rest_base                 REST base from the retry-save route.
  * }
  * @return array|WP_Error Retry-save result, or rejection.
  */
@@ -5469,6 +5953,44 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		);
 	}
 
+	$requested_rest_base = isset( $args['post_type_rest_base'] ) ? sanitize_key( (string) $args['post_type_rest_base'] ) : '';
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	if (
+		'' !== $requested_rest_base &&
+		(
+			'' === $post_rest_base ||
+			$requested_rest_base !== $post_rest_base ||
+			! in_array( $post_rest_base, $supported_bases, true )
+		)
+	) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'  => 'feature_disabled_for_post',
+				'post_id' => (int) $post->ID,
+			)
+		);
+	}
+
 	$client_base_version            = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
 	$accepted_proof_server_version = isset( $args['accepted_proof_server_version'] ) ? sanitize_text_field( (string) $args['accepted_proof_server_version'] ) : '';
 	$server_version                 = wp_de_rtc_get_post_sync_meta_version( $post );
@@ -5480,6 +6002,8 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	$accepted_proof_claims_saved    = ! empty( $args['accepted_proof_claims_saved'] ) && wp_validate_boolean( $args['accepted_proof_claims_saved'] );
 	$review_approval_proof          = isset( $args['review_approval_proof'] ) ? $args['review_approval_proof'] : null;
 	$review_approval_consumption    = null;
+	$accepted_fresh_review_decision = isset( $args['accepted_fresh_review_decision'] ) ? $args['accepted_fresh_review_decision'] : null;
+	$fresh_review_consumption       = null;
 
 	if (
 		$accepted_proof_saves_post ||
@@ -5627,6 +6151,25 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	}
 
 	$candidate_hash = wp_de_rtc_hash_content( $candidate_post_content );
+
+	if ( null !== $accepted_fresh_review_decision ) {
+		$fresh_review_consumption = wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result(
+			$post,
+			array(
+				'accepted_fresh_review_decision' => $accepted_fresh_review_decision,
+				'client_base_version'            => $client_base_version,
+				'accepted_proof_server_version'  => $accepted_proof_server_version,
+				'server_version'                 => $server_version,
+				'pending_change_count'           => $pending_change_count,
+				'proposed_post_content_hash'     => $proposed_post_content_hash,
+				'candidate_post_content_hash'    => $candidate_hash,
+			)
+		);
+
+		if ( is_wp_error( $fresh_review_consumption ) ) {
+			return $fresh_review_consumption;
+		}
+	}
 
 	if ( ! current_user_can( 'unfiltered_html' ) ) {
 		$proposed_post_content_kses_review = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_post_content );
@@ -5845,6 +6388,27 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		}
 	}
 
+	$fresh_review_consumption_record = array();
+
+	if (
+		is_array( $fresh_review_consumption ) &&
+		! empty( $fresh_review_consumption['fresh_review_decision_ready_for_retry_save'] )
+	) {
+		$fresh_review_consumption_record = wp_de_rtc_record_opaque_fresh_review_decision_retry_save_consumed(
+			$fresh_review_consumption['_fresh_review_request_record'],
+			$post,
+			array(
+				'updated_post_id'             => (int) $updated_post_id,
+				'previous_server_version'     => $server_version,
+				'server_version'              => $next_version,
+				'proposed_post_content_hash'  => $proposed_post_content_hash,
+				'saved_post_content_hash'     => $candidate_hash,
+				'revision_created'            => ! empty( $created_revision_ids ),
+				'created_revision_count'      => count( $created_revision_ids ),
+			)
+		);
+	}
+
 	return array(
 		'mode'                                => 'retry_save',
 		'result'                              => 'retry_save_applied',
@@ -5864,6 +6428,10 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'review_approval_proof_token_invalidated' => $review_approval_proof_token_invalidated,
 		'review_approval_proof_token_audit'       => wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence( $review_approval_proof_token_audit ),
 		'reviewed_block_item_count'               => is_array( $review_approval_consumption ) ? $review_approval_consumption['reviewed_block_item_count'] : 0,
+		'fresh_review_decision_consumed'          => is_array( $fresh_review_consumption ) && ! empty( $fresh_review_consumption['fresh_review_decision_ready_for_retry_save'] ),
+		'fresh_review_decision_consumption_recorded' => is_array( $fresh_review_consumption_record ) && ! empty( $fresh_review_consumption_record['recorded'] ),
+		'fresh_review_request_record_id'          => is_array( $fresh_review_consumption ) && isset( $fresh_review_consumption['fresh_review_request_record_id'] ) ? $fresh_review_consumption['fresh_review_request_record_id'] : null,
+		'fresh_review_request_record'             => is_array( $fresh_review_consumption_record ) ? $fresh_review_consumption_record : null,
 		'requires_server_state_refetch'           => false,
 		'requires_manual_conflict_resolution'     => false,
 		'can_export_local_updates'                => false,
@@ -7999,6 +8567,69 @@ function wp_de_rtc_find_raw_post_content_param_paths( $payload, $prefix = '' ) {
 		}
 
 		$paths = array_merge( $paths, wp_de_rtc_find_raw_post_content_param_paths( $value, $path ) );
+	}
+
+	return $paths;
+}
+
+/**
+ * Finds private proof-token parameter paths in a public evidence payload.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed  $payload Request payload.
+ * @param string $prefix  Current parameter path.
+ * @return string[] Private proof parameter paths.
+ */
+function wp_de_rtc_find_private_proof_param_paths( $payload, $prefix = '' ) {
+	if ( is_object( $payload ) ) {
+		$payload = get_object_vars( $payload );
+	}
+
+	if ( ! is_array( $payload ) ) {
+		return array();
+	}
+
+	$private_proof_keys = array(
+		'token',
+		'token_hash',
+		'tokenHash',
+		'proof',
+		'proof_token',
+		'proofToken',
+		'proof_signature',
+		'proofSignature',
+		'proof_internals',
+		'proofInternals',
+		'proof_signature_valid',
+		'proofSignatureValid',
+		'field_based_review_approval_proof',
+		'fieldBasedReviewApprovalProof',
+		'review_approval_proof',
+		'reviewApprovalProof',
+		'accepted_review_approval_proof',
+		'acceptedReviewApprovalProof',
+		'reviewer_user_id',
+		'reviewerUserId',
+		'low_privileged_saver_user_id',
+		'lowPrivilegedSaverUserId',
+		'saver_user_id',
+		'saverUserId',
+		'reviewed_block_items',
+		'reviewedBlockItems',
+	);
+	$paths              = array();
+
+	foreach ( $payload as $key => $value ) {
+		$key_string = is_string( $key ) ? $key : (string) $key;
+		$path       = '' === $prefix ? $key_string : $prefix . '.' . $key_string;
+
+		if ( in_array( $key_string, $private_proof_keys, true ) ) {
+			$paths[] = $path;
+		}
+
+		$paths = array_merge( $paths, wp_de_rtc_find_private_proof_param_paths( $value, $path ) );
 	}
 
 	return $paths;
