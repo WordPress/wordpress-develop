@@ -1825,6 +1825,34 @@ function wp_de_rtc_create_opaque_review_approval_proof_token_envelope( $proof ) 
 		);
 	}
 
+	$reviewed_block_item_count = 0;
+
+	if ( isset( $proof['reviewed_block_item_count'] ) ) {
+		$reviewed_block_item_count = (int) $proof['reviewed_block_item_count'];
+	} elseif ( isset( $proof['reviewed_block_items'] ) && is_array( $proof['reviewed_block_items'] ) ) {
+		$reviewed_block_item_count = count( $proof['reviewed_block_items'] );
+	}
+
+	$token_audit = wp_de_rtc_record_opaque_review_approval_proof_token_audit_event(
+		$token,
+		'minted',
+		array(
+			'create_if_missing'             => true,
+			'token_version'                 => 1,
+			'post_id'                       => $record['post_id'],
+			'post_type'                     => $record['post_type'],
+			'server_version'                => $record['server_version'],
+			'proposed_post_content_hash'    => $record['proposed_post_content_hash'],
+			'candidate_post_content_hash'   => isset( $proof['candidate_post_content_hash'] ) ? sanitize_text_field( (string) $proof['candidate_post_content_hash'] ) : '',
+			'reviewed_block_item_count'     => $reviewed_block_item_count,
+			'issued_at'                     => $issued_at,
+			'expires_at'                    => $expires_at,
+			'rest_route'                    => 'post_retry_save_review_approval',
+			'review_approval_proof_format'  => 'opaque_review_approval_proof_token',
+			'review_approval_proof_storage' => 'transient_with_option_backed_audit',
+		)
+	);
+
 	return array(
 		'proof_envelope_type' => 'opaque_review_approval_proof_token',
 		'token'               => $token,
@@ -1835,6 +1863,7 @@ function wp_de_rtc_create_opaque_review_approval_proof_token_envelope( $proof ) 
 			'id'   => (int) $record['post_id'],
 			'type' => $record['post_type'],
 		),
+		'token_audit'         => wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence( $token_audit ),
 	);
 }
 
@@ -1868,6 +1897,245 @@ function wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( $token 
 }
 
 /**
+ * Returns the opaque token from a review approval proof envelope.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $proof_envelope Review approval proof or envelope.
+ * @return string Opaque token, or empty string when unavailable.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_from_envelope( $proof_envelope ) {
+	if ( is_object( $proof_envelope ) ) {
+		$proof_envelope = get_object_vars( $proof_envelope );
+	}
+
+	if ( ! is_array( $proof_envelope ) ) {
+		return '';
+	}
+
+	$envelope_type = isset( $proof_envelope['proof_envelope_type'] ) ? sanitize_key( (string) $proof_envelope['proof_envelope_type'] ) : '';
+
+	if ( 'opaque_review_approval_proof_token' !== $envelope_type || empty( $proof_envelope['token'] ) ) {
+		return '';
+	}
+
+	return sanitize_text_field( (string) $proof_envelope['token'] );
+}
+
+/**
+ * Returns the option name for an opaque review approval proof token audit record.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $token Opaque bearer token.
+ * @return string Option name, or empty string when the token is empty.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_option_name( $token ) {
+	$token = sanitize_text_field( (string) $token );
+
+	if ( '' === $token ) {
+		return '';
+	}
+
+	return 'de_rtc_review_approval_token_audit_' . hash( 'sha256', $token );
+}
+
+/**
+ * Returns a durable audit record for an opaque review approval proof token.
+ *
+ * This record is audit evidence only. It must not include the proof graph,
+ * proof signature, reviewed block items, reviewer IDs, low-privilege saver IDs,
+ * or raw risky content, and it must never be used to resolve a token for save.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $token_or_envelope Opaque token string or token envelope.
+ * @return array|null Audit record, or null when unavailable.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $token_or_envelope ) {
+	$token = is_array( $token_or_envelope ) || is_object( $token_or_envelope )
+		? wp_de_rtc_get_opaque_review_approval_proof_token_from_envelope( $token_or_envelope )
+		: sanitize_text_field( (string) $token_or_envelope );
+
+	$option_name = wp_de_rtc_get_opaque_review_approval_proof_token_audit_option_name( $token );
+
+	if ( '' === $option_name ) {
+		return null;
+	}
+
+	$record = get_option( $option_name, null );
+
+	if (
+		! is_array( $record ) ||
+		! isset( $record['type'], $record['audit_record_version'] ) ||
+		'opaque_review_approval_proof_token_audit_record' !== $record['type'] ||
+		1 !== (int) $record['audit_record_version']
+	) {
+		return null;
+	}
+
+	return $record;
+}
+
+/**
+ * Records a privacy-preserving audit event for an opaque review approval token.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $token Opaque bearer token.
+ * @param string $event Lifecycle event.
+ * @param array  $args  Optional audit metadata.
+ * @return array Public audit evidence summary.
+ */
+function wp_de_rtc_record_opaque_review_approval_proof_token_audit_event( $token, $event, $args = array() ) {
+	$token       = sanitize_text_field( (string) $token );
+	$event       = sanitize_key( (string) $event );
+	$option_name = wp_de_rtc_get_opaque_review_approval_proof_token_audit_option_name( $token );
+
+	if ( '' === $token || '' === $event || '' === $option_name ) {
+		return wp_de_rtc_get_opaque_review_approval_proof_token_audit_summary( $event, false, null, false );
+	}
+
+	$now             = time();
+	$existing_record = get_option( $option_name, null );
+	$record_found    = is_array( $existing_record )
+		&& isset( $existing_record['type'], $existing_record['audit_record_version'] )
+		&& 'opaque_review_approval_proof_token_audit_record' === $existing_record['type']
+		&& 1 === (int) $existing_record['audit_record_version'];
+
+	if ( ! $record_found && empty( $args['create_if_missing'] ) ) {
+		return wp_de_rtc_get_opaque_review_approval_proof_token_audit_summary( $event, false, null, false );
+	}
+
+	$previous_status = $record_found && isset( $existing_record['lifecycle_status'] )
+		? sanitize_key( (string) $existing_record['lifecycle_status'] )
+		: null;
+	$record          = $record_found ? $existing_record : array(
+		'type'                 => 'opaque_review_approval_proof_token_audit_record',
+		'audit_record_version' => 1,
+		'token_hash'           => hash( 'sha256', $token ),
+		'created_at'           => $now,
+		'events'               => array(),
+	);
+
+	$record['token_hash']           = isset( $record['token_hash'] ) ? sanitize_text_field( (string) $record['token_hash'] ) : hash( 'sha256', $token );
+	$record['lifecycle_status']     = $event;
+	$record['updated_at']           = $now;
+	$record['audit_storage_engine'] = 'option';
+
+	foreach ( array( 'token_version', 'post_id', 'issued_at', 'expires_at', 'reviewed_block_item_count' ) as $int_field ) {
+		if ( array_key_exists( $int_field, $args ) && null !== $args[ $int_field ] ) {
+			$record[ $int_field ] = max( 0, (int) $args[ $int_field ] );
+		}
+	}
+
+	foreach ( array( 'post_type', 'server_version', 'rest_route', 'review_approval_proof_format', 'review_approval_proof_storage' ) as $text_field ) {
+		if ( array_key_exists( $text_field, $args ) && '' !== (string) $args[ $text_field ] ) {
+			$record[ $text_field ] = sanitize_text_field( (string) $args[ $text_field ] );
+		}
+	}
+
+	foreach ( array( 'proposed_post_content_hash', 'candidate_post_content_hash' ) as $hash_field ) {
+		if ( array_key_exists( $hash_field, $args ) && wp_de_rtc_is_sha256_hash( $args[ $hash_field ] ) ) {
+			$record[ $hash_field ] = $args[ $hash_field ];
+		}
+	}
+
+	if ( 'minted' === $event ) {
+		$record['minted_at'] = $now;
+	} elseif ( 'consumed' === $event ) {
+		$record['consumed_at'] = $now;
+	} elseif ( 'unavailable' === $event ) {
+		$record['unavailable_at'] = $now;
+	} elseif ( 'expired' === $event ) {
+		$record['expired_at'] = $now;
+	}
+
+	$event_record = array(
+		'event' => $event,
+		'at'    => $now,
+	);
+
+	foreach ( array( 'rest_route', 'storage_status', 'lifetime_status' ) as $event_field ) {
+		if ( array_key_exists( $event_field, $args ) && '' !== (string) $args[ $event_field ] ) {
+			$event_record[ $event_field ] = sanitize_text_field( (string) $args[ $event_field ] );
+		}
+	}
+
+	$events = isset( $record['events'] ) && is_array( $record['events'] ) ? array_values( $record['events'] ) : array();
+	$events[] = $event_record;
+
+	if ( count( $events ) > 10 ) {
+		$events = array_slice( $events, -10 );
+	}
+
+	$record['events']      = $events;
+	$record['event_count'] = isset( $record['event_count'] ) ? max( 0, (int) $record['event_count'] ) + 1 : count( $events );
+
+	$recorded = $record_found
+		? update_option( $option_name, $record, false )
+		: add_option( $option_name, $record, '', 'no' );
+
+	return wp_de_rtc_get_opaque_review_approval_proof_token_audit_summary( $event, (bool) $recorded, $previous_status, true );
+}
+
+/**
+ * Returns public, non-sensitive token audit evidence for REST payloads.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $audit Audit summary.
+ * @return array Public audit evidence.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence( $audit ) {
+	if ( ! is_array( $audit ) ) {
+		$audit = array();
+	}
+
+	$evidence = array(
+		'storage'  => 'option',
+		'status'   => isset( $audit['status'] ) ? sanitize_key( (string) $audit['status'] ) : '',
+		'recorded' => ! empty( $audit['recorded'] ),
+	);
+
+	if ( array_key_exists( 'previous_status', $audit ) && null !== $audit['previous_status'] ) {
+		$evidence['previous_status'] = sanitize_key( (string) $audit['previous_status'] );
+	}
+
+	if ( array_key_exists( 'record_found', $audit ) ) {
+		$evidence['record_found'] = ! empty( $audit['record_found'] );
+	}
+
+	return $evidence;
+}
+
+/**
+ * Returns a token audit summary for use in REST payloads.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string      $event           Lifecycle event.
+ * @param bool        $recorded        Whether the audit record was written.
+ * @param string|null $previous_status Previous lifecycle status.
+ * @param bool        $record_found    Whether an audit record existed or was created.
+ * @return array Public audit summary.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_summary( $event, $recorded, $previous_status = null, $record_found = false ) {
+	return array(
+		'status'          => sanitize_key( (string) $event ),
+		'recorded'        => (bool) $recorded,
+		'previous_status' => null === $previous_status ? null : sanitize_key( (string) $previous_status ),
+		'record_found'    => (bool) $record_found,
+	);
+}
+
+/**
  * Resolves an opaque review approval proof token envelope to a field proof.
  *
  * @since 7.1.0
@@ -1878,7 +2146,7 @@ function wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( $token 
  * @return array|WP_Error Field-based proof, or rejection.
  */
 function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_envelope, $post_id = 0 ) {
-	$token         = isset( $proof_envelope['token'] ) ? sanitize_text_field( (string) $proof_envelope['token'] ) : '';
+	$token         = wp_de_rtc_get_opaque_review_approval_proof_token_from_envelope( $proof_envelope );
 	$token_version = isset( $proof_envelope['token_version'] ) ? absint( $proof_envelope['token_version'] ) : 0;
 	$now           = time();
 
@@ -1891,6 +2159,17 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 	}
 
 	if ( isset( $proof_envelope['expires_at'] ) && is_numeric( $proof_envelope['expires_at'] ) && (int) $proof_envelope['expires_at'] <= $now ) {
+		$token_audit = wp_de_rtc_record_opaque_review_approval_proof_token_audit_event(
+			$token,
+			'expired',
+			array(
+				'post_id'         => $post_id,
+				'expires_at'      => (int) $proof_envelope['expires_at'],
+				'rest_route'      => 'post_retry_save',
+				'lifetime_status' => 'expired',
+			)
+		);
+
 		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
 			'de_rtc_sync_meta_tampered',
 			'retry_save_review_approval_proof_token_expired',
@@ -1901,6 +2180,7 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 				'review_approval_proof_lifetime_status'      => 'expired',
 				'review_approval_proof_requires_new_review' => true,
 				'can_export_local_updates'                  => true,
+				'review_approval_proof_token_audit'         => wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence( $token_audit ),
 			)
 		);
 	}
@@ -1908,6 +2188,17 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 	$record = get_transient( wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( $token ) );
 
 	if ( ! is_array( $record ) ) {
+		$token_audit = wp_de_rtc_record_opaque_review_approval_proof_token_audit_event(
+			$token,
+			'unavailable',
+			array(
+				'post_id'         => $post_id,
+				'rest_route'      => 'post_retry_save',
+				'storage_status'  => 'missing_or_evicted',
+				'lifetime_status' => 'unavailable',
+			)
+		);
+
 		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
 			'de_rtc_malformed_sync_payload',
 			'unknown_retry_save_review_approval_proof_token',
@@ -1917,6 +2208,7 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 				'review_approval_proof_token_storage_status' => 'missing_or_evicted',
 				'review_approval_proof_requires_new_review'  => true,
 				'can_export_local_updates'                   => true,
+				'review_approval_proof_token_audit'          => wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence( $token_audit ),
 			)
 		);
 	}
@@ -1937,6 +2229,17 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 	}
 
 	if ( ! isset( $record['expires_at'] ) || ! is_numeric( $record['expires_at'] ) || (int) $record['expires_at'] <= $now ) {
+		$token_audit = wp_de_rtc_record_opaque_review_approval_proof_token_audit_event(
+			$token,
+			'expired',
+			array(
+				'post_id'         => $post_id,
+				'expires_at'      => isset( $record['expires_at'] ) ? (int) $record['expires_at'] : null,
+				'rest_route'      => 'post_retry_save',
+				'lifetime_status' => 'expired',
+			)
+		);
+
 		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
 			'de_rtc_sync_meta_tampered',
 			'retry_save_review_approval_proof_token_expired',
@@ -1947,6 +2250,7 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 				'review_approval_proof_lifetime_status'      => 'expired',
 				'review_approval_proof_requires_new_review' => true,
 				'can_export_local_updates'                  => true,
+				'review_approval_proof_token_audit'         => wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence( $token_audit ),
 			)
 		);
 	}
@@ -1976,21 +2280,13 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
  * @return string Transient key, or empty string when the envelope is not an opaque token.
  */
 function wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $proof_envelope ) {
-	if ( is_object( $proof_envelope ) ) {
-		$proof_envelope = get_object_vars( $proof_envelope );
-	}
+	$token = wp_de_rtc_get_opaque_review_approval_proof_token_from_envelope( $proof_envelope );
 
-	if ( ! is_array( $proof_envelope ) ) {
+	if ( '' === $token ) {
 		return '';
 	}
 
-	$envelope_type = isset( $proof_envelope['proof_envelope_type'] ) ? sanitize_key( (string) $proof_envelope['proof_envelope_type'] ) : '';
-
-	if ( 'opaque_review_approval_proof_token' !== $envelope_type || empty( $proof_envelope['token'] ) ) {
-		return '';
-	}
-
-	return wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( (string) $proof_envelope['token'] );
+	return wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( $token );
 }
 
 /**
@@ -2051,6 +2347,7 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 	$proof_required            = ! empty( $args['proof_required'] );
 	$proof_envelope            = isset( $args['review_approval_proof'] ) ? $args['review_approval_proof'] : null;
 	$post_id                   = $post ? (int) $post->ID : 0;
+	$proof_token               = wp_de_rtc_get_opaque_review_approval_proof_token_from_envelope( $proof_envelope );
 	$proof_token_transient_key = wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $proof_envelope );
 	$proof                     = wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $proof_envelope, $post_id );
 
@@ -2476,6 +2773,7 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		'reviewed_block_items'                       => $reviewed_block_items,
 		'reviewed_block_item_count'                  => count( $reviewed_block_items ),
 		'block_review_status'                        => ! empty( $reviewed_block_items ) ? 'approved_for_retry_save' : null,
+		'_review_approval_proof_token'               => $proof_token,
 		'_review_approval_proof_token_transient_key' => $proof_token_transient_key,
 	);
 }
@@ -3273,6 +3571,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	$revision_ids_after_save = wp_de_rtc_get_post_revision_ids( $post->ID );
 	$created_revision_ids    = array_values( array_diff( $revision_ids_after_save, $revision_ids_before_save ) );
 	$review_approval_proof_token_invalidated = false;
+	$review_approval_proof_token_audit       = array();
 
 	if (
 		is_array( $review_approval_consumption ) &&
@@ -3280,6 +3579,25 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		! empty( $review_approval_consumption['_review_approval_proof_token_transient_key'] )
 	) {
 		$review_approval_proof_token_invalidated = delete_transient( $review_approval_consumption['_review_approval_proof_token_transient_key'] );
+
+		if ( ! empty( $review_approval_consumption['_review_approval_proof_token'] ) ) {
+			$review_approval_proof_token_audit = wp_de_rtc_record_opaque_review_approval_proof_token_audit_event(
+				$review_approval_consumption['_review_approval_proof_token'],
+				'consumed',
+				array(
+					'post_id'                       => (int) $post->ID,
+					'post_type'                     => $post->post_type,
+					'server_version'                => $server_version,
+					'proposed_post_content_hash'    => $proposed_post_content_hash,
+					'candidate_post_content_hash'   => $candidate_hash,
+					'reviewed_block_item_count'     => isset( $review_approval_consumption['reviewed_block_item_count'] ) ? (int) $review_approval_consumption['reviewed_block_item_count'] : 0,
+					'rest_route'                    => 'post_retry_save',
+					'storage_status'                => $review_approval_proof_token_invalidated ? 'transient_invalidated' : 'transient_invalidation_unconfirmed',
+					'lifetime_status'               => 'consumed',
+					'review_approval_proof_storage' => 'transient_with_option_backed_audit',
+				)
+			);
+		}
 	}
 
 	return array(
@@ -3299,6 +3617,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'saved_post_content_hash'             => $candidate_hash,
 		'review_approval_proof_consumed'          => is_array( $review_approval_consumption ) && ! empty( $review_approval_consumption['review_approval_proof_consumed'] ),
 		'review_approval_proof_token_invalidated' => $review_approval_proof_token_invalidated,
+		'review_approval_proof_token_audit'       => wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence( $review_approval_proof_token_audit ),
 		'reviewed_block_item_count'               => is_array( $review_approval_consumption ) ? $review_approval_consumption['reviewed_block_item_count'] : 0,
 		'requires_server_state_refetch'           => false,
 		'requires_manual_conflict_resolution'     => false,

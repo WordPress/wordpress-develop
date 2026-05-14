@@ -441,6 +441,11 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_get_accepted_review_approval_proof_from_envelope
 	 * @covers ::wp_de_rtc_create_opaque_review_approval_proof_token_envelope
 	 * @covers ::wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_audit_record
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_audit_option_name
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_from_envelope
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence
+	 * @covers ::wp_de_rtc_record_opaque_review_approval_proof_token_audit_event
 	 */
 	public function test_retry_save_consumes_opaque_review_approval_proof_token_envelope() {
 		$post_id          = $this->create_sync_meta_post( 'author reviewed retry-save opaque token current content', 7, self::$author_user_id );
@@ -452,6 +457,8 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$proof          = $this->create_retry_save_review_approval_proof( $post_id, $proposed_content );
 		$proof_envelope = wp_de_rtc_create_opaque_review_approval_proof_token_envelope( $proof['review_approval_proof'] );
 		$this->assert_opaque_review_approval_proof_envelope( $proof_envelope, $post_id );
+		$mint_audit = wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $proof_envelope );
+		$this->assert_opaque_review_approval_proof_token_audit_record( $mint_audit, $post_id, 'minted', array( 'minted' ), array( $proposed_content ) );
 
 		$request = $this->create_distributed_editing_request(
 			'posts',
@@ -477,12 +484,17 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertSame( 'retry_save_applied', $data['result'] );
 		$this->assertTrue( $data['review_approval_proof_consumed'] );
 		$this->assertTrue( $data['review_approval_proof_token_invalidated'] );
+		$this->assertSame( 'consumed', $data['review_approval_proof_token_audit']['status'] );
+		$this->assertTrue( $data['review_approval_proof_token_audit']['recorded'] );
+		$this->assertSame( 'minted', $data['review_approval_proof_token_audit']['previous_status'] );
 		$this->assertSame( $proof['candidate_post_content_hash'], $data['saved_post_content_hash'] );
 		$this->assertNotSame( $before_post->post_content, $after_post->post_content );
 		$this->assertIsArray( $parsed_saved );
 		$this->assertSame( $proposed_content, $parsed_saved['content'] );
 		$this->assertSame( '8', $parsed_saved['sync_meta']['version'] );
 		$this->assertFalse( get_transient( wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $proof_envelope ) ) );
+		$consume_audit = wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $proof_envelope );
+		$this->assert_opaque_review_approval_proof_token_audit_record( $consume_audit, $post_id, 'consumed', array( 'minted', 'consumed' ), array( $proposed_content ) );
 	}
 
 	/**
@@ -493,6 +505,8 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_create_opaque_review_approval_proof_token_envelope
 	 * @covers ::wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope
 	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_audit_record
+	 * @covers ::wp_de_rtc_record_opaque_review_approval_proof_token_audit_event
 	 */
 	public function test_retry_save_rejects_replayed_opaque_review_approval_proof_token_after_success_without_mutating() {
 		$post_id          = $this->create_sync_meta_post( 'author replayed opaque token current content', 7, self::$author_user_id );
@@ -552,11 +566,16 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertSame( 'unknown_retry_save_review_approval_proof_token', $replay_data['detail'] );
 		$this->assertSame( 'missing_or_evicted', $replay_data['review_approval_proof_token_storage_status'] );
 		$this->assertSame( 'unavailable', $replay_data['review_approval_proof_lifetime_status'] );
+		$this->assertSame( 'unavailable', $replay_data['review_approval_proof_token_audit']['status'] );
+		$this->assertTrue( $replay_data['review_approval_proof_token_audit']['recorded'] );
+		$this->assertSame( 'consumed', $replay_data['review_approval_proof_token_audit']['previous_status'] );
 		$this->assertTrue( $replay_data['review_approval_proof_requires_new_review'] );
 		$this->assertTrue( $replay_data['can_export_local_updates'] );
 		$this->assertFalse( $replay_data['saves_post'] );
 		$this->assertFalse( $replay_data['mutates_post_content'] );
 		$this->assertFalse( $replay_data['claims_saved'] );
+		$replay_audit = wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $proof_envelope );
+		$this->assert_opaque_review_approval_proof_token_audit_record( $replay_audit, $post_id, 'unavailable', array( 'minted', 'consumed', 'unavailable' ), array( $proposed_content ) );
 		$this->assert_post_unchanged( $post_id, $before_replay_post->post_content, $before_replay_revisions );
 	}
 
@@ -568,6 +587,8 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_create_opaque_review_approval_proof_token_envelope
 	 * @covers ::wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope
 	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_audit_record
+	 * @covers ::wp_de_rtc_record_opaque_review_approval_proof_token_audit_event
 	 */
 	public function test_retry_save_rejects_evicted_opaque_review_approval_proof_token_without_mutating() {
 		$post_id          = $this->create_sync_meta_post( 'author evicted opaque token current content', 7, self::$author_user_id );
@@ -606,11 +627,16 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertSame( 'unknown_retry_save_review_approval_proof_token', $data['detail'] );
 		$this->assertSame( 'missing_or_evicted', $data['review_approval_proof_token_storage_status'] );
 		$this->assertSame( 'unavailable', $data['review_approval_proof_lifetime_status'] );
+		$this->assertSame( 'unavailable', $data['review_approval_proof_token_audit']['status'] );
+		$this->assertTrue( $data['review_approval_proof_token_audit']['recorded'] );
+		$this->assertSame( 'minted', $data['review_approval_proof_token_audit']['previous_status'] );
 		$this->assertTrue( $data['review_approval_proof_requires_new_review'] );
 		$this->assertTrue( $data['can_export_local_updates'] );
 		$this->assertFalse( $data['saves_post'] );
 		$this->assertFalse( $data['mutates_post_content'] );
 		$this->assertFalse( $data['claims_saved'] );
+		$evicted_audit = wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $proof_envelope );
+		$this->assert_opaque_review_approval_proof_token_audit_record( $evicted_audit, $post_id, 'unavailable', array( 'minted', 'unavailable' ), array( $proposed_content ) );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
@@ -670,6 +696,8 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
 	 * @covers ::wp_de_rtc_get_accepted_review_approval_proof_from_envelope
 	 * @covers ::wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_audit_record
+	 * @covers ::wp_de_rtc_record_opaque_review_approval_proof_token_audit_event
 	 *
 	 * @param string $case            Case label.
 	 * @param array  $envelope_update Token envelope mutation.
@@ -719,6 +747,17 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		if ( 'unknown_retry_save_review_approval_proof_token' === $expected_detail ) {
 			$this->assertSame( 'missing_or_evicted', $data['review_approval_proof_token_storage_status'] );
 			$this->assertSame( 'unavailable', $data['review_approval_proof_lifetime_status'] );
+			$this->assertSame( 'unavailable', $data['review_approval_proof_token_audit']['status'] );
+			$this->assertFalse( $data['review_approval_proof_token_audit']['recorded'] );
+			$this->assertFalse( $data['review_approval_proof_token_audit']['record_found'] );
+			$this->assertNull( wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $proof_envelope ) );
+		}
+		if ( 'retry_save_review_approval_proof_token_expired' === $expected_detail ) {
+			$this->assertSame( 'expired', $data['review_approval_proof_token_audit']['status'] );
+			$this->assertTrue( $data['review_approval_proof_token_audit']['recorded'] );
+			$this->assertSame( 'minted', $data['review_approval_proof_token_audit']['previous_status'] );
+			$expired_audit = wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $proof_envelope );
+			$this->assert_opaque_review_approval_proof_token_audit_record( $expired_audit, $post_id, 'expired', array( 'minted', 'expired' ), array( $proposed_content ) );
 		}
 		$this->assertFalse( $data['saves_post'] );
 		$this->assertFalse( $data['mutates_post_content'] );
@@ -2307,10 +2346,70 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertGreaterThan( $envelope['issued_at'], $envelope['expires_at'] );
 		$this->assertSame( $post_id, $envelope['post']['id'] );
 		$this->assertSame( 'post', $envelope['post']['type'] );
+		$this->assertSame( 'option', $envelope['token_audit']['storage'] );
+		$this->assertSame( 'minted', $envelope['token_audit']['status'] );
+		$this->assertTrue( $envelope['token_audit']['recorded'] );
+		$this->assertTrue( $envelope['token_audit']['record_found'] );
 		$this->assertArrayNotHasKey( 'proof', $envelope );
 		$this->assertArrayNotHasKey( 'field_based_review_approval_proof', $envelope );
 		$this->assertArrayNotHasKey( 'reviewed_block_items', $envelope );
 		$this->assertArrayNotHasKey( 'proof_signature', $envelope );
+		$this->assert_opaque_review_approval_proof_token_audit_omits_private_fields( $envelope['token_audit'] );
+	}
+
+	/**
+	 * Asserts that an opaque token audit record carries only durable public evidence.
+	 *
+	 * @param array    $record        Token audit record.
+	 * @param int      $post_id       Expected post ID.
+	 * @param string   $status        Expected lifecycle status.
+	 * @param string[] $events        Expected lifecycle events in order.
+	 * @param string[] $raw_fragments Raw content fragments that must be absent.
+	 */
+	private function assert_opaque_review_approval_proof_token_audit_record( $record, $post_id, $status, $events, $raw_fragments ) {
+		$this->assertIsArray( $record );
+		$this->assertSame( 'opaque_review_approval_proof_token_audit_record', $record['type'] );
+		$this->assertSame( 1, $record['audit_record_version'] );
+		$this->assertSame( $post_id, $record['post_id'] );
+		$this->assertSame( 'post', $record['post_type'] );
+		$this->assertSame( $status, $record['lifecycle_status'] );
+		$this->assertSame( 'option', $record['audit_storage_engine'] );
+		$this->assertArrayHasKey( $status . '_at', $record );
+		$this->assertSame( count( $events ), $record['event_count'] );
+		$this->assertSame( $events, array_column( $record['events'], 'event' ) );
+		$this->assert_opaque_review_approval_proof_token_audit_omits_private_fields( $record, $raw_fragments );
+	}
+
+	/**
+	 * Asserts that token audit evidence omits proof internals and raw content.
+	 *
+	 * @param mixed    $payload       Audit payload.
+	 * @param string[] $raw_fragments Raw content fragments that must be absent.
+	 */
+	private function assert_opaque_review_approval_proof_token_audit_omits_private_fields( $payload, $raw_fragments = array() ) {
+		$encoded_payload = wp_json_encode( $payload );
+
+		$this->assertIsString( $encoded_payload );
+
+		foreach ( $raw_fragments as $raw_fragment ) {
+			$this->assertStringNotContainsString( $raw_fragment, $encoded_payload );
+		}
+
+		$this->assert_payload_omits_keys(
+			$payload,
+			array(
+				'field_based_review_approval_proof',
+				'proof',
+				'proof_signature',
+				'reviewed_block_items',
+				'reviewer_user_id',
+				'low_privileged_saver_user_id',
+				'raw_content',
+				'raw_post_content',
+				'proposed_post_content',
+				'candidate_post_content',
+			)
+		);
 	}
 
 	/**
@@ -2363,6 +2462,30 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 			}
 
 			$this->assert_review_rejection_omits_raw_content_keys( $value );
+		}
+	}
+
+	/**
+	 * Asserts that keys are absent at every payload nesting level.
+	 *
+	 * @param mixed    $payload        Payload value.
+	 * @param string[] $forbidden_keys Forbidden keys.
+	 */
+	private function assert_payload_omits_keys( $payload, $forbidden_keys ) {
+		if ( is_object( $payload ) ) {
+			$payload = get_object_vars( $payload );
+		}
+
+		if ( ! is_array( $payload ) ) {
+			return;
+		}
+
+		foreach ( $payload as $key => $value ) {
+			if ( is_string( $key ) ) {
+				$this->assertNotContains( $key, $forbidden_keys );
+			}
+
+			$this->assert_payload_omits_keys( $value, $forbidden_keys );
 		}
 	}
 
