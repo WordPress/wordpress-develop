@@ -21,7 +21,7 @@
 
 .about__container {
 	/* Section backgrounds */
-	--background: #ececec;
+	--background: #EBE8E5;
 	--subtle-background: #eef0fd;
 
 	/* Main text color */
@@ -42,7 +42,7 @@
 	--nav-color: var(--text);
 	--nav-current: var(--accent-1);
 
-	--border-radius: 1rem;
+	--border-radius: 0.5rem;
 
 	--gap: 2rem;
 }
@@ -108,24 +108,6 @@
 	align-self: end;
 }
 
-.about__container .about__section-title {
-	margin: 0;
-	padding: 0;
-	/* Fluid font size scales on browser size 960px - 1200px. */
-	font-size: clamp(2rem, 20vw - 9rem, 4rem);
-	line-height: 1;
-	font-weight: 600;
-	color: var(--accent-1);
-}
-
-.about__container .is-align-content-center {
-	align-content: center;
-}
-
-.about__container .textcenter {
-	text-align: center;
-}
-
 .about__section {
 	background: transparent;
 	clear: both;
@@ -166,6 +148,14 @@
 
 .about__section .column:not(.is-edge-to-edge) {
 	padding: var(--gap);
+}
+
+.about__section .column.is-left-padding-zero {
+	padding-left: 0;
+}
+
+.about__section .column.is-right-padding-zero {
+	padding-right: 0;
 }
 
 .about__section + .about__section .is-section-header {
@@ -659,6 +649,7 @@
 	font-size: clamp(2rem, 20vw - 9rem, 4rem);
 	line-height: 1;
 	font-weight: 600;
+	color: #1E1E1E;
 }
 
 .about-php .about__header-title h1,
@@ -677,6 +668,7 @@
 	padding: 0;
 	font-size: 1.6rem;
 	line-height: 1.15;
+	color: #1E1E1E;
 }
 
 .about__header-navigation {
