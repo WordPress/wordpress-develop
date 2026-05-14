@@ -11,8 +11,9 @@
  *
  * @phpstan-type ScriptArgs array{
  *     in_footer?: bool,
- *     module_dependencies?: non-empty-string[],
  *     strategy?: 'async'|'defer',
+ *     fetchpriority?: 'low'|'auto'|'high',
+ *     module_dependencies?: array<non-empty-string|array{ id: non-empty-string, ... }>,
  * }
  * @phpstan-type WpEnqueueScriptArgs array{
  *     0: non-empty-string, // $handle
