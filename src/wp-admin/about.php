@@ -77,7 +77,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="<?php echo esc_url( admin_url( 'images/01.png?ver=7.0' ) ); ?>" alt="" height="436" width="436" />
+					<img src="<?php echo esc_url( admin_url( 'images/01.webp?ver=7.0' ) ); ?>" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -85,7 +85,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="<?php echo esc_url( admin_url( 'images/02.png?ver=7.0' ) ); ?>" alt="" height="436" width="436" />
+					<img src="<?php echo esc_url( admin_url( 'images/02.webp?ver=7.0' ) ); ?>" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
@@ -107,7 +107,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="<?php echo esc_url( admin_url( 'images/03.png?ver=7.0' ) ); ?>" alt="" height="436" width="436" />
+					<img src="<?php echo esc_url( admin_url( 'images/03.webp?ver=7.0' ) ); ?>" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -115,7 +115,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="<?php echo esc_url( admin_url( 'images/04.png?ver=7.0' ) ); ?>" alt="" height="436" width="436" />
+					<img src="<?php echo esc_url( admin_url( 'images/04.webp?ver=7.0' ) ); ?>" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
