@@ -2782,20 +2782,31 @@ function wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result( $pos
 		! empty( $record['consumes_review_decision'] ) ||
 		! empty( $record['retry_save_applied'] )
 	) {
+		$public_record_evidence = wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record );
+
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_sync_meta_tampered',
 			__( 'Distributed Editing rejected the retry save because the fresh-review decision was already consumed.' ),
 			array(
-				'detail'                         => 'fresh_review_decision_already_consumed_for_retry_save',
-				'post_id'                        => $post_id,
-				'rest_route'                     => 'post_retry_save',
-				'fresh_review_request_record_id' => $record['public_record_id'],
-				'fresh_review_decision_consumed' => false,
-				'raw_content_included'           => false,
-				'saves_post'                     => false,
-				'mutates_post_content'           => false,
-				'creates_revision'               => false,
-				'claims_saved'                   => false,
+				'detail'                                  => 'fresh_review_decision_already_consumed_for_retry_save',
+				'post_id'                                 => $post_id,
+				'rest_route'                              => 'post_retry_save',
+				'fresh_review_request_record_id'          => $record['public_record_id'],
+				'fresh_review_request_record'             => $public_record_evidence,
+				'fresh_review_request_status'             => isset( $record['fresh_review_request_status'] ) ? sanitize_key( (string) $record['fresh_review_request_status'] ) : '',
+				'fresh_review_decision_record_consumed'   => true,
+				'fresh_review_decision_consumed'          => false,
+				'fresh_review_decision_lifecycle_status'  => 'already_consumed',
+				'fresh_review_decision_lifecycle_action'  => 'request_new_fresh_review',
+				'fresh_review_previous_server_version'    => isset( $record['previous_server_version'] ) ? sanitize_text_field( (string) $record['previous_server_version'] ) : '',
+				'fresh_review_saved_server_version'       => isset( $record['saved_server_version'] ) ? sanitize_text_field( (string) $record['saved_server_version'] ) : '',
+				'fresh_review_consumption_recorded'       => ! empty( $public_record_evidence['recorded'] ),
+				'fresh_review_support_evidence_available' => true,
+				'raw_content_included'                    => false,
+				'saves_post'                              => false,
+				'mutates_post_content'                    => false,
+				'creates_revision'                        => false,
+				'claims_saved'                            => false,
 			)
 		);
 	}
@@ -3244,6 +3255,9 @@ function wp_de_rtc_record_opaque_fresh_review_decision_retry_save_consumed( $rec
 	$record['fresh_review_decision_consumed']  = true;
 	$record['fresh_review_decision_consumed_at'] = $now;
 	$record['updated_at']                      = $now;
+	$record['fresh_review_lifecycle_status']  = 'retry_save_consumed';
+	$record['fresh_review_lifecycle_event']   = 'consumed';
+	$record['fresh_review_lifecycle_reason']  = 'guarded_retry_save_applied';
 	$record['updated_post_id']                 = isset( $args['updated_post_id'] ) ? (int) $args['updated_post_id'] : (int) $post->ID;
 	$record['previous_server_version']         = isset( $args['previous_server_version'] ) ? sanitize_text_field( (string) $args['previous_server_version'] ) : '';
 	$record['saved_server_version']            = isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : '';
@@ -3383,6 +3397,30 @@ function wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record ) {
 
 	if ( ! empty( $record['fresh_review_decision_consumed'] ) ) {
 		$evidence['decision_consumed'] = true;
+	}
+
+	if ( isset( $record['fresh_review_lifecycle_status'] ) ) {
+		$evidence['lifecycle_status'] = sanitize_key( (string) $record['fresh_review_lifecycle_status'] );
+	} elseif ( ! empty( $record['fresh_review_decision_consumed'] ) ) {
+		$evidence['lifecycle_status'] = 'retry_save_consumed';
+	}
+
+	if ( isset( $record['fresh_review_lifecycle_event'] ) ) {
+		$evidence['lifecycle_event'] = sanitize_key( (string) $record['fresh_review_lifecycle_event'] );
+	}
+
+	if ( isset( $record['fresh_review_lifecycle_reason'] ) ) {
+		$evidence['lifecycle_reason'] = sanitize_key( (string) $record['fresh_review_lifecycle_reason'] );
+	}
+
+	foreach ( array( 'previous_server_version', 'saved_server_version' ) as $version_field ) {
+		if ( isset( $record[ $version_field ] ) && '' !== (string) $record[ $version_field ] ) {
+			$evidence[ $version_field ] = sanitize_text_field( (string) $record[ $version_field ] );
+		}
+	}
+
+	if ( isset( $record['fresh_review_decision_consumed_at'] ) ) {
+		$evidence['decision_consumed_at'] = max( 0, (int) $record['fresh_review_decision_consumed_at'] );
 	}
 
 	return $evidence;
