@@ -531,7 +531,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'f52d8a3680472cf1f5f6'
+		'version' => '1cd9dc72642112b3c839'
 	),
 	'element.js' => array(
 		'dependencies' => array(
