@@ -1377,6 +1377,11 @@ function wp_de_rtc_get_unfiltered_html_review_approval_result( $post, $args = ar
 	}
 
 	$review_approval_proof = wp_de_rtc_add_review_approval_proof_signature( $review_approval_proof );
+	$review_approval_proof_envelope = wp_de_rtc_create_opaque_review_approval_proof_token_envelope( $review_approval_proof );
+
+	if ( is_wp_error( $review_approval_proof_envelope ) ) {
+		return $review_approval_proof_envelope;
+	}
 
 	return array(
 		'result'                              => 'review_approval_accepted_for_retry_save',
@@ -1414,7 +1419,8 @@ function wp_de_rtc_get_unfiltered_html_review_approval_result( $post, $args = ar
 		'mutates_post_content'                => false,
 		'creates_revision'                    => false,
 		'claims_saved'                        => false,
-		'review_approval_proof'               => $review_approval_proof,
+		'review_approval_proof_format'        => 'opaque_review_approval_proof_token',
+		'review_approval_proof'               => $review_approval_proof_envelope,
 		'permission_contract'                 => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
 	);
 }
@@ -1690,6 +1696,7 @@ function wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $proof_enve
 				'detail'                       => 'retry_save_review_approval_raw_content_rejected',
 				'post_id'                      => (int) $post_id,
 				'rest_route'                   => 'post_retry_save',
+				'review_approval_proof_format' => isset( $proof_envelope['proof_envelope_type'] ) ? sanitize_key( (string) $proof_envelope['proof_envelope_type'] ) : '',
 				'request_raw_content_included' => true,
 				'raw_content_included'         => false,
 				'raw_content_param_paths'      => $raw_content_param_paths,
@@ -1702,6 +1709,10 @@ function wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $proof_enve
 	}
 
 	$envelope_type = sanitize_key( (string) $proof_envelope['proof_envelope_type'] );
+
+	if ( 'opaque_review_approval_proof_token' === $envelope_type ) {
+		return wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_envelope, $post_id );
+	}
 
 	if ( 'field_based_review_approval_proof' !== $envelope_type ) {
 		return wp_de_rtc_get_reason_error(
@@ -1744,6 +1755,237 @@ function wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $proof_enve
 	}
 
 	return $proof;
+}
+
+/**
+ * Creates an opaque token envelope for an accepted review approval proof.
+ *
+ * The token cache is a proof-continuation cache only. It does not update post
+ * content, create revisions, replace locks, apply recovery, or claim saved
+ * state.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $proof Signed field-based review approval proof.
+ * @return array|WP_Error Opaque token envelope, or storage failure.
+ */
+function wp_de_rtc_create_opaque_review_approval_proof_token_envelope( $proof ) {
+	if ( ! is_array( $proof ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not create a review approval proof token because the proof is malformed.' ),
+			array(
+				'detail'               => 'malformed_review_approval_proof_for_token',
+				'rest_route'           => 'post_retry_save_review_approval',
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$issued_at  = isset( $proof['issued_at'] ) && is_numeric( $proof['issued_at'] ) ? (int) $proof['issued_at'] : time();
+	$expires_at = isset( $proof['expires_at'] ) && is_numeric( $proof['expires_at'] ) ? (int) $proof['expires_at'] : $issued_at + wp_de_rtc_get_review_approval_proof_lifetime_seconds();
+	$now        = time();
+	$ttl        = max( 1, $expires_at - $now );
+	$token      = wp_de_rtc_generate_opaque_review_approval_proof_token();
+	$key        = wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( $token );
+	$site_scope = wp_de_rtc_get_review_approval_proof_site_scope();
+	$record     = array(
+		'type'                              => 'opaque_review_approval_proof_token_record',
+		'token_version'                     => 1,
+		'field_based_review_approval_proof' => $proof,
+		'issued_at'                         => $issued_at,
+		'expires_at'                        => $expires_at,
+		'site_id'                           => $site_scope['site_id'],
+		'site_url'                          => $site_scope['site_url'],
+		'post_id'                           => isset( $proof['post_id'] ) ? (int) $proof['post_id'] : 0,
+		'post_type'                         => isset( $proof['post_type'] ) ? sanitize_key( (string) $proof['post_type'] ) : '',
+		'server_version'                    => isset( $proof['server_version'] ) ? sanitize_text_field( (string) $proof['server_version'] ) : '',
+		'proposed_post_content_hash'        => isset( $proof['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $proof['proposed_post_content_hash'] ) : '',
+		'reviewer_user_id'                  => isset( $proof['reviewer_user_id'] ) ? (int) $proof['reviewer_user_id'] : 0,
+		'low_privileged_saver_user_id'      => isset( $proof['low_privileged_saver_user_id'] ) ? (int) $proof['low_privileged_saver_user_id'] : null,
+	);
+
+	if ( ! set_transient( $key, $record, $ttl ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing could not store the review approval proof token.' ),
+			array(
+				'detail'               => 'review_approval_proof_token_store_failed',
+				'post_id'              => (int) $record['post_id'],
+				'rest_route'           => 'post_retry_save_review_approval',
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	return array(
+		'proof_envelope_type' => 'opaque_review_approval_proof_token',
+		'token'               => $token,
+		'token_version'       => 1,
+		'issued_at'           => $issued_at,
+		'expires_at'          => $expires_at,
+		'post'                => array(
+			'id'   => (int) $record['post_id'],
+			'type' => $record['post_type'],
+		),
+	);
+}
+
+/**
+ * Generates an opaque bearer token for review approval proof resolution.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return string Opaque token.
+ */
+function wp_de_rtc_generate_opaque_review_approval_proof_token() {
+	try {
+		return bin2hex( random_bytes( 32 ) );
+	} catch ( Exception $exception ) {
+		return wp_generate_password( 64, false, false );
+	}
+}
+
+/**
+ * Returns the transient key for an opaque review approval proof token.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $token Opaque bearer token.
+ * @return string Transient key.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( $token ) {
+	return 'de_rtc_review_approval_proof_' . hash( 'sha256', (string) $token );
+}
+
+/**
+ * Resolves an opaque review approval proof token envelope to a field proof.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $proof_envelope Opaque proof token envelope.
+ * @param int   $post_id        Post ID for error evidence.
+ * @return array|WP_Error Field-based proof, or rejection.
+ */
+function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_envelope, $post_id = 0 ) {
+	$token         = isset( $proof_envelope['token'] ) ? sanitize_text_field( (string) $proof_envelope['token'] ) : '';
+	$token_version = isset( $proof_envelope['token_version'] ) ? absint( $proof_envelope['token_version'] ) : 0;
+	$now           = time();
+
+	if ( '' === $token || 1 !== $token_version ) {
+		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
+			'de_rtc_malformed_sync_payload',
+			'malformed_retry_save_review_approval_proof_token',
+			$post_id
+		);
+	}
+
+	if ( isset( $proof_envelope['expires_at'] ) && is_numeric( $proof_envelope['expires_at'] ) && (int) $proof_envelope['expires_at'] <= $now ) {
+		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
+			'de_rtc_sync_meta_tampered',
+			'retry_save_review_approval_proof_token_expired',
+			$post_id,
+			array(
+				'review_approval_proof_token_expires_at' => (int) $proof_envelope['expires_at'],
+				'review_approval_proof_current_time'    => $now,
+				'review_approval_proof_lifetime_status' => 'expired',
+			)
+		);
+	}
+
+	$record = get_transient( wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( $token ) );
+
+	if ( ! is_array( $record ) ) {
+		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
+			'de_rtc_malformed_sync_payload',
+			'unknown_retry_save_review_approval_proof_token',
+			$post_id
+		);
+	}
+
+	$site_scope = wp_de_rtc_get_review_approval_proof_site_scope();
+
+	if (
+		! isset( $record['type'], $record['token_version'], $record['field_based_review_approval_proof'] ) ||
+		'opaque_review_approval_proof_token_record' !== $record['type'] ||
+		1 !== (int) $record['token_version'] ||
+		! is_array( $record['field_based_review_approval_proof'] )
+	) {
+		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
+			'de_rtc_malformed_sync_payload',
+			'malformed_retry_save_review_approval_proof_token_record',
+			$post_id
+		);
+	}
+
+	if ( ! isset( $record['expires_at'] ) || ! is_numeric( $record['expires_at'] ) || (int) $record['expires_at'] <= $now ) {
+		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
+			'de_rtc_sync_meta_tampered',
+			'retry_save_review_approval_proof_token_expired',
+			$post_id,
+			array(
+				'review_approval_proof_token_expires_at' => isset( $record['expires_at'] ) ? (int) $record['expires_at'] : null,
+				'review_approval_proof_current_time'    => $now,
+				'review_approval_proof_lifetime_status' => 'expired',
+			)
+		);
+	}
+
+	if (
+		! isset( $record['site_id'], $record['site_url'] ) ||
+		(int) $record['site_id'] !== (int) $site_scope['site_id'] ||
+		untrailingslashit( (string) $record['site_url'] ) !== $site_scope['site_url']
+	) {
+		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
+			'de_rtc_sync_meta_tampered',
+			'retry_save_review_approval_proof_token_site_scope_mismatch',
+			$post_id
+		);
+	}
+
+	return $record['field_based_review_approval_proof'];
+}
+
+/**
+ * Returns a standard opaque review approval proof token error.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $code    Reason code.
+ * @param string $detail  Detail code.
+ * @param int    $post_id Post ID for evidence.
+ * @param array  $extra   Additional error data.
+ * @return WP_Error Error object.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_error( $code, $detail, $post_id = 0, $extra = array() ) {
+	return wp_de_rtc_get_reason_error(
+		$code,
+		__( 'Distributed Editing rejected the retry save because the review approval proof token is invalid.' ),
+		array_merge(
+			array(
+				'detail'                       => $detail,
+				'post_id'                      => (int) $post_id,
+				'rest_route'                   => 'post_retry_save',
+				'review_approval_proof_format' => 'opaque_review_approval_proof_token',
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+			),
+			$extra
+		)
+	);
 }
 
 /**
@@ -2911,6 +3153,12 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		! empty( $review_approval_consumption['review_approval_proof_consumed'] ) &&
 		! current_user_can( 'unfiltered_html' )
 	) {
+		$accepted_review_approval_proof_envelope = wp_de_rtc_create_opaque_review_approval_proof_token_envelope( $review_approval_consumption['accepted_review_approval_proof'] );
+
+		if ( is_wp_error( $accepted_review_approval_proof_envelope ) ) {
+			return $accepted_review_approval_proof_envelope;
+		}
+
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_review_approval_requires_unfiltered_html',
 			__( 'Distributed Editing requires an unfiltered HTML reviewer to save approved HTML changes.' ),
@@ -2922,7 +3170,8 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 				'review_approval_proof_accepted' => true,
 				'review_approval_proof_consumed' => false,
 				'accepted_review_approval_proof_available' => true,
-				'accepted_review_approval_proof' => $review_approval_consumption['accepted_review_approval_proof'],
+				'accepted_review_approval_proof_format' => 'opaque_review_approval_proof_token',
+				'accepted_review_approval_proof' => $accepted_review_approval_proof_envelope,
 				'reviewed_block_item_count'      => $review_approval_consumption['reviewed_block_item_count'],
 				'requires_unfiltered_html'       => true,
 				'requires_unfiltered_html_saver' => true,

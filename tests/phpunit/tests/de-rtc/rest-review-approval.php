@@ -169,8 +169,14 @@ class Tests_DE_RTC_REST_Review_Approval extends WP_Test_REST_TestCase {
 		$this->assertSame( 'kses', $data['reviewed_block_items'][0]['content_review_policy'] );
 		$this->assertFalse( $data['reviewed_block_items'][0]['raw_content_included'] );
 		$this->assertFalse( $data['reviewed_block_items'][0]['exposes_raw_content'] );
-		$this->assertSame( 1, $data['review_approval_proof']['reviewed_block_item_count'] );
-		$this->assertSame( 'approved_for_retry_save', $data['review_approval_proof']['block_review_status'] );
+		$this->assertSame( 'opaque_review_approval_proof_token', $data['review_approval_proof_format'] );
+		$this->assert_opaque_review_approval_proof_envelope( $data['review_approval_proof'], $post_id );
+
+		$resolved_proof = wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $data['review_approval_proof'], $post_id );
+
+		$this->assertIsArray( $resolved_proof );
+		$this->assertSame( 1, $resolved_proof['reviewed_block_item_count'] );
+		$this->assertSame( 'approved_for_retry_save', $resolved_proof['block_review_status'] );
 		$this->assertFalse( $data['saves_post'] );
 		$this->assertFalse( $data['mutates_post_content'] );
 		$this->assertFalse( $data['creates_revision'] );
@@ -535,6 +541,20 @@ class Tests_DE_RTC_REST_Review_Approval extends WP_Test_REST_TestCase {
 			),
 			$args
 		);
+	}
+
+	private function assert_opaque_review_approval_proof_envelope( $envelope, $post_id ) {
+		$this->assertIsArray( $envelope );
+		$this->assertSame( 'opaque_review_approval_proof_token', $envelope['proof_envelope_type'] );
+		$this->assertSame( 1, $envelope['token_version'] );
+		$this->assertNotEmpty( $envelope['token'] );
+		$this->assertIsInt( $envelope['issued_at'] );
+		$this->assertIsInt( $envelope['expires_at'] );
+		$this->assertGreaterThan( $envelope['issued_at'], $envelope['expires_at'] );
+		$this->assertSame( $post_id, $envelope['post']['id'] );
+		$this->assertSame( 'post', $envelope['post']['type'] );
+		$this->assertArrayNotHasKey( 'proof', $envelope );
+		$this->assertArrayNotHasKey( 'field_based_review_approval_proof', $envelope );
 	}
 
 	private function create_sync_meta_post( $version, $post_author ) {
