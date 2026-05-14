@@ -571,7 +571,7 @@ function wp_de_rtc_register_rest_routes() {
 					),
 				),
 				array(
-					'methods'             => WP_REST_Server::READABLE,
+					'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::CREATABLE ),
 					'callback'            => 'wp_de_rtc_rest_fresh_review_lifecycle_endpoint',
 					'permission_callback' => 'wp_de_rtc_rest_fresh_review_lifecycle_permissions_check',
 					'args'                => array(
@@ -579,6 +579,35 @@ function wp_de_rtc_register_rest_routes() {
 							'description' => __( 'Opaque public fresh-review request record identifier.' ),
 							'type'        => 'string',
 							'required'    => true,
+						),
+						'lifecycle_action'               => array(
+							'description' => __( 'Support-safe lifecycle action for fresh-review claim evidence.' ),
+							'type'        => 'string',
+							'enum'        => array(
+								'classify',
+								'inject_stale_consumption_claim',
+								'reclaim_stale_consumption_claim',
+							),
+							'default'     => 'classify',
+						),
+						'previous_server_version'        => array(
+							'description' => __( 'Server sync version to attach to an injected stale claim.' ),
+							'type'        => 'string',
+						),
+						'proposed_post_content_hash'     => array(
+							'description' => __( 'SHA-256 hash of the proposed post content for an injected stale claim.' ),
+							'type'        => 'string',
+							'pattern'     => '^[a-f0-9]{64}$',
+						),
+						'candidate_post_content_hash'    => array(
+							'description' => __( 'Optional SHA-256 hash of the retry-save candidate content for an injected stale claim.' ),
+							'type'        => 'string',
+							'pattern'     => '^[a-f0-9]{64}$',
+						),
+						'claim_age_seconds'             => array(
+							'description' => __( 'Age in seconds for an injected stale claim.' ),
+							'type'        => 'integer',
+							'minimum'     => 1,
 						),
 					),
 				),
@@ -1919,6 +1948,11 @@ function wp_de_rtc_rest_fresh_review_lifecycle_endpoint( $request ) {
 		(int) $request['id'],
 		array(
 			'fresh_review_request_record_id' => $request->get_param( 'fresh_review_request_record_id' ),
+			'lifecycle_action'               => $request->get_param( 'lifecycle_action' ),
+			'previous_server_version'        => $request->get_param( 'previous_server_version' ),
+			'proposed_post_content_hash'     => $request->get_param( 'proposed_post_content_hash' ),
+			'candidate_post_content_hash'    => $request->get_param( 'candidate_post_content_hash' ),
+			'claim_age_seconds'              => $request->get_param( 'claim_age_seconds' ),
 		)
 	);
 
@@ -2804,6 +2838,8 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_result( $post, $args = array
 	$post_id   = $post ? (int) $post->ID : 0;
 	$record_id = isset( $args['fresh_review_request_record_id'] ) ? sanitize_text_field( (string) $args['fresh_review_request_record_id'] ) : '';
 	$record    = wp_de_rtc_get_opaque_fresh_review_request_record( $record_id );
+	$action    = isset( $args['lifecycle_action'] ) ? sanitize_key( (string) $args['lifecycle_action'] ) : 'classify';
+	$action    = in_array( $action, array( 'inject_stale_consumption_claim', 'reclaim_stale_consumption_claim' ), true ) ? $action : 'classify';
 
 	if (
 		! $post ||
@@ -2832,13 +2868,62 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_result( $post, $args = array
 
 	$public_record_evidence = wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record );
 	$debug_contract         = wp_de_rtc_get_fresh_review_lifecycle_debug_contract( $record );
-	$claim_cleanup          = wp_de_rtc_get_stale_fresh_review_decision_consumption_claim_cleanup_result(
-		$record,
-		$post,
-		array(
-			'mode' => 'classify',
-		)
+	$action_result          = array(
+		'fresh_review_lifecycle_action'         => $action,
+		'fresh_review_lifecycle_action_applied' => false,
 	);
+
+	if ( 'inject_stale_consumption_claim' === $action ) {
+		$action_result = wp_de_rtc_inject_stale_fresh_review_decision_consumption_claim(
+			$record,
+			$post,
+			array(
+				'previous_server_version'     => isset( $args['previous_server_version'] ) ? $args['previous_server_version'] : null,
+				'proposed_post_content_hash'  => isset( $args['proposed_post_content_hash'] ) ? $args['proposed_post_content_hash'] : null,
+				'candidate_post_content_hash' => isset( $args['candidate_post_content_hash'] ) ? $args['candidate_post_content_hash'] : null,
+				'claim_age_seconds'           => isset( $args['claim_age_seconds'] ) ? $args['claim_age_seconds'] : null,
+			)
+		);
+
+		if ( is_wp_error( $action_result ) ) {
+			return $action_result;
+		}
+
+		$record = wp_de_rtc_get_opaque_fresh_review_request_record( $record_id );
+	} elseif ( 'reclaim_stale_consumption_claim' === $action ) {
+		$action_result = wp_de_rtc_get_stale_fresh_review_decision_consumption_claim_cleanup_result(
+			$record,
+			$post,
+			array(
+				'mode' => 'reclaim',
+			)
+		);
+
+		if ( is_wp_error( $action_result ) ) {
+			return $action_result;
+		}
+
+		$action_result['fresh_review_lifecycle_action']         = 'reclaim_stale_consumption_claim';
+		$action_result['fresh_review_lifecycle_action_applied'] = ! empty( $action_result['fresh_review_claim_reclaimed'] );
+		$record = wp_de_rtc_get_opaque_fresh_review_request_record( $record_id );
+	}
+
+	if ( ! is_array( $record ) ) {
+		$record = array();
+	}
+
+	$public_record_evidence = wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record );
+	$debug_contract         = wp_de_rtc_get_fresh_review_lifecycle_debug_contract( $record );
+	$claim_cleanup_mode     = 'reclaim_stale_consumption_claim' === $action ? 'reclaim' : 'classify';
+	$claim_cleanup          = 'reclaim_stale_consumption_claim' === $action
+		? $action_result
+		: wp_de_rtc_get_stale_fresh_review_decision_consumption_claim_cleanup_result(
+			$record,
+			$post,
+			array(
+				'mode' => $claim_cleanup_mode,
+			)
+		);
 
 	if ( is_wp_error( $claim_cleanup ) ) {
 		$claim_cleanup = array();
@@ -2865,6 +2950,8 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_result( $post, $args = array
 		'fresh_review_claim_cleanup_status'       => isset( $claim_cleanup['fresh_review_claim_cleanup_status'] ) ? $claim_cleanup['fresh_review_claim_cleanup_status'] : '',
 		'fresh_review_claim_is_stale'             => ! empty( $claim_cleanup['fresh_review_claim_is_stale'] ),
 		'fresh_review_claim_can_reclaim'          => ! empty( $claim_cleanup['fresh_review_claim_can_reclaim'] ),
+		'fresh_review_lifecycle_support_action'   => $action,
+		'fresh_review_lifecycle_action_result'    => $action_result,
 		'fresh_review_imported_handoff'           => ! empty( $record['imported_fresh_review_handoff'] ),
 		'fresh_review_previous_server_version'    => isset( $record['previous_server_version'] ) ? sanitize_text_field( (string) $record['previous_server_version'] ) : '',
 		'fresh_review_saved_server_version'       => isset( $record['saved_server_version'] ) ? sanitize_text_field( (string) $record['saved_server_version'] ) : '',
@@ -3606,6 +3693,226 @@ function wp_de_rtc_atomic_update_opaque_fresh_review_request_record( $option_nam
  */
 function wp_de_rtc_get_fresh_review_decision_consumption_claim_stale_after_seconds() {
 	return 15 * MINUTE_IN_SECONDS;
+}
+
+/**
+ * Injects a support-safe stale fresh-review consumption claim.
+ *
+ * This is a deterministic browser-harness support boundary. It only updates
+ * the opaque fresh-review support record to model an interrupted guarded
+ * retry-save claim. It does not save posts, create revisions, change locks,
+ * expose raw content, expose reviewer identity, or affect normal save paths.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array   $record Fresh-review request record.
+ * @param WP_Post $post   Post object.
+ * @param array   $args   Claim injection arguments.
+ * @return array|WP_Error Support-safe injection result, or rejection.
+ */
+function wp_de_rtc_inject_stale_fresh_review_decision_consumption_claim( $record, $post, $args = array() ) {
+	$post        = get_post( $post );
+	$args        = is_array( $args ) ? $args : array();
+	$record_id   = is_array( $record ) && isset( $record['public_record_id'] ) ? sanitize_text_field( (string) $record['public_record_id'] ) : '';
+	$option_name = wp_de_rtc_get_opaque_fresh_review_request_record_option_name( $record_id );
+
+	if (
+		! $post ||
+		! is_array( $record ) ||
+		'' === $record_id ||
+		'' === $option_name ||
+		! isset( $record['post_id'], $record['post_type'] ) ||
+		(int) $record['post_id'] !== (int) $post->ID ||
+		(string) $record['post_type'] !== (string) $post->post_type
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not inject the fresh-review lifecycle claim.' ),
+			array(
+				'detail'                         => 'fresh_review_claim_injection_record_unavailable',
+				'post_id'                        => $post ? (int) $post->ID : 0,
+				'rest_route'                     => 'post_fresh_review_lifecycle',
+				'fresh_review_request_record_id' => $record_id,
+				'fresh_review_lifecycle_action'  => 'inject_stale_consumption_claim',
+				'raw_content_included'           => false,
+				'proof_internals_exposed'        => false,
+				'reviewer_identity_exposed'      => false,
+				'saver_identity_exposed'         => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+				'changes_locks'                  => false,
+				'affects_normal_save_paths'      => false,
+			)
+		);
+	}
+
+	if (
+		empty( $record['decision_recorded'] ) ||
+		'approved' !== ( isset( $record['fresh_review_decision_status'] ) ? sanitize_key( (string) $record['fresh_review_decision_status'] ) : '' ) ||
+		! empty( $record['fresh_review_decision_consumption_claimed'] ) ||
+		! empty( $record['fresh_review_decision_consumed'] ) ||
+		! empty( $record['consumes_review_decision'] ) ||
+		! empty( $record['retry_save_applied'] )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing could not inject the fresh-review lifecycle claim because the decision is not claimable.' ),
+			array(
+				'detail'                         => 'fresh_review_claim_injection_decision_not_claimable',
+				'post_id'                        => (int) $post->ID,
+				'rest_route'                     => 'post_fresh_review_lifecycle',
+				'fresh_review_request_record_id' => $record_id,
+				'fresh_review_lifecycle_action'  => 'inject_stale_consumption_claim',
+				'fresh_review_request_record'    => wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record ),
+				'raw_content_included'           => false,
+				'proof_internals_exposed'        => false,
+				'reviewer_identity_exposed'      => false,
+				'saver_identity_exposed'         => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+				'changes_locks'                  => false,
+				'affects_normal_save_paths'      => false,
+			)
+		);
+	}
+
+	$proposed_hash = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : '';
+
+	if ( '' === $proposed_hash && isset( $record['proposed_post_content_hash'] ) ) {
+		$proposed_hash = sanitize_text_field( (string) $record['proposed_post_content_hash'] );
+	}
+
+	if ( ! wp_de_rtc_is_sha256_hash( $proposed_hash ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not inject the fresh-review lifecycle claim because hash evidence is incomplete.' ),
+			array(
+				'detail'                         => 'missing_fresh_review_claim_injection_hash_evidence',
+				'post_id'                        => (int) $post->ID,
+				'rest_route'                     => 'post_fresh_review_lifecycle',
+				'fresh_review_request_record_id' => $record_id,
+				'missing_hash_evidence_fields'   => array( 'proposed_post_content_hash' ),
+				'fresh_review_lifecycle_action'  => 'inject_stale_consumption_claim',
+				'raw_content_included'           => false,
+				'proof_internals_exposed'        => false,
+				'reviewer_identity_exposed'      => false,
+				'saver_identity_exposed'         => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+				'changes_locks'                  => false,
+				'affects_normal_save_paths'      => false,
+			)
+		);
+	}
+
+	$previous_server_version = isset( $args['previous_server_version'] ) && null !== $args['previous_server_version']
+		? sanitize_text_field( (string) $args['previous_server_version'] )
+		: '';
+
+	if ( '' === $previous_server_version ) {
+		if ( isset( $record['server_version_at_decision'] ) && '' !== (string) $record['server_version_at_decision'] ) {
+			$previous_server_version = sanitize_text_field( (string) $record['server_version_at_decision'] );
+		} elseif ( isset( $record['server_version'] ) ) {
+			$previous_server_version = sanitize_text_field( (string) $record['server_version'] );
+		}
+	}
+
+	$candidate_hash = isset( $args['candidate_post_content_hash'] ) ? sanitize_text_field( (string) $args['candidate_post_content_hash'] ) : '';
+
+	if ( '' !== $candidate_hash && ! wp_de_rtc_is_sha256_hash( $candidate_hash ) ) {
+		$candidate_hash = '';
+	}
+
+	$claim = wp_de_rtc_claim_opaque_fresh_review_decision_retry_save_consumption(
+		$record,
+		$post,
+		array(
+			'previous_server_version'     => $previous_server_version,
+			'proposed_post_content_hash'  => $proposed_hash,
+			'candidate_post_content_hash' => $candidate_hash,
+		)
+	);
+
+	if ( is_wp_error( $claim ) ) {
+		return $claim;
+	}
+
+	$claimed_record = isset( $claim['_fresh_review_request_record'] ) && is_array( $claim['_fresh_review_request_record'] )
+		? $claim['_fresh_review_request_record']
+		: wp_de_rtc_get_opaque_fresh_review_request_record( $record_id );
+	$stale_after    = wp_de_rtc_get_fresh_review_decision_consumption_claim_stale_after_seconds();
+	$claim_age      = isset( $args['claim_age_seconds'] ) && is_numeric( $args['claim_age_seconds'] )
+		? max( $stale_after + 1, (int) $args['claim_age_seconds'] )
+		: $stale_after + 1;
+	$now            = time();
+	$claimed_at     = $now - $claim_age;
+	$stale_record   = $claimed_record;
+
+	$stale_record['fresh_review_decision_consumption_claimed_at'] = $claimed_at;
+	$stale_record['updated_at']                                  = $claimed_at;
+	$stale_record['fresh_review_lifecycle_reason']               = 'interrupted_guarded_retry_save_write';
+
+	if ( ! wp_de_rtc_atomic_update_opaque_fresh_review_request_record( $option_name, $claimed_record, $stale_record ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing could not inject the fresh-review lifecycle claim.' ),
+			array(
+				'detail'                         => 'fresh_review_claim_injection_update_failed',
+				'post_id'                        => (int) $post->ID,
+				'rest_route'                     => 'post_fresh_review_lifecycle',
+				'fresh_review_request_record_id' => $record_id,
+				'fresh_review_lifecycle_action'  => 'inject_stale_consumption_claim',
+				'raw_content_included'           => false,
+				'proof_internals_exposed'        => false,
+				'reviewer_identity_exposed'      => false,
+				'saver_identity_exposed'         => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+				'changes_locks'                  => false,
+				'affects_normal_save_paths'      => false,
+			)
+		);
+	}
+
+	$cleanup = wp_de_rtc_get_stale_fresh_review_decision_consumption_claim_cleanup_result(
+		$stale_record,
+		$post,
+		array(
+			'mode' => 'classify',
+			'now'  => $now,
+		)
+	);
+
+	return array(
+		'fresh_review_lifecycle_action'         => 'inject_stale_consumption_claim',
+		'fresh_review_lifecycle_action_applied' => true,
+		'fresh_review_request_record_id'        => $record_id,
+		'fresh_review_request_record'           => wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $stale_record ),
+		'fresh_review_claim_cleanup'            => is_wp_error( $cleanup ) ? array() : $cleanup,
+		'fresh_review_claim_cleanup_status'     => is_wp_error( $cleanup ) ? '' : $cleanup['fresh_review_claim_cleanup_status'],
+		'fresh_review_claim_is_stale'           => is_wp_error( $cleanup ) ? false : ! empty( $cleanup['fresh_review_claim_is_stale'] ),
+		'fresh_review_claim_can_reclaim'        => is_wp_error( $cleanup ) ? false : ! empty( $cleanup['fresh_review_claim_can_reclaim'] ),
+		'fresh_review_claim_reclaimed'          => false,
+		'raw_content_included'                  => false,
+		'proof_internals_exposed'               => false,
+		'reviewer_identity_exposed'             => false,
+		'saver_identity_exposed'                => false,
+		'saves_post'                            => false,
+		'mutates_post_content'                  => false,
+		'creates_revision'                      => false,
+		'claims_saved'                          => false,
+		'changes_locks'                         => false,
+		'affects_normal_save_paths'             => false,
+	);
 }
 
 /**
