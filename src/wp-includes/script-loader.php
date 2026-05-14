@@ -1020,6 +1020,7 @@ function wp_default_scripts( $scripts ) {
 		'missing_upload_url'        => __( 'There was a configuration error. Please contact the server administrator.' ),
 		'upload_limit_exceeded'     => __( 'You may only upload 1 file.' ),
 		'http_error'                => __( 'Unexpected response from the server. The file may have been uploaded successfully. Check in the Media Library or reload the page.' ),
+		'http_error_413'            => __( 'HTTP error 413. The server has rejected the upload because the request was too large. This is a server configuration limit and is separate from the maximum file size shown on this page. Please contact the site administrator.' ),
 		'http_error_image'          => __( 'The server cannot process the image. This can happen if the server is busy or does not have enough resources to complete the task. Uploading a smaller image may help. Suggested maximum size is 2560 pixels.' ),
 		'upload_failed'             => __( 'Upload failed.' ),
 		/* translators: 1: Opening link tag, 2: Closing link tag. */
