@@ -22,6 +22,7 @@ class Tests_DE_RTC_Token_Audit_Retention extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		wp_clear_scheduled_hook( wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_cron_hook() );
 		wp_set_current_user( self::$admin_user_id );
 	}
 
@@ -33,6 +34,8 @@ class Tests_DE_RTC_Token_Audit_Retention extends WP_UnitTestCase {
 		foreach ( array_unique( $this->transient_keys ) as $transient_key ) {
 			delete_transient( $transient_key );
 		}
+
+		wp_clear_scheduled_hook( wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_cron_hook() );
 
 		parent::tear_down();
 	}
@@ -173,6 +176,86 @@ class Tests_DE_RTC_Token_Audit_Retention extends WP_UnitTestCase {
 		$this->assertSame( array(), $cleanup['deleted_public_record_ids'] );
 		$this->assertSame( $old_record, wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $proof_data['envelope'] ) );
 		$this->assertNotFalse( get_transient( $transient_key ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_cron_hook
+	 * @covers ::wp_de_rtc_schedule_opaque_review_approval_proof_token_audit_cleanup
+	 */
+	public function test_cleanup_schedule_helper_registers_daily_cron_without_running_cleanup() {
+		$hook      = wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_cron_hook();
+		$timestamp = time() + ( 2 * HOUR_IN_SECONDS );
+
+		$summary = wp_de_rtc_schedule_opaque_review_approval_proof_token_audit_cleanup(
+			array(
+				'timestamp' => $timestamp,
+			)
+		);
+
+		$this->assertSame( $hook, $summary['cron_hook'] );
+		$this->assertSame( 'daily', $summary['cron_recurrence'] );
+		$this->assertTrue( $summary['scheduled'] );
+		$this->assertFalse( $summary['already_scheduled'] );
+		$this->assertSame( $timestamp, $summary['next_scheduled'] );
+		$this->assertSame( $timestamp, wp_next_scheduled( $hook ) );
+		$this->assertFalse( $summary['runs_cleanup_in_request'] );
+		$this->assertFalse( $summary['deletes_proof_transients'] );
+		$this->assertFalse( $summary['resolves_proof'] );
+		$this->assertFalse( $summary['saves_post'] );
+		$this->assertFalse( $summary['mutates_post_content'] );
+		$this->assertFalse( $summary['creates_revision'] );
+		$this->assertFalse( $summary['applies_recovery'] );
+		$this->assertFalse( $summary['changes_locks'] );
+		$this->assertFalse( $summary['affects_normal_save_paths'] );
+
+		$second_summary = wp_de_rtc_schedule_opaque_review_approval_proof_token_audit_cleanup(
+			array(
+				'timestamp' => $timestamp + DAY_IN_SECONDS,
+			)
+		);
+
+		$this->assertFalse( $second_summary['scheduled'] );
+		$this->assertTrue( $second_summary['already_scheduled'] );
+		$this->assertSame( $timestamp, $second_summary['next_scheduled'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_run_opaque_review_approval_proof_token_audit_cleanup
+	 * @covers ::wp_de_rtc_cleanup_opaque_review_approval_proof_token_audit_records
+	 */
+	public function test_cleanup_cron_runner_invokes_bounded_retention_cleanup_only() {
+		$now              = time();
+		$post_id          = $this->create_sync_meta_post( 'audit cron cleanup current content', '8' );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$old_proof        = $this->create_opaque_review_approval_proof_token_envelope( $post_id, '8', 'cron-old' );
+		$old_record       = $this->make_audit_record_cleanup_eligible( $old_proof['envelope'], $now );
+		$transient_key    = wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $old_proof['envelope'] );
+
+		$cleanup = wp_de_rtc_run_opaque_review_approval_proof_token_audit_cleanup(
+			array(
+				'now'   => $now,
+				'limit' => 200,
+			)
+		);
+
+		$this->assertSame( wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_cron_hook(), $cleanup['cron_hook'] );
+		$this->assertSame( 'daily', $cleanup['cron_recurrence'] );
+		$this->assertSame( 'wp_cron', $cleanup['cleanup_trigger'] );
+		$this->assertSame( 200, $cleanup['limit'] );
+		$this->assertSame( 1, $cleanup['deleted'] );
+		$this->assertContains( $old_record['public_record_id'], $cleanup['deleted_public_record_ids'] );
+		$this->assertFalse( $cleanup['deletes_proof_transients'] );
+		$this->assertFalse( $cleanup['resolves_proof'] );
+		$this->assertFalse( $cleanup['saves_post'] );
+		$this->assertFalse( $cleanup['mutates_post_content'] );
+		$this->assertFalse( $cleanup['creates_revision'] );
+		$this->assertFalse( $cleanup['applies_recovery'] );
+		$this->assertFalse( $cleanup['changes_locks'] );
+		$this->assertFalse( $cleanup['affects_normal_save_paths'] );
+		$this->assertNull( wp_de_rtc_get_opaque_review_approval_proof_token_audit_record( $old_proof['envelope'] ) );
+		$this->assertNotFalse( get_transient( $transient_key ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
 	private function create_sync_meta_post( $label, $version ) {

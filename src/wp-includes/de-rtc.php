@@ -172,7 +172,7 @@ function wp_de_rtc_register_rest_routes() {
 							'minimum'     => 0,
 							'default'     => 1,
 						),
-						'proposed_post_content_hash' => array(
+						'proposed_post_content_hash'  => array(
 							'description' => __( 'SHA-256 hash of the client proposed post content.' ),
 							'type'        => 'string',
 							'pattern'     => '^[a-f0-9]{64}$',
@@ -381,12 +381,56 @@ function wp_de_rtc_register_rest_routes() {
 				),
 			)
 		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/fresh-review-request',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => 'wp_de_rtc_rest_fresh_review_request_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_fresh_review_request_permissions_check',
+					'args'                => array(
+						'client_base_version'        => array(
+							'description' => __( 'Distributed Editing sync version that the fresh review request is based on.' ),
+							'type'        => 'string',
+						),
+						'server_version'             => array(
+							'description' => __( 'Current server-side Distributed Editing sync version known to the caller.' ),
+							'type'        => 'string',
+						),
+						'pending_change_count'       => array(
+							'description' => __( 'Number of pending local change groups that need fresh admin review.' ),
+							'type'        => 'integer',
+							'minimum'     => 0,
+							'default'     => 1,
+						),
+						'proposed_post_content_hash' => array(
+							'description' => __( 'SHA-256 hash of the proposed post content requiring fresh review.' ),
+							'type'        => 'string',
+						),
+						'candidate_post_content_hash' => array(
+							'description' => __( 'SHA-256 hash of the server candidate post content requiring fresh review.' ),
+							'type'        => 'string',
+						),
+					),
+				),
+			)
+		);
 	}
 }
 add_action( 'rest_api_init', 'wp_de_rtc_register_rest_routes' );
 
 add_filter( 'rest_pre_insert_post', 'wp_de_rtc_rest_pre_insert_stale_base_probe', 10, 2 );
 add_filter( 'rest_pre_insert_page', 'wp_de_rtc_rest_pre_insert_stale_base_probe', 10, 2 );
+add_action( 'wp_loaded', 'wp_de_rtc_schedule_opaque_review_approval_proof_token_audit_cleanup' );
+add_action( 'wp_de_rtc_opaque_review_approval_proof_token_audit_cleanup', 'wp_de_rtc_run_opaque_review_approval_proof_token_audit_cleanup' );
 
 /**
  * Returns REST bases that currently support Distributed Editing recovery.
@@ -771,6 +815,54 @@ function wp_de_rtc_rest_review_approval_permissions_check( $request ) {
 }
 
 /**
+ * Checks permissions for the fresh-review request REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_fresh_review_request_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || ! wp_de_rtc_rest_fresh_review_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'                       => 'feature_disabled_for_post',
+				'post_id'                      => (int) $post->ID,
+				'rest_route'                   => 'post_fresh_review_request',
+				'raw_content_included'         => false,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+				'permission_contract'          => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
  * Returns whether the REST recovery request matches the post type route.
  *
  * @since 7.1.0
@@ -991,6 +1083,50 @@ function wp_de_rtc_get_rest_review_approval_request_rest_base( $request ) {
 }
 
 /**
+ * Returns whether the REST fresh-review request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_fresh_review_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_fresh_review_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a fresh-review request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_fresh_review_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/fresh-review-request$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
  * Handles the sync-meta recovery REST endpoint.
  *
  * @since 7.1.0
@@ -1080,7 +1216,7 @@ function wp_de_rtc_rest_retry_submit_endpoint( $request ) {
 			'client_base_version'        => $request->get_param( 'client_base_version' ),
 			'rebased_from_version'       => $request->get_param( 'rebased_from_version' ),
 			'pending_change_count'       => $request->get_param( 'pending_change_count' ),
-			'proposed_post_content_hash' => $request->get_param( 'proposed_post_content_hash' ),
+			'proposed_post_content_hash'  => $request->get_param( 'proposed_post_content_hash' ),
 		)
 	);
 
@@ -1164,6 +1300,204 @@ function wp_de_rtc_rest_review_approval_endpoint( $request ) {
 	}
 
 	return rest_ensure_response( $result );
+}
+
+/**
+ * Handles the fresh-review request proof REST endpoint.
+ *
+ * This endpoint accepts only version and hash evidence for requesting a fresh
+ * admin review after prior proof cannot be used. It does not save, mutate post
+ * content, create revisions, resolve proof tokens, approve proof, retry save,
+ * recover sync metadata, run normal saves, or change post locks.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response|WP_Error REST response on success, otherwise an error.
+ */
+function wp_de_rtc_rest_fresh_review_request_endpoint( $request ) {
+	$result = wp_de_rtc_get_fresh_review_request_result(
+		(int) $request['id'],
+		array(
+			'client_base_version'        => $request->get_param( 'client_base_version' ),
+			'server_version'             => $request->get_param( 'server_version' ),
+			'pending_change_count'       => $request->get_param( 'pending_change_count' ),
+			'proposed_post_content_hash' => $request->get_param( 'proposed_post_content_hash' ),
+			'candidate_post_content_hash' => $request->get_param( 'candidate_post_content_hash' ),
+			'raw_request_params'         => $request->get_params(),
+		)
+	);
+
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+
+	return rest_ensure_response( $result );
+}
+
+/**
+ * Returns a proof-only fresh-review request result.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args {
+ *     Fresh-review request arguments.
+ *
+ *     @type mixed $client_base_version        Client base version.
+ *     @type mixed $server_version             Server version known to the caller.
+ *     @type mixed $pending_change_count       Pending local change count. Default 1.
+ *     @type mixed $proposed_post_content_hash Proposed stripped post-content hash.
+ *     @type mixed $candidate_post_content_hash Candidate stripped post-content hash.
+ *     @type array $raw_request_params         Full request parameters for raw-content rejection.
+ * }
+ * @return array|WP_Error Fresh-review request result, or rejection.
+ */
+function wp_de_rtc_get_fresh_review_request_result( $post, $args = array() ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	$raw_content_param_paths = isset( $args['raw_request_params'] ) && is_array( $args['raw_request_params'] )
+		? wp_de_rtc_find_raw_post_content_param_paths( $args['raw_request_params'] )
+		: array();
+
+	if ( ! empty( $raw_content_param_paths ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the fresh review request because raw post content is not allowed.' ),
+			array(
+				'detail'                       => 'fresh_review_request_raw_post_content_rejected',
+				'post_id'                      => (int) $post->ID,
+				'rest_route'                   => 'post_fresh_review_request',
+				'request_raw_content_included' => true,
+				'raw_content_included'         => false,
+				'raw_content_param_paths'      => $raw_content_param_paths,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+				'resolves_proof'               => false,
+				'resolves_proof_token'         => false,
+				'approves_review_proof'        => false,
+				'retry_save_attempted'         => false,
+				'normal_save_attempted'        => false,
+				'applies_recovery'             => false,
+				'changes_locks'                => false,
+			)
+		);
+	}
+
+	$client_base_version    = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
+	$request_server_version = isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : '';
+	$server_version         = wp_de_rtc_get_post_sync_meta_version( $post );
+	$pending_change_count   = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
+
+	if (
+		'' === $client_base_version ||
+		'' === $request_server_version ||
+		null === $server_version ||
+		$client_base_version !== $server_version ||
+		$request_server_version !== $server_version
+	) {
+		return wp_de_rtc_get_stale_base_rejection_error(
+			$post,
+			array(
+				'client_base_version'      => $client_base_version,
+				'server_version'           => $server_version,
+				'pending_change_count'     => $pending_change_count,
+				'remote_change_count'      => 1,
+				'can_attempt_local_rebase' => false,
+				'rest_route'               => 'post_fresh_review_request_stale_base',
+				'saves_post'               => false,
+				'mutates_post_content'     => false,
+				'creates_revision'         => false,
+				'claims_saved'             => false,
+			)
+		);
+	}
+
+	$proposed_post_content_hash  = wp_de_rtc_get_request_hash_evidence( $args, 'proposed_post_content_hash' );
+	$candidate_post_content_hash = wp_de_rtc_get_request_hash_evidence( $args, 'candidate_post_content_hash' );
+	$missing_hash_fields         = array();
+
+	foreach (
+		array(
+			'proposed_post_content_hash'  => $proposed_post_content_hash,
+			'candidate_post_content_hash' => $candidate_post_content_hash,
+		) as $field => $hash
+	) {
+		if ( ! wp_de_rtc_is_sha256_hash( $hash ) ) {
+			$missing_hash_fields[] = $field;
+		}
+	}
+
+	if ( ! empty( $missing_hash_fields ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the fresh review request because hash evidence is incomplete.' ),
+			array(
+				'detail'                       => 'missing_fresh_review_request_hash_evidence',
+				'post_id'                      => (int) $post->ID,
+				'rest_route'                   => 'post_fresh_review_request',
+				'missing_hash_evidence_fields' => $missing_hash_fields,
+				'raw_content_included'         => false,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+				'resolves_proof'               => false,
+				'resolves_proof_token'         => false,
+				'approves_review_proof'        => false,
+				'retry_save_attempted'         => false,
+				'normal_save_attempted'        => false,
+				'applies_recovery'             => false,
+				'changes_locks'                => false,
+			)
+		);
+	}
+
+	return array(
+		'result'                              => 'fresh_review_request_accepted_for_admin_review',
+		'fresh_review_request_accepted'       => true,
+		'fresh_review_request_status'         => 'requested',
+		'rest_route'                          => 'post_fresh_review_request',
+		'post_id'                             => (int) $post->ID,
+		'post_type'                           => $post->post_type,
+		'client_base_version'                 => $client_base_version,
+		'server_version'                      => $server_version,
+		'pending_change_count'                => $pending_change_count,
+		'hash_evidence_status'                => 'accepted',
+		'hash_evidence_fields'                => array( 'proposed_post_content_hash', 'candidate_post_content_hash' ),
+		'raw_content_included'                => false,
+		'reviewed_block_items_included'       => false,
+		'requires_admin_review'               => true,
+		'review_status'                       => 'fresh_review_requested',
+		'review_action'                       => 'request_admin_review',
+		'review_scope'                        => 'collaborative_post_content',
+		'requires_server_state_refetch'       => false,
+		'requires_manual_conflict_resolution' => false,
+		'can_export_local_updates'            => $pending_change_count > 0,
+		'save_path_required'                  => true,
+		'saves_post'                          => false,
+		'mutates_post_content'                => false,
+		'creates_revision'                    => false,
+		'claims_saved'                        => false,
+		'resolves_proof'                      => false,
+		'resolves_proof_token'                => false,
+		'approves_review_proof'               => false,
+		'retry_save_attempted'                => false,
+		'normal_save_attempted'               => false,
+		'applies_recovery'                    => false,
+		'changes_locks'                       => false,
+		'permission_contract'                 => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
+	);
 }
 
 /**
@@ -2339,6 +2673,93 @@ function wp_de_rtc_cleanup_opaque_review_approval_proof_token_audit_records( $ar
 			$summary['skipped']++;
 		}
 	}
+
+	return $summary;
+}
+
+/**
+ * Returns the WP-Cron hook for opaque review approval proof token audit cleanup.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return string WP-Cron hook name.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_cron_hook() {
+	return 'wp_de_rtc_opaque_review_approval_proof_token_audit_cleanup';
+}
+
+/**
+ * Schedules bounded opaque review approval proof token audit cleanup.
+ *
+ * This helper only schedules a daily WP-Cron event. It does not run cleanup,
+ * resolve proof tokens, mutate posts, create revisions, save, or change locks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $args {
+ *     Optional scheduling arguments.
+ *
+ *     @type int $timestamp First run timestamp. Default one hour from now.
+ * }
+ * @return array Scheduling summary.
+ */
+function wp_de_rtc_schedule_opaque_review_approval_proof_token_audit_cleanup( $args = array() ) {
+	$args      = is_array( $args ) ? $args : array();
+	$hook      = wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_cron_hook();
+	$timestamp = isset( $args['timestamp'] ) && is_numeric( $args['timestamp'] )
+		? max( time(), (int) $args['timestamp'] )
+		: time() + HOUR_IN_SECONDS;
+	$scheduled = wp_next_scheduled( $hook );
+
+	$summary = array(
+		'cron_hook'                 => $hook,
+		'cron_recurrence'           => 'daily',
+		'next_scheduled'            => $scheduled ? (int) $scheduled : 0,
+		'scheduled'                 => false,
+		'already_scheduled'         => (bool) $scheduled,
+		'runs_cleanup_in_request'   => false,
+		'deletes_proof_transients'  => false,
+		'resolves_proof'            => false,
+		'saves_post'                => false,
+		'mutates_post_content'      => false,
+		'creates_revision'          => false,
+		'applies_recovery'          => false,
+		'changes_locks'             => false,
+		'affects_normal_save_paths' => false,
+	);
+
+	if ( $scheduled || wp_installing() ) {
+		return $summary;
+	}
+
+	$summary['scheduled']      = (bool) wp_schedule_event( $timestamp, 'daily', $hook );
+	$summary['next_scheduled'] = wp_next_scheduled( $hook );
+	$summary['next_scheduled'] = $summary['next_scheduled'] ? (int) $summary['next_scheduled'] : 0;
+
+	return $summary;
+}
+
+/**
+ * Runs one bounded opaque review approval proof token audit cleanup batch.
+ *
+ * This cron callback delegates only to the existing retention cleanup helper.
+ * It does not resolve proof, delete proof transients, mutate posts, create
+ * revisions, save, apply recovery, or change locks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $args Optional cleanup arguments.
+ * @return array Cleanup summary.
+ */
+function wp_de_rtc_run_opaque_review_approval_proof_token_audit_cleanup( $args = array() ) {
+	$summary = wp_de_rtc_cleanup_opaque_review_approval_proof_token_audit_records( is_array( $args ) ? $args : array() );
+
+	$summary['cron_hook']       = wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_cron_hook();
+	$summary['cron_recurrence'] = 'daily';
+	$summary['cleanup_trigger'] = 'wp_cron';
 
 	return $summary;
 }
