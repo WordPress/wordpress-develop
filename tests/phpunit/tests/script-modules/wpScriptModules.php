@@ -2041,7 +2041,7 @@ HTML;
 			array( 'classic-dependency' ),
 			false,
 			array(
-				'in_footer'           => true,
+				'strategy'            => 'defer',
 				'module_dependencies' => array(
 					'example',
 					array(
@@ -2156,7 +2156,7 @@ HTML;
 			array(),
 			null,
 			array(
-				'in_footer'           => true,
+				'strategy'            => 'defer',
 				'module_dependencies' => array( 'does-not-exist' ),
 			)
 		);
