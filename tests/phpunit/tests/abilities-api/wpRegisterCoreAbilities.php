@@ -137,7 +137,8 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'language', $result );
-		$this->assertSame( str_replace( '_', '-', get_locale() ), $result['language'] );
+		// Should return the site locale (en-US), not the user locale (de-DE).
+		$this->assertSame( 'en-US', $result['language'] );
 	}
 
 	/**
