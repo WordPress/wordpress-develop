@@ -386,6 +386,103 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 * @covers ::wp_de_rtc_get_accepted_review_approval_proof_from_envelope
+	 */
+	public function test_retry_save_consumes_field_based_review_approval_proof_envelope() {
+		$post_id          = $this->create_sync_meta_post( 'author reviewed retry-save enveloped proof current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/reviewed-envelope"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof          = $this->create_retry_save_review_approval_proof( $post_id, $proposed_content );
+		$proof_envelope = array(
+			'proof_envelope_type' => 'field_based_review_approval_proof',
+			'proof'               => $proof['review_approval_proof'],
+		);
+		$request        = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof_envelope,
+			)
+		);
+
+		$response     = rest_get_server()->dispatch( $request );
+		$data         = $response->get_data();
+		$after_post   = get_post( $post_id );
+		$parsed_saved = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_applied', $data['result'] );
+		$this->assertTrue( $data['review_approval_proof_consumed'] );
+		$this->assertSame( $proof['candidate_post_content_hash'], $data['saved_post_content_hash'] );
+		$this->assertNotSame( $before_post->post_content, $after_post->post_content );
+		$this->assertIsArray( $parsed_saved );
+		$this->assertSame( $proposed_content, $parsed_saved['content'] );
+		$this->assertSame( '8', $parsed_saved['sync_meta']['version'] );
+		$this->assertFalse( has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 * @covers ::wp_de_rtc_get_accepted_review_approval_proof_from_envelope
+	 */
+	public function test_retry_save_rejects_unsupported_review_approval_proof_envelope_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'author unsupported review proof envelope current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/unsupported-envelope"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof          = $this->create_retry_save_review_approval_proof( $post_id, $proposed_content );
+		$proof_envelope = array(
+			'proof_envelope_type' => 'opaque_review_approval_proof',
+			'proof'               => $proof['review_approval_proof'],
+		);
+		$request        = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof_envelope,
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_malformed_sync_payload' );
+
+		$this->assertErrorResponse( 'de_rtc_malformed_sync_payload', $response, 400 );
+		$this->assertSame( 'unsupported_retry_save_review_approval_proof_envelope', $data['detail'] );
+		$this->assertSame( 'opaque_review_approval_proof', $data['review_approval_proof_format'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+		$this->assertFalse( has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' ) );
+	}
+
+	/**
 	 * @covers ::wp_de_rtc_rest_review_approval_endpoint
 	 * @covers ::wp_de_rtc_get_unfiltered_html_review_approval_result
 	 * @covers ::wp_de_rtc_add_review_approval_proof_time_site_scope

@@ -1638,6 +1638,115 @@ function wp_de_rtc_get_normalized_review_approval_block_items( $post, $args ) {
 }
 
 /**
+ * Extracts the field-based review approval proof from an accepted proof envelope.
+ *
+ * Current clients submit the signed field graph directly. This helper keeps that
+ * shape compatible while giving future opaque or nonce-backed proof a single
+ * server-side boundary to resolve before retry-save validation.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $proof_envelope Accepted review approval proof or envelope.
+ * @param int   $post_id        Post ID for error evidence.
+ * @return array|null|WP_Error Field-based proof, null when absent, or rejection.
+ */
+function wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $proof_envelope, $post_id = 0 ) {
+	if ( is_object( $proof_envelope ) ) {
+		$proof_envelope = get_object_vars( $proof_envelope );
+	}
+
+	if ( null === $proof_envelope || '' === $proof_envelope ) {
+		return null;
+	}
+
+	if ( ! is_array( $proof_envelope ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the retry save because review approval proof is malformed.' ),
+			array(
+				'detail'               => 'malformed_retry_save_review_approval_proof',
+				'post_id'              => (int) $post_id,
+				'rest_route'           => 'post_retry_save',
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if ( ! array_key_exists( 'proof_envelope_type', $proof_envelope ) ) {
+		return $proof_envelope;
+	}
+
+	$raw_content_param_paths = wp_de_rtc_find_raw_post_content_param_paths( $proof_envelope, 'review_approval_proof_envelope' );
+
+	if ( ! empty( $raw_content_param_paths ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because review approval proof included raw content.' ),
+			array(
+				'detail'                       => 'retry_save_review_approval_raw_content_rejected',
+				'post_id'                      => (int) $post_id,
+				'rest_route'                   => 'post_retry_save',
+				'request_raw_content_included' => true,
+				'raw_content_included'         => false,
+				'raw_content_param_paths'      => $raw_content_param_paths,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+			)
+		);
+	}
+
+	$envelope_type = sanitize_key( (string) $proof_envelope['proof_envelope_type'] );
+
+	if ( 'field_based_review_approval_proof' !== $envelope_type ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the retry save because the review approval proof envelope is unsupported.' ),
+			array(
+				'detail'                       => 'unsupported_retry_save_review_approval_proof_envelope',
+				'post_id'                      => (int) $post_id,
+				'rest_route'                   => 'post_retry_save',
+				'review_approval_proof_format' => $envelope_type,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+			)
+		);
+	}
+
+	$proof = isset( $proof_envelope['proof'] ) ? $proof_envelope['proof'] : null;
+
+	if ( is_object( $proof ) ) {
+		$proof = get_object_vars( $proof );
+	}
+
+	if ( ! is_array( $proof ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the retry save because the review approval proof envelope is malformed.' ),
+			array(
+				'detail'                       => 'malformed_retry_save_review_approval_proof_envelope',
+				'post_id'                      => (int) $post_id,
+				'rest_route'                   => 'post_retry_save',
+				'review_approval_proof_format' => $envelope_type,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+			)
+		);
+	}
+
+	return $proof;
+}
+
+/**
  * Validates hash-only review-approval proof before retry-save persistence.
  *
  * @since 7.1.0
@@ -1661,11 +1770,12 @@ function wp_de_rtc_get_normalized_review_approval_block_items( $post, $args ) {
  */
 function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $post, $args ) {
 	$proof_required = ! empty( $args['proof_required'] );
-	$proof          = isset( $args['review_approval_proof'] ) ? $args['review_approval_proof'] : null;
+	$proof_envelope = isset( $args['review_approval_proof'] ) ? $args['review_approval_proof'] : null;
 	$post_id        = $post ? (int) $post->ID : 0;
+	$proof          = wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $proof_envelope, $post_id );
 
-	if ( is_object( $proof ) ) {
-		$proof = get_object_vars( $proof );
+	if ( is_wp_error( $proof ) ) {
+		return $proof;
 	}
 
 	if ( null === $proof || '' === $proof ) {
@@ -1679,22 +1789,6 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		return new WP_Error(
 			'de_rtc_unfiltered_html_would_change_content',
 			__( 'Distributed Editing requires unfiltered HTML review before retry save.' )
-		);
-	}
-
-	if ( ! is_array( $proof ) ) {
-		return wp_de_rtc_get_reason_error(
-			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing rejected the retry save because review approval proof is malformed.' ),
-			array(
-				'detail'               => 'malformed_retry_save_review_approval_proof',
-				'post_id'              => $post_id,
-				'rest_route'           => 'post_retry_save',
-				'saves_post'           => false,
-				'mutates_post_content' => false,
-				'creates_revision'     => false,
-				'claims_saved'         => false,
-			)
 		);
 	}
 
