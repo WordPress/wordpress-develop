@@ -467,7 +467,7 @@ function wp_deregister_script( $handle ) {
  *     in_footer?: bool,
  *     strategy?: 'async'|'defer',
  *     fetchpriority?: 'low'|'auto'|'high',
- *     module_dependencies?: non-empty-string[],
+ *     module_dependencies?: array<non-empty-string|array{ id: non-empty-string, ... }>,
  * }|bool $args
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
