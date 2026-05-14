@@ -108,7 +108,8 @@ function _wp_scripts_add_args_data( WP_Scripts $wp_scripts, string $handle, arra
 		);
 	}
 
-	if ( ! empty( $args['in_footer'] ) ) {
+	$in_footer = ! empty( $args['in_footer'] );
+	if ( $in_footer ) {
 		$wp_scripts->add_data( $handle, 'group', 1 );
 	}
 	if ( ! empty( $args['strategy'] ) ) {
@@ -126,9 +127,8 @@ function _wp_scripts_add_args_data( WP_Scripts $wp_scripts, string $handle, arra
 		 * evaluated before the script modules import map is printed, causing
 		 * dynamic imports to fail with a "Failed to resolve module specifier" error.
 		 */
-		$is_in_footer = ! empty( $args['in_footer'] );
-		$is_deferred  = isset( $args['strategy'] ) && 'defer' === $args['strategy'];
-		if ( ! $is_in_footer && ! $is_deferred ) {
+		$is_deferred = 'defer' === ( $args['strategy'] ?? null );
+		if ( ! $in_footer && ! $is_deferred ) {
 			$trace         = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 );
 			$function_name = ( $trace[1]['class'] ?? '' ) . ( $trace[1]['type'] ?? '' ) . $trace[1]['function'];
 			_doing_it_wrong(
