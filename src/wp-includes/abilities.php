@@ -215,19 +215,20 @@ function wp_register_core_abilities(): void {
 			'description' => __( 'The WordPress core version running on this site.' ),
 		),
 		'site_health'    => array(
-			'type'        => 'object',
-			'description' => __( 'A high-level overview of the site\'s health, populated from cached data. Can vary across calls as the cache refreshes.' ),
-			'properties'  => array(
+			'type'                 => 'object',
+			'description'          => __( 'A high-level overview of the site\'s health, populated from cached data. Can vary across calls as the cache refreshes.' ),
+			'properties'           => array(
 				'status'    => array(
 					'type'        => 'string',
 					'title'       => __( 'Status' ),
 					'description' => __( 'The overall health status of the site (e.g., good, recommended, critical, unknown).' ),
+					'enum'        => array( 'unknown', 'good', 'recommended', 'critical' ),
 				),
 				'counts'    => array(
-					'type'        => 'object',
-					'title'       => __( 'Counts' ),
-					'description' => __( 'The count of issues by severity.' ),
-					'properties'  => array(
+					'type'                 => 'object',
+					'title'                => __( 'Counts' ),
+					'description'          => __( 'The count of Site Health test results by severity.' ),
+					'properties'           => array(
 						'good'        => array(
 							'type'        => 'integer',
 							'title'       => __( 'Good' ),
@@ -244,14 +245,20 @@ function wp_register_core_abilities(): void {
 							'description' => __( 'Number of critical issues.' ),
 						),
 					),
+					'additionalProperties' => false,
 				),
 				'issues'    => array(
 					'type'        => 'array',
 					'title'       => __( 'Issues' ),
 					'description' => __( 'Actionable issues, capped at 10 items.' ),
 					'items'       => array(
-						'type'       => 'object',
-						'properties' => array(
+						'type'                 => 'object',
+						'properties'           => array(
+							'test'           => array(
+								'type'        => 'string',
+								'title'       => __( 'Test Identifier' ),
+								'description' => __( 'The machine-readable name of the Site Health test.' ),
+							),
 							'label'          => array(
 								'type'        => 'string',
 								'title'       => __( 'Label' ),
@@ -261,6 +268,7 @@ function wp_register_core_abilities(): void {
 								'type'        => 'string',
 								'title'       => __( 'Severity' ),
 								'description' => __( 'Severity level (recommended, critical).' ),
+								'enum'        => array( 'recommended', 'critical' ),
 							),
 							'recommendation' => array(
 								'type'        => 'string',
@@ -268,6 +276,7 @@ function wp_register_core_abilities(): void {
 								'description' => __( 'Guidance or description for resolving the issue.' ),
 							),
 						),
+						'additionalProperties' => false,
 					),
 				),
 				'truncated' => array(
@@ -275,7 +284,13 @@ function wp_register_core_abilities(): void {
 					'title'       => __( 'Truncated' ),
 					'description' => __( 'Whether the list of issues has been truncated due to size limits.' ),
 				),
+				'timestamp' => array(
+					'type'        => 'integer',
+					'title'       => __( 'Timestamp' ),
+					'description' => __( 'The Unix timestamp of when the Site Health data was last collected, or 0 when no cached data exists.' ),
+				),
 			),
+			'additionalProperties' => false,
 		),
 	);
 	$env_info_fields     = array_keys( $env_info_properties );
@@ -335,57 +350,7 @@ function wp_register_core_abilities(): void {
 				}
 
 				if ( in_array( 'site_health', $requested_fields, true ) ) {
-					$cached_health = get_transient( 'health-check-site-status-result' );
-
-					$site_health = array(
-						'status'    => 'unknown',
-						'counts'    => array(
-							'good'        => 0,
-							'recommended' => 0,
-							'critical'    => 0,
-						),
-						'issues'    => array(),
-						'truncated' => false,
-					);
-
-					if ( false !== $cached_health ) {
-						$health_data = json_decode( $cached_health, true );
-
-						if ( is_array( $health_data ) ) {
-							if ( isset( $health_data['good'], $health_data['recommended'], $health_data['critical'] ) ) {
-								$site_health['counts']['good']        = (int) $health_data['good'];
-								$site_health['counts']['recommended'] = (int) $health_data['recommended'];
-								$site_health['counts']['critical']    = (int) $health_data['critical'];
-
-								if ( $site_health['counts']['critical'] > 0 ) {
-									$site_health['status'] = 'critical';
-								} elseif ( $site_health['counts']['recommended'] > 0 ) {
-									$site_health['status'] = 'recommended';
-								} else {
-									$site_health['status'] = 'good';
-								}
-							}
-
-							if ( isset( $health_data['issues'] ) && is_array( $health_data['issues'] ) ) {
-								$issues_count = 0;
-								foreach ( $health_data['issues'] as $issue ) {
-									if ( $issues_count >= 10 ) {
-										$site_health['truncated'] = true;
-										break;
-									}
-
-									$site_health['issues'][] = array(
-										'label'          => isset( $issue['label'] ) ? wp_strip_all_tags( $issue['label'] ) : '',
-										'severity'       => isset( $issue['status'] ) ? $issue['status'] : 'recommended',
-										'recommendation' => isset( $issue['description'] ) ? wp_strip_all_tags( $issue['description'] ) : '',
-									);
-									$issues_count++;
-								}
-							}
-						}
-					}
-
-					$result['site_health'] = $site_health;
+					$result['site_health'] = wp_get_abilities_api_site_health_summary_from_cache();
 				}
 
 				return $result;
@@ -403,4 +368,89 @@ function wp_register_core_abilities(): void {
 			),
 		)
 	);
+}
+
+/**
+ * Builds the Site Health portion of `core/get-environment-info` from cached results only.
+ *
+ * @since 6.9.1
+ *
+ * @return array{
+ *     status: 'unknown'|'good'|'recommended'|'critical',
+ *     counts: array{good: int, recommended: int, critical: int},
+ *     issues: array<int, array{test: string, label: string, severity: string, recommendation: string}>,
+ *     truncated: bool,
+ *     timestamp: int
+ * }
+ */
+function wp_get_abilities_api_site_health_summary_from_cache(): array {
+	$site_health = array(
+		'status'    => 'unknown',
+		'counts'    => array(
+			'good'        => 0,
+			'recommended' => 0,
+			'critical'    => 0,
+		),
+		'issues'    => array(),
+		'truncated' => false,
+		'timestamp' => 0,
+	);
+
+	$cached_health = get_transient( 'health-check-site-status-result' );
+
+	if ( false === $cached_health ) {
+		return $site_health;
+	}
+
+	$health_data = json_decode( $cached_health, true );
+	if ( ! is_array( $health_data ) ) {
+		return $site_health;
+	}
+
+	if ( isset( $health_data['good'], $health_data['recommended'], $health_data['critical'] ) ) {
+		$site_health['counts']['good']        = (int) $health_data['good'];
+		$site_health['counts']['recommended'] = (int) $health_data['recommended'];
+		$site_health['counts']['critical']    = (int) $health_data['critical'];
+
+		if ( $site_health['counts']['critical'] > 0 ) {
+			$site_health['status'] = 'critical';
+		} elseif ( $site_health['counts']['recommended'] > 0 ) {
+			$site_health['status'] = 'recommended';
+		} else {
+			$site_health['status'] = 'good';
+		}
+	}
+
+	if ( isset( $health_data['timestamp'] ) ) {
+		$site_health['timestamp'] = (int) $health_data['timestamp'];
+	}
+
+	if ( isset( $health_data['issues'] ) && is_array( $health_data['issues'] ) ) {
+		$issues_count = 0;
+		foreach ( $health_data['issues'] as $issue ) {
+			if ( ! is_array( $issue ) ) {
+				continue;
+			}
+
+			$status = isset( $issue['status'] ) ? (string) $issue['status'] : '';
+			if ( ! in_array( $status, array( 'recommended', 'critical' ), true ) ) {
+				continue;
+			}
+
+			if ( $issues_count >= 10 ) {
+				$site_health['truncated'] = true;
+				break;
+			}
+
+			$site_health['issues'][] = array(
+				'test'           => isset( $issue['test'] ) ? (string) $issue['test'] : '',
+				'label'          => isset( $issue['label'] ) ? wp_strip_all_tags( (string) $issue['label'] ) : '',
+				'severity'       => $status,
+				'recommendation' => isset( $issue['description'] ) ? wp_strip_all_tags( (string) $issue['description'] ) : '',
+			);
+			++$issues_count;
+		}
+	}
+
+	return $site_health;
 }

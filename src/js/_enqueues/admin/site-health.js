@@ -154,18 +154,24 @@ jQuery( function( $ ) {
 
 		SiteHealth.site_status.issues[ issue.status ]++;
 
-		if ( 'critical' === issue.status || 'recommended' === issue.status ) {
-			if ( 'undefined' === typeof SiteHealth.site_status.issue_list ) {
-				SiteHealth.site_status.issue_list = [];
-			}
-			SiteHealth.site_status.issue_list.push( issue );
-		}
-
 		count = SiteHealth.site_status.issues[ issue.status ];
 
 		// If no test name is supplied, append a placeholder for markup references.
 		if ( typeof issue.test === 'undefined' ) {
 			issue.test = issue.status + count;
+		}
+
+		if ( 'critical' === issue.status || 'recommended' === issue.status ) {
+			if ( 'undefined' === typeof SiteHealth.site_status.issue_list ) {
+				SiteHealth.site_status.issue_list = [];
+			}
+			
+			SiteHealth.site_status.issue_list.push( {
+				test: issue.test,
+				label: issue.label,
+				status: issue.status,
+				description: issue.description
+			} );
 		}
 
 		if ( 'critical' === issue.status ) {
@@ -257,18 +263,19 @@ jQuery( function( $ ) {
 		}
 
 		if ( isStatusTab ) {
+			var postData = {
+				'action': 'health-check-site-status-result',
+				'_wpnonce': SiteHealth.nonce.site_status_result,
+				'counts': SiteHealth.site_status.issues
+			};
+
+			if ( 'undefined' !== typeof SiteHealth.site_status.issue_list ) {
+				postData.issues = JSON.stringify( SiteHealth.site_status.issue_list );
+			}
+
 			$.post(
 				ajaxurl,
-				{
-					'action': 'health-check-site-status-result',
-					'_wpnonce': SiteHealth.nonce.site_status_result,
-					'counts': {
-						good: SiteHealth.site_status.issues.good,
-						recommended: SiteHealth.site_status.issues.recommended,
-						critical: SiteHealth.site_status.issues.critical,
-						issues: SiteHealth.site_status.issue_list
-					}
-				}
+				postData
 			);
 
 			if ( 100 === val ) {
