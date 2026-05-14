@@ -3400,6 +3400,7 @@ HTML;
 				'unused',
 				'browser',
 				'globals',
+				'espreeModuleUrl',
 			),
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
@@ -3483,6 +3484,7 @@ HTML;
 				'unused',
 				'browser',
 				'globals',
+				'espreeModuleUrl',
 			),
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
@@ -3580,6 +3582,7 @@ HTML;
 				'unused',
 				'browser',
 				'globals',
+				'espreeModuleUrl',
 			),
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
@@ -3674,6 +3677,7 @@ HTML;
 				'unused',
 				'browser',
 				'globals',
+				'espreeModuleUrl',
 			),
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
