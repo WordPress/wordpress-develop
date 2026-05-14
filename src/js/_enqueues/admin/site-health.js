@@ -161,6 +161,19 @@ jQuery( function( $ ) {
 			issue.test = issue.status + count;
 		}
 
+		if ( 'critical' === issue.status || 'recommended' === issue.status ) {
+			if ( 'undefined' === typeof SiteHealth.site_status.actionable_issues ) {
+				SiteHealth.site_status.actionable_issues = [];
+			}
+
+			SiteHealth.site_status.actionable_issues.push( {
+				test: issue.test,
+				label: issue.label,
+				status: issue.status,
+				description: issue.description
+			} );
+		}
+
 		if ( 'critical' === issue.status ) {
 			heading = sprintf(
 				_n( '%s critical issue', '%s critical issues', count ),
@@ -250,13 +263,19 @@ jQuery( function( $ ) {
 		}
 
 		if ( isStatusTab ) {
+			var postData = {
+				'action': 'health-check-site-status-result',
+				'_wpnonce': SiteHealth.nonce.site_status_result,
+				'counts': SiteHealth.site_status.issues
+			};
+
+			if ( 'undefined' !== typeof SiteHealth.site_status.actionable_issues ) {
+				postData.issues = JSON.stringify( SiteHealth.site_status.actionable_issues );
+			}
+
 			$.post(
 				ajaxurl,
-				{
-					'action': 'health-check-site-status-result',
-					'_wpnonce': SiteHealth.nonce.site_status_result,
-					'counts': SiteHealth.site_status.issues
-				}
+				postData
 			);
 
 			if ( 100 === val ) {
@@ -375,6 +394,7 @@ jQuery( function( $ ) {
 				'recommended': 0,
 				'critical': 0
 			};
+			SiteHealth.site_status.actionable_issues = [];
 		}
 
 		if ( 0 < SiteHealth.site_status.direct.length ) {

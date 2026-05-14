@@ -5466,7 +5466,59 @@ function wp_ajax_health_check_site_status_result() {
 		wp_send_json_error();
 	}
 
-	set_transient( 'health-check-site-status-result', wp_json_encode( $_POST['counts'] ) );
+	$counts = isset( $_POST['counts'] ) ? wp_unslash( $_POST['counts'] ) : null;
+	if ( ! is_array( $counts ) ) {
+		wp_send_json_error();
+	}
+
+	$good        = isset( $counts['good'] ) ? (int) $counts['good'] : 0;
+	$recommended = isset( $counts['recommended'] ) ? (int) $counts['recommended'] : 0;
+	$critical    = isset( $counts['critical'] ) ? (int) $counts['critical'] : 0;
+
+	$payload = array(
+		'good'        => $good,
+		'recommended' => $recommended,
+		'critical'    => $critical,
+	);
+
+	$previous_raw    = get_transient( 'health-check-site-status-result' );
+	$previous        = is_string( $previous_raw ) ? json_decode( $previous_raw, true ) : array();
+	$previous        = is_array( $previous ) ? $previous : array();
+	$previous_issues = ( isset( $previous['issues'] ) && is_array( $previous['issues'] ) ) ? $previous['issues'] : array();
+
+	if ( array_key_exists( 'issues', $_POST ) ) {
+		$issues_raw = wp_unslash( $_POST['issues'] );
+		$decoded    = is_string( $issues_raw ) ? json_decode( $issues_raw, true ) : null;
+
+		if ( is_array( $decoded ) ) {
+			$sanitized_issues = array();
+			foreach ( $decoded as $issue ) {
+				if ( ! is_array( $issue ) ) {
+					continue;
+				}
+
+				$status = isset( $issue['status'] ) ? sanitize_key( $issue['status'] ) : '';
+				if ( ! in_array( $status, array( 'recommended', 'critical' ), true ) ) {
+					continue;
+				}
+
+				$sanitized_issues[] = array(
+					'test'        => isset( $issue['test'] ) ? sanitize_text_field( $issue['test'] ) : '',
+					'label'       => isset( $issue['label'] ) ? sanitize_text_field( $issue['label'] ) : '',
+					'status'      => $status,
+					'description' => isset( $issue['description'] ) ? wp_strip_all_tags( $issue['description'] ) : '',
+				);
+			}
+
+			$payload['issues'] = $sanitized_issues;
+		} elseif ( $previous_issues ) {
+			$payload['issues'] = $previous_issues;
+		}
+	} elseif ( $previous_issues ) {
+		$payload['issues'] = $previous_issues;
+	}
+
+	set_transient( 'health-check-site-status-result', wp_json_encode( $payload ) );
 
 	wp_send_json_success();
 }

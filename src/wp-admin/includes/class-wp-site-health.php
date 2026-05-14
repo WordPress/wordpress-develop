@@ -3453,13 +3453,27 @@ class WP_Site_Health {
 			}
 		}
 
+		$site_status['issues'] = array();
 		foreach ( $results as $result ) {
+			if ( ! is_array( $result ) || ! isset( $result['status'] ) ) {
+				continue;
+			}
+
 			if ( 'critical' === $result['status'] ) {
 				++$site_status['critical'];
 			} elseif ( 'recommended' === $result['status'] ) {
 				++$site_status['recommended'];
 			} else {
 				++$site_status['good'];
+			}
+
+			if ( in_array( $result['status'], array( 'recommended', 'critical' ), true ) ) {
+				$site_status['issues'][] = array(
+					'test'        => isset( $result['test'] ) ? (string) $result['test'] : '',
+					'label'       => isset( $result['label'] ) ? wp_strip_all_tags( (string) $result['label'] ) : '',
+					'status'      => $result['status'],
+					'description' => isset( $result['description'] ) ? wp_strip_all_tags( (string) $result['description'] ) : '',
+				);
 			}
 		}
 
