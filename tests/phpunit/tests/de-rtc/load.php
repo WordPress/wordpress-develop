@@ -30,6 +30,9 @@ class Tests_DE_RTC_Load extends WP_UnitTestCase {
 		$this->assertTrue( function_exists( 'wp_de_rtc_get_unfiltered_html_review_approval_result' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_rest_fresh_review_request_endpoint' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_get_fresh_review_request_result' ) );
+		$this->assertTrue( function_exists( 'wp_de_rtc_rest_fresh_review_decision_endpoint' ) );
+		$this->assertTrue( function_exists( 'wp_de_rtc_get_fresh_review_decision_result' ) );
+		$this->assertTrue( function_exists( 'wp_de_rtc_create_opaque_fresh_review_request_record' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_classify_kses_risky_block_review_items' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_cleanup_opaque_review_approval_proof_token_audit_records' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_schedule_opaque_review_approval_proof_token_audit_cleanup' ) );
