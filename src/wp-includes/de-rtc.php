@@ -2436,12 +2436,15 @@ function wp_de_rtc_get_fresh_review_consume_result( $post, $args = array() ) {
 	$record_client_version  = isset( $record['client_base_version_at_decision'] ) ? sanitize_text_field( (string) $record['client_base_version_at_decision'] ) : '';
 	$record_server_version  = isset( $record['server_version_at_decision'] ) ? sanitize_text_field( (string) $record['server_version_at_decision'] ) : '';
 	$pending_change_count   = isset( $record['pending_change_count'] ) ? max( 0, (int) $record['pending_change_count'] ) : 1;
+	$is_imported_fresh_review_request = ! empty( $record['is_imported_fresh_review_request'] ) || ! empty( $record['imported_fresh_review_handoff'] );
+	$client_base_matches_record       = $client_base_version === $record_client_version;
+	$client_base_matches_current      = null !== $server_version && $client_base_version === $server_version;
 
 	if (
 		'' === $client_base_version ||
 		'' === $request_server_version ||
 		null === $server_version ||
-		$client_base_version !== $record_client_version ||
+		( ! $client_base_matches_record && ! ( $is_imported_fresh_review_request && $client_base_matches_current ) ) ||
 		$request_server_version !== $server_version ||
 		$record_server_version !== $server_version
 	) {
@@ -2860,13 +2863,16 @@ function wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result( $pos
 	$record_client_base_version     = isset( $record['client_base_version_at_decision'] ) ? sanitize_text_field( (string) $record['client_base_version_at_decision'] ) : '';
 	$record_server_version          = isset( $record['server_version_at_decision'] ) ? sanitize_text_field( (string) $record['server_version_at_decision'] ) : '';
 	$pending_change_count           = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
+	$is_imported_fresh_review_request = ! empty( $record['is_imported_fresh_review_request'] ) || ! empty( $record['imported_fresh_review_handoff'] );
+	$proof_client_matches_record    = $proof_client_base_version === $record_client_base_version;
+	$proof_client_matches_current   = $proof_client_base_version === $server_version && $client_base_version === $server_version;
 
 	if (
 		'' === $proof_client_base_version ||
 		'' === $proof_server_version ||
 		$proof_client_base_version !== $client_base_version ||
 		$proof_server_version !== $accepted_proof_server_version ||
-		$proof_client_base_version !== $record_client_base_version ||
+		( ! $proof_client_matches_record && ! ( $is_imported_fresh_review_request && $proof_client_matches_current ) ) ||
 		$proof_server_version !== $record_server_version ||
 		$proof_server_version !== $server_version
 	) {
