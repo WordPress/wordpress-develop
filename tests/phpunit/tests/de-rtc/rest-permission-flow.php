@@ -476,11 +476,142 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'retry_save_applied', $data['result'] );
 		$this->assertTrue( $data['review_approval_proof_consumed'] );
+		$this->assertTrue( $data['review_approval_proof_token_invalidated'] );
 		$this->assertSame( $proof['candidate_post_content_hash'], $data['saved_post_content_hash'] );
 		$this->assertNotSame( $before_post->post_content, $after_post->post_content );
 		$this->assertIsArray( $parsed_saved );
 		$this->assertSame( $proposed_content, $parsed_saved['content'] );
 		$this->assertSame( '8', $parsed_saved['sync_meta']['version'] );
+		$this->assertFalse( get_transient( wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $proof_envelope ) ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 * @covers ::wp_de_rtc_get_accepted_review_approval_proof_from_envelope
+	 * @covers ::wp_de_rtc_create_opaque_review_approval_proof_token_envelope
+	 * @covers ::wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope
+	 */
+	public function test_retry_save_rejects_replayed_opaque_review_approval_proof_token_after_success_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'author replayed opaque token current content', 7, self::$author_user_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/replayed-token"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof          = $this->create_retry_save_review_approval_proof( $post_id, $proposed_content );
+		$proof_envelope = wp_de_rtc_create_opaque_review_approval_proof_token_envelope( $proof['review_approval_proof'] );
+		$token_key      = wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $proof_envelope );
+		$this->assert_opaque_review_approval_proof_envelope( $proof_envelope, $post_id );
+		$this->assertNotFalse( get_transient( $token_key ) );
+
+		$first_request  = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof_envelope,
+			)
+		);
+		$first_response = rest_get_server()->dispatch( $first_request );
+		$first_data     = $first_response->get_data();
+
+		$this->assertSame( 200, $first_response->get_status() );
+		$this->assertSame( 'retry_save_applied', $first_data['result'] );
+		$this->assertTrue( $first_data['review_approval_proof_token_invalidated'] );
+		$this->assertFalse( get_transient( $token_key ) );
+
+		$before_replay_post      = get_post( $post_id );
+		$before_replay_revisions = $this->get_post_revisions( $post_id );
+		$replay_request          = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '8',
+				'accepted_proof_server_version'  => '8',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof_envelope,
+			)
+		);
+		$replay_response         = rest_get_server()->dispatch( $replay_request );
+		$replay_error            = $replay_response->as_error();
+		$replay_data             = $replay_error->get_error_data( 'de_rtc_malformed_sync_payload' );
+
+		$this->assertErrorResponse( 'de_rtc_malformed_sync_payload', $replay_response, 400 );
+		$this->assertSame( 'unknown_retry_save_review_approval_proof_token', $replay_data['detail'] );
+		$this->assertSame( 'missing_or_evicted', $replay_data['review_approval_proof_token_storage_status'] );
+		$this->assertSame( 'unavailable', $replay_data['review_approval_proof_lifetime_status'] );
+		$this->assertTrue( $replay_data['review_approval_proof_requires_new_review'] );
+		$this->assertTrue( $replay_data['can_export_local_updates'] );
+		$this->assertFalse( $replay_data['saves_post'] );
+		$this->assertFalse( $replay_data['mutates_post_content'] );
+		$this->assertFalse( $replay_data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_replay_post->post_content, $before_replay_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 * @covers ::wp_de_rtc_get_accepted_review_approval_proof_from_envelope
+	 * @covers ::wp_de_rtc_create_opaque_review_approval_proof_token_envelope
+	 * @covers ::wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope
+	 * @covers ::wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope
+	 */
+	public function test_retry_save_rejects_evicted_opaque_review_approval_proof_token_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'author evicted opaque token current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/evicted-token"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof          = $this->create_retry_save_review_approval_proof( $post_id, $proposed_content );
+		$proof_envelope = wp_de_rtc_create_opaque_review_approval_proof_token_envelope( $proof['review_approval_proof'] );
+		$token_key      = wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $proof_envelope );
+		$this->assert_opaque_review_approval_proof_envelope( $proof_envelope, $post_id );
+		$this->assertTrue( delete_transient( $token_key ) );
+
+		$request = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof_envelope,
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_malformed_sync_payload' );
+
+		$this->assertErrorResponse( 'de_rtc_malformed_sync_payload', $response, 400 );
+		$this->assertSame( 'unknown_retry_save_review_approval_proof_token', $data['detail'] );
+		$this->assertSame( 'missing_or_evicted', $data['review_approval_proof_token_storage_status'] );
+		$this->assertSame( 'unavailable', $data['review_approval_proof_lifetime_status'] );
+		$this->assertTrue( $data['review_approval_proof_requires_new_review'] );
+		$this->assertTrue( $data['can_export_local_updates'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
 	/**
@@ -581,6 +712,14 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse( $expected_code, $response, $expected_status );
 		$this->assertSame( $expected_detail, $data['detail'] );
 		$this->assertSame( 'opaque_review_approval_proof_token', $data['review_approval_proof_format'] );
+		if ( in_array( $expected_detail, array( 'unknown_retry_save_review_approval_proof_token', 'retry_save_review_approval_proof_token_expired' ), true ) ) {
+			$this->assertTrue( $data['review_approval_proof_requires_new_review'] );
+			$this->assertTrue( $data['can_export_local_updates'] );
+		}
+		if ( 'unknown_retry_save_review_approval_proof_token' === $expected_detail ) {
+			$this->assertSame( 'missing_or_evicted', $data['review_approval_proof_token_storage_status'] );
+			$this->assertSame( 'unavailable', $data['review_approval_proof_lifetime_status'] );
+		}
 		$this->assertFalse( $data['saves_post'] );
 		$this->assertFalse( $data['mutates_post_content'] );
 		$this->assertFalse( $data['claims_saved'] );
@@ -924,6 +1063,12 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 
 		wp_set_current_user( self::$admin_user_id );
 
+		$accepted_review_approval_proof     = wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $author_data['accepted_review_approval_proof'], $post_id );
+		$accepted_review_approval_token_key = wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $author_data['accepted_review_approval_proof'] );
+		$this->assertIsArray( $accepted_review_approval_proof );
+		$this->assertNotEmpty( $accepted_review_approval_token_key );
+		$this->assertNotFalse( get_transient( $accepted_review_approval_token_key ) );
+
 		$admin_request = $this->create_distributed_editing_request(
 			'posts',
 			$post_id,
@@ -948,11 +1093,11 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertSame( 'retry_save_applied', $data['result'] );
 		$this->assertTrue( $data['retry_save_accepted'] );
 		$this->assertTrue( $data['review_approval_proof_consumed'] );
+		$this->assertTrue( $data['review_approval_proof_token_invalidated'] );
 		$this->assertSame( 1, $data['reviewed_block_item_count'] );
 		$this->assertSame( '8', $data['server_version'] );
-		$accepted_review_approval_proof = wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $author_data['accepted_review_approval_proof'], $post_id );
-		$this->assertIsArray( $accepted_review_approval_proof );
 		$this->assertNotSame( $accepted_review_approval_proof['candidate_post_content_hash'], $data['saved_post_content_hash'] );
+		$this->assertFalse( get_transient( $accepted_review_approval_token_key ) );
 		$this->assertTrue( $data['saves_post'] );
 		$this->assertTrue( $data['mutates_post_content'] );
 		$this->assertTrue( $data['claims_saved'] );

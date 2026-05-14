@@ -1896,9 +1896,11 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 			'retry_save_review_approval_proof_token_expired',
 			$post_id,
 			array(
-				'review_approval_proof_token_expires_at' => (int) $proof_envelope['expires_at'],
-				'review_approval_proof_current_time'    => $now,
-				'review_approval_proof_lifetime_status' => 'expired',
+				'review_approval_proof_token_expires_at'     => (int) $proof_envelope['expires_at'],
+				'review_approval_proof_current_time'         => $now,
+				'review_approval_proof_lifetime_status'      => 'expired',
+				'review_approval_proof_requires_new_review' => true,
+				'can_export_local_updates'                  => true,
 			)
 		);
 	}
@@ -1909,7 +1911,13 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 		return wp_de_rtc_get_opaque_review_approval_proof_token_error(
 			'de_rtc_malformed_sync_payload',
 			'unknown_retry_save_review_approval_proof_token',
-			$post_id
+			$post_id,
+			array(
+				'review_approval_proof_lifetime_status'      => 'unavailable',
+				'review_approval_proof_token_storage_status' => 'missing_or_evicted',
+				'review_approval_proof_requires_new_review'  => true,
+				'can_export_local_updates'                   => true,
+			)
 		);
 	}
 
@@ -1934,9 +1942,11 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 			'retry_save_review_approval_proof_token_expired',
 			$post_id,
 			array(
-				'review_approval_proof_token_expires_at' => isset( $record['expires_at'] ) ? (int) $record['expires_at'] : null,
-				'review_approval_proof_current_time'    => $now,
-				'review_approval_proof_lifetime_status' => 'expired',
+				'review_approval_proof_token_expires_at'     => isset( $record['expires_at'] ) ? (int) $record['expires_at'] : null,
+				'review_approval_proof_current_time'         => $now,
+				'review_approval_proof_lifetime_status'      => 'expired',
+				'review_approval_proof_requires_new_review' => true,
+				'can_export_local_updates'                  => true,
 			)
 		);
 	}
@@ -1954,6 +1964,33 @@ function wp_de_rtc_get_review_approval_proof_from_opaque_token_envelope( $proof_
 	}
 
 	return $record['field_based_review_approval_proof'];
+}
+
+/**
+ * Returns the transient key for an opaque token envelope, when available.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $proof_envelope Review approval proof or envelope.
+ * @return string Transient key, or empty string when the envelope is not an opaque token.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $proof_envelope ) {
+	if ( is_object( $proof_envelope ) ) {
+		$proof_envelope = get_object_vars( $proof_envelope );
+	}
+
+	if ( ! is_array( $proof_envelope ) ) {
+		return '';
+	}
+
+	$envelope_type = isset( $proof_envelope['proof_envelope_type'] ) ? sanitize_key( (string) $proof_envelope['proof_envelope_type'] ) : '';
+
+	if ( 'opaque_review_approval_proof_token' !== $envelope_type || empty( $proof_envelope['token'] ) ) {
+		return '';
+	}
+
+	return wp_de_rtc_get_opaque_review_approval_proof_token_transient_key( (string) $proof_envelope['token'] );
 }
 
 /**
@@ -2011,10 +2048,11 @@ function wp_de_rtc_get_opaque_review_approval_proof_token_error( $code, $detail,
  * @return array|WP_Error Proof consumption result, or rejection.
  */
 function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $post, $args ) {
-	$proof_required = ! empty( $args['proof_required'] );
-	$proof_envelope = isset( $args['review_approval_proof'] ) ? $args['review_approval_proof'] : null;
-	$post_id        = $post ? (int) $post->ID : 0;
-	$proof          = wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $proof_envelope, $post_id );
+	$proof_required            = ! empty( $args['proof_required'] );
+	$proof_envelope            = isset( $args['review_approval_proof'] ) ? $args['review_approval_proof'] : null;
+	$post_id                   = $post ? (int) $post->ID : 0;
+	$proof_token_transient_key = wp_de_rtc_get_opaque_review_approval_proof_token_transient_key_from_envelope( $proof_envelope );
+	$proof                     = wp_de_rtc_get_accepted_review_approval_proof_from_envelope( $proof_envelope, $post_id );
 
 	if ( is_wp_error( $proof ) ) {
 		return $proof;
@@ -2433,11 +2471,12 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 	$accepted_review_approval_proof = wp_de_rtc_add_review_approval_proof_signature( $accepted_review_approval_proof );
 
 	return array(
-		'review_approval_proof_consumed' => true,
-		'accepted_review_approval_proof' => $accepted_review_approval_proof,
-		'reviewed_block_items'           => $reviewed_block_items,
-		'reviewed_block_item_count'      => count( $reviewed_block_items ),
-		'block_review_status'            => ! empty( $reviewed_block_items ) ? 'approved_for_retry_save' : null,
+		'review_approval_proof_consumed'             => true,
+		'accepted_review_approval_proof'             => $accepted_review_approval_proof,
+		'reviewed_block_items'                       => $reviewed_block_items,
+		'reviewed_block_item_count'                  => count( $reviewed_block_items ),
+		'block_review_status'                        => ! empty( $reviewed_block_items ) ? 'approved_for_retry_save' : null,
+		'_review_approval_proof_token_transient_key' => $proof_token_transient_key,
 	);
 }
 
@@ -3233,6 +3272,15 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 
 	$revision_ids_after_save = wp_de_rtc_get_post_revision_ids( $post->ID );
 	$created_revision_ids    = array_values( array_diff( $revision_ids_after_save, $revision_ids_before_save ) );
+	$review_approval_proof_token_invalidated = false;
+
+	if (
+		is_array( $review_approval_consumption ) &&
+		! empty( $review_approval_consumption['review_approval_proof_consumed'] ) &&
+		! empty( $review_approval_consumption['_review_approval_proof_token_transient_key'] )
+	) {
+		$review_approval_proof_token_invalidated = delete_transient( $review_approval_consumption['_review_approval_proof_token_transient_key'] );
+	}
 
 	return array(
 		'mode'                                => 'retry_save',
@@ -3249,21 +3297,22 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'pending_change_count'                => $pending_change_count,
 		'proposed_post_content_hash'          => $proposed_post_content_hash,
 		'saved_post_content_hash'             => $candidate_hash,
-		'review_approval_proof_consumed'      => is_array( $review_approval_consumption ) && ! empty( $review_approval_consumption['review_approval_proof_consumed'] ),
-		'reviewed_block_item_count'           => is_array( $review_approval_consumption ) ? $review_approval_consumption['reviewed_block_item_count'] : 0,
-		'requires_server_state_refetch'       => false,
-		'requires_manual_conflict_resolution' => false,
-		'can_export_local_updates'            => false,
-		'save_path_required'                  => false,
-		'saves_post'                          => true,
-		'mutates_post_content'                => true,
-		'creates_revision'                    => ! empty( $created_revision_ids ),
-		'claims_saved'                        => true,
-		'revision_ids_before_save'            => $revision_ids_before_save,
-		'revision_ids_after_save'             => $revision_ids_after_save,
-		'created_revision_ids'                => $created_revision_ids,
-		'revision_created'                    => ! empty( $created_revision_ids ),
-		'permission_contract'                 => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
+		'review_approval_proof_consumed'          => is_array( $review_approval_consumption ) && ! empty( $review_approval_consumption['review_approval_proof_consumed'] ),
+		'review_approval_proof_token_invalidated' => $review_approval_proof_token_invalidated,
+		'reviewed_block_item_count'               => is_array( $review_approval_consumption ) ? $review_approval_consumption['reviewed_block_item_count'] : 0,
+		'requires_server_state_refetch'           => false,
+		'requires_manual_conflict_resolution'     => false,
+		'can_export_local_updates'                => false,
+		'save_path_required'                      => false,
+		'saves_post'                              => true,
+		'mutates_post_content'                    => true,
+		'creates_revision'                        => ! empty( $created_revision_ids ),
+		'claims_saved'                            => true,
+		'revision_ids_before_save'                => $revision_ids_before_save,
+		'revision_ids_after_save'                 => $revision_ids_after_save,
+		'created_revision_ids'                    => $created_revision_ids,
+		'revision_created'                        => ! empty( $created_revision_ids ),
+		'permission_contract'                     => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
 	);
 }
 
