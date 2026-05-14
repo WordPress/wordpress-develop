@@ -75,7 +75,7 @@ function block_core_home_link_build_li_wrapper_attributes( $context ) {
 	// collisions with the core version. Until this function is backported to
 	// core, we need to guard it's use and only call the prefixed name in
 	//  the plugin.
-	if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+	if ( function_exists( 'gutenberg_block_core_shared_navigation_build_css_font_sizes' ) ) {
 		$font_sizes = gutenberg_block_core_shared_navigation_build_css_font_sizes( $context );
 	} else {
 		$font_sizes = block_core_shared_navigation_build_css_font_sizes( $context );
