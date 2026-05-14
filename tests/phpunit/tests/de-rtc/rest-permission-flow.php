@@ -789,6 +789,205 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 */
+	public function test_retry_save_rejects_stale_signed_review_approval_after_newer_server_version_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'author stale signed proof current content', 7, self::$author_user_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/stale-signed"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof = $this->create_retry_save_review_approval_proof(
+			$post_id,
+			$proposed_content,
+			array(
+				'client_base_version'           => '7',
+				'accepted_proof_server_version' => '7',
+				'server_version'                => '7',
+				'rebased_from_version'          => '7',
+			)
+		);
+
+		$newer_content = wp_de_rtc_add_sync_meta_to_post_content(
+			'<!-- wp:paragraph --><p>Server advanced while review proof waited.</p><!-- /wp:paragraph -->',
+			'diff-match-patch',
+			array(
+				'version' => '8',
+			)
+		);
+
+		$this->assertIsString( $newer_content );
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $newer_content,
+				)
+			)
+		);
+
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$request          = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '8',
+				'accepted_proof_server_version'  => '8',
+				'rebased_from_version'           => '8',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof['review_approval_proof'],
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'stale_base_version_rejected' );
+
+		$this->assertErrorResponse( 'stale_base_version_rejected', $response, 409 );
+		$this->assertSame( 'post_retry_save_review_approval_consumption_stale_base', $data['rest_route'] );
+		$this->assertSame( '8', $data['client_base_version'] );
+		$this->assertSame( '8', $data['server_version'] );
+		$this->assertFalse( $data['review_approval_proof_consumed'] );
+		$this->assertSame( 'stale_after_server_version_advanced', $data['review_approval_proof_lifetime_status'] );
+		$this->assertSame( '7', $data['review_approval_proof_client_base_version'] );
+		$this->assertSame( '7', $data['review_approval_proof_server_version'] );
+		$this->assertSame( '7', $data['review_approval_proof_accepted_server_version'] );
+		$this->assertSame( '8', $data['review_approval_proof_current_server_version'] );
+		$this->assertSame( '8', $data['review_approval_proof_expected_server_version'] );
+		$this->assertTrue( $data['review_approval_proof_stale'] );
+		$this->assertTrue( $data['review_approval_proof_requires_new_review'] );
+		$this->assertTrue( $data['requires_server_state_refetch'] );
+		$this->assertTrue( $data['can_export_local_updates'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 */
+	public function test_retry_save_rejects_signed_review_approval_from_deleted_reviewer_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'deleted reviewer signed proof current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$reviewer_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/deleted-reviewer"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof = $this->create_retry_save_review_approval_proof(
+			$post_id,
+			$proposed_content,
+			array(
+				'reviewer_user_id' => $reviewer_id,
+			)
+		);
+
+		self::delete_user( $reviewer_id );
+
+		$request = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof['review_approval_proof'],
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $response, 403 );
+		$this->assertSame( 'retry_save_review_approval_reviewer_account_deleted', $data['detail'] );
+		$this->assertSame( 'post_retry_save', $data['rest_route'] );
+		$this->assertSame( $reviewer_id, $data['reviewer_user_id'] );
+		$this->assertSame( 'deleted', $data['reviewer_account_status'] );
+		$this->assertSame( 'unavailable', $data['reviewer_capability_status'] );
+		$this->assertSame( 'unfiltered_html', $data['reviewer_required_capability'] );
+		$this->assertContains( 'review_approval_proof.reviewer_user_id', $data['mismatched_identity_evidence_fields'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 */
+	public function test_retry_save_rejects_signed_review_approval_after_reviewer_capability_drift_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'reviewer capability drift signed proof current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$reviewer_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/reviewer-drift"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof = $this->create_retry_save_review_approval_proof(
+			$post_id,
+			$proposed_content,
+			array(
+				'reviewer_user_id' => $reviewer_id,
+			)
+		);
+
+		$reviewer = new WP_User( $reviewer_id );
+		$reviewer->set_role( 'author' );
+
+		$request = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof['review_approval_proof'],
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $response, 403 );
+		$this->assertSame( 'retry_save_review_approval_reviewer_capability_missing', $data['detail'] );
+		$this->assertSame( 'post_retry_save', $data['rest_route'] );
+		$this->assertSame( $reviewer_id, $data['reviewer_user_id'] );
+		$this->assertSame( 'active', $data['reviewer_account_status'] );
+		$this->assertSame( 'missing', $data['reviewer_capability_status'] );
+		$this->assertSame( 'unfiltered_html', $data['reviewer_required_capability'] );
+		$this->assertContains( 'review_approval_proof.reviewer_user_id', $data['mismatched_identity_evidence_fields'] );
+		$this->assertContains( 'review_approval_proof.reviewer_capability', $data['mismatched_identity_evidence_fields'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
 	 * @dataProvider data_invalid_review_approval_proofs
 	 *
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint

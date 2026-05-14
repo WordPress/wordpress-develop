@@ -1795,7 +1795,7 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		$proof_server_version !== $server_version ||
 		$proof_rebased_from_version !== $rebased_from_version
 	) {
-		return wp_de_rtc_get_stale_base_rejection_error(
+		$error = wp_de_rtc_get_stale_base_rejection_error(
 			$post,
 			array(
 				'client_base_version'      => $client_base_version,
@@ -1810,6 +1810,24 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 				'claims_saved'             => false,
 			)
 		);
+
+		$data = $error->get_error_data( 'stale_base_version_rejected' );
+
+		if ( is_array( $data ) ) {
+			$data['review_approval_proof_consumed']                 = false;
+			$data['review_approval_proof_lifetime_status']          = 'stale_after_server_version_advanced';
+			$data['review_approval_proof_client_base_version']      = $proof_client_base_version;
+			$data['review_approval_proof_server_version']           = $proof_server_version;
+			$data['review_approval_proof_accepted_server_version']  = $proof_accepted_server_version;
+			$data['review_approval_proof_rebased_from_version']     = $proof_rebased_from_version;
+			$data['review_approval_proof_current_server_version']   = $server_version;
+			$data['review_approval_proof_expected_server_version']  = $accepted_proof_server_version;
+			$data['review_approval_proof_stale']                    = true;
+			$data['review_approval_proof_requires_new_review']      = true;
+			$error->add_data( $data, 'stale_base_version_rejected' );
+		}
+
+		return $error;
 	}
 
 	$proposed_hash                      = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : '';
@@ -1859,8 +1877,50 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		);
 	}
 
-	if ( ! $proof_reviewer_user_id || ! user_can( $proof_reviewer_user_id, 'unfiltered_html' ) ) {
-		$identity_mismatch_fields[] = 'review_approval_proof.reviewer_user_id';
+	$proof_reviewer = $proof_reviewer_user_id ? get_userdata( $proof_reviewer_user_id ) : false;
+
+	if ( ! $proof_reviewer_user_id || ! $proof_reviewer ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because the review approval reviewer account no longer exists.' ),
+			array(
+				'detail'                              => 'retry_save_review_approval_reviewer_account_deleted',
+				'post_id'                             => $post_id,
+				'rest_route'                          => 'post_retry_save',
+				'reviewer_user_id'                    => $proof_reviewer_user_id,
+				'reviewer_account_status'             => 'deleted',
+				'reviewer_capability_status'          => 'unavailable',
+				'reviewer_required_capability'        => 'unfiltered_html',
+				'mismatched_identity_evidence_fields' => array( 'review_approval_proof.reviewer_user_id' ),
+				'raw_content_included'                => false,
+				'saves_post'                          => false,
+				'mutates_post_content'                => false,
+				'creates_revision'                    => false,
+				'claims_saved'                        => false,
+			)
+		);
+	}
+
+	if ( ! user_can( $proof_reviewer_user_id, 'unfiltered_html' ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because the review approval reviewer no longer has unfiltered HTML capability.' ),
+			array(
+				'detail'                              => 'retry_save_review_approval_reviewer_capability_missing',
+				'post_id'                             => $post_id,
+				'rest_route'                          => 'post_retry_save',
+				'reviewer_user_id'                    => $proof_reviewer_user_id,
+				'reviewer_account_status'             => 'active',
+				'reviewer_capability_status'          => 'missing',
+				'reviewer_required_capability'        => 'unfiltered_html',
+				'mismatched_identity_evidence_fields' => array( 'review_approval_proof.reviewer_user_id', 'review_approval_proof.reviewer_capability' ),
+				'raw_content_included'                => false,
+				'saves_post'                          => false,
+				'mutates_post_content'                => false,
+				'creates_revision'                    => false,
+				'claims_saved'                        => false,
+			)
+		);
 	}
 
 	if ( $proof_requires_unfiltered_saver || 'low_privileged_saver_candidate' === $proof_candidate_hash_scope ) {
