@@ -156,7 +156,9 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Tests executing the environment info ability.
+	 *
 	 * @ticket 64146
+	 * @ticket 65232
 	 */
 	public function test_core_get_environment_info_executes(): void {
 		// Requires manage_options.
@@ -172,7 +174,114 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'php_version', $ability_data );
 		$this->assertArrayHasKey( 'db_server_info', $ability_data );
 		$this->assertArrayHasKey( 'wp_version', $ability_data );
+		$this->assertArrayHasKey( 'site_health', $ability_data );
 		$this->assertSame( $environment, $ability_data['environment'] );
+		$this->assertSame( 'unknown', $ability_data['site_health']['status'] );
+	}
+
+	/**
+	 * Tests that the `fields` input limits `core/get-environment-info` output.
+	 *
+	 * @ticket 65232
+	 */
+	public function test_core_get_environment_info_fields_filtering(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+		$data    = $ability->execute(
+			array(
+				'fields' => array( 'php_version' ),
+			)
+		);
+
+		$this->assertCount( 1, $data );
+		$this->assertArrayHasKey( 'php_version', $data );
+		$this->assertArrayNotHasKey( 'environment', $data );
+	}
+
+	/**
+	 * Tests `site_health` in `core/get-environment-info` when the Site Health transient is populated.
+	 *
+	 * @ticket 65232
+	 */
+	public function test_core_get_environment_info_site_health_from_cache(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		set_transient(
+			'health-check-site-status-result',
+			wp_json_encode(
+				array(
+					'good'        => 8,
+					'recommended' => 1,
+					'critical'    => 0,
+					'issues'      => array(
+						array(
+							'test'        => 'wordpress_version',
+							'label'       => 'WordPress update available',
+							'status'      => 'recommended',
+							'description' => 'A new version of WordPress is available.',
+						),
+					),
+				)
+			)
+		);
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+		$data    = $ability->execute(
+			array(
+				'fields' => array( 'site_health' ),
+			)
+		);
+
+		$this->assertArrayHasKey( 'site_health', $data );
+		$health = $data['site_health'];
+		$this->assertSame( 'recommended', $health['status'] );
+		$this->assertSame( 8, $health['counts']['good'] );
+		$this->assertSame( 1, $health['counts']['recommended'] );
+		$this->assertSame( 0, $health['counts']['critical'] );
+		$this->assertCount( 1, $health['issues'] );
+		$this->assertSame( 'wordpress_version', $health['issues'][0]['test'] );
+		$this->assertFalse( $health['truncated'] );
+	}
+
+	/**
+	 * Tests that actionable Site Health issues are capped with `truncated` when the cache holds more than ten.
+	 *
+	 * @ticket 65232
+	 */
+	public function test_core_get_environment_info_site_health_issues_truncated(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$issues = array();
+		for ( $i = 0; $i < 15; $i++ ) {
+			$issues[] = array(
+				'test'        => 'test_' . $i,
+				'label'       => 'Issue ' . $i,
+				'status'      => 'recommended',
+				'description' => 'Description ' . $i,
+			);
+		}
+
+		set_transient(
+			'health-check-site-status-result',
+			wp_json_encode(
+				array(
+					'good'        => 0,
+					'recommended' => 15,
+					'critical'    => 0,
+					'issues'      => $issues,
+				)
+			)
+		);
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+		$data    = $ability->execute( array( 'fields' => array( 'site_health' ) ) );
+
+		$this->assertTrue( $data['site_health']['truncated'] );
+		$this->assertCount( 10, $data['site_health']['issues'] );
 	}
 
 	/**
