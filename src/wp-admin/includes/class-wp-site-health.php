@@ -3372,6 +3372,7 @@ class WP_Site_Health {
 			'good'        => 0,
 			'recommended' => 0,
 			'critical'    => 0,
+			'issues'      => array(),
 		);
 
 		// Don't run https test on development environments.
@@ -3456,8 +3457,10 @@ class WP_Site_Health {
 		foreach ( $results as $result ) {
 			if ( 'critical' === $result['status'] ) {
 				++$site_status['critical'];
+				$site_status['issues'][] = $result;
 			} elseif ( 'recommended' === $result['status'] ) {
 				++$site_status['recommended'];
+				$site_status['issues'][] = $result;
 			} else {
 				++$site_status['good'];
 			}

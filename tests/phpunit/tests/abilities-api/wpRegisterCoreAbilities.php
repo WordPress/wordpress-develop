@@ -163,8 +163,11 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_id );
 
-		$ability      = wp_get_ability( 'core/get-environment-info' );
-		$environment  = wp_get_environment_type();
+		$ability     = wp_get_ability( 'core/get-environment-info' );
+		$environment = wp_get_environment_type();
+
+		// Uncached site_health test.
+		delete_transient( 'health-check-site-status-result' );
 		$ability_data = $ability->execute();
 
 		$this->assertIsArray( $ability_data );
@@ -172,7 +175,47 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'php_version', $ability_data );
 		$this->assertArrayHasKey( 'db_server_info', $ability_data );
 		$this->assertArrayHasKey( 'wp_version', $ability_data );
+		$this->assertArrayHasKey( 'site_health', $ability_data );
 		$this->assertSame( $environment, $ability_data['environment'] );
+
+		$this->assertSame( 'unknown', $ability_data['site_health']['status'] );
+		$this->assertSame( 0, $ability_data['site_health']['counts']['good'] );
+		$this->assertEmpty( $ability_data['site_health']['issues'] );
+
+		// Test fields filtering.
+		$filtered_data = $ability->execute( array( 'fields' => array( 'php_version', 'site_health' ) ) );
+
+		$this->assertCount( 2, $filtered_data );
+		$this->assertArrayHasKey( 'php_version', $filtered_data );
+		$this->assertArrayHasKey( 'site_health', $filtered_data );
+
+		// Test with cached site_health results and truncation.
+		$issues = array();
+		for ( $i = 0; $i < 15; $i++ ) {
+			$issues[] = array(
+				'label'       => "Issue {$i}",
+				'status'      => 'recommended',
+				'description' => "Description {$i}",
+			);
+		}
+
+		$cached_data = array(
+			'good'        => 5,
+			'recommended' => 15,
+			'critical'    => 0,
+			'issues'      => $issues,
+		);
+		set_transient( 'health-check-site-status-result', wp_json_encode( $cached_data ) );
+
+		$cached_ability_data = $ability->execute( array( 'fields' => array( 'site_health' ) ) );
+		$site_health         = $cached_ability_data['site_health'];
+
+		$this->assertSame( 'recommended', $site_health['status'] );
+		$this->assertSame( 5, $site_health['counts']['good'] );
+		$this->assertSame( 15, $site_health['counts']['recommended'] );
+		$this->assertCount( 10, $site_health['issues'] ); // Should be truncated to 10
+		$this->assertTrue( $site_health['truncated'] );
+		$this->assertSame( 'Issue 0', $site_health['issues'][0]['label'] );
 	}
 
 	/**

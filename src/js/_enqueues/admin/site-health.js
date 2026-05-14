@@ -154,6 +154,13 @@ jQuery( function( $ ) {
 
 		SiteHealth.site_status.issues[ issue.status ]++;
 
+		if ( 'critical' === issue.status || 'recommended' === issue.status ) {
+			if ( 'undefined' === typeof SiteHealth.site_status.issue_list ) {
+				SiteHealth.site_status.issue_list = [];
+			}
+			SiteHealth.site_status.issue_list.push( issue );
+		}
+
 		count = SiteHealth.site_status.issues[ issue.status ];
 
 		// If no test name is supplied, append a placeholder for markup references.
@@ -255,7 +262,12 @@ jQuery( function( $ ) {
 				{
 					'action': 'health-check-site-status-result',
 					'_wpnonce': SiteHealth.nonce.site_status_result,
-					'counts': SiteHealth.site_status.issues
+					'counts': {
+						good: SiteHealth.site_status.issues.good,
+						recommended: SiteHealth.site_status.issues.recommended,
+						critical: SiteHealth.site_status.issues.critical,
+						issues: SiteHealth.site_status.issue_list
+					}
 				}
 			);
 
@@ -375,6 +387,7 @@ jQuery( function( $ ) {
 				'recommended': 0,
 				'critical': 0
 			};
+			SiteHealth.site_status.issue_list = [];
 		}
 
 		if ( 0 < SiteHealth.site_status.direct.length ) {
