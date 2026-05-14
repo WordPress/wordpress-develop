@@ -609,7 +609,7 @@ foreach ( $themes as $theme ) :
 				/* translators: %s: Theme name. */
 				$customize_aria_label = sprintf( _x( 'Customize %s', 'theme' ), $theme['name'] );
 				?>
-				<a class="button button-primary customize load-customize hide-if-no-customize"
+				<a class="button button-compact button-primary customize load-customize hide-if-no-customize"
 					href="<?php echo esc_url( $theme['actions']['customize'] ); ?>"
 					aria-label="<?php echo esc_attr( $customize_aria_label ); ?>"
 				><?php _e( 'Customize' ); ?></a>
@@ -619,7 +619,7 @@ foreach ( $themes as $theme ) :
 			/* translators: %s: Theme name. */
 			$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
 			?>
-			<a class="button activate"
+			<a class="button button-compact activate"
 				href="<?php echo esc_url( $theme['actions']['activate'] ); ?>"
 				aria-label="<?php echo esc_attr( $aria_label ); ?>"
 			><?php _e( 'Activate' ); ?></a>
@@ -630,7 +630,7 @@ foreach ( $themes as $theme ) :
 				/* translators: %s: Theme name. */
 				$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 				?>
-				<a class="button button-primary load-customize hide-if-no-customize"
+				<a class="button button-compact button-primary load-customize hide-if-no-customize"
 					href="<?php echo esc_url( $theme['actions']['customize'] ); ?>"
 					aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
 				><?php _e( 'Live Preview' ); ?></a>
@@ -640,7 +640,7 @@ foreach ( $themes as $theme ) :
 			/* translators: %s: Theme name. */
 			$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
 			?>
-			<a class="button disabled"
+			<a class="button button-compact disabled"
 				aria-label="<?php echo esc_attr( $aria_label ); ?>"
 			><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 
@@ -649,7 +649,7 @@ foreach ( $themes as $theme ) :
 				/* translators: %s: Theme name. */
 				$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 				?>
-				<a class="button button-primary hide-if-no-customize disabled"
+				<a class="button button-compact button-primary hide-if-no-customize disabled"
 					aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
 				><?php _e( 'Live Preview' ); ?></a>
 			<?php } ?>
@@ -1001,7 +1001,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$customize_aria_label = sprintf( _x( 'Customize %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button button-primary customize load-customize hide-if-no-customize"
+					<a class="button button-compact button-primary customize load-customize hide-if-no-customize"
 						href="{{{ data.actions.customize }}}"
 						aria-label="<?php echo esc_attr( $customize_aria_label ); ?>"
 					><?php _e( 'Customize' ); ?></a>
@@ -1012,7 +1012,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button activate"
+					<a class="button button-compact activate"
 						href="{{{ data.actions.activate }}}"
 						aria-label="<?php echo esc_attr( $aria_label ); ?>"
 					><?php _e( 'Activate' ); ?></a>
@@ -1021,7 +1021,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button button-primary load-customize hide-if-no-customize"
+					<a class="button button-compact button-primary load-customize hide-if-no-customize"
 						href="{{{ data.actions.customize }}}"
 						aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
 					><?php _e( 'Live Preview' ); ?></a>
@@ -1030,7 +1030,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button disabled"
+					<a class="button button-compact disabled"
 						aria-label="<?php echo esc_attr( $aria_label ); ?>"
 					><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 
@@ -1038,7 +1038,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button button-primary hide-if-no-customize disabled"
+					<a class="button button-compact button-primary hide-if-no-customize disabled"
 						aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
 					><?php _e( 'Live Preview' ); ?></a>
 				<# } #>
@@ -1251,7 +1251,7 @@ function wp_theme_auto_update_setting_template() {
 
 		<div class="theme-actions">
 			<div class="active-theme">
-				<a class="button button-primary customize load-customize hide-if-no-customize"
+				<a class="button button-compact button-primary customize load-customize hide-if-no-customize"
 					href="{{{ data.actions.customize }}}"
 				><?php _e( 'Customize' ); ?></a>
 				<?php echo implode( ' ', $current_theme_actions ); ?>
@@ -1263,7 +1263,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button button-primary load-customize hide-if-no-customize"
+					<a class="button button-compact button-primary load-customize hide-if-no-customize"
 						href="{{{ data.actions.customize }}}"
 						aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
 					><?php _e( 'Live Preview' ); ?></a>
@@ -1273,7 +1273,7 @@ function wp_theme_auto_update_setting_template() {
 						/* translators: %s: Theme name. */
 						$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
 						?>
-						<a class="button activate"
+						<a class="button button-compact activate"
 							href="{{{ data.actions.activate }}}"
 							aria-label="<?php echo esc_attr( $aria_label ); ?>"
 						><?php _e( 'Activate' ); ?></a>
@@ -1283,7 +1283,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button button-primary hide-if-no-customize disabled"
+					<a class="button button-compact button-primary hide-if-no-customize disabled"
 						aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
 					><?php _e( 'Live Preview' ); ?></a>
 
@@ -1292,7 +1292,7 @@ function wp_theme_auto_update_setting_template() {
 						/* translators: %s: Theme name. */
 						$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
 						?>
-						<a class="button disabled"
+						<a class="button button-compact disabled"
 							aria-label="<?php echo esc_attr( $aria_label ); ?>"
 						><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 					<# } #>
@@ -1304,7 +1304,7 @@ function wp_theme_auto_update_setting_template() {
 				/* translators: %s: Theme name. */
 				$aria_label = sprintf( _x( 'Delete %s', 'theme' ), '{{ data.name }}' );
 				?>
-				<a class="button delete-theme"
+				<a class="button button-compact delete-theme"
 					href="{{{ data.actions['delete'] }}}"
 					aria-label="<?php echo esc_attr( $aria_label ); ?>"
 				><?php _e( 'Delete' ); ?></a>
