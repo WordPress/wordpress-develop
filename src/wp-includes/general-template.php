@@ -4157,7 +4157,10 @@ function wp_get_code_editor_settings( $args ) {
 		'jshint'     => array(
 			'esversion'       => 11,
 			'module'          => str_ends_with( $args['file'] ?? '', '.mjs' ),
-			'espreeModuleUrl' => wp_script_modules()->get_registered( 'espree' )['src'] ?? null,
+
+			// This script module URL is intentionally referenced here instead of registering an espree script module
+			// in wp_default_script_modules(). This is a first stab at a core-only private module.
+			'espreeModuleUrl' => add_query_arg( 'ver', '9.6.1', includes_url( 'js/codemirror/espree.min.js' ) ),
 
 			// The following JSHint *linting rule* options are copied from
 			// <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
