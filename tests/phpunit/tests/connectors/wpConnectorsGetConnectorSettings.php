@@ -80,16 +80,17 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 			++$api_key_count;
 
 			$this->assertArrayHasKey( 'setting_name', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'setting_name'." );
+			$this->assertNotEmpty( $connector_data['authentication']['setting_name'], "Connector '{$connector_id}' setting_name should not be empty." );
 
-			// AI providers use the connectors_ai_{id}_api_key convention.
-			// Non-AI connectors may use custom setting names.
-			if ( 'ai_provider' === $connector_data['type'] ) {
-				$this->assertSame(
-					'connectors_ai_' . str_replace( '-', '_', $connector_id ) . '_api_key',
-					$connector_data['authentication']['setting_name'] ?? null,
-					"Connector '{$connector_id}' setting_name does not match expected format."
-				);
+			if ( 'ai_provider' !== $connector_data['type'] ) {
+				continue;
 			}
+
+			$this->assertSame(
+				'connectors_ai_' . str_replace( '-', '_', $connector_id ) . '_api_key',
+				$connector_data['authentication']['setting_name'],
+				"Connector '{$connector_id}' setting_name does not match expected AI provider format."
+			);
 		}
 
 		$this->assertGreaterThan( 0, $api_key_count, 'At least one connector should use api_key authentication.' );

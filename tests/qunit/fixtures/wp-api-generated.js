@@ -11011,12 +11011,6 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
-                        "wordpress_api_key": {
-                            "title": "Akismet Anti-spam API Key",
-                            "description": "API key for the Akismet Anti-spam connector.",
-                            "type": "string",
-                            "required": false
-                        },
                         "title": {
                             "title": "Title",
                             "description": "Site title.",
@@ -11089,12 +11083,6 @@ mockedApiResponse.Schema = {
                             "title": "",
                             "description": "Default post format.",
                             "type": "string",
-                            "required": false
-                        },
-                        "wp_collaboration_enabled": {
-                            "title": "",
-                            "description": "Enable Real-Time Collaboration",
-                            "type": "boolean",
                             "required": false
                         },
                         "posts_per_page": {
@@ -14550,7 +14538,6 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
-    "wordpress_api_key": "",
     "title": "Test Blog",
     "description": "",
     "url": "http://example.org",
@@ -14563,7 +14550,6 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
-    "wp_collaboration_enabled": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,

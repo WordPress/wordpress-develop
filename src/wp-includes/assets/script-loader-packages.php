@@ -100,7 +100,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => '0c1dfcebf759791c9a8b'
+		'version' => '93c3566b7f24c15b7e17'
 	),
 	'block-library.js' => array(
 		'dependencies' => array(
@@ -142,7 +142,7 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => 'd72ed53f961f90f21ed4'
+		'version' => '2dffdfe77b9c5cba960e'
 	),
 	'block-serialization-default-parser.js' => array(
 		'dependencies' => array(
@@ -214,7 +214,7 @@
 			'wp-rich-text',
 			'wp-warning'
 		),
-		'version' => '2cbe9a66c53c614d7d6f'
+		'version' => '5dedfe13f08880193a28'
 	),
 	'compose.js' => array(
 		'dependencies' => array(
@@ -257,16 +257,16 @@
 			'wp-data',
 			'wp-deprecated',
 			'wp-element',
+			'wp-hooks',
 			'wp-html-entities',
 			'wp-i18n',
 			'wp-private-apis',
 			'wp-rich-text',
-			'wp-sync',
 			'wp-undo-manager',
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => '4d15c0f82a9fb01a04ed'
+		'version' => '515bcc5a2962232ccea7'
 	),
 	'customize-widgets.js' => array(
 		'dependencies' => array(
@@ -304,7 +304,7 @@
 			'wp-private-apis',
 			'wp-redux-routine'
 		),
-		'version' => 'dc7feb6ad8da53887680'
+		'version' => '1756b6a2676c1b3369ab'
 	),
 	'data-controls.js' => array(
 		'dependencies' => array(
@@ -381,7 +381,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'f84d20a8526b3463e9ff'
+		'version' => '1975171eba5481ff37cd'
 	),
 	'edit-site.js' => array(
 		'dependencies' => array(
@@ -428,7 +428,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'a688ac97344ffdfcca99'
+		'version' => 'dfd078032a67983c4d32'
 	),
 	'edit-widgets.js' => array(
 		'dependencies' => array(
@@ -519,7 +519,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '49ff59c135229f1cc371'
+		'version' => '77209b33a51951b61574'
 	),
 	'element.js' => array(
 		'dependencies' => array(
@@ -675,7 +675,7 @@
 			'wp-private-apis',
 			'wp-url'
 		),
-		'version' => '4b640c092eb654d2bd78'
+		'version' => '714c49ed2942c98d088f'
 	),
 	'plugins.js' => array(
 		'dependencies' => array(
@@ -758,7 +758,7 @@
 			'wp-primitives',
 			'wp-url'
 		),
-		'version' => 'c72d27a8ac4e33cb74d6'
+		'version' => '21d86e46535b79d9afda'
 	),
 	'rich-text.js' => array(
 		'dependencies' => array(
@@ -810,14 +810,6 @@
 			
 		),
 		'version' => 'faa37ce61b7ec8394b2a'
-	),
-	'sync.js' => array(
-		'dependencies' => array(
-			'wp-api-fetch',
-			'wp-hooks',
-			'wp-private-apis'
-		),
-		'version' => '89ec294039260fd01952'
 	),
 	'theme.js' => array(
 		'dependencies' => array(
