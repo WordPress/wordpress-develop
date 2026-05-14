@@ -1517,6 +1517,20 @@ HTML
 				),
 				'should_warn'   => true,
 			),
+			'enqueue_async_warns'                => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array_merge(
+					array( 'module-deps-async-enqueue' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'strategy'            => 'async',
+						),
+					)
+				),
+				'should_warn'   => true,
+			),
 			'register_in_footer_does_not_warn'   => array(
 				'function_name' => 'wp_register_script',
 				'args'          => array_merge(
