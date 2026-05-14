@@ -1348,7 +1348,7 @@ function wp_de_rtc_rest_fresh_review_request_endpoint( $request ) {
  *     @type mixed $server_version             Server version known to the caller.
  *     @type mixed $pending_change_count       Pending local change count. Default 1.
  *     @type mixed $proposed_post_content_hash Proposed stripped post-content hash.
- *     @type mixed $candidate_post_content_hash Candidate stripped post-content hash.
+ *     @type mixed $candidate_post_content_hash Optional candidate stripped post-content hash.
  *     @type array $raw_request_params         Full request parameters for raw-content rejection.
  * }
  * @return array|WP_Error Fresh-review request result, or rejection.
@@ -1427,15 +1427,12 @@ function wp_de_rtc_get_fresh_review_request_result( $post, $args = array() ) {
 	$candidate_post_content_hash = wp_de_rtc_get_request_hash_evidence( $args, 'candidate_post_content_hash' );
 	$missing_hash_fields         = array();
 
-	foreach (
-		array(
-			'proposed_post_content_hash'  => $proposed_post_content_hash,
-			'candidate_post_content_hash' => $candidate_post_content_hash,
-		) as $field => $hash
-	) {
-		if ( ! wp_de_rtc_is_sha256_hash( $hash ) ) {
-			$missing_hash_fields[] = $field;
-		}
+	if ( ! wp_de_rtc_is_sha256_hash( $proposed_post_content_hash ) ) {
+		$missing_hash_fields[] = 'proposed_post_content_hash';
+	}
+
+	if ( null !== $candidate_post_content_hash && ! wp_de_rtc_is_sha256_hash( $candidate_post_content_hash ) ) {
+		$missing_hash_fields[] = 'candidate_post_content_hash';
 	}
 
 	if ( ! empty( $missing_hash_fields ) ) {
@@ -1474,7 +1471,9 @@ function wp_de_rtc_get_fresh_review_request_result( $post, $args = array() ) {
 		'server_version'                      => $server_version,
 		'pending_change_count'                => $pending_change_count,
 		'hash_evidence_status'                => 'accepted',
-		'hash_evidence_fields'                => array( 'proposed_post_content_hash', 'candidate_post_content_hash' ),
+		'hash_evidence_fields'                => null === $candidate_post_content_hash
+			? array( 'proposed_post_content_hash' )
+			: array( 'proposed_post_content_hash', 'candidate_post_content_hash' ),
 		'raw_content_included'                => false,
 		'reviewed_block_items_included'       => false,
 		'requires_admin_review'               => true,
