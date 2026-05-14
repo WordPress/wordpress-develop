@@ -705,6 +705,7 @@
 .about__header-navigation .nav-tab:active {
 	background-color: var(--nav-current);
 	color: var(--text-light);
+	border-radius: var(--border-radius);
 }
 
 .about__header-navigation .nav-tab-active {
@@ -719,6 +720,7 @@
 	background-color: var(--nav-current);
 	color: var(--text-light);
 	border-color: var(--nav-current);
+	border-radius: var(--border-radius);
 }
 
 @media screen and (max-width: 960px) {
