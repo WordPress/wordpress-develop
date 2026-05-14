@@ -470,7 +470,14 @@ function wp_de_rtc_register_rest_routes() {
 						'fresh_review_decision'          => array(
 							'description' => __( 'Reviewer decision for the fresh-review request.' ),
 							'type'        => 'string',
-							'enum'        => array( 'approved', 'rejected' ),
+							'enum'        => array(
+								'approved',
+								'approved_for_retry_save',
+								'approved_by_unfiltered_html_reviewer',
+								'rejected',
+								'rejected_by_reviewer',
+								'rejected_by_unfiltered_html_reviewer',
+							),
 						),
 						'proposed_post_content_hash'     => array(
 							'description' => __( 'SHA-256 hash of the proposed post content under review.' ),
@@ -2046,7 +2053,7 @@ function wp_de_rtc_get_fresh_review_decision_result( $post, $args = array() ) {
 	}
 
 	return array(
-		'result'                              => 'fresh_review_decision_recorded',
+		'result'                              => 'approved' === $decision ? 'fresh_review_decision_approved_for_retry_save' : 'fresh_review_decision_rejected_for_author_revision',
 		'fresh_review_decision_accepted'      => true,
 		'fresh_review_decision'               => $decision,
 		'fresh_review_decision_status'        => $decision,
@@ -2392,7 +2399,7 @@ function wp_de_rtc_normalize_fresh_review_decision( $decision ) {
 		return 'approved';
 	}
 
-	if ( in_array( $decision, array( 'rejected', 'reject', 'rejected_by_unfiltered_html_reviewer' ), true ) ) {
+	if ( in_array( $decision, array( 'rejected', 'reject', 'rejected_by_reviewer', 'rejected_by_unfiltered_html_reviewer' ), true ) ) {
 		return 'rejected';
 	}
 

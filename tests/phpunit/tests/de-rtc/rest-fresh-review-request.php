@@ -313,7 +313,7 @@ class Tests_DE_RTC_REST_Fresh_Review_Request extends WP_Test_REST_TestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'fresh_review_decision_recorded', $data['result'] );
+		$this->assertSame( 'fresh_review_decision_approved_for_retry_save', $data['result'] );
 		$this->assertTrue( $data['fresh_review_decision_accepted'] );
 		$this->assertSame( 'approved', $data['fresh_review_decision'] );
 		$this->assertSame( 'decision_recorded', $data['fresh_review_request_status'] );
@@ -391,7 +391,7 @@ class Tests_DE_RTC_REST_Fresh_Review_Request extends WP_Test_REST_TestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'fresh_review_decision_recorded', $data['result'] );
+		$this->assertSame( 'fresh_review_decision_rejected_for_author_revision', $data['result'] );
 		$this->assertSame( 'rejected', $data['fresh_review_decision'] );
 		$this->assertSame( 'rejected_by_unfiltered_html_reviewer', $data['review_status'] );
 		$this->assertSame( 0, $data['reviewed_block_decision_counts']['approved'] );
