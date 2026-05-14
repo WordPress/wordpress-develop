@@ -419,6 +419,22 @@ function wp_de_rtc_register_rest_routes() {
 							'description' => __( 'SHA-256 hash of the server candidate post content requiring fresh review.' ),
 							'type'        => 'string',
 						),
+						'local_updates_import_status' => array(
+							'description' => __( 'Current imported local updates status for a proofless fresh-review handoff.' ),
+							'type'        => 'string',
+						),
+						'local_updates_import_reason' => array(
+							'description' => __( 'Reason the imported local updates require a fresh review.' ),
+							'type'        => 'string',
+						),
+						'fresh_review_request_status' => array(
+							'description' => __( 'Current fresh-review request status known to the caller.' ),
+							'type'        => 'string',
+						),
+						'fresh_review_request_action' => array(
+							'description' => __( 'Fresh-review request action requested by the caller.' ),
+							'type'        => 'string',
+						),
 					),
 				),
 			)
@@ -1324,6 +1340,10 @@ function wp_de_rtc_rest_fresh_review_request_endpoint( $request ) {
 			'pending_change_count'       => $request->get_param( 'pending_change_count' ),
 			'proposed_post_content_hash' => $request->get_param( 'proposed_post_content_hash' ),
 			'candidate_post_content_hash' => $request->get_param( 'candidate_post_content_hash' ),
+			'local_updates_import_status' => $request->get_param( 'local_updates_import_status' ),
+			'local_updates_import_reason' => $request->get_param( 'local_updates_import_reason' ),
+			'fresh_review_request_status' => $request->get_param( 'fresh_review_request_status' ),
+			'fresh_review_request_action' => $request->get_param( 'fresh_review_request_action' ),
 			'raw_request_params'         => $request->get_params(),
 		)
 	);
@@ -1396,15 +1416,25 @@ function wp_de_rtc_get_fresh_review_request_result( $post, $args = array() ) {
 
 	$client_base_version    = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
 	$request_server_version = isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : '';
+	$local_import_status    = isset( $args['local_updates_import_status'] ) ? sanitize_text_field( (string) $args['local_updates_import_status'] ) : '';
+	$local_import_reason    = isset( $args['local_updates_import_reason'] ) ? sanitize_text_field( (string) $args['local_updates_import_reason'] ) : '';
+	$request_status         = isset( $args['fresh_review_request_status'] ) ? sanitize_text_field( (string) $args['fresh_review_request_status'] ) : '';
 	$server_version         = wp_de_rtc_get_post_sync_meta_version( $post );
 	$pending_change_count   = array_key_exists( 'pending_change_count', $args ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
+	$is_imported_fresh_review_request = (
+		'blocked' === $local_import_status &&
+		'fresh_review_required' === $local_import_reason &&
+		'fresh_review_required' === $request_status
+	);
+	$request_server_matches_current = ( null !== $server_version && $request_server_version === $server_version );
+	$client_base_matches_current    = ( null !== $server_version && $client_base_version === $server_version );
 
 	if (
 		'' === $client_base_version ||
 		'' === $request_server_version ||
 		null === $server_version ||
-		$client_base_version !== $server_version ||
-		$request_server_version !== $server_version
+		! $request_server_matches_current ||
+		( ! $client_base_matches_current && ! $is_imported_fresh_review_request )
 	) {
 		return wp_de_rtc_get_stale_base_rejection_error(
 			$post,

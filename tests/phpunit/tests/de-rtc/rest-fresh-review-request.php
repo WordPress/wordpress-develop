@@ -156,6 +156,48 @@ class Tests_DE_RTC_REST_Fresh_Review_Request extends WP_Test_REST_TestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_rest_fresh_review_request_endpoint
+	 * @covers ::wp_de_rtc_get_fresh_review_request_result
+	 */
+	public function test_fresh_review_request_accepts_import_handoff_with_current_server_version_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'post', 30 );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_hash    = hash( 'sha256', 'fresh review imported stale-base local updates' );
+		$request          = $this->create_fresh_review_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'         => '29',
+				'server_version'              => '30',
+				'pending_change_count'        => 2,
+				'proposed_post_content_hash'  => $proposed_hash,
+				'local_updates_import_status' => 'blocked',
+				'local_updates_import_reason' => 'fresh_review_required',
+				'fresh_review_request_status' => 'fresh_review_required',
+				'fresh_review_request_action' => 'request_admin_review',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'fresh_review_request_accepted_for_admin_review', $data['result'] );
+		$this->assertSame( 'requested', $data['fresh_review_request_status'] );
+		$this->assertSame( 'post_fresh_review_request', $data['rest_route'] );
+		$this->assertSame( '29', $data['client_base_version'] );
+		$this->assertSame( '30', $data['server_version'] );
+		$this->assertSame( array( 'proposed_post_content_hash' ), $data['hash_evidence_fields'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_payload_omits_private_fields( $data, array( $proposed_hash ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_fresh_review_request_endpoint
 	 * @covers ::wp_de_rtc_rest_fresh_review_request_permissions_check
 	 * @covers ::wp_de_rtc_rest_fresh_review_request_matches_post_type
 	 * @covers ::wp_de_rtc_get_rest_fresh_review_request_rest_base
