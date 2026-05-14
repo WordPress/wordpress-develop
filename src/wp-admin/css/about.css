@@ -21,7 +21,7 @@
 
 .about__container {
 	/* Section backgrounds */
-	--background: #EBE8E5;
+	--background: #ebe8e5;
 	--subtle-background: #eef0fd;
 
 	/* Main text color */
@@ -587,7 +587,7 @@
 	padding-right: 26rem; /* Space for the background image. */
 	min-height: clamp(10rem, 25vw, 18.75rem);
 	border-radius: var(--border-radius);
-	background-image: url( "../images/7-0-default.png?ver=7.0" );
+	background-image: url( "../images/7-0-default.png?ver=20260514" );
 	background-repeat: no-repeat;
 	background-position: right center;
 	background-size: cover;
@@ -596,39 +596,39 @@
 }
 
 .credits-php  .about__header {
-	background-image: url( "../images/7-0-credits.png?ver=7.0" );
+	background-image: url( "../images/7-0-credits.png?ver=20260514" );
 }
 
 .freedoms-php  .about__header {
-	background-image: url( "../images/7-0-freedoms.png?ver=7.0" );
+	background-image: url( "../images/7-0-freedoms.png?ver=20260514" );
 }
 
 .privacy-php  .about__header {
-	background-image: url( "../images/7-0-privacy.png?ver=7.0" );
+	background-image: url( "../images/7-0-privacy.png?ver=20260514" );
 }
 
 .contribute-php .about__header {
-	background-image: url( "../images/7-0-get-involved.png?ver=7.0" );
+	background-image: url( "../images/7-0-get-involved.png?ver=20260514" );
 }
 
 [dir="rtl"] .about__header {
-	background-image: url( "../images/7-0-default-rtl.png?ver=7.0" );
+	background-image: url( "../images/7-0-default-rtl.png?ver=20260514" );
 }
 
 [dir="rtl"] .credits-php  .about__header {
-	background-image: url( "../images/7-0-credits-rtl.png?ver=7.0" );
+	background-image: url( "../images/7-0-credits-rtl.png?ver=20260514" );
 }
 
 [dir="rtl"] .freedoms-php  .about__header {
-	background-image: url( "../images/7-0-freedoms-rtl.png?ver=7.0" );
+	background-image: url( "../images/7-0-freedoms-rtl.png?ver=20260514" );
 }
 
 [dir="rtl"] .privacy-php  .about__header {
-	background-image: url( "../images/7-0-privacy-rtl.png?ver=7.0" );
+	background-image: url( "../images/7-0-privacy-rtl.png?ver=20260514" );
 }
 
 [dir="rtl"] .contribute-php .about__header {
-	background-image: url( "../images/7-0-get-involved-rtl.png?ver=7.0" );
+	background-image: url( "../images/7-0-get-involved-rtl.png?ver=20260514" );
 }
 
 .about__header-image {
@@ -648,7 +648,7 @@
 	font-size: clamp(2rem, 20vw - 9rem, 4rem);
 	line-height: 1;
 	font-weight: 600;
-	color: #1E1E1E;
+	color: var(--text);
 }
 
 .about-php .about__header-title h1,
@@ -667,7 +667,7 @@
 	padding: 0;
 	font-size: 1.6rem;
 	line-height: 1.15;
-	color: #1E1E1E;
+	color: var(--text);
 }
 
 .about__header-navigation {
