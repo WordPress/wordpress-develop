@@ -340,6 +340,10 @@
 	.about__section.has-2-columns.has-gutters .column:last-child {
 		margin-bottom: 0;
 	}
+
+	.about__section .column:not(.is-edge-to-edge) {
+		padding: 0;
+	}
 }
 
 @media screen and (max-width: 480px) {
