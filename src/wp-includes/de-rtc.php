@@ -1779,13 +1779,18 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		);
 	}
 
-	$proposed_hash           = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : '';
-	$candidate_hash          = isset( $args['candidate_post_content_hash'] ) ? sanitize_text_field( (string) $args['candidate_post_content_hash'] ) : '';
-	$proof_proposed_hash     = wp_de_rtc_get_request_hash_evidence( $proof, 'proposed_post_content_hash' );
-	$proof_reviewed_proposed = wp_de_rtc_get_request_hash_evidence( $proof, 'reviewed_proposed_content_hash' );
-	$proof_candidate_hash    = wp_de_rtc_get_request_hash_evidence( $proof, 'candidate_post_content_hash' );
-	$proof_reviewed_candidate = wp_de_rtc_get_request_hash_evidence( $proof, 'reviewed_candidate_content_hash' );
-	$missing_hash_fields     = array();
+	$proposed_hash                      = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : '';
+	$candidate_hash                     = isset( $args['candidate_post_content_hash'] ) ? sanitize_text_field( (string) $args['candidate_post_content_hash'] ) : '';
+	$proof_proposed_hash                = wp_de_rtc_get_request_hash_evidence( $proof, 'proposed_post_content_hash' );
+	$proof_reviewed_proposed            = wp_de_rtc_get_request_hash_evidence( $proof, 'reviewed_proposed_content_hash' );
+	$proof_candidate_hash               = wp_de_rtc_get_request_hash_evidence( $proof, 'candidate_post_content_hash' );
+	$proof_reviewed_candidate           = wp_de_rtc_get_request_hash_evidence( $proof, 'reviewed_candidate_content_hash' );
+	$missing_hash_fields                = array();
+	$proof_candidate_hash_scope         = isset( $proof['candidate_post_content_hash_scope'] ) ? sanitize_key( (string) $proof['candidate_post_content_hash_scope'] ) : '';
+	$proof_requires_unfiltered_saver    = ! empty( $proof['requires_unfiltered_html_saver'] ) && wp_validate_boolean( $proof['requires_unfiltered_html_saver'] );
+	$can_consume_handoff_candidate_hash = current_user_can( 'unfiltered_html' )
+		&& $proof_requires_unfiltered_saver
+		&& 'low_privileged_saver_candidate' === $proof_candidate_hash_scope;
 
 	foreach (
 		array(
@@ -1828,11 +1833,13 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		$mismatched_fields[] = 'review_approval_proof.reviewed_proposed_content_hash';
 	}
 
-	if ( ! hash_equals( $candidate_hash, $proof_candidate_hash ) ) {
+	if ( ! hash_equals( $candidate_hash, $proof_candidate_hash ) && ! $can_consume_handoff_candidate_hash ) {
 		$mismatched_fields[] = 'review_approval_proof.candidate_post_content_hash';
 	}
 
-	if ( ! hash_equals( $candidate_hash, $proof_reviewed_candidate ) ) {
+	if ( ! hash_equals( $proof_candidate_hash, $proof_reviewed_candidate ) ) {
+		$mismatched_fields[] = 'review_approval_proof.reviewed_candidate_content_hash';
+	} elseif ( ! hash_equals( $candidate_hash, $proof_reviewed_candidate ) && ! $can_consume_handoff_candidate_hash ) {
 		$mismatched_fields[] = 'review_approval_proof.reviewed_candidate_content_hash';
 	}
 
@@ -1873,8 +1880,39 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		return $reviewed_block_items;
 	}
 
+	$requires_unfiltered_html_saver = ! current_user_can( 'unfiltered_html' );
+	$accepted_review_approval_proof = array(
+		'type'                              => 'unfiltered_html_retry_save_review_approval',
+		'status'                            => 'approved_by_unfiltered_html_reviewer',
+		'reviewer_capability'               => 'unfiltered_html',
+		'review_scope'                      => 'collaborative_post_content',
+		'review_status'                     => 'approved_by_unfiltered_html_reviewer',
+		'approval_status'                   => 'approved_for_retry_save',
+		'review_action'                     => 'request_unfiltered_html_reviewer',
+		'approval_action'                   => $requires_unfiltered_html_saver ? 'retry_save_with_unfiltered_html_saver' : 'retry_save_with_reviewer_approval',
+		'review_required_capability'        => 'unfiltered_html',
+		'client_base_version'               => $client_base_version,
+		'accepted_proof_server_version'     => $accepted_proof_server_version,
+		'server_version'                    => $server_version,
+		'proposed_post_content_hash'        => $proof_proposed_hash,
+		'reviewed_proposed_content_hash'    => $proof_reviewed_proposed,
+		'candidate_post_content_hash'       => $proof_candidate_hash,
+		'reviewed_candidate_content_hash'   => $proof_reviewed_candidate,
+		'candidate_post_content_hash_scope' => $requires_unfiltered_html_saver ? 'low_privileged_saver_candidate' : 'current_saver_candidate',
+		'requires_unfiltered_html_saver'    => $requires_unfiltered_html_saver,
+		'reviewed_block_items'              => $reviewed_block_items,
+		'reviewed_block_item_count'         => count( $reviewed_block_items ),
+		'block_review_status'               => ! empty( $reviewed_block_items ) ? 'approved_for_retry_save' : null,
+		'raw_content_included'              => false,
+		'saves_post'                        => false,
+		'mutates_post_content'              => false,
+		'creates_revision'                  => false,
+		'claims_saved'                      => false,
+	);
+
 	return array(
 		'review_approval_proof_consumed' => true,
+		'accepted_review_approval_proof' => $accepted_review_approval_proof,
 		'reviewed_block_items'           => $reviewed_block_items,
 		'reviewed_block_item_count'      => count( $reviewed_block_items ),
 		'block_review_status'            => ! empty( $reviewed_block_items ) ? 'approved_for_retry_save' : null,
@@ -2257,10 +2295,22 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 				'post_id'                        => (int) $post->ID,
 				'rest_route'                     => 'post_retry_save',
 				'pending_change_count'           => $pending_change_count,
+				'review_approval_proof_accepted' => true,
 				'review_approval_proof_consumed' => false,
+				'accepted_review_approval_proof_available' => true,
+				'accepted_review_approval_proof' => $review_approval_consumption['accepted_review_approval_proof'],
 				'reviewed_block_item_count'      => $review_approval_consumption['reviewed_block_item_count'],
 				'requires_unfiltered_html'       => true,
+				'requires_unfiltered_html_saver' => true,
 				'unfiltered_html_allowed'        => false,
+				'review_status'                  => 'approved_by_unfiltered_html_reviewer',
+				'approval_status'                => 'approved_for_retry_save',
+				'review_action'                  => 'request_unfiltered_html_reviewer',
+				'approval_action'                => 'retry_save_with_unfiltered_html_saver',
+				'review_required_capability'     => 'unfiltered_html',
+				'reviewer_capability'            => 'unfiltered_html',
+				'review_scope'                   => 'collaborative_post_content',
+				'raw_content_included'           => false,
 				'can_export_local_updates'       => true,
 				'saves_post'                     => false,
 				'mutates_post_content'           => false,
