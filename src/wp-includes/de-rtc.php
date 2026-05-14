@@ -2575,6 +2575,12 @@ function wp_de_rtc_get_fresh_review_consume_result( $post, $args = array() ) {
 		);
 	}
 
+	$reviewer_authority_error = wp_de_rtc_get_fresh_review_reviewer_authority_recheck_error( $post, $record, 'post_fresh_review_consume' );
+
+	if ( is_wp_error( $reviewer_authority_error ) ) {
+		return $reviewer_authority_error;
+	}
+
 	$client_base_version    = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
 	$request_server_version = isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : '';
 	$server_version         = wp_de_rtc_get_post_sync_meta_version( $post );
@@ -2895,6 +2901,8 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_contract( $record ) {
 		}
 	}
 
+	$reviewer_identity_retained = ! empty( $record['reviewer_user_id'] );
+
 	return array(
 		'contract'                                   => 'support_safe_fresh_review_lifecycle_debug',
 		'contract_version'                           => 1,
@@ -2927,14 +2935,120 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_contract( $record ) {
 				array_keys( $record )
 			)
 		),
-		'reviewer_identity_retained'                 => false,
-		'reviewer_capability_drift_recheck_supported' => false,
-		'requires_new_review_if_reviewer_authority_cannot_be_rechecked' => true,
+		'reviewer_identity_retained'                 => $reviewer_identity_retained,
+		'reviewer_capability_drift_recheck_supported' => $reviewer_identity_retained,
+		'requires_new_review_if_reviewer_authority_cannot_be_rechecked' => ! $reviewer_identity_retained,
 		'exposes_raw_content'                        => false,
 		'exposes_reviewer_identity'                  => false,
 		'exposes_saver_identity'                     => false,
 		'exposes_proof_internals'                    => false,
 		'exposes_reviewed_block_items'               => false,
+	);
+}
+
+/**
+ * Returns a no-write error when the original fresh-review reviewer drifted.
+ *
+ * The opaque record may retain reviewer identity privately so WordPress can
+ * recheck authority at consumption. Public responses expose only generic drift
+ * status and support-safe record evidence.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Post $post       Post object.
+ * @param array   $record     Fresh-review request record.
+ * @param string  $rest_route REST route label for the rejection.
+ * @return WP_Error|null Rejection error, or null when reviewer authority is current.
+ */
+function wp_de_rtc_get_fresh_review_reviewer_authority_recheck_error( $post, $record, $rest_route ) {
+	$post = get_post( $post );
+
+	if ( ! $post || ! is_array( $record ) ) {
+		return null;
+	}
+
+	$reviewer_user_id = isset( $record['reviewer_user_id'] ) ? absint( $record['reviewer_user_id'] ) : 0;
+	$reviewer         = $reviewer_user_id ? get_userdata( $reviewer_user_id ) : false;
+	$detail           = '';
+	$error_code       = 'de_rtc_sync_meta_tampered';
+	$authority_status = '';
+	$account_status   = 'active';
+	$capability_status = 'current';
+	$required_capability = 'unfiltered_html';
+
+	if ( ! $reviewer_user_id || ! $reviewer ) {
+		$detail            = 'fresh_review_reviewer_account_deleted';
+		$authority_status  = 'reviewer_account_deleted';
+		$account_status    = 'deleted';
+		$capability_status = 'unavailable';
+	} elseif ( ! user_can( $reviewer_user_id, 'unfiltered_html' ) ) {
+		$detail            = 'fresh_review_reviewer_unfiltered_html_missing';
+		$error_code        = 'de_rtc_review_approval_requires_unfiltered_html';
+		$authority_status  = 'reviewer_unfiltered_html_missing';
+		$capability_status = 'missing_unfiltered_html';
+	} elseif ( ! user_can( $reviewer_user_id, 'edit_post', (int) $post->ID ) ) {
+		$detail              = 'fresh_review_reviewer_edit_post_missing';
+		$authority_status    = 'reviewer_edit_post_missing';
+		$capability_status   = 'missing_edit_post';
+		$required_capability = 'edit_post';
+	}
+
+	if ( '' === $detail ) {
+		return null;
+	}
+
+	$public_record_evidence = wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record );
+
+	return wp_de_rtc_get_reason_error(
+		$error_code,
+		__( 'Distributed Editing rejected fresh-review consumption because reviewer authority changed.' ),
+		array(
+			'detail'                                  => $detail,
+			'post_id'                                 => (int) $post->ID,
+			'rest_route'                              => sanitize_key( (string) $rest_route ),
+			'fresh_review_request_record_id'          => isset( $record['public_record_id'] ) ? sanitize_text_field( (string) $record['public_record_id'] ) : '',
+			'fresh_review_request_record'             => $public_record_evidence,
+			'fresh_review_request_status'             => isset( $record['fresh_review_request_status'] ) ? sanitize_key( (string) $record['fresh_review_request_status'] ) : '',
+			'fresh_review_decision_recorded'          => ! empty( $record['decision_recorded'] ),
+			'fresh_review_decision_consumed'          => false,
+			'fresh_review_decision_lifecycle_status'  => 'capability_drift',
+			'fresh_review_decision_lifecycle_action'  => 'request_new_fresh_review',
+			'fresh_review_requires_new_review'        => true,
+			'fresh_review_support_evidence_available' => true,
+			'fresh_review_reviewer_authority_rechecked' => true,
+			'fresh_review_reviewer_authority_status'  => $authority_status,
+			'fresh_review_reviewer_account_status'    => $account_status,
+			'fresh_review_reviewer_capability_status' => $capability_status,
+			'fresh_review_reviewer_required_capability' => $required_capability,
+			'fresh_review_reviewer_identity_retained' => true,
+			'fresh_review_reviewer_identity_exposed'  => false,
+			'raw_content_included'                    => false,
+			'proof_internals_exposed'                 => false,
+			'reviewer_identity_exposed'               => false,
+			'saver_identity_exposed'                  => false,
+			'requires_unfiltered_html'                => 'unfiltered_html' === $required_capability,
+			'unfiltered_html_allowed'                 => current_user_can( 'unfiltered_html' ),
+			'requires_edit_post'                      => true,
+			'authorship_review_required'              => true,
+			'content_capability_review_required'      => true,
+			'review_status'                           => 'reviewer_capability_missing',
+			'review_action'                           => 'request_new_fresh_review',
+			'review_required_capability'              => $required_capability,
+			'reviewer_capability'                     => 'unfiltered_html',
+			'review_scope'                            => 'collaborative_post_content',
+			'can_export_local_updates'                => true,
+			'saves_post'                              => false,
+			'mutates_post_content'                    => false,
+			'creates_revision'                        => false,
+			'claims_saved'                            => false,
+			'consumes_review_decision'                => false,
+			'retry_save_attempted'                    => false,
+			'normal_save_attempted'                   => false,
+			'applies_recovery'                        => false,
+			'changes_locks'                           => false,
+			'permission_contract'                     => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
+		)
 	);
 }
 
@@ -3157,6 +3271,12 @@ function wp_de_rtc_get_retry_save_fresh_review_decision_consumption_result( $pos
 				'claims_saved'                   => false,
 			)
 		);
+	}
+
+	$reviewer_authority_error = wp_de_rtc_get_fresh_review_reviewer_authority_recheck_error( $post, $record, 'post_retry_save' );
+
+	if ( is_wp_error( $reviewer_authority_error ) ) {
+		return $reviewer_authority_error;
 	}
 
 	$proof_result     = isset( $proof['result'] ) ? sanitize_key( (string) $proof['result'] ) : '';
@@ -3502,6 +3622,7 @@ function wp_de_rtc_record_opaque_fresh_review_decision( $record, $post, $args ) 
 	$record['reviewed_block_items_included']     = ! empty( $reviewed_block_items );
 	$record['reviewed_block_item_count']         = count( $reviewed_block_items );
 	$record['reviewed_block_decision_counts']    = wp_de_rtc_count_fresh_review_decision_block_items( $reviewed_block_items );
+	$record['reviewer_user_id']                  = get_current_user_id();
 	$record['reviewer_capability']               = 'unfiltered_html';
 	$record['review_scope']                      = 'collaborative_post_content';
 	$record['raw_content_included']              = false;
