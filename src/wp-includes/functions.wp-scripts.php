@@ -94,7 +94,7 @@ function _wp_scripts_add_args_data( WP_Scripts $wp_scripts, string $handle, arra
 	$unknown_keys = array_diff( array_keys( $args ), $allowed_keys );
 	if ( ! empty( $unknown_keys ) ) {
 		$trace         = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 );
-		$function_name = ( $trace[1]['class'] ?? '' ) . ( $trace[1]['type'] ?? '' ) . $trace[1]['function'];
+		$function_name = ( $trace[1]['class'] ?? '' ) . ( $trace[1]['type'] ?? '' ) . ( $trace[1]['function'] ?? __FUNCTION__ );
 		_doing_it_wrong(
 			$function_name,
 			sprintf(
@@ -130,7 +130,7 @@ function _wp_scripts_add_args_data( WP_Scripts $wp_scripts, string $handle, arra
 		$is_deferred = 'defer' === ( $args['strategy'] ?? null );
 		if ( ! $in_footer && ! $is_deferred ) {
 			$trace         = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 );
-			$function_name = ( $trace[1]['class'] ?? '' ) . ( $trace[1]['type'] ?? '' ) . $trace[1]['function'];
+			$function_name = ( $trace[1]['class'] ?? '' ) . ( $trace[1]['type'] ?? '' ) . ( $trace[1]['function'] ?? __FUNCTION__ );
 			_doing_it_wrong(
 				$function_name,
 				sprintf(
