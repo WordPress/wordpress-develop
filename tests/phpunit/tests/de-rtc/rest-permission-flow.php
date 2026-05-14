@@ -339,6 +339,8 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 				'pending_change_count'          => 1,
 			)
 		);
+		$this->assert_review_approval_proof_has_current_time_site_scope( $proof['review_approval_proof'] );
+
 		$request = $this->create_distributed_editing_request(
 			'posts',
 			$post_id,
@@ -381,6 +383,50 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertSame( 'retry_save', $parsed_saved['sync_meta']['last_server_update']['type'] );
 		$this->assertSame( self::$admin_user_id, $parsed_saved['sync_meta']['last_server_update']['user_id'] );
 		$this->assertFalse( has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_review_approval_endpoint
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_approval_result
+	 * @covers ::wp_de_rtc_add_review_approval_proof_time_site_scope
+	 * @covers ::wp_de_rtc_get_review_approval_proof_site_scope
+	 */
+	public function test_review_approval_issues_signed_proof_with_time_and_site_scope() {
+		$post_id          = $this->create_sync_meta_post( 'review approval scoped proof current content', 7, self::$author_user_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/scoped-review"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof_evidence = $this->create_retry_save_review_approval_proof( $post_id, $proposed_content );
+		$request        = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'review-approval',
+			array(
+				'client_base_version'              => '7',
+				'accepted_proof_server_version'    => '7',
+				'pending_change_count'             => 1,
+				'proposed_post_content_hash'       => $proof_evidence['proposed_post_content_hash'],
+				'reviewed_proposed_content_hash'   => $proof_evidence['proposed_post_content_hash'],
+				'candidate_post_content_hash'      => $proof_evidence['candidate_post_content_hash'],
+				'reviewed_candidate_content_hash'  => $proof_evidence['candidate_post_content_hash'],
+				'reviewed_block_items'             => $proof_evidence['review_approval_proof']['reviewed_block_items'],
+			)
+		);
+		$not_before     = time();
+
+		$response  = rest_get_server()->dispatch( $request );
+		$not_after = time();
+		$data      = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'review_approval_accepted_for_retry_save', $data['result'] );
+		$this->assertTrue( $data['review_approval_accepted'] );
+		$this->assertIsArray( $data['review_approval_proof'] );
+		$this->assert_review_approval_proof_has_current_time_site_scope( $data['review_approval_proof'], $not_before, $not_after );
+		$this->assertSame( $proof_evidence['candidate_post_content_hash'], $data['review_approval_proof']['candidate_post_content_hash'] );
+		$this->assertSame( $proof_evidence['candidate_post_content_hash'], $data['review_approval_proof']['reviewed_candidate_content_hash'] );
+		$this->assert_review_rejection_omits_raw_content( $data, array( $proposed_content ) );
 	}
 
 	/**
@@ -867,6 +913,180 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$this->assertTrue( $data['can_export_local_updates'] );
 		$this->assertFalse( $data['saves_post'] );
 		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 * @covers ::wp_de_rtc_get_review_approval_proof_time_site_scope_error
+	 */
+	public function test_retry_save_rejects_expired_review_approval_proof_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'expired scoped review proof current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/expired-scope"></iframe><!-- /wp:html -->';
+		$issued_at        = time() - HOUR_IN_SECONDS;
+		$expires_at       = time() - MINUTE_IN_SECONDS;
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof   = $this->create_retry_save_review_approval_proof(
+			$post_id,
+			$proposed_content,
+			array(
+				'issued_at'  => $issued_at,
+				'expires_at' => $expires_at,
+			)
+		);
+		$request = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof['review_approval_proof'],
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $response, 403 );
+		$this->assertSame( 'retry_save_review_approval_proof_expired', $data['detail'] );
+		$this->assertSame( 'post_retry_save', $data['rest_route'] );
+		$this->assertFalse( $data['review_approval_proof_consumed'] );
+		$this->assertSame( $issued_at, $data['review_approval_proof_issued_at'] );
+		$this->assertSame( $expires_at, $data['review_approval_proof_expires_at'] );
+		$this->assertSame( 'expired', $data['review_approval_proof_lifetime_status'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 * @covers ::wp_de_rtc_get_review_approval_proof_time_site_scope_error
+	 */
+	public function test_retry_save_rejects_future_issued_review_approval_proof_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'future issued scoped review proof current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/future-scope"></iframe><!-- /wp:html -->';
+		$issued_at        = time() + wp_de_rtc_get_review_approval_proof_clock_skew_seconds() + MINUTE_IN_SECONDS;
+		$expires_at       = $issued_at + wp_de_rtc_get_review_approval_proof_lifetime_seconds();
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof   = $this->create_retry_save_review_approval_proof(
+			$post_id,
+			$proposed_content,
+			array(
+				'issued_at'  => $issued_at,
+				'expires_at' => $expires_at,
+			)
+		);
+		$request = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof['review_approval_proof'],
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $response, 403 );
+		$this->assertSame( 'retry_save_review_approval_proof_future_issued', $data['detail'] );
+		$this->assertSame( 'post_retry_save', $data['rest_route'] );
+		$this->assertFalse( $data['review_approval_proof_consumed'] );
+		$this->assertSame( $issued_at, $data['review_approval_proof_issued_at'] );
+		$this->assertSame( $expires_at, $data['review_approval_proof_expires_at'] );
+		$this->assertSame( 'future_issued', $data['review_approval_proof_lifetime_status'] );
+		$this->assertSame( wp_de_rtc_get_review_approval_proof_clock_skew_seconds(), $data['review_approval_proof_clock_skew_seconds'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 * @covers ::wp_de_rtc_get_review_approval_proof_time_site_scope_error
+	 */
+	public function test_retry_save_rejects_foreign_site_scope_review_approval_proof_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'foreign scoped review proof current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/foreign-scope"></iframe><!-- /wp:html -->';
+		$foreign_site_id  = get_current_blog_id() + 100;
+		$foreign_site_url = 'https://foreign.example.test';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof   = $this->create_retry_save_review_approval_proof(
+			$post_id,
+			$proposed_content,
+			array(
+				'site_id'  => $foreign_site_id,
+				'site_url' => $foreign_site_url,
+			)
+		);
+		$request = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof['review_approval_proof'],
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$error      = $response->as_error();
+		$data       = $error->get_error_data( 'de_rtc_sync_meta_tampered' );
+		$site_scope = wp_de_rtc_get_review_approval_proof_site_scope();
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $response, 403 );
+		$this->assertSame( 'retry_save_review_approval_site_scope_mismatch', $data['detail'] );
+		$this->assertSame( 'post_retry_save', $data['rest_route'] );
+		$this->assertFalse( $data['review_approval_proof_consumed'] );
+		$this->assertSame( $foreign_site_id, $data['review_approval_proof_site_id'] );
+		$this->assertSame( $foreign_site_url, $data['review_approval_proof_site_url'] );
+		$this->assertSame( $site_scope['site_id'], $data['expected_site_id'] );
+		$this->assertSame( $site_scope['site_url'], $data['expected_site_url'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
 		$this->assertFalse( $data['claims_saved'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
@@ -1564,6 +1784,13 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 			'creates_revision'                => false,
 			'claims_saved'                    => false,
 		);
+
+		foreach ( array( 'issued_at', 'expires_at', 'site_id', 'site_url' ) as $scoped_field ) {
+			if ( array_key_exists( $scoped_field, $args ) ) {
+				$review_approval_proof[ $scoped_field ] = $args[ $scoped_field ];
+			}
+		}
+
 		$review_approval_proof = wp_de_rtc_add_review_approval_proof_signature( $review_approval_proof );
 
 		return array(
@@ -1605,6 +1832,37 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		}
 
 		$this->assert_review_rejection_omits_raw_content_keys( $payload );
+	}
+
+	/**
+	 * Asserts that a signed review approval proof carries current site and time scope.
+	 *
+	 * @param array    $proof      Review approval proof.
+	 * @param int|null $not_before Optional lower issued_at bound.
+	 * @param int|null $not_after  Optional upper issued_at bound.
+	 */
+	private function assert_review_approval_proof_has_current_time_site_scope( $proof, $not_before = null, $not_after = null ) {
+		$site_scope = wp_de_rtc_get_review_approval_proof_site_scope();
+
+		$this->assertIsArray( $proof );
+		$this->assertArrayHasKey( 'issued_at', $proof );
+		$this->assertArrayHasKey( 'expires_at', $proof );
+		$this->assertArrayHasKey( 'site_id', $proof );
+		$this->assertArrayHasKey( 'site_url', $proof );
+		$this->assertIsInt( $proof['issued_at'] );
+		$this->assertIsInt( $proof['expires_at'] );
+		$this->assertSame( $proof['issued_at'] + wp_de_rtc_get_review_approval_proof_lifetime_seconds(), $proof['expires_at'] );
+		$this->assertSame( $site_scope['site_id'], $proof['site_id'] );
+		$this->assertSame( $site_scope['site_url'], $proof['site_url'] );
+		$this->assertTrue( wp_de_rtc_is_review_approval_proof_signature_valid( $proof ) );
+
+		if ( null !== $not_before ) {
+			$this->assertGreaterThanOrEqual( $not_before, $proof['issued_at'] );
+		}
+
+		if ( null !== $not_after ) {
+			$this->assertLessThanOrEqual( $not_after, $proof['issued_at'] );
+		}
 	}
 
 	/**

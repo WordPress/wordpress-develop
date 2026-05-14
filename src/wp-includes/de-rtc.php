@@ -1776,6 +1776,12 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		);
 	}
 
+	$proof_scope_error = wp_de_rtc_get_review_approval_proof_time_site_scope_error( $proof, $post_id );
+
+	if ( is_wp_error( $proof_scope_error ) ) {
+		return $proof_scope_error;
+	}
+
 	$client_base_version            = isset( $args['client_base_version'] ) ? sanitize_text_field( (string) $args['client_base_version'] ) : '';
 	$accepted_proof_server_version = isset( $args['accepted_proof_server_version'] ) ? sanitize_text_field( (string) $args['accepted_proof_server_version'] ) : '';
 	$server_version                 = isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : '';
@@ -2087,9 +2093,80 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
  * @return array Review approval proof with a server signature.
  */
 function wp_de_rtc_add_review_approval_proof_signature( $proof ) {
+	$proof = wp_de_rtc_add_review_approval_proof_time_site_scope( $proof );
 	$proof['proof_signature'] = wp_de_rtc_sign_review_approval_proof( $proof );
 
 	return $proof;
+}
+
+/**
+ * Adds server-issued time and site scope to a review approval proof.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $proof Review approval proof.
+ * @return array Review approval proof with time and site scope.
+ */
+function wp_de_rtc_add_review_approval_proof_time_site_scope( $proof ) {
+	if ( ! is_array( $proof ) ) {
+		return $proof;
+	}
+
+	$site_scope = wp_de_rtc_get_review_approval_proof_site_scope();
+	$issued_at  = isset( $proof['issued_at'] ) && is_numeric( $proof['issued_at'] ) ? (int) $proof['issued_at'] : time();
+
+	$proof['issued_at']  = $issued_at;
+	$proof['expires_at'] = isset( $proof['expires_at'] ) && is_numeric( $proof['expires_at'] )
+		? (int) $proof['expires_at']
+		: $issued_at + wp_de_rtc_get_review_approval_proof_lifetime_seconds();
+	$proof['site_id']    = isset( $proof['site_id'] ) && '' !== (string) $proof['site_id']
+		? absint( $proof['site_id'] )
+		: $site_scope['site_id'];
+	$proof['site_url']   = isset( $proof['site_url'] ) && '' !== (string) $proof['site_url']
+		? untrailingslashit( (string) $proof['site_url'] )
+		: $site_scope['site_url'];
+
+	return $proof;
+}
+
+/**
+ * Returns the current site scope used by review approval proofs.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return array Site scope evidence.
+ */
+function wp_de_rtc_get_review_approval_proof_site_scope() {
+	return array(
+		'site_id'  => (int) get_current_blog_id(),
+		'site_url' => untrailingslashit( get_site_url() ),
+	);
+}
+
+/**
+ * Returns the lifetime for server-issued review approval proofs.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return int Proof lifetime in seconds.
+ */
+function wp_de_rtc_get_review_approval_proof_lifetime_seconds() {
+	return 15 * MINUTE_IN_SECONDS;
+}
+
+/**
+ * Returns the tolerated clock skew for server-issued review approval proofs.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return int Clock skew window in seconds.
+ */
+function wp_de_rtc_get_review_approval_proof_clock_skew_seconds() {
+	return 5 * MINUTE_IN_SECONDS;
 }
 
 /**
@@ -2132,6 +2209,119 @@ function wp_de_rtc_is_review_approval_proof_signature_valid( $proof ) {
 	}
 
 	return hash_equals( wp_de_rtc_sign_review_approval_proof( $proof ), $proof['proof_signature'] );
+}
+
+/**
+ * Returns an error when a signed review approval proof has invalid time or site scope.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $proof   Signed review approval proof.
+ * @param int   $post_id Post ID for error evidence.
+ * @return WP_Error|null Scope error, or null when scope is valid.
+ */
+function wp_de_rtc_get_review_approval_proof_time_site_scope_error( $proof, $post_id ) {
+	$issued_at  = isset( $proof['issued_at'] ) && is_numeric( $proof['issued_at'] ) ? (int) $proof['issued_at'] : null;
+	$expires_at = isset( $proof['expires_at'] ) && is_numeric( $proof['expires_at'] ) ? (int) $proof['expires_at'] : null;
+	$now        = time();
+
+	if ( null === $issued_at || null === $expires_at || $issued_at <= 0 || $expires_at <= $issued_at ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because review approval proof time scope is invalid.' ),
+			array(
+				'detail'                                => 'retry_save_review_approval_proof_time_scope_invalid',
+				'post_id'                               => $post_id,
+				'rest_route'                            => 'post_retry_save',
+				'review_approval_proof_consumed'        => false,
+				'review_approval_proof_issued_at'       => $issued_at,
+				'review_approval_proof_expires_at'      => $expires_at,
+				'review_approval_proof_current_time'    => $now,
+				'review_approval_proof_lifetime_status' => 'invalid_time_scope',
+				'raw_content_included'                  => false,
+				'saves_post'                            => false,
+				'mutates_post_content'                  => false,
+				'creates_revision'                      => false,
+				'claims_saved'                          => false,
+			)
+		);
+	}
+
+	if ( $expires_at <= $now ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because review approval proof expired.' ),
+			array(
+				'detail'                                => 'retry_save_review_approval_proof_expired',
+				'post_id'                               => $post_id,
+				'rest_route'                            => 'post_retry_save',
+				'review_approval_proof_consumed'        => false,
+				'review_approval_proof_issued_at'       => $issued_at,
+				'review_approval_proof_expires_at'      => $expires_at,
+				'review_approval_proof_current_time'    => $now,
+				'review_approval_proof_lifetime_status' => 'expired',
+				'raw_content_included'                  => false,
+				'saves_post'                            => false,
+				'mutates_post_content'                  => false,
+				'creates_revision'                      => false,
+				'claims_saved'                          => false,
+			)
+		);
+	}
+
+	$clock_skew_seconds = wp_de_rtc_get_review_approval_proof_clock_skew_seconds();
+
+	if ( $issued_at > $now + $clock_skew_seconds ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because review approval proof was issued in the future.' ),
+			array(
+				'detail'                                   => 'retry_save_review_approval_proof_future_issued',
+				'post_id'                                  => $post_id,
+				'rest_route'                               => 'post_retry_save',
+				'review_approval_proof_consumed'           => false,
+				'review_approval_proof_issued_at'          => $issued_at,
+				'review_approval_proof_expires_at'         => $expires_at,
+				'review_approval_proof_current_time'       => $now,
+				'review_approval_proof_clock_skew_seconds' => $clock_skew_seconds,
+				'review_approval_proof_lifetime_status'    => 'future_issued',
+				'raw_content_included'                     => false,
+				'saves_post'                               => false,
+				'mutates_post_content'                     => false,
+				'creates_revision'                         => false,
+				'claims_saved'                             => false,
+			)
+		);
+	}
+
+	$site_scope     = wp_de_rtc_get_review_approval_proof_site_scope();
+	$proof_site_id  = isset( $proof['site_id'] ) ? absint( $proof['site_id'] ) : 0;
+	$proof_site_url = isset( $proof['site_url'] ) ? untrailingslashit( (string) $proof['site_url'] ) : '';
+
+	if ( $proof_site_id !== $site_scope['site_id'] || $proof_site_url !== $site_scope['site_url'] ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because review approval proof came from a different site.' ),
+			array(
+				'detail'                         => 'retry_save_review_approval_site_scope_mismatch',
+				'post_id'                        => $post_id,
+				'rest_route'                     => 'post_retry_save',
+				'review_approval_proof_consumed' => false,
+				'review_approval_proof_site_id'  => $proof_site_id,
+				'review_approval_proof_site_url' => $proof_site_url,
+				'expected_site_id'               => $site_scope['site_id'],
+				'expected_site_url'              => $site_scope['site_url'],
+				'raw_content_included'           => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	return null;
 }
 
 /**
