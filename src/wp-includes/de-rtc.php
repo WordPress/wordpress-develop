@@ -1943,6 +1943,87 @@ function wp_de_rtc_get_opaque_review_approval_proof_token_audit_option_name( $to
 }
 
 /**
+ * Returns the public audit record ID for an opaque review approval proof token.
+ *
+ * The ID is suitable for support correlation. It is derived from the stored
+ * token hash plus post/version evidence, but does not expose the token secret,
+ * proof graph, reviewer, saver, or raw content.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $token_hash     SHA-256 token hash.
+ * @param int    $post_id        Post ID.
+ * @param string $server_version Server sync version.
+ * @return string Public audit record ID, or empty string when unavailable.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_record_id( $token_hash, $post_id = 0, $server_version = '' ) {
+	$token_hash = sanitize_text_field( (string) $token_hash );
+
+	if ( ! wp_de_rtc_is_sha256_hash( $token_hash ) ) {
+		return '';
+	}
+
+	$record_id_material = implode(
+		'|',
+		array(
+			'wp-de-rtc-review-approval-token-audit-v1',
+			$token_hash,
+			max( 0, (int) $post_id ),
+			sanitize_text_field( (string) $server_version ),
+		)
+	);
+
+	return 'de-rtc-audit-' . substr( hash( 'sha256', $record_id_material ), 0, 24 );
+}
+
+/**
+ * Returns how long opaque token audit records should be retained after lifecycle evidence.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return int Retention period in seconds.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_retention_seconds() {
+	return 30 * DAY_IN_SECONDS;
+}
+
+/**
+ * Returns when an opaque token audit record becomes cleanup-eligible.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array    $record            Audit record.
+ * @param int|null $retention_seconds Optional retention period in seconds.
+ * @return int Unix timestamp, or 0 when unavailable.
+ */
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_eligible_at( $record, $retention_seconds = null ) {
+	if ( ! is_array( $record ) ) {
+		return 0;
+	}
+
+	$retention_seconds = null === $retention_seconds
+		? wp_de_rtc_get_opaque_review_approval_proof_token_audit_retention_seconds()
+		: max( 0, (int) $retention_seconds );
+	$lifecycle_time        = 0;
+	$lifecycle_time_fields = array( 'updated_at', 'expires_at', 'consumed_at', 'unavailable_at', 'expired_at', 'minted_at', 'created_at', 'issued_at' );
+
+	foreach ( $lifecycle_time_fields as $time_field ) {
+		if ( isset( $record[ $time_field ] ) && is_numeric( $record[ $time_field ] ) ) {
+			$lifecycle_time = max( $lifecycle_time, (int) $record[ $time_field ] );
+		}
+	}
+
+	if ( 0 === $lifecycle_time ) {
+		return 0;
+	}
+
+	return $lifecycle_time + $retention_seconds;
+}
+
+/**
  * Returns a durable audit record for an opaque review approval proof token.
  *
  * This record is audit evidence only. It must not include the proof graph,
@@ -2045,6 +2126,12 @@ function wp_de_rtc_record_opaque_review_approval_proof_token_audit_event( $token
 		}
 	}
 
+	$record['public_record_id'] = wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_record_id(
+		$record['token_hash'],
+		isset( $record['post_id'] ) ? (int) $record['post_id'] : 0,
+		isset( $record['server_version'] ) ? (string) $record['server_version'] : ''
+	);
+
 	if ( 'minted' === $event ) {
 		$record['minted_at'] = $now;
 	} elseif ( 'consumed' === $event ) {
@@ -2073,14 +2160,22 @@ function wp_de_rtc_record_opaque_review_approval_proof_token_audit_event( $token
 		$events = array_slice( $events, -10 );
 	}
 
-	$record['events']      = $events;
-	$record['event_count'] = isset( $record['event_count'] ) ? max( 0, (int) $record['event_count'] ) + 1 : count( $events );
+	$record['events']                    = $events;
+	$record['event_count']               = isset( $record['event_count'] )
+		? max( 0, (int) $record['event_count'] ) + 1
+		: count( $events );
+	$record['audit_retention_policy']    = 'opaque_review_approval_token_audit_option_retention_v1';
+	$record['audit_retention_seconds']   = wp_de_rtc_get_opaque_review_approval_proof_token_audit_retention_seconds();
+	$record['audit_cleanup_eligible_at'] = wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_eligible_at(
+		$record,
+		$record['audit_retention_seconds']
+	);
 
 	$recorded = $record_found
 		? update_option( $option_name, $record, false )
 		: add_option( $option_name, $record, '', 'no' );
 
-	return wp_de_rtc_get_opaque_review_approval_proof_token_audit_summary( $event, (bool) $recorded, $previous_status, true );
+	return wp_de_rtc_get_opaque_review_approval_proof_token_audit_summary( $event, (bool) $recorded, $previous_status, true, $record['public_record_id'] );
 }
 
 /**
@@ -2111,6 +2206,10 @@ function wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence(
 		$evidence['record_found'] = ! empty( $audit['record_found'] );
 	}
 
+	if ( ! empty( $audit['public_record_id'] ) ) {
+		$evidence['public_record_id'] = sanitize_text_field( (string) $audit['public_record_id'] );
+	}
+
 	return $evidence;
 }
 
@@ -2124,15 +2223,124 @@ function wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence(
  * @param bool        $recorded        Whether the audit record was written.
  * @param string|null $previous_status Previous lifecycle status.
  * @param bool        $record_found    Whether an audit record existed or was created.
+ * @param string      $public_record_id Public support-safe audit record ID.
  * @return array Public audit summary.
  */
-function wp_de_rtc_get_opaque_review_approval_proof_token_audit_summary( $event, $recorded, $previous_status = null, $record_found = false ) {
+function wp_de_rtc_get_opaque_review_approval_proof_token_audit_summary( $event, $recorded, $previous_status = null, $record_found = false, $public_record_id = '' ) {
 	return array(
-		'status'          => sanitize_key( (string) $event ),
-		'recorded'        => (bool) $recorded,
-		'previous_status' => null === $previous_status ? null : sanitize_key( (string) $previous_status ),
-		'record_found'    => (bool) $record_found,
+		'status'           => sanitize_key( (string) $event ),
+		'recorded'         => (bool) $recorded,
+		'previous_status'  => null === $previous_status ? null : sanitize_key( (string) $previous_status ),
+		'record_found'     => (bool) $record_found,
+		'public_record_id' => sanitize_text_field( (string) $public_record_id ),
 	);
+}
+
+/**
+ * Deletes retention-expired opaque token audit option records.
+ *
+ * This cleanup is intentionally narrow: it only deletes valid audit option
+ * records after their retention window. It does not delete transients, resolve
+ * proof, mutate posts, create revisions, apply recovery, save, or change locks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $args {
+ *     Optional cleanup arguments.
+ *
+ *     @type int $limit Maximum audit options to scan. Default 50, maximum 200.
+ *     @type int $now   Unix timestamp used for eligibility. Default current time.
+ * }
+ * @return array Cleanup summary with support-safe public record IDs.
+ */
+function wp_de_rtc_cleanup_opaque_review_approval_proof_token_audit_records( $args = array() ) {
+	global $wpdb;
+
+	$args  = is_array( $args ) ? $args : array();
+	$limit = array_key_exists( 'limit', $args ) ? absint( $args['limit'] ) : 50;
+	$limit = min( $limit, 200 );
+	$now   = isset( $args['now'] ) && is_numeric( $args['now'] ) ? (int) $args['now'] : time();
+
+	$summary = array(
+		'audit_record_type'          => 'opaque_review_approval_proof_token_audit_record',
+		'audit_storage_engine'       => 'option',
+		'limit'                      => $limit,
+		'scanned'                    => 0,
+		'deleted'                    => 0,
+		'skipped'                    => 0,
+		'deleted_public_record_ids'  => array(),
+		'deletes_proof_transients'   => false,
+		'resolves_proof'             => false,
+		'saves_post'                 => false,
+		'mutates_post_content'       => false,
+		'creates_revision'           => false,
+		'applies_recovery'           => false,
+		'changes_locks'              => false,
+		'affects_normal_save_paths'  => false,
+	);
+
+	if ( 0 === $limit ) {
+		return $summary;
+	}
+
+	$option_prefix = 'de_rtc_review_approval_token_audit_';
+	$option_names  = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT option_name
+			FROM $wpdb->options
+			WHERE option_name LIKE %s
+			ORDER BY option_id ASC
+			LIMIT %d",
+			$wpdb->esc_like( $option_prefix ) . '%',
+			$limit
+		)
+	);
+
+	foreach ( $option_names as $option_name ) {
+		$summary['scanned']++;
+		$record = get_option( $option_name, null );
+
+		if (
+			! is_array( $record ) ||
+			! isset( $record['type'], $record['audit_record_version'] ) ||
+			'opaque_review_approval_proof_token_audit_record' !== $record['type'] ||
+			1 !== (int) $record['audit_record_version']
+		) {
+			$summary['skipped']++;
+			continue;
+		}
+
+		$stored_cleanup_eligible_at   = isset( $record['audit_cleanup_eligible_at'] ) && is_numeric( $record['audit_cleanup_eligible_at'] )
+			? (int) $record['audit_cleanup_eligible_at']
+			: 0;
+		$computed_cleanup_eligible_at = wp_de_rtc_get_opaque_review_approval_proof_token_audit_cleanup_eligible_at( $record );
+		$cleanup_eligible_at          = max( $stored_cleanup_eligible_at, $computed_cleanup_eligible_at );
+
+		if ( 0 === $cleanup_eligible_at || $cleanup_eligible_at > $now ) {
+			$summary['skipped']++;
+			continue;
+		}
+
+		if ( delete_option( $option_name ) ) {
+			$summary['deleted']++;
+			$public_record_id = ! empty( $record['public_record_id'] )
+				? sanitize_text_field( (string) $record['public_record_id'] )
+				: wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_record_id(
+					isset( $record['token_hash'] ) ? $record['token_hash'] : '',
+					isset( $record['post_id'] ) ? (int) $record['post_id'] : 0,
+					isset( $record['server_version'] ) ? (string) $record['server_version'] : ''
+				);
+
+			if ( '' !== $public_record_id ) {
+				$summary['deleted_public_record_ids'][] = $public_record_id;
+			}
+		} else {
+			$summary['skipped']++;
+		}
+	}
+
+	return $summary;
 }
 
 /**
