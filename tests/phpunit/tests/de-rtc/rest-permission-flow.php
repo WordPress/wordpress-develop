@@ -1208,6 +1208,69 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_retry_save_review_approval_proof_consumption_result
+	 */
+	public function test_retry_save_rejects_signed_review_approval_after_reviewer_edit_post_drift_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 'reviewer edit-post drift signed proof current content', 7, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$reviewer_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$proposed_content = '<!-- wp:html --><iframe src="https://example.com/reviewer-edit-post-drift"></iframe><!-- /wp:html -->';
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$proof = $this->create_retry_save_review_approval_proof(
+			$post_id,
+			$proposed_content,
+			array(
+				'reviewer_user_id' => $reviewer_id,
+			)
+		);
+
+		$reviewer = new WP_User( $reviewer_id );
+		$reviewer->set_role( 'subscriber' );
+		$reviewer->add_cap( 'unfiltered_html' );
+
+		$this->assertTrue( user_can( $reviewer_id, 'unfiltered_html' ) );
+		$this->assertFalse( user_can( $reviewer_id, 'edit_post', $post_id ) );
+
+		$request = $this->create_distributed_editing_request(
+			'posts',
+			$post_id,
+			'retry-save',
+			array(
+				'client_base_version'            => '7',
+				'accepted_proof_server_version'  => '7',
+				'rebased_from_version'           => '7',
+				'pending_change_count'           => 1,
+				'proposed_post_content'          => $proposed_content,
+				'proposed_post_content_hash'     => $proof['proposed_post_content_hash'],
+				'accepted_review_approval_proof' => $proof['review_approval_proof'],
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $response, 403 );
+		$this->assertSame( 'retry_save_review_approval_reviewer_edit_post_missing', $data['detail'] );
+		$this->assertSame( 'post_retry_save', $data['rest_route'] );
+		$this->assertSame( $reviewer_id, $data['reviewer_user_id'] );
+		$this->assertSame( 'active', $data['reviewer_account_status'] );
+		$this->assertSame( 'missing_edit_post', $data['reviewer_capability_status'] );
+		$this->assertSame( 'edit_post', $data['reviewer_required_capability'] );
+		$this->assertContains( 'review_approval_proof.reviewer_user_id', $data['mismatched_identity_evidence_fields'] );
+		$this->assertContains( 'review_approval_proof.reviewer_edit_post', $data['mismatched_identity_evidence_fields'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
 	 * @dataProvider data_invalid_review_approval_proofs
 	 *
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint

@@ -1929,6 +1929,28 @@ function wp_de_rtc_get_retry_save_review_approval_proof_consumption_result( $pos
 		);
 	}
 
+	if ( ! user_can( $proof_reviewer_user_id, 'edit_post', $post_id ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because the review approval reviewer can no longer edit this post.' ),
+			array(
+				'detail'                              => 'retry_save_review_approval_reviewer_edit_post_missing',
+				'post_id'                             => $post_id,
+				'rest_route'                          => 'post_retry_save',
+				'reviewer_user_id'                    => $proof_reviewer_user_id,
+				'reviewer_account_status'             => 'active',
+				'reviewer_capability_status'          => 'missing_edit_post',
+				'reviewer_required_capability'        => 'edit_post',
+				'mismatched_identity_evidence_fields' => array( 'review_approval_proof.reviewer_user_id', 'review_approval_proof.reviewer_edit_post' ),
+				'raw_content_included'                => false,
+				'saves_post'                          => false,
+				'mutates_post_content'                => false,
+				'creates_revision'                    => false,
+				'claims_saved'                        => false,
+			)
+		);
+	}
+
 	if ( $proof_requires_unfiltered_saver || 'low_privileged_saver_candidate' === $proof_candidate_hash_scope ) {
 		if ( ! $proof_requires_unfiltered_saver || 'low_privileged_saver_candidate' !== $proof_candidate_hash_scope ) {
 			$identity_mismatch_fields[] = 'review_approval_proof.candidate_post_content_hash_scope';
