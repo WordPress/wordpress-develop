@@ -310,6 +310,65 @@ function wp_de_rtc_register_rest_routes() {
 							'type'        => 'string',
 							'pattern'     => '^[a-f0-9]{64}$',
 						),
+						'reviewed_block_items'                  => array(
+							'description' => __( 'Hash-only risky block review items approved by the reviewer.' ),
+							'type'        => 'array',
+							'default'     => array(),
+							'items'       => array(
+								'type'       => 'object',
+								'properties' => array(
+									'id'                             => array(
+										'type' => 'string',
+									),
+									'block_client_id'                => array(
+										'type' => 'string',
+									),
+									'block_name'                     => array(
+										'type' => 'string',
+									),
+									'block_label'                    => array(
+										'type' => 'string',
+									),
+									'block_path'                     => array(
+										'type'  => 'array',
+										'items' => array(
+											'type' => 'integer',
+										),
+									),
+									'change_kind'                    => array(
+										'type' => 'string',
+									),
+									'risk_reason'                    => array(
+										'type' => 'string',
+									),
+									'base_content_hash'              => array(
+										'type'    => 'string',
+										'pattern' => '^[a-f0-9]{64}$',
+									),
+									'proposed_content_hash'          => array(
+										'type'    => 'string',
+										'pattern' => '^[a-f0-9]{64}$',
+									),
+									'reviewed_proposed_content_hash' => array(
+										'type'    => 'string',
+										'pattern' => '^[a-f0-9]{64}$',
+									),
+									'kses_filtered_content_hash'     => array(
+										'type'    => 'string',
+										'pattern' => '^[a-f0-9]{64}$',
+									),
+									'review_status'                  => array(
+										'type' => 'string',
+									),
+									'review_evidence_type'           => array(
+										'type' => 'string',
+									),
+									'content_review_policy'          => array(
+										'type' => 'string',
+									),
+								),
+							),
+						),
 					),
 				),
 			)
@@ -1086,6 +1145,7 @@ function wp_de_rtc_rest_review_approval_endpoint( $request ) {
 			'reviewed_candidate_content_hash'      => $request->get_param( 'reviewed_candidate_content_hash' ),
 			'kses_filtered_proposed_content_hash'  => $request->get_param( 'kses_filtered_proposed_content_hash' ),
 			'kses_filtered_candidate_content_hash' => $request->get_param( 'kses_filtered_candidate_content_hash' ),
+			'reviewed_block_items'                 => $request->get_param( 'reviewed_block_items' ),
 			'raw_request_params'                   => $request->get_params(),
 		)
 	);
@@ -1115,6 +1175,7 @@ function wp_de_rtc_rest_review_approval_endpoint( $request ) {
  *     @type mixed $reviewed_candidate_content_hash      Reviewer-approved retry-save candidate hash.
  *     @type mixed $kses_filtered_proposed_content_hash  Optional filtered proposed-content hash.
  *     @type mixed $kses_filtered_candidate_content_hash Optional filtered retry-save candidate hash.
+ *     @type array $reviewed_block_items                 Optional approved risky-block review items.
  *     @type array $raw_request_params                   Full request parameters for raw-content rejection.
  * }
  * @return array|WP_Error Review approval result, or rejection.
@@ -1265,6 +1326,12 @@ function wp_de_rtc_get_unfiltered_html_review_approval_result( $post, $args = ar
 		);
 	}
 
+	$reviewed_block_items = wp_de_rtc_get_normalized_review_approval_block_items( $post, $args );
+
+	if ( is_wp_error( $reviewed_block_items ) ) {
+		return $reviewed_block_items;
+	}
+
 	$review_approval_proof = array(
 		'type'                              => 'unfiltered_html_retry_save_review_approval',
 		'status'                            => 'approved_by_unfiltered_html_reviewer',
@@ -1283,6 +1350,9 @@ function wp_de_rtc_get_unfiltered_html_review_approval_result( $post, $args = ar
 		'mutates_post_content'              => false,
 		'creates_revision'                  => false,
 		'claims_saved'                      => false,
+		'reviewed_block_items'              => $reviewed_block_items,
+		'reviewed_block_item_count'         => count( $reviewed_block_items ),
+		'block_review_status'               => ! empty( $reviewed_block_items ) ? 'approved_for_retry_save' : null,
 	);
 
 	if ( null !== $kses_filtered_proposed_content_hash ) {
@@ -1317,6 +1387,9 @@ function wp_de_rtc_get_unfiltered_html_review_approval_result( $post, $args = ar
 		'reviewed_candidate_content_hash'     => $reviewed_candidate_content_hash,
 		'kses_filtered_proposed_content_hash'  => $kses_filtered_proposed_content_hash,
 		'kses_filtered_candidate_content_hash' => $kses_filtered_candidate_content_hash,
+		'reviewed_block_items'                => $reviewed_block_items,
+		'reviewed_block_item_count'           => count( $reviewed_block_items ),
+		'block_review_status'                 => ! empty( $reviewed_block_items ) ? 'approved_for_retry_save' : null,
 		'raw_content_included'                => false,
 		'requires_server_state_refetch'       => false,
 		'requires_manual_conflict_resolution' => false,
@@ -1329,6 +1402,224 @@ function wp_de_rtc_get_unfiltered_html_review_approval_result( $post, $args = ar
 		'review_approval_proof'               => $review_approval_proof,
 		'permission_contract'                 => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
 	);
+}
+
+/**
+ * Returns normalized hash-only risky-block approval proof items.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Post $post Post object.
+ * @param array   $args Review approval arguments.
+ * @return array[]|WP_Error Normalized block review items, or a rejection.
+ */
+function wp_de_rtc_get_normalized_review_approval_block_items( $post, $args ) {
+	if (
+		! array_key_exists( 'reviewed_block_items', $args ) ||
+		null === $args['reviewed_block_items']
+	) {
+		return array();
+	}
+
+	if ( ! is_array( $args['reviewed_block_items'] ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the review approval because block review proof is malformed.' ),
+			array(
+				'detail'                       => 'malformed_review_approval_block_items',
+				'post_id'                      => (int) $post->ID,
+				'rest_route'                   => 'post_retry_save_review_approval',
+				'raw_content_included'         => false,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+			)
+		);
+	}
+
+	$normalized_items  = array();
+	$missing_fields    = array();
+	$mismatched_fields = array();
+	$unapproved_items  = array();
+
+	foreach ( $args['reviewed_block_items'] as $index => $item ) {
+		if ( is_object( $item ) ) {
+			$item = get_object_vars( $item );
+		}
+
+		if ( ! is_array( $item ) ) {
+			$missing_fields[] = 'reviewed_block_items.' . $index;
+			continue;
+		}
+
+		if (
+			! empty( $item['raw_content_included'] ) ||
+			! empty( $item['exposes_raw_content'] )
+		) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_sync_meta_tampered',
+				__( 'Distributed Editing rejected the review approval because a block review item included raw content evidence.' ),
+				array(
+					'detail'                       => 'review_approval_block_item_raw_content_rejected',
+					'post_id'                      => (int) $post->ID,
+					'rest_route'                   => 'post_retry_save_review_approval',
+					'reviewed_block_item_index'    => $index,
+					'request_raw_content_included' => true,
+					'raw_content_included'         => false,
+					'saves_post'                   => false,
+					'mutates_post_content'         => false,
+					'creates_revision'             => false,
+					'claims_saved'                 => false,
+				)
+			);
+		}
+
+		$id                             = isset( $item['id'] ) ? sanitize_text_field( (string) $item['id'] ) : '';
+		$review_status                  = isset( $item['review_status'] ) ? sanitize_key( (string) $item['review_status'] ) : '';
+		$proposed_content_hash          = wp_de_rtc_get_request_hash_evidence( $item, 'proposed_content_hash' );
+		$reviewed_proposed_content_hash = wp_de_rtc_get_request_hash_evidence( $item, 'reviewed_proposed_content_hash' );
+		$base_content_hash              = wp_de_rtc_get_request_hash_evidence( $item, 'base_content_hash' );
+		$kses_filtered_content_hash     = wp_de_rtc_get_request_hash_evidence( $item, 'kses_filtered_content_hash' );
+		$review_evidence_type           = isset( $item['review_evidence_type'] )
+			? sanitize_key( (string) $item['review_evidence_type'] )
+			: 'kses_block_hash_only_change';
+		$content_review_policy          = isset( $item['content_review_policy'] )
+			? sanitize_key( (string) $item['content_review_policy'] )
+			: 'kses';
+
+		if ( '' === $id ) {
+			$missing_fields[] = 'reviewed_block_items.' . $index . '.id';
+		}
+
+		if ( 'approved_for_retry_save' !== $review_status ) {
+			$unapproved_items[] = $id ? $id : (string) $index;
+		}
+
+		if ( ! wp_de_rtc_is_sha256_hash( $proposed_content_hash ) ) {
+			$missing_fields[] = 'reviewed_block_items.' . $index . '.proposed_content_hash';
+		}
+
+		if ( null === $reviewed_proposed_content_hash ) {
+			$reviewed_proposed_content_hash = $proposed_content_hash;
+		}
+
+		if ( ! wp_de_rtc_is_sha256_hash( $reviewed_proposed_content_hash ) ) {
+			$missing_fields[] = 'reviewed_block_items.' . $index . '.reviewed_proposed_content_hash';
+		}
+
+		if ( null !== $base_content_hash && ! wp_de_rtc_is_sha256_hash( $base_content_hash ) ) {
+			$missing_fields[] = 'reviewed_block_items.' . $index . '.base_content_hash';
+		}
+
+		if ( null !== $kses_filtered_content_hash && ! wp_de_rtc_is_sha256_hash( $kses_filtered_content_hash ) ) {
+			$missing_fields[] = 'reviewed_block_items.' . $index . '.kses_filtered_content_hash';
+		}
+
+		if (
+			null !== $proposed_content_hash &&
+			null !== $reviewed_proposed_content_hash &&
+			! hash_equals( $proposed_content_hash, $reviewed_proposed_content_hash )
+		) {
+			$mismatched_fields[] = 'reviewed_block_items.' . $index . '.reviewed_proposed_content_hash';
+		}
+
+		if ( 'kses_block_hash_only_change' !== $review_evidence_type ) {
+			$missing_fields[] = 'reviewed_block_items.' . $index . '.review_evidence_type';
+		}
+
+		if ( 'kses' !== $content_review_policy ) {
+			$missing_fields[] = 'reviewed_block_items.' . $index . '.content_review_policy';
+		}
+
+		$normalized_items[] = array(
+			'id'                             => $id,
+			'block_client_id'                => isset( $item['block_client_id'] )
+				? sanitize_text_field( (string) $item['block_client_id'] )
+				: '',
+			'block_name'                     => isset( $item['block_name'] )
+				? sanitize_text_field( (string) $item['block_name'] )
+				: '',
+			'block_label'                    => isset( $item['block_label'] )
+				? sanitize_text_field( (string) $item['block_label'] )
+				: '',
+			'block_path'                     => isset( $item['block_path'] ) && is_array( $item['block_path'] )
+				? array_map( 'absint', $item['block_path'] )
+				: array(),
+			'change_kind'                    => isset( $item['change_kind'] )
+				? sanitize_key( (string) $item['change_kind'] )
+				: '',
+			'risk_reason'                    => isset( $item['risk_reason'] )
+				? sanitize_key( (string) $item['risk_reason'] )
+				: '',
+			'base_content_hash'              => $base_content_hash,
+			'proposed_content_hash'          => $proposed_content_hash,
+			'reviewed_proposed_content_hash' => $reviewed_proposed_content_hash,
+			'kses_filtered_content_hash'     => $kses_filtered_content_hash,
+			'review_status'                  => 'approved_for_retry_save',
+			'review_evidence_type'           => 'kses_block_hash_only_change',
+			'content_review_policy'          => 'kses',
+			'raw_content_included'           => false,
+			'exposes_raw_content'            => false,
+		);
+	}
+
+	if ( ! empty( $missing_fields ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the review approval because block review hash evidence is incomplete.' ),
+			array(
+				'detail'                       => 'missing_review_approval_block_item_evidence',
+				'post_id'                      => (int) $post->ID,
+				'rest_route'                   => 'post_retry_save_review_approval',
+				'missing_hash_evidence_fields' => $missing_fields,
+				'raw_content_included'         => false,
+				'saves_post'                   => false,
+				'mutates_post_content'         => false,
+				'creates_revision'             => false,
+				'claims_saved'                 => false,
+			)
+		);
+	}
+
+	if ( ! empty( $unapproved_items ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing rejected the review approval because not every block review item was approved.' ),
+			array(
+				'detail'                         => 'review_approval_block_item_not_approved',
+				'post_id'                        => (int) $post->ID,
+				'rest_route'                     => 'post_retry_save_review_approval',
+				'unapproved_review_item_ids'     => $unapproved_items,
+				'raw_content_included'           => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	if ( ! empty( $mismatched_fields ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the review approval because block review hash evidence does not match.' ),
+			array(
+				'detail'                          => 'review_approval_block_item_hash_evidence_mismatch',
+				'post_id'                         => (int) $post->ID,
+				'rest_route'                      => 'post_retry_save_review_approval',
+				'mismatched_hash_evidence_fields' => $mismatched_fields,
+				'raw_content_included'            => false,
+				'saves_post'                      => false,
+				'mutates_post_content'            => false,
+				'creates_revision'                => false,
+				'claims_saved'                    => false,
+			)
+		);
+	}
+
+	return $normalized_items;
 }
 
 /**

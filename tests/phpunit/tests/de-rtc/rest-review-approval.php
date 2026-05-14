@@ -114,6 +114,224 @@ class Tests_DE_RTC_REST_Review_Approval extends WP_Test_REST_TestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_rest_review_approval_endpoint
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_approval_result
+	 * @covers ::wp_de_rtc_get_normalized_review_approval_block_items
+	 */
+	public function test_review_approval_accepts_approved_risky_block_items_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 12, self::$admin_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$proposed_hash    = hash( 'sha256', 'review approval proposed content' );
+		$candidate_hash   = hash( 'sha256', 'review approval candidate content' );
+		$block_hash       = hash( 'sha256', 'review approval risky block' );
+		$filtered_hash    = hash( 'sha256', 'review approval risky block filtered' );
+		$request          = $this->create_review_approval_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'             => '12',
+				'accepted_proof_server_version'   => '12',
+				'pending_change_count'            => 2,
+				'proposed_post_content_hash'      => $proposed_hash,
+				'reviewed_proposed_content_hash'  => $proposed_hash,
+				'candidate_post_content_hash'     => $candidate_hash,
+				'reviewed_candidate_content_hash' => $candidate_hash,
+				'reviewed_block_items'            => array(
+					$this->get_reviewed_block_item(
+						array(
+							'id'                         => 'risk-html-approve',
+							'proposed_content_hash'      => $block_hash,
+							'kses_filtered_content_hash' => $filtered_hash,
+						)
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'review_approval_accepted_for_retry_save', $data['result'] );
+		$this->assertSame( 1, $data['reviewed_block_item_count'] );
+		$this->assertSame( 'approved_for_retry_save', $data['block_review_status'] );
+		$this->assertSame( 'risk-html-approve', $data['reviewed_block_items'][0]['id'] );
+		$this->assertSame( $block_hash, $data['reviewed_block_items'][0]['proposed_content_hash'] );
+		$this->assertSame( $block_hash, $data['reviewed_block_items'][0]['reviewed_proposed_content_hash'] );
+		$this->assertSame( $filtered_hash, $data['reviewed_block_items'][0]['kses_filtered_content_hash'] );
+		$this->assertSame( 'approved_for_retry_save', $data['reviewed_block_items'][0]['review_status'] );
+		$this->assertSame( 'kses_block_hash_only_change', $data['reviewed_block_items'][0]['review_evidence_type'] );
+		$this->assertSame( 'kses', $data['reviewed_block_items'][0]['content_review_policy'] );
+		$this->assertFalse( $data['reviewed_block_items'][0]['raw_content_included'] );
+		$this->assertFalse( $data['reviewed_block_items'][0]['exposes_raw_content'] );
+		$this->assertSame( 1, $data['review_approval_proof']['reviewed_block_item_count'] );
+		$this->assertSame( 'approved_for_retry_save', $data['review_approval_proof']['block_review_status'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_review_approval_endpoint
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_approval_result
+	 * @covers ::wp_de_rtc_get_normalized_review_approval_block_items
+	 */
+	public function test_review_approval_rejects_unapproved_block_item_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 12, self::$admin_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$proposed_hash    = hash( 'sha256', 'review approval proposed content' );
+		$candidate_hash   = hash( 'sha256', 'review approval candidate content' );
+		$request          = $this->create_review_approval_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'             => '12',
+				'accepted_proof_server_version'   => '12',
+				'proposed_post_content_hash'      => $proposed_hash,
+				'reviewed_proposed_content_hash'  => $proposed_hash,
+				'candidate_post_content_hash'     => $candidate_hash,
+				'reviewed_candidate_content_hash' => $candidate_hash,
+				'reviewed_block_items'            => array(
+					$this->get_reviewed_block_item(
+						array(
+							'review_status' => 'pending_review',
+						)
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->as_error()->get_error_data( 'de_rtc_malformed_sync_payload' );
+
+		$this->assertErrorResponse( 'de_rtc_malformed_sync_payload', $response, 400 );
+		$this->assertSame( 'review_approval_block_item_not_approved', $data['detail'] );
+		$this->assertSame( array( 'risk-html-approve' ), $data['unapproved_review_item_ids'] );
+		$this->assertFalse( $data['raw_content_included'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_review_approval_endpoint
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_approval_result
+	 * @covers ::wp_de_rtc_get_normalized_review_approval_block_items
+	 */
+	public function test_review_approval_rejects_block_item_hash_mismatch_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 12, self::$admin_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$proposed_hash    = hash( 'sha256', 'review approval proposed content' );
+		$candidate_hash   = hash( 'sha256', 'review approval candidate content' );
+		$request          = $this->create_review_approval_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'             => '12',
+				'accepted_proof_server_version'   => '12',
+				'proposed_post_content_hash'      => $proposed_hash,
+				'reviewed_proposed_content_hash'  => $proposed_hash,
+				'candidate_post_content_hash'     => $candidate_hash,
+				'reviewed_candidate_content_hash' => $candidate_hash,
+				'reviewed_block_items'            => array(
+					$this->get_reviewed_block_item(
+						array(
+							'proposed_content_hash'          => hash( 'sha256', 'review approval risky block' ),
+							'reviewed_proposed_content_hash' => hash( 'sha256', 'different reviewed risky block' ),
+						)
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->as_error()->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $response, 403 );
+		$this->assertSame( 'review_approval_block_item_hash_evidence_mismatch', $data['detail'] );
+		$this->assertContains( 'reviewed_block_items.0.reviewed_proposed_content_hash', $data['mismatched_hash_evidence_fields'] );
+		$this->assertFalse( $data['raw_content_included'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_review_approval_endpoint
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_approval_result
+	 * @covers ::wp_de_rtc_get_normalized_review_approval_block_items
+	 */
+	public function test_review_approval_rejects_block_item_raw_content_flag_without_mutating() {
+		$post_id          = $this->create_sync_meta_post( 12, self::$admin_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$proposed_hash    = hash( 'sha256', 'review approval proposed content' );
+		$candidate_hash   = hash( 'sha256', 'review approval candidate content' );
+		$request          = $this->create_review_approval_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'             => '12',
+				'accepted_proof_server_version'   => '12',
+				'proposed_post_content_hash'      => $proposed_hash,
+				'reviewed_proposed_content_hash'  => $proposed_hash,
+				'candidate_post_content_hash'     => $candidate_hash,
+				'reviewed_candidate_content_hash' => $candidate_hash,
+				'reviewed_block_items'            => array(
+					$this->get_reviewed_block_item(
+						array(
+							'raw_content_included' => true,
+						)
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->as_error()->get_error_data( 'de_rtc_sync_meta_tampered' );
+
+		$this->assertErrorResponse( 'de_rtc_sync_meta_tampered', $response, 403 );
+		$this->assertSame( 'review_approval_block_item_raw_content_rejected', $data['detail'] );
+		$this->assertSame( 0, $data['reviewed_block_item_index'] );
+		$this->assertTrue( $data['request_raw_content_included'] );
+		$this->assertFalse( $data['raw_content_included'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_review_approval_endpoint
 	 * @covers ::wp_de_rtc_rest_review_approval_permissions_check
 	 */
 	public function test_review_approval_requires_unfiltered_html_reviewer_without_mutating() {
@@ -294,6 +512,29 @@ class Tests_DE_RTC_REST_Review_Approval extends WP_Test_REST_TestCase {
 		$request->set_body_params( $params );
 
 		return $request;
+	}
+
+	private function get_reviewed_block_item( $args = array() ) {
+		return array_merge(
+			array(
+				'id'                         => 'risk-html-approve',
+				'block_client_id'            => 'server-block-0',
+				'block_name'                 => 'core/html',
+				'block_label'                => 'HTML',
+				'block_path'                 => array( 0 ),
+				'change_kind'                => 'added_block',
+				'risk_reason'                => 'kses_would_remove_script',
+				'base_content_hash'          => hash( 'sha256', '' ),
+				'proposed_content_hash'      => hash( 'sha256', 'review approval risky block' ),
+				'kses_filtered_content_hash' => hash( 'sha256', 'review approval risky block filtered' ),
+				'review_status'              => 'approved_for_retry_save',
+				'review_evidence_type'       => 'kses_block_hash_only_change',
+				'content_review_policy'      => 'kses',
+				'raw_content_included'       => false,
+				'exposes_raw_content'        => false,
+			),
+			$args
+		);
 	}
 
 	private function create_sync_meta_post( $version, $post_author ) {
