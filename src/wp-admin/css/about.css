@@ -348,6 +348,14 @@
 	.about__section.has-2-columns.has-gutters .column:last-child {
 		margin-bottom: 0;
 	}
+
+	.about__section .column.is-left-padding-zero {
+        padding-right: 0;
+    }
+
+    .about__section .column.is-right-padding-zero {
+        padding-left: 0;
+    }
 }
 
 @media screen and (max-width: 480px) {
@@ -770,14 +778,6 @@
 	.about__header {
 		min-height: auto;
 		padding-right: var(--gap);
-	}
-
-	.about__header,
-	.credits-php .about__header,
-	.freedoms-php .about__header,
-	.privacy-php .about__header,
-	.contribute-php .about__header {
-		background: var(--accent-gradient) !important;
 	}
 
 	.about__header-navigation {
