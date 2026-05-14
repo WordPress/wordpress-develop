@@ -2832,6 +2832,17 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_result( $post, $args = array
 
 	$public_record_evidence = wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record );
 	$debug_contract         = wp_de_rtc_get_fresh_review_lifecycle_debug_contract( $record );
+	$claim_cleanup          = wp_de_rtc_get_stale_fresh_review_decision_consumption_claim_cleanup_result(
+		$record,
+		$post,
+		array(
+			'mode' => 'classify',
+		)
+	);
+
+	if ( is_wp_error( $claim_cleanup ) ) {
+		$claim_cleanup = array();
+	}
 
 	return array(
 		'result'                                  => 'fresh_review_lifecycle_debug_available',
@@ -2844,11 +2855,16 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_result( $post, $args = array
 		'fresh_review_decision_recorded'          => ! empty( $record['decision_recorded'] ),
 		'fresh_review_decision_status'            => isset( $record['fresh_review_decision_status'] ) ? sanitize_key( (string) $record['fresh_review_decision_status'] ) : '',
 		'fresh_review_decision_consumed'          => ! empty( $record['fresh_review_decision_consumed'] ),
+		'fresh_review_decision_consumption_claimed' => ! empty( $record['fresh_review_decision_consumption_claimed'] ),
 		'fresh_review_retry_save_applied'         => ! empty( $record['retry_save_applied'] ),
 		'fresh_review_consumes_review_decision'   => ! empty( $record['consumes_review_decision'] ),
 		'fresh_review_lifecycle_status'           => isset( $debug_contract['lifecycle_status'] ) ? $debug_contract['lifecycle_status'] : '',
 		'fresh_review_lifecycle_event'            => isset( $debug_contract['lifecycle_event'] ) ? $debug_contract['lifecycle_event'] : '',
 		'fresh_review_lifecycle_reason'           => isset( $debug_contract['lifecycle_reason'] ) ? $debug_contract['lifecycle_reason'] : '',
+		'fresh_review_claim_cleanup'              => $claim_cleanup,
+		'fresh_review_claim_cleanup_status'       => isset( $claim_cleanup['fresh_review_claim_cleanup_status'] ) ? $claim_cleanup['fresh_review_claim_cleanup_status'] : '',
+		'fresh_review_claim_is_stale'             => ! empty( $claim_cleanup['fresh_review_claim_is_stale'] ),
+		'fresh_review_claim_can_reclaim'          => ! empty( $claim_cleanup['fresh_review_claim_can_reclaim'] ),
 		'fresh_review_imported_handoff'           => ! empty( $record['imported_fresh_review_handoff'] ),
 		'fresh_review_previous_server_version'    => isset( $record['previous_server_version'] ) ? sanitize_text_field( (string) $record['previous_server_version'] ) : '',
 		'fresh_review_saved_server_version'       => isset( $record['saved_server_version'] ) ? sanitize_text_field( (string) $record['saved_server_version'] ) : '',
@@ -2911,6 +2927,10 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_contract( $record ) {
 	}
 
 	$reviewer_identity_retained = ! empty( $record['reviewer_user_id'] );
+	$claim_stale_after_seconds = wp_de_rtc_get_fresh_review_decision_consumption_claim_stale_after_seconds();
+	$claim_started_at          = isset( $record['fresh_review_decision_consumption_claimed_at'] ) && is_numeric( $record['fresh_review_decision_consumption_claimed_at'] )
+		? (int) $record['fresh_review_decision_consumption_claimed_at']
+		: 0;
 
 	return array(
 		'contract'                                   => 'support_safe_fresh_review_lifecycle_debug',
@@ -2925,10 +2945,15 @@ function wp_de_rtc_get_fresh_review_lifecycle_debug_contract( $record ) {
 		'decision_recorded'                          => ! empty( $record['decision_recorded'] ),
 		'decision_status'                            => isset( $record['fresh_review_decision_status'] ) ? sanitize_key( (string) $record['fresh_review_decision_status'] ) : '',
 		'decision_consumed'                          => ! empty( $record['fresh_review_decision_consumed'] ),
+		'decision_consumption_claimed'               => ! empty( $record['fresh_review_decision_consumption_claimed'] ),
+		'decision_consumption_claim_stale_after_seconds' => $claim_stale_after_seconds,
+		'decision_consumption_claim_cleanup_supported' => ! empty( $record['fresh_review_decision_consumption_claimed'] ),
+		'decision_consumption_claim_reclaim_eligible_at' => $claim_started_at > 0 ? $claim_started_at + $claim_stale_after_seconds : 0,
 		'imported_fresh_review_handoff'              => ! empty( $record['imported_fresh_review_handoff'] ),
 		'retry_save_attempted'                       => ! empty( $record['retry_save_attempted'] ),
 		'retry_save_applied'                         => ! empty( $record['retry_save_applied'] ),
 		'consumes_review_decision'                   => ! empty( $record['consumes_review_decision'] ),
+		'stale_consumption_claim_reclaimed'          => ! empty( $record['fresh_review_stale_consumption_claim_reclaimed'] ),
 		'previous_server_version'                    => isset( $record['previous_server_version'] ) ? sanitize_text_field( (string) $record['previous_server_version'] ) : '',
 		'saved_server_version'                       => isset( $record['saved_server_version'] ) ? sanitize_text_field( (string) $record['saved_server_version'] ) : '',
 		'created_revision_count'                     => isset( $record['created_revision_count'] ) ? max( 0, (int) $record['created_revision_count'] ) : 0,
@@ -3076,9 +3101,28 @@ function wp_de_rtc_get_fresh_review_decision_consumption_conflict_error( $post, 
 	$post                   = get_post( $post );
 	$public_record_evidence = wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record );
 	$is_claimed             = ! empty( $record['fresh_review_decision_consumption_claimed'] ) && empty( $record['fresh_review_decision_consumed'] ) && empty( $record['retry_save_applied'] );
-	$lifecycle_status       = $is_claimed ? 'consumption_in_progress' : 'already_consumed';
-	$lifecycle_event        = $is_claimed ? 'consume_claimed' : 'consumed';
-	$lifecycle_reason       = $is_claimed ? 'guarded_retry_save_in_progress' : 'guarded_retry_save_applied';
+	$claim_cleanup          = $is_claimed ? wp_de_rtc_get_stale_fresh_review_decision_consumption_claim_cleanup_result(
+		$record,
+		$post,
+		array(
+			'mode' => 'classify',
+		)
+	) : array();
+
+	if ( is_wp_error( $claim_cleanup ) ) {
+		$claim_cleanup = array();
+	}
+
+	$is_stale_claim   = $is_claimed && ! empty( $claim_cleanup['fresh_review_claim_is_stale'] );
+	$lifecycle_status = $is_claimed ? 'consumption_in_progress' : 'already_consumed';
+	$lifecycle_event  = $is_claimed ? 'consume_claimed' : 'consumed';
+	$lifecycle_reason = $is_claimed ? 'guarded_retry_save_in_progress' : 'guarded_retry_save_applied';
+
+	if ( $is_stale_claim ) {
+		$lifecycle_status = 'stale_consumption_claim';
+		$lifecycle_event  = 'consume_claim_stale';
+		$lifecycle_reason = 'interrupted_guarded_retry_save_write';
+	}
 
 	return wp_de_rtc_get_reason_error(
 		'de_rtc_sync_meta_tampered',
@@ -3101,6 +3145,10 @@ function wp_de_rtc_get_fresh_review_decision_consumption_conflict_error( $post, 
 			'fresh_review_saved_server_version'       => isset( $record['saved_server_version'] ) ? sanitize_text_field( (string) $record['saved_server_version'] ) : '',
 			'fresh_review_consumption_recorded'       => ! empty( $public_record_evidence['recorded'] ),
 			'fresh_review_support_evidence_available' => true,
+			'fresh_review_claim_cleanup'              => $claim_cleanup,
+			'fresh_review_claim_cleanup_status'       => isset( $claim_cleanup['fresh_review_claim_cleanup_status'] ) ? $claim_cleanup['fresh_review_claim_cleanup_status'] : '',
+			'fresh_review_claim_is_stale'             => ! empty( $claim_cleanup['fresh_review_claim_is_stale'] ),
+			'fresh_review_claim_can_reclaim'          => ! empty( $claim_cleanup['fresh_review_claim_can_reclaim'] ),
 			'raw_content_included'                    => false,
 			'consumes_review_decision'                => false,
 			'saves_post'                              => false,
@@ -3546,6 +3594,215 @@ function wp_de_rtc_atomic_update_opaque_fresh_review_request_record( $option_nam
 	wp_cache_delete( $option_name, 'options' );
 
 	return 1 === (int) $updated;
+}
+
+/**
+ * Returns the stale window for retry-save fresh-review consumption claims.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return int Stale-claim age in seconds.
+ */
+function wp_de_rtc_get_fresh_review_decision_consumption_claim_stale_after_seconds() {
+	return 15 * MINUTE_IN_SECONDS;
+}
+
+/**
+ * Classifies or reclaims a stale retry-save fresh-review consumption claim.
+ *
+ * This cleanup boundary only touches the opaque fresh-review support record.
+ * It does not expose reviewer identity, raw content, proof internals, claim
+ * IDs, or token material, and it does not save posts, create revisions, change
+ * locks, settings, or normal save behavior.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array   $record Fresh-review request record.
+ * @param WP_Post $post   Post object.
+ * @param array   $args   Optional cleanup arguments.
+ * @return array|WP_Error Support-safe claim cleanup result, or rejection.
+ */
+function wp_de_rtc_get_stale_fresh_review_decision_consumption_claim_cleanup_result( $record, $post, $args = array() ) {
+	$post        = get_post( $post );
+	$args        = is_array( $args ) ? $args : array();
+	$mode        = isset( $args['mode'] ) ? sanitize_key( (string) $args['mode'] ) : 'classify';
+	$mode        = 'reclaim' === $mode ? 'reclaim' : 'classify';
+	$now         = isset( $args['now'] ) && is_numeric( $args['now'] ) ? (int) $args['now'] : time();
+	$stale_after = isset( $args['stale_after_seconds'] ) && is_numeric( $args['stale_after_seconds'] )
+		? max( 1, (int) $args['stale_after_seconds'] )
+		: wp_de_rtc_get_fresh_review_decision_consumption_claim_stale_after_seconds();
+	$record_id   = is_array( $record ) && isset( $record['public_record_id'] ) ? sanitize_text_field( (string) $record['public_record_id'] ) : '';
+	$option_name = wp_de_rtc_get_opaque_fresh_review_request_record_option_name( $record_id );
+
+	if (
+		! $post ||
+		! is_array( $record ) ||
+		'' === $record_id ||
+		'' === $option_name ||
+		! isset( $record['post_id'], $record['post_type'] ) ||
+		(int) $record['post_id'] !== (int) $post->ID ||
+		(string) $record['post_type'] !== (string) $post->post_type
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not classify the fresh-review claim cleanup record.' ),
+			array(
+				'detail'                         => 'fresh_review_claim_cleanup_record_unavailable',
+				'post_id'                        => $post ? (int) $post->ID : 0,
+				'rest_route'                     => 'post_fresh_review_claim_cleanup',
+				'fresh_review_request_record_id' => $record_id,
+				'fresh_review_claim_cleanup_available' => false,
+				'raw_content_included'           => false,
+				'proof_internals_exposed'        => false,
+				'reviewer_identity_exposed'      => false,
+				'saver_identity_exposed'         => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'creates_revision'               => false,
+				'claims_saved'                   => false,
+				'changes_locks'                  => false,
+				'affects_normal_save_paths'      => false,
+			)
+		);
+	}
+
+	$claimed     = ! empty( $record['fresh_review_decision_consumption_claimed'] ) && empty( $record['fresh_review_decision_consumed'] ) && empty( $record['retry_save_applied'] ) && empty( $record['consumes_review_decision'] );
+	$consumed    = ! empty( $record['fresh_review_decision_consumed'] ) || ! empty( $record['retry_save_applied'] ) || ! empty( $record['consumes_review_decision'] );
+	$claimed_at  = isset( $record['fresh_review_decision_consumption_claimed_at'] ) && is_numeric( $record['fresh_review_decision_consumption_claimed_at'] )
+		? (int) $record['fresh_review_decision_consumption_claimed_at']
+		: 0;
+	$claim_age   = $claimed && $claimed_at > 0 ? max( 0, $now - $claimed_at ) : 0;
+	$eligible_at = $claimed && $claimed_at > 0 ? $claimed_at + $stale_after : 0;
+	$is_stale    = $claimed && $eligible_at > 0 && $eligible_at <= $now;
+	$can_reclaim = $is_stale && ! $consumed;
+	$status      = 'not_claimed';
+	$reason      = 'no_retry_save_claim_present';
+
+	if ( $consumed ) {
+		$status = 'already_consumed';
+		$reason = 'guarded_retry_save_already_applied';
+	} elseif ( $claimed && 0 === $claimed_at ) {
+		$status = 'claim_timestamp_unavailable';
+		$reason = 'claim_timestamp_missing';
+	} elseif ( $claimed && $is_stale ) {
+		$status = 'stale_claim_reclaim_available';
+		$reason = 'interrupted_guarded_retry_save_write';
+	} elseif ( $claimed ) {
+		$status = 'active_claim';
+		$reason = 'guarded_retry_save_may_still_be_in_progress';
+	}
+
+	$result = array(
+		'fresh_review_claim_cleanup_available' => true,
+		'fresh_review_claim_cleanup_mode'      => $mode,
+		'fresh_review_claim_cleanup_status'    => $status,
+		'fresh_review_claim_cleanup_reason'    => $reason,
+		'fresh_review_request_record_id'       => $record_id,
+		'fresh_review_request_record'          => wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $record ),
+		'fresh_review_decision_consumption_claimed' => $claimed,
+		'fresh_review_decision_consumed'       => $consumed,
+		'fresh_review_claim_started_at'        => $claimed_at,
+		'fresh_review_claim_age_seconds'       => $claim_age,
+		'fresh_review_claim_stale_after_seconds' => $stale_after,
+		'fresh_review_claim_reclaim_eligible_at' => $eligible_at,
+		'fresh_review_claim_is_stale'          => $is_stale,
+		'fresh_review_claim_can_reclaim'       => $can_reclaim,
+		'fresh_review_claim_reclaimed'         => false,
+		'fresh_review_support_evidence_available' => true,
+		'raw_content_included'                 => false,
+		'proof_internals_exposed'              => false,
+		'reviewer_identity_exposed'            => false,
+		'saver_identity_exposed'               => false,
+		'saves_post'                           => false,
+		'mutates_post_content'                 => false,
+		'creates_revision'                     => false,
+		'claims_saved'                         => false,
+		'changes_locks'                        => false,
+		'affects_normal_save_paths'            => false,
+	);
+
+	if ( 'reclaim' !== $mode || ! $can_reclaim ) {
+		return $result;
+	}
+
+	wp_cache_delete( $option_name, 'options' );
+
+	$stored_record = wp_de_rtc_get_opaque_fresh_review_request_record( $record_id );
+	$claim_id      = isset( $record['fresh_review_decision_consumption_claim_id'] ) ? sanitize_text_field( (string) $record['fresh_review_decision_consumption_claim_id'] ) : '';
+
+	if (
+		! is_array( $stored_record ) ||
+		'' === $claim_id ||
+		empty( $stored_record['fresh_review_decision_consumption_claimed'] ) ||
+		! isset( $stored_record['fresh_review_decision_consumption_claim_id'] ) ||
+		! hash_equals( $claim_id, (string) $stored_record['fresh_review_decision_consumption_claim_id'] ) ||
+		! empty( $stored_record['fresh_review_decision_consumed'] ) ||
+		! empty( $stored_record['retry_save_applied'] ) ||
+		! empty( $stored_record['consumes_review_decision'] )
+	) {
+		$result['fresh_review_claim_cleanup_status'] = 'stale_claim_reclaim_changed';
+		$result['fresh_review_claim_cleanup_reason'] = 'fresh_review_claim_record_changed_before_reclaim';
+		$result['fresh_review_claim_can_reclaim']    = false;
+
+		return $result;
+	}
+
+	$stored_claimed_at = isset( $stored_record['fresh_review_decision_consumption_claimed_at'] ) && is_numeric( $stored_record['fresh_review_decision_consumption_claimed_at'] )
+		? (int) $stored_record['fresh_review_decision_consumption_claimed_at']
+		: 0;
+	$stored_eligible_at = $stored_claimed_at > 0 ? $stored_claimed_at + $stale_after : 0;
+
+	if ( 0 === $stored_claimed_at || $stored_eligible_at > $now ) {
+		$result['fresh_review_claim_cleanup_status'] = 0 === $stored_claimed_at ? 'claim_timestamp_unavailable' : 'active_claim';
+		$result['fresh_review_claim_cleanup_reason'] = 0 === $stored_claimed_at ? 'claim_timestamp_missing' : 'guarded_retry_save_may_still_be_in_progress';
+		$result['fresh_review_claim_can_reclaim']    = false;
+		$result['fresh_review_claim_is_stale']       = false;
+
+		return $result;
+	}
+
+	$reclaimed = $stored_record;
+
+	$reclaimed['status']                                      = 'decision_recorded';
+	$reclaimed['fresh_review_request_status']                 = 'decision_recorded';
+	$reclaimed['updated_at']                                  = $now;
+	$reclaimed['retry_save_attempted']                        = false;
+	$reclaimed['fresh_review_lifecycle_status']               = 'retry_save_claim_reclaimed';
+	$reclaimed['fresh_review_lifecycle_event']                = 'consume_claim_reclaimed';
+	$reclaimed['fresh_review_lifecycle_reason']               = 'interrupted_guarded_retry_save_write_cleanup';
+	$reclaimed['fresh_review_stale_consumption_claim_reclaimed'] = true;
+	$reclaimed['fresh_review_stale_consumption_claim_reclaimed_at'] = $now;
+	$reclaimed['fresh_review_stale_consumption_claim_age_seconds'] = max( 0, $now - $stored_claimed_at );
+	$reclaimed['normal_save_attempted']                       = false;
+	$reclaimed['applies_recovery']                            = false;
+	$reclaimed['changes_locks']                               = false;
+	unset(
+		$reclaimed['fresh_review_decision_consumption_claimed'],
+		$reclaimed['fresh_review_decision_consumption_claimed_at'],
+		$reclaimed['fresh_review_decision_consumption_claim_id'],
+		$reclaimed['previous_server_version'],
+		$reclaimed['retry_save_proposed_post_content_hash'],
+		$reclaimed['retry_save_candidate_post_content_hash']
+	);
+
+	if ( ! wp_de_rtc_atomic_update_opaque_fresh_review_request_record( $option_name, $stored_record, $reclaimed ) ) {
+		$result['fresh_review_claim_cleanup_status'] = 'stale_claim_reclaim_failed';
+		$result['fresh_review_claim_cleanup_reason'] = 'fresh_review_claim_record_update_failed';
+		$result['fresh_review_claim_can_reclaim']    = false;
+
+		return $result;
+	}
+
+	$result['fresh_review_claim_cleanup_status']       = 'stale_claim_reclaimed';
+	$result['fresh_review_claim_cleanup_reason']       = 'interrupted_guarded_retry_save_write_cleanup';
+	$result['fresh_review_decision_consumption_claimed'] = false;
+	$result['fresh_review_claim_can_reclaim']          = false;
+	$result['fresh_review_claim_reclaimed']            = true;
+	$result['fresh_review_request_record']             = wp_de_rtc_get_opaque_fresh_review_request_public_evidence( $reclaimed );
+
+	return $result;
 }
 
 /**
