@@ -247,7 +247,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			if ( $this->is_trash && $this->has_items()
 				&& current_user_can( 'edit_others_posts' )
 			) {
-				submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
+				submit_button( __( 'Empty Trash' ), 'apply button-compact', 'delete_all', false );
 			}
 			?>
 		</div>
