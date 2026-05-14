@@ -8,6 +8,19 @@
  * @covers ::wp_script_add_data
  * @covers ::wp_add_inline_script
  * @covers ::wp_set_script_translations
+ *
+ * @phpstan-type ScriptArgs array{
+ *     in_footer?: bool,
+ *     module_dependencies?: non-empty-string[],
+ *     strategy?: 'async'|'defer',
+ * }
+ * @phpstan-type WpEnqueueScriptArgs array{
+ *     0: non-empty-string, // $handle
+ *     1?: non-empty-string, // $src
+ *     2?: non-empty-string[], // $deps
+ *     3?: null|bool|string, // $version
+ *     4?: ScriptArgs,
+ * }
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
@@ -1408,11 +1421,13 @@ HTML
 	 *
 	 * @dataProvider data_module_dependencies_require_footer_or_defer
 	 *
-	 * @param string $function_name Function name to call.
-	 * @param array  $args          Arguments to pass to the function.
-	 * @param bool   $should_warn   Whether the call is expected to trigger a `_doing_it_wrong` warning.
+	 * @param callable-string $function_name Function name to call.
+	 * @param array           $args          Arguments to pass to the function.
+	 * @param bool            $should_warn   Whether the call is expected to trigger a `_doing_it_wrong` warning.
+	 *
+	 * @phpstan-param WpEnqueueScriptArgs $args
 	 */
-	public function test_module_dependencies_require_footer_or_defer( string $function_name, array $args, bool $should_warn ) {
+	public function test_module_dependencies_require_footer_or_defer( string $function_name, array $args, bool $should_warn ): void {
 		if ( $should_warn ) {
 			$this->setExpectedIncorrectUsage( $function_name );
 		}
@@ -1445,9 +1460,13 @@ HTML
 	}
 
 	/**
-	 * Data provider for test_module_dependencies_require_footer_or_defer.
+	 * Data provider for {@see self::test_module_dependencies_require_footer_or_defer()}.
 	 *
-	 * @return array<string, array{function_name: string, args: array, should_warn: bool}>
+	 * @phpstan-return array<string, array{
+	 *     function_name: callable-string,
+	 *     args: WpEnqueueScriptArgs,
+	 *     should_warn: bool,
+	 * }>
 	 */
 	public function data_module_dependencies_require_footer_or_defer(): array {
 		$base_args = array(
