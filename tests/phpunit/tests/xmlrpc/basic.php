@@ -132,19 +132,31 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 
 	public function data_malformed_multicall_payloads() {
 		return array(
-			'params is a string'  => array(
-				array( array( 'methodName' => 'system.listMethods', 'params' => 'evil' ) ),
+			'params is a string' => array(
+				array(
+					array(
+						'methodName' => 'system.listMethods',
+						'params'     => 'evil',
+					),
+				),
 				0,
 			),
-			'params is null'      => array(
-				array( array( 'methodName' => 'system.listMethods', 'params' => null ) ),
+			'params is null'     => array(
+				array(
+					array(
+						'methodName' => 'system.listMethods',
+						'params'     => null,
+					),
+				),
 				0,
 			),
-			'missing params key'  => array(
-				array( array( 'methodName' => 'system.listMethods' ) ),
+			'missing params key' => array(
+				array(
+					array( 'methodName' => 'system.listMethods' ),
+				),
 				0,
 			),
-			'call is a scalar'    => array(
+			'call is a scalar'   => array(
 				array( 'just-a-string' ),
 				0,
 			),
