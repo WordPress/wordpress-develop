@@ -10,7 +10,6 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  *
  * @package WordPress
  * @subpackage UnitTests
- * @since 5.3.0
  *
  * @group ajax
  *
