@@ -8457,18 +8457,71 @@ function wp_privacy_exports_url() {
 }
 
 /**
- * Schedules a `WP_Cron` job to delete expired export files.
+ * Unschedules the legacy hourly `WP_Cron` job that deleted expired export files.
+ *
+ * Personal data exports are an infrequent, admin-initiated action. Running an
+ * hourly cleanup on every site (including every site of a multisite network)
+ * generates a constant stream of cron events for sites that have never
+ * produced an export file. Cleanup is now scheduled on demand from
+ * {@see wp_privacy_generate_personal_data_export_file()}, so this function
+ * only needs to clear any pre-existing recurring schedule.
  *
  * @since 4.9.6
+ * @since 7.1.0 No longer schedules a recurring hourly event. Existing recurring
+ *              events are unscheduled; cleanup is now scheduled when an export
+ *              file is generated.
  */
 function wp_schedule_delete_old_privacy_export_files() {
 	if ( wp_installing() ) {
 		return;
 	}
 
-	if ( ! wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) ) {
-		wp_schedule_event( time(), 'hourly', 'wp_privacy_delete_old_export_files' );
+	$next_scheduled = wp_next_scheduled( 'wp_privacy_delete_old_export_files' );
+
+	if ( ! $next_scheduled ) {
+		return;
 	}
+
+	$schedule = wp_get_schedule( 'wp_privacy_delete_old_export_files' );
+
+	// Remove the legacy recurring event. On-demand single events are left alone.
+	if ( false !== $schedule ) {
+		wp_unschedule_event( $next_scheduled, 'wp_privacy_delete_old_export_files' );
+	}
+}
+
+/**
+ * Schedules a one-off `WP_Cron` job to delete expired export files.
+ *
+ * Called after a personal data export file is generated so that the cleanup
+ * runs once, shortly after the file is due to expire, rather than hourly on
+ * every site.
+ *
+ * @since 7.1.0
+ */
+function wp_schedule_delete_personal_data_export_file() {
+	if ( wp_installing() ) {
+		return;
+	}
+
+	/** This filter is documented in wp-includes/functions.php */
+	$expiration = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
+
+	// Run shortly after the file is eligible for deletion.
+	$run_at = time() + (int) $expiration + MINUTE_IN_SECONDS;
+
+	$next_scheduled = wp_next_scheduled( 'wp_privacy_delete_old_export_files' );
+
+	// Avoid stacking events; keep the earliest one that covers this file.
+	if ( $next_scheduled && $next_scheduled <= $run_at ) {
+		return;
+	}
+
+	if ( $next_scheduled ) {
+		wp_unschedule_event( $next_scheduled, 'wp_privacy_delete_old_export_files' );
+	}
+
+	wp_schedule_single_event( $run_at, 'wp_privacy_delete_old_export_files' );
 }
 
 /**
@@ -8481,6 +8534,7 @@ function wp_schedule_delete_old_privacy_export_files() {
  * layer of protection.
  *
  * @since 4.9.6
+ * @since 7.1.0 Reschedules a follow-up one-off cleanup if any unexpired files remain.
  */
 function wp_privacy_delete_old_export_files() {
 	$exports_dir = wp_privacy_exports_dir();
@@ -8503,12 +8557,28 @@ function wp_privacy_delete_old_export_files() {
 	 */
 	$expiration = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
 
+	$now                  = time();
+	$next_expiration_time = 0;
+
 	foreach ( (array) $export_files as $export_file ) {
-		$file_age_in_seconds = time() - filemtime( $export_file );
+		$file_mtime          = filemtime( $export_file );
+		$file_age_in_seconds = $now - $file_mtime;
 
 		if ( $expiration < $file_age_in_seconds ) {
 			unlink( $export_file );
+			continue;
 		}
+
+		// Track the earliest expiration of files that survived this pass.
+		$file_expires_at = $file_mtime + (int) $expiration;
+		if ( 0 === $next_expiration_time || $file_expires_at < $next_expiration_time ) {
+			$next_expiration_time = $file_expires_at;
+		}
+	}
+
+	// If any non-expired files remain, schedule a follow-up cleanup for them.
+	if ( $next_expiration_time > $now && ! wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) ) {
+		wp_schedule_single_event( $next_expiration_time + MINUTE_IN_SECONDS, 'wp_privacy_delete_old_export_files' );
 	}
 }
 
