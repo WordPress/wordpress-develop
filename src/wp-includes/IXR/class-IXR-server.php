@@ -91,6 +91,12 @@ EOD;
         }
         $method = $this->callbacks[$methodname];
 
+        // Ensure $args is an array. Callers such as system.multicall can pass
+        // non-array params derived from untrusted client input.
+        if (!is_array($args)) {
+            $args = array($args);
+        }
+
         // Perform the callback and send the response
         if (count($args) == 1) {
             // If only one parameter just send that instead of the whole array
@@ -198,7 +204,17 @@ EOD;
     {
         // See http://www.xmlrpc.com/discuss/msgReader$1208
         $return = array();
+        if (!is_array($methodcalls)) {
+            return new IXR_Error(-32600, 'server error. invalid xml-rpc. methodcalls is not an array');
+        }
         foreach ($methodcalls as $call) {
+            if (!is_array($call) || !isset($call['methodName']) || !isset($call['params']) || !is_array($call['params'])) {
+                $return[] = array(
+                    'faultCode'   => -32602,
+                    'faultString' => 'server error. invalid method call structure',
+                );
+                continue;
+            }
             $method = $call['methodName'];
             $params = $call['params'];
             if ($method == 'system.multicall') {
