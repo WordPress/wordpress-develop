@@ -8457,40 +8457,6 @@ function wp_privacy_exports_url() {
 }
 
 /**
- * Unschedules the legacy hourly `WP_Cron` job that deleted expired export files.
- *
- * Personal data exports are an infrequent, admin-initiated action. Running an
- * hourly cleanup on every site (including every site of a multisite network)
- * generates a constant stream of cron events for sites that have never
- * produced an export file. Cleanup is now scheduled on demand from
- * {@see wp_privacy_generate_personal_data_export_file()}, so this function
- * only needs to clear any pre-existing recurring schedule.
- *
- * @since 4.9.6
- * @since 7.1.0 No longer schedules a recurring hourly event. Existing recurring
- *              events are unscheduled; cleanup is now scheduled when an export
- *              file is generated.
- */
-function wp_schedule_delete_old_privacy_export_files() {
-	if ( wp_installing() ) {
-		return;
-	}
-
-	$next_scheduled = wp_next_scheduled( 'wp_privacy_delete_old_export_files' );
-
-	if ( ! $next_scheduled ) {
-		return;
-	}
-
-	$schedule = wp_get_schedule( 'wp_privacy_delete_old_export_files' );
-
-	// Remove the legacy recurring event. On-demand single events are left alone.
-	if ( false !== $schedule ) {
-		wp_unschedule_event( $next_scheduled, 'wp_privacy_delete_old_export_files' );
-	}
-}
-
-/**
  * Schedules a one-off `WP_Cron` job to delete expired export files.
  *
  * Called after a personal data export file is generated so that the cleanup
