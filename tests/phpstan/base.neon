@@ -4,6 +4,14 @@
 #
 # https://phpstan.org/config-reference
 
+services:
+	# Bridges WordPress core's `@global Type $varname` function docblock convention to
+	# PHPStan's variable type resolution. See tests/phpstan/GlobalDocBlockVisitor.php.
+	-
+		class: WordPress\PHPStan\GlobalDocBlockVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
 parameters:
 	# Cache is stored locally, so it's available for CI.
 	tmpDir: ../../.cache
@@ -90,6 +98,7 @@ parameters:
 		- ../../src/wp-signup.php
 		- ../../src/wp-trackback.php
 		- ../../src/xmlrpc.php
+		- GlobalDocBlockVisitor.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:
