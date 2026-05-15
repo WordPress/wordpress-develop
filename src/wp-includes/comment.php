@@ -302,76 +302,12 @@ function get_comment_statuses() {
  * They should typically be excluded from front-end and admin comment
  * listings, counts, and similar contexts that target user discussion.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @return string[] List of internal comment type slugs.
  */
 function wp_get_internal_comment_types(): array {
-	/**
-	 * Filters the list of internal comment types.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param string[] $types List of internal comment type slugs.
-	 */
-	return (array) apply_filters( 'wp_internal_comment_types', array( 'note', 'reaction' ) );
-}
-
-/**
- * Retrieves the list of curated emoji reactions allowed for note comments.
- *
- * Each entry is an associative array with:
- * - `emoji` (string) The emoji character.
- * - `label` (string) A human-readable label.
- * - `value` (string) The slug used as the storage key in `comment_content`.
- *
- * Reactions submitted to the REST API may also use a lowercase
- * hex-codepoint sequence (e.g. `1f44d`) to represent emojis outside the
- * curated set; see WP_REST_Comments_Controller::create_item().
- *
- * @since 7.0.0
- *
- * @return array[] List of emoji definitions, each with `emoji`, `label`,
- *                 and `value` keys.
- */
-function wp_get_note_reaction_emojis(): array {
-	$default_emojis = array(
-		array(
-			'emoji' => '❤️',
-			'label' => __( 'Heart' ),
-			'value' => 'heart',
-		),
-		array(
-			'emoji' => '🎉',
-			'label' => __( 'Celebration' ),
-			'value' => 'celebration',
-		),
-		array(
-			'emoji' => '😄',
-			'label' => __( 'Smile' ),
-			'value' => 'smile',
-		),
-		array(
-			'emoji' => '👀',
-			'label' => __( 'Eyes' ),
-			'value' => 'eyes',
-		),
-		array(
-			'emoji' => '🚀',
-			'label' => __( 'Rocket' ),
-			'value' => 'rocket',
-		),
-	);
-
-	/**
-	 * Filters the curated list of allowed emojis for note reactions.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param array[] $emojis List of emoji definitions. Each item has
-	 *                        `emoji`, `label`, and `value` keys.
-	 */
-	return (array) apply_filters( 'wp_note_reaction_emojis', $default_emojis );
+	return array( 'note', 'reaction' );
 }
 
 /**
@@ -424,6 +360,7 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * @since 1.5.0
  * @since 4.7.0 Replaced caching the modified date in a local static variable
  *              with the Object Cache API.
+ * @since 7.1.0 Internal comment types are excluded from the query.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -441,17 +378,30 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 		return $comment_modified_date;
 	}
 
+	// Exclude internal comment types (notes, reactions, etc.) from the lookup.
+	$internal_types = wp_get_internal_comment_types();
+	if ( ! empty( $internal_types ) ) {
+		$placeholders = implode( ', ', array_fill( 0, count( $internal_types ), '%s' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$type_not_in = $wpdb->prepare( " AND comment_type NOT IN ( $placeholders )", $internal_types );
+	} else {
+		$type_not_in = '';
+	}
+
 	switch ( $timezone ) {
 		case 'gmt':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'blog':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'server':
 			$add_seconds_server = gmdate( 'Z' );
 
-			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
 			break;
 	}
 

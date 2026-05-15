@@ -30,10 +30,57 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Populated by get_items() to avoid N+1 queries when listing notes
 	 * with their reaction summaries. Reset after each get_items() call.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var array|null
 	 */
 	protected $reaction_summaries = null;
+
+	/**
+	 * Retrieves the curated list of emoji reactions allowed for note comments.
+	 *
+	 * Each entry is an associative array with:
+	 * - `emoji` (string) The emoji character.
+	 * - `label` (string) A human-readable label.
+	 * - `value` (string) The slug used as the storage key in `comment_content`.
+	 *
+	 * Reactions submitted to the REST API may also use a lowercase
+	 * hex-codepoint sequence (e.g. `1f44d`) to represent emojis outside the
+	 * curated set; see create_item().
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return array[] List of emoji definitions, each with `emoji`, `label`,
+	 *                 and `value` keys.
+	 */
+	protected static function get_note_reaction_emojis(): array {
+		return array(
+			array(
+				'emoji' => '❤️',
+				'label' => __( 'Heart' ),
+				'value' => 'heart',
+			),
+			array(
+				'emoji' => '🎉',
+				'label' => __( 'Celebration' ),
+				'value' => 'celebration',
+			),
+			array(
+				'emoji' => '😄',
+				'label' => __( 'Smile' ),
+				'value' => 'smile',
+			),
+			array(
+				'emoji' => '👀',
+				'label' => __( 'Eyes' ),
+				'value' => 'eyes',
+			),
+			array(
+				'emoji' => '🚀',
+				'label' => __( 'Rocket' ),
+				'value' => 'rocket',
+			),
+		);
+	}
 
 	/**
 	 * Constructor.
@@ -352,12 +399,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'note' === $request['type'] &&
 				rest_is_field_included( 'reaction_summary', $fields )
 			) {
-				$note_ids = array();
-				foreach ( $query_result as $comment ) {
-					if ( 'note' === $comment->comment_type ) {
-						$note_ids[] = (int) $comment->comment_ID;
-					}
-				}
+				$note_ids = array_map( 'intval', wp_list_pluck( $query_result, 'comment_ID' ) );
 				if ( ! empty( $note_ids ) ) {
 					$this->prefetch_reaction_summaries( $note_ids );
 				}
@@ -724,7 +766,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			/*
 			 * Validate the reaction content. Two shapes are accepted:
 			 *
-			 * - A curated slug (e.g. `heart`) from wp_get_note_reaction_emojis().
+			 * - A curated slug (e.g. `heart`) from self::get_note_reaction_emojis().
 			 * - A lowercase hex-codepoint sequence joined by `-` (e.g. `1f44d`
 			 *   for 👍 or `1f468-200d-1f4bb` for 👨‍💻).
 			 *
@@ -734,7 +776,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			 * U+FE0F is dropped on the client so visually-equivalent
 			 * presentations collapse onto a single key.
 			 */
-			$valid_slugs = wp_list_pluck( wp_get_note_reaction_emojis(), 'value' );
+			$valid_slugs = wp_list_pluck( self::get_note_reaction_emojis(), 'value' );
 			$emoji_slug  = isset( $request['content'] ) ? wp_strip_all_tags( $request['content'] ) : '';
 
 			$is_curated_slug = in_array( $emoji_slug, $valid_slugs, true );
@@ -1767,7 +1809,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 							),
 						),
 					),
-					'default'     => wp_get_note_reaction_emojis(),
+					'default'     => self::get_note_reaction_emojis(),
 				),
 				'reaction_summary'  => array(
 					'description'          => __( 'Aggregated reaction counts for this note, keyed by emoji slug.' ),
@@ -2091,7 +2133,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * batched note listing return reaction_summary for many notes without
 	 * issuing a per-note query.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
