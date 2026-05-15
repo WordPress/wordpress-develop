@@ -1176,8 +1176,12 @@ add_action( 'admin_init', 'wp_de_rtc_add_presence_storage_setup_settings_notice'
  * @return array Block editor settings with Distributed Editing facts.
  */
 function wp_de_rtc_add_block_editor_settings( $editor_settings, $block_editor_context ) {
-	$enabled = false;
-	$post    = null;
+	$enabled                       = false;
+	$post                          = null;
+	$presence_host_profile         = 'cheap_shared_host';
+	$presence_heartbeat_interval   = wp_de_rtc_get_presence_heartbeat_interval_seconds( $presence_host_profile );
+	$presence_polling_interval     = $presence_heartbeat_interval;
+	$presence_startup_delay        = 1;
 
 	if ( ! empty( $block_editor_context->post ) ) {
 		$post    = $block_editor_context->post;
@@ -1188,9 +1192,28 @@ function wp_de_rtc_add_block_editor_settings( $editor_settings, $block_editor_co
 		'enabled'                  => $enabled,
 		'retrySaveHandoff'         => $enabled,
 		'initialPresenceRoster'    => $enabled && $post ? wp_de_rtc_get_post_presence_roster( $post ) : wp_de_rtc_get_empty_post_presence_roster(),
+		'presenceStartupPolicy'    => array(
+			'allowAutomaticInitialHeartbeat'        => $enabled,
+			'allowSlowAutomaticInitialHeartbeat'    => true,
+			'hostProfile'                           => $presence_host_profile,
+			'selectedInitialHeartbeatDelaySeconds'  => $presence_startup_delay,
+			'standardInitialHeartbeatDelaySeconds'  => $presence_startup_delay,
+			'cheapHostInitialHeartbeatDelaySeconds' => $presence_startup_delay,
+			'minimumInitialHeartbeatDelaySeconds'   => $presence_startup_delay,
+		),
+		'presenceRepeatedRefreshRuntime' => array(
+			'explicitOptIn'                         => $enabled,
+			'hostProfile'                           => $presence_host_profile,
+			'standardPollingIntervalSeconds'        => 30,
+			'cheapHostPollingIntervalSeconds'       => $presence_polling_interval,
+			'minimumPollingIntervalSeconds'         => 30,
+			'heartbeatIntervalSeconds'              => $presence_heartbeat_interval,
+			'selectedHeartbeatIntervalSeconds'      => $presence_heartbeat_interval,
+		),
 		'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
 			array(
 				'feature_enabled' => $enabled,
+				'host_profile'    => $presence_host_profile,
 			)
 		),
 	);
