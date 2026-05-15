@@ -784,7 +784,10 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 		// Find the first caller outside of WordPress core (plugin or theme).
 		foreach ( $backtrace as $frame ) {
 			if ( isset( $frame['file'] ) && str_contains( $frame['file'], WP_CONTENT_DIR ) ) {
-				$caller = ' in ' . $frame['file'] . ' on line ' . $frame['line'];
+				$caller = ' in ' . $frame['file'];
+				if ( isset( $frame['line'] ) ) {
+					$caller .= ' on line ' . $frame['line'];
+				}
 				break;
 			}
 		}
