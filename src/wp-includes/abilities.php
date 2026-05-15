@@ -186,7 +186,7 @@ function wp_register_core_abilities(): void {
 		),
 		'user_url'      => array(
 			'type'        => 'string',
-			'title'       => __( 'Website URL' ),
+			'title'       => __( 'Website' ),
 			'description' => __( 'The URL of the user\'s website.' ),
 		),
 	);
