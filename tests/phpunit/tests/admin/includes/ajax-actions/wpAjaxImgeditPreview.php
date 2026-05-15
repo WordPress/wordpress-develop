@@ -47,7 +47,7 @@ class Tests_wp_ajax_imgedit_preview extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		$_GET['postid']      = self::$attachment_id;
-		$_GET['_ajax_nonce'] = wp_create_nonce( "image_editor-" . self::$attachment_id );
+		$_GET['_ajax_nonce'] = wp_create_nonce( 'image_editor-' . self::$attachment_id );
 
 		// Make the request.
 		try {
@@ -108,7 +108,7 @@ class Tests_wp_ajax_imgedit_preview extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'subscriber' );
 
 		$_GET['postid']      = self::$attachment_id;
-		$_GET['_ajax_nonce'] = wp_create_nonce( "image_editor-" . self::$attachment_id );
+		$_GET['_ajax_nonce'] = wp_create_nonce( 'image_editor-' . self::$attachment_id );
 
 		$this->expectException( 'WPAjaxDieStopException' );
 		$this->expectExceptionMessage( '-1' );
