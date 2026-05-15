@@ -34,6 +34,7 @@ class Tests_DE_RTC_Reason_Codes extends WP_UnitTestCase {
 				'de_rtc_feature_disabled',
 				'de_rtc_malformed_sync_payload',
 				'de_rtc_unknown_sync_meta_format',
+				'de_rtc_presence_storage_unavailable',
 				'de_rtc_storage_failure',
 			),
 			array_keys( $codes )
@@ -76,6 +77,7 @@ class Tests_DE_RTC_Reason_Codes extends WP_UnitTestCase {
 			'feature disabled'                      => array( 'de_rtc_feature_disabled', 403 ),
 			'malformed sync payload'                => array( 'de_rtc_malformed_sync_payload', 400 ),
 			'unknown sync meta format'              => array( 'de_rtc_unknown_sync_meta_format', 400 ),
+			'presence storage unavailable'          => array( 'de_rtc_presence_storage_unavailable', 503 ),
 			'storage failure'                       => array( 'de_rtc_storage_failure', 500 ),
 		);
 	}

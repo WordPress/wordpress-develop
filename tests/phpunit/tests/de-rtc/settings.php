@@ -17,8 +17,10 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
 
 		delete_option( 'wp_de_rtc_enabled' );
+		delete_option( 'wp_de_rtc_presence_schema_version' );
 		unregister_setting( 'writing', 'wp_de_rtc_enabled' );
 		unset( $wp_registered_settings['wp_de_rtc_enabled'] );
+		wp_set_current_user( 0 );
 
 		if ( isset( $wp_settings_fields['writing']['default']['wp_de_rtc_enabled'] ) ) {
 			unset( $wp_settings_fields['writing']['default']['wp_de_rtc_enabled'] );
@@ -132,6 +134,44 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_render_enabled_setting
+	 * @covers ::wp_de_rtc_get_presence_storage_setup_admin_action_state
+	 * @covers ::wp_de_rtc_get_presence_storage_setup_action_url
+	 */
+	public function test_writing_settings_field_exposes_guarded_presence_storage_setup_action() {
+		global $wpdb;
+
+		$admin_id   = self::factory()->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
+		$table_name = wp_de_rtc_get_presence_table_name();
+		$table_sql  = '`' . str_replace( '`', '``', $table_name ) . '`';
+
+		$wpdb->query( "DROP TABLE IF EXISTS $table_sql" );
+		delete_option( 'wp_de_rtc_presence_schema_version' );
+		update_option( 'wp_de_rtc_enabled', true );
+		wp_set_current_user( $admin_id );
+
+		ob_start();
+		wp_de_rtc_render_enabled_setting();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'data-wp-de-rtc-presence-storage-status="setup_required"', $output );
+		$this->assertStringContainsString( 'Presence storage: Setup needed.', $output );
+		$this->assertStringContainsString( 'Automatic presence updates will degrade until setup is run deliberately.', $output );
+		$this->assertStringContainsString( 'data-wp-de-rtc-presence-storage-setup-action="wp_de_rtc_setup_presence_storage"', $output );
+		$this->assertStringContainsString( 'data-wp-de-rtc-presence-storage-setup-requires-nonce="true"', $output );
+		$this->assertStringContainsString( 'data-wp-de-rtc-presence-storage-setup-requires-capability="manage_options"', $output );
+		$this->assertStringContainsString( 'admin-post.php', $output );
+		$this->assertStringContainsString( 'action=wp_de_rtc_setup_presence_storage', $output );
+		$this->assertStringContainsString( '_wpnonce=', $output );
+		$this->assertStringContainsString( 'Set up Distributed Editing presence storage', $output );
+		$this->assertFalse( wp_de_rtc_presence_table_exists() );
+	}
+
+	/**
 	 * @covers ::wp_de_rtc_add_block_editor_settings
 	 */
 	public function test_block_editor_settings_expose_disabled_post_gate_by_default() {
@@ -151,8 +191,14 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'enabled'          => false,
-				'retrySaveHandoff' => false,
+				'enabled'                  => false,
+				'retrySaveHandoff'         => false,
+				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
+					array(
+						'feature_enabled' => false,
+					)
+				),
 			),
 			$settings['distributedEditing']
 		);
@@ -160,6 +206,8 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_add_block_editor_settings
+	 * @covers ::wp_de_rtc_get_empty_post_presence_roster
+	 * @covers ::wp_de_rtc_get_post_presence_roster
 	 */
 	public function test_block_editor_settings_expose_enabled_post_gate_after_opt_in() {
 		$post_id = self::factory()->post->create(
@@ -180,11 +228,69 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'enabled'          => true,
-				'retrySaveHandoff' => true,
+				'enabled'                  => true,
+				'retrySaveHandoff'         => true,
+				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
+					array(
+						'feature_enabled' => true,
+					)
+				),
 			),
 			$settings['distributedEditing']
 		);
+
+		$this->assertSame( 'setup_required', $settings['distributedEditing']['presenceStorageReadiness']['status'] );
+		$this->assertSame( 'degraded', $settings['distributedEditing']['presenceStorageReadiness']['expectedStartupHeartbeatStatus'] );
+		$this->assertFalse( $settings['distributedEditing']['presenceStorageReadiness']['installsPresenceTable'] );
+		$this->assertFalse( $settings['distributedEditing']['presenceStorageReadiness']['callsSave'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_add_block_editor_settings
+	 * @covers ::wp_de_rtc_get_post_presence_roster
+	 * @covers ::wp_de_rtc_get_post_lock_presence_entry
+	 */
+	public function test_block_editor_settings_expose_other_editor_presence_from_post_lock() {
+		$other_user_id = self::factory()->user->create(
+			array(
+				'role'         => 'author',
+				'display_name' => 'Mira Presence',
+			)
+		);
+		$post_id       = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC presence editor settings post',
+				'post_content' => '<!-- wp:paragraph --><p>Presence.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$context       = new WP_Block_Editor_Context(
+			array(
+				'post' => get_post( $post_id ),
+			)
+		);
+
+		update_option( 'wp_de_rtc_enabled', true );
+		update_post_meta( $post_id, '_edit_lock', time() . ':' . $other_user_id );
+
+		$settings = wp_de_rtc_add_block_editor_settings( array(), $context );
+		$roster   = $settings['distributedEditing']['initialPresenceRoster'];
+
+		$this->assertTrue( $settings['distributedEditing']['enabled'] );
+		$this->assertSame( 'recent', $roster['status'] );
+		$this->assertSame( 'recent', $roster['freshness'] );
+		$this->assertSame( 1, $roster['visibleCount'] );
+		$this->assertSame( 1, $roster['totalKnownCount'] );
+		$this->assertFalse( $roster['claimsAbsence'] );
+		$this->assertFalse( $roster['callsSave'] );
+		$this->assertFalse( $roster['changesPostLock'] );
+		$this->assertFalse( $roster['claimsSaved'] );
+		$this->assertCount( 1, $roster['entries'] );
+		$this->assertSame( 'Mira Presence', $roster['entries'][0]['displayName'] );
+		$this->assertSame( 'other_user', $roster['entries'][0]['relationship'] );
+		$this->assertSame( 'recent', $roster['entries'][0]['freshness'] );
+		$this->assertFalse( $roster['entries'][0]['exposesUserId'] );
+		$this->assertArrayNotHasKey( 'userId', $roster['entries'][0] );
 	}
 
 	/**
@@ -203,8 +309,14 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'enabled'          => false,
-				'retrySaveHandoff' => false,
+				'enabled'                  => false,
+				'retrySaveHandoff'         => false,
+				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
+					array(
+						'feature_enabled' => false,
+					)
+				),
 			),
 			$settings['distributedEditing']
 		);

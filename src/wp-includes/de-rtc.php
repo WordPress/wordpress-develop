@@ -32,6 +32,7 @@ function wp_de_rtc_get_reason_codes() {
 		'de_rtc_feature_disabled'                      => 403,
 		'de_rtc_malformed_sync_payload'                => 400,
 		'de_rtc_unknown_sync_meta_format'              => 400,
+		'de_rtc_presence_storage_unavailable'          => 503,
 		'de_rtc_storage_failure'                       => 500,
 	);
 }
@@ -57,14 +58,86 @@ function wp_de_rtc_get_supported_sync_meta_formats() {
 /**
  * Registers Distributed Editing REST routes.
  *
- * The current route is an internal proof boundary for sync-meta recovery. It is
- * feature-gated and is not yet wired to Gutenberg save flows or post-lock
- * replacement.
+ * The current routes are internal proof and read boundaries. They are
+ * feature-gated and are not yet wired to post-lock replacement.
  *
  * @since 7.1.0
  */
 function wp_de_rtc_register_rest_routes() {
 	foreach ( wp_de_rtc_get_rest_recovery_post_type_rest_bases() as $rest_base ) {
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/presence',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+					'session_key' => array(
+						'description' => __( 'Opaque editor session key to hash before hiding this tab from the presence roster.' ),
+						'type'        => 'string',
+						'required'    => false,
+					),
+					'limit' => array(
+						'description' => __( 'Maximum number of presence rows to return.' ),
+						'type'        => 'integer',
+						'required'    => false,
+						'minimum'     => 1,
+						'maximum'     => 100,
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => 'wp_de_rtc_rest_presence_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_presence_permissions_check',
+				),
+			)
+		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/presence/heartbeat',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => 'wp_de_rtc_rest_presence_heartbeat_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_presence_heartbeat_permissions_check',
+					'args'                => array(
+						'session_key' => array(
+							'description' => __( 'Opaque editor session key to hash before recording presence.' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/presence/storage-readiness',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => 'wp_de_rtc_rest_presence_storage_readiness_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_presence_storage_readiness_permissions_check',
+				),
+			)
+		);
+
 		register_rest_route(
 			'wp/v2',
 			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/recovery',
@@ -713,6 +786,383 @@ function wp_de_rtc_register_settings() {
 add_action( 'admin_init', 'wp_de_rtc_register_settings' );
 
 /**
+ * Returns the capability required to set up Distributed Editing presence storage.
+ *
+ * @since 7.1.0
+ *
+ * @return string Required capability.
+ */
+function wp_de_rtc_get_presence_storage_setup_capability() {
+	/**
+	 * Filters the capability required to set up Distributed Editing presence storage.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $capability Required capability.
+	 */
+	return apply_filters( 'wp_de_rtc_presence_storage_setup_capability', 'manage_options' );
+}
+
+/**
+ * Returns the nonce action for the presence storage setup admin action.
+ *
+ * @since 7.1.0
+ *
+ * @return string Nonce action.
+ */
+function wp_de_rtc_get_presence_storage_setup_nonce_action() {
+	return 'wp_de_rtc_setup_presence_storage';
+}
+
+/**
+ * Returns the admin-post action URL for deliberate presence storage setup.
+ *
+ * @since 7.1.0
+ *
+ * @param string $redirect_url Optional redirect URL after setup.
+ * @return string Nonce-protected admin-post URL.
+ */
+function wp_de_rtc_get_presence_storage_setup_action_url( $redirect_url = '' ) {
+	$query_args = array(
+		'action' => 'wp_de_rtc_setup_presence_storage',
+	);
+
+	if ( $redirect_url ) {
+		$query_args['redirect_to'] = rawurlencode( wp_validate_redirect( $redirect_url, admin_url( 'options-writing.php' ) ) );
+	}
+
+	return wp_nonce_url(
+		add_query_arg( $query_args, admin_url( 'admin-post.php' ) ),
+		wp_de_rtc_get_presence_storage_setup_nonce_action()
+	);
+}
+
+/**
+ * Returns the content-free state for the presence storage setup admin action.
+ *
+ * This helper may expose whether the setup action is available, but it must not
+ * install storage, write heartbeats, save posts, mutate content, create
+ * revisions, change post locks, or claim presence correctness.
+ *
+ * @since 7.1.0
+ *
+ * @param array $args {
+ *     Optional action state arguments.
+ *
+ *     @type bool   $feature_enabled Whether DE-RTC is enabled for the current context.
+ *     @type string $host_profile    Host profile label.
+ *     @type string $redirect_url    Redirect URL for the setup action.
+ * }
+ * @return array Presence storage setup action state.
+ */
+function wp_de_rtc_get_presence_storage_setup_admin_action_state( $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'feature_enabled' => wp_de_rtc_is_enabled(),
+			'host_profile'    => 'cheap_shared_host',
+			'redirect_url'    => admin_url( 'options-writing.php' ),
+		)
+	);
+
+	$readiness             = wp_de_rtc_get_presence_storage_readiness(
+		array(
+			'feature_enabled' => (bool) $args['feature_enabled'],
+			'host_profile'    => $args['host_profile'],
+		)
+	);
+	$required_capability   = wp_de_rtc_get_presence_storage_setup_capability();
+	$current_user_can_setup = current_user_can( $required_capability );
+	$setup_required        = (bool) $readiness['setupRequired'];
+	$action_available      = (bool) $args['feature_enabled'] && $setup_required && $current_user_can_setup;
+	$status                = 'action_unavailable';
+
+	if ( ! (bool) $args['feature_enabled'] ) {
+		$status = 'feature_disabled';
+	} elseif ( 'ready' === $readiness['status'] ) {
+		$status = 'ready';
+	} elseif ( ! $current_user_can_setup ) {
+		$status = 'forbidden';
+	} elseif ( $setup_required ) {
+		$status = 'available';
+	}
+
+	return array(
+		'result'                            => $action_available ? 'presence_storage_setup_action_available' : 'presence_storage_setup_action_unavailable',
+		'status'                            => $status,
+		'actionName'                        => 'wp_de_rtc_setup_presence_storage',
+		'method'                            => 'admin_post_nonce_url',
+		'url'                               => $action_available ? wp_de_rtc_get_presence_storage_setup_action_url( $args['redirect_url'] ) : '',
+		'nonceAction'                       => wp_de_rtc_get_presence_storage_setup_nonce_action(),
+		'requiresNonce'                     => true,
+		'requiresCapability'                => true,
+		'requiredCapability'                => $required_capability,
+		'currentUserCanSetup'               => $current_user_can_setup,
+		'featureEnabled'                    => (bool) $args['feature_enabled'],
+		'setupRequired'                     => $setup_required,
+		'readinessStatus'                   => $readiness['status'],
+		'expectedReadinessAfterSetup'       => 'ready',
+		'contentFree'                       => true,
+		'containsRawContent'                => false,
+		'exposesRawContent'                 => false,
+		'exposesUserIds'                    => false,
+		'exposesLogins'                     => false,
+		'exposesEmail'                      => false,
+		'exposesCursorOffset'               => false,
+		'exposesSelection'                  => false,
+		'installsPresenceTable'             => false,
+		'installTriggeredByEditorLoad'      => false,
+		'installTriggeredBySave'            => false,
+		'installTriggeredByPresenceRead'    => false,
+		'installTriggeredByHeartbeatWrite'  => false,
+		'automaticPerRequestInstall'        => false,
+		'writesPresence'                    => false,
+		'recordsPresenceHeartbeat'          => false,
+		'startsPolling'                     => false,
+		'callsSave'                         => false,
+		'mutatesEditorContent'              => false,
+		'mutatesPostContent'                => false,
+		'mutatesPersistedPostContent'       => false,
+		'createsRevision'                   => false,
+		'changesPostLock'                   => false,
+		'claimsAbsence'                     => false,
+		'claimsSaved'                       => false,
+		'repeatedRefreshOptional'           => true,
+		'correctnessIndependentOfTransport' => true,
+		'transportRequiredForCorrectness'   => false,
+		'tableExistsRequiredForSaveCorrectness' => false,
+	);
+}
+
+/**
+ * Runs the deliberate presence storage setup admin action after guards pass.
+ *
+ * This helper is the write boundary for setup. It must only be called after a
+ * nonce has been verified and a capable administrator has deliberately invoked
+ * setup.
+ *
+ * @since 7.1.0
+ *
+ * @param array $args {
+ *     Optional setup arguments.
+ *
+ *     @type bool   $nonce_verified Whether the admin nonce has already been verified.
+ *     @type bool   $feature_enabled Whether DE-RTC is enabled for the current context.
+ *     @type string $host_profile    Host profile label.
+ * }
+ * @return array|WP_Error Setup result, or an error when guards fail.
+ */
+function wp_de_rtc_run_presence_storage_setup_admin_action( $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'nonce_verified' => false,
+			'feature_enabled' => wp_de_rtc_is_enabled(),
+			'host_profile'    => 'cheap_shared_host',
+		)
+	);
+
+	$action_state        = wp_de_rtc_get_presence_storage_setup_admin_action_state( $args );
+	$required_capability = $action_state['requiredCapability'];
+	$base_data           = array(
+		'status'                            => 403,
+		'action_name'                       => $action_state['actionName'],
+		'nonce_action'                      => $action_state['nonceAction'],
+		'requires_nonce'                    => true,
+		'requires_capability'               => true,
+		'required_capability'               => $required_capability,
+		'current_user_can_setup'            => (bool) $action_state['currentUserCanSetup'],
+		'install_triggered_by_editor_load'  => false,
+		'install_triggered_by_save'         => false,
+		'install_triggered_by_presence_read' => false,
+		'install_triggered_by_heartbeat_write' => false,
+		'automatic_per_request_install'     => false,
+		'calls_save'                        => false,
+		'mutates_post_content'              => false,
+		'mutates_persisted_post_content'    => false,
+		'creates_revision'                  => false,
+		'changes_post_lock'                 => false,
+		'claims_absence'                    => false,
+		'claims_saved'                      => false,
+		'exposes_raw_content'               => false,
+		'exposes_user_ids'                  => false,
+		'exposes_logins'                    => false,
+		'exposes_email'                     => false,
+		'exposes_cursor_offset'             => false,
+		'exposes_selection'                 => false,
+		'transport_required_for_correctness' => false,
+		'table_exists_required_for_save_correctness' => false,
+	);
+
+	if ( ! (bool) $args['nonce_verified'] ) {
+		return new WP_Error(
+			'de_rtc_presence_storage_setup_nonce_required',
+			__( 'Distributed Editing presence storage setup requires a valid nonce.' ),
+			$base_data
+		);
+	}
+
+	if ( ! current_user_can( $required_capability ) ) {
+		return new WP_Error(
+			'de_rtc_presence_storage_setup_forbidden',
+			__( 'Sorry, you are not allowed to set up Distributed Editing presence storage.' ),
+			$base_data
+		);
+	}
+
+	if ( ! (bool) $args['feature_enabled'] ) {
+		return new WP_Error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing must be enabled before presence storage is set up.' ),
+			array_merge(
+				$base_data,
+				array(
+					'status' => 400,
+				)
+			)
+		);
+	}
+
+	$readiness_before = wp_de_rtc_get_presence_storage_readiness(
+		array(
+			'feature_enabled' => true,
+			'host_profile'    => $args['host_profile'],
+		)
+	);
+	$install          = wp_de_rtc_install_presence_table(
+		array(
+			'host_profile' => $args['host_profile'],
+		)
+	);
+	$readiness_after  = wp_de_rtc_get_presence_storage_readiness(
+		array(
+			'feature_enabled' => true,
+			'host_profile'    => $args['host_profile'],
+		)
+	);
+	$result           = 'ready' === $readiness_after['status'] ? 'presence_storage_setup_completed' : 'presence_storage_setup_failed';
+
+	if ( 'ready' === $readiness_before['status'] ) {
+		$result = 'presence_storage_setup_checked';
+	}
+
+	return array(
+		'result'                            => $result,
+		'actionName'                        => $action_state['actionName'],
+		'nonceAction'                       => $action_state['nonceAction'],
+		'nonceVerified'                     => true,
+		'requiresNonce'                     => true,
+		'requiresCapability'                => true,
+		'requiredCapability'                => $required_capability,
+		'currentUserCanSetup'               => true,
+		'beforeStatus'                      => $readiness_before['status'],
+		'afterStatus'                       => $readiness_after['status'],
+		'tableExistsBefore'                 => (bool) $readiness_before['tableExists'],
+		'tableExistsAfter'                  => (bool) $readiness_after['tableExists'],
+		'schemaCurrentAfter'                => (bool) $readiness_after['schemaCurrent'],
+		'installResult'                     => $install['result'],
+		'usesDbDelta'                       => (bool) $install['uses_db_delta'],
+		'optionUpdated'                     => (bool) $install['option_updated'],
+		'installTriggeredByExplicitAdminAction' => true,
+		'installTriggeredByEditorLoad'      => false,
+		'installTriggeredBySave'            => false,
+		'installTriggeredByPresenceRead'    => false,
+		'installTriggeredByCleanup'         => false,
+		'installTriggeredByHeartbeatWrite'  => false,
+		'automaticPerRequestInstall'        => false,
+		'writesPresence'                    => false,
+		'recordsPresenceHeartbeat'          => false,
+		'startsPolling'                     => false,
+		'callsSave'                         => false,
+		'mutatesEditorContent'              => false,
+		'mutatesPostContent'                => false,
+		'mutatesPersistedPostContent'       => false,
+		'createsRevision'                   => false,
+		'changesPostLock'                   => false,
+		'claimsAbsence'                     => false,
+		'claimsSaved'                       => false,
+		'exposesRawContent'                 => false,
+		'exposesUserIds'                    => false,
+		'exposesLogins'                     => false,
+		'exposesEmail'                      => false,
+		'exposesCursorOffset'               => false,
+		'exposesSelection'                  => false,
+		'repeatedRefreshOptional'           => true,
+		'correctnessIndependentOfTransport' => true,
+		'transportRequiredForCorrectness'   => false,
+		'tableExistsRequiredForSaveCorrectness' => false,
+	);
+}
+
+/**
+ * Handles the nonce-protected admin action for presence storage setup.
+ *
+ * @since 7.1.0
+ */
+function wp_de_rtc_handle_presence_storage_setup_admin_action() {
+	$capability = wp_de_rtc_get_presence_storage_setup_capability();
+
+	if ( ! current_user_can( $capability ) ) {
+		wp_die(
+			esc_html__( 'Sorry, you are not allowed to set up Distributed Editing presence storage.' ),
+			403
+		);
+	}
+
+	check_admin_referer( wp_de_rtc_get_presence_storage_setup_nonce_action() );
+
+	$result   = wp_de_rtc_run_presence_storage_setup_admin_action(
+		array(
+			'nonce_verified' => true,
+		)
+	);
+	$status   = is_wp_error( $result ) ? 'failed' : sanitize_key( $result['afterStatus'] );
+	$redirect = isset( $_GET['redirect_to'] ) ? rawurldecode( wp_unslash( $_GET['redirect_to'] ) ) : admin_url( 'options-writing.php' );
+	$redirect = wp_validate_redirect( $redirect, admin_url( 'options-writing.php' ) );
+
+	wp_safe_redirect(
+		add_query_arg(
+			'wp_de_rtc_presence_storage_setup',
+			$status,
+			$redirect
+		)
+	);
+	exit;
+}
+add_action( 'admin_post_wp_de_rtc_setup_presence_storage', 'wp_de_rtc_handle_presence_storage_setup_admin_action' );
+
+/**
+ * Adds a settings notice after presence storage setup redirects.
+ *
+ * @since 7.1.0
+ */
+function wp_de_rtc_add_presence_storage_setup_settings_notice() {
+	if ( empty( $_GET['wp_de_rtc_presence_storage_setup'] ) || ! function_exists( 'add_settings_error' ) ) {
+		return;
+	}
+
+	$status = sanitize_key( wp_unslash( $_GET['wp_de_rtc_presence_storage_setup'] ) );
+
+	if ( 'ready' === $status ) {
+		add_settings_error(
+			'wp_de_rtc_presence_storage',
+			'wp_de_rtc_presence_storage_setup_ready',
+			__( 'Distributed Editing presence storage is ready.' ),
+			'success'
+		);
+		return;
+	}
+
+	add_settings_error(
+		'wp_de_rtc_presence_storage',
+		'wp_de_rtc_presence_storage_setup_failed',
+		__( 'Distributed Editing presence storage setup did not complete.' ),
+		'error'
+	);
+}
+add_action( 'admin_init', 'wp_de_rtc_add_presence_storage_setup_settings_notice' );
+
+/**
  * Adds Distributed Editing settings to the post block editor.
  *
  * The site option remains hidden from the REST settings controller. The editor
@@ -727,19 +1177,1252 @@ add_action( 'admin_init', 'wp_de_rtc_register_settings' );
  */
 function wp_de_rtc_add_block_editor_settings( $editor_settings, $block_editor_context ) {
 	$enabled = false;
+	$post    = null;
 
 	if ( ! empty( $block_editor_context->post ) ) {
-		$enabled = wp_de_rtc_is_enabled_for_post( $block_editor_context->post );
+		$post    = $block_editor_context->post;
+		$enabled = wp_de_rtc_is_enabled_for_post( $post );
 	}
 
 	$editor_settings['distributedEditing'] = array(
-		'enabled'          => $enabled,
-		'retrySaveHandoff' => $enabled,
+		'enabled'                  => $enabled,
+		'retrySaveHandoff'         => $enabled,
+		'initialPresenceRoster'    => $enabled && $post ? wp_de_rtc_get_post_presence_roster( $post ) : wp_de_rtc_get_empty_post_presence_roster(),
+		'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
+			array(
+				'feature_enabled' => $enabled,
+			)
+		),
 	);
 
 	return $editor_settings;
 }
 add_filter( 'block_editor_settings_all', 'wp_de_rtc_add_block_editor_settings', 10, 2 );
+
+/**
+ * Returns the empty Distributed Editing presence roster contract.
+ *
+ * This contract is intentionally conservative: it never claims that no other
+ * editor exists, only that WordPress has no editor to show from the current
+ * read-only source.
+ *
+ * @since 7.1.0
+ *
+ * @return array Empty presence roster data for editor bootstrap.
+ */
+function wp_de_rtc_get_empty_post_presence_roster() {
+	return array(
+		'status'                     => 'empty',
+		'freshness'                  => 'unknown',
+		'serverContact'              => 'nominal',
+		'entries'                    => array(),
+		'visibleCount'               => 0,
+		'totalKnownCount'            => 0,
+		'hiddenCount'                => 0,
+		'expiredCount'               => 0,
+		'source'                     => 'wordpress_post_lock_snapshot',
+		'storageBacked'              => false,
+		'latencyTolerant'            => true,
+		'claimsAbsence'              => false,
+		'descriptorOnly'             => true,
+		'callsRestEndpoint'          => false,
+		'callsSave'                  => false,
+		'mutatesEditorContent'       => false,
+		'mutatesPersistedPostContent' => false,
+		'changesPostLock'            => false,
+		'claimsSaved'                => false,
+		'exposesRawContent'          => false,
+		'exposesSelection'           => false,
+		'exposesCursorOffset'        => false,
+		'exposesUserIds'             => false,
+	);
+}
+
+/**
+ * Returns the initial Distributed Editing presence roster for a post.
+ *
+ * The preferred source is the dedicated Distributed Editing presence table
+ * when active rows exist. The existing WordPress edit-lock snapshot remains a
+ * read-only fallback. This helper does not create, refresh, steal, release, or
+ * replace post locks.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args Optional roster read arguments.
+ * @return array Presence roster data for editor bootstrap.
+ */
+function wp_de_rtc_get_post_presence_roster( $post, $args = array() ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return wp_de_rtc_get_empty_post_presence_roster();
+	}
+
+	$storage_snapshot = wp_de_rtc_get_post_presence_storage_snapshot( $post, $args );
+	$entries          = $storage_snapshot['entries'];
+	$expired_count    = $storage_snapshot['expiredCount'];
+	$hidden_count     = isset( $storage_snapshot['hiddenCount'] ) ? absint( $storage_snapshot['hiddenCount'] ) : 0;
+	$roster           = wp_de_rtc_get_empty_post_presence_roster();
+
+	if ( empty( $entries ) && 0 === $expired_count && 0 === $hidden_count ) {
+		$entry   = wp_de_rtc_get_post_lock_presence_entry( $post );
+		$entries = $entry ? array( $entry ) : array();
+
+		if ( empty( $entries ) ) {
+			return $roster;
+		}
+
+		$roster['status']          = 'recent';
+		$roster['freshness']       = 'recent';
+		$roster['entries']         = $entries;
+		$roster['visibleCount']    = count( $entries );
+		$roster['totalKnownCount'] = count( $entries );
+
+		return $roster;
+	}
+
+	$current_count = 0;
+
+	foreach ( $entries as $entry ) {
+		if ( isset( $entry['freshness'] ) && 'current' === $entry['freshness'] ) {
+			++$current_count;
+		}
+	}
+
+	$roster['status']          = empty( $entries ) ? 'recent' : ( count( $entries ) === $current_count ? 'active' : 'recent' );
+	$roster['freshness']       = empty( $entries ) ? 'recent' : ( count( $entries ) === $current_count ? 'current' : 'recent' );
+	$roster['source']          = 'de_rtc_presence_storage';
+	$roster['storageBacked']   = true;
+	$roster['entries']         = $entries;
+	$roster['visibleCount']    = count( $entries );
+	$roster['totalKnownCount'] = count( $entries ) + $hidden_count + $expired_count;
+	$roster['hiddenCount']     = $hidden_count;
+	$roster['expiredCount']    = $expired_count;
+
+	return $roster;
+}
+
+/**
+ * Returns a read-only Distributed Editing presence storage snapshot.
+ *
+ * This is a read-only roster source. It does not write heartbeats, clean up
+ * rows, install storage, save posts, mutate post content, create revisions, or
+ * change post locks.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args {
+ *     Optional read arguments.
+ *
+ *     @type string $current_time_gmt Current GMT time in mysql format.
+ *     @type int    $limit            Maximum entries to return.
+ *     @type string $current_session_key Opaque editor session key for the current tab.
+ *     @type string $host_profile     Optional host profile label.
+ * }
+ * @return array Presence storage snapshot.
+ */
+function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) {
+	global $wpdb;
+
+	$post = get_post( $post );
+
+	if ( ! $post || ! wp_de_rtc_presence_table_exists() ) {
+		return array(
+			'entries'      => array(),
+			'hiddenCount'  => 0,
+			'expiredCount' => 0,
+		);
+	}
+
+	$args             = wp_parse_args(
+		$args,
+		array(
+			'current_time_gmt'    => current_time( 'mysql', true ),
+			'limit'               => 25,
+			'current_session_key' => '',
+			'host_profile'        => 'cheap_shared_host',
+		)
+	);
+	$table_name           = wp_de_rtc_get_presence_table_name();
+	$table_sql            = '`' . str_replace( '`', '``', $table_name ) . '`';
+	$current_time_gmt     = (string) $args['current_time_gmt'];
+	$host_profile         = is_string( $args['host_profile'] ) ? sanitize_key( $args['host_profile'] ) : '';
+		$limit                = null === $args['limit'] ? 25 : max( 1, min( 100, absint( $args['limit'] ) ) );
+	$current_actor        = wp_de_rtc_get_presence_actor_hash( get_current_user_id() );
+	$current_session_key  = is_string( $args['current_session_key'] ) ? trim( $args['current_session_key'] ) : '';
+	$current_session_hash = '' !== $current_session_key ? hash_hmac( 'sha256', (int) $post->ID . ':' . $current_session_key, wp_salt( 'nonce' ) ) : '';
+	$where_clauses        = array( 'post_id = %d' );
+	$where_values         = array( (int) $post->ID );
+
+	if ( '' !== $current_session_hash ) {
+		$where_clauses[] = 'session_key_hash <> %s';
+		$where_values[]  = $current_session_hash;
+	} elseif ( '' !== $current_actor ) {
+		$where_clauses[] = 'actor_hash <> %s';
+		$where_values[]  = $current_actor;
+	}
+
+	$where_sql                  = implode( ' AND ', $where_clauses );
+	$non_expired_where_sql      = $where_sql . ' AND expires_at_gmt > %s';
+	$expired_where_sql          = $where_sql . ' AND expires_at_gmt <= %s';
+	$non_expired_where_values   = array_merge( $where_values, array( $current_time_gmt ) );
+	$expired_where_values       = array_merge( $where_values, array( $current_time_gmt ) );
+	$visible_eligible_row_count = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM $table_sql WHERE $non_expired_where_sql",
+			$non_expired_where_values
+		)
+	);
+	$expired_count              = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM $table_sql WHERE $expired_where_sql",
+			$expired_where_values
+		)
+	);
+	$rows                       = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT session_key_hash, actor_hash, display_name, freshness, last_seen_gmt, expires_at_gmt FROM $table_sql WHERE $non_expired_where_sql ORDER BY last_seen_gmt DESC LIMIT %d",
+			array_merge( $non_expired_where_values, array( $limit ) )
+		)
+	);
+
+	if ( ! $rows ) {
+		return array(
+			'entries'      => array(),
+			'hiddenCount'  => max( 0, $visible_eligible_row_count ),
+			'expiredCount' => $expired_count,
+		);
+	}
+
+	$entries       = array();
+
+	foreach ( $rows as $row ) {
+		$session_key_hash = isset( $row->session_key_hash ) ? (string) $row->session_key_hash : '';
+		$actor_hash       = isset( $row->actor_hash ) ? (string) $row->actor_hash : '';
+
+		if ( '' === $session_key_hash ) {
+			continue;
+		}
+
+		$freshness = wp_de_rtc_get_presence_storage_row_freshness(
+			$row,
+			array(
+				'current_time_gmt' => $current_time_gmt,
+				'host_profile'     => $host_profile,
+			)
+		);
+
+		if ( 'expired' === $freshness ) {
+			continue;
+		}
+
+		$is_same_actor = '' !== $actor_hash && hash_equals( $current_actor, $actor_hash );
+
+		$display_name = isset( $row->display_name ) ? trim( wp_strip_all_tags( (string) $row->display_name ) ) : '';
+
+		if ( '' === $display_name ) {
+			$display_name = __( 'Another editor' );
+		}
+
+		$entries[] = array(
+			'key'                 => 'de-rtc-presence-' . substr( $session_key_hash, 0, 12 ),
+			'displayName'         => $display_name,
+			'identityVisibility'  => $is_same_actor ? 'self' : 'named',
+			'relationship'        => $is_same_actor ? 'same_user_other_tab' : 'other_user',
+			'activity'            => 'editing_post',
+			'freshness'           => $freshness,
+			'location'            => array(
+				'scope' => 'post',
+			),
+			'source'              => 'de_rtc_presence_storage',
+			'exposesUserId'       => false,
+			'exposesLogin'        => false,
+			'exposesEmail'        => false,
+			'exposesCursorOffset' => false,
+			'exposesSelection'    => false,
+			'exposesRawContent'   => false,
+			'rawSessionKeyIncluded' => false,
+		);
+	}
+
+	return array(
+		'entries'      => $entries,
+		'hiddenCount'  => max( 0, $visible_eligible_row_count - count( $entries ) ),
+		'expiredCount' => $expired_count,
+	);
+}
+
+/**
+ * Returns active Distributed Editing presence entries from the dedicated table.
+ *
+ * This is a read-only roster source. It does not write heartbeats, clean up
+ * rows, install storage, save posts, mutate post content, create revisions, or
+ * change post locks.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args Optional read arguments.
+ * @return array[] Presence roster entries.
+ */
+function wp_de_rtc_get_post_presence_storage_entries( $post, $args = array() ) {
+	$storage_snapshot = wp_de_rtc_get_post_presence_storage_snapshot( $post, $args );
+
+	return $storage_snapshot['entries'];
+}
+
+/**
+ * Classifies a stored Distributed Editing presence row at read time.
+ *
+ * Stored freshness labels are diagnostic only. The read snapshot derives the
+ * visible freshness from server timestamps so slow polling and offline-like
+ * latency stay within one communication model.
+ *
+ * @since 7.1.0
+ *
+ * @param object $row  Presence storage row.
+ * @param array  $args Optional classification arguments.
+ * @return string One of current, recent, or expired.
+ */
+function wp_de_rtc_get_presence_storage_row_freshness( $row, $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'current_time_gmt' => current_time( 'mysql', true ),
+			'host_profile'     => 'cheap_shared_host',
+		)
+	);
+
+	$current_time = strtotime( (string) $args['current_time_gmt'] . ' UTC' );
+	$last_seen    = isset( $row->last_seen_gmt ) ? strtotime( (string) $row->last_seen_gmt . ' UTC' ) : false;
+	$expires_at   = isset( $row->expires_at_gmt ) ? strtotime( (string) $row->expires_at_gmt . ' UTC' ) : false;
+
+	if ( false === $current_time ) {
+		$current_time = time();
+	}
+
+	if ( false !== $expires_at && $expires_at <= $current_time ) {
+		return 'expired';
+	}
+
+	if ( false === $last_seen ) {
+		return 'recent';
+	}
+
+	$host_profile               = is_string( $args['host_profile'] ) ? sanitize_key( $args['host_profile'] ) : '';
+	$heartbeat_interval_seconds = wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile );
+
+	return $last_seen >= ( $current_time - $heartbeat_interval_seconds ) ? 'current' : 'recent';
+}
+
+/**
+ * Returns a presence roster entry from the current WordPress edit lock.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_Post $post Post object.
+ * @return array|null Presence entry, or null when no other editor is known.
+ */
+function wp_de_rtc_get_post_lock_presence_entry( $post ) {
+	$lock = get_post_meta( $post->ID, '_edit_lock', true );
+
+	if ( ! $lock || ! is_string( $lock ) ) {
+		return null;
+	}
+
+	$lock_parts = explode( ':', $lock );
+	$time       = isset( $lock_parts[0] ) ? (int) $lock_parts[0] : 0;
+	$user_id    = isset( $lock_parts[1] ) ? (int) $lock_parts[1] : (int) get_post_meta( $post->ID, '_edit_last', true );
+
+	if ( ! $time || ! $user_id || get_current_user_id() === $user_id ) {
+		return null;
+	}
+
+	/** This filter is documented in wp-admin/includes/ajax-actions.php. */
+	$time_window = (int) apply_filters( 'wp_check_post_lock_window', 150 );
+
+	if ( $time <= time() - $time_window ) {
+		return null;
+	}
+
+	$user = get_userdata( $user_id );
+
+	if ( ! $user ) {
+		return null;
+	}
+
+	return array(
+		'key'                 => 'wp-post-lock-' . substr( wp_hash( $post->ID . ':' . $user_id . ':de-rtc-presence' ), 0, 12 ),
+		'displayName'         => $user->display_name ? $user->display_name : __( 'Another editor' ),
+		'identityVisibility'  => 'named',
+		'relationship'        => 'other_user',
+		'activity'            => 'editing_post',
+		'freshness'           => 'recent',
+		'location'            => array(
+			'scope' => 'post',
+		),
+		'source'              => 'wordpress_post_lock_snapshot',
+		'exposesUserId'       => false,
+		'exposesCursorOffset' => false,
+		'exposesSelection'    => false,
+		'exposesRawContent'   => false,
+	);
+}
+
+/**
+ * Returns a read-only Distributed Editing presence snapshot for a post.
+ *
+ * This is the first DE-RTC-native read source contract. The current snapshot
+ * still derives its roster from WordPress authority, but the route contract is
+ * explicit about freshness, privacy, cheap-host polling, and the absence of
+ * heartbeat writes or repeated client refresh.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args Optional presence snapshot arguments.
+ * @return array Presence read snapshot.
+ */
+function wp_de_rtc_get_post_presence_read_snapshot( $post, $args = array() ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return array(
+			'result' => 'presence_roster_unavailable',
+		);
+	}
+
+	$args                = wp_parse_args(
+		$args,
+		array(
+			'current_session_key' => '',
+			'current_time_gmt'    => current_time( 'mysql', true ),
+			'host_profile'        => 'cheap_shared_host',
+			'limit'               => 25,
+		)
+	);
+	$current_session_key = is_string( $args['current_session_key'] ) ? trim( $args['current_session_key'] ) : '';
+	$current_time_gmt    = (string) $args['current_time_gmt'];
+	$host_profile        = is_string( $args['host_profile'] ) ? sanitize_key( $args['host_profile'] ) : '';
+		$limit               = null === $args['limit'] ? 25 : max( 1, min( 100, absint( $args['limit'] ) ) );
+	$roster              = wp_de_rtc_get_post_presence_roster(
+		$post,
+		array(
+			'current_session_key' => $current_session_key,
+			'current_time_gmt'    => $current_time_gmt,
+			'host_profile'        => $host_profile,
+			'limit'               => $limit,
+		)
+	);
+
+	return array(
+		'result'                       => 'presence_roster_snapshot',
+		'rest_route'                   => 'post_presence_roster',
+		'post_id'                      => (int) $post->ID,
+		'post_type'                    => $post->post_type,
+		'post_type_rest_base'          => wp_de_rtc_get_post_type_rest_base( $post->post_type ),
+		'presence_roster'              => $roster,
+		'presence_read_contract'       => wp_de_rtc_get_post_presence_read_contract(
+			$post,
+			$roster,
+			array(
+				'current_session_key_provided' => '' !== $current_session_key,
+				'host_profile'                 => $host_profile,
+			)
+		),
+		'permission_contract'          => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
+		'read_only'                    => true,
+		'accepts_current_session_key'  => true,
+		'current_session_key_compared_by_hash' => '' !== $current_session_key,
+		'raw_session_key_included'     => false,
+		'calls_save'                   => false,
+		'saves_post'                   => false,
+		'mutates_post_content'         => false,
+		'mutates_persisted_post_content' => false,
+		'creates_revision'             => false,
+		'changes_post_lock'            => false,
+		'records_presence_heartbeat'   => false,
+		'enables_repeated_client_refresh' => false,
+		'claims_saved'                 => false,
+		'exposes_raw_content'          => false,
+		'exposes_user_ids'             => false,
+		'exposes_cursor_offset'        => false,
+		'exposes_selection'            => false,
+	);
+}
+
+/**
+ * Returns the DE-RTC presence read contract for a post.
+ *
+ * The contract defines the first roster schema and polling guidance without
+ * starting a polling loop or writing presence heartbeats.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_Post $post   Post object.
+ * @param array   $roster Presence roster data.
+ * @param array   $args   Optional contract arguments.
+ * @return array Presence read contract.
+ */
+function wp_de_rtc_get_post_presence_read_contract( $post, $roster, $args = array() ) {
+	$rest_base = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$args      = wp_parse_args(
+		$args,
+		array(
+			'current_session_key_provided' => false,
+			'host_profile'                 => 'cheap_shared_host',
+		)
+	);
+	$host_profile = is_string( $args['host_profile'] ) ? sanitize_key( $args['host_profile'] ) : '';
+
+	return array(
+		'schema'                       => 'de-rtc-presence-roster-v1',
+		'source'                       => 'de_rtc_presence_read_snapshot',
+		'current_snapshot_source'      => isset( $roster['source'] ) ? $roster['source'] : 'unknown',
+		'method'                       => 'GET',
+		'route'                        => '/wp/v2/' . $rest_base . '/' . (int) $post->ID . '/distributed-editing/presence',
+		'requires_edit_post'           => true,
+		'requires_feature_enabled'     => true,
+		'read_only'                    => true,
+		'writes_presence'              => false,
+		'records_presence_heartbeat'   => false,
+		'enables_repeated_client_refresh' => false,
+		'session_identity'             => array(
+			'accepts_current_session_key'  => true,
+			'current_session_key_compared_by_hash' => (bool) $args['current_session_key_provided'],
+			'raw_session_key_included'     => false,
+			'same_actor_other_session_relationship' => 'same_user_other_tab',
+		),
+		'freshness_model'              => array(
+			'status_values'         => array( 'active', 'recent', 'stale', 'degraded', 'empty', 'hidden' ),
+			'freshness_values'      => array( 'current', 'recent', 'expired', 'stale', 'unknown' ),
+			'snapshot_freshness'    => isset( $roster['freshness'] ) ? $roster['freshness'] : 'unknown',
+			'hidden_count'          => isset( $roster['hiddenCount'] ) ? (int) $roster['hiddenCount'] : 0,
+			'expired_count'         => isset( $roster['expiredCount'] ) ? (int) $roster['expiredCount'] : 0,
+			'claims_absence'        => false,
+			'current_after_seconds' => wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile ),
+			'stale_after_seconds'   => wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile ),
+			'expires_after_seconds' => wp_de_rtc_get_presence_heartbeat_expires_after_seconds( $host_profile ),
+		),
+		'cheap_host_polling_guidance'  => array(
+			'mode'                                  => 'manual_or_slow_polling',
+			'minimum_polling_interval_seconds'      => 15,
+			'suggested_polling_interval_seconds'    => 30,
+			'cheap_host_polling_interval_seconds'   => 120,
+			'repeated_client_refresh_enabled_now'   => false,
+			'transport_required_for_correctness'    => false,
+		),
+		'schema_fields'                => array(
+			'roster' => array(
+				'status',
+				'freshness',
+				'serverContact',
+				'entries',
+				'visibleCount',
+				'totalKnownCount',
+				'hiddenCount',
+				'expiredCount',
+				'source',
+				'claimsAbsence',
+			),
+			'entry'  => array(
+				'key',
+				'displayName',
+				'identityVisibility',
+				'relationship',
+				'activity',
+				'freshness',
+				'location',
+				'source',
+			),
+		),
+		'privacy_filters'              => array(
+			'identity_policy'        => 'display_name_only_for_editable_post_context',
+			'raw_content_included'   => false,
+			'exposes_user_ids'       => false,
+			'exposes_logins'         => false,
+			'exposes_email'          => false,
+			'exposes_cursor_offset'  => false,
+			'exposes_selection'      => false,
+			'exposes_raw_content'    => false,
+			'redacted_fields'        => array(
+				'userId',
+				'user_id',
+				'userLogin',
+				'user_login',
+				'email',
+				'user_email',
+				'cursorOffset',
+				'cursor_offset',
+				'selection',
+				'rawContent',
+				'raw_content',
+			),
+		),
+	);
+}
+
+/**
+ * Returns the Distributed Editing presence table name for the current site.
+ *
+ * @since 7.1.0
+ *
+ * @return string Presence table name.
+ */
+function wp_de_rtc_get_presence_table_name() {
+	global $wpdb;
+
+	return $wpdb->prefix . 'de_rtc_presence';
+}
+
+/**
+ * Returns the bounded cleanup batch limit for presence storage.
+ *
+ * @since 7.1.0
+ *
+ * @param string $host_profile Optional host profile label.
+ * @return int Cleanup batch limit.
+ */
+function wp_de_rtc_get_presence_cleanup_batch_limit( $host_profile = '' ) {
+	if ( 'cheap_shared_host' === $host_profile ) {
+		return 25;
+	}
+
+	return 100;
+}
+
+/**
+ * Returns the current Distributed Editing presence schema version.
+ *
+ * @since 7.1.0
+ *
+ * @return string Presence schema version.
+ */
+function wp_de_rtc_get_presence_schema_version() {
+	return '1';
+}
+
+/**
+ * Returns a privacy-preserving actor hash for presence storage.
+ *
+ * @since 7.1.0
+ *
+ * @param int $user_id User ID.
+ * @return string Actor hash.
+ */
+function wp_de_rtc_get_presence_actor_hash( $user_id ) {
+	return hash_hmac( 'sha256', (string) (int) $user_id, wp_salt( 'auth' ) );
+}
+
+/**
+ * Returns the WordPress presence storage schema contract.
+ *
+ * This defines the dedicated table and cleanup policy needed by future
+ * heartbeat writes. It does not write heartbeats, start polling, save posts,
+ * mutate post content, create revisions, or change post locks.
+ *
+ * @since 7.1.0
+ *
+ * @param array $args {
+ *     Optional schema arguments.
+ *
+ *     @type string $host_profile Host profile label.
+ * }
+ * @return array Presence storage schema contract.
+ */
+function wp_de_rtc_get_presence_storage_schema( $args = array() ) {
+	global $wpdb;
+
+	$args              = wp_parse_args(
+		$args,
+		array(
+			'host_profile' => 'cheap_shared_host',
+		)
+	);
+	$table_name        = wp_de_rtc_get_presence_table_name();
+	$cleanup_batch     = wp_de_rtc_get_presence_cleanup_batch_limit( $args['host_profile'] );
+	$retention_seconds = 900;
+	$schema_version    = wp_de_rtc_get_presence_schema_version();
+	$charset_collate   = $wpdb->get_charset_collate();
+	$create_sql        = "CREATE TABLE $table_name (
+presence_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+post_id bigint(20) unsigned NOT NULL DEFAULT 0,
+session_key_hash char(64) NOT NULL DEFAULT '',
+actor_hash char(64) NOT NULL DEFAULT '',
+display_name varchar(191) NOT NULL DEFAULT '',
+freshness varchar(20) NOT NULL DEFAULT 'active',
+last_seen_gmt datetime NOT NULL,
+expires_at_gmt datetime NOT NULL,
+created_at_gmt datetime NOT NULL,
+updated_at_gmt datetime NOT NULL,
+PRIMARY KEY  (presence_id),
+UNIQUE KEY session_key_hash (session_key_hash),
+KEY post_id_last_seen_gmt (post_id,last_seen_gmt),
+KEY expires_at_gmt (expires_at_gmt)
+) $charset_collate;";
+
+	return array(
+		'schema'                           => 'de-rtc-presence-storage-v1',
+		'schema_version'                   => $schema_version,
+		'storage_kind'                     => 'dedicated_presence_table',
+		'table_name'                       => $table_name,
+		'base_table_name'                  => 'de_rtc_presence',
+		'primary_key'                      => 'presence_id',
+		'columns'                          => array(
+			'presence_id',
+			'post_id',
+			'session_key_hash',
+			'actor_hash',
+			'display_name',
+			'freshness',
+			'last_seen_gmt',
+			'expires_at_gmt',
+			'created_at_gmt',
+			'updated_at_gmt',
+		),
+		'indexes'                          => array(
+			'post_id_last_seen_gmt',
+			'session_key_hash',
+			'expires_at_gmt',
+		),
+		'create_sql'                       => $create_sql,
+		'cleanup_batch_limit'              => $cleanup_batch,
+		'retention_seconds'                => $retention_seconds,
+		'cleanup_bounded'                  => true,
+		'route_gates'                      => array(
+			'requires_feature_enabled'     => true,
+			'requires_edit_post'           => true,
+			'requires_supported_post_type' => true,
+			'requires_nonce'               => true,
+		),
+		'privacy_filters'                  => array(
+			'raw_content_included'  => false,
+			'exposes_user_ids'      => false,
+			'exposes_logins'        => false,
+			'exposes_email'         => false,
+			'exposes_cursor_offset' => false,
+			'exposes_selection'     => false,
+			'exposes_raw_content'   => false,
+		),
+		'heartbeat_writes_enabled_now'     => false,
+		'records_presence_heartbeat_now'   => false,
+		'runtime_polling_enabled_now'      => false,
+		'repeated_refresh_optional'        => true,
+		'transport_required_for_correctness' => false,
+		'table_exists_required_for_save_correctness' => false,
+		'calls_save'                       => false,
+		'mutates_post_content'             => false,
+		'mutates_persisted_post_content'   => false,
+		'creates_revision'                 => false,
+		'changes_post_lock'                => false,
+		'claims_absence'                   => false,
+		'claims_saved'                     => false,
+	);
+}
+
+/**
+ * Installs or updates the Distributed Editing presence table.
+ *
+ * This is an explicit setup path for future heartbeat storage. It must not run
+ * as a side effect of reading presence, saving posts, cleaning up rows, or
+ * handling heartbeat requests.
+ *
+ * @since 7.1.0
+ *
+ * @param array $args Optional schema arguments.
+ * @return array Install result.
+ */
+function wp_de_rtc_install_presence_table( $args = array() ) {
+	$schema              = wp_de_rtc_get_presence_storage_schema( $args );
+	$table_exists_before = wp_de_rtc_presence_table_exists();
+
+	if ( ! function_exists( 'dbDelta' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+	}
+
+	$db_delta = dbDelta( $schema['create_sql'] );
+
+	$table_exists_after = wp_de_rtc_presence_table_exists();
+
+	if ( $table_exists_after ) {
+		update_option( 'wp_de_rtc_presence_schema_version', $schema['schema_version'] );
+	}
+
+	return array(
+		'result'                            => $table_exists_after ? ( $table_exists_before ? 'presence_table_upgrade_checked' : 'presence_table_installed' ) : 'presence_table_install_failed',
+		'table_name'                        => $schema['table_name'],
+		'schema_version'                    => $schema['schema_version'],
+		'table_exists_before'               => $table_exists_before,
+		'table_exists_after'                => $table_exists_after,
+		'uses_db_delta'                     => true,
+		'db_delta'                          => $db_delta,
+		'option_updated'                    => $table_exists_after,
+		'install_triggered_by_explicit_call' => true,
+		'automatic_per_request_install'     => false,
+		'install_triggered_by_save'         => false,
+		'install_triggered_by_presence_read' => false,
+		'install_triggered_by_cleanup'      => false,
+		'install_triggered_by_heartbeat_write' => false,
+		'heartbeat_writes_enabled_now'      => false,
+		'runtime_polling_enabled_now'       => false,
+		'repeated_refresh_optional'         => true,
+		'transport_required_for_correctness' => false,
+		'table_exists_required_for_save_correctness' => false,
+		'calls_save'                        => false,
+		'mutates_post_content'              => false,
+		'mutates_persisted_post_content'    => false,
+		'creates_revision'                  => false,
+		'changes_post_lock'                 => false,
+		'claims_absence'                    => false,
+		'claims_saved'                      => false,
+	);
+}
+
+/**
+ * Returns a content-free Distributed Editing presence storage readiness fact.
+ *
+ * This is an operations diagnostic for editor/admin communication. It may read
+ * the table and schema-option state, but it must not install storage, write
+ * heartbeats, save posts, mutate post content, create revisions, or change post
+ * locks.
+ *
+ * @since 7.1.0
+ *
+ * @param array $args {
+ *     Optional readiness arguments.
+ *
+ *     @type bool   $feature_enabled Whether DE-RTC is enabled for the current context.
+ *     @type string $host_profile    Host profile label.
+ * }
+ * @return array Presence storage readiness data.
+ */
+function wp_de_rtc_get_presence_storage_readiness( $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'feature_enabled' => wp_de_rtc_is_enabled(),
+			'host_profile'    => 'cheap_shared_host',
+		)
+	);
+
+	$schema                   = wp_de_rtc_get_presence_storage_schema(
+		array(
+			'host_profile' => $args['host_profile'],
+		)
+	);
+	$table_exists             = wp_de_rtc_presence_table_exists();
+	$installed_schema_version = get_option( 'wp_de_rtc_presence_schema_version', null );
+	$schema_current           = $table_exists && (string) $installed_schema_version === (string) $schema['schema_version'];
+	$feature_enabled          = (bool) $args['feature_enabled'];
+	$status                   = 'setup_required';
+
+	if ( ! $feature_enabled ) {
+		$status = 'feature_disabled';
+	} elseif ( $schema_current ) {
+		$status = 'ready';
+	} elseif ( $table_exists ) {
+		$status = 'upgrade_required';
+	}
+
+	$setup_required = $feature_enabled && 'ready' !== $status;
+
+	return array(
+		'result'                              => 'ready' === $status ? 'presence_storage_ready' : 'presence_storage_setup_required',
+		'status'                              => $status,
+		'tableName'                           => $schema['table_name'],
+		'baseTableName'                       => $schema['base_table_name'],
+		'tableExists'                         => $table_exists,
+		'schemaVersionExpected'               => $schema['schema_version'],
+		'schemaVersionInstalled'              => null === $installed_schema_version ? null : (string) $installed_schema_version,
+		'schemaCurrent'                       => $schema_current,
+		'featureEnabled'                      => $feature_enabled,
+		'hostProfile'                         => $args['host_profile'],
+		'expectedStartupHeartbeatStatus'      => $feature_enabled ? ( $schema_current ? 'sent' : 'degraded' ) : 'idle',
+		'setupRequired'                       => $setup_required,
+		'manualSetupRequired'                 => $setup_required,
+		'canRetryAfterInstall'                => $setup_required,
+		'setupAction'                         => 'call_wp_de_rtc_install_presence_table',
+		'setupActionLabel'                    => __( 'Set up Distributed Editing presence storage' ),
+		'setupTrigger'                        => 'explicit_setup_only',
+		'diagnosticOnly'                      => true,
+		'contentFree'                         => true,
+		'containsRawContent'                  => false,
+		'exposesRawContent'                   => false,
+		'exposesUserIds'                      => false,
+		'exposesLogins'                       => false,
+		'exposesEmail'                        => false,
+		'exposesCursorOffset'                 => false,
+		'exposesSelection'                    => false,
+		'installsPresenceTable'               => false,
+		'automaticPerRequestInstall'          => false,
+		'installTriggeredByPresenceRead'      => false,
+		'installTriggeredByHeartbeatWrite'    => false,
+		'writesPresence'                      => false,
+		'recordsPresenceHeartbeat'            => false,
+		'startsPolling'                       => false,
+		'callsSave'                           => false,
+		'mutatesEditorContent'                => false,
+		'mutatesPostContent'                  => false,
+		'mutatesPersistedPostContent'         => false,
+		'createsRevision'                     => false,
+		'changesPostLock'                     => false,
+		'claimsAbsence'                       => false,
+		'claimsSaved'                         => false,
+		'repeatedRefreshOptional'             => true,
+		'correctnessIndependentOfTransport'   => true,
+		'transportRequiredForCorrectness'     => false,
+		'tableExistsRequiredForSaveCorrectness' => false,
+	);
+}
+
+/**
+ * Returns whether the Distributed Editing presence table exists.
+ *
+ * @since 7.1.0
+ *
+ * @return bool Whether the table exists.
+ */
+function wp_de_rtc_presence_table_exists() {
+	global $wpdb;
+
+	$table_name = wp_de_rtc_get_presence_table_name();
+
+	return $table_name === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) ) );
+}
+
+/**
+ * Deletes expired Distributed Editing presence rows in a bounded batch.
+ *
+ * This helper only cleans presence storage. It does not write heartbeats, start
+ * polling, save posts, mutate post content, create revisions, or change post
+ * locks.
+ *
+ * @since 7.1.0
+ *
+ * @param array $args {
+ *     Optional cleanup arguments.
+ *
+ *     @type int    $batch_limit      Maximum rows to delete.
+ *     @type string $current_time_gmt Current GMT time in mysql format.
+ * }
+ * @return array|WP_Error Cleanup result, or a storage error.
+ */
+function wp_de_rtc_cleanup_presence_records( $args = array() ) {
+	global $wpdb;
+
+	$args             = wp_parse_args(
+		$args,
+		array(
+			'batch_limit'      => wp_de_rtc_get_presence_cleanup_batch_limit( 'cheap_shared_host' ),
+			'current_time_gmt' => current_time( 'mysql', true ),
+		)
+	);
+	$table_name       = wp_de_rtc_get_presence_table_name();
+	$batch_limit      = max( 1, absint( $args['batch_limit'] ) );
+	$current_time_gmt = (string) $args['current_time_gmt'];
+	$base_result      = array(
+		'table_name'                         => $table_name,
+		'batch_limit'                        => $batch_limit,
+		'current_time_gmt'                   => $current_time_gmt,
+		'bounded'                            => true,
+		'cleanup_policy'                     => 'delete_expired_rows_in_bounded_batches',
+		'records_presence_heartbeat'         => false,
+		'heartbeat_writes_enabled_now'       => false,
+		'runtime_polling_enabled_now'        => false,
+		'repeated_refresh_optional'          => true,
+		'transport_required_for_correctness' => false,
+		'calls_save'                         => false,
+		'mutates_post_content'               => false,
+		'mutates_persisted_post_content'     => false,
+		'creates_revision'                   => false,
+		'changes_post_lock'                  => false,
+		'claims_absence'                     => false,
+		'claims_saved'                       => false,
+	);
+
+	if ( ! wp_de_rtc_presence_table_exists() ) {
+		return array_merge(
+			$base_result,
+			array(
+				'result'        => 'presence_table_missing',
+				'deleted_count' => 0,
+			)
+		);
+	}
+
+	$table_sql = '`' . str_replace( '`', '``', $table_name ) . '`';
+	$deleted   = $wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM $table_sql WHERE expires_at_gmt <= %s ORDER BY expires_at_gmt ASC LIMIT %d",
+			$current_time_gmt,
+			$batch_limit
+		)
+	);
+
+	if ( false === $deleted ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing presence cleanup failed.' ),
+			array_merge(
+				$base_result,
+				array(
+					'result'        => 'presence_cleanup_storage_failure',
+					'deleted_count' => 0,
+				)
+			)
+		);
+	}
+
+	return array_merge(
+		$base_result,
+		array(
+			'result'        => 'presence_cleanup_completed',
+			'deleted_count' => (int) $deleted,
+		)
+	);
+}
+
+/**
+ * Returns the suggested Distributed Editing presence heartbeat interval.
+ *
+ * @since 7.1.0
+ *
+ * @param string $host_profile Optional host profile label.
+ * @return int Heartbeat interval in seconds.
+ */
+function wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile = '' ) {
+	if ( 'cheap_shared_host' === $host_profile ) {
+		return 120;
+	}
+
+	return 30;
+}
+
+/**
+ * Returns the expiry window for Distributed Editing presence heartbeats.
+ *
+ * @since 7.1.0
+ *
+ * @param string $host_profile Optional host profile label.
+ * @return int Expiry window in seconds.
+ */
+function wp_de_rtc_get_presence_heartbeat_expires_after_seconds( $host_profile = '' ) {
+	return max( wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile ) * 5, 150 );
+}
+
+/**
+ * Records a content-free Distributed Editing presence heartbeat.
+ *
+ * This helper writes only presence liveness evidence to the dedicated presence
+ * table. It must not install the table, save posts, mutate post content,
+ * create revisions, or change post locks.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args {
+ *     Optional heartbeat arguments.
+ *
+ *     @type string $session_key      Opaque editor session key.
+ *     @type string $host_profile     Host profile label.
+ *     @type string $current_time_gmt Current GMT time in mysql format.
+ * }
+ * @return array|WP_Error Heartbeat result, or an error when storage/payload fails.
+ */
+function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
+	global $wpdb;
+
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	$args        = wp_parse_args(
+		$args,
+		array(
+			'session_key'      => '',
+			'host_profile'     => 'cheap_shared_host',
+			'current_time_gmt' => current_time( 'mysql', true ),
+		)
+	);
+	$session_key = is_string( $args['session_key'] ) ? trim( $args['session_key'] ) : '';
+
+	if ( '' === $session_key ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing presence heartbeat is missing a session key.' ),
+			array(
+				'detail'                         => 'missing_session_key',
+				'post_id'                        => (int) $post->ID,
+				'rest_route'                     => 'post_presence_heartbeat',
+				'storage_table_ready'            => wp_de_rtc_presence_table_exists(),
+				'writes_presence'                => false,
+				'records_presence_heartbeat'     => false,
+				'installs_presence_table'        => false,
+				'automatic_table_install'        => false,
+				'calls_save'                     => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'mutates_persisted_post_content' => false,
+				'creates_revision'               => false,
+				'changes_post_lock'              => false,
+				'claims_absence'                 => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	$table_name = wp_de_rtc_get_presence_table_name();
+
+	if ( ! wp_de_rtc_presence_table_exists() ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_presence_storage_unavailable',
+			__( 'Distributed Editing presence storage is not installed.' ),
+			array(
+				'detail'                         => 'presence_table_missing',
+				'result'                         => 'presence_storage_unavailable',
+				'post_id'                        => (int) $post->ID,
+				'post_type'                      => $post->post_type,
+				'post_type_rest_base'            => wp_de_rtc_get_post_type_rest_base( $post->post_type ),
+				'rest_route'                     => 'post_presence_heartbeat',
+				'table_name'                     => $table_name,
+				'storage_table_ready'            => false,
+				'writes_presence'                => false,
+				'records_presence_heartbeat'     => false,
+				'heartbeat_writes_enabled_now'   => false,
+				'server_contact'                 => 'degraded',
+				'can_retry_after_install'        => true,
+				'repeated_refresh_optional'      => true,
+				'correctness_independent_of_transport' => true,
+				'transport_required_for_correctness' => false,
+				'table_exists_required_for_save_correctness' => false,
+				'installs_presence_table'        => false,
+				'automatic_table_install'        => false,
+				'enables_repeated_client_refresh' => false,
+				'runtime_polling_enabled_now'    => false,
+				'calls_save'                     => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'mutates_persisted_post_content' => false,
+				'creates_revision'               => false,
+				'changes_post_lock'              => false,
+				'claims_absence'                 => false,
+				'claims_saved'                   => false,
+				'exposes_raw_content'            => false,
+				'exposes_user_ids'               => false,
+				'exposes_logins'                 => false,
+				'exposes_email'                  => false,
+				'exposes_cursor_offset'          => false,
+				'exposes_selection'              => false,
+				'raw_session_key_included'       => false,
+			)
+		);
+	}
+
+	$host_profile                = is_string( $args['host_profile'] ) ? $args['host_profile'] : 'cheap_shared_host';
+	$current_time_gmt            = is_string( $args['current_time_gmt'] ) ? $args['current_time_gmt'] : current_time( 'mysql', true );
+	$current_time_timestamp      = strtotime( $current_time_gmt . ' UTC' );
+	$current_time_timestamp      = $current_time_timestamp ? $current_time_timestamp : time();
+	$heartbeat_interval_seconds  = wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile );
+	$expires_after_seconds       = wp_de_rtc_get_presence_heartbeat_expires_after_seconds( $host_profile );
+	$expires_at_gmt              = gmdate( 'Y-m-d H:i:s', $current_time_timestamp + $expires_after_seconds );
+	$current_user                = wp_get_current_user();
+	$user_id                     = get_current_user_id();
+	$display_name                = $current_user && $current_user->exists() && $current_user->display_name ? $current_user->display_name : __( 'Another editor' );
+	$session_key_hash            = hash_hmac( 'sha256', (int) $post->ID . ':' . $session_key, wp_salt( 'nonce' ) );
+	$actor_hash                  = wp_de_rtc_get_presence_actor_hash( $user_id );
+	$table_sql                   = '`' . str_replace( '`', '``', $table_name ) . '`';
+	$written                     = $wpdb->query(
+		$wpdb->prepare(
+			"INSERT INTO $table_sql ( post_id, session_key_hash, actor_hash, display_name, freshness, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) VALUES ( %d, %s, %s, %s, %s, %s, %s, %s, %s ) ON DUPLICATE KEY UPDATE post_id = VALUES( post_id ), actor_hash = VALUES( actor_hash ), display_name = VALUES( display_name ), freshness = VALUES( freshness ), last_seen_gmt = VALUES( last_seen_gmt ), expires_at_gmt = VALUES( expires_at_gmt ), updated_at_gmt = VALUES( updated_at_gmt )",
+			(int) $post->ID,
+			$session_key_hash,
+			$actor_hash,
+			$display_name,
+			'active',
+			$current_time_gmt,
+			$expires_at_gmt,
+			$current_time_gmt,
+			$current_time_gmt
+		)
+	);
+
+	if ( false === $written ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing presence heartbeat storage failed.' ),
+			array(
+				'detail'                     => 'presence_heartbeat_storage_failure',
+				'post_id'                    => (int) $post->ID,
+				'rest_route'                 => 'post_presence_heartbeat',
+				'table_name'                 => $table_name,
+				'storage_table_ready'        => true,
+				'writes_presence'            => false,
+				'records_presence_heartbeat' => false,
+				'installs_presence_table'    => false,
+				'automatic_table_install'    => false,
+				'calls_save'                 => false,
+				'saves_post'                 => false,
+				'mutates_post_content'       => false,
+				'creates_revision'           => false,
+				'changes_post_lock'          => false,
+				'claims_saved'               => false,
+			)
+		);
+	}
+
+	return array(
+		'result'                         => 'presence_heartbeat_recorded',
+		'rest_route'                     => 'post_presence_heartbeat',
+		'post_id'                        => (int) $post->ID,
+		'post_type'                      => $post->post_type,
+		'post_type_rest_base'            => wp_de_rtc_get_post_type_rest_base( $post->post_type ),
+		'table_name'                     => $table_name,
+		'storage_table_ready'            => true,
+		'writes_presence'                => true,
+		'records_presence_heartbeat'     => true,
+		'heartbeat_writes_enabled_now'   => true,
+		'session_key_hash_recorded'      => true,
+		'actor_hash_recorded'            => true,
+		'display_name_recorded'          => true,
+		'last_seen_recorded'             => true,
+		'expires_at_recorded'            => true,
+		'freshness'                      => 'active',
+		'server_contact'                 => 'nominal',
+		'heartbeat_interval_seconds'     => $heartbeat_interval_seconds,
+		'expires_after_seconds'          => $expires_after_seconds,
+		'repeated_refresh_optional'      => true,
+		'correctness_independent_of_transport' => true,
+		'transport_required_for_correctness' => false,
+		'table_exists_required_for_save_correctness' => false,
+		'installs_presence_table'        => false,
+		'automatic_table_install'        => false,
+		'enables_repeated_client_refresh' => false,
+		'runtime_polling_enabled_now'    => false,
+		'calls_save'                     => false,
+		'saves_post'                     => false,
+		'mutates_post_content'           => false,
+		'mutates_persisted_post_content' => false,
+		'creates_revision'               => false,
+		'changes_post_lock'              => false,
+		'claims_absence'                 => false,
+		'claims_saved'                   => false,
+		'exposes_raw_content'            => false,
+		'exposes_user_ids'               => false,
+		'exposes_logins'                 => false,
+		'exposes_email'                  => false,
+		'exposes_cursor_offset'          => false,
+		'exposes_selection'              => false,
+		'raw_session_key_included'       => false,
+	);
+}
 
 /**
  * Sanitizes the site-level Distributed Editing enablement setting.
@@ -759,6 +2442,21 @@ function wp_de_rtc_sanitize_enabled_setting( $value ) {
  * @since 7.1.0
  */
 function wp_de_rtc_render_enabled_setting() {
+	$readiness    = wp_de_rtc_get_presence_storage_readiness(
+		array(
+			'feature_enabled' => wp_de_rtc_is_enabled(),
+		)
+	);
+	$action_state = wp_de_rtc_get_presence_storage_setup_admin_action_state();
+	$status_label = __( 'Setup needed' );
+
+	if ( 'ready' === $readiness['status'] ) {
+		$status_label = __( 'Ready' );
+	} elseif ( 'feature_disabled' === $readiness['status'] ) {
+		$status_label = __( 'Disabled until Distributed Editing is enabled' );
+	} elseif ( 'upgrade_required' === $readiness['status'] ) {
+		$status_label = __( 'Upgrade needed' );
+	}
 	?>
 	<label for="wp_de_rtc_enabled">
 		<input name="wp_de_rtc_enabled" type="checkbox" id="wp_de_rtc_enabled" value="1" <?php checked( true, wp_de_rtc_is_enabled() ); ?> />
@@ -767,7 +2465,203 @@ function wp_de_rtc_render_enabled_setting() {
 	<p class="description">
 		<?php _e( 'Distributed Editing is experimental and can increase server activity. Keep it disabled on constrained hosting unless the site has been evaluated for collaborative editing traffic.' ); ?>
 	</p>
+	<p class="description" data-wp-de-rtc-presence-storage-status="<?php echo esc_attr( $readiness['status'] ); ?>">
+		<?php
+		printf(
+			/* translators: %s: presence storage readiness status. */
+			esc_html__( 'Presence storage: %s.' ),
+			esc_html( $status_label )
+		);
+		?>
+		<?php if ( 'setup_required' === $readiness['status'] ) : ?>
+			<?php esc_html_e( 'Automatic presence updates will degrade until setup is run deliberately.' ); ?>
+		<?php endif; ?>
+	</p>
+	<?php if ( ! empty( $action_state['url'] ) ) : ?>
+		<p>
+			<a
+				class="button button-secondary"
+				data-wp-de-rtc-presence-storage-setup-action="wp_de_rtc_setup_presence_storage"
+				data-wp-de-rtc-presence-storage-setup-requires-nonce="true"
+				data-wp-de-rtc-presence-storage-setup-requires-capability="<?php echo esc_attr( $action_state['requiredCapability'] ); ?>"
+				href="<?php echo esc_url( $action_state['url'] ); ?>"
+			>
+				<?php esc_html_e( 'Set up Distributed Editing presence storage' ); ?>
+			</a>
+		</p>
+	<?php endif; ?>
 	<?php
+}
+
+/**
+ * Checks permissions for the presence snapshot REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_presence_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || ! wp_de_rtc_rest_presence_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'                     => 'feature_disabled_for_post',
+				'post_id'                    => (int) $post->ID,
+				'rest_route'                 => 'post_presence_roster',
+				'read_only'                  => true,
+				'saves_post'                 => false,
+				'mutates_post_content'       => false,
+				'creates_revision'           => false,
+				'changes_post_lock'          => false,
+				'records_presence_heartbeat' => false,
+				'claims_saved'               => false,
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
+ * Checks permissions for the presence heartbeat REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_presence_heartbeat_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || ! wp_de_rtc_rest_presence_heartbeat_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'                         => 'feature_disabled_for_post',
+				'post_id'                        => (int) $post->ID,
+				'rest_route'                     => 'post_presence_heartbeat',
+				'storage_table_ready'            => wp_de_rtc_presence_table_exists(),
+				'writes_presence'                => false,
+				'records_presence_heartbeat'     => false,
+				'installs_presence_table'        => false,
+				'automatic_table_install'        => false,
+				'enables_repeated_client_refresh' => false,
+				'runtime_polling_enabled_now'    => false,
+				'calls_save'                     => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'mutates_persisted_post_content' => false,
+				'creates_revision'               => false,
+				'changes_post_lock'              => false,
+				'claims_absence'                 => false,
+				'claims_saved'                   => false,
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
+ * Checks permissions for the presence storage readiness REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_presence_storage_readiness_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || ! wp_de_rtc_rest_presence_storage_readiness_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'                         => 'feature_disabled_for_post',
+				'post_id'                        => (int) $post->ID,
+				'rest_route'                     => 'post_presence_storage_readiness',
+				'read_only'                      => true,
+				'storage_table_ready'            => wp_de_rtc_presence_table_exists(),
+				'writes_presence'                => false,
+				'records_presence_heartbeat'     => false,
+				'installs_presence_table'        => false,
+				'automatic_table_install'        => false,
+				'enables_repeated_client_refresh' => false,
+				'runtime_polling_enabled_now'    => false,
+				'calls_save'                     => false,
+				'saves_post'                     => false,
+				'mutates_post_content'           => false,
+				'mutates_persisted_post_content' => false,
+				'creates_revision'               => false,
+				'changes_post_lock'              => false,
+				'claims_absence'                 => false,
+				'claims_saved'                   => false,
+				'contains_raw_content'           => false,
+				'exposes_raw_content'            => false,
+				'exposes_user_ids'               => false,
+				'exposes_logins'                 => false,
+				'exposes_email'                  => false,
+				'exposes_cursor_offset'          => false,
+				'exposes_selection'              => false,
+			)
+		);
+	}
+
+	return true;
 }
 
 /**
@@ -1253,6 +3147,138 @@ function wp_de_rtc_rest_fresh_review_lifecycle_permissions_check( $request ) {
 }
 
 /**
+ * Returns whether the REST presence request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_presence_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_presence_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a presence request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_presence_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/presence$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
+ * Returns whether the REST presence heartbeat request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_presence_heartbeat_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_presence_heartbeat_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a presence heartbeat request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_presence_heartbeat_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/presence/heartbeat$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
+ * Returns whether the REST presence storage readiness request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_presence_storage_readiness_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_presence_storage_readiness_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a presence storage readiness request route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_presence_storage_readiness_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/presence/storage-readiness$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
  * Returns whether the REST recovery request matches the post type route.
  *
  * @since 7.1.0
@@ -1646,6 +3672,109 @@ function wp_de_rtc_get_rest_fresh_review_lifecycle_rest_base( $request ) {
 	}
 
 	return sanitize_key( $matches[1] );
+}
+
+/**
+ * Handles the presence snapshot REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response REST response.
+ */
+function wp_de_rtc_rest_presence_endpoint( $request ) {
+	$result = wp_de_rtc_get_post_presence_read_snapshot(
+		(int) $request['id'],
+		array(
+			'current_session_key' => (string) $request->get_param( 'session_key' ),
+			'limit'               => $request->get_param( 'limit' ),
+		)
+	);
+
+	return rest_ensure_response( $result );
+}
+
+/**
+ * Handles the presence heartbeat REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response|WP_Error REST response on success, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_presence_heartbeat_endpoint( $request ) {
+	$result = wp_de_rtc_record_presence_heartbeat(
+		(int) $request['id'],
+		array(
+			'session_key' => (string) $request->get_param( 'session_key' ),
+		)
+	);
+
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+
+	return rest_ensure_response( $result );
+}
+
+/**
+ * Handles the presence storage readiness REST endpoint.
+ *
+ * This endpoint lets an already-open editor re-check whether deliberate setup
+ * completed elsewhere. It only reads the readiness diagnostic; it must not
+ * install storage, write presence, save posts, mutate content, create revisions,
+ * change post locks, or start polling.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response REST response.
+ */
+function wp_de_rtc_rest_presence_storage_readiness_endpoint( $request ) {
+	$post      = get_post( (int) $request['id'] );
+	$rest_base = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$result    = wp_de_rtc_get_presence_storage_readiness(
+		array(
+			'feature_enabled' => true,
+			'host_profile'    => 'cheap_shared_host',
+		)
+	);
+
+	$result['postId']                         = (int) $post->ID;
+	$result['post_id']                        = (int) $post->ID;
+	$result['postType']                       = $post->post_type;
+	$result['post_type']                      = $post->post_type;
+	$result['postTypeRestBase']               = $rest_base;
+	$result['post_type_rest_base']            = $rest_base;
+	$result['restRoute']                      = 'post_presence_storage_readiness';
+	$result['rest_route']                     = 'post_presence_storage_readiness';
+	$result['method']                         = 'GET';
+	$result['route']                          = '/wp/v2/' . $rest_base . '/' . (int) $post->ID . '/distributed-editing/presence/storage-readiness';
+	$result['readOnly']                       = true;
+	$result['read_only']                      = true;
+	$result['calls_save']                     = false;
+	$result['saves_post']                     = false;
+	$result['mutates_post_content']           = false;
+	$result['mutates_persisted_post_content'] = false;
+	$result['creates_revision']               = false;
+	$result['changes_post_lock']              = false;
+	$result['records_presence_heartbeat']     = false;
+	$result['writes_presence']                = false;
+	$result['installs_presence_table']        = false;
+	$result['automatic_table_install']        = false;
+	$result['starts_polling']                 = false;
+	$result['enables_repeated_client_refresh'] = false;
+	$result['claims_absence']                 = false;
+	$result['claims_saved']                   = false;
+	$result['contains_raw_content']           = false;
+	$result['exposes_raw_content']            = false;
+	$result['exposes_user_ids']               = false;
+	$result['exposes_logins']                 = false;
+	$result['exposes_email']                  = false;
+	$result['exposes_cursor_offset']          = false;
+	$result['exposes_selection']              = false;
+
+	return rest_ensure_response( $result );
 }
 
 /**
