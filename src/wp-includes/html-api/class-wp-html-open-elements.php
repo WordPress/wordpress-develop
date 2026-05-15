@@ -23,6 +23,7 @@
  * @since 6.4.0
  *
  * @access private
+ * @ignore
  *
  * @see https://html.spec.whatwg.org/#stack-of-open-elements
  * @see WP_HTML_Processor
@@ -520,11 +521,6 @@ class WP_HTML_Open_Elements {
 			return false;
 		}
 
-		if ( 'context-node' === $item->bookmark_name ) {
-			$this->stack[] = $item;
-			return false;
-		}
-
 		$this->after_element_pop( $item );
 		return true;
 	}
@@ -585,10 +581,6 @@ class WP_HTML_Open_Elements {
 	 * @return bool Whether the node was found and removed from the stack of open elements.
 	 */
 	public function remove_node( WP_HTML_Token $token ): bool {
-		if ( 'context-node' === $token->bookmark_name ) {
-			return false;
-		}
-
 		foreach ( $this->walk_up() as $position_from_end => $item ) {
 			if ( $token->bookmark_name !== $item->bookmark_name ) {
 				continue;
@@ -724,7 +716,7 @@ class WP_HTML_Open_Elements {
 		}
 
 		if ( null !== $this->push_handler ) {
-			( $this->push_handler )( $item );
+			call_user_func( $this->push_handler, $item );
 		}
 	}
 
@@ -772,7 +764,7 @@ class WP_HTML_Open_Elements {
 		}
 
 		if ( null !== $this->pop_handler ) {
-			( $this->pop_handler )( $item );
+			call_user_func( $this->pop_handler, $item );
 		}
 	}
 

@@ -398,7 +398,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertFalse( $controller->translate( "string that doesn't exist", '', 'unittest' ) );
 
 		$this->assertSame( 'رونوشت‌ها فعال نشدند.', $controller->translate( 'Revisions not enabled.', '', 'unittest' ) );
-		$this->assertSame( 'افزودن جدید', $controller->translate( 'Add New', 'file', 'unittest' ) );
+		$this->assertSame( 'افزودن', $controller->translate( 'Add', 'file', 'unittest' ) );
 
 		$this->assertSame( '%s دیدگاه', $controller->translate_plural( array( '%s comment', '%s comments' ), 0, '', 'unittest' ) );
 		$this->assertSame( '%s دیدگاه', $controller->translate_plural( array( '%s comment', '%s comments' ), 1, '', 'unittest' ) );

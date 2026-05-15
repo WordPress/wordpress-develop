@@ -229,17 +229,29 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			require_once ABSPATH . 'wp-admin/includes/post.php';
 		}
 
-		$post_lock = wp_check_post_lock( $post->ID );
-		$is_draft  = 'draft' === $post->post_status || 'auto-draft' === $post->post_status;
+		$post_lock_is_active = wp_check_post_lock( $post->ID );
+		$is_draft            = 'draft' === $post->post_status || 'auto-draft' === $post->post_status;
 
-		if ( $is_draft && (int) $post->post_author === $user_id && ! $post_lock ) {
+		/*
+		 * When a post is still in draft form, updates from the author can directly update the post.
+		 * Other autosaves must be stored as per-user autosave revisions.
+		 */
+		$can_update_author_draft_post = (
+			$is_draft &&
+			(int) $post->post_author === $user_id
+		);
+
+		$should_update_parent_draft_post = (
+			! $post_lock_is_active && $can_update_author_draft_post
+		);
+
+		if ( $should_update_parent_draft_post ) {
 			/*
 			 * Draft posts for the same author: autosaving updates the post and does not create a revision.
 			 * Convert the post object to an array and add slashes, wp_update_post() expects escaped array.
 			 */
 			$autosave_id = wp_update_post( wp_slash( (array) $prepared_post ), true );
 		} else {
-			// Non-draft posts: create or update the post autosave. Pass the meta data.
 			$autosave_id = $this->create_post_autosave( (array) $prepared_post, (array) $request->get_param( 'meta' ) );
 		}
 
@@ -305,6 +317,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $parent;
 		}
 
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
 		$response  = array();
 		$parent_id = $parent->ID;
 		$revisions = wp_get_post_revisions( $parent_id, array( 'check_enabled' => false ) );
@@ -385,7 +401,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			foreach ( $revisioned_meta_keys as $meta_key ) {
 				// get_metadata_raw is used to avoid retrieving the default value.
 				$old_meta = get_metadata_raw( 'post', $post_id, $meta_key, true );
-				$new_meta = isset( $meta[ $meta_key ] ) ? $meta[ $meta_key ] : '';
+				$new_meta = $meta[ $meta_key ] ?? '';
 
 				if ( $new_meta !== $old_meta ) {
 					$autosave_is_different = true;
@@ -408,7 +424,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$new_autosave['ID']          = $old_autosave->ID;
 			$new_autosave['post_author'] = $user_id;
 
-			/** This filter is documented in wp-admin/post.php */
+			/** This action is documented in wp-admin/includes/post.php */
 			do_action( 'wp_creating_autosave', $new_autosave );
 
 			// wp_update_post() expects escaped array.
@@ -448,6 +464,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-autosaves-controller.php */
+			return apply_filters( 'rest_prepare_autosave', new WP_REST_Response( array() ), $post, $request );
+		}
 		$response = $this->revisions_controller->prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
 
