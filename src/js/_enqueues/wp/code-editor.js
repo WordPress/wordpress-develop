@@ -415,7 +415,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 */
 	wp.codeEditor.initialize = function initialize( textarea, settings ) {
 		if ( document.readyState === 'loading' ) {
-			console.warn( 'wp.codeEditor.initialize() should be invoked at or after DOMContentLoaded. This is to ensure the importmap has been parsed prior to performing the dynamic import of espree in javascript-lint.js.' );
+			console.warn( 'wp.codeEditor.initialize() ran too early. Invoke this function in a `DOMContentLoaded` event listener.' );
 		}
 
 		let $textarea;
