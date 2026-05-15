@@ -215,7 +215,7 @@ jobs:
         if: ${{ inputs.coverage-report }}
         run: |
           docker compose exec -T -u 0 php sh -c '
-            pecl install pcov &&
+            pecl install --force pcov-1.0.12 &&
             docker-php-ext-enable pcov &&
             {
               echo "pcov.enabled=1"
