@@ -522,9 +522,6 @@ input[type="number"].tiny-text {
 #doaction2,
 #post-query-submit {
 	margin: 0 8px 0 0;
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
 }
 
 /* @since 5.7.0 secondary bulk action controls require JS. */
@@ -1774,19 +1771,6 @@ table.form-table td .updated p {
 		min-height: 40px;
 	}
 
-	.wp-core-ui .tablenav select {
-		line-height: 2.375;
-		font-size: 16px;
-	}
-
-	#doaction,
-	#doaction2,
-	#post-query-submit {
-		min-height: 40px;
-		line-height: 2.71428571;
-		padding: 0 14px;
-	}
-
 	.wp-core-ui .tablenav .button {
 		min-height: 40px;
 		line-height: 2.71428571;
@@ -1811,10 +1795,9 @@ table.form-table td .updated p {
 		margin-bottom: 0;
 	}
 
-	p.search-box .button {
+	p.search-box input[type="search"],
+	p.search-box input[type="text"] {
 		min-height: 40px;
-		line-height: 2.71428571; /* 38px - matches default mobile button */
-		padding: 0 14px;
 	}
 
 	p.search-box input[type="submit"] {
