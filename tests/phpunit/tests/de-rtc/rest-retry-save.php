@@ -874,6 +874,126 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_get_top_level_serialized_block_records
 	 * @covers ::wp_de_rtc_get_server_merge_conflict_error
 	 */
+	public function test_retry_save_rejects_server_middle_inserted_block_without_mutating() {
+		$base_content     = '<!-- wp:paragraph --><p>Opening base.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Details base.</p><!-- /wp:paragraph -->';
+		$current_content  = $this->add_sync_meta_to_content(
+			$base_content,
+			140,
+			array(
+				'hash' => 'server-merge-server-middle-insertion-base',
+			)
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC server merge server middle insertion post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Opening base.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Details changed by local.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$proof_request    = $this->create_retry_submit_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'        => '140',
+				'rebased_from_version'       => '139',
+				'pending_change_count'       => 1,
+				'proposed_post_content_hash' => $proposed_hash,
+			)
+		);
+
+		$proof_response = rest_get_server()->dispatch( $proof_request );
+		$proof_data     = $proof_response->get_data();
+
+		$this->assertSame( 200, $proof_response->get_status() );
+		$this->assertSame( '140', $proof_data['server_version'] );
+
+		$base_revision_id = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $base_revision_id );
+		$this->assertGreaterThan( 0, $base_revision_id );
+
+		$advanced_server_content = '<!-- wp:paragraph --><p>Opening base.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Server inserted middle block.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Details base.</p><!-- /wp:paragraph -->';
+		$advanced_content        = $this->add_sync_meta_to_content(
+			$advanced_server_content,
+			141,
+			array(
+				'previous_version' => '140',
+			)
+		);
+
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $advanced_content,
+					)
+				)
+			)
+		);
+
+		$before_retry_post      = get_post( $post_id );
+		$before_retry_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$save_request           = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'                 => $proof_data['client_base_version'],
+				'accepted_proof_server_version'       => $proof_data['server_version'],
+				'rebased_from_version'                => $proof_data['rebased_from_version'],
+				'pending_change_count'                => $proof_data['pending_change_count'],
+				'proposed_post_content'               => $proposed_content,
+				'proposed_post_content_hash'          => $proof_data['proposed_post_content_hash'],
+				'accepted_proof_saves_post'           => $proof_data['saves_post'],
+				'accepted_proof_mutates_post_content' => $proof_data['mutates_post_content'],
+				'accepted_proof_creates_revision'     => $proof_data['creates_revision'],
+				'accepted_proof_claims_saved'         => $proof_data['claims_saved'],
+			)
+		);
+
+		$save_response = rest_get_server()->dispatch( $save_request );
+		$error         = $save_response->as_error();
+		$data          = $error->get_error_data( 'de_rtc_rebase_failed' );
+
+		$this->assertErrorResponse( 'de_rtc_rebase_failed', $save_response, 409 );
+		$this->assertSame( 'retry_save_server_merge_top_level_serialized_block_count_changed', $data['detail'] );
+		$this->assertSame( 'post_retry_save_server_merge', $data['rest_route'] );
+		$this->assertTrue( $data['server_merge_attempted'] );
+		$this->assertSame( 'manual_conflict_required', $data['server_merge_status'] );
+		$this->assertSame( 'top_level_serialized_block_three_way', $data['server_merge_strategy'] );
+		$this->assertSame( 2, $data['base_block_count'] );
+		$this->assertSame( 3, $data['server_block_count'] );
+		$this->assertSame( 2, $data['proposed_block_count'] );
+		$this->assertTrue( $data['server_block_count_changed'] );
+		$this->assertFalse( $data['local_block_count_changed'] );
+		$this->assertSame( 1, $data['server_block_count_delta'] );
+		$this->assertSame( 0, $data['local_block_count_delta'] );
+		$this->assertFalse( $data['requires_server_state_refetch'] );
+		$this->assertTrue( $data['requires_manual_conflict_resolution'] );
+		$this->assertTrue( $data['can_export_local_updates'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_retry_post->post_content, $before_retry_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_submit_endpoint
+	 * @covers ::wp_de_rtc_get_retry_submit_acceptance_result
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_find_revision_with_sync_meta_version
+	 * @covers ::wp_de_rtc_get_serialized_block_server_merge_result
+	 * @covers ::wp_de_rtc_get_top_level_serialized_block_records
+	 * @covers ::wp_de_rtc_get_server_merge_conflict_error
+	 */
 	public function test_retry_save_rejects_appended_block_prefix_drift_without_mutating() {
 		$base_content = '<!-- wp:paragraph --><p>Opening base.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Details base.</p><!-- /wp:paragraph -->';
 		$cases        = array(
