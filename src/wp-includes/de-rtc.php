@@ -12239,9 +12239,9 @@ function wp_de_rtc_get_post_revision_ids( $post_id ) {
  * Attempts a conservative server-side merge across top-level serialized blocks.
  *
  * This helper is intentionally narrow: it only merges same-count top-level
- * serialized block edits, or a strict one-sided append where the appending
- * side's existing block prefix still matches the accepted base. Anything else
- * becomes a conflict for the editor.
+ * serialized block edits, or a strict one-sided edge insertion where the
+ * inserting side's existing blocks still match the accepted base. Anything
+ * else becomes a conflict for the editor.
  *
  * @since 7.1.0
  * @access private
@@ -12263,11 +12263,15 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		}
 	}
 
-	$base_count     = count( $base_records );
-	$server_count   = count( $server_records );
-	$proposed_count = count( $proposed_records );
-	$append_source   = null;
-	$appended_blocks = array();
+	$base_count           = count( $base_records );
+	$server_count         = count( $server_records );
+	$proposed_count       = count( $proposed_records );
+	$edge_insert_source   = null;
+	$edge_insert_position = null;
+	$edge_inserted_blocks = array();
+	$server_base_offset   = 0;
+	$local_base_offset    = 0;
+	$merged_index_offset  = 0;
 
 	if ( 0 === $base_count ) {
 		return wp_de_rtc_get_server_merge_conflict_error(
@@ -12285,24 +12289,21 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 	}
 
 	if ( $base_count !== $server_count || $base_count !== $proposed_count ) {
-		$server_appended = $server_count > $base_count && $proposed_count === $base_count;
-		$local_appended  = $proposed_count > $base_count && $server_count === $base_count;
+		$server_edge_inserted = $server_count > $base_count && $proposed_count === $base_count;
+		$local_edge_inserted  = $proposed_count > $base_count && $server_count === $base_count;
 
-		if ( $server_appended || $local_appended ) {
-			$append_source   = $server_appended ? 'server' : 'local';
-			$append_records  = $server_appended ? $server_records : $proposed_records;
-			$appended_blocks = array_slice( $append_records, $base_count );
+		if ( $server_edge_inserted || $local_edge_inserted ) {
+			$edge_insert_records = $server_edge_inserted ? $server_records : $proposed_records;
+			$edge_insert         = wp_de_rtc_get_serialized_block_edge_insertion( $base_records, $edge_insert_records );
 
-			for ( $index = 0; $index < $base_count; $index++ ) {
-				if ( ! hash_equals( $base_records[ $index ], $append_records[ $index ] ) ) {
-					$append_source   = null;
-					$appended_blocks = array();
-					break;
-				}
+			if ( null !== $edge_insert ) {
+				$edge_insert_source   = $server_edge_inserted ? 'server' : 'local';
+				$edge_insert_position = $edge_insert['position'];
+				$edge_inserted_blocks = $edge_insert['blocks'];
 			}
 		}
 
-		if ( null === $append_source ) {
+		if ( null === $edge_insert_source ) {
 			return wp_de_rtc_get_server_merge_conflict_error(
 				'top_level_serialized_block_count_changed',
 				array(
@@ -12315,6 +12316,16 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 					'local_block_count_delta'    => $proposed_count - $base_count,
 				)
 			);
+		}
+
+		if ( 'prepend' === $edge_insert_position ) {
+			$merged_index_offset = count( $edge_inserted_blocks );
+
+			if ( 'server' === $edge_insert_source ) {
+				$server_base_offset = $merged_index_offset;
+			} else {
+				$local_base_offset = $merged_index_offset;
+			}
 		}
 	}
 
@@ -12342,31 +12353,44 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		}
 	}
 
-	$merged_blocks             = array();
-	$server_changed_indexes    = array();
-	$local_changed_indexes     = array();
-	$conflicting_indexes       = array();
+	$merged_blocks            = array();
+	$server_changed_indexes   = array();
+	$local_changed_indexes    = array();
+	$conflicting_indexes      = array();
 	$conflicting_block_hashes = array();
+
+	if ( 'prepend' === $edge_insert_position && ! empty( $edge_inserted_blocks ) ) {
+		foreach ( $edge_inserted_blocks as $offset => $edge_inserted_block ) {
+			if ( 'server' === $edge_insert_source ) {
+				$server_changed_indexes[] = $offset;
+			} else {
+				$local_changed_indexes[] = $offset;
+			}
+
+			$merged_blocks[] = $edge_inserted_block;
+		}
+	}
 
 	for ( $index = 0; $index < $base_count; $index++ ) {
 		$base_block     = $base_records[ $index ];
-		$server_block   = $server_records[ $index ];
-		$proposed_block = $proposed_records[ $index ];
+		$server_block   = $server_records[ $index + $server_base_offset ];
+		$proposed_block = $proposed_records[ $index + $local_base_offset ];
+		$merged_index   = $index + $merged_index_offset;
 		$server_changed = ! hash_equals( $base_block, $server_block );
 		$local_changed  = ! hash_equals( $base_block, $proposed_block );
 
 		if ( $server_changed ) {
-			$server_changed_indexes[] = $index;
+			$server_changed_indexes[] = $merged_index;
 		}
 
 		if ( $local_changed ) {
-			$local_changed_indexes[] = $index;
+			$local_changed_indexes[] = $merged_index;
 		}
 
 		if ( $server_changed && $local_changed && ! hash_equals( $server_block, $proposed_block ) ) {
-			$conflicting_indexes[] = $index;
+			$conflicting_indexes[] = $merged_index;
 			$conflicting_block_hashes[] = array(
-				'block_index'         => $index,
+				'block_index'         => $merged_index,
 				'base_block_hash'     => wp_de_rtc_hash_content( $base_block ),
 				'server_block_hash'   => wp_de_rtc_hash_content( $server_block ),
 				'proposed_block_hash' => wp_de_rtc_hash_content( $proposed_block ),
@@ -12392,11 +12416,11 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		);
 	}
 
-	if ( ! empty( $appended_blocks ) ) {
-		foreach ( $appended_blocks as $offset => $appended_block ) {
+	if ( 'append' === $edge_insert_position && ! empty( $edge_inserted_blocks ) ) {
+		foreach ( $edge_inserted_blocks as $offset => $appended_block ) {
 			$appended_index = $base_count + $offset;
 
-			if ( 'server' === $append_source ) {
+			if ( 'server' === $edge_insert_source ) {
 				$server_changed_indexes[] = $appended_index;
 			} else {
 				$local_changed_indexes[] = $appended_index;
@@ -12420,8 +12444,13 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		'server_block_count'           => $server_count,
 		'proposed_block_count'         => $proposed_count,
 		'merged_block_count'           => $merged_count,
-		'append_source'                => $append_source,
-		'appended_block_count'         => count( $appended_blocks ),
+		'edge_insert_source'           => $edge_insert_source,
+		'edge_insert_position'         => $edge_insert_position,
+		'edge_inserted_block_count'    => count( $edge_inserted_blocks ),
+		'append_source'                => 'append' === $edge_insert_position ? $edge_insert_source : null,
+		'appended_block_count'         => 'append' === $edge_insert_position ? count( $edge_inserted_blocks ) : 0,
+		'prepend_source'               => 'prepend' === $edge_insert_position ? $edge_insert_source : null,
+		'prepended_block_count'        => 'prepend' === $edge_insert_position ? count( $edge_inserted_blocks ) : 0,
 		'server_changed_indexes'       => $server_changed_indexes,
 		'local_changed_indexes'        => $local_changed_indexes,
 		'server_changed_block_count'   => count( $server_changed_indexes ),
@@ -12432,6 +12461,60 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		'server_content_hash'          => wp_de_rtc_hash_content( $server_content ),
 		'proposed_content_hash'        => wp_de_rtc_hash_content( $proposed_content ),
 	);
+}
+
+/**
+ * Returns strict one-sided edge insertion data for serialized blocks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string[] $base_records      Accepted-base serialized block records.
+ * @param string[] $candidate_records Candidate serialized block records.
+ * @return array|null Edge insertion data, or null when the candidate is not a strict edge insertion.
+ */
+function wp_de_rtc_get_serialized_block_edge_insertion( $base_records, $candidate_records ) {
+	$base_count      = count( $base_records );
+	$candidate_count = count( $candidate_records );
+
+	if ( $candidate_count <= $base_count ) {
+		return null;
+	}
+
+	$inserted_count = $candidate_count - $base_count;
+	$matches_prefix = true;
+
+	for ( $index = 0; $index < $base_count; $index++ ) {
+		if ( ! hash_equals( $base_records[ $index ], $candidate_records[ $index ] ) ) {
+			$matches_prefix = false;
+			break;
+		}
+	}
+
+	if ( $matches_prefix ) {
+		return array(
+			'position' => 'append',
+			'blocks'   => array_slice( $candidate_records, $base_count ),
+		);
+	}
+
+	$matches_suffix = true;
+
+	for ( $index = 0; $index < $base_count; $index++ ) {
+		if ( ! hash_equals( $base_records[ $index ], $candidate_records[ $index + $inserted_count ] ) ) {
+			$matches_suffix = false;
+			break;
+		}
+	}
+
+	if ( $matches_suffix ) {
+		return array(
+			'position' => 'prepend',
+			'blocks'   => array_slice( $candidate_records, 0, $inserted_count ),
+		);
+	}
+
+	return null;
 }
 
 /**
@@ -12579,8 +12662,13 @@ function wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) {
 		'server_block_count'           => isset( $server_merge_result['server_block_count'] ) ? (int) $server_merge_result['server_block_count'] : 0,
 		'proposed_block_count'         => isset( $server_merge_result['proposed_block_count'] ) ? (int) $server_merge_result['proposed_block_count'] : 0,
 		'merged_block_count'           => isset( $server_merge_result['merged_block_count'] ) ? (int) $server_merge_result['merged_block_count'] : 0,
+		'edge_insert_source'           => isset( $server_merge_result['edge_insert_source'] ) ? $server_merge_result['edge_insert_source'] : null,
+		'edge_insert_position'         => isset( $server_merge_result['edge_insert_position'] ) ? $server_merge_result['edge_insert_position'] : null,
+		'edge_inserted_block_count'    => isset( $server_merge_result['edge_inserted_block_count'] ) ? (int) $server_merge_result['edge_inserted_block_count'] : 0,
 		'append_source'                => isset( $server_merge_result['append_source'] ) ? $server_merge_result['append_source'] : null,
 		'appended_block_count'         => isset( $server_merge_result['appended_block_count'] ) ? (int) $server_merge_result['appended_block_count'] : 0,
+		'prepend_source'               => isset( $server_merge_result['prepend_source'] ) ? $server_merge_result['prepend_source'] : null,
+		'prepended_block_count'        => isset( $server_merge_result['prepended_block_count'] ) ? (int) $server_merge_result['prepended_block_count'] : 0,
 		'server_changed_indexes'       => $server_changed_indexes,
 		'local_changed_indexes'        => $local_changed_indexes,
 		'server_changed_block_count'   => isset( $server_merge_result['server_changed_block_count'] ) ? (int) $server_merge_result['server_changed_block_count'] : count( $server_changed_indexes ),
