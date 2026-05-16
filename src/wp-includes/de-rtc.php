@@ -12239,9 +12239,11 @@ function wp_de_rtc_get_post_revision_ids( $post_id ) {
  * Attempts a conservative server-side merge across top-level serialized blocks.
  *
  * This helper is intentionally narrow: it only merges same-count top-level
- * serialized block edits, or a strict one-sided edge insertion where the
- * inserting side's existing blocks still match the accepted base. Anything
- * else becomes a conflict for the editor.
+ * serialized block edits, a strict one-sided edge insertion where the
+ * inserting side's existing blocks still match the accepted base, or a strict
+ * one-sided deletion where the retained blocks still match the accepted base
+ * and the other side did not edit the deleted blocks. Anything else becomes a
+ * conflict for the editor.
  *
  * @since 7.1.0
  * @access private
@@ -12289,6 +12291,21 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 	}
 
 	if ( $base_count !== $server_count || $base_count !== $proposed_count ) {
+		$server_deleted = $server_count < $base_count && $proposed_count === $base_count;
+		$local_deleted  = $proposed_count < $base_count && $server_count === $base_count;
+
+		if ( $server_deleted || $local_deleted ) {
+			return wp_de_rtc_get_serialized_block_deletion_merge_result(
+				$base_records,
+				$server_records,
+				$proposed_records,
+				$base_content,
+				$server_content,
+				$proposed_content,
+				$args
+			);
+		}
+
 		$server_edge_inserted = $server_count > $base_count && $proposed_count === $base_count;
 		$local_edge_inserted  = $proposed_count > $base_count && $server_count === $base_count;
 
@@ -12482,6 +12499,195 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 }
 
 /**
+ * Attempts a conservative one-sided deletion merge across serialized blocks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string[] $base_records     Accepted-base serialized block records.
+ * @param string[] $server_records   Current server serialized block records.
+ * @param string[] $proposed_records Client-proposed serialized block records.
+ * @param string   $base_content     Stripped post content for the accepted proof version.
+ * @param string   $server_content   Current stripped server post content.
+ * @param string   $proposed_content Client-proposed stripped post content.
+ * @param array    $args             Optional merge evidence.
+ * @return array|WP_Error Merge result, or conflict error.
+ */
+function wp_de_rtc_get_serialized_block_deletion_merge_result( $base_records, $server_records, $proposed_records, $base_content, $server_content, $proposed_content, $args = array() ) {
+	$base_count     = count( $base_records );
+	$server_count   = count( $server_records );
+	$proposed_count = count( $proposed_records );
+	$server_deleted = $server_count < $base_count && $proposed_count === $base_count;
+	$local_deleted  = $proposed_count < $base_count && $server_count === $base_count;
+
+	if ( ! $server_deleted && ! $local_deleted ) {
+		return wp_de_rtc_get_server_merge_conflict_error(
+			'top_level_serialized_block_count_changed',
+			array(
+				'base_block_count'           => $base_count,
+				'server_block_count'         => $server_count,
+				'proposed_block_count'       => $proposed_count,
+				'server_block_count_changed' => $base_count !== $server_count,
+				'local_block_count_changed'  => $base_count !== $proposed_count,
+				'server_block_count_delta'   => $server_count - $base_count,
+				'local_block_count_delta'    => $proposed_count - $base_count,
+			)
+		);
+	}
+
+	$deletion_source  = $server_deleted ? 'server' : 'local';
+	$stable_source    = $server_deleted ? 'local' : 'server';
+	$deleting_records = $server_deleted ? $server_records : $proposed_records;
+	$stable_records   = $server_deleted ? $proposed_records : $server_records;
+	$deletion         = wp_de_rtc_get_serialized_block_deletion( $base_records, $deleting_records );
+
+	if ( null === $deletion ) {
+		return wp_de_rtc_get_server_merge_conflict_error(
+			'top_level_serialized_block_count_changed',
+			array(
+				'base_block_count'           => $base_count,
+				'server_block_count'         => $server_count,
+				'proposed_block_count'       => $proposed_count,
+				'server_block_count_changed' => $base_count !== $server_count,
+				'local_block_count_changed'  => $base_count !== $proposed_count,
+				'server_block_count_delta'   => $server_count - $base_count,
+				'local_block_count_delta'    => $proposed_count - $base_count,
+				'deletion_source'            => $deletion_source,
+			)
+		);
+	}
+
+	if ( 'ambiguous' === $deletion['status'] ) {
+		return wp_de_rtc_get_server_merge_conflict_error(
+			'ambiguous_block_deletion',
+			array(
+				'base_block_count'           => $base_count,
+				'server_block_count'         => $server_count,
+				'proposed_block_count'       => $proposed_count,
+				'server_block_count_changed' => $base_count !== $server_count,
+				'local_block_count_changed'  => $base_count !== $proposed_count,
+				'server_block_count_delta'   => $server_count - $base_count,
+				'local_block_count_delta'    => $proposed_count - $base_count,
+				'deletion_source'            => $deletion_source,
+				'deletion_ambiguous'         => true,
+			)
+		);
+	}
+
+	$stable_reordered_indexes = wp_de_rtc_get_reordered_serialized_block_indexes( $base_records, $stable_records );
+
+	if ( ! empty( $stable_reordered_indexes ) ) {
+		return wp_de_rtc_get_server_merge_conflict_error(
+			'top_level_serialized_block_reordered',
+			array(
+				'base_block_count'              => $base_count,
+				'server_block_count'            => $server_count,
+				'proposed_block_count'          => $proposed_count,
+				'server_block_count_changed'    => $base_count !== $server_count,
+				'local_block_count_changed'     => $base_count !== $proposed_count,
+				'server_block_count_delta'      => $server_count - $base_count,
+				'local_block_count_delta'       => $proposed_count - $base_count,
+				'server_block_order_changed'    => 'server' === $stable_source,
+				'local_block_order_changed'     => 'local' === $stable_source,
+				'server_reordered_block_indexes' => 'server' === $stable_source ? $stable_reordered_indexes : array(),
+				'local_reordered_block_indexes' => 'local' === $stable_source ? $stable_reordered_indexes : array(),
+				'deletion_source'               => $deletion_source,
+				'deleted_block_indexes'         => $deletion['deleted_indexes'],
+				'deleted_block_count'           => count( $deletion['deleted_indexes'] ),
+			)
+		);
+	}
+
+	$deleted_lookup         = array_fill_keys( $deletion['deleted_indexes'], true );
+	$merged_blocks          = array();
+	$server_changed_indexes = array();
+	$local_changed_indexes  = array();
+
+	for ( $index = 0; $index < $base_count; $index++ ) {
+		$base_block     = $base_records[ $index ];
+		$stable_block   = $stable_records[ $index ];
+		$stable_changed = ! hash_equals( $base_block, $stable_block );
+
+		if ( isset( $deleted_lookup[ $index ] ) ) {
+			if ( $stable_changed ) {
+				return wp_de_rtc_get_server_merge_conflict_error(
+					'deleted_serialized_block_changed',
+					array(
+						'conflicting_block_index'    => (int) $index,
+						'conflicting_block_indexes'  => array( (int) $index ),
+						'conflicting_block_count'    => 1,
+						'base_block_count'           => $base_count,
+						'server_block_count'         => $server_count,
+						'proposed_block_count'       => $proposed_count,
+						'server_block_count_changed' => $base_count !== $server_count,
+						'local_block_count_changed'  => $base_count !== $proposed_count,
+						'server_block_count_delta'   => $server_count - $base_count,
+						'local_block_count_delta'    => $proposed_count - $base_count,
+						'deletion_source'            => $deletion_source,
+						'deleted_block_indexes'      => $deletion['deleted_indexes'],
+						'deleted_block_count'        => count( $deletion['deleted_indexes'] ),
+						'deleted_block_changed_source' => $stable_source,
+						'server_changed_indexes'     => 'server' === $stable_source ? array( (int) $index ) : array(),
+						'local_changed_indexes'      => 'local' === $stable_source ? array( (int) $index ) : array(),
+						'server_changed_block_count' => ( 'server' === $stable_source ? 1 : 0 ) + ( 'server' === $deletion_source ? count( $deletion['deleted_indexes'] ) : 0 ),
+						'local_changed_block_count'  => ( 'local' === $stable_source ? 1 : 0 ) + ( 'local' === $deletion_source ? count( $deletion['deleted_indexes'] ) : 0 ),
+					)
+				);
+			}
+
+			continue;
+		}
+
+		$merged_index = count( $merged_blocks );
+
+		if ( $stable_changed ) {
+			if ( 'server' === $stable_source ) {
+				$server_changed_indexes[] = $merged_index;
+			} else {
+				$local_changed_indexes[] = $merged_index;
+			}
+		}
+
+		$merged_blocks[] = $stable_changed ? $stable_block : $base_block;
+	}
+
+	$merged_content = implode( '', $merged_blocks );
+	$merged_count   = count( $merged_blocks );
+
+	return array(
+		'merge_status'                 => 'merged',
+		'merge_strategy'               => 'top_level_serialized_block_three_way',
+		'base_version'                 => isset( $args['base_version'] ) ? sanitize_text_field( (string) $args['base_version'] ) : null,
+		'server_version'               => isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : null,
+		'base_revision_id'             => isset( $args['base_revision_id'] ) ? (int) $args['base_revision_id'] : 0,
+		'block_count'                  => $merged_count,
+		'base_block_count'             => $base_count,
+		'server_block_count'           => $server_count,
+		'proposed_block_count'         => $proposed_count,
+		'merged_block_count'           => $merged_count,
+		'edge_insert_source'           => null,
+		'edge_insert_position'         => null,
+		'edge_inserted_block_count'    => 0,
+		'append_source'                => null,
+		'appended_block_count'         => 0,
+		'prepend_source'               => null,
+		'prepended_block_count'        => 0,
+		'deletion_source'              => $deletion_source,
+		'deleted_block_indexes'        => $deletion['deleted_indexes'],
+		'deleted_block_count'          => count( $deletion['deleted_indexes'] ),
+		'server_changed_indexes'       => $server_changed_indexes,
+		'local_changed_indexes'        => $local_changed_indexes,
+		'server_changed_block_count'   => count( $server_changed_indexes ) + ( 'server' === $deletion_source ? count( $deletion['deleted_indexes'] ) : 0 ),
+		'local_changed_block_count'    => count( $local_changed_indexes ) + ( 'local' === $deletion_source ? count( $deletion['deleted_indexes'] ) : 0 ),
+		'merged_content'               => $merged_content,
+		'merged_stripped_content_hash' => wp_de_rtc_hash_content( $merged_content ),
+		'base_content_hash'            => wp_de_rtc_hash_content( $base_content ),
+		'server_content_hash'          => wp_de_rtc_hash_content( $server_content ),
+		'proposed_content_hash'        => wp_de_rtc_hash_content( $proposed_content ),
+	);
+}
+
+/**
  * Returns strict one-sided edge insertion data for serialized blocks.
  *
  * @since 7.1.0
@@ -12539,6 +12745,84 @@ function wp_de_rtc_get_serialized_block_edge_insertion( $base_records, $candidat
 	}
 
 	return null;
+}
+
+/**
+ * Returns strict one-sided deletion data for serialized blocks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string[] $base_records      Accepted-base serialized block records.
+ * @param string[] $candidate_records Candidate serialized block records.
+ * @return array|null Deletion data, or null when the candidate is not a strict deletion.
+ */
+function wp_de_rtc_get_serialized_block_deletion( $base_records, $candidate_records ) {
+	$base_count      = count( $base_records );
+	$candidate_count = count( $candidate_records );
+
+	if ( $candidate_count >= $base_count ) {
+		return null;
+	}
+
+	$leftmost_indexes = array();
+	$candidate_index  = 0;
+
+	for ( $base_index = 0; $base_index < $base_count && $candidate_index < $candidate_count; $base_index++ ) {
+		if ( hash_equals( $base_records[ $base_index ], $candidate_records[ $candidate_index ] ) ) {
+			$leftmost_indexes[] = $base_index;
+			$candidate_index++;
+		}
+	}
+
+	if ( $candidate_index !== $candidate_count ) {
+		return null;
+	}
+
+	$rightmost_indexes = array_fill( 0, $candidate_count, null );
+	$candidate_index   = $candidate_count - 1;
+
+	for ( $base_index = $base_count - 1; $base_index >= 0 && $candidate_index >= 0; $base_index-- ) {
+		if ( hash_equals( $base_records[ $base_index ], $candidate_records[ $candidate_index ] ) ) {
+			$rightmost_indexes[ $candidate_index ] = $base_index;
+			$candidate_index--;
+		}
+	}
+
+	if ( -1 !== $candidate_index ) {
+		return null;
+	}
+
+	if ( $leftmost_indexes !== $rightmost_indexes ) {
+		return array(
+			'status'          => 'ambiguous',
+			'deleted_indexes' => array(),
+		);
+	}
+
+	$matched_lookup            = array_fill_keys( $leftmost_indexes, true );
+	$base_to_candidate_indexes = array();
+	$deleted_indexes           = array();
+	$candidate_index_by_base   = array();
+
+	foreach ( $leftmost_indexes as $candidate_offset => $base_index ) {
+		$candidate_index_by_base[ $base_index ] = $candidate_offset;
+	}
+
+	for ( $base_index = 0; $base_index < $base_count; $base_index++ ) {
+		if ( isset( $matched_lookup[ $base_index ] ) ) {
+			$base_to_candidate_indexes[ $base_index ] = $candidate_index_by_base[ $base_index ];
+		} else {
+			$base_to_candidate_indexes[ $base_index ] = null;
+			$deleted_indexes[]                        = $base_index;
+		}
+	}
+
+	return array(
+		'status'                    => 'deleted',
+		'deleted_indexes'           => $deleted_indexes,
+		'base_to_candidate_indexes' => $base_to_candidate_indexes,
+	);
 }
 
 /**
@@ -12693,6 +12977,9 @@ function wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) {
 		'appended_block_count'         => isset( $server_merge_result['appended_block_count'] ) ? (int) $server_merge_result['appended_block_count'] : 0,
 		'prepend_source'               => isset( $server_merge_result['prepend_source'] ) ? $server_merge_result['prepend_source'] : null,
 		'prepended_block_count'        => isset( $server_merge_result['prepended_block_count'] ) ? (int) $server_merge_result['prepended_block_count'] : 0,
+		'deletion_source'              => isset( $server_merge_result['deletion_source'] ) ? $server_merge_result['deletion_source'] : null,
+		'deleted_block_indexes'        => isset( $server_merge_result['deleted_block_indexes'] ) && is_array( $server_merge_result['deleted_block_indexes'] ) ? array_map( 'intval', $server_merge_result['deleted_block_indexes'] ) : array(),
+		'deleted_block_count'          => isset( $server_merge_result['deleted_block_count'] ) ? (int) $server_merge_result['deleted_block_count'] : 0,
 		'server_changed_indexes'       => $server_changed_indexes,
 		'local_changed_indexes'        => $local_changed_indexes,
 		'server_changed_block_count'   => isset( $server_merge_result['server_changed_block_count'] ) ? (int) $server_merge_result['server_changed_block_count'] : count( $server_changed_indexes ),
