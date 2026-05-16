@@ -30,7 +30,7 @@ import CodeMirror from 'codemirror';
  * @property {boolean} [es3] - "This option tells JSHint that your code needs to adhere to ECMAScript 3 specification. Use this option if you need your program to be executable in older browsers—such as Internet Explorer 6/7/8/9—and other legacy JavaScript environments."
  * @property {boolean} [module] - "This option informs JSHint that the input code describes an ECMAScript 6 module. All module code is interpreted as strict mode code."
  * @property {'implied'} [strict] - "This option requires the code to run in ECMAScript 5's strict mode."
- * @property {string|null} espreeModuleUrl - The URL to the espree script module.
+ * @property {string} [espreeModuleUrl] - The URL to the espree script module.
  */
 
 /**
