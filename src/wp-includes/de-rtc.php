@@ -12311,6 +12311,30 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		}
 	}
 
+	if ( $base_count === $server_count && $base_count === $proposed_count ) {
+		$server_reordered_indexes = wp_de_rtc_get_reordered_serialized_block_indexes( $base_records, $server_records );
+		$local_reordered_indexes  = wp_de_rtc_get_reordered_serialized_block_indexes( $base_records, $proposed_records );
+
+		if ( ! empty( $server_reordered_indexes ) || ! empty( $local_reordered_indexes ) ) {
+			return wp_de_rtc_get_server_merge_conflict_error(
+				'top_level_serialized_block_reordered',
+				array(
+					'base_block_count'              => $base_count,
+					'server_block_count'            => $server_count,
+					'proposed_block_count'          => $proposed_count,
+					'server_block_count_changed'    => false,
+					'local_block_count_changed'     => false,
+					'server_block_count_delta'      => 0,
+					'local_block_count_delta'       => 0,
+					'server_block_order_changed'    => ! empty( $server_reordered_indexes ),
+					'local_block_order_changed'     => ! empty( $local_reordered_indexes ),
+					'server_reordered_block_indexes' => $server_reordered_indexes,
+					'local_reordered_block_indexes' => $local_reordered_indexes,
+				)
+			);
+		}
+	}
+
 	$merged_blocks             = array();
 	$server_changed_indexes    = array();
 	$local_changed_indexes     = array();
@@ -12463,6 +12487,65 @@ function wp_de_rtc_get_server_merge_conflict_error( $detail, $extra = array() ) 
 			$extra
 		)
 	);
+}
+
+/**
+ * Returns indexes that are reordered relative to the accepted base.
+ *
+ * This is intentionally limited to content-identical block permutations. If a
+ * block was edited while moving, the current merge proof cannot prove identity
+ * without content-aware block IDs, so later same-block checks still protect the
+ * save boundary conservatively.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string[] $base_records      Accepted-base serialized block records.
+ * @param string[] $candidate_records Candidate serialized block records.
+ * @return int[] Reordered top-level block indexes, or an empty array.
+ */
+function wp_de_rtc_get_reordered_serialized_block_indexes( $base_records, $candidate_records ) {
+	if ( count( $base_records ) !== count( $candidate_records ) ) {
+		return array();
+	}
+
+	$base_hash_counts      = array();
+	$candidate_hash_counts = array();
+	$reordered_indexes     = array();
+
+	foreach ( $base_records as $index => $base_record ) {
+		$candidate_record = $candidate_records[ $index ];
+		$base_hash        = wp_de_rtc_hash_content( $base_record );
+		$candidate_hash   = wp_de_rtc_hash_content( $candidate_record );
+
+		if ( ! isset( $base_hash_counts[ $base_hash ] ) ) {
+			$base_hash_counts[ $base_hash ] = 0;
+		}
+
+		if ( ! isset( $candidate_hash_counts[ $candidate_hash ] ) ) {
+			$candidate_hash_counts[ $candidate_hash ] = 0;
+		}
+
+		$base_hash_counts[ $base_hash ]++;
+		$candidate_hash_counts[ $candidate_hash ]++;
+
+		if ( ! hash_equals( $base_record, $candidate_record ) ) {
+			$reordered_indexes[] = (int) $index;
+		}
+	}
+
+	if ( empty( $reordered_indexes ) ) {
+		return array();
+	}
+
+	ksort( $base_hash_counts );
+	ksort( $candidate_hash_counts );
+
+	if ( $base_hash_counts !== $candidate_hash_counts ) {
+		return array();
+	}
+
+	return $reordered_indexes;
 }
 
 /**
