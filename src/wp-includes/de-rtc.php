@@ -12231,10 +12231,10 @@ function wp_de_rtc_get_post_revision_ids( $post_id ) {
 /**
  * Attempts a conservative server-side merge across top-level serialized blocks.
  *
- * This helper is intentionally narrow: it only merges when the accepted base,
- * current server content, and client proposal all serialize back to exactly the
- * same top-level block boundaries and no block index was changed by both the
- * server and the client. Anything else becomes a conflict for the editor.
+ * This helper is intentionally narrow: it only merges same-count top-level
+ * serialized block edits, or a strict one-sided append where the appending
+ * side's existing block prefix still matches the accepted base. Anything else
+ * becomes a conflict for the editor.
  *
  * @since 7.1.0
  * @access private
@@ -12259,8 +12259,10 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 	$base_count     = count( $base_records );
 	$server_count   = count( $server_records );
 	$proposed_count = count( $proposed_records );
+	$append_source   = null;
+	$appended_blocks = array();
 
-	if ( 0 === $base_count || $base_count !== $server_count || $base_count !== $proposed_count ) {
+	if ( 0 === $base_count ) {
 		return wp_de_rtc_get_server_merge_conflict_error(
 			'top_level_serialized_block_count_changed',
 			array(
@@ -12273,6 +12275,40 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 				'local_block_count_delta'    => $proposed_count - $base_count,
 			)
 		);
+	}
+
+	if ( $base_count !== $server_count || $base_count !== $proposed_count ) {
+		$server_appended = $server_count > $base_count && $proposed_count === $base_count;
+		$local_appended  = $proposed_count > $base_count && $server_count === $base_count;
+
+		if ( $server_appended || $local_appended ) {
+			$append_source   = $server_appended ? 'server' : 'local';
+			$append_records  = $server_appended ? $server_records : $proposed_records;
+			$appended_blocks = array_slice( $append_records, $base_count );
+
+			for ( $index = 0; $index < $base_count; $index++ ) {
+				if ( ! hash_equals( $base_records[ $index ], $append_records[ $index ] ) ) {
+					$append_source   = null;
+					$appended_blocks = array();
+					break;
+				}
+			}
+		}
+
+		if ( null === $append_source ) {
+			return wp_de_rtc_get_server_merge_conflict_error(
+				'top_level_serialized_block_count_changed',
+				array(
+					'base_block_count'           => $base_count,
+					'server_block_count'         => $server_count,
+					'proposed_block_count'       => $proposed_count,
+					'server_block_count_changed' => $base_count !== $server_count,
+					'local_block_count_changed'  => $base_count !== $proposed_count,
+					'server_block_count_delta'   => $server_count - $base_count,
+					'local_block_count_delta'    => $proposed_count - $base_count,
+				)
+			);
+		}
 	}
 
 	$merged_blocks             = array();
@@ -12325,7 +12361,22 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		);
 	}
 
+	if ( ! empty( $appended_blocks ) ) {
+		foreach ( $appended_blocks as $offset => $appended_block ) {
+			$appended_index = $base_count + $offset;
+
+			if ( 'server' === $append_source ) {
+				$server_changed_indexes[] = $appended_index;
+			} else {
+				$local_changed_indexes[] = $appended_index;
+			}
+
+			$merged_blocks[] = $appended_block;
+		}
+	}
+
 	$merged_content = implode( '', $merged_blocks );
+	$merged_count   = count( $merged_blocks );
 
 	return array(
 		'merge_status'                 => 'merged',
@@ -12333,7 +12384,13 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		'base_version'                 => isset( $args['base_version'] ) ? sanitize_text_field( (string) $args['base_version'] ) : null,
 		'server_version'               => isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : null,
 		'base_revision_id'             => isset( $args['base_revision_id'] ) ? (int) $args['base_revision_id'] : 0,
-		'block_count'                  => $base_count,
+		'block_count'                  => $merged_count,
+		'base_block_count'             => $base_count,
+		'server_block_count'           => $server_count,
+		'proposed_block_count'         => $proposed_count,
+		'merged_block_count'           => $merged_count,
+		'append_source'                => $append_source,
+		'appended_block_count'         => count( $appended_blocks ),
 		'server_changed_indexes'       => $server_changed_indexes,
 		'local_changed_indexes'        => $local_changed_indexes,
 		'server_changed_block_count'   => count( $server_changed_indexes ),
@@ -12428,6 +12485,12 @@ function wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) {
 		'server_version'               => isset( $server_merge_result['server_version'] ) ? $server_merge_result['server_version'] : null,
 		'base_revision_id'             => isset( $server_merge_result['base_revision_id'] ) ? (int) $server_merge_result['base_revision_id'] : 0,
 		'block_count'                  => isset( $server_merge_result['block_count'] ) ? (int) $server_merge_result['block_count'] : 0,
+		'base_block_count'             => isset( $server_merge_result['base_block_count'] ) ? (int) $server_merge_result['base_block_count'] : 0,
+		'server_block_count'           => isset( $server_merge_result['server_block_count'] ) ? (int) $server_merge_result['server_block_count'] : 0,
+		'proposed_block_count'         => isset( $server_merge_result['proposed_block_count'] ) ? (int) $server_merge_result['proposed_block_count'] : 0,
+		'merged_block_count'           => isset( $server_merge_result['merged_block_count'] ) ? (int) $server_merge_result['merged_block_count'] : 0,
+		'append_source'                => isset( $server_merge_result['append_source'] ) ? $server_merge_result['append_source'] : null,
+		'appended_block_count'         => isset( $server_merge_result['appended_block_count'] ) ? (int) $server_merge_result['appended_block_count'] : 0,
 		'server_changed_indexes'       => $server_changed_indexes,
 		'local_changed_indexes'        => $local_changed_indexes,
 		'server_changed_block_count'   => isset( $server_merge_result['server_changed_block_count'] ) ? (int) $server_merge_result['server_changed_block_count'] : count( $server_changed_indexes ),
