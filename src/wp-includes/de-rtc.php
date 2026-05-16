@@ -10052,6 +10052,9 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'rest_route'                          => 'post_retry_save',
 		'post_id'                             => (int) $post->ID,
 		'updated_post_id'                     => (int) $updated_post_id,
+		'content'                             => array(
+			'raw' => $candidate_post_content,
+		),
 		'client_base_version'                 => $client_base_version,
 		'accepted_proof_server_version'       => $accepted_proof_server_version,
 		'previous_server_version'             => $server_version,

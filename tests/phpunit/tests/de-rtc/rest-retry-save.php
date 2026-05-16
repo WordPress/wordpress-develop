@@ -156,6 +156,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 3, $save_data['pending_change_count'] );
 		$this->assertSame( $proposed_hash, $save_data['proposed_post_content_hash'] );
 		$this->assertSame( hash( 'sha256', $after_post->post_content ), $save_data['saved_post_content_hash'] );
+		$this->assertSame( $after_post->post_content, $save_data['content']['raw'] );
 		$this->assertTrue( $save_data['saves_post'] );
 		$this->assertTrue( $save_data['mutates_post_content'] );
 		$this->assertTrue( $save_data['claims_saved'] );
@@ -298,6 +299,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( '52', $save_data['server_version'] );
 		$this->assertSame( $proposed_hash, $save_data['proposed_post_content_hash'] );
 		$this->assertSame( $merged_hash, $save_data['saved_stripped_post_content_hash'] );
+		$this->assertSame( $after_post->post_content, $save_data['content']['raw'] );
 		$this->assertSame( 'merged', $save_data['server_merge']['merge_status'] );
 		$this->assertSame( 'top_level_serialized_block_three_way', $save_data['server_merge']['merge_strategy'] );
 		$this->assertSame( '50', $save_data['server_merge']['base_version'] );
