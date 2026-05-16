@@ -10045,7 +10045,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		);
 	}
 
-	return array(
+	$response = array(
 		'mode'                                => 'retry_save',
 		'result'                              => $retry_save_server_merge_required ? 'retry_save_server_merged' : 'retry_save_applied',
 		'retry_save_accepted'                 => true,
@@ -10088,6 +10088,13 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'revision_created'                        => ! empty( $created_revision_ids ),
 		'permission_contract'                     => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
 	);
+
+	if ( ! empty( $response['fresh_review_decision_consumed'] ) ) {
+		unset( $response['content'] );
+		$response['raw_content_included'] = false;
+	}
+
+	return $response;
 }
 
 /**
