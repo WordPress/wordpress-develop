@@ -12300,6 +12300,24 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 				$edge_insert_source   = $server_edge_inserted ? 'server' : 'local';
 				$edge_insert_position = $edge_insert['position'];
 				$edge_inserted_blocks = $edge_insert['blocks'];
+
+				if ( 'ambiguous' === $edge_insert_position ) {
+					return wp_de_rtc_get_server_merge_conflict_error(
+						'ambiguous_edge_insertion',
+						array(
+							'base_block_count'           => $base_count,
+							'server_block_count'         => $server_count,
+							'proposed_block_count'       => $proposed_count,
+							'server_block_count_changed' => $base_count !== $server_count,
+							'local_block_count_changed'  => $base_count !== $proposed_count,
+							'server_block_count_delta'   => $server_count - $base_count,
+							'local_block_count_delta'    => $proposed_count - $base_count,
+							'edge_insert_source'         => $edge_insert_source,
+							'edge_insert_position'       => $edge_insert_position,
+							'edge_insert_ambiguous'      => true,
+						)
+					);
+				}
 			}
 		}
 
@@ -12483,6 +12501,7 @@ function wp_de_rtc_get_serialized_block_edge_insertion( $base_records, $candidat
 
 	$inserted_count = $candidate_count - $base_count;
 	$matches_prefix = true;
+	$matches_suffix = true;
 
 	for ( $index = 0; $index < $base_count; $index++ ) {
 		if ( ! hash_equals( $base_records[ $index ], $candidate_records[ $index ] ) ) {
@@ -12491,20 +12510,25 @@ function wp_de_rtc_get_serialized_block_edge_insertion( $base_records, $candidat
 		}
 	}
 
-	if ( $matches_prefix ) {
-		return array(
-			'position' => 'append',
-			'blocks'   => array_slice( $candidate_records, $base_count ),
-		);
-	}
-
-	$matches_suffix = true;
-
 	for ( $index = 0; $index < $base_count; $index++ ) {
 		if ( ! hash_equals( $base_records[ $index ], $candidate_records[ $index + $inserted_count ] ) ) {
 			$matches_suffix = false;
 			break;
 		}
+	}
+
+	if ( $matches_prefix && $matches_suffix ) {
+		return array(
+			'position' => 'ambiguous',
+			'blocks'   => array(),
+		);
+	}
+
+	if ( $matches_prefix ) {
+		return array(
+			'position' => 'append',
+			'blocks'   => array_slice( $candidate_records, $base_count ),
+		);
 	}
 
 	if ( $matches_suffix ) {
