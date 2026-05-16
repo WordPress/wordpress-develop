@@ -2041,6 +2041,7 @@ HTML;
 			array( 'classic-dependency' ),
 			false,
 			array(
+				'strategy'            => 'defer',
 				'module_dependencies' => array(
 					'example',
 					array(
@@ -2109,6 +2110,7 @@ HTML;
 			array(),
 			false,
 			array(
+				'in_footer'           => true,
 				'module_dependencies' => array( 'classic-transitive-dependency' ),
 			)
 		);
@@ -2118,6 +2120,7 @@ HTML;
 			array( 'classic-transitive-dep' ),
 			false,
 			array(
+				'in_footer'           => true,
 				'module_dependencies' => array( 'not-enqueued' ),
 			)
 		);
@@ -2153,6 +2156,7 @@ HTML;
 			array(),
 			null,
 			array(
+				'strategy'            => 'defer',
 				'module_dependencies' => array( 'does-not-exist' ),
 			)
 		);
