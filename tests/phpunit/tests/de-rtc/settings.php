@@ -194,9 +194,12 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 				'enabled'                  => false,
 				'retrySaveHandoff'         => false,
 				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+				'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( false ),
+				'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( false ),
 				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
 					array(
 						'feature_enabled' => false,
+						'host_profile'    => 'cheap_shared_host',
 					)
 				),
 			),
@@ -231,9 +234,12 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 				'enabled'                  => true,
 				'retrySaveHandoff'         => true,
 				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+				'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( true ),
+				'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( true ),
 				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
 					array(
 						'feature_enabled' => true,
+						'host_profile'    => 'cheap_shared_host',
 					)
 				),
 			),
@@ -312,13 +318,52 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 				'enabled'                  => false,
 				'retrySaveHandoff'         => false,
 				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+				'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( false ),
+				'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( false ),
 				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
 					array(
 						'feature_enabled' => false,
+						'host_profile'    => 'cheap_shared_host',
 					)
 				),
 			),
 			$settings['distributedEditing']
+		);
+	}
+
+	/**
+	 * Returns expected presence startup policy for editor settings.
+	 *
+	 * @param bool $enabled Whether Distributed Editing is enabled for the editor.
+	 * @return array Expected startup policy.
+	 */
+	private function get_expected_presence_startup_policy( $enabled ) {
+		return array(
+			'allowAutomaticInitialHeartbeat'        => $enabled,
+			'allowSlowAutomaticInitialHeartbeat'    => true,
+			'hostProfile'                           => 'cheap_shared_host',
+			'selectedInitialHeartbeatDelaySeconds'  => 1,
+			'standardInitialHeartbeatDelaySeconds'  => 1,
+			'cheapHostInitialHeartbeatDelaySeconds' => 1,
+			'minimumInitialHeartbeatDelaySeconds'   => 1,
+		);
+	}
+
+	/**
+	 * Returns expected repeated-refresh runtime for editor settings.
+	 *
+	 * @param bool $enabled Whether Distributed Editing is enabled for the editor.
+	 * @return array Expected repeated-refresh runtime.
+	 */
+	private function get_expected_presence_repeated_refresh_runtime( $enabled ) {
+		return array(
+			'explicitOptIn'                    => $enabled,
+			'hostProfile'                      => 'cheap_shared_host',
+			'standardPollingIntervalSeconds'   => 30,
+			'cheapHostPollingIntervalSeconds'  => 120,
+			'minimumPollingIntervalSeconds'    => 30,
+			'heartbeatIntervalSeconds'         => 120,
+			'selectedHeartbeatIntervalSeconds' => 120,
 		);
 	}
 }
