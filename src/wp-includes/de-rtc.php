@@ -12261,16 +12261,22 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		return wp_de_rtc_get_server_merge_conflict_error(
 			'top_level_serialized_block_count_changed',
 			array(
-				'base_block_count'     => $base_count,
-				'server_block_count'   => $server_count,
-				'proposed_block_count' => $proposed_count,
+				'base_block_count'           => $base_count,
+				'server_block_count'         => $server_count,
+				'proposed_block_count'       => $proposed_count,
+				'server_block_count_changed' => $base_count !== $server_count,
+				'local_block_count_changed'  => $base_count !== $proposed_count,
+				'server_block_count_delta'   => $server_count - $base_count,
+				'local_block_count_delta'    => $proposed_count - $base_count,
 			)
 		);
 	}
 
-	$merged_blocks           = array();
-	$server_changed_indexes = array();
-	$local_changed_indexes  = array();
+	$merged_blocks             = array();
+	$server_changed_indexes    = array();
+	$local_changed_indexes     = array();
+	$conflicting_indexes       = array();
+	$conflicting_block_hashes = array();
 
 	for ( $index = 0; $index < $base_count; $index++ ) {
 		$base_block     = $base_records[ $index ];
@@ -12288,17 +12294,32 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		}
 
 		if ( $server_changed && $local_changed && ! hash_equals( $server_block, $proposed_block ) ) {
-			return wp_de_rtc_get_server_merge_conflict_error(
-				'same_serialized_block_changed',
-				array(
-					'conflicting_block_index' => $index,
-					'server_changed_indexes'  => $server_changed_indexes,
-					'local_changed_indexes'   => $local_changed_indexes,
-				)
+			$conflicting_indexes[] = $index;
+			$conflicting_block_hashes[] = array(
+				'block_index'         => $index,
+				'base_block_hash'     => wp_de_rtc_hash_content( $base_block ),
+				'server_block_hash'   => wp_de_rtc_hash_content( $server_block ),
+				'proposed_block_hash' => wp_de_rtc_hash_content( $proposed_block ),
 			);
 		}
 
 		$merged_blocks[] = $local_changed ? $proposed_block : $server_block;
+	}
+
+	if ( ! empty( $conflicting_indexes ) ) {
+		return wp_de_rtc_get_server_merge_conflict_error(
+			'same_serialized_block_changed',
+			array(
+				'conflicting_block_index'    => (int) $conflicting_indexes[0],
+				'conflicting_block_indexes'  => array_map( 'intval', $conflicting_indexes ),
+				'conflicting_block_count'    => count( $conflicting_indexes ),
+				'server_changed_indexes'     => $server_changed_indexes,
+				'local_changed_indexes'      => $local_changed_indexes,
+				'server_changed_block_count' => count( $server_changed_indexes ),
+				'local_changed_block_count'  => count( $local_changed_indexes ),
+				'conflicting_block_hashes'   => $conflicting_block_hashes,
+			)
+		);
 	}
 
 	$merged_content = implode( '', $merged_blocks );
@@ -12312,6 +12333,8 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 		'block_count'                  => $base_count,
 		'server_changed_indexes'       => $server_changed_indexes,
 		'local_changed_indexes'        => $local_changed_indexes,
+		'server_changed_block_count'   => count( $server_changed_indexes ),
+		'local_changed_block_count'    => count( $local_changed_indexes ),
 		'merged_content'               => $merged_content,
 		'merged_stripped_content_hash' => wp_de_rtc_hash_content( $merged_content ),
 		'base_content_hash'            => wp_de_rtc_hash_content( $base_content ),
@@ -12392,6 +12415,9 @@ function wp_de_rtc_get_server_merge_conflict_error( $detail, $extra = array() ) 
  * @return array Public merge evidence without raw post content.
  */
 function wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) {
+	$server_changed_indexes = isset( $server_merge_result['server_changed_indexes'] ) ? array_map( 'intval', $server_merge_result['server_changed_indexes'] ) : array();
+	$local_changed_indexes  = isset( $server_merge_result['local_changed_indexes'] ) ? array_map( 'intval', $server_merge_result['local_changed_indexes'] ) : array();
+
 	return array(
 		'merge_status'                 => isset( $server_merge_result['merge_status'] ) ? $server_merge_result['merge_status'] : null,
 		'merge_strategy'               => isset( $server_merge_result['merge_strategy'] ) ? $server_merge_result['merge_strategy'] : null,
@@ -12399,8 +12425,10 @@ function wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) {
 		'server_version'               => isset( $server_merge_result['server_version'] ) ? $server_merge_result['server_version'] : null,
 		'base_revision_id'             => isset( $server_merge_result['base_revision_id'] ) ? (int) $server_merge_result['base_revision_id'] : 0,
 		'block_count'                  => isset( $server_merge_result['block_count'] ) ? (int) $server_merge_result['block_count'] : 0,
-		'server_changed_indexes'       => isset( $server_merge_result['server_changed_indexes'] ) ? array_map( 'intval', $server_merge_result['server_changed_indexes'] ) : array(),
-		'local_changed_indexes'        => isset( $server_merge_result['local_changed_indexes'] ) ? array_map( 'intval', $server_merge_result['local_changed_indexes'] ) : array(),
+		'server_changed_indexes'       => $server_changed_indexes,
+		'local_changed_indexes'        => $local_changed_indexes,
+		'server_changed_block_count'   => isset( $server_merge_result['server_changed_block_count'] ) ? (int) $server_merge_result['server_changed_block_count'] : count( $server_changed_indexes ),
+		'local_changed_block_count'    => isset( $server_merge_result['local_changed_block_count'] ) ? (int) $server_merge_result['local_changed_block_count'] : count( $local_changed_indexes ),
 		'merged_stripped_content_hash' => isset( $server_merge_result['merged_stripped_content_hash'] ) ? $server_merge_result['merged_stripped_content_hash'] : null,
 		'base_content_hash'            => isset( $server_merge_result['base_content_hash'] ) ? $server_merge_result['base_content_hash'] : null,
 		'server_content_hash'          => isset( $server_merge_result['server_content_hash'] ) ? $server_merge_result['server_content_hash'] : null,
