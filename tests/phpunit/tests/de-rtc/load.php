@@ -38,6 +38,9 @@ class Tests_DE_RTC_Load extends WP_UnitTestCase {
 		$this->assertTrue( function_exists( 'wp_de_rtc_get_retry_submit_acceptance_result' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_rest_retry_save_endpoint' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_save_retry_submitted_post' ) );
+		$this->assertTrue( function_exists( 'wp_de_rtc_get_block_identity_contract_required_fields' ) );
+		$this->assertTrue( function_exists( 'wp_de_rtc_validate_block_identity_sync_meta_contract' ) );
+		$this->assertTrue( function_exists( 'wp_de_rtc_validate_block_identity_request_proof' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_rest_review_approval_endpoint' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_get_unfiltered_html_review_approval_result' ) );
 		$this->assertTrue( function_exists( 'wp_de_rtc_rest_fresh_review_request_endpoint' ) );

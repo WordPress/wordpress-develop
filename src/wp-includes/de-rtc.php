@@ -13135,6 +13135,675 @@ function wp_de_rtc_find_private_proof_param_paths( $payload, $prefix = '' ) {
 }
 
 /**
+ * Returns the minimum durable block-identity contract fields.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return array Required sync-meta, block, and request-proof fields.
+ */
+function wp_de_rtc_get_block_identity_contract_required_fields() {
+	return array(
+		'sync_meta'     => array(
+			'schema',
+			'document_uuid',
+			'version',
+			'content_hash',
+			'blocks',
+		),
+		'block'         => array(
+			'block_uid',
+			'parent_uid',
+			'block_name',
+			'ordinal_path',
+			'serialized_hash',
+		),
+		'request_proof' => array(
+			'client_base_version',
+			'proposed_post_content_hash',
+			'proposed_block_map',
+			'retained_block_uids',
+			'inserted_block_nonces',
+			'deleted_block_uids',
+			'moved_block_uids',
+		),
+	);
+}
+
+/**
+ * Validates read-only block identity sync metadata.
+ *
+ * This helper only validates shape. It must not save, mutate post content,
+ * create revisions, change locks, or claim saved state.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $sync_meta Sync metadata candidate.
+ * @return array|WP_Error Validation evidence, or malformed-payload error.
+ */
+function wp_de_rtc_validate_block_identity_sync_meta_contract( $sync_meta ) {
+	$sync_meta = wp_de_rtc_normalize_block_identity_object( $sync_meta );
+
+	if ( ! is_array( $sync_meta ) ) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_sync_meta_missing' );
+	}
+
+	$raw_content_paths = wp_de_rtc_find_raw_post_content_param_paths( $sync_meta );
+
+	if ( ! empty( $raw_content_paths ) ) {
+		return wp_de_rtc_get_block_identity_validation_error(
+			'block_identity_raw_content_rejected',
+			array(
+				'raw_content_param_paths' => $raw_content_paths,
+			)
+		);
+	}
+
+	$client_id_paths = wp_de_rtc_find_gutenberg_client_id_param_paths( $sync_meta );
+
+	if ( ! empty( $client_id_paths ) ) {
+		return wp_de_rtc_get_block_identity_validation_error(
+			'block_identity_client_id_rejected',
+			array(
+				'client_id_param_paths' => $client_id_paths,
+			)
+		);
+	}
+
+	$required = wp_de_rtc_get_block_identity_contract_required_fields();
+
+	foreach ( $required['sync_meta'] as $field ) {
+		if ( ! array_key_exists( $field, $sync_meta ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_sync_meta_missing_required_field',
+				array(
+					'missing_field' => $field,
+				)
+			);
+		}
+	}
+
+	if ( 'de-rtc-block-identity-v1' !== $sync_meta['schema'] ) {
+		$schema = is_scalar( $sync_meta['schema'] ) ? sanitize_text_field( (string) $sync_meta['schema'] ) : null;
+
+		return wp_de_rtc_get_block_identity_validation_error(
+			'block_identity_schema_mismatch',
+			array(
+				'schema' => $schema,
+			)
+		);
+	}
+
+	if (
+		! is_string( $sync_meta['document_uuid'] ) ||
+		'' === $sync_meta['document_uuid'] ||
+		! wp_de_rtc_is_block_identity_version_label( $sync_meta['version'] ) ||
+		! wp_de_rtc_is_sha256_hash( $sync_meta['content_hash'] ) ||
+		! is_array( $sync_meta['blocks'] )
+	) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_sync_meta_invalid_required_field' );
+	}
+
+	$block_uids = array();
+
+	foreach ( $sync_meta['blocks'] as $index => $block ) {
+		$block_validation = wp_de_rtc_validate_block_identity_block_record( $block );
+
+		if ( is_wp_error( $block_validation ) ) {
+			$data                = $block_validation->get_error_data();
+			$data['block_index'] = (int) $index;
+
+			return wp_de_rtc_get_block_identity_validation_error(
+				isset( $data['detail'] ) ? $data['detail'] : 'block_identity_block_invalid',
+				$data
+			);
+		}
+
+		$block_uid = $block_validation['block_uid'];
+
+		if ( isset( $block_uids[ $block_uid ] ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_duplicate_block_uid',
+				array(
+					'block_uid'    => $block_uid,
+					'block_index'  => (int) $index,
+					'first_index'  => $block_uids[ $block_uid ],
+				)
+			);
+		}
+
+		$block_uids[ $block_uid ] = (int) $index;
+	}
+
+	return wp_de_rtc_get_block_identity_no_write_data(
+		array(
+			'status'          => 'valid',
+			'detail'          => null,
+			'schema'          => $sync_meta['schema'],
+			'document_uuid'   => $sync_meta['document_uuid'],
+			'version'         => sanitize_text_field( (string) $sync_meta['version'] ),
+			'content_hash'    => $sync_meta['content_hash'],
+			'block_count'     => count( $sync_meta['blocks'] ),
+			'block_uids'      => array_keys( $block_uids ),
+			'required_fields' => $required,
+		)
+	);
+}
+
+/**
+ * Validates read-only block identity request proof against accepted sync meta.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $request_proof      Request proof candidate.
+ * @param mixed $accepted_sync_meta Accepted-base sync metadata candidate.
+ * @return array|WP_Error Validation evidence, or malformed-payload error.
+ */
+function wp_de_rtc_validate_block_identity_request_proof( $request_proof, $accepted_sync_meta ) {
+	$sync_meta_validation = wp_de_rtc_validate_block_identity_sync_meta_contract( $accepted_sync_meta );
+
+	if ( is_wp_error( $sync_meta_validation ) ) {
+		$sync_meta_error_data = $sync_meta_validation->get_error_data();
+
+		return wp_de_rtc_get_block_identity_validation_error(
+			'block_identity_accepted_sync_meta_invalid',
+			array(
+				'accepted_sync_meta_error_code'   => $sync_meta_validation->get_error_code(),
+				'accepted_sync_meta_error_detail' => isset( $sync_meta_error_data['detail'] ) ? $sync_meta_error_data['detail'] : null,
+			)
+		);
+	}
+
+	$request_proof = wp_de_rtc_normalize_block_identity_object( $request_proof );
+
+	if ( ! is_array( $request_proof ) ) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_request_proof_missing' );
+	}
+
+	$raw_content_paths = wp_de_rtc_find_raw_post_content_param_paths( $request_proof );
+
+	if ( ! empty( $raw_content_paths ) ) {
+		return wp_de_rtc_get_block_identity_validation_error(
+			'block_identity_raw_content_rejected',
+			array(
+				'raw_content_param_paths' => $raw_content_paths,
+			)
+		);
+	}
+
+	$client_id_paths = wp_de_rtc_find_gutenberg_client_id_param_paths( $request_proof );
+
+	if ( ! empty( $client_id_paths ) ) {
+		return wp_de_rtc_get_block_identity_validation_error(
+			'block_identity_client_id_rejected',
+			array(
+				'client_id_param_paths' => $client_id_paths,
+			)
+		);
+	}
+
+	$required = wp_de_rtc_get_block_identity_contract_required_fields();
+
+	foreach ( $required['request_proof'] as $field ) {
+		if ( ! array_key_exists( $field, $request_proof ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_request_proof_missing_required_field',
+				array(
+					'missing_field' => $field,
+				)
+			);
+		}
+	}
+
+	if ( ! wp_de_rtc_is_block_identity_version_label( $request_proof['client_base_version'] ) ) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_request_proof_invalid_required_field' );
+	}
+
+	$client_base_version = sanitize_text_field( (string) $request_proof['client_base_version'] );
+
+	if ( $client_base_version !== $sync_meta_validation['version'] ) {
+		return wp_de_rtc_get_block_identity_validation_error(
+			'block_identity_request_proof_base_version_mismatch',
+			array(
+				'client_base_version' => $client_base_version,
+				'server_version'      => $sync_meta_validation['version'],
+			)
+		);
+	}
+
+	if (
+		! wp_de_rtc_is_sha256_hash( $request_proof['proposed_post_content_hash'] ) ||
+		! is_array( $request_proof['proposed_block_map'] ) ||
+		! is_array( $request_proof['retained_block_uids'] ) ||
+		! is_array( $request_proof['inserted_block_nonces'] ) ||
+		! is_array( $request_proof['deleted_block_uids'] ) ||
+		! is_array( $request_proof['moved_block_uids'] )
+	) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_request_proof_invalid_required_field' );
+	}
+
+	$accepted_block_uids   = array_fill_keys( $sync_meta_validation['block_uids'], true );
+	$inserted_block_nonces = wp_de_rtc_validate_block_identity_string_list(
+		$request_proof['inserted_block_nonces'],
+		'inserted_block_nonces'
+	);
+
+	if ( is_wp_error( $inserted_block_nonces ) ) {
+		return $inserted_block_nonces;
+	}
+
+	$inserted_block_nonce_lookup = array_fill_keys( $inserted_block_nonces, true );
+	$retained_block_uids         = wp_de_rtc_validate_block_identity_uid_list(
+		$request_proof['retained_block_uids'],
+		'retained_block_uids',
+		$accepted_block_uids
+	);
+	$deleted_block_uids          = wp_de_rtc_validate_block_identity_uid_list(
+		$request_proof['deleted_block_uids'],
+		'deleted_block_uids',
+		$accepted_block_uids
+	);
+	$moved_block_uids            = wp_de_rtc_validate_block_identity_uid_list(
+		$request_proof['moved_block_uids'],
+		'moved_block_uids',
+		$accepted_block_uids
+	);
+
+	foreach ( array( $retained_block_uids, $deleted_block_uids, $moved_block_uids ) as $validated_uids ) {
+		if ( is_wp_error( $validated_uids ) ) {
+			return $validated_uids;
+		}
+	}
+
+	foreach ( $request_proof['proposed_block_map'] as $index => $block ) {
+		$block_validation = wp_de_rtc_validate_block_identity_proposed_block_record(
+			$block,
+			$accepted_block_uids,
+			$inserted_block_nonce_lookup
+		);
+
+		if ( is_wp_error( $block_validation ) ) {
+			$data                = $block_validation->get_error_data();
+			$data['block_index'] = (int) $index;
+
+			return wp_de_rtc_get_block_identity_validation_error(
+				isset( $data['detail'] ) ? $data['detail'] : 'block_identity_proposed_block_invalid',
+				$data
+			);
+		}
+	}
+
+	return wp_de_rtc_get_block_identity_no_write_data(
+		array(
+			'status'                     => 'valid',
+			'detail'                     => null,
+			'client_base_version'        => $client_base_version,
+			'proposed_post_content_hash' => $request_proof['proposed_post_content_hash'],
+			'proposed_block_count'       => count( $request_proof['proposed_block_map'] ),
+			'retained_block_count'       => count( $retained_block_uids ),
+			'inserted_block_count'       => count( $inserted_block_nonces ),
+			'deleted_block_count'        => count( $deleted_block_uids ),
+			'moved_block_count'          => count( $moved_block_uids ),
+			'required_fields'            => $required,
+		)
+	);
+}
+
+/**
+ * Finds Gutenberg clientId paths in block identity proof.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed  $payload Payload to inspect.
+ * @param string $prefix  Current parameter path.
+ * @return string[] Client ID paths.
+ */
+function wp_de_rtc_find_gutenberg_client_id_param_paths( $payload, $prefix = '' ) {
+	if ( is_object( $payload ) ) {
+		$payload = get_object_vars( $payload );
+	}
+
+	if ( ! is_array( $payload ) ) {
+		return array();
+	}
+
+	$paths = array();
+
+	foreach ( $payload as $key => $value ) {
+		$key_string = is_string( $key ) ? $key : (string) $key;
+		$path       = '' === $prefix ? $key_string : $prefix . '.' . $key_string;
+
+		if ( in_array( $key_string, array( 'clientId', 'client_id' ), true ) ) {
+			$paths[] = $path;
+		}
+
+		$paths = array_merge( $paths, wp_de_rtc_find_gutenberg_client_id_param_paths( $value, $path ) );
+	}
+
+	return $paths;
+}
+
+/**
+ * Normalizes object payloads into arrays for block identity validation.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $value Payload value.
+ * @return mixed Normalized payload.
+ */
+function wp_de_rtc_normalize_block_identity_object( $value ) {
+	if ( is_object( $value ) ) {
+		return get_object_vars( $value );
+	}
+
+	return $value;
+}
+
+/**
+ * Validates a durable block identity record.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $block Block record candidate.
+ * @return array|WP_Error Validated block evidence, or malformed-payload error.
+ */
+function wp_de_rtc_validate_block_identity_block_record( $block ) {
+	$block = wp_de_rtc_normalize_block_identity_object( $block );
+
+	if ( ! is_array( $block ) ) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_block_invalid' );
+	}
+
+	$required = wp_de_rtc_get_block_identity_contract_required_fields();
+
+	foreach ( $required['block'] as $field ) {
+		if ( ! array_key_exists( $field, $block ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_block_missing_required_field',
+				array(
+					'missing_field' => $field,
+				)
+			);
+		}
+	}
+
+	if (
+		! is_string( $block['block_uid'] ) ||
+		'' === $block['block_uid'] ||
+		! ( is_string( $block['parent_uid'] ) || null === $block['parent_uid'] ) ||
+		! is_string( $block['block_name'] ) ||
+		'' === $block['block_name'] ||
+		! wp_de_rtc_is_block_identity_ordinal_path( $block['ordinal_path'] ) ||
+		! wp_de_rtc_is_sha256_hash( $block['serialized_hash'] )
+	) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_block_invalid_required_field' );
+	}
+
+	return array(
+		'block_uid'       => $block['block_uid'],
+		'parent_uid'      => $block['parent_uid'],
+		'block_name'      => $block['block_name'],
+		'ordinal_path'    => array_map( 'intval', $block['ordinal_path'] ),
+		'serialized_hash' => $block['serialized_hash'],
+	);
+}
+
+/**
+ * Validates a proposed block identity record in request proof.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $block                       Proposed block record.
+ * @param array $accepted_block_uids         Accepted-base block UID lookup.
+ * @param array $inserted_block_nonce_lookup Client insertion nonce lookup.
+ * @return array|WP_Error Validated block evidence, or malformed-payload error.
+ */
+function wp_de_rtc_validate_block_identity_proposed_block_record(
+	$block,
+	$accepted_block_uids,
+	$inserted_block_nonce_lookup
+) {
+	$block = wp_de_rtc_normalize_block_identity_object( $block );
+
+	if ( ! is_array( $block ) ) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_proposed_block_invalid' );
+	}
+
+	foreach ( array( 'block_name', 'ordinal_path', 'serialized_hash' ) as $field ) {
+		if ( ! array_key_exists( $field, $block ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_proposed_block_missing_required_field',
+				array(
+					'missing_field' => $field,
+				)
+			);
+		}
+	}
+
+	if (
+		! is_string( $block['block_name'] ) ||
+		'' === $block['block_name'] ||
+		! wp_de_rtc_is_block_identity_ordinal_path( $block['ordinal_path'] ) ||
+		! wp_de_rtc_is_sha256_hash( $block['serialized_hash'] )
+	) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_proposed_block_invalid_required_field' );
+	}
+
+	$has_block_uid      = isset( $block['block_uid'] ) && is_string( $block['block_uid'] ) && '' !== $block['block_uid'];
+	$has_inserted_nonce = (
+		isset( $block['inserted_block_nonce'] ) &&
+		is_string( $block['inserted_block_nonce'] ) &&
+		'' !== $block['inserted_block_nonce']
+	);
+
+	if ( $has_block_uid && $has_inserted_nonce ) {
+		return wp_de_rtc_get_block_identity_validation_error( 'block_identity_proposed_block_ambiguous_identity' );
+	}
+
+	if ( $has_block_uid ) {
+		if ( ! isset( $accepted_block_uids[ $block['block_uid'] ] ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_request_proof_unknown_block_uid',
+				array(
+					'unknown_block_uid' => $block['block_uid'],
+					'field'             => 'proposed_block_map',
+				)
+			);
+		}
+
+		return array(
+			'identity_kind' => 'retained',
+			'block_uid'     => $block['block_uid'],
+		);
+	}
+
+	if ( $has_inserted_nonce ) {
+		if ( ! isset( $inserted_block_nonce_lookup[ $block['inserted_block_nonce'] ] ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_request_proof_unknown_inserted_nonce',
+				array(
+					'unknown_inserted_block_nonce' => $block['inserted_block_nonce'],
+					'field'                        => 'proposed_block_map',
+				)
+			);
+		}
+
+		return array(
+			'identity_kind'        => 'inserted',
+			'inserted_block_nonce' => $block['inserted_block_nonce'],
+		);
+	}
+
+	return wp_de_rtc_get_block_identity_validation_error( 'block_identity_proposed_block_unknown_identity' );
+}
+
+/**
+ * Validates a content-free string list for block identity proof.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $values List values.
+ * @param string $field  Request-proof field name.
+ * @return string[]|WP_Error Sanitized strings, or malformed-payload error.
+ */
+function wp_de_rtc_validate_block_identity_string_list( $values, $field ) {
+	$validated = array();
+	$seen      = array();
+
+	foreach ( $values as $index => $value ) {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_request_proof_invalid_required_field',
+				array(
+					'field' => $field,
+					'index' => (int) $index,
+				)
+			);
+		}
+
+		if ( isset( $seen[ $value ] ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_request_proof_duplicate_value',
+				array(
+					'field' => $field,
+					'value' => $value,
+					'index' => (int) $index,
+				)
+			);
+		}
+
+		$seen[ $value ] = true;
+		$validated[]   = $value;
+	}
+
+	return $validated;
+}
+
+/**
+ * Validates an accepted-base block UID list for block identity proof.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $values              UID list values.
+ * @param string $field               Request-proof field name.
+ * @param array  $accepted_block_uids Accepted-base UID lookup.
+ * @return string[]|WP_Error Validated UIDs, or malformed-payload error.
+ */
+function wp_de_rtc_validate_block_identity_uid_list( $values, $field, $accepted_block_uids ) {
+	$validated = wp_de_rtc_validate_block_identity_string_list( $values, $field );
+
+	if ( is_wp_error( $validated ) ) {
+		return $validated;
+	}
+
+	foreach ( $validated as $index => $block_uid ) {
+		if ( ! isset( $accepted_block_uids[ $block_uid ] ) ) {
+			return wp_de_rtc_get_block_identity_validation_error(
+				'block_identity_request_proof_unknown_block_uid',
+				array(
+					'field'             => $field,
+					'index'             => (int) $index,
+					'unknown_block_uid' => $block_uid,
+				)
+			);
+		}
+	}
+
+	return $validated;
+}
+
+/**
+ * Returns whether a block identity version label is acceptable.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $version Version candidate.
+ * @return bool Whether the version is a non-empty scalar label.
+ */
+function wp_de_rtc_is_block_identity_version_label( $version ) {
+	return ( is_string( $version ) || is_int( $version ) ) && '' !== (string) $version;
+}
+
+/**
+ * Returns whether a block identity ordinal path is valid.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $path Ordinal path candidate.
+ * @return bool Whether the path is an array of non-negative integers.
+ */
+function wp_de_rtc_is_block_identity_ordinal_path( $path ) {
+	if ( ! is_array( $path ) ) {
+		return false;
+	}
+
+	foreach ( $path as $part ) {
+		if ( ! is_int( $part ) || $part < 0 ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Adds no-write evidence to a block identity validation result.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $data Validation result data.
+ * @return array Validation result data with no-write evidence.
+ */
+function wp_de_rtc_get_block_identity_no_write_data( $data ) {
+	return array_merge(
+		$data,
+		array(
+			'saves_post'           => false,
+			'mutates_post_content' => false,
+			'creates_revision'     => false,
+			'changes_post_lock'    => false,
+			'claims_saved'         => false,
+		)
+	);
+}
+
+/**
+ * Creates a malformed-payload error for block identity validation.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $detail Validation detail.
+ * @param array  $extra  Optional extra data.
+ * @return WP_Error Validation error.
+ */
+function wp_de_rtc_get_block_identity_validation_error( $detail, $extra = array() ) {
+	return wp_de_rtc_get_reason_error(
+		'de_rtc_malformed_sync_payload',
+		__( 'Distributed Editing block identity proof is incomplete or malformed.' ),
+		wp_de_rtc_get_block_identity_no_write_data(
+			array_merge(
+				array(
+					'detail' => $detail,
+				),
+				$extra
+			)
+		)
+	);
+}
+
+/**
  * Validates candidate post content from a recovery update plan.
  *
  * @since 7.1.0
