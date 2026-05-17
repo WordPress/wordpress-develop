@@ -9667,40 +9667,9 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	$save_post_content      = $proposed_post_content;
 	$save_post_content_hash = $proposed_post_content_hash;
 	$server_merge_result    = null;
-
-	if ( null !== $block_identity_request_proof && ! $retry_save_server_merge_required ) {
-		$block_identity_request_proof_validation = wp_de_rtc_validate_retry_save_block_identity_request_proof(
-			$block_identity_request_proof,
-			$current['sync_meta'],
-			$proposed_post_content_hash,
-			$post
-		);
-
-		if ( is_wp_error( $block_identity_request_proof_validation ) ) {
-			return $block_identity_request_proof_validation;
-		}
-	}
+	$base_revision          = null;
 
 	if ( $retry_save_server_merge_required ) {
-		if ( null !== $block_identity_request_proof ) {
-			return wp_de_rtc_get_reason_error(
-				'de_rtc_malformed_sync_payload',
-				__( 'Distributed Editing rejected the retry save because block identity proof cannot yet be merged across a newer server version.' ),
-				wp_de_rtc_get_block_identity_no_write_data(
-					array(
-						'detail'                              => 'retry_save_block_identity_server_merge_not_supported',
-						'post_id'                             => (int) $post->ID,
-						'rest_route'                          => 'post_retry_save_block_identity',
-						'client_base_version'                 => $client_base_version,
-						'accepted_proof_server_version'       => $accepted_proof_server_version,
-						'server_version'                      => $server_version,
-						'requires_manual_conflict_resolution' => true,
-						'can_export_local_updates'            => $pending_change_count > 0,
-					)
-				)
-			);
-		}
-
 		$base_revision = wp_de_rtc_find_revision_with_sync_meta_version( $post, $accepted_proof_server_version );
 
 		if ( is_wp_error( $base_revision ) ) {
@@ -9720,18 +9689,51 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 				)
 			);
 		}
+	}
 
-		$server_merge_result = wp_de_rtc_get_serialized_block_server_merge_result(
-			$base_revision['content'],
-			$current['content'],
-			$proposed_post_content,
-			array(
-				'base_version'      => $accepted_proof_server_version,
-				'server_version'    => $server_version,
-				'base_revision_id'  => $base_revision['revision_id'],
-				'pending_changes'   => $pending_change_count,
-			)
+	if ( null !== $block_identity_request_proof ) {
+		$block_identity_request_proof_validation = wp_de_rtc_validate_retry_save_block_identity_request_proof(
+			$block_identity_request_proof,
+			$retry_save_server_merge_required ? $base_revision['sync_meta'] : $current['sync_meta'],
+			$proposed_post_content_hash,
+			$post
 		);
+
+		if ( is_wp_error( $block_identity_request_proof_validation ) ) {
+			return $block_identity_request_proof_validation;
+		}
+	}
+
+	if ( $retry_save_server_merge_required ) {
+		if ( null !== $block_identity_request_proof ) {
+			$server_merge_result = wp_de_rtc_get_block_identity_server_merge_result(
+				$base_revision['content'],
+				$current['content'],
+				$proposed_post_content,
+				$block_identity_request_proof,
+				$block_identity_request_proof_validation,
+				array(
+					'base_version'      => $accepted_proof_server_version,
+					'server_version'    => $server_version,
+					'base_revision_id'  => $base_revision['revision_id'],
+					'pending_changes'   => $pending_change_count,
+					'base_sync_meta'    => $base_revision['sync_meta'],
+					'current_sync_meta' => $current['sync_meta'],
+				)
+			);
+		} else {
+			$server_merge_result = wp_de_rtc_get_serialized_block_server_merge_result(
+				$base_revision['content'],
+				$current['content'],
+				$proposed_post_content,
+				array(
+					'base_version'      => $accepted_proof_server_version,
+					'server_version'    => $server_version,
+					'base_revision_id'  => $base_revision['revision_id'],
+					'pending_changes'   => $pending_change_count,
+				)
+			);
+		}
 
 		if ( is_wp_error( $server_merge_result ) ) {
 			$data = $server_merge_result->get_error_data( 'de_rtc_rebase_failed' );
@@ -12574,6 +12576,124 @@ function wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $ser
 }
 
 /**
+ * Returns a proof-backed block identity merge for an untouched newer server body.
+ *
+ * This intentionally does not merge two changed bodies. It only lets a stale
+ * retry-save use a validated identity request proof when the current server
+ * content and identity map still match the accepted-base revision.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $base_content                            Stripped post content for the accepted proof version.
+ * @param string $server_content                          Current stripped server post content.
+ * @param string $proposed_content                        Client-proposed stripped post content.
+ * @param mixed  $block_identity_request_proof            Request proof candidate.
+ * @param array  $block_identity_request_proof_validation Validated proof evidence.
+ * @param array  $args                                    Optional merge evidence.
+ * @return array|WP_Error Merge result, or conflict error.
+ */
+function wp_de_rtc_get_block_identity_server_merge_result( $base_content, $server_content, $proposed_content, $block_identity_request_proof, $block_identity_request_proof_validation, $args = array() ) {
+	$base_records     = wp_de_rtc_get_top_level_serialized_block_records( $base_content );
+	$server_records   = wp_de_rtc_get_top_level_serialized_block_records( $server_content );
+	$proposed_records = wp_de_rtc_get_top_level_serialized_block_records( $proposed_content );
+
+	foreach ( array( $base_records, $server_records, $proposed_records ) as $record_set ) {
+		if ( is_wp_error( $record_set ) ) {
+			return $record_set;
+		}
+	}
+
+	$base_count     = count( $base_records );
+	$server_count   = count( $server_records );
+	$proposed_count = count( $proposed_records );
+
+	if (
+		! hash_equals( $base_content, $server_content ) ||
+		! wp_de_rtc_block_identity_sync_meta_stable_map_matches(
+			isset( $args['base_sync_meta'] ) ? $args['base_sync_meta'] : null,
+			isset( $args['current_sync_meta'] ) ? $args['current_sync_meta'] : null
+		)
+	) {
+		return wp_de_rtc_get_server_merge_conflict_error(
+			'block_identity_base_drift',
+			array(
+				'server_merge_strategy'           => 'top_level_serialized_block_identity_map',
+				'base_block_count'                => $base_count,
+				'server_block_count'              => $server_count,
+				'proposed_block_count'            => $proposed_count,
+				'server_block_count_changed'      => $base_count !== $server_count,
+				'local_block_count_changed'       => $base_count !== $proposed_count,
+				'server_block_count_delta'        => $server_count - $base_count,
+				'local_block_count_delta'         => $proposed_count - $base_count,
+				'block_identity_base_current_match' => false,
+			)
+		);
+	}
+
+	$proof_map_check = wp_de_rtc_validate_block_identity_request_proof_matches_proposed_content(
+		$block_identity_request_proof,
+		isset( $args['base_sync_meta'] ) ? $args['base_sync_meta'] : null,
+		$proposed_records
+	);
+
+	if ( is_wp_error( $proof_map_check ) ) {
+		return $proof_map_check;
+	}
+
+	if (
+		! is_array( $block_identity_request_proof_validation ) ||
+		! isset( $block_identity_request_proof_validation['proposed_block_count'] ) ||
+		(int) $block_identity_request_proof_validation['proposed_block_count'] !== $proposed_count
+	) {
+		return wp_de_rtc_get_server_merge_conflict_error(
+			'block_identity_proof_content_mismatch',
+			array(
+				'server_merge_strategy' => 'top_level_serialized_block_identity_map',
+				'base_block_count'      => $base_count,
+				'server_block_count'    => $server_count,
+				'proposed_block_count'  => $proposed_count,
+			)
+		);
+	}
+
+	$local_changed_indexes = $proof_map_check['inserted_block_indexes'];
+
+	return array(
+		'merge_status'                        => 'merged',
+		'merge_strategy'                      => 'top_level_serialized_block_identity_map',
+		'base_version'                        => isset( $args['base_version'] ) ? sanitize_text_field( (string) $args['base_version'] ) : null,
+		'server_version'                      => isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : null,
+		'base_revision_id'                    => isset( $args['base_revision_id'] ) ? (int) $args['base_revision_id'] : 0,
+		'block_count'                         => $proposed_count,
+		'base_block_count'                    => $base_count,
+		'server_block_count'                  => $server_count,
+		'proposed_block_count'                => $proposed_count,
+		'merged_block_count'                  => $proposed_count,
+		'edge_insert_source'                  => null,
+		'edge_insert_position'                => null,
+		'edge_inserted_block_count'           => 0,
+		'append_source'                       => null,
+		'appended_block_count'                => 0,
+		'prepend_source'                      => null,
+		'prepended_block_count'               => 0,
+		'server_changed_indexes'              => array(),
+		'local_changed_indexes'               => $local_changed_indexes,
+		'server_changed_block_count'          => 0,
+		'local_changed_block_count'           => count( $local_changed_indexes ),
+		'block_identity_base_current_match'   => true,
+		'block_identity_inserted_indexes'     => $proof_map_check['inserted_block_indexes'],
+		'block_identity_inserted_block_count' => $block_identity_request_proof_validation['inserted_block_count'],
+		'block_identity_moved_block_count'    => $block_identity_request_proof_validation['moved_block_count'],
+		'merged_content'                      => $proposed_content,
+		'merged_stripped_content_hash'        => wp_de_rtc_hash_content( $proposed_content ),
+		'base_content_hash'                   => wp_de_rtc_hash_content( $base_content ),
+		'server_content_hash'                 => wp_de_rtc_hash_content( $server_content ),
+		'proposed_content_hash'               => wp_de_rtc_hash_content( $proposed_content ),
+	);
+}
+
+/**
  * Attempts a conservative one-sided deletion merge across serialized blocks.
  *
  * @since 7.1.0
@@ -13022,6 +13142,154 @@ function wp_de_rtc_get_reordered_serialized_block_indexes( $base_records, $candi
 }
 
 /**
+ * Returns whether two block identity sync-meta maps are stable equivalents.
+ *
+ * Version labels may differ because this helper is used across a stale retry
+ * save. The document identity and per-block identity/hash/path evidence must
+ * remain the same.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $base_sync_meta    Accepted-base sync metadata.
+ * @param mixed $current_sync_meta Current server sync metadata.
+ * @return bool Whether the stable identity map matches.
+ */
+function wp_de_rtc_block_identity_sync_meta_stable_map_matches( $base_sync_meta, $current_sync_meta ) {
+	$base_validation    = wp_de_rtc_validate_block_identity_sync_meta_contract( $base_sync_meta );
+	$current_validation = wp_de_rtc_validate_block_identity_sync_meta_contract( $current_sync_meta );
+
+	if ( is_wp_error( $base_validation ) || is_wp_error( $current_validation ) ) {
+		return false;
+	}
+
+	if (
+		$base_validation['document_uuid'] !== $current_validation['document_uuid'] ||
+		$base_validation['content_hash'] !== $current_validation['content_hash'] ||
+		(int) $base_validation['block_count'] !== (int) $current_validation['block_count'] ||
+		$base_validation['block_uids'] !== $current_validation['block_uids']
+	) {
+		return false;
+	}
+
+	$base_sync_meta    = wp_de_rtc_normalize_block_identity_object( $base_sync_meta );
+	$current_sync_meta = wp_de_rtc_normalize_block_identity_object( $current_sync_meta );
+
+	foreach ( $base_sync_meta['blocks'] as $index => $base_block ) {
+		$base_block    = wp_de_rtc_normalize_block_identity_object( $base_block );
+		$current_block = wp_de_rtc_normalize_block_identity_object( $current_sync_meta['blocks'][ $index ] );
+
+		foreach ( array( 'block_uid', 'parent_uid', 'block_name', 'ordinal_path', 'serialized_hash' ) as $field ) {
+			if ( $base_block[ $field ] !== $current_block[ $field ] ) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Validates that identity request proof describes the proposed stripped content.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed    $request_proof    Request proof candidate.
+ * @param mixed    $base_sync_meta   Accepted-base sync metadata.
+ * @param string[] $proposed_records Proposed top-level serialized block records.
+ * @return array|WP_Error Content-free proof match evidence, or conflict error.
+ */
+function wp_de_rtc_validate_block_identity_request_proof_matches_proposed_content( $request_proof, $base_sync_meta, $proposed_records ) {
+	$request_proof = wp_de_rtc_normalize_block_identity_object( $request_proof );
+	$base_sync_meta = wp_de_rtc_normalize_block_identity_object( $base_sync_meta );
+
+	if (
+		! is_array( $request_proof ) ||
+		! isset( $request_proof['proposed_block_map'] ) ||
+		! is_array( $request_proof['proposed_block_map'] ) ||
+		! is_array( $base_sync_meta ) ||
+		! isset( $base_sync_meta['blocks'] ) ||
+		! is_array( $base_sync_meta['blocks'] ) ||
+		count( $request_proof['proposed_block_map'] ) !== count( $proposed_records )
+	) {
+		return wp_de_rtc_get_server_merge_conflict_error(
+			'block_identity_proof_content_mismatch',
+			array(
+				'server_merge_strategy' => 'top_level_serialized_block_identity_map',
+			)
+		);
+	}
+
+	$accepted_hashes_by_uid = array();
+
+	foreach ( $base_sync_meta['blocks'] as $block ) {
+		$block = wp_de_rtc_normalize_block_identity_object( $block );
+
+		if (
+			is_array( $block ) &&
+			isset( $block['block_uid'], $block['serialized_hash'] ) &&
+			is_string( $block['block_uid'] )
+		) {
+			$accepted_hashes_by_uid[ $block['block_uid'] ] = (string) $block['serialized_hash'];
+		}
+	}
+
+	$inserted_block_indexes = array();
+
+	foreach ( $request_proof['proposed_block_map'] as $index => $proof_block ) {
+		$proof_block    = wp_de_rtc_normalize_block_identity_object( $proof_block );
+		$record_hash    = wp_de_rtc_hash_content( $proposed_records[ $index ] );
+
+		if ( ! is_array( $proof_block ) ) {
+			return wp_de_rtc_get_server_merge_conflict_error(
+				'block_identity_proof_content_mismatch',
+				array(
+					'server_merge_strategy' => 'top_level_serialized_block_identity_map',
+					'block_index'           => (int) $index,
+				)
+			);
+		}
+
+		$proof_hash     = isset( $proof_block['serialized_hash'] ) ? sanitize_text_field( (string) $proof_block['serialized_hash'] ) : '';
+		$block_uid      = isset( $proof_block['block_uid'] ) ? sanitize_text_field( (string) $proof_block['block_uid'] ) : '';
+		$inserted_nonce = isset( $proof_block['inserted_block_nonce'] ) ? sanitize_text_field( (string) $proof_block['inserted_block_nonce'] ) : '';
+
+		if ( ! hash_equals( $record_hash, $proof_hash ) ) {
+			return wp_de_rtc_get_server_merge_conflict_error(
+				'block_identity_proof_content_mismatch',
+				array(
+					'server_merge_strategy' => 'top_level_serialized_block_identity_map',
+					'block_index'           => (int) $index,
+				)
+			);
+		}
+
+		if ( '' !== $block_uid ) {
+			if ( ! isset( $accepted_hashes_by_uid[ $block_uid ] ) || ! hash_equals( $accepted_hashes_by_uid[ $block_uid ], $proof_hash ) ) {
+				return wp_de_rtc_get_server_merge_conflict_error(
+					'block_identity_retained_block_changed',
+					array(
+						'server_merge_strategy' => 'top_level_serialized_block_identity_map',
+						'block_index'           => (int) $index,
+					)
+				);
+			}
+
+			continue;
+		}
+
+		if ( '' !== $inserted_nonce ) {
+			$inserted_block_indexes[] = (int) $index;
+		}
+	}
+
+	return array(
+		'inserted_block_indexes' => $inserted_block_indexes,
+	);
+}
+
+/**
  * Returns content-free merge evidence safe for REST responses and sync meta.
  *
  * @since 7.1.0
@@ -13031,8 +13299,12 @@ function wp_de_rtc_get_reordered_serialized_block_indexes( $base_records, $candi
  * @return array Public merge evidence without raw post content.
  */
 function wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) {
-	$server_changed_indexes = isset( $server_merge_result['server_changed_indexes'] ) ? array_map( 'intval', $server_merge_result['server_changed_indexes'] ) : array();
-	$local_changed_indexes  = isset( $server_merge_result['local_changed_indexes'] ) ? array_map( 'intval', $server_merge_result['local_changed_indexes'] ) : array();
+	$server_changed_indexes          = isset( $server_merge_result['server_changed_indexes'] ) ? array_map( 'intval', $server_merge_result['server_changed_indexes'] ) : array();
+	$local_changed_indexes           = isset( $server_merge_result['local_changed_indexes'] ) ? array_map( 'intval', $server_merge_result['local_changed_indexes'] ) : array();
+	$block_identity_inserted_indexes = (
+		isset( $server_merge_result['block_identity_inserted_indexes'] ) &&
+		is_array( $server_merge_result['block_identity_inserted_indexes'] )
+	) ? array_map( 'intval', $server_merge_result['block_identity_inserted_indexes'] ) : array();
 
 	return array(
 		'merge_status'                 => isset( $server_merge_result['merge_status'] ) ? $server_merge_result['merge_status'] : null,
@@ -13059,6 +13331,10 @@ function wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) {
 		'local_changed_indexes'        => $local_changed_indexes,
 		'server_changed_block_count'   => isset( $server_merge_result['server_changed_block_count'] ) ? (int) $server_merge_result['server_changed_block_count'] : count( $server_changed_indexes ),
 		'local_changed_block_count'    => isset( $server_merge_result['local_changed_block_count'] ) ? (int) $server_merge_result['local_changed_block_count'] : count( $local_changed_indexes ),
+		'block_identity_base_current_match'   => isset( $server_merge_result['block_identity_base_current_match'] ) ? (bool) $server_merge_result['block_identity_base_current_match'] : null,
+		'block_identity_inserted_indexes'     => $block_identity_inserted_indexes,
+		'block_identity_inserted_block_count' => isset( $server_merge_result['block_identity_inserted_block_count'] ) ? (int) $server_merge_result['block_identity_inserted_block_count'] : 0,
+		'block_identity_moved_block_count'    => isset( $server_merge_result['block_identity_moved_block_count'] ) ? (int) $server_merge_result['block_identity_moved_block_count'] : 0,
 		'merged_stripped_content_hash' => isset( $server_merge_result['merged_stripped_content_hash'] ) ? $server_merge_result['merged_stripped_content_hash'] : null,
 		'base_content_hash'            => isset( $server_merge_result['base_content_hash'] ) ? $server_merge_result['base_content_hash'] : null,
 		'server_content_hash'          => isset( $server_merge_result['server_content_hash'] ) ? $server_merge_result['server_content_hash'] : null,

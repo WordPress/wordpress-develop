@@ -2917,6 +2917,288 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	/**
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
 	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_find_revision_with_sync_meta_version
+	 * @covers ::wp_de_rtc_get_block_identity_server_merge_result
+	 * @covers ::wp_de_rtc_block_identity_sync_meta_stable_map_matches
+	 * @covers ::wp_de_rtc_validate_block_identity_request_proof_matches_proposed_content
+	 * @covers ::wp_de_rtc_validate_retry_save_block_identity_request_proof
+	 * @covers ::wp_de_rtc_apply_block_identity_request_proof_to_sync_meta
+	 * @covers ::wp_de_rtc_get_public_server_merge_evidence
+	 */
+	public function test_retry_save_server_merges_block_identity_middle_insertion_when_server_body_unchanged() {
+		$block_a          = '<!-- wp:paragraph --><p>Identity stale base A.</p><!-- /wp:paragraph -->';
+		$block_b          = '<!-- wp:paragraph --><p>Identity stale base B.</p><!-- /wp:paragraph -->';
+		$inserted_block   = '<!-- wp:paragraph --><p>Identity stale inserted middle.</p><!-- /wp:paragraph -->';
+		$base_content     = $block_a . $block_b;
+		$proposed_content = $block_a . $inserted_block . $block_b;
+		$base_sync_meta   = $this->get_block_identity_sync_meta_for_blocks(
+			$base_content,
+			array(
+				'block-a' => $block_a,
+				'block-b' => $block_b,
+			)
+		);
+		$current_content  = $this->add_sync_meta_to_content( $base_content, 41, $base_sync_meta );
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC block identity stale retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$base_revision_id = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $base_revision_id );
+		$this->assertGreaterThan( 0, $base_revision_id );
+
+		$advanced_content = $this->add_sync_meta_to_content(
+			$base_content,
+			42,
+			array_merge(
+				$base_sync_meta,
+				array(
+					'previous_version' => '41',
+				)
+			)
+		);
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $advanced_content,
+					)
+				)
+			)
+		);
+
+		$proposed_hash          = hash( 'sha256', $proposed_content );
+		$before_retry_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request                = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '41',
+				'accepted_proof_server_version' => '41',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'block_identity_request_proof'  => array(
+					'client_base_version'        => '41',
+					'proposed_post_content_hash' => $proposed_hash,
+					'proposed_block_map'         => array(
+						array(
+							'block_uid'       => 'block-a',
+							'block_name'      => 'core/paragraph',
+							'ordinal_path'    => array( 0 ),
+							'serialized_hash' => hash( 'sha256', $block_a ),
+						),
+						array(
+							'inserted_block_nonce' => 'inserted-middle',
+							'block_name'           => 'core/paragraph',
+							'ordinal_path'         => array( 1 ),
+							'serialized_hash'      => hash( 'sha256', $inserted_block ),
+						),
+						array(
+							'block_uid'       => 'block-b',
+							'block_name'      => 'core/paragraph',
+							'ordinal_path'    => array( 2 ),
+							'serialized_hash' => hash( 'sha256', $block_b ),
+						),
+					),
+					'retained_block_uids'        => array( 'block-a', 'block-b' ),
+					'inserted_block_nonces'      => array( 'inserted-middle' ),
+					'deleted_block_uids'         => array(),
+					'moved_block_uids'           => array( 'block-b' ),
+				),
+			)
+		);
+
+		$response        = rest_get_server()->dispatch( $request );
+		$data            = $response->get_data();
+		$after_post      = get_post( $post_id );
+		$after_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$parsed          = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_server_merged', $data['result'] );
+		$this->assertTrue( $data['server_merge_applied'] );
+		$this->assertTrue( $data['block_identity_request_proof_validated'] );
+		$this->assertSame( '41', $data['client_base_version'] );
+		$this->assertSame( '41', $data['accepted_proof_server_version'] );
+		$this->assertSame( '42', $data['previous_server_version'] );
+		$this->assertSame( '43', $data['server_version'] );
+		$this->assertSame( 'top_level_serialized_block_identity_map', $data['server_merge']['merge_strategy'] );
+		$this->assertTrue( $data['server_merge']['block_identity_base_current_match'] );
+		$this->assertSame( 2, $data['server_merge']['base_block_count'] );
+		$this->assertSame( 2, $data['server_merge']['server_block_count'] );
+		$this->assertSame( 3, $data['server_merge']['proposed_block_count'] );
+		$this->assertSame( 3, $data['server_merge']['merged_block_count'] );
+		$this->assertSame( array(), $data['server_merge']['server_changed_indexes'] );
+		$this->assertSame( array( 1 ), $data['server_merge']['local_changed_indexes'] );
+		$this->assertSame( array( 1 ), $data['server_merge']['block_identity_inserted_indexes'] );
+		$this->assertSame( 1, $data['server_merge']['block_identity_inserted_block_count'] );
+		$this->assertSame( 1, $data['server_merge']['block_identity_moved_block_count'] );
+		$this->assertSame(
+			array_values( array_diff( array_map( 'intval', array_keys( $after_revisions ) ), array_map( 'intval', array_keys( $before_retry_revisions ) ) ) ),
+			$data['created_revision_ids']
+		);
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $proposed_content, $parsed['content'] );
+		$this->assertSame( '43', $parsed['sync_meta']['version'] );
+		$this->assertSame( '42', $parsed['sync_meta']['previous_version'] );
+		$this->assertSame( 'retry_save_server_merge', $parsed['sync_meta']['last_server_update']['type'] );
+		$this->assertSame( 'top_level_serialized_block_identity_map', $parsed['sync_meta']['last_server_update']['server_merge']['merge_strategy'] );
+		$this->assertTrue( $parsed['sync_meta']['last_server_update']['server_merge']['block_identity_base_current_match'] );
+		$this->assertCount( 3, $parsed['sync_meta']['blocks'] );
+		$this->assertSame( 'block-a', $parsed['sync_meta']['blocks'][0]['block_uid'] );
+		$this->assertStringStartsWith( 'block-', $parsed['sync_meta']['blocks'][1]['block_uid'] );
+		$this->assertSame( 'block-b', $parsed['sync_meta']['blocks'][2]['block_uid'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_find_revision_with_sync_meta_version
+	 * @covers ::wp_de_rtc_get_block_identity_server_merge_result
+	 * @covers ::wp_de_rtc_block_identity_sync_meta_stable_map_matches
+	 * @covers ::wp_de_rtc_get_server_merge_conflict_error
+	 */
+	public function test_retry_save_rejects_block_identity_server_merge_when_server_body_changed_without_mutating() {
+		$block_a          = '<!-- wp:paragraph --><p>Identity drift A.</p><!-- /wp:paragraph -->';
+		$block_b          = '<!-- wp:paragraph --><p>Identity drift B.</p><!-- /wp:paragraph -->';
+		$server_block_a   = '<!-- wp:paragraph --><p>Identity drift A from server.</p><!-- /wp:paragraph -->';
+		$inserted_block   = '<!-- wp:paragraph --><p>Identity drift inserted middle.</p><!-- /wp:paragraph -->';
+		$base_content     = $block_a . $block_b;
+		$server_content   = $server_block_a . $block_b;
+		$proposed_content = $block_a . $inserted_block . $block_b;
+		$base_sync_meta   = $this->get_block_identity_sync_meta_for_blocks(
+			$base_content,
+			array(
+				'block-a' => $block_a,
+				'block-b' => $block_b,
+			)
+		);
+		$current_content  = $this->add_sync_meta_to_content( $base_content, 51, $base_sync_meta );
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC block identity drift retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$base_revision_id = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $base_revision_id );
+		$this->assertGreaterThan( 0, $base_revision_id );
+
+		$advanced_content = $this->add_sync_meta_to_content(
+			$server_content,
+			52,
+			array_merge(
+				$this->get_block_identity_sync_meta_for_blocks(
+					$server_content,
+					array(
+						'block-a' => $server_block_a,
+						'block-b' => $block_b,
+					)
+				),
+				array(
+					'previous_version' => '51',
+				)
+			)
+		);
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $advanced_content,
+					)
+				)
+			)
+		);
+
+		$proposed_hash          = hash( 'sha256', $proposed_content );
+		$before_retry_post      = get_post( $post_id );
+		$before_retry_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request                = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '51',
+				'accepted_proof_server_version' => '51',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'block_identity_request_proof'  => array(
+					'client_base_version'        => '51',
+					'proposed_post_content_hash' => $proposed_hash,
+					'proposed_block_map'         => array(
+						array(
+							'block_uid'       => 'block-a',
+							'block_name'      => 'core/paragraph',
+							'ordinal_path'    => array( 0 ),
+							'serialized_hash' => hash( 'sha256', $block_a ),
+						),
+						array(
+							'inserted_block_nonce' => 'inserted-middle',
+							'block_name'           => 'core/paragraph',
+							'ordinal_path'         => array( 1 ),
+							'serialized_hash'      => hash( 'sha256', $inserted_block ),
+						),
+						array(
+							'block_uid'       => 'block-b',
+							'block_name'      => 'core/paragraph',
+							'ordinal_path'    => array( 2 ),
+							'serialized_hash' => hash( 'sha256', $block_b ),
+						),
+					),
+					'retained_block_uids'        => array( 'block-a', 'block-b' ),
+					'inserted_block_nonces'      => array( 'inserted-middle' ),
+					'deleted_block_uids'         => array(),
+					'moved_block_uids'           => array( 'block-b' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_rebase_failed' );
+
+		$this->assertErrorResponse( 'de_rtc_rebase_failed', $response, 409 );
+		$this->assertSame( 'retry_save_server_merge_block_identity_base_drift', $data['detail'] );
+		$this->assertSame( 'post_retry_save_server_merge', $data['rest_route'] );
+		$this->assertSame( 'top_level_serialized_block_identity_map', $data['server_merge_strategy'] );
+		$this->assertFalse( $data['block_identity_base_current_match'] );
+		$this->assertSame( 2, $data['base_block_count'] );
+		$this->assertSame( 2, $data['server_block_count'] );
+		$this->assertSame( 3, $data['proposed_block_count'] );
+		$this->assertTrue( $data['requires_manual_conflict_resolution'] );
+		$this->assertTrue( $data['can_export_local_updates'] );
+		$this->assertFalse( $data['saves_post'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assertFalse( $data['creates_revision'] );
+		$this->assertFalse( $data['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_retry_post->post_content, $before_retry_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
 	 * @covers ::wp_de_rtc_validate_retry_save_block_identity_request_proof
 	 */
 	public function test_retry_save_rejects_block_identity_request_proof_hash_mismatch_without_mutating() {
