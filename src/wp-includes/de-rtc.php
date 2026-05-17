@@ -331,6 +331,10 @@ function wp_de_rtc_register_rest_routes() {
 							'description' => __( 'Accepted hash-only fresh-review consumption evidence for guarded retry-save.' ),
 							'type'        => 'object',
 						),
+						'block_identity_request_proof'   => array(
+							'description' => __( 'Content-free Distributed Editing block identity proof for guarded retry-save.' ),
+							'type'        => 'object',
+						),
 					),
 				),
 			)
@@ -3930,6 +3934,7 @@ function wp_de_rtc_rest_retry_save_endpoint( $request ) {
 			'accepted_proof_claims_saved'        => $request->get_param( 'accepted_proof_claims_saved' ),
 			'review_approval_proof'              => $request->has_param( 'accepted_review_approval_proof' ) ? $request->get_param( 'accepted_review_approval_proof' ) : $request->get_param( 'review_approval_proof' ),
 			'accepted_fresh_review_decision'     => $request->get_param( 'accepted_fresh_review_decision' ),
+			'block_identity_request_proof'       => $request->get_param( 'block_identity_request_proof' ),
 			'post_type_rest_base'                => wp_de_rtc_get_rest_retry_save_request_rest_base( $request ),
 		)
 	);
@@ -9523,6 +9528,8 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	$accepted_fresh_review_decision = isset( $args['accepted_fresh_review_decision'] ) ? $args['accepted_fresh_review_decision'] : null;
 	$fresh_review_consumption       = null;
 	$fresh_review_consumption_claim = null;
+	$block_identity_request_proof   = isset( $args['block_identity_request_proof'] ) ? $args['block_identity_request_proof'] : null;
+	$block_identity_request_proof_validation = null;
 	$retry_save_versions_match_current = (
 		'' !== $client_base_version &&
 		'' !== $accepted_proof_server_version &&
@@ -9661,7 +9668,39 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	$save_post_content_hash = $proposed_post_content_hash;
 	$server_merge_result    = null;
 
+	if ( null !== $block_identity_request_proof && ! $retry_save_server_merge_required ) {
+		$block_identity_request_proof_validation = wp_de_rtc_validate_retry_save_block_identity_request_proof(
+			$block_identity_request_proof,
+			$current['sync_meta'],
+			$proposed_post_content_hash,
+			$post
+		);
+
+		if ( is_wp_error( $block_identity_request_proof_validation ) ) {
+			return $block_identity_request_proof_validation;
+		}
+	}
+
 	if ( $retry_save_server_merge_required ) {
+		if ( null !== $block_identity_request_proof ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_malformed_sync_payload',
+				__( 'Distributed Editing rejected the retry save because block identity proof cannot yet be merged across a newer server version.' ),
+				wp_de_rtc_get_block_identity_no_write_data(
+					array(
+						'detail'                              => 'retry_save_block_identity_server_merge_not_supported',
+						'post_id'                             => (int) $post->ID,
+						'rest_route'                          => 'post_retry_save_block_identity',
+						'client_base_version'                 => $client_base_version,
+						'accepted_proof_server_version'       => $accepted_proof_server_version,
+						'server_version'                      => $server_version,
+						'requires_manual_conflict_resolution' => true,
+						'can_export_local_updates'            => $pending_change_count > 0,
+					)
+				)
+			);
+		}
+
 		$base_revision = wp_de_rtc_find_revision_with_sync_meta_version( $post, $accepted_proof_server_version );
 
 		if ( is_wp_error( $base_revision ) ) {
@@ -9728,6 +9767,15 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	$next_version   = wp_de_rtc_get_next_sync_meta_version( $server_version, $save_post_content_hash );
 	$next_sync_meta = $current['sync_meta'];
 
+	if ( is_array( $block_identity_request_proof_validation ) ) {
+		$next_sync_meta = wp_de_rtc_apply_block_identity_request_proof_to_sync_meta(
+			$next_sync_meta,
+			$block_identity_request_proof,
+			$next_version,
+			$save_post_content_hash
+		);
+	}
+
 	$next_sync_meta['version']           = $next_version;
 	$next_sync_meta['previous_version']  = $server_version;
 	$next_sync_meta['last_server_update'] = array(
@@ -9739,6 +9787,18 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'pending_change_count'         => $pending_change_count,
 		'proposed_post_content_hash'   => $proposed_post_content_hash,
 	);
+
+	if ( is_array( $block_identity_request_proof_validation ) ) {
+		$next_sync_meta['last_server_update']['block_identity_request_proof'] = array(
+			'status'               => 'valid',
+			'proposed_block_count' => $block_identity_request_proof_validation['proposed_block_count'],
+			'retained_block_count' => $block_identity_request_proof_validation['retained_block_count'],
+			'inserted_block_count' => $block_identity_request_proof_validation['inserted_block_count'],
+			'deleted_block_count'  => $block_identity_request_proof_validation['deleted_block_count'],
+			'moved_block_count'    => $block_identity_request_proof_validation['moved_block_count'],
+			'content_free'         => true,
+		);
+	}
 
 	if ( is_array( $server_merge_result ) ) {
 		$next_sync_meta['last_server_update']['saved_stripped_post_content_hash'] = $save_post_content_hash;
@@ -10066,6 +10126,21 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'saved_post_content_hash'             => $candidate_hash,
 		'server_merge_applied'                => is_array( $server_merge_result ),
 		'server_merge'                        => is_array( $server_merge_result ) ? wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) : null,
+		'block_identity_request_proof_validated' => is_array( $block_identity_request_proof_validation ),
+		'block_identity_request_proof'           => is_array( $block_identity_request_proof_validation ) ? array(
+			'status'               => $block_identity_request_proof_validation['status'],
+			'proposed_block_count' => $block_identity_request_proof_validation['proposed_block_count'],
+			'retained_block_count' => $block_identity_request_proof_validation['retained_block_count'],
+			'inserted_block_count' => $block_identity_request_proof_validation['inserted_block_count'],
+			'deleted_block_count'  => $block_identity_request_proof_validation['deleted_block_count'],
+			'moved_block_count'    => $block_identity_request_proof_validation['moved_block_count'],
+			'content_free'         => true,
+			'saves_post'           => false,
+			'mutates_post_content' => false,
+			'creates_revision'     => false,
+			'changes_post_lock'    => false,
+			'claims_saved'         => false,
+		) : null,
 		'review_approval_proof_consumed'          => is_array( $review_approval_consumption ) && ! empty( $review_approval_consumption['review_approval_proof_consumed'] ),
 		'review_approval_proof_token_invalidated' => $review_approval_proof_token_invalidated,
 		'review_approval_proof_token_audit'       => wp_de_rtc_get_opaque_review_approval_proof_token_audit_public_evidence( $review_approval_proof_token_audit ),
@@ -13167,6 +13242,149 @@ function wp_de_rtc_get_block_identity_contract_required_fields() {
 			'deleted_block_uids',
 			'moved_block_uids',
 		),
+	);
+}
+
+/**
+ * Validates block identity proof at the guarded retry-save boundary.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed       $request_proof              Request proof candidate.
+ * @param mixed       $accepted_sync_meta          Accepted-base sync metadata.
+ * @param string      $proposed_post_content_hash SHA-256 hash of proposed stripped content.
+ * @param int|WP_Post $post                       Post ID or object.
+ * @return array|WP_Error Validation evidence, or a no-write error.
+ */
+function wp_de_rtc_validate_retry_save_block_identity_request_proof( $request_proof, $accepted_sync_meta, $proposed_post_content_hash, $post ) {
+	$post       = get_post( $post );
+	$validation = wp_de_rtc_validate_block_identity_request_proof( $request_proof, $accepted_sync_meta );
+
+	if ( is_wp_error( $validation ) ) {
+		$data = $validation->get_error_data();
+
+		if ( ! is_array( $data ) ) {
+			$data = array();
+		}
+
+		$data['post_id']    = $post ? (int) $post->ID : 0;
+		$data['rest_route'] = 'post_retry_save_block_identity';
+
+		$validation->add_data( $data, $validation->get_error_code() );
+
+		return $validation;
+	}
+
+	if ( ! hash_equals( $validation['proposed_post_content_hash'], $proposed_post_content_hash ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because block identity proof targeted different proposed content.' ),
+			wp_de_rtc_get_block_identity_no_write_data(
+				array(
+					'detail'                               => 'retry_save_block_identity_request_proof_hash_mismatch',
+					'post_id'                              => $post ? (int) $post->ID : 0,
+					'rest_route'                           => 'post_retry_save_block_identity',
+					'proposed_post_content_hash'           => $proposed_post_content_hash,
+					'block_identity_proposed_content_hash' => $validation['proposed_post_content_hash'],
+				)
+			)
+		);
+	}
+
+	$validation['validated_for_retry_save'] = true;
+	$validation['rest_route']               = 'post_retry_save_block_identity';
+	$validation['post_id']                  = $post ? (int) $post->ID : 0;
+
+	return $validation;
+}
+
+/**
+ * Applies validated block identity request proof to server-owned sync metadata.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $sync_meta                 Current sync metadata.
+ * @param mixed  $request_proof             Validated request proof.
+ * @param string $next_version              Next server sync version.
+ * @param string $save_post_content_hash    SHA-256 hash of saved stripped content.
+ * @return array Updated sync metadata.
+ */
+function wp_de_rtc_apply_block_identity_request_proof_to_sync_meta( $sync_meta, $request_proof, $next_version, $save_post_content_hash ) {
+	$request_proof = wp_de_rtc_normalize_block_identity_object( $request_proof );
+
+	if ( ! is_array( $sync_meta ) || ! is_array( $request_proof ) || empty( $request_proof['proposed_block_map'] ) || ! is_array( $request_proof['proposed_block_map'] ) ) {
+		return $sync_meta;
+	}
+
+	$document_uuid = isset( $sync_meta['document_uuid'] ) ? sanitize_text_field( (string) $sync_meta['document_uuid'] ) : '';
+	$blocks        = array();
+
+	foreach ( $request_proof['proposed_block_map'] as $index => $block ) {
+		$block = wp_de_rtc_normalize_block_identity_object( $block );
+
+		if ( ! is_array( $block ) ) {
+			continue;
+		}
+
+		$block_uid = isset( $block['block_uid'] )
+			? sanitize_text_field( (string) $block['block_uid'] )
+			: wp_de_rtc_generate_inserted_block_identity_uid(
+				$document_uuid,
+				$next_version,
+				isset( $block['inserted_block_nonce'] ) ? (string) $block['inserted_block_nonce'] : '',
+				isset( $block['serialized_hash'] ) ? (string) $block['serialized_hash'] : '',
+				$index
+			);
+
+		$blocks[] = array(
+			'block_uid'       => $block_uid,
+			'parent_uid'      => null,
+			'block_name'      => isset( $block['block_name'] ) ? sanitize_text_field( (string) $block['block_name'] ) : '',
+			'ordinal_path'    => array_map( 'intval', isset( $block['ordinal_path'] ) && is_array( $block['ordinal_path'] ) ? $block['ordinal_path'] : array( $index ) ),
+			'serialized_hash' => isset( $block['serialized_hash'] ) ? sanitize_text_field( (string) $block['serialized_hash'] ) : '',
+		);
+	}
+
+	$sync_meta['schema']       = 'de-rtc-block-identity-v1';
+	$sync_meta['content_hash'] = $save_post_content_hash;
+	$sync_meta['blocks']       = $blocks;
+
+	return $sync_meta;
+}
+
+/**
+ * Generates a server-owned UID for an inserted block from content-free proof.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $document_uuid        Document UUID.
+ * @param string $next_version         Next server sync version.
+ * @param string $inserted_block_nonce Client nonce for this inserted block.
+ * @param string $serialized_hash      Serialized block SHA-256 hash.
+ * @param int    $index                Proposed block index.
+ * @return string Server-owned block UID.
+ */
+function wp_de_rtc_generate_inserted_block_identity_uid( $document_uuid, $next_version, $inserted_block_nonce, $serialized_hash, $index ) {
+	return 'block-' . substr(
+		hash(
+			'sha256',
+			implode(
+				'|',
+				array(
+					'wp-de-rtc-block-identity-v1',
+					sanitize_text_field( (string) $document_uuid ),
+					sanitize_text_field( (string) $next_version ),
+					sanitize_text_field( (string) $inserted_block_nonce ),
+					sanitize_text_field( (string) $serialized_hash ),
+					(int) $index,
+				)
+			)
+		),
+		0,
+		24
 	);
 }
 

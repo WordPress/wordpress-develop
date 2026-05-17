@@ -2818,6 +2818,177 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_validate_retry_save_block_identity_request_proof
+	 * @covers ::wp_de_rtc_apply_block_identity_request_proof_to_sync_meta
+	 * @covers ::wp_de_rtc_generate_inserted_block_identity_uid
+	 */
+	public function test_retry_save_applies_block_identity_request_proof_to_sync_meta() {
+		$block_a          = '<!-- wp:paragraph --><p>Identity block A.</p><!-- /wp:paragraph -->';
+		$block_b          = '<!-- wp:paragraph --><p>Identity block B.</p><!-- /wp:paragraph -->';
+		$inserted_block   = '<!-- wp:paragraph --><p>Identity inserted block.</p><!-- /wp:paragraph -->';
+		$current_stripped = $block_a . $block_b;
+		$proposed_content = $block_a . $inserted_block . $block_b;
+		$current_content  = $this->add_sync_meta_to_content(
+			$current_stripped,
+			41,
+			$this->get_block_identity_sync_meta_for_blocks(
+				$current_stripped,
+				array(
+					'block-a' => $block_a,
+					'block-b' => $block_b,
+				)
+			)
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC block identity retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$request          = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '41',
+				'accepted_proof_server_version' => '41',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'block_identity_request_proof'  => array(
+					'client_base_version'        => '41',
+					'proposed_post_content_hash' => $proposed_hash,
+					'proposed_block_map'         => array(
+						array(
+							'block_uid'       => 'block-a',
+							'block_name'      => 'core/paragraph',
+							'ordinal_path'    => array( 0 ),
+							'serialized_hash' => hash( 'sha256', $block_a ),
+						),
+						array(
+							'inserted_block_nonce' => 'inserted-1',
+							'block_name'           => 'core/paragraph',
+							'ordinal_path'         => array( 1 ),
+							'serialized_hash'      => hash( 'sha256', $inserted_block ),
+						),
+						array(
+							'block_uid'       => 'block-b',
+							'block_name'      => 'core/paragraph',
+							'ordinal_path'    => array( 2 ),
+							'serialized_hash' => hash( 'sha256', $block_b ),
+						),
+					),
+					'retained_block_uids'        => array( 'block-a', 'block-b' ),
+					'inserted_block_nonces'      => array( 'inserted-1' ),
+					'deleted_block_uids'         => array(),
+					'moved_block_uids'           => array( 'block-b' ),
+				),
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_applied', $data['result'] );
+		$this->assertTrue( $data['block_identity_request_proof_validated'] );
+		$this->assertSame( 'valid', $data['block_identity_request_proof']['status'] );
+		$this->assertSame( 3, $data['block_identity_request_proof']['proposed_block_count'] );
+		$this->assertSame( 1, $data['block_identity_request_proof']['inserted_block_count'] );
+		$this->assertFalse( $data['block_identity_request_proof']['saves_post'] );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $proposed_content, $parsed['content'] );
+		$this->assertSame( 'de-rtc-block-identity-v1', $parsed['sync_meta']['schema'] );
+		$this->assertSame( $proposed_hash, $parsed['sync_meta']['content_hash'] );
+		$this->assertCount( 3, $parsed['sync_meta']['blocks'] );
+		$this->assertSame( 'block-a', $parsed['sync_meta']['blocks'][0]['block_uid'] );
+		$this->assertStringStartsWith( 'block-', $parsed['sync_meta']['blocks'][1]['block_uid'] );
+		$this->assertNotSame( 'inserted-1', $parsed['sync_meta']['blocks'][1]['block_uid'] );
+		$this->assertSame( array( 1 ), $parsed['sync_meta']['blocks'][1]['ordinal_path'] );
+		$this->assertSame( hash( 'sha256', $inserted_block ), $parsed['sync_meta']['blocks'][1]['serialized_hash'] );
+		$this->assertSame( 'block-b', $parsed['sync_meta']['blocks'][2]['block_uid'] );
+		$this->assertSame( 'valid', $parsed['sync_meta']['last_server_update']['block_identity_request_proof']['status'] );
+		$this->assertSame( 1, $parsed['sync_meta']['last_server_update']['block_identity_request_proof']['inserted_block_count'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_validate_retry_save_block_identity_request_proof
+	 */
+	public function test_retry_save_rejects_block_identity_request_proof_hash_mismatch_without_mutating() {
+		$block_a          = '<!-- wp:paragraph --><p>Identity mismatch A.</p><!-- /wp:paragraph -->';
+		$current_stripped = $block_a;
+		$current_content  = $this->add_sync_meta_to_content(
+			$current_stripped,
+			42,
+			$this->get_block_identity_sync_meta_for_blocks(
+				$current_stripped,
+				array(
+					'block-a' => $block_a,
+				)
+			)
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC block identity mismatch retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Identity mismatch changed.</p><!-- /wp:paragraph -->';
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '42',
+				'accepted_proof_server_version' => '42',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+				'block_identity_request_proof'  => array(
+					'client_base_version'        => '42',
+					'proposed_post_content_hash' => str_repeat( 'a', 64 ),
+					'proposed_block_map'         => array(
+						array(
+							'block_uid'       => 'block-a',
+							'block_name'      => 'core/paragraph',
+							'ordinal_path'    => array( 0 ),
+							'serialized_hash' => hash( 'sha256', $block_a ),
+						),
+					),
+					'retained_block_uids'        => array( 'block-a' ),
+					'inserted_block_nonces'      => array(),
+					'deleted_block_uids'         => array(),
+					'moved_block_uids'           => array(),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertSame( 'de_rtc_sync_meta_tampered', $data['code'] );
+		$this->assertSame( 'retry_save_block_identity_request_proof_hash_mismatch', $data['data']['detail'] );
+		$this->assertSame( 'post_retry_save_block_identity', $data['data']['rest_route'] );
+		$this->assertFalse( $data['data']['saves_post'] );
+		$this->assertFalse( $data['data']['mutates_post_content'] );
+		$this->assertFalse( $data['data']['claims_saved'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
 	 * @covers ::wp_de_rtc_rest_retry_save_permissions_check
 	 * @covers ::wp_de_rtc_rest_retry_save_request_matches_post_type
 	 * @covers ::wp_de_rtc_get_rest_retry_save_request_rest_base
@@ -3423,5 +3594,35 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertIsString( $content_with_sync_meta );
 
 		return $content_with_sync_meta;
+	}
+
+	/**
+	 * Builds synthetic block identity sync metadata for top-level serialized blocks.
+	 *
+	 * @param string $content Serialized post content without sync metadata.
+	 * @param array  $blocks  Map of block UID to serialized block.
+	 * @return array Sync metadata.
+	 */
+	private function get_block_identity_sync_meta_for_blocks( $content, $blocks ) {
+		$block_records = array();
+		$index         = 0;
+
+		foreach ( $blocks as $block_uid => $serialized_block ) {
+			$block_records[] = array(
+				'block_uid'       => $block_uid,
+				'parent_uid'      => null,
+				'block_name'      => 'core/paragraph',
+				'ordinal_path'    => array( $index ),
+				'serialized_hash' => hash( 'sha256', $serialized_block ),
+			);
+			++$index;
+		}
+
+		return array(
+			'schema'        => 'de-rtc-block-identity-v1',
+			'document_uuid' => 'doc-rest-retry-save-block-identity',
+			'content_hash'  => hash( 'sha256', $content ),
+			'blocks'        => $block_records,
+		);
 	}
 }
