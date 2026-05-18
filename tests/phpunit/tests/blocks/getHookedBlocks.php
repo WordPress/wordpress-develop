@@ -9,6 +9,8 @@
  *
  * @group blocks
  * @group block-hooks
+ *
+ * @covers ::get_hooked_blocks
  */
 class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
@@ -58,8 +60,6 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59383
-	 *
-	 * @covers ::get_hooked_blocks
 	 */
 	public function test_get_hooked_blocks_no_match_found() {
 		$result = get_hooked_blocks();
@@ -69,8 +69,6 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59383
-	 *
-	 * @covers ::get_hooked_blocks
 	 */
 	public function test_get_hooked_blocks_matches_found() {
 		register_block_type(
@@ -138,7 +136,6 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 	 * @ticket 60008
 	 * @ticket 60506
 	 *
-	 * @covers ::get_hooked_blocks
 	 * @covers ::get_block_file_template
 	 */
 	public function test_loading_template_with_hooked_blocks() {
@@ -170,7 +167,6 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 	 * @ticket 60008
 	 * @ticket 60506
 	 *
-	 * @covers ::get_hooked_blocks
 	 * @covers ::get_block_file_template
 	 */
 	public function test_loading_template_part_with_hooked_blocks() {
@@ -202,7 +198,6 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 	 * @ticket 60008
 	 * @ticket 60506
 	 *
-	 * @covers ::get_hooked_blocks
 	 * @covers WP_Block_Patterns_Registry::get_registered
 	 */
 	public function test_loading_pattern_with_hooked_blocks() {

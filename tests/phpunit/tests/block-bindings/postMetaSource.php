@@ -28,7 +28,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post               = $factory->post->create_and_get();
-		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
+		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'] ?? array();
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 		$this->assertSame(
-			'<p>Custom field value</p>',
+			'<p class="wp-block-paragraph">Custom field value</p>',
 			$content,
 			'The post content should show the value of the custom field . '
 		);
@@ -123,7 +123,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		remove_filter( 'post_password_required', '__return_true' );
 
 		$this->assertSame(
-			'<p>Fallback value</p>',
+			'<p class="wp-block-paragraph">Fallback value</p>',
 			$content,
 			'The post content should show the fallback value instead of the custom field value.'
 		);
@@ -153,7 +153,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		remove_filter( 'is_post_status_viewable', '__return_false' );
 
 		$this->assertSame(
-			'<p>Fallback value</p>',
+			'<p class="wp-block-paragraph">Fallback value</p>',
 			$content,
 			'The post content should show the fallback value instead of the custom field value.'
 		);
@@ -168,7 +168,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_non_existing_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
-			'<p>Fallback value</p>',
+			'<p class="wp-block-paragraph">Fallback value</p>',
 			$content,
 			'The post content should show the fallback value.'
 		);
@@ -183,7 +183,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta"}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
-			'<p>Fallback value</p>',
+			'<p class="wp-block-paragraph">Fallback value</p>',
 			$content,
 			'The post content should show the fallback value.'
 		);
@@ -209,7 +209,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"_tests_protected_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
-			'<p>Fallback value</p>',
+			'<p class="wp-block-paragraph">Fallback value</p>',
 			$content,
 			'The post content should show the fallback value instead of the protected value.'
 		);
@@ -235,7 +235,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_show_in_rest_false_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
-			'<p>Fallback value</p>',
+			'<p class="wp-block-paragraph">Fallback value</p>',
 			$content,
 			'The post content should show the fallback value instead of the protected value.'
 		);
@@ -261,9 +261,46 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_unsafe_html_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
-			'<p>alert(&#8220;Unsafe HTML&#8221;)</p>',
+			'<p class="wp-block-paragraph">alert(&#8220;Unsafe HTML&#8221;)</p>',
 			$content,
 			'The post content should not include the script tag.'
+		);
+	}
+
+	/**
+	 * Tests that filter `block_bindings_source_value` is applied.
+	 *
+	 * @ticket 61181
+	 */
+	public function test_filter_block_bindings_source_value() {
+		register_meta(
+			'post',
+			'tests_filter_field',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+				'default'      => 'Original value',
+			)
+		);
+
+		$filter_value = function ( $value, $source_name, $source_args ) {
+			if ( 'core/post-meta' !== $source_name ) {
+				return $value;
+			}
+			return "Filtered value: {$source_args['key']}";
+		};
+
+		add_filter( 'block_bindings_source_value', $filter_value, 10, 3 );
+
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_filter_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+
+		remove_filter( 'block_bindings_source_value', $filter_value );
+
+		$this->assertSame(
+			'<p class="wp-block-paragraph">Filtered value: tests_filter_field</p>',
+			$content,
+			'The post content should show the filtered value.'
 		);
 	}
 }
