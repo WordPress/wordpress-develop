@@ -1026,7 +1026,21 @@ final class WP_Interactivity_API {
 			$entries = $this->get_directive_entries( $p, 'bind' );
 			foreach ( $entries as $entry ) {
 				if ( empty( $entry['suffix'] ) || null !== $entry['unique_id'] ) {
-						return;
+						continue;
+				}
+
+				// Skip if the suffix is an event handler.
+				if ( str_starts_with( $entry['suffix'], 'on' ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: The directive, e.g. data-wp-on--click. */
+							__( 'Binding event handler attributes is not supported. Please use "%s" instead.' ),
+							esc_attr( 'data-wp-on--' . substr( $entry['suffix'], 2 ) )
+						),
+						'6.9.2'
+					);
+					continue;
 				}
 
 				$result = $this->evaluate( $entry );

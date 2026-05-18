@@ -26,6 +26,8 @@ on:
       - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       # This file configures ESLint. Changes could affect the outcome.
       - '.eslintignore'

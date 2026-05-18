@@ -11,8 +11,8 @@
 /**
  * Controller which provides a REST endpoint for the editor to read registered
  * icons. For the time being, only core icons are available, which are defined
- * in a single manifest file (wp-includes/icons/manifest.php). Icons are
- * comprised of their SVG source, a name and a translatable label.
+ * in a single manifest file (wp-includes/assets/icon-library-manifest.php).
+ * Icons are comprised of their SVG source, a name and a translatable label.
  *
  * @since 7.0.0
  *
@@ -72,7 +72,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a given request has permission to read icons.
 	 *
-	 * @param WP_REST_Request $_request Full details about the request.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check(
