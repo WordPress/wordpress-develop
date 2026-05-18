@@ -18,7 +18,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @since 6.5.0
 	 * @var int
 	 */
-	const LATEST_THEME_JSON_VERSION_SUPPORTED = 2;
+	const LATEST_THEME_JSON_VERSION_SUPPORTED = 3;
 
 	/**
 	 * Whether the controller supports batching.
@@ -161,6 +161,14 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the settings are valid, otherwise a WP_Error object.
 	 */
 	public function validate_create_font_face_settings( $value, $request ) {
+		// Enforce JSON Schema validity for field before applying custom validation logic.
+		$args     = $this->get_create_params();
+		$validity = rest_validate_value_from_schema( $value, $args['font_face_settings'], 'font_face_settings' );
+
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
+		}
+
 		$settings = json_decode( $value, true );
 
 		// Check settings string is valid JSON.
@@ -916,8 +924,8 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 		$new_path = $path;
 
 		$fonts_dir = wp_get_font_dir();
-		if ( str_starts_with( $new_path, $fonts_dir['path'] ) ) {
-			$new_path = str_replace( $fonts_dir, '', $new_path );
+		if ( str_starts_with( $new_path, $fonts_dir['basedir'] ) ) {
+			$new_path = str_replace( $fonts_dir['basedir'], '', $new_path );
 			$new_path = ltrim( $new_path, '/' );
 		}
 

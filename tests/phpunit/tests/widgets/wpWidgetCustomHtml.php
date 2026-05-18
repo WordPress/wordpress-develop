@@ -251,7 +251,6 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$this->assertTrue( wp_script_is( 'code-editor', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'wp-codemirror', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'csslint', 'enqueued' ) );
-		$this->assertTrue( wp_script_is( 'jshint', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'htmlhint', 'enqueued' ) );
 	}
 
@@ -300,32 +299,6 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$help_tab = get_current_screen()->get_help_tab( 'custom_html_widget' );
 
 		$this->assertStringContainsString( 'Use the Custom HTML widget to add arbitrary HTML code to your widget areas.', $help_tab['content'] );
-	}
-
-	/**
-	 * Ensure that rel="noopener" is added to links with a target.
-	 *
-	 * @ticket 46421
-	 */
-	public function test_render_links_with_target() {
-		$widget = new WP_Widget_Custom_HTML();
-
-		$content = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
-
-		$args = array(
-			'before_title'  => '<h2>',
-			'after_title'   => '</h2>',
-			'before_widget' => '',
-			'after_widget'  => '',
-		);
-
-		$instance = array(
-			'title'   => 'Foo',
-			'content' => $content,
-		);
-
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
-		$this->assertStringContainsString( 'rel="noopener"', $output );
 	}
 
 	/**

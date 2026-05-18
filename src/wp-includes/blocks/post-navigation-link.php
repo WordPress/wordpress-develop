@@ -8,6 +8,8 @@
 /**
  * Renders the `core/post-navigation-link` block on the server.
  *
+ * @since 5.9.0
+ *
  * @param array  $attributes Block attributes.
  * @param string $content    Block default content.
  *
@@ -19,7 +21,7 @@ function render_block_core_post_navigation_link( $attributes, $content ) {
 	}
 
 	// Get the navigation type to show the proper link. Available options are `next|previous`.
-	$navigation_type = isset( $attributes['type'] ) ? $attributes['type'] : 'next';
+	$navigation_type = $attributes['type'] ?? 'next';
 	// Allow only `next` and `previous` in `$navigation_type`.
 	if ( ! in_array( $navigation_type, array( 'next', 'previous' ), true ) ) {
 		return '';
@@ -123,6 +125,8 @@ function render_block_core_post_navigation_link( $attributes, $content ) {
 
 /**
  * Registers the `core/post-navigation-link` block on the server.
+ *
+ * @since 5.9.0
  */
 function register_block_core_post_navigation_link() {
 	register_block_type_from_metadata(

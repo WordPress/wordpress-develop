@@ -26,7 +26,7 @@ $title = __( 'Export' );
  */
 function export_add_js() {
 	?>
-<script type="text/javascript">
+<script>
 	jQuery( function($) {
 		var form = $('#export-filters'),
 			filters = form.find('.export-filters');
@@ -129,10 +129,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 /**
  * Creates the date options fields for exporting a given post type.
  *
+ * @since 3.1.0
+ *
  * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global WP_Locale $wp_locale WordPress date and time locale object.
- *
- * @since 3.1.0
  *
  * @param string $post_type The post type. Default 'post'.
  */

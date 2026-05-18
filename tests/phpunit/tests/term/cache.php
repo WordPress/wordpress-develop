@@ -116,9 +116,6 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		$num_queries = get_num_queries();
 
-		// get_term() will only be update the cache if the 'filter' prop is unset.
-		unset( $term_object->filter );
-
 		$term_object_2 = get_term( $term_object, 'wptests_tax' );
 
 		// No new queries should have fired.
@@ -224,6 +221,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$terms = wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'all_with_object_id' ) );
 
 		update_term_cache( $terms );
+
+		$this->assertNotEmpty( $terms );
 
 		foreach ( $terms as $term ) {
 			$this->assertSame( $p, $term->object_id );
@@ -447,5 +446,57 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		$terms = get_the_terms( $p, 'wptests_tax' );
 		$this->assertWPError( $terms );
+	}
+
+	/**
+	 * Ensures that the term query cache is cleared when a child term is inserted.
+	 *
+	 * @ticket 62031
+	 */
+	public function test_inserting_child_term_clears_the_query_cache() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$parent = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$children = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'parent'     => $parent,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEmpty( $children, 'No child terms are expected to exist.' );
+
+		$child = wp_insert_term(
+			'child-term-62031',
+			'wptests_tax',
+			array(
+				'parent' => $parent,
+			)
+		);
+
+		$children = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'parent'     => $parent,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertNotEmpty( $children, 'Child terms are expected to exist.' );
+		$this->assertContains( $child['term_id'], $children, 'Querying by parent ID is expected to include the new child term.' );
 	}
 }
