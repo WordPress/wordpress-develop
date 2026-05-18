@@ -796,7 +796,6 @@ add_action( 'init', '_wp_register_default_font_collections' );
 add_action( 'admin_init', 'wp_collaboration_inject_setting' );
 
 // Performance optimization.
-add_action( 'admin_init', 'wp_register_performance_optimization_settings' );
 add_action( 'save_post', 'wp_clean_performance_page_cache' );
 add_action( 'deleted_post', 'wp_clean_performance_page_cache' );
 add_action( 'clean_post_cache', 'wp_clean_performance_page_cache' );
