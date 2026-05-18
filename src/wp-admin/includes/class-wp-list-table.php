@@ -760,7 +760,7 @@ class WP_List_Table {
 
 		$selected_month = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
 		?>
-		<label for="filter-by-date" class="screen-reader-text"><?php echo get_post_type_object( $post_type )->labels->filter_by_date; ?></label>
+		<label for="filter-by-date"><?php echo esc_html( get_post_type_object( $post_type )->labels->filter_by_date ); ?></label>
 		<select name="m" id="filter-by-date">
 			<option<?php selected( $selected_month, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
 		<?php
