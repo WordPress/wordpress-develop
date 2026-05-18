@@ -128,7 +128,7 @@ function get_block_asset_url( $path ) {
 }
 
 /**
- * Finds a script module ID for the selected block metadata field. It detects
+ * Finds a script module ID for the selected block metadata field. Detects
  * when a path to file was provided and optionally finds a corresponding asset
  * file with details necessary to register the script module under with an
  * automatically generated module ID. It returns unprocessed script module
@@ -2715,7 +2715,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 			if ( 'only' === $block->context['query']['sticky'] ) {
 				/*
 				 * Passing an empty array to post__in will return have_posts() as true (and all posts will be returned).
-				 * Logic should be used before hand to determine if WP_Query should be used in the event that the array
+				 * Logic should be used beforehand to determine if WP_Query should be used in the event that the array
 				 * being passed to post__in is empty.
 				 *
 				 * @see https://core.trac.wordpress.org/ticket/28099
