@@ -203,9 +203,9 @@ function wp_can_optimize_performance_output() {
 		return false;
 	}
 
-	$has_logged_in_cookie      = ! empty( $_COOKIE[LOGGED_IN_COOKIE] );
+	$has_logged_in_cookie      = ! empty( $_COOKIE[ LOGGED_IN_COOKIE ] );
 	$has_comment_author_cookie = ! empty( $_COOKIE[ 'comment_author_' . COOKIEHASH ] );
-	$has_preview              = ! empty( $_GET['preview'] );
+	$has_preview               = ! empty( $_GET['preview'] );
 
 	if ( $has_logged_in_cookie || $has_comment_author_cookie || $has_preview ) {
 		return false;
@@ -290,7 +290,7 @@ function wp_add_performance_critical_css( $html ) {
 
 	$critical_css = '';
 	foreach ( $matches[1] as $css ) {
-		$critical_css .= "\n" . trim( wp_minify_performance_css( $css ) );
+		$critical_css .= trim( wp_minify_performance_css( $css ) );
 		if ( strlen( $critical_css ) >= 12000 ) {
 			break;
 		}
