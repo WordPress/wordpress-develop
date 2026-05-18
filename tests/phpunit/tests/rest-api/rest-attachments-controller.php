@@ -2930,6 +2930,43 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Test that unsupported image type check is enforced when generating sub-sizes.
+	 *
+	 * When the server handles image processing (generate_sub_sizes is true),
+	 * the server should still check image editor support.
+	 *
+	 * Tests the permissions check directly with file params set, since the core
+	 * check uses get_file_params() which is only populated for multipart uploads.
+	 *
+	 * @ticket 64836
+	 */
+	public function test_upload_unsupported_image_type_enforced_when_generating_sub_sizes() {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'avif-lossy.avif',
+					'type'     => 'image/avif',
+					'tmp_name' => self::$test_avif_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_avif_file ),
+				),
+			)
+		);
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should fail because the server needs to generate sub-sizes but can't.
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
+	}
+
+	/**
 	 * Test that uploading an SVG image doesn't throw a `rest_upload_image_type_not_supported` error.
 	 *
 	 * @ticket 63302
