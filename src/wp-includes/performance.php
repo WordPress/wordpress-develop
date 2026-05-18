@@ -47,6 +47,12 @@ function wp_performance_optimization_enabled( $feature ) {
 }
 
 function wp_register_performance_optimization_settings() {
+	global $wp_registered_settings;
+
+	if ( isset( $wp_registered_settings['performance_optimization'] ) ) {
+		return;
+	}
+
 	register_setting(
 		'performance',
 		'performance_optimization',
@@ -89,6 +95,17 @@ function wp_register_performance_optimization_settings() {
 			),
 		)
 	);
+}
+
+function wp_maybe_register_performance_optimization_settings() {
+	global $pagenow;
+
+	$is_performance_screen = 'options-performance.php' === $pagenow;
+	$is_options_screen     = 'options.php' === $pagenow;
+
+	if ( $is_performance_screen || $is_options_screen ) {
+		wp_register_performance_optimization_settings();
+	}
 }
 
 function wp_performance_filter_loading_optimization_attributes( $loading_attrs, $tag_name ) {
@@ -186,7 +203,11 @@ function wp_can_optimize_performance_output() {
 		return false;
 	}
 
-	if ( ! empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) || ! empty( $_COOKIE['comment_author_' . COOKIEHASH ] ) || ! empty( $_GET['preview'] ) ) {
+	$has_logged_in_cookie      = ! empty( $_COOKIE[LOGGED_IN_COOKIE] );
+	$has_comment_author_cookie = ! empty( $_COOKIE[ 'comment_author_' . COOKIEHASH ] );
+	$has_preview              = ! empty( $_GET['preview'] );
+
+	if ( $has_logged_in_cookie || $has_comment_author_cookie || $has_preview ) {
 		return false;
 	}
 

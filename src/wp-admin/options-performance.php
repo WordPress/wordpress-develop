@@ -18,6 +18,8 @@ global $wpdb;
 $title       = __( 'Performance Settings' );
 $parent_file = 'options-general.php';
 
+wp_register_performance_optimization_settings();
+
 if ( isset( $_POST['performance_action'] ) ) {
 	check_admin_referer( 'performance-tools' );
 
