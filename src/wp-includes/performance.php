@@ -100,6 +100,10 @@ function wp_register_performance_optimization_settings() {
 function wp_maybe_register_performance_optimization_settings() {
 	global $pagenow;
 
+	if ( wp_doing_ajax() ) {
+		return;
+	}
+
 	$is_performance_screen = 'options-performance.php' === $pagenow;
 	$is_options_screen     = 'options.php' === $pagenow;
 
