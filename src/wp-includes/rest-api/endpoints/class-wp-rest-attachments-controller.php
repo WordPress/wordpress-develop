@@ -1052,6 +1052,63 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$data['exif_orientation'] = $orientation;
 		}
 
+		if ( in_array( 'image_quality', $fields, true ) && wp_attachment_is_image( $post ) ) {
+			$mime_type = get_post_mime_type( $post );
+			$filename  = get_attached_file( $post->ID );
+
+			/** This filter is documented in wp-includes/class-wp-image-editor.php */
+			$output_formats = apply_filters(
+				'image_editor_output_format',
+				array( $mime_type => $mime_type ),
+				$filename ? $filename : '',
+				$mime_type
+			);
+			$output_mime    = isset( $output_formats[ $mime_type ] ) ? $output_formats[ $mime_type ] : $mime_type;
+
+			// Mirror WP_Image_Editor::get_default_quality(): WebP defaults to 86, everything else to 82.
+			$default_quality = ( 'image/webp' === $output_mime ) ? 86 : 82;
+
+			$metadata    = wp_get_attachment_metadata( $post->ID, true );
+			$full_width  = ( is_array( $metadata ) && isset( $metadata['width'] ) ) ? (int) $metadata['width'] : 0;
+			$full_height = ( is_array( $metadata ) && isset( $metadata['height'] ) ) ? (int) $metadata['height'] : 0;
+
+			/** This filter is documented in wp-includes/class-wp-image-editor.php */
+			$full_quality = (int) apply_filters(
+				'wp_editor_set_quality',
+				$default_quality,
+				$output_mime,
+				array(
+					'width'  => $full_width,
+					'height' => $full_height,
+				)
+			);
+
+			$size_quality = array();
+
+			foreach ( wp_get_registered_image_subsizes() as $size_name => $size_data ) {
+				/** This filter is documented in wp-includes/class-wp-image-editor.php */
+				$quality = (int) apply_filters(
+					'wp_editor_set_quality',
+					$default_quality,
+					$output_mime,
+					array(
+						'width'  => (int) $size_data['width'],
+						'height' => (int) $size_data['height'],
+					)
+				);
+
+				// Only report sizes whose quality diverges from the full-size value.
+				if ( $quality !== $full_quality ) {
+					$size_quality[ $size_name ] = $quality;
+				}
+			}
+
+			$data['image_quality'] = array(
+				'default' => $full_quality,
+				'sizes'   => $size_quality,
+			);
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		$data = $this->filter_response_by_context( $data, $context );
@@ -1240,6 +1297,24 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'type'        => 'integer',
 			'context'     => array( 'edit' ),
 			'readonly'    => true,
+		);
+
+		$schema['properties']['image_quality'] = array(
+			'description' => __( 'Encode quality (1-100) from the wp_editor_set_quality filter, resolved against the output MIME type. The "default" value applies to the full-size image; "sizes" lists per-registered-size overrides where the filtered value differs from "default".' ),
+			'type'        => 'object',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+			'properties'  => array(
+				'default' => array(
+					'type' => 'integer',
+				),
+				'sizes'   => array(
+					'type'                 => 'object',
+					'additionalProperties' => array(
+						'type' => 'integer',
+					),
+				),
+			),
 		);
 
 		unset( $schema['properties']['password'] );
