@@ -449,6 +449,12 @@ window.setCommentsList = function() {
 			a.on( 'click', function( e ){
 				e.preventDefault();
 				e.stopPropagation(); // Ticket #35904.
+
+				// Abort undo if there is an unfinished AJAX request on this comment. See #35501.
+				if ( list.wpList.xhrs.inProgress( 'comment-' + id ) ) {
+					return false;
+				}
+
 				list.wpList.del(this);
 				$('#undo-' + id).css( {backgroundColor:'#ceb'} ).fadeOut(350, function(){
 					$(this).remove();
