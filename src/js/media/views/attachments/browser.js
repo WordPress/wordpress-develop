@@ -193,12 +193,12 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority:   -100,
 				text:       l10n.filterAttachments,
 				level:      'h2',
-				className:  'media-attachments-filter-heading'
+				className:  'media-attachments-filter-heading screen-reader-text'
 			}).render() );
 		}
 
 		if ( showFilterByType ) {
-			// "Filters" is a <select>, a visually hidden label element needs to be rendered before.
+			// "Filters" is a <select>, a label element needs to be rendered before.
 			this.toolbar.set( 'filtersLabel', new wp.media.view.Label({
 				value: l10n.filterByType,
 				attributes: {
@@ -223,7 +223,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				this.toolbar.set( 'filters', Filters.render() );
 			}
 		}
-
+		
 		/*
 		 * Feels odd to bring the global media library switcher into the Attachment browser view.
 		 * Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
@@ -240,8 +240,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority: -90
 			}).render() );
 
-			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
-			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
+			// DateFilter is a <select>, a label element needs to be rendered before.
+			this.toolbar.set( 'dateFilter', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
@@ -251,7 +251,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-				priority: -75
+				priority:   -75,
 			}).render() );
 
 			// BulkSelection is a <div> with subviews, including screen reader text.
@@ -362,7 +362,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}
 
 		} else if ( this.options.date ) {
-			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
+			// DateFilter is a <select>, a label element needs to be rendered before.
 			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
@@ -373,7 +373,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-				priority: -75
+				priority:   -75
 			}).render() );
 		}
 
