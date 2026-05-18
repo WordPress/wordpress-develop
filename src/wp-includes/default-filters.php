@@ -702,7 +702,6 @@ add_action( 'activate_header', '_wp_admin_bar_init' );
 add_action( 'wp_body_open', 'wp_admin_bar_render', 0 );
 add_action( 'wp_footer', 'wp_admin_bar_render', 1000 ); // Back-compat for themes not using `wp_body_open`.
 add_action( 'in_admin_header', 'wp_admin_bar_render', 0 );
-add_action( 'admin_bar_init', 'wp_admin_bar_add_color_scheme_to_front_end', 0 );
 
 // Former admin filters that can also be hooked on the front end.
 add_action( 'media_buttons', 'media_buttons' );
@@ -803,6 +802,7 @@ add_action( 'transition_comment_status', 'wp_clean_performance_page_cache' );
 add_filter( 'wp_get_loading_optimization_attributes', 'wp_performance_filter_loading_optimization_attributes', 10, 2 );
 add_filter( 'image_editor_output_format', 'wp_performance_filter_image_editor_output_format' );
 
+// Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
