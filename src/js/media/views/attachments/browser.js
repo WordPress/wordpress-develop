@@ -719,8 +719,11 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}) );
 		}
 
-		// Show the sidebar on mobile.
-		if ( this.model.id === 'insert' ) {
+		// Show the sidebar on mobile for flows that surface attachment
+		// metadata (alt text, caption, description) in the sidebar. Without
+		// this, the sidebar is positioned off-screen on narrow viewports
+		// and the metadata fields are unreachable.
+		if ( _.contains( [ 'insert', 'featured-image', 'replace-image', 'gallery-edit', 'gallery-library' ], this.model.id ) ) {
 			sidebar.$el.addClass( 'visible' );
 		}
 	},
