@@ -64,10 +64,10 @@ class Tests_wp_ajax_trash_post extends WP_Ajax_UnitTestCase {
 	 *
 	 * @ticket 65252
 	 */
-	public function test_trash_post_success(): void {
+	public function test_trash_post_success( WP_UnitTest_Factory $factory ): void {
 		wp_set_current_user( self::$admin_id );
 
-		$post_id = $this->factory->post->create();
+		$post_id = $factory->post->create();
 
 		$_POST = array(
 			'action'      => 'trash-post',
@@ -91,10 +91,10 @@ class Tests_wp_ajax_trash_post extends WP_Ajax_UnitTestCase {
 	 *
 	 * @ticket 65252
 	 */
-	public function test_trash_post_invalid_nonce(): void {
+	public function test_trash_post_invalid_nonce( WP_UnitTest_Factory $factory ): void {
 		wp_set_current_user( self::$admin_id );
 
-		$post_id = $this->factory->post->create();
+		$post_id = $factory->post->create();
 
 		$_POST = array(
 			'action'      => 'trash-post',
@@ -113,10 +113,10 @@ class Tests_wp_ajax_trash_post extends WP_Ajax_UnitTestCase {
 	 *
 	 * @ticket 65252
 	 */
-	public function test_trash_post_insufficient_permissions(): void {
+	public function test_trash_post_insufficient_permissions( WP_UnitTest_Factory $factory ): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$post_id = $this->factory->post->create();
+		$post_id = $factory->post->create();
 
 		$_POST = array(
 			'action'      => 'trash-post',
