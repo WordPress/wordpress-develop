@@ -39,7 +39,7 @@ add_filter(
 /*
  * Emoji replacement is disabled for now, until it plays nicely with React.
  */
-remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+remove_action( 'admin_print_footer_scripts', 'print_emoji_detection_script' );
 
 /*
  * Block editor implements its own Options menu for toggling Document Panels.

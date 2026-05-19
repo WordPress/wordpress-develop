@@ -216,4 +216,28 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	public function test_wp_staticize_emoji( $emoji, $expected ) {
 		$this->assertSame( $expected, wp_staticize_emoji( $emoji ) );
 	}
+
+	/**
+	 * The emoji detection script outputs a `<script type="module">`. In the admin it must
+	 * be printed in the footer (after the script-module import map) rather than the head,
+	 * otherwise the import map is encountered after a module script and is treated as
+	 * inert by browsers that follow the spec strictly (e.g. Firefox).
+	 *
+	 * @ticket 65260
+	 *
+	 * @covers ::print_emoji_detection_script
+	 */
+	public function test_print_emoji_detection_script_is_hooked_to_admin_footer() {
+		require_once ABSPATH . 'wp-admin/includes/admin-filters.php';
+
+		$this->assertFalse(
+			has_action( 'admin_print_scripts', 'print_emoji_detection_script' ),
+			'print_emoji_detection_script must not run on admin_print_scripts; the resulting <script type="module"> would precede the import map.'
+		);
+		$this->assertSame(
+			10,
+			has_action( 'admin_print_footer_scripts', 'print_emoji_detection_script' ),
+			'print_emoji_detection_script must run on admin_print_footer_scripts, after the import map.'
+		);
+	}
 }
