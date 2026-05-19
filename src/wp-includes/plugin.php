@@ -1007,7 +1007,7 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string
 	}
 
 	$callback = (array) $callback;
-	if ( is_callable( $callback, true ) ) {
+	if ( ! is_callable( $callback, true ) ) {
 		return null;
 	}
 
