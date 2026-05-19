@@ -59,8 +59,8 @@ class Tests_wp_ajax_delete_tag extends WP_Ajax_UnitTestCase {
 		$tag_id = $this->factory->tag->create();
 
 		$_POST = array(
-			'tag_ID'   => $tag_id,
-			'taxonomy' => 'post_tag',
+			'tag_ID'      => $tag_id,
+			'taxonomy'    => 'post_tag',
 			'_ajax_nonce' => wp_create_nonce( "delete-tag_$tag_id" ),
 		);
 
@@ -84,8 +84,8 @@ class Tests_wp_ajax_delete_tag extends WP_Ajax_UnitTestCase {
 		$cat_id = $this->factory->category->create();
 
 		$_POST = array(
-			'tag_ID'   => $cat_id,
-			'taxonomy' => 'category',
+			'tag_ID'      => $cat_id,
+			'taxonomy'    => 'category',
 			'_ajax_nonce' => wp_create_nonce( "delete-tag_$cat_id" ),
 		);
 
@@ -109,8 +109,8 @@ class Tests_wp_ajax_delete_tag extends WP_Ajax_UnitTestCase {
 		$tag_id = $this->factory->tag->create();
 
 		$_POST = array(
-			'tag_ID'   => $tag_id,
-			'taxonomy' => 'post_tag',
+			'tag_ID'      => $tag_id,
+			'taxonomy'    => 'post_tag',
 			'_ajax_nonce' => 'invalid-nonce',
 		);
 
@@ -134,8 +134,8 @@ class Tests_wp_ajax_delete_tag extends WP_Ajax_UnitTestCase {
 		$tag_id = $this->factory->tag->create();
 
 		$_POST = array(
-			'tag_ID'   => $tag_id,
-			'taxonomy' => 'post_tag',
+			'tag_ID'      => $tag_id,
+			'taxonomy'    => 'post_tag',
 			'_ajax_nonce' => wp_create_nonce( "delete-tag_$tag_id" ),
 		);
 
@@ -159,8 +159,8 @@ class Tests_wp_ajax_delete_tag extends WP_Ajax_UnitTestCase {
 		$tag_id = 99999;
 
 		$_POST = array(
-			'tag_ID'   => $tag_id,
-			'taxonomy' => 'post_tag',
+			'tag_ID'      => $tag_id,
+			'taxonomy'    => 'post_tag',
 			'_ajax_nonce' => wp_create_nonce( "delete-tag_$tag_id" ),
 		);
 
