@@ -1015,4 +1015,6 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
 	}
+
+	return null;
 }

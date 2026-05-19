@@ -244,6 +244,10 @@ final class WP_Hook implements Iterator, ArrayAccess {
 
 		$function_key = _wp_filter_build_unique_id( $hook_name, $callback, false );
 
+		if ( ! $function_key ) {
+			return false;
+		}
+
 		if ( is_int( $priority ) ) {
 			return isset( $this->callbacks[ $priority ][ $function_key ] );
 		}
