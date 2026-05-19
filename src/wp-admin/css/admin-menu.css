@@ -237,7 +237,7 @@
 #adminmenu .wp-submenu-head {
 	font-size: 14px;
 	font-weight: 400;
-	line-height: 1.3;
+	line-height: 1.28571428; /* 18px */
 	padding: 0;
 }
 
