@@ -1007,6 +1007,9 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
 	}
 
 	$callback = (array) $callback;
+	if ( is_callable( $callback, true )
+		return null;
+	}
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
