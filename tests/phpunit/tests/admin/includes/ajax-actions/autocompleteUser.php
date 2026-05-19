@@ -125,7 +125,7 @@ class Tests_wp_ajax_autocomplete_user extends WP_Ajax_UnitTestCase {
 					'term'              => 'testuser',
 					'autocomplete_type' => 'add',
 				),
-				'expected'                      => array(
+				'expected'       => array(
 					array(
 						'label' => 'testuser (testuser@example.com)',
 						'value' => 'testuser',
