@@ -1007,17 +1007,15 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string
 	}
 
 	$callback = (array) $callback;
-	if ( ! isset( $callback[1] ) || ! is_string( $callback[1] ) ) {
+	if ( ! is_callable( $callback, true ) ) {
 		return null;
 	}
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
 		return (string) spl_object_id( $callback[0] ) . $callback[1];
-	} elseif ( is_string( $callback[0] ) ) {
-		// Static calling.
-		return $callback[0] . '::' . $callback[1];
 	}
 
-	return null;
+	// Static calling.
+	return $callback[0] . '::' . $callback[1];
 }
