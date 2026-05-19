@@ -66,8 +66,8 @@ class Tests_wp_ajax_autocomplete_user extends WP_Ajax_UnitTestCase {
 			add_user_to_blog( get_current_blog_id(), self::$user_id, 'subscriber' );
 		}
 
-		$_GET = array_merge( $_GET, $request_params );
-		$_POST = array_merge( $_POST, $request_params );
+		$_GET     = array_merge( $_GET, $request_params );
+		$_POST    = array_merge( $_POST, $request_params );
 		$_REQUEST = array_merge( $_REQUEST, $request_params );
 
 		try {
@@ -101,7 +101,7 @@ class Tests_wp_ajax_autocomplete_user extends WP_Ajax_UnitTestCase {
 	 */
 	public function data_autocomplete_user(): array {
 		return array(
-			'search by login' => array(
+			'search by login'                   => array(
 				'request_params' => array(
 					'term'              => 'testuser',
 					'autocomplete_type' => 'search',
@@ -113,7 +113,7 @@ class Tests_wp_ajax_autocomplete_user extends WP_Ajax_UnitTestCase {
 					),
 				),
 			),
-			'add by login (exclude existing)' => array(
+			'add by login (exclude existing)'   => array(
 				'request_params' => array(
 					'term'              => 'testuser',
 					'autocomplete_type' => 'add',
@@ -125,7 +125,7 @@ class Tests_wp_ajax_autocomplete_user extends WP_Ajax_UnitTestCase {
 					'term'              => 'testuser',
 					'autocomplete_type' => 'add',
 				),
-				'expected'       => array(
+				'expected'                      => array(
 					array(
 						'label' => 'testuser (testuser@example.com)',
 						'value' => 'testuser',
@@ -133,7 +133,7 @@ class Tests_wp_ajax_autocomplete_user extends WP_Ajax_UnitTestCase {
 				),
 				'is_member'      => false,
 			),
-			'search by email' => array(
+			'search by email'                   => array(
 				'request_params' => array(
 					'term'               => 'testuser@example.com',
 					'autocomplete_type'  => 'search',
