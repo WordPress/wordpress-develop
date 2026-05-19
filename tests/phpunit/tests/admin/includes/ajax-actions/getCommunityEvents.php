@@ -43,7 +43,7 @@ class Tests_wp_ajax_get_community_events extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 		wp_set_current_user( self::$admin_id );
 
-		$_POST['location'] = 'Paris';
+		$_POST['location']    = 'Paris';
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'community_events' );
 
 		add_filter( 'pre_http_request', array( $this, 'mock_events_api_success' ), 10, 3 );
@@ -78,7 +78,7 @@ class Tests_wp_ajax_get_community_events extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 		wp_set_current_user( self::$admin_id );
 
-		$_POST['location'] = 'InvalidCity';
+		$_POST['location']    = 'InvalidCity';
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'community_events' );
 
 		add_filter( 'pre_http_request', array( $this, 'mock_events_api_error' ), 10, 3 );
@@ -107,7 +107,7 @@ class Tests_wp_ajax_get_community_events extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 		wp_set_current_user( self::$admin_id );
 
-		$_POST['location'] = 'Paris';
+		$_POST['location']    = 'Paris';
 		$_POST['_ajax_nonce'] = 'invalid-nonce';
 
 		try {
@@ -135,16 +135,16 @@ class Tests_wp_ajax_get_community_events extends WP_Ajax_UnitTestCase {
 					),
 					'events'   => array(
 						array(
-							'title' => 'WordCamp Paris',
-							'url'   => 'https://paris.wordcamp.org/2024/',
+							'title'              => 'WordCamp Paris',
+							'url'                => 'https://paris.wordcamp.org/2024/',
 							'end_unix_timestamp' => time() + 3600,
-							'type'  => 'wordcamp',
+							'type'               => 'wordcamp',
 						),
 						array(
-							'title' => 'WordPress Paris Meetup',
-							'url'   => 'https://www.meetup.com/WordPress-Paris/',
+							'title'              => 'WordPress Paris Meetup',
+							'url'                => 'https://www.meetup.com/WordPress-Paris/',
 							'end_unix_timestamp' => time() + 3600,
-							'type'  => 'meetup',
+							'type'               => 'meetup',
 						),
 					),
 					'ttl'      => 3600,
