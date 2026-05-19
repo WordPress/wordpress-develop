@@ -99,7 +99,7 @@
 		"jquery-form": "4.3.0",
 		"jquery-hoverintent": "1.10.2",
 		"jsonlint": "1.6.3",
-		"lodash": "4.17.23",
+		"lodash": "4.18.1",
 		"masonry-layout": "4.2.2",
 		"moment": "2.30.1",
 		"objectFitPolyfill": "2.3.5",
