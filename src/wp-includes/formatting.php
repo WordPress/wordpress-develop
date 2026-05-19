@@ -5894,34 +5894,63 @@ function wp_enqueue_emoji_styles() {
 }
 
 /**
- * Prints the inline Emoji detection script if it is not already printed.
+ * Enqueues the Emoji detection script module if it is not already enqueued.
  *
  * @since 4.2.0
  */
 function print_emoji_detection_script() {
-	static $printed = false;
+	static $enqueued = false;
 
-	if ( $printed ) {
+	if ( $enqueued ) {
 		return;
 	}
 
-	$printed = true;
+	$enqueued = true;
 
-	if ( did_action( 'wp_print_footer_scripts' ) ) {
-		_print_emoji_detection_script();
-	} else {
-		add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
-	}
+	_wp_enqueue_emoji_detection_script();
 }
 
 /**
- * Prints inline Emoji detection script.
+ * Enqueues the Emoji detection script module.
  *
  * @ignore
  * @since 4.6.0
+ * @since 7.1.0 The emoji loader is enqueued as an external script module.
  * @access private
  */
-function _print_emoji_detection_script() {
+function _wp_enqueue_emoji_detection_script() {
+	if ( ! has_filter( 'script_module_data_wp-emoji-loader', '_wp_emoji_settings_script_module_data' ) ) {
+		add_filter( 'script_module_data_wp-emoji-loader', '_wp_emoji_settings_script_module_data' );
+	}
+
+	$emoji_loader_script_path = '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js';
+	$src                      = includes_url( $emoji_loader_script_path );
+
+	/** This filter is documented in wp-includes/class-wp-scripts.php */
+	$src = apply_filters( 'script_loader_src', $src, 'wp-emoji-loader' );
+
+	wp_enqueue_script_module(
+		'wp-emoji-loader',
+		$src,
+		array(),
+		false,
+		array(
+			'fetchpriority' => 'low',
+			'in_footer'     => true,
+		)
+	);
+}
+
+/**
+ * Returns the Emoji settings for the script module.
+ *
+ * @ignore
+ * @since 7.1.0
+ * @access private
+ *
+ * @return array<string, mixed> Emoji settings.
+ */
+function _wp_get_emoji_settings(): array {
 	$settings = array(
 		/**
 		 * Filters the URL where emoji png images are hosted.
@@ -5976,22 +6005,33 @@ function _print_emoji_detection_script() {
 		);
 	}
 
-	wp_print_inline_script_tag(
-		wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
-		array(
-			'id'   => 'wp-emoji-settings',
-			'type' => 'application/json',
-		)
-	);
+	return $settings;
+}
 
-	$emoji_loader_script_path = '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js';
-	wp_print_inline_script_tag(
-		rtrim( file_get_contents( ABSPATH . WPINC . $emoji_loader_script_path ) ) . "\n" .
-		'//# sourceURL=' . esc_url_raw( includes_url( $emoji_loader_script_path ) ),
-		array(
-			'type' => 'module',
-		)
-	);
+/**
+ * Filters the Emoji settings passed to the script module.
+ *
+ * @ignore
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array<string, mixed> $data Script module data.
+ * @return array<string, mixed> Emoji settings.
+ */
+function _wp_emoji_settings_script_module_data( array $data ): array {
+	return _wp_get_emoji_settings();
+}
+
+/**
+ * Enqueues the Emoji detection script module.
+ *
+ * @ignore
+ * @since 4.6.0
+ * @deprecated 7.1.0 Use {@see _wp_enqueue_emoji_detection_script()} instead.
+ * @access private
+ */
+function _print_emoji_detection_script() {
+	_wp_enqueue_emoji_detection_script();
 }
 
 /**
