@@ -5125,13 +5125,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 62471
 	 */
 	public function test_get_styles_for_block_with_style_variations_and_custom_selectors() {
+		$color_selector = '.wp-block-test-milk .liquid, .wp-block-test-milk:is(.frothed, .steamed) .foam, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle';
+
 		register_block_type(
 			'test/milk',
 			array(
 				'api_version' => 3,
 				'selectors'   => array(
 					'root'  => '.milk',
-					'color' => '.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle',
+					'color' => $color_selector,
 				),
 			)
 		);
@@ -5171,7 +5173,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'path'       => array( 'styles', 'blocks', 'test/milk' ),
 			'selector'   => '.wp-block-test-milk',
 			'selectors'  => array(
-				'color' => '.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle',
+				'color' => $color_selector,
 			),
 			'variations' => array(
 				'chocolate' => array(
@@ -5182,12 +5184,126 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$actual_styles    = $theme_json->get_styles_for_block( $metadata );
-		$default_styles   = ':root :where(.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle){background-color: white;}';
-		$variation_styles = ':root :where(.is-style-chocolate.wp-block-test-milk .liquid,.is-style-chocolate.wp-block-test-milk:not(.spoiled),.is-style-chocolate.wp-block-test-milk.in-bottle){background-color: #35281E;}';
+		$default_styles   = ':root :where(.wp-block-test-milk .liquid, .wp-block-test-milk:is(.frothed, .steamed) .foam, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle){background-color: white;}';
+		$variation_styles = ':root :where(.wp-block-test-milk.is-style-chocolate .liquid,.wp-block-test-milk.is-style-chocolate:is(.frothed, .steamed) .foam,.wp-block-test-milk.is-style-chocolate:not(.spoiled),.wp-block-test-milk.in-bottle.is-style-chocolate){background-color: #35281E;}';
 		$expected         = $default_styles . $variation_styles;
 
 		unregister_block_style( 'test/milk', 'chocolate' );
 		unregister_block_type( 'test/milk' );
+
+		$this->assertSame( $expected, $actual_styles );
+	}
+
+	public function test_get_styles_for_block_with_style_variation_width_and_custom_selector() {
+		register_block_style(
+			'core/button',
+			array(
+				'name'  => 'outline',
+				'label' => 'Outline',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'variations' => array(
+								'outline' => array(
+									'dimensions' => array(
+										'width' => '10rem',
+									),
+									':hover'     => array(
+										'dimensions' => array(
+											'width' => '20rem',
+										),
+										'color'      => array(
+											'background' => 'red',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$metadata = array(
+			'name'       => 'core/button',
+			'path'       => array( 'styles', 'blocks', 'core/button' ),
+			'selector'   => '.wp-block-button .wp-block-button__link',
+			'selectors'  => array(
+				'dimensions' => array(
+					'root'  => '.wp-block-button',
+					'width' => '.wp-block-button',
+				),
+			),
+			'variations' => array(
+				'outline' => array(
+					'path'     => array( 'styles', 'blocks', 'core/button', 'variations', 'outline' ),
+					'selector' => '.wp-block-button.is-style-outline .wp-block-button__link',
+				),
+			),
+		);
+
+		$actual_styles = $theme_json->get_styles_for_block( $metadata );
+		$expected      = ':root :where(.wp-block-button.is-style-outline){width: 10rem;}:root :where(.wp-block-button.is-style-outline:hover){width: 20rem;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:hover){background-color: red;}';
+
+		unregister_block_style( 'core/button', 'outline' );
+
+		$this->assertSame( $expected, $actual_styles );
+	}
+
+	public function test_get_stylesheet_with_scoped_style_variation_width_and_custom_selector() {
+		register_block_style(
+			'core/button',
+			array(
+				'name'  => 'outline--3',
+				'label' => 'Outline',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'variations' => array(
+								'outline--3' => array(
+									'dimensions' => array(
+										'width' => '10rem',
+									),
+									':hover'     => array(
+										'dimensions' => array(
+											'width' => '20rem',
+										),
+										'color'      => array(
+											'background' => 'red',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual_styles = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			array( 'custom' ),
+			array(
+				'include_block_style_variations' => true,
+				'skip_root_layout_styles'        => true,
+				'scope'                          => '.is-style-outline--3',
+			)
+		);
+		$expected      = ':root :where(.wp-block-button.is-style-outline--3){width: 10rem;}:root :where(.wp-block-button.is-style-outline--3:hover){width: 20rem;}:root :where(.wp-block-button.is-style-outline--3 .wp-block-button__link:hover){background-color: red;}';
+
+		unregister_block_style( 'core/button', 'outline--3' );
 
 		$this->assertSame( $expected, $actual_styles );
 	}
@@ -6784,6 +6900,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'selector' => '.wp-block:is(.outer .inner:first-child)',
 				'expected' => '.wp-block.is-style-custom:is(.outer .inner:first-child)',
 			),
+			':is with selector list'   => array(
+				'selector' => '.wp-block:is(.outer, .inner:first-child) .content, .wp-block-alternative',
+				'expected' => '.wp-block.is-style-custom:is(.outer, .inner:first-child) .content, .wp-block-alternative.is-style-custom',
+			),
 			':not selector'            => array(
 				'selector' => '.wp-block:not(.outer .inner:first-child)',
 				'expected' => '.wp-block.is-style-custom:not(.outer .inner:first-child)',
@@ -6933,6 +7053,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$expected = array(
 			array(
+				'name'     => 'outline',
 				'path'     => array( 'styles', 'blocks', 'core/button', 'variations', 'outline' ),
 				'selector' => '.wp-block-button.is-style-outline .wp-block-button__link',
 			),
