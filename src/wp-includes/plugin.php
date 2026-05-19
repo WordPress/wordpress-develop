@@ -995,25 +995,25 @@ function _wp_call_all_hook( $args ) {
  *                                         or may not exist.
  * @param int                   $priority  Unused. The order in which the functions
  *                                         associated with a particular action are executed.
- * @return string|int Unique function ID for usage as array key.
+ * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
  */
-function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
+function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {
 	if ( is_string( $callback ) ) {
 		return $callback;
 	}
 
 	if ( is_object( $callback ) ) {
-		return spl_object_id( $callback );
+		return (string) spl_object_id( $callback );
 	}
 
 	$callback = (array) $callback;
-	if ( is_callable( $callback, true )
+	if ( is_callable( $callback, true ) ) {
 		return null;
 	}
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
-		return spl_object_id( $callback[0] ) . $callback[1];
+		return (string) spl_object_id( $callback[0] ) . $callback[1];
 	} elseif ( is_string( $callback[0] ) ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
