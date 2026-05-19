@@ -1003,7 +1003,7 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string
 	}
 
 	if ( is_object( $callback ) ) {
-		return (string) spl_object_id( $callback );
+		return (string) spl_object_id( (object) $callback );
 	}
 
 	$callback = (array) $callback;
