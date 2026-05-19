@@ -63,8 +63,8 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 		$action    = 'add-' . $taxonomy;
 
 		$_POST = array(
-			'action'      => $action,
-			'newcategory' => $term_name,
+			'action'                   => $action,
+			'newcategory'              => $term_name,
 			'_ajax_nonce-add-category' => wp_create_nonce( $action ),
 		);
 
@@ -93,9 +93,9 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 		$action    = 'add-' . $taxonomy;
 
 		$_POST = array(
-			'action'             => $action,
-			'newcategory'        => $term_name,
-			'newcategory_parent' => $parent_id,
+			'action'                   => $action,
+			'newcategory'              => $term_name,
+			'newcategory_parent'       => $parent_id,
 			'_ajax_nonce-add-category' => wp_create_nonce( $action ),
 		);
 
@@ -123,8 +123,8 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 		$action     = 'add-' . $taxonomy;
 
 		$_POST = array(
-			'action'      => $action,
-			'newcategory' => $term_names,
+			'action'                   => $action,
+			'newcategory'              => $term_names,
 			'_ajax_nonce-add-category' => wp_create_nonce( $action ),
 		);
 
@@ -153,8 +153,8 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 		$action    = 'add-' . $taxonomy;
 
 		$_POST = array(
-			'action'      => $action,
-			'newcategory' => $term_name,
+			'action'                   => $action,
+			'newcategory'              => $term_name,
 			'_ajax_nonce-add-category' => 'invalid-nonce',
 		);
 
@@ -180,8 +180,8 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 		$action    = 'add-' . $taxonomy;
 
 		$_POST = array(
-			'action'      => $action,
-			'newcategory' => $term_name,
+			'action'                   => $action,
+			'newcategory'              => $term_name,
 			'_ajax_nonce-add-category' => wp_create_nonce( $action ),
 		);
 
