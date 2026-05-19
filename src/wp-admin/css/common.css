@@ -4283,7 +4283,7 @@ img {
 	}
 
 	#screen-meta-links .show-settings:after {
-		font: normal 20px/1.9 dashicons;
+		line-height: 1.9;
 	}
 
 	.wp-filter .search-form input[type="search"] {

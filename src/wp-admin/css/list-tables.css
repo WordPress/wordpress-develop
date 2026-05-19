@@ -2194,12 +2194,22 @@ div.action-links,
 		box-sizing: border-box;
 	}
 
+	.inline-edit-row select,
+	.inline-edit-row input:where(:not([type=checkbox],[type=radio],[type=submit],[type=button])) {
+		min-height: 40px;
+	}
+
+	.inline-edit-row select {
+		line-height: 2.5; /* 40px for 16px font-size on mobile */
+	}
+
 	.inline-edit-row fieldset input[name=jj],
 	.inline-edit-row fieldset input[name=hh],
 	.inline-edit-row fieldset input[name=mn],
 	.inline-edit-row fieldset input[name=aa] {
 		font-size: 16px;
 		line-height: 2;
+		min-height: unset;
 		padding: 3px 4px;
 	}
 
