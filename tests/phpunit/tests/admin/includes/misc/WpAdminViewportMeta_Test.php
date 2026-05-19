@@ -5,7 +5,7 @@
  *
  * @covers ::wp_admin_viewport_meta
  */
-class Tests_Admin_Includes_Misc_Wp_Admin_Viewport_Meta_Test extends WP_UnitTestCase {
+class Tests_Admin_Includes_Misc_WpAdminViewportMeta_Test extends WP_UnitTestCase {
 
 	/**
 	 * Tests wp_admin_viewport_meta() output.
