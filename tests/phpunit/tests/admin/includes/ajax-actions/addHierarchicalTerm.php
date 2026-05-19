@@ -58,9 +58,9 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 	public function test_add_hierarchical_term_success(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$taxonomy = 'category';
+		$taxonomy  = 'category';
 		$term_name = 'New Category';
-		$action = 'add-' . $taxonomy;
+		$action    = 'add-' . $taxonomy;
 
 		$_POST = array(
 			'action'      => $action,
@@ -87,10 +87,10 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 	public function test_add_hierarchical_term_child_success(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$taxonomy = 'category';
+		$taxonomy  = 'category';
 		$parent_id = $this->factory->category->create();
 		$term_name = 'Child Category';
-		$action = 'add-' . $taxonomy;
+		$action    = 'add-' . $taxonomy;
 
 		$_POST = array(
 			'action'             => $action,
@@ -118,9 +118,9 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 	public function test_add_hierarchical_term_multiple(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$taxonomy = 'category';
+		$taxonomy   = 'category';
 		$term_names = 'Cat A, Cat B, Cat C';
-		$action = 'add-' . $taxonomy;
+		$action     = 'add-' . $taxonomy;
 
 		$_POST = array(
 			'action'      => $action,
@@ -148,9 +148,9 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 	public function test_add_hierarchical_term_invalid_nonce(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$taxonomy = 'category';
+		$taxonomy  = 'category';
 		$term_name = 'Invalid Nonce Category';
-		$action = 'add-' . $taxonomy;
+		$action    = 'add-' . $taxonomy;
 
 		$_POST = array(
 			'action'      => $action,
@@ -175,9 +175,9 @@ class Tests_wp_ajax_add_hierarchical_term extends WP_Ajax_UnitTestCase {
 	public function test_add_hierarchical_term_insufficient_permissions(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$taxonomy = 'category';
+		$taxonomy  = 'category';
 		$term_name = 'No Permission Category';
-		$action = 'add-' . $taxonomy;
+		$action    = 'add-' . $taxonomy;
 
 		$_POST = array(
 			'action'      => $action,
