@@ -990,11 +990,11 @@ function _wp_call_all_hook( $args ) {
  *
  * @access private
  *
- * @param string                $hook_name Unused. The name of the filter to build ID for.
- * @param callable|string|array $callback  The callback to generate ID for. The callback may
- *                                         or may not exist.
- * @param int                   $priority  Unused. The order in which the functions
- *                                         associated with a particular action are executed.
+ * @param string   $hook_name Unused. The name of the filter to build ID for.
+ * @param callable $callback  The callback to generate ID for. The callback may
+ *                            or may not exist.
+ * @param int      $priority  Unused. The order in which the functions
+ *                            associated with a particular action are executed.
  * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
  */
 function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {
