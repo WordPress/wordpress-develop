@@ -118,7 +118,7 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 					'menu-item-object-id' => $post_id,
 				),
 			),
-       );
+		);
 
 		try {
 			$this->_handleAjax( 'add-menu-item' );
