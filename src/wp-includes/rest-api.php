@@ -1570,6 +1570,16 @@ function rest_is_boolean( $maybe_bool ) {
  * @return bool True if an integer, otherwise false.
  */
 function rest_is_integer( $maybe_integer ) {
+	if ( is_int( $maybe_integer ) ) {
+		return true;
+	}
+
+	// A canonical integer string of any magnitude — verified without float conversion.
+	if ( is_string( $maybe_integer ) && preg_match( '/^\s*[+-]?[0-9]+\s*$/', $maybe_integer ) ) {
+		return true;
+	}
+
+	// Decimal and scientific-notation strings (and floats) keep their historical behavior.
 	return is_numeric( $maybe_integer ) && floor( (float) $maybe_integer ) === (float) $maybe_integer;
 }
 
