@@ -148,9 +148,13 @@ class Tests_wp_ajax_wp_link_ajax extends WP_Ajax_UnitTestCase {
 			'search'              => 'NonExistentPostTitle',
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
-		$this->expectExceptionMessage( '0' );
+		try {
+			$this->_handleAjax( 'wp-link-ajax' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			$this->assertSame( '0', $e->getMessage() );
+			return;
+		}
 
-		$this->_handleAjax( 'wp-link-ajax' );
+		$this->fail( 'Expected WPAjaxDieContinueException was not thrown.' );
 	}
 }
