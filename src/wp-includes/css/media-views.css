@@ -340,6 +340,7 @@
 .media-toolbar-secondary {
 	float: left;
 	height: 100%;
+	position: relative;
 	display: grid;
 	grid-template-columns: repeat( 2, 1fr );
 	grid-template-rows: repeat( 2, 1fr );
@@ -363,6 +364,13 @@ label[for="media-attachment-date-filters"] {
 select#media-attachment-date-filters { 
 	grid-area: 2 / 2 / 3 / 3; 
 } 
+
+.media-toolbar-secondary > .spinner {
+	position: absolute;
+	left: 100%;
+	bottom: 0;
+	margin: 0;
+}
 
 .media-toolbar-primary > .media-button,
 .media-toolbar-primary > .media-button-group {
