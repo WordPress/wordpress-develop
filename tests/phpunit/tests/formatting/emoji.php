@@ -10,19 +10,63 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	private $svg_cdn = 'https://s.w.org/images/core/emoji/17.0.2/svg/';
 
 	/**
-	 * @ticket 63842
+	 * @var WP_Script_Modules|null
+	 */
+	private $original_script_modules;
+
+	/**
+	 * @inheritDoc
+	 */
+	public function set_up() {
+		global $wp_script_modules;
+
+		parent::set_up();
+
+		$this->original_script_modules = $wp_script_modules;
+		$wp_script_modules             = null;
+		wp_script_modules();
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function tear_down() {
+		global $wp_script_modules;
+
+		$wp_script_modules = $this->original_script_modules;
+		parent::tear_down();
+	}
+
+	/**
+	 * Returns the markup printed for the emoji detection script module.
 	 *
-	 * @covers ::_print_emoji_detection_script
+	 * @return string Emoji detection script module markup.
+	 */
+	private function get_emoji_detection_script_output() {
+		// `_wp_enqueue_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
+
+		_wp_enqueue_emoji_detection_script();
+
+		return get_echo( array( wp_script_modules(), 'print_script_module_data' ) ) .
+			get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+	}
+
+	/**
+	 * @ticket 63842
+	 * @ticket 64259
+	 *
+	 * @covers ::_wp_enqueue_emoji_detection_script
+	 * @covers ::_wp_get_emoji_settings
+	 * @covers ::_wp_emoji_settings_script_module_data
 	 */
 	public function test_script_tag_printing() {
-		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
-		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
-		$output = get_echo( '_print_emoji_detection_script' );
+		$output = $this->get_emoji_detection_script_output();
 
 		$processor = new WP_HTML_Tag_Processor( $output );
 		$this->assertTrue( $processor->next_tag() );
 		$this->assertSame( 'SCRIPT', $processor->get_tag() );
-		$this->assertSame( 'wp-emoji-settings', $processor->get_attribute( 'id' ) );
+		$this->assertSame( 'wp-script-module-data-wp-emoji-loader', $processor->get_attribute( 'id' ) );
 		$this->assertSame( 'application/json', $processor->get_attribute( 'type' ) );
 		$text     = $processor->get_modifiable_text();
 		$settings = json_decode( $text, true );
@@ -42,19 +86,19 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_tag() );
 		$this->assertSame( 'SCRIPT', $processor->get_tag() );
 		$this->assertSame( 'module', $processor->get_attribute( 'type' ) );
-		$this->assertNull( $processor->get_attribute( 'src' ) );
+		$this->assertSame( 'low', $processor->get_attribute( 'fetchpriority' ) );
+		$this->assertStringContainsString( 'wp-emoji-loader.js', (string) $processor->get_attribute( 'src' ) );
 		$this->assertFalse( $processor->next_tag() );
 	}
 
 	/**
 	 * @ticket 36525
+	 * @ticket 64259
 	 *
-	 * @covers ::_print_emoji_detection_script
+	 * @covers ::_wp_enqueue_emoji_detection_script
 	 */
 	public function test_unfiltered_emoji_cdns() {
-		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
-		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
-		$output = get_echo( '_print_emoji_detection_script' );
+		$output = $this->get_emoji_detection_script_output();
 
 		$this->assertStringContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 		$this->assertStringContainsString( wp_json_encode( $this->svg_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
@@ -66,17 +110,16 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36525
+	 * @ticket 64259
 	 *
-	 * @covers ::_print_emoji_detection_script
+	 * @covers ::_wp_enqueue_emoji_detection_script
 	 */
 	public function test_filtered_emoji_svn_cdn() {
 		$filtered_svn_cdn = $this->_filtered_emoji_svg_cdn();
 
 		add_filter( 'emoji_svg_url', array( $this, '_filtered_emoji_svg_cdn' ) );
 
-		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
-		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
-		$output = get_echo( '_print_emoji_detection_script' );
+		$output = $this->get_emoji_detection_script_output();
 
 		$this->assertStringContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 		$this->assertStringNotContainsString( wp_json_encode( $this->svg_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
@@ -91,17 +134,16 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36525
+	 * @ticket 64259
 	 *
-	 * @covers ::_print_emoji_detection_script
+	 * @covers ::_wp_enqueue_emoji_detection_script
 	 */
 	public function test_filtered_emoji_png_cdn() {
 		$filtered_png_cdn = $this->_filtered_emoji_png_cdn();
 
 		add_filter( 'emoji_url', array( $this, '_filtered_emoji_png_cdn' ) );
 
-		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
-		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
-		$output = get_echo( '_print_emoji_detection_script' );
+		$output = $this->get_emoji_detection_script_output();
 
 		$this->assertStringContainsString( wp_json_encode( $filtered_png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 		$this->assertStringNotContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );

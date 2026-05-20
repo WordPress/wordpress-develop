@@ -7,7 +7,7 @@
 // Note: This is loaded as a script module, so there is no need for an IIFE to prevent pollution of the global scope.
 
 /**
- * Emoji Settings as exported in PHP via _print_emoji_detection_script().
+ * Emoji Settings as exported in PHP via the script module data API.
  * @typedef WPEmojiSettings
  * @type {object}
  * @property {?object} source
@@ -16,9 +16,31 @@
  * @property {?string} source.wpemoji
  */
 
-const settings = /** @type {WPEmojiSettings} */ (
-	JSON.parse( document.getElementById( 'wp-emoji-settings' ).textContent )
-);
+/**
+ * Parses the Emoji settings from the script module data element.
+ *
+ * @since 7.1.0
+ *
+ * @return {WPEmojiSettings} Emoji settings.
+ */
+function getEmojiSettings() {
+	const moduleDataContainer = document.getElementById(
+		'wp-script-module-data-wp-emoji-loader'
+	);
+	if ( moduleDataContainer ) {
+		return JSON.parse( moduleDataContainer.textContent );
+	}
+
+	// Back-compat for extensions that may still be printing the legacy element.
+	const legacySettingsContainer = document.getElementById( 'wp-emoji-settings' );
+	if ( legacySettingsContainer ) {
+		return JSON.parse( legacySettingsContainer.textContent );
+	}
+
+	return {};
+}
+
+const settings = /** @type {WPEmojiSettings} */ ( getEmojiSettings() );
 
 // For compatibility with other scripts that read from this global, in particular wp-includes/js/wp-emoji.js (source file: js/_enqueues/wp/emoji.js).
 window._wpemojiSettings = settings;
