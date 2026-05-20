@@ -59,7 +59,7 @@ class Tests_wp_ajax_meta_box_order extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'meta-box-order' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success response via wp_send_json_success().
 		}
 
@@ -92,7 +92,7 @@ class Tests_wp_ajax_meta_box_order extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'meta-box-order' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 		}
 
 		$response = json_decode( $this->_last_response, true );
