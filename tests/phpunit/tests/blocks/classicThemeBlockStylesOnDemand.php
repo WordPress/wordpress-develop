@@ -61,5 +61,4 @@ class Tests_Blocks_ClassicThemeBlockStylesOnDemand extends WP_UnitTestCase {
 		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Expected separate core block assets to be enabled after init.' );
 		$this->assertTrue( wp_style_is( 'wp-block-quote-theme', 'registered' ), 'Expected the Quote block theme stylesheet to be registered.' );
 	}
-
 }
