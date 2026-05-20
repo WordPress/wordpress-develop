@@ -101,19 +101,19 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 		$factory = self::factory();
 		wp_set_current_user( self::$admin_id );
 
-        $post_id = $factory->post->create(
-            array(
-                'post_title' => 'Test Page',
-                'post_type'  => 'page',
-            )
+		$post_id = $factory->post->create(
+			array(
+				'post_title' => 'Test Page',
+				'post_type'  => 'page',
+			)
 		);
 
 		$_POST = array(
-            'action'                      => 'add-menu-item',
+			'action'                      => 'add-menu-item',
 			'menu-settings-column-nonce'  => wp_create_nonce( 'add-menu_item' ),
 			'menu-item'                   => array(
 				array(
-                    'menu-item-type'      => 'post_type',
+					'menu-item-type'      => 'post_type',
                     'menu-item-object'    => 'page',
 				    'menu-item-object-id' => $post_id,
 			    ),
