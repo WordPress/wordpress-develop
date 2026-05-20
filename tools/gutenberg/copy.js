@@ -520,6 +520,49 @@ function generateBlocksJson() {
 }
 
 /**
+ * Update the $wp_gutenberg_hash value in version.php.
+ * Reads the hash from gutenberg/.gutenberg-hash (the actual built version)
+ * and writes it into the version file so it is available at runtime.
+ */
+function updateVersionFile() {
+	const hashFilePath = path.join( gutenbergDir, '.gutenberg-hash' );
+	const versionFile = path.join( rootDir, buildTarget, 'wp-includes/version.php' );
+
+	if ( ! fs.existsSync( hashFilePath ) ) {
+		console.error( '   ❌ gutenberg/.gutenberg-hash not found' );
+		process.exit( 1 );
+	}
+
+	const installedHash = fs.readFileSync( hashFilePath, 'utf8' ).trim();
+
+	if ( ! /^[0-9a-f]{40}$/.test( installedHash ) ) {
+		console.error( '   ❌ Invalid SHA format in .gutenberg-hash' );
+		process.exit( 1 );
+	}
+
+	if ( ! fs.existsSync( versionFile ) ) {
+		console.log( '   ⚠️  version.php not found, skipping hash update' );
+		return;
+	}
+
+	const content = fs.readFileSync( versionFile, 'utf8' );
+	const pattern = /\$wp_gutenberg_hash = '[^']*';/;
+
+	if ( ! pattern.test( content ) ) {
+		console.error( '   ❌ $wp_gutenberg_hash pattern not found in version.php' );
+		process.exit( 1 );
+	}
+
+	const updated = content.replace(
+		pattern,
+		`$wp_gutenberg_hash = '${ installedHash }';`
+	);
+
+	fs.writeFileSync( versionFile, updated );
+	console.log( `   ✅ Set $wp_gutenberg_hash to ${ installedHash.substring( 0, 7 ) }` );
+}
+
+/**
  * Main execution function.
  */
 async function main() {
@@ -636,6 +679,10 @@ async function main() {
 	// 6. Generate blocks-json.php from block.json files.
 	console.log( '\n📦 Generating blocks-json.php...' );
 	generateBlocksJson();
+
+	// 7. Update $wp_gutenberg_hash in version.php.
+	console.log( '\n📦 Updating Gutenberg hash in version.php...' );
+	updateVersionFile();
 
 	console.log( '\n✅ Copy complete!' );
 }
