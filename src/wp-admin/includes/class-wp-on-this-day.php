@@ -55,7 +55,7 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 * @var int
 	 */
-	const CACHE_VERSION = 2;
+	const CACHE_VERSION = 1;
 
 	/**
 	 * Approximate maximum number of characters shown in each post excerpt.
@@ -326,39 +326,20 @@ class WP_On_This_Day {
 	 * @since 7.1.0
 	 */
 	protected static function render_empty_state() {
-		$now   = current_datetime();
-		$start = $now->modify( '-' . self::WINDOW_BEFORE_DAYS . ' days' );
-		$end   = $now->modify( '+' . self::WINDOW_AFTER_DAYS . ' days' );
-
-		$start_time = sprintf(
-			'<time datetime="%1$s">%2$s</time>',
-			esc_attr( wp_date( 'Y-m-d', $start->getTimestamp(), $start->getTimezone() ) ),
-			esc_html( wp_date( 'F j', $start->getTimestamp(), $start->getTimezone() ) )
-		);
-		$end_time   = sprintf(
-			'<time datetime="%1$s">%2$s</time>',
-			esc_attr( wp_date( 'Y-m-d', $end->getTimestamp(), $end->getTimezone() ) ),
-			esc_html( wp_date( 'F j', $end->getTimestamp(), $end->getTimezone() ) )
-		);
+		$calendar_icon = WP_Icons_Registry::get_instance()->get_registered_icon( 'core/calendar' );
 		?>
 		<div class="on-this-day-empty">
 			<div class="on-this-day-empty-icon" aria-hidden="true">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-					<rect x="3" y="4" width="18" height="18" rx="3"></rect>
-					<path d="M16 2v4M8 2v4M3 10h18"></path>
-					<circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"></circle>
-				</svg>
-			</div>
-			<h3 class="on-this-day-empty-title"><?php esc_html_e( 'Your story starts here.' ); ?></h3>
-			<p class="on-this-day-empty-text">
 				<?php
-				printf(
-					/* translators: 1: Start date, 2: End date. */
-					esc_html__( 'You haven\'t published anything between %1$s and %2$s in previous years. Write something today and check back next year!' ),
-					'<strong>' . $start_time . '</strong>',
-					'<strong>' . $end_time . '</strong>'
-				);
+				if ( ! empty( $calendar_icon['content'] ) ) {
+					// SVG content is sanitized by WP_Icons_Registry.
+					echo $calendar_icon['content']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				}
 				?>
+			</div>
+			<p class="on-this-day-empty-text">
+				<?php esc_html_e( 'Your blogging memories are still being made.' ); ?><br>
+				<?php esc_html_e( 'Check back again soon.' ); ?>
 			</p>
 			<p class="on-this-day-empty-cta">
 				<a href="<?php echo esc_url( admin_url( 'post-new.php' ) ); ?>" class="button button-primary">

@@ -322,35 +322,34 @@
    6. Empty state
    ----------------------------------------------------------------------------- */
 #dashboard_on_this_day .on-this-day-empty {
-	text-align: center;
-	padding: 28px 20px 24px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: flex-end;
+	padding: 24px;
+	text-align: left;
 }
 
 #dashboard_on_this_day .on-this-day-empty-icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 60px;
-	height: 60px;
-	margin-bottom: 10px;
-	color: var(--otd-accent);
-	background: var(--otd-accent-8);
-	border-radius: 50%;
-	box-shadow: inset 0 0 0 1px var(--otd-accent-15);
+	width: 24px;
+	height: 24px;
+	margin: 0 0 28px;
+	color: #757575;
 }
 
-#dashboard_on_this_day .on-this-day-empty-title {
-	margin: 6px 0 4px;
-	font-size: 15px;
-	font-weight: 600;
-	color: var(--otd-ink);
+#dashboard_on_this_day .on-this-day-empty-icon svg {
+	display: block;
+	width: 24px;
+	height: 24px;
+	fill: currentColor;
 }
 
 #dashboard_on_this_day .on-this-day-empty-text {
-	max-width: 340px;
-	margin: 0 auto 12px;
-	color: var(--otd-text);
-	line-height: 1.55;
+	margin: 0 0 32px;
+	color: var(--otd-ink);
+	font-size: 14px;
+	line-height: 1.5;
 }
 
 #dashboard_on_this_day .on-this-day-empty-cta {
