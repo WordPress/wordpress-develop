@@ -1997,6 +1997,79 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65241
+	 */
+	public function test_get_roles_data_migrates_misnamed_user_roles_option_on_subsite() {
+		global $wpdb, $wp_roles;
+
+		$blog_id = self::$site_ids['make.wordpress.org/foo/'];
+
+		$custom_roles = array(
+			'test_role' => array(
+				'name'         => 'Test Role',
+				'capabilities' => array(
+					'do_foo' => true,
+				),
+			),
+		);
+
+		switch_to_blog( $blog_id );
+
+		$correct_key = $wpdb->get_blog_prefix( $blog_id ) . 'user_roles';
+		$legacy_key  = 'oldprefix_' . $blog_id . '_user_roles';
+
+		delete_option( $correct_key );
+		update_option( $legacy_key, $custom_roles, true );
+
+		unset( $GLOBALS['wp_user_roles'] );
+		$wp_roles = new WP_Roles( $blog_id );
+
+		$this->assertSame( $custom_roles, $wp_roles->roles );
+		$this->assertSame( $custom_roles, get_option( $correct_key ) );
+		$this->assertFalse( get_option( $legacy_key ) );
+
+		update_option( $correct_key, $custom_roles, true );
+		delete_option( $legacy_key );
+
+		restore_current_blog();
+	}
+
+	/**
+	 * @ticket 65241
+	 */
+	public function test_get_editable_roles_after_misnamed_user_roles_option_migration() {
+		$blog_id = self::$site_ids['make.wordpress.org/foo/'];
+
+		$custom_roles = array(
+			'test_role' => array(
+				'name'         => 'Test Role',
+				'capabilities' => array(
+					'do_foo' => true,
+				),
+			),
+		);
+
+		switch_to_blog( $blog_id );
+
+		global $wpdb;
+		$correct_key = $wpdb->get_blog_prefix( $blog_id ) . 'user_roles';
+		$legacy_key  = 'oldprefix_' . $blog_id . '_user_roles';
+
+		delete_option( $correct_key );
+		update_option( $legacy_key, $custom_roles, true );
+
+		unset( $GLOBALS['wp_user_roles'] );
+		wp_roles()->for_site( $blog_id );
+
+		$this->assertSame( $custom_roles, get_editable_roles() );
+
+		update_option( $correct_key, $custom_roles, true );
+		delete_option( $legacy_key );
+
+		restore_current_blog();
+	}
+
+	/**
 	 * @ticket 41333
 	 */
 	public function test_wp_initialize_site_user_is_admin() {

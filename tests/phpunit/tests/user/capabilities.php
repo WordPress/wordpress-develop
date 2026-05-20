@@ -2401,6 +2401,38 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65241
+	 */
+	public function test_get_roles_data_migrates_misnamed_user_roles_option() {
+		global $wpdb, $wp_roles;
+
+		$custom_roles = array(
+			'test_role' => array(
+				'name'         => 'Test Role',
+				'capabilities' => array(
+					'do_foo' => true,
+				),
+			),
+		);
+
+		$correct_key = $wpdb->get_blog_prefix( get_current_blog_id() ) . 'user_roles';
+		$legacy_key  = 'oldprefix_user_roles';
+
+		delete_option( $correct_key );
+		update_option( $legacy_key, $custom_roles, true );
+
+		unset( $GLOBALS['wp_user_roles'] );
+		$wp_roles = new WP_Roles();
+
+		$this->assertSame( $custom_roles, $wp_roles->roles );
+		$this->assertSame( $custom_roles, get_option( $correct_key ) );
+		$this->assertFalse( get_option( $legacy_key ) );
+
+		update_option( $correct_key, $custom_roles, true );
+		delete_option( $legacy_key );
+	}
+
+	/**
 	 * @ticket 38645
 	 */
 	public function test_roles_get_site_id_default() {
