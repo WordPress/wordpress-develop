@@ -165,9 +165,9 @@ class Tests_wp_ajax_get_tagcloud extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		// Ensure no tags exist for the taxonomy.
-		$tags = get_terms( array( 
+		$tags = get_terms( array(
 				'taxonomy' => 'post_tag',
-				'hide_empty' => false
+				'hide_empty' => false,
 			) );
 		foreach ( $tags as $tag ) {
 			wp_delete_term( $tag->term_id, 'post_tag' );
