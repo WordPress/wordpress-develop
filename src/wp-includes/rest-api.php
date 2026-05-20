@@ -1581,9 +1581,9 @@ function rest_is_integer( $maybe_integer ) {
 	$integer_pattern = '/^[+-]?\d+$/';
 
 	return preg_match(
-			$integer_pattern,
-			trim( (string) $maybe_integer )
-		) === 1;
+		$integer_pattern,
+		trim( (string) $maybe_integer )
+	) === 1;
 }
 
 /**
