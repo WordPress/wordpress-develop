@@ -1570,7 +1570,20 @@ function rest_is_boolean( $maybe_bool ) {
  * @return bool True if an integer, otherwise false.
  */
 function rest_is_integer( $maybe_integer ) {
-	return is_numeric( $maybe_integer ) && round( (float) $maybe_integer ) === (float) $maybe_integer;
+	if ( is_int( $maybe_integer ) ) {
+		return true;
+	}
+
+	if ( ! is_scalar( $maybe_integer ) ) {
+		return false;
+	}
+
+	$integer_pattern = '/^[+-]?\d+$/';
+
+	return preg_match(
+			$integer_pattern,
+			trim( (string) $maybe_integer )
+		) === 1;
 }
 
 /**
