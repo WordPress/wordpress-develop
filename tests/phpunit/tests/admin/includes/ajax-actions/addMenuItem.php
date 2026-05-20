@@ -101,12 +101,10 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 		$factory = self::factory();
 		wp_set_current_user( self::$admin_id );
 
-		$post_id = $factory->post->create(
-			array(
+		$post_id = $factory->post->create( array(
 				'post_title' => 'Test Page',
 				'post_type' => 'page'
-			)
-		);
+			) );
 
 		$_POST = array(
 			'action'                      => 'add-menu-item',
