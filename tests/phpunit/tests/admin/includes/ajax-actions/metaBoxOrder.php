@@ -118,7 +118,7 @@ class Tests_wp_ajax_meta_box_order extends WP_Ajax_UnitTestCase {
 			'_ajax_nonce' => 'invalid-nonce',
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '-1' );
 
 		$this->_handleAjax( 'meta-box-order' );
@@ -138,7 +138,7 @@ class Tests_wp_ajax_meta_box_order extends WP_Ajax_UnitTestCase {
 			'page'        => 'Invalid Page!', // Contains space and exclamation which sanitize_key removes.
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '0' );
 
 		$this->_handleAjax( 'meta-box-order' );
