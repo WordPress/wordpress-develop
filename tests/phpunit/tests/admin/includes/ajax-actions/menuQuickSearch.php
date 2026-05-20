@@ -66,7 +66,7 @@ class Tests_wp_ajax_menu_quick_search extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'menu-quick-search' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
 
@@ -100,7 +100,7 @@ class Tests_wp_ajax_menu_quick_search extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'menu-quick-search' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
 
@@ -133,7 +133,7 @@ class Tests_wp_ajax_menu_quick_search extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'menu-quick-search' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
 
@@ -166,7 +166,7 @@ class Tests_wp_ajax_menu_quick_search extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'menu-quick-search' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
 
