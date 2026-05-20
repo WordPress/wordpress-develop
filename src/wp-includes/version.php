@@ -65,4 +65,4 @@ $required_mysql_version = '5.5.5';
  * @since 7.1.0
  * @global string $wp_gutenberg_hash
  */
-$wp_gutenberg_hash = '';
+$wp_gutenberg_hash = 'a2a354cf35e5b69c3330d6c1cfd42d8dc2efb9fd';
