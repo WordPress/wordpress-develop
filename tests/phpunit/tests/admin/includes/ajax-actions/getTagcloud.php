@@ -169,7 +169,7 @@ class Tests_wp_ajax_get_tagcloud extends WP_Ajax_UnitTestCase {
 			array(
 				'taxonomy' => 'post_tag',
 				'hide_empty' => false,
-				)
+			)
 		);
 		foreach ( $tags as $tag ) {
 			wp_delete_term( $tag->term_id, 'post_tag' );
