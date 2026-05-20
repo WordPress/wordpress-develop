@@ -58,7 +58,7 @@ class Tests_wp_ajax_menu_get_metabox extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'menu-get-metabox' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// We expect the function to die after echoing JSON.
 		}
 
@@ -86,7 +86,7 @@ class Tests_wp_ajax_menu_get_metabox extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'menu-get-metabox' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// We expect the function to die after echoing JSON.
 		}
 
