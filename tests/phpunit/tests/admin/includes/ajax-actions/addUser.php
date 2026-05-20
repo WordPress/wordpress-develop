@@ -68,13 +68,13 @@ class Tests_wp_ajax_add_user extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'     => 'add-user',
+			'action'      => 'add-user',
 			'_ajax_nonce' => wp_create_nonce( 'add-user' ),
-			'user_login' => 'newuser',
-			'email'      => 'newuser@example.com',
-			'pass1'      => 'password',
-			'pass2'      => 'password',
-			'role'       => 'subscriber',
+			'user_login'  => 'newuser',
+			'email'       => 'newuser@example.com',
+			'pass1'       => 'password',
+			'pass2'       => 'password',
+			'role'        => 'subscriber',
 		);
 
 		try {
@@ -105,7 +105,7 @@ class Tests_wp_ajax_add_user extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'     => 'add-user',
+			'action'      => 'add-user',
 			'_ajax_nonce' => 'invalid-nonce',
 		);
 
@@ -124,7 +124,7 @@ class Tests_wp_ajax_add_user extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$subscriber_id );
 
 		$_POST = array(
-			'action'     => 'add-user',
+			'action'      => 'add-user',
 			'_ajax_nonce' => wp_create_nonce( 'add-user' ),
 		);
 
@@ -146,12 +146,12 @@ class Tests_wp_ajax_add_user extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'     => 'add-user',
+			'action'      => 'add-user',
 			'_ajax_nonce' => wp_create_nonce( 'add-user' ),
-			'user_login' => 'newuser2',
-			'email'      => 'invalid-email',
-			'pass1'      => 'password',
-			'pass2'      => 'password',
+			'user_login'  => 'newuser2',
+			'email'       => 'invalid-email',
+			'pass1'       => 'password',
+			'pass2'       => 'password',
 		);
 
 		try {
