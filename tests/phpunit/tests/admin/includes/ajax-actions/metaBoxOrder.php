@@ -44,8 +44,8 @@ class Tests_wp_ajax_meta_box_order extends WP_Ajax_UnitTestCase {
 
 		$page  = 'testpage';
 		$order = array(
-			'side'    => 'box1,box2',
-			'normal'  => 'box3',
+			'side'     => 'box1,box2',
+			'normal'   => 'box3',
 			'advanced' => '',
 		);
 
