@@ -1570,7 +1570,7 @@ function rest_is_boolean( $maybe_bool ) {
  * @return bool True if an integer, otherwise false.
  */
 function rest_is_integer( $maybe_integer ) {
-	return is_numeric( $maybe_integer ) && round( (float) $maybe_integer ) === (float) $maybe_integer;
+	return is_numeric( $maybe_integer ) && floor( (float) $maybe_integer ) === (float) $maybe_integer;
 }
 
 /**
