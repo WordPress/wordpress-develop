@@ -39,7 +39,7 @@ class Tests_wp_ajax_wp_link_ajax extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'wp-link-ajax' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// We expect it to die after echoing JSON.
 		}
 
@@ -72,7 +72,7 @@ class Tests_wp_ajax_wp_link_ajax extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'wp-link-ajax' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// We expect it to die after echoing JSON.
 		}
 
@@ -107,7 +107,7 @@ class Tests_wp_ajax_wp_link_ajax extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'wp-link-ajax' );
-		} catch ( WPAjaxDieStopException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// We expect it to die after echoing JSON.
 		}
 
@@ -148,7 +148,7 @@ class Tests_wp_ajax_wp_link_ajax extends WP_Ajax_UnitTestCase {
 			'search'              => 'NonExistentPostTitle',
 		);
 
-		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectException( WPAjaxDieContinueException::class );
 		$this->expectExceptionMessage( '0' );
 
 		$this->_handleAjax( 'wp-link-ajax' );
