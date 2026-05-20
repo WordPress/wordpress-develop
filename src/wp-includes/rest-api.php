@@ -1569,7 +1569,7 @@ function rest_is_boolean( $maybe_bool ) {
  * @param mixed $maybe_integer The value being evaluated.
  * @return bool True if an integer, otherwise false.
  */
-function rest_is_integer( $maybe_integer ) {
+function rest_is_integer( $maybe_integer ): bool {
 	if ( is_int( $maybe_integer ) ) {
 		return true;
 	}
