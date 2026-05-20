@@ -109,13 +109,11 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 		$_POST = array(
 			'action'                      => 'add-menu-item',
 			'menu-settings-column-nonce'  => wp_create_nonce( 'add-menu_item' ),
-			'menu-item'                   => array(
-				array(
-					'menu-item-type'      => 'post_type',
-					'menu-item-object'    => 'page',
-					'menu-item-object-id' => $post_id,
-				),
-			),
+			'menu-item'                   => array(	array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $post_id,
+			),	),
 		);
 
 		try {
