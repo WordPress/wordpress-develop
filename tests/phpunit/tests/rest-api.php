@@ -2343,12 +2343,36 @@ class Tests_REST_API extends WP_UnitTestCase {
 			),
 			array(
 				false,
+				-5.5,
+			),
+			array(
+				false,
+				'-5.5',
+			),
+			array(
+				false,
 				array(),
 			),
 			array(
 				false,
 				true,
 			),
+			array(
+				true,
+				'15e0',
+			),
+			array(
+				true,
+				'15e+0',
+			),
+			array(
+				true,
+				'15e-0',
+			),
+			array(
+				false,
+				'15e-1',
+			)
 		);
 	}
 
