@@ -245,7 +245,7 @@ function wp_options_connectors_wp_admin_render_page() {
 
 		/* Background colors */
 		#wpwrap {
-			background: var(--wpds-color-fg-content-neutral, #1e1e1e);
+			background: var(--wpds-color-bg-surface-neutral-weak, #f0f0f0);
 			overflow-y: auto;
 		}
 		body {
