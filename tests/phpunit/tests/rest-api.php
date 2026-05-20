@@ -2386,6 +2386,14 @@ class Tests_REST_API extends WP_UnitTestCase {
 				true,
 				2 ** 52 + 2,
 			),
+			array(
+				true,
+				'4503599627370496',  // 2 ** 52
+			),
+			array(
+				true,
+				'4503599627370498',  // 2 ** 52 + 2
+			),
 		);
 	}
 
