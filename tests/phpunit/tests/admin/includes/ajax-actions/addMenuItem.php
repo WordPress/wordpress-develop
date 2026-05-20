@@ -103,7 +103,7 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 
 		$post_id = $factory->post->create( array(
 				'post_title' => 'Test Page',
-				'post_type' => 'page'
+				'post_type' => 'page',
 			) );
 
 		$_POST = array(
