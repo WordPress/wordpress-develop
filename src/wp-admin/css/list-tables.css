@@ -729,6 +729,27 @@ th.sorted a span {
 	padding: 0 8px 0 0;
 }
 
+.tablenav .taxonomy-filters-row {
+	clear: left;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 0;
+}
+
+.tablenav .taxonomy-filters-row.hidden {
+	display: none;
+}
+
+.tablenav .taxonomy-filters-row .taxonomy-filter-container,
+.tablenav .taxonomy-filters-row .taxonomy-filter-container.hidden {
+	float: none;
+}
+
+.tablenav .actions + .taxonomy-filters-row {
+	margin: 6px 0;
+}
+
 .wp-filter .actions {
 	display: inline-block;
 	vertical-align: middle;

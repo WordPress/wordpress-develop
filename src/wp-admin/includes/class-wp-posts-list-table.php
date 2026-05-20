@@ -125,6 +125,60 @@ class WP_Posts_List_Table extends WP_List_Table {
 				)
 			);
 		}
+
+		add_filter( 'screen_settings', array( $this, 'taxonomy_filter_screen_settings' ), 10, 2 );
+		add_action( 'pre_get_posts', array( $this, 'handle_taxonomy_query_vars' ) );
+	}
+
+	/**
+	 * Clears taxonomy query vars that should not filter posts.
+	 *
+	 * Two cases are handled:
+	 *
+	 * 1. Any query var for a taxonomy whose filter dropdown is NOT visible (i.e. the
+	 *    user has not opted in via Screen Options). A stale `?actor=slug` in the URL
+	 *    from before the filter was hidden should not continue to narrow results.
+	 *
+	 * 2. Any query var whose value is '0'. wp_dropdown_categories() always uses
+	 *    value='0' for the "All items" option. WP_Query treats '0' as a term slug
+	 *    lookup, finds nothing, and returns no posts. Unsetting it restores the
+	 *    "show all posts" behaviour for the visible-but-unfiltered case.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param WP_Query $query Current WP_Query instance.
+	 */
+	public function handle_taxonomy_query_vars( $query ) {
+		// Only act inside the admin post list for this specific post type.
+		if ( ! is_admin() || ! $query->is_main_query() ) {
+			return;
+		}
+
+		if ( $query->get( 'post_type' ) !== $this->screen->post_type ) {
+			return;
+		}
+
+		$taxonomies = $this->get_filterable_taxonomies( $this->screen->post_type );
+		$visible    = get_visible_taxonomy_filters( $this->screen );
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$qv = $taxonomy->query_var ? $taxonomy->query_var : $taxonomy->name;
+
+			if ( ! isset( $query->query_vars[ $qv ] ) ) {
+				continue;
+			}
+
+			// Remove any query var for taxonomies not opted-in via Screen Options.
+			if ( ! in_array( $taxonomy->name, $visible, true ) ) {
+				unset( $query->query_vars[ $qv ] );
+				continue;
+			}
+
+			// '0' is the "All items" option value. Treat it as no filter.
+			if ( '0' === (string) $query->query_vars[ $qv ] ) {
+				unset( $query->query_vars[ $qv ] );
+			}
+		}
 	}
 
 	/**
@@ -562,13 +616,206 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Returns the taxonomy objects eligible for filter dropdowns on the post list table.
+	 *
+	 * Excludes built-in taxonomies that already have dedicated filter methods
+	 * (i.e. 'category' and 'post_format') as well as non-UI taxonomies.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $post_type Post type slug.
+	 * @return WP_Taxonomy[] Associative array of taxonomy objects keyed by taxonomy name.
+	 */
+	protected function get_filterable_taxonomies( $post_type ) {
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+		$filterable = array();
+
+		foreach ( $taxonomies as $taxonomy ) {
+			// Skip taxonomies already handled by dedicated dropdown methods.
+			if ( in_array( $taxonomy->name, array( 'category', 'post_format' ), true ) ) {
+				continue;
+			}
+
+			// Only include taxonomies that expose a UI.
+			if ( ! $taxonomy->show_ui ) {
+				continue;
+			}
+
+			$filterable[ $taxonomy->name ] = $taxonomy;
+		}
+
+		return $filterable;
+	}
+
+	/**
+	 * Displays filter dropdowns for taxonomies registered to the current post type.
+	 *
+	 * Each dropdown is always rendered so that checked/unchecked state from Screen
+	 * Options can be applied instantly via JavaScript (class toggling + disabled
+	 * attribute). Dropdowns are hidden and their selects are disabled by default
+	 * until the user opts in via Screen Options.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $post_type Post type slug.
+	 */
+	protected function taxonomies_dropdown( $post_type ) {
+		$taxonomies = $this->get_filterable_taxonomies( $post_type );
+
+		if ( empty( $taxonomies ) ) {
+			return;
+		}
+
+		$visible = get_visible_taxonomy_filters( $this->screen );
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$is_visible = in_array( $taxonomy->name, $visible, true );
+
+			/**
+			 * Filters whether to remove a taxonomy's filter dropdown from the post list table.
+			 *
+			 * @since 7.0.0
+			 *
+			 * @param bool   $disable   Whether to disable the taxonomy dropdown. Default false.
+			 * @param string $taxonomy  The taxonomy slug.
+			 * @param string $post_type Post type slug.
+			 */
+			if ( apply_filters( 'disable_taxonomy_dropdown', false, $taxonomy->name, $post_type ) ) {
+				continue;
+			}
+
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomy->name,
+					'hide_empty' => true,
+				)
+			);
+
+			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+				continue;
+			}
+
+			$query_var       = $taxonomy->query_var ? $taxonomy->query_var : $taxonomy->name;
+			$selected        = isset( $_GET[ $query_var ] ) ? sanitize_title( $_GET[ $query_var ] ) : '';
+			$filter_id       = 'filter-by-' . sanitize_html_class( $taxonomy->name );
+			$container_class = 'taxonomy-filter-container' . ( $is_visible ? '' : ' hidden' );
+
+			$dropdown = wp_dropdown_categories(
+				array(
+					'show_option_all' => $taxonomy->labels->all_items,
+					'taxonomy'        => $taxonomy->name,
+					'name'            => $query_var,
+					'orderby'         => 'name',
+					'selected'        => $selected,
+					'hierarchical'    => $taxonomy->hierarchical,
+					'show_count'      => false,
+					'hide_empty'      => true,
+					'value_field'     => 'slug',
+					'id'              => $filter_id,
+					'echo'            => false,
+				)
+			);
+
+			if ( ! $is_visible ) {
+				/*
+				 * Prevent hidden selects from being serialised into the filter URL by
+				 * replacing the `name` attribute with `data-name`. A field without a
+				 * `name` is never included in a form submission, regardless of its
+				 * `disabled` state. JavaScript restores `name` ↔ `data-name` when the
+				 * user toggles visibility via Screen Options.
+				 *
+				 * We also add `disabled` as a secondary guard so the field remains
+				 * clearly inactive for any AT / autofill tooling that inspects the DOM.
+				 */
+				$dropdown = str_replace( " name='", " disabled data-name='", $dropdown );
+			}
+
+			if ( ! empty( $taxonomy->labels->filter_by_item ) ) {
+				$label = $taxonomy->labels->filter_by_item;
+			} else {
+				/* translators: %s: Taxonomy singular name. */
+				$label = sprintf( __( 'Filter by %s' ), $taxonomy->labels->singular_name );
+			}
+			?>
+			<div class="<?php echo esc_attr( $container_class ); ?>" data-taxonomy="<?php echo esc_attr( $taxonomy->name ); ?>">
+				<label class="screen-reader-text" for="<?php echo esc_attr( $filter_id ); ?>">
+					<?php echo esc_html( $label ); ?>
+				</label>
+				<?php echo $dropdown; ?>
+			</div>
+			<?php
+		}
+	}
+
+	/**
+	 * Renders the taxonomy filters section of the Screen Options panel.
+	 *
+	 * Outputs a fieldset with checkboxes to control which taxonomy filter
+	 * dropdowns are displayed in the post list table. Taxonomy filters are
+	 * hidden by default to avoid UI clutter for post types with many taxonomies.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string    $settings Existing screen settings markup.
+	 * @param WP_Screen $screen   Current screen object.
+	 * @return string Filtered screen settings markup.
+	 */
+	public function taxonomy_filter_screen_settings( $settings, $screen ) {
+		if ( $screen->id !== $this->screen->id ) {
+			return $settings;
+		}
+
+		$post_type  = $this->screen->post_type;
+		$taxonomies = $this->get_filterable_taxonomies( $post_type );
+
+		if ( empty( $taxonomies ) ) {
+			return $settings;
+		}
+
+		$visible = get_visible_taxonomy_filters( $screen );
+
+		ob_start();
+		?>
+		<fieldset class="metabox-prefs taxonomy-filter-prefs">
+		<legend><?php _e( 'Filters' ); ?></legend>
+		<?php
+		foreach ( $taxonomies as $taxonomy ) {
+			/*
+			 * Only show a Screen Options checkbox when there are terms to filter by.
+			 * This mirrors the hide_empty check in taxonomies_dropdown() and prevents
+			 * orphaned checkboxes whose containers are never rendered in the filter bar.
+			 */
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomy->name,
+					'hide_empty' => true,
+					'number'     => 1, // Only need 1 to confirm existence.
+				)
+			);
+
+			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+				continue;
+			}
+
+			$checkbox_id = 'taxonomy-filter-' . sanitize_html_class( $taxonomy->name );
+			echo '<label>';
+			echo '<input class="taxonomy-filter-tog" type="checkbox" id="' . esc_attr( $checkbox_id ) . '" value="' . esc_attr( $taxonomy->name ) . '"' . checked( in_array( $taxonomy->name, $visible, true ), true, false ) . ' />';
+			echo esc_html( $taxonomy->labels->name ) . "</label>\n";
+		}
+		?>
+		</fieldset>
+		<?php
+		$settings .= ob_get_clean();
+
+		return $settings;
+	}
+
+	/**
 	 * @param string $which
 	 */
 	protected function extra_tablenav( $which ) {
-		?>
-		<div class="alignleft actions">
-		<?php
 		if ( 'top' === $which ) {
+			// Row 1: built-in filters (date, category, format) and third-party additions.
 			ob_start();
 
 			$this->months_dropdown( $this->screen->post_type );
@@ -595,19 +842,55 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$output = ob_get_clean();
 
 			if ( ! empty( $output ) ) {
+				?>
+				<div class="alignleft actions">
+				<?php
 				echo $output;
 				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				?>
+				</div>
+				<?php
+			}
+
+			/*
+			 * Row 2: taxonomy filters. These are enabled individually via Screen Options.
+			 * The row itself is hidden when no taxonomy filters are active, and shown
+			 * (server-side on load, client-side on toggle) as soon as at least one is.
+			 * We always render the row when filterable taxonomies exist so that JS can
+			 * unhide individual containers and the row without a page reload.
+			 */
+			ob_start();
+			$this->taxonomies_dropdown( $this->screen->post_type );
+			$taxonomy_output = ob_get_clean();
+
+			if ( ! empty( $taxonomy_output ) ) {
+				$visible_taxonomies = get_visible_taxonomy_filters( $this->screen );
+				$row_class          = empty( $visible_taxonomies )
+					? 'alignleft actions taxonomy-filters-row hidden'
+					: 'alignleft actions taxonomy-filters-row';
+				?>
+				<div class="<?php echo esc_attr( $row_class ); ?>">
+				<?php
+				echo $taxonomy_output;
+				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit-taxonomy' ) );
+				?>
+				</div>
+				<?php
 			}
 		}
 
 		if ( $this->is_trash && $this->has_items()
 			&& current_user_can( get_post_type_object( $this->screen->post_type )->cap->edit_others_posts )
 		) {
+			?>
+			<div class="alignleft actions">
+			<?php
 			submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
+			?>
+			</div>
+			<?php
 		}
-		?>
-		</div>
-		<?php
+
 		/**
 		 * Fires immediately following the closing "actions" div in the tablenav for the posts
 		 * list table.
