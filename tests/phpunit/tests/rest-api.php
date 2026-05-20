@@ -2372,7 +2372,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array(
 				false,
 				'15e-1',
-			)
+			),
 		);
 	}
 
