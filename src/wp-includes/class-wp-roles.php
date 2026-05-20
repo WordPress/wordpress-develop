@@ -395,7 +395,7 @@ class WP_Roles {
 	/**
 	 * Retrieves the roles option for the current site.
 	 *
-	 * @since 7.0.1
+	 * @since TBD
 	 *
 	 * @return array Roles array.
 	 */
@@ -417,7 +417,7 @@ class WP_Roles {
 	 * the database table prefix is changed, migration tools may update table names
 	 * but fail to update these option names, leaving roles inaccessible.
 	 *
-	 * @since 7.0.1
+	 * @since TBD
 	 *
 	 * @param array $roles Current roles array, usually empty.
 	 * @return array Roles array.
