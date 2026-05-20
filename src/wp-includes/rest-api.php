@@ -1580,7 +1580,11 @@ function rest_is_integer( $maybe_integer ) {
 	}
 
 	// Decimal and scientific-notation strings (and floats) keep their historical behavior.
-	return is_numeric( $maybe_integer ) && floor( (float) $maybe_integer ) === (float) $maybe_integer;
+	if ( ! is_numeric( $maybe_integer ) ) {
+		return false;
+	}
+	$float_value = (float) $maybe_integer;
+	return floor( $float_value ) === $float_value;
 }
 
 /**
