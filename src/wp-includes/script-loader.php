@@ -3677,7 +3677,10 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
  * the filters are added to cause {@see wp_should_load_separate_core_block_assets()} to return true.
  *
  * @since 6.9.0
- * @since 7.0.0 This is now invoked at the `wp_default_styles` action with priority 0 instead of at `init` with priority 8.
+ * @since 7.0.0 This is also invoked at the `wp_default_styles` action with priority 0 so that filters are present when
+ *              `WP_Styles` is constructed before `init` priority 9. The `init` action at priority 8 is retained so
+ *              `register_core_block_style_handles()` can opt in to separate block assets without having to construct
+ *              `WP_Styles` first.
  *
  * @see _add_default_theme_supports()
  */
@@ -3692,7 +3695,9 @@ function wp_load_classic_theme_block_styles_on_demand(): void {
 	 * `wp_template_enhancement_output_buffer` filters added, but do so at priority zero so that applications which
 	 * wish to stream responses can more easily turn this off.
 	 */
-	add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
+	if ( ! has_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' ) ) {
+		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
+	}
 
 	// If a site has opted out of the template enhancement output buffer, then bail.
 	if ( ! wp_should_output_buffer_template_for_enhancement() ) {
@@ -3707,7 +3712,9 @@ function wp_load_classic_theme_block_styles_on_demand(): void {
 	 * this to be easily overridden by themes which wish to opt out. If a site has explicitly opted out of loading
 	 * separate block styles, then abort.
 	 */
-	add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
+	if ( ! has_filter( 'should_load_separate_core_block_assets', '__return_true' ) ) {
+		add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
+	}
 	if ( ! wp_should_load_separate_core_block_assets() ) {
 		return;
 	}
@@ -3717,13 +3724,17 @@ function wp_load_classic_theme_block_styles_on_demand(): void {
 	 * As above, a priority of zero allows for this to be easily overridden by themes which wish to opt out. If a site
 	 * has explicitly opted out of loading block styles on demand, then abort.
 	 */
-	add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
+	if ( ! has_filter( 'should_load_block_assets_on_demand', '__return_true' ) ) {
+		add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
+	}
 	if ( ! wp_should_load_block_assets_on_demand() ) {
 		return;
 	}
 
 	// Add hooks which require the presence of the output buffer. Ideally the above two filters could be added here, but they run too early.
-	add_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
+	if ( ! has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+		add_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
+	}
 }
 
 /**
