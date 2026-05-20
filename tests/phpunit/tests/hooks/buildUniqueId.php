@@ -15,7 +15,7 @@ class Tests_Hooks_BuildUniqueId extends WP_UnitTestCase {
 	}
 
 	public function test_closure_returns_string() {
-		$cb     = function() {};
+		$cb     = function () {};
 		$result = _wp_filter_build_unique_id( '', $cb, 10 );
 		$this->assertIsString( $result );
 	}
