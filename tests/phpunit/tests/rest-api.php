@@ -2291,6 +2291,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51146
+	 * @ticket 65271
 	 *
 	 * @dataProvider data_rest_is_integer
 	 *
@@ -2373,29 +2374,16 @@ class Tests_REST_API extends WP_UnitTestCase {
 				false,
 				'15e-1',
 			),
-		);
-	}
 
-	/**
-	 * @ticket 65271
-	 *
-	 * @dataProvider data_rest_is_integer_large_values
-	 *
-	 * @param mixed $value The value to check.
-	 */
-	public function test_rest_is_integer_large_values( $value ) {
-		$this->assertTrue( rest_is_integer( $value ) );
-	}
-
-	public function data_rest_is_integer_large_values() {
-		/*
-		 * These values failed with PHP 8.4 when rest_is_integer() used round() in its implementation.
-		 */
-		return array(
+			/*
+			 * These values failed with PHP 8.4 when rest_is_integer() used round() in its implementation.
+			 */
 			array(
+				true,
 				2 ** 52,
 			),
 			array(
+				true,
 				2 ** 52 + 2,
 			),
 		);
