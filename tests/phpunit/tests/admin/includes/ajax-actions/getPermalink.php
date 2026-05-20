@@ -49,9 +49,9 @@ class Tests_wp_ajax_get_permalink extends WP_Ajax_UnitTestCase {
 		);
 
 		$_POST = array(
-			'action'              => 'get-permalink',
-			'post_id'             => $post_id,
-			'getpermalinknonce'   => wp_create_nonce( 'getpermalink' ),
+			'action'            => 'get-permalink',
+			'post_id'           => $post_id,
+			'getpermalinknonce' => wp_create_nonce( 'getpermalink' ),
 		);
 
 		try {
@@ -73,9 +73,9 @@ class Tests_wp_ajax_get_permalink extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'              => 'get-permalink',
-			'post_id'             => 123,
-			'getpermalinknonce'   => 'invalid-nonce',
+			'action'            => 'get-permalink',
+			'post_id'           => 123,
+			'getpermalinknonce' => 'invalid-nonce',
 		);
 
 		$this->expectException( WPAjaxDieContinueException::class );
@@ -93,8 +93,8 @@ class Tests_wp_ajax_get_permalink extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'              => 'get-permalink',
-			'getpermalinknonce'   => wp_create_nonce( 'getpermalink' ),
+			'action'            => 'get-permalink',
+			'getpermalinknonce' => wp_create_nonce( 'getpermalink' ),
 		);
 
 		try {
