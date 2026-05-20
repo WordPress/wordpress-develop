@@ -124,5 +124,4 @@ class Tests_wp_ajax_closed_postboxes extends WP_Ajax_UnitTestCase {
 			$this->assertSame( '0', $e->getMessage() );
 		}
 	}
-
 }
