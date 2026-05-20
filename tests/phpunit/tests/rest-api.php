@@ -2308,7 +2308,12 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_rest_is_integer() {
+	/**
+	 * Data provider for {@see self::test_rest_is_integer()}.
+	 *
+	 * @return list<array{ bool, mixed }>
+	 */
+	public function data_rest_is_integer(): array {
 		return array(
 			array(
 				true,
