@@ -114,10 +114,10 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 			'menu-item'                   => array(
 				array(
 					'menu-item-type'      => 'post_type',
-                    'menu-item-object'    => 'page',
-				    'menu-item-object-id' => $post_id,
-			    ),
-            ),
+					'menu-item-object'    => 'page',
+					'menu-item-object-id' => $post_id,
+				),
+			),
        );
 
 		try {
