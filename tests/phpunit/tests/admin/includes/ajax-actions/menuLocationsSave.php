@@ -58,9 +58,9 @@ class Tests_wp_ajax_menu_locations_save extends WP_Ajax_UnitTestCase {
 		);
 
 		$_POST = array(
-			'action'                      => 'menu-locations-save',
-			'menu-settings-column-nonce'  => wp_create_nonce( 'add-menu_item' ),
-			'menu-locations'              => array(
+			'action'                     => 'menu-locations-save',
+			'menu-settings-column-nonce' => wp_create_nonce( 'add-menu_item' ),
+			'menu-locations'             => array(
 				'primary' => $menu_id,
 			),
 		);
@@ -85,9 +85,9 @@ class Tests_wp_ajax_menu_locations_save extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'                      => 'menu-locations-save',
-			'menu-settings-column-nonce'  => 'invalid-nonce',
-			'menu-locations'              => array(
+			'action'                     => 'menu-locations-save',
+			'menu-settings-column-nonce' => 'invalid-nonce',
+			'menu-locations'             => array(
 				'primary' => 1,
 			),
 		);
@@ -107,8 +107,8 @@ class Tests_wp_ajax_menu_locations_save extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'                      => 'menu-locations-save',
-			'menu-settings-column-nonce'  => wp_create_nonce( 'add-menu_item' ),
+			'action'                     => 'menu-locations-save',
+			'menu-settings-column-nonce' => wp_create_nonce( 'add-menu_item' ),
 		);
 
 		$this->expectException( WPAjaxDieStopException::class );
@@ -126,9 +126,9 @@ class Tests_wp_ajax_menu_locations_save extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$subscriber_id );
 
 		$_POST = array(
-			'action'                      => 'menu-locations-save',
-			'menu-settings-column-nonce'  => wp_create_nonce( 'add-menu_item' ),
-			'menu-locations'              => array(
+			'action'                     => 'menu-locations-save',
+			'menu-settings-column-nonce' => wp_create_nonce( 'add-menu_item' ),
+			'menu-locations'             => array(
 				'primary' => 1,
 			),
 		);
