@@ -50,6 +50,12 @@ class Tests_wp_ajax_menu_get_metabox extends WP_Ajax_UnitTestCase {
 	public function test_menu_get_metabox_post_type(): void {
 		wp_set_current_user( self::$admin_id );
 
+		self::factory()->post->create(
+			array(
+				'post_title' => 'Post Metabox Test',
+			)
+		);
+
 		$_POST = array(
 			'action'      => 'menu-get-metabox',
 			'item-type'   => 'post_type',
@@ -66,7 +72,7 @@ class Tests_wp_ajax_menu_get_metabox extends WP_Ajax_UnitTestCase {
 
 		$this->assertIsArray( $response );
 		$this->assertSame( 'posttype-post', $response['replace-id'] );
-		$this->assertStringContainsString( 'id="add-post"', $response['markup'] );
+		$this->assertStringContainsString( 'id="posttype-post"', $response['markup'] );
 		$this->assertStringContainsString( 'Post', $response['markup'] );
 	}
 
@@ -94,7 +100,7 @@ class Tests_wp_ajax_menu_get_metabox extends WP_Ajax_UnitTestCase {
 
 		$this->assertIsArray( $response );
 		$this->assertSame( 'taxonomy-category', $response['replace-id'] );
-		$this->assertStringContainsString( 'id="add-category"', $response['markup'] );
+		$this->assertStringContainsString( 'id="taxonomy-category"', $response['markup'] );
 		$this->assertStringContainsString( 'Categories', $response['markup'] );
 	}
 
