@@ -372,6 +372,11 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	grid-area: 2 / 2 / 3 / 3;
 }
 
+.attachments-browser .media-toolbar-secondary:has(#media-attachment-date-filters):not(:has(#media-attachment-filters)) {
+	display: block;
+}
+
+
 .media-toolbar-primary > .media-button,
 .media-toolbar-primary > .media-button-group {
 	margin-left: 10px;
