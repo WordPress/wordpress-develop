@@ -166,7 +166,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '42d3f09bba14cce3054d'
+		'version' => '54bb5a420026a61c7e4f'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -211,7 +211,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '4d2a3a72c7410d548881'
+		'version' => 'efaa5193bbad9c60ffd1'
 	),
 	'interactivity-router/full-page.js' => array(
 		'dependencies' => array(
