@@ -125,7 +125,7 @@ function wp_register_custom_css_support( $block_type ) {
 }
 
 /**
- * Strips `style.css` attributes from all blocks in post content.
+ * Strips custom CSS (`style.css` in attributes) from all blocks in post content.
  *
  * Uses {@see WP_Block_Parser::next_token()} to scan block tokens and surgically
  * replace only the attribute JSON that changed — no parse_blocks() +
