@@ -559,6 +559,10 @@ border color while dragging a file over the uploader drop area */
 	display: block;
 }
 
+.media-filter-container label {
+	padding-bottom: 2px;
+}
+
 .media-frame.mode-grid .media-toolbar select {
 	margin: 0 10px 0 0;
 	min-height: 32px;
