@@ -308,11 +308,6 @@ $phpmailer = new MockPHPMailer( true );
 // Delete any default posts & related data.
 _delete_all_posts();
 
-// Load class aliases for compatibility with PHPUnit 6+.
-if ( version_compare( tests_get_phpunit_version(), '6.0', '>=' ) ) {
-	require __DIR__ . '/phpunit6/compat.php';
-}
-
 require __DIR__ . '/phpunit-adapter-testcase.php';
 require __DIR__ . '/abstract-testcase.php';
 require __DIR__ . '/testcase.php';

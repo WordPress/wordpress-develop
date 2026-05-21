@@ -584,16 +584,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 3.7.0
 	 */
 	public function expectDeprecated() {
-		if ( method_exists( $this, 'getAnnotations' ) ) {
-			// PHPUnit < 9.5.0.
-			$annotations = $this->getAnnotations();
-		} else {
-			// PHPUnit >= 9.5.0.
-			$annotations = \PHPUnit\Util\Test::parseTestMethodAnnotations(
-				static::class,
-				$this->getName( false )
-			);
-		}
+		$annotations = \PHPUnit\Util\Test::parseTestMethodAnnotations(
+			static::class,
+			$this->getName( false )
+		);
 
 		foreach ( array( 'class', 'method' ) as $depth ) {
 			if ( ! empty( $annotations[ $depth ]['expectedDeprecated'] ) ) {
@@ -1370,21 +1364,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		_cleanup_query_vars();
 
 		$GLOBALS['wp']->main( $parts['query'] );
-	}
-
-	/**
-	 * Allows tests to be skipped on single or multisite installs by using @group annotations.
-	 *
-	 * This is a custom extension of the PHPUnit requirements handling.
-	 *
-	 * @since 3.5.0
-	 * @deprecated 5.9.0 This method has not been functional since PHPUnit 7.0.
-	 */
-	protected function checkRequirements() {
-		// For PHPUnit 5/6, as we're overloading a public PHPUnit native method in those versions.
-		if ( is_callable( 'PHPUnit\Framework\TestCase', 'checkRequirements' ) ) {
-			parent::checkRequirements();
-		}
 	}
 
 	/**
