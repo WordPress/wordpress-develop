@@ -522,7 +522,7 @@ class WP_Ability {
 		 * override it. If default validation passed, the filter can add additional
 		 * validation checks and return a WP_Error if those checks fail.
 		 *
-		 * @since 7.0.0
+		 * @since 7.1.0
 		 *
 		 * @param true|WP_Error $is_valid     The validation result from default validation.
 		 * @param mixed         $input        The input data being validated.
@@ -530,12 +530,12 @@ class WP_Ability {
 		 */
 		$validity = apply_filters( 'wp_ability_validate_input', $is_valid, $input, $this->name );
 		if ( false === $validity ) {
-			$validity = new WP_Error( 'ability_invalid_input', __( 'Invalid input.' ) );
+			return new WP_Error( 'ability_invalid_input', __( 'Invalid input.' ) );
 		}
-		if ( ! is_wp_error( $validity ) || ! $validity->has_errors() ) {
-			$validity = true;
+		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
+			return $validity;
 		}
-		return $validity;
+		return true;
 	}
 
 	/**
@@ -704,7 +704,7 @@ class WP_Ability {
 		 * override it. If default validation passed, the filter can add additional
 		 * validation checks and return a WP_Error if those checks fail.
 		 *
-		 * @since 7.0.0
+		 * @since 7.1.0
 		 *
 		 * @param true|WP_Error $is_valid     The validation result from default validation.
 		 * @param mixed         $output       The output data being validated.
@@ -712,12 +712,12 @@ class WP_Ability {
 		 */
 		$validity = apply_filters( 'wp_ability_validate_output', $is_valid, $output, $this->name );
 		if ( false === $validity ) {
-			$validity = new WP_Error( 'ability_invalid_output', __( 'Invalid output.' ) );
+			return new WP_Error( 'ability_invalid_output', __( 'Invalid output.' ) );
 		}
-		if ( ! is_wp_error( $validity ) || ! $validity->has_errors() ) {
-			$validity = true;
+		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
+			return $validity;
 		}
-		return $validity;
+		return true;
 	}
 
 	/**
