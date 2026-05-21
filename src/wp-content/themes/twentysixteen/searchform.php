@@ -9,7 +9,11 @@
 
 ?>
 
-<form role="search" method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+<?php $twentysixteen_wrap_in_search = ! empty( $args['wrap_in_search'] ); ?>
+<?php if ( $twentysixteen_wrap_in_search ) : ?>
+<search>
+<?php endif; ?>
+<form <?php echo $twentysixteen_wrap_in_search ? '' : 'role="search" '; ?>method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
 	<label>
 		<span class="screen-reader-text">
 			<?php
@@ -26,3 +30,6 @@
 		?>
 	</span></button>
 </form>
+<?php if ( $twentysixteen_wrap_in_search ) : ?>
+</search>
+<?php endif; ?>

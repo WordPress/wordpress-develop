@@ -22,8 +22,13 @@ $twentytwenty_aria_label = ! empty( $args['aria_label'] ) ? 'aria-label="' . esc
 if ( empty( $twentytwenty_aria_label ) && ! empty( $args['label'] ) ) {
 	$twentytwenty_aria_label = 'aria-label="' . esc_attr( $args['label'] ) . '"';
 }
+
+$twentytwenty_wrap_in_search = ! empty( $args['wrap_in_search'] );
 ?>
-<form role="search" <?php echo $twentytwenty_aria_label; ?> method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+<?php if ( $twentytwenty_wrap_in_search ) : ?>
+<search<?php echo $twentytwenty_aria_label ? ' ' . $twentytwenty_aria_label : ''; ?>>
+<?php endif; ?>
+<form <?php echo $twentytwenty_wrap_in_search ? '' : 'role="search" ' . $twentytwenty_aria_label . ' '; ?>method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
 	<label for="<?php echo esc_attr( $twentytwenty_unique_id ); ?>">
 		<span class="screen-reader-text">
 			<?php
@@ -35,3 +40,6 @@ if ( empty( $twentytwenty_aria_label ) && ! empty( $args['label'] ) ) {
 	</label>
 	<input type="submit" class="search-submit" value="<?php echo esc_attr_x( 'Search', 'submit button', 'twentytwenty' ); ?>" />
 </form>
+<?php if ( $twentytwenty_wrap_in_search ) : ?>
+</search>
+<?php endif; ?>
