@@ -78,6 +78,7 @@ jobs:
   # - Configure environment variables.
   # - Checkout repository.
   # - Set up Node.js.
+  # - Set up PHP.
   # - Log debug information.
   # - Install npm dependencies.
   # - Install Playwright browsers.
