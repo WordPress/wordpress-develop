@@ -1578,12 +1578,20 @@ function rest_is_integer( $maybe_integer ) {
 		return false;
 	}
 
-	$integer_pattern = '/^[+-]?\d+$/';
+	$integer_pattern    = '/^[+-]?\d+$/';
+	$scientific_pattern = '/^[+-]?\d+e\+?\d+$/i';
 
-	return preg_match(
-		$integer_pattern,
-		trim( (string) $maybe_integer )
-	) === 1;
+	$value = trim( (string) $maybe_integer );
+
+	if ( preg_match( $integer_pattern, $value ) ) {
+		return true;
+	}
+
+	if ( preg_match( $scientific_pattern, $value ) ) {
+		return true;
+	}
+
+	return false;
 }
 
 /**
