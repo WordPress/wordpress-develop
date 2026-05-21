@@ -82,7 +82,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
@@ -132,7 +132,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
@@ -194,7 +194,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
@@ -255,7 +255,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
@@ -328,7 +328,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count.
-		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+		$original_count = $wp_actions['init'] ?? 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );

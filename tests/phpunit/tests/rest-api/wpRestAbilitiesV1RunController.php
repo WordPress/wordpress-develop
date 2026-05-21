@@ -6,7 +6,7 @@
  * @covers WP_REST_Abilities_V1_Run_Controller
  *
  * @group abilities-api
- * @group rest-api
+ * @group restapi
  */
 class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
@@ -472,7 +472,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 'User successfully deleted!', $response->get_data() );
+		$this->assertSame( 'User successfully deleted!', $response->get_data() );
 	}
 
 	/**
@@ -630,7 +630,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 'Success: test data', $response->get_data() );
+		$this->assertSame( 'Success: test data', $response->get_data() );
 	}
 
 	/**
@@ -646,8 +646,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 404, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
-		$this->assertEquals( 'Ability not found.', $data['message'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'Ability not found.', $data['message'] );
 	}
 
 	/**
@@ -679,8 +679,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 500, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'test_error', $data['code'] );
-		$this->assertEquals( 'This is a test error', $data['message'] );
+		$this->assertSame( 'test_error', $data['code'] );
+		$this->assertSame( 'This is a test error', $data['message'] );
 	}
 
 	/**
@@ -698,7 +698,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 404, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 	}
 
 	/**
@@ -714,8 +714,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'schema', $data );
 		$schema = $data['schema'];
 
-		$this->assertEquals( 'ability-execution', $schema['title'] );
-		$this->assertEquals( 'object', $schema['type'] );
+		$this->assertSame( 'ability-execution', $schema['title'] );
+		$this->assertSame( 'object', $schema['type'] );
 		$this->assertArrayHasKey( 'properties', $schema );
 		$this->assertArrayHasKey( 'result', $schema['properties'] );
 	}
@@ -761,7 +761,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'nested', $data['level1']['level2']['value'] );
+		$this->assertSame( 'nested', $data['level1']['level2']['value'] );
 		$this->assertEquals( array( 1, 2, 3 ), $data['array'] );
 	}
 
@@ -900,6 +900,80 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'Ability "test/strict-input" has invalid input. Reason: required_field is a required property of input.',
 			$data['message']
 		);
+	}
+
+	/**
+	 * Tests that a normalization filter error defaults to a 400 REST response.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_normalize_input_filter_error_defaults_to_bad_request_status(): void {
+		$filter = static function ( $input ) {
+			return new WP_Error( 'normalize_rejected', 'Rejected input.' );
+		};
+
+		add_filter( 'wp_ability_normalize_input', $filter );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 5,
+						'b' => 3,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		remove_filter( 'wp_ability_normalize_input', $filter );
+
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'normalize_rejected', $data['code'] );
+		$this->assertSame( 'Rejected input.', $data['message'] );
+	}
+
+	/**
+	 * Tests that a normalization filter error with custom status keeps that status.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_normalize_input_filter_error_preserves_custom_status(): void {
+		$filter = static function ( $input ) {
+			return new WP_Error(
+				'normalize_unprocessable',
+				'Input cannot be normalized.',
+				array( 'status' => 422 )
+			);
+		};
+
+		add_filter( 'wp_ability_normalize_input', $filter );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 5,
+						'b' => 3,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		remove_filter( 'wp_ability_normalize_input', $filter );
+
+		$this->assertSame( 422, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'normalize_unprocessable', $data['code'] );
+		$this->assertSame( 'Input cannot be normalized.', $data['message'] );
 	}
 
 	/**

@@ -413,7 +413,7 @@ function wp_maybe_enqueue_oembed_host_js( $html ) {
  *
  * @since 4.4.0
  *
- * @param int|WP_Post $post Optional. Post ID or object. Defaults to the current post.
+ * @param int|WP_Post|null $post Optional. Post ID or object. Defaults to the current post.
  * @return string|false The post embed URL on success, false if the post doesn't exist.
  */
 function get_post_embed_url( $post = null ) {
@@ -482,9 +482,9 @@ function get_oembed_endpoint_url( $permalink = '', $format = 'json' ) {
  *
  * @since 4.4.0
  *
- * @param int         $width  The width for the response.
- * @param int         $height The height for the response.
- * @param int|WP_Post $post   Optional. Post ID or object. Default is global `$post`.
+ * @param int              $width  The width for the response.
+ * @param int              $height The height for the response.
+ * @param int|WP_Post|null $post   Optional. Post ID or object. Default is global `$post`.
  * @return string|false Embed code on success, false if post doesn't exist.
  */
 function get_post_embed_html( $width, $height, $post = null ) {
@@ -693,7 +693,7 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		return false;
 	}
 
-	$width = isset( $args['width'] ) ? $args['width'] : 0;
+	$width = $args['width'] ?? 0;
 
 	$data = get_oembed_response_data( $post_id, $width );
 
@@ -739,10 +739,13 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 	}
 
 	if ( $thumbnail_id ) {
-		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
-		$data['thumbnail_url']                                      = $thumbnail_url;
-		$data['thumbnail_width']                                    = $thumbnail_width;
-		$data['thumbnail_height']                                   = $thumbnail_height;
+		$thumbnail_src = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
+
+		if ( is_array( $thumbnail_src ) ) {
+			$data['thumbnail_url']    = $thumbnail_src[0];
+			$data['thumbnail_width']  = $thumbnail_src[1];
+			$data['thumbnail_height'] = $thumbnail_src[2];
+		}
 	}
 
 	return $data;

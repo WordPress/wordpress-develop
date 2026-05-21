@@ -66,13 +66,15 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4' ]
         tests-domain: [ 'example.org' ]
@@ -143,13 +145,15 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mariadb' ]
         db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
         multisite: [ false, true ]
@@ -177,7 +181,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
-      report: ${{ false }}
+      report: false
 
   #
   # Creates PHPUnit test jobs to test MariaDB and MySQL innovation releases.
@@ -195,30 +199,27 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '9.5', '12.0' ]
+        db-version: [ '9.6', '12.1' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
 
         exclude:
-          # MySQL 9.0+ will not work on PHP <= 7.3 because mysql_native_password was removed. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '9.5'
-          - php: '7.3'
-            db-version: '9.5'
           # Exclude version combinations that don't exist.
           - db-type: 'mariadb'
-            db-version: '9.5'
+            db-version: '9.6'
           - db-type: 'mysql'
-            db-version: '12.0'
+            db-version: '12.1'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -228,7 +229,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
-      report: ${{ false }}
+      report: false
 
   #
   # Runs the HTML API test group.
@@ -243,12 +244,14 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
       matrix:
-        php: [ '7.2', '7.4', '8.0', '8.4' ]
+        php: [ '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
         phpunit-test-groups: [ 'html-api-html5lib-tests' ]
@@ -272,12 +275,14 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
-        php: [ '7.2', '8.4' ]
+        php: [ '7.4', '8.4' ]
         db-version: [ '8.4', '11.8' ]
         db-type: [ 'mysql', 'mariadb' ]
         multisite: [ false ]

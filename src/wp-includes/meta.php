@@ -674,11 +674,7 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 
 	if ( ! $meta_cache ) {
 		$meta_cache = update_meta_cache( $meta_type, array( $object_id ) );
-		if ( isset( $meta_cache[ $object_id ] ) ) {
-			$meta_cache = $meta_cache[ $object_id ];
-		} else {
-			$meta_cache = null;
-		}
+		$meta_cache = $meta_cache[ $object_id ] ?? null;
 	}
 
 	if ( ! $meta_key ) {
@@ -1401,6 +1397,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
  * @since 6.7.0 The `label` argument was added to the arguments array.
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param string       $object_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                                  'user', or any other object type with an associated meta table.
  * @param string       $meta_key    Meta key to register.
@@ -1571,6 +1569,8 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
  *
  * @since 5.5.0
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param mixed  $value     Current value passed to filter.
  * @param int    $object_id ID of the object metadata is for.
  * @param string $meta_key  Metadata key.
@@ -1650,6 +1650,8 @@ function registered_meta_key_exists( $object_type, $meta_key, $object_subtype = 
  * @since 4.6.0
  * @since 4.9.8 The `$object_subtype` parameter was added.
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param string $object_type    Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                               'user', or any other object type with an associated meta table.
  * @param string $meta_key       Metadata key.
@@ -1699,6 +1701,8 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
  *
  * @since 4.6.0
  * @since 4.9.8 The `$object_subtype` parameter was added.
+ *
+ * @global array $wp_meta_keys Global registry for meta keys.
  *
  * @param string $object_type    Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                               'user', or any other object type with an associated meta table.

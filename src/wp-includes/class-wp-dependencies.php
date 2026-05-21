@@ -56,11 +56,12 @@ class WP_Dependencies {
 	/**
 	 * An array of additional arguments passed when a handle is registered.
 	 *
-	 * Arguments are appended to the item query string.
+	 * The keys are dependency handles and the values are query strings which are appended to the item URL's query
+	 * string, after the `ver` if provided.
 	 *
 	 * @since 2.6.0
 	 *
-	 * @var array
+	 * @var array<string, string>
 	 */
 	public $args = array();
 
@@ -100,7 +101,7 @@ class WP_Dependencies {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @var array
+	 * @var array<string, string|null>
 	 */
 	private $queued_before_register = array();
 
@@ -111,7 +112,7 @@ class WP_Dependencies {
 	 * warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this list, so that duplicate
 	 * warnings don't occur.
 	 *
-	 * @since 7.0.0
+	 * @since 6.9.1
 	 * @var string[]
 	 */
 	private $dependencies_with_missing_dependencies = array();
@@ -223,7 +224,7 @@ class WP_Dependencies {
 					_doing_it_wrong(
 						get_class( $this ) . '::add',
 						$this->get_dependency_warning_message( $handle, $missing_dependencies ),
-						'7.0.0'
+						'6.9.1'
 					);
 					$this->dependencies_with_missing_dependencies[] = $handle;
 				}
@@ -476,10 +477,7 @@ class WP_Dependencies {
 		switch ( $status ) {
 			case 'registered':
 			case 'scripts': // Back compat.
-				if ( isset( $this->registered[ $handle ] ) ) {
-					return $this->registered[ $handle ];
-				}
-				return false;
+				return $this->registered[ $handle ] ?? false;
 
 			case 'enqueued':
 			case 'queue': // Back compat.
@@ -563,7 +561,7 @@ class WP_Dependencies {
 	/**
 	 * Gets a dependency warning message for a handle.
 	 *
-	 * @since 7.0.0
+	 * @since 6.9.1
 	 *
 	 * @param string   $handle                     Handle with missing dependencies.
 	 * @param string[] $missing_dependency_handles Missing dependency handles.
@@ -571,10 +569,10 @@ class WP_Dependencies {
 	 */
 	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
 		return sprintf(
-			/* translators: 1: Handle, 2: Comma-separated list of missing dependency handles. */
+			/* translators: 1: Handle, 2: List of missing dependency handles. */
 			__( 'The handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 			$handle,
-			implode( ', ', $missing_dependency_handles )
+			implode( wp_get_list_item_separator(), $missing_dependency_handles )
 		);
 	}
 }

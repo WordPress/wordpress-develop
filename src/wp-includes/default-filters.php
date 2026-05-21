@@ -385,7 +385,7 @@ if (
 
 // Login actions.
 add_action( 'login_head', 'wp_robots', 1 );
-add_filter( 'login_head', 'wp_resource_hints', 8 );
+add_action( 'login_head', 'wp_resource_hints', 8 );
 add_action( 'login_head', 'wp_print_head_scripts', 9 );
 add_action( 'login_head', 'print_admin_styles', 9 );
 add_action( 'login_head', 'wp_site_icon', 99 );
@@ -538,6 +538,9 @@ add_action( 'parse_request', 'rest_api_loaded' );
 add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
+// Connectors API.
+add_action( 'init', '_wp_connectors_init', 15 );
+
 // Sitemaps actions.
 add_action( 'init', 'wp_sitemaps_get_server' );
 
@@ -599,10 +602,11 @@ add_action( 'wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_enqueue_command_palette_assets' );
+add_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_classic_theme_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
-add_action( 'init', 'wp_load_classic_theme_block_styles_on_demand', 8 ); // Must happen before register_core_block_style_handles() at priority 9.
+add_action( 'wp_default_styles', 'wp_load_classic_theme_block_styles_on_demand', 0 ); // Must happen before wp_default_styles() and register_core_block_style_handles().
 /*
  * `wp_enqueue_registered_block_scripts_and_styles` is bound to both
  * `enqueue_block_editor_assets` and `enqueue_block_assets` hooks
@@ -620,7 +624,9 @@ add_action( 'enqueue_block_editor_assets', 'wp_enqueue_registered_block_scripts_
 add_action( 'enqueue_block_editor_assets', 'enqueue_editor_block_styles_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_block_directory_assets' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_format_library_assets' );
+add_action( 'enqueue_block_editor_assets', 'wp_enqueue_block_editor_script_modules' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_global_styles_css_custom_properties' );
+add_action( 'enqueue_block_editor_assets', '_wp_enqueue_auto_register_blocks' );
 add_action( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );
 add_action( 'customize_controls_print_styles', 'wp_resource_hints', 1 );
@@ -786,17 +792,5 @@ add_action( 'init', '_wp_register_default_font_collections' );
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
-
-// Update ignoredHookedBlocks postmeta for some post types.
-add_filter( 'rest_pre_insert_page', 'update_ignored_hooked_blocks_postmeta' );
-add_filter( 'rest_pre_insert_post', 'update_ignored_hooked_blocks_postmeta' );
-add_filter( 'rest_pre_insert_wp_block', 'update_ignored_hooked_blocks_postmeta' );
-add_filter( 'rest_pre_insert_wp_navigation', 'update_ignored_hooked_blocks_postmeta' );
-
-// Inject hooked blocks into the Posts endpoint REST response for some given post types.
-add_filter( 'rest_prepare_page', 'insert_hooked_blocks_into_rest_response', 10, 2 );
-add_filter( 'rest_prepare_post', 'insert_hooked_blocks_into_rest_response', 10, 2 );
-add_filter( 'rest_prepare_wp_block', 'insert_hooked_blocks_into_rest_response', 10, 2 );
-add_filter( 'rest_prepare_wp_navigation', 'insert_hooked_blocks_into_rest_response', 10, 2 );
 
 unset( $filter, $action );
