@@ -157,19 +157,19 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 				'min'      => 0,
 				'max'      => INF,
 			),
-			'string within range' => array(
+			'string within range'            => array(
 				'expected' => 'l',
 				'value'    => 'l',
 				'min'      => 'a',
 				'max'      => 'z',
 			),
-			'string below min'    => array(
+			'string below min'               => array(
 				'expected' => 'e',
 				'value'    => 'a',
 				'min'      => 'e',
 				'max'      => 'z',
 			),
-			'string above max'    => array(
+			'string above max'               => array(
 				'expected' => 'p',
 				'value'    => 'z',
 				'min'      => 'a',
