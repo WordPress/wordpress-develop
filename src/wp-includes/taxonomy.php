@@ -1046,7 +1046,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 
 	// Sanitize term, according to the specified filter.
 	if ( $_term !== $old_term || $_term->filter !== $filter ) {
-		$_term->filter( $filter );
+		$_term = $_term->filter( $filter );
 	}
 
 	if ( ARRAY_A === $output ) {
@@ -1722,6 +1722,16 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 	$fields = array( 'term_id', 'name', 'description', 'slug', 'count', 'parent', 'term_group', 'term_taxonomy_id', 'object_id' );
 
 	$do_object = is_object( $term );
+
+	if ( 'raw' !== $context ) {
+		if ( $do_object ) {
+			if ( isset( $term->filter ) && $context === $term->filter ) {
+				return $term;
+			}
+		} elseif ( isset( $term['filter'] ) && $context === $term['filter'] ) {
+			return $term;
+		}
+	}
 
 	$term_id = $do_object ? ( $term->term_id ?? 0 ) : ( $term['term_id'] ?? 0 );
 

@@ -230,6 +230,32 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50568
+	 */
+	public function test_get_instance_should_prime_unfiltered_cached_term_as_raw() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$term    = get_term( $term_id, 'wptests_tax' );
+
+		$this->assertInstanceOf( 'WP_Term', $term );
+
+		$term->filter = '';
+		wp_cache_delete( $term_id, 'terms' );
+		update_term_cache( array( $term ) );
+
+		$cached_term = wp_cache_get( $term_id, 'terms' );
+		$this->assertSame( '', $cached_term->filter );
+
+		$found = WP_Term::get_instance( $term_id );
+
+		$this->assertInstanceOf( 'WP_Term', $found );
+		$this->assertSame( 'raw', $found->filter );
+
+		$cached_term = wp_cache_get( $term_id, 'terms' );
+		$this->assertSame( 'raw', $cached_term->filter );
+	}
+
+	/**
 	 * @ticket 21760
 	 */
 	public function test_get_term_by_slug_cache() {
