@@ -32,6 +32,11 @@
 		},
 		"lock": false
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"WordPress\\PHPStan\\": "tests/phpstan/"
+		}
+	},
 	"scripts": {
 		"phpstan": "@php ./vendor/bin/phpstan analyse --memory-limit=2G",
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
