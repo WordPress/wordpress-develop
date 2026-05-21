@@ -1433,7 +1433,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function prepareTemplate( Text_Template $template ) {
 		$template->setVar( array( 'constants' => '' ) );
-		$template->setVar( array( 'wp_constants' => PHPUnit_Util_GlobalState::getConstantsAsString() ) );
+		$template->setVar( array( 'wp_constants' => PHPUnit\Util\GlobalState::getConstantsAsString() ) );
 		parent::prepareTemplate( $template );
 	}
 

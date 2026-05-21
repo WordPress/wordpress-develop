@@ -55,7 +55,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		if ( $exception ) {
 			try {
 				$this->assertSameSets( $expected, $actual );
-			} catch ( PHPUnit_Framework_ExpectationFailedException $ex ) {
+			} catch ( PHPUnit\Framework\ExpectationFailedException $ex ) {
 				return;
 			}
 
@@ -211,7 +211,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		if ( $exception ) {
 			try {
 				$this->assertSameSetsWithIndex( $expected, $actual );
-			} catch ( PHPUnit_Framework_ExpectationFailedException $ex ) {
+			} catch ( PHPUnit\Framework\ExpectationFailedException $ex ) {
 				return;
 			}
 

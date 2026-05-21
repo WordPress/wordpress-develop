@@ -33,7 +33,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 * @param string $name            Name for the widget displayed on the configuration page.
 	 * @param array  $widget_options  Optional. Widget options.
 	 * @param array  $control_options Optional. Widget control options.
-	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Widget_Media Mocked instance.
+	 * @return PHPUnit\Framework\MockObject\MockObject|WP_Widget_Media Mocked instance.
 	 */
 	private function get_mocked_class_instance( $id_base = 'mocked', $name = 'Mocked', $widget_options = array(), $control_options = array() ) {
 		$original_class_name       = 'WP_Widget_Media';

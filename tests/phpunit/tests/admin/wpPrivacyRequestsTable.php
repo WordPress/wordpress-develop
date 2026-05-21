@@ -34,7 +34,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Privacy_Requests_Table Mocked class instance.
+	 * @return PHPUnit\Framework\MockObject\MockObject|WP_Privacy_Requests_Table Mocked class instance.
 	 */
 	public function get_mocked_class_instance() {
 		$args = array(
