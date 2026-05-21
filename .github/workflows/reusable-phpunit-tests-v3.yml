@@ -220,7 +220,7 @@ jobs:
             {
               echo "pcov.enabled=1"
               echo "pcov.directory=/var/www/src"
-              echo "pcov.initial.files=2000"
+              echo "pcov.initial.files=10000"
             } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
             php -m | grep -i pcov
           '
