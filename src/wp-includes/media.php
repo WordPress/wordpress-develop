@@ -956,6 +956,57 @@ function wp_get_registered_image_subsizes() {
 }
 
 /**
+ * Determines the encode quality WordPress would use for an image.
+ *
+ * Resolves the quality the same way WP_Image_Editor::set_quality() does when no
+ * explicit quality is supplied: it starts from the per-format default, applies the
+ * 'wp_editor_set_quality' filter, then the 'jpeg_quality' filter for JPEG output,
+ * and clamps the result to the valid 1-100 range.
+ *
+ * This lets code outside of an image editor instance - such as the REST API, which
+ * reports the quality client-side processing should use - resolve the same value the
+ * server would apply, without loading the image into an editor.
+ *
+ * @since 7.1.0
+ *
+ * @param string   $mime_type       The output image MIME type, e.g. 'image/jpeg'.
+ * @param array    $size            {
+ *     Optional. Dimensions of the image, passed to the 'wp_editor_set_quality' filter.
+ *
+ *     @type int $width  The image width in pixels.
+ *     @type int $height The image height in pixels.
+ * }
+ * @param int|null $default_quality Optional. Starting quality before filters are applied.
+ *                                  Defaults to the per-format default (86 for WebP, 82 otherwise).
+ * @return int Encode quality between 1 and 100.
+ */
+function wp_get_image_encode_quality( $mime_type, $size = array(), $default_quality = null ) {
+	if ( null === $default_quality ) {
+		// Mirror WP_Image_Editor::get_default_quality(): WebP defaults to 86, everything else to 82.
+		$default_quality = ( 'image/webp' === $mime_type ) ? 86 : 82;
+	}
+
+	/** This filter is documented in wp-includes/class-wp-image-editor.php */
+	$quality = apply_filters( 'wp_editor_set_quality', $default_quality, $mime_type, $size );
+
+	if ( 'image/jpeg' === $mime_type ) {
+		/** This filter is documented in wp-includes/class-wp-image-editor.php */
+		$quality = apply_filters( 'jpeg_quality', $quality, 'image_resize' );
+	}
+
+	if ( $quality < 0 || $quality > 100 ) {
+		$quality = $default_quality;
+	}
+
+	// Allow 0, but squash to 1, matching WP_Image_Editor::set_quality().
+	if ( 0 === $quality ) {
+		$quality = 1;
+	}
+
+	return (int) $quality;
+}
+
+/**
  * Retrieves an image to represent an attachment.
  *
  * @since 2.5.0
