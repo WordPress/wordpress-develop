@@ -39,13 +39,13 @@ function render_block_core_cover( $attributes, $content ) {
 				$lower_src = strtolower( $iframe_src );
 				$provider  = null;
 
-				if ( str_contains( $lower_src, 'youtube.com' ) || str_contains( $lower_src, 'youtu.be' ) ) {
+				if ( strpos( $lower_src, 'youtube.com' ) !== false || strpos( $lower_src, 'youtu.be' ) !== false ) {
 					$provider = 'youtube';
-				} elseif ( str_contains( $lower_src, 'vimeo.com' ) ) {
+				} elseif ( strpos( $lower_src, 'vimeo.com' ) !== false ) {
 					$provider = 'vimeo';
-				} elseif ( str_contains( $lower_src, 'videopress.com' ) ) {
+				} elseif ( strpos( $lower_src, 'videopress.com' ) !== false ) {
 					$provider = 'videopress';
-				} elseif ( str_contains( $lower_src, 'wordpress.tv' ) ) {
+				} elseif ( strpos( $lower_src, 'wordpress.tv' ) !== false ) {
 					$provider = 'wordpress-tv';
 				}
 

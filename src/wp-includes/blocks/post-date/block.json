@@ -11,6 +11,9 @@
 			"type": "string",
 			"role": "content"
 		},
+		"textAlign": {
+			"type": "string"
+		},
 		"format": {
 			"type": "string"
 		},
@@ -43,7 +46,6 @@
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
-			"textAlign": true,
 			"__experimentalFontFamily": true,
 			"__experimentalFontWeight": true,
 			"__experimentalFontStyle": true,
