@@ -190,7 +190,7 @@ jobs:
         if: ${{ inputs.subject == 'base' }}
         run: |
           VERSION="${BASE_TAG%.0}"
-          wp core download --version="$VERSION" --force --path="/var/www/${LOCAL_DIR}"
+          wp core download --version="$VERSION" --force --path="${LOCAL_DIR}"
 
       - name: Install object cache drop-in
         if: ${{ inputs.memcached }}
