@@ -52,6 +52,9 @@
 	<!-- Exclude translation files. -->
 	<exclude-pattern>/src/wp-content/languages/*</exclude-pattern>
 
+	<!-- Exclude generated Gutenberg style build artifacts. -->
+	<exclude-pattern>/src/wp-includes/css/dist/*</exclude-pattern>
+
 	<!--
 		PHPCompatibilityParagonieSodiumCompat prevents false positives in `sodium_compat`.
 		However, because these files are included in a non-standard path, false positives are triggered in WordPress Core.
