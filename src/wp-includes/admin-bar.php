@@ -971,8 +971,12 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 */
 	$function = <<<'JS'
 		( applePattern, appleOSLabel ) => {
-			if ( ( new RegExp( applePattern ) ).test( navigator.userAgent ) ) {
-				document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' ).textContent = appleOSLabel;
+			if ( ! ( new RegExp( applePattern, 'i' ) ).test( navigator.userAgent ) ) {
+				return;
+			}
+			const kbd = document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' );
+			if ( kbd ) {
+				kbd.textContent = appleOSLabel;
 			}
 		}
 	JS;
@@ -1461,50 +1465,4 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 	}
 
 	return 'true' === $pref;
-}
-
-/**
- * Adds CSS from the administration color scheme stylesheet on the front end.
- *
- * @since 7.0.0
- *
- * @global array $_wp_admin_css_colors Registered administration color schemes.
- */
-function wp_admin_bar_add_color_scheme_to_front_end() {
-	if ( is_admin() ) {
-		return;
-	}
-
-	global $_wp_admin_css_colors;
-
-	if ( empty( $_wp_admin_css_colors ) ) {
-		register_admin_color_schemes();
-	}
-
-	$color_scheme = get_user_option( 'admin_color' );
-
-	if ( empty( $color_scheme ) || ! isset( $_wp_admin_css_colors[ $color_scheme ] ) ) {
-		$color_scheme = 'modern';
-	}
-
-	$color = $_wp_admin_css_colors[ $color_scheme ] ?? null;
-	$url   = $color->url ?? '';
-
-	if ( $url ) {
-		$response = wp_remote_get( $url );
-		if ( ! is_wp_error( $response ) ) {
-			$css = $response['body'];
-			if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
-				$start_position = strpos( $css, '#wpadminbar' );
-				$end_position   = strpos( $css, '.wp-pointer' );
-				if ( false !== $end_position && $end_position > $start_position ) {
-					$css = substr( $css, $start_position, $end_position - $start_position );
-					if ( SCRIPT_DEBUG ) {
-						$css = str_replace( '/* Pointers */', '', $css );
-					}
-				}
-				wp_add_inline_style( 'admin-bar', $css );
-			}
-		}
-	}
 }
