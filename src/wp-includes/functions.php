@@ -3120,6 +3120,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		$real_mime = wp_get_image_mime( $file );
 
 		$heic_images_extensions = array(
+			'heic',
 			'heif',
 			'heics',
 			'heifs',
@@ -3144,16 +3145,10 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/webp'          => 'webp',
 					'image/avif'          => 'avif',
 
-					/*
-					 * In theory there are/should be file extensions that correspond to the
-					 * mime types: .heif, .heics and .heifs. However it seems that HEIC images
-					 * with any of the mime types commonly have a .heic file extension.
-					 * Seems keeping the status quo here is best for compatibility.
-					 */
 					'image/heic'          => 'heic',
-					'image/heif'          => 'heic',
-					'image/heic-sequence' => 'heic',
-					'image/heif-sequence' => 'heic',
+					'image/heif'          => 'heif',
+					'image/heic-sequence' => 'heics',
+					'image/heif-sequence' => 'heifs',
 				)
 			);
 
@@ -3470,7 +3465,6 @@ function wp_get_mime_types() {
 			'avif'                         => 'image/avif',
 			'ico'                          => 'image/x-icon',
 
-			// TODO: Needs improvement. All images with the following mime types seem to have .heic file extension.
 			'heic'                         => 'image/heic',
 			'heif'                         => 'image/heif',
 			'heics'                        => 'image/heic-sequence',
@@ -3595,7 +3589,7 @@ function wp_get_ext_types() {
 	return apply_filters(
 		'ext2type',
 		array(
-			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic', 'heif', 'webp', 'avif' ),
+			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic', 'heif', 'heics', 'heifs', 'webp', 'avif' ),
 			'audio'       => array( 'aac', 'ac3', 'aif', 'aiff', 'flac', 'm3a', 'm4a', 'm4b', 'mka', 'mp1', 'mp2', 'mp3', 'ogg', 'oga', 'ram', 'wav', 'wma' ),
 			'video'       => array( '3g2', '3gp', '3gpp', 'asf', 'avi', 'divx', 'dv', 'flv', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'mpv', 'ogm', 'ogv', 'qt', 'rm', 'vob', 'wmv' ),
 			'document'    => array( 'doc', 'docx', 'docm', 'dotm', 'odt', 'pages', 'pdf', 'xps', 'oxps', 'rtf', 'wp', 'wpd', 'psd', 'xcf' ),
