@@ -227,14 +227,21 @@ function get_template_part( $slug, $name = null, $args = array() ) {
  *
  * @since 2.7.0
  * @since 5.2.0 The `$args` array parameter was added in place of an `$echo` boolean flag.
+ * @since 7.1.0 Added the `$wrap_in_search` argument and the `search-element` theme support
+ *              feature to wrap the form in a `<search>` element.
  *
  * @param array $args {
  *     Optional. Array of display arguments.
  *
- *     @type bool   $echo       Whether to echo or return the form. Default true.
- *     @type string $aria_label ARIA label for the search form. Useful to distinguish
- *                              multiple search forms on the same page and improve
- *                              accessibility. Default empty.
+ *     @type bool   $echo           Whether to echo or return the form. Default true.
+ *     @type string $aria_label     ARIA label for the search form. Useful to distinguish
+ *                                  multiple search forms on the same page and improve
+ *                                  accessibility. Default empty.
+ *     @type bool   $wrap_in_search Whether to wrap the form in a semantic HTML `<search>`
+ *                                  landmark element and drop the now-redundant `role="search"`
+ *                                  attribute on the form. Only applies to the 'html5' format.
+ *                                  Defaults to true when the theme declares support for the
+ *                                  'search-element' feature, false otherwise.
  * }
  * @return void|string Void if 'echo' argument is true, search form HTML if 'echo' is false.
  */
@@ -269,8 +276,9 @@ function get_search_form( $args = array() ) {
 
 	// Defaults are to echo and to output no custom label on the form.
 	$defaults = array(
-		'echo'       => $echo,
-		'aria_label' => '',
+		'echo'           => $echo,
+		'aria_label'     => '',
+		'wrap_in_search' => current_theme_supports( 'search-element' ),
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -321,7 +329,26 @@ function get_search_form( $args = array() ) {
 			$aria_label = '';
 		}
 
-		if ( 'html5' === $format ) {
+		if ( 'html5' === $format && $args['wrap_in_search'] ) {
+			/*
+			 * Wrap the form in a <search> landmark element. The implicit ARIA role
+			 * of <search> provides the search landmark, so role="search" is omitted
+			 * from the form to avoid nesting two identical landmarks. Any aria-label
+			 * names the <search> landmark instead of the form.
+			 */
+			$search_label = $args['aria_label'] ? ' aria-label="' . esc_attr( $args['aria_label'] ) . '"' : '';
+
+			$form = '<search' . $search_label . '><form method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
+				<label>
+					<span class="screen-reader-text">' .
+					/* translators: Hidden accessibility text. */
+					_x( 'Search for:', 'label' ) .
+					'</span>
+					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
+				</label>
+				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
+			</form></search>';
+		} elseif ( 'html5' === $format ) {
 			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
 				<label>
 					<span class="screen-reader-text">' .
