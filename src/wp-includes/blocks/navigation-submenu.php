@@ -56,6 +56,19 @@ if ( file_exists( __DIR__ . '/../navigation-link/shared/item-should-render.php' 
 }
 
 /**
+ * Renders the submenu icon SVG for the Navigation Submenu block.
+ *
+ * @since 5.9.0
+ * @deprecated 7.0.0 Use block_core_shared_navigation_render_submenu_icon() instead.
+ *
+ * @return string SVG markup for the submenu icon.
+ */
+function block_core_navigation_submenu_render_submenu_icon() {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'block_core_shared_navigation_render_submenu_icon()' );
+	return block_core_shared_navigation_render_submenu_icon();
+}
+
+/**
  * Build an array with CSS classes and inline styles defining the font sizes
  * which will be applied to the navigation markup in the front-end.
  *
