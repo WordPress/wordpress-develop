@@ -9140,6 +9140,16 @@ function wp_get_admin_notice( $message, $args = array() ) {
 		$classes .= ' ' . implode( ' ', $args['additional_classes'] );
 	}
 
+	if ( is_array( $args['attributes'] ) && ! isset( $args['attributes']['role'] ) && is_string( $args['type'] ) ) {
+		$notice_type = trim( $args['type'] );
+
+		if ( 'error' === $notice_type ) {
+			$args['attributes']['role'] = 'alert';
+		} elseif ( in_array( $notice_type, array( 'success', 'warning', 'info' ), true ) ) {
+			$args['attributes']['role'] = 'status';
+		}
+	}
+
 	if ( is_array( $args['attributes'] ) && ! empty( $args['attributes'] ) ) {
 		$attributes = '';
 		foreach ( $args['attributes'] as $attr => $val ) {

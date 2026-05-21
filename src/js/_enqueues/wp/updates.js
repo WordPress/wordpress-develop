@@ -267,6 +267,8 @@
 			$notice.replaceWith( $adminNotice );
 		} else if ( $headerEnd.length ) {
 			$headerEnd.after( $adminNotice );
+		} else if ( $( '#wp-admin-notices' ).length ) {
+			$( '#wp-admin-notices' ).append( $adminNotice );
 		} else {
 			if ( 'customize' === pagenow ) {
 				$( '.customize-themes-notifications' ).append( $adminNotice );

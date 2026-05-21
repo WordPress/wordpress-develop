@@ -48,7 +48,7 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 					'id'                 => 'message',
 					'additional_classes' => array( 'inline', 'hidden' ),
 				),
-				'expected' => '<div id="message" class="notice notice-error is-dismissible inline hidden"><p></p></div>',
+				'expected' => '<div id="message" class="notice notice-error is-dismissible inline hidden" role="alert"><p></p></div>',
 			),
 			'an empty message (used for templates) without paragraph wrapping' => array(
 				'message'  => '',
@@ -59,35 +59,35 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 					'additional_classes' => array( 'inline', 'hidden' ),
 					'paragraph_wrap'     => false,
 				),
-				'expected' => '<div id="message" class="notice notice-error is-dismissible inline hidden"></div>',
+				'expected' => '<div id="message" class="notice notice-error is-dismissible inline hidden" role="alert"></div>',
 			),
 			'an "error" notice'                         => array(
 				'message'  => 'An "error" notice.',
 				'args'     => array(
 					'type' => 'error',
 				),
-				'expected' => '<div class="notice notice-error"><p>An "error" notice.</p></div>',
+				'expected' => '<div class="notice notice-error" role="alert"><p>An "error" notice.</p></div>',
 			),
 			'a "success" notice'                        => array(
 				'message'  => 'A "success" notice.',
 				'args'     => array(
 					'type' => 'success',
 				),
-				'expected' => '<div class="notice notice-success"><p>A "success" notice.</p></div>',
+				'expected' => '<div class="notice notice-success" role="status"><p>A "success" notice.</p></div>',
 			),
 			'a "warning" notice'                        => array(
 				'message'  => 'A "warning" notice.',
 				'args'     => array(
 					'type' => 'warning',
 				),
-				'expected' => '<div class="notice notice-warning"><p>A "warning" notice.</p></div>',
+				'expected' => '<div class="notice notice-warning" role="status"><p>A "warning" notice.</p></div>',
 			),
 			'an "info" notice'                          => array(
 				'message'  => 'An "info" notice.',
 				'args'     => array(
 					'type' => 'info',
 				),
-				'expected' => '<div class="notice notice-info"><p>An "info" notice.</p></div>',
+				'expected' => '<div class="notice notice-info" role="status"><p>An "info" notice.</p></div>',
 			),
 			'a type that already starts with "notice-"' => array(
 				'message'  => 'A type that already starts with "notice-".',
@@ -116,7 +116,7 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 					'type' => 'warning',
 					'id'   => 'message',
 				),
-				'expected' => '<div id="message" class="notice notice-warning"><p>A warning notice with an ID.</p></div>',
+				'expected' => '<div id="message" class="notice notice-warning" role="status"><p>A warning notice with an ID.</p></div>',
 			),
 			'no type and additional classes'            => array(
 				'message'  => 'A notice with additional classes.',
@@ -131,7 +131,7 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 					'type'               => 'warning',
 					'additional_classes' => array( 'error', 'notice-alt' ),
 				),
-				'expected' => '<div class="notice notice-warning error notice-alt"><p>A warning notice with additional classes.</p></div>',
+				'expected' => '<div class="notice notice-warning error notice-alt" role="status"><p>A warning notice with additional classes.</p></div>',
 			),
 			'a dismissible notice with a type and additional classes' => array(
 				'message'  => 'A dismissible warning notice with a type and additional classes.',
@@ -140,7 +140,7 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 					'dismissible'        => true,
 					'additional_classes' => array( 'error', 'notice-alt' ),
 				),
-				'expected' => '<div class="notice notice-warning is-dismissible error notice-alt"><p>A dismissible warning notice with a type and additional classes.</p></div>',
+				'expected' => '<div class="notice notice-warning is-dismissible error notice-alt" role="status"><p>A dismissible warning notice with a type and additional classes.</p></div>',
 			),
 			'a notice without paragraph wrapping'       => array(
 				'message'  => '<span>A notice without paragraph wrapping.</span>',
