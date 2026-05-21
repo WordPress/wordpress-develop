@@ -3695,7 +3695,7 @@ function wp_load_classic_theme_block_styles_on_demand(): void {
 	 * `wp_template_enhancement_output_buffer` filters added, but do so at priority zero so that applications which
 	 * wish to stream responses can more easily turn this off.
 	 */
-	if ( ! has_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' ) ) {
+	if ( false === has_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' ) ) {
 		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
 	}
 
@@ -3712,7 +3712,7 @@ function wp_load_classic_theme_block_styles_on_demand(): void {
 	 * this to be easily overridden by themes which wish to opt out. If a site has explicitly opted out of loading
 	 * separate block styles, then abort.
 	 */
-	if ( ! has_filter( 'should_load_separate_core_block_assets', '__return_true' ) ) {
+	if ( false === has_filter( 'should_load_separate_core_block_assets', '__return_true' ) ) {
 		add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
 	}
 	if ( ! wp_should_load_separate_core_block_assets() ) {
@@ -3724,7 +3724,7 @@ function wp_load_classic_theme_block_styles_on_demand(): void {
 	 * As above, a priority of zero allows for this to be easily overridden by themes which wish to opt out. If a site
 	 * has explicitly opted out of loading block styles on demand, then abort.
 	 */
-	if ( ! has_filter( 'should_load_block_assets_on_demand', '__return_true' ) ) {
+	if ( false === has_filter( 'should_load_block_assets_on_demand', '__return_true' ) ) {
 		add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 	}
 	if ( ! wp_should_load_block_assets_on_demand() ) {
@@ -3732,7 +3732,7 @@ function wp_load_classic_theme_block_styles_on_demand(): void {
 	}
 
 	// Add hooks which require the presence of the output buffer. Ideally the above two filters could be added here, but they run too early.
-	if ( ! has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+	if ( false === has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
 		add_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
 	}
 }
