@@ -539,8 +539,6 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( $name );
 
-		remove_action( 'wp_abilities_api_init', $callback );
-
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),
 			$result,

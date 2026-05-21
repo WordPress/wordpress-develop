@@ -311,8 +311,6 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 
 		$result = wp_get_ability_category( $name );
 
-		remove_action( 'wp_abilities_api_categories_init', $callback );
-
 		$this->assertInstanceOf( WP_Ability_Category::class, $result );
 		$this->assertSame( self::$test_ability_category_name, $result->get_slug() );
 	}
