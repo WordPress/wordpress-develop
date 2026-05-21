@@ -47,12 +47,12 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) 
 
 $phpunit_version = tests_get_phpunit_version();
 
-if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
+if ( version_compare( $phpunit_version, '9.0', '<' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.7.21." . PHP_EOL,
+		"Error: Looks like you're using PHPUnit %s. WordPress requires PHPUnit 9.x." . PHP_EOL,
 		$phpunit_version
 	);
-	echo 'Please use the latest PHPUnit version supported for the PHP version you are running the tests on.' . PHP_EOL;
+	echo 'Please use the latest PHPUnit 9.x release supported for the PHP version you are running the tests on.' . PHP_EOL;
 	exit( 1 );
 }
 
