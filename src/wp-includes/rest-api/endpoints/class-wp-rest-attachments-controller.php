@@ -1065,17 +1065,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 			$output_mime    = isset( $output_formats[ $mime_type ] ) ? $output_formats[ $mime_type ] : $mime_type;
 
-			// Mirror WP_Image_Editor::get_default_quality(): WebP defaults to 86, everything else to 82.
-			$default_quality = ( 'image/webp' === $output_mime ) ? 86 : 82;
-
 			$metadata    = wp_get_attachment_metadata( $post->ID, true );
 			$full_width  = ( is_array( $metadata ) && isset( $metadata['width'] ) ) ? (int) $metadata['width'] : 0;
 			$full_height = ( is_array( $metadata ) && isset( $metadata['height'] ) ) ? (int) $metadata['height'] : 0;
 
-			/** This filter is documented in wp-includes/class-wp-image-editor.php */
-			$full_quality = (int) apply_filters(
-				'wp_editor_set_quality',
-				$default_quality,
+			$full_quality = wp_get_image_encode_quality(
 				$output_mime,
 				array(
 					'width'  => $full_width,
@@ -1086,10 +1080,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$size_quality = array();
 
 			foreach ( wp_get_registered_image_subsizes() as $size_name => $size_data ) {
-				/** This filter is documented in wp-includes/class-wp-image-editor.php */
-				$quality = (int) apply_filters(
-					'wp_editor_set_quality',
-					$default_quality,
+				$quality = wp_get_image_encode_quality(
 					$output_mime,
 					array(
 						'width'  => (int) $size_data['width'],
@@ -1299,6 +1290,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'readonly'    => true,
 		);
 
+		// Enumerate the registered sub-sizes so the schema documents exactly which
+		// keys may appear under "sizes".
+		$size_quality_properties = array();
+		foreach ( array_keys( wp_get_registered_image_subsizes() ) as $size_name ) {
+			$size_quality_properties[ $size_name ] = array(
+				'type'    => 'integer',
+				'minimum' => 1,
+				'maximum' => 100,
+			);
+		}
+
 		$schema['properties']['image_quality'] = array(
 			'description' => __( 'Encode quality (1-100) from the wp_editor_set_quality filter, resolved against the output MIME type. The "default" value applies to the full-size image; "sizes" lists per-registered-size overrides where the filtered value differs from "default".' ),
 			'type'        => 'object',
@@ -1311,12 +1313,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					'maximum' => 100,
 				),
 				'sizes'   => array(
-					'type'                 => 'object',
-					'additionalProperties' => array(
-						'type'    => 'integer',
-						'minimum' => 1,
-						'maximum' => 100,
-					),
+					'type'       => 'object',
+					'properties' => $size_quality_properties,
 				),
 			),
 		);

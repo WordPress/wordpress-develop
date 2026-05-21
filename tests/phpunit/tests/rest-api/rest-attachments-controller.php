@@ -1994,8 +1994,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'object', $properties['image_quality']['type'] );
 		$this->assertContains( 'edit', $properties['image_quality']['context'] );
 		$this->assertTrue( $properties['image_quality']['readonly'] );
-		$this->assertSame( 'integer', $properties['image_quality']['properties']['default']['type'] );
-		$this->assertSame( 'object', $properties['image_quality']['properties']['sizes']['type'] );
+
+		$default = $properties['image_quality']['properties']['default'];
+		$this->assertSame( 'integer', $default['type'] );
+		$this->assertSame( 1, $default['minimum'] );
+		$this->assertSame( 100, $default['maximum'] );
+
+		$sizes = $properties['image_quality']['properties']['sizes'];
+		$this->assertSame( 'object', $sizes['type'] );
+		// Sizes are enumerated from the registered sub-sizes, each bounded 1-100.
+		$this->assertArrayHasKey( 'thumbnail', $sizes['properties'] );
+		$this->assertSame( 'integer', $sizes['properties']['thumbnail']['type'] );
+		$this->assertSame( 1, $sizes['properties']['thumbnail']['minimum'] );
+		$this->assertSame( 100, $sizes['properties']['thumbnail']['maximum'] );
 	}
 
 	/**
@@ -2049,6 +2060,34 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// The thumbnail size (150x150) is <= 300px and diverges to 60.
 		$this->assertArrayHasKey( 'thumbnail', $data['image_quality']['sizes'] );
 		$this->assertSame( 60, $data['image_quality']['sizes']['thumbnail'] );
+	}
+
+	/**
+	 * The reported quality must include the legacy jpeg_quality filter, the same
+	 * way WP_Image_Editor::set_quality() applies it for JPEG output.
+	 *
+	 * @ticket 64906
+	 * @requires function imagejpeg
+	 */
+	public function test_image_quality_honors_jpeg_quality_filter() {
+		wp_set_current_user( self::$editor_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$filter = static function () {
+			return 70;
+		};
+		add_filter( 'jpeg_quality', $filter );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'jpeg_quality', $filter );
+
+		$this->assertSame( 200, $response->get_status() );
+		// JPEG output, so the jpeg_quality filter overrides the 82 default.
+		$this->assertSame( 70, $data['image_quality']['default'] );
 	}
 
 	public function test_get_additional_field_registration() {
