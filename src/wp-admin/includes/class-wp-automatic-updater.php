@@ -230,7 +230,7 @@ class WP_Automatic_Updater {
 		} else {
 			$update = ! empty( $item->autoupdate );
 
-			if ( wp_is_translation_update_deferred( $item ) ) {
+			if ( $update && wp_is_translation_update_deferred( $item ) ) {
 				$update = false;
 			}
 		}

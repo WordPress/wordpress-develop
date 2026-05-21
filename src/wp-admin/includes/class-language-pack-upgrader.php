@@ -67,10 +67,12 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			return;
 		}
 
+		$deferred_updates = wp_get_deferred_translation_updates( $language_updates );
+
 		foreach ( $language_updates as $key => $language_update ) {
 			$update = ! empty( $language_update->autoupdate );
 
-			if ( wp_is_translation_update_deferred( $language_update ) ) {
+			if ( $update && wp_is_translation_update_deferred( $language_update, $deferred_updates ) ) {
 				$update = false;
 			}
 
