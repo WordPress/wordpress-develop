@@ -161,18 +161,12 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		$input = $this->get_input_from_request( $request );
 		$input = $ability->normalize_input( $input );
 		if ( is_wp_error( $input ) ) {
-			$error_data = $input->get_error_data();
-			if ( ! is_array( $error_data ) || ! isset( $error_data['status'] ) ) {
-				$input->add_data( array( 'status' => 400 ) );
-			}
-
-			return $input;
+			return $this->add_default_error_status( $input, 400 );
 		}
 
 		$is_valid = $ability->validate_input( $input );
 		if ( is_wp_error( $is_valid ) ) {
-			$is_valid->add_data( array( 'status' => 400 ) );
-			return $is_valid;
+			return $this->add_default_error_status( $is_valid, 400 );
 		}
 
 		$result = $ability->check_permissions( $input );
@@ -189,6 +183,24 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Adds a default HTTP status to a WP_Error object if one is not already set.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Error $error  Error object to update.
+	 * @param int      $status HTTP status code to add if not already present.
+	 * @return WP_Error The error object, with a default status when needed.
+	 */
+	private function add_default_error_status( WP_Error $error, int $status ): WP_Error {
+		$error_data = $error->get_error_data();
+		if ( ! is_array( $error_data ) || ! isset( $error_data['status'] ) ) {
+			$error->add_data( array( 'status' => $status ) );
+		}
+
+		return $error;
 	}
 
 	/**
