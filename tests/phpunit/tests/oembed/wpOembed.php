@@ -276,4 +276,37 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 		$this->assertFalse( $actual );
 		$this->assertSame( $current_blog_id, get_current_blog_id() );
 	}
+
+	/**
+	 * @ticket 45052
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::get_html
+	 */
+	public function test_wp_filter_pre_oembed_result_multisite_sub_main_pretty_permalink() {
+		$this->set_permalink_structure( '/blog/%postname%/' );
+
+		$post_id   = self::factory()->post->create();
+		$permalink = get_permalink( $post_id );
+		$user_id   = self::$user_id;
+		$blog_id   = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+			)
+		);
+
+		switch_to_blog( $blog_id );
+
+		$this->set_permalink_structure( '/%postname%/' );
+
+		add_filter( 'pre_oembed_result', array( $this, '_filter_pre_oembed_result' ) );
+		$actual = $this->oembed->get_html( $permalink );
+		remove_filter( 'pre_oembed_result', array( $this, '_filter_pre_oembed_result' ) );
+
+		restore_current_blog();
+
+		$this->assertNotNull( $this->pre_oembed_result_filtered );
+		$this->assertEquals( $this->pre_oembed_result_filtered, $actual );
+	}
 }
