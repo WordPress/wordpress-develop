@@ -1,0 +1,280 @@
+<?php
+
+/**
+ * @group compat
+ *
+ * @covers ::clamp
+ */
+class Tests_Compat_clamp extends WP_UnitTestCase {
+
+	/**
+	 * @ticket 65143
+	 *
+	 * Test that clamp() is always available (either from PHP or WP).
+	 */
+	public function test_clamp_availability(): void {
+		$this->assertTrue( function_exists( 'clamp' ) );
+	}
+
+	/**
+	 * @ticket 65143
+	 *
+	 * @dataProvider data_clamp
+	 *
+	 * @param mixed $expected The expected clamped value.
+	 * @param mixed $value    The value to clamp.
+	 * @param mixed $min      The minimum bound.
+	 * @param mixed $max      The maximum bound.
+	 */
+	public function test_clamp( $expected, $value, $min, $max ): void {
+		$this->assertSame( $expected, clamp( $value, $min, $max ) );
+	}
+
+	/**
+	 * Data provider for clamp().
+	 *
+	 * @return array[]
+	 */
+	public function data_clamp(): array {
+		return array(
+			'integer within range'           => array(
+				'expected' => 5,
+				'value'    => 5,
+				'min'      => 1,
+				'max'      => 10,
+			),
+			'integer below min'              => array(
+				'expected' => 1,
+				'value'    => -5,
+				'min'      => 1,
+				'max'      => 10,
+			),
+			'integer above max'              => array(
+				'expected' => 10,
+				'value'    => 99,
+				'min'      => 1,
+				'max'      => 10,
+			),
+			'integer equals min'             => array(
+				'expected' => 1,
+				'value'    => 1,
+				'min'      => 1,
+				'max'      => 10,
+			),
+			'integer equals max'             => array(
+				'expected' => 10,
+				'value'    => 10,
+				'min'      => 1,
+				'max'      => 10,
+			),
+			'min equals max, value matches'  => array(
+				'expected' => 5,
+				'value'    => 5,
+				'min'      => 5,
+				'max'      => 5,
+			),
+			'min equals max, value below'    => array(
+				'expected' => 5,
+				'value'    => 3,
+				'min'      => 5,
+				'max'      => 5,
+			),
+			'min equals max, value above'    => array(
+				'expected' => 5,
+				'value'    => 7,
+				'min'      => 5,
+				'max'      => 5,
+			),
+			'float within range'             => array(
+				'expected' => 0.5,
+				'value'    => 0.5,
+				'min'      => 0.0,
+				'max'      => 1.0,
+			),
+			'float below min'                => array(
+				'expected' => 0.0,
+				'value'    => -0.5,
+				'min'      => 0.0,
+				'max'      => 1.0,
+			),
+			'float above max'                => array(
+				'expected' => 1.0,
+				'value'    => 1.5,
+				'min'      => 0.0,
+				'max'      => 1.0,
+			),
+			'negative range, within'         => array(
+				'expected' => -5,
+				'value'    => -5,
+				'min'      => -10,
+				'max'      => -1,
+			),
+			'negative range, below min'      => array(
+				'expected' => -10,
+				'value'    => -99,
+				'min'      => -10,
+				'max'      => -1,
+			),
+			'negative range, above max'      => array(
+				'expected' => -1,
+				'value'    => 0,
+				'min'      => -10,
+				'max'      => -1,
+			),
+			'zero within range'              => array(
+				'expected' => 0,
+				'value'    => 0,
+				'min'      => -1,
+				'max'      => 1,
+			),
+			'mixed int/float, within range'  => array(
+				'expected' => 5,
+				'value'    => 5,
+				'min'      => 0.0,
+				'max'      => 10.0,
+			),
+			'INF as value'                   => array(
+				'expected' => 100,
+				'value'    => INF,
+				'min'      => 0,
+				'max'      => 100,
+			),
+			'-INF as value'                  => array(
+				'expected' => 0,
+				'value'    => -INF,
+				'min'      => 0,
+				'max'      => 100,
+			),
+			'INF as max, value within range' => array(
+				'expected' => 50,
+				'value'    => 50,
+				'min'      => 0,
+				'max'      => INF,
+			),
+			'INF as max, value equals INF'   => array(
+				'expected' => INF,
+				'value'    => INF,
+				'min'      => 0,
+				'max'      => INF,
+			),
+			'string within range' => array(
+				'expected' => 'l',
+				'value'    => 'l',
+				'min'      => 'a',
+				'max'      => 'z',
+			),
+			'string below min'    => array(
+				'expected' => 'e',
+				'value'    => 'a',
+				'min'      => 'e',
+				'max'      => 'z',
+			),
+			'string above max'    => array(
+				'expected' => 'p',
+				'value'    => 'z',
+				'min'      => 'a',
+				'max'      => 'p',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 65143
+	 *
+	 * @dataProvider data_clamp_datetime
+	 *
+	 * @param DateTimeImmutable $expected The expected clamped value.
+	 * @param DateTimeImmutable $value    The value to clamp.
+	 * @param DateTimeImmutable $min      The minimum bound.
+	 * @param DateTimeImmutable $max      The maximum bound.
+	 */
+	public function test_clamp_with_datetime( $expected, $value, $min, $max ): void {
+		$this->assertEquals( $expected, clamp( $value, $min, $max ) );
+	}
+
+	/**
+	 * Data provider for DateTimeImmutable cases.
+	 *
+	 * @return array[]
+	 */
+	public function data_clamp_datetime(): array {
+		return array(
+			'within range' => array(
+				'expected' => new DateTimeImmutable( '2025-01-15' ),
+				'value'    => new DateTimeImmutable( '2025-01-15' ),
+				'min'      => new DateTimeImmutable( '2025-01-01' ),
+				'max'      => new DateTimeImmutable( '2025-01-31' ),
+			),
+			'below min'    => array(
+				'expected' => new DateTimeImmutable( '2025-01-01' ),
+				'value'    => new DateTimeImmutable( '2024-12-01' ),
+				'min'      => new DateTimeImmutable( '2025-01-01' ),
+				'max'      => new DateTimeImmutable( '2025-01-31' ),
+			),
+			'above max'    => array(
+				'expected' => new DateTimeImmutable( '2025-01-31' ),
+				'value'    => new DateTimeImmutable( '2025-03-01' ),
+				'min'      => new DateTimeImmutable( '2025-01-01' ),
+				'max'      => new DateTimeImmutable( '2025-01-31' ),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 65143
+	 *
+	 * Test that clamp() throws when $min is NAN.
+	 */
+	public function test_clamp_throws_for_nan_min(): void {
+		$this->expectException( $this->value_error_class() );
+		$this->expectExceptionMessage( 'clamp(): Argument #2 ($min) cannot be NAN' );
+
+		clamp( 5, NAN, 10 );
+	}
+
+	/**
+	 * @ticket 65143
+	 *
+	 * Test that clamp() throws when $max is NAN.
+	 */
+	public function test_clamp_throws_for_nan_max(): void {
+		$this->expectException( $this->value_error_class() );
+		$this->expectExceptionMessage( 'clamp(): Argument #3 ($max) cannot be NAN' );
+
+		clamp( 5, 0, NAN );
+	}
+
+	/**
+	 * @ticket 65143
+	 *
+	 * Test that clamp() throws when $min is greater than $max.
+	 */
+	public function test_clamp_throws_when_min_greater_than_max(): void {
+		$this->expectException( $this->value_error_class() );
+		$this->expectExceptionMessage( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
+
+		clamp( 5, 10, 1 );
+	}
+
+	/**
+	 * @ticket 65143
+	 *
+	 * Test that clamp() with a NAN value returns NAN (no exception).
+	 */
+	public function test_clamp_with_nan_value_returns_nan(): void {
+		$result = clamp( NAN, 0, 10 );
+		$this->assertNan( $result );
+	}
+
+	/**
+	 * Returns the expected exception class for ValueError-equivalent errors.
+	 *
+	 * On PHP 8.0+, _wp_throw_value_error() throws ValueError.
+	 * On PHP 7.x, it falls back to InvalidArgumentException.
+	 *
+	 * @return string The fully qualified exception class name.
+	 */
+	private function value_error_class(): string {
+		return PHP_VERSION_ID >= 80000 ? ValueError::class : InvalidArgumentException::class;
+	}
+}
