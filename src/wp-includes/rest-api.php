@@ -1574,7 +1574,7 @@ function rest_is_integer( $maybe_integer ) {
 		return true;
 	}
 
-	if ( ! is_scalar( $maybe_integer ) ) {
+	if ( is_bool( $maybe_integer ) || ! is_scalar( $maybe_integer ) ) {
 		return false;
 	}
 
