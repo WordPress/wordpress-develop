@@ -776,4 +776,244 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertIsArray( $data );
 		$this->assertEmpty( $data, 'Should return empty array for non-existent category' );
 	}
+
+	/**
+	 * Test that WordPress-internal schema keywords are stripped from ability schemas in REST response.
+	 *
+	 * @ticket 65035
+	 */
+	public function test_internal_schema_keywords_stripped_from_response(): void {
+		$this->register_test_ability(
+			'test/with-internal-keywords',
+			array(
+				'label'               => 'Test Internal Keywords',
+				'description'         => 'Tests stripping of internal schema keywords',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'content' => array(
+							'type'              => 'string',
+							'description'       => 'The content value.',
+							'sanitize_callback' => 'sanitize_text_field',
+							'validate_callback' => 'is_string',
+							'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
+						),
+					),
+				),
+				'output_schema'       => array(
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'execute_callback'    => static function ( $input ) {
+					return $input['content'];
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-internal-keywords' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'input_schema', $data );
+		$this->assertArrayHasKey( 'properties', $data['input_schema'] );
+		$this->assertArrayHasKey( 'content', $data['input_schema']['properties'] );
+		$this->assertArrayHasKey( 'output_schema', $data );
+
+		// Verify internal keywords are stripped from input_schema properties.
+		$content_schema = $data['input_schema']['properties']['content'];
+		$this->assertArrayNotHasKey( 'sanitize_callback', $content_schema );
+		$this->assertArrayNotHasKey( 'validate_callback', $content_schema );
+		$this->assertArrayNotHasKey( 'arg_options', $content_schema );
+
+		// Verify valid JSON Schema keywords are preserved.
+		$this->assertSame( 'string', $content_schema['type'] );
+		$this->assertSame( 'The content value.', $content_schema['description'] );
+
+		// Verify internal keywords are stripped from output_schema.
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema'] );
+		$this->assertSame( 'string', $data['output_schema']['type'] );
+	}
+
+	/**
+	 * Test that internal schema keywords are stripped from nested sub-schema locations.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_internal_schema_keywords_stripped_from_nested_sub_schemas(): void {
+		$this->register_test_ability(
+			'test/nested-internal-keywords',
+			array(
+				'label'               => 'Test Nested Keywords',
+				'description'         => 'Tests stripping from all sub-schema locations',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'anyOf'                => array(
+						array(
+							'type'              => 'object',
+							'sanitize_callback' => 'sanitize_text_field',
+							'properties'        => array(
+								'value' => array(
+									'type'              => 'string',
+									'validate_callback' => 'is_string',
+								),
+							),
+						),
+						array(
+							'type'        => 'number',
+							'arg_options' => array( 'sanitize_callback' => 'absint' ),
+						),
+					),
+					'oneOf'                => array(
+						array(
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
+					'allOf'                => array(
+						array(
+							'type'              => 'object',
+							'validate_callback' => 'rest_validate_request_arg',
+						),
+					),
+					'not'                  => array(
+						'type'        => 'null',
+						'arg_options' => array( 'sanitize_callback' => 'absint' ),
+					),
+					'patternProperties'    => array(
+						'^S_' => array(
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
+					'definitions'          => array(
+						'address' => array(
+							'type'              => 'object',
+							'validate_callback' => 'rest_validate_request_arg',
+							'properties'        => array(
+								'street' => array(
+									'type'              => 'string',
+									'sanitize_callback' => 'sanitize_text_field',
+								),
+							),
+						),
+					),
+					'dependencies'         => array(
+						'bar' => array(
+							'type'              => 'object',
+							'validate_callback' => 'rest_validate_request_arg',
+							'properties'        => array(
+								'baz' => array(
+									'type'              => 'string',
+									'sanitize_callback' => 'sanitize_text_field',
+								),
+							),
+						),
+						'qux' => array( 'bar' ),
+					),
+					'additionalProperties' => array(
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+				'output_schema'       => array(
+					'type'            => 'array',
+					'items'           => array(
+						array(
+							'type'              => 'string',
+							'validate_callback' => 'is_string',
+						),
+						array(
+							'type'        => 'number',
+							'arg_options' => array( 'sanitize_callback' => 'absint' ),
+						),
+					),
+					'additionalItems' => array(
+						'type'              => 'boolean',
+						'sanitize_callback' => 'rest_sanitize_boolean',
+					),
+				),
+				'execute_callback'    => static function ( $input ) {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-internal-keywords' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		// Verify internal keywords are stripped from anyOf sub-schemas.
+		$this->assertArrayHasKey( 'anyOf', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['anyOf'][0] );
+		$this->assertSame( 'object', $data['input_schema']['anyOf'][0]['type'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['input_schema']['anyOf'][0]['properties']['value'] );
+		$this->assertSame( 'string', $data['input_schema']['anyOf'][0]['properties']['value']['type'] );
+		$this->assertArrayNotHasKey( 'arg_options', $data['input_schema']['anyOf'][1] );
+		$this->assertSame( 'number', $data['input_schema']['anyOf'][1]['type'] );
+
+		// Verify internal keywords are stripped from oneOf sub-schemas.
+		$this->assertArrayHasKey( 'oneOf', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['oneOf'][0] );
+		$this->assertSame( 'string', $data['input_schema']['oneOf'][0]['type'] );
+
+		// Verify internal keywords are stripped from allOf sub-schemas.
+		$this->assertArrayHasKey( 'allOf', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['input_schema']['allOf'][0] );
+		$this->assertSame( 'object', $data['input_schema']['allOf'][0]['type'] );
+
+		// Verify internal keywords are stripped from not sub-schema.
+		$this->assertArrayHasKey( 'not', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'arg_options', $data['input_schema']['not'] );
+		$this->assertSame( 'null', $data['input_schema']['not']['type'] );
+
+		// Verify internal keywords are stripped from patternProperties sub-schemas.
+		$this->assertArrayHasKey( 'patternProperties', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['patternProperties']['^S_'] );
+		$this->assertSame( 'string', $data['input_schema']['patternProperties']['^S_']['type'] );
+
+		// Verify internal keywords are stripped from dependencies schema values.
+		$this->assertArrayHasKey( 'dependencies', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['input_schema']['dependencies']['bar'] );
+		$this->assertSame( 'object', $data['input_schema']['dependencies']['bar']['type'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['dependencies']['bar']['properties']['baz'] );
+		$this->assertSame( 'string', $data['input_schema']['dependencies']['bar']['properties']['baz']['type'] );
+		// Property dependencies (numeric arrays) should pass through unchanged.
+		$this->assertSame( array( 'bar' ), $data['input_schema']['dependencies']['qux'] );
+
+		// Verify internal keywords are stripped from definitions sub-schemas.
+		$this->assertArrayHasKey( 'definitions', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['input_schema']['definitions']['address'] );
+		$this->assertSame( 'object', $data['input_schema']['definitions']['address']['type'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['definitions']['address']['properties']['street'] );
+		$this->assertSame( 'string', $data['input_schema']['definitions']['address']['properties']['street']['type'] );
+
+		// Verify internal keywords are stripped from additionalProperties sub-schema.
+		$this->assertArrayHasKey( 'additionalProperties', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['additionalProperties'] );
+		$this->assertSame( 'string', $data['input_schema']['additionalProperties']['type'] );
+
+		// Verify internal keywords are stripped from tuple-style items sub-schemas.
+		$this->assertArrayHasKey( 'items', $data['output_schema'] );
+		$this->assertCount( 2, $data['output_schema']['items'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['output_schema']['items'][0] );
+		$this->assertSame( 'string', $data['output_schema']['items'][0]['type'] );
+		$this->assertArrayNotHasKey( 'arg_options', $data['output_schema']['items'][1] );
+		$this->assertSame( 'number', $data['output_schema']['items'][1]['type'] );
+
+		// Verify internal keywords are stripped from additionalItems sub-schema.
+		$this->assertArrayHasKey( 'additionalItems', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema']['additionalItems'] );
+		$this->assertSame( 'boolean', $data['output_schema']['additionalItems']['type'] );
+	}
 }
