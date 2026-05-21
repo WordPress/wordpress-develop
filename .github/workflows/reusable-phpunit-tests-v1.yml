@@ -50,13 +50,13 @@ on:
         type: boolean
         default: false
 env:
-  COMPOSER_INSTALL: ${{ false }}
+  COMPOSER_INSTALL: false
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_PHPUNIT: ${{ inputs.phpunit && inputs.phpunit || inputs.php }}-fpm
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
   PHPUNIT_SCRIPT: php
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
   SLOW_TESTS: 'external-http,media'
 
 # Disable permissions for all available scopes by default.
@@ -121,7 +121,7 @@ jobs:
 
       - name: Cache Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         env:
           cache-name: cache-composer-dependencies
         with:

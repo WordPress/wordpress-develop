@@ -972,12 +972,15 @@ function wp_get_registered_image_subsizes() {
  *     @type int    $2 Image height in pixels.
  *     @type bool   $3 Whether the image is a resized image.
  * }
+ * @phpstan-return array{ 0: string, 1: int, 2: int, 3: bool }|false
  */
 function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon = false ) {
 	// Get a thumbnail or intermediate image if there is one.
 	$image = image_downsize( $attachment_id, $size );
 	if ( ! $image ) {
-		$src = false;
+		$src    = false;
+		$width  = 0;
+		$height = 0;
 
 		if ( $icon ) {
 			$src = wp_mime_type_icon( $attachment_id, '.svg' );
@@ -988,7 +991,11 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 
 				$src_file = $icon_dir . '/' . wp_basename( $src );
 
-				list( $width, $height ) = wp_getimagesize( $src_file );
+				$image_size = wp_getimagesize( $src_file );
+				if ( is_array( $image_size ) ) {
+					$width  = $image_size[0];
+					$height = $image_size[1];
+				}
 
 				$ext = strtolower( substr( $src_file, -4 ) );
 
@@ -997,7 +1004,11 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 					$width  = 48;
 					$height = 64;
 				} else {
-					list( $width, $height ) = wp_getimagesize( $src_file );
+					$image_size = wp_getimagesize( $src_file );
+					if ( is_array( $image_size ) ) {
+						$width  = $image_size[0];
+						$height = $image_size[1];
+					}
 				}
 			}
 		}
@@ -1024,7 +1035,16 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 	 *                                    an array of width and height values in pixels (in that order).
 	 * @param bool         $icon          Whether the image should be treated as an icon.
 	 */
-	return apply_filters( 'wp_get_attachment_image_src', $image, $attachment_id, $size, $icon );
+	$source = apply_filters( 'wp_get_attachment_image_src', $image, $attachment_id, $size, $icon );
+	if ( is_array( $source ) && isset( $source[0] ) && is_string( $source[0] ) ) {
+		return array(
+			$source[0],
+			(int) ( $source[1] ?? 0 ),
+			(int) ( $source[2] ?? 0 ),
+			(bool) ( $source[3] ?? false ),
+		);
+	}
+	return false;
 }
 
 /**
@@ -3230,10 +3250,23 @@ function wp_playlist_shortcode( $attr ) {
 		if ( $atts['images'] ) {
 			$thumb_id = get_post_thumbnail_id( $attachment->ID );
 			if ( ! empty( $thumb_id ) ) {
-				list( $src, $width, $height ) = wp_get_attachment_image_src( $thumb_id, 'full' );
-				$track['image']               = compact( 'src', 'width', 'height' );
-				list( $src, $width, $height ) = wp_get_attachment_image_src( $thumb_id, 'thumbnail' );
-				$track['thumb']               = compact( 'src', 'width', 'height' );
+				$image_src_full = wp_get_attachment_image_src( $thumb_id, 'full' );
+				if ( is_array( $image_src_full ) ) {
+					$track['image'] = array(
+						'src'    => $image_src_full[0],
+						'width'  => $image_src_full[1],
+						'height' => $image_src_full[2],
+					);
+				}
+
+				$image_src_thumb = wp_get_attachment_image_src( $thumb_id, 'thumbnail' );
+				if ( is_array( $image_src_thumb ) ) {
+					$track['thumb'] = array(
+						'src'    => $image_src_thumb[0],
+						'width'  => $image_src_thumb[1],
+						'height' => $image_src_thumb[2],
+					);
+				}
 			} else {
 				$src            = wp_mime_type_icon( $attachment->ID, '.svg' );
 				$width          = 48;
@@ -3389,7 +3422,7 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
  *     @type string $style    The 'style' attribute for the `<audio>` element. Default 'width: 100%;'.
  * }
  * @param string $content Shortcode content.
- * @return string|void HTML content to display audio.
+ * @return string|null HTML content to display audio.
  */
 function wp_audio_shortcode( $attr, $content = '' ) {
 	$post_id = get_post() ? get_the_ID() : 0;
@@ -3459,14 +3492,14 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		$audios = get_attached_media( 'audio', $post_id );
 
 		if ( empty( $audios ) ) {
-			return;
+			return null;
 		}
 
 		$audio       = reset( $audios );
 		$atts['src'] = wp_get_attachment_url( $audio->ID );
 
 		if ( empty( $atts['src'] ) ) {
-			return;
+			return null;
 		}
 
 		array_unshift( $default_types, 'src' );
@@ -3614,7 +3647,7 @@ function wp_get_video_extensions() {
  *                            Default 'wp-video-shortcode'.
  * }
  * @param string $content Shortcode content.
- * @return string|void HTML content to display video.
+ * @return string|null HTML content to display video.
  */
 function wp_video_shortcode( $attr, $content = '' ) {
 	global $content_width;
@@ -3717,13 +3750,13 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	if ( ! $primary ) {
 		$videos = get_attached_media( 'video', $post_id );
 		if ( empty( $videos ) ) {
-			return;
+			return null;
 		}
 
 		$video       = reset( $videos );
 		$atts['src'] = wp_get_attachment_url( $video->ID );
 		if ( empty( $atts['src'] ) ) {
-			return;
+			return null;
 		}
 
 		array_unshift( $default_types, 'src' );
@@ -4464,8 +4497,8 @@ function wp_plupload_default_settings() {
  * @since 3.5.0
  *
  * @param int|WP_Post $attachment Attachment ID or object.
- * @return array|void {
- *     Array of attachment details, or void if the parameter does not correspond to an attachment.
+ * @return array|null {
+ *     Array of attachment details, or null if the parameter does not correspond to an attachment.
  *
  *     @type string $alt                   Alt text of the attachment.
  *     @type string $author                ID of the attachment author, as a string.
@@ -4509,11 +4542,11 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	$attachment = get_post( $attachment );
 
 	if ( ! $attachment ) {
-		return;
+		return null;
 	}
 
 	if ( 'attachment' !== $attachment->post_type ) {
-		return;
+		return null;
 	}
 
 	$meta = wp_get_attachment_metadata( $attachment->ID );
@@ -4711,10 +4744,23 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 		$id = get_post_thumbnail_id( $attachment->ID );
 		if ( ! empty( $id ) ) {
-			list( $src, $width, $height ) = wp_get_attachment_image_src( $id, 'full' );
-			$response['image']            = compact( 'src', 'width', 'height' );
-			list( $src, $width, $height ) = wp_get_attachment_image_src( $id, 'thumbnail' );
-			$response['thumb']            = compact( 'src', 'width', 'height' );
+			$response_image_full = wp_get_attachment_image_src( $id, 'full' );
+			if ( is_array( $response_image_full ) ) {
+				$response['image'] = array(
+					'src'    => $response_image_full[0],
+					'width'  => $response_image_full[1],
+					'height' => $response_image_full[2],
+				);
+			}
+
+			$response_image_thumb = wp_get_attachment_image_src( $id, 'thumbnail' );
+			if ( is_array( $response_image_thumb ) ) {
+				$response['thumb'] = array(
+					'src'    => $response_image_thumb[0],
+					'width'  => $response_image_thumb[1],
+					'height' => $response_image_thumb[2],
+				);
+			}
 		} else {
 			$src               = wp_mime_type_icon( $attachment->ID, '.svg' );
 			$width             = 48;
@@ -5724,6 +5770,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
  * @return array|false Array of image information or false on failure.
+ * @phpstan-return array{ 0: int, 1: int, 2: int, 3: string, mime: string, bits?: int, channels?: int }|false
  */
 function wp_getimagesize( $filename, ?array &$image_info = null ) {
 	// Don't silence errors when in debug mode, unless running unit tests.
@@ -6398,243 +6445,5 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 * @param string $mime_type The source image mime type.
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
-}
-
-/**
- * Checks whether client-side media processing is enabled.
- *
- * Client-side media processing uses the browser's capabilities to handle
- * tasks like image resizing and compression before uploading to the server.
- *
- * @since 7.0.0
- *
- * @return bool Whether client-side media processing is enabled.
- */
-function wp_is_client_side_media_processing_enabled(): bool {
-	// This is due to SharedArrayBuffer requiring a secure context.
-	$host    = strtolower( (string) strtok( $_SERVER['HTTP_HOST'] ?? '', ':' ) );
-	$enabled = ( is_ssl() || 'localhost' === $host || str_ends_with( $host, '.localhost' ) );
-
-	/**
-	 * Filters whether client-side media processing is enabled.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param bool $enabled Whether client-side media processing is enabled. Default true if the page is served in a secure context.
-	 */
-	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', $enabled );
-}
-
-/**
- * Sets a global JS variable to indicate that client-side media processing is enabled.
- *
- * @since 7.0.0
- */
-function wp_set_client_side_media_processing_flag(): void {
-	if ( ! wp_is_client_side_media_processing_enabled() ) {
-		return;
-	}
-
-	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true;', 'before' );
-
-	$chromium_version = wp_get_chromium_major_version();
-
-	if ( null !== $chromium_version && $chromium_version >= 137 ) {
-		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
-	}
-
-	/*
-	 * Register the @wordpress/vips/worker script module as a dynamic dependency
-	 * of the wp-upload-media classic script. This ensures it is included in the
-	 * import map so that the dynamic import() in upload-media.js can resolve it.
-	 */
-	wp_scripts()->add_data(
-		'wp-upload-media',
-		'module_dependencies',
-		array( '@wordpress/vips/worker' )
-	);
-}
-
-/**
- * Returns the major Chrome/Chromium version from the current request's User-Agent.
- *
- * Matches all Chromium-based browsers (Chrome, Edge, Opera, Brave).
- *
- * @since 7.0.0
- *
- * @return int|null The major Chrome version, or null if not a Chromium browser.
- */
-function wp_get_chromium_major_version(): ?int {
-	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
-		return null;
-	}
-	if ( preg_match( '#Chrome/(\d+)#', $_SERVER['HTTP_USER_AGENT'], $matches ) ) {
-		return (int) $matches[1];
-	}
-	return null;
-}
-
-/**
- * Enables cross-origin isolation in the block editor.
- *
- * Required for enabling SharedArrayBuffer for WebAssembly-based
- * media processing in the editor. Uses Document-Isolation-Policy
- * on supported browsers (Chromium 137+).
- *
- * Skips setup when a third-party page builder overrides the block
- * editor via a custom `action` query parameter, as DIP would block
- * same-origin iframe access that these editors rely on.
- *
- * @since 7.0.0
- */
-function wp_set_up_cross_origin_isolation(): void {
-	if ( ! wp_is_client_side_media_processing_enabled() ) {
-		return;
-	}
-
-	$screen = get_current_screen();
-
-	if ( ! $screen ) {
-		return;
-	}
-
-	if ( ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
-		return;
-	}
-
-	/*
-	 * Skip when a third-party page builder overrides the block editor.
-	 * DIP isolates the document into its own agent cluster,
-	 * which blocks same-origin iframe access that these editors rely on.
-	 */
-	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
-		return;
-	}
-
-	// Cross-origin isolation is not needed if users can't upload files anyway.
-	if ( ! current_user_can( 'upload_files' ) ) {
-		return;
-	}
-
-	wp_start_cross_origin_isolation_output_buffer();
-}
-
-/**
- * Sends the Document-Isolation-Policy header for cross-origin isolation.
- *
- * Uses an output buffer to add crossorigin="anonymous" where needed.
- *
- * @since 7.0.0
- */
-function wp_start_cross_origin_isolation_output_buffer(): void {
-	$chromium_version = wp_get_chromium_major_version();
-
-	if ( null === $chromium_version || $chromium_version < 137 ) {
-		return;
-	}
-
-	ob_start(
-		static function ( string $output ): string {
-			header( 'Document-Isolation-Policy: isolate-and-credentialless' );
-
-			return wp_add_crossorigin_attributes( $output );
-		}
-	);
-}
-
-/**
- * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
- *
- * @since 7.0.0
- *
- * @param string $html HTML input.
- * @return string Modified HTML.
- */
-function wp_add_crossorigin_attributes( string $html ): string {
-	$site_url = site_url();
-
-	$processor = new WP_HTML_Tag_Processor( $html );
-
-	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin.
-	$cross_origin_tag_attributes = array(
-		'AUDIO'  => array( 'src' => false ),
-		'IMG'    => array(
-			'src'    => false,
-			'srcset' => true,
-		),
-		'LINK'   => array(
-			'href'        => false,
-			'imagesrcset' => true,
-		),
-		'SCRIPT' => array( 'src' => false ),
-		'VIDEO'  => array(
-			'src'    => false,
-			'poster' => false,
-		),
-		'SOURCE' => array( 'src' => false ),
-	);
-
-	while ( $processor->next_tag() ) {
-		$tag = $processor->get_tag();
-
-		if ( ! isset( $cross_origin_tag_attributes[ $tag ] ) ) {
-			continue;
-		}
-
-		if ( 'AUDIO' === $tag || 'VIDEO' === $tag ) {
-			$processor->set_bookmark( 'audio-video-parent' );
-		}
-
-		$processor->set_bookmark( 'resume' );
-
-		$sought = false;
-
-		$crossorigin = $processor->get_attribute( 'crossorigin' );
-
-		$is_cross_origin = false;
-
-		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr => $is_srcset ) {
-			if ( $is_srcset ) {
-				$srcset = $processor->get_attribute( $attr );
-				if ( is_string( $srcset ) ) {
-					foreach ( explode( ',', $srcset ) as $candidate ) {
-						$candidate_url = strtok( trim( $candidate ), ' ' );
-						if ( is_string( $candidate_url ) && '' !== $candidate_url && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
-							$is_cross_origin = true;
-							break;
-						}
-					}
-				}
-			} else {
-				$url = $processor->get_attribute( $attr );
-				if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
-					$is_cross_origin = true;
-				}
-			}
-
-			if ( $is_cross_origin ) {
-				break;
-			}
-		}
-
-		if ( $is_cross_origin && ! is_string( $crossorigin ) ) {
-			if ( 'SOURCE' === $tag ) {
-				$sought = $processor->seek( 'audio-video-parent' );
-
-				if ( $sought ) {
-					$processor->set_attribute( 'crossorigin', 'anonymous' );
-				}
-			} else {
-				$processor->set_attribute( 'crossorigin', 'anonymous' );
-			}
-
-			if ( $sought ) {
-				$processor->seek( 'resume' );
-				$processor->release_bookmark( 'audio-video-parent' );
-			}
-		}
-	}
-
-	return $processor->get_updated_html();
 }
 

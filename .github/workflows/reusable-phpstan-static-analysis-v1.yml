@@ -52,24 +52,24 @@ jobs:
           cache: npm
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # 2.37.0
         with:
           php-version: ${{ inputs.php-version }}
           coverage: none
           tools: cs2pr
-
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
-      - name: Install Composer dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
-        with:
-          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: General debug information
         run: |
           npm --version
           node --version
           composer --version
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
@@ -81,7 +81,7 @@ jobs:
         run: npm run build:dev
 
       - name: Cache PHP Static Analysis scan cache
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: .cache # This is defined in the base.neon file.
           key: "phpstan-result-cache-${{ github.run_id }}"
@@ -93,7 +93,7 @@ jobs:
         run: composer run phpstan -- -vvv --error-format=checkstyle | cs2pr --errors-as-warnings --graceful-warnings
 
       - name: "Save result cache"
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         if: ${{ !cancelled() }}
         with:
           path: .cache

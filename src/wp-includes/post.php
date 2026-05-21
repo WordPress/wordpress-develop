@@ -657,41 +657,6 @@ function create_initial_post_types() {
 		)
 	);
 
-	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
-		register_post_type(
-			'wp_sync_storage',
-			array(
-				'labels'             => array(
-					'name'          => __( 'Sync Updates' ),
-					'singular_name' => __( 'Sync Update' ),
-				),
-				'public'             => false,
-				'_builtin'           => true, /* internal use only. don't use this when registering your own post type. */
-				'hierarchical'       => false,
-				'capabilities'       => array(
-					'read'                   => 'do_not_allow',
-					'read_private_posts'     => 'do_not_allow',
-					'create_posts'           => 'do_not_allow',
-					'publish_posts'          => 'do_not_allow',
-					'edit_posts'             => 'do_not_allow',
-					'edit_others_posts'      => 'do_not_allow',
-					'edit_published_posts'   => 'do_not_allow',
-					'delete_posts'           => 'do_not_allow',
-					'delete_others_posts'    => 'do_not_allow',
-					'delete_published_posts' => 'do_not_allow',
-				),
-				'map_meta_cap'       => false,
-				'publicly_queryable' => false,
-				'query_var'          => false,
-				'rewrite'            => false,
-				'show_in_menu'       => false,
-				'show_in_rest'       => false,
-				'show_ui'            => false,
-				'supports'           => array( 'custom-fields' ),
-			)
-		);
-	}
-
 	register_post_status(
 		'publish',
 		array(
@@ -2855,19 +2820,20 @@ function get_post_custom( $post_id = 0 ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|void Array of the keys, if retrieved.
+ * @return array|null Array of the keys, if retrieved.
  */
 function get_post_custom_keys( $post_id = 0 ) {
 	$custom = get_post_custom( $post_id );
 
 	if ( ! is_array( $custom ) ) {
-		return;
+		return null;
 	}
 
 	$keys = array_keys( $custom );
 	if ( $keys ) {
 		return $keys;
 	}
+	return null;
 }
 
 /**
@@ -4220,7 +4186,7 @@ function wp_untrash_post( $post_id = 0 ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
- * @return mixed|void False on failure.
+ * @return int|false|null int if the comments were successfully deleted, false on failure and null if the post or comment did not exist.
  */
 function wp_trash_post_comments( $post = null ) {
 	global $wpdb;
@@ -4228,7 +4194,7 @@ function wp_trash_post_comments( $post = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	$post_id = $post->ID;
@@ -4245,7 +4211,7 @@ function wp_trash_post_comments( $post = null ) {
 	$comments = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
 
 	if ( ! $comments ) {
-		return;
+		return null;
 	}
 
 	// Cache current status for each comment.
@@ -4281,7 +4247,7 @@ function wp_trash_post_comments( $post = null ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
- * @return true|void
+ * @return true|null
  */
 function wp_untrash_post_comments( $post = null ) {
 	global $wpdb;
@@ -4289,7 +4255,7 @@ function wp_untrash_post_comments( $post = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	$post_id = $post->ID;
@@ -4336,6 +4302,8 @@ function wp_untrash_post_comments( $post = null ) {
 	 * @param int $post_id Post ID.
 	 */
 	do_action( 'untrashed_post_comments', $post_id );
+
+	return null;
 }
 
 /**
@@ -8651,7 +8619,6 @@ function use_block_editor_for_post_type( $post_type ) {
  * Registers any additional post meta fields.
  *
  * @since 6.3.0 Adds `wp_pattern_sync_status` meta field to the wp_block post type so an unsynced option can be added.
- * @since 7.0.0 Adds `_crdt_document` meta field to post types so that CRDT documents can be persisted.
  *
  * @link https://github.com/WordPress/gutenberg/pull/51144
  */
@@ -8671,30 +8638,4 @@ function wp_create_initial_post_meta() {
 			),
 		)
 	);
-
-	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
-		register_meta(
-			'post',
-			'_crdt_document',
-			array(
-				'auth_callback'     => static function ( bool $_allowed, string $_meta_key, int $object_id, int $user_id ): bool {
-					return user_can( $user_id, 'edit_post', $object_id );
-				},
-				/*
-				 * Revisions must be disabled because we always want to preserve
-				 * the latest persisted CRDT document, even when a revision is restored.
-				 * This ensures that we can continue to apply updates to a shared document
-				 * and peers can simply merge the restored revision like any other incoming
-				 * update.
-				 *
-				 * If we want to persist CRDT documents alongside revisions in the
-				 * future, we should do so in a separate meta key.
-				 */
-				'revisions_enabled' => false,
-				'show_in_rest'      => true,
-				'single'            => true,
-				'type'              => 'string',
-			)
-		);
-	}
 }

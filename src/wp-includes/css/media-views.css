@@ -25,16 +25,7 @@
 
 .media-modal label {
 	font-size: 13px;
-}
-
-.media-modal .media-filter-container label {
-	display: block;
-}
-
-.media-modal .media-filter-container select,
-.media-modal .search-form input {
-	margin-top: 6px;
-}
+}	
 
 .media-modal .legend-inline {
 	position: absolute;
@@ -45,18 +36,18 @@
 
 .media-frame a {
 	border-bottom: none;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-frame a:hover,
 .media-frame a:active {
-	color: #135e96;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .media-frame a:focus {
 	border-radius: 2px;
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
-	color: #043959;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -144,9 +135,9 @@
 .media-frame input[type="url"]:focus,
 .media-frame textarea:focus,
 .media-frame select:focus {
-	border-color: var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	/* Expand border by 0.5px for total 1.5px effect */
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color, #3858e9);
 	outline: 2px solid transparent;
 }
 
@@ -244,13 +235,13 @@
 
 .media-modal-close:hover,
 .media-modal-close:active {
-	color: #135e96;
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-modal-close:focus {
-	color: #135e96;
-	border-color: #4f94d4;
-	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8);
+	color: var(--wp-admin-theme-color, #3858e9);
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 3px rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.8);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -349,10 +340,29 @@
 .media-toolbar-secondary {
 	float: left;
 	height: 100%;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
+	display: grid;
+	grid-template-columns: repeat( 2, 1fr );
+	grid-template-rows: repeat( 2, 1fr );
+	grid-column-gap: 12px;
+	grid-row-gap: 0px;
+	align-items: end;
 }
+
+label[for="media-attachment-filters"] { 
+	grid-area: 1 / 1 / 2 / 2; 
+}
+
+select#media-attachment-filters { 
+	grid-area: 2 / 1 / 3 / 2; 
+}
+
+label[for="media-attachment-date-filters"] { 
+	grid-area: 1 / 2 / 2 / 3; 
+}
+
+select#media-attachment-date-filters { 
+	grid-area: 2 / 2 / 3 / 3; 
+} 
 
 .media-toolbar-primary > .media-button,
 .media-toolbar-primary > .media-button-group {
@@ -672,7 +682,7 @@
 	font-size: 14px;
 	line-height: 1.28571428;
 	background: transparent;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	text-align: left;
 	text-decoration: none;
 	cursor: pointer;
@@ -683,7 +693,7 @@
 }
 
 .media-menu .media-menu-item:active {
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	outline: none;
 }
 
@@ -695,7 +705,7 @@
 
 .media-menu .media-menu-item:focus {
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
-	color: #043959;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -738,7 +748,7 @@
 
 .media-router .media-menu-item:hover,
 .media-router .media-menu-item:active {
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-router .active,
@@ -748,7 +758,7 @@
 
 .media-router .media-menu-item:focus {
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
-	color: #043959;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	z-index: 1;
@@ -1320,8 +1330,8 @@
 }
 
 .uploader-inline .close:focus {
-	outline: 1px solid #4f94d4;
-	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8);
+	outline: 1px solid var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 3px rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.8);
 }
 
 .attachments-browser.hide-sidebar .attachments,
@@ -1408,7 +1418,7 @@
 	height: 10px;
 	min-width: 20px;
 	width: 0;
-	background: #2271b1;
+	background: var(--wp-admin-theme-color, #3858e9);
 	border-radius: 10px;
 	transition: width 300ms;
 }
@@ -1526,7 +1536,7 @@
 
 .uploader-window,
 .wp-editor-wrap .uploader-editor.droppable {
-	background: rgba(10, 75, 120, 0.9);
+	background-color: rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.9);
 }
 
 .uploader-window-content,
@@ -1687,13 +1697,13 @@
 	margin: 1px 8px 1px -8px;
 	line-height: 1.4;
 	border-right: 1px solid #dcdcde;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	text-decoration: none;
 }
 
 .media-selection .button-link:hover,
 .media-selection .button-link:focus {
-	color: #135e96;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .media-selection .button-link:last-child {
@@ -1751,7 +1761,7 @@
 .wp-core-ui .media-selection .attachment.details:focus {
 	box-shadow:
 		0 0 0 1px #fff,
-		0 0 2px 3px #4f94d4;
+		0 0 2px 3px var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -1763,7 +1773,7 @@
 .wp-core-ui .media-selection .attachment.details {
 	box-shadow:
 		0 0 0 1px #fff,
-		0 0 0 3px #2271b1;
+		0 0 0 3px var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-selection:after {
@@ -2043,7 +2053,7 @@
 	margin: 0;
 	padding: 0;
 	background: transparent;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	font-size: 20px;
 	line-height: 1;
 	cursor: pointer;
@@ -2052,9 +2062,9 @@
 }
 
 .wp-core-ui.media-modal .image-editor .imgedit-help-toggle:focus {
-	color: #2271b1;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -2714,6 +2724,11 @@
 
 	.media-frame .media-toolbar input[type="search"] {
 		line-height: 2.25; /* 36px */
+	}
+
+	.media-toolbar-secondary,
+	.media-toolbar-secondary label {
+		display: block;
 	}
 
 	.media-sidebar .setting select.columns,
