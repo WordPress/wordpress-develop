@@ -1680,7 +1680,7 @@ You can log in to the administrator account with the following information:
 
 Username: USERNAME
 Password: PASSWORD
-Log in here: BLOG_URLwp-login.php
+Log in here: LOGINLINK
 
 We hope you enjoy your new site. Thanks!
 
@@ -1695,6 +1695,7 @@ We hope you enjoy your new site. Thanks!
 	$welcome_email = str_replace( 'BLOG_URL', $url, $welcome_email );
 	$welcome_email = str_replace( 'USERNAME', $user->user_login, $welcome_email );
 	$welcome_email = str_replace( 'PASSWORD', $password, $welcome_email );
+	$welcome_email = str_replace( 'LOGINLINK', wp_login_url(), $welcome_email );
 
 	/**
 	 * Filters the content of the welcome email sent to the site administrator after site activation.
