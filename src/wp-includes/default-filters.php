@@ -485,9 +485,8 @@ add_action( 'wp_head', 'wp_post_preview_js', 1 );
 // Timezone.
 add_filter( 'pre_option_gmt_offset', 'wp_timezone_override_offset' );
 
-// If the upgrade hasn't run yet, set some default options.
-add_filter( 'default_option_link_manager_enabled', '__return_true' ); // Assume link manager is used.
-add_filter( 'default_option_wp_enable_real_time_collaboration', '__return_true' ); // Enable real-time collaboration.
+// If the upgrade hasn't run yet, assume link manager is used.
+add_filter( 'default_option_link_manager_enabled', '__return_true' );
 
 // This option no longer exists; tell plugins we always support auto-embedding.
 add_filter( 'pre_option_embed_autourls', '__return_true' );
@@ -679,13 +678,6 @@ add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings'
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
 
-// Client-side media processing.
-add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
-// Cross-origin isolation for client-side media processing.
-add_action( 'load-post.php', 'wp_set_up_cross_origin_isolation' );
-add_action( 'load-post-new.php', 'wp_set_up_cross_origin_isolation' );
-add_action( 'load-site-editor.php', 'wp_set_up_cross_origin_isolation' );
-add_action( 'load-widgets.php', 'wp_set_up_cross_origin_isolation' );
 // Nav menu.
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );
 add_filter( 'nav_menu_css_class', 'wp_nav_menu_remove_menu_item_has_children_class', 10, 4 );
@@ -708,7 +700,6 @@ add_action( 'activate_header', '_wp_admin_bar_init' );
 add_action( 'wp_body_open', 'wp_admin_bar_render', 0 );
 add_action( 'wp_footer', 'wp_admin_bar_render', 1000 ); // Back-compat for themes not using `wp_body_open`.
 add_action( 'in_admin_header', 'wp_admin_bar_render', 0 );
-add_action( 'admin_bar_init', 'wp_admin_bar_add_color_scheme_to_front_end', 0 );
 
 // Former admin filters that can also be hooked on the front end.
 add_action( 'media_buttons', 'media_buttons' );
@@ -797,9 +788,6 @@ add_action( 'wp_head', 'wp_print_font_faces', 50 );
 add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
-
-// Collaboration.
-add_action( 'admin_init', 'wp_collaboration_inject_setting' );
 
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );

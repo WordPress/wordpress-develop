@@ -4155,27 +4155,31 @@ function wp_get_code_editor_settings( $args ) {
 			'outline-none'              => true,
 		),
 		'jshint'     => array(
-			'esversion' => 11,
-			'module'    => str_ends_with( $args['file'] ?? '', '.mjs' ),
+			'esversion'       => 11,
+			'module'          => str_ends_with( $args['file'] ?? '', '.mjs' ),
+
+			// This script module URL is intentionally referenced here instead of registering an espree script module
+			// in wp_default_script_modules(). This is a first stab at a core-only private module.
+			'espreeModuleUrl' => add_query_arg( 'ver', '9.6.1', includes_url( 'js/codemirror/espree.min.js' ) ),
 
 			// The following JSHint *linting rule* options are copied from
 			// <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
 			// Parsing-related options such as `esversion` (and, in other contexts, `es5`, `es3`, `module`, `strict`)
 			// are honored by the Espree-based integration, but these linting-rule options are not interpreted by Espree
 			// and are kept only for compatibility/documentation with the original JSHint configuration.
-			'boss'      => true,
-			'curly'     => true,
-			'eqeqeq'    => true,
-			'eqnull'    => true,
-			'expr'      => true,
-			'immed'     => true,
-			'noarg'     => true,
-			'nonbsp'    => true,
-			'quotmark'  => 'single',
-			'undef'     => true,
-			'unused'    => true,
-			'browser'   => true,
-			'globals'   => array(
+			'boss'            => true,
+			'curly'           => true,
+			'eqeqeq'          => true,
+			'eqnull'          => true,
+			'expr'            => true,
+			'immed'           => true,
+			'noarg'           => true,
+			'nonbsp'          => true,
+			'quotmark'        => 'single',
+			'undef'           => true,
+			'unused'          => true,
+			'browser'         => true,
+			'globals'         => array(
 				'_'                 => false,
 				'Backbone'          => false,
 				'jQuery'            => false,
@@ -4669,12 +4673,26 @@ function paginate_links( $args = '' ) {
 	$total   = $wp_query->max_num_pages ?? 1;
 	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 
-	// Append the format placeholder to the base URL.
-	$pagenum_link = trailingslashit( $url_parts[0] ) . '%_%';
+	/*
+	 * Ensures sites not using trailing slashes get links in the form
+	 * `/page/2` rather than `/page/2/`. On these sites, linking to the
+	 * URL with a trailing slash will result in a 301 redirect from the
+	 * incorrect URL to the correctly formatted one. This presents an
+	 * unnecessary performance hit.
+	 */
+	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {
+		$pagenum_link = untrailingslashit( $url_parts[0] );
+	} else {
+		$pagenum_link = trailingslashit( $url_parts[0] );
+	}
+	$pagenum_link .= '%_%';
 
 	// URL base depends on permalink settings.
 	$format  = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
 	$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
+	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {
+		$format = '/' . ltrim( $format, '/' );
+	}
 
 	$defaults = array(
 		'base'               => $pagenum_link, // http://example.com/all_posts.php%_% : %_% is replaced by format (below).

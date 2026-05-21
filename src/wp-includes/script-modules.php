@@ -139,6 +139,27 @@ function wp_deregister_script_module( string $id ) {
 }
 
 /**
+ * Overrides the text domain and path used to load translations for a script module.
+ *
+ * Translations for script modules are loaded automatically from the default
+ * text domain and language directory. Use this function only when a module's
+ * text domain differs from `'default'` or when translation files live outside
+ * the standard location, for example plugin modules using their own text domain.
+ *
+ * @since 7.0.0
+ *
+ * @see WP_Script_Modules::set_translations()
+ *
+ * @param string $id     The identifier of the script module.
+ * @param string $domain Optional. Text domain. Default 'default'.
+ * @param string $path   Optional. The full file path to the directory containing translation files.
+ * @return bool True if the text domain was registered, false if the module is not registered.
+ */
+function wp_set_script_module_translations( string $id, string $domain = 'default', string $path = '' ): bool {
+	return wp_script_modules()->set_translations( $id, $domain, $path );
+}
+
+/**
  * Registers all the default WordPress Script Modules.
  *
  * @since 6.7.0
@@ -149,11 +170,11 @@ function wp_default_script_modules() {
 	/*
 	 * Expects multidimensional array like:
 	 *
-	 *     'interactivity/index.min.js' => array('dependencies' => array(…), 'version' => '…'),
-	 *     'interactivity-router/index.min.js' => array('dependencies' => array(…), 'version' => '…'),
-	 *     'block-library/navigation/view.min.js' => …
+	 *     'interactivity/index.js' => array('dependencies' => array(…), 'version' => '…'),
+	 *     'interactivity-router/index.js' => array('dependencies' => array(…), 'version' => '…'),
+	 *     'block-library/navigation/view.js' => …
 	 */
-	$assets_file = ABSPATH . WPINC . "/assets/script-modules-packages{$suffix}.php";
+	$assets_file = ABSPATH . WPINC . '/assets/script-modules-packages.php';
 	$assets      = file_exists( $assets_file ) ? include $assets_file : array();
 
 	foreach ( $assets as $file_name => $script_module_data ) {
@@ -190,23 +211,14 @@ function wp_default_script_modules() {
 			wp_interactivity()->add_client_navigation_support_to_script_module( $script_module_id );
 		}
 
-		// VIPS files are always minified — the non-minified versions are not
-		// shipped because they are ~10MB of inlined WASM with no debugging value.
-		if ( str_starts_with( $file_name, 'vips/' ) && ! str_contains( $file_name, '.min.' ) ) {
-			$file_name = str_replace( '.js', '.min.js', $file_name );
+		if ( '' !== $suffix ) {
+			$file_name = str_replace( '.js', $suffix . '.js', $file_name );
 		}
 
 		$path        = includes_url( "js/dist/script-modules/{$file_name}" );
 		$module_deps = $script_module_data['module_dependencies'] ?? array();
 		wp_register_script_module( $script_module_id, $path, $module_deps, $script_module_data['version'], $args );
 	}
-
-	wp_register_script_module(
-		'espree',
-		includes_url( 'js/codemirror/espree.min.js' ),
-		array(),
-		'9.6.1'
-	);
 }
 
 /**
