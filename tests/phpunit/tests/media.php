@@ -7285,7 +7285,7 @@ EOF;
 	}
 
 	/**
-	 * @ticket 64906
+	 * @ticket 65262
 	 * @covers ::wp_get_image_encode_quality
 	 */
 	public function test_wp_get_image_encode_quality_defaults() {
@@ -7296,7 +7296,7 @@ EOF;
 	}
 
 	/**
-	 * @ticket 64906
+	 * @ticket 65262
 	 * @covers ::wp_get_image_encode_quality
 	 */
 	public function test_wp_get_image_encode_quality_applies_wp_editor_set_quality() {
@@ -7318,7 +7318,7 @@ EOF;
 	 * The legacy jpeg_quality filter must apply for JPEG output only, matching
 	 * WP_Image_Editor::set_quality().
 	 *
-	 * @ticket 64906
+	 * @ticket 65262
 	 * @covers ::wp_get_image_encode_quality
 	 */
 	public function test_wp_get_image_encode_quality_applies_jpeg_quality() {
@@ -7340,7 +7340,7 @@ EOF;
 	/**
 	 * Out-of-range filtered values fall back to the default; 0 squashes to 1.
 	 *
-	 * @ticket 64906
+	 * @ticket 65262
 	 * @covers ::wp_get_image_encode_quality
 	 */
 	public function test_wp_get_image_encode_quality_clamps_out_of_range() {

@@ -1982,7 +1982,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * @ticket 64906
+	 * @ticket 65262
 	 */
 	public function test_image_quality_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
@@ -2010,7 +2010,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * @ticket 64906
+	 * @ticket 65262
 	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_default_in_response() {
@@ -2030,7 +2030,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * @ticket 64906
+	 * @ticket 65262
 	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_with_size_aware_filter() {
@@ -2066,7 +2066,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * The reported quality must include the legacy jpeg_quality filter, the same
 	 * way WP_Image_Editor::set_quality() applies it for JPEG output.
 	 *
-	 * @ticket 64906
+	 * @ticket 65262
 	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_honors_jpeg_quality_filter() {
