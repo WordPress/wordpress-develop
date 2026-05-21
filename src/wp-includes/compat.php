@@ -549,7 +549,7 @@ if ( ! function_exists( 'array_last' ) ) {
  * @throws InvalidArgumentException On PHP 7.x as a fallback.
  */
 function _wp_throw_value_error( $message ) {
-	if ( ! class_exists( 'ValueError' ) ) {
+	if ( ! class_exists( 'ValueError', false ) ) {
 		throw new InvalidArgumentException( $message );
 	}
 
