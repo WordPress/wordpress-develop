@@ -1306,12 +1306,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'readonly'    => true,
 			'properties'  => array(
 				'default' => array(
-					'type' => 'integer',
+					'type'    => 'integer',
+					'minimum' => 1,
+					'maximum' => 100,
 				),
 				'sizes'   => array(
 					'type'                 => 'object',
 					'additionalProperties' => array(
-						'type' => 'integer',
+						'type'    => 'integer',
+						'minimum' => 1,
+						'maximum' => 100,
 					),
 				),
 			),
