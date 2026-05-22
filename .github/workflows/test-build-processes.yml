@@ -26,6 +26,8 @@ on:
       - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'

@@ -446,11 +446,11 @@ function wp_register_sidebar_widget( $id, $name, $output_callback, $options = ar
  * @global array $wp_registered_widgets The registered widgets.
  *
  * @param int|string $id Widget ID.
- * @return string|void Widget description, if available.
+ * @return string|null Widget description, if available.
  */
 function wp_widget_description( $id ) {
 	if ( ! is_scalar( $id ) ) {
-		return;
+		return null;
 	}
 
 	global $wp_registered_widgets;
@@ -458,6 +458,7 @@ function wp_widget_description( $id ) {
 	if ( isset( $wp_registered_widgets[ $id ]['description'] ) ) {
 		return esc_html( $wp_registered_widgets[ $id ]['description'] );
 	}
+	return null;
 }
 
 /**
@@ -471,11 +472,11 @@ function wp_widget_description( $id ) {
  * @global array $wp_registered_sidebars The registered sidebars.
  *
  * @param string $id sidebar ID.
- * @return string|void Sidebar description, if available.
+ * @return string|null Sidebar description, if available.
  */
 function wp_sidebar_description( $id ) {
 	if ( ! is_scalar( $id ) ) {
-		return;
+		return null;
 	}
 
 	global $wp_registered_sidebars;
@@ -483,6 +484,7 @@ function wp_sidebar_description( $id ) {
 	if ( isset( $wp_registered_sidebars[ $id ]['description'] ) ) {
 		return wp_kses( $wp_registered_sidebars[ $id ]['description'], 'sidebar_description' );
 	}
+	return null;
 }
 
 /**
@@ -711,11 +713,11 @@ function dynamic_sidebar( $index = 1 ) {
 
 	$sidebars_widgets = wp_get_sidebars_widgets();
 	if ( empty( $wp_registered_sidebars[ $index ] ) || empty( $sidebars_widgets[ $index ] ) || ! is_array( $sidebars_widgets[ $index ] ) ) {
-		/** This action is documented in wp-includes/widget.php */
+		/** This action is documented in wp-includes/widgets.php */
 		do_action( 'dynamic_sidebar_before', $index, false );
-		/** This action is documented in wp-includes/widget.php */
+		/** This action is documented in wp-includes/widgets.php */
 		do_action( 'dynamic_sidebar_after', $index, false );
-		/** This filter is documented in wp-includes/widget.php */
+		/** This filter is documented in wp-includes/widgets.php */
 		return apply_filters( 'dynamic_sidebar_has_widgets', false, $index );
 	}
 
@@ -1720,15 +1722,15 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 
 	$args['title'] = $args['title'] ?? '';
 	$args['url']   = $args['url'] ?? '';
-	$args['items'] = isset( $args['items'] ) ? (int) $args['items'] : 0;
+	$args['items'] = (int) ( $args['items'] ?? 0 );
 
 	if ( $args['items'] < 1 || 20 < $args['items'] ) {
 		$args['items'] = 10;
 	}
 
-	$args['show_summary'] = isset( $args['show_summary'] ) ? (int) $args['show_summary'] : (int) $inputs['show_summary'];
-	$args['show_author']  = isset( $args['show_author'] ) ? (int) $args['show_author'] : (int) $inputs['show_author'];
-	$args['show_date']    = isset( $args['show_date'] ) ? (int) $args['show_date'] : (int) $inputs['show_date'];
+	$args['show_summary'] = (int) ( $args['show_summary'] ?? $inputs['show_summary'] );
+	$args['show_author']  = (int) ( $args['show_author'] ?? $inputs['show_author'] );
+	$args['show_date']    = (int) ( $args['show_date'] ?? $inputs['show_date'] );
 
 	if ( ! empty( $args['error'] ) ) {
 		echo '<p class="widget-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $args['error'] ) . '</p>';
@@ -1798,10 +1800,10 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 		$items = 10;
 	}
 	$url          = sanitize_url( strip_tags( $widget_rss['url'] ) );
-	$title        = isset( $widget_rss['title'] ) ? trim( strip_tags( $widget_rss['title'] ) ) : '';
-	$show_summary = isset( $widget_rss['show_summary'] ) ? (int) $widget_rss['show_summary'] : 0;
-	$show_author  = isset( $widget_rss['show_author'] ) ? (int) $widget_rss['show_author'] : 0;
-	$show_date    = isset( $widget_rss['show_date'] ) ? (int) $widget_rss['show_date'] : 0;
+	$title        = trim( strip_tags( $widget_rss['title'] ?? '' ) );
+	$show_summary = (int) ( $widget_rss['show_summary'] ?? 0 );
+	$show_author  = (int) ( $widget_rss['show_author'] ?? 0 );
+	$show_date    = (int) ( $widget_rss['show_date'] ?? 0 );
 	$error        = false;
 	$link         = '';
 

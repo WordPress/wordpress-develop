@@ -838,6 +838,102 @@ HTML
 	}
 
 	/**
+	 * @ticket 64416
+	 */
+	public function test_build_query_vars_from_query_block_tax_query_old_format() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'taxQuery' => array(
+					'category' => array( 1, 2, 3 ),
+					'post_tag' => array( 10, 20 ),
+				),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 1, 2, 3 ),
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 10, 20 ),
+						'include_children' => false,
+					),
+				),
+			),
+			$query
+		);
+	}
+
+	/**
+	 * @ticket 64416
+	 */
+	public function test_build_query_vars_from_query_block_tax_query_include_exclude() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'taxQuery' => array(
+					'include' => array(
+						'category' => array( 1, 2, 3 ),
+					),
+					'exclude' => array(
+						'post_tag' => array( 15 ),
+					),
+				),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 1, 2, 3 ),
+						'operator'         => 'IN',
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 15 ),
+						'operator'         => 'NOT IN',
+						'include_children' => false,
+					),
+				),
+			),
+			$query
+		);
+	}
+
+	/**
 	 * @ticket 62014
 	 */
 	public function test_build_query_vars_from_query_block_standard_post_formats() {
