@@ -157,7 +157,9 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		$reflection = new ReflectionObject( $network );
 		$property   = $reflection->getProperty( 'id' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$this->assertSame( (int) $id, $property->getValue( $network ) );
 	}
@@ -194,7 +196,9 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		$reflection = new ReflectionObject( $network );
 		$property   = $reflection->getProperty( 'blog_id' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$this->assertIsString( $property->getValue( $network ) );
 	}

@@ -62,7 +62,7 @@ if ( $wp_customize->changeset_post_id() ) {
 		?>
 		<?php wp_print_scripts( array( 'wp-util' ) ); ?>
 		<script>
-			wp.ajax.post( 'customize_save', <?php echo wp_json_encode( $request_args ); ?> );
+			wp.ajax.post( 'customize_save', <?php echo wp_json_encode( $request_args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 		</script>
 		<?php
 		$script = ob_get_clean();
@@ -147,6 +147,8 @@ if ( is_rtl() ) {
 	$body_class .= ' rtl';
 }
 $body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
+$admin_color = get_user_option( 'admin_color' );
+$body_class .= ' admin-color-' . sanitize_html_class( is_string( $admin_color ) ? $admin_color : '', 'modern' );
 
 if ( wp_use_widgets_block_editor() ) {
 	$body_class .= ' wp-embed-responsive';
@@ -157,8 +159,8 @@ $admin_title = sprintf( $wp_customize->get_document_title_template(), __( 'Loadi
 ?>
 <title><?php echo esc_html( $admin_title ); ?></title>
 
-<script type="text/javascript">
-var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ) ); ?>,
+<script>
+var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>,
 	pagenow = 'customize';
 </script>
 
@@ -196,19 +198,19 @@ do_action( 'customize_controls_head' );
 			<?php if ( $compatible_wp && $compatible_php ) : ?>
 				<?php $save_text = $wp_customize->is_theme_active() ? __( 'Publish' ) : __( 'Activate &amp; Publish' ); ?>
 				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper" >
-					<?php submit_button( $save_text, 'primary save', 'save', false ); ?>
-					<button id="publish-settings" class="publish-settings button-primary button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
+					<?php submit_button( $save_text, 'primary button-compact save', 'save', false ); ?>
+					<button id="publish-settings" class="publish-settings button-primary button-compact button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
 				</div>
 			<?php else : ?>
 				<?php $save_text = _x( 'Cannot Activate', 'theme' ); ?>
 				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper disabled" >
-					<button class="button button-primary disabled" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled><?php echo $save_text; ?></button>
+					<button class="button button-primary button-compact disabled" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled><?php echo $save_text; ?></button>
 				</div>
 			<?php endif; ?>
 			<span class="spinner"></span>
 			<button type="button" class="customize-controls-preview-toggle">
 				<span class="controls"><?php _e( 'Customize' ); ?></span>
-				<span class="preview"><?php _e( 'Preview' ); ?></span>
+				<span class="preview"><?php echo esc_html_x( 'Preview', 'noun' ); ?></span>
 			</button>
 			<a class="customize-controls-close" href="<?php echo esc_url( $wp_customize->get_return_url() ); ?>">
 				<span class="screen-reader-text">
@@ -268,7 +270,7 @@ do_action( 'customize_controls_head' );
 
 		<div id="customize-footer-actions" class="wp-full-overlay-footer">
 			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr_x( 'Hide Controls', 'label for hide controls button without length constraints' ); ?>">
-				<span class="collapse-sidebar-arrow"></span>
+				<span class="collapse-sidebar-arrow" aria-hidden="true"></span>
 				<span class="collapse-sidebar-label"><?php _ex( 'Hide Controls', 'short (~12 characters) label for hide controls button' ); ?></span>
 			</button>
 			<?php $previewable_devices = $wp_customize->get_previewable_devices(); ?>

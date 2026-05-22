@@ -200,11 +200,7 @@ class WP_Plugin_Dependencies {
 	 * @return array An array of dependency plugin slugs.
 	 */
 	public static function get_dependencies( $plugin_file ) {
-		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
-			return self::$dependencies[ $plugin_file ];
-		}
-
-		return array();
+		return self::$dependencies[ $plugin_file ] ?? array();
 	}
 
 	/**
@@ -354,12 +350,7 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function get_dependency_data( $slug ) {
 		$dependency_api_data = self::get_dependency_api_data();
-
-		if ( isset( $dependency_api_data[ $slug ] ) ) {
-			return $dependency_api_data[ $slug ];
-		}
-
-		return false;
+		return $dependency_api_data[ $slug ] ?? false;
 	}
 
 	/**
@@ -652,13 +643,13 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @global string $pagenow The filename of the current screen.
 	 *
-	 * @return array|void An array of dependency API data, or void on early exit.
+	 * @return array|null An array of dependency API data, or null on early exit.
 	 */
 	protected static function get_dependency_api_data() {
 		global $pagenow;
 
 		if ( ! is_admin() || ( 'plugins.php' !== $pagenow && 'plugin-install.php' !== $pagenow ) ) {
-			return;
+			return null;
 		}
 
 		if ( is_array( self::$dependency_api_data ) ) {
