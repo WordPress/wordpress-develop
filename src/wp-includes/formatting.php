@@ -5898,7 +5898,7 @@ function wp_enqueue_emoji_styles() {
  *
  * @since 4.2.0
  */
-function print_emoji_detection_script() {
+function print_emoji_detection_script(): void {
 	static $printed = false;
 
 	if ( $printed ) {
