@@ -6638,8 +6638,8 @@ function wp_add_crossorigin_attributes( string $html ): string {
 				$srcset = $processor->get_attribute( $attr );
 				if ( is_string( $srcset ) ) {
 					foreach ( explode( ',', $srcset ) as $candidate ) {
-						$candidate_url = strtok( trim( $candidate ), ' ' );
-						if ( is_string( $candidate_url ) && '' !== $candidate_url && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
+						$candidate_url = strtok( trim( $candidate, " \t\f\r\n" ), " \t\f\r\n" );
+						if ( is_string( $candidate_url ) && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
 							$is_cross_origin = true;
 							break;
 						}

@@ -415,7 +415,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 7.0.0
 	 */
-	private function remove_client_side_media_processing_filters() {
+	private function remove_client_side_media_processing_filters(): void {
 		remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
 		remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 		remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
@@ -2012,7 +2012,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
 	 */
 	public function sideload_item( WP_REST_Request $request ) {
-		$attachment_id = $request['id'];
+		$attachment_id = (int) $request['id'];
 
 		$post = $this->get_post( $attachment_id );
 
@@ -2225,7 +2225,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
 	 */
 	public function finalize_item( WP_REST_Request $request ) {
-		$attachment_id = $request['id'];
+		$attachment_id = (int) $request['id'];
 
 		$post = $this->get_post( $attachment_id );
 		if ( is_wp_error( $post ) ) {
