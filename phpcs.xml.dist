@@ -42,6 +42,9 @@
 	<!-- Exclude the build folder in the current directory. -->
 	<exclude-pattern type="relative">^build/*</exclude-pattern>
 
+	<!-- Exclude the local copy of the Gutenberg repository. -->
+	<exclude-pattern>/gutenberg/*</exclude-pattern>
+
 	<!-- Directories and third party library exclusions. -->
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/vendor/*</exclude-pattern>
@@ -68,11 +71,13 @@
 	<exclude-pattern>/src/wp-includes/assets/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/blocks/*/*.asset.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/blocks/blocks-json.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/build/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/PHPMailer/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/php-ai-client/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/sodium_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
@@ -80,6 +85,9 @@
 	<!-- Test data and fixtures. -->
 	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
 	<exclude-pattern>/tests/phpunit/data/*</exclude-pattern>
+
+	<!-- PHPStan bootstrap, stubs, and baseline. -->
+	<exclude-pattern>/tests/phpstan/*</exclude-pattern>
 
 	<exclude-pattern>/tools/*</exclude-pattern>
 
@@ -229,7 +237,7 @@
 	#############################################################################
 	SELECTIVE EXCLUSIONS
 	Exclude specific files for specific sniffs and/or exclude sub-groups in sniffs.
-	
+
 	These exclusions are listed ordered by alphabetic sniff name.
 	#############################################################################
 	-->
@@ -255,14 +263,20 @@
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
 	</rule>
 
-	<!-- Exclude forbidding goto in the HTML Processor, which mimics algorithms that are written
-	     this way in the HTML specification, and these particular algorithms are complex and
-	     highly imperative. Avoiding the goto introduces a number of risks that could make it
-	     more difficult to maintain the relationship to the standard, lead to subtle differences
-	     in the parsing, and distance the code from its standard. -->
 	<rule ref="Generic.PHP.DiscourageGoto.Found">
+		<!-- Exclude forbidding goto in the HTML Processor, which mimics algorithms that are written
+			 this way in the HTML specification, and these particular algorithms are complex and
+			 highly imperative. Avoiding the goto introduces a number of risks that could make it
+			 more difficult to maintain the relationship to the standard, lead to subtle differences
+			 in the parsing, and distance the code from its standard. -->
 		<exclude-pattern>/wp-includes/html-api/class-wp-html-processor\.php</exclude-pattern>
 		<exclude-pattern>/wp-includes/html-api/class-wp-html-doctype-info\.php</exclude-pattern>
+
+		<!-- Goto is an effective way to handle errors in decoders which expect valid bytes
+		     without impacting the fast path while avoiding bloating the code with redundant
+		     and risky handling code. Exclude forbidding goto in parser code. -->
+		<exclude-pattern>/wp-includes/compat-utf8\.php</exclude-pattern>
+		<exclude-pattern>/wp-includes/class-wp-block-processor\.php</exclude-pattern>
 	</rule>
 
 	<!-- Exclude sample config from modernization to prevent breaking CI workflows based on WP-CLI scaffold.
