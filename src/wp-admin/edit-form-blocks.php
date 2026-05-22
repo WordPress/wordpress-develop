@@ -115,6 +115,13 @@ $preload_paths = array(
 		$template_lookup_slug,
 		'/wp/v2/templates/lookup'
 	),
+	'/wp/v2/templates/lookup?slug=front-page',
+	'/wp/v2/taxonomies?context=edit',
+	array( rest_get_route_for_post_type_items( $post_type ), 'OPTIONS' ),
+	sprintf(
+		'/wp/v2/users/%d?context=view&_fields=id,name',
+		(int) $post->post_author
+	),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
