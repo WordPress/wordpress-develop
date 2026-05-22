@@ -1834,6 +1834,15 @@ select#media-attachment-date-filters {
 	visibility: visible;
 }
 
+.media-bg-overlay {
+	display: none;
+	position: absolute;
+	inset: 0;
+	background: #fff;
+	opacity: 0.6;
+	z-index: 1;
+}
+
 /**
  * Attachment Details
  */
