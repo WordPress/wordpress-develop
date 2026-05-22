@@ -70,6 +70,40 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return;
 		}
 
+		if ( empty( $opt ) || ! is_array( $opt ) ) {
+			$opt = array();
+		}
+
+		if ( empty( $opt['hostname'] ) || empty( $opt['username'] )
+			|| ( empty( $opt['password'] ) && ( empty( $opt['public_key'] ) || empty( $opt['private_key'] ) ) )
+		) {
+			$constants = array(
+				'hostname'    => 'FTP_HOST',
+				'username'    => 'FTP_USER',
+				'password'    => 'FTP_PASS',
+				'public_key'  => 'FTP_PUBKEY',
+				'private_key' => 'FTP_PRIKEY',
+			);
+
+			foreach ( $constants as $key => $constant ) {
+				if ( empty( $opt[ $key ] ) && defined( $constant ) ) {
+					$opt[ $key ] = constant( $constant );
+				}
+			}
+
+			// Sanitize hostname: strip scheme and extract port if embedded.
+			if ( ! empty( $opt['hostname'] ) ) {
+				$opt['hostname'] = preg_replace( '|\w+://|', '', $opt['hostname'] );
+
+				if ( strpos( $opt['hostname'], ':' ) ) {
+					list( $opt['hostname'], $opt['port'] ) = explode( ':', $opt['hostname'], 2 );
+					if ( ! is_numeric( $opt['port'] ) ) {
+						unset( $opt['port'] );
+					}
+				}
+			}
+		}
+
 		// Set defaults:
 		if ( empty( $opt['port'] ) ) {
 			$this->options['port'] = 22;
