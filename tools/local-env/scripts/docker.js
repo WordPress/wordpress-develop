@@ -21,8 +21,8 @@ if ( [ 'exec', 'run' ].includes( dockerCommand[0] ) && ! process.stdin.isTTY ) {
 }
 
 /*
- * `pcov.directory` restricts instrumentation to `src/`, so PCOV does not record hits for `vendor/`, `tests/`, or
- * WordPress test fixtures that PHPUnit would discard at report time anyway.
+ * `pcov.directory` restricts instrumentation to the configured `LOCAL_DIR`. This prevents PCOV from recording hits for
+ * `vendor/`, `tests/`, or WordPress test fixtures that PHPUnit would discard at report time anyway.
  */
 if ( process.env.LOCAL_PHP_PCOV === 'true' && dockerCommand.includes( '--coverage-clover' ) ) {
 	const phpunitIdx = dockerCommand.findIndex( ( arg ) => typeof arg === 'string' && arg.endsWith( 'phpunit' ) );
