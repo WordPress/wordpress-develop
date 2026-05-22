@@ -306,7 +306,13 @@ CAP;
 	}
 
 	/**
-	 * Test that figcaption IDs are unique on the page, even if same image and caption appear multiple times.
+	 * Tests that figcaption IDs are unique for multiple caption instances.
+	 *
+	 * When the same image with the same or different captions appears multiple
+	 * times on a page, each figcaption should receive a unique ID to maintain
+	 * HTML validity and accessibility.
+	 *
+	 * @since 7.1.0
 	 */
 	public function test_img_caption_shortcode_unique_ids_per_instance() {
 		// First instance with caption "My caption"
