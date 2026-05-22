@@ -6604,14 +6604,11 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin.
 	$cross_origin_tag_attributes = array(
-		'AUDIO'  => array( 'src' => false ),
-		'LINK'   => array( 'href' => false ),
-		'SCRIPT' => array( 'src' => false ),
-		'VIDEO'  => array(
-			'src'    => false,
-			'poster' => false,
-		),
-		'SOURCE' => array( 'src' => false ),
+		'AUDIO'  => array( 'src' ),
+		'LINK'   => array( 'href' ),
+		'SCRIPT' => array( 'src' ),
+		'VIDEO'  => array( 'src', 'poster' ),
+		'SOURCE' => array( 'src' ),
 	);
 
 	while ( $processor->next_tag() ) {
@@ -6633,23 +6630,10 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 		$is_cross_origin = false;
 
-		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr => $is_srcset ) {
-			if ( $is_srcset ) {
-				$srcset = $processor->get_attribute( $attr );
-				if ( is_string( $srcset ) ) {
-					foreach ( explode( ',', $srcset ) as $candidate ) {
-						$candidate_url = strtok( trim( $candidate, " \t\f\r\n" ), " \t\f\r\n" );
-						if ( is_string( $candidate_url ) && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
-							$is_cross_origin = true;
-							break;
-						}
-					}
-				}
-			} else {
-				$url = $processor->get_attribute( $attr );
-				if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
-					$is_cross_origin = true;
-				}
+		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr ) {
+			$url = $processor->get_attribute( $attr );
+			if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
+				$is_cross_origin = true;
 			}
 
 			if ( $is_cross_origin ) {
