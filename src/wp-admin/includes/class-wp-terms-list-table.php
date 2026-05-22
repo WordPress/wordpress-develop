@@ -543,8 +543,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 			&& current_user_can( 'manage_options' )
 		) {
 			$actions['change-default'] = sprintf(
-				'<a href="%s">%s</a>',
-				admin_url( 'options-writing.php#default_category' ),
+				'<a href="%s" aria-label="%s">%s</a>',
+				esc_url( admin_url( 'options-writing.php#default_category' ) ),
+				/* translators: %s: Taxonomy term name. */
+				esc_attr( sprintf( __( 'Change the default category from &#8220;%s&#8221;' ), $tag->name ) ),
 				__( 'Change Default' )
 			);
 		}
