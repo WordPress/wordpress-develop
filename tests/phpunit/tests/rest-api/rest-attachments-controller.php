@@ -3722,4 +3722,87 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $original_image_meta['focal_length'], $metadata['image_meta']['focal_length'], 'Focal length should be preserved.' );
 		$this->assertSame( $original_image_meta['iso'], $metadata['image_meta']['iso'], 'ISO should be preserved.' );
 	}
+
+	/**
+	 * Tests that sideloading with an array of image sizes registers the single
+	 * file under each size name when finalized.
+	 *
+	 * @ticket 64737
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_image_size_array() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment without generating sub-sizes server-side.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Sideload a single file registered under multiple sizes.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-dup.jpg' );
+		$request->set_param( 'image_size', array( 'thumbnail', 'medium' ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading with an array of sizes should succeed.' );
+
+		$sub_size = $response->get_data();
+		$this->assertSame( array( 'thumbnail', 'medium' ), $sub_size['image_size'], 'Response should echo the array of sizes.' );
+
+		// Finalize with the collected sub-size.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'], 'Metadata should register the thumbnail size.' );
+		$this->assertArrayHasKey( 'medium', $metadata['sizes'], 'Metadata should register the medium size.' );
+		$this->assertSame(
+			$metadata['sizes']['thumbnail']['file'],
+			$metadata['sizes']['medium']['file'],
+			'Both sizes should reference the same physical file.'
+		);
+	}
+
+	/**
+	 * Tests that the sideload endpoint rejects an invalid image size name.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_image_size_invalid() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-x.jpg' );
+		$request->set_param( 'image_size', array( 'thumbnail', 'not-a-real-size' ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'An unknown size name should be rejected.' );
+	}
 }

@@ -65,14 +65,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 
 		if ( wp_is_client_side_media_processing_enabled() ) {
-			$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
-			// Special case to set 'original_image' in attachment metadata.
-			$valid_image_sizes[] = 'original';
-			// Used for PDF thumbnails.
-			$valid_image_sizes[] = 'full';
-			// Client-side big image threshold: sideload the scaled version.
-			$valid_image_sizes[] = 'scaled';
-
 			register_rest_route(
 				$this->namespace,
 				'/' . $this->rest_base . '/(?P<id>[\d]+)/sideload',
@@ -87,10 +79,47 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 								'type'        => 'integer',
 							),
 							'image_size'     => array(
-								'description' => __( 'Image size.' ),
-								'type'        => 'string',
-								'enum'        => $valid_image_sizes,
-								'required'    => true,
+								'description'       => __( 'Image size. Can be a single size name or an array of size names to register the same file under multiple sizes.' ),
+								'type'              => array( 'string', 'array' ),
+								'items'             => array(
+									'type' => 'string',
+								),
+								'required'          => true,
+								/*
+								 * A custom callback is used instead of the default enum validation
+								 * because rest_is_array() treats scalar strings as single-element
+								 * lists (via wp_parse_list()), so a [ 'string', 'array' ] type alone
+								 * cannot enforce the enum. The callback validates each item against
+								 * the current list of registered sizes, which reflects sizes added
+								 * after route registration (e.g. via add_image_size()).
+								 */
+								'validate_callback' => static function ( $value, $request, $param ) {
+									$valid_sizes   = array_keys( wp_get_registered_image_subsizes() );
+									$valid_sizes[] = 'original';
+									$valid_sizes[] = 'scaled';
+									$valid_sizes[] = 'full';
+
+									$items = is_string( $value ) ? array( $value ) : ( is_array( $value ) ? $value : null );
+									if ( null === $items ) {
+										return new WP_Error(
+											'rest_invalid_type',
+											/* translators: %s: Parameter name. */
+											sprintf( __( '%s must be a string or an array of strings.' ), $param )
+										);
+									}
+
+									foreach ( $items as $item ) {
+										if ( ! is_string( $item ) || ! in_array( $item, $valid_sizes, true ) ) {
+											return new WP_Error(
+												'rest_not_in_enum',
+												/* translators: %s: Parameter name. */
+												sprintf( __( '%s contains an invalid image size.' ), $param )
+											);
+										}
+									}
+
+									return true;
+								},
 							),
 							'convert_format' => array(
 								'type'        => 'boolean',
@@ -125,8 +154,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 									'type'       => 'object',
 									'properties' => array(
 										'image_size'     => array(
-											'type'     => 'string',
-											'required' => true,
+											'description' => __( 'Size name, or an array of size names when a single file is registered under multiple sizes with matching dimensions.' ),
+											'type'        => array( 'string', 'array' ),
+											'items'       => array(
+												'type' => 'string',
+											),
+											'required'    => true,
 										),
 										'width'          => array(
 											'type'    => 'integer',
@@ -2127,7 +2160,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'image_size' => $image_size,
 		);
 
-		if ( 'original' === $image_size ) {
+		if ( is_array( $image_size ) ) {
+			// Multiple registered sizes share these dimensions, so a single
+			// sideloaded file is reused for all of them. Arrays only carry
+			// regular sub-sizes; the special keys below are always scalar.
+			$size = wp_getimagesize( $path );
+
+			$sub_size_data['width']     = $size ? $size[0] : 0;
+			$sub_size_data['height']    = $size ? $size[1] : 0;
+			$sub_size_data['file']      = wp_basename( $path );
+			$sub_size_data['mime_type'] = $type;
+			$sub_size_data['filesize']  = wp_filesize( $path );
+		} elseif ( 'original' === $image_size ) {
 			$sub_size_data['file'] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
 			// Record the current attached file as the original.
@@ -2263,6 +2307,24 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		foreach ( $sub_sizes as $sub_size ) {
 			$image_size = $sub_size['image_size'];
+
+			// When multiple size names share identical dimensions the client
+			// sends a single sub-size entry with an array of names. Register the
+			// same file under each name. Arrays only contain regular sizes.
+			if ( is_array( $image_size ) ) {
+				$metadata['sizes'] = $metadata['sizes'] ?? array();
+
+				foreach ( $image_size as $name ) {
+					$metadata['sizes'][ $name ] = array(
+						'width'     => $sub_size['width'] ?? 0,
+						'height'    => $sub_size['height'] ?? 0,
+						'file'      => $sub_size['file'] ?? '',
+						'mime-type' => $sub_size['mime_type'] ?? '',
+						'filesize'  => $sub_size['filesize'] ?? 0,
+					);
+				}
+				continue;
+			}
 
 			if ( 'original' === $image_size ) {
 				$metadata['original_image'] = $sub_size['file'];
