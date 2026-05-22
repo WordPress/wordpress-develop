@@ -1027,7 +1027,7 @@ if ( 'upgrade-core' === $action ) {
 	?>
 	<div class="wrap">
 	<h1><?php _e( 'WordPress Updates' ); ?></h1>
-	<p><?php _e( 'Here you can find information about pending updates of plugins, themes and translations. You can also change if you want WordPress to update automatically to the latest major version or only receive minor updates of the currently installed version.' ); ?></p>
+	<p><?php _e( 'Here you can find information about pending updates of WordPress, plugins, themes and translations. You can also choose whether to enable automatic updates for all new versions of WordPress, or for maintenance and security releases only.' ); ?></p>
 
 	<?php
 	if ( $upgrade_error ) {
