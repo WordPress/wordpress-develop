@@ -3345,6 +3345,50 @@ img {
 	outline: 1px solid transparent;
 }
 
+.postbox .handle-order-higher,
+.postbox .handle-order-lower {
+	position: relative;
+}
+
+.postbox-order-tooltip {
+	display: none;
+	position: absolute;
+	bottom: calc( 100% + 6px );
+	left: 50%;
+	transform: translateX( -50% );
+	padding: 6px 8px;
+	border-radius: 4px;
+	background-color: #1d2327;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.4;
+	white-space: nowrap;
+	z-index: 100000;
+	pointer-events: none;
+}
+
+.postbox .handle-order-higher:is( :hover, :focus-visible ) .postbox-order-tooltip,
+.postbox .handle-order-lower:is( :hover, :focus-visible ) .postbox-order-tooltip {
+	display: block;
+}
+
+@supports ( anchor-name: --tooltip ) and ( position-anchor: --tooltip ) {
+	.postbox .handle-order-higher,
+	.postbox .handle-order-lower {
+		anchor-scope: all;
+		anchor-name: --postbox-order-button;
+	}
+
+	.postbox-order-tooltip {
+		position: fixed;
+		position-anchor: --postbox-order-button;
+		bottom: anchor( top );
+		left: anchor( center );
+		transform: translateX( -50% ) translateY( -6px );
+	}
+}
+
 /* @todo: appears to be Press This only and overridden */
 #photo-add-url-div input[type="text"] {
 	width: 300px;

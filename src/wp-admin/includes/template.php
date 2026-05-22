@@ -1403,6 +1403,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 							__( 'Move up' ) .
 						'</span>';
 						echo '<span class="order-higher-indicator" aria-hidden="true"></span>';
+						echo '<span class="postbox-order-tooltip" aria-hidden="true">' .
+							/* translators: Tooltip for the meta box move up button. */
+							esc_html__( 'Move up' ) .
+						'</span>';
 						echo '</button>';
 						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-higher-description">' . sprintf(
 							/* translators: %s: Meta box title. */
@@ -1416,6 +1420,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 							__( 'Move down' ) .
 						'</span>';
 						echo '<span class="order-lower-indicator" aria-hidden="true"></span>';
+						echo '<span class="postbox-order-tooltip" aria-hidden="true">' .
+							/* translators: Tooltip for the meta box move down button. */
+							esc_html__( 'Move down' ) .
+						'</span>';
 						echo '</button>';
 						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-lower-description">' . sprintf(
 							/* translators: %s: Meta box title. */
