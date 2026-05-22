@@ -2599,8 +2599,11 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	$describedby = '';
 
 	if ( $atts['id'] ) {
-		$atts['id'] = sanitize_html_class( $atts['id'] );
-		$id         = 'id="' . esc_attr( $atts['id'] ) . '" ';
+		// Add random component to figure ID to ensure uniqueness when
+		// same image appears multiple times on page.
+		$caption_id_random = '-' . substr( md5( microtime( true ) . wp_rand() ), 0, 2 );
+		$atts['id']        = sanitize_html_class( $atts['id'] );
+		$id                = 'id="' . esc_attr( $atts['id'] . $caption_id_random ) . '" ';
 	}
 
 	if ( $atts['caption_id'] ) {
@@ -2610,11 +2613,8 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	}
 
 	if ( $atts['caption_id'] ) {
-		// Add random component to figcaption ID to ensure uniqueness when
-		// same image appears multiple times on page.
-		$atts['caption_id'] .= '-' . substr( md5( microtime( true ) . wp_rand() ), 0, 2 );
-		$caption_id          = 'id="' . esc_attr( $atts['caption_id'] ) . '" ';
-		$describedby         = 'aria-describedby="' . esc_attr( $atts['caption_id'] ) . '" ';
+		$caption_id  = 'id="' . esc_attr( $atts['caption_id'] . $caption_id_random ) . '" ';
+		$describedby = 'aria-describedby="' . esc_attr( $atts['caption_id'] . $caption_id_random ) . '" ';
 	}
 
 	$class = trim( 'wp-caption ' . $atts['align'] . ' ' . $atts['class'] );

@@ -306,11 +306,11 @@ CAP;
 	}
 
 	/**
-	 * Tests that figcaption IDs are unique for multiple caption instances.
+	 * Tests that both figure and figcaption IDs are unique for multiple caption instances.
 	 *
 	 * When the same image with the same or different captions appears multiple
-	 * times on a page, each figcaption should receive a unique ID to maintain
-	 * HTML validity and accessibility.
+	 * times on a page, each figure and figcaption should receive a unique ID to
+	 * maintain HTML validity and accessibility.
 	 *
 	 * @since 7.1.0
 	 */
@@ -345,21 +345,39 @@ CAP;
 			self::IMG_CONTENT . 'Different caption'
 		);
 
-		// Extract figcaption IDs from results
-		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_1, $matches_1 );
-		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_2, $matches_2 );
-		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_3, $matches_3 );
+		// Extract figure IDs from results (format: id="attachment_123-XX")
+		preg_match( '/id="(attachment_123[^"]*)"/', $result_1, $fig_matches_1 );
+		preg_match( '/id="(attachment_123[^"]*)"/', $result_2, $fig_matches_2 );
+		preg_match( '/id="(attachment_123[^"]*)"/', $result_3, $fig_matches_3 );
 
-		$caption_id_1 = isset( $matches_1[1] ) ? $matches_1[1] : '';
-		$caption_id_2 = isset( $matches_2[1] ) ? $matches_2[1] : '';
-		$caption_id_3 = isset( $matches_3[1] ) ? $matches_3[1] : '';
+		// Extract figcaption IDs from results (format: id="caption-attachment-123-XX")
+		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_1, $cap_matches_1 );
+		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_2, $cap_matches_2 );
+		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_3, $cap_matches_3 );
 
-		// All should exist
+		$figure_id_1  = isset( $fig_matches_1[1] ) ? $fig_matches_1[1] : '';
+		$figure_id_2  = isset( $fig_matches_2[1] ) ? $fig_matches_2[1] : '';
+		$figure_id_3  = isset( $fig_matches_3[1] ) ? $fig_matches_3[1] : '';
+		$caption_id_1 = isset( $cap_matches_1[1] ) ? $cap_matches_1[1] : '';
+		$caption_id_2 = isset( $cap_matches_2[1] ) ? $cap_matches_2[1] : '';
+		$caption_id_3 = isset( $cap_matches_3[1] ) ? $cap_matches_3[1] : '';
+
+		// Figure IDs should all exist
+		$this->assertNotEmpty( $figure_id_1, 'First figure should have an ID' );
+		$this->assertNotEmpty( $figure_id_2, 'Second figure should have an ID' );
+		$this->assertNotEmpty( $figure_id_3, 'Third figure should have an ID' );
+
+		// Figure IDs should all be different (each instance gets unique ID)
+		$this->assertNotSame( $figure_id_1, $figure_id_2, 'First and second figures should have different IDs even with identical content' );
+		$this->assertNotSame( $figure_id_2, $figure_id_3, 'Second and third figures should have different IDs' );
+		$this->assertNotSame( $figure_id_1, $figure_id_3, 'First and third figures should have different IDs' );
+
+		// Caption IDs should all exist
 		$this->assertNotEmpty( $caption_id_1, 'First caption should have an ID' );
 		$this->assertNotEmpty( $caption_id_2, 'Second caption should have an ID' );
 		$this->assertNotEmpty( $caption_id_3, 'Third caption should have an ID' );
 
-		// All should be different (each instance gets unique ID)
+		// Caption IDs should all be different (each instance gets unique ID)
 		$this->assertNotSame( $caption_id_1, $caption_id_2, 'First and second captions should have different IDs even with identical content' );
 		$this->assertNotSame( $caption_id_2, $caption_id_3, 'Second and third captions should have different IDs' );
 		$this->assertNotSame( $caption_id_1, $caption_id_3, 'First and third captions should have different IDs' );
