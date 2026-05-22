@@ -1011,6 +1011,12 @@ themes.view.Preview = themes.view.Details.extend({
 			this.undelegateEvents();
 			this.close();
 		}
+
+		// Return if Ctrl + Shift or Shift key pressed
+		if ( event.shiftKey || ( event.ctrlKey && event.shiftKey ) ) {
+			return;
+		}
+
 		// The right arrow key, next theme.
 		if ( event.keyCode === 39 ) {
 			_.once( this.nextTheme() );
@@ -1115,6 +1121,11 @@ themes.view.Themes = wp.Backbone.View.extend({
 				return;
 			}
 
+			// Return if Ctrl + Shift or Shift key pressed
+			if ( event.shiftKey || ( event.ctrlKey && event.shiftKey ) ) {
+				return;
+			}
+
 			// Pressing the right arrow key fires a theme:next event.
 			if ( event.keyCode === 39 ) {
 				self.overlay.nextTheme();
@@ -1210,7 +1221,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 		// 'Add new theme' element shown at the end of the grid.
 		if ( ! themes.isInstall && themes.data.settings.canInstall ) {
-			this.$el.append( '<div class="theme add-new-theme"><a href="' + themes.data.settings.installURI + '"><div class="theme-screenshot"><span></span></div><h2 class="theme-name">' + l10n.addNew + '</h2></a></div>' );
+			this.$el.append( '<div class="theme add-new-theme"><a href="' + themes.data.settings.installURI + '"><div class="theme-screenshot"><span aria-hidden="true"></span></div><h2 class="theme-name">' + l10n.addNew + '</h2></a></div>' );
 		}
 
 		this.parent.page++;

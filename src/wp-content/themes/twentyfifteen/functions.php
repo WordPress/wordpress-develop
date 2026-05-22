@@ -2,7 +2,7 @@
 /**
  * Twenty Fifteen functions and definitions
  *
- * Set up the theme and provides some helper functions, which are used in the
+ * Sets up the theme and provides some helper functions, which are used in the
  * theme as custom template tags. Others are attached to action and filter
  * hooks in WordPress to change core functionality.
  *
@@ -338,7 +338,7 @@ endif; // twentyfifteen_setup()
 add_action( 'after_setup_theme', 'twentyfifteen_setup' );
 
 /**
- * Register widget area.
+ * Registers widget area.
  *
  * @since Twenty Fifteen 1.0
  *
@@ -361,12 +361,12 @@ add_action( 'widgets_init', 'twentyfifteen_widgets_init' );
 
 if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 	/**
-	 * Register fonts for Twenty Fifteen.
+	 * Registers fonts for Twenty Fifteen.
 	 *
 	 * @since Twenty Fifteen 1.0
 	 * @since Twenty Fifteen 3.4 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Fonts URL for the theme.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentyfifteen_fonts_url() {
 		$fonts_url = '';
@@ -412,12 +412,19 @@ endif;
  * @since Twenty Fifteen 1.1
  */
 function twentyfifteen_javascript_detection() {
-	echo "<script>(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>\n";
+	$js  = "(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);";
+	$js .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
+
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+		wp_print_inline_script_tag( $js );
+	} else {
+		echo "<script>$js</script>\n";
+	}
 }
 add_action( 'wp_head', 'twentyfifteen_javascript_detection', 0 );
 
 /**
- * Enqueue scripts and styles.
+ * Enqueues scripts and styles.
  *
  * @since Twenty Fifteen 1.0
  */
@@ -427,23 +434,17 @@ function twentyfifteen_scripts() {
 	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), $font_version );
 
 	// Add Genericons, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201026' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfifteen-style', get_stylesheet_uri(), array(), '20250415' );
+	wp_enqueue_style( 'twentyfifteen-style', get_stylesheet_uri(), array(), '20260520' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfifteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfifteen-style' ), '20240715' );
 
-	// Register the Internet Explorer specific stylesheet.
-	wp_register_style( 'twentyfifteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfifteen-style' ), '20220908' );
-	wp_style_add_data( 'twentyfifteen-ie', 'conditional', 'lt IE 9' );
-
-	// Register the Internet Explorer 7 specific stylesheet.
-	wp_register_style( 'twentyfifteen-ie7', get_template_directory_uri() . '/css/ie7.css', array( 'twentyfifteen-style' ), '20141210' );
-	wp_style_add_data( 'twentyfifteen-ie7', 'conditional', 'lt IE 8' );
-
-	// Skip-link fix is no longer enqueued by default.
+	// Register handles for removed stylesheets and scripts.
+	wp_register_style( 'twentyfifteen-ie', false, array( 'twentyfifteen-style' ) );
+	wp_register_style( 'twentyfifteen-ie7', false, array( 'twentyfifteen-style' ) );
 	wp_register_script( 'twentyfifteen-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20230526', array( 'in_footer' => true ) );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -458,7 +459,7 @@ function twentyfifteen_scripts() {
 		'twentyfifteen-script',
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
-		'20250303',
+		'20250729',
 		array(
 			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
@@ -478,7 +479,7 @@ function twentyfifteen_scripts() {
 add_action( 'wp_enqueue_scripts', 'twentyfifteen_scripts' );
 
 /**
- * Enqueue styles for the block-based editor.
+ * Enqueues styles for the block-based editor.
  *
  * @since Twenty Fifteen 2.1
  */
@@ -493,7 +494,7 @@ add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles' )
 
 
 /**
- * Add preconnect for Google Fonts.
+ * Adds preconnect for Google Fonts.
  *
  * @since Twenty Fifteen 1.7
  * @deprecated Twenty Fifteen 3.4 Disabled filter because, by default, fonts are self-hosted.
@@ -519,7 +520,7 @@ function twentyfifteen_resource_hints( $urls, $relation_type ) {
 // add_filter( 'wp_resource_hints', 'twentyfifteen_resource_hints', 10, 2 );
 
 /**
- * Add featured image as background image to post navigation elements.
+ * Adds featured image as background image to post navigation elements.
  *
  * @since Twenty Fifteen 1.0
  *
@@ -561,7 +562,7 @@ function twentyfifteen_post_nav_background() {
 add_action( 'wp_enqueue_scripts', 'twentyfifteen_post_nav_background' );
 
 /**
- * Display descriptions in main navigation.
+ * Displays descriptions in main navigation.
  *
  * @since Twenty Fifteen 1.0
  *
@@ -581,7 +582,7 @@ function twentyfifteen_nav_description( $item_output, $item, $depth, $args ) {
 add_filter( 'walker_nav_menu_start_el', 'twentyfifteen_nav_description', 10, 4 );
 
 /**
- * Add a `screen-reader-text` class to the search form's submit button.
+ * Adds a `screen-reader-text` class to the search form's submit button.
  *
  * @since Twenty Fifteen 1.0
  *
@@ -657,7 +658,7 @@ require get_template_directory() . '/inc/template-tags.php';
 require get_template_directory() . '/inc/customizer.php';
 
 /**
- * Register block patterns and pattern categories.
+ * Registers block patterns and pattern categories.
  *
  * @since Twenty Fifteen 3.9
  */

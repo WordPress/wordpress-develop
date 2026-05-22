@@ -15,9 +15,6 @@ dotenvExpand.expand( dotenv.config() );
 
 const composeFiles = local_env_utils.get_compose_files();
 
-// Determine if a non-default database authentication plugin needs to be used.
-local_env_utils.determine_auth_option();
-
 // Check if the Docker service is running.
 try {
 	execSync( 'docker info' );

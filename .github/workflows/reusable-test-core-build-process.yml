@@ -17,10 +17,15 @@ on:
         type: 'string'
         default: 'src'
       test-emoji:
-        description: 'Whether to run the grunt precommit:emoji script.'
+        description: 'Whether to run the precommit:emoji Grunt script.'
         required: false
         type: 'boolean'
         default: true
+      test-certificates:
+        description: 'Whether to run the certificate related Grunt scripts.'
+        required: false
+        type: 'boolean'
+        default: false
       save-build:
         description: 'Whether to save a ZIP of built WordPress as an artifact.'
         required: false
@@ -33,7 +38,8 @@ on:
         default: false
 
 env:
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
+  NODE_OPTIONS: --max-old-space-size=4096
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -56,7 +62,7 @@ jobs:
   # - Saves the pull request number to a text file.
   # - Uploads the pull request number as an artifact.
   build-process-tests:
-    name: Core running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -64,13 +70,28 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      # This date is used to ensure that the PHPCS cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        if: ${{ inputs.test-certificates }}
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        if: ${{ inputs.test-certificates }}
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
+
       - name: Set up Node.js
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -91,6 +112,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Ensure certificates files are updated
+        if: ${{ inputs.test-certificates }}
+        run: npm run grunt copy:certificates && npm run grunt build:certificates
+
       - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
 
@@ -108,7 +133,7 @@ jobs:
         run: git diff --exit-code
 
       - name: Upload ZIP as a GitHub Actions artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ inputs.save-build || inputs.prepare-playground }}
         with:
           name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
@@ -126,7 +151,7 @@ jobs:
       # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
       # leave a comment detailing how to test the PR within WordPress Playground.
       - name: Upload PR number as artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ inputs.prepare-playground && github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
         with:
           name: pr-number
