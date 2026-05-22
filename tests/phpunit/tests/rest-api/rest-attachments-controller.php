@@ -3245,6 +3245,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Tests sideloading a scaled image for an existing attachment.
 	 *
 	 * @ticket 64737
+	 * @ticket 65329
 	 * @requires function imagejpeg
 	 */
 	public function test_sideload_scaled_image() {
