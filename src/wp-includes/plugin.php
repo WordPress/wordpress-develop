@@ -986,7 +986,8 @@ function _wp_call_all_hook( $args ) {
  * @since 2.2.3
  * @since 5.3.0 Removed workarounds for spl_object_hash().
  *              `$hook_name` and `$priority` are no longer used,
- *              and the function always returns a string.
+ *              and no longer returns false, but can still return void for invalid callbacks.
+ * @since 6.9.0 Returns explicit null if an invalid callback is supplied.
  * @since 7.1.0 Uses spl_object_id() instead of spl_object_hash() for performance.
  *
  * @access private
