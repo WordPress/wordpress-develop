@@ -1566,6 +1566,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  * | U+00F6   | ö     | oe          | Latin small letter o with diaeresis     |
  * | U+00DC   | Ü     | Ue          | Latin capital letter U with diaeresis   |
  * | U+00FC   | ü     | ue          | Latin small letter u with diaeresis     |
+ * | U+1E9E   | ẞ     | SS          | Latin capital letter sharp s            |
  * | U+00DF   | ß     | ss          | Latin small letter sharp s              |
  *
  * Danish (`da_DK`) locale:
@@ -1599,6 +1600,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  * @since 5.7.0 Added locale support for `de_AT`.
  * @since 6.0.0 Added the `$locale` parameter.
  * @since 6.1.0 Added Unicode NFC encoding normalization support.
+ * @since 7.0.0 Added capital Eszett (U+1E9E) support for German locales.
  *
  * @param string $text   Text that might have accent characters.
  * @param string $locale Optional. The locale to use for accent removal. Some character
@@ -1972,6 +1974,7 @@ function remove_accents( $text, $locale = '' ) {
 			$chars['ö'] = 'oe';
 			$chars['Ü'] = 'Ue';
 			$chars['ü'] = 'ue';
+			$chars['ẞ'] = 'SS';
 			$chars['ß'] = 'ss';
 		} elseif ( 'da_DK' === $locale ) {
 			$chars['Æ'] = 'Ae';
@@ -2835,18 +2838,6 @@ function trailingslashit( $value ) {
  */
 function untrailingslashit( $value ) {
 	return rtrim( $value, '/\\' );
-}
-
-/**
- * Adds slashes to a string or recursively adds slashes to strings within an array.
- *
- * @since 0.71
- *
- * @param string|array $gpc String or array of data to slash.
- * @return string|array Slashed `$gpc`.
- */
-function addslashes_gpc( $gpc ) {
-	return wp_slash( $gpc );
 }
 
 /**
@@ -5907,7 +5898,7 @@ function wp_enqueue_emoji_styles() {
  *
  * @since 4.2.0
  */
-function print_emoji_detection_script() {
+function print_emoji_detection_script(): void {
 	static $printed = false;
 
 	if ( $printed ) {
@@ -5916,10 +5907,18 @@ function print_emoji_detection_script() {
 
 	$printed = true;
 
-	if ( did_action( 'wp_print_footer_scripts' ) ) {
-		_print_emoji_detection_script();
+	if ( is_admin() ) {
+		if ( did_action( 'admin_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	} else {
-		add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		if ( did_action( 'wp_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	}
 }
 
@@ -6244,7 +6243,7 @@ function url_shorten( $url, $length = 35 ) {
  * @since 3.4.0
  *
  * @param string $color
- * @return string|void
+ * @return string|null The sanitized hex color, or null if invalid.
  */
 function sanitize_hex_color( $color ) {
 	if ( '' === $color ) {
@@ -6255,6 +6254,7 @@ function sanitize_hex_color( $color ) {
 	if ( preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ) {
 		return $color;
 	}
+	return null;
 }
 
 /**

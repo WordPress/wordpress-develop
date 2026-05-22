@@ -969,14 +969,14 @@ final class WP_Screen {
 		<div id="screen-meta-links">
 		<?php if ( $this->show_screen_options() ) : ?>
 			<div id="screen-options-link-wrap" class="hide-if-no-js screen-meta-toggle">
-			<button type="button" id="show-settings-link" class="button show-settings" aria-controls="screen-options-wrap" aria-expanded="false"><?php _e( 'Screen Options' ); ?></button>
+			<button type="button" id="show-settings-link" class="button button-compact show-settings" aria-controls="screen-options-wrap" aria-expanded="false"><?php _e( 'Screen Options' ); ?></button>
 			</div>
 			<?php
 		endif;
 		if ( $this->get_help_tabs() ) :
 			?>
 			<div id="contextual-help-link-wrap" class="hide-if-no-js screen-meta-toggle">
-			<button type="button" id="contextual-help-link" class="button show-settings" aria-controls="contextual-help-wrap" aria-expanded="false"><?php _e( 'Help' ); ?></button>
+			<button type="button" id="contextual-help-link" class="button button-compact show-settings" aria-controls="contextual-help-wrap" aria-expanded="false"><?php _e( 'Help' ); ?></button>
 			</div>
 		<?php endif; ?>
 		</div>
@@ -988,7 +988,7 @@ final class WP_Screen {
 	 *
 	 * @global array $wp_meta_boxes Global meta box state.
 	 *
-	 * @return bool
+	 * @return bool Whether to show the Screen Options tab for the current screen.
 	 */
 	public function show_screen_options() {
 		global $wp_meta_boxes;
@@ -1280,7 +1280,7 @@ final class WP_Screen {
 		<legend><?php _e( 'Pagination' ); ?></legend>
 			<?php if ( $per_page_label ) : ?>
 				<label for="<?php echo esc_attr( $option ); ?>"><?php echo $per_page_label; ?></label>
-				<input type="number" step="1" min="1" max="999" class="screen-per-page" name="wp_screen_options[value]"
+				<input type="number" step="1" min="1" max="999" class="screen-per-page small-text" name="wp_screen_options[value]"
 					id="<?php echo esc_attr( $option ); ?>"
 					value="<?php echo esc_attr( $per_page ); ?>" />
 			<?php endif; ?>

@@ -13,8 +13,6 @@ declare( strict_types = 1 );
  * Registers the core ability categories.
  *
  * @since 6.9.0
- *
- * @return void
  */
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
@@ -39,7 +37,7 @@ function wp_register_core_ability_categories(): void {
  *
  * @since 6.9.0
  *
- * @return void
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 function wp_register_core_abilities(): void {
 	$category_site = 'site';
@@ -113,7 +111,11 @@ function wp_register_core_abilities(): void {
 
 				$result = array();
 				foreach ( $requested_fields as $field ) {
-					$result[ $field ] = get_bloginfo( $field );
+					if ( 'language' === $field ) {
+						$result[ $field ] = str_replace( '_', '-', get_locale() );
+					} else {
+						$result[ $field ] = get_bloginfo( $field );
+					}
 				}
 
 				return $result;
