@@ -2610,6 +2610,8 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	}
 
 	if ( $atts['caption_id'] ) {
+		// Add random component to figcaption ID to ensure uniqueness when same image appears multiple times on page.
+		$atts['caption_id'] .= '-' . substr( md5( microtime( true ) . wp_rand() ), 0, 2 );
 		$caption_id  = 'id="' . esc_attr( $atts['caption_id'] ) . '" ';
 		$describedby = 'aria-describedby="' . esc_attr( $atts['caption_id'] ) . '" ';
 	}

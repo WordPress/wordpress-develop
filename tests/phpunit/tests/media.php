@@ -305,6 +305,60 @@ CAP;
 		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
 	}
 
+	/**
+	 * Test that figcaption IDs are unique on the page, even if same image and caption appear multiple times.
+	 */
+	public function test_img_caption_shortcode_unique_ids_per_instance() {
+		// First instance with caption "My caption"
+		$result_1 = img_caption_shortcode(
+			array(
+				'width'   => 20,
+				'id'      => 'attachment_123',
+				'caption' => 'My caption',
+			),
+			self::IMG_CONTENT . 'My caption'
+		);
+
+		// Second instance - identical to first
+		$result_2 = img_caption_shortcode(
+			array(
+				'width'   => 20,
+				'id'      => 'attachment_123',
+				'caption' => 'My caption',
+			),
+			self::IMG_CONTENT . 'My caption'
+		);
+
+		// Third instance - same image, different caption
+		$result_3 = img_caption_shortcode(
+			array(
+				'width'   => 20,
+				'id'      => 'attachment_123',
+				'caption' => 'Different caption',
+			),
+			self::IMG_CONTENT . 'Different caption'
+		);
+
+		// Extract figcaption IDs from results
+		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_1, $matches_1 );
+		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_2, $matches_2 );
+		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_3, $matches_3 );
+
+		$caption_id_1 = isset( $matches_1[1] ) ? $matches_1[1] : '';
+		$caption_id_2 = isset( $matches_2[1] ) ? $matches_2[1] : '';
+		$caption_id_3 = isset( $matches_3[1] ) ? $matches_3[1] : '';
+
+		// All should exist
+		$this->assertNotEmpty( $caption_id_1, 'First caption should have an ID' );
+		$this->assertNotEmpty( $caption_id_2, 'Second caption should have an ID' );
+		$this->assertNotEmpty( $caption_id_3, 'Third caption should have an ID' );
+
+		// All should be different (each instance gets unique ID)
+		$this->assertNotSame( $caption_id_1, $caption_id_2, 'First and second captions should have different IDs even with identical content' );
+		$this->assertNotSame( $caption_id_2, $caption_id_3, 'Second and third captions should have different IDs' );
+		$this->assertNotSame( $caption_id_1, $caption_id_3, 'First and third captions should have different IDs' );
+	}
+
 	public function test_add_remove_oembed_provider() {
 		wp_oembed_add_provider( 'http://foo.bar/*', 'http://foo.bar/oembed' );
 		$this->assertTrue( wp_oembed_remove_provider( 'http://foo.bar/*' ) );
