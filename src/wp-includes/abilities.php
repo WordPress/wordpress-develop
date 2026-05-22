@@ -232,6 +232,7 @@ function wp_register_core_abilities(): void {
 					'display_name'  => $current_user->display_name,
 					'user_nicename' => $current_user->user_nicename,
 					'user_login'    => $current_user->user_login,
+					// Ensure roles are encoded as a JSON array, regardless of their array keys.
 					'roles'         => array_values( $current_user->roles ),
 					'locale'        => get_user_locale( $current_user ),
 					'first_name'    => $current_user->first_name,
