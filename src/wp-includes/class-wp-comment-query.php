@@ -485,9 +485,45 @@ class WP_Comment_Query {
 			wp_lazyload_comment_meta( $comment_ids );
 		}
 
-		if ( 'ids' === $this->query_vars['fields'] ) {
+		$fields = $this->query_vars['fields'];
+
+		// Valid columns in the wp_comments table.
+		$valid_columns = array(
+			'comment_ID', 'comment_post_ID', 'comment_author',
+			'comment_author_email', 'comment_author_url', 'comment_author_IP',
+			'comment_date', 'comment_date_gmt', 'comment_content',
+			'comment_karma', 'comment_approved', 'comment_agent',
+			'comment_type', 'comment_parent', 'user_id',
+		);
+
+		if ( 'ids' === $fields ) {
+			// Original behaviour — return flat array of comment IDs.
 			$this->comments = $comment_ids;
 			return $this->comments;
+		}
+
+		if ( is_string( $fields ) && in_array( $fields, $valid_columns, true ) ) {
+			// Single valid column — return flat array of scalar values.
+			$this->comments = wp_list_pluck( $this->comments, $fields );
+			return $this->comments;
+		}
+
+		if ( is_array( $fields ) ) {
+			// Array of column names — filter to valid only, return stdClass objects.
+			$sanitized = array_filter( $fields, fn( $f ) => in_array( $f, $valid_columns, true ) );
+			if ( $sanitized ) {
+				$this->comments = array_map(
+					function( $comment ) use ( $sanitized ) {
+						$row = new stdClass();
+						foreach ( $sanitized as $col ) {
+							$row->$col = $comment->$col;
+						}
+						return $row;
+					},
+					$this->comments
+				);
+				return $this->comments;
+			}
 		}
 
 		_prime_comment_caches( $comment_ids, false );
