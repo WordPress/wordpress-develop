@@ -6453,7 +6453,7 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
  * Client-side media processing uses the browser's capabilities to handle
  * tasks like image resizing and compression before uploading to the server.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @return bool Whether client-side media processing is enabled.
  */
@@ -6465,7 +6465,7 @@ function wp_is_client_side_media_processing_enabled(): bool {
 	/**
 	 * Filters whether client-side media processing is enabled.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param bool $enabled Whether client-side media processing is enabled. Default true if the page is served in a secure context.
 	 */
@@ -6475,7 +6475,7 @@ function wp_is_client_side_media_processing_enabled(): bool {
 /**
  * Sets a global JS variable to indicate that client-side media processing is enabled.
  *
- * @since 7.0.0
+ * @since 7.1.0
  */
 function wp_set_client_side_media_processing_flag(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
@@ -6507,7 +6507,7 @@ function wp_set_client_side_media_processing_flag(): void {
  *
  * Matches all Chromium-based browsers (Chrome, Edge, Opera, Brave).
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @return int|null The major Chrome version, or null if not a Chromium browser.
  */
@@ -6532,7 +6532,7 @@ function wp_get_chromium_major_version(): ?int {
  * editor via a custom `action` query parameter, as DIP would block
  * same-origin iframe access that these editors rely on.
  *
- * @since 7.0.0
+ * @since 7.1.0
  */
 function wp_set_up_cross_origin_isolation(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
@@ -6571,7 +6571,7 @@ function wp_set_up_cross_origin_isolation(): void {
  *
  * Uses an output buffer to add crossorigin="anonymous" where needed.
  *
- * @since 7.0.0
+ * @since 7.1.0
  */
 function wp_start_cross_origin_isolation_output_buffer(): void {
 	$chromium_version = wp_get_chromium_major_version();
@@ -6592,7 +6592,7 @@ function wp_start_cross_origin_isolation_output_buffer(): void {
 /**
  * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param string $html HTML input.
  * @return string Modified HTML.
