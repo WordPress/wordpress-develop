@@ -116,6 +116,32 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests `core/get-site-info` language field returns the site locale, not the current user's locale.
+	 * @ticket 64977
+	 */
+	public function test_core_get_site_info_language_uses_site_locale(): void {
+		$admin_id = self::factory()->user->create(
+			array(
+				'role'   => 'administrator',
+				'locale' => 'de_DE',
+			)
+		);
+		wp_set_current_user( $admin_id );
+
+		$ability = wp_get_ability( 'core/get-site-info' );
+		$result  = $ability->execute(
+			array(
+				'fields' => array( 'language' ),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'language', $result );
+		// Should return the site locale (en-US), not the user locale (de-DE).
+		$this->assertSame( 'en-US', $result['language'] );
+	}
+
+	/**
 	 * Tests that executing the current user info ability requires authentication.
 	 * @ticket 64146
 	 */
