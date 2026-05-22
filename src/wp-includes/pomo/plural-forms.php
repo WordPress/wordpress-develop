@@ -3,6 +3,7 @@
 /**
  * A gettext Plural-Forms parser.
  *
+ * @package pomo
  * @since 4.9.0
  */
 if ( ! class_exists( 'Plural_Forms', false ) ) :
