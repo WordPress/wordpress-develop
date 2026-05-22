@@ -510,4 +510,29 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		$result = get_post_states( null );
 		$this->assertSame( array(), $result, 'get_post_states() should return an empty array when WP_Post is not supplied.' );
 	}
+
+	/**
+	 * @ticket 50921
+	 *
+	 * @covers ::do_meta_boxes
+	 */
+	public function test_do_meta_boxes_order_buttons_include_tooltips() {
+		global $wp_meta_boxes;
+
+		set_current_screen( 'post' );
+
+		add_meta_box( 'testbox50921', 'Test Metabox', '__return_false', 'post' );
+
+		ob_start();
+		do_meta_boxes( 'post', 'advanced', null );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'postbox-order-tooltip', $output );
+		$this->assertStringContainsString( 'handle-order-higher', $output );
+		$this->assertStringContainsString( 'handle-order-lower', $output );
+		$this->assertStringContainsString( 'Move up', $output );
+		$this->assertStringContainsString( 'Move down', $output );
+
+		remove_meta_box( 'testbox50921', 'post', 'advanced' );
+	}
 }
