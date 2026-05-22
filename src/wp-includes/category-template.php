@@ -1230,6 +1230,7 @@ function get_the_tag_list( $before = '', $sep = '', $after = '', $post_id = 0 ) 
  */
 function the_tags( $before = null, $sep = ', ', $after = '' ) {
 	if ( null === $before ) {
+		/* translators: There is a space after the colon. */
 		$before = __( 'Tags: ' );
 	}
 
