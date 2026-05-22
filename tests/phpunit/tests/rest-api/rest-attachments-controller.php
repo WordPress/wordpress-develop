@@ -3562,7 +3562,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Tests that the finalize endpoint writes regular sub-size metadata
 	 * collected from sideload responses.
 	 *
-	 * @ticket 62243
+	 * @ticket 65329
 	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
 	 */
@@ -3613,7 +3613,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Tests that the finalize endpoint records original_image from an
 	 * 'original' sub-size collected from a sideload response.
 	 *
-	 * @ticket 62243
+	 * @ticket 65329
 	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
 	 */
@@ -3666,7 +3666,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Tests that the finalize endpoint preserves existing image_meta (EXIF)
 	 * when adding sub-sizes collected from sideload responses.
 	 *
-	 * @ticket 62243
+	 * @ticket 65329
 	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
 	 * @requires extension exif
