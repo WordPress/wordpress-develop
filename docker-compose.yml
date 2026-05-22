@@ -40,6 +40,7 @@ services:
     environment:
       LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
       XDEBUG_MODE: ${LOCAL_PHP_XDEBUG_MODE-develop,debug}
+      LOCAL_PHP_PCOV: ${LOCAL_PHP_PCOV-false}
       LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
       PHP_FPM_UID: ${PHP_FPM_UID-1000}
       PHP_FPM_GID: ${PHP_FPM_GID-1000}
@@ -99,6 +100,7 @@ services:
 
     environment:
       LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
+      LOCAL_PHP_PCOV: ${LOCAL_PHP_PCOV-false}
       LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
       PHP_FPM_UID: ${PHP_FPM_UID-1000}
       PHP_FPM_GID: ${PHP_FPM_GID-1000}

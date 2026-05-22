@@ -84,6 +84,7 @@ env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_PHP_XDEBUG: false
   LOCAL_PHP_XDEBUG_MODE: 'develop,debug'
+  LOCAL_PHP_PCOV: ${{ inputs.coverage-report }}
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
@@ -199,31 +200,6 @@ jobs:
 
       - name: Install WordPress
         run: npm run env:install
-
-      # Installs PCOV as the code coverage driver for the PHPUnit run below.
-      #
-      # The INI directives tune PCOV for WordPress's codebase:
-      # - `pcov.enabled` keeps the Zend hooks active (this is the default, but
-      #   stated explicitly for clarity).
-      # - `pcov.directory` restricts instrumentation to `src/`, so PCOV does not
-      #   record hits for `vendor/`, `tests/`, or WordPress test fixtures that
-      #   PHPUnit would discard at report time anyway.
-      # - `pcov.initial.files` pre-sizes the internal file tracking array for
-      #   the thousands of files under `src/`, avoiding reallocation churn
-      #   during test warmup. The default of 64 is far too low here.
-      - name: Install PCOV coverage driver
-        if: ${{ inputs.coverage-report }}
-        run: |
-          docker compose exec -T -u 0 php sh -c '
-            pecl install --force pcov-1.0.12 &&
-            docker-php-ext-enable pcov &&
-            {
-              echo "pcov.enabled=1"
-              echo "pcov.directory=/var/www/src"
-              echo "pcov.initial.files=10000"
-            } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
-            php -m | grep -i pcov
-          '
 
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
