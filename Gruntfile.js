@@ -115,7 +115,6 @@ module.exports = function(grunt) {
 			'cssmin',
 			'imagemin',
 			'jshint',
-			'qunit',
 			'uglify',
 			'watch'
 		],
@@ -957,7 +956,8 @@ module.exports = function(grunt) {
 				src: [
 					'tests/qunit/**/*.js',
 					'!tests/qunit/vendor/*',
-					'!tests/qunit/editor/**'
+					'!tests/qunit/qunit.js',
+					'!tests/qunit/playwright.config.js'
 				],
 				options: grunt.file.readJSON( 'tests/qunit/.jshintrc' )
 			},
@@ -1060,12 +1060,6 @@ module.exports = function(grunt) {
 					configure : 'jsdoc.conf.json'
 				}
 			}
-		},
-		qunit: {
-			files: [
-				'tests/qunit/**/*.html',
-				'!tests/qunit/editor/**'
-			]
 		},
 		phpunit: {
 			'default': {
@@ -1599,8 +1593,7 @@ module.exports = function(grunt) {
 			},
 			test: {
 				files: [
-					'tests/qunit/**',
-					'!tests/qunit/editor/**'
+					'tests/qunit/**'
 				],
 				tasks: ['qunit']
 			}
@@ -2221,6 +2214,20 @@ module.exports = function(grunt) {
 			opts: { stdio: 'inherit' }
 		}, this.async());
 	});
+
+	grunt.registerTask( 'qunit', 'Runs QUnit tests.', function() {
+		var done = this.async();
+		grunt.util.spawn( {
+			cmd: 'npx',
+			args: [ 'playwright', 'test', '--config', 'tests/qunit/playwright.config.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error, result, code ) {
+			if ( code !== 0 ) {
+				grunt.fail.warn( 'QUnit tests failed.' );
+			}
+			done();
+		} );
+	} );
 
 	grunt.registerTask( 'qunit:compiled', 'Runs QUnit tests on compiled as well as uncompiled scripts.',
 		['build', 'copy:qunit', 'qunit']
