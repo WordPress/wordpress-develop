@@ -9,11 +9,22 @@ jQuery( function( $ ) {
 	var __ = wp.i18n.__,
 		copiedNoticeTimeout;
 
+	/**
+	 * Set the state of an action element.
+	 *
+	 * @param {jQuery} $action  jQuery object representing the action element.
+	 * @param {string} state    The state to set, which corresponds to a CSS class.
+	 */
 	function setActionState( $action, state ) {
 		$action.children().addClass( 'hidden' );
 		$action.children( '.' + state ).removeClass( 'hidden' );
 	}
 
+	/**
+	 * Clear results after a request row.
+	 *
+	 * @param {jQuery} $requestRow  jQuery object representing the request row.
+	 */
 	function clearResultsAfterRow( $requestRow ) {
 		$requestRow.removeClass( 'has-request-results' );
 
@@ -22,6 +33,14 @@ jQuery( function( $ ) {
 		}
 	}
 
+	/**
+	 * Append results after a request row.
+	 *
+	 * @param {jQuery} $requestRow          jQuery object representing the request row.
+	 * @param {string} classes              CSS classes to apply to the notice element.
+	 * @param {string} summaryMessage       Summary message to display in the notice.
+	 * @param {Array}  additionalMessages   Additional messages to display in the notice, output as a list.
+	 */
 	function appendResultsAfterRow( $requestRow, classes, summaryMessage, additionalMessages ) {
 		var itemList = '',
 			resultRowClasses = 'request-results';
@@ -76,6 +95,11 @@ jQuery( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 		setExportProgress( 0 );
 
+		/**
+		 * Handle successful data export.
+		 *
+		 * @param {string} [zipUrl]  Optional URL of the exported data zip file. When omitted, the export link is emailed.
+		 */
 		function onExportDoneSuccess( zipUrl ) {
 			var summaryMessage = __( 'This user&#8217;s personal data export link was sent.' );
 
@@ -96,6 +120,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Handle export failure.
+		 *
+		 * @param {string} [errorMessage]  Optional error message to display in the results notice.
+		 */
 		function onExportFailure( errorMessage ) {
 			var summaryMessage = __( 'An error occurred while attempting to export personal data.' );
 
@@ -108,6 +137,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Set the export progress percentage.
+		 *
+		 * @param {number} exporterIndex  Index of the current exporter being processed (0 before the first exporter).
+		 */
 		function setExportProgress( exporterIndex ) {
 			var progress       = ( exportersCount > 0 ? exporterIndex / exportersCount : 0 ),
 				progressString = Math.round( progress * 100 ).toString() + '%';
@@ -115,6 +149,12 @@ jQuery( function( $ ) {
 			$progress.html( progressString );
 		}
 
+		/**
+		 * Process the next export batch.
+		 *
+		 * @param {number} exporterIndex  Index of the current exporter being processed.
+		 * @param {number} pageIndex      Index of the current page of data being processed for the exporter.
+		 */
 		function doNextExport( exporterIndex, pageIndex ) {
 			$.ajax(
 				{
@@ -181,6 +221,11 @@ jQuery( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 		setErasureProgress( 0 );
 
+		/**
+		 * Handle successful data erasure.
+		 *
+		 * Summarizes results using hasRemoved, hasRetained, and messages from prior batches.
+		 */
 		function onErasureDoneSuccess() {
 			var summaryMessage = __( 'No personal data was found for this user.' ),
 				classes = 'notice-success';
@@ -207,6 +252,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Handle erasure failure.
+		 *
+		 * Displays a generic error notice after the request row.
+		 */
 		function onErasureFailure() {
 			var summaryMessage = __( 'An error occurred while attempting to find and erase personal data.' );
 
@@ -217,6 +267,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Set the erasure progress percentage.
+		 *
+		 * @param {number} eraserIndex  Index of the current eraser being processed (0 before the first eraser).
+		 */
 		function setErasureProgress( eraserIndex ) {
 			var progress       = ( erasersCount > 0 ? eraserIndex / erasersCount : 0 ),
 				progressString = Math.round( progress * 100 ).toString() + '%';
@@ -224,6 +279,12 @@ jQuery( function( $ ) {
 			$progress.html( progressString );
 		}
 
+		/**
+		 * Process the next erasure batch.
+		 *
+		 * @param {number} eraserIndex  Index of the current eraser being processed.
+		 * @param {number} pageIndex    Index of the current page of data being processed for the eraser.
+		 */
 		function doNextErasure( eraserIndex, pageIndex ) {
 			$.ajax({
 				url: window.ajaxurl,
