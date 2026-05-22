@@ -510,7 +510,12 @@ class WP_Comment_Query {
 
 		if ( is_array( $fields ) ) {
 			// Array of column names — filter to valid only, return stdClass objects.
-			$sanitized = array_filter( $fields, fn( $f ) => in_array( $f, $valid_columns, true ) );
+			 $sanitized = array_filter(
+					$fields,
+					function ( $f ) use ( $valid_columns ) {
+						return in_array( $f, $valid_columns, true );
+					}
+				);
 			if ( $sanitized ) {
 				$this->comments = array_map(
 					function( $comment ) use ( $sanitized ) {
