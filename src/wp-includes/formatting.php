@@ -5907,10 +5907,18 @@ function print_emoji_detection_script() {
 
 	$printed = true;
 
-	if ( did_action( 'wp_print_footer_scripts' ) ) {
-		_print_emoji_detection_script();
+	if ( is_admin() ) {
+		if ( did_action( 'admin_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	} else {
-		add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		if ( did_action( 'wp_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	}
 }
 
