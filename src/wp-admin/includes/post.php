@@ -350,17 +350,17 @@ function edit_post( $post_data = null ) {
 	}
 
 	if ( 'attachment' === $post_data['post_type'] && preg_match( '#^(audio|video)/#', $post_data['post_mime_type'] ) ) {
-		$id3data = wp_get_attachment_metadata( $post_id );
-		if ( ! is_array( $id3data ) ) {
-			$id3data = array();
+		$id3_data = wp_get_attachment_metadata( $post_id );
+		if ( ! is_array( $id3_data ) ) {
+			$id3_data = array();
 		}
 
 		foreach ( wp_get_attachment_id3_keys( $post, 'edit' ) as $key => $label ) {
 			if ( isset( $post_data[ 'id3_' . $key ] ) ) {
-				$id3data[ $key ] = sanitize_text_field( wp_unslash( $post_data[ 'id3_' . $key ] ) );
+				$id3_data[ $key ] = sanitize_text_field( wp_unslash( $post_data[ 'id3_' . $key ] ) );
 			}
 		}
-		wp_update_attachment_metadata( $post_id, $id3data );
+		wp_update_attachment_metadata( $post_id, $id3_data );
 	}
 
 	// Meta stuff.
