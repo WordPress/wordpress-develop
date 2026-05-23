@@ -76,7 +76,7 @@ Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
 = 4.3 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-fifteen-changelog/#Version_4_3
+https://wordpress.org/documentation/article/twenty-fifteen-changelog/#Version_4.3
 
 = 4.2 =
 * Released: May 20, 2026

@@ -17,7 +17,7 @@ Twenty Twenty-Five emphasizes simplicity and adaptability. It offers flexible de
 = 1.6 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-five-changelog/#Version_1_6
+https://wordpress.org/documentation/article/twenty-twenty-five-changelog/#Version_1.6
 
 = 1.5 =
 * Released: May 20, 2026

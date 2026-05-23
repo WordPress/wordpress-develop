@@ -63,7 +63,7 @@ Toroidal Colony: https://www.flickr.com/photos/nasacommons/13889485757/in/album-
 = 4.7 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-thirteen-changelog/#Version_4_7
+https://wordpress.org/documentation/article/twenty-thirteen-changelog/#Version_4.7
 
 = 4.6 =
 * Released: May 20, 2026

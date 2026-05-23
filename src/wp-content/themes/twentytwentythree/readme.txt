@@ -18,7 +18,7 @@ Whether you want to build a complex or incredibly simple website, you can do it 
 = 1.7 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-three-changelog/#Version_1_7
+https://wordpress.org/documentation/article/twenty-twenty-three-changelog/#Version_1.7
 
 = 1.6 =
 * Released: November 12, 2024

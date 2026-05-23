@@ -43,7 +43,7 @@ GNU General Public License for more details.
 = 3.4 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-nineteen-changelog/#Version_3_4
+https://wordpress.org/documentation/article/twenty-nineteen-changelog/#Version_3.4
 
 = 3.3 =
 * Released: May 20, 2026

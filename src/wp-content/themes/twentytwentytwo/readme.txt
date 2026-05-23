@@ -42,7 +42,7 @@ Follow these instructions for each of the following templates:
 = 2.2 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-two-changelog/#Version_2_2
+https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_2.2
 
 = 2.1 =
 * Released: December 2, 2025

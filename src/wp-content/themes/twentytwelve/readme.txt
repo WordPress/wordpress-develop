@@ -52,7 +52,7 @@ Source: https://fontsource.org/fonts/open-sans
 = 4.9 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-twelve-changelog/#Version_4_9
+https://wordpress.org/documentation/article/twenty-twelve-changelog/#Version_4.9
 
 = 4.8 =
 * Released: May 20, 2026

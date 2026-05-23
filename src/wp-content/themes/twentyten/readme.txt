@@ -47,7 +47,7 @@ Images
 = 4.7 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-ten-changelog/#Version_4_7
+https://wordpress.org/documentation/article/twenty-ten-changelog/#Version_4.7
 
 = 4.6 =
 * Released: May 20, 2026

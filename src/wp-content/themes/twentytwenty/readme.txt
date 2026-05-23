@@ -27,7 +27,7 @@ you pick, ensuring a high, accessible color contrast for your visitors.
 = 3.2 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty--changelog/#Version_3_2
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_3.2
 
 = 3.1 =
 * Released: May 20, 2026

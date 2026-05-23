@@ -16,7 +16,7 @@ Twenty Twenty-Four is designed to be flexible, versatile and applicable to any w
 = 1.6 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-four-changelog/#Version_1_6
+https://wordpress.org/documentation/article/twenty-twenty-four-changelog/#Version_1.6
 
 = 1.5 =
 * Released: May 20, 2026

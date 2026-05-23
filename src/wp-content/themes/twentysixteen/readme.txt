@@ -71,7 +71,7 @@ Image used in screenshot.png: A photo by Austin Schmid (https://unsplash.com/sch
 = 3.9 =
 * Released: August 19, 2026
 
-https://wordpress.org/documentation/article/twenty-sixteen-changelog/#Version_3_9
+https://wordpress.org/documentation/article/twenty-sixteen-changelog/#Version_3.9
 
 = 3.8 =
 * Released: May 20, 2026
