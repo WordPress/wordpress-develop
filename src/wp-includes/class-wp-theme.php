@@ -1384,7 +1384,7 @@ final class WP_Theme implements ArrayAccess {
 				}
 			}
 		}
-		
+
 		foreach ( array_keys( $post_templates ) as $type ) {
 			if ( is_array( $post_templates[ $type ] ) ) {
 				uasort(
