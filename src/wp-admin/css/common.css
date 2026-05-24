@@ -2775,7 +2775,7 @@ div.action-links {
 #plugin-information-scrollable {
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
-	height: 100%;
+	height: 90%;
 }
 
 #plugin-information-title {
