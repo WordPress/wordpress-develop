@@ -2649,13 +2649,10 @@ function wp_enqueue_global_styles() {
 /**
  * Declares a flag that the Classic block is necessary for the current post.
  *
- * @global WP_Post $post Global post object.
  *
  * @since 7.1.0
  */
-function wp_declare_classic_block_necessary() {
-	global $post;
-
+function wp_declare_classic_block_necessary(): void {
 	/**
 	 * Filters whether the Classic block should be available in the inserter.
 	 *
@@ -2664,7 +2661,7 @@ function wp_declare_classic_block_necessary() {
 	 * @param bool         $supports_inserter Whether the Classic block is available in the inserter.
 	 * @param WP_Post|null $post              The post being edited, or null if not in the post editor.
 	 */
-	if ( ! (bool) apply_filters( 'wp_classic_block_supports_inserter', false, $post ) ) {
+	if ( ! (bool) apply_filters( 'wp_classic_block_supports_inserter', false, get_post() ) ) {
 		return;
 	}
 
