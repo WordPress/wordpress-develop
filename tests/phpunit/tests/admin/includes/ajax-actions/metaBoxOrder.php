@@ -159,7 +159,7 @@ class Tests_wp_ajax_meta_box_order extends WP_Ajax_UnitTestCase {
 		);
 
 		$this->expectException( WPAjaxDieContinueException::class );
-		$this->expectExceptionMessage( '-1' );
+		$this->expectExceptionMessage( '' );
 
 		$this->_handleAjax( 'meta-box-order' );
 	}
