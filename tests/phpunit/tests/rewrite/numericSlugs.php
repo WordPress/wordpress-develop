@@ -3,6 +3,8 @@
 /**
  * @group rewrite
  * @ticket 5305
+ *
+ * @covers ::wp_unique_post_slug
  */
 class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 	private $old_current_user;
