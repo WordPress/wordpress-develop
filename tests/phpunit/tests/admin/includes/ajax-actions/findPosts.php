@@ -34,6 +34,11 @@ class Tests_wp_ajax_find_posts extends WP_Ajax_UnitTestCase {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
+	public function set_up() {
+		parent::set_up();
+		add_action( 'wp_ajax_find-posts', 'wp_ajax_find_posts', 1 );
+	}
+
 	/**
 	 * Tests successful post search.
 	 *
@@ -56,12 +61,15 @@ class Tests_wp_ajax_find_posts extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'find-posts' );
+		} catch ( WPAjaxDieStopException $e ) {
+			// Expect success.
+			$this->_last_response = $e->getMessage();
 		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
 
 		$this->assertStringContainsString( 'Searchable Post Title', $this->_last_response );
-		$this->assertStringContainsString( 'class="widefat"', $this->_last_response );
+		$this->assertStringContainsString( 'class=\"widefat\"', $this->_last_response );
 	}
 
 	/**
@@ -78,7 +86,7 @@ class Tests_wp_ajax_find_posts extends WP_Ajax_UnitTestCase {
 			'_ajax_nonce' => 'invalid-nonce',
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '-1' );
 
 		$this->_handleAjax( 'find-posts' );
@@ -100,6 +108,9 @@ class Tests_wp_ajax_find_posts extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'find-posts' );
+		} catch ( WPAjaxDieStopException $e ) {
+			// Expect success.
+			$this->_last_response = $e->getMessage();
 		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
