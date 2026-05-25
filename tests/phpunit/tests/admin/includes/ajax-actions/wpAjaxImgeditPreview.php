@@ -78,7 +78,7 @@ class Tests_wp_ajax_imgedit_preview extends WP_Ajax_UnitTestCase {
 		unset( $_GET['postid'] );
 		$_GET['_ajax_nonce'] = wp_create_nonce( 'image_editor-' );
 
-		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectException( 'WPAjaxDieContinueException' );
 		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'imgedit_preview' );
 	}
@@ -94,7 +94,7 @@ class Tests_wp_ajax_imgedit_preview extends WP_Ajax_UnitTestCase {
 		$_GET['postid']      = 99999;
 		$_GET['_ajax_nonce'] = wp_create_nonce( 'image_editor-99999' );
 
-		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectException( 'WPAjaxDieContinueException' );
 		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'imgedit_preview' );
 	}
@@ -110,7 +110,7 @@ class Tests_wp_ajax_imgedit_preview extends WP_Ajax_UnitTestCase {
 		$_GET['postid']      = self::$attachment_id;
 		$_GET['_ajax_nonce'] = wp_create_nonce( 'image_editor-' . self::$attachment_id );
 
-		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectException( 'WPAjaxDieContinueException' );
 		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'imgedit_preview' );
 	}
@@ -126,7 +126,7 @@ class Tests_wp_ajax_imgedit_preview extends WP_Ajax_UnitTestCase {
 		$_GET['postid']      = self::$attachment_id;
 		$_GET['_ajax_nonce'] = 'invalid-nonce';
 
-		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectException( 'WPAjaxDieContinueException' );
 		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'imgedit_preview' );
 	}
