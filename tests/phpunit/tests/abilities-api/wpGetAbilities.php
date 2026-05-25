@@ -368,15 +368,15 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// match_callback
+	// item_include_callback
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Tests that match_callback can include or exclude abilities per item.
+	 * Tests that item_include_callback can include or exclude abilities per item.
 	 *
 	 * @ticket 64990
 	 */
-	public function test_match_callback_filters_per_item(): void {
+	public function test_item_include_callback_filters_per_item(): void {
 		$this->simulate_wp_abilities_init();
 
 		$this->register_test_ability( 'test/ability-alpha' );
@@ -384,7 +384,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 
 		$result = wp_get_abilities(
 			array(
-				'match_callback' => static function ( WP_Ability $ability ): bool {
+				'item_include_callback' => static function ( WP_Ability $ability ): bool {
 					return 'test/ability-alpha' === $ability->get_name();
 				},
 			)
@@ -401,18 +401,18 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that match_callback returning false for all abilities yields an empty result.
+	 * Tests that item_include_callback returning false for all abilities yields an empty result.
 	 *
 	 * @ticket 64990
 	 */
-	public function test_match_callback_returning_false_yields_empty_result(): void {
+	public function test_item_include_callback_returning_false_yields_empty_result(): void {
 		$this->simulate_wp_abilities_init();
 
 		$this->register_test_ability( 'test/ability-one' );
 
 		$result = wp_get_abilities(
 			array(
-				'match_callback' => static function ( WP_Ability $ability ): bool {
+				'item_include_callback' => static function ( WP_Ability $ability ): bool {
 					return false;
 				},
 			)
@@ -422,11 +422,11 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that match_callback receives a WP_Ability instance.
+	 * Tests that item_include_callback receives a WP_Ability instance.
 	 *
 	 * @ticket 64990
 	 */
-	public function test_match_callback_receives_ability_instance(): void {
+	public function test_item_include_callback_receives_ability_instance(): void {
 		$this->simulate_wp_abilities_init();
 
 		$this->register_test_ability( 'test/ability-one' );
@@ -434,8 +434,8 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$received = null;
 		wp_get_abilities(
 			array(
-				'namespace'      => 'test',
-				'match_callback' => static function ( WP_Ability $ability ) use ( &$received ): bool {
+				'namespace'             => 'test',
+				'item_include_callback' => static function ( WP_Ability $ability ) use ( &$received ): bool {
 					$received = $ability;
 					return true;
 				},
@@ -447,15 +447,15 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// wp_get_abilities_match filter hook
+	// wp_get_abilities_item_include filter hook
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Tests that wp_get_abilities_match filter can exclude an ability.
+	 * Tests that wp_get_abilities_item_include filter can exclude an ability.
 	 *
 	 * @ticket 64990
 	 */
-	public function test_wp_get_abilities_match_filter_can_exclude_ability(): void {
+	public function test_wp_get_abilities_item_include_filter_can_exclude_ability(): void {
 		$this->simulate_wp_abilities_init();
 
 		$this->register_test_ability( 'test/ability-one' );
@@ -465,9 +465,9 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 			return 'test/ability-two' !== $ability->get_name();
 		};
 
-		add_filter( 'wp_get_abilities_match', $filter, 10, 2 );
+		add_filter( 'wp_get_abilities_item_include', $filter, 10, 2 );
 		$result = wp_get_abilities( array( 'namespace' => 'test' ) );
-		remove_filter( 'wp_get_abilities_match', $filter, 10 );
+		remove_filter( 'wp_get_abilities_item_include', $filter, 10 );
 
 		$names = array_map(
 			static function ( WP_Ability $a ) {
@@ -481,11 +481,11 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_get_abilities_match filter receives the ability and original args.
+	 * Tests that wp_get_abilities_item_include filter receives the ability and original args.
 	 *
 	 * @ticket 64990
 	 */
-	public function test_wp_get_abilities_match_filter_receives_ability_and_args(): void {
+	public function test_wp_get_abilities_item_include_filter_receives_ability_and_args(): void {
 		$this->simulate_wp_abilities_init();
 
 		$this->register_test_ability( 'test/ability-one' );
@@ -507,9 +507,9 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 			return $should_include;
 		};
 
-		add_filter( 'wp_get_abilities_match', $filter, 10, 3 );
+		add_filter( 'wp_get_abilities_item_include', $filter, 10, 3 );
 		wp_get_abilities( $query_args );
-		remove_filter( 'wp_get_abilities_match', $filter, 10 );
+		remove_filter( 'wp_get_abilities_item_include', $filter, 10 );
 
 		$this->assertInstanceOf( WP_Ability::class, $received_ability );
 		$this->assertSame( $query_args, $received_args );
@@ -630,6 +630,78 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Filters fire on no-arg calls
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Tests that the wp_get_abilities_item_include filter fires when wp_get_abilities()
+	 * is called with no arguments.
+	 *
+	 * The most common call path (no args) is also the path security and visibility
+	 * plugins most need to participate in, so the filter must run there.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_wp_get_abilities_item_include_filter_fires_with_no_args(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/ability-one' );
+		$this->register_test_ability( 'test/ability-two' );
+
+		$received_names = array();
+
+		$filter = static function ( bool $should_include, WP_Ability $ability ) use ( &$received_names ): bool {
+			$received_names[] = $ability->get_name();
+			return $should_include;
+		};
+
+		add_filter( 'wp_get_abilities_item_include', $filter, 10, 2 );
+		wp_get_abilities();
+		remove_filter( 'wp_get_abilities_item_include', $filter, 10 );
+
+		$this->assertContains( 'test/ability-one', $received_names );
+		$this->assertContains( 'test/ability-two', $received_names );
+	}
+
+	/**
+	 * Tests that the wp_get_abilities_result filter fires when wp_get_abilities()
+	 * is called with no arguments.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_wp_get_abilities_result_filter_fires_with_no_args(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/ability-one' );
+
+		$call_count         = 0;
+		$received_abilities = null;
+		$received_args      = null;
+
+		$filter = static function (
+			array $abilities,
+			array $args
+		) use (
+			&$call_count,
+			&$received_abilities,
+			&$received_args
+		): array {
+			++$call_count;
+			$received_abilities = $abilities;
+			$received_args      = $args;
+			return $abilities;
+		};
+
+		add_filter( 'wp_get_abilities_result', $filter, 10, 2 );
+		wp_get_abilities();
+		remove_filter( 'wp_get_abilities_result', $filter, 10 );
+
+		$this->assertSame( 1, $call_count );
+		$this->assertIsArray( $received_abilities );
+		$this->assertSame( array(), $received_args );
+	}
+
+	// -------------------------------------------------------------------------
 	// Combined filters
 	// -------------------------------------------------------------------------
 
@@ -682,11 +754,11 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that namespace and match_callback filters are applied together.
+	 * Tests that namespace and item_include_callback filters are applied together.
 	 *
 	 * @ticket 64990
 	 */
-	public function test_combined_namespace_and_match_callback_filters(): void {
+	public function test_combined_namespace_and_item_include_callback_filters(): void {
 		$this->simulate_wp_abilities_init();
 
 		$this->register_test_ability( 'test/ability-alpha' );
@@ -695,8 +767,8 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 
 		$result = wp_get_abilities(
 			array(
-				'namespace'      => 'test',
-				'match_callback' => static function ( WP_Ability $ability ): bool {
+				'namespace'             => 'test',
+				'item_include_callback' => static function ( WP_Ability $ability ): bool {
 					return 'test/ability-alpha' === $ability->get_name();
 				},
 			)

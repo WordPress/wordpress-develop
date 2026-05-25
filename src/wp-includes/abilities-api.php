@@ -405,8 +405,8 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  * 1. Declarative filters (`category`, `namespace`, `meta`) — per-item, AND logic between
  *    arg types, OR logic within multi-value `category` arrays.
- * 2. `match_callback` — per-item, caller-scoped. Return true to include, false to exclude.
- * 3. `wp_get_abilities_match` filter — per-item, ecosystem-scoped. Plugins can enforce
+ * 2. `item_include_callback` — per-item, caller-scoped. Return true to include, false to exclude.
+ * 3. `wp_get_abilities_item_include` filter — per-item, ecosystem-scoped. Plugins can enforce
  *    universal inclusion rules regardless of what the caller passed.
  * 4. `result_callback` — on the full matched array, caller-scoped. Sort, slice, or reshape.
  * 5. `wp_get_abilities_result` filter — on the full array, ecosystem-scoped.
@@ -439,7 +439,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  *     // Caller-scoped per-item callback.
  *     $abilities = wp_get_abilities( array(
- *         'match_callback' => function ( WP_Ability $ability ) {
+ *         'item_include_callback' => function ( WP_Ability $ability ) {
  *             return current_user_can( 'manage_options' );
  *         },
  *     ) );
@@ -452,6 +452,12 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *         },
  *     ) );
  *
+ * The pipeline always runs, even when called with no arguments. This ensures that the
+ * `wp_get_abilities_item_include` and `wp_get_abilities_result` filters always fire,
+ * giving plugins a reliable place to enforce universal inclusion or shaping rules.
+ * For raw, unfiltered registry data that bypasses the filter pipeline entirely, use
+ * {@see WP_Abilities_Registry::get_all_registered()} directly.
+ *
  * @since 6.9.0
  * @since 7.1.0 Added the `$args` parameter for filtering support.
  *
@@ -460,21 +466,21 @@ function wp_get_ability( string $name ): ?WP_Ability {
  * @param array $args {
  *     Optional. Arguments to filter the returned abilities. Default empty array (returns all).
  *
- *     @type string|string[] $category        Filter by category slug. A single string or an array of
- *                                            slugs — abilities matching any of the given slugs are
- *                                            included (OR logic within this arg type).
- *     @type string          $namespace       Filter by ability namespace prefix. Pass the namespace
- *                                            without a trailing slash, e.g. `'woocommerce'` matches
- *                                            `'woocommerce/create-order'`.
- *     @type array           $meta            Filter by meta key/value pairs. All conditions must
- *                                            match (AND logic). Supports nested arrays for structured
- *                                            meta, e.g. `array( 'mcp' => array( 'public' => true ) )`.
- *     @type callable        $match_callback  Optional. A callback invoked per ability after declarative
- *                                            filters. Receives a WP_Ability instance, returns bool.
- *                                            Return true to include, false to exclude.
- *     @type callable        $result_callback Optional. A callback invoked once on the full matched
- *                                            array. Receives WP_Ability[], must return WP_Ability[].
- *                                            Use for sorting, slicing, or reshaping the result.
+ *     @type string|string[] $category              Filter by category slug. A single string or an array of
+ *                                                  slugs — abilities matching any of the given slugs are
+ *                                                  included (OR logic within this arg type).
+ *     @type string          $namespace             Filter by ability namespace prefix. Pass the namespace
+ *                                                  without a trailing slash, e.g. `'woocommerce'` matches
+ *                                                  `'woocommerce/create-order'`.
+ *     @type array           $meta                  Filter by meta key/value pairs. All conditions must
+ *                                                  match (AND logic). Supports nested arrays for structured
+ *                                                  meta, e.g. `array( 'mcp' => array( 'public' => true ) )`.
+ *     @type callable        $item_include_callback Optional. A callback invoked per ability after declarative
+ *                                                  filters. Receives a WP_Ability instance, returns bool.
+ *                                                  Return true to include, false to exclude.
+ *     @type callable        $result_callback       Optional. A callback invoked once on the full matched
+ *                                                  array. Receives WP_Ability[], must return WP_Ability[].
+ *                                                  Use for sorting, slicing, or reshaping the result.
  * }
  * @return WP_Ability[] An array of registered WP_Ability instances matching the given args.
  *                      Returns an empty array if no abilities are registered, the registry is
@@ -488,16 +494,11 @@ function wp_get_abilities( array $args = array() ): array {
 
 	$abilities = $registry->get_all_registered();
 
-	// Bail early when no filtering is requested.
-	if ( empty( $args ) ) {
-		return $abilities;
-	}
-
-	$category        = isset( $args['category'] ) ? (array) $args['category'] : array();
-	$namespace       = isset( $args['namespace'] ) && is_string( $args['namespace'] ) ? rtrim( $args['namespace'], '/' ) . '/' : '';
-	$meta            = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
-	$match_callback  = isset( $args['match_callback'] ) && is_callable( $args['match_callback'] ) ? $args['match_callback'] : null;
-	$result_callback = isset( $args['result_callback'] ) && is_callable( $args['result_callback'] ) ? $args['result_callback'] : null;
+	$category              = isset( $args['category'] ) ? (array) $args['category'] : array();
+	$namespace             = isset( $args['namespace'] ) && is_string( $args['namespace'] ) ? rtrim( $args['namespace'], '/' ) . '/' : '';
+	$meta                  = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
+	$item_include_callback = isset( $args['item_include_callback'] ) && is_callable( $args['item_include_callback'] ) ? $args['item_include_callback'] : null;
+	$result_callback       = isset( $args['result_callback'] ) && is_callable( $args['result_callback'] ) ? $args['result_callback'] : null;
 
 	$matched = array();
 
@@ -519,14 +520,14 @@ function wp_get_abilities( array $args = array() ): array {
 
 		// Step 2: Caller-scoped per-item callback.
 		$include = true;
-		if ( null !== $match_callback ) {
-			$include = (bool) call_user_func( $match_callback, $ability );
+		if ( null !== $item_include_callback ) {
+			$include = (bool) call_user_func( $item_include_callback, $ability );
 		}
 
 		/**
 		 * Filters whether an individual ability should be included in the result set.
 		 *
-		 * Fires after the declarative filters and the caller-scoped match_callback.
+		 * Fires after the declarative filters and the caller-scoped item_include_callback.
 		 * Plugins can use this to enforce universal inclusion rules regardless of
 		 * what the caller passed in $args.
 		 *
@@ -536,7 +537,7 @@ function wp_get_abilities( array $args = array() ): array {
 		 * @param WP_Ability $ability The ability instance being evaluated.
 		 * @param array      $args    The full $args array passed to wp_get_abilities().
 		 */
-		$include = (bool) apply_filters( 'wp_get_abilities_match', $include, $ability, $args );
+		$include = (bool) apply_filters( 'wp_get_abilities_item_include', $include, $ability, $args );
 
 		if ( $include ) {
 			$matched[] = $ability;
