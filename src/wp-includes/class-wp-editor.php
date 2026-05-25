@@ -207,17 +207,6 @@ final class _WP_Editors {
 			$wrap_class .= ' has-dfw';
 		}
 
-		if ( preg_match( '/<!--\s*wp:/', $content ) ) {
-			wp_admin_notice(
-				__( 'This content includes Gutenberg block markup that may be visible in the Code/Text tab but not in the Visual editor. The page may not be empty. Please review the content carefully before overwriting or deleting it.' ),
-				array(
-					'type'               => 'warning',
-					'dismissible'        => true,
-					'additional_classes' => array( 'inline' ),
-				)
-			);
-		}
-
 		echo '<div id="wp-' . $editor_id_attr . '-wrap" class="' . $wrap_class . '">';
 
 		if ( self::$editor_buttons_css ) {
