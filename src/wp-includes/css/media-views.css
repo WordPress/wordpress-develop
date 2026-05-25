@@ -2127,6 +2127,10 @@ select#media-attachment-date-filters {
 	right: 26px;
 }
 
+.media-frame .embed-url-error {
+	margin: 4px 0;
+}
+
 .media-frame .embed-loading .embed-url .spinner {
 	visibility: visible;
 }
