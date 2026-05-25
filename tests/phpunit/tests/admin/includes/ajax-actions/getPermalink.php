@@ -56,8 +56,9 @@ class Tests_wp_ajax_get_permalink extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'get-permalink' );
-		} catch ( WPAjaxDieContinueException $e ) {
+		} catch ( WPAjaxDieStopException $e ) {
 			// Expect success.
+			$this->_last_response = $e->getMessage();
 		}
 
 		$this->assertStringContainsString( 'p=' . $post_id, $this->_last_response );
@@ -78,7 +79,7 @@ class Tests_wp_ajax_get_permalink extends WP_Ajax_UnitTestCase {
 			'getpermalinknonce' => 'invalid-nonce',
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '-1' );
 
 		$this->_handleAjax( 'get-permalink' );
@@ -99,10 +100,11 @@ class Tests_wp_ajax_get_permalink extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'get-permalink' );
-		} catch ( WPAjaxDieContinueException $e ) {
+		} catch ( WPAjaxDieStopException $e ) {
 			// Expect success (it will return a link for post ID 0, which is usually home or a generic preview link).
+			$this->_last_response = $e->getMessage();
 		}
 
-		$this->assertNotEmpty( $this->_last_response );
+		$this->assertNotSame( '', $this->_last_response );
 	}
 }
