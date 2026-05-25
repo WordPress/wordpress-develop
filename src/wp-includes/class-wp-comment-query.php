@@ -1045,7 +1045,7 @@ class WP_Comment_Query {
 	 * Return shapes:
 	 *   - `array( 'col', $column )`            — single column, DISTINCT.
 	 *   - `array( 'map', $key_col, $val_col )` — `'col_a=>col_b'` associative map.
-	 *   - `array( 'list', $columns )`          — array form, returns `stdClass[]`.
+	 *   - `array( 'list', $columns )`          — array form, returns `string[]`.
 	 *
 	 * Column names must be passed in their exact case; the only exception is
 	 * the `ID` segment of `comment_ID` / `comment_post_ID`, which is accepted
@@ -1054,9 +1054,14 @@ class WP_Comment_Query {
 	 * @since 7.1.0
 	 *
 	 * @param mixed $fields Raw `fields` query var.
-	 * @return array|null
+	 * @param string[]|string $fields Raw `fields` query var.
+	 * @return array{ 'list', non-empty-string[] }
+	 *         |array{ 'map', non-empty-string, non-empty-string }
+	 *         |array{ 'col', non-empty-string }
+	 *         |null
 	 */
-	private function parse_fields( $fields ) {
+	 */
+	private function parse_fields( $fields ): ?array {
 		if ( is_array( $fields ) ) {
 			$columns = array();
 			foreach ( $fields as $field ) {
@@ -1098,11 +1103,11 @@ class WP_Comment_Query {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param string $field
-	 * @return string|null
+	 * @param string $field Field name.
+	 * @return non-empty-string|null Canonical column name or null if unknown.
 	 */
-	private function parse_field_column( $field ) {
-		static $columns = array(
+	private function parse_field_column( string $field ): ?string {
+		$columns = array(
 			'comment_ID',
 			'comment_post_ID',
 			'comment_author',
@@ -1125,8 +1130,8 @@ class WP_Comment_Query {
 		}
 
 		// Accept any case for the `ID` segment of `comment_ID` / `comment_post_ID`.
-		if ( preg_match( '/^(comment(?:_post)?_)([iI][dD])$/', $field, $m ) ) {
-			return $m[1] . 'ID';
+		if ( preg_match( '/^(comment(?:_post)?_)([iI][dD])$/', $field, $matches ) ) {
+			return $matches[1] . 'ID';
 		}
 
 		return null;
@@ -1150,7 +1155,7 @@ class WP_Comment_Query {
 	 * @param array $fields      Tagged tuple from `parse_fields()`.
 	 * @return array
 	 */
-	private function get_comment_field_values( $comment_ids, $fields ) {
+	private function get_comment_field_values( array $comment_ids, array $fields ) {
 		global $wpdb;
 
 		if ( empty( $comment_ids ) ) {
