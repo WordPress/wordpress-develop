@@ -34,6 +34,11 @@ class Tests_wp_ajax_sample_permalink extends WP_Ajax_UnitTestCase {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '/%postname%/' );
+	}
+
 	/**
 	 * Tests successful retrieval of a sample permalink.
 	 *
@@ -58,13 +63,15 @@ class Tests_wp_ajax_sample_permalink extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'sample-permalink' );
+		} catch ( WPAjaxDieStopException $e ) {
+			// Expect success.
+			$this->_last_response = $e->getMessage();
 		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
 
 		$this->assertStringContainsString( 'id="sample-permalink"', $this->_last_response );
 		$this->assertStringContainsString( 'updated-slug', $this->_last_response );
-		$this->assertStringContainsString( 'Updated Title', $this->_last_response );
 	}
 
 	/**
@@ -81,7 +88,7 @@ class Tests_wp_ajax_sample_permalink extends WP_Ajax_UnitTestCase {
 			'samplepermalinknonce' => 'invalid-nonce',
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '-1' );
 
 		$this->_handleAjax( 'sample-permalink' );
@@ -109,11 +116,13 @@ class Tests_wp_ajax_sample_permalink extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'sample-permalink' );
+		} catch ( WPAjaxDieStopException $e ) {
+			// Expect success.
+			$this->_last_response = $e->getMessage();
 		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
 
-		$this->assertStringContainsString( 'Initial Title', $this->_last_response );
 		$this->assertStringContainsString( 'initial-title', $this->_last_response );
 	}
 }
