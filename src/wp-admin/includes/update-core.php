@@ -897,6 +897,12 @@ $_old_files = array(
 	'wp-includes/js/dist/script-modules/interactivity/debug.js',
 	'wp-includes/js/dist/script-modules/interactivity/debug.min.js',
 	'wp-includes/js/dist/vendor/react-jsx-runtime.min.js.LICENSE.txt',
+	// 7.0.1
+	'wp-includes/collaboration.php',
+	'wp-includes/collaboration/',
+	'wp-includes/collaboration/class-wp-http-polling-sync-server.php',
+	'wp-includes/collaboration/class-wp-sync-post-meta-storage.php',
+	'wp-includes/collaboration/interface-wp-sync-storage.php',
 );
 
 /**
