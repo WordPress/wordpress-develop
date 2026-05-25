@@ -151,7 +151,7 @@ class Tests_wp_ajax_wp_link_ajax extends WP_Ajax_UnitTestCase {
 		try {
 			$this->_handleAjax( 'wp-link-ajax' );
 		} catch ( WPAjaxDieContinueException $e ) {
-			$this->assertSame( '0', $e->getMessage() );
+			$this->assertSame( '', $e->getMessage() );
 			return;
 		}
 
