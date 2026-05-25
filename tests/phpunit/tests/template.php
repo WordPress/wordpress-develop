@@ -1979,6 +1979,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @ticket 65336
 	 * @covers ::wp_load_classic_theme_block_styles_on_demand
 	 * @covers ::wp_hoist_late_printed_styles
+	 * @covers ::wp_enqueue_global_styles
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 *
