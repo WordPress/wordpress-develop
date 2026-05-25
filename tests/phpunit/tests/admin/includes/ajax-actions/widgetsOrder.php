@@ -54,7 +54,6 @@ class Tests_wp_ajax_widgets_order extends WP_Ajax_UnitTestCase {
 			'sidebars'    => $sidebars,
 		);
 
-
 		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '1' );
 
