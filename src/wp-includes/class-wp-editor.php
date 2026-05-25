@@ -1263,7 +1263,7 @@ final class _WP_Editors {
 				'Nonbreaking space'                    => __( 'Nonbreaking space' ),
 				'Page break'                           => __( 'Page break' ),
 				'Paste as text'                        => __( 'Paste as text' ),
-				'Preview'                              => __( 'Preview' ),
+				'Preview'                              => _x( 'Preview', 'verb' ),
 				'Print'                                => __( 'Print' ),
 				'Save'                                 => __( 'Save' ),
 				'Fullscreen'                           => __( 'Fullscreen' ),
