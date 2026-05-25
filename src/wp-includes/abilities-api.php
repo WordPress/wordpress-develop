@@ -482,9 +482,10 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *                                                  array. Receives WP_Ability[], must return WP_Ability[].
  *                                                  Use for sorting, slicing, or reshaping the result.
  * }
- * @return WP_Ability[] An array of registered WP_Ability instances matching the given args.
- *                      Returns an empty array if no abilities are registered, the registry is
- *                      unavailable, or no abilities match the given args.
+ * @return WP_Ability[] An array of registered WP_Ability instances matching the given args,
+ *                      keyed by ability name. Returns an empty array if no abilities are
+ *                      registered, the registry is unavailable, or no abilities match the
+ *                      given args.
  */
 function wp_get_abilities( array $args = array() ): array {
 	$registry = WP_Abilities_Registry::get_instance();
@@ -502,7 +503,7 @@ function wp_get_abilities( array $args = array() ): array {
 
 	$matched = array();
 
-	foreach ( $abilities as $ability ) {
+	foreach ( $abilities as $name => $ability ) {
 		// Step 1a: Filter by category (OR logic within the arg).
 		if ( ! empty( $category ) && ! in_array( $ability->get_category(), $category, true ) ) {
 			continue;
@@ -540,7 +541,7 @@ function wp_get_abilities( array $args = array() ): array {
 		$include = (bool) apply_filters( 'wp_get_abilities_item_include', $include, $ability, $args );
 
 		if ( $include ) {
-			$matched[] = $ability;
+			$matched[ $name ] = $ability;
 		}
 	}
 
