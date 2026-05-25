@@ -61,6 +61,9 @@ class Tests_wp_ajax_inline_save_tax extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( 'inline-save-tax' );
+		} catch ( WPAjaxDieStopException $e ) {
+			// Expect success.
+			$this->_last_response = $e->getMessage();
 		} catch ( WPAjaxDieContinueException $e ) {
 			// Expect success.
 		}
@@ -86,7 +89,7 @@ class Tests_wp_ajax_inline_save_tax extends WP_Ajax_UnitTestCase {
 			'_inline_edit' => 'invalid-nonce',
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '-1' );
 
 		$this->_handleAjax( 'inline-save-tax' );
@@ -106,7 +109,7 @@ class Tests_wp_ajax_inline_save_tax extends WP_Ajax_UnitTestCase {
 			'_inline_edit' => wp_create_nonce( 'taxinlineeditnonce' ),
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '0' );
 
 		$this->_handleAjax( 'inline-save-tax' );
@@ -126,7 +129,7 @@ class Tests_wp_ajax_inline_save_tax extends WP_Ajax_UnitTestCase {
 			'_inline_edit' => wp_create_nonce( 'taxinlineeditnonce' ),
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '-1' );
 
 		$this->_handleAjax( 'inline-save-tax' );
@@ -150,7 +153,7 @@ class Tests_wp_ajax_inline_save_tax extends WP_Ajax_UnitTestCase {
 			'_inline_edit' => wp_create_nonce( 'taxinlineeditnonce' ),
 		);
 
-		$this->expectException( WPAjaxDieContinueException::class );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '-1' );
 
 		$this->_handleAjax( 'inline-save-tax' );
