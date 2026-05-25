@@ -54,11 +54,11 @@ class Tests_wp_ajax_widgets_order extends WP_Ajax_UnitTestCase {
 			'sidebars'    => $sidebars,
 		);
 
-		try {
-			$this->_handleAjax( 'widgets-order' );
-		} catch ( WPAjaxDieContinueException $e ) {
-			// Expect success.
-		}
+
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '1' );
+
+		$this->_handleAjax( 'widgets-order' );
 
 		$this->assertSame( '1', $this->_last_response );
 
