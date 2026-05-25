@@ -1834,7 +1834,6 @@ select#media-attachment-date-filters {
 	visibility: visible;
 }
 
-/* Apply absolute positioning only to prevent layout shift on desktop. */
 .media-bg-overlay {
 	position: absolute;
 }
