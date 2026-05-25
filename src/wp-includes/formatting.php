@@ -605,15 +605,115 @@ function wpautop( $text, $br = true ) {
 }
 
 /**
+ * Returns a Tag Processor exposing the raw matched tokens.
+ *
+ * @since 6.6.0
+ *
+ * @param string $html Passed into the Tag Processor.
+ * @return WP_HTML_Tag_Processor|__anonymous@23567
+ */
+function wp_get_internal_tag_processor( $html ) {
+	return new class( $html ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Returns the raw token from the input string at the
+		 * current location, if paused at a location.
+		 *
+		 * @return false|string
+		 */
+		public function get_raw_token() {
+			if (
+				WP_HTML_Tag_Processor::STATE_READY === $this->parser_state ||
+				WP_HTML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ||
+				WP_HTML_Tag_Processor::STATE_COMPLETE === $this->parser_state
+			) {
+				return false;
+			}
+
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			return substr( $this->html, $here->start, $here->length );
+		}
+	};
+}
+
+/**
  * Separates HTML elements and comments from the text.
  *
- * @since 4.2.4
+ * This function tokenizes an HTML document into its
+ * components and returns the array of tokens.
  *
- * @param string $input The text which has to be formatted.
- * @return string[] Array of the formatted text.
+ * @since 4.2.4
+ * @since 6.6.0 Relies on the HTML API for parsing.
+ *
+ * @param string $input_html Raw HTML potentially containing a mixture of tags,
+ *                           comments, text nodes, and other sytnax.
+ * @return string[]
  */
-function wp_html_split( $input ) {
-	return preg_split( get_html_split_regex(), $input, -1, PREG_SPLIT_DELIM_CAPTURE );
+function wp_html_split( $input_html ) {
+	$chunks    = array();
+	$processor = wp_get_internal_tag_processor( $input_html );
+
+	while ( $processor->next_token() ) {
+		/*
+		 * There's a legacy behavior where text nodes are always stored in even
+		 * indices and "elements" are stored in odd indices. To preserve this,
+		 * empty text nodes are inserted when there's none between other syntax
+		 * tokens.
+		 */
+		if ( 0 === count( $chunks ) % 2 && '#text' !== $processor->get_token_name() ) {
+			$chunks[] = '';
+		}
+
+		$is_special_atomic_element = in_array(
+			$processor->get_tag(),
+			array( 'SCRIPT', 'STYLE', 'XMP', 'NOEMBED', 'NOFRAMES', 'TITLE', 'TEXTAREA' ),
+			true
+		);
+
+		if ( ! $is_special_atomic_element ) {
+			$chunks[] = $processor->get_raw_token();
+			continue;
+		}
+
+		/*
+		 * For special atomic tags, it's necessary to redo some work to find
+		 * the opening and closing tag, because the Tag Processor consumes
+		 * them all in one go.
+		 *
+		 * By replacing the first character of the tag name, it's possible to
+		 * trick the Tag Processor into thinking it's non-special content, and
+		 * then get the starting and ending tags, then restore the tag name at
+		 * the end.
+		 *
+		 * Because the end tag for these special atomic elements are matched
+		 * if they are unexpected, then the final closing tag will be found
+		 * after renaming the opening.
+		 */
+
+		$raw_html    = $processor->get_raw_token();
+		$first_char  = $raw_html[1];
+		$raw_html[1] = 'X';
+		$special     = wp_get_internal_tag_processor( $raw_html );
+
+		// The first tag is the modified tag.
+		$special->next_tag();
+		$opening_tag    = $special->get_raw_token();
+		$opening_tag[1] = $first_char;
+		$chunks[]       = $opening_tag;
+
+		$special->set_bookmark( 'last' );
+		while ( $special->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+			$special->set_bookmark( 'last' );
+		}
+		$special->seek( 'last' );
+		$closing_tag = $special->get_raw_token();
+
+		$chunks[] = substr( $raw_html, strlen( $opening_tag ), -strlen( $closing_tag ) );
+		$chunks[] = $closing_tag;
+	}
+
+	return $chunks;
 }
 
 /**
