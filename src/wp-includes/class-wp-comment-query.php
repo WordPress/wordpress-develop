@@ -18,6 +18,30 @@
 class WP_Comment_Query {
 
 	/**
+	 * Columns of the `$wpdb->comments` table.
+	 *
+	 * @since 7.1.0
+	 * @var string[]
+	 */
+	private const COLUMNS = array(
+		'comment_ID',
+		'comment_post_ID',
+		'comment_author',
+		'comment_author_email',
+		'comment_author_url',
+		'comment_author_IP',
+		'comment_date',
+		'comment_date_gmt',
+		'comment_content',
+		'comment_karma',
+		'comment_approved',
+		'comment_agent',
+		'comment_type',
+		'comment_parent',
+		'user_id',
+	);
+
+	/**
 	 * SQL for database query.
 	 *
 	 * @since 4.0.1
@@ -1045,7 +1069,7 @@ class WP_Comment_Query {
 	 * Return shapes:
 	 *   - `array( 'col', $column )`            — single column, DISTINCT.
 	 *   - `array( 'map', $key_col, $val_col )` — `'col_a=>col_b'` associative map.
-	 *   - `array( 'list', $columns )`          — array form, returns `string[]`.
+	 *   - `array( 'list', $columns )`          — array form, returns `stdClass[]`.
 	 *
 	 * Column names must be passed in their exact case; the only exception is
 	 * the `ID` segment of `comment_ID` / `comment_post_ID`, which is accepted
@@ -1053,13 +1077,11 @@ class WP_Comment_Query {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param mixed $fields Raw `fields` query var.
 	 * @param string[]|string $fields Raw `fields` query var.
 	 * @return array{ 'list', non-empty-string[] }
 	 *         |array{ 'map', non-empty-string, non-empty-string }
 	 *         |array{ 'col', non-empty-string }
 	 *         |null
-	 */
 	 */
 	private function parse_fields( $fields ): ?array {
 		if ( is_array( $fields ) ) {
@@ -1107,25 +1129,7 @@ class WP_Comment_Query {
 	 * @return non-empty-string|null Canonical column name or null if unknown.
 	 */
 	private function parse_field_column( string $field ): ?string {
-		$columns = array(
-			'comment_ID',
-			'comment_post_ID',
-			'comment_author',
-			'comment_author_email',
-			'comment_author_url',
-			'comment_author_IP',
-			'comment_date',
-			'comment_date_gmt',
-			'comment_content',
-			'comment_karma',
-			'comment_approved',
-			'comment_agent',
-			'comment_type',
-			'comment_parent',
-			'user_id',
-		);
-
-		if ( in_array( $field, $columns, true ) ) {
+		if ( in_array( $field, self::COLUMNS, true ) ) {
 			return $field;
 		}
 
@@ -1371,23 +1375,7 @@ class WP_Comment_Query {
 	protected function parse_orderby( $orderby ) {
 		global $wpdb;
 
-		$allowed_keys = array(
-			'comment_agent',
-			'comment_approved',
-			'comment_author',
-			'comment_author_email',
-			'comment_author_IP',
-			'comment_author_url',
-			'comment_content',
-			'comment_date',
-			'comment_date_gmt',
-			'comment_ID',
-			'comment_karma',
-			'comment_parent',
-			'comment_post_ID',
-			'comment_type',
-			'user_id',
-		);
+		$allowed_keys = self::COLUMNS;
 
 		if ( ! empty( $this->query_vars['meta_key'] ) ) {
 			$allowed_keys[] = $this->query_vars['meta_key'];
