@@ -475,7 +475,7 @@ if ( str_contains( $post->post_content, '<!-- wp:' ) ) :
 	wp_admin_notice(
 		__( 'This content includes blocks, and some of the block content might not display in the Visual editor. Please review the content carefully before overwriting or deleting it.' ),
 		array(
-			'type' => 'warning',
+			'type'        => 'warning',
 			'dismissible' => true,
 		)
 	);
