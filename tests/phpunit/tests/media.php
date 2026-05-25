@@ -3809,6 +3809,178 @@ EOF;
 	}
 
 	/**
+	 * @ticket 12799
+	 *
+	 * @dataProvider data_gallery_shortcode_limit
+	 */
+	public function test_gallery_shortcode_limit( $limit, $expected_count ) {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		$attachment_ids = array();
+		for ( $i = 0; $i < 5; $i++ ) {
+			$attachment_ids[] = self::factory()->attachment->create_object(
+				array(
+					'post_parent'    => $post_id,
+					'post_status'    => 'inherit',
+					'post_type'      => 'attachment',
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+		}
+
+		$actual = gallery_shortcode(
+			array(
+				'id'    => $post_id,
+				'limit' => $limit,
+			)
+		);
+
+		$count = substr_count( $actual, '<figure' ) + substr_count( $actual, '<dl' );
+		$this->assertSame( $expected_count, $count );
+	}
+
+	/**
+	 * @ticket 12799
+	 */
+	public function test_gallery_shortcode_limit_with_ids() {
+		$attachment_ids = array();
+		for ( $i = 0; $i < 5; $i++ ) {
+			$attachment_ids[] = self::factory()->attachment->create_object(
+				array(
+					'post_status'    => 'inherit',
+					'post_type'      => 'attachment',
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+		}
+
+		$actual = gallery_shortcode(
+			array(
+				'ids'   => implode( ',', $attachment_ids ),
+				'limit' => 2,
+			)
+		);
+
+		$count = substr_count( $actual, '<figure' ) + substr_count( $actual, '<dl' );
+		$this->assertSame( 2, $count );
+	}
+
+	/**
+	 * @ticket 12799
+	 */
+	public function test_gallery_shortcode_limit_with_include() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		$attachment_ids = array();
+		for ( $i = 0; $i < 5; $i++ ) {
+			$attachment_ids[] = self::factory()->attachment->create_object(
+				array(
+					'post_parent'    => $post_id,
+					'post_status'    => 'inherit',
+					'post_type'      => 'attachment',
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+		}
+
+		$actual = gallery_shortcode(
+			array(
+				'id'      => $post_id,
+				'include' => implode( ',', $attachment_ids ),
+				'limit'   => 3,
+			)
+		);
+
+		$count = substr_count( $actual, '<figure' ) + substr_count( $actual, '<dl' );
+		$this->assertSame( 3, $count );
+	}
+
+	/**
+	 * @ticket 12799
+	 */
+	public function test_gallery_shortcode_limit_with_exclude() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		$attachment_ids = array();
+		for ( $i = 0; $i < 5; $i++ ) {
+			$attachment_ids[] = self::factory()->attachment->create_object(
+				array(
+					'post_parent'    => $post_id,
+					'post_status'    => 'inherit',
+					'post_type'      => 'attachment',
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+		}
+
+		$actual = gallery_shortcode(
+			array(
+				'id'      => $post_id,
+				'exclude' => $attachment_ids[0],
+				'limit'   => 2,
+			)
+		);
+
+		$count = substr_count( $actual, '<figure' ) + substr_count( $actual, '<dl' );
+		$this->assertSame( 2, $count );
+	}
+
+	/**
+	 * @ticket 12799
+	 */
+	public function test_gallery_shortcode_limit_with_orderby_rand() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		for ( $i = 0; $i < 5; $i++ ) {
+			self::factory()->attachment->create_object(
+				array(
+					'post_parent'    => $post_id,
+					'post_status'    => 'inherit',
+					'post_type'      => 'attachment',
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+		}
+
+		$actual = gallery_shortcode(
+			array(
+				'id'      => $post_id,
+				'limit'   => 2,
+				'orderby' => 'rand',
+			)
+		);
+
+		$count = substr_count( $actual, '<figure' ) + substr_count( $actual, '<dl' );
+		$this->assertSame( 2, $count );
+	}
+
+	public static function data_gallery_shortcode_limit() {
+		return array(
+			'default no limit'         => array( -1, 5 ),
+			'zero means no limit'      => array( 0, 5 ),
+			'limit of 2'               => array( 2, 2 ),
+			'limit of 5 same as total' => array( 5, 5 ),
+			'limit greater than total' => array( 10, 5 ),
+		);
+	}
+
+	/**
 	 * Test attachment permalinks based on parent post status.
 	 *
 	 * @dataProvider data_attachment_permalinks_based_on_parent_status
