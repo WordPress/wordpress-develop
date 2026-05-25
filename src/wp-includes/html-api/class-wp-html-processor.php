@@ -813,8 +813,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 *       until there are events or until there are no more
 		 *       tokens works in the meantime and isn't obviously wrong.
 		 */
-		if ( empty( $this->element_queue ) && $this->step() ) {
-			return $this->next_visitable_token();
+		if ( empty( $this->element_queue ) ) {
+			if ( $this->step() ) {
+				assert( array() !== $this->element_queue );
+				return $this->next_visitable_token();
+			}
 		}
 
 		// Process the next event on the queue.
@@ -2876,8 +2879,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-STRONG':
 			case '-TT':
 			case '-U':
-				$this->run_adoption_agency_algorithm();
-				return true;
+				/*
+				 * Only return if the adoption_agency_algorithm modifies the
+				 * stack of open elements.
+				 * Otherwise, proceed.
+				 */
+				if ( $this->run_adoption_agency_algorithm() ) {
+					return true;
+				}
+				return $this->step();
 
 			/*
 			 * > A start tag whose tag name is one of: "applet", "marquee", "object"
@@ -5047,13 +5057,35 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Any other end tag
 		 */
 		if ( $this->is_tag_closer() ) {
+			/*
+			 * > Run these steps:
+			 * >
+			 * >   1. Initialize node to be the current node (the bottommost node of the stack).
+			 * >   2. If node's tag name, converted to ASCII lowercase, is not the same as
+			 * >      the tag name of the token, then this is a parse error.
+			 * >   3. Loop: If node is the topmost element in the stack of open elements,
+			 * >      then return. (fragment case)
+			 * >   4. If node's tag name, converted to ASCII lowercase, is the same as the
+			 * >      tag name of the token, pop elements from the stack of open elements
+			 * >      until node has been popped from the stack, and then return.
+			 * >   5. Set node to the previous entry in the stack of open elements.
+			 * >   6. If node is not an element in the HTML namespace, return to the step
+			 * >      labeled loop.
+			 * >   7. Otherwise, process the token according to the rules given in the section corresponding to the current insertion mode in HTML content.
+			 */
+
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
 			}
+
+			$has_modified = false;
 			in_foreign_content_end_tag_loop:
 			if ( $node === $this->state->stack_of_open_elements->at( 1 ) ) {
-				return true;
+				if ( $has_modified ) {
+					return true;
+				}
+				return $this->step();
 			}
 
 			/*
@@ -5067,6 +5099,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					if ( $node === $item ) {
 						return true;
 					}
+					$has_modified = true;
 				}
 			}
 
@@ -6179,8 +6212,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
+	 *
+	 * @return bool Whether the algorithm has modified the stack of open elements.
 	 */
-	private function run_adoption_agency_algorithm(): void {
+	private function run_adoption_agency_algorithm(): bool {
 		$budget       = 1000;
 		$subject      = $this->get_tag();
 		$current_node = $this->state->stack_of_open_elements->current_node();
@@ -6192,13 +6227,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			! $this->state->active_formatting_elements->contains_node( $current_node )
 		) {
 			$this->state->stack_of_open_elements->pop();
-			return;
+			return true;
 		}
 
 		$outer_loop_counter = 0;
+		$has_modified       = false;
 		while ( $budget-- > 0 ) {
 			if ( $outer_loop_counter++ >= 8 ) {
-				return;
+				return $has_modified;
 			}
 
 			/*
@@ -6227,12 +6263,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
 			if ( ! $this->state->stack_of_open_elements->contains_node( $formatting_element ) ) {
 				$this->state->active_formatting_elements->remove_node( $formatting_element );
-				return;
+				return $has_modified;
 			}
 
 			// > If formatting element is in the stack of open elements, but the element is not in scope, then this is a parse error; return.
 			if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $formatting_element->node_name ) ) {
-				return;
+				return $has_modified;
 			}
 
 			/*
@@ -6265,11 +6301,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			if ( null === $furthest_block ) {
 				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
 					$this->state->stack_of_open_elements->pop();
-
 					if ( $formatting_element->bookmark_name === $item->bookmark_name ) {
 						$this->state->active_formatting_elements->remove_node( $formatting_element );
-						return;
+						return true;
 					}
+					$has_modified = true;
 				}
 			}
 
