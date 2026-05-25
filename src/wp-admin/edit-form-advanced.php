@@ -469,8 +469,7 @@ wp_admin_notice(
 		'additional_classes' => array( 'error', 'hidden' ),
 	)
 );
-?>
-<?php
+
 if (
 	isset( $post->post_content ) &&
 	str_contains( (string) $post->post_content, '<!-- wp:' )
