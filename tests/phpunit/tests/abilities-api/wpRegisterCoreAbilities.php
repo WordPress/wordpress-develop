@@ -162,8 +162,13 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	public function test_core_get_current_user_info_returns_user_data(): void {
 		$user_id = self::factory()->user->create(
 			array(
-				'role'   => 'subscriber',
-				'locale' => 'fr_FR',
+				'role'        => 'subscriber',
+				'locale'      => 'fr_FR',
+				'first_name'  => 'Jane',
+				'last_name'   => 'Doe',
+				'nickname'    => 'janed',
+				'description' => 'Site contributor.',
+				'user_url'    => 'https://example.com',
 			)
 		);
 
@@ -178,6 +183,98 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertSame( 'fr_FR', $result['locale'] );
 		$this->assertSame( 'subscriber', $result['roles'][0] );
 		$this->assertSame( get_userdata( $user_id )->display_name, $result['display_name'] );
+
+		// New profile fields should be present by default.
+		$this->assertSame( 'Jane', $result['first_name'] );
+		$this->assertSame( 'Doe', $result['last_name'] );
+		$this->assertSame( 'janed', $result['nickname'] );
+		$this->assertSame( 'Site contributor.', $result['description'] );
+		$this->assertSame( 'https://example.com', $result['user_url'] );
+	}
+
+	/**
+	 * Tests that the `core/get-user-info` ability is registered with the expected schema.
+	 * @ticket 65234
+	 */
+	public function test_core_get_user_info_ability_is_registered(): void {
+		$ability = wp_get_ability( 'core/get-user-info' );
+
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+
+		$input_schema  = $ability->get_input_schema();
+		$output_schema = $ability->get_output_schema();
+
+		// Input schema should expose an optional `fields` array with an enum of valid field names.
+		$this->assertSame( 'object', $input_schema['type'] );
+		$this->assertArrayHasKey( 'default', $input_schema );
+		$this->assertSame( array(), $input_schema['default'] );
+		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
+		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
+
+		$enum = $input_schema['properties']['fields']['items']['enum'];
+		foreach ( array( 'id', 'display_name', 'first_name', 'last_name', 'nickname', 'description', 'user_url' ) as $field ) {
+			$this->assertContains( $field, $enum );
+		}
+
+		// Output schema should document the original and new profile fields with title + description.
+		foreach ( array( 'id', 'display_name', 'first_name', 'last_name', 'nickname', 'description', 'user_url' ) as $field ) {
+			$this->assertArrayHasKey( $field, $output_schema['properties'] );
+			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
+			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
+		}
+	}
+
+	/**
+	 * Tests that the `core/get-user-info` ability filters its output by the `fields` input parameter.
+	 * @ticket 65234
+	 */
+	public function test_core_get_user_info_filters_fields(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'first_name' => 'Jane',
+				'last_name'  => 'Doe',
+			)
+		);
+		wp_set_current_user( $user_id );
+
+		$ability = wp_get_ability( 'core/get-user-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'display_name', 'first_name', 'last_name' ),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 3, $result );
+		$this->assertArrayHasKey( 'display_name', $result );
+		$this->assertArrayHasKey( 'first_name', $result );
+		$this->assertArrayHasKey( 'last_name', $result );
+		$this->assertArrayNotHasKey( 'id', $result );
+		$this->assertArrayNotHasKey( 'roles', $result );
+		$this->assertSame( 'Jane', $result['first_name'] );
+		$this->assertSame( 'Doe', $result['last_name'] );
+	}
+
+	/**
+	 * Tests that the `core/get-user-info` ability rejects unknown field names via schema validation.
+	 * @ticket 65234
+	 */
+	public function test_core_get_user_info_rejects_invalid_fields(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		wp_set_current_user( $user_id );
+
+		$ability = wp_get_ability( 'core/get-user-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'display_name', 'not_a_real_field' ),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
 	/**
