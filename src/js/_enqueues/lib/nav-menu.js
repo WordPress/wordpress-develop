@@ -35,6 +35,7 @@
 		isRTL: !! ( 'undefined' != typeof isRtl && isRtl ),
 		negateIfRTL: ( 'undefined' != typeof isRtl && isRtl ) ? -1 : 1,
 		lastSearch: '',
+		selectedMenuItems: {},
 
 		// Functions that run on init.
 		init : function() {
@@ -191,9 +192,11 @@
 							re = /menu-item\[([^\]]*)/;
 
 						processMethod = processMethod || api.addMenuItemToBottom;
+						api.syncSelectedMenuItems( t );
+						menuItems = $.extend( {}, api.getSelectedMenuItems( t ) );
 
 						// If no items are checked, bail.
-						if ( !checkboxes.length )
+						if ( !checkboxes.length && $.isEmptyObject( menuItems ) )
 							return false;
 
 						// Show the Ajax spinner.
@@ -202,18 +205,21 @@
 						// Retrieve menu item data.
 						$(checkboxes).each(function(){
 							var t = $(this),
+								menuItemData,
 								listItemDBIDMatch = re.exec( t.attr('name') ),
 								listItemDBID = 'undefined' == typeof listItemDBIDMatch[1] ? 0 : parseInt(listItemDBIDMatch[1], 10);
 
 							if ( this.className && -1 != this.className.indexOf('add-to-top') )
 								processMethod = api.addMenuItemToTop;
-							menuItems[listItemDBID] = t.closest('li').getItemData( 'add-menu-item', listItemDBID );
+							menuItemData = t.closest('li').getItemData( 'add-menu-item', listItemDBID );
+							menuItems[api.getSelectedMenuItemKey( menuItemData, listItemDBID )] = menuItemData;
 						});
 
 						// Add the items.
 						api.addItemToMenu(menuItems, processMethod, function(){
 							// Deselect the items and hide the Ajax spinner.
 							checkboxes.prop( 'checked', false );
+							api.clearSelectedMenuItems( t );
 							t.find( '.button-controls .select-all' ).prop( 'checked', false );
 							t.find( '.button-controls .spinner' ).removeClass( 'is-active' );
 							t.updateParentDropdown();
@@ -405,6 +411,106 @@
 						});
 						
 					});
+				}
+			});
+		},
+
+		getSelectedMenuItemsKey : function( metabox ) {
+			return metabox.attr( 'id' ) || metabox.closest( '.postbox' ).attr( 'id' ) || '';
+		},
+
+		getMenuItemCheckboxId : function( checkbox ) {
+			var listItemDBIDMatch,
+				re = /menu-item\[([^\]]*)/;
+
+			listItemDBIDMatch = re.exec( checkbox.attr( 'name' ) );
+
+			if ( ! listItemDBIDMatch ) {
+				return 0;
+			}
+
+			return 'undefined' == typeof listItemDBIDMatch[1] ? 0 : parseInt( listItemDBIDMatch[1], 10 );
+		},
+
+		updateSelectedMenuItem : function( checkbox ) {
+			var listItemDBID, menuItemData,
+				metabox = checkbox.closest( '.posttypediv, .taxonomydiv' ),
+				key = api.getSelectedMenuItemsKey( metabox );
+
+			if ( ! key ) {
+				return;
+			}
+
+			listItemDBID = api.getMenuItemCheckboxId( checkbox );
+
+			if ( ! listItemDBID ) {
+				return;
+			}
+
+			api.selectedMenuItems[ key ] = api.selectedMenuItems[ key ] || {};
+			menuItemData = checkbox.closest( 'li' ).getItemData( 'add-menu-item', listItemDBID );
+
+			if ( checkbox.prop( 'checked' ) ) {
+				api.selectedMenuItems[ key ][ api.getSelectedMenuItemKey( menuItemData, listItemDBID ) ] = menuItemData;
+			} else {
+				delete api.selectedMenuItems[ key ][ api.getSelectedMenuItemKey( menuItemData, listItemDBID ) ];
+			}
+		},
+
+		getSelectedMenuItemKey : function( menuItemData, listItemDBID ) {
+			var key;
+
+			if ( menuItemData['menu-item-object-id'] || menuItemData['menu-item-url'] ) {
+				key = [
+					menuItemData['menu-item-type'] || '',
+					menuItemData['menu-item-object'] || '',
+					menuItemData['menu-item-object-id'] || '',
+					'custom' === menuItemData['menu-item-type'] ? menuItemData['menu-item-url'] || '' : '',
+					'custom' === menuItemData['menu-item-type'] ? menuItemData['menu-item-title'] || '' : ''
+				].join( ':' );
+
+				return key.replace( /[^\w-]/g, '_' );
+			}
+
+			return listItemDBID || '';
+		},
+
+		syncSelectedMenuItems : function( metabox ) {
+			metabox.find( '.tabs-panel-active .categorychecklist li input.menu-item-checkbox' ).each(function() {
+				api.updateSelectedMenuItem( $( this ) );
+			});
+		},
+
+		getSelectedMenuItems : function( metabox ) {
+			var key = api.getSelectedMenuItemsKey( metabox );
+
+			if ( ! key || ! api.selectedMenuItems[ key ] ) {
+				return {};
+			}
+
+			return api.selectedMenuItems[ key ];
+		},
+
+		clearSelectedMenuItems : function( metabox ) {
+			var key = api.getSelectedMenuItemsKey( metabox );
+
+			if ( key ) {
+				delete api.selectedMenuItems[ key ];
+			}
+		},
+
+		restoreSelectedMenuItems : function( metabox ) {
+			var selectedItems = api.getSelectedMenuItems( metabox );
+
+			metabox.find( '.categorychecklist li input.menu-item-checkbox' ).each(function() {
+				var checkbox = $( this ),
+					menuItemData,
+					listItemDBID = api.getMenuItemCheckboxId( checkbox );
+
+				menuItemData = checkbox.closest( 'li' ).getItemData( 'add-menu-item', listItemDBID );
+
+				if ( selectedItems[ api.getSelectedMenuItemKey( menuItemData, listItemDBID ) ] ) {
+					checkbox.prop( 'checked', true );
 				}
 			});
 		},
@@ -1597,6 +1703,7 @@
 
 					// Upon changing tabs, we want to uncheck all checkboxes.
 					$( 'input', wrapper ).prop( 'checked', false );
+					api.clearSelectedMenuItems( target.closest( '.posttypediv, .taxonomydiv' ) );
 
 					$('.tabs-panel-active', wrapper).removeClass('tabs-panel-active').addClass('tabs-panel-inactive');
 					$('#' + panelId, wrapper).removeClass('tabs-panel-inactive').addClass('tabs-panel-active');
@@ -1625,8 +1732,11 @@
 						} else if ( target.is( ':checked' ) ) {
 							items.prop( 'checked', true );
 						}
+
+						api.syncSelectedMenuItems( $( '#' + selectAreaMatch ) );
 					}
 				} else if ( target.hasClass( 'menu-item-checkbox' ) ) {
+					api.updateSelectedMenuItem( target );
 					selectAreaMatch = target.closest( '.tabs-panel-active' ).parent().attr( 'id' );
 					if ( selectAreaMatch ) {
 						items     = $( '#' + selectAreaMatch + ' .tabs-panel-active .menu-item-title input' );
@@ -1654,12 +1764,16 @@
 			 * links thus excluding the current page `<span>`. See ticket #35577.
 			 */
 			$( '#nav-menu-meta' ).on( 'click', 'a.page-numbers', function() {
-				var $container = $( this ).closest( '.inside' );
+				var $container = $( this ).closest( '.inside' ),
+					$metabox = $( this ).closest( '.posttypediv, .taxonomydiv' );
+
+				api.syncSelectedMenuItems( $metabox );
 
 				$.post( ajaxurl, this.href.replace( /.*\?/, '' ).replace( /action=([^&]*)/, '' ) + '&action=menu-get-metabox',
 					function( resp ) {
 						var metaBoxData = JSON.parse( resp ),
-							toReplace;
+							toReplace,
+							$updatedMetabox;
 
 						if ( -1 === resp.indexOf( 'replace-id' ) ) {
 							return;
@@ -1674,6 +1788,8 @@
 
 						// Update the post type menu meta box with new content from the response.
 						$container.html( metaBoxData.markup );
+						$updatedMetabox = $( document.getElementById( metaBoxData['replace-id'] ) );
+						api.restoreSelectedMenuItems( $updatedMetabox );
 					}
 				);
 
