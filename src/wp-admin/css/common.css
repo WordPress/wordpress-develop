@@ -4287,16 +4287,6 @@ img {
 		/* This element is a flex item. */
 		min-width: 100%;
 	}
-
-	.import-php.auto-fold #wpcontent,
-	.export-php.auto-fold #wpcontent {
-		padding-left: 0;
-	}
-
-	.import-php.auto-fold #wpcontent #wpbody-content .wrap,
-	.export-php.auto-fold #wpcontent #wpbody-content .wrap {
-		margin: 0 22px;
-	}
 }
 
 /* Smartphone */
