@@ -67,6 +67,68 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
 	}
 
+	/**
+	 * @ticket 49871
+	 */
+	public function test_old_date_redirect_should_not_redirect_scheduled_post() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_name'   => 'scheduled-old-date',
+				'post_date'   => '2037-12-09 20:19:00',
+			)
+		);
+
+		$old_permalink = user_trailingslashit( get_permalink( $post_id ) );
+		$time          = '2037-12-10 20:19:00';
+
+		wp_update_post(
+			array(
+				'ID'            => $post_id,
+				'post_date'     => $time,
+				'post_date_gmt' => get_gmt_from_date( $time ),
+			)
+		);
+
+		$this->assertContains( '2037-12-09', get_post_meta( $post_id, '_wp_old_date' ) );
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertNull( $this->old_date_redirect_url );
+	}
+
+	/**
+	 * @ticket 49871
+	 */
+	public function test_old_date_redirect_should_redirect_scheduled_post_after_publication() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_name'   => 'scheduled-publish-old-date',
+				'post_date'   => '2037-12-09 20:19:00',
+			)
+		);
+
+		$old_permalink = user_trailingslashit( get_permalink( $post_id ) );
+		$time          = '2037-12-10 20:19:00';
+
+		wp_update_post(
+			array(
+				'ID'            => $post_id,
+				'post_date'     => $time,
+				'post_date_gmt' => get_gmt_from_date( $time ),
+			)
+		);
+
+		wp_publish_post( $post_id );
+
+		$permalink = user_trailingslashit( get_permalink( $post_id ) );
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+	}
+
 	public function test_old_date_slug_redirect() {
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
 

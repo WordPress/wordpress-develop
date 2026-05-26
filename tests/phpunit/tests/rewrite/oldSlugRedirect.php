@@ -56,6 +56,64 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49871
+	 */
+	public function test_old_slug_redirect_should_not_redirect_scheduled_post() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_name'   => 'scheduled-old-slug',
+				'post_date'   => '2037-12-09 20:19:00',
+			)
+		);
+
+		$old_permalink = user_trailingslashit( get_permalink( $post_id ) );
+
+		wp_update_post(
+			array(
+				'ID'        => $post_id,
+				'post_name' => 'scheduled-new-slug',
+			)
+		);
+
+		$this->assertContains( 'scheduled-old-slug', get_post_meta( $post_id, '_wp_old_slug' ) );
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertNull( $this->old_slug_redirect_url );
+	}
+
+	/**
+	 * @ticket 49871
+	 */
+	public function test_old_slug_redirect_should_redirect_scheduled_post_after_publication() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_name'   => 'scheduled-publish-old-slug',
+				'post_date'   => '2037-12-09 20:19:00',
+			)
+		);
+
+		$old_permalink = user_trailingslashit( get_permalink( $post_id ) );
+
+		wp_update_post(
+			array(
+				'ID'        => $post_id,
+				'post_name' => 'scheduled-publish-new-slug',
+			)
+		);
+
+		wp_publish_post( $post_id );
+
+		$permalink = user_trailingslashit( get_permalink( $post_id ) );
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_slug_redirect_url );
+	}
+
+	/**
 	 * @ticket 36723
 	 */
 	public function test_old_slug_redirect_cache() {

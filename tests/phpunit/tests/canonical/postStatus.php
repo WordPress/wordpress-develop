@@ -872,6 +872,19 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49871
+	 */
+	public function test_canonical_does_not_redirect_plain_permalink_for_scheduled_post() {
+		wp_set_current_user( 0 );
+		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+
+		$post = self::$posts['future'];
+		clean_post_cache( $post->ID );
+
+		$this->assertCanonical( '/?p=' . $post->ID, '/?p=' . $post->ID );
+	}
+
+	/**
 	 * Data provider for test_canonical_redirects_to_pretty_permalinks.
 	 *
 	 * @return array[] Array of arguments for tests {
