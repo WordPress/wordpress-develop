@@ -553,6 +553,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public function test_before_execute_ability_action() {
 		$action_ability_name = null;
 		$action_input        = null;
+		$action_ability      = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -570,12 +571,13 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		add_action(
 			'wp_before_execute_ability',
-			static function ( $ability_name, $input ) use ( &$action_ability_name, &$action_input ) {
+			static function ( $ability_name, $input, $ability ) use ( &$action_ability_name, &$action_input, &$action_ability ) {
 				$action_ability_name = $ability_name;
 				$action_input        = $input;
+				$action_ability      = $ability;
 			},
 			10,
-			2
+			3
 		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
@@ -583,6 +585,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertSame( 5, $action_input, 'Action should receive correct input' );
+		$this->assertSame( $ability, $action_ability, 'Action should receive the ability instance' );
 		$this->assertSame( 10, $result, 'Ability should execute correctly' );
 	}
 
@@ -594,6 +597,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public function test_before_execute_ability_action_no_input() {
 		$action_ability_name = null;
 		$action_input        = null;
+		$action_ability      = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -606,12 +610,13 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		add_action(
 			'wp_before_execute_ability',
-			static function ( $ability_name, $input ) use ( &$action_ability_name, &$action_input ) {
+			static function ( $ability_name, $input, $ability ) use ( &$action_ability_name, &$action_input, &$action_ability ) {
 				$action_ability_name = $ability_name;
 				$action_input        = $input;
+				$action_ability      = $ability;
 			},
 			10,
-			2
+			3
 		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
@@ -619,6 +624,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertNull( $action_input, 'Action should receive null input when no input provided' );
+		$this->assertSame( $ability, $action_ability, 'Action should receive the ability instance' );
 		$this->assertSame( 42, $result, 'Ability should execute correctly' );
 	}
 
@@ -631,6 +637,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$action_ability_name = null;
 		$action_input        = null;
 		$action_result       = null;
+		$action_ability      = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -648,13 +655,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		add_action(
 			'wp_after_execute_ability',
-			static function ( $ability_name, $input, $result ) use ( &$action_ability_name, &$action_input, &$action_result ) {
+			static function ( $ability_name, $input, $result, $ability ) use ( &$action_ability_name, &$action_input, &$action_result, &$action_ability ) {
 				$action_ability_name = $ability_name;
 				$action_input        = $input;
 				$action_result       = $result;
+				$action_ability      = $ability;
 			},
 			10,
-			3
+			4
 		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
@@ -663,6 +671,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertSame( 7, $action_input, 'Action should receive correct input' );
 		$this->assertSame( 21, $action_result, 'Action should receive correct result' );
+		$this->assertSame( $ability, $action_ability, 'Action should receive the ability instance' );
 		$this->assertSame( 21, $result, 'Ability should execute correctly' );
 	}
 
@@ -675,6 +684,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$action_ability_name = null;
 		$action_input        = null;
 		$action_result       = null;
+		$action_ability      = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -688,13 +698,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		add_action(
 			'wp_after_execute_ability',
-			static function ( $ability_name, $input, $result ) use ( &$action_ability_name, &$action_input, &$action_result ) {
+			static function ( $ability_name, $input, $result, $ability ) use ( &$action_ability_name, &$action_input, &$action_result, &$action_ability ) {
 				$action_ability_name = $ability_name;
 				$action_input        = $input;
 				$action_result       = $result;
+				$action_ability      = $ability;
 			},
 			10,
-			3
+			4
 		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
@@ -703,6 +714,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertNull( $action_input, 'Action should receive null input when no input provided' );
 		$this->assertSame( 'test-result', $action_result, 'Action should receive correct result' );
+		$this->assertSame( $ability, $action_ability, 'Action should receive the ability instance' );
 		$this->assertSame( 'test-result', $result, 'Ability should execute correctly' );
 	}
 
@@ -1695,5 +1707,114 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertSame( 'custom_output_error', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that wp_ability_invoked action fires with correct parameters and raw input before normalization.
+	 *
+	 * @ticket 65248
+	 */
+	public function test_ability_invoked_action_fires_with_correct_params() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input parameter.',
+					'default'     => 42,
+				),
+				'execute_callback' => static function ( int $input ): int {
+					return $input;
+				},
+			)
+		);
+
+		$action = new MockAction();
+		add_action( 'wp_ability_invoked', array( $action, 'action' ), 10, 3 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute();
+
+		$action_args = $action->get_args();
+		$this->assertSame( self::$test_ability_name, $action_args[0][0], 'Action should receive correct ability name.' );
+		$this->assertNull( $action_args[0][1], 'Action should receive raw null input, not the schema default.' );
+		$this->assertSame( $ability, $action_args[0][2], 'Action should receive the ability instance.' );
+	}
+
+	/**
+	 * Tests that wp_ability_invoked action fires when execution is short-circuited.
+	 *
+	 * @ticket 65248
+	 */
+	public function test_ability_invoked_action_fires_on_pre_execute_short_circuit() {
+		$action = new MockAction();
+		add_action( 'wp_ability_invoked', array( $action, 'action' ) );
+
+		add_filter(
+			'wp_pre_execute_ability',
+			static function () {
+				return 'short-circuited';
+			}
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+		$ability->execute();
+
+		$this->assertSame( 1, $action->get_call_count(), 'wp_ability_invoked should fire before a pre-execute short-circuit.' );
+	}
+
+	/**
+	 * Tests that wp_ability_invoked action fires on permission failure.
+	 *
+	 * @ticket 65248
+	 */
+	public function test_ability_invoked_action_fires_on_permission_failure() {
+		$action = new MockAction();
+		add_action( 'wp_ability_invoked', array( $action, 'action' ) );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'permission_callback' => static function (): bool {
+						return false;
+					},
+				)
+			)
+		);
+		$ability->execute();
+
+		$this->assertSame( 1, $action->get_call_count(), 'wp_ability_invoked should fire before permission failure.' );
+	}
+
+	/**
+	 * Tests that wp_ability_invoked action fires on input validation failure.
+	 *
+	 * @ticket 65248
+	 */
+	public function test_ability_invoked_action_fires_on_validation_failure() {
+		$action = new MockAction();
+		add_action( 'wp_ability_invoked', array( $action, 'action' ) );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'input_schema'     => array(
+						'type'        => 'integer',
+						'description' => 'Int input.',
+						'required'    => true,
+					),
+					'execute_callback' => static function ( int $input ): int {
+						return $input;
+					},
+				)
+			)
+		);
+		$ability->execute( 'not_an_integer' );
+
+		$this->assertSame( 1, $action->get_call_count(), 'wp_ability_invoked should fire before input validation failure.' );
 	}
 }
