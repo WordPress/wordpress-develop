@@ -2265,6 +2265,9 @@ function wp_insert_user( $userdata ) {
 		$userdata = (array) $userdata;
 	}
 
+	$user_id       = 0;
+	$old_user_data = null;
+
 	// Are we updating or creating?
 	if ( ! empty( $userdata['ID'] ) ) {
 		$user_id       = (int) $userdata['ID'];
@@ -4272,6 +4275,7 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 		return;
 	}
 
+	$manage_url = '';
 	if ( 'export_personal_data' === $request->action_name ) {
 		$manage_url = admin_url( 'export-personal-data.php' );
 	} elseif ( 'remove_personal_data' === $request->action_name ) {
