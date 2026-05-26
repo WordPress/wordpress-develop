@@ -663,6 +663,14 @@ function get_oembed_response_data_for_url( $url, $args ) {
 
 			if ( $path ) {
 				$qv['path'] = get_network()->path . $path . '/';
+				/*
+				 * In a subdirectory configuration of multisite, the `/blog` prefix is used by
+				 * default on the main site to avoid URL collisions. Remove it to correctly
+				 * identify the main site.
+				 */
+				if ( str_starts_with( $qv['path'], '/blog/' ) ) {
+					$qv['path'] = preg_replace( '|^/blog|', '', $qv['path'] );
+				}
 			}
 		}
 
