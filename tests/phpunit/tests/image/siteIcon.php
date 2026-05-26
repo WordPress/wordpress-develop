@@ -66,7 +66,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$sizes = array();
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[ 'site_icon-' . $size ] = array(
-				'width ' => $size,
+				'width'  => $size,
 				'height' => $size,
 				'crop'   => true,
 			);
@@ -82,7 +82,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$sizes = array();
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[ 'site_icon-' . $size ] = array(
-				'width ' => $size,
+				'width'  => $size,
 				'height' => $size,
 				'crop'   => true,
 			);
