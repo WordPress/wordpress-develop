@@ -930,12 +930,14 @@ a#remove-post-thumbnail:hover,
 
 #major-publishing-actions {
 	padding: 10px;
-	clear: both;
-	border-top: 1px solid #dcdcde;
-	background: #f6f7f7;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
+    clear: both;
+    border-top: 1px solid #dcdcde;
+    background: #f6f7f7;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-direction: column-reverse;
+    gap: 7px;
 }
 
 #delete-action {
@@ -947,9 +949,9 @@ a#remove-post-thumbnail:hover,
 }
 
 #publishing-action {
-	text-align: right;
-	margin-left: auto;
-	line-height: 1.9;
+    display: flex;
+    margin: 0;
+    flex-direction: row-reverse;
 }
 
 #publishing-action .spinner {
