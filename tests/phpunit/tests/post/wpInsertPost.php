@@ -1316,6 +1316,83 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44805
+	 */
+	public function test_updating_a_trashed_posts_slug_should_update_the_stored_desired_post_name() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_name'   => 'a',
+				'post_title'  => 'A',
+			)
+		);
+
+		wp_trash_post( $post_id );
+		wp_update_post(
+			array(
+				'ID'        => $post_id,
+				'post_name' => 'foo',
+			)
+		);
+
+		$this->assertSame( 'foo__trashed', get_post( $post_id )->post_name );
+		$this->assertSame( 'foo', get_post_meta( $post_id, '_wp_desired_post_slug', true ) );
+	}
+
+	/**
+	 * @ticket 44805
+	 */
+	public function test_publishing_a_trashed_post_should_keep_an_updated_slug() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_name'   => 'a',
+				'post_title'  => 'A',
+			)
+		);
+
+		wp_trash_post( $post_id );
+		wp_update_post(
+			array(
+				'ID'        => $post_id,
+				'post_name' => 'foo',
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'          => $post_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->assertSame( 'foo', get_post( $post_id )->post_name );
+	}
+
+	/**
+	 * @ticket 44805
+	 */
+	public function test_publishing_a_trashed_post_with_a_new_slug_in_the_same_update_should_keep_the_new_slug() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_name'   => 'a',
+				'post_title'  => 'A',
+			)
+		);
+
+		wp_trash_post( $post_id );
+		wp_update_post(
+			array(
+				'ID'          => $post_id,
+				'post_name'   => 'foo',
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->assertSame( 'foo', get_post( $post_id )->post_name );
+	}
+
+	/**
 	 * @ticket 23022
 	 * @dataProvider data_various_post_statuses
 	 */
