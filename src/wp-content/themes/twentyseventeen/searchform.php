@@ -8,6 +8,8 @@
  * @version 1.0
  */
 
+/** @var array{ wrap_in_search?: bool, aria_label?: string } $args */
+
 ?>
 
 <?php $unique_id = esc_attr( twentyseventeen_unique_id( 'search-form-' ) ); ?>

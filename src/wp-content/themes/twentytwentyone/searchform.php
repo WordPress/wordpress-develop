@@ -12,6 +12,8 @@
  * @since Twenty Twenty-One 1.0
  */
 
+/** @var array{ wrap_in_search?: bool, aria_label?: string } $args */
+
 /*
  * Generate a unique ID for each form and a string containing an aria-label
  * if one was passed to get_search_form() in the args array.

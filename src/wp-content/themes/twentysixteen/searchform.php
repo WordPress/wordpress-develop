@@ -7,6 +7,8 @@
  * @since Twenty Sixteen 1.0
  */
 
+/** @var array{ wrap_in_search?: bool, aria_label?: string } $args */
+
 ?>
 
 <?php $twentysixteen_wrap_in_search = ! empty( $args['wrap_in_search'] ); ?>
