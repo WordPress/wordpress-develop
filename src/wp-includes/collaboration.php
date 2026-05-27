@@ -3,7 +3,7 @@
  * Bootstraps collaborative editing.
  *
  * @package WordPress
- * @since 7.0.0
+ * @since 7.1.0
  */
 
 /**
@@ -14,7 +14,7 @@
  * Otherwise, the feature requires both the 'wp_collaboration_enabled'
  * option and the database schema introduced in db_version 61841.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @return bool Whether real-time collaboration is enabled.
  */
@@ -34,7 +34,7 @@ function wp_is_collaboration_enabled() {
  * The constant defaults to true, unless the WP_ALLOW_COLLABORATION
  * environment variable is set to string "false".
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @return bool Whether real-time collaboration is allowed.
  */
@@ -60,7 +60,7 @@ function wp_is_collaboration_allowed() {
 /**
  * Injects the real-time collaboration setting into a global variable.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @access private
  *
@@ -92,7 +92,7 @@ function wp_collaboration_inject_setting() {
  * Removes update rows older than 7 days. Presence data is cleaned
  * separately via wp_delete_expired_presence_data().
  *
- * @since 7.0.0
+ * @since 7.1.0
  */
 function wp_delete_old_collaboration_data() {
 	global $wpdb;

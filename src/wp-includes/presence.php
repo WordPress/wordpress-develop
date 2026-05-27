@@ -6,13 +6,13 @@
  * dedicated database table with atomic upserts.
  *
  * @package WordPress
- * @since 7.0.0
+ * @since 7.1.0
  */
 
 /**
  * Gets all present clients in a room, filtered by TTL.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -60,7 +60,7 @@ function wp_get_presence( $room, $timeout = 30 ) {
  * via the UNIQUE KEY (room, client_id). This eliminates race
  * conditions inherent in read-modify-write patterns.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -100,7 +100,7 @@ function wp_set_presence( $room, $client_id, $state, $user_id = 0 ) {
 /**
  * Removes a client from a room.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -127,7 +127,7 @@ function wp_remove_presence( $room, $client_id ) {
 /**
  * Removes all presence entries for a given user across all rooms.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -150,7 +150,7 @@ function wp_remove_user_presence( $user_id ) {
 /**
  * Deletes stale presence entries older than the given timeout.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *

@@ -3,20 +3,20 @@
  * WP_HTTP_Polling_Collaboration_Server class
  *
  * @package WordPress
- * @since 7.0.0
+ * @since 7.1.0
  */
 
 /**
  * Core class that contains an HTTP server used for collaborative editing.
  *
- * @since 7.0.0
+ * @since 7.1.0
  * @access private
  */
 class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * REST API namespace.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const REST_NAMESPACE = 'wp-collaboration/v1';
@@ -25,7 +25,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * Awareness timeout in seconds. Clients that haven't updated
 	 * their awareness state within this time are considered disconnected.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var int
 	 */
 	const AWARENESS_TIMEOUT = 30;
@@ -33,7 +33,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Threshold used to signal clients to send a compaction update.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var int
 	 */
 	const COMPACTION_THRESHOLD = 50;
@@ -41,7 +41,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Maximum allowed request body size in bytes.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var int
 	 */
 	const MAX_BODY_SIZE = 16 * MB_IN_BYTES;
@@ -49,7 +49,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Maximum number of rooms allowed per request.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var int
 	 */
 	const MAX_ROOMS_PER_REQUEST = 50;
@@ -57,7 +57,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Maximum allowed size for a single update's data field in bytes.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var int
 	 */
 	const MAX_UPDATE_DATA_SIZE = MB_IN_BYTES;
@@ -65,7 +65,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Collaboration update type: compaction.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const UPDATE_TYPE_COMPACTION = 'compaction';
@@ -73,7 +73,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Collaboration update type: sync step 1.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const UPDATE_TYPE_SYNC_STEP1 = 'sync_step1';
@@ -81,7 +81,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Collaboration update type: sync step 2.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const UPDATE_TYPE_SYNC_STEP2 = 'sync_step2';
@@ -89,7 +89,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Collaboration update type: regular update.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const UPDATE_TYPE_UPDATE = 'update';
@@ -97,7 +97,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Storage backend for collaboration updates.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var WP_Collaboration_Table_Storage
 	 */
 	private WP_Collaboration_Table_Storage $storage;
@@ -105,7 +105,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Constructor.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_Collaboration_Table_Storage $storage Storage backend for collaboration updates.
 	 */
@@ -116,7 +116,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Registers REST API routes.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 */
 	public function register_routes(): void {
 		$typed_update_args = array(
@@ -207,7 +207,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 		/*
 		 * Backward-compatible alias so that the Gutenberg plugin's
 		 * bundled sync package (which still uses wp-sync/v1) continues
-		 * to work against WordPress 7.0+.
+		 * to work against WordPress 7.1+.
 		 *
 		 * @todo Remove once the Gutenberg plugin has transitioned to
 		 *       the wp-collaboration/v1 namespace.
@@ -227,7 +227,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * There is no dedicated `collaborate` capability; access follows
 	 * existing edit capabilities for the entity type.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_REST_Request $request The REST request.
 	 * @return bool|WP_Error True if user has permission, otherwise WP_Error with details.
@@ -275,7 +275,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 *
 	 * Checks that the raw request body does not exceed the maximum allowed size.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_REST_Request $request The REST request.
 	 * @return true|WP_Error True if valid, WP_Error if body is too large.
@@ -296,7 +296,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * Handles request: stores updates and awareness data, and returns
 	 * updates the client is missing.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_REST_Request $request The REST request.
 	 * @return WP_REST_Response|WP_Error Response object or error.
@@ -347,7 +347,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Checks if the current user can collaborate on a specific entity type.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string      $entity_kind The entity kind, e.g. 'postType', 'taxonomy', 'root'.
 	 * @param string      $entity_name The entity name, e.g. 'post', 'category', 'site'.
@@ -421,7 +421,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * response, eliminating a duplicate query that was previously performed
 	 * in check_permissions().
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string                    $room             Room identifier.
 	 * @param string                    $client_id        Client identifier.
@@ -469,7 +469,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Processes a collaboration update based on its type.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string                            $room      Room identifier.
 	 * @param string                            $client_id Client identifier.
@@ -562,7 +562,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	/**
 	 * Adds an update to a room's update list via storage.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string $room      Room identifier.
 	 * @param string $client_id Client identifier.
@@ -599,7 +599,7 @@ class WP_HTTP_Polling_Collaboration_Server {
 	 * Delegates cursor-based retrieval to the storage layer, then applies
 	 * client-specific filtering and compaction logic.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string $room         Room identifier.
 	 * @param string $client_id    Client identifier.

@@ -3,7 +3,7 @@
  * WP_Collaboration_Table_Storage class
  *
  * @package WordPress
- * @since 7.0.0
+ * @since 7.1.0
  */
 
 /**
@@ -18,7 +18,7 @@
  * queries run on every poll (0.5–1 s per editor tab), so hook overhead
  * would degrade the real-time editing loop for all active sessions.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @access private
  */
@@ -26,7 +26,7 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Cache of cursors by room.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var array<string, int>
 	 */
 	private array $room_cursors = array();
@@ -34,7 +34,7 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Cache of update counts by room.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var array<string, int>
 	 */
 	private array $room_update_counts = array();
@@ -42,7 +42,7 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Adds an update to a given room.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -78,7 +78,7 @@ class WP_Collaboration_Table_Storage {
 	 * Delegates to the Presence API which uses a dedicated table with
 	 * atomic upserts via UNIQUE KEY (room, client_id).
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string $room    Room identifier.
 	 * @param int    $timeout Seconds before an awareness entry is considered expired.
@@ -94,7 +94,7 @@ class WP_Collaboration_Table_Storage {
 	 * The cursor is set during get_updates_after_cursor() and represents the
 	 * maximum row ID at the time updates were retrieved.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string $room Room identifier.
 	 * @return int Current cursor for the room.
@@ -106,7 +106,7 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Gets the number of updates stored for a given room.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string $room Room identifier.
 	 * @return int Number of updates stored for the room.
@@ -118,7 +118,7 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Retrieves updates from a room after a given cursor.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -194,7 +194,7 @@ class WP_Collaboration_Table_Storage {
 	/**
 	 * Removes updates from a room up to and including the given cursor.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -222,7 +222,7 @@ class WP_Collaboration_Table_Storage {
 	 * Delegates to the Presence API which uses INSERT ... ON DUPLICATE KEY UPDATE
 	 * for atomic upserts, eliminating race conditions.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string               $room      Room identifier.
 	 * @param string               $client_id Client identifier.
