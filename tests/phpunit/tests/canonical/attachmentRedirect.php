@@ -120,6 +120,8 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 	 * This is the primary regression test: get_query_var( 'attachment_id' ) is only
 	 * populated for ?attachment_id=123 URLs, not slug-based URLs. The fix falls back
 	 * to get_queried_object_id().
+	 *
+	 * @ticket 65230
 	 */
 	public function test_unattached_slug_url_redirects_when_pages_disabled() {
 		update_option( 'wp_attachment_pages_enabled', 0 );
@@ -130,6 +132,8 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 
 	/**
 	 * Query string ?attachment_id=ID should also redirect when pages are disabled.
+	 *
+	 * @ticket 65230
 	 */
 	public function test_unattached_query_var_url_redirects_when_pages_disabled() {
 		update_option( 'wp_attachment_pages_enabled', 0 );
@@ -147,6 +151,8 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 	 *
 	 * With pretty permalinks, child attachment URLs take the form
 	 * /parent-slug/attachment-slug/.
+	 *
+	 * @ticket 65230
 	 */
 	public function test_attached_to_public_post_slug_url_redirects() {
 		update_option( 'wp_attachment_pages_enabled', 0 );
@@ -162,6 +168,8 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 	/**
 	 * Attachment on a private post should not redirect for anonymous users,
 	 * to avoid leaking the file URL.
+	 *
+	 * @ticket 65230
 	 */
 	public function test_attached_to_private_post_no_redirect_for_anonymous() {
 		update_option( 'wp_attachment_pages_enabled', 0 );
@@ -177,6 +185,8 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 
 	/**
 	 * Attachment on a private post should redirect for a user who can read it.
+	 *
+	 * @ticket 65230
 	 */
 	public function test_attached_to_private_post_redirects_for_authorized_user() {
 		update_option( 'wp_attachment_pages_enabled', 0 );
@@ -192,6 +202,8 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 
 	/**
 	 * Attachment on a draft post should not redirect for anonymous users.
+	 *
+	 * @ticket 65230
 	 */
 	public function test_attached_to_draft_post_no_redirect_for_anonymous() {
 		update_option( 'wp_attachment_pages_enabled', 0 );
@@ -207,6 +219,8 @@ class Tests_Canonical_AttachmentRedirect extends WP_Canonical_UnitTestCase {
 
 	/**
 	 * When attachment pages are enabled, slug URLs should not redirect to the file.
+	 *
+	 * @ticket 65230
 	 */
 	public function test_no_redirect_when_attachment_pages_enabled() {
 		update_option( 'wp_attachment_pages_enabled', 1 );
