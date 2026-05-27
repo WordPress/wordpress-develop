@@ -5,7 +5,7 @@
  *
  * @covers ::_customizer_mobile_viewport_meta
  */
-class Tests_Admin_Includes_Misc_Customizer_Mobile_Viewport_Meta_Test extends WP_UnitTestCase {
+class Tests_Admin_Includes_Misc_CustomizerMobileViewportMeta_Test extends WP_UnitTestCase {
 
 	/**
 	 * Tests _customizer_mobile_viewport_meta().
