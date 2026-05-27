@@ -14,7 +14,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	/**
 	 * Removes any theme support added during a test.
 	 */
-	public function tear_down() {
+	public function tear_down(): void {
 		remove_theme_support( 'html5' );
 		remove_theme_support( 'search-element' );
 		parent::tear_down();
@@ -23,7 +23,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	/**
 	 * Enables the html5 'search-form' theme support so the html5 markup is used.
 	 */
-	private function enable_html5_search_form() {
+	private function enable_html5_search_form(): void {
 		add_theme_support( 'html5', array( 'search-form' ) );
 	}
 
@@ -32,7 +32,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_html5_default_uses_form_role_search() {
+	public function test_html5_default_uses_form_role_search(): void {
 		$this->enable_html5_search_form();
 
 		$form = get_search_form( array( 'echo' => false ) );
@@ -46,7 +46,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_wrap_in_search_wraps_form_and_drops_role() {
+	public function test_wrap_in_search_wraps_form_and_drops_role(): void {
 		$this->enable_html5_search_form();
 
 		$form = get_search_form(
@@ -67,7 +67,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_wrap_in_search_applies_aria_label_to_search_element() {
+	public function test_wrap_in_search_applies_aria_label_to_search_element(): void {
 		$this->enable_html5_search_form();
 
 		$form = get_search_form(
@@ -88,7 +88,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_wrap_in_search_without_aria_label_has_no_attributes() {
+	public function test_wrap_in_search_without_aria_label_has_no_attributes(): void {
 		$this->enable_html5_search_form();
 
 		$form = get_search_form(
@@ -107,7 +107,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_html5_default_applies_aria_label_to_form() {
+	public function test_html5_default_applies_aria_label_to_form(): void {
 		$this->enable_html5_search_form();
 
 		$form = get_search_form(
@@ -129,7 +129,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_wrap_in_search_is_ignored_for_xhtml_format() {
+	public function test_wrap_in_search_is_ignored_for_xhtml_format(): void {
 		// No html5 theme support added: the format defaults to xhtml.
 		$form = get_search_form(
 			array(
@@ -148,7 +148,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_wrap_in_search_can_be_enabled_via_filter() {
+	public function test_wrap_in_search_can_be_enabled_via_filter(): void {
 		$this->enable_html5_search_form();
 
 		add_filter(
@@ -170,7 +170,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_search_element_theme_support_enables_wrap_by_default() {
+	public function test_search_element_theme_support_enables_wrap_by_default(): void {
 		$this->enable_html5_search_form();
 		add_theme_support( 'search-element' );
 
@@ -185,7 +185,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 	 *
 	 * @ticket 65288
 	 */
-	public function test_wrap_in_search_false_overrides_theme_support() {
+	public function test_wrap_in_search_false_overrides_theme_support(): void {
 		$this->enable_html5_search_form();
 		add_theme_support( 'search-element' );
 
