@@ -536,7 +536,7 @@ class WP_Block_Type {
 	 * Sets block type properties.
 	 *
 	 * @since 5.0.0
-	 * @since 7.0.1 Added Support for rich-text attribute type, which is normalized to string for server-side rendering.
+	 * @since 7.1.0 Added Support for rich-text attribute type, which is normalized to string for server-side rendering.
 	 *
 	 * @param array|string $args Array or string of arguments for registering a block type.
 	 *                           See WP_Block_Type::__construct() for information on accepted arguments.
