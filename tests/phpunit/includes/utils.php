@@ -311,7 +311,10 @@ class TestXMLParser {
 					xml_get_current_line_number( $this->xml )
 				)
 			);
-			xml_parser_free( $this->xml );
+
+			if ( PHP_VERSION_ID < 80000 ) { // xml_parser_free() has no effect as of PHP 8.0.
+				xml_parser_free( $this->xml );
+			}
 		}
 		return true;
 	}
@@ -429,10 +432,17 @@ function dmp_filter( $a ) {
 	return $a;
 }
 
-function get_echo( $callback, $args = array() ) {
+/**
+ * Gets the output buffer for invoking the provided callback.
+ *
+ * @param callable $callback Callback.
+ * @param mixed[]  $args     Arguments.
+ * @return string Captured output.
+ */
+function get_echo( callable $callback, array $args = array() ): string {
 	ob_start();
 	call_user_func_array( $callback, $args );
-	return ob_get_clean();
+	return (string) ob_get_clean();
 }
 
 // Recursively generate some quick assertEquals() tests based on an array.

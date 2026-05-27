@@ -46,7 +46,7 @@ if ( version_compare( $GLOBALS['wp_version'], '3.6-alpha', '<' ) ) {
 }
 
 /**
- * Register block patterns and pattern categories.
+ * Registers block patterns and pattern categories.
  *
  * @since Twenty Thirteen 4.3
  */
@@ -262,7 +262,7 @@ add_action( 'after_setup_theme', 'twentythirteen_setup' );
 
 if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 	/**
-	 * Return the font stylesheet URL, if available.
+	 * Returns the font stylesheet URL, if available.
 	 *
 	 * The use of Source Sans Pro and Bitter by default is localized. For languages
 	 * that use characters not supported by the font, the font can be disabled.
@@ -270,7 +270,7 @@ if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 	 * @since Twenty Thirteen 1.0
 	 * @since Twenty Thirteen 3.8 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Font stylesheet or empty string if disabled.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentythirteen_fonts_url() {
 		$fonts_url = '';
@@ -306,7 +306,7 @@ if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 endif;
 
 /**
- * Enqueue scripts and styles for the front end.
+ * Enqueues scripts and styles for the front end.
  *
  * @since Twenty Thirteen 1.0
  */
@@ -329,7 +329,7 @@ function twentythirteen_scripts_styles() {
 		'twentythirteen-script',
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
-		'20230526',
+		'20250727',
 		array(
 			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
@@ -341,22 +341,21 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), $font_version );
 
 	// Add Genericons font, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20250415' );
+	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20260520' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20240520' );
 
 	// Registers the Internet Explorer specific stylesheet.
-	wp_register_style( 'twentythirteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentythirteen-style' ), '20150214' );
-	wp_style_add_data( 'twentythirteen-ie', 'conditional', 'lt IE 9' );
+	wp_register_style( 'twentythirteen-ie', false, array( 'twentythirteen-style' ) );
 }
 add_action( 'wp_enqueue_scripts', 'twentythirteen_scripts_styles' );
 
 /**
- * Add preconnect for Google Fonts.
+ * Adds preconnect for Google Fonts.
  *
  * @since Twenty Thirteen 2.1
  * @deprecated Twenty Thirteen 3.8 Disabled filter because, by default, fonts are self-hosted.
@@ -382,7 +381,7 @@ function twentythirteen_resource_hints( $urls, $relation_type ) {
 // add_filter( 'wp_resource_hints', 'twentythirteen_resource_hints', 10, 2 );
 
 /**
- * Enqueue styles for the block-based editor.
+ * Enqueues styles for the block-based editor.
  *
  * @since Twenty Thirteen 2.5
  */
@@ -396,7 +395,7 @@ function twentythirteen_block_editor_styles() {
 add_action( 'enqueue_block_editor_assets', 'twentythirteen_block_editor_styles' );
 
 /**
- * Filter the page title.
+ * Filters the page title.
  *
  * Creates a nicely formatted and more specific title element text for output
  * in head of document, based on current view.
@@ -437,7 +436,7 @@ function twentythirteen_wp_title( $title, $sep ) {
 add_filter( 'wp_title', 'twentythirteen_wp_title', 10, 2 );
 
 /**
- * Register two widget areas.
+ * Registers two widget areas.
  *
  * @since Twenty Thirteen 1.0
  */
@@ -474,7 +473,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Thirteen 3.7
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */
@@ -484,7 +485,7 @@ endif;
 
 if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 	/**
-	 * Display navigation to next/previous set of posts when applicable.
+	 * Displays navigation to next/previous set of posts when applicable.
 	 *
 	 * @since Twenty Thirteen 1.0
 	 */
@@ -495,7 +496,17 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 		if ( $wp_query->max_num_pages < 2 ) {
 			return;
 		}
+
+		$order   = get_query_var( 'order', 'DESC' );
+		$is_desc = 'DESC' === $order;
+
+		$new_posts_text = __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentythirteen' );
+		$old_posts_text = __( '<span class="meta-nav">&larr;</span> Older posts', 'twentythirteen' );
+
+		$prev_link = $is_desc ? get_next_posts_link( $old_posts_text ) : get_previous_posts_link( $old_posts_text );
+		$next_link = $is_desc ? get_previous_posts_link( $new_posts_text ) : get_next_posts_link( $new_posts_text );
 		?>
+
 		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text">
 			<?php
@@ -504,14 +515,19 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 			?>
 		</h1>
 		<div class="nav-links">
+		<?php if ( $prev_link ) : ?>
+			<div class="nav-previous">
+				<?php echo $prev_link; ?>
+			</div>
+			<?php
+		endif;
 
-			<?php if ( get_next_posts_link() ) : ?>
-			<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentythirteen' ) ); ?></div>
-			<?php endif; ?>
-
-			<?php if ( get_previous_posts_link() ) : ?>
-			<div class="nav-next"><?php previous_posts_link( __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentythirteen' ) ); ?></div>
-			<?php endif; ?>
+		if ( $next_link ) :
+			?>
+			<div class="nav-next">
+				<?php echo $next_link; ?>
+			</div>
+		<?php endif; ?>
 
 		</div><!-- .nav-links -->
 	</nav><!-- .navigation -->
@@ -521,7 +537,7 @@ endif;
 
 if ( ! function_exists( 'twentythirteen_post_nav' ) ) :
 	/**
-	 * Display navigation to next/previous post when applicable.
+	 * Displays navigation to next/previous post when applicable.
 	 *
 	 * @since Twenty Thirteen 1.0
 	 *
@@ -558,7 +574,7 @@ endif;
 
 if ( ! function_exists( 'twentythirteen_entry_meta' ) ) :
 	/**
-	 * Print HTML with meta information for current post: categories, tags, permalink, author, and date.
+	 * Prints HTML with meta information for current post: categories, tags, permalink, author, and date.
 	 *
 	 * Create your own twentythirteen_entry_meta() to override in a child theme.
 	 *
@@ -598,7 +614,7 @@ endif;
 
 if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 	/**
-	 * Print HTML with date information for current post.
+	 * Prints HTML with date information for current post.
 	 *
 	 * Create your own twentythirteen_entry_date() to override in a child theme.
 	 *
@@ -634,7 +650,7 @@ endif;
 
 if ( ! function_exists( 'twentythirteen_the_attached_image' ) ) :
 	/**
-	 * Print the attached image with a link to the next attached image.
+	 * Prints the attached image with a link to the next attached image.
 	 *
 	 * @since Twenty Thirteen 1.0
 	 */
@@ -700,7 +716,7 @@ if ( ! function_exists( 'twentythirteen_the_attached_image' ) ) :
 endif;
 
 /**
- * Return the post URL.
+ * Returns the post URL.
  *
  * @uses get_url_in_content() to get the URL in the post meta (if it exists) or
  * the first link found in the post content.
@@ -741,7 +757,7 @@ if ( ! function_exists( 'twentythirteen_excerpt_more' ) && ! is_admin() ) :
 endif;
 
 /**
- * Extend the default WordPress body classes.
+ * Extends the default WordPress body classes.
  *
  * Adds body classes to denote:
  * 1. Single or multiple authors.
@@ -771,7 +787,7 @@ function twentythirteen_body_class( $classes ) {
 add_filter( 'body_class', 'twentythirteen_body_class' );
 
 /**
- * Adjust content_width value for video post formats and attachment templates.
+ * Adjusts content_width value for video post formats and attachment templates.
  *
  * @since Twenty Thirteen 1.0
  *
@@ -789,7 +805,7 @@ function twentythirteen_content_width() {
 add_action( 'template_redirect', 'twentythirteen_content_width' );
 
 /**
- * Add postMessage support for site title and description for the Customizer.
+ * Adds postMessage support for site title and description for the Customizer.
  *
  * @since Twenty Thirteen 1.0
  *
@@ -822,7 +838,7 @@ function twentythirteen_customize_register( $wp_customize ) {
 add_action( 'customize_register', 'twentythirteen_customize_register' );
 
 /**
- * Render the site title for the selective refresh partial.
+ * Renders the site title for the selective refresh partial.
  *
  * @since Twenty Thirteen 1.9
  *
@@ -835,7 +851,7 @@ function twentythirteen_customize_partial_blogname() {
 }
 
 /**
- * Render the site tagline for the selective refresh partial.
+ * Renders the site tagline for the selective refresh partial.
  *
  * @since Twenty Thirteen 1.9
  *
@@ -848,7 +864,7 @@ function twentythirteen_customize_partial_blogdescription() {
 }
 
 /**
- * Enqueue JavaScript postMessage handlers for the Customizer.
+ * Enqueues JavaScript postMessage handlers for the Customizer.
  *
  * Binds JavaScript handlers to make the Customizer preview
  * reload changes asynchronously.
@@ -903,7 +919,7 @@ add_filter( 'author_template', 'twentythirteen_author_bio_template' );
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *
@@ -920,16 +936,13 @@ if ( ! function_exists( 'wp_body_open' ) ) :
 endif;
 
 /**
- * Register Custom Block Styles
+ * Registers Custom Block Styles.
  *
  * @since Twenty Thirteen 3.4
  */
 if ( function_exists( 'register_block_style' ) ) {
 	function twentythirteen_register_block_styles() {
 
-		/**
-		 * Register block style
-		 */
 		register_block_style(
 			'core/button',
 			array(

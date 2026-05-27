@@ -13,7 +13,7 @@
  * @return string The HTTP protocol. Default: HTTP/1.0.
  */
 function wp_get_server_protocol() {
-	$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
+	$protocol = $_SERVER['SERVER_PROTOCOL'] ?? '';
 
 	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {
 		$protocol = 'HTTP/1.0';
@@ -115,7 +115,7 @@ function wp_populate_basic_auth_from_authorization_header() {
 	}
 
 	// From our prior conditional, one of these must be set.
-	$header = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+	$header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
 
 	// Test to make sure the pattern matches expected.
 	if ( ! preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $header ) ) {
@@ -139,15 +139,18 @@ function wp_populate_basic_auth_from_authorization_header() {
 }
 
 /**
- * Checks for the required PHP version, and the mysqli extension or
- * a database drop-in.
+ * Checks the server requirements.
+ *
+ *   - PHP version
+ *   - PHP extensions
+ *   - MySQL or MariaDB version (unless a database drop-in is present)
  *
  * Dies if requirements are not met.
  *
  * @since 3.0.0
  * @access private
  *
- * @global string   $required_php_version    The required PHP version string.
+ * @global string   $required_php_version    The minimum required PHP version string.
  * @global string[] $required_php_extensions The names of required PHP extensions.
  * @global string   $wp_version              The WordPress version string.
  */
@@ -492,8 +495,9 @@ function timer_float() {
  * @since 0.71
  * @access private
  *
- * @global float $timestart Unix timestamp set at the beginning of the page load.
  * @see timer_stop()
+ *
+ * @global float $timestart Unix timestamp set at the beginning of the page load.
  *
  * @return bool Always returns true.
  */
@@ -1794,13 +1798,15 @@ function wp_doing_cron() {
  *
  * @param mixed $thing The variable to check.
  * @return bool Whether the variable is an instance of WP_Error.
+ *
+ * @phpstan-assert-if-true WP_Error $thing
  */
 function is_wp_error( $thing ) {
 	$is_wp_error = ( $thing instanceof WP_Error );
 
 	if ( $is_wp_error ) {
 		/**
-		 * Fires when `is_wp_error()` is called and its parameter is an instance of `WP_Error`.
+		 * Fires when `is_wp_error()` is called and its parameter is an instance of WP_Error.
 		 *
 		 * @since 5.6.0
 		 *

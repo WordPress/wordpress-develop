@@ -1,0 +1,36 @@
+# PHPStan configuration for WordPress Core.
+#
+# To overload this configuration, copy this file to phpstan.neon and adjust as needed.
+#
+# https://phpstan.org/config-reference
+
+includes:
+	# The base configuration file for using PHPStan with the WordPress core codebase.
+	- tests/phpstan/base.neon
+
+	# The baseline file includes preexisting errors in the codebase that should be ignored.
+	# https://phpstan.org/user-guide/baseline
+	- tests/phpstan/baseline.php
+
+parameters:
+	# https://phpstan.org/user-guide/rule-levels
+	level: 0
+	reportUnmatchedIgnoredErrors: true
+
+	ignoreErrors:
+		# Level 0:
+		- # Inner functions aren't supported by PHPStan.
+			message: '#Function wxr_[a-z_]+ not found#'
+			path: src/wp-admin/includes/export.php
+		-
+			identifier: function.inner
+			path: src/wp-admin/includes/export.php
+			count: 13
+		-
+			identifier: function.inner
+			path: src/wp-admin/includes/file.php
+			count: 1
+		-
+			identifier: function.inner
+			path: src/wp-includes/canonical.php
+			count: 1

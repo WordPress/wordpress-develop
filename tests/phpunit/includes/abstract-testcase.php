@@ -18,7 +18,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected $expected_deprecated     = array();
 	protected $caught_deprecated       = array();
 	protected $expected_doing_it_wrong = array();
-	protected $caught_doing_it_wrong   = array();
+
+	/** @var non-empty-string[] */
+	protected $caught_doing_it_wrong = array();
 
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
@@ -58,6 +60,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Runs the routine before setting up all tests.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public static function set_up_before_class() {
 		global $wpdb;
@@ -98,8 +102,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Runs the routine before each test is executed.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 */
 	public function set_up() {
+		global $wp_rewrite;
+
 		set_time_limit( 0 );
 
 		$this->factory = static::factory();
@@ -111,8 +119,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		if ( ! self::$hooks_saved ) {
 			$this->_backup_hooks();
 		}
-
-		global $wp_rewrite;
 
 		$this->clean_up_global_scope();
 
@@ -142,10 +148,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Sets the bcrypt cost option for password hashing during tests.
 	 *
-	 * @param array      $options   The options for password hashing.
-	 * @param string|int $algorithm The algorithm to use for hashing. This is a string in PHP 7.4+ and an integer in PHP 7.3 and earlier.
+	 * @param array  $options   The options for password hashing.
+	 * @param string $algorithm The algorithm to use for hashing.
 	 */
-	public function wp_hash_password_options( array $options, $algorithm ): array {
+	public function wp_hash_password_options( array $options, string $algorithm ): array {
 		if ( PASSWORD_BCRYPT === $algorithm ) {
 			$options['cost'] = 5;
 		}
@@ -155,10 +161,17 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
+	 *
+	 * @global wpdb     $wpdb         WordPress database abstraction object.
+	 * @global WP_Query $wp_the_query Main WordPress query object.
+	 * @global WP_Query $wp_query     WordPress query object.
+	 * @global WP       $wp           WordPress environment object.
 	 */
 	public function tear_down() {
 		global $wpdb, $wp_the_query, $wp_query, $wp;
+
 		$wpdb->query( 'ROLLBACK' );
+
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
 				restore_current_blog();
@@ -218,6 +231,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		wp_set_current_user( 0 );
 
 		$this->reset_lazyload_queue();
+
+		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
 	/**
@@ -357,10 +372,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Stores $wp_filter, $wp_actions, $wp_filters, and $wp_current_filter
 	 * on a class variable so they can be restored on tear_down() using _restore_hooks().
 	 *
-	 * @global array $wp_filter
-	 * @global array $wp_actions
-	 * @global array $wp_filters
-	 * @global array $wp_current_filter
+	 * @global array $wp_filter         All of the filters and actions.
+	 * @global array $wp_actions        The number of times each action was triggered.
+	 * @global array $wp_filters        The number of times each filter was triggered.
+	 * @global array $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _backup_hooks() {
 		self::$hooks_saved['wp_filter'] = array();
@@ -380,10 +395,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Restores the hook-related globals to their state at set_up()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
-	 * @global array $wp_filter
-	 * @global array $wp_actions
-	 * @global array $wp_filters
-	 * @global array $wp_current_filter
+	 * @global array $wp_filter         All of the filters and actions.
+	 * @global array $wp_actions        The number of times each action was triggered.
+	 * @global array $wp_filters        The number of times each filter was triggered.
+	 * @global array $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _restore_hooks() {
 		if ( isset( self::$hooks_saved['wp_filter'] ) ) {
@@ -405,6 +420,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Flushes the WordPress object cache.
+	 *
+	 * @global WP_Object_Cache $wp_object_cache WordPress Object Cache object.
 	 */
 	public static function flush_cache() {
 		global $wp_object_cache;
@@ -450,13 +467,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @global array $wp_meta_keys
+	 * @global array $wp_meta_keys Global registry for meta keys.
 	 */
 	public function unregister_all_meta_keys() {
 		global $wp_meta_keys;
+
 		if ( ! is_array( $wp_meta_keys ) ) {
 			return;
 		}
+
 		foreach ( $wp_meta_keys as $object_type => $type_keys ) {
 			foreach ( $type_keys as $object_subtype => $subtype_keys ) {
 				foreach ( $subtype_keys as $key => $value ) {
@@ -468,11 +487,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Starts a database transaction.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function start_transaction() {
 		global $wpdb;
+
 		$wpdb->query( 'SET autocommit = 0;' );
 		$wpdb->query( 'START TRANSACTION;' );
+
 		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 	}
@@ -481,9 +504,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Commits the queries in a transaction.
 	 *
 	 * @since 4.1.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public static function commit_transaction() {
 		global $wpdb;
+
 		$wpdb->query( 'COMMIT;' );
 	}
 
@@ -1131,6 +1157,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 5.3.0 Formalized the existing `...$prop` parameter by adding it
 	 *              to the function signature.
 	 *
+	 * @global WP_Query $wp_query WordPress Query object.
+	 *
 	 * @param string ...$prop Any number of WP_Query properties that are expected to be true for the current request.
 	 */
 	public function assertQueryTrue( ...$prop ) {
@@ -1311,7 +1339,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 		$parts = parse_url( $url );
 		if ( isset( $parts['scheme'] ) ) {
-			$req = isset( $parts['path'] ) ? $parts['path'] : '';
+			$req = $parts['path'] ?? '';
 			if ( isset( $parts['query'] ) ) {
 				$req .= '?' . $parts['query'];
 				// Parse the URL query vars into $_GET.
@@ -1593,14 +1621,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			}
 		}
 
-		/*
-		 * Compatibility check for PHP < 7.4, where array_merge() expects at least one array.
-		 * See: https://3v4l.org/BIQMA
-		 */
-		if ( array() === $matched_dirs ) {
-			return array();
-		}
-
 		return array_merge( ...$matched_dirs );
 	}
 
@@ -1638,7 +1658,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @global WP_Rewrite $wp_rewrite
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 *
 	 * @param string $structure Optional. Permalink structure to set. Default empty.
 	 */

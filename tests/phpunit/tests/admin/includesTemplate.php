@@ -494,4 +494,20 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		// This doesn't actually get removed due to the invalid priority.
 		remove_meta_box( 'dashboard2', 'dashboard', 'normal' );
 	}
+
+	/**
+	 * Tests that get_post_states() handles a null value gracefully.
+	 *
+	 * This can happen when get_post() returns null (e.g., when a post
+	 * doesn't exist) and that result is passed to get_post_states()
+	 * without being checked first.
+	 *
+	 * @ticket 58932
+	 *
+	 * @covers ::get_post_states
+	 */
+	public function test_get_post_states_with_null_returns_empty_array() {
+		$result = get_post_states( null );
+		$this->assertSame( array(), $result, 'get_post_states() should return an empty array when WP_Post is not supplied.' );
+	}
 }

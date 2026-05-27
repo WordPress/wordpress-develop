@@ -12,23 +12,42 @@
  * Core class used to register script modules.
  *
  * @since 6.5.0
+ *
+ * @phpstan-type ScriptModule array{
+ *     src: string,
+ *     version: string|false|null,
+ *     dependencies: array<int, array{ id: string, import: 'static'|'dynamic' }>,
+ *     in_footer: bool,
+ *     fetchpriority: 'auto'|'low'|'high',
+ *     textdomain?: string,
+ *     translations_path?: string,
+ * }
  */
 class WP_Script_Modules {
 	/**
 	 * Holds the registered script modules, keyed by script module identifier.
 	 *
 	 * @since 6.5.0
-	 * @var array[]
+	 * @var array<string, array<string, mixed>>
+	 * @phpstan-var array<string, ScriptModule>
 	 */
 	private $registered = array();
 
 	/**
-	 * Holds the script module identifiers that were enqueued before registered.
+	 * An array of IDs for queued script modules.
 	 *
-	 * @since 6.5.0
-	 * @var array<string, true>
+	 * @since 6.9.0
+	 * @var string[]
 	 */
-	private $enqueued_before_registered = array();
+	private $queue = array();
+
+	/**
+	 * Holds the script module identifiers that have been printed.
+	 *
+	 * @since 6.9.0
+	 * @var string[]
+	 */
+	private $done = array();
 
 	/**
 	 * Tracks whether the @wordpress/a11y script module is available.
@@ -42,42 +61,86 @@ class WP_Script_Modules {
 	private $a11y_available = false;
 
 	/**
+	 * Holds a mapping of dependents (as IDs) for a given script ID.
+	 * Used to optimize recursive dependency tree checks.
+	 *
+	 * @since 6.9.0
+	 * @var array<string, string[]>
+	 */
+	private $dependents_map = array();
+
+	/**
+	 * Holds the valid values for fetchpriority.
+	 *
+	 * @since 6.9.0
+	 * @var string[]
+	 */
+	private $priorities = array(
+		'low',
+		'auto',
+		'high',
+	);
+
+	/**
+	 * List of IDs for script modules encountered which have missing dependencies.
+	 *
+	 * An ID is added to this list when it is discovered to have missing dependencies. At this time, a warning is
+	 * emitted with {@see _doing_it_wrong()}. The ID is then added to this list, so that duplicate warnings don't occur.
+	 *
+	 * @since 6.9.1
+	 * @var string[]
+	 */
+	private $modules_with_missing_dependencies = array();
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
 	 * @since 6.5.0
+	 * @since 6.9.0 Added the $args parameter.
 	 *
-	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
-	 *                                    final import map.
-	 * @param string            $src      Optional. Full URL of the script module, or path of the script module relative
-	 *                                    to the WordPress root directory. If it is provided and the script module has
-	 *                                    not been registered yet, it will be registered.
-	 * @param array             $deps     {
-	 *                                        Optional. List of dependencies.
+	 * @param string                              $id      The identifier of the script module. Should be unique. It will be used in the
+	 *                                                     final import map.
+	 * @param string                              $src     Optional. Full URL of the script module, or path of the script module relative
+	 *                                                     to the WordPress root directory. If it is provided and the script module has
+	 *                                                     not been registered yet, it will be registered.
+	 * @param array<string|array<string, string>> $deps    {
+	 *                                                         Optional. List of dependencies.
 	 *
-	 *                                        @type string|array ...$0 {
-	 *                                            An array of script module identifiers of the dependencies of this script
-	 *                                            module. The dependencies can be strings or arrays. If they are arrays,
-	 *                                            they need an `id` key with the script module identifier, and can contain
-	 *                                            an `import` key with either `static` or `dynamic`. By default,
-	 *                                            dependencies that don't contain an `import` key are considered static.
+	 *                                                         @type string|array<string, string> ...$0 {
+	 *                                                             An array of script module identifiers of the dependencies of this script
+	 *                                                             module. The dependencies can be strings or arrays. If they are arrays,
+	 *                                                             they need an `id` key with the script module identifier, and can contain
+	 *                                                             an `import` key with either `static` or `dynamic`. By default,
+	 *                                                             dependencies that don't contain an `import` key are considered static.
 	 *
-	 *                                            @type string $id     The script module identifier.
-	 *                                            @type string $import Optional. Import type. May be either `static` or
-	 *                                                                 `dynamic`. Defaults to `static`.
-	 *                                        }
-	 *                                    }
-	 * @param string|false|null $version  Optional. String specifying the script module version number. Defaults to false.
-	 *                                    It is added to the URL as a query string for cache busting purposes. If $version
-	 *                                    is set to false, the version number is the currently installed WordPress version.
-	 *                                    If $version is set to null, no version is added.
+	 *                                                             @type string $id     The script module identifier.
+	 *                                                             @type string $import Optional. Import type. May be either `static` or
+	 *                                                                                  `dynamic`. Defaults to `static`.
+	 *                                                         }
+	 *                                                     }
+	 * @param string|false|null                   $version Optional. String specifying the script module version number. Defaults to false.
+	 *                                                     It is added to the URL as a query string for cache busting purposes. If $version
+	 *                                                     is set to false, the version number is the currently installed WordPress version.
+	 *                                                     If $version is set to null, no version is added.
+	 * @param array<string, string|bool>          $args    {
+	 *     Optional. An array of additional args. Default empty array.
+	 *
+	 *     @type bool                $in_footer     Whether to print the script module in the footer. Only relevant to block themes. Default 'false'. Optional.
+	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+	 * }
 	 */
-	public function register( string $id, string $src, array $deps = array(), $version = false ) {
+	public function register( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
+		if ( '' === $id ) {
+			_doing_it_wrong( __METHOD__, __( 'Non-empty string required for id.' ), '6.9.0' );
+			return;
+		}
+
 		if ( ! isset( $this->registered[ $id ] ) ) {
 			$dependencies = array();
 			foreach ( $deps as $dependency ) {
 				if ( is_array( $dependency ) ) {
-					if ( ! isset( $dependency['id'] ) ) {
+					if ( ! isset( $dependency['id'] ) || ! is_string( $dependency['id'] ) ) {
 						_doing_it_wrong( __METHOD__, __( 'Missing required id key in entry among dependencies array.' ), '6.5.0' );
 						continue;
 					}
@@ -95,13 +158,108 @@ class WP_Script_Modules {
 				}
 			}
 
+			$in_footer = isset( $args['in_footer'] ) && (bool) $args['in_footer'];
+
+			$fetchpriority = 'auto';
+			if ( isset( $args['fetchpriority'] ) ) {
+				if ( $this->is_valid_fetchpriority( $args['fetchpriority'] ) ) {
+					$fetchpriority = $args['fetchpriority'];
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: $fetchpriority, 2: $id */
+							__( 'Invalid fetchpriority `%1$s` defined for `%2$s` during script registration.' ),
+							is_string( $args['fetchpriority'] ) ? $args['fetchpriority'] : gettype( $args['fetchpriority'] ),
+							$id
+						),
+						'6.9.0'
+					);
+				}
+			}
+
 			$this->registered[ $id ] = array(
-				'src'          => $src,
-				'version'      => $version,
-				'enqueue'      => isset( $this->enqueued_before_registered[ $id ] ),
-				'dependencies' => $dependencies,
+				'src'           => $src,
+				'version'       => $version,
+				'dependencies'  => $dependencies,
+				'in_footer'     => $in_footer,
+				'fetchpriority' => $fetchpriority,
 			);
 		}
+	}
+
+	/**
+	 * Gets IDs for queued script modules.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return string[] Script module IDs.
+	 */
+	public function get_queue(): array {
+		return $this->queue;
+	}
+
+	/**
+	 * Checks if the provided fetchpriority is valid.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string|mixed $priority Fetch priority.
+	 * @return bool Whether valid fetchpriority.
+	 */
+	private function is_valid_fetchpriority( $priority ): bool {
+		return in_array( $priority, $this->priorities, true );
+	}
+
+	/**
+	 * Sets the fetch priority for a script module.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string              $id       Script module identifier.
+	 * @param 'auto'|'low'|'high' $priority Fetch priority for the script module.
+	 * @return bool Whether setting the fetchpriority was successful.
+	 */
+	public function set_fetchpriority( string $id, string $priority ): bool {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+
+		if ( '' === $priority ) {
+			$priority = 'auto';
+		}
+
+		if ( ! $this->is_valid_fetchpriority( $priority ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				/* translators: %s: Invalid fetchpriority. */
+				sprintf( __( 'Invalid fetchpriority: %s' ), $priority ),
+				'6.9.0'
+			);
+			return false;
+		}
+
+		$this->registered[ $id ]['fetchpriority'] = $priority;
+		return true;
+	}
+
+	/**
+	 * Sets whether a script module should be printed in the footer.
+	 *
+	 * This is only relevant in block themes.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string           $id        Script module identifier.
+	 * @param bool             $in_footer Whether to print in the footer.
+	 * @return bool Whether setting the printing location was successful.
+	 */
+	public function set_in_footer( string $id, bool $in_footer ): bool {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+		$this->registered[ $id ]['in_footer'] = $in_footer;
+		return true;
 	}
 
 	/**
@@ -111,40 +269,50 @@ class WP_Script_Modules {
 	 * will be registered.
 	 *
 	 * @since 6.5.0
+	 * @since 6.9.0 Added the $args parameter.
 	 *
-	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
-	 *                                    final import map.
-	 * @param string            $src      Optional. Full URL of the script module, or path of the script module relative
-	 *                                    to the WordPress root directory. If it is provided and the script module has
-	 *                                    not been registered yet, it will be registered.
-	 * @param array             $deps     {
-	 *                                        Optional. List of dependencies.
+	 * @param string                              $id      The identifier of the script module. Should be unique. It will be used in the
+	 *                                                     final import map.
+	 * @param string                              $src     Optional. Full URL of the script module, or path of the script module relative
+	 *                                                     to the WordPress root directory. If it is provided and the script module has
+	 *                                                     not been registered yet, it will be registered.
+	 * @param array<string|array<string, string>> $deps    {
+	 *                                                         Optional. List of dependencies.
 	 *
-	 *                                        @type string|array ...$0 {
-	 *                                            An array of script module identifiers of the dependencies of this script
-	 *                                            module. The dependencies can be strings or arrays. If they are arrays,
-	 *                                            they need an `id` key with the script module identifier, and can contain
-	 *                                            an `import` key with either `static` or `dynamic`. By default,
-	 *                                            dependencies that don't contain an `import` key are considered static.
+	 *                                                         @type string|array<string, string> ...$0 {
+	 *                                                             An array of script module identifiers of the dependencies of this script
+	 *                                                             module. The dependencies can be strings or arrays. If they are arrays,
+	 *                                                             they need an `id` key with the script module identifier, and can contain
+	 *                                                             an `import` key with either `static` or `dynamic`. By default,
+	 *                                                             dependencies that don't contain an `import` key are considered static.
 	 *
-	 *                                            @type string $id     The script module identifier.
-	 *                                            @type string $import Optional. Import type. May be either `static` or
-	 *                                                                 `dynamic`. Defaults to `static`.
-	 *                                        }
-	 *                                    }
-	 * @param string|false|null $version  Optional. String specifying the script module version number. Defaults to false.
-	 *                                    It is added to the URL as a query string for cache busting purposes. If $version
-	 *                                    is set to false, the version number is the currently installed WordPress version.
-	 *                                    If $version is set to null, no version is added.
+	 *                                                             @type string $id     The script module identifier.
+	 *                                                             @type string $import Optional. Import type. May be either `static` or
+	 *                                                                                  `dynamic`. Defaults to `static`.
+	 *                                                         }
+	 *                                                     }
+	 * @param string|false|null                   $version Optional. String specifying the script module version number. Defaults to false.
+	 *                                                     It is added to the URL as a query string for cache busting purposes. If $version
+	 *                                                     is set to false, the version number is the currently installed WordPress version.
+	 *                                                     If $version is set to null, no version is added.
+	 * @param array<string, string|bool>          $args    {
+	 *     Optional. An array of additional args. Default empty array.
+	 *
+	 *     @type bool                $in_footer     Whether to print the script module in the footer. Only relevant to block themes. Default 'false'. Optional.
+	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+	 * }
 	 */
-	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false ) {
-		if ( isset( $this->registered[ $id ] ) ) {
-			$this->registered[ $id ]['enqueue'] = true;
-		} elseif ( $src ) {
-			$this->register( $id, $src, $deps, $version );
-			$this->registered[ $id ]['enqueue'] = true;
-		} else {
-			$this->enqueued_before_registered[ $id ] = true;
+	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
+		if ( '' === $id ) {
+			_doing_it_wrong( __METHOD__, __( 'Non-empty string required for id.' ), '6.9.0' );
+			return;
+		}
+
+		if ( ! in_array( $id, $this->queue, true ) ) {
+			$this->queue[] = $id;
+		}
+		if ( ! isset( $this->registered[ $id ] ) && $src ) {
+			$this->register( $id, $src, $deps, $version, $args );
 		}
 	}
 
@@ -156,10 +324,7 @@ class WP_Script_Modules {
 	 * @param string $id The identifier of the script module.
 	 */
 	public function dequeue( string $id ) {
-		if ( isset( $this->registered[ $id ] ) ) {
-			$this->registered[ $id ]['enqueue'] = false;
-		}
-		unset( $this->enqueued_before_registered[ $id ] );
+		$this->queue = array_values( array_diff( $this->queue, array( $id ) ) );
 	}
 
 	/**
@@ -170,8 +335,89 @@ class WP_Script_Modules {
 	 * @param string $id The identifier of the script module.
 	 */
 	public function deregister( string $id ) {
+		$this->dequeue( $id );
 		unset( $this->registered[ $id ] );
-		unset( $this->enqueued_before_registered[ $id ] );
+	}
+
+	/**
+	 * Overrides the text domain and path used to load translations for a script module.
+	 *
+	 * This is only needed for modules whose text domain differs from 'default'
+	 * or whose translation files live outside the standard locations, for
+	 * example plugin modules that register their own text domain. Translations
+	 * for modules that use the default domain are loaded automatically by
+	 * {@see WP_Script_Modules::print_script_module_translations()}.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $id     The identifier of the script module.
+	 * @param string $domain Optional. Text domain. Default 'default'.
+	 * @param string $path   Optional. The full file path to the directory containing translation files.
+	 * @return bool True if the text domain was registered, false if the module is not registered.
+	 */
+	public function set_translations( string $id, string $domain = 'default', string $path = '' ): bool {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+
+		$this->registered[ $id ]['textdomain']        = $domain;
+		$this->registered[ $id ]['translations_path'] = $path;
+
+		return true;
+	}
+
+	/**
+	 * Prints translations for all enqueued script modules.
+	 *
+	 * Outputs inline `<script>` tags that call `wp.i18n.setLocaleData()` with
+	 * the translated strings for each script module. This must run before
+	 * the script modules execute.
+	 *
+	 * Auto-detects the text domain and translation path for each module from
+	 * its source URL. Modules whose text domain or path differs from the
+	 * defaults can opt into a specific domain/path via
+	 * {@see WP_Script_Modules::set_translations()}.
+	 *
+	 * @since 7.0.0
+	 */
+	public function print_script_module_translations(): void {
+		// Collect all module IDs that will be on the page (enqueued + their dependencies).
+		$module_ids = $this->get_sorted_dependencies( $this->queue );
+
+		$set_locale_data_js_function = <<<'JS'
+		( domain, translations ) => {
+			const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
+			localeData[""].domain = domain;
+			wp.i18n.setLocaleData( localeData, domain );
+		}
+		JS;
+
+		foreach ( $module_ids as $id ) {
+			$domain = $this->registered[ $id ]['textdomain'] ?? 'default';
+			$path   = $this->registered[ $id ]['translations_path'] ?? '';
+
+			$json_translations = load_script_module_textdomain( $id, $domain, $path );
+
+			if ( ! $json_translations ) {
+				continue;
+			}
+
+			$output    = sprintf(
+				'( %s )( %s, %s );',
+				$set_locale_data_js_function,
+				wp_json_encode( $domain, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				$json_translations
+			);
+			$script_id = "wp-script-module-translation-data-{$id}";
+			$output   .= "\n//# sourceURL=" . rawurlencode( $script_id );
+
+			// Ensure wp-i18n is printed; the inline script below relies on wp.i18n.setLocaleData().
+			if ( ! wp_script_is( 'wp-i18n', 'done' ) ) {
+				wp_scripts()->do_items( array( 'wp-i18n' ) );
+			}
+
+			wp_print_inline_script_tag( $output, array( 'id' => $script_id ) );
+		}
 	}
 
 	/**
@@ -185,14 +431,34 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function add_hooks() {
-		$position = wp_is_block_theme() ? 'wp_head' : 'wp_footer';
+		$is_block_theme = wp_is_block_theme();
+		$position       = $is_block_theme ? 'wp_head' : 'wp_footer';
 		add_action( $position, array( $this, 'print_import_map' ) );
-		add_action( $position, array( $this, 'print_enqueued_script_modules' ) );
+		if ( $is_block_theme ) {
+			/*
+			 * Modules can only be printed in the head for block themes because only with
+			 * block themes will import map be fully populated by modules discovered by
+			 * rendering the block template. In classic themes, modules are enqueued during
+			 * template rendering, thus the import map must be printed in the footer,
+			 * followed by all enqueued modules.
+			 */
+			add_action( 'wp_head', array( $this, 'print_head_enqueued_script_modules' ) );
+		}
+		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( $position, array( $this, 'print_script_module_preloads' ) );
 
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ) );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ), 9 );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
+
+		/*
+		 * Print translations after classic scripts like wp-i18n are loaded (at
+		 * priority 10 via _wp_footer_scripts), but before the script modules
+		 * execute. Script modules with type="module" are deferred by default,
+		 * so inline translation scripts at priority 11 will execute before them.
+		 */
+		add_action( 'wp_footer', array( $this, 'print_script_module_translations' ), 21 );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_translations' ), 11 );
 
 		add_action( 'wp_footer', array( $this, 'print_script_module_data' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_data' ) );
@@ -201,25 +467,115 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Prints the enqueued script modules using script tags with type="module"
-	 * attributes.
+	 * Gets the highest fetch priority for the provided script IDs.
 	 *
-	 * @since 6.5.0
+	 * @since 6.9.0
+	 *
+	 * @param string[] $ids Script module IDs.
+	 * @return 'auto'|'low'|'high' Highest fetch priority for the provided script module IDs.
 	 */
-	public function print_enqueued_script_modules() {
-		foreach ( $this->get_marked_for_enqueue() as $id => $script_module ) {
-			wp_print_script_tag(
-				array(
-					'type' => 'module',
-					'src'  => $this->get_src( $id ),
-					'id'   => $id . '-js-module',
-				)
-			);
+	private function get_highest_fetchpriority( array $ids ): string {
+		static $high_priority_index = null;
+		if ( null === $high_priority_index ) {
+			$high_priority_index = count( $this->priorities ) - 1;
+		}
+
+		$highest_priority_index = 0;
+		foreach ( $ids as $id ) {
+			if ( isset( $this->registered[ $id ] ) ) {
+				$highest_priority_index = (int) max(
+					$highest_priority_index,
+					(int) array_search( $this->registered[ $id ]['fetchpriority'], $this->priorities, true )
+				);
+				if ( $high_priority_index === $highest_priority_index ) {
+					break;
+				}
+			}
+		}
+
+		return $this->priorities[ $highest_priority_index ];
+	}
+
+	/**
+	 * Prints the enqueued script modules in head.
+	 *
+	 * This is only used in block themes.
+	 *
+	 * @since 6.9.0
+	 */
+	public function print_head_enqueued_script_modules() {
+		foreach ( $this->get_sorted_dependencies( $this->queue ) as $id ) {
+			if (
+				isset( $this->registered[ $id ] ) &&
+				! $this->registered[ $id ]['in_footer']
+			) {
+				// If any dependency is set to be printed in footer, skip printing this module in head.
+				$dependencies = array_keys( $this->get_dependencies( array( $id ) ) );
+				foreach ( $dependencies as $dependency_id ) {
+					if (
+						in_array( $dependency_id, $this->queue, true ) &&
+						isset( $this->registered[ $dependency_id ] ) &&
+						$this->registered[ $dependency_id ]['in_footer']
+					) {
+						continue 2;
+					}
+				}
+				$this->print_script_module( $id );
+			}
 		}
 	}
 
 	/**
-	 * Prints the the static dependencies of the enqueued script modules using
+	 * Prints the enqueued script modules in footer.
+	 *
+	 * @since 6.5.0
+	 */
+	public function print_enqueued_script_modules() {
+		foreach ( $this->get_sorted_dependencies( $this->queue ) as $id ) {
+			$this->print_script_module( $id );
+		}
+	}
+
+	/**
+	 * Prints the enqueued script module using script tags with type="module"
+	 * attributes.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $id The script module identifier.
+	 */
+	private function print_script_module( string $id ) {
+		if ( in_array( $id, $this->done, true ) || ! in_array( $id, $this->queue, true ) ) {
+			return;
+		}
+
+		$this->done[] = $id;
+
+		$src = $this->get_src( $id );
+		if ( '' === $src ) {
+			return;
+		}
+
+		$attributes = array(
+			'type' => 'module',
+			'src'  => $src,
+			'id'   => $id . '-js-module',
+		);
+
+		$script_module     = $this->registered[ $id ];
+		$queued_dependents = array_intersect( $this->queue, $this->get_recursive_dependents( $id ) );
+		$fetchpriority     = $this->get_highest_fetchpriority( array_merge( array( $id ), $queued_dependents ) );
+		if ( 'auto' !== $fetchpriority ) {
+			$attributes['fetchpriority'] = $fetchpriority;
+		}
+		if ( $fetchpriority !== $script_module['fetchpriority'] ) {
+			$attributes['data-wp-fetchpriority'] = $script_module['fetchpriority'];
+		}
+		wp_print_script_tag( $attributes );
+	}
+
+	/**
+	 * Prints the static dependencies of the enqueued script modules using
 	 * link tags with rel="modulepreload" attributes.
 	 *
 	 * If a script module is marked for enqueue, it will not be preloaded.
@@ -227,15 +583,32 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_script_module_preloads() {
-		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $id => $script_module ) {
+		$dependency_ids = $this->get_sorted_dependencies( $this->queue, array( 'static' ) );
+		foreach ( $dependency_ids as $id ) {
 			// Don't preload if it's marked for enqueue.
-			if ( true !== $script_module['enqueue'] ) {
-				echo sprintf(
-					'<link rel="modulepreload" href="%s" id="%s">',
-					esc_url( $this->get_src( $id ) ),
-					esc_attr( $id . '-js-modulepreload' )
-				);
+			if ( in_array( $id, $this->queue, true ) ) {
+				continue;
 			}
+
+			$src = $this->get_src( $id );
+			if ( '' === $src ) {
+				continue;
+			}
+
+			$enqueued_dependents   = array_intersect( $this->get_recursive_dependents( $id ), $this->queue );
+			$highest_fetchpriority = $this->get_highest_fetchpriority( $enqueued_dependents );
+			printf(
+				'<link rel="modulepreload" href="%s" id="%s"',
+				esc_url( $src ),
+				esc_attr( $id . '-js-modulepreload' )
+			);
+			if ( 'auto' !== $highest_fetchpriority ) {
+				printf( ' fetchpriority="%s"', esc_attr( $highest_fetchpriority ) );
+			}
+			if ( $highest_fetchpriority !== $this->registered[ $id ]['fetchpriority'] && 'auto' !== $this->registered[ $id ]['fetchpriority'] ) {
+				printf( ' data-wp-fetchpriority="%s"', esc_attr( $this->registered[ $id ]['fetchpriority'] ) );
+			}
+			echo ">\n";
 		}
 	}
 
@@ -248,7 +621,7 @@ class WP_Script_Modules {
 		$import_map = $this->get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
 			wp_print_inline_script_tag(
-				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
+				(string) wp_json_encode( $import_map, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
 				array(
 					'type' => 'importmap',
 					'id'   => 'wp-importmap',
@@ -261,14 +634,91 @@ class WP_Script_Modules {
 	 * Returns the import map array.
 	 *
 	 * @since 6.5.0
+	 * @since 7.0.0 Script module dependencies ('module_dependencies') of classic scripts are now included.
 	 *
-	 * @return array Array with an `imports` key mapping to an array of script module identifiers and their respective
-	 *               URLs, including the version query.
+	 * @global WP_Scripts $wp_scripts
+	 *
+	 * @return array<string, array<string, string>> Array with an `imports` key mapping to an array of script module
+	 *                                              identifiers and their respective URLs, including the version query.
 	 */
 	private function get_import_map(): array {
+		global $wp_scripts;
+
 		$imports = array();
-		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $id => $script_module ) {
-			$imports[ $id ] = $this->get_src( $id );
+
+		// Identify script modules that are dependencies of classic scripts.
+		$classic_script_module_dependencies = array();
+		if ( $wp_scripts instanceof WP_Scripts ) {
+			$handles = array_merge(
+				$wp_scripts->queue,
+				$wp_scripts->to_do,
+				$wp_scripts->done
+			);
+
+			$processed = array();
+			while ( ! empty( $handles ) ) {
+				$handle = array_pop( $handles );
+				if ( isset( $processed[ $handle ] ) || ! isset( $wp_scripts->registered[ $handle ] ) ) {
+					continue;
+				}
+				$processed[ $handle ] = true;
+
+				$module_dependencies = $wp_scripts->get_data( $handle, 'module_dependencies' );
+				if ( is_array( $module_dependencies ) ) {
+					$missing_module_dependencies = array();
+					foreach ( $module_dependencies as $module ) {
+						if ( is_string( $module ) ) {
+							$id = $module;
+						} elseif ( is_array( $module ) && isset( $module['id'] ) && is_string( $module['id'] ) ) {
+							$id = $module['id'];
+						} else {
+							// Invalid module dependency was supplied by direct manipulation of the extra data.
+							// Normally, this error scenario would be caught when WP_Scripts::add_data() is called.
+							continue;
+						}
+
+						if ( ! isset( $this->registered[ $id ] ) ) {
+							$missing_module_dependencies[] = $id;
+						} else {
+							$classic_script_module_dependencies[] = $id;
+						}
+					}
+
+					if ( count( $missing_module_dependencies ) > 0 ) {
+						_doing_it_wrong(
+							'WP_Scripts::add_data',
+							sprintf(
+								/* translators: 1: Script handle, 2: 'module_dependencies', 3: List of missing dependency IDs. */
+								__( 'The script with the handle "%1$s" was enqueued with script module dependencies ("%2$s") that are not registered: %3$s.' ),
+								$handle,
+								'module_dependencies',
+								implode( wp_get_list_item_separator(), $missing_module_dependencies )
+							),
+							'7.0.0'
+						);
+					}
+				}
+
+				foreach ( $wp_scripts->registered[ $handle ]->deps as $dep ) {
+					if ( ! isset( $processed[ $dep ] ) ) {
+						$handles[] = $dep;
+					}
+				}
+			}
+		}
+
+		// Note: the script modules in $this->queue are not included in the importmap because they get printed as scripts.
+		$ids = array_unique(
+			array_merge(
+				$classic_script_module_dependencies,
+				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_module_dependencies ) ) )
+			)
+		);
+		foreach ( $ids as $id ) {
+			$src = $this->get_src( $id );
+			if ( '' !== $src ) {
+				$imports[ $id ] = $src;
+			}
 		}
 		return array( 'imports' => $imports );
 	}
@@ -276,23 +726,23 @@ class WP_Script_Modules {
 	/**
 	 * Retrieves the list of script modules marked for enqueue.
 	 *
+	 * Even though this is a private method and is unused in core, there are ecosystem plugins accessing it via the
+	 * Reflection API. The ecosystem should rather use {@see self::get_queue()}.
+	 *
 	 * @since 6.5.0
 	 *
-	 * @return array[] Script modules marked for enqueue, keyed by script module identifier.
+	 * @return array<string, array<string, mixed>> Script modules marked for enqueue, keyed by script module identifier.
+	 * @phpstan-return array<string, ScriptModule>
 	 */
 	private function get_marked_for_enqueue(): array {
-		$enqueued = array();
-		foreach ( $this->registered as $id => $script_module ) {
-			if ( true === $script_module['enqueue'] ) {
-				$enqueued[ $id ] = $script_module;
-			}
-		}
-		return $enqueued;
+		return wp_array_slice_assoc(
+			$this->registered,
+			$this->queue
+		);
 	}
 
 	/**
-	 * Retrieves all the dependencies for the given script module identifiers,
-	 * filtered by import types.
+	 * Retrieves all the dependencies for the given script module identifiers, filtered by import types.
 	 *
 	 * It will consolidate an array containing a set of unique dependencies based
 	 * on the requested import types: 'static', 'dynamic', or both. This method is
@@ -302,27 +752,208 @@ class WP_Script_Modules {
 	 *
 	 * @param string[] $ids          The identifiers of the script modules for which to gather dependencies.
 	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
-	 *                               Default is both.
-	 * @return array[] List of dependencies, keyed by script module identifier.
+	 *                                         Default is both.
+	 * @return array<string, array<string, mixed>> List of dependencies, keyed by script module identifier.
+	 * @phpstan-return array<string, ScriptModule>
 	 */
-	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ) {
-		return array_reduce(
-			$ids,
-			function ( $dependency_script_modules, $id ) use ( $import_types ) {
-				$dependencies = array();
-				foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
-					if (
+	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
+		$all_dependencies = array();
+		$id_queue         = $ids;
+
+		while ( ! empty( $id_queue ) ) {
+			$id = array_shift( $id_queue );
+			if ( ! isset( $this->registered[ $id ] ) ) {
+				continue;
+			}
+
+			foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
+				if (
+					! isset( $all_dependencies[ $dependency['id'] ] ) &&
 					in_array( $dependency['import'], $import_types, true ) &&
-					isset( $this->registered[ $dependency['id'] ] ) &&
-					! isset( $dependency_script_modules[ $dependency['id'] ] )
-					) {
-						$dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
-					}
+					isset( $this->registered[ $dependency['id'] ] )
+				) {
+					$all_dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
+
+					// Add this dependency to the list to get dependencies for.
+					$id_queue[] = $dependency['id'];
 				}
-				return array_merge( $dependency_script_modules, $dependencies, $this->get_dependencies( array_keys( $dependencies ), $import_types ) );
-			},
-			array()
-		);
+			}
+		}
+
+		return $all_dependencies;
+	}
+
+	/**
+	 * Gets all dependents of a script module.
+	 *
+	 * This is not recursive.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @see WP_Scripts::get_dependents()
+	 *
+	 * @param string $id The script ID.
+	 * @return string[] Script module IDs.
+	 */
+	private function get_dependents( string $id ): array {
+		// Check if dependents map for the handle in question is present. If so, use it.
+		if ( isset( $this->dependents_map[ $id ] ) ) {
+			return $this->dependents_map[ $id ];
+		}
+
+		$dependents = array();
+
+		// Iterate over all registered scripts, finding dependents of the script passed to this method.
+		foreach ( $this->registered as $registered_id => $args ) {
+			if ( in_array( $id, wp_list_pluck( $args['dependencies'], 'id' ), true ) ) {
+				$dependents[] = $registered_id;
+			}
+		}
+
+		// Add the module's dependents to the map to ease future lookups.
+		$this->dependents_map[ $id ] = $dependents;
+
+		return $dependents;
+	}
+
+	/**
+	 * Gets all recursive dependents of a script module.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @see WP_Scripts::get_dependents()
+	 *
+	 * @param string $id The script ID.
+	 * @return string[] Script module IDs.
+	 */
+	private function get_recursive_dependents( string $id ): array {
+		$dependents = array();
+		$id_queue   = array( $id );
+		$processed  = array();
+
+		while ( ! empty( $id_queue ) ) {
+			$current_id = array_shift( $id_queue );
+
+			// Skip unregistered or already-processed script modules.
+			if ( ! isset( $this->registered[ $current_id ] ) || isset( $processed[ $current_id ] ) ) {
+				continue;
+			}
+
+			// Mark as processed to guard against infinite loops from circular dependencies.
+			$processed[ $current_id ] = true;
+
+			// Find the direct dependents of the current script.
+			foreach ( $this->get_dependents( $current_id ) as $dependent_id ) {
+				// Only add the dependent if we haven't found it before.
+				if ( ! isset( $dependents[ $dependent_id ] ) ) {
+					$dependents[ $dependent_id ] = true;
+
+					// Add dependency to the queue.
+					$id_queue[] = $dependent_id;
+				}
+			}
+		}
+
+		return array_keys( $dependents );
+	}
+
+	/**
+	 * Sorts the given script module identifiers based on their dependencies.
+	 *
+	 * It will return a list of script module identifiers sorted in the order
+	 * they should be printed, so that dependencies are printed before the script
+	 * modules that depend on them.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string[] $ids          The identifiers of the script modules to sort.
+	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 *                                         Default is both.
+	 * @return string[] Sorted list of script module identifiers.
+	 */
+	private function get_sorted_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
+		$sorted = array();
+
+		foreach ( $ids as $id ) {
+			$this->sort_item_dependencies( $id, $import_types, $sorted );
+		}
+
+		return array_unique( $sorted );
+	}
+
+	/**
+	 * Recursively sorts the dependencies for a single script module identifier.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string   $id           The identifier of the script module to sort.
+	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 * @param string[] &$sorted      The array of sorted identifiers, passed by reference.
+	 * @return bool True on success, false on failure (e.g., missing dependency).
+	 */
+	private function sort_item_dependencies( string $id, array $import_types, array &$sorted ): bool {
+		// If already processed, don't do it again.
+		if ( in_array( $id, $sorted, true ) ) {
+			return true;
+		}
+
+		// If the item doesn't exist, fail.
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+
+		$dependency_ids = array();
+		foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
+			if ( in_array( $dependency['import'], $import_types, true ) ) {
+				$dependency_ids[] = $dependency['id'];
+			}
+		}
+
+		// If the item requires dependencies that do not exist, fail.
+		$missing_dependencies = array_diff( $dependency_ids, array_keys( $this->registered ) );
+		if ( count( $missing_dependencies ) > 0 ) {
+			if ( ! in_array( $id, $this->modules_with_missing_dependencies, true ) ) {
+				_doing_it_wrong(
+					get_class( $this ) . '::register',
+					sprintf(
+						/* translators: 1: Script module ID, 2: List of missing dependency IDs. */
+						__( 'The script module with the ID "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
+						$id,
+						implode( wp_get_list_item_separator(), $missing_dependencies )
+					),
+					'6.9.1'
+				);
+				$this->modules_with_missing_dependencies[] = $id;
+			}
+
+			return false;
+		}
+
+		// Recursively process dependencies.
+		foreach ( $dependency_ids as $dependency_id ) {
+			if ( ! $this->sort_item_dependencies( $dependency_id, $import_types, $sorted ) ) {
+				// A dependency failed to resolve, so this branch fails.
+				return false;
+			}
+		}
+
+		// All dependencies are sorted, so we can now add the current item.
+		$sorted[] = $id;
+
+		return true;
+	}
+
+	/**
+	 * Gets the data for a registered script module.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $id The script module identifier.
+	 * @return array|null The script module data, or null if not registered.
+	 * @phpstan-return ScriptModule|null
+	 */
+	public function get_registered( string $id ): ?array {
+		return $this->registered[ $id ] ?? null;
 	}
 
 	/**
@@ -345,10 +976,12 @@ class WP_Script_Modules {
 		$script_module = $this->registered[ $id ];
 		$src           = $script_module['src'];
 
-		if ( false === $script_module['version'] ) {
-			$src = add_query_arg( 'ver', get_bloginfo( 'version' ), $src );
-		} elseif ( null !== $script_module['version'] ) {
-			$src = add_query_arg( 'ver', $script_module['version'], $src );
+		if ( '' !== $src ) {
+			if ( false === $script_module['version'] ) {
+				$src = add_query_arg( 'ver', get_bloginfo( 'version' ), $src );
+			} elseif ( null !== $script_module['version'] ) {
+				$src = add_query_arg( 'ver', $script_module['version'], $src );
+			}
 		}
 
 		/**
@@ -360,6 +993,9 @@ class WP_Script_Modules {
 		 * @param string $id  Module identifier.
 		 */
 		$src = apply_filters( 'script_module_loader_src', $src, $id );
+		if ( ! is_string( $src ) ) {
+			$src = '';
+		}
 
 		return $src;
 	}
@@ -379,7 +1015,7 @@ class WP_Script_Modules {
 	 */
 	public function print_script_module_data(): void {
 		$modules = array();
-		foreach ( array_keys( $this->get_marked_for_enqueue() ) as $id ) {
+		foreach ( array_unique( $this->queue ) as $id ) {
 			if ( '@wordpress/a11y' === $id ) {
 				$this->a11y_available = true;
 			}
@@ -475,7 +1111,7 @@ class WP_Script_Modules {
 				}
 
 				wp_print_inline_script_tag(
-					wp_json_encode(
+					(string) wp_json_encode(
 						$data,
 						$json_encode_flags
 					),

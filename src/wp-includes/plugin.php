@@ -23,6 +23,7 @@
 
 // Initialize the filter globals.
 require __DIR__ . '/class-wp-hook.php';
+require __DIR__ . '/class-wp-filter-sentinel.php';
 
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
@@ -267,6 +268,7 @@ function apply_filters_ref_array( $hook_name, $args ) {
  * that evaluates to false (e.g. 0), so use the `===` operator for testing the return value.
  *
  * @since 2.5.0
+ * @since 6.9.0 Added the `$priority` parameter.
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
@@ -274,18 +276,22 @@ function apply_filters_ref_array( $hook_name, $args ) {
  * @param callable|string|array|false $callback  Optional. The callback to check for.
  *                                               This function can be called unconditionally to speculatively check
  *                                               a callback that may or may not exist. Default false.
+ * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
+ *                                               Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
+ *                  If `$callback` and `$priority` are both provided, a boolean is returned
+ *                  for whether the specific function is registered at that priority.
  */
-function has_filter( $hook_name, $callback = false ) {
+function has_filter( $hook_name, $callback = false, $priority = false ) {
 	global $wp_filter;
 
 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
 		return false;
 	}
 
-	return $wp_filter[ $hook_name ]->has_filter( $hook_name, $callback );
+	return $wp_filter[ $hook_name ]->has_filter( $hook_name, $callback, $priority );
 }
 
 /**
@@ -574,6 +580,7 @@ function do_action_ref_array( $hook_name, $args ) {
  * that evaluates to false (e.g. 0), so use the `===` operator for testing the return value.
  *
  * @since 2.5.0
+ * @since 6.9.0 Added the `$priority` parameter.
  *
  * @see has_filter() This function is an alias of has_filter().
  *
@@ -581,12 +588,16 @@ function do_action_ref_array( $hook_name, $args ) {
  * @param callable|string|array|false $callback  Optional. The callback to check for.
  *                                               This function can be called unconditionally to speculatively check
  *                                               a callback that may or may not exist. Default false.
+ * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
+ *                                               Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
+ *                  If `$callback` and `$priority` are both provided, a boolean is returned
+ *                  for whether the specific function is registered at that priority.
  */
-function has_action( $hook_name, $callback = false ) {
-	return has_filter( $hook_name, $callback );
+function has_action( $hook_name, $callback = false, $priority = false ) {
+	return has_filter( $hook_name, $callback, $priority );
 }
 
 /**
@@ -975,33 +986,36 @@ function _wp_call_all_hook( $args ) {
  * @since 2.2.3
  * @since 5.3.0 Removed workarounds for spl_object_hash().
  *              `$hook_name` and `$priority` are no longer used,
- *              and the function always returns a string.
+ *              and no longer returns false, but can still return void for invalid callbacks.
+ * @since 6.9.0 Returns explicit null if an invalid callback is supplied.
+ * @since 7.1.0 Uses spl_object_id() instead of spl_object_hash() for performance.
  *
  * @access private
  *
- * @param string                $hook_name Unused. The name of the filter to build ID for.
- * @param callable|string|array $callback  The callback to generate ID for. The callback may
- *                                         or may not exist.
- * @param int                   $priority  Unused. The order in which the functions
- *                                         associated with a particular action are executed.
- * @return string|null Unique function ID for usage as array key.
- *                     Null if a valid `$callback` is not passed.
+ * @param string   $hook_name Unused. The name of the filter to build ID for.
+ * @param callable $callback  The callback to generate ID for. The callback may
+ *                            or may not exist.
+ * @param int      $priority  Unused. The order in which the functions
+ *                            associated with a particular action are executed.
+ * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
  */
-function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
+function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {
 	if ( is_string( $callback ) ) {
 		return $callback;
 	}
 
 	if ( is_object( $callback ) ) {
-		// Closures are currently implemented as objects.
-		$callback = array( $callback, '' );
-	} else {
-		$callback = (array) $callback;
+		return (string) spl_object_id( (object) $callback );
+	}
+
+	$callback = (array) $callback;
+	if ( ! isset( $callback[1] ) || ! is_string( $callback[1] ) ) {
+		return null;
 	}
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
-		return spl_object_hash( $callback[0] ) . $callback[1];
+		return ( (string) spl_object_id( $callback[0] ) ) . $callback[1];
 	} elseif ( is_string( $callback[0] ) ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
