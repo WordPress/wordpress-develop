@@ -337,4 +337,418 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 
 		return $plugins_list;
 	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::get_plugin_author_key() derives the
+	 * grouping key from the plugin's AuthorName header.
+	 *
+	 * @covers WP_Plugins_List_Table::get_plugin_author_key
+	 *
+	 * @dataProvider data_plugin_author_key
+	 *
+	 * @param array  $plugin_data The plugin data passed to the method.
+	 * @param string $expected    The expected author key.
+	 */
+	public function test_get_plugin_author_key( $plugin_data, $expected ) {
+		$method = new ReflectionMethod( $this->table, 'get_plugin_author_key' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		$this->assertSame( $expected, $method->invoke( $this->table, 'fake/fake.php', $plugin_data ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_plugin_author_key() {
+		return array(
+			'an author name'   => array( array( 'AuthorName' => 'Team Yoast' ), 'team-yoast' ),
+			'a missing author' => array( array(), '' ),
+			'an empty author'  => array( array( 'AuthorName' => '' ), '' ),
+		);
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::prepare_items() builds the list of
+	 * plugin authors with a per-author plugin count.
+	 *
+	 * @covers WP_Plugins_List_Table::prepare_items
+	 */
+	public function test_prepare_items_builds_plugin_authors_with_counts() {
+		global $status, $s;
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = '';
+
+		add_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+		$this->table->prepare_items();
+		remove_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+
+		$authors = $this->get_plugin_authors();
+
+		$status = $old_status;
+
+		$this->assertArrayHasKey( 'author-one', $authors, 'The first author is missing.' );
+		$this->assertArrayHasKey( 'author-two', $authors, 'The second author is missing.' );
+		$this->assertSame( 2, $authors['author-one']['count'], 'The first author count is wrong.' );
+		$this->assertSame( 1, $authors['author-two']['count'], 'The second author count is wrong.' );
+		$this->assertSame( 'Author One', $authors['author-one']['label'], 'The first author label is wrong.' );
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::prepare_items() narrows the list to a
+	 * single author when the 'plugin_author' request variable is set.
+	 *
+	 * @covers WP_Plugins_List_Table::prepare_items
+	 */
+	public function test_prepare_items_filters_items_by_author() {
+		global $status, $s;
+
+		$old_status                = $status;
+		$old_author                = $_REQUEST['plugin_author'] ?? null;
+		$status                    = 'all';
+		$s                         = '';
+		$_REQUEST['plugin_author'] = 'author-one';
+
+		add_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+		$this->table->prepare_items();
+		remove_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+
+		$items = array_keys( $this->table->items );
+
+		$status = $old_status;
+		if ( null === $old_author ) {
+			unset( $_REQUEST['plugin_author'] );
+		} else {
+			$_REQUEST['plugin_author'] = $old_author;
+		}
+
+		$this->assertEqualSets(
+			array( 'plugin-a/plugin-a.php', 'plugin-c/plugin-c.php' ),
+			$items
+		);
+	}
+
+	/**
+	 * Tests that the 'plugins_list_plugin_author' filter can merge author-name
+	 * variants under a single author key.
+	 *
+	 * @covers WP_Plugins_List_Table::get_plugin_author_key
+	 */
+	public function test_plugins_list_plugin_author_filter_merges_author_variants() {
+		global $status, $s;
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = '';
+
+		add_filter( 'plugins_list', array( $this, 'inject_yoast_variants' ) );
+		add_filter( 'plugins_list_plugin_author', array( $this, 'merge_yoast_author_key' ), 10, 3 );
+		$this->table->prepare_items();
+		remove_filter( 'plugins_list_plugin_author', array( $this, 'merge_yoast_author_key' ), 10 );
+		remove_filter( 'plugins_list', array( $this, 'inject_yoast_variants' ) );
+
+		$authors = $this->get_plugin_authors();
+
+		$status = $old_status;
+
+		$this->assertSame( array( 'yoast' ), array_keys( $authors ), 'The author variants were not merged.' );
+		$this->assertSame( 2, $authors['yoast']['count'], 'The merged author count is wrong.' );
+	}
+
+	/**
+	 * Tests that the 'plugins_list_authors' filter can remove an author from
+	 * the "Filter by author" control.
+	 *
+	 * @covers WP_Plugins_List_Table::prepare_items
+	 */
+	public function test_plugins_list_authors_filter_can_remove_an_author() {
+		global $status, $s;
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = '';
+
+		add_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+		add_filter( 'plugins_list_authors', array( $this, 'remove_second_author' ) );
+		$this->table->prepare_items();
+		remove_filter( 'plugins_list_authors', array( $this, 'remove_second_author' ) );
+		remove_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+
+		$authors = $this->get_plugin_authors();
+
+		$status = $old_status;
+
+		$this->assertArrayHasKey( 'author-one', $authors, 'The retained author is missing.' );
+		$this->assertArrayNotHasKey( 'author-two', $authors, 'The removed author is still present.' );
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::extra_tablenav() renders the author
+	 * filter control when more than one author is installed.
+	 *
+	 * @covers WP_Plugins_List_Table::extra_tablenav
+	 */
+	public function test_extra_tablenav_renders_author_filter_for_multiple_authors() {
+		global $status, $s;
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = '';
+
+		add_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+		$this->table->prepare_items();
+		$output = $this->get_extra_tablenav_output();
+		remove_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+
+		$status = $old_status;
+
+		$this->assertStringContainsString( 'id="plugin-author-filter"', $output, 'The author filter select was not rendered.' );
+		$this->assertStringContainsString( 'name="plugin_author"', $output, 'The select is missing its name attribute.' );
+		$this->assertStringContainsString( 'value="author-one"', $output, 'The author option was not rendered.' );
+		$this->assertStringContainsString( 'id="plugin-author-filter-submit"', $output, 'The Filter submit button was not rendered.' );
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::extra_tablenav() does not render the
+	 * author filter control when only one author is installed.
+	 *
+	 * @covers WP_Plugins_List_Table::extra_tablenav
+	 */
+	public function test_extra_tablenav_does_not_render_author_filter_for_single_author() {
+		global $status, $s;
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = '';
+
+		add_filter( 'plugins_list', array( $this, 'inject_single_author_plugin' ) );
+		$this->table->prepare_items();
+		$output = $this->get_extra_tablenav_output();
+		remove_filter( 'plugins_list', array( $this, 'inject_single_author_plugin' ) );
+
+		$status = $old_status;
+
+		$this->assertStringNotContainsString( 'plugin-author-filter', $output, 'The author filter control should not be rendered for a single author.' );
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::author_filter_form() prints a GET form
+	 * when more than one author is installed.
+	 *
+	 * @covers WP_Plugins_List_Table::author_filter_form
+	 */
+	public function test_author_filter_form_renders_for_multiple_authors() {
+		global $status, $s;
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = '';
+
+		add_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+		$this->table->prepare_items();
+		ob_start();
+		$this->table->author_filter_form();
+		$output = ob_get_clean();
+		remove_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+
+		$status = $old_status;
+
+		$this->assertStringContainsString( 'id="plugin-author-filter-form"', $output, 'The filter form was not rendered.' );
+		$this->assertStringContainsString( 'method="get"', $output, 'The filter form should submit via GET.' );
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::author_filter_form() preserves the current
+	 * status view in a hidden field.
+	 *
+	 * @covers WP_Plugins_List_Table::author_filter_form
+	 */
+	public function test_author_filter_form_preserves_current_status() {
+		global $status, $s;
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = '';
+
+		add_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+		$this->table->prepare_items();
+		// Set the status after prepare_items() so the empty-bucket fallback does not reset it.
+		$status = 'inactive';
+		ob_start();
+		$this->table->author_filter_form();
+		$output = ob_get_clean();
+		remove_filter( 'plugins_list', array( $this, 'inject_multi_author_plugins' ) );
+
+		$status = $old_status;
+
+		$this->assertStringContainsString( 'name="plugin_status"', $output, 'The status field is missing.' );
+		$this->assertStringContainsString( 'value="inactive"', $output, 'The current status was not preserved.' );
+	}
+
+	/**
+	 * Tests that WP_Plugins_List_Table::author_filter_form() prints nothing when
+	 * only one author is installed.
+	 *
+	 * @covers WP_Plugins_List_Table::author_filter_form
+	 */
+	public function test_author_filter_form_is_empty_for_single_author() {
+		global $status, $s;
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = '';
+
+		add_filter( 'plugins_list', array( $this, 'inject_single_author_plugin' ) );
+		$this->table->prepare_items();
+		ob_start();
+		$this->table->author_filter_form();
+		$output = ob_get_clean();
+		remove_filter( 'plugins_list', array( $this, 'inject_single_author_plugin' ) );
+
+		$status = $old_status;
+
+		$this->assertSame( '', $output, 'The filter form should not be rendered for a single author.' );
+	}
+
+	/**
+	 * Returns the protected 'plugin_authors' property of the list table.
+	 *
+	 * @return array The plugin authors map.
+	 */
+	private function get_plugin_authors() {
+		$property = new ReflectionProperty( $this->table, 'plugin_authors' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+
+		return $property->getValue( $this->table );
+	}
+
+	/**
+	 * Captures the output of the protected extra_tablenav() method for the top nav.
+	 *
+	 * @return string The captured output.
+	 */
+	private function get_extra_tablenav_output() {
+		$method = new ReflectionMethod( $this->table, 'extra_tablenav' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		ob_start();
+		$method->invoke( $this->table, 'top' );
+
+		return ob_get_clean();
+	}
+
+	/**
+	 * Builds a fake plugin data array for the given name and author.
+	 *
+	 * @param string $name   The plugin name.
+	 * @param string $author The plugin author name.
+	 * @return array The fake plugin data.
+	 */
+	private function fake_plugin_data( $name, $author ) {
+		return array(
+			'Name'        => $name,
+			'PluginURI'   => 'https://example.org/',
+			'Version'     => '1.0.0',
+			'Description' => $name . '.',
+			'Author'      => $author,
+			'AuthorURI'   => 'https://example.org/',
+			'TextDomain'  => sanitize_title( $name ),
+			'DomainPath'  => '/languages',
+			'Network'     => false,
+			'Title'       => $name,
+			'AuthorName'  => $author,
+		);
+	}
+
+	/**
+	 * Replaces the 'all' plugins with a set from two distinct authors.
+	 *
+	 * Used as a callback for the 'plugins_list' hook.
+	 *
+	 * @param array $plugins_list The plugins list keyed by status.
+	 * @return array The filtered plugins list.
+	 */
+	public function inject_multi_author_plugins( $plugins_list ) {
+		$plugins_list['all'] = array(
+			'plugin-a/plugin-a.php' => $this->fake_plugin_data( 'Plugin A', 'Author One' ),
+			'plugin-b/plugin-b.php' => $this->fake_plugin_data( 'Plugin B', 'Author Two' ),
+			'plugin-c/plugin-c.php' => $this->fake_plugin_data( 'Plugin C', 'Author One' ),
+		);
+
+		return $plugins_list;
+	}
+
+	/**
+	 * Replaces the 'all' plugins with a single plugin from one author.
+	 *
+	 * Used as a callback for the 'plugins_list' hook.
+	 *
+	 * @param array $plugins_list The plugins list keyed by status.
+	 * @return array The filtered plugins list.
+	 */
+	public function inject_single_author_plugin( $plugins_list ) {
+		$plugins_list['all'] = array(
+			'plugin-a/plugin-a.php' => $this->fake_plugin_data( 'Plugin A', 'Author One' ),
+		);
+
+		return $plugins_list;
+	}
+
+	/**
+	 * Replaces the 'all' plugins with two plugins using author-name variants.
+	 *
+	 * Used as a callback for the 'plugins_list' hook.
+	 *
+	 * @param array $plugins_list The plugins list keyed by status.
+	 * @return array The filtered plugins list.
+	 */
+	public function inject_yoast_variants( $plugins_list ) {
+		$plugins_list['all'] = array(
+			'wordpress-seo/wp-seo.php'    => $this->fake_plugin_data( 'Yoast SEO', 'Team Yoast' ),
+			'wpseo-local/wpseo-local.php' => $this->fake_plugin_data( 'Yoast Local SEO', 'Yoast' ),
+		);
+
+		return $plugins_list;
+	}
+
+	/**
+	 * Merges Yoast author-name variants under a single 'yoast' key.
+	 *
+	 * Used as a callback for the 'plugins_list_plugin_author' hook.
+	 *
+	 * @param string $author_key  The derived author key.
+	 * @param string $plugin_file The plugin file.
+	 * @param array  $plugin_data The plugin data.
+	 * @return string The author key, merged to 'yoast' for Yoast plugins.
+	 */
+	public function merge_yoast_author_key( $author_key, $plugin_file, $plugin_data ) {
+		if ( isset( $plugin_data['AuthorName'] ) && false !== stripos( $plugin_data['AuthorName'], 'yoast' ) ) {
+			return 'yoast';
+		}
+
+		return $author_key;
+	}
+
+	/**
+	 * Removes the second test author from the authors list.
+	 *
+	 * Used as a callback for the 'plugins_list_authors' hook.
+	 *
+	 * @param array $authors The authors map.
+	 * @return array The filtered authors map.
+	 */
+	public function remove_second_author( $authors ) {
+		unset( $authors['author-two'] );
+
+		return $authors;
+	}
 }

@@ -729,6 +729,11 @@ th.sorted a span {
 	padding: 0 8px 0 0;
 }
 
+/* Let the "Filter by author" select grow with its options, up to a sensible cap. */
+#plugin-author-filter {
+	max-width: 25rem;
+}
+
 .wp-filter .actions {
 	display: inline-block;
 	vertical-align: middle;
