@@ -332,36 +332,31 @@ function get_search_form( $args = array() ): ?string {
 			$aria_label = '';
 		}
 
-		if ( 'html5' === $format && $args['wrap_in_search'] ) {
-			/*
-			 * Wrap the form in a <search> landmark element. The implicit ARIA role
-			 * of <search> provides the search landmark, so role="search" is omitted
-			 * from the form to avoid nesting two identical landmarks. Any aria-label
-			 * names the <search> landmark instead of the form.
-			 */
-			$search_label = $args['aria_label'] ? ' aria-label="' . esc_attr( $args['aria_label'] ) . '"' : '';
+		if ( 'html5' === $format ) {
+			$form_inner = '
+				<label>
+					<span class="screen-reader-text">' .
+					/* translators: Hidden accessibility text. */
+					_x( 'Search for:', 'label' ) .
+					'</span>
+					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
+				</label>
+				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
+			';
 
-			$form = '<search' . $search_label . '><form method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
-				<label>
-					<span class="screen-reader-text">' .
-					/* translators: Hidden accessibility text. */
-					_x( 'Search for:', 'label' ) .
-					'</span>
-					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
-				</label>
-				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
-			</form></search>';
-		} elseif ( 'html5' === $format ) {
-			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
-				<label>
-					<span class="screen-reader-text">' .
-					/* translators: Hidden accessibility text. */
-					_x( 'Search for:', 'label' ) .
-					'</span>
-					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
-				</label>
-				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
-			</form>';
+			if ( $args['wrap_in_search'] ) {
+				/*
+				 * Wrap the form in a <search> landmark element. The implicit ARIA role
+				 * of <search> provides the search landmark, so role="search" is omitted
+				 * from the form to avoid nesting two identical landmarks. Any aria-label
+				 * names the <search> landmark instead of the form.
+				 */
+				$search_label = $args['aria_label'] ? ' aria-label="' . esc_attr( $args['aria_label'] ) . '"' : '';
+
+				$form = '<search' . $search_label . '><form method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">' . $form_inner . '</form></search>';
+			} else {
+				$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">' . $form_inner . '</form>';
+			}
 		} else {
 			$form = '<form role="search" ' . $aria_label . 'method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
 				<div>
