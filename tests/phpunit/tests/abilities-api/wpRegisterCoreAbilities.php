@@ -75,10 +75,12 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
 		$this->assertContains( 'name', $input_schema['properties']['fields']['items']['enum'] );
 
-		// Output schema should have all fields documented.
-		$this->assertArrayHasKey( 'name', $output_schema['properties'] );
-		$this->assertArrayHasKey( 'url', $output_schema['properties'] );
-		$this->assertArrayHasKey( 'version', $output_schema['properties'] );
+		// Output schema should document each field with title + description.
+		foreach ( array( 'name', 'description', 'url', 'wpurl', 'admin_email', 'charset', 'language', 'version' ) as $field ) {
+			$this->assertArrayHasKey( $field, $output_schema['properties'] );
+			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
+			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
+		}
 	}
 
 	/**
@@ -296,6 +298,27 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'db_server_info', $ability_data );
 		$this->assertArrayHasKey( 'wp_version', $ability_data );
 		$this->assertSame( $environment, $ability_data['environment'] );
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability is registered with the expected schema.
+	 *
+	 * @ticket 65234
+	 */
+	public function test_core_get_environment_info_ability_is_registered(): void {
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
+
+		$output_schema = $ability->get_output_schema();
+
+		// Output schema should document each field with title + description.
+		foreach ( array( 'environment', 'php_version', 'db_server_info', 'wp_version' ) as $field ) {
+			$this->assertArrayHasKey( $field, $output_schema['properties'] );
+			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
+			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
+		}
 	}
 
 	/**

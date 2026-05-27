@@ -46,34 +46,42 @@ function wp_register_core_abilities(): void {
 	$site_info_properties = array(
 		'name'        => array(
 			'type'        => 'string',
+			'title'       => __( 'Site Title' ),
 			'description' => __( 'The site title.' ),
 		),
 		'description' => array(
 			'type'        => 'string',
+			'title'       => __( 'Tagline' ),
 			'description' => __( 'The site tagline.' ),
 		),
 		'url'         => array(
 			'type'        => 'string',
+			'title'       => __( 'Site Address (URL)' ),
 			'description' => __( 'The site home URL.' ),
 		),
 		'wpurl'       => array(
 			'type'        => 'string',
+			'title'       => __( 'WordPress Address (URL)' ),
 			'description' => __( 'The WordPress installation URL.' ),
 		),
 		'admin_email' => array(
 			'type'        => 'string',
+			'title'       => __( 'Administration Email Address' ),
 			'description' => __( 'The site administrator email address.' ),
 		),
 		'charset'     => array(
 			'type'        => 'string',
+			'title'       => __( 'Encoding for pages and feeds' ),
 			'description' => __( 'The site character encoding.' ),
 		),
 		'language'    => array(
 			'type'        => 'string',
+			'title'       => __( 'Site Language' ),
 			'description' => __( 'The site language locale code.' ),
 		),
 		'version'     => array(
 			'type'        => 'string',
+			'title'       => __( 'WordPress Version' ),
 			'description' => __( 'The WordPress version.' ),
 		),
 	);
@@ -270,19 +278,23 @@ function wp_register_core_abilities(): void {
 				'properties'           => array(
 					'environment'    => array(
 						'type'        => 'string',
+						'title'       => __( 'Environment type' ),
 						'description' => __( 'The site\'s runtime environment classification (can be one of these: production, staging, development, local).' ),
 						'enum'        => array( 'production', 'staging', 'development', 'local' ),
 					),
 					'php_version'    => array(
 						'type'        => 'string',
+						'title'       => __( 'PHP Version' ),
 						'description' => __( 'The PHP runtime version executing WordPress.' ),
 					),
 					'db_server_info' => array(
 						'type'        => 'string',
+						'title'       => __( 'Database Server version' ),
 						'description' => __( 'The database server vendor and version string reported by the driver.' ),
 					),
 					'wp_version'     => array(
 						'type'        => 'string',
+						'title'       => __( 'WordPress Version' ),
 						'description' => __( 'The WordPress core version running on this site.' ),
 					),
 				),
