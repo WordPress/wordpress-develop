@@ -202,6 +202,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$ability = wp_get_ability( 'core/get-user-info' );
 
 		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
 		$input_schema  = $ability->get_input_schema();
 		$output_schema = $ability->get_output_schema();

@@ -261,7 +261,7 @@ function wp_register_core_abilities(): void {
 					'destructive' => false,
 					'idempotent'  => true,
 				),
-				'show_in_rest' => false,
+				'show_in_rest' => true,
 			),
 		)
 	);
