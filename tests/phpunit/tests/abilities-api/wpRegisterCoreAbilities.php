@@ -302,7 +302,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	/**
 	 * Tests that the `core/get-environment-info` ability is registered with the expected schema.
 	 *
-	 * @ticket 65234
+	 * @ticket 65355
 	 */
 	public function test_core_get_environment_info_ability_is_registered(): void {
 		$ability = wp_get_ability( 'core/get-environment-info' );
@@ -333,7 +333,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	/**
 	 * Tests that the `core/get-environment-info` ability filters its output by the `fields` input parameter.
 	 *
-	 * @ticket 65234
+	 * @ticket 65355
 	 */
 	public function test_core_get_environment_info_filters_fields(): void {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -358,7 +358,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	/**
 	 * Tests that the `core/get-environment-info` ability rejects unknown field names via schema validation.
 	 *
-	 * @ticket 65234
+	 * @ticket 65355
 	 */
 	public function test_core_get_environment_info_rejects_invalid_fields(): void {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
