@@ -186,6 +186,29 @@ CREATE TABLE $wpdb->posts (
 	KEY post_parent (post_parent),
 	KEY post_author (post_author),
 	KEY type_status_author (post_type,post_status,post_author)
+) $charset_collate;
+CREATE TABLE $wpdb->collaboration (
+	collaboration_id bigint(20) unsigned NOT NULL auto_increment,
+	room varchar($max_index_length) NOT NULL default '',
+	client_id varchar(32) NOT NULL default '',
+	user_id bigint(20) unsigned NOT NULL default '0',
+	data longtext NOT NULL,
+	date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY  (collaboration_id),
+	KEY room (room,collaboration_id),
+	KEY date_gmt (date_gmt)
+) $charset_collate;
+CREATE TABLE $wpdb->presence (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	room varchar($max_index_length) NOT NULL default '',
+	client_id varchar($max_index_length) NOT NULL default '',
+	user_id bigint(20) unsigned NOT NULL default '0',
+	data text NOT NULL,
+	date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY  (id),
+	UNIQUE KEY room_client (room,client_id),
+	KEY date_gmt (date_gmt),
+	KEY user_id (user_id)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.
@@ -563,6 +586,9 @@ function populate_options( array $options = array() ) {
 
 		// 6.9.0
 		'wp_notes_notify'                 => 1,
+
+		// 7.1.0
+		'wp_collaboration_enabled'        => 0,
 	);
 
 	// 3.3.0

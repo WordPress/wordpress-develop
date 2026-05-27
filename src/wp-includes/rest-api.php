@@ -428,6 +428,13 @@ function create_initial_rest_routes() {
 	// Icons.
 	$icons_controller = new WP_REST_Icons_Controller();
 	$icons_controller->register_routes();
+
+	// Collaboration.
+	if ( wp_is_collaboration_enabled() ) {
+		$collaboration_storage = new WP_Collaboration_Table_Storage();
+		$collaboration_server  = new WP_HTTP_Polling_Collaboration_Server( $collaboration_storage );
+		$collaboration_server->register_routes();
+	}
 }
 
 /**
