@@ -266,57 +266,76 @@ function wp_register_core_abilities(): void {
 		)
 	);
 
+	$environment_info_properties = array(
+		'environment'    => array(
+			'type'        => 'string',
+			'title'       => __( 'Environment type' ),
+			'description' => __( 'The site\'s runtime environment classification (can be one of these: production, staging, development, local).' ),
+			'enum'        => array( 'production', 'staging', 'development', 'local' ),
+		),
+		'php_version'    => array(
+			'type'        => 'string',
+			'title'       => __( 'PHP Version' ),
+			'description' => __( 'The PHP runtime version executing WordPress.' ),
+		),
+		'db_server_info' => array(
+			'type'        => 'string',
+			'title'       => __( 'Database Server version' ),
+			'description' => __( 'The database server vendor and version string reported by the driver.' ),
+		),
+		'wp_version'     => array(
+			'type'        => 'string',
+			'title'       => __( 'WordPress Version' ),
+			'description' => __( 'The WordPress core version running on this site.' ),
+		),
+	);
+	$environment_info_fields     = array_keys( $environment_info_properties );
+
 	wp_register_ability(
 		'core/get-environment-info',
 		array(
 			'label'               => __( 'Get Environment Info' ),
-			'description'         => __( 'Returns core details about the site\'s runtime context for diagnostics and compatibility (environment, PHP runtime, database server info, WordPress version).' ),
+			'description'         => __( 'Returns core details about the site\'s runtime context for diagnostics and compatibility (environment, PHP runtime, database server info, WordPress version). By default returns all fields, or optionally a filtered subset.' ),
 			'category'            => $category_site,
-			'output_schema'       => array(
+			'input_schema'        => array(
 				'type'                 => 'object',
-				'required'             => array( 'environment', 'php_version', 'db_server_info', 'wp_version' ),
 				'properties'           => array(
-					'environment'    => array(
-						'type'        => 'string',
-						'title'       => __( 'Environment type' ),
-						'description' => __( 'The site\'s runtime environment classification (can be one of these: production, staging, development, local).' ),
-						'enum'        => array( 'production', 'staging', 'development', 'local' ),
-					),
-					'php_version'    => array(
-						'type'        => 'string',
-						'title'       => __( 'PHP Version' ),
-						'description' => __( 'The PHP runtime version executing WordPress.' ),
-					),
-					'db_server_info' => array(
-						'type'        => 'string',
-						'title'       => __( 'Database Server version' ),
-						'description' => __( 'The database server vendor and version string reported by the driver.' ),
-					),
-					'wp_version'     => array(
-						'type'        => 'string',
-						'title'       => __( 'WordPress Version' ),
-						'description' => __( 'The WordPress core version running on this site.' ),
+					'fields' => array(
+						'type'        => 'array',
+						'items'       => array(
+							'type' => 'string',
+							'enum' => $environment_info_fields,
+						),
+						'description' => __( 'Optional: Limit response to specific fields. If omitted, all fields are returned.' ),
 					),
 				),
 				'additionalProperties' => false,
+				'default'              => array(),
 			),
-			'execute_callback'    => static function (): array {
+			'output_schema'       => array(
+				'type'                 => 'object',
+				'properties'           => $environment_info_properties,
+				'additionalProperties' => false,
+			),
+			'execute_callback'    => static function ( $input = array() ) use ( $environment_info_fields ): array {
 				global $wpdb;
 
-				$env          = wp_get_environment_type();
-				$php_version  = phpversion();
-				$db_server_info  = '';
+				$input            = is_array( $input ) ? $input : array();
+				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $environment_info_fields;
+
+				$db_server_info = '';
 				if ( method_exists( $wpdb, 'db_server_info' ) ) {
 					$db_server_info = $wpdb->db_server_info() ?? '';
 				}
-				$wp_version   = get_bloginfo( 'version' );
 
-				return array(
-					'environment'    => $env,
-					'php_version'    => $php_version,
+				$all = array(
+					'environment'    => wp_get_environment_type(),
+					'php_version'    => phpversion(),
 					'db_server_info' => $db_server_info,
-					'wp_version'     => $wp_version,
+					'wp_version'     => get_bloginfo( 'version' ),
 				);
+
+				return array_intersect_key( $all, array_flip( $requested_fields ) );
 			},
 			'permission_callback' => static function (): bool {
 				return current_user_can( 'manage_options' );

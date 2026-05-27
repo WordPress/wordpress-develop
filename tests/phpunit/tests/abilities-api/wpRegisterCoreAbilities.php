@@ -311,7 +311,20 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Ability::class, $ability );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
+		$input_schema  = $ability->get_input_schema();
 		$output_schema = $ability->get_output_schema();
+
+		// Input schema should expose an optional `fields` array with an enum of valid field names.
+		$this->assertSame( 'object', $input_schema['type'] );
+		$this->assertArrayHasKey( 'default', $input_schema );
+		$this->assertSame( array(), $input_schema['default'] );
+		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
+		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
+
+		$enum = $input_schema['properties']['fields']['items']['enum'];
+		foreach ( array( 'environment', 'php_version', 'db_server_info', 'wp_version' ) as $field ) {
+			$this->assertContains( $field, $enum );
+		}
 
 		// Output schema should document each field with title + description.
 		foreach ( array( 'environment', 'php_version', 'db_server_info', 'wp_version' ) as $field ) {
@@ -319,6 +332,52 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
 			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
 		}
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability filters its output by the `fields` input parameter.
+	 *
+	 * @ticket 65234
+	 */
+	public function test_core_get_environment_info_filters_fields(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'environment', 'wp_version' ),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'environment', $result );
+		$this->assertArrayHasKey( 'wp_version', $result );
+		$this->assertArrayNotHasKey( 'php_version', $result );
+		$this->assertArrayNotHasKey( 'db_server_info', $result );
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability rejects unknown field names via schema validation.
+	 *
+	 * @ticket 65234
+	 */
+	public function test_core_get_environment_info_rejects_invalid_fields(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'environment', 'not_a_real_field' ),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
 	/**
