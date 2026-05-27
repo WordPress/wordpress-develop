@@ -34,7 +34,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '2af01b43d30739c3fb8d'
+		'version' => 'f77b871ece5a791f449e'
 	),
 	'block-library/file/view.js' => array(
 		'dependencies' => array(
@@ -46,7 +46,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '7d4d261d10dca47ebecb'
+		'version' => 'a9114a756e418400594c'
 	),
 	'block-library/form/view.js' => array(
 		'dependencies' => array(
@@ -88,7 +88,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '99f747d731f80246db11'
+		'version' => '1ecf748f10b95c76b349'
 	),
 	'block-library/query/view.js' => array(
 		'dependencies' => array(
@@ -166,7 +166,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '54bb5a420026a61c7e4f'
+		'version' => '5e02fdb03b9e05e7ba82'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -177,7 +177,42 @@
 			'wp-i18n',
 			'wp-private-apis'
 		),
-		'version' => '274797868955a828dfdc'
+		'version' => 'dce5e2b0fc240815717b'
+	),
+	'content-types/index.js' => array(
+		'dependencies' => array(
+			'react',
+			'react-dom',
+			'react-jsx-runtime',
+			'wp-components',
+			'wp-compose',
+			'wp-core-data',
+			'wp-data',
+			'wp-date',
+			'wp-deprecated',
+			'wp-element',
+			'wp-i18n',
+			'wp-is-shallow-equal',
+			'wp-keycodes',
+			'wp-notices',
+			'wp-preferences',
+			'wp-primitives',
+			'wp-private-apis',
+			'wp-theme',
+			'wp-url',
+			'wp-warning'
+		),
+		'module_dependencies' => array(
+			array(
+				'id' => '@wordpress/a11y',
+				'import' => 'static'
+			),
+			array(
+				'id' => '@wordpress/route',
+				'import' => 'static'
+			)
+		),
+		'version' => '9a35d0da8badd6a33cf8'
 	),
 	'core-abilities/index.js' => array(
 		'dependencies' => array(
@@ -205,7 +240,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'e57f44d1a9f69e75d2d9'
+		'version' => '3e9b6e117adbaf70a10f'
 	),
 	'interactivity/index.js' => array(
 		'dependencies' => array(
@@ -273,7 +308,7 @@
 			'wp-private-apis',
 			'wp-style-engine'
 		),
-		'version' => '30ab62f45bfe9f971ea0'
+		'version' => '8bd91519756b243fc835'
 	),
 	'route/index.js' => array(
 		'dependencies' => array(
@@ -282,7 +317,7 @@
 			'react-jsx-runtime',
 			'wp-private-apis'
 		),
-		'version' => 'c5843b6c5e84b352f43b'
+		'version' => '48a77bfa70722b4254e4'
 	),
 	'workflow/index.js' => array(
 		'dependencies' => array(
@@ -303,6 +338,6 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '13556bc597bbf2a8d620'
+		'version' => 'c1055ffa9d3634a7dfe7'
 	)
 );

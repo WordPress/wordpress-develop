@@ -89,7 +89,7 @@ function wp_options_connectors_wp_admin_preload_data() {
 	// Define paths to preload - same for all pages
 	// Please also change packages/core-data/src/entities.js when changing this.
 	$preload_paths = array(
-		'/?_fields=description,gmt_offset,home,image_sizes,image_size_threshold,image_output_formats,jpeg_interlaced,png_interlaced,gif_interlaced,name,site_icon,site_icon_url,site_logo,timezone_string,url,page_for_posts,page_on_front,show_on_front',
+		'/?_fields=description,gmt_offset,home,image_sizes,image_size_threshold,name,site_icon,site_icon_url,site_logo,timezone_string,url,page_for_posts,page_on_front,show_on_front',
 		array( '/wp/v2/settings', 'OPTIONS' ),
 	);
 
@@ -153,35 +153,12 @@ function wp_options_connectors_wp_admin_enqueue_scripts( $hook_suffix ) {
 		// 2. It initializes the boot module as an inline script.
 		wp_register_script( 'options-connectors-wp-admin-prerequisites', '', $asset['dependencies'], $asset['version'], true );
 
-		/*
-		 * Add inline script to initialize the app using initSinglePage (no menuItems).
-		 * The dynamic import is deferred until DOMContentLoaded so that all classic
-		 * script dependencies of @wordpress/boot (wp-private-apis, wp-components,
-		 * wp-theme, etc.) have finished parsing and executing before the boot module
-		 * evaluates. Otherwise, a modulepreloaded @wordpress/boot can win the race
-		 * against the classic-script-printing pass on fast CDN-fronted hosts in
-		 * Chrome, evaluating before wp.theme.privateApis is defined and throwing
-		 * "Cannot unlock an undefined object". See <https://core.trac.wordpress.org/ticket/65103>.
-		 */
-		$init_js_function = <<<'JS'
-		( mountId, routes ) => {
-			const run = async () => {
-				const mod = await import( "@wordpress/boot" );
-				mod.initSinglePage( { mountId, routes } );
-			};
-			if ( document.readyState === "loading" ) {
-				document.addEventListener( "DOMContentLoaded", run );
-			} else {
-				run();
-			}
-		}
-		JS;
+		// Add inline script to initialize the app using initSinglePage (no menuItems)
 		wp_add_inline_script(
 			'options-connectors-wp-admin-prerequisites',
 			sprintf(
-				'( %s )( %s, %s );',
-				$init_js_function,
-				wp_json_encode( 'options-connectors-wp-admin-app', JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				'import("@wordpress/boot").then(mod => mod.initSinglePage({mountId: "%s", routes: %s}));',
+				'options-connectors-wp-admin-app',
 				wp_json_encode( $routes, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
@@ -218,6 +195,21 @@ function wp_options_connectors_wp_admin_enqueue_scripts( $hook_suffix ) {
 				);
 			}
 		}
+
+		/**
+		 * Filters the boot script-module dependencies for the
+		 * options-connectors-wp-admin page.
+		 *
+		 * Surfaces extending this page can append entries to the boot
+		 * dependency list. Each entry is an array with 'import' (string
+		 * 'static' or 'dynamic') and 'id' (script-module handle) keys.
+		 *
+		 * @param array $boot_dependencies Boot dependencies for the page.
+		 */
+		$boot_dependencies = apply_filters(
+			'options-connectors-wp-admin_boot_dependencies',
+			$boot_dependencies
+		);
 
 		// Dummy script module to ensure dependencies are loaded
 		wp_register_script_module(
