@@ -243,9 +243,12 @@ function get_template_part( $slug, $name = null, $args = array() ) {
  *                                  Defaults to true when the theme declares support for the
  *                                  'search-element' feature, false otherwise.
  * }
- * @return void|string Void if 'echo' argument is true, search form HTML if 'echo' is false.
+ * @return null|string Null if 'echo' argument is true, search form HTML if 'echo' is false.
+ *
+ * @phpstan-param array{ echo?: bool, aria_label?: string, wrap_in_search?: bool } $args
+ * @phpstan-return ( $args is array{ echo: false } ? string : null )
  */
-function get_search_form( $args = array() ) {
+function get_search_form( $args = array() ): ?string {
 	/**
 	 * Fires before the search form is retrieved, at the start of get_search_form().
 	 *
@@ -391,6 +394,7 @@ function get_search_form( $args = array() ) {
 
 	if ( $args['echo'] ) {
 		echo $result;
+		return null;
 	} else {
 		return $result;
 	}
