@@ -70,7 +70,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'default', $input_schema );
 		$this->assertSame( array(), $input_schema['default'] );
 
-		// Input schema should have optional fields array.
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
 
@@ -79,7 +78,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
 		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
 
-		// Each output property must document a title + description.
 		foreach ( $expected_fields as $field ) {
 			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
 			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
@@ -210,7 +208,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$input_schema  = $ability->get_input_schema();
 		$output_schema = $ability->get_output_schema();
 
-		// Input schema should expose an optional `fields` array with an enum of valid field names.
 		$this->assertSame( 'object', $input_schema['type'] );
 		$this->assertArrayHasKey( 'default', $input_schema );
 		$this->assertSame( array(), $input_schema['default'] );
@@ -222,7 +219,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
 		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
 
-		// Each output property must document a title + description.
 		foreach ( $expected_fields as $field ) {
 			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
 			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
@@ -317,7 +313,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$input_schema  = $ability->get_input_schema();
 		$output_schema = $ability->get_output_schema();
 
-		// Input schema should expose an optional `fields` array with an enum of valid field names.
 		$this->assertSame( 'object', $input_schema['type'] );
 		$this->assertArrayHasKey( 'default', $input_schema );
 		$this->assertSame( array(), $input_schema['default'] );
@@ -329,7 +324,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
 		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
 
-		// Each output property must document a title + description.
 		foreach ( $expected_fields as $field ) {
 			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
 			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
