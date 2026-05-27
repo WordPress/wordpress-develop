@@ -153,7 +153,7 @@ class Tests_General_GetSearchForm extends WP_UnitTestCase {
 
 		add_filter(
 			'search_form_args',
-			static function ( $args ) {
+			static function ( array $args ) {
 				$args['wrap_in_search'] = true;
 				return $args;
 			}
