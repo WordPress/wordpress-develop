@@ -74,7 +74,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
 
-		// Locking the exact set of fields guards against properties being added without test coverage.
 		$expected_fields = array( 'name', 'description', 'url', 'wpurl', 'admin_email', 'charset', 'language', 'version' );
 
 		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
@@ -218,7 +217,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
 
-		// Locking the exact set of fields guards against properties being added without test coverage.
 		$expected_fields = array( 'id', 'display_name', 'user_nicename', 'user_login', 'roles', 'locale', 'first_name', 'last_name', 'nickname', 'description', 'user_url' );
 
 		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
@@ -326,7 +324,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
 
-		// Locking the exact set of fields guards against properties being added without test coverage.
 		$expected_fields = array( 'environment', 'php_version', 'db_server_info', 'wp_version' );
 
 		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
