@@ -328,7 +328,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -349,7 +348,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -775,6 +773,59 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
 		$this->assertEmpty( $data, 'Should return empty array for non-existent category' );
+	}
+
+	/**
+	 * Test filtering abilities by namespace.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_namespace(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'namespace', 'test' );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertNotEmpty( $names, 'Expected at least one ability in the test namespace.' );
+		foreach ( $names as $name ) {
+			$this->assertStringStartsWith( 'test/', $name );
+		}
+	}
+
+	/**
+	 * Test filtering by non-existent namespace returns empty results.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_nonexistent_namespace(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'namespace', 'nonexistent' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
+	 * Test that filtering by namespace still excludes abilities without show_in_rest.
+	 *
+	 * The 'test/not-show-in-rest' fixture matches the 'test' namespace but is
+	 * registered without `show_in_rest => true`, so it must remain excluded.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_namespace_still_respects_show_in_rest(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'namespace', 'test' );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertNotContains( 'test/not-show-in-rest', $names );
 	}
 
 	/**

@@ -11085,12 +11085,6 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
-                        "wp_collaboration_enabled": {
-                            "title": "",
-                            "description": "Enable Real-Time Collaboration",
-                            "type": "boolean",
-                            "required": false
-                        },
                         "posts_per_page": {
                             "title": "Maximum posts per page",
                             "description": "Blog pages show at most.",
@@ -12580,6 +12574,11 @@ mockedApiResponse.Schema = {
                         },
                         "category": {
                             "description": "Limit results to abilities in specific ability category.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "namespace": {
+                            "description": "Limit results to abilities in a specific namespace.",
                             "type": "string",
                             "required": false
                         }
@@ -14556,7 +14555,6 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
-    "wp_collaboration_enabled": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,
