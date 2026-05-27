@@ -57,12 +57,12 @@ function wp_register_core_abilities(): void {
 		'url'         => array(
 			'type'        => 'string',
 			'title'       => __( 'Site Address (URL)' ),
-			'description' => __( 'The site home URL.' ),
+			'description' => __( 'The public URL where visitors access the site. May differ from the WordPress installation URL.' ),
 		),
 		'wpurl'       => array(
 			'type'        => 'string',
 			'title'       => __( 'WordPress Address (URL)' ),
-			'description' => __( 'The WordPress installation URL.' ),
+			'description' => __( 'The URL where WordPress core files are served. May differ from the public site URL.' ),
 		),
 		'admin_email' => array(
 			'type'        => 'string',
@@ -77,7 +77,7 @@ function wp_register_core_abilities(): void {
 		'language'    => array(
 			'type'        => 'string',
 			'title'       => __( 'Site Language' ),
-			'description' => __( 'The site language locale code.' ),
+			'description' => __( 'The site locale in dash form (e.g. en-US).' ),
 		),
 		'version'     => array(
 			'type'        => 'string',
@@ -146,7 +146,7 @@ function wp_register_core_abilities(): void {
 		'id'            => array(
 			'type'        => 'integer',
 			'title'       => __( 'User ID' ),
-			'description' => __( 'Unique numeric identifier for the user.' ),
+			'description' => __( 'Unique identifier for the user.' ),
 		),
 		'display_name'  => array(
 			'type'        => 'string',
@@ -194,7 +194,7 @@ function wp_register_core_abilities(): void {
 		'description'   => array(
 			'type'        => 'string',
 			'title'       => __( 'Biographical Info' ),
-			'description' => __( 'User-authored biography, often shown on author pages.' ),
+			'description' => __( 'User-authored biography. May be empty.' ),
 		),
 		'user_url'      => array(
 			'type'        => 'string',
@@ -270,7 +270,7 @@ function wp_register_core_abilities(): void {
 		'environment'    => array(
 			'type'        => 'string',
 			'title'       => __( 'Environment Type' ),
-			'description' => __( 'The site\'s runtime environment classification (can be one of these: production, staging, development, local).' ),
+			'description' => __( 'The site\'s runtime environment classification.' ),
 			'enum'        => array( 'production', 'staging', 'development', 'local' ),
 		),
 		'php_version'    => array(
