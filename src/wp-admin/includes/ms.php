@@ -30,7 +30,7 @@ function check_upload_size( $file ) {
 
 	$space_left = get_upload_space_available();
 
-	$file_size = filesize( $file['tmp_name'] );
+	$file_size = wp_filesize( $file['tmp_name'] );
 	if ( $space_left < $file_size ) {
 		/* translators: %s: Required disk space in kilobytes. */
 		$file['error'] = sprintf( __( 'Not enough space to upload. %s KB needed.' ), number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) );
