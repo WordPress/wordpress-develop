@@ -73,11 +73,15 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		// Input schema should have optional fields array.
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
-		$this->assertContains( 'name', $input_schema['properties']['fields']['items']['enum'] );
 
-		// Output schema should document each field with title + description.
-		foreach ( array( 'name', 'description', 'url', 'wpurl', 'admin_email', 'charset', 'language', 'version' ) as $field ) {
-			$this->assertArrayHasKey( $field, $output_schema['properties'] );
+		// Locking the exact set of fields guards against properties being added without test coverage.
+		$expected_fields = array( 'name', 'description', 'url', 'wpurl', 'admin_email', 'charset', 'language', 'version' );
+
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		// Each output property must document a title + description.
+		foreach ( $expected_fields as $field ) {
 			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
 			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
 		}
@@ -214,14 +218,14 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
 
-		$enum = $input_schema['properties']['fields']['items']['enum'];
-		foreach ( array( 'id', 'display_name', 'first_name', 'last_name', 'nickname', 'description', 'user_url' ) as $field ) {
-			$this->assertContains( $field, $enum );
-		}
+		// Locking the exact set of fields guards against properties being added without test coverage.
+		$expected_fields = array( 'id', 'display_name', 'user_nicename', 'user_login', 'roles', 'locale', 'first_name', 'last_name', 'nickname', 'description', 'user_url' );
 
-		// Output schema should document the original and new profile fields with title + description.
-		foreach ( array( 'id', 'display_name', 'first_name', 'last_name', 'nickname', 'description', 'user_url' ) as $field ) {
-			$this->assertArrayHasKey( $field, $output_schema['properties'] );
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		// Each output property must document a title + description.
+		foreach ( $expected_fields as $field ) {
 			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
 			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
 		}
@@ -322,14 +326,14 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
 
-		$enum = $input_schema['properties']['fields']['items']['enum'];
-		foreach ( array( 'environment', 'php_version', 'db_server_info', 'wp_version' ) as $field ) {
-			$this->assertContains( $field, $enum );
-		}
+		// Locking the exact set of fields guards against properties being added without test coverage.
+		$expected_fields = array( 'environment', 'php_version', 'db_server_info', 'wp_version' );
 
-		// Output schema should document each field with title + description.
-		foreach ( array( 'environment', 'php_version', 'db_server_info', 'wp_version' ) as $field ) {
-			$this->assertArrayHasKey( $field, $output_schema['properties'] );
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		// Each output property must document a title + description.
+		foreach ( $expected_fields as $field ) {
 			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
 			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
 		}

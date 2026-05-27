@@ -71,7 +71,7 @@ function wp_register_core_abilities(): void {
 		),
 		'charset'     => array(
 			'type'        => 'string',
-			'title'       => __( 'Encoding for pages and feeds' ),
+			'title'       => __( 'Site Charset' ),
 			'description' => __( 'The site character encoding.' ),
 		),
 		'language'    => array(
@@ -82,7 +82,7 @@ function wp_register_core_abilities(): void {
 		'version'     => array(
 			'type'        => 'string',
 			'title'       => __( 'WordPress Version' ),
-			'description' => __( 'The WordPress version.' ),
+			'description' => __( 'The WordPress core version running on this site.' ),
 		),
 	);
 	$site_info_fields     = array_keys( $site_info_properties );
@@ -269,7 +269,7 @@ function wp_register_core_abilities(): void {
 	$environment_info_properties = array(
 		'environment'    => array(
 			'type'        => 'string',
-			'title'       => __( 'Environment type' ),
+			'title'       => __( 'Environment Type' ),
 			'description' => __( 'The site\'s runtime environment classification (can be one of these: production, staging, development, local).' ),
 			'enum'        => array( 'production', 'staging', 'development', 'local' ),
 		),
@@ -280,7 +280,7 @@ function wp_register_core_abilities(): void {
 		),
 		'db_server_info' => array(
 			'type'        => 'string',
-			'title'       => __( 'Database Server version' ),
+			'title'       => __( 'Database Server Info' ),
 			'description' => __( 'The database server vendor and version string reported by the driver.' ),
 		),
 		'wp_version'     => array(
