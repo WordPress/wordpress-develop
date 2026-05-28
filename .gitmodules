@@ -1,0 +1,3 @@
+[submodule "src/wp-includes/de-rtc/yjs-php"]
+	path = src/wp-includes/de-rtc/yjs-php
+	url = ../../wp-de-php-yjs
