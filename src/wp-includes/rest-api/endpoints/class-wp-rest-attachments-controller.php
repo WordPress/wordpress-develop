@@ -170,7 +170,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 											'minimum' => 1,
 										),
 										'file'           => array(
-											'type' => 'string',
+											'type'      => 'string',
+											'minLength' => 1,
 										),
 										'mime_type'      => array(
 											'type'    => 'string',
@@ -181,7 +182,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 											'minimum' => 1,
 										),
 										'original_image' => array(
-											'type' => 'string',
+											'type'      => 'string',
+											'minLength' => 1,
 										),
 									),
 								),
