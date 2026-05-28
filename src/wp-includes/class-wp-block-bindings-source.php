@@ -83,6 +83,7 @@ final class WP_Block_Bindings_Source {
 	 * @return mixed The value of the source.
 	 */
 	public function get_value( array $source_args, $block_instance, string $attribute_name ) {
+		// Safe: Array is built internally with numeric keys, not from untrusted input.
 		$value = call_user_func_array( $this->get_value_callback, array( $source_args, $block_instance, $attribute_name ) );
 		/**
 		 * Filters the output of a block bindings source.

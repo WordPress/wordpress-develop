@@ -913,7 +913,7 @@ final class WP_Screen {
 
 								// If it exists, fire tab callback.
 								if ( ! empty( $tab['callback'] ) ) {
-									call_user_func_array( $tab['callback'], array( $this, $tab ) );
+									call_user_func_array( $tab['callback'], wp_normalize_call_user_func_args( array( $this, $tab ) ) );
 								}
 								?>
 							</div>

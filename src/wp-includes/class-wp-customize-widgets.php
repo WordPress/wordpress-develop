@@ -1631,7 +1631,7 @@ final class WP_Customize_Widgets {
 		foreach ( (array) $wp_registered_widget_updates as $name => $control ) {
 			if ( $name === $parsed_id['id_base'] && is_callable( $control['callback'] ) ) {
 				ob_start();
-				call_user_func_array( $control['callback'], $control['params'] );
+				call_user_func_array( $control['callback'], wp_normalize_call_user_func_args( $control['params'] ) );
 				ob_end_clean();
 				break;
 			}
@@ -1677,7 +1677,7 @@ final class WP_Customize_Widgets {
 		ob_start();
 		$form = $wp_registered_widget_controls[ $widget_id ];
 		if ( $form ) {
-			call_user_func_array( $form['callback'], $form['params'] );
+			call_user_func_array( $form['callback'], wp_normalize_call_user_func_args( $form['params'] ) );
 		}
 		$form = ob_get_clean();
 

@@ -289,23 +289,23 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_Ability      $ability The ability object.
+	 * @param WP_Ability      $item    The ability object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $ability, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
 		$data = array(
-			'name'          => $ability->get_name(),
-			'label'         => $ability->get_label(),
-			'description'   => $ability->get_description(),
-			'category'      => $ability->get_category(),
+			'name'          => $item->get_name(),
+			'label'         => $item->get_label(),
+			'description'   => $item->get_description(),
+			'category'      => $item->get_category(),
 			'input_schema'  => $this->strip_internal_schema_keywords(
-				$this->normalize_schema_empty_object_defaults( $ability->get_input_schema() )
+				$this->normalize_schema_empty_object_defaults( $item->get_input_schema() )
 			),
 			'output_schema' => $this->strip_internal_schema_keywords(
-				$this->normalize_schema_empty_object_defaults( $ability->get_output_schema() )
+				$this->normalize_schema_empty_object_defaults( $item->get_output_schema() )
 			),
-			'meta'          => $ability->get_meta(),
+			'meta'          => $item->get_meta(),
 		);
 
 		$context = $request['context'] ?? 'view';
@@ -318,7 +318,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
 			$links = array(
 				'self'       => array(
-					'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $ability->get_name() ) ),
+					'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $item->get_name() ) ),
 				),
 				'collection' => array(
 					'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
@@ -326,7 +326,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			);
 
 			$links['wp:action-run'] = array(
-				'href' => rest_url( sprintf( '%s/%s/%s/run', $this->namespace, $this->rest_base, $ability->get_name() ) ),
+				'href' => rest_url( sprintf( '%s/%s/%s/run', $this->namespace, $this->rest_base, $item->get_name() ) ),
 			);
 
 			$response->add_links( $links );

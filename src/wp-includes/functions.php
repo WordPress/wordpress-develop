@@ -7162,9 +7162,9 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
 	while (
 		$tortoise
 	&&
-		( $evanescent_hare = $override[ $hare ] ?? call_user_func_array( $callback, array_merge( array( $hare ), $callback_args ) ) )
+		( $evanescent_hare = $override[ $hare ] ?? call_user_func_array( $callback, wp_normalize_call_user_func_args( array_merge( array( $hare ), $callback_args ) ) ) )
 	&&
-		( $hare = $override[ $evanescent_hare ] ?? call_user_func_array( $callback, array_merge( array( $evanescent_hare ), $callback_args ) ) )
+		( $hare = $override[ $evanescent_hare ] ?? call_user_func_array( $callback, wp_normalize_call_user_func_args( array_merge( array( $evanescent_hare ), $callback_args ) ) ) )
 	) {
 		if ( $_return_loop ) {
 			$return[ $tortoise ]        = true;
@@ -7178,7 +7178,7 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
 		}
 
 		// Increment tortoise by one step.
-		$tortoise = $override[ $tortoise ] ?? call_user_func_array( $callback, array_merge( array( $tortoise ), $callback_args ) );
+		$tortoise = $override[ $tortoise ] ?? call_user_func_array( $callback, wp_normalize_call_user_func_args( array_merge( array( $tortoise ), $callback_args ) ) );
 	}
 
 	return false;

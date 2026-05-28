@@ -844,7 +844,7 @@ function dynamic_sidebar( $index = 1 ) {
 		do_action( 'dynamic_sidebar', $wp_registered_widgets[ $id ] );
 
 		if ( is_callable( $callback ) ) {
-			call_user_func_array( $callback, $params );
+			call_user_func_array( $callback, wp_normalize_call_user_func_args( $params ) );
 			$did_one = true;
 		}
 	}
@@ -2054,7 +2054,7 @@ function wp_render_widget( $widget_id, $sidebar_id ) {
 	do_action( 'dynamic_sidebar', $wp_registered_widgets[ $widget_id ] );
 
 	if ( is_callable( $callback ) ) {
-		call_user_func_array( $callback, $params );
+		call_user_func_array( $callback, wp_normalize_call_user_func_args( $params ) );
 	}
 
 	return ob_get_clean();
@@ -2083,7 +2083,7 @@ function wp_render_widget_control( $id ) {
 	ob_start();
 
 	if ( is_callable( $callback ) ) {
-		call_user_func_array( $callback, $params );
+		call_user_func_array( $callback, wp_normalize_call_user_func_args( $params ) );
 	}
 
 	return ob_get_clean();

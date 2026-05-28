@@ -290,18 +290,18 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * @since 6.3.0
 	 * @since 6.6.0 Added resolved URI links to the response.
 	 *
-	 * @param WP_Post         $post    Post revision object.
+	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
 		// Don't prepare the response body for HEAD requests.
 		if ( $request->is_method( 'HEAD' ) ) {
 			return new WP_REST_Response( array() );
 		}
 
 		$parent               = $this->get_parent( $request['parent'] );
-		$global_styles_config = $this->get_decoded_global_styles_json( $post->post_content );
+		$global_styles_config = $this->get_decoded_global_styles_json( $item->post_content );
 
 		if ( is_wp_error( $global_styles_config ) ) {
 			return $global_styles_config;
@@ -332,27 +332,27 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 		}
 
 		if ( rest_is_field_included( 'author', $fields ) ) {
-			$data['author'] = (int) $post->post_author;
+			$data['author'] = (int) $item->post_author;
 		}
 
 		if ( rest_is_field_included( 'date', $fields ) ) {
-			$data['date'] = $this->prepare_date_response( $post->post_date_gmt, $post->post_date );
+			$data['date'] = $this->prepare_date_response( $item->post_date_gmt, $item->post_date );
 		}
 
 		if ( rest_is_field_included( 'date_gmt', $fields ) ) {
-			$data['date_gmt'] = $this->prepare_date_response( $post->post_date_gmt );
+			$data['date_gmt'] = $this->prepare_date_response( $item->post_date_gmt );
 		}
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
-			$data['id'] = (int) $post->ID;
+			$data['id'] = (int) $item->ID;
 		}
 
 		if ( rest_is_field_included( 'modified', $fields ) ) {
-			$data['modified'] = $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified );
+			$data['modified'] = $this->prepare_date_response( $item->post_modified_gmt, $item->post_modified );
 		}
 
 		if ( rest_is_field_included( 'modified_gmt', $fields ) ) {
-			$data['modified_gmt'] = $this->prepare_date_response( $post->post_modified_gmt );
+			$data['modified_gmt'] = $this->prepare_date_response( $item->post_modified_gmt );
 		}
 
 		if ( rest_is_field_included( 'parent', $fields ) ) {

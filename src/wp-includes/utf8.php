@@ -47,9 +47,11 @@ else :
 	 * @private
 	 *
 	 * @since 6.9.0
+	 *
+	 * Note: The `$string` parameter was renamed to `$bytes` for PHP 8.0 named argument compatibility.
 	 */
-	function wp_is_valid_utf8( string $string ): bool {
-		return _wp_is_valid_utf8_fallback( $string );
+	function wp_is_valid_utf8( string $bytes ): bool {
+		return _wp_is_valid_utf8_fallback( $bytes );
 	}
 endif;
 

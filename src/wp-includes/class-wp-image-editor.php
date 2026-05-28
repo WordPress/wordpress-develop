@@ -574,7 +574,7 @@ abstract class WP_Image_Editor {
 			wp_mkdir_p( dirname( $filename ) );
 		}
 
-		$result = call_user_func_array( $callback, $arguments );
+		$result = call_user_func_array( $callback, wp_normalize_call_user_func_args( $arguments ) );
 
 		if ( $result && $stream ) {
 			$contents = ob_get_contents();

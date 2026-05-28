@@ -2432,7 +2432,7 @@ function wp_ajax_save_widget() {
 			}
 
 			ob_start();
-				call_user_func_array( $control['callback'], $control['params'] );
+				call_user_func_array( $control['callback'], wp_normalize_call_user_func_args( $control['params'] ) );
 			ob_end_clean();
 			break;
 		}
@@ -2451,7 +2451,7 @@ function wp_ajax_save_widget() {
 
 	$form = $wp_registered_widget_controls[ $widget_id ];
 	if ( $form ) {
-		call_user_func_array( $form['callback'], $form['params'] );
+		call_user_func_array( $form['callback'], wp_normalize_call_user_func_args( $form['params'] ) );
 	}
 
 	wp_die();

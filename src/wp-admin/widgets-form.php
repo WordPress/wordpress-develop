@@ -177,7 +177,7 @@ if ( isset( $_POST['savewidget'] ) || isset( $_POST['removewidget'] ) ) {
 		}
 
 		ob_start();
-			call_user_func_array( $control['callback'], $control['params'] );
+			call_user_func_array( $control['callback'], wp_normalize_call_user_func_args( $control['params'] ) );
 		ob_end_clean();
 
 		break;
@@ -290,7 +290,7 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 	<div class="widget-inside">
 	<?php
 	if ( is_callable( $control_callback ) ) {
-		call_user_func_array( $control_callback, $control['params'] );
+		call_user_func_array( $control_callback, wp_normalize_call_user_func_args( $control['params'] ) );
 	} else {
 		echo '<p>' . __( 'There are no options for this widget.' ) . "</p>\n";
 	}

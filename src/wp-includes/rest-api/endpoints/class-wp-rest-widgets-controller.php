@@ -422,7 +422,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 			if ( is_callable( $callback ) ) {
 				ob_start();
-				call_user_func_array( $callback, $params );
+				call_user_func_array( $callback, wp_normalize_call_user_func_args( $params ) );
 				ob_end_clean();
 			}
 
@@ -621,7 +621,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 		if ( is_callable( $callback ) ) {
 			ob_start();
-			call_user_func_array( $callback, $params );
+			call_user_func_array( $callback, wp_normalize_call_user_func_args( $params ) );
 			ob_end_clean();
 		}
 
