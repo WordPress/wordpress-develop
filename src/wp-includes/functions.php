@@ -8494,7 +8494,7 @@ function wp_schedule_personal_data_cleanup_requests() {
  *
  * @since 7.1.0
  */
-function wp_cron_personal_data_cleanup_requests() {
+function wp_privacy_personal_data_cleanup_requests() {
 	if ( ! function_exists( '_wp_personal_data_cleanup_requests' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/privacy-tools.php';
 	}
