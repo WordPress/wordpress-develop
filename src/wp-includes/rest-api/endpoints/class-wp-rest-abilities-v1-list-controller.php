@@ -189,15 +189,21 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * WordPress-internal schema keywords to strip from REST responses.
+	 * Additional schema keywords to preserve in REST responses.
 	 *
-	 * @since 7.0.0
-	 * @var array<string, true>
+	 * These are not included in rest_get_allowed_schema_keywords(), but are
+	 * still recognized as schema traversal locations for ability schemas.
+	 *
+	 * @since 7.1.0
+	 * @var string[]
 	 */
-	private const INTERNAL_SCHEMA_KEYWORDS = array(
-		'sanitize_callback' => true,
-		'validate_callback' => true,
-		'arg_options'       => true,
+	private const ADDITIONAL_ALLOWED_SCHEMA_KEYWORDS = array(
+		'required',
+		'allOf',
+		'not',
+		'definitions',
+		'dependencies',
+		'additionalItems',
 	);
 
 	/**
@@ -217,12 +223,11 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	/**
 	 * Transforms an ability schema for REST response output.
 	 *
-	 * Ability schemas may include WordPress-internal properties like
-	 * `sanitize_callback`, `validate_callback`, and `arg_options` that are
-	 * used server-side but are not valid JSON Schema keywords. This method
-	 * removes those specific keys so they are not exposed in REST responses.
-	 * It also converts empty array defaults to objects when the schema type is
-	 * 'object' to ensure proper JSON serialization as {} instead of [].
+	 * Ability schemas may include WordPress-internal properties or unsupported
+	 * schema keywords that should not be exposed in REST responses. This method
+	 * strips keys not recognized by the REST API schema handling. It also
+	 * converts empty array defaults to objects when the schema type is 'object'
+	 * to ensure proper JSON serialization as {} instead of [].
 	 *
 	 * @since 7.1.0
 	 *
@@ -237,7 +242,16 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$schema = array_diff_key( $schema, self::INTERNAL_SCHEMA_KEYWORDS );
+		$schema = array_intersect_key(
+			$schema,
+			array_fill_keys(
+				array_merge(
+					rest_get_allowed_schema_keywords(),
+					self::ADDITIONAL_ALLOWED_SCHEMA_KEYWORDS
+				),
+				true
+			)
+		);
 
 		// Sub-schema maps: keys are user-defined, values are sub-schemas.
 		// Note: 'dependencies' values can also be property-dependency arrays

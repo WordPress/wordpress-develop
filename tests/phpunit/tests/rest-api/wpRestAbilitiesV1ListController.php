@@ -846,6 +846,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 						'content' => array(
 							'type'              => 'string',
 							'description'       => 'The content value.',
+							'examples'          => array( 'example content' ),
 							'sanitize_callback' => 'sanitize_text_field',
 							'validate_callback' => 'is_string',
 							'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
@@ -880,6 +881,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'sanitize_callback', $content_schema );
 		$this->assertArrayNotHasKey( 'validate_callback', $content_schema );
 		$this->assertArrayNotHasKey( 'arg_options', $content_schema );
+		$this->assertArrayNotHasKey( 'examples', $content_schema );
 
 		// Verify valid JSON Schema keywords are preserved.
 		$this->assertSame( 'string', $content_schema['type'] );
