@@ -72,14 +72,15 @@ if ( get_option( 'db_upgraded' ) ) {
 	 * @param bool $do_mu_upgrade Whether to perform the Multisite upgrade routine. Default true.
 	 */
 	if ( apply_filters( 'do_mu_upgrade', true ) ) {
-		$c = get_blog_count();
+		$blog_count = get_blog_count();
 
 		/*
 		 * If there are 50 or fewer sites, run every time. Otherwise, throttle to reduce load:
 		 * attempt to do no more than threshold value, with some +/- allowed.
 		 */
-		if ( $c <= 50 || ( $c > 50 && mt_rand( 0, (int) ( $c / 50 ) ) === 1 ) ) {
+		if ( $blog_count <= 50 || ( $blog_count > 50 && mt_rand( 0, (int) ( $blog_count / 50 ) ) === 1 ) ) {
 			require_once ABSPATH . WPINC . '/http.php';
+
 			$response = wp_remote_get(
 				admin_url( 'upgrade.php?step=1' ),
 				array(
@@ -87,11 +88,14 @@ if ( get_option( 'db_upgraded' ) ) {
 					'httpversion' => '1.1',
 				)
 			);
+
 			/** This action is documented in wp-admin/network/upgrade.php */
 			do_action( 'after_mu_upgrade', $response );
+
 			unset( $response );
 		}
-		unset( $c );
+
+		unset( $blog_count );
 	}
 }
 
@@ -391,17 +395,22 @@ if ( isset( $plugin_page ) ) {
 	 */
 	if ( 'page' === $typenow ) {
 		if ( 'post-new.php' === $pagenow ) {
+			/** This action is documented in wp-admin/admin.php */
 			do_action( 'load-page-new.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		} elseif ( 'post.php' === $pagenow ) {
+			/** This action is documented in wp-admin/admin.php */
 			do_action( 'load-page.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		}
 	} elseif ( 'edit-tags.php' === $pagenow ) {
 		if ( 'category' === $taxnow ) {
+			/** This action is documented in wp-admin/admin.php */
 			do_action( 'load-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		} elseif ( 'link_category' === $taxnow ) {
+			/** This action is documented in wp-admin/admin.php */
 			do_action( 'load-edit-link-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		}
 	} elseif ( 'term.php' === $pagenow ) {
+		/** This action is documented in wp-admin/admin.php */
 		do_action( 'load-edit-tags.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 }

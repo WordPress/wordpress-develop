@@ -443,7 +443,7 @@ switch ( $action ) {
 				<table class="form-table" role="presentation">
 					<tr class="user-user-login-wrap">
 						<th><label for="user_login"><?php _e( 'Username' ); ?></label></th>
-						<td><input type="text" name="user_login" id="user_login" value="<?php echo esc_attr( $profile_user->user_login ); ?>" readonly="readonly" class="regular-text" /> <span class="description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
+						<td><input type="text" name="user_login" id="user_login" value="<?php echo esc_attr( $profile_user->user_login ); ?>" readonly="readonly" class="regular-text ltr" /> <span class="description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
 					</tr>
 
 					<?php if ( ! IS_PROFILE_PAGE && ! is_network_admin() && current_user_can( 'promote_user', $profile_user->ID ) ) : ?>
@@ -471,15 +471,11 @@ switch ( $action ) {
 						</tr>
 					<?php endif; // End if ! IS_PROFILE_PAGE. ?>
 
-					<?php if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && current_user_can( 'manage_network_options' ) && ! isset( $super_admins ) ) : ?>
+					<?php if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && ! isset( $super_admins ) ) : ?>
 						<tr class="user-super-admin-wrap">
 							<th><?php _e( 'Super Admin' ); ?></th>
 							<td>
-								<?php if ( 0 !== strcasecmp( $profile_user->user_email, get_site_option( 'admin_email' ) ) || ! is_super_admin( $profile_user->ID ) ) : ?>
-									<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
-								<?php else : ?>
-									<p><?php _e( 'Super admin privileges cannot be removed because this user has the network admin email.' ); ?></p>
-								<?php endif; ?>
+								<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
 							</td>
 						</tr>
 					<?php endif; ?>
@@ -696,10 +692,10 @@ switch ( $action ) {
 									<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="false"><?php _e( 'Set New Password' ); ?></button>
 									<div class="wp-pwd hide-if-js">
 										<div class="password-input-wrapper">
-											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
+											<input type="password" name="pass1" id="pass1" class="regular-text ltr" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
 											<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 										</div>
-										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+										<button type="button" class="button wp-hide-pw user-new-password-toggle hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Hide' ); ?></span>
 										</button>
@@ -837,7 +833,7 @@ switch ( $action ) {
 									<div class="create-application-password form-wrap">
 										<div class="form-field">
 											<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
+											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input ltr" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
 											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 										</div>
 
@@ -891,7 +887,7 @@ switch ( $action ) {
 					<?php
 					if ( IS_PROFILE_PAGE ) {
 						/**
-						 * Fires after the 'About Yourself' settings table on the 'Profile' editing screen.
+						 * Fires after the 'Application Passwords' section is loaded on the 'Profile' editing screen.
 						 *
 						 * The action only fires if the current user is editing their own profile.
 						 *
@@ -902,7 +898,9 @@ switch ( $action ) {
 						do_action( 'show_user_profile', $profile_user );
 					} else {
 						/**
-						 * Fires after the 'About the User' settings table on the 'Edit User' screen.
+						 * Fires after the 'Application Passwords' section is loaded on 'Edit User' screen.
+						 *
+						 * The action only fires if the current user is editing another user's profile.
 						 *
 						 * @since 2.0.0
 						 *
@@ -969,13 +967,13 @@ switch ( $action ) {
 		break;
 }
 ?>
-<script type="text/javascript">
+<script>
 	if (window.location.hash == '#password') {
 		document.getElementById('pass1').focus();
 	}
 </script>
 
-<script type="text/javascript">
+<script>
 	jQuery( function( $ ) {
 		var languageSelect = $( '#locale' );
 		$( 'form' ).on( 'submit', function() {

@@ -19,7 +19,7 @@ on:
 
 env:
   GUTENBERG_DIRECTORY: ${{ inputs.directory == 'build' && 'build' || 'src' }}/wp-content/plugins/gutenberg
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
   NODE_OPTIONS: '--max-old-space-size=8192'
 
 # Disable permissions for all available scopes by default.
@@ -34,14 +34,14 @@ jobs:
   # - Checks out the Gutenberg plugin into the plugins directory.
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs Core npm dependencies.
   # - Installs Gutenberg npm dependencies.
   # - Runs the Gutenberg build process.
+  # - Installs Core npm dependencies.
   # - Builds WordPress to run from the relevant location (src or build).
   # - Builds Gutenberg.
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
-    name: Gutenberg running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -49,13 +49,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
       - name: Checkout Gutenberg plugin
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: 'WordPress/gutenberg'
           path: ${{ env.GUTENBERG_DIRECTORY }}
@@ -63,7 +63,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -78,9 +78,6 @@ jobs:
           curl --version
           git --version
 
-      - name: Install Core Dependencies
-        run: npm ci
-
       - name: Install Gutenberg Dependencies
         run: npm ci
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
@@ -88,6 +85,9 @@ jobs:
       - name: Build Gutenberg
         run: npm run build
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+
+      - name: Install Core Dependencies
+        run: npm ci
 
       - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
