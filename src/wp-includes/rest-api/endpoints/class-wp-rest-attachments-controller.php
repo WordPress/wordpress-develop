@@ -2197,6 +2197,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$type = $file['type'];
 		$path = $file['file'];
 
+		/** @var non-empty-string $image_size */
 		$image_size = $request['image_size'];
 
 		$size = wp_getimagesize( $path );
