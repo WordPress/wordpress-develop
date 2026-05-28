@@ -3703,6 +3703,7 @@ mockedApiResponse.Schema = {
                                 "1536x1536",
                                 "2048x2048",
                                 "original",
+                                "original-heic",
                                 "full",
                                 "scaled"
                             ],
@@ -3712,6 +3713,12 @@ mockedApiResponse.Schema = {
                             "type": "boolean",
                             "default": true,
                             "description": "Whether to convert image formats.",
+                            "required": false
+                        },
+                        "generate_sub_sizes": {
+                            "description": "Whether to generate image sub sizes from the sideloaded file.",
+                            "type": "boolean",
+                            "default": false,
                             "required": false
                         }
                     }
