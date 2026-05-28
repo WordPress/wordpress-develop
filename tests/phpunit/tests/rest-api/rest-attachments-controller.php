@@ -1951,10 +1951,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 32, $properties );
+		$this->assertCount( 34, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'exif_orientation', $properties );
+		$this->assertArrayHasKey( 'image_output_format', $properties );
+		$this->assertArrayHasKey( 'image_save_progressive', $properties );
 		$this->assertArrayHasKey( 'filename', $properties );
 		$this->assertArrayHasKey( 'filesize', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -1990,6 +1992,160 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'missing_image_sizes', $properties );
 		$this->assertArrayHasKey( 'featured_media', $properties );
 		$this->assertArrayHasKey( 'class_list', $properties );
+	}
+
+	/**
+	 * Tests the image_output_format / image_save_progressive schema properties.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::get_item_schema
+	 */
+	public function test_image_output_format_and_progressive_schema() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'image_output_format', $properties );
+		$this->assertSame( array( 'string', 'null' ), $properties['image_output_format']['type'] );
+		$this->assertSame( array( 'edit' ), $properties['image_output_format']['context'] );
+		$this->assertTrue( $properties['image_output_format']['readonly'] );
+
+		$this->assertArrayHasKey( 'image_save_progressive', $properties );
+		$this->assertSame( 'boolean', $properties['image_save_progressive']['type'] );
+		$this->assertSame( array( 'edit' ), $properties['image_save_progressive']['context'] );
+		$this->assertTrue( $properties['image_save_progressive']['readonly'] );
+	}
+
+	/**
+	 * Verifies image_output_format is null by default (no conversion needed) and
+	 * image_save_progressive defaults to false on a freshly uploaded JPEG.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_output_format_and_progressive_defaults_in_create_response() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertArrayHasKey( 'image_output_format', $data );
+		$this->assertNull( $data['image_output_format'] );
+		$this->assertArrayHasKey( 'image_save_progressive', $data );
+		$this->assertFalse( $data['image_save_progressive'] );
+	}
+
+	/**
+	 * Verifies image_output_format reflects an image_editor_output_format filter
+	 * that remaps JPEG to WebP, and that the filter sees the real attached
+	 * filename and MIME type.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_output_format_with_custom_filter() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$captured = array();
+		$filter   = static function ( $formats, $filename, $mime_type ) use ( &$captured ) {
+			$captured['filename']  = $filename;
+			$captured['mime_type'] = $mime_type;
+			$formats['image/jpeg'] = 'image/webp';
+			return $formats;
+		};
+		add_filter( 'image_editor_output_format', $filter, 10, 3 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'image_editor_output_format', $filter, 10 );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_output_format', $data );
+		$this->assertSame( 'image/webp', $data['image_output_format'] );
+
+		// The filter must be invoked with the real attached filename and MIME type.
+		$this->assertStringEndsWith( '.jpg', (string) $captured['filename'] );
+		$this->assertSame( 'image/jpeg', $captured['mime_type'] );
+	}
+
+	/**
+	 * Verifies image_save_progressive surfaces the filter result for the
+	 * attachment's MIME type.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_save_progressive_with_custom_filter() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$filter = static function ( $progressive, $mime_type ) {
+			return 'image/jpeg' === $mime_type;
+		};
+		add_filter( 'image_save_progressive', $filter, 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'image_save_progressive', $filter, 10 );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_save_progressive', $data );
+		$this->assertTrue( $data['image_save_progressive'] );
+	}
+
+	/**
+	 * Non-image attachments must not surface the image_* fields.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_output_format_skipped_for_non_image() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment_id = self::factory()->attachment->create_object(
+			DIR_TESTDATA . '/uploads/dashicons.woff',
+			0,
+			array(
+				'post_mime_type' => 'application/font-woff',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'image_output_format', $data );
+		$this->assertArrayNotHasKey( 'image_save_progressive', $data );
 	}
 
 	public function test_get_additional_field_registration() {
