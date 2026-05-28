@@ -6888,6 +6888,18 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *     @type array  $image_meta Image metadata.
  *     @type int    $filesize   File size of the attachment.
  * }
+ *
+ * @phpstan-return array{
+ *                     width: int<1, max>,
+ *                     height: int<1, max>,
+ *                     file: non-empty-string,
+ *                     sizes: array<non-empty-string, array{
+ *                                                        file: non-empty-string,
+ *                                                        width: int<1, max>,
+ *                                                        height: int<1, max>,
+ *                                                        'mime-type': non-empty-string,
+ *                                                    }>
+ *                 }|false
  */
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	$attachment_id = (int) $attachment_id;

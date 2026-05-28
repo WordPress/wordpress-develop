@@ -1457,10 +1457,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @since 4.7.0
 	 * @since 6.6.0 Added the `$time` parameter.
 	 *
-	 * @param string      $data    Supplied file data.
-	 * @param array       $headers HTTP headers from the request.
-	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
-	 * @return array|WP_Error Data from wp_handle_sideload().
+	 * @param string                  $data    Supplied file data.
+	 * @param array<string, string[]> $headers HTTP headers from the request.
+	 * @param string|null             $time    Optional. Time formatted in 'yyyy/mm'. Default null.
+	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error Data from wp_handle_sideload().
 	 */
 	protected function upload_from_data( $data, $headers, $time = null ) {
 		if ( empty( $data ) ) {
@@ -1677,10 +1677,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @since 4.7.0
 	 * @since 6.6.0 Added the `$time` parameter.
 	 *
-	 * @param array       $files   Data from the `$_FILES` superglobal.
-	 * @param array       $headers HTTP headers from the request.
-	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
-	 * @return array|WP_Error Data from wp_handle_upload().
+	 * @param array                   $files   Data from the `$_FILES` superglobal.
+	 * @param array<string, string[]> $headers HTTP headers from the request.
+	 * @param string|null             $time    Optional. Time formatted in 'yyyy/mm'. Default null.
+	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error Data from wp_handle_upload().
+	 *
+	 * @phpstan-param array<string, array{
+	 *                                  name: non-empty-string,
+	 *                                  type: non-empty-string,
+	 *                                  size: non-negative-int,
+	 *                                  tmp_name: non-empty-string,
+	 *                                  error: int<0, 8>,
+	 *                                  full_path?: non-empty-string,
+	 *                              }> $files
 	 */
 	protected function upload_from_file( $files, $headers, $time = null ) {
 		if ( empty( $files ) ) {
@@ -2305,6 +2314,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Apply all sub-size metadata collected from sideload responses.
+		/**
+		 * @var list<array{
+		 *          image_size: string|string[],
+		 *          width?: int<1, max>,
+		 *          height?: int<1, max>,
+		 *          file?: non-empty-string,
+		 *          mime_type?: non-empty-string,
+		 *          filesize?: int<1, max>,
+		 *          original_image?: non-empty-string,
+		 *      }> $sub_sizes
+		 */
 		$sub_sizes = $request['sub_sizes'] ?? array();
 
 		foreach ( $sub_sizes as $sub_size ) {
