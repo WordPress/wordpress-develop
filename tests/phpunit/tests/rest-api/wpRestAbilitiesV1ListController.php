@@ -842,11 +842,15 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
+					'required'   => array( 'content' ),
 					'properties' => array(
 						'content' => array(
 							'type'              => 'string',
 							'description'       => 'The content value.',
+							'example'           => 'example content',
 							'examples'          => array( 'example content' ),
+							'context'           => array( 'view', 'edit', 'embed' ),
+							'readonly'          => true,
 							'sanitize_callback' => 'sanitize_text_field',
 							'validate_callback' => 'is_string',
 							'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
@@ -855,7 +859,13 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				),
 				'output_schema'       => array(
 					'type'              => 'string',
+					'example'           => 'example output',
+					'examples'          => array( 'example output' ),
+					'context'           => array( 'view', 'edit', 'embed' ),
+					'readonly'          => true,
 					'sanitize_callback' => 'sanitize_text_field',
+					'validate_callback' => 'is_string',
+					'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
 				),
 				'execute_callback'    => static function ( $input ) {
 					return $input['content'];
@@ -876,19 +886,29 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'content', $data['input_schema']['properties'] );
 		$this->assertArrayHasKey( 'output_schema', $data );
 
-		// Verify internal keywords are stripped from input_schema properties.
+		// Verify unsupported schema keywords are stripped from input_schema properties.
 		$content_schema = $data['input_schema']['properties']['content'];
 		$this->assertArrayNotHasKey( 'sanitize_callback', $content_schema );
 		$this->assertArrayNotHasKey( 'validate_callback', $content_schema );
 		$this->assertArrayNotHasKey( 'arg_options', $content_schema );
+		$this->assertArrayNotHasKey( 'example', $content_schema );
 		$this->assertArrayNotHasKey( 'examples', $content_schema );
+		$this->assertArrayNotHasKey( 'context', $content_schema );
+		$this->assertArrayNotHasKey( 'readonly', $content_schema );
 
 		// Verify valid JSON Schema keywords are preserved.
 		$this->assertSame( 'string', $content_schema['type'] );
 		$this->assertSame( 'The content value.', $content_schema['description'] );
+		$this->assertSame( array( 'content' ), $data['input_schema']['required'] );
 
 		// Verify internal keywords are stripped from output_schema.
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'arg_options', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'example', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'examples', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'context', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'readonly', $data['output_schema'] );
 		$this->assertSame( 'string', $data['output_schema']['type'] );
 	}
 
