@@ -3408,13 +3408,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 201, $response->get_status() );
 
-		// Sideload the HEIC companion. Uses a JPEG body since the size enum,
-		// not the file format, is what we're exercising here.
+		// Sideload the HEIC companion using the real HEIC fixture. `convert_format`
+		// is disabled so the default HEIC -> JPEG output mapping does not rename
+		// the file or append an alt-extension suffix.
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
-		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Type', 'image/heic' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.heic' );
 		$request->set_param( 'image_size', 'original-heic' );
-		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_param( 'convert_format', false );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/test-image.heic' ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Sideloading original-heic should succeed.' );
