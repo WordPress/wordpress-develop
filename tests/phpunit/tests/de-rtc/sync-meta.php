@@ -26,7 +26,8 @@ class Tests_DE_RTC_Sync_Meta extends WP_UnitTestCase {
 		);
 
 		$this->assertIsString( $script );
-		$this->assertStringContainsString( 'type="wp/post-sync-meta"', $script );
+		$this->assertStringContainsString( 'type="application/json"', $script );
+		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $script );
 		$this->assertStringContainsString( 'data-sync-meta-format="diff-match-patch"', $script );
 		$this->assertStringContainsString( '\u003C/script\u003E', $script );
 
@@ -78,8 +79,227 @@ class Tests_DE_RTC_Sync_Meta extends WP_UnitTestCase {
 		$this->assertSame( $metadata, $extracted['sync_meta'] );
 		$this->assertSame( 'diff-match-patch', $extracted['sync_meta_format'] );
 		$this->assertSame( 'trailer', $extracted['sync_meta_position'] );
-		$this->assertStringContainsString( 'type="wp/post-sync-meta"', $extracted['raw_sync_meta'] );
+		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $extracted['raw_sync_meta'] );
 		$this->assertStringNotContainsString( 'alert("existing")', $extracted['raw_sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_match_edge_sync_meta_script
+	 */
+	public function test_parses_paragraph_wrapped_trailing_sync_meta_and_returns_content_without_meta() {
+		$content  = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$metadata = array(
+			'version' => '12',
+			'hash'    => 'wrapped-trailer-base',
+		);
+		$script   = wp_de_rtc_format_sync_meta( 'diff-match-patch', $metadata );
+		$combined = $content . "\n\n" . '<p>' . $script . '</p>';
+
+		$extracted = wp_de_rtc_parse_post_content_sync_meta( $combined );
+
+		$this->assertIsArray( $extracted );
+		$this->assertSame( $content, $extracted['content'] );
+		$this->assertSame( $metadata, $extracted['sync_meta'] );
+		$this->assertSame( 'diff-match-patch', $extracted['sync_meta_format'] );
+		$this->assertSame( 'trailer', $extracted['sync_meta_position'] );
+		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $extracted['raw_sync_meta'] );
+		$this->assertStringContainsString( 'wrapped-trailer-base', $extracted['raw_sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_match_edge_sync_meta_script
+	 */
+	public function test_parses_paragraph_wrapped_prefix_sync_meta_and_returns_content_without_meta() {
+		$content  = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$metadata = array(
+			'version' => '14',
+			'hash'    => 'wrapped-prefix-paragraph-base',
+		);
+		$script   = wp_de_rtc_format_sync_meta( 'diff-match-patch', $metadata );
+		$combined = '<p>' . $script . '</p>' . "\n\n" . $content;
+
+		$extracted = wp_de_rtc_parse_post_content_sync_meta( $combined );
+
+		$this->assertIsArray( $extracted );
+		$this->assertSame( $content, $extracted['content'] );
+		$this->assertSame( $metadata, $extracted['sync_meta'] );
+		$this->assertSame( 'diff-match-patch', $extracted['sync_meta_format'] );
+		$this->assertSame( 'prefix', $extracted['sync_meta_position'] );
+		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $extracted['raw_sync_meta'] );
+		$this->assertStringContainsString( 'wrapped-prefix-paragraph-base', $extracted['raw_sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_match_edge_sync_meta_script
+	 */
+	public function test_parses_freeform_wrapped_prefix_sync_meta_and_returns_content_without_meta() {
+		$content  = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$metadata = array(
+			'version' => '13',
+			'hash'    => 'wrapped-prefix-base',
+		);
+		$script   = wp_de_rtc_format_sync_meta( 'diff-match-patch', $metadata );
+		$combined = '<!-- wp:freeform --><p>' . $script . '</p><!-- /wp:freeform -->' . "\n\n" . $content;
+
+		$extracted = wp_de_rtc_parse_post_content_sync_meta( $combined );
+
+		$this->assertIsArray( $extracted );
+		$this->assertSame( $content, $extracted['content'] );
+		$this->assertSame( $metadata, $extracted['sync_meta'] );
+		$this->assertSame( 'diff-match-patch', $extracted['sync_meta_format'] );
+		$this->assertSame( 'prefix', $extracted['sync_meta_position'] );
+		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $extracted['raw_sync_meta'] );
+		$this->assertStringContainsString( 'wrapped-prefix-base', $extracted['raw_sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_add_sync_meta_to_post_content
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_match_edge_sync_meta_script
+	 */
+	public function test_parses_core_sync_meta_prefix_block_and_returns_content_without_meta() {
+		$content  = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$metadata = array(
+			'version' => '20',
+			'schema'  => 'de-rtc-yjs-v1',
+		);
+		$combined = wp_de_rtc_add_sync_meta_to_post_content( $content, 'yjs', $metadata, 'prefix-block' );
+
+		$extracted = wp_de_rtc_parse_post_content_sync_meta( $combined );
+
+		$this->assertIsArray( $extracted );
+		$this->assertSame( $content, $extracted['content'] );
+		$this->assertSame( $metadata, $extracted['sync_meta'] );
+		$this->assertSame( 'yjs', $extracted['sync_meta_format'] );
+		$this->assertSame( 'prefix-block', $extracted['sync_meta_position'] );
+		$this->assertStringStartsWith( '<!-- wp:sync-meta', $combined );
+		$this->assertStringContainsString( 'type="application/json"', $extracted['raw_sync_meta'] );
+		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $extracted['raw_sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_match_edge_sync_meta_script
+	 */
+	public function test_parses_freeform_wrapped_trailing_sync_meta_and_returns_content_without_meta() {
+		$content  = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$metadata = array(
+			'version' => '15',
+			'hash'    => 'wrapped-trailer-freeform-base',
+		);
+		$script   = wp_de_rtc_format_sync_meta( 'diff-match-patch', $metadata );
+		$combined = $content . "\n\n" . '<!-- wp:freeform --><p>' . $script . '</p><!-- /wp:freeform -->';
+
+		$extracted = wp_de_rtc_parse_post_content_sync_meta( $combined );
+
+		$this->assertIsArray( $extracted );
+		$this->assertSame( $content, $extracted['content'] );
+		$this->assertSame( $metadata, $extracted['sync_meta'] );
+		$this->assertSame( 'diff-match-patch', $extracted['sync_meta_format'] );
+		$this->assertSame( 'trailer', $extracted['sync_meta_position'] );
+		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $extracted['raw_sync_meta'] );
+		$this->assertStringContainsString( 'wrapped-trailer-freeform-base', $extracted['raw_sync_meta'] );
+	}
+
+	/**
+	 * @dataProvider data_sync_meta_edge_positions
+	 *
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_match_edge_sync_meta_script
+	 */
+	public function test_rejects_paragraph_wrapped_sync_meta_with_paragraph_attributes( $position ) {
+		$content  = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$metadata = array(
+			'version' => '16',
+			'hash'    => 'wrapped-paragraph-attribute-base',
+		);
+		$script   = wp_de_rtc_format_sync_meta( 'diff-match-patch', $metadata );
+
+		if ( 'prefix' === $position ) {
+			$combined = '<p class="wp-block-html" data-origin="gutenberg">' . $script . '</p>' . "\n\n" . $content;
+		} else {
+			$combined = $content . "\n\n" . '<p class="wp-block-html" data-origin="gutenberg">' . $script . '</p>';
+		}
+
+		$result = wp_de_rtc_parse_post_content_sync_meta( $combined );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'de_rtc_malformed_sync_payload', $result->get_error_code() );
+		$this->assertSame( 'sync_meta_not_at_content_edge', $result->get_error_data()['detail'] );
+		$this->assertSame( 1, $result->get_error_data()['sync_meta_script_count'] );
+	}
+
+	public function data_sync_meta_edge_positions() {
+		return array(
+			'prefix'  => array( 'prefix' ),
+			'trailer' => array( 'trailer' ),
+		);
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_count_post_content_sync_meta_scripts
+	 */
+	public function test_duplicate_sync_meta_scripts_return_reason_error_data() {
+		$content = wp_de_rtc_format_sync_meta(
+			'diff-match-patch',
+			array( 'version' => '17' )
+		)
+			. '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->'
+			. wp_de_rtc_format_sync_meta(
+				'diff-match-patch',
+				array( 'version' => '18' )
+			);
+		$result  = wp_de_rtc_parse_post_content_sync_meta( $content );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'de_rtc_malformed_sync_payload', $result->get_error_code() );
+		$this->assertSame( 'duplicate_sync_meta', $result->get_error_data()['detail'] );
+		$this->assertSame( 2, $result->get_error_data()['sync_meta_script_count'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_count_post_content_sync_meta_scripts
+	 */
+	public function test_non_edge_sync_meta_script_returns_reason_error_data() {
+		$script = wp_de_rtc_format_sync_meta(
+			'diff-match-patch',
+			array( 'version' => '19' )
+		);
+		$result = wp_de_rtc_parse_post_content_sync_meta(
+			'<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->'
+			. '<!-- wp:paragraph --><p>' . $script . '</p><!-- /wp:paragraph -->'
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'de_rtc_malformed_sync_payload', $result->get_error_code() );
+		$this->assertSame( 'sync_meta_not_at_content_edge', $result->get_error_data()['detail'] );
+		$this->assertSame( 1, $result->get_error_data()['sync_meta_script_count'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_count_post_content_sync_meta_scripts
+	 */
+	public function test_parses_html_wrapped_sync_meta_script_at_prefix() {
+		$script = wp_de_rtc_format_sync_meta(
+			'diff-match-patch',
+			array( 'version' => '20' )
+		);
+		$content = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$result = wp_de_rtc_parse_post_content_sync_meta(
+			'<!-- wp:html -->' . $script . '<!-- /wp:html -->'
+			. $content
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( $content, $result['content'] );
+		$this->assertSame( 'diff-match-patch', $result['sync_meta_format'] );
+		$this->assertSame( 'prefix-block', $result['sync_meta_position'] );
 	}
 
 	/**

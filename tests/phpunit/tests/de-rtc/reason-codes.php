@@ -19,11 +19,13 @@ class Tests_DE_RTC_Reason_Codes extends WP_UnitTestCase {
 		$codes = wp_de_rtc_get_reason_codes();
 
 		$this->assertSame(
-			array(
-				'de_rtc_missing_sync_meta',
-				'de_rtc_sync_meta_restored_from_revision',
-				'de_rtc_sync_meta_unrecoverable',
-				'de_rtc_external_content_mismatch',
+				array(
+					'de_rtc_missing_sync_meta',
+					'de_rtc_sync_meta_restored_from_revision',
+					'de_rtc_sync_meta_repaired_from_body',
+					'de_rtc_sync_meta_empty_yjs_import',
+					'de_rtc_sync_meta_unrecoverable',
+					'de_rtc_external_content_mismatch',
 				'de_rtc_base_version_stale',
 				'stale_base_version_rejected',
 				'de_rtc_live_session_newer_than_restored_meta',
@@ -63,9 +65,11 @@ class Tests_DE_RTC_Reason_Codes extends WP_UnitTestCase {
 	 */
 	public function data_reason_code_statuses() {
 		return array(
-			'missing sync meta'                     => array( 'de_rtc_missing_sync_meta', 409 ),
-			'sync meta restored from revision'      => array( 'de_rtc_sync_meta_restored_from_revision', 409 ),
-			'sync meta unrecoverable'               => array( 'de_rtc_sync_meta_unrecoverable', 409 ),
+				'missing sync meta'                     => array( 'de_rtc_missing_sync_meta', 409 ),
+				'sync meta restored from revision'      => array( 'de_rtc_sync_meta_restored_from_revision', 409 ),
+				'sync meta repaired from body'          => array( 'de_rtc_sync_meta_repaired_from_body', 409 ),
+				'empty Yjs import'                      => array( 'de_rtc_sync_meta_empty_yjs_import', 409 ),
+				'sync meta unrecoverable'               => array( 'de_rtc_sync_meta_unrecoverable', 409 ),
 			'external content mismatch'             => array( 'de_rtc_external_content_mismatch', 409 ),
 			'base version stale'                    => array( 'de_rtc_base_version_stale', 409 ),
 			'stale base version rejected'           => array( 'stale_base_version_rejected', 409 ),

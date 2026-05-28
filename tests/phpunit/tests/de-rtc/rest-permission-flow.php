@@ -1764,14 +1764,13 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_get_unfiltered_html_review_escalation_reason
 	 * @covers ::wp_de_rtc_get_unfiltered_html_review_rejection_error
 	 */
-	public function test_retry_save_rejects_unsafe_proposed_script_before_scoped_sync_meta_allowance() {
+	public function test_retry_save_rejects_html_wrapped_sync_meta_before_scoped_sync_meta_allowance() {
 		$post_id          = $this->create_sync_meta_post( 'author retry-save current script content', 7, self::$author_user_id );
 		$before_post      = get_post( $post_id );
 		$before_revisions = $this->get_post_revisions( $post_id );
 		$proposed_content = '<!-- wp:html -->'
 			. '<script type="wp/post-sync-meta" data-sync-meta-format="diff-match-patch">alert("unsafe")</script>'
 			. '<!-- /wp:html -->';
-		$filtered_content = wp_unslash( wp_filter_post_kses( wp_slash( $proposed_content ) ) );
 		$request          = $this->create_distributed_editing_request(
 			'posts',
 			$post_id,
@@ -1789,21 +1788,11 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 
 		$response = rest_get_server()->dispatch( $request );
 		$error    = $response->as_error();
-		$data     = $error->get_error_data( 'de_rtc_unfiltered_html_would_change_content' );
+		$data     = $error->get_error_data( 'de_rtc_malformed_sync_payload' );
 
-		$this->assertErrorResponse( 'de_rtc_unfiltered_html_would_change_content', $response, 403 );
-		$this->assertSame( 'collaborative_unfiltered_html_review_required', $data['detail'] );
-		$this->assertSame( 'proposed_content_would_change_by_kses', $data['escalation_reason'] );
-		$this->assertSame( hash( 'sha256', $proposed_content ), $data['proposed_content_hash'] );
-		$this->assertSame( hash( 'sha256', $filtered_content ), $data['kses_filtered_proposed_content_hash'] );
-		$this->assertTrue( $data['review_contract']['proposed_content_would_change_by_kses'] );
-		$this->assertNull( $data['review_contract']['candidate_content_would_change_by_kses'] );
-		$this->assertIsString( $data['candidate_content_hash'] );
-		$this->assertNull( $data['kses_filtered_candidate_content_hash'] );
-		$this->assertFalse( $data['saves_post'] );
-		$this->assertFalse( $data['mutates_post_content'] );
-		$this->assertFalse( $data['creates_revision'] );
-		$this->assertFalse( $data['claims_saved'] );
+		$this->assertErrorResponse( 'de_rtc_malformed_sync_payload', $response, 400 );
+		$this->assertSame( 'sync_meta_not_at_content_edge', $data['detail'] );
+		$this->assertSame( 1, $data['sync_meta_script_count'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 		$this->assertFalse( has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' ) );
 	}

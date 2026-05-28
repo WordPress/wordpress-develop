@@ -91,7 +91,7 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertSame( $base_metadata, $plan['restored_sync_meta'] );
 		$this->assertSame( 'automerge', $plan['restored_sync_meta_format'] );
 		$this->assertSame( 'prefix', $plan['restored_sync_meta_position'] );
-		$this->assertStringContainsString( 'type="wp/post-sync-meta"', $plan['restored_raw_sync_meta'] );
+		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $plan['restored_raw_sync_meta'] );
 
 		$parsed_candidate = wp_de_rtc_parse_post_content_sync_meta( $plan['candidate_post_content'] );
 
@@ -212,7 +212,9 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_de_rtc_plan_sync_meta_recovery_update
 	 */
-	public function test_manual_resolution_returns_blocked_plan_without_candidate_post_content() {
+	public function test_missing_sync_meta_without_revision_plans_empty_yjs_import() {
+		$this->require_yjs_runtime();
+
 		$current_content = '<!-- wp:paragraph --><p>No restorable sync metadata.</p><!-- /wp:paragraph -->';
 		$post_id         = self::factory()->post->create(
 			array(
@@ -246,28 +248,24 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $plan );
-		$this->assertSame( 'manual_resolution_required', $plan['decision'] );
-		$this->assertFalse( $plan['can_apply'] );
+		$this->assertSame( 'recovery_required_restorable', $plan['decision'] );
+		$this->assertTrue( $plan['can_apply'] );
 		$this->assertTrue( $plan['recovery_required'] );
-		$this->assertTrue( $plan['manual_resolution_required'] );
-		$this->assertSame( 'de_rtc_sync_meta_unrecoverable', $plan['reason_code'] );
-		$this->assertSame(
-			array(
-				'status'                 => 409,
-				'reason_code'            => 'de_rtc_sync_meta_unrecoverable',
-				'detail'                 => 'missing_sync_meta_no_restorable_revision',
-				'scanned_revisions'      => 1,
-				'malformed_revision_ids' => array(),
-			),
-			$plan['reason']
-		);
+		$this->assertFalse( $plan['manual_resolution_required'] );
+		$this->assertSame( 'de_rtc_sync_meta_empty_yjs_import', $plan['reason_code'] );
+		$this->assertSame( 'planned_empty_yjs_import', $plan['reason']['detail'] );
 		$this->assertSame( $current_content, $plan['current_content'] );
 		$this->assertSame( hash( 'sha256', $current_content ), $plan['current_content_hash'] );
-		$this->assertNull( $plan['candidate_stripped_content'] );
-		$this->assertNull( $plan['candidate_post_content'] );
-		$this->assertNull( $plan['candidate_post_content_hash'] );
-		$this->assertNull( $plan['restored_sync_meta_format'] );
-		$this->assertNull( $plan['external_change'] );
+		$this->assertSame( $current_content, $plan['candidate_stripped_content'] );
+		$this->assertSame( hash( 'sha256', $current_content ), $plan['candidate_stripped_content_hash'] );
+		$this->assertIsString( $plan['candidate_post_content'] );
+		$this->assertSame( hash( 'sha256', $plan['candidate_post_content'] ), $plan['candidate_post_content_hash'] );
+		$this->assertSame( 'yjs', $plan['restored_sync_meta_format'] );
+		$this->assertSame( 'prefix-block', $plan['restored_sync_meta_position'] );
+		$this->assertSame( 'de-rtc-yjs-v1', $plan['restored_sync_meta']['schema'] );
+		$this->assertSame( '1', $plan['restored_sync_meta']['version'] );
+		$this->assertSame( 'empty_import', $plan['restored_sync_meta']['last_server_update']['external_repair_mode'] );
+		$this->assertSame( 'empty_import', $plan['external_change']['mode'] );
 
 		$this->assertSame( $before_post->post_content, $after_post->post_content );
 		$this->assertSame( $current_content, $after_post->post_content );
@@ -326,5 +324,16 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertIsInt( $revision_id );
 
 		return $revision_id;
+	}
+
+	/**
+	 * Skips tests when the native PHP Yjs port cannot load.
+	 */
+	private function require_yjs_runtime() {
+		$status = wp_de_rtc_get_yjs_runtime_status();
+
+		if ( empty( $status['available'] ) ) {
+			$this->markTestSkipped( 'Native PHP Yjs runtime is not available.' );
+		}
 	}
 }

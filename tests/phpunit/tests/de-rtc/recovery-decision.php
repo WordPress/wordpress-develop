@@ -139,7 +139,7 @@ class Tests_DE_RTC_Recovery_Decision extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_de_rtc_get_post_sync_meta_recovery_decision
 	 */
-	public function test_missing_current_sync_meta_without_revision_requires_manual_resolution() {
+	public function test_missing_current_sync_meta_without_revision_is_empty_yjs_import() {
 		$current_content = '<!-- wp:paragraph --><p>No sync metadata anywhere.</p><!-- /wp:paragraph -->';
 		$post_id         = self::factory()->post->create(
 			array(
@@ -157,15 +157,16 @@ class Tests_DE_RTC_Recovery_Decision extends WP_UnitTestCase {
 		$decision = wp_de_rtc_get_post_sync_meta_recovery_decision( $post_id );
 
 		$this->assertIsArray( $decision );
-		$this->assertSame( 'manual_resolution_required', $decision['decision'] );
+		$this->assertSame( 'recovery_required_restorable', $decision['decision'] );
 		$this->assertTrue( $decision['recovery_required'] );
-		$this->assertFalse( $decision['restorable'] );
-		$this->assertTrue( $decision['manual_resolution_required'] );
+		$this->assertTrue( $decision['restorable'] );
+		$this->assertFalse( $decision['manual_resolution_required'] );
 		$this->assertSame(
 			array(
 				'status'                 => 409,
-				'reason_code'            => 'de_rtc_sync_meta_unrecoverable',
-				'detail'                 => 'missing_sync_meta_no_restorable_revision',
+				'reason_code'            => 'de_rtc_missing_sync_meta',
+				'detail'                 => 'empty_yjs_import_required',
+				'recovery_reason_code'   => 'de_rtc_sync_meta_empty_yjs_import',
 				'scanned_revisions'      => 1,
 				'malformed_revision_ids' => array(),
 			),
@@ -173,10 +174,14 @@ class Tests_DE_RTC_Recovery_Decision extends WP_UnitTestCase {
 		);
 		$this->assertSame( $current_content, $decision['current_content'] );
 		$this->assertSame( hash( 'sha256', $current_content ), $decision['current_content_hash'] );
-		$this->assertNull( $decision['base_revision'] );
-		$this->assertNull( $decision['base_revision_content_hash'] );
+		$this->assertSame( 0, $decision['base_revision']['revision_id'] );
+		$this->assertSame( '', $decision['base_revision']['content'] );
+		$this->assertSame( 'yjs', $decision['base_revision']['sync_meta_format'] );
+		$this->assertSame( 'de-rtc-yjs-v1', $decision['base_revision']['sync_meta']['schema'] );
+		$this->assertSame( hash( 'sha256', '' ), $decision['base_revision_content_hash'] );
 		$this->assertFalse( $decision['revision_scan']['found'] );
-		$this->assertNull( $decision['external_change'] );
+		$this->assertSame( 'empty_import', $decision['external_change']['mode'] );
+		$this->assertSame( $current_content, $decision['external_change']['current_content'] );
 	}
 
 	/**

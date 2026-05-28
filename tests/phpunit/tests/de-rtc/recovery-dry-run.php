@@ -178,7 +178,9 @@ class Tests_DE_RTC_Recovery_Dry_Run extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_de_rtc_dry_run_sync_meta_recovery_update
 	 */
-	public function test_manual_resolution_returns_blocked_dry_run() {
+	public function test_missing_sync_meta_without_revision_empty_import_dry_run_is_valid() {
+		$this->require_yjs_runtime();
+
 		$current_content = '<!-- wp:paragraph --><p>Manual dry-run content.</p><!-- /wp:paragraph -->';
 		$post_id         = self::factory()->post->create(
 			array(
@@ -196,16 +198,18 @@ class Tests_DE_RTC_Recovery_Dry_Run extends WP_UnitTestCase {
 		$dry_run = wp_de_rtc_dry_run_sync_meta_recovery_update( $post_id );
 
 		$this->assertIsArray( $dry_run );
-		$this->assertSame( 'manual_resolution_required', $dry_run['result'] );
-		$this->assertSame( 'blocked', $dry_run['validation_status'] );
-		$this->assertSame( 'manual_resolution_required', $dry_run['decision'] );
-		$this->assertFalse( $dry_run['valid'] );
-		$this->assertFalse( $dry_run['can_apply'] );
+		$this->assertSame( 'candidate_update_valid', $dry_run['result'] );
+		$this->assertSame( 'valid_candidate', $dry_run['validation_status'] );
+		$this->assertSame( 'recovery_required_restorable', $dry_run['decision'] );
+		$this->assertTrue( $dry_run['valid'] );
+		$this->assertTrue( $dry_run['can_apply'] );
 		$this->assertFalse( $dry_run['would_apply'] );
 		$this->assertTrue( $dry_run['recovery_required'] );
-		$this->assertTrue( $dry_run['manual_resolution_required'] );
-		$this->assertSame( 'de_rtc_sync_meta_unrecoverable', $dry_run['reason_code'] );
-		$this->assertNull( $dry_run['plan']['candidate_post_content'] );
+		$this->assertFalse( $dry_run['manual_resolution_required'] );
+		$this->assertSame( 'de_rtc_sync_meta_empty_yjs_import', $dry_run['reason_code'] );
+		$this->assertSame( 'yjs', $dry_run['plan']['restored_sync_meta_format'] );
+		$this->assertSame( '1', $dry_run['plan']['restored_sync_meta']['version'] );
+		$this->assertSame( $current_content, $dry_run['plan']['candidate_stripped_content'] );
 	}
 
 	/**
@@ -248,5 +252,16 @@ class Tests_DE_RTC_Recovery_Dry_Run extends WP_UnitTestCase {
 		$this->assertIsInt( $revision_id );
 
 		return $revision_id;
+	}
+
+	/**
+	 * Skips tests when the native PHP Yjs port cannot load.
+	 */
+	private function require_yjs_runtime() {
+		$status = wp_de_rtc_get_yjs_runtime_status();
+
+		if ( empty( $status['available'] ) ) {
+			$this->markTestSkipped( 'Native PHP Yjs runtime is not available.' );
+		}
 	}
 }

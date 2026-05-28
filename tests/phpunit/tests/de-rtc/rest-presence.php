@@ -77,6 +77,12 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'limit', $routes['/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/presence'][0]['args'] );
 		$this->assertSame( 1, $routes['/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/presence'][0]['args']['limit']['minimum'] );
 		$this->assertSame( 100, $routes['/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/presence'][0]['args']['limit']['maximum'] );
+		$heartbeat_route_args = $routes['/wp/v2/posts/(?P<id>[\d]+)/distributed-editing/presence/heartbeat'][0]['args'];
+
+		$this->assertArrayHasKey( 'confirmed_base_version', $heartbeat_route_args );
+		$this->assertArrayHasKey( 'confirmed_state_hash', $heartbeat_route_args );
+		$this->assertArrayHasKey( 'has_pending_changes', $heartbeat_route_args );
+		$this->assertArrayHasKey( 'confirmed_at_gmt', $heartbeat_route_args );
 	}
 
 	/**
@@ -285,12 +291,18 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$before_post      = get_post( $post_id );
 		$before_revisions = $this->get_post_revisions( $post_id );
 		$session_key      = 'session-key-171';
+		$confirmed_hash   = str_repeat( 'a', 64 );
+		$confirmed_at_gmt = '2026-05-20 12:00:00';
 		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence/heartbeat' );
 
 		wp_set_current_user( self::$author_user_id );
 		wp_de_rtc_install_presence_table();
 
 		$request->set_param( 'session_key', $session_key );
+		$request->set_param( 'confirmed_base_version', '12' );
+		$request->set_param( 'confirmed_state_hash', $confirmed_hash );
+		$request->set_param( 'has_pending_changes', true );
+		$request->set_param( 'confirmed_at_gmt', $confirmed_at_gmt );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -309,8 +321,31 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertTrue( $data['session_key_hash_recorded'] );
 		$this->assertTrue( $data['actor_hash_recorded'] );
 		$this->assertTrue( $data['display_name_recorded'] );
+		$this->assertTrue( $data['permission_summary_recorded'] );
+		$this->assertTrue( $data['permissions']['canEdit'] );
+		$this->assertTrue( $data['permissions']['canPublish'] );
+		$this->assertFalse( $data['permissions']['canSaveDangerousHtml'] );
+		$this->assertTrue( $data['document_state_recorded'] );
+		$this->assertSame( '12', $data['document_state']['confirmedBaseVersion'] );
+		$this->assertSame(
+			$confirmed_hash,
+			$data['document_state']['confirmedStateHash']
+		);
+		$this->assertTrue( $data['document_state']['hasPendingChanges'] );
+		$this->assertSame(
+			$confirmed_at_gmt,
+			$data['document_state']['confirmedAtGmt']
+		);
+		$this->assertSame(
+			'client_reported_presence',
+			$data['document_state']['source']
+		);
+		$this->assertFalse( $data['document_state']['authoritativeForSave'] );
+		$this->assertFalse( $data['document_state']['claimsSaved'] );
+		$this->assertFalse( $data['document_state']['exposesRawContent'] );
 		$this->assertTrue( $data['last_seen_recorded'] );
 		$this->assertTrue( $data['expires_at_recorded'] );
+		$this->assertSame( 0, $data['session_duration_seconds'] );
 		$this->assertSame( 'active', $data['freshness'] );
 		$this->assertSame( 'nominal', $data['server_contact'] );
 		$this->assertSame( 120, $data['heartbeat_interval_seconds'] );
@@ -362,6 +397,13 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertNotSame( $session_key, $row['session_key_hash'] );
 		$this->assertSame( 64, strlen( $row['actor_hash'] ) );
 		$this->assertSame( 'Mira Presence', $row['display_name'] );
+		$this->assertSame( '1', $row['can_edit_post'] );
+		$this->assertSame( '1', $row['can_publish_post'] );
+		$this->assertSame( '0', $row['can_save_dangerous_html'] );
+		$this->assertSame( '12', $row['confirmed_base_version'] );
+		$this->assertSame( $confirmed_hash, $row['confirmed_state_hash'] );
+		$this->assertSame( '1', $row['has_pending_changes'] );
+		$this->assertSame( $confirmed_at_gmt, $row['confirmed_at_gmt'] );
 		$this->assertSame( 'active', $row['freshness'] );
 		$this->assertSame( 1, $this->get_presence_row_count_for_post( $post_id ) );
 
@@ -492,6 +534,13 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 
 		$heartbeat_request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence/heartbeat' );
 		$heartbeat_request->set_param( 'session_key', 'heartbeat-backed-session' );
+		$heartbeat_request->set_param( 'confirmed_base_version', '12' );
+		$heartbeat_request->set_param(
+			'confirmed_state_hash',
+			str_repeat( 'b', 64 )
+		);
+		$heartbeat_request->set_param( 'has_pending_changes', false );
+		$heartbeat_request->set_param( 'confirmed_at_gmt', '2026-05-20 12:00:00' );
 
 		$heartbeat_response = rest_get_server()->dispatch( $heartbeat_request );
 
@@ -524,6 +573,32 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertSame( 'other_user', $entry['relationship'] );
 		$this->assertSame( 'editing_post', $entry['activity'] );
 		$this->assertSame( 'current', $entry['freshness'] );
+		$this->assertArrayHasKey( 'sessionStartedAtGmt', $entry );
+		$this->assertIsInt( $entry['sessionDurationSeconds'] );
+		$this->assertGreaterThanOrEqual( 0, $entry['sessionDurationSeconds'] );
+		$this->assertTrue( $entry['permissionsAvailable'] );
+		$this->assertTrue( $entry['permissions']['canEdit'] );
+		$this->assertTrue( $entry['permissions']['canPublish'] );
+		$this->assertFalse( $entry['permissions']['canSaveDangerousHtml'] );
+		$this->assertArrayHasKey( 'presenceUpdatedAtGmt', $entry );
+		$this->assertTrue( $entry['documentState']['available'] );
+		$this->assertSame( '12', $entry['documentState']['confirmedBaseVersion'] );
+		$this->assertSame(
+			str_repeat( 'b', 64 ),
+			$entry['documentState']['confirmedStateHash']
+		);
+		$this->assertFalse( $entry['documentState']['hasPendingChanges'] );
+		$this->assertSame(
+			'2026-05-20 12:00:00',
+			$entry['documentState']['confirmedAtGmt']
+		);
+		$this->assertSame(
+			'client_reported_presence',
+			$entry['documentState']['source']
+		);
+		$this->assertFalse( $entry['documentState']['authoritativeForSave'] );
+		$this->assertFalse( $entry['documentState']['claimsSaved'] );
+		$this->assertFalse( $entry['documentState']['exposesRawContent'] );
 		$this->assertSame( 'de_rtc_presence_storage', $entry['source'] );
 		$this->assertFalse( $entry['exposesUserId'] );
 		$this->assertFalse( $entry['exposesLogin'] );
@@ -565,6 +640,68 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 				'raw_content',
 			)
 		);
+		$this->assertSame( $before_row_count, $this->get_presence_row_count_for_post( $post_id ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_presence_endpoint
+	 * @covers ::wp_de_rtc_get_post_presence_read_snapshot
+	 * @covers ::wp_de_rtc_get_post_presence_roster
+	 * @covers ::wp_de_rtc_get_post_presence_storage_snapshot
+	 * @covers ::wp_de_rtc_generate_presence_response_local_roster_key_prefix
+	 * @covers ::wp_de_rtc_get_presence_response_local_roster_key
+	 */
+	public function test_presence_snapshot_uses_response_local_opaque_keys_for_storage_rows() {
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC opaque storage presence key post',
+				'post_content' => '<!-- wp:paragraph --><p>Opaque storage presence keys.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$session_key = 'opaque-storage-session';
+
+		wp_de_rtc_install_presence_table();
+		wp_set_current_user( self::$author_user_id );
+
+		$heartbeat_request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence/heartbeat' );
+		$heartbeat_request->set_param( 'session_key', $session_key );
+		$this->assertSame( 200, rest_get_server()->dispatch( $heartbeat_request )->get_status() );
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$before_post       = get_post( $post_id );
+		$before_revisions  = $this->get_post_revisions( $post_id );
+		$before_row_count  = $this->get_presence_row_count_for_post( $post_id );
+		$session_key_hash  = hash_hmac( 'sha256', $post_id . ':' . $session_key, wp_salt( 'nonce' ) );
+		$forbidden_values  = array( $session_key, $session_key_hash, substr( $session_key_hash, 0, 12 ) );
+		$first_response    = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence' ) );
+		$second_response   = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence' ) );
+		$first_data        = $first_response->get_data();
+		$second_data       = $second_response->get_data();
+		$first_entry       = $first_data['presence_roster']['entries'][0];
+		$second_entry      = $second_data['presence_roster']['entries'][0];
+
+		$this->assertSame( 200, $first_response->get_status() );
+		$this->assertSame( 200, $second_response->get_status() );
+		$this->assertSame( 'de_rtc_presence_storage', $first_entry['source'] );
+		$this->assertSame( 'de_rtc_presence_storage', $second_entry['source'] );
+		$this->assert_presence_roster_key_is_response_local_opaque( $first_entry['key'], $forbidden_values );
+		$this->assert_presence_roster_key_is_response_local_opaque( $second_entry['key'], $forbidden_values );
+		$this->assertNotSame( $first_entry['key'], $second_entry['key'] );
+		$this->assert_payload_omits_fragments( $first_data, $forbidden_values );
+		$this->assert_payload_omits_fragments( $second_data, $forbidden_values );
+		$this->assertFalse( $first_data['records_presence_heartbeat'] );
+		$this->assertFalse( $second_data['records_presence_heartbeat'] );
+		$this->assertFalse( $first_data['saves_post'] );
+		$this->assertFalse( $second_data['saves_post'] );
+		$this->assertFalse( $first_data['mutates_post_content'] );
+		$this->assertFalse( $second_data['mutates_post_content'] );
+		$this->assertFalse( $first_data['changes_post_lock'] );
+		$this->assertFalse( $second_data['changes_post_lock'] );
+		$this->assertFalse( $first_data['presence_roster']['claimsAbsence'] );
+		$this->assertFalse( $second_data['presence_roster']['claimsAbsence'] );
 		$this->assertSame( $before_row_count, $this->get_presence_row_count_for_post( $post_id ) );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
@@ -1002,8 +1139,17 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertSame( 'Mira Presence', $roster['entries'][0]['displayName'] );
 		$this->assertSame( 'other_user', $roster['entries'][0]['relationship'] );
 		$this->assertFalse( $roster['entries'][0]['exposesUserId'] );
+		$this->assertArrayHasKey( 'presenceUpdatedAtGmt', $roster['entries'][0] );
+		$this->assertFalse( $roster['entries'][0]['documentState']['available'] );
+		$this->assertFalse(
+			$roster['entries'][0]['documentState']['authoritativeForSave']
+		);
+		$this->assertFalse( $roster['entries'][0]['documentState']['claimsSaved'] );
+		$this->assertFalse(
+			$roster['entries'][0]['documentState']['exposesRawContent']
+		);
 		$this->assertArrayNotHasKey( 'userId', $roster['entries'][0] );
-		$this->assertSame( 'de-rtc-presence-roster-v1', $contract['schema'] );
+		$this->assertSame( 'de-rtc-presence-roster-v2', $contract['schema'] );
 		$this->assertSame( 'de_rtc_presence_read_snapshot', $contract['source'] );
 		$this->assertSame( 'wordpress_post_lock_snapshot', $contract['current_snapshot_source'] );
 		$this->assertSame( 'GET', $contract['method'] );
@@ -1040,6 +1186,59 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		);
 		$this->assertSame( $before_post->post_content, $after_post->post_content );
 		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_presence_endpoint
+	 * @covers ::wp_de_rtc_get_post_presence_read_snapshot
+	 * @covers ::wp_de_rtc_get_post_presence_roster
+	 * @covers ::wp_de_rtc_get_post_lock_presence_entry
+	 * @covers ::wp_de_rtc_generate_presence_response_local_roster_key_prefix
+	 * @covers ::wp_de_rtc_get_presence_response_local_roster_key
+	 */
+	public function test_presence_snapshot_uses_response_local_opaque_keys_for_post_lock_fallback() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC opaque post-lock presence key post',
+				'post_content' => '<!-- wp:paragraph --><p>Opaque post-lock presence keys.</p><!-- /wp:paragraph -->',
+			)
+		);
+
+		update_post_meta( $post_id, '_edit_lock', time() . ':' . self::$author_user_id );
+
+		$before_post         = get_post( $post_id );
+		$before_revisions    = $this->get_post_revisions( $post_id );
+		$before_lock         = get_post_meta( $post_id, '_edit_lock', true );
+		$stable_key_fragment = substr( wp_hash( $post_id . ':' . self::$author_user_id . ':de-rtc-presence' ), 0, 12 );
+		$forbidden_values    = array( 'wp-post-lock-', $stable_key_fragment );
+		$first_response      = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence' ) );
+		$second_response     = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence' ) );
+		$first_data          = $first_response->get_data();
+		$second_data         = $second_response->get_data();
+		$first_entry         = $first_data['presence_roster']['entries'][0];
+		$second_entry        = $second_data['presence_roster']['entries'][0];
+
+		$this->assertSame( 200, $first_response->get_status() );
+		$this->assertSame( 200, $second_response->get_status() );
+		$this->assertSame( 'wordpress_post_lock_snapshot', $first_entry['source'] );
+		$this->assertSame( 'wordpress_post_lock_snapshot', $second_entry['source'] );
+		$this->assert_presence_roster_key_is_response_local_opaque( $first_entry['key'], $forbidden_values );
+		$this->assert_presence_roster_key_is_response_local_opaque( $second_entry['key'], $forbidden_values );
+		$this->assertNotSame( $first_entry['key'], $second_entry['key'] );
+		$this->assert_payload_omits_fragments( $first_data, $forbidden_values );
+		$this->assert_payload_omits_fragments( $second_data, $forbidden_values );
+		$this->assertFalse( $first_data['records_presence_heartbeat'] );
+		$this->assertFalse( $second_data['records_presence_heartbeat'] );
+		$this->assertFalse( $first_data['saves_post'] );
+		$this->assertFalse( $second_data['saves_post'] );
+		$this->assertFalse( $first_data['mutates_post_content'] );
+		$this->assertFalse( $second_data['mutates_post_content'] );
+		$this->assertFalse( $first_data['changes_post_lock'] );
+		$this->assertFalse( $second_data['changes_post_lock'] );
+		$this->assertFalse( $first_data['presence_roster']['claimsAbsence'] );
+		$this->assertFalse( $second_data['presence_roster']['claimsAbsence'] );
+		$this->assertSame( $before_lock, get_post_meta( $post_id, '_edit_lock', true ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
 	/**
@@ -1195,6 +1394,9 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 				'actor_key'      => 'test-actor',
 				'display_name'   => 'Presence Test',
 				'freshness'      => 'active',
+				'can_edit_post'  => 1,
+				'can_publish_post' => 0,
+				'can_save_dangerous_html' => 0,
 				'last_seen_gmt'  => '2026-05-15 12:00:00',
 				'expires_at_gmt' => '2026-05-15 12:10:00',
 			)
@@ -1204,12 +1406,15 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertNotFalse(
 			$wpdb->query(
 				$wpdb->prepare(
-					"INSERT INTO $table_sql ( post_id, session_key_hash, actor_hash, display_name, freshness, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) VALUES ( %d, %s, %s, %s, %s, %s, %s, %s, %s )",
+					"INSERT INTO $table_sql ( post_id, session_key_hash, actor_hash, display_name, freshness, can_edit_post, can_publish_post, can_save_dangerous_html, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) VALUES ( %d, %s, %s, %s, %s, %d, %d, %d, %s, %s, %s, %s )",
 					$post_id,
 					hash_hmac( 'sha256', $post_id . ':' . $args['session_key'], wp_salt( 'nonce' ) ),
 					hash_hmac( 'sha256', $args['actor_key'], wp_salt( 'auth' ) ),
 					$args['display_name'],
 					$args['freshness'],
+					$args['can_edit_post'],
+					$args['can_publish_post'],
+					$args['can_save_dangerous_html'],
 					$args['last_seen_gmt'],
 					$args['expires_at_gmt'],
 					$args['last_seen_gmt'],
@@ -1266,6 +1471,49 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 
 		$this->assertSame( $before_content, $after_post->post_content );
 		$this->assertSame( array_keys( $before_revisions ), array_keys( $after_revisions ) );
+	}
+
+	/**
+	 * Asserts that a roster key is response-local and does not expose stable source material.
+	 *
+	 * @param string   $key                 Presence roster key.
+	 * @param string[] $forbidden_fragments Stable fragments that must not appear in the key.
+	 */
+	private function assert_presence_roster_key_is_response_local_opaque( $key, $forbidden_fragments ) {
+		$this->assertIsString( $key );
+		$this->assertStringStartsWith( 'de-rtc-presence-entry-', $key );
+
+		foreach ( $forbidden_fragments as $fragment ) {
+			$fragment = (string) $fragment;
+
+			if ( '' === $fragment ) {
+				continue;
+			}
+
+			$this->assertStringNotContainsString( $fragment, $key );
+		}
+	}
+
+	/**
+	 * Asserts that stable source fragments are absent from an encoded payload.
+	 *
+	 * @param mixed    $payload             Payload value.
+	 * @param string[] $forbidden_fragments Stable fragments that must not appear in the payload.
+	 */
+	private function assert_payload_omits_fragments( $payload, $forbidden_fragments ) {
+		$encoded_payload = wp_json_encode( $payload );
+
+		$this->assertIsString( $encoded_payload );
+
+		foreach ( $forbidden_fragments as $fragment ) {
+			$fragment = (string) $fragment;
+
+			if ( '' === $fragment ) {
+				continue;
+			}
+
+			$this->assertStringNotContainsString( $fragment, $encoded_payload );
+		}
 	}
 
 	/**

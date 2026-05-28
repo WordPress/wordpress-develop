@@ -17,9 +17,12 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 		remove_filter( 'wp_de_rtc_enabled_for_post', '__return_true' );
 
 		delete_option( 'wp_de_rtc_enabled' );
+		delete_option( 'wp_de_rtc_server_sync_poll_interval_ms' );
 		delete_option( 'wp_de_rtc_presence_schema_version' );
 		unregister_setting( 'writing', 'wp_de_rtc_enabled' );
+		unregister_setting( 'writing', 'wp_de_rtc_server_sync_poll_interval_ms' );
 		unset( $wp_registered_settings['wp_de_rtc_enabled'] );
+		unset( $wp_registered_settings['wp_de_rtc_server_sync_poll_interval_ms'] );
 		wp_set_current_user( 0 );
 
 		if ( isset( $wp_settings_fields['writing']['default']['wp_de_rtc_enabled'] ) ) {
@@ -32,6 +35,8 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_de_rtc_register_settings
 	 * @covers ::wp_de_rtc_sanitize_enabled_setting
+	 * @covers ::wp_de_rtc_sanitize_server_sync_poll_interval_ms_setting
+	 * @covers ::wp_de_rtc_get_default_server_sync_poll_interval_ms
 	 */
 	public function test_registers_disabled_by_default_writing_setting() {
 		global $wp_registered_settings;
@@ -43,6 +48,29 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 		$this->assertSame( 'boolean', $wp_registered_settings['wp_de_rtc_enabled']['type'] );
 		$this->assertFalse( $wp_registered_settings['wp_de_rtc_enabled']['show_in_rest'] );
 		$this->assertFalse( get_option( 'wp_de_rtc_enabled' ) );
+		$this->assertArrayHasKey( 'wp_de_rtc_server_sync_poll_interval_ms', $wp_registered_settings );
+		$this->assertSame( 'writing', $wp_registered_settings['wp_de_rtc_server_sync_poll_interval_ms']['group'] );
+		$this->assertSame( 'integer', $wp_registered_settings['wp_de_rtc_server_sync_poll_interval_ms']['type'] );
+		$this->assertFalse( $wp_registered_settings['wp_de_rtc_server_sync_poll_interval_ms']['show_in_rest'] );
+		$this->assertSame( 5000, $wp_registered_settings['wp_de_rtc_server_sync_poll_interval_ms']['default'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_sanitize_server_sync_poll_interval_ms_setting
+	 * @covers ::wp_de_rtc_get_default_server_sync_poll_interval_ms
+	 * @covers ::wp_de_rtc_get_server_sync_poll_interval_ms
+	 */
+	public function test_server_sync_poll_interval_uses_positive_milliseconds_without_clamping() {
+		$this->assertSame( 5000, wp_de_rtc_sanitize_server_sync_poll_interval_ms_setting( '' ) );
+		$this->assertSame( 5000, wp_de_rtc_sanitize_server_sync_poll_interval_ms_setting( 'not-a-number' ) );
+		$this->assertSame( 5000, wp_de_rtc_sanitize_server_sync_poll_interval_ms_setting( 0 ) );
+		$this->assertSame( 5000, wp_de_rtc_sanitize_server_sync_poll_interval_ms_setting( -10 ) );
+		$this->assertSame( 1, wp_de_rtc_sanitize_server_sync_poll_interval_ms_setting( 1 ) );
+		$this->assertSame( 250000, wp_de_rtc_sanitize_server_sync_poll_interval_ms_setting( 250000 ) );
+
+		update_option( 'wp_de_rtc_server_sync_poll_interval_ms', 250000 );
+
+		$this->assertSame( 250000, wp_de_rtc_get_server_sync_poll_interval_ms() );
 	}
 
 	/**
@@ -131,6 +159,10 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'name="wp_de_rtc_enabled"', $output );
 		$this->assertStringContainsString( 'Distributed Editing is experimental', $output );
 		$this->assertStringContainsString( 'constrained hosting', $output );
+		$this->assertStringContainsString( 'name="wp_de_rtc_server_sync_poll_interval_ms"', $output );
+		$this->assertStringContainsString( 'value="5000"', $output );
+		$this->assertStringContainsString( 'Shorter intervals make remote edits appear sooner', $output );
+		$this->assertStringContainsString( 'automatic background checks', $output );
 	}
 
 	/**
@@ -191,14 +223,17 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'enabled'                  => false,
-				'retrySaveHandoff'         => false,
-				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
-				'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( false ),
-				'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( false ),
-				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
-					array(
-						'feature_enabled' => false,
+					'enabled'                  => false,
+					'retrySaveHandoff'         => false,
+					'riskyBlockReview'         => false,
+					'yjsRawPostContentSave'    => false,
+					'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+					'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( false ),
+					'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( false ),
+					'serverSyncPollingRuntime' => $this->get_expected_server_sync_polling_runtime( false ),
+					'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
+						array(
+							'feature_enabled' => false,
 						'host_profile'    => 'cheap_shared_host',
 					)
 				),
@@ -226,19 +261,23 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 		);
 
 		update_option( 'wp_de_rtc_enabled', true );
+		update_option( 'wp_de_rtc_server_sync_poll_interval_ms', 7500 );
 
 		$settings = wp_de_rtc_add_block_editor_settings( array(), $context );
 
 		$this->assertSame(
 			array(
-				'enabled'                  => true,
-				'retrySaveHandoff'         => true,
-				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
-				'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( true ),
-				'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( true ),
-				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
-					array(
-						'feature_enabled' => true,
+					'enabled'                  => true,
+					'retrySaveHandoff'         => true,
+					'riskyBlockReview'         => false,
+					'yjsRawPostContentSave'    => true,
+					'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+					'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( true ),
+					'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( true ),
+					'serverSyncPollingRuntime' => $this->get_expected_server_sync_polling_runtime( true, 7500 ),
+					'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
+						array(
+							'feature_enabled' => true,
 						'host_profile'    => 'cheap_shared_host',
 					)
 				),
@@ -314,15 +353,18 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 		$settings = wp_de_rtc_add_block_editor_settings( array(), $context );
 
 		$this->assertSame(
-			array(
-				'enabled'                  => false,
-				'retrySaveHandoff'         => false,
-				'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
-				'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( false ),
-				'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( false ),
-				'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
-					array(
-						'feature_enabled' => false,
+				array(
+					'enabled'                  => false,
+					'retrySaveHandoff'         => false,
+					'riskyBlockReview'         => false,
+					'yjsRawPostContentSave'    => false,
+					'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
+					'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( false ),
+					'presenceRepeatedRefreshRuntime' => $this->get_expected_presence_repeated_refresh_runtime( false ),
+					'serverSyncPollingRuntime' => $this->get_expected_server_sync_polling_runtime( false ),
+					'presenceStorageReadiness' => wp_de_rtc_get_presence_storage_readiness(
+						array(
+							'feature_enabled' => false,
 						'host_profile'    => 'cheap_shared_host',
 					)
 				),
@@ -364,6 +406,20 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 			'minimumPollingIntervalSeconds'    => 30,
 			'heartbeatIntervalSeconds'         => 120,
 			'selectedHeartbeatIntervalSeconds' => 120,
+		);
+	}
+
+	/**
+	 * Returns expected server sync polling runtime for editor settings.
+	 *
+	 * @param bool $enabled Whether Distributed Editing is enabled for the editor.
+	 * @return array Expected server sync polling runtime.
+	 */
+	private function get_expected_server_sync_polling_runtime( $enabled, $interval = 5000 ) {
+		return array(
+			'explicitOptIn'                       => $enabled,
+			'selectedPollingIntervalMilliseconds' => $interval,
+			'defaultPollingIntervalMilliseconds'  => 5000,
 		);
 	}
 }
