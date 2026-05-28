@@ -338,7 +338,7 @@ final class WP_Customize_Widgets {
 		/** This action is documented in wp-admin/includes/ajax-actions.php */
 		do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-		/** This action is documented in wp-admin/widgets.php */
+		/** This action is documented in wp-admin/widgets-form.php */
 		do_action( 'sidebar_admin_setup' );
 	}
 
@@ -775,9 +775,7 @@ final class WP_Customize_Widgets {
 
 		if ( 1 === $registered_sidebar_count ) {
 			$no_areas_shown_message = html_entity_decode(
-				sprintf(
-					__( 'Your theme has 1 widget area, but this particular page does not display it.' )
-				),
+				__( 'Your theme has 1 widget area, but this particular page does not display it.' ),
 				ENT_QUOTES,
 				get_bloginfo( 'charset' )
 			);
@@ -897,7 +895,7 @@ final class WP_Customize_Widgets {
 			wp_enqueue_script( 'wp-customize-widgets' );
 			wp_enqueue_style( 'wp-customize-widgets' );
 
-			/** This action is documented in edit-form-blocks.php */
+			/** This action is documented in wp-admin/edit-form-blocks.php */
 			do_action( 'enqueue_block_editor_assets' );
 		}
 	}
@@ -1722,7 +1720,7 @@ final class WP_Customize_Widgets {
 		/** This action is documented in wp-admin/includes/ajax-actions.php */
 		do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-		/** This action is documented in wp-admin/widgets.php */
+		/** This action is documented in wp-admin/widgets-form.php */
 		do_action( 'sidebar_admin_setup' );
 
 		$widget_id = $this->get_post_value( 'widget-id' );

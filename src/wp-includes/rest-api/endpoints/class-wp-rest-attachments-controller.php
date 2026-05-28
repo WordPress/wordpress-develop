@@ -103,13 +103,33 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					'schema'      => array( $this, 'get_public_item_schema' ),
 				)
 			);
+
+			register_rest_route(
+				$this->namespace,
+				'/' . $this->rest_base . '/(?P<id>[\d]+)/finalize',
+				array(
+					array(
+						'methods'             => WP_REST_Server::CREATABLE,
+						'callback'            => array( $this, 'finalize_item' ),
+						'permission_callback' => array( $this, 'edit_media_item_permissions_check' ),
+						'args'                => array(
+							'id' => array(
+								'description' => __( 'Unique identifier for the attachment.' ),
+								'type'        => 'integer',
+							),
+						),
+					),
+					'allow_batch' => $this->allow_batch,
+					'schema'      => array( $this, 'get_public_item_schema' ),
+				)
+			);
 		}
 	}
 
 	/**
 	 * Retrieves the query params for the attachments collection.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string $method Optional. HTTP method of the request.
 	 *                       The arguments for `CREATABLE` requests are
@@ -232,6 +252,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, $files['file']['type'] ?? null );
 
+		// When the client handles image processing (generate_sub_sizes is false),
+		// skip the server-side image editor support check.
+		if ( false === $request['generate_sub_sizes'] ) {
+			$prevent_unsupported_uploads = false;
+		}
+
 		// If the upload is an image, check if the server can handle the mime type.
 		if (
 			$prevent_unsupported_uploads &&
@@ -263,7 +289,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Creates a single attachment.
 	 *
 	 * @since 4.7.0
-	 * @since 7.0.0 Added `generate_sub_sizes` and `convert_format` parameters.
+	 * @since 7.1.0 Added `generate_sub_sizes` and `convert_format` parameters.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -278,7 +304,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Handle generate_sub_sizes parameter.
-		if ( isset( $request['generate_sub_sizes'] ) && ! $request['generate_sub_sizes'] ) {
+		if ( false === $request['generate_sub_sizes'] ) {
 			add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
 			add_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 			// Disable server-side EXIF rotation so the client can handle it.
@@ -287,7 +313,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Handle convert_format parameter.
-		if ( isset( $request['convert_format'] ) && ! $request['convert_format'] ) {
+		if ( false === $request['convert_format'] ) {
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
 
@@ -387,9 +413,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Removes filters added for client-side media processing.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 */
-	private function remove_client_side_media_processing_filters() {
+	private function remove_client_side_media_processing_filters(): void {
 		remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
 		remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 		remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
@@ -437,6 +463,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$url  = $file['url'];
 		$type = $file['type'];
 		$file = $file['file'];
+		$alt  = '';
 
 		// Include image functions to get access to wp_read_image_metadata().
 		require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -451,6 +478,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			if ( empty( $request['caption'] ) && trim( $image_meta['caption'] ) ) {
 				$request['caption'] = $image_meta['caption'];
+			}
+
+			if ( empty( $request['alt'] ) && trim( $image_meta['alt'] ) ) {
+				$alt = $image_meta['alt'];
 			}
 		}
 
@@ -476,6 +507,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		// $post_parent is inherited from $attachment['post_parent'].
 		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true, false );
+
+		if ( trim( $alt ) ) {
+			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+		}
 
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
@@ -1959,7 +1994,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Sideloading a file for an existing attachment
 	 * requires both update and create permissions.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
@@ -2088,13 +2123,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Side-loads a media file without creating a new attachment.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
 	 */
 	public function sideload_item( WP_REST_Request $request ) {
-		$attachment_id = $request['id'];
+		$attachment_id = (int) $request['id'];
 
 		$post = $this->get_post( $attachment_id );
 
@@ -2113,7 +2148,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		if ( isset( $request['convert_format'] ) && ! $request['convert_format'] ) {
+		if ( false === $request['convert_format'] ) {
 			// Prevent image conversion as that is done client-side.
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
@@ -2269,7 +2304,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * However, here it is desired not to add the suffix in order to maintain the same
 	 * naming convention as if the file was uploaded regularly.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @link https://github.com/WordPress/wordpress-develop/blob/30954f7ac0840cfdad464928021d7f380940c347/src/wp-includes/functions.php#L2576-L2582
 	 *
@@ -2302,5 +2337,49 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $filename;
+	}
+
+	/**
+	 * Finalizes an attachment after client-side media processing.
+	 *
+	 * Triggers the 'wp_generate_attachment_metadata' filter so that
+	 * server-side plugins can process the attachment after all client-side
+	 * operations (upload, thumbnail generation, sideloads) are complete.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+	 */
+	public function finalize_item( WP_REST_Request $request ) {
+		$attachment_id = (int) $request['id'];
+
+		$post = $this->get_post( $attachment_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		if ( ! is_array( $metadata ) ) {
+			$metadata = array();
+		}
+
+		/** This filter is documented in wp-admin/includes/image.php */
+		$metadata = apply_filters( 'wp_generate_attachment_metadata', $metadata, $attachment_id, 'update' );
+
+		wp_update_attachment_metadata( $attachment_id, $metadata );
+
+		$response_request = new WP_REST_Request(
+			WP_REST_Server::READABLE,
+			rest_get_route_for_post( $attachment_id )
+		);
+
+		$response_request['context'] = 'edit';
+
+		if ( isset( $request['_fields'] ) ) {
+			$response_request['_fields'] = $request['_fields'];
+		}
+
+		return $this->prepare_item_for_response( $post, $response_request );
 	}
 }
