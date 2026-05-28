@@ -9,53 +9,53 @@
  */
 class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
 
-	protected static $superadmin_id;
-	protected static $editor_id;
-	protected static $author_id;
-	protected static $contributor_id;
-	protected static $uploader_id;
-	protected static $rest_after_insert_attachment_count;
-	protected static $rest_insert_attachment_count;
+	protected static int $superadmin_id;
+	protected static int $editor_id;
+	protected static int $author_id;
+	protected static int $contributor_id;
+	protected static int $uploader_id;
+	protected static int $rest_after_insert_attachment_count;
+	protected static int $rest_insert_attachment_count;
 
 	/**
 	 * @var string The path to a test file.
 	 */
-	private static $test_file;
+	private static string $test_file;
 
 	/**
 	 * @var string The path to a second test file.
 	 */
-	private static $test_file2;
+	private static string $test_file2;
 
 	/**
 	 * @var string The path to the AVIF test image.
 	 */
-	private static $test_avif_file;
+	private static string $test_avif_file;
 
 	/**
 	 * @var string The path to the SVG test image.
 	 */
-	private static $test_svg_file;
+	private static string $test_svg_file;
 
 	/**
 	 * @var string The path to the test video.
 	 */
-	private static $test_video_file;
+	private static string $test_video_file;
 
 	/**
 	 * @var string The path to the test audio.
 	 */
-	private static $test_audio_file;
+	private static string $test_audio_file;
 
 	/**
 	 * @var string The path to the test RTF file.
 	 */
-	private static $test_rtf_file;
+	private static string $test_rtf_file;
 
 	/**
-	 * @var array The recorded posts query clauses.
+	 * @var string[] The recorded posts query clauses.
 	 */
-	protected $posts_clauses;
+	protected array $posts_clauses;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin_id  = $factory->user->create(
@@ -3378,6 +3378,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$routes   = rest_get_server()->get_routes();
 		$endpoint = $routes['/wp/v2/media/(?P<id>[\d]+)/sideload'][0];
 		$args     = $endpoint['args'];
+		$this->assertIsArray( $args );
 
 		$this->assertArrayHasKey( 'generate_sub_sizes', $args, 'Route should have generate_sub_sizes arg.' );
 		$this->assertSame( 'boolean', $args['generate_sub_sizes']['type'], 'generate_sub_sizes should be a boolean.' );
@@ -3402,9 +3403,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
-		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
 		$response      = rest_get_server()->dispatch( $request );
 		$attachment_id = $response->get_data()['id'];
+		$this->assertIsInt( $attachment_id );
 
 		$this->assertSame( 201, $response->get_status() );
 
@@ -3416,12 +3418,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.heic' );
 		$request->set_param( 'image_size', 'original-heic' );
 		$request->set_param( 'convert_format', false );
-		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/test-image.heic' ) );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.heic' ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Sideloading original-heic should succeed.' );
 
 		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
 		$this->assertArrayHasKey( 'original', $metadata, "Metadata should contain 'original' for the HEIC companion." );
 		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $metadata['original'], "Metadata 'original' should reference the HEIC filename." );
 		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the HEIC sideload." );

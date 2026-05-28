@@ -22,16 +22,18 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 		$this->assertIsInt( $attachment_id );
 
 		$attached_file = get_attached_file( $attachment_id, true );
-		$dir           = dirname( $attached_file );
-		$heic_name     = 'companion-' . wp_generate_password( 6, false ) . '.heic';
-		$heic_path     = $dir . '/' . $heic_name;
+		$this->assertIsString( $attached_file );
+		$dir       = dirname( $attached_file );
+		$heic_name = 'companion-' . wp_generate_password( 6, false ) . '.heic';
+		$heic_path = $dir . '/' . $heic_name;
 
 		// Create a dummy companion file on disk.
 		file_put_contents( $heic_path, 'test' );
 		$this->assertFileExists( $heic_path, 'Test fixture should be on disk.' );
 
 		// Record the companion under metadata['original'] as the sideload route does.
-		$metadata             = wp_get_attachment_metadata( $attachment_id, true );
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertIsArray( $metadata );
 		$metadata['original'] = $heic_name;
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
@@ -49,6 +51,7 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 
 		// Sanity: no 'original' key on freshly-created metadata.
 		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertIsArray( $metadata );
 		$this->assertArrayNotHasKey( 'original', $metadata );
 
 		// Should not raise even though the hook fires.
@@ -67,8 +70,10 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$this->assertIsInt( $attachment_id );
 		$attached_file = get_attached_file( $attachment_id, true );
+		$this->assertIsString( $attached_file );
 
-		$metadata             = wp_get_attachment_metadata( $attachment_id, true );
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertIsArray( $metadata );
 		$metadata['original'] = array( 'file' => 'should-not-delete.heic' );
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
