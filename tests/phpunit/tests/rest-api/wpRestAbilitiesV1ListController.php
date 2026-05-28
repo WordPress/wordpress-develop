@@ -962,6 +962,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'                 => 'object',
+					'$ref'                 => '#/definitions/address',
 					'anyOf'                => array(
 						array(
 							'type'              => 'object',
@@ -1063,6 +1064,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		// Verify internal keywords are stripped from anyOf sub-schemas.
+		$this->assertSame( '#/definitions/address', $data['input_schema']['$ref'] );
 		$this->assertArrayHasKey( 'anyOf', $data['input_schema'] );
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['anyOf'][0] );
 		$this->assertSame( 'object', $data['input_schema']['anyOf'][0]['type'] );

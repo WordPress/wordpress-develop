@@ -191,8 +191,9 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	/**
 	 * Additional schema keywords to preserve in REST responses.
 	 *
-	 * These are not included in rest_get_allowed_schema_keywords(), but are
-	 * still recognized as schema traversal locations for ability schemas.
+	 * Ability schemas are exposed to clients as JSON Schema. Preserve additional
+	 * draft-04 keywords so clients can validate richer schemas, even when some
+	 * of those keywords are not enforced by the server-side REST schema validator.
 	 *
 	 * @since 7.1.0
 	 * @var string[]
@@ -201,6 +202,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		'required',
 		'allOf',
 		'not',
+		'$ref',
 		'definitions',
 		'dependencies',
 		'additionalItems',
