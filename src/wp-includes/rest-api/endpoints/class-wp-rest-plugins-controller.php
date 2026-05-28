@@ -51,9 +51,15 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'slug'   => array(
 							'type'        => 'string',
-							'required'    => true,
 							'description' => __( 'WordPress.org plugin directory slug.' ),
 							'pattern'     => '[\w\-]+',
+						),
+						'url'    => array(
+							'type'              => 'string',
+							'description'       => __( 'A URL to a plugin zip archive hosted on downloads.wordpress.org.' ),
+							'format'            => 'uri',
+							'sanitize_callback' => 'sanitize_url',
+							'validate_callback' => array( $this, 'validate_plugin_download_url' ),
 						),
 						'status' => array(
 							'description' => __( 'The plugin activation status.' ),
@@ -62,6 +68,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 							'default'     => 'inactive',
 						),
 					),
+					'validate_callback'   => array( $this, 'validate_create_plugin_params' ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -278,39 +285,68 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
-		$slug = $request['slug'];
-
 		// Verify filesystem is accessible first.
 		$filesystem_available = $this->is_filesystem_available();
 		if ( is_wp_error( $filesystem_available ) ) {
 			return $filesystem_available;
 		}
 
-		$api = plugins_api(
-			'plugin_information',
-			array(
-				'slug'   => $slug,
-				'fields' => array(
-					'sections'       => false,
-					'language_packs' => true,
-				),
-			)
-		);
+		$plugin_url     = '';
+		$language_packs = array();
 
-		if ( is_wp_error( $api ) ) {
-			if ( str_contains( $api->get_error_message(), 'Plugin not found.' ) ) {
-				$api->add_data( array( 'status' => 404 ) );
-			} else {
-				$api->add_data( array( 'status' => 500 ) );
+		if ( isset( $request['slug'] ) ) {
+			$slug = $request['slug'];
+
+			$api = plugins_api(
+				'plugin_information',
+				array(
+					'slug'   => $slug,
+					'fields' => array(
+						'sections'       => false,
+						'language_packs' => true,
+					),
+				)
+			);
+
+			if ( is_wp_error( $api ) ) {
+				if ( str_contains( $api->get_error_message(), 'Plugin not found.' ) ) {
+					$api->add_data( array( 'status' => 404 ) );
+				} else {
+					$api->add_data( array( 'status' => 500 ) );
+				}
+
+				return $api;
 			}
 
-			return $api;
+			$plugin_url = $api->download_link;
+
+			if ( ! empty( $api->language_packs ) ) {
+				$language_packs = array_map(
+					static function ( $item ) {
+						return (object) $item;
+					},
+					$api->language_packs
+				);
+			}
+		}
+
+		if ( isset( $request['url'] ) ) {
+			$plugin_url = $request['url'];
+		}
+
+		// This is already enforced by the route-level validation, but protects direct calls to this method.
+		if ( ! $plugin_url ) {
+			return new WP_Error(
+				'rest_missing_plugin_install_source',
+				__( 'A plugin slug or download URL is required.' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		$skin     = new WP_Ajax_Upgrader_Skin();
 		$upgrader = new Plugin_Upgrader( $skin );
 
-		$result = $upgrader->install( $api->download_link );
+		$result = $upgrader->install( $plugin_url );
 
 		if ( is_wp_error( $result ) ) {
 			$result->add_data( array( 'status' => 500 ) );
@@ -379,13 +415,6 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		$installed_locales = array_values( get_available_languages() );
 		/** This filter is documented in wp-includes/update.php */
 		$installed_locales = apply_filters( 'plugins_update_check_locales', $installed_locales );
-
-		$language_packs = array_map(
-			static function ( $item ) {
-				return (object) $item;
-			},
-			$api->language_packs
-		);
 
 		$language_packs = array_filter(
 			$language_packs,
@@ -779,6 +808,71 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		$validated = validate_file( plugin_basename( $file ) );
 
 		return 0 === $validated;
+	}
+
+	/**
+	 * Validates the create request parameters.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has valid parameters, WP_Error otherwise.
+	 */
+	public function validate_create_plugin_params( $request ) {
+		$has_slug = isset( $request['slug'] );
+		$has_url  = isset( $request['url'] );
+
+		if ( $has_slug && $has_url ) {
+			return new WP_Error(
+				'rest_too_many_plugin_install_sources',
+				__( 'Only one plugin slug or download URL can be provided.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( $has_slug || $has_url ) {
+			return true;
+		}
+
+		return new WP_Error(
+			'rest_missing_plugin_install_source',
+			__( 'A plugin slug or download URL is required.' ),
+			array( 'status' => 400 )
+		);
+	}
+
+	/**
+	 * Validates a plugin download URL.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $url The plugin download URL.
+	 * @return bool Whether the URL is valid.
+	 */
+	public function validate_plugin_download_url( $url ) {
+		if ( ! is_string( $url ) ) {
+			return false;
+		}
+
+		$parsed_url = wp_parse_url( $url );
+
+		if ( ! $parsed_url || empty( $parsed_url['scheme'] ) || empty( $parsed_url['host'] ) || empty( $parsed_url['path'] ) ) {
+			return false;
+		}
+
+		if ( 'https' !== strtolower( $parsed_url['scheme'] ) ) {
+			return false;
+		}
+
+		if ( 'downloads.wordpress.org' !== strtolower( trim( $parsed_url['host'], '.' ) ) ) {
+			return false;
+		}
+
+		if ( isset( $parsed_url['user'] ) || isset( $parsed_url['pass'] ) || isset( $parsed_url['port'] ) || isset( $parsed_url['query'] ) || isset( $parsed_url['fragment'] ) ) {
+			return false;
+		}
+
+		return (bool) preg_match( '~^/plugin/[a-z0-9][a-z0-9.-]*[a-z0-9]\.zip$~i', $parsed_url['path'] );
 	}
 
 	/**
