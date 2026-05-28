@@ -1852,7 +1852,7 @@ Thanks! -- The WordPress Team"
 					$log_file = WP_CONTENT_DIR . '/debug.log';
 				}
 
-				if ( $log_file && file_exists( $log_file ) && is_readable( $log_file ) ) {
+				if ( file_exists( $log_file ) && is_readable( $log_file ) ) {
 					$handle = fopen( $log_file, 'r' );
 					if ( $handle ) {
 						$pos = -2;
