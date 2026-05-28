@@ -68,6 +68,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
 			// Special case to set 'original_image' in attachment metadata.
 			$valid_image_sizes[] = 'original';
+			// HEIC/HEIF companion original preserved alongside the JPEG derivative.
+			// Stored under its own meta key so it never collides with 'original'
+			// (which the scaled-sideload flow also writes to).
+			$valid_image_sizes[] = 'original-heic';
 			// Used for PDF thumbnails.
 			$valid_image_sizes[] = 'full';
 			// Client-side big image threshold: sideload the scaled version.
@@ -82,20 +86,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						'callback'            => array( $this, 'sideload_item' ),
 						'permission_callback' => array( $this, 'sideload_item_permissions_check' ),
 						'args'                => array(
-							'id'             => array(
+							'id'                 => array(
 								'description' => __( 'Unique identifier for the attachment.' ),
 								'type'        => 'integer',
 							),
-							'image_size'     => array(
+							'image_size'         => array(
 								'description' => __( 'Image size.' ),
 								'type'        => 'string',
 								'enum'        => $valid_image_sizes,
 								'required'    => true,
 							),
-							'convert_format' => array(
+							'convert_format'     => array(
 								'type'        => 'boolean',
 								'default'     => true,
 								'description' => __( 'Whether to convert image formats.' ),
+							),
+							'generate_sub_sizes' => array(
+								'description' => __( 'Whether to generate image sub sizes from the sideloaded file.' ),
+								'type'        => 'boolean',
+								'default'     => false,
 							),
 						),
 					),
@@ -2101,6 +2110,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( 'original' === $image_size ) {
 			$metadata['original_image'] = wp_basename( $path );
+		} elseif ( 'original-heic' === $image_size ) {
+			// HEIC companion original: stored under its own meta key so
+			// the scaled-sideload flow (which writes 'original_image')
+			// cannot clobber it. 'original_image' keeps pointing at the
+			// web-viewable JPEG derivative. Cleanup on attachment delete
+			// is handled by wp_delete_attachment_heic_companion_file().
+			$metadata['original'] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
 			// The current attached file is the original; record it as original_image.
 			$current_file = get_attached_file( $attachment_id, true );
