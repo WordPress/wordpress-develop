@@ -5761,6 +5761,45 @@ function wp_show_heic_upload_error( $plupload_settings ) {
 }
 
 /**
+ * Deletes the HEIC companion file when its attachment is deleted.
+ *
+ * When the client-side media flow sideloads a HEIC original alongside a
+ * JPEG derivative, the HEIC filename is recorded in $metadata['original'].
+ * WordPress only tracks 'original_image' in wp_delete_attachment_files(),
+ * so without this hook the HEIC file would linger on disk after the
+ * attachment is deleted.
+ *
+ * @since 7.1.0
+ *
+ * @param int $post_id Attachment ID being deleted.
+ */
+function wp_delete_attachment_heic_companion_file( $post_id ) {
+	$metadata = wp_get_attachment_metadata( $post_id, true );
+
+	if ( empty( $metadata['original'] ) || ! is_string( $metadata['original'] ) ) {
+		return;
+	}
+
+	$attached_file = get_attached_file( $post_id, true );
+
+	if ( ! $attached_file ) {
+		return;
+	}
+
+	$uploads = wp_get_upload_dir();
+
+	if ( empty( $uploads['basedir'] ) ) {
+		return;
+	}
+
+	$heic_path = path_join( dirname( $attached_file ), wp_basename( (string) $metadata['original'] ) );
+
+	if ( file_exists( $heic_path ) ) {
+		wp_delete_file_from_directory( $heic_path, $uploads['basedir'] );
+	}
+}
+
+/**
  * Allows PHP's getimagesize() to be debuggable when necessary.
  *
  * @since 5.7.0

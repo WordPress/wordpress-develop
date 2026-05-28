@@ -562,6 +562,7 @@ add_action( 'plugins_loaded', '_wp_customize_include' );
 add_action( 'transition_post_status', '_wp_customize_publish_changeset', 10, 3 );
 add_action( 'admin_enqueue_scripts', '_wp_customize_loader_settings' );
 add_action( 'delete_attachment', '_delete_attachment_theme_mod' );
+add_action( 'delete_attachment', 'wp_delete_attachment_heic_companion_file' );
 add_action( 'transition_post_status', '_wp_keep_alive_customize_changeset_dependent_auto_drafts', 20, 3 );
 
 // Block Theme Previews.
