@@ -320,6 +320,7 @@ function wp_register_core_abilities(): void {
 			'execute_callback'    => static function ( $input = array() ) use ( $environment_info_fields ): array {
 				global $wpdb;
 
+				/** @var array{ fields?: string[] } $input */
 				$input            = is_array( $input ) ? $input : array();
 				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $environment_info_fields;
 
