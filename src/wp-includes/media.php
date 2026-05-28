@@ -5773,7 +5773,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  *
  * @param int $post_id Attachment ID being deleted.
  */
-function wp_delete_attachment_heic_companion_file( $post_id ) {
+function wp_delete_attachment_heic_companion_file( $post_id ): void {
 	$metadata = wp_get_attachment_metadata( $post_id, true );
 
 	if ( empty( $metadata['original'] ) || ! is_string( $metadata['original'] ) ) {

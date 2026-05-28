@@ -3356,7 +3356,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 64915
 	 */
-	public function test_sideload_route_includes_original_heic_enum() {
+	public function test_sideload_route_includes_original_heic_enum(): void {
 		$this->enable_client_side_media_processing();
 
 		$routes   = rest_get_server()->get_routes();
@@ -3372,7 +3372,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 64915
 	 */
-	public function test_sideload_route_includes_generate_sub_sizes_arg() {
+	public function test_sideload_route_includes_generate_sub_sizes_arg(): void {
 		$this->enable_client_side_media_processing();
 
 		$routes   = rest_get_server()->get_routes();
@@ -3393,7 +3393,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 64915
 	 * @requires function imagejpeg
 	 */
-	public function test_sideload_original_heic_writes_metadata_original() {
+	public function test_sideload_original_heic_writes_metadata_original(): void {
 		$this->enable_client_side_media_processing();
 
 		wp_set_current_user( self::$author_id );

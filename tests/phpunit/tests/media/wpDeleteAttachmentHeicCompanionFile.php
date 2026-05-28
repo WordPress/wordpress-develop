@@ -8,7 +8,7 @@
  */
 class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 
-	public function tear_down() {
+	public function tear_down(): void {
 		$this->remove_added_uploads();
 
 		parent::tear_down();
@@ -17,7 +17,7 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 	/**
 	 * @ticket 64915
 	 */
-	public function test_deletes_heic_file_recorded_in_metadata_original() {
+	public function test_deletes_heic_file_recorded_in_metadata_original(): void {
 		$attachment_id = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$attached_file = get_attached_file( $attachment_id, true );
@@ -42,7 +42,7 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 	/**
 	 * @ticket 64915
 	 */
-	public function test_noop_when_metadata_original_is_missing() {
+	public function test_noop_when_metadata_original_is_missing(): void {
 		$attachment_id = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		// Sanity: no 'original' key on freshly-created metadata.
@@ -61,7 +61,7 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 	 *
 	 * @ticket 64915
 	 */
-	public function test_noop_when_metadata_original_is_not_a_string() {
+	public function test_noop_when_metadata_original_is_not_a_string(): void {
 		$attachment_id = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$attached_file = get_attached_file( $attachment_id, true );
 
