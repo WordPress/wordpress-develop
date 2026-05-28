@@ -6617,6 +6617,10 @@ function wp_add_crossorigin_attributes( string $html ): string {
 		if ( ! isset( $cross_origin_tag_attributes[ $tag ] ) ) {
 			continue;
 		}
+		$crossorigin = $processor->get_attribute( 'crossorigin' );
+		if ( null !== $crossorigin ) {
+			continue;
+		}
 
 		if ( 'AUDIO' === $tag || 'VIDEO' === $tag ) {
 			$processor->set_bookmark( 'audio-video-parent' );
@@ -6625,8 +6629,6 @@ function wp_add_crossorigin_attributes( string $html ): string {
 		$processor->set_bookmark( 'resume' );
 
 		$sought = false;
-
-		$crossorigin = $processor->get_attribute( 'crossorigin' );
 
 		$is_cross_origin = false;
 
@@ -6641,7 +6643,7 @@ function wp_add_crossorigin_attributes( string $html ): string {
 			}
 		}
 
-		if ( $is_cross_origin && ! is_string( $crossorigin ) ) {
+		if ( $is_cross_origin ) {
 			if ( 'SOURCE' === $tag ) {
 				$sought = $processor->seek( 'audio-video-parent' );
 

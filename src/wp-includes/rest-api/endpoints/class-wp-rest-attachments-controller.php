@@ -313,7 +313,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Handle convert_format parameter.
-		if ( isset( $request['convert_format'] ) && ! $request['convert_format'] ) {
+		if ( false === $request['convert_format'] ) {
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
 
@@ -2031,7 +2031,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		if ( isset( $request['convert_format'] ) && ! $request['convert_format'] ) {
+		if ( false === $request['convert_format'] ) {
 			// Prevent image conversion as that is done client-side.
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
