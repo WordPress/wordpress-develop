@@ -1706,7 +1706,9 @@ function do_feed_atom( $for_comments ) {
  *              filter callback.
  */
 function do_robots() {
-	header( 'Content-Type: text/plain; charset=utf-8' );
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: text/plain; charset=utf-8' );
+	}
 
 	/**
 	 * Fires when displaying the robots.txt file.
