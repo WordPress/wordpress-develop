@@ -351,9 +351,7 @@ function get_search_form( $args = array() ): ?string {
 				 * from the form to avoid nesting two identical landmarks. Any aria-label
 				 * names the <search> landmark instead of the form.
 				 */
-				$search_label = $args['aria_label'] ? ' aria-label="' . esc_attr( $args['aria_label'] ) . '"' : '';
-
-				$form = '<search' . $search_label . '><form method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">' . $form_inner . '</form></search>';
+				$form = '<search ' . $aria_label . '><form method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">' . $form_inner . '</form></search>';
 			} else {
 				$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">' . $form_inner . '</form>';
 			}
