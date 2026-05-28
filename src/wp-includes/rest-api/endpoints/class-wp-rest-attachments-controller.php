@@ -93,7 +93,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 								 * the current list of registered sizes, which reflects sizes added
 								 * after route registration (e.g. via add_image_size()).
 								 */
-								'validate_callback' => static function ( $value, $request, $param ) {
+								'validate_callback' => static function ( $value, WP_REST_Request $request, string $param ) {
 									$valid_sizes   = array_keys( wp_get_registered_image_subsizes() );
 									$valid_sizes[] = 'original';
 									$valid_sizes[] = 'scaled';
