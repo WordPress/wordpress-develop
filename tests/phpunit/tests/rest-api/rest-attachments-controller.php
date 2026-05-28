@@ -3352,6 +3352,80 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the sideload endpoint includes 'original-heic' in the image_size enum.
+	 *
+	 * @ticket 64915
+	 */
+	public function test_sideload_route_includes_original_heic_enum() {
+		$this->enable_client_side_media_processing();
+
+		$routes   = rest_get_server()->get_routes();
+		$endpoint = $routes['/wp/v2/media/(?P<id>[\d]+)/sideload'][0];
+		$args     = $endpoint['args'];
+
+		$this->assertArrayHasKey( 'image_size', $args, 'Route should have image_size arg.' );
+		$this->assertContains( 'original-heic', $args['image_size']['enum'], 'image_size enum should include original-heic.' );
+	}
+
+	/**
+	 * Tests that the sideload endpoint exposes the generate_sub_sizes arg.
+	 *
+	 * @ticket 64915
+	 */
+	public function test_sideload_route_includes_generate_sub_sizes_arg() {
+		$this->enable_client_side_media_processing();
+
+		$routes   = rest_get_server()->get_routes();
+		$endpoint = $routes['/wp/v2/media/(?P<id>[\d]+)/sideload'][0];
+		$args     = $endpoint['args'];
+
+		$this->assertArrayHasKey( 'generate_sub_sizes', $args, 'Route should have generate_sub_sizes arg.' );
+		$this->assertSame( 'boolean', $args['generate_sub_sizes']['type'], 'generate_sub_sizes should be a boolean.' );
+		$this->assertFalse( $args['generate_sub_sizes']['default'], 'generate_sub_sizes should default to false on sideload.' );
+	}
+
+	/**
+	 * Tests sideloading an 'original-heic' companion file alongside its JPEG
+	 * derivative. The HEIC filename is recorded under $metadata['original']
+	 * so it does not collide with 'original_image', which the scaled-sideload
+	 * flow owns.
+	 *
+	 * @ticket 64915
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_original_heic_writes_metadata_original() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create the JPEG attachment that the HEIC will be a companion to.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Sideload the HEIC companion. Uses a JPEG body since the size enum,
+		// not the file format, is what we're exercising here.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.heic' );
+		$request->set_param( 'image_size', 'original-heic' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading original-heic should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertArrayHasKey( 'original', $metadata, "Metadata should contain 'original' for the HEIC companion." );
+		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $metadata['original'], "Metadata 'original' should reference the HEIC filename." );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the HEIC sideload." );
+	}
+
+	/**
 	 * Tests the filter_wp_unique_filename method handles the -scaled suffix.
 	 *
 	 * @ticket 64737
