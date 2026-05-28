@@ -37,47 +37,7 @@ function options_general_add_js() {
 	jQuery( function($) {
 		var $siteName = $( '#wp-admin-bar-site-name' ).children( 'a' ).first(),
 			$siteIconPreview = $('#site-icon-preview-site-title'),
-			homeURL = ( <?php echo wp_json_encode( get_home_url(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> || '' ).replace( /^(https?:\/\/)?(www\.)?/, '' ),
-			invalidDateTimeFormatMessage = <?php echo wp_json_encode( __( 'Please configure a valid date and time format.' ) ); ?>;
-
-		function clearDateTimeFormatValidation( $input ) {
-			$input.closest( 'tr' ).removeClass( 'form-invalid form-required' );
-		}
-
-		function validateCustomDateTimeFormats( $form ) {
-			var invalid = false,
-				$dateFormatCustom = $form.find( '#date_format_custom' ),
-				$timeFormatCustom = $form.find( '#time_format_custom' ),
-				$firstInvalid = null;
-
-			clearDateTimeFormatValidation( $dateFormatCustom );
-			clearDateTimeFormatValidation( $timeFormatCustom );
-
-			if ( $( '#date_format_custom_radio' ).prop( 'checked' ) && ! $.trim( $dateFormatCustom.val() ) ) {
-				$dateFormatCustom.closest( 'tr' ).addClass( 'form-invalid form-required' );
-				invalid = true;
-				$firstInvalid = $dateFormatCustom;
-			}
-
-			if ( $( '#time_format_custom_radio' ).prop( 'checked' ) && ! $.trim( $timeFormatCustom.val() ) ) {
-				$timeFormatCustom.closest( 'tr' ).addClass( 'form-invalid form-required' );
-				invalid = true;
-
-				if ( ! $firstInvalid ) {
-					$firstInvalid = $timeFormatCustom;
-				}
-			}
-
-			if ( invalid ) {
-				if ( wp.a11y && wp.a11y.speak ) {
-					wp.a11y.speak( invalidDateTimeFormatMessage );
-				}
-
-				$firstInvalid.trigger( 'focus' );
-			}
-
-			return ! invalid;
-		}
+			homeURL = ( <?php echo wp_json_encode( get_home_url(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> || '' ).replace( /^(https?:\/\/)?(www\.)?/, '' );
 
 		$( '#blogname' ).on( 'input', function() {
 			var title = $.trim( $( this ).val() ) || homeURL;
@@ -92,33 +52,21 @@ function options_general_add_js() {
 		});
 
 		$( 'input[name="date_format"]' ).on( 'click', function() {
-			if ( 'date_format_custom_radio' !== $(this).attr( 'id' ) ) {
-				clearDateTimeFormatValidation( $( '#date_format_custom' ) );
+			if ( 'date_format_custom_radio' !== $(this).attr( 'id' ) )
 				$( 'input[name="date_format_custom"]' ).val( $( this ).val() ).closest( 'fieldset' ).find( '.example' ).text( $( this ).parent( 'label' ).children( '.format-i18n' ).text() );
-			}
 		});
 
 		$( 'input[name="date_format_custom"]' ).on( 'click input', function() {
 			$( '#date_format_custom_radio' ).prop( 'checked', true );
-
-			if ( $.trim( $( this ).val() ) ) {
-				clearDateTimeFormatValidation( $( this ) );
-			}
 		});
 
 		$( 'input[name="time_format"]' ).on( 'click', function() {
-			if ( 'time_format_custom_radio' !== $(this).attr( 'id' ) ) {
-				clearDateTimeFormatValidation( $( '#time_format_custom' ) );
+			if ( 'time_format_custom_radio' !== $(this).attr( 'id' ) )
 				$( 'input[name="time_format_custom"]' ).val( $( this ).val() ).closest( 'fieldset' ).find( '.example' ).text( $( this ).parent( 'label' ).children( '.format-i18n' ).text() );
-			}
 		});
 
 		$( 'input[name="time_format_custom"]' ).on( 'click input', function() {
 			$( '#time_format_custom_radio' ).prop( 'checked', true );
-
-			if ( $.trim( $( this ).val() ) ) {
-				clearDateTimeFormatValidation( $( this ) );
-			}
 		});
 
 		$( 'input[name="date_format_custom"], input[name="time_format_custom"]' ).on( 'input', function() {
@@ -143,12 +91,7 @@ function options_general_add_js() {
 		} );
 
 		var languageSelect = $( '#WPLANG' );
-		$( 'form' ).on( 'submit', function( event ) {
-			if ( ! validateCustomDateTimeFormats( $( this ) ) ) {
-				event.preventDefault();
-				return false;
-			}
-
+		$( 'form' ).on( 'submit', function() {
 			/*
 			 * Don't show a spinner for English and installed languages,
 			 * as there is nothing to download.
