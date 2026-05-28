@@ -1,12 +1,14 @@
 <?php
 
 /**
- * Tests for the `wp_delete_attachment_heic_companion_file()` function.
+ * Tests for the `wp_delete_attachment_preserved_original_companion_file()` function.
+ *
+ * Covers the cleanup hook for both HEIC and JPEG XL (JXL) companion originals.
  *
  * @group media
- * @covers ::wp_delete_attachment_heic_companion_file
+ * @covers ::wp_delete_attachment_preserved_original_companion_file
  */
-class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
+class Tests_Media_wpDeleteAttachmentPreservedOriginalCompanionFile extends WP_UnitTestCase {
 
 	public function tear_down() {
 		$this->remove_added_uploads();
@@ -70,8 +72,34 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
 		// Should not raise (no path_join() / file_exists() on an array).
-		wp_delete_attachment_heic_companion_file( $attachment_id );
+		wp_delete_attachment_preserved_original_companion_file( $attachment_id );
 
 		$this->assertFileExists( $attached_file, 'Attached file should still be on disk; the hook must bail on non-string original.' );
+	}
+
+	/**
+	 * The same hook also deletes a JXL companion since both HEIC and JXL
+	 * write the preserved original under $metadata['original'].
+	 *
+	 * @ticket 64915
+	 */
+	public function test_deletes_jxl_file_recorded_in_metadata_original() {
+		$attachment_id = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$attached_file = get_attached_file( $attachment_id, true );
+		$dir           = dirname( $attached_file );
+		$jxl_name      = 'companion-' . wp_generate_password( 6, false ) . '.jxl';
+		$jxl_path      = $dir . '/' . $jxl_name;
+
+		file_put_contents( $jxl_path, 'test' );
+		$this->assertFileExists( $jxl_path, 'Test fixture should be on disk.' );
+
+		$metadata             = wp_get_attachment_metadata( $attachment_id, true );
+		$metadata['original'] = $jxl_name;
+		wp_update_attachment_metadata( $attachment_id, $metadata );
+
+		wp_delete_attachment( $attachment_id, true );
+
+		$this->assertFileDoesNotExist( $jxl_path, 'Companion JXL file should be deleted alongside the attachment.' );
 	}
 }

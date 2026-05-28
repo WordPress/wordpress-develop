@@ -562,7 +562,7 @@ add_action( 'plugins_loaded', '_wp_customize_include' );
 add_action( 'transition_post_status', '_wp_customize_publish_changeset', 10, 3 );
 add_action( 'admin_enqueue_scripts', '_wp_customize_loader_settings' );
 add_action( 'delete_attachment', '_delete_attachment_theme_mod' );
-add_action( 'delete_attachment', 'wp_delete_attachment_heic_companion_file' );
+add_action( 'delete_attachment', 'wp_delete_attachment_preserved_original_companion_file' );
 add_action( 'transition_post_status', '_wp_keep_alive_customize_changeset_dependent_auto_drafts', 20, 3 );
 
 // Block Theme Previews.
@@ -684,6 +684,11 @@ add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
 add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings' );
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
+
+// JPEG XL (JXL) upload support: register the MIME type and restore it during
+// upload validation when fileinfo reports the non-canonical image/x-jxl form.
+add_filter( 'upload_mimes', 'wp_add_jxl_upload_mimes' );
+add_filter( 'wp_check_filetype_and_ext', 'wp_filter_jxl_filetype_and_ext', 10, 3 );
 
 // Client-side media processing.
 add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
