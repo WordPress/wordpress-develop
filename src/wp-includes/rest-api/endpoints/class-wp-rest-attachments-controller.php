@@ -1063,7 +1063,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				$filename ? $filename : '',
 				$mime_type
 			);
-			$output_mime    = isset( $output_formats[ $mime_type ] ) ? $output_formats[ $mime_type ] : $mime_type;
+			$output_mime    = $output_formats[ $mime_type ] ?? $mime_type;
 
 			$metadata    = wp_get_attachment_metadata( $post->ID, true );
 			$full_width  = ( is_array( $metadata ) && isset( $metadata['width'] ) ) ? (int) $metadata['width'] : 0;
