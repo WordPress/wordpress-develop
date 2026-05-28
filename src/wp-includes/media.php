@@ -979,8 +979,13 @@ function wp_get_registered_image_subsizes() {
  * @param int|null $default_quality Optional. Starting quality before filters are applied.
  *                                  Defaults to the per-format default (86 for WebP, 82 otherwise).
  * @return int Encode quality between 1 and 100.
+ *
+ * @phpstan-param non-empty-string $mime_type
+ * @phpstan-param array{ width?: non-negative-int, height?: non-negative-int } $size
+ * @phpstan-param int<0, 100>|int $default_quality
+ * @phpstan-return int<1, 100>
  */
-function wp_get_image_encode_quality( $mime_type, $size = array(), $default_quality = null ) {
+function wp_get_image_encode_quality( string $mime_type, array $size = array(), ?int $default_quality = null ): int {
 	if ( null === $default_quality ) {
 		// Mirror WP_Image_Editor::get_default_quality(): WebP defaults to 86, everything else to 82.
 		$default_quality = ( 'image/webp' === $mime_type ) ? 86 : 82;
@@ -994,16 +999,20 @@ function wp_get_image_encode_quality( $mime_type, $size = array(), $default_qual
 		$quality = apply_filters( 'jpeg_quality', $quality, 'image_resize' );
 	}
 
-	if ( $quality < 0 || $quality > 100 ) {
+	if ( ! is_numeric( $quality ) ) {
 		$quality = $default_quality;
+	} else {
+		$quality = (int) $quality;
 	}
 
 	// Allow 0, but squash to 1, matching WP_Image_Editor::set_quality().
-	if ( 0 === $quality ) {
+	if ( $quality <= 0 ) {
 		$quality = 1;
+	} elseif ( $quality > 100 ) {
+		$quality = 100;
 	}
 
-	return (int) $quality;
+	return $quality;
 }
 
 /**
