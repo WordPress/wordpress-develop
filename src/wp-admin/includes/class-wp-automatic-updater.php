@@ -1872,7 +1872,7 @@ Thanks! -- The WordPress Team"
 							} else {
 								$current_line .= $char;
 							}
-							$pos--;
+							--$pos;
 						}
 						if ( '' !== $current_line && null === $fatal_error ) {
 							$line = strrev( $current_line );
