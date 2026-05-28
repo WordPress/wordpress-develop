@@ -5792,7 +5792,7 @@ function wp_delete_attachment_heic_companion_file( $post_id ): void {
 		return;
 	}
 
-	$heic_path = path_join( dirname( $attached_file ), wp_basename( (string) $metadata['original'] ) );
+	$heic_path = path_join( dirname( $attached_file ), wp_basename( $metadata['original'] ) );
 
 	if ( file_exists( $heic_path ) ) {
 		wp_delete_file_from_directory( $heic_path, $uploads['basedir'] );
