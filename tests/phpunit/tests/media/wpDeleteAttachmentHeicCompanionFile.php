@@ -19,6 +19,7 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 	 */
 	public function test_deletes_heic_file_recorded_in_metadata_original(): void {
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertIsInt( $attachment_id );
 
 		$attached_file = get_attached_file( $attachment_id, true );
 		$dir           = dirname( $attached_file );
@@ -44,6 +45,7 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 	 */
 	public function test_noop_when_metadata_original_is_missing(): void {
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertIsInt( $attachment_id );
 
 		// Sanity: no 'original' key on freshly-created metadata.
 		$metadata = wp_get_attachment_metadata( $attachment_id, true );
@@ -63,6 +65,7 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 	 */
 	public function test_noop_when_metadata_original_is_not_a_string(): void {
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertIsInt( $attachment_id );
 		$attached_file = get_attached_file( $attachment_id, true );
 
 		$metadata             = wp_get_attachment_metadata( $attachment_id, true );
