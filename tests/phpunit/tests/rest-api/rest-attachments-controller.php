@@ -3368,11 +3368,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Tests that the sideload endpoint exposes the generate_sub_sizes arg.
+	 * Tests that the sideload endpoint does not expose a generate_sub_sizes arg.
+	 *
+	 * sideload_item() never reads the parameter, so advertising it on the route
+	 * would silently mislead clients into expecting server-side sub-size
+	 * generation. The arg only does real work on create_item() (POST /wp/v2/media).
 	 *
 	 * @ticket 64915
 	 */
-	public function test_sideload_route_includes_generate_sub_sizes_arg(): void {
+	public function test_sideload_route_excludes_generate_sub_sizes_arg(): void {
 		$this->enable_client_side_media_processing();
 
 		$routes   = rest_get_server()->get_routes();
@@ -3380,21 +3384,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$args     = $endpoint['args'];
 		$this->assertIsArray( $args );
 
-		$this->assertArrayHasKey( 'generate_sub_sizes', $args, 'Route should have generate_sub_sizes arg.' );
-		$this->assertSame( 'boolean', $args['generate_sub_sizes']['type'], 'generate_sub_sizes should be a boolean.' );
-		$this->assertFalse( $args['generate_sub_sizes']['default'], 'generate_sub_sizes should default to false on sideload.' );
+		$this->assertArrayNotHasKey( 'generate_sub_sizes', $args, 'Sideload route should not advertise the unused generate_sub_sizes arg.' );
 	}
 
 	/**
 	 * Tests sideloading an 'original-heic' companion file alongside its JPEG
-	 * derivative. The HEIC filename is recorded under $metadata['original']
+	 * derivative. The HEIC filename is recorded under $metadata['source_image']
 	 * so it does not collide with 'original_image', which the scaled-sideload
 	 * flow owns.
 	 *
 	 * @ticket 64915
 	 * @requires function imagejpeg
 	 */
-	public function test_sideload_original_heic_writes_metadata_original(): void {
+	public function test_sideload_original_heic_writes_metadata_source_image(): void {
 		$this->enable_client_side_media_processing();
 
 		wp_set_current_user( self::$author_id );
@@ -3425,8 +3427,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 		$this->assertIsArray( $metadata );
-		$this->assertArrayHasKey( 'original', $metadata, "Metadata should contain 'original' for the HEIC companion." );
-		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $metadata['original'], "Metadata 'original' should reference the HEIC filename." );
+		$this->assertArrayHasKey( 'source_image', $metadata, "Metadata should contain 'source_image' for the HEIC companion." );
+		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $metadata['source_image'], "Metadata 'source_image' should reference the HEIC filename." );
 		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the HEIC sideload." );
 	}
 
