@@ -3714,12 +3714,6 @@ mockedApiResponse.Schema = {
                             "default": true,
                             "description": "Whether to convert image formats.",
                             "required": false
-                        },
-                        "generate_sub_sizes": {
-                            "description": "Whether to generate image sub sizes from the sideloaded file.",
-                            "type": "boolean",
-                            "default": false,
-                            "required": false
                         }
                     }
                 }
