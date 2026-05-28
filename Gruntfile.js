@@ -115,7 +115,6 @@ module.exports = function(grunt) {
 			'cssmin',
 			'imagemin',
 			'jshint',
-			'qunit',
 			'uglify',
 			'watch'
 		],
@@ -397,6 +396,55 @@ module.exports = function(grunt) {
 							'suggest*'
 						],
 						dest: WORKING_DIR + 'wp-includes/js/jquery/'
+					},
+					{
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/lodash.js' ]: [ './node_modules/lodash/lodash.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/lodash.min.js' ]: [ './node_modules/lodash/lodash.min.js' ],
+					},
+					{
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/moment.js' ]: [ './node_modules/moment/moment.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/moment.min.js' ]: [ './node_modules/moment/min/moment.min.js' ],
+					},
+					{
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.js' ]: [ './node_modules/regenerator-runtime/runtime.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.min.js' ]: [ './node_modules/regenerator-runtime/runtime.js' ],
+					},
+					// React libraries: react, react-dom
+					{
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react.js' ]: [ './node_modules/react/umd/react.development.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react.min.js' ]: [ './node_modules/react/umd/react.production.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-dom.js' ]: [ './node_modules/react-dom/umd/react-dom.development.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-dom.min.js' ]: [ './node_modules/react-dom/umd/react-dom.production.min.js' ],
+					},
+					// Polyfills
+					{
+						// @wordpress/babel-preset-default
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill.js' ]: [ './node_modules/@wordpress/babel-preset-default/build/polyfill.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill.min.js' ]: [ './node_modules/@wordpress/babel-preset-default/build/polyfill.min.js' ],
+						// polyfill-library (DOMRect)
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-dom-rect.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/DOMRect/raw.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-dom-rect.min.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/DOMRect/min.js' ],
+						// element-closest
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-element-closest.js' ]: [ './node_modules/element-closest/browser.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-element-closest.min.js' ]: [ './node_modules/element-closest/browser.js' ],
+						// whatwg-fetch
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-fetch.js' ]: [ './node_modules/whatwg-fetch/dist/fetch.umd.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-fetch.min.js' ]: [ './node_modules/whatwg-fetch/dist/fetch.umd.js' ],
+						// formdata-polyfill
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-formdata.js' ]: [ './node_modules/formdata-polyfill/FormData.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-formdata.min.js' ]: [ './node_modules/formdata-polyfill/formdata.min.js' ],
+						// wicg-inert
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-inert.js' ]: [ './node_modules/wicg-inert/dist/inert.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-inert.min.js' ]: [ './node_modules/wicg-inert/dist/inert.min.js' ],
+						// polyfill-library (Node.prototype.contains)
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-node-contains.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-node-contains.min.js' ]: [ './node_modules/polyfill-library/polyfills/__dist/Node.prototype.contains/min.js' ],
+						// objectFitPolyfill
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-object-fit.js' ]: [ './node_modules/objectFitPolyfill/src/objectFitPolyfill.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-object-fit.min.js' ]: [ './node_modules/objectFitPolyfill/dist/objectFitPolyfill.min.js' ],
+						// core-js-url-browser
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-url.js' ]: [ './node_modules/core-js-url-browser/url.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-url.min.js' ]: [ './node_modules/core-js-url-browser/url.min.js' ],
 					}
 				].concat(
 					// Copy tinymce.js only when building to /src.
@@ -906,7 +954,8 @@ module.exports = function(grunt) {
 				src: [
 					'tests/qunit/**/*.js',
 					'!tests/qunit/vendor/*',
-					'!tests/qunit/editor/**'
+					'!tests/qunit/qunit.js',
+					'!tests/qunit/playwright.config.js'
 				],
 				options: grunt.file.readJSON( 'tests/qunit/.jshintrc' )
 			},
@@ -1010,12 +1059,6 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		qunit: {
-			files: [
-				'tests/qunit/**/*.html',
-				'!tests/qunit/editor/**'
-			]
-		},
 		phpunit: {
 			'default': {
 				args: ['--verbose', '-c', 'phpunit.xml.dist']
@@ -1106,6 +1149,14 @@ module.exports = function(grunt) {
 			moment: {
 				src: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.js',
 				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.min.js'
+			},
+			'regenerator-runtime': {
+				src: WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.js',
+				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.min.js'
+			},
+			'wp-polyfill-fetch': {
+				src: WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-fetch.js',
+				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-fetch.min.js'
 			},
 			dynamic: {
 				expand: true,
@@ -1540,8 +1591,7 @@ module.exports = function(grunt) {
 			},
 			test: {
 				files: [
-					'tests/qunit/**',
-					'!tests/qunit/editor/**'
+					'tests/qunit/**'
 				],
 				tasks: ['qunit']
 			}
@@ -1635,18 +1685,6 @@ module.exports = function(grunt) {
 		} );
 	} );
 
-	grunt.registerTask( 'copy-vendor-scripts', 'Copies vendor scripts from node_modules to wp-includes/js/dist/vendor/.', function() {
-		const done = this.async();
-		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
-		grunt.util.spawn( {
-			cmd: 'node',
-			args: [ 'tools/vendors/copy-vendors.js', `--build-dir=${ buildDir }` ],
-			opts: { stdio: 'inherit' }
-		}, function( error ) {
-			done( ! error );
-		} );
-	} );
-
 	grunt.renameTask( 'watch', '_watch' );
 
 	grunt.registerTask( 'watch', function() {
@@ -1675,6 +1713,8 @@ module.exports = function(grunt) {
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment',
+		'uglify:regenerator-runtime',
+		'uglify:wp-polyfill-fetch',
 		'qunit:compiled'
 	] );
 
@@ -1817,7 +1857,9 @@ module.exports = function(grunt) {
 		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
-		'uglify:moment'
+		'uglify:moment',
+		'uglify:regenerator-runtime',
+		'uglify:wp-polyfill-fetch'
 	] );
 
 	grunt.registerTask( 'build:codemirror', [
@@ -1837,7 +1879,6 @@ module.exports = function(grunt) {
 		'clean:js',
 		'build:webpack',
 		'copy:js',
-		'copy-vendor-scripts',
 		'file_append',
 		'uglify:all',
 		'concat:tinymce',
@@ -2171,6 +2212,20 @@ module.exports = function(grunt) {
 			opts: { stdio: 'inherit' }
 		}, this.async());
 	});
+
+	grunt.registerTask( 'qunit', 'Runs QUnit tests.', function() {
+		var done = this.async();
+		grunt.util.spawn( {
+			cmd: 'npx',
+			args: [ 'playwright', 'test', '--config', 'tests/qunit/playwright.config.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error, result, code ) {
+			if ( code !== 0 ) {
+				grunt.fail.warn( 'QUnit tests failed.' );
+			}
+			done();
+		} );
+	} );
 
 	grunt.registerTask( 'qunit:compiled', 'Runs QUnit tests on compiled as well as uncompiled scripts.',
 		['build', 'copy:qunit', 'qunit']
