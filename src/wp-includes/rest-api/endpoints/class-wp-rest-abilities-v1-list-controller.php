@@ -225,11 +225,20 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	/**
 	 * Transforms an ability schema for REST response output.
 	 *
+	 * The input and output schemas are a public contract: REST clients (such as
+	 * the `@wordpress/abilities` JS client) consume them as standard JSON Schema
+	 * and validate ability input and output against them. The response must
+	 * therefore use JSON Schema draft-04 forms that standard validators
+	 * understand, not the WordPress-internal conventions that
+	 * `rest_validate_value_from_schema()` also accepts on the server.
+	 *
 	 * Ability schemas may include WordPress-internal properties or unsupported
 	 * schema keywords that should not be exposed in REST responses. This method
 	 * strips keys not recognized by the REST API schema handling. It also
 	 * converts empty array defaults to objects when the schema type is 'object'
-	 * to ensure proper JSON serialization as {} instead of [].
+	 * to ensure proper JSON serialization as {} instead of [], and normalizes
+	 * the `required` keyword from the draft-03 per-property boolean form into
+	 * the draft-04 array of property names.
 	 *
 	 * @since 7.1.0
 	 *
@@ -255,6 +264,29 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		);
 
 		$schema = array_intersect_key( $schema, $allowed_keywords );
+
+		// Collect draft-03 per-property `required: true` flags into a draft-04
+		// `required` array of property names on the parent object schema.
+		if ( isset( $schema['properties'] ) && is_array( $schema['properties'] ) ) {
+			$required = ( isset( $schema['required'] ) && is_array( $schema['required'] ) ) ? $schema['required'] : array();
+			foreach ( $schema['properties'] as $property => $property_schema ) {
+				if ( $this->is_associative_array( $property_schema ) && isset( $property_schema['required'] ) && is_bool( $property_schema['required'] ) ) {
+					if ( true === $property_schema['required'] ) {
+						$required[] = $property;
+					}
+					unset( $schema['properties'][ $property ]['required'] );
+				}
+			}
+			if ( ! empty( $required ) ) {
+				$schema['required'] = array_values( array_unique( $required ) );
+			}
+		}
+
+		// A boolean `required` outside of an object's property list has no draft-04
+		// equivalent, so drop it rather than emit an invalid keyword.
+		if ( isset( $schema['required'] ) && is_bool( $schema['required'] ) ) {
+			unset( $schema['required'] );
+		}
 
 		// Sub-schema maps: keys are user-defined, values are sub-schemas.
 		// Note: 'dependencies' values can also be property-dependency arrays
