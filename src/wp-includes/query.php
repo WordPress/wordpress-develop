@@ -1107,8 +1107,16 @@ function wp_old_slug_redirect() {
 		$query_string = isset( $_SERVER['QUERY_STRING'] ) ? (string) $_SERVER['QUERY_STRING'] : '';
 
 		if ( '' !== $query_string ) {
+			$fragment = strstr( $link, '#' );
+
+			if ( false !== $fragment ) {
+				$link = substr( $link, 0, -strlen( $fragment ) );
+			} else {
+				$fragment = '';
+			}
+
 			$link .= false === strpos( $link, '?' ) ? '?' : '&';
-			$link .= $query_string;
+			$link .= $query_string . $fragment;
 		}
 
 		/**
