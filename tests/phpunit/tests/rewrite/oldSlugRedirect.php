@@ -34,7 +34,6 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 	public function tear_down() {
 		$this->old_slug_redirect_url = null;
-		remove_filter( 'post_link', array( $this, 'filter_post_link_with_query_string_and_fragment' ) );
 		unset( $_SERVER['QUERY_STRING'] );
 
 		parent::tear_down();
@@ -96,7 +95,12 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		$permalink    = user_trailingslashit( get_permalink( self::$post_id ) ) . '?existing=1';
 		$query_string = 'utm_source=flyer';
 
-		add_filter( 'post_link', array( $this, 'filter_post_link_with_query_string_and_fragment' ) );
+		add_filter(
+			'post_link',
+			static function ( $url ) {
+				return $url . '?existing=1#campaign-details';
+			}
+		);
 
 		$this->go_to( $old_permalink . '?' . $query_string );
 		$_SERVER['QUERY_STRING'] = $query_string;
@@ -263,9 +267,5 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	public function filter_old_slug_redirect_url( $url ) {
 		$this->old_slug_redirect_url = $url;
 		return false;
-	}
-
-	public function filter_post_link_with_query_string_and_fragment( $url ) {
-		return $url . '?existing=1#campaign-details';
 	}
 }
