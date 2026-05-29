@@ -1042,7 +1042,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$response = parent::prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
-		$data     = $response->get_data();
+		/** @var array<string, mixed> $data */
+		$data = $response->get_data();
 
 		if ( in_array( 'description', $fields, true ) ) {
 			$data['description'] = array(
@@ -1191,7 +1192,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$mime_type = get_post_mime_type( $post );
 			$filename  = get_attached_file( $post->ID );
 
-			/** This filter is documented in wp-includes/class-wp-image-editor.php */
+			/** This filter is documented in wp-includes/media.php */
 			$output_formats = apply_filters(
 				'image_editor_output_format',
 				array( $mime_type => $mime_type ),
