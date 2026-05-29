@@ -891,6 +891,62 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that nested empty object defaults are prepared as objects in REST response schemas.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_nested_empty_object_schema_defaults_prepared_for_response(): void {
+		$this->register_test_ability(
+			'test/nested-object-defaults',
+			array(
+				'label'               => 'Test Nested Object Defaults',
+				'description'         => 'Tests preparing nested empty object defaults.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array(
+							'type'       => 'object',
+							'default'    => array(),
+							'properties' => array(
+								'options' => array(
+									'type'    => 'object',
+									'default' => array(),
+								),
+							),
+						),
+					),
+				),
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'result' => array(
+							'type'    => 'object',
+							'default' => array(),
+						),
+					),
+				),
+				'execute_callback'    => static function (): array {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-object-defaults' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertEquals( new stdClass(), $data['input_schema']['properties']['settings']['default'] );
+		$this->assertEquals( new stdClass(), $data['input_schema']['properties']['settings']['properties']['options']['default'] );
+		$this->assertEquals( new stdClass(), $data['output_schema']['properties']['result']['default'] );
+	}
+
+	/**
 	 * Test that internal schema keywords are stripped from nested sub-schema locations.
 	 *
 	 * @ticket 64098

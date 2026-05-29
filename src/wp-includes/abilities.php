@@ -46,35 +46,43 @@ function wp_register_core_abilities(): void {
 	$site_info_properties = array(
 		'name'        => array(
 			'type'        => 'string',
+			'title'       => __( 'Site Title' ),
 			'description' => __( 'The site title.' ),
 		),
 		'description' => array(
 			'type'        => 'string',
+			'title'       => __( 'Tagline' ),
 			'description' => __( 'The site tagline.' ),
 		),
 		'url'         => array(
 			'type'        => 'string',
-			'description' => __( 'The site home URL.' ),
+			'title'       => __( 'Site Address (URL)' ),
+			'description' => __( 'The public URL where visitors access the site. May differ from the WordPress installation URL.' ),
 		),
 		'wpurl'       => array(
 			'type'        => 'string',
-			'description' => __( 'The WordPress installation URL.' ),
+			'title'       => __( 'WordPress Address (URL)' ),
+			'description' => __( 'The URL where WordPress core files are served. May differ from the public site URL.' ),
 		),
 		'admin_email' => array(
 			'type'        => 'string',
+			'title'       => __( 'Administration Email Address' ),
 			'description' => __( 'The site administrator email address.' ),
 		),
 		'charset'     => array(
 			'type'        => 'string',
+			'title'       => __( 'Site Charset' ),
 			'description' => __( 'The site character encoding.' ),
 		),
 		'language'    => array(
 			'type'        => 'string',
-			'description' => __( 'The site language locale code.' ),
+			'title'       => __( 'Site Language' ),
+			'description' => __( 'The site locale in dash form (e.g. en-US).' ),
 		),
 		'version'     => array(
 			'type'        => 'string',
-			'description' => __( 'The WordPress version.' ),
+			'title'       => __( 'WordPress Version' ),
+			'description' => __( 'The WordPress core version running on this site.' ),
 		),
 	);
 	$site_info_fields     = array_keys( $site_info_properties );
@@ -138,7 +146,7 @@ function wp_register_core_abilities(): void {
 		'id'            => array(
 			'type'        => 'integer',
 			'title'       => __( 'User ID' ),
-			'description' => __( 'Unique numeric identifier for the user.' ),
+			'description' => __( 'Unique identifier for the user.' ),
 		),
 		'display_name'  => array(
 			'type'        => 'string',
@@ -186,7 +194,7 @@ function wp_register_core_abilities(): void {
 		'description'   => array(
 			'type'        => 'string',
 			'title'       => __( 'Biographical Info' ),
-			'description' => __( 'User-authored biography, often shown on author pages.' ),
+			'description' => __( 'User-authored biography. May be empty.' ),
 		),
 		'user_url'      => array(
 			'type'        => 'string',
@@ -253,31 +261,36 @@ function wp_register_core_abilities(): void {
 					'destructive' => false,
 					'idempotent'  => true,
 				),
-				'show_in_rest' => false,
+				'show_in_rest' => true,
 			),
 		)
 	);
 
-	$env_info_properties = array(
+	$environment_info_properties = array(
 		'environment'    => array(
 			'type'        => 'string',
-			'description' => __( 'The site\'s runtime environment classification (can be one of these: production, staging, development, local).' ),
+			'title'       => __( 'Environment Type' ),
+			'description' => __( 'The site\'s runtime environment classification.' ),
 			'enum'        => array( 'production', 'staging', 'development', 'local' ),
 		),
 		'php_version'    => array(
 			'type'        => 'string',
+			'title'       => __( 'PHP Version' ),
 			'description' => __( 'The PHP runtime version executing WordPress.' ),
 		),
 		'db_server_info' => array(
 			'type'        => 'string',
+			'title'       => __( 'Database Server Info' ),
 			'description' => __( 'The database server vendor and version string reported by the driver.' ),
 		),
 		'wp_version'     => array(
 			'type'        => 'string',
+			'title'       => __( 'WordPress Version' ),
 			'description' => __( 'The WordPress core version running on this site.' ),
 		),
 		'site_health'    => array(
 			'type'                 => 'object',
+			'title'                => __( 'Site Health' ),
 			'description'          => __( 'A high-level overview of the site\'s health, populated from cached data. Can vary across calls as the cache refreshes.' ),
 			'properties'           => array(
 				'status'    => array(
@@ -355,13 +368,13 @@ function wp_register_core_abilities(): void {
 			'additionalProperties' => false,
 		),
 	);
-	$env_info_fields     = array_keys( $env_info_properties );
+	$environment_info_fields     = array_keys( $environment_info_properties );
 
 	wp_register_ability(
 		'core/get-environment-info',
 		array(
 			'label'               => __( 'Get Environment Info' ),
-			'description'         => __( 'Returns core details about the site\'s runtime context for diagnostics and compatibility (environment, PHP runtime, database server info, WordPress version).' ),
+			'description'         => __( 'Returns core details about the site\'s runtime context for diagnostics and compatibility (environment, PHP runtime, database server info, WordPress version). By default returns all fields, or optionally a filtered subset.' ),
 			'category'            => $category_site,
 			'input_schema'        => array(
 				'type'                 => 'object',
@@ -370,7 +383,7 @@ function wp_register_core_abilities(): void {
 						'type'        => 'array',
 						'items'       => array(
 							'type' => 'string',
-							'enum' => $env_info_fields,
+							'enum' => $environment_info_fields,
 						),
 						'description' => __( 'Optional: Limit response to specific fields. If omitted, all fields are returned.' ),
 					),
@@ -380,42 +393,30 @@ function wp_register_core_abilities(): void {
 			),
 			'output_schema'       => array(
 				'type'                 => 'object',
-				'properties'           => $env_info_properties,
+				'properties'           => $environment_info_properties,
 				'additionalProperties' => false,
 			),
-			'execute_callback'    => static function ( $input = array() ) use ( $env_info_fields ): array {
+			'execute_callback'    => static function ( $input = array() ) use ( $environment_info_fields ): array {
 				global $wpdb;
 
+				/** @var array{ fields?: string[] } $input */
 				$input            = is_array( $input ) ? $input : array();
-				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $env_info_fields;
+				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $environment_info_fields;
 
-				$result = array();
-
-				if ( in_array( 'environment', $requested_fields, true ) ) {
-					$result['environment'] = wp_get_environment_type();
+				$db_server_info = '';
+				if ( method_exists( $wpdb, 'db_server_info' ) ) {
+					$db_server_info = $wpdb->db_server_info() ?? '';
 				}
 
-				if ( in_array( 'php_version', $requested_fields, true ) ) {
-					$result['php_version'] = phpversion();
-				}
+				$all = array(
+					'environment'    => wp_get_environment_type(),
+					'php_version'    => phpversion(),
+					'db_server_info' => $db_server_info,
+					'wp_version'     => get_bloginfo( 'version' ),
+					'site_health'    => wp_get_abilities_api_site_health_summary_from_cache(),
+				);
 
-				if ( in_array( 'db_server_info', $requested_fields, true ) ) {
-					$db_server_info = '';
-					if ( method_exists( $wpdb, 'db_server_info' ) ) {
-						$db_server_info = $wpdb->db_server_info() ?? '';
-					}
-					$result['db_server_info'] = $db_server_info;
-				}
-
-				if ( in_array( 'wp_version', $requested_fields, true ) ) {
-					$result['wp_version'] = get_bloginfo( 'version' );
-				}
-
-				if ( in_array( 'site_health', $requested_fields, true ) ) {
-					$result['site_health'] = wp_get_abilities_api_site_health_summary_from_cache();
-				}
-
-				return $result;
+				return array_intersect_key( $all, array_flip( $requested_fields ) );
 			},
 			'permission_callback' => static function (): bool {
 				return current_user_can( 'manage_options' );
