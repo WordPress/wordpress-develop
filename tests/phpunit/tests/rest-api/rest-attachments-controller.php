@@ -2001,7 +2001,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @covers WP_REST_Attachments_Controller::get_item_schema
 	 */
-	public function test_image_output_format_and_progressive_schema() {
+	public function test_image_output_format_and_progressive_schema(): void {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
@@ -2027,7 +2027,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @covers WP_REST_Attachments_Controller::create_item
 	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
 	 */
-	public function test_image_output_format_and_progressive_defaults_in_create_response() {
+	public function test_image_output_format_and_progressive_defaults_in_create_response(): void {
 		wp_set_current_user( self::$superadmin_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -2056,7 +2056,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
 	 */
-	public function test_image_output_format_with_custom_filter() {
+	public function test_image_output_format_with_custom_filter(): void {
 		wp_set_current_user( self::$superadmin_id );
 
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
@@ -2095,7 +2095,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
 	 */
-	public function test_image_save_progressive_with_custom_filter() {
+	public function test_image_save_progressive_with_custom_filter(): void {
 		wp_set_current_user( self::$superadmin_id );
 
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
@@ -2125,7 +2125,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
 	 */
-	public function test_image_output_format_skipped_for_non_image() {
+	public function test_image_output_format_skipped_for_non_image(): void {
 		wp_set_current_user( self::$superadmin_id );
 
 		$attachment_id = self::factory()->attachment->create_object(
