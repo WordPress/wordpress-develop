@@ -141,6 +141,12 @@ function wp_de_rtc_register_rest_routes() {
 							'type'        => 'string',
 							'required'    => false,
 						),
+						'selection_state' => array(
+							'description'          => __( 'Content-free editor selection presence reported by this editor session.' ),
+							'type'                 => 'object',
+							'required'             => false,
+							'additionalProperties' => true,
+						),
 					),
 				),
 			)
@@ -1467,6 +1473,8 @@ function wp_de_rtc_get_empty_post_presence_roster() {
 		'claimsSaved'                => false,
 		'exposesRawContent'          => false,
 		'exposesSelection'           => false,
+		'exposesSelectionPresence'   => true,
+		'exposesRawSelectedText'     => false,
 		'exposesCursorOffset'        => false,
 		'exposesUserIds'             => false,
 	);
@@ -1668,6 +1676,7 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 				'confirmed_state_hash',
 				'has_pending_changes',
 				'confirmed_at_gmt',
+				'selection_state_json',
 				'last_seen_gmt',
 				'expires_at_gmt',
 				'created_at_gmt',
@@ -1728,6 +1737,18 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 		$confirmed_base_version  = $schema_current && isset( $row->confirmed_base_version ) ? sanitize_text_field( (string) $row->confirmed_base_version ) : '';
 		$confirmed_state_hash    = $schema_current && isset( $row->confirmed_state_hash ) && wp_de_rtc_is_sha256_hash( (string) $row->confirmed_state_hash ) ? (string) $row->confirmed_state_hash : '';
 		$confirmed_at_gmt        = $schema_current && isset( $row->confirmed_at_gmt ) ? sanitize_text_field( (string) $row->confirmed_at_gmt ) : '';
+		$selection_state_json    = $schema_current && isset( $row->selection_state_json ) ? (string) $row->selection_state_json : '';
+		$selection_state         = wp_de_rtc_get_unavailable_presence_selection_state( $presence_updated_at_gmt );
+
+		if ( '' !== $selection_state_json ) {
+			$decoded_selection_state = json_decode( $selection_state_json, true );
+
+			if ( is_array( $decoded_selection_state ) ) {
+				$selection_state = wp_de_rtc_get_sanitized_presence_selection_state( $decoded_selection_state, $current_time_gmt );
+				$selection_state['presenceUpdatedAtGmt'] = $presence_updated_at_gmt;
+			}
+		}
+
 		$document_state_available = $schema_current && '' !== $confirmed_base_version;
 		$document_state          = $document_state_available
 			? array(
@@ -1762,12 +1783,15 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 				'canSaveDangerousHtml' => $schema_current && ! empty( $row->can_save_dangerous_html ),
 			),
 			'documentState'          => $document_state,
+			'selectionState'         => $selection_state,
 			'source'                 => 'de_rtc_presence_storage',
 			'exposesUserId'          => false,
 			'exposesLogin'           => false,
 			'exposesEmail'           => false,
 			'exposesCursorOffset'    => false,
 			'exposesSelection'       => false,
+			'exposesSelectionPresence' => ! empty( $selection_state['available'] ),
+			'exposesRawSelectedText' => false,
 			'exposesRawContent'      => false,
 			'rawSessionKeyIncluded'  => false,
 		);
@@ -1895,10 +1919,13 @@ function wp_de_rtc_get_post_lock_presence_entry( $post ) {
 		'permissionsAvailable' => true,
 		'permissions'         => $permission_summary,
 		'documentState'       => wp_de_rtc_get_unavailable_presence_document_state( $presence_updated_at_gmt ),
+		'selectionState'      => wp_de_rtc_get_unavailable_presence_selection_state( $presence_updated_at_gmt ),
 		'source'              => 'wordpress_post_lock_snapshot',
 		'exposesUserId'       => false,
 		'exposesCursorOffset' => false,
 		'exposesSelection'    => false,
+		'exposesSelectionPresence' => false,
+		'exposesRawSelectedText' => false,
 		'exposesRawContent'   => false,
 	);
 }
@@ -1982,6 +2009,8 @@ function wp_de_rtc_get_post_presence_read_snapshot( $post, $args = array() ) {
 		'exposes_user_ids'             => false,
 		'exposes_cursor_offset'        => false,
 		'exposes_selection'            => false,
+		'exposes_selection_presence'   => true,
+		'exposes_raw_selected_text'    => false,
 	);
 }
 
@@ -2072,6 +2101,7 @@ function wp_de_rtc_get_post_presence_read_contract( $post, $roster, $args = arra
 				'permissionsAvailable',
 				'permissions',
 				'documentState',
+				'selectionState',
 				'source',
 			),
 		),
@@ -2083,6 +2113,8 @@ function wp_de_rtc_get_post_presence_read_contract( $post, $roster, $args = arra
 			'exposes_email'          => false,
 			'exposes_cursor_offset'  => false,
 			'exposes_selection'      => false,
+			'exposes_selection_presence' => true,
+			'exposes_raw_selected_text' => false,
 			'exposes_raw_content'    => false,
 			'redacted_fields'        => array(
 				'userId',
@@ -2093,7 +2125,10 @@ function wp_de_rtc_get_post_presence_read_contract( $post, $roster, $args = arra
 				'user_email',
 				'cursorOffset',
 				'cursor_offset',
-				'selection',
+				'rawSelection',
+				'raw_selection',
+				'selectedText',
+				'selected_text',
 				'rawContent',
 				'raw_content',
 			),
@@ -2138,7 +2173,7 @@ function wp_de_rtc_get_presence_cleanup_batch_limit( $host_profile = '' ) {
  * @return string Presence schema version.
  */
 function wp_de_rtc_get_presence_schema_version() {
-	return '3';
+	return '4';
 }
 
 /**
@@ -2249,6 +2284,434 @@ function wp_de_rtc_get_sanitized_presence_document_state( $args, $current_time_g
 }
 
 /**
+ * Returns the schema label for content-free selection presence.
+ *
+ * Selection presence is ephemeral liveness data. It is deliberately separate
+ * from post sync metadata so cursor movement cannot become post content,
+ * revision content, or save authority.
+ *
+ * @since 7.1.0
+ *
+ * @return string Selection presence schema label.
+ */
+function wp_de_rtc_get_presence_selection_schema() {
+	return 'de-rtc-selection-presence-v2';
+}
+
+/**
+ * Returns the legacy schema label for content-free selection presence.
+ *
+ * @since 7.1.0
+ *
+ * @return string Legacy selection presence schema label.
+ */
+function wp_de_rtc_get_presence_selection_schema_v1() {
+	return 'de-rtc-selection-presence-v1';
+}
+
+/**
+ * Returns the first available value for one of several array keys.
+ *
+ * @since 7.1.0
+ *
+ * @param array $source Source array.
+ * @param array $keys   Candidate keys.
+ * @return mixed|null Matching value, or null when absent.
+ */
+function wp_de_rtc_get_presence_selection_value( $source, $keys ) {
+	if ( ! is_array( $source ) ) {
+		return null;
+	}
+
+	foreach ( $keys as $key ) {
+		if ( array_key_exists( $key, $source ) ) {
+			return $source[ $key ];
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Returns whether a proposed selection payload contains forbidden raw fields.
+ *
+ * The allow-list sanitizer below ignores unknown fields, but these names are
+ * treated as explicit privacy mistakes because they commonly carry raw text,
+ * DOM authority, identity, or CRDT payloads that presence must never store.
+ *
+ * @since 7.1.0
+ *
+ * @param mixed $value Proposed selection payload.
+ * @return bool Whether forbidden fields are present.
+ */
+function wp_de_rtc_presence_selection_contains_forbidden_keys( $value ) {
+	if ( ! is_array( $value ) ) {
+		return false;
+	}
+
+	$forbidden_keys = array(
+		'clientid',
+		'client_id',
+		'cursoroffset',
+		'cursor_offset',
+		'cssselector',
+		'css_selector',
+		'domrange',
+		'dom_range',
+		'dompath',
+		'dom_path',
+		'email',
+		'html',
+		'innerhtml',
+		'login',
+		'outerhtml',
+		'postcontent',
+		'post_content',
+		'rawcontent',
+		'raw_content',
+		'selectedtext',
+		'selected_text',
+		'selectionend',
+		'selection_end',
+		'selectionstart',
+		'selection_start',
+		'selector',
+		'text',
+		'useremail',
+		'user_email',
+		'userid',
+		'user_id',
+		'userlogin',
+		'user_login',
+		'xpath',
+		'yjsupdate',
+		'yjs_update',
+	);
+
+	foreach ( $value as $key => $child ) {
+		$normalized_key = preg_replace( '/[^a-z0-9_]/', '', strtolower( (string) $key ) );
+
+		if ( in_array( $normalized_key, $forbidden_keys, true ) ) {
+			return true;
+		}
+
+		if ( is_array( $child ) && wp_de_rtc_presence_selection_contains_forbidden_keys( $child ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Sanitizes a block path for content-free selection presence.
+ *
+ * @since 7.1.0
+ *
+ * @param mixed $path Proposed path.
+ * @return int[]|null Sanitized top-to-bottom block index path, or null.
+ */
+function wp_de_rtc_sanitize_presence_selection_block_path( $path ) {
+	if ( ! is_array( $path ) || empty( $path ) || count( $path ) > 12 ) {
+		return null;
+	}
+
+	$sanitized = array();
+
+	foreach ( $path as $part ) {
+		if ( ! is_scalar( $part ) || '' === trim( (string) $part ) ) {
+			return null;
+		}
+
+		$index = absint( $part );
+
+		if ( (string) $index !== trim( (string) $part ) || $index > 10000 ) {
+			return null;
+		}
+
+		$sanitized[] = $index;
+	}
+
+	return $sanitized;
+}
+
+/**
+ * Sanitizes a server-owned block UID hint for content-free selection presence.
+ *
+ * Presence may carry this as a hint only. The receiving editor must validate it
+ * against confirmed sync metadata before rendering a canvas selection.
+ *
+ * @since 7.1.0
+ *
+ * @param mixed $block_uid Proposed block UID.
+ * @return string Sanitized block UID, or empty string.
+ */
+function wp_de_rtc_sanitize_presence_selection_block_uid( $block_uid ) {
+	if ( ! is_scalar( $block_uid ) ) {
+		return '';
+	}
+
+	$block_uid = trim( (string) $block_uid );
+
+	if ( '' === $block_uid || strlen( $block_uid ) > 191 || ! preg_match( '/^[A-Za-z0-9._:-]+$/', $block_uid ) ) {
+		return '';
+	}
+
+	return $block_uid;
+}
+
+/**
+ * Sanitizes one selection endpoint for presence storage.
+ *
+ * @since 7.1.0
+ *
+ * @param mixed $point Proposed endpoint.
+ * @return array|null Sanitized endpoint, or null.
+ */
+function wp_de_rtc_sanitize_presence_selection_point( $point ) {
+	if ( ! is_array( $point ) ) {
+		return null;
+	}
+
+	$block_path = wp_de_rtc_sanitize_presence_selection_block_path(
+		wp_de_rtc_get_presence_selection_value( $point, array( 'blockPath', 'block_path', 'path' ) )
+	);
+	$block_uid  = wp_de_rtc_sanitize_presence_selection_block_uid(
+		wp_de_rtc_get_presence_selection_value( $point, array( 'blockUid', 'block_uid' ) )
+	);
+
+	if ( null === $block_path && '' === $block_uid ) {
+		return null;
+	}
+
+	$attribute_key = wp_de_rtc_get_presence_selection_value(
+		$point,
+		array( 'attributeKey', 'attribute_key' )
+	);
+	$attribute_key = is_scalar( $attribute_key ) ? trim( (string) $attribute_key ) : '';
+
+	if ( '' !== $attribute_key && ! preg_match( '/^[A-Za-z0-9_-]{1,64}$/', $attribute_key ) ) {
+		$attribute_key = '';
+	}
+
+	$offset_value = wp_de_rtc_get_presence_selection_value( $point, array( 'offset' ) );
+	$offset       = null;
+
+	if ( null !== $offset_value && '' !== $offset_value ) {
+		if ( ! is_scalar( $offset_value ) ) {
+			return null;
+		}
+
+		$offset = min( 1000000, absint( $offset_value ) );
+	}
+
+	return array(
+		'blockPath'    => $block_path,
+		'blockUid'     => '' === $block_uid ? null : $block_uid,
+		'attributeKey' => $attribute_key,
+		'offset'       => $offset,
+	);
+}
+
+/**
+ * Sanitizes a selection source-status value.
+ *
+ * This is sender-reported diagnostic data only. It never grants render
+ * authority; the receiving editor computes renderability locally.
+ *
+ * @since 7.1.0
+ *
+ * @param mixed $status Proposed status.
+ * @return string Sanitized source status.
+ */
+function wp_de_rtc_sanitize_presence_selection_source_status( $status ) {
+	if ( ! is_scalar( $status ) ) {
+		return 'unknown';
+	}
+
+	$status = sanitize_key( (string) $status );
+
+	return in_array( $status, array( 'base_aligned', 'local_pending_only', 'unsupported_surface', 'unknown' ), true ) ? $status : 'unknown';
+}
+
+/**
+ * Returns an unavailable selection-presence contract for fallbacks.
+ *
+ * @since 7.1.0
+ *
+ * @param string $presence_updated_at_gmt Optional presence update timestamp.
+ * @return array Unavailable selection-presence data.
+ */
+function wp_de_rtc_get_unavailable_presence_selection_state( $presence_updated_at_gmt = '' ) {
+	return array(
+		'available'                     => false,
+		'schema'                        => wp_de_rtc_get_presence_selection_schema(),
+		'kind'                          => 'none',
+		'isCollapsed'                   => true,
+		'anchor'                        => null,
+		'focus'                         => null,
+		'baseVersion'                   => '',
+		'baseStateHash'                 => '',
+		'selectionSourceStatus'         => 'unknown',
+		'reportedAtGmt'                 => '',
+		'presenceUpdatedAtGmt'          => $presence_updated_at_gmt,
+		'source'                        => 'unavailable',
+		'contentFree'                   => true,
+		'authoritativeForSave'          => false,
+		'claimsSaved'                   => false,
+		'exposesRawContent'             => false,
+		'exposesRawSelectedText'        => false,
+		'exposesClientId'               => false,
+		'exposesDomSelector'            => false,
+		'exposesBoundedSelectionOffsets' => false,
+	);
+}
+
+/**
+ * Sanitizes content-free selection presence reported in a heartbeat.
+ *
+ * The result may include block-relative offsets because those are needed to
+ * place remote carets. It must not include raw selected text, HTML, DOM paths,
+ * Gutenberg client IDs, user IDs, or save authority.
+ *
+ * @since 7.1.0
+ *
+ * @param mixed  $selection_state  Raw selection presence payload.
+ * @param string $current_time_gmt Current GMT time in mysql format.
+ * @return array Sanitized selection-presence data.
+ */
+function wp_de_rtc_get_sanitized_presence_selection_state( $selection_state, $current_time_gmt ) {
+	if ( ! is_array( $selection_state ) || empty( $selection_state ) ) {
+		return wp_de_rtc_get_unavailable_presence_selection_state();
+	}
+
+	if ( wp_de_rtc_presence_selection_contains_forbidden_keys( $selection_state ) ) {
+		return wp_de_rtc_get_unavailable_presence_selection_state();
+	}
+
+	$schema = wp_de_rtc_get_presence_selection_value( $selection_state, array( 'schema' ) );
+	$schema = is_scalar( $schema ) ? sanitize_text_field( (string) $schema ) : '';
+	$is_v1_schema = wp_de_rtc_get_presence_selection_schema_v1() === $schema;
+	$is_v2_schema = wp_de_rtc_get_presence_selection_schema() === $schema;
+
+	if ( ! $is_v1_schema && ! $is_v2_schema ) {
+		return wp_de_rtc_get_unavailable_presence_selection_state();
+	}
+
+	$kind = wp_de_rtc_get_presence_selection_value( $selection_state, array( 'kind' ) );
+	$kind = is_scalar( $kind ) ? sanitize_key( (string) $kind ) : 'none';
+
+	$kind_aliases = array(
+		'collapsed_caret'  => 'caret',
+		'rich_text_range'  => 'rich_text',
+		'multi_block_range' => 'multi_block',
+		'block_focus'      => 'block',
+	);
+
+	if ( isset( $kind_aliases[ $kind ] ) ) {
+		$kind = $kind_aliases[ $kind ];
+	}
+
+	if ( ! in_array( $kind, array( 'caret', 'range', 'rich_text', 'multi_block', 'block', 'unsupported_surface' ), true ) ) {
+		return wp_de_rtc_get_unavailable_presence_selection_state();
+	}
+
+	$base_version            = '';
+	$base_state_hash         = '';
+	$selection_source_status = 'unknown';
+
+	if ( $is_v2_schema ) {
+		$base_version = wp_de_rtc_get_presence_selection_value(
+			$selection_state,
+			array( 'baseVersion', 'base_version', 'confirmedBaseVersion', 'confirmed_base_version' )
+		);
+		$base_version = is_scalar( $base_version ) ? sanitize_text_field( (string) $base_version ) : '';
+
+		if ( strlen( $base_version ) > 191 ) {
+			$base_version = '';
+		}
+
+		$base_state_hash = wp_de_rtc_get_presence_selection_value(
+			$selection_state,
+			array( 'baseStateHash', 'base_state_hash', 'confirmedStateHash', 'confirmed_state_hash' )
+		);
+		$base_state_hash = is_scalar( $base_state_hash ) && wp_de_rtc_is_sha256_hash( (string) $base_state_hash ) ? strtolower( (string) $base_state_hash ) : '';
+
+		$selection_source_status = wp_de_rtc_sanitize_presence_selection_source_status(
+			wp_de_rtc_get_presence_selection_value(
+				$selection_state,
+				array( 'selectionSourceStatus', 'selection_source_status', 'sourceStatus', 'source_status' )
+			)
+		);
+	}
+
+	if ( 'unsupported_surface' === $kind ) {
+		return array_merge(
+			wp_de_rtc_get_unavailable_presence_selection_state(),
+			array(
+				'available'             => true,
+				'schema'                => $schema,
+				'kind'                  => 'unsupported_surface',
+				'baseVersion'           => $base_version,
+				'baseStateHash'         => $base_state_hash,
+				'selectionSourceStatus' => 'unsupported_surface',
+				'source'                => 'client_reported_presence',
+			)
+		);
+	}
+
+	$anchor = wp_de_rtc_sanitize_presence_selection_point(
+		wp_de_rtc_get_presence_selection_value( $selection_state, array( 'anchor' ) )
+	);
+	$focus  = wp_de_rtc_sanitize_presence_selection_point(
+		wp_de_rtc_get_presence_selection_value( $selection_state, array( 'focus' ) )
+	);
+
+	if ( null === $anchor ) {
+		return wp_de_rtc_get_unavailable_presence_selection_state();
+	}
+
+	if ( null === $focus ) {
+		$focus = $anchor;
+	}
+
+	$is_collapsed = wp_validate_boolean(
+		wp_de_rtc_get_presence_selection_value( $selection_state, array( 'isCollapsed', 'is_collapsed' ) )
+	);
+	$reported_at_gmt  = '';
+	$current_time     = strtotime( $current_time_gmt . ' UTC' );
+	$reported_at_raw  = wp_de_rtc_get_presence_selection_value( $selection_state, array( 'reportedAtGmt', 'reported_at_gmt', 'updatedAt', 'updated_at' ) );
+	$reported_at_time = is_scalar( $reported_at_raw ) ? strtotime( (string) $reported_at_raw ) : false;
+
+	if ( $reported_at_time && ( ! $current_time || $reported_at_time <= $current_time + 300 ) ) {
+		$reported_at_gmt = gmdate( 'Y-m-d H:i:s', $reported_at_time );
+	}
+
+	return array(
+		'available'                     => true,
+		'schema'                        => $schema,
+		'kind'                          => $kind,
+		'isCollapsed'                   => $is_collapsed,
+		'anchor'                        => $anchor,
+		'focus'                         => $focus,
+		'baseVersion'                   => $base_version,
+		'baseStateHash'                 => $base_state_hash,
+		'selectionSourceStatus'         => $selection_source_status,
+		'reportedAtGmt'                 => $reported_at_gmt,
+		'presenceUpdatedAtGmt'          => '',
+		'source'                        => 'client_reported_presence',
+		'contentFree'                   => true,
+		'authoritativeForSave'          => false,
+		'claimsSaved'                   => false,
+		'exposesRawContent'             => false,
+		'exposesRawSelectedText'        => false,
+		'exposesClientId'               => false,
+		'exposesDomSelector'            => false,
+		'exposesBoundedSelectionOffsets' => null !== $anchor['offset'] || null !== $focus['offset'],
+	);
+}
+
+/**
  * Returns an unavailable document-state contract for presence fallbacks.
  *
  * @since 7.1.0
@@ -2316,6 +2779,7 @@ confirmed_base_version varchar(191) NOT NULL DEFAULT '',
 confirmed_state_hash char(64) NOT NULL DEFAULT '',
 has_pending_changes tinyint(1) unsigned NOT NULL DEFAULT 0,
 confirmed_at_gmt datetime DEFAULT NULL,
+selection_state_json text,
 last_seen_gmt datetime NOT NULL,
 expires_at_gmt datetime NOT NULL,
 created_at_gmt datetime NOT NULL,
@@ -2327,7 +2791,7 @@ KEY expires_at_gmt (expires_at_gmt)
 ) $charset_collate;";
 
 	return array(
-		'schema'                           => 'de-rtc-presence-storage-v3',
+		'schema'                           => 'de-rtc-presence-storage-v4',
 		'schema_version'                   => $schema_version,
 		'storage_kind'                     => 'dedicated_presence_table',
 		'table_name'                       => $table_name,
@@ -2347,6 +2811,7 @@ KEY expires_at_gmt (expires_at_gmt)
 			'confirmed_state_hash',
 			'has_pending_changes',
 			'confirmed_at_gmt',
+			'selection_state_json',
 			'last_seen_gmt',
 			'expires_at_gmt',
 			'created_at_gmt',
@@ -2374,6 +2839,8 @@ KEY expires_at_gmt (expires_at_gmt)
 			'exposes_email'         => false,
 			'exposes_cursor_offset' => false,
 			'exposes_selection'     => false,
+			'exposes_selection_presence' => true,
+			'exposes_raw_selected_text' => false,
 			'exposes_raw_content'   => false,
 		),
 		'heartbeat_writes_enabled_now'     => false,
@@ -2525,6 +2992,8 @@ function wp_de_rtc_get_presence_storage_readiness( $args = array() ) {
 		'exposesEmail'                        => false,
 		'exposesCursorOffset'                 => false,
 		'exposesSelection'                    => false,
+		'exposesSelectionPresence'            => true,
+		'exposesRawSelectedText'              => false,
 		'installsPresenceTable'               => false,
 		'automaticPerRequestInstall'          => false,
 		'installTriggeredByPresenceRead'      => false,
@@ -3824,6 +4293,7 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 			'confirmed_state_hash'   => '',
 			'has_pending_changes'    => false,
 			'confirmed_at_gmt'       => '',
+			'selection_state'        => array(),
 		)
 	);
 	$session_key = is_string( $args['session_key'] ) ? trim( $args['session_key'] ) : '';
@@ -3959,16 +4429,25 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 	$session_key_hash            = hash_hmac( 'sha256', (int) $post->ID . ':' . $session_key, wp_salt( 'nonce' ) );
 	$actor_hash                  = wp_de_rtc_get_presence_actor_hash( $user_id );
 	$document_state              = wp_de_rtc_get_sanitized_presence_document_state( $args, $current_time_gmt );
+	$selection_state             = wp_de_rtc_get_sanitized_presence_selection_state( $args['selection_state'], $current_time_gmt );
+	$selection_state_json        = ! empty( $selection_state['available'] ) ? wp_json_encode( $selection_state ) : '';
+
+	if ( strlen( (string) $selection_state_json ) > 4096 ) {
+		$selection_state      = wp_de_rtc_get_unavailable_presence_selection_state();
+		$selection_state_json = '';
+	}
+
 	$table_sql                   = '`' . str_replace( '`', '``', $table_name ) . '`';
 	$heartbeat_write_sql         = "INSERT INTO $table_sql ( post_id, session_key_hash, actor_hash, display_name, freshness, " .
 		'can_edit_post, can_publish_post, can_save_dangerous_html, confirmed_base_version, confirmed_state_hash, ' .
-		'has_pending_changes, confirmed_at_gmt, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) ' .
-		'VALUES ( %d, %s, %s, %s, %s, %d, %d, %d, %s, %s, %d, NULLIF( %s, \'\' ), %s, %s, %s, %s ) ' .
+		'has_pending_changes, confirmed_at_gmt, selection_state_json, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) ' .
+		'VALUES ( %d, %s, %s, %s, %s, %d, %d, %d, %s, %s, %d, NULLIF( %s, \'\' ), NULLIF( %s, \'\' ), %s, %s, %s, %s ) ' .
 		'ON DUPLICATE KEY UPDATE post_id = VALUES( post_id ), actor_hash = VALUES( actor_hash ), ' .
 		'display_name = VALUES( display_name ), freshness = VALUES( freshness ), can_edit_post = VALUES( can_edit_post ), ' .
 		'can_publish_post = VALUES( can_publish_post ), can_save_dangerous_html = VALUES( can_save_dangerous_html ), ' .
 		'confirmed_base_version = VALUES( confirmed_base_version ), confirmed_state_hash = VALUES( confirmed_state_hash ), ' .
 		'has_pending_changes = VALUES( has_pending_changes ), confirmed_at_gmt = VALUES( confirmed_at_gmt ), ' .
+		'selection_state_json = VALUES( selection_state_json ), ' .
 		'last_seen_gmt = VALUES( last_seen_gmt ), expires_at_gmt = VALUES( expires_at_gmt ), ' .
 		'updated_at_gmt = VALUES( updated_at_gmt )';
 	$written                     = $wpdb->query(
@@ -3986,6 +4465,7 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 			$document_state['confirmedStateHash'],
 			! empty( $document_state['hasPendingChanges'] ) ? 1 : 0,
 			$document_state['confirmedAtGmt'],
+			$selection_state_json,
 			$current_time_gmt,
 			$expires_at_gmt,
 			$current_time_gmt,
@@ -4033,10 +4513,17 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 		'display_name_recorded'          => true,
 		'permission_summary_recorded'    => true,
 		'document_state_recorded'        => (bool) $document_state['available'],
+		'selection_state_recorded'       => (bool) $selection_state['available'],
 		'document_state'                 => array_merge(
 			$document_state,
 			array(
 				'reportedAtGmt'        => $current_time_gmt,
+				'presenceUpdatedAtGmt' => $current_time_gmt,
+			)
+		),
+		'selection_state'                => array_merge(
+			$selection_state,
+			array(
 				'presenceUpdatedAtGmt' => $current_time_gmt,
 			)
 		),
@@ -4071,6 +4558,8 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 		'exposes_email'                  => false,
 		'exposes_cursor_offset'          => false,
 		'exposes_selection'              => false,
+		'exposes_selection_presence'     => true,
+		'exposes_raw_selected_text'      => false,
 		'raw_session_key_included'       => false,
 	);
 }
@@ -4473,6 +4962,8 @@ function wp_de_rtc_rest_presence_storage_readiness_permissions_check( $request )
 				'exposes_email'                  => false,
 				'exposes_cursor_offset'          => false,
 				'exposes_selection'              => false,
+				'exposes_selection_presence'     => true,
+				'exposes_raw_selected_text'      => false,
 			)
 		);
 	}
@@ -6353,6 +6844,7 @@ function wp_de_rtc_rest_presence_heartbeat_endpoint( $request ) {
 			'confirmed_state_hash'   => (string) $request->get_param( 'confirmed_state_hash' ),
 			'has_pending_changes'    => $request->get_param( 'has_pending_changes' ),
 			'confirmed_at_gmt'       => (string) $request->get_param( 'confirmed_at_gmt' ),
+			'selection_state'        => $request->get_param( 'selection_state' ),
 		)
 	);
 
@@ -6419,6 +6911,8 @@ function wp_de_rtc_rest_presence_storage_readiness_endpoint( $request ) {
 	$result['exposes_email']                  = false;
 	$result['exposes_cursor_offset']          = false;
 	$result['exposes_selection']              = false;
+	$result['exposes_selection_presence']     = true;
+	$result['exposes_raw_selected_text']      = false;
 
 	return rest_ensure_response( $result );
 }

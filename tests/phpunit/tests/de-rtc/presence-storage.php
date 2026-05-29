@@ -43,7 +43,7 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $wpdb->prefix . 'de_rtc_presence', $schema['table_name'] );
-		$this->assertSame( 'de-rtc-presence-storage-v3', $schema['schema'] );
+		$this->assertSame( 'de-rtc-presence-storage-v4', $schema['schema'] );
 		$this->assertSame( 'dedicated_presence_table', $schema['storage_kind'] );
 		$this->assertSame( 'presence_id', $schema['primary_key'] );
 		$this->assertContains( 'session_key_hash', $schema['columns'] );
@@ -52,6 +52,7 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		$this->assertContains( 'confirmed_state_hash', $schema['columns'] );
 		$this->assertContains( 'has_pending_changes', $schema['columns'] );
 		$this->assertContains( 'confirmed_at_gmt', $schema['columns'] );
+		$this->assertContains( 'selection_state_json', $schema['columns'] );
 		$this->assertContains( 'post_id_last_seen_gmt', $schema['indexes'] );
 		$this->assertContains( 'session_key_hash', $schema['indexes'] );
 		$this->assertContains( 'expires_at_gmt', $schema['indexes'] );
@@ -64,6 +65,8 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		$this->assertFalse( $schema['privacy_filters']['exposes_email'] );
 		$this->assertFalse( $schema['privacy_filters']['exposes_cursor_offset'] );
 		$this->assertFalse( $schema['privacy_filters']['exposes_selection'] );
+		$this->assertTrue( $schema['privacy_filters']['exposes_selection_presence'] );
+		$this->assertFalse( $schema['privacy_filters']['exposes_raw_selected_text'] );
 		$this->assertFalse( $schema['heartbeat_writes_enabled_now'] );
 		$this->assertFalse( $schema['records_presence_heartbeat_now'] );
 		$this->assertFalse( $schema['runtime_polling_enabled_now'] );
@@ -81,7 +84,7 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'user_id ', $schema['create_sql'] );
 		$this->assertStringNotContainsString( 'user_email', $schema['create_sql'] );
 		$this->assertStringNotContainsString( 'cursor', $schema['create_sql'] );
-		$this->assertStringNotContainsString( 'selection', $schema['create_sql'] );
+		$this->assertStringContainsString( 'selection_state_json text', $schema['create_sql'] );
 	}
 
 	/**
@@ -110,7 +113,7 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 
 		$this->assertSame( 'presence_table_installed', $install['result'] );
 		$this->assertSame( $this->table_name, $install['table_name'] );
-		$this->assertSame( '3', $install['schema_version'] );
+		$this->assertSame( '4', $install['schema_version'] );
 		$this->assertFalse( $install['table_exists_before'] );
 		$this->assertTrue( $install['table_exists_after'] );
 		$this->assertTrue( $install['uses_db_delta'] );
@@ -133,7 +136,7 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		$this->assertFalse( $install['claims_absence'] );
 		$this->assertFalse( $install['claims_saved'] );
 		$this->assertTrue( wp_de_rtc_presence_table_exists() );
-		$this->assertSame( '3', get_option( 'wp_de_rtc_presence_schema_version' ) );
+		$this->assertSame( '4', get_option( 'wp_de_rtc_presence_schema_version' ) );
 		$this->assertSame( $before_content, get_post_field( 'post_content', $post_id ) );
 		$this->assertSame( array_keys( $before_revisions ), array_keys( wp_get_post_revisions( $post_id ) ) );
 
@@ -143,7 +146,7 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		$this->assertTrue( $second_install['table_exists_before'] );
 		$this->assertTrue( $second_install['table_exists_after'] );
 		$this->assertTrue( $second_install['uses_db_delta'] );
-		$this->assertSame( '3', get_option( 'wp_de_rtc_presence_schema_version' ) );
+		$this->assertSame( '4', get_option( 'wp_de_rtc_presence_schema_version' ) );
 	}
 
 	/**
@@ -174,7 +177,7 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		$this->assertSame( 'setup_required', $readiness['status'] );
 		$this->assertSame( $this->table_name, $readiness['tableName'] );
 		$this->assertFalse( $readiness['tableExists'] );
-		$this->assertSame( '3', $readiness['schemaVersionExpected'] );
+		$this->assertSame( '4', $readiness['schemaVersionExpected'] );
 		$this->assertNull( $readiness['schemaVersionInstalled'] );
 		$this->assertFalse( $readiness['schemaCurrent'] );
 		$this->assertSame( 'degraded', $readiness['expectedStartupHeartbeatStatus'] );
@@ -233,8 +236,8 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		$this->assertSame( 'presence_storage_ready', $readiness['result'] );
 		$this->assertSame( 'ready', $readiness['status'] );
 		$this->assertTrue( $readiness['tableExists'] );
-		$this->assertSame( '3', $readiness['schemaVersionExpected'] );
-		$this->assertSame( '3', $readiness['schemaVersionInstalled'] );
+		$this->assertSame( '4', $readiness['schemaVersionExpected'] );
+		$this->assertSame( '4', $readiness['schemaVersionInstalled'] );
 		$this->assertTrue( $readiness['schemaCurrent'] );
 		$this->assertSame( 'sent', $readiness['expectedStartupHeartbeatStatus'] );
 		$this->assertFalse( $readiness['setupRequired'] );
@@ -402,7 +405,7 @@ class Tests_DE_RTC_Presence_Storage extends WP_UnitTestCase {
 		$this->assertTrue( $result['correctnessIndependentOfTransport'] );
 		$this->assertFalse( $result['transportRequiredForCorrectness'] );
 		$this->assertTrue( wp_de_rtc_presence_table_exists() );
-		$this->assertSame( '3', get_option( 'wp_de_rtc_presence_schema_version' ) );
+		$this->assertSame( '4', get_option( 'wp_de_rtc_presence_schema_version' ) );
 		$this->assertSame( $before_content, get_post_field( 'post_content', $post_id ) );
 		$this->assertSame( array_keys( $before_revisions ), array_keys( wp_get_post_revisions( $post_id ) ) );
 	}

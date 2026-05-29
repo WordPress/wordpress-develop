@@ -83,6 +83,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'confirmed_state_hash', $heartbeat_route_args );
 		$this->assertArrayHasKey( 'has_pending_changes', $heartbeat_route_args );
 		$this->assertArrayHasKey( 'confirmed_at_gmt', $heartbeat_route_args );
+		$this->assertArrayHasKey( 'selection_state', $heartbeat_route_args );
 	}
 
 	/**
@@ -151,6 +152,8 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['exposes_cursor_offset'] );
 		$this->assertFalse( $data['exposesSelection'] );
 		$this->assertFalse( $data['exposes_selection'] );
+		$this->assertTrue( $data['exposes_selection_presence'] );
+		$this->assertFalse( $data['exposes_raw_selected_text'] );
 		$this->assertFalse( wp_de_rtc_presence_table_exists() );
 		$this->assert_payload_omits_keys(
 			$data,
@@ -343,6 +346,10 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['document_state']['authoritativeForSave'] );
 		$this->assertFalse( $data['document_state']['claimsSaved'] );
 		$this->assertFalse( $data['document_state']['exposesRawContent'] );
+		$this->assertFalse( $data['selection_state_recorded'] );
+		$this->assertFalse( $data['selection_state']['available'] );
+		$this->assertFalse( $data['selection_state']['exposesRawSelectedText'] );
+		$this->assertFalse( $data['selection_state']['exposesClientId'] );
 		$this->assertTrue( $data['last_seen_recorded'] );
 		$this->assertTrue( $data['expires_at_recorded'] );
 		$this->assertSame( 0, $data['session_duration_seconds'] );
@@ -372,6 +379,8 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['exposes_email'] );
 		$this->assertFalse( $data['exposes_cursor_offset'] );
 		$this->assertFalse( $data['exposes_selection'] );
+		$this->assertTrue( $data['exposes_selection_presence'] );
+		$this->assertFalse( $data['exposes_raw_selected_text'] );
 		$this->assertFalse( $data['raw_session_key_included'] );
 		$this->assert_payload_omits_keys(
 			$data,
@@ -404,6 +413,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertSame( $confirmed_hash, $row['confirmed_state_hash'] );
 		$this->assertSame( '1', $row['has_pending_changes'] );
 		$this->assertSame( $confirmed_at_gmt, $row['confirmed_at_gmt'] );
+		$this->assertEmpty( $row['selection_state_json'] );
 		$this->assertSame( 'active', $row['freshness'] );
 		$this->assertSame( 1, $this->get_presence_row_count_for_post( $post_id ) );
 
@@ -411,6 +421,194 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 
 		$this->assertSame( 200, $second_response->get_status() );
 		$this->assertSame( 1, $this->get_presence_row_count_for_post( $post_id ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_presence_heartbeat_endpoint
+	 * @covers ::wp_de_rtc_record_presence_heartbeat
+	 * @covers ::wp_de_rtc_get_sanitized_presence_selection_state
+	 */
+	public function test_presence_heartbeat_records_content_free_selection_state_without_raw_content() {
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC presence selection heartbeat post',
+				'post_content' => '<!-- wp:paragraph --><p>Selection heartbeat endpoint.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence/heartbeat' );
+
+		wp_set_current_user( self::$author_user_id );
+		wp_de_rtc_install_presence_table();
+
+		$request->set_param( 'session_key', 'selection-session' );
+		$request->set_param(
+			'selection_state',
+			array(
+				'available'     => true,
+				'schema'        => 'de-rtc-selection-presence-v1',
+				'kind'          => 'caret',
+				'isCollapsed'   => true,
+				'anchor'        => array(
+					'blockPath'    => array( 0 ),
+					'attributeKey' => 'content',
+					'offset'       => 6,
+				),
+				'focus'         => array(
+					'blockPath'    => array( 0 ),
+					'attributeKey' => 'content',
+					'offset'       => 6,
+				),
+				'reportedAtGmt' => '2026-05-20 12:00:00',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$row      = $this->get_presence_row_for_post( $post_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'presence_heartbeat_recorded', $data['result'] );
+		$this->assertTrue( $data['selection_state_recorded'] );
+		$this->assertTrue( $data['selection_state']['available'] );
+		$this->assertSame( 'caret', $data['selection_state']['kind'] );
+		$this->assertSame( array( 0 ), $data['selection_state']['anchor']['blockPath'] );
+		$this->assertSame( 6, $data['selection_state']['anchor']['offset'] );
+		$this->assertFalse( $data['selection_state']['exposesRawSelectedText'] );
+		$this->assertFalse( $data['selection_state']['exposesClientId'] );
+		$this->assertNotEmpty( $row['selection_state_json'] );
+		$this->assert_payload_omits_keys(
+			$data,
+			array(
+				'clientId',
+				'client_id',
+				'rawContent',
+				'raw_content',
+				'selectedText',
+				'selected_text',
+				'selection',
+			)
+		);
+		$this->assertStringNotContainsString( 'clientId', $row['selection_state_json'] );
+		$this->assertStringNotContainsString( 'rawContent', $row['selection_state_json'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_presence_heartbeat_endpoint
+	 * @covers ::wp_de_rtc_record_presence_heartbeat
+	 * @covers ::wp_de_rtc_get_sanitized_presence_selection_state
+	 */
+	public function test_presence_heartbeat_records_v2_selection_sender_facts_without_render_authority() {
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC presence selection v2 heartbeat post',
+				'post_content' => '<!-- wp:paragraph --><p>Selection heartbeat v2 endpoint.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence/heartbeat' );
+		$base_hash        = str_repeat( 'a', 64 );
+
+		wp_set_current_user( self::$author_user_id );
+		wp_de_rtc_install_presence_table();
+
+		$request->set_param( 'session_key', 'selection-v2-session' );
+		$request->set_param(
+			'selection_state',
+			array(
+				'available'             => true,
+				'schema'                => 'de-rtc-selection-presence-v2',
+				'kind'                  => 'multi_block',
+				'isCollapsed'           => false,
+				'baseVersion'           => '12',
+				'baseStateHash'         => $base_hash,
+				'selectionSourceStatus' => 'base_aligned',
+				'mappingStatus'         => 'exact',
+				'anchor'                => array(
+					'blockPath'    => array( 0, 1 ),
+					'blockUid'     => 'de-rtc-block-a',
+					'attributeKey' => 'content',
+					'offset'       => 1,
+				),
+				'focus'                 => array(
+					'blockPath'    => array( 0, 2 ),
+					'blockUid'     => 'de-rtc-block-b',
+					'attributeKey' => 'content',
+					'offset'       => 4,
+				),
+				'reportedAtGmt'         => '2026-05-20 12:00:00',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$row      = $this->get_presence_row_for_post( $post_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertTrue( $data['selection_state_recorded'] );
+		$this->assertSame( 'de-rtc-selection-presence-v2', $data['selection_state']['schema'] );
+		$this->assertSame( '12', $data['selection_state']['baseVersion'] );
+		$this->assertSame( $base_hash, $data['selection_state']['baseStateHash'] );
+		$this->assertSame( 'base_aligned', $data['selection_state']['selectionSourceStatus'] );
+		$this->assertSame( array( 0, 1 ), $data['selection_state']['anchor']['blockPath'] );
+		$this->assertSame( 'de-rtc-block-a', $data['selection_state']['anchor']['blockUid'] );
+		$this->assertArrayNotHasKey( 'mappingStatus', $data['selection_state'] );
+		$this->assertArrayNotHasKey( 'resolvedMappingStatus', $data['selection_state'] );
+		$this->assertStringNotContainsString( 'mappingStatus', $row['selection_state_json'] );
+		$this->assertFalse( $data['selection_state']['authoritativeForSave'] );
+		$this->assertFalse( $data['selection_state']['claimsSaved'] );
+		$mapping_status_only = wp_de_rtc_get_sanitized_presence_selection_state(
+			array(
+				'available'     => true,
+				'schema'        => 'de-rtc-selection-presence-v2',
+				'kind'          => 'block',
+				'baseVersion'   => '12',
+				'baseStateHash' => $base_hash,
+				'mappingStatus' => 'local_pending_only',
+				'anchor'        => array(
+					'blockPath' => array( 0 ),
+				),
+			),
+			'2026-05-20 12:00:00'
+		);
+		$this->assertSame( 'unknown', $mapping_status_only['selectionSourceStatus'] );
+		$this->assertArrayNotHasKey( 'mappingStatus', $mapping_status_only );
+		$updated_at_alias = wp_de_rtc_get_sanitized_presence_selection_state(
+			array(
+				'available'     => true,
+				'schema'        => 'de-rtc-selection-presence-v2',
+				'kind'          => 'block',
+				'baseVersion'   => '12',
+				'baseStateHash' => $base_hash,
+				'updatedAt'     => '2026-05-20T12:03:00Z',
+				'anchor'        => array(
+					'blockPath' => array( 0 ),
+				),
+			),
+			'2026-05-20 12:05:00'
+		);
+		$this->assertSame( '2026-05-20 12:03:00', $updated_at_alias['reportedAtGmt'] );
+		$forbidden_nested_selection = wp_de_rtc_get_sanitized_presence_selection_state(
+			array(
+				'available'     => true,
+				'schema'        => 'de-rtc-selection-presence-v2',
+				'kind'          => 'block',
+				'baseVersion'   => '12',
+				'baseStateHash' => $base_hash,
+				'anchor'        => array(
+					'blockPath'    => array( 0 ),
+					'cursorOffset' => 4,
+				),
+			),
+			'2026-05-20 12:00:00'
+		);
+		$this->assertFalse( $forbidden_nested_selection['available'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
@@ -541,6 +739,26 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		);
 		$heartbeat_request->set_param( 'has_pending_changes', false );
 		$heartbeat_request->set_param( 'confirmed_at_gmt', '2026-05-20 12:00:00' );
+		$heartbeat_request->set_param(
+			'selection_state',
+			array(
+				'available'     => true,
+				'schema'        => 'de-rtc-selection-presence-v1',
+				'kind'          => 'rich_text',
+				'isCollapsed'   => false,
+				'anchor'        => array(
+					'blockPath'    => array( 0 ),
+					'attributeKey' => 'content',
+					'offset'       => 3,
+				),
+				'focus'         => array(
+					'blockPath'    => array( 0 ),
+					'attributeKey' => 'content',
+					'offset'       => 8,
+				),
+				'reportedAtGmt' => '2026-05-20 12:00:00',
+			)
+		);
 
 		$heartbeat_response = rest_get_server()->dispatch( $heartbeat_request );
 
@@ -599,12 +817,20 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertFalse( $entry['documentState']['authoritativeForSave'] );
 		$this->assertFalse( $entry['documentState']['claimsSaved'] );
 		$this->assertFalse( $entry['documentState']['exposesRawContent'] );
+		$this->assertTrue( $entry['selectionState']['available'] );
+		$this->assertSame( 'rich_text', $entry['selectionState']['kind'] );
+		$this->assertSame( array( 0 ), $entry['selectionState']['anchor']['blockPath'] );
+		$this->assertSame( 3, $entry['selectionState']['anchor']['offset'] );
+		$this->assertFalse( $entry['selectionState']['exposesRawSelectedText'] );
+		$this->assertFalse( $entry['selectionState']['exposesClientId'] );
 		$this->assertSame( 'de_rtc_presence_storage', $entry['source'] );
 		$this->assertFalse( $entry['exposesUserId'] );
 		$this->assertFalse( $entry['exposesLogin'] );
 		$this->assertFalse( $entry['exposesEmail'] );
 		$this->assertFalse( $entry['exposesCursorOffset'] );
 		$this->assertFalse( $entry['exposesSelection'] );
+		$this->assertTrue( $entry['exposesSelectionPresence'] );
+		$this->assertFalse( $entry['exposesRawSelectedText'] );
 		$this->assertFalse( $entry['exposesRawContent'] );
 		$this->assertFalse( $entry['rawSessionKeyIncluded'] );
 		$this->assertArrayNotHasKey( 'userId', $entry );
@@ -1168,6 +1394,8 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertFalse( $contract['privacy_filters']['exposes_user_ids'] );
 		$this->assertFalse( $contract['privacy_filters']['exposes_cursor_offset'] );
 		$this->assertFalse( $contract['privacy_filters']['exposes_selection'] );
+		$this->assertTrue( $contract['privacy_filters']['exposes_selection_presence'] );
+		$this->assertFalse( $contract['privacy_filters']['exposes_raw_selected_text'] );
 		$this->assert_payload_omits_keys(
 			$data,
 			array(
