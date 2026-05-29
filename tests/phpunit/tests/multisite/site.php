@@ -753,7 +753,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			return $url;
 		};
 
-		$welcome_email = null;
+		$welcome_email        = null;
 		$filter_welcome_email = static function ( $email ) use ( &$welcome_email ) {
 			$welcome_email = $email;
 
