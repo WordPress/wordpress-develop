@@ -2076,8 +2076,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		remove_filter( 'image_editor_output_format', $filter, 10 );
-
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'image_output_format', $data );
 		$this->assertSame( 'image/webp', $data['image_output_format'] );
