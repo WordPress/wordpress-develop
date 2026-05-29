@@ -490,7 +490,8 @@ class Custom_Background {
 			$default_color = get_theme_support( 'custom-background', 'default-color' );
 		}
 		?>
-<input type="text" name="background-color" id="background-color" value="#<?php echo esc_attr( get_background_color() ); ?>"<?php if ( $default_color ) : ?> data-default-color="#<?php echo esc_attr( $default_color ); ?>"<?php endif; ?>>
+<input type="text" name="background-color" id="background-color" value="#<?php echo esc_attr( get_background_color() ); ?>"<?php if ( $default_color ) : ?>
+	data-default-color="#<?php echo esc_attr( $default_color ); ?>"<?php endif; ?>>
 </fieldset></td>
 </tr>
 </tbody>
